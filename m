@@ -1,98 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:57431 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755619Ab3L3Mt0 (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2837 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753543Ab3LNL27 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 07:49:26 -0500
-Received: by mail-ee0-f45.google.com with SMTP id d49so4955067eek.18
-        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:25 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+	Sat, 14 Dec 2013 06:28:59 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 03/18] libdvbv5: VCT table cleanup
-Date: Mon, 30 Dec 2013 13:48:36 +0100
-Message-Id: <1388407731-24369-3-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 06/15] saa7134: add support for control events.
+Date: Sat, 14 Dec 2013 12:28:28 +0100
+Message-Id: <1387020517-26242-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/descriptors/vct.h  | 10 ++++++----
- lib/libdvbv5/descriptors/vct.c |  3 ++-
- 2 files changed, 8 insertions(+), 5 deletions(-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/lib/include/descriptors/vct.h b/lib/include/descriptors/vct.h
-index 6272b43..2d269dc 100644
---- a/lib/include/descriptors/vct.h
-+++ b/lib/include/descriptors/vct.h
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2013 - Mauro Carvalho Chehab <m.chehab@samsung.com>
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -35,14 +36,14 @@ struct dvb_table_vct_channel {
- 	uint16_t	__short_name[7];
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa7134-empress.c | 19 +++++++++++++----
+ drivers/media/pci/saa7134/saa7134-video.c   | 32 +++++++++++++++++++++--------
+ 2 files changed, 38 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index 2ef670d..a0af5c7 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -23,11 +23,12 @@
+ #include <linux/kernel.h>
+ #include <linux/delay.h>
  
- 	union {
--		uint16_t bitfield1;
-+		uint32_t bitfield1;
- 		struct {
- 			uint32_t	modulation_mode:8;
- 			uint32_t	minor_channel_number:10;
- 			uint32_t	major_channel_number:10;
- 			uint32_t	reserved1:4;
- 		} __attribute__((packed));
--	};
-+	} __attribute__((packed));
- 
- 	uint32_t	carrier_frequency;
- 	uint16_t	channel_tsid;
-@@ -60,7 +61,8 @@ struct dvb_table_vct_channel {
- 			uint16_t	ETM_location:2;
- 
- 		} __attribute__((packed));
--	};
-+	} __attribute__((packed));
+-#include "saa7134-reg.h"
+-#include "saa7134.h"
+-
+ #include <media/saa6752hs.h>
+ #include <media/v4l2-common.h>
++#include <media/v4l2-event.h>
 +
- 	uint16_t source_id;
- 	union {
- 		uint16_t bitfield3;
-@@ -68,7 +70,7 @@ struct dvb_table_vct_channel {
- 			uint16_t descriptors_length:10;
- 			uint16_t reserved3:6;
- 		} __attribute__((packed));
--	};
-+	} __attribute__((packed));
++#include "saa7134-reg.h"
++#include "saa7134.h"
  
- 	/*
- 	 * Everything after descriptor (including it) won't be bit-mapped
-diff --git a/lib/libdvbv5/descriptors/vct.c b/lib/libdvbv5/descriptors/vct.c
-index e703c52..c1578ad 100644
---- a/lib/libdvbv5/descriptors/vct.c
-+++ b/lib/libdvbv5/descriptors/vct.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2013 - Mauro Carvalho Chehab <m.chehab@samsung.com>
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -74,7 +75,7 @@ void dvb_table_vct_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
- 		bswap32(channel->carrier_frequency);
- 		bswap16(channel->channel_tsid);
- 		bswap16(channel->program_number);
--		bswap16(channel->bitfield1);
-+		bswap32(channel->bitfield1);
- 		bswap16(channel->bitfield2);
- 		bswap16(channel->source_id);
- 		bswap16(channel->bitfield3);
+ /* ------------------------------------------------------------------ */
+ 
+@@ -144,9 +145,16 @@ ts_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+ static unsigned int
+ ts_poll(struct file *file, struct poll_table_struct *wait)
+ {
++	unsigned long req_events = poll_requested_events(wait);
+ 	struct saa7134_dev *dev = video_drvdata(file);
++	struct saa7134_fh *fh = file->private_data;
++	unsigned int rc = 0;
+ 
+-	return videobuf_poll_stream(file, &dev->empress_tsq, wait);
++	if (v4l2_event_pending(&fh->fh))
++		rc = POLLPRI;
++	else if (req_events & POLLPRI)
++		poll_wait(file, &fh->fh.wait, wait);
++	return rc | videobuf_poll_stream(file, &dev->empress_tsq, wait);
+ }
+ 
+ 
+@@ -255,6 +263,9 @@ static const struct v4l2_ioctl_ops ts_ioctl_ops = {
+ 	.vidioc_s_input			= saa7134_s_input,
+ 	.vidioc_s_std			= saa7134_s_std,
+ 	.vidioc_g_std			= saa7134_g_std,
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+ /* ----------------------------------------------------------- */
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 5e2d61c1c..5cf9cc6 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -27,11 +27,13 @@
+ #include <linux/slab.h>
+ #include <linux/sort.h>
+ 
+-#include "saa7134-reg.h"
+-#include "saa7134.h"
+ #include <media/v4l2-common.h>
++#include <media/v4l2-event.h>
+ #include <media/saa6588.h>
+ 
++#include "saa7134-reg.h"
++#include "saa7134.h"
++
+ /* ------------------------------------------------------------------ */
+ 
+ unsigned int video_debug;
+@@ -1169,14 +1171,20 @@ video_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+ static unsigned int
+ video_poll(struct file *file, struct poll_table_struct *wait)
+ {
++	unsigned long req_events = poll_requested_events(wait);
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct saa7134_dev *dev = video_drvdata(file);
+ 	struct saa7134_fh *fh = file->private_data;
+ 	struct videobuf_buffer *buf = NULL;
+ 	unsigned int rc = 0;
+ 
++	if (v4l2_event_pending(&fh->fh))
++		rc = POLLPRI;
++	else if (req_events & POLLPRI)
++		poll_wait(file, &fh->fh.wait, wait);
++
+ 	if (vdev->vfl_type == VFL_TYPE_VBI)
+-		return videobuf_poll_stream(file, &dev->vbi, wait);
++		return rc | videobuf_poll_stream(file, &dev->vbi, wait);
+ 
+ 	if (res_check(fh, RESOURCE_VIDEO)) {
+ 		mutex_lock(&dev->cap.vb_lock);
+@@ -1201,15 +1209,14 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ 		goto err;
+ 
+ 	poll_wait(file, &buf->done, wait);
+-	if (buf->state == VIDEOBUF_DONE ||
+-	    buf->state == VIDEOBUF_ERROR)
+-		rc = POLLIN|POLLRDNORM;
++	if (buf->state == VIDEOBUF_DONE || buf->state == VIDEOBUF_ERROR)
++		rc |= POLLIN | POLLRDNORM;
+ 	mutex_unlock(&dev->cap.vb_lock);
+ 	return rc;
+ 
+ err:
+ 	mutex_unlock(&dev->cap.vb_lock);
+-	return POLLERR;
++	return rc | POLLERR;
+ }
+ 
+ static int video_release(struct file *file)
+@@ -1291,13 +1298,14 @@ static unsigned int radio_poll(struct file *file, poll_table *wait)
+ {
+ 	struct saa7134_dev *dev = video_drvdata(file);
+ 	struct saa6588_command cmd;
++	unsigned int rc = v4l2_ctrl_poll(file, wait);
+ 
+ 	cmd.instance = file;
+ 	cmd.event_list = wait;
+-	cmd.result = -ENODEV;
++	cmd.result = 0;
+ 	saa_call_all(dev, core, ioctl, SAA6588_CMD_POLL, &cmd);
+ 
+-	return cmd.result;
++	return rc | cmd.result;
+ }
+ 
+ /* ------------------------------------------------------------------ */
+@@ -2097,6 +2105,9 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_g_register              = vidioc_g_register,
+ 	.vidioc_s_register              = vidioc_s_register,
+ #endif
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+ static const struct v4l2_file_operations radio_fops = {
+@@ -2114,6 +2125,9 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ 	.vidioc_s_tuner		= radio_s_tuner,
+ 	.vidioc_g_frequency	= saa7134_g_frequency,
+ 	.vidioc_s_frequency	= saa7134_s_frequency,
++	.vidioc_log_status	= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event	= v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ /* ----------------------------------------------------------- */
 -- 
-1.8.3.2
+1.8.4.3
 
