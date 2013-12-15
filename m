@@ -1,137 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48632 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932254Ab3LDP2e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 10:28:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 1/5] v4l: atmel-isi: remove SOF wait in start_streaming()
-Date: Wed,  4 Dec 2013 16:28:32 +0100
-Message-Id: <1386170916-13723-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1386170916-13723-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1386170916-13723-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3524 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753596Ab3LODdy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Dec 2013 22:33:54 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBF3Xopf025238
+	for <linux-media@vger.kernel.org>; Sun, 15 Dec 2013 04:33:52 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id AF1402A2224
+	for <linux-media@vger.kernel.org>; Sun, 15 Dec 2013 04:33:38 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131215033338.AF1402A2224@tschai.lan>
+Date: Sun, 15 Dec 2013 04:33:38 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Josh Wu <josh.wu@atmel.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-when a userspace applications calls the VIDIOC_STREAMON ioctl. The
-V4L2 core calls the soc_camera_streamon function, which is responsible
-for starting the video stream. It does so by first starting the atmel-isi
-host by a call to the vb2_streamon function, and then starting the sensor
-by a call to the video.s_stream sensor subdev operation.
+Results of the daily build of media_tree:
 
-That means we wait for a SOF in start_streaming() before call sensor's
-s_stream(). It is possible no VSYNC interrupt arrive as the sensor
-hasn't been started yet.
+date:		Sun Dec 15 04:00:32 CET 2013
+git branch:	test
+git hash:	675722b0e3917c6c917f1aa5f6d005cd3a0479f5
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-To avoid such case, this patch remove the code to wait for the VSYNC
-interrupt. And such code is not necessary.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12-i686: WARNINGS
+linux-3.13-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/platform/soc_camera/atmel-isi.c | 47 +--------------------------
- 1 file changed, 1 insertion(+), 46 deletions(-)
+Detailed results are available here:
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 1044856..b46c0ed 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -34,13 +34,6 @@
- #define MIN_FRAME_RATE			15
- #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
- 
--/* ISI states */
--enum {
--	ISI_STATE_IDLE = 0,
--	ISI_STATE_READY,
--	ISI_STATE_WAIT_SOF,
--};
--
- /* Frame buffer descriptor */
- struct fbd {
- 	/* Physical address of the frame buffer */
-@@ -75,11 +68,6 @@ struct atmel_isi {
- 	void __iomem			*regs;
- 
- 	int				sequence;
--	/* State of the ISI module in capturing mode */
--	int				state;
--
--	/* Wait queue for waiting for SOF */
--	wait_queue_head_t		vsync_wq;
- 
- 	struct vb2_alloc_ctx		*alloc_ctx;
- 
-@@ -207,12 +195,6 @@ static irqreturn_t isi_interrupt(int irq, void *dev_id)
- 		isi_writel(isi, ISI_INTDIS, ISI_CTRL_DIS);
- 		ret = IRQ_HANDLED;
- 	} else {
--		if ((pending & ISI_SR_VSYNC) &&
--				(isi->state == ISI_STATE_IDLE)) {
--			isi->state = ISI_STATE_READY;
--			wake_up_interruptible(&isi->vsync_wq);
--			ret = IRQ_HANDLED;
--		}
- 		if (likely(pending & ISI_SR_CXFR_DONE))
- 			ret = atmel_isi_handle_streaming(isi);
- 	}
-@@ -407,43 +389,17 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
--
- 	u32 sr = 0;
--	int ret;
- 
- 	spin_lock_irq(&isi->lock);
--	isi->state = ISI_STATE_IDLE;
--	/* Clear any pending SOF interrupt */
-+	/* Clear any pending interrupt */
- 	sr = isi_readl(isi, ISI_STATUS);
--	/* Enable VSYNC interrupt for SOF */
--	isi_writel(isi, ISI_INTEN, ISI_SR_VSYNC);
--	isi_writel(isi, ISI_CTRL, ISI_CTRL_EN);
--	spin_unlock_irq(&isi->lock);
--
--	dev_dbg(icd->parent, "Waiting for SOF\n");
--	ret = wait_event_interruptible(isi->vsync_wq,
--				       isi->state != ISI_STATE_IDLE);
--	if (ret)
--		goto err;
--
--	if (isi->state != ISI_STATE_READY) {
--		ret = -EIO;
--		goto err;
--	}
- 
--	spin_lock_irq(&isi->lock);
--	isi->state = ISI_STATE_WAIT_SOF;
--	isi_writel(isi, ISI_INTDIS, ISI_SR_VSYNC);
- 	if (count)
- 		start_dma(isi, isi->active);
- 	spin_unlock_irq(&isi->lock);
- 
- 	return 0;
--err:
--	isi->active = NULL;
--	isi->sequence = 0;
--	INIT_LIST_HEAD(&isi->video_buffer_list);
--	return ret;
- }
- 
- /* abort streaming and wait for last buffer */
-@@ -965,7 +921,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	isi->pdata = pdata;
- 	isi->active = NULL;
- 	spin_lock_init(&isi->lock);
--	init_waitqueue_head(&isi->vsync_wq);
- 	INIT_LIST_HEAD(&isi->video_buffer_list);
- 	INIT_LIST_HEAD(&isi->dma_desc_head);
- 
--- 
-1.8.3.2
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
