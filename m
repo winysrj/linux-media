@@ -1,67 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36769 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753813Ab3LNN6u (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:11803 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753903Ab3LOLa2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 08:58:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, Josh Wu <josh.wu@atmel.com>
-Subject: Re: [GIT PULL FOR v3.14] Atmel ISI patches
-Date: Sat, 14 Dec 2013 14:59:04 +0100
-Message-ID: <2443796.n0B4KP2NLJ@avalon>
-In-Reply-To: <Pine.LNX.4.64.1312140631130.31318@axis700.grange>
-References: <1408503.CfMV1Tiy7q@avalon> <Pine.LNX.4.64.1312140631130.31318@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sun, 15 Dec 2013 06:30:28 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MXU003IMIMRZF60@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 15 Dec 2013 06:30:27 -0500 (EST)
+Date: Sun, 15 Dec 2013 09:30:22 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC v2 0/7] V4L2 SDR API
+Message-id: <20131215093022.5e6e8d37.m.chehab@samsung.com>
+In-reply-to: <52AC99C1.4050108@iki.fi>
+References: <1387037729-1977-1-git-send-email-crope@iki.fi>
+ <52AC8B20.906@iki.fi> <52AC8FD6.2080504@xs4all.nl> <52AC99C1.4050108@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Em Sat, 14 Dec 2013 19:47:45 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-On Saturday 14 December 2013 06:34:05 Guennadi Liakhovetski wrote:
-> On Sat, 14 Dec 2013, Laurent Pinchart wrote:
-> > Hi Mauro,
-> > 
-> > The following changes since commit 
-675722b0e3917c6c917f1aa5f6d005cd3a0479f5:
-> >   Merge branch 'upstream-fixes' into patchwork (2013-12-13 05:04:00 -0200)
-> > 
-> > are available in the git repository at:
-> >   git://linuxtv.org/pinchartl/media.git atmel/isi
+> On 14.12.2013 19:05, Hans Verkuil wrote:
+> > On 12/14/2013 05:45 PM, Antti Palosaari wrote:
+> >> Hello
+> >> One possible problem I noticed is device node name.
+> >>
+> >> Documentation/devices.txt
+> >>
+> >>    65 block	SCSI disk devices (16-31)
+> >> 		  0 = /dev/sdq		17th SCSI disk whole disk
+> >> 		 16 = /dev/sdr		18th SCSI disk whole disk
+> >> 		 32 = /dev/sds		19th SCSI disk whole disk
+> >> 		    ...
+> >> 		240 = /dev/sdaf		32nd SCSI disk whole disk
+> >>
+> >> 		Partitions are handled in the same way as for IDE
+> >> 		disks (see major number 3) except that the limit on
+> >> 		partitions is 15.
+> >>
+> >>
+> >>    81 char	video4linux
+> >> 		  0 = /dev/video0	Video capture/overlay device
+> >> 		    ...
+> >> 		 63 = /dev/video63	Video capture/overlay device
+> >> 		 64 = /dev/radio0	Radio device
+> >> 		    ...
+> >> 		127 = /dev/radio63	Radio device
+> >> 		224 = /dev/vbi0		Vertical blank interrupt
+> >> 		    ...
+> >> 		255 = /dev/vbi31	Vertical blank interrupt
+> >>
+> >>
+> >> What I understand, /dev/sdr is not suitable node name as it conflicts
+> >> with existing node name.
+> >
+> > Good catch, that won't work :-)
+> >
+> >> Any ideas?
+> >
+> > /dev/sdradio?
 > 
-> Thanks for your patches. Any specific reason you're asking Mauro to pull
-> directly from you instead of letting them go via my tree as usual for
-> soc-camera patches?
+> /dev/swradio?
+> 
+> 
+> Lets do a small poll here. Everyone, but me, has a one vote ;)
 
-Just that I wasn't aware they should go through your tree. Sorry about that. 
-Could you please handle the pull request then ?
+I vote for swradio.
 
-> > for you to fetch changes up to 8f94dee5c528d1334fd1cb548966757ba2cf1431:
-> >   v4l: atmel-isi: Should clear bits before set the hardware register
-> > 
-> > (2013-12-14 03:46:39 +0100)
-> > 
-> > ----------------------------------------------------------------
-> > 
-> > Josh Wu (2):
-> >       v4l: atmel-isi: remove SOF wait in start_streaming()
-> >       v4l: atmel-isi: Should clear bits before set the hardware register
-> > 
-> > Laurent Pinchart (5):
-> >       v4l: atmel-isi: Use devm_* managed allocators
-> >       v4l: atmel-isi: Defer clock (un)preparation to enable/disable time
-> >       v4l: atmel-isi: Reset the ISI when starting the stream
-> >       v4l: atmel-isi: Make the MCK clock optional
-> >       v4l: atmel-isi: Fix color component ordering
-> >  
-> >  drivers/media/platform/soc_camera/atmel-isi.c | 179  ++++++--------------
-> >  include/media/atmel-isi.h                     |   2 +
-> >  2 files changed, 55 insertions(+), 126 deletions(-)
+The patches look ok to me, provided that you add the proper DocBook
+bits on each of them.
+
+I didn't like much that now have 3 ways to describe frequencies.
+I think we should latter think on moving the frequency conversion to
+the core, and use u64 with 1Hz step at the internal API, converting all
+the drivers to use it.
+
+IMHO, we should also provide a backward-compatible way that would allow
+userspace to choose to use u64 1-Hz-stepping frequencies.
+
+Of course the changes at the drivers is out of the scope, but perhaps
+we should not apply patch 4/7, replacing it, instead, by some patch that
+would move the frequency size to u64.
+
+> 
+> regards
+> Antti
+
 
 -- 
-Regards,
 
-Laurent Pinchart
-
+Cheers,
+Mauro
