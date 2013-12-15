@@ -1,28 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outrelay03.libero.it ([212.52.84.103]:49143 "EHLO
-	outrelay03.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756467Ab3LTAJO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 19:09:14 -0500
-Message-ID: <431105558.7356121387498131727.JavaMail.defaultUser@defaultHost>
-Date: Fri, 20 Dec 2013 01:08:51 +0100 (CET)
-From: annstokesz <annstokeszzzzz@libero.it>
-Reply-To: ann55u@yahoo.fr
-Subject: Hello dear
+Received: from mout.gmx.net ([212.227.15.15]:58732 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753979Ab3LOAMh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Dec 2013 19:12:37 -0500
+Received: from 3capp-gmx-bs46.server.lan ([172.19.170.98]) by
+ mrigmx.server.lan (mrigmx001) with ESMTP (Nemesis) id
+ 0MbvXU-1W8yCw1FGo-00JIEa for <linux-media@vger.kernel.org>; Sun, 15 Dec 2013
+ 01:12:36 +0100
 MIME-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Message-ID: <trinity-3c856476-f7bf-4d9b-b00d-707bcf956c5b-1387066356197@3capp-gmx-bs46>
+From: =?UTF-8?Q?=22Sven_M=C3=BCller=22?= <xpert-reactos@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: Card with si2165
+Content-Type: text/plain; charset=UTF-8
+Date: Sun, 15 Dec 2013 01:12:36 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello dear
-I will be very happy to be your friend.
-My name is miss. Ann Stokes. Please i will like you to
-write me through my email address ( ann55u@yahoo.fr ) .
-I will send my pictures to you and also tell you more about
-myself when i receive your email.
-I will be waiting for your mail in my mail box.
-Your new friend.
-Ann
+Hello!
+
+I found with google, that some people were disscussing this chip. 
+Has anyone written drivers? I own a card this chip, maybe I can help to test it....
+
 
