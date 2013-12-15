@@ -1,54 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39168 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750721Ab3LJThL (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:34623 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752011Ab3LOWiZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 14:37:11 -0500
-Date: Tue, 10 Dec 2013 21:36:37 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] omap3isp: Fix buffer flags handling when querying buffer
-Message-ID: <20131210193636.GP30652@valkosipuli.retiisi.org.uk>
-References: <1386640419-2922-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1386640419-2922-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sun, 15 Dec 2013 17:38:25 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Olivier GRENIE <olivier.grenie@parrot.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] dib8000: improves the auto search mode check logic
+Date: Sun, 15 Dec 2013 17:35:20 -0200
+Message-Id: <1387136120-11754-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 10, 2013 at 02:53:39AM +0100, Laurent Pinchart wrote:
-> A missing break resulted in all done buffers being flagged with
-> V4L2_BUF_FLAG_QUEUED. Fix it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/platform/omap3isp/ispqueue.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-> index e15f013..5f0f8fa 100644
-> --- a/drivers/media/platform/omap3isp/ispqueue.c
-> +++ b/drivers/media/platform/omap3isp/ispqueue.c
-> @@ -553,8 +553,10 @@ static void isp_video_buffer_query(struct isp_video_buffer *buf,
->  	switch (buf->state) {
->  	case ISP_BUF_STATE_ERROR:
->  		vbuf->flags |= V4L2_BUF_FLAG_ERROR;
-> +		/* Fallthrough */
->  	case ISP_BUF_STATE_DONE:
->  		vbuf->flags |= V4L2_BUF_FLAG_DONE;
-> +		break;
->  	case ISP_BUF_STATE_QUEUED:
->  	case ISP_BUF_STATE_ACTIVE:
->  		vbuf->flags |= V4L2_BUF_FLAG_QUEUED;
+The logic that detects if auto search mode should be used is too
+complex.
 
-Oh, how is it possible this bug has passed through the review? :-) Nice fix!
+Also, it doesn't cover all cases, as the dib8000_tune logic
+requires either auto mode or a fully specified manual mode.
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+So, move it to a separate function and add some extra debug
+data to help identifying when it falled back to auto mode,
+because the manual settings are invalid.
 
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/dib8000.c | 118 ++++++++++++++++++++++++++--------
+ 1 file changed, 90 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index 063232afecd6..f11c9f8f35b3 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -2873,6 +2873,91 @@ static int dib8090p_init_sdram(struct dib8000_state *state)
+ 	return 0;
+ }
+ 
++/**
++ * is_manual_mode - Check if TMCC should be used for parameters settings
++ * @c:	struct dvb_frontend_properties
++ *
++ * By default, TMCC table should be used for parameter settings on most
++ * usercases. However, sometimes it is desirable to lock the demod to
++ * use the manual parameters.
++ *
++ * On manual mode, the current dib8000_tune state machine is very restrict:
++ * It requires that both per-layer and per-transponder parameters to be
++ * properly specified, otherwise the device won't lock.
++ *
++ * Check if all those conditions are properly satisfied before allowing
++ * the device to use the manual frequency lock mode.
++ */
++static int is_manual_mode(struct dtv_frontend_properties *c)
++{
++	int i, n_segs = 0;
++
++	/* Use auto mode on DVB-T compat mode */
++	if (c->delivery_system != SYS_ISDBT)
++		return 0;
++
++	/*
++	 * Transmission mode is only detected on auto mode, currently
++	 */
++	if (c->transmission_mode == TRANSMISSION_MODE_AUTO) {
++		dprintk("transmission mode auto");
++		return 0;
++	}
++
++	/*
++	 * Guard interval is only detected on auto mode, currently
++	 */
++	if (c->guard_interval == GUARD_INTERVAL_AUTO) {
++		dprintk("guard interval auto");
++		return 0;
++	}
++
++	/*
++	 * If no layer is enabled, assume auto mode, as at least one
++	 * layer should be enabled
++	 */
++	if (!c->isdbt_layer_enabled) {
++		dprintk("no layer modulation specified");
++		return 0;
++	}
++
++	/*
++	 * Check if the per-layer parameters aren't auto and
++	 * disable a layer if segment count is 0 or invalid.
++	 */
++	for (i = 0; i < 3; i++) {
++		if (!(c->isdbt_layer_enabled & 1 << i))
++			continue;
++
++		if ((c->layer[i].segment_count > 13) ||
++		    (c->layer[i].segment_count == 0)) {
++			c->isdbt_layer_enabled &= ~(1 << i);
++			continue;
++		}
++
++		n_segs += c->layer[i].segment_count;
++
++		if ((c->layer[i].modulation == QAM_AUTO) ||
++		    (c->layer[i].fec == FEC_AUTO)) {
++			dprintk("layer %c has either modulation or FEC auto",
++				'A' + i);
++			return 0;
++		}
++	}
++
++	/*
++	 * Userspace specified a wrong number of segments.
++	 *	fallback to auto mode.
++	 */
++	if (n_segs == 0 || n_segs > 13) {
++		dprintk("number of segments is invalid");
++		return 0;
++	}
++
++	/* Everything looks ok for manual mode */
++	return 1;
++}
++
+ static int dib8000_tune(struct dvb_frontend *fe)
+ {
+ 	struct dib8000_state *state = fe->demodulator_priv;
+@@ -2901,37 +2986,14 @@ static int dib8000_tune(struct dvb_frontend *fe)
+ 			if (state->revision == 0x8090)
+ 				dib8090p_init_sdram(state);
+ 			state->status = FE_STATUS_TUNE_PENDING;
+-			if ((c->delivery_system != SYS_ISDBT) ||
+-					(c->inversion == INVERSION_AUTO) ||
+-					(c->transmission_mode == TRANSMISSION_MODE_AUTO) ||
+-					(c->guard_interval == GUARD_INTERVAL_AUTO) ||
+-					(((c->isdbt_layer_enabled & (1 << 0)) != 0) &&
+-					 (c->layer[0].segment_count != 0xff) &&
+-					 (c->layer[0].segment_count != 0) &&
+-					 ((c->layer[0].modulation == QAM_AUTO) ||
+-					  (c->layer[0].fec == FEC_AUTO))) ||
+-					(((c->isdbt_layer_enabled & (1 << 1)) != 0) &&
+-					 (c->layer[1].segment_count != 0xff) &&
+-					 (c->layer[1].segment_count != 0) &&
+-					 ((c->layer[1].modulation == QAM_AUTO) ||
+-					  (c->layer[1].fec == FEC_AUTO))) ||
+-					(((c->isdbt_layer_enabled & (1 << 2)) != 0) &&
+-					 (c->layer[2].segment_count != 0xff) &&
+-					 (c->layer[2].segment_count != 0) &&
+-					 ((c->layer[2].modulation == QAM_AUTO) ||
+-					  (c->layer[2].fec == FEC_AUTO))) ||
+-					(((c->layer[0].segment_count == 0) ||
+-					  ((c->isdbt_layer_enabled & (1 << 0)) == 0)) &&
+-					 ((c->layer[1].segment_count == 0) ||
+-					  ((c->isdbt_layer_enabled & (2 << 0)) == 0)) &&
+-					 ((c->layer[2].segment_count == 0) || ((c->isdbt_layer_enabled & (3 << 0)) == 0))))
+-				state->channel_parameters_set = 0; /* auto search */
+-			else
+-				state->channel_parameters_set = 1; /* channel parameters are known */
++			state->channel_parameters_set = is_manual_mode(c);
++
++			dprintk("Tuning channel on %s search mode",
++				state->channel_parameters_set ? "manual" : "auto");
+ 
+ 			dib8000_viterbi_state(state, 0); /* force chan dec in restart */
+ 
+-			/* Layer monit */
++			/* Layer monitor */
+ 			dib8000_write_word(state, 285, dib8000_read_word(state, 285) & 0x60);
+ 
+ 			dib8000_set_frequency_offset(state);
 -- 
-Cheers,
+1.8.3.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
