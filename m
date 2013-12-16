@@ -1,48 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44099 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755844Ab3LDA4b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 19:56:31 -0500
-Received: from avalon.ideasonboard.com (unknown [91.177.177.98])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8562635A6A
-	for <linux-media@vger.kernel.org>; Wed,  4 Dec 2013 01:55:39 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:55233 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750839Ab3LPWIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Dec 2013 17:08:24 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 10/25] v4l: omap4iss: isif: Ignore VD0 interrupts when no buffer is available
-Date: Wed,  4 Dec 2013 01:56:10 +0100
-Message-Id: <1386118585-12449-11-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v3 2/7] v4l: 1 Hz resolution flag for tuners
+Date: Tue, 17 Dec 2013 00:08:03 +0200
+Message-Id: <1387231688-8647-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1387231688-8647-1-git-send-email-crope@iki.fi>
+References: <1387231688-8647-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ISIF generates VD0 interrupts even when writes are disabled.
-Disabling the ISIF when no buffer is available is thus not be enough, we
-need to handle the situation explicitly.
+Add V4L2_TUNER_CAP_1HZ for 1 Hz resolution.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/staging/media/omap4iss/iss_ipipeif.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ include/uapi/linux/videodev2.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
-index 3d6cc88..47fb1d6 100644
---- a/drivers/staging/media/omap4iss/iss_ipipeif.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
-@@ -235,6 +235,13 @@ static void ipipeif_isr_buffer(struct iss_ipipeif_device *ipipeif)
- {
- 	struct iss_buffer *buffer;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 3fff116..97a5e50 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1341,6 +1341,7 @@ struct v4l2_modulator {
+ #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
+ #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
+ #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
++#define V4L2_TUNER_CAP_1HZ		0x1000
  
-+	/* The ISIF generates VD0 interrupts even when writes are disabled.
-+	 * deal with it anyway). Disabling the ISIF when no buffer is available
-+	 * is thus not be enough, we need to handle the situation explicitly.
-+	 */
-+	if (list_empty(&ipipeif->video_out.dmaqueue))
-+		return;
-+
- 	ipipeif_write_enable(ipipeif, 0);
- 
- 	buffer = omap4iss_video_buffer_next(&ipipeif->video_out);
+ /*  Flags for the 'rxsubchans' field */
+ #define V4L2_TUNER_SUB_MONO		0x0001
 -- 
-1.8.3.2
+1.8.4.2
 
