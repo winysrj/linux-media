@@ -1,133 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:58503 "EHLO smtp.gentoo.org"
+Received: from smtp.gentoo.org ([140.211.166.183]:57670 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755454Ab3LIF6Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Dec 2013 00:58:24 -0500
-Message-ID: <52A55BFA.2060402@gentoo.org>
-Date: Mon, 09 Dec 2013 06:58:18 +0100
+	id S1752286Ab3LPUUL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Dec 2013 15:20:11 -0500
+Message-ID: <52AF6075.7030202@gentoo.org>
+Date: Mon, 16 Dec 2013 21:20:05 +0100
 From: Matthias Schwarzott <zzam@gentoo.org>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH REVIEW 03/18] Montage M88DS3103 DVB-S/S2 demodulator driver
-References: <1386541895-8634-1-git-send-email-crope@iki.fi> <1386541895-8634-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1386541895-8634-4-git-send-email-crope@iki.fi>
+To: =?UTF-8?B?U3ZlbiBNw7xsbGVy?= <xpert-reactos@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: Aw: Re: Card with si2165
+References: <trinity-3c856476-f7bf-4d9b-b00d-707bcf956c5b-1387066356197@3capp-gmx-bs46>, <52AE1020.9020908@gentoo.org> <trinity-3abf9a2f-d1ae-4948-b124-7d2aa566b28c-1387182406449@3capp-gmx-bs08>
+In-Reply-To: <trinity-3abf9a2f-d1ae-4948-b124-7d2aa566b28c-1387182406449@3capp-gmx-bs08>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
-I have a small suggestion, see below.
+On 16.12.2013 09:26, "Sven Müller" wrote:
+> 
+> I have a Hauppauge WINTV HVR 5500-HD.
+> 
 
-On 08.12.2013 23:31, Antti Palosaari wrote:
-> diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-> new file mode 100644
-> index 0000000..91b3729
-> --- /dev/null
-> +++ b/drivers/media/dvb-frontends/m88ds3103.c
-> @@ -0,0 +1,1293 @@
-> +/*
-> + * Montage M88DS3103 demodulator driver
-> + *
-> + * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
-> + *
-> + *    This program is free software; you can redistribute it and/or modify
-> + *    it under the terms of the GNU General Public License as published by
-> + *    the Free Software Foundation; either version 2 of the License, or
-> + *    (at your option) any later version.
-> + *
-> + *    This program is distributed in the hope that it will be useful,
-> + *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *    GNU General Public License for more details.
-> + *
-> + *    You should have received a copy of the GNU General Public License along
-> + *    with this program; if not, write to the Free Software Foundation, Inc.,
-> + *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-> + */
-> +
-> +#include "m88ds3103_priv.h"
-> +
-> +static struct dvb_frontend_ops m88ds3103_ops;
-> +
-> +/* write multiple registers */
-> +static int m88ds3103_wr_regs(struct m88ds3103_priv *priv,
-> +		u8 reg, const u8 *val, int len)
-> +{
-> +	int ret;
-> +	u8 buf[1 + len];
+Hi
 
-Looking at the recent patches for variable length arrays, I think this
-should be converted to fixed size.
+I think first you should check if this is exactly the same card as you
+have: http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-5500
 
-> +	struct i2c_msg msg[1] = {
-> +		{
-> +			.addr = priv->cfg->i2c_addr,
-> +			.flags = 0,
-> +			.len = sizeof(buf),
-> +			.buf = buf,
-> +		}
-> +	};
-> +
-> +	buf[0] = reg;
-> +	memcpy(&buf[1], val, len);
-> +
-> +	mutex_lock(&priv->i2c_mutex);
-> +	ret = i2c_transfer(priv->i2c, msg, 1);
-> +	mutex_unlock(&priv->i2c_mutex);
-> +	if (ret == 1) {
-> +		ret = 0;
-> +	} else {
-> +		dev_warn(&priv->i2c->dev,
-> +				"%s: i2c wr failed=%d reg=%02x len=%d\n",
-> +				KBUILD_MODNAME, ret, reg, len);
-> +		ret = -EREMOTEIO;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +/* read multiple registers */
-> +static int m88ds3103_rd_regs(struct m88ds3103_priv *priv,
-> +		u8 reg, u8 *val, int len)
-> +{
-> +	int ret;
-> +	u8 buf[len];
+Then either update this page or create a new one for your card.
+Please also add pictures from front/back of your card.
 
-Same as above.
+As far as I understand the HVR 5500-HD is not yet supported in any way.
+Best you follow this page in the wiki:
+http://linuxtv.org/wiki/index.php/Development:_How_to_add_support_for_a_device
 
-> +	struct i2c_msg msg[2] = {
-> +		{
-> +			.addr = priv->cfg->i2c_addr,
-> +			.flags = 0,
-> +			.len = 1,
-> +			.buf = &reg,
-> +		}, {
-> +			.addr = priv->cfg->i2c_addr,
-> +			.flags = I2C_M_RD,
-> +			.len = sizeof(buf),
-> +			.buf = buf,
-> +		}
-> +	};
-> +
-> +	mutex_lock(&priv->i2c_mutex);
-> +	ret = i2c_transfer(priv->i2c, msg, 2);
-> +	mutex_unlock(&priv->i2c_mutex);
-> +	if (ret == 2) {
-> +		memcpy(val, buf, len);
-> +		ret = 0;
-> +	} else {
-> +		dev_warn(&priv->i2c->dev,
-> +				"%s: i2c rd failed=%d reg=%02x len=%d\n",
-> +				KBUILD_MODNAME, ret, reg, len);
-> +		ret = -EREMOTEIO;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
+Maybe it is enough to use the cx2388x driver and do an i2c scan to find
+out about the addresses of the components combined with chip names.
+
+But most likely at least some values need to be compared to windows.
+I have not yet tried sniffing PCI-traffic, but there is some work to
+pass pci traffic between qemu and real pci cards.
 
 Regards
 Matthias
-
 
