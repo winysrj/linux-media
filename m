@@ -1,182 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2088 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753188Ab3LMOpd (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3204 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752321Ab3LPDdy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Dec 2013 09:45:33 -0500
-Message-ID: <52AB1D71.6060000@xs4all.nl>
-Date: Fri, 13 Dec 2013 15:45:05 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC 2/2] v4l2: enable FMT IOCTLs for SDR
-References: <1386867447-1018-1-git-send-email-crope@iki.fi> <1386867447-1018-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1386867447-1018-3-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sun, 15 Dec 2013 22:33:54 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBG3XpmG013386
+	for <linux-media@vger.kernel.org>; Mon, 16 Dec 2013 04:33:53 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 19BA92A2226
+	for <linux-media@vger.kernel.org>; Mon, 16 Dec 2013 04:33:38 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131216033338.19BA92A2226@tschai.lan>
+Date: Mon, 16 Dec 2013 04:33:38 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2013 05:57 PM, Antti Palosaari wrote:
-> Enable format IOCTLs for SDR use. There are used for negotiate used
-> data stream format.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c   | 12 ++++++++++++
->  drivers/media/v4l2-core/v4l2-ioctl.c | 26 ++++++++++++++++++++++++++
->  2 files changed, 38 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index c9cf54c..d67286ba 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -563,6 +563,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
->  	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
->  	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
->  	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
-> +	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
->  	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
->  	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
->  
-> @@ -612,6 +613,17 @@ static void determine_valid_ioctls(struct video_device *vdev)
->  	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
->  		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
->  
-> +	if (is_sdr && is_rx) {
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I would drop the is_rx part. If there even is something like a SDR transmitter,
-then I would still expect that the same ioctls are needed.
+Results of the daily build of media_tree:
 
-> +		/* SDR specific ioctls */
-> +		if (ops->vidioc_enum_fmt_vid_cap)
-> +			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
-> +		if (ops->vidioc_g_fmt_vid_cap)
-> +			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
-> +		if (ops->vidioc_s_fmt_vid_cap)
-> +			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
-> +		if (ops->vidioc_try_fmt_vid_cap)
-> +			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+date:		Mon Dec 16 04:00:28 CET 2013
+git branch:	test
+git hash:	675722b0e3917c6c917f1aa5f6d005cd3a0479f5
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-We need sdr-specific ops: vidioc_enum/g/s/try_sdr_cap.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12-i686: WARNINGS
+linux-3.13-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-> +	}
->  	if (is_vid) {
->  		/* video specific ioctls */
->  		if ((is_rx && (ops->vidioc_enum_fmt_vid_cap ||
+Detailed results are available here:
 
-You also need to split up the large 'if (!is_radio)' part:
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-        if (!is_radio) {
-                /* ioctls valid for video, vbi or sdr */
-                SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
-                SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
-                SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
-                SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
-                SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
-                SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
-                SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
-	}
-	if (!is_radio && !is_sdr) {
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-	Hans
+The Media Infrastructure API from this daily build is here:
 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 5b6e0e8..2471179 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -879,6 +879,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
->  	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
->  	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
->  	bool is_vbi = vfd->vfl_type == VFL_TYPE_VBI;
-> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
->  	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
->  	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
->  
-> @@ -928,6 +929,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
->  		if (is_vbi && is_tx && ops->vidioc_g_fmt_sliced_vbi_out)
->  			return 0;
->  		break;
-> +	case V4L2_BUF_TYPE_SDR_RX:
-> +		if (is_sdr && is_rx && ops->vidioc_g_fmt_vid_cap)
-> +			return 0;
-> +		break;
->  	default:
->  		break;
->  	}
-> @@ -1047,6 +1052,10 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!is_tx || !ops->vidioc_enum_fmt_vid_out_mplane))
->  			break;
->  		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
-> +	case V4L2_BUF_TYPE_SDR_RX:
-> +		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_vid_cap))
-> +			break;
-> +		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
->  	}
->  	return -EINVAL;
->  }
-> @@ -1057,6 +1066,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
->  	struct v4l2_format *p = arg;
->  	struct video_device *vfd = video_devdata(file);
->  	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
-> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
->  	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
->  	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
->  
-> @@ -1101,6 +1111,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!is_tx || is_vid || !ops->vidioc_g_fmt_sliced_vbi_out))
->  			break;
->  		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
-> +	case V4L2_BUF_TYPE_SDR_RX:
-> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_vid_cap))
-> +			break;
-> +		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
->  	}
->  	return -EINVAL;
->  }
-> @@ -1111,6 +1125,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->  	struct v4l2_format *p = arg;
->  	struct video_device *vfd = video_devdata(file);
->  	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
-> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
->  	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
->  	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
->  
-> @@ -1165,6 +1180,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.sliced);
->  		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
-> +	case V4L2_BUF_TYPE_SDR_RX:
-> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_vid_cap))
-> +			break;
-> +		CLEAR_AFTER_FIELD(p, fmt.sdr);
-> +		return ops->vidioc_s_fmt_vid_cap(file, fh, arg);
->  	}
->  	return -EINVAL;
->  }
-> @@ -1175,6 +1195,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->  	struct v4l2_format *p = arg;
->  	struct video_device *vfd = video_devdata(file);
->  	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
-> +	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
->  	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
->  	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
->  
-> @@ -1229,6 +1250,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.sliced);
->  		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
-> +	case V4L2_BUF_TYPE_SDR_RX:
-> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_vid_cap))
-> +			break;
-> +		CLEAR_AFTER_FIELD(p, fmt.sdr);
-> +		return ops->vidioc_try_fmt_vid_cap(file, fh, arg);
->  	}
->  	return -EINVAL;
->  }
-> 
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
