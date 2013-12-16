@@ -1,32 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f173.google.com ([209.85.216.173]:39224 "EHLO
-	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932365Ab3LaAtH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 19:49:07 -0500
-Received: by mail-qc0-f173.google.com with SMTP id m20so11295778qcx.4
-        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 16:49:05 -0800 (PST)
-Received: from mythbox.ladodomain ([64.184.115.227])
-        by mx.google.com with ESMTPSA id c10sm59245862qaq.16.2013.12.30.16.49.03
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Mon, 30 Dec 2013 16:49:04 -0800 (PST)
-Message-ID: <52C2147E.4010902@gmail.com>
-Date: Mon, 30 Dec 2013 19:49:02 -0500
-From: Bob Lightfoot <boblfoot@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:36337 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754689Ab3LPQvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Dec 2013 11:51:05 -0500
+Message-ID: <52AF2F72.7030203@iki.fi>
+Date: Mon, 16 Dec 2013 18:50:58 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Question about cx23885 and tda8290 modules
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC v2 0/7] V4L2 SDR API
+References: <1387037729-1977-1-git-send-email-crope@iki.fi> <52AC8B20.906@iki.fi> <52AC8FD6.2080504@xs4all.nl> <52AC99C1.4050108@iki.fi> <20131215093022.5e6e8d37.m.chehab@samsung.com>
+In-Reply-To: <20131215093022.5e6e8d37.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello:
-	I am running Centos 6.5 with their 2.6.32-431.1.2.0.1.el6.x86_64
-kernel.  My tuner card is seen as cx23885 and tda8290.  I have a
-/dev/dvb/adapter0 and /dev/video0 , /dev/video1 but do not see a
-/dev/radio.  the dmesg output is showing a radio tuner.  What is
-missing that I don't get a /dev/radio.
+On 15.12.2013 13:30, Mauro Carvalho Chehab wrote:
+> Em Sat, 14 Dec 2013 19:47:45 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 14.12.2013 19:05, Hans Verkuil wrote:
+>>> On 12/14/2013 05:45 PM, Antti Palosaari wrote:
 
-Bob Lightfoot
+> I didn't like much that now have 3 ways to describe frequencies.
+> I think we should latter think on moving the frequency conversion to
+> the core, and use u64 with 1Hz step at the internal API, converting all
+> the drivers to use it.
+>
+> IMHO, we should also provide a backward-compatible way that would allow
+> userspace to choose to use u64 1-Hz-stepping frequencies.
+>
+> Of course the changes at the drivers is out of the scope, but perhaps
+> we should not apply patch 4/7, replacing it, instead, by some patch that
+> would move the frequency size to u64.
+
+Frequency is defined by that structure.
+
+struct v4l2_frequency {
+	__u32	tuner;
+	__u32	type;	/* enum v4l2_tuner_type */
+	__u32	frequency;
+	__u32	reserved[8];
+};
+
+
+Is it possible to somehow use reserved bytes to extend value to 64. Then 
+change that 1-Hz flag (rename it) to signal it is 64?
+
+Or add some info to that struct itself? Define both frequency and 
+frequency64 and use the one which is not zero?
+
+If implementation will not be very complex I could try to do it it the 
+same time with other changes.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
