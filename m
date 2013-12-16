@@ -1,77 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58617 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751399Ab3LLIgT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Dec 2013 03:36:19 -0500
-From: Archit Taneja <archit@ti.com>
-To: <linux-media@vger.kernel.org>, <k.debski@samsung.com>,
-	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>
-CC: <linux-omap@vger.kernel.org>, <tomi.valkeinen@ti.com>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH 0/8] v4l: ti-vpe: Add support for scaling and color conversion
-Date: Thu, 12 Dec 2013 14:05:56 +0530
-Message-ID: <1386837364-1264-1-git-send-email-archit@ti.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:18638 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462Ab3LPUUk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Dec 2013 15:20:40 -0500
+Date: Mon, 16 Dec 2013 23:19:50 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] [media] v4l: omap4iss: use snprintf() to make smatch happy
+Message-ID: <20131216201950.GA19601@elgon.mountain>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VPE and VIP IPs in DRA7x contain common scaler and color conversion hardware
-blocks. We create libraries for these components such that the vpe driver and
-the vip driver(in future) can use these library funcs to configure the blocks.
+Smatch complains here because name is a 32 character buffer and we
+adding the "OMAP4 ISS " prefix as well for a total of 42 characters.
+The sd->name buffer can only hold 32 characters.  I've changed it to use
+snprintf() to silence the overflow warning.
 
-There are some points for which I would like comments:
+Also I have removed the call to strlcpy() which is a no-op.
 
-- For VPE, setting the format and colorspace for the source and destination
-  queues is enough to determine how these blocks need to be configured and
-  whether they need to be bypassed or not. So it didn't make sense to represent
-  them as media controller entities. For VIP(driver not upstream yet), it's
-  possible that there are multiple data paths which may or may not include these
-  blocks. However, the current use cases don't require such flexibility. There
-  may be a need to re-consider a media controller like setup once we work on the
-  VIP driver. Is it a good idea in terms of user-space compatibilty if we use
-  media controller framework in the future.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-- These blocks will also require some custom control commands later on. For
-  example, we may want to tell the scaler later on to perform bi-linear
-  scaling, or perform peaking at a particular frequency.
-
-- The current series keeps the default scaler coefficients in a header file.
-  These coefficients add a lot of lines of code in the kernel. Does it make more
-  sense for the user application to pass the co-efficients to the kernel using
-  an ioctl? Is there any driver which currenlty does this?
-
-The series is based on the branch:
-
-git://linuxtv.org/media_tree.git master
-
-Archit Taneja (8):
-  v4l: ti-vpe: create a scaler block library
-  v4l: ti-vpe: support loading of scaler coefficients
-  v4l: ti-vpe: make vpe driver load scaler coefficients
-  v4l: ti-vpe: enable basic scaler support
-  v4l: ti-vpe: create a color space converter block library
-  v4l: ti-vpe: Add helper to perform color conversion
-  v4l: ti-vpe: enable CSC support for VPE
-  v4l: ti-vpe: Add a type specifier to describe vpdma data format type
-
- drivers/media/platform/ti-vpe/Makefile   |    2 +-
- drivers/media/platform/ti-vpe/csc.c      |  196 +++++
- drivers/media/platform/ti-vpe/csc.h      |   68 ++
- drivers/media/platform/ti-vpe/sc.c       |  311 +++++++
- drivers/media/platform/ti-vpe/sc.h       |  208 +++++
- drivers/media/platform/ti-vpe/sc_coeff.h | 1342 ++++++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/vpdma.c    |   36 +-
- drivers/media/platform/ti-vpe/vpdma.h    |    7 +
- drivers/media/platform/ti-vpe/vpe.c      |  251 ++++--
- drivers/media/platform/ti-vpe/vpe_regs.h |  187 -----
- 10 files changed, 2335 insertions(+), 273 deletions(-)
- create mode 100644 drivers/media/platform/ti-vpe/csc.c
- create mode 100644 drivers/media/platform/ti-vpe/csc.h
- create mode 100644 drivers/media/platform/ti-vpe/sc.c
- create mode 100644 drivers/media/platform/ti-vpe/sc.h
- create mode 100644 drivers/media/platform/ti-vpe/sc_coeff.h
-
--- 
-1.8.3.2
-
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index 0ee8381c738d..7ab05126be5d 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -1273,8 +1273,7 @@ static int csi2_init_entities(struct iss_csi2_device *csi2, const char *subname)
+ 	v4l2_subdev_init(sd, &csi2_ops);
+ 	sd->internal_ops = &csi2_internal_ops;
+ 	sprintf(name, "CSI2%s", subname);
+-	strlcpy(sd->name, "", sizeof(sd->name));
+-	sprintf(sd->name, "OMAP4 ISS %s", name);
++	snprintf(sd->name, sizeof(sd->name), "OMAP4 ISS %s", name);
+ 
+ 	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
+ 	v4l2_set_subdevdata(sd, csi2);
