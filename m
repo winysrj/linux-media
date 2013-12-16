@@ -1,111 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3273 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236Ab3LLDWP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 22:22:15 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBC3MCbL012657
-	for <linux-media@vger.kernel.org>; Thu, 12 Dec 2013 04:22:14 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 88DEE2A2224
-	for <linux-media@vger.kernel.org>; Thu, 12 Dec 2013 04:22:04 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131212032204.88DEE2A2224@tschai.lan>
-Date: Thu, 12 Dec 2013 04:22:04 +0100 (CET)
+Received: from mail.kapsi.fi ([217.30.184.167]:54818 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753755Ab3LPOla (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Dec 2013 09:41:30 -0500
+Message-ID: <52AF1116.2040006@iki.fi>
+Date: Mon, 16 Dec 2013 16:41:26 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC v2 3/7] v4l: add new tuner types for SDR
+References: <1387037729-1977-1-git-send-email-crope@iki.fi> <1387037729-1977-4-git-send-email-crope@iki.fi> <52AEBF6E.2090107@xs4all.nl> <52AEF3C9.9020906@iki.fi> <52AEF732.5080908@xs4all.nl> <52AF0BF0.3090403@iki.fi> <52AF0D54.1070602@xs4all.nl>
+In-Reply-To: <52AF0D54.1070602@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 16.12.2013 16:25, Hans Verkuil wrote:
+> On 12/16/2013 03:19 PM, Antti Palosaari wrote:
+>> On 16.12.2013 14:50, Hans Verkuil wrote:
+>>> On 12/16/2013 01:36 PM, Antti Palosaari wrote:
+>>>> On 16.12.2013 10:53, Hans Verkuil wrote:
+>>>>> On 12/14/2013 05:15 PM, Antti Palosaari wrote:
+>>>>
+>>>>>> @@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+>>>>>>     	struct video_device *vfd = video_devdata(file);
+>>>>>>     	struct v4l2_frequency *p = arg;
+>>>>>>
+>>>>>> -	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>>>>>> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>>>>>> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+>>>>>> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+>>>>>> +			return -EINVAL;
+>>>>>
+>>>>> This is wrong. As you mentioned in patch 1, the type field should always be set by
+>>>>> the driver. So type is not something that is set by the user.
+>>>>>
+>>>>> I would just set type to V4L2_TUNER_ADC here (all SDR devices have at least an ADC
+>>>>> tuner), and let the driver change it to TUNER_RF if this tuner is really an RF
+>>>>> tuner.
+>>>>
+>>>> I don't think so. It sounds very stupid to handle tuner type with
+>>>> different meaning in that single case - it sounds just a is a mistake
+>>>> (and that SDR case mistakes are not needed continue as no regressions
+>>>> apply). I can say I was very puzzled what is the reason my tuner type is
+>>>> always changed to wrong, until finally found it was overridden here.
+>>>>
+>>>> For me this looks more than it is just forced to "some" suitable value
+>>>> in a case app does not fill it correctly - not the way driver should
+>>>> return it to app. Tuner ID and type are here for Kernel driver could
+>>>> identify not the opposite and that is how it should be without unneeded
+>>>> exceptions.
+>>>>
+>>>> Also, API does not specify that kind of different meaning for tuner type
+>>>> in a case of g_frequency.
+>>>>
+>>>> Have to search some history where that odds is coming from...
+>>>
+>>> The application *does not set type* when calling G_FREQUENCY. The driver has
+>>> to fill that in. So the type field as received from the application is
+>>> uninitialized. That's the way the spec was defined, and that's the way
+>>> applications use G_FREQUENCY. There is nothing you can do about that.
+>>>
+>>> So drivers have to fill in the type based on vfl_type and the tuner index.
+>>> Since drivers often didn't do that the vfl_type check has been moved to the
+>>> v4l2 core. In the case of SDR the type is actually dependent on the tuner
+>>> index, so the core cannot fully initialize the type field.
+>>>
+>>> You can either leave it uninitialized for vfl_type SDR and leave it to the
+>>> SDR driver to fill in the type, or you can set it to ADC so the driver
+>>> only has to update the type field if the tuner index corresponds to the
+>>> RF tuner.
+>>
+>>
+>> commit 227690df75382e46a4f6ea1bbc5df855a674b47f
+>> Author: Hans Verkuil <hans.verkuil@cisco.com>
+>> Date:   Sun Jun 12 06:36:41 2011 -0300
+>>
+>>       [media] v4l2-ioctl.c: prefill tuner type for g_frequency and g/s_tuner
+>>
+>>       The subdevs are supposed to receive a valid tuner type for the
+>> g_frequency
+>
+> This talks about the *subdevs*. The low-level tuner ops implemented by
+> sub-devices expected a valid type field. That field had to be filled in
+> by bridge drivers, and they often did not do that, or filled in the wrong
+> type.
+>
+>>       and g/s_tuner subdev ops. Some drivers do this, others don't. So
+>> prefill
+>>       this in v4l2-ioctl.c based on whether the device node from which
+>> this is
+>>       called is a radio node or not.
+>>
+>>       The spec does not require applications to fill in the type, and if they
+>         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Results of the daily build of media_tree:
+Yes, I saw it was not required. And thats why I saw now it is possible 
+to fix in a case of SDR device. You can check if it is set correctly 
+without fear of possible regressions. Implementation I made left 
+functionality for any other devices than SDR to old "don't care about 
+tuner type".
 
-date:		Thu Dec 12 04:00:31 CET 2013
-git branch:	test
-git hash:	989af88339db26345e23271dae1089d949c4a0f1
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+>>       leave it at 0 then the 'check_mode' call in tuner-core.c will return
+>>       an error and the ioctl does nothing.
+>>
+>>       Cc: stable@kernel.org
+>>       Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>       Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12-i686: ERRORS
-linux-3.13-rc1-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12-x86_64: ERRORS
-linux-3.13-rc1-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+That is the patch where tuner type overridden (for g_frequency) was 
+added. It does not say type is field aimed for reporting type to 
+application, instead it says Kernel driver needs it and as applications 
+are not setting always, just override some reasonable values.
 
-Detailed results are available here:
+I cannot see why you are against proper validation of tuner type got 
+from app in a case of g_frequency (and it looks even more strange as 
+type is validated for s_frequency).
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+regards
+Antti
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
