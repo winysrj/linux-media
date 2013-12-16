@@ -1,108 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:53546 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755792Ab3LELjE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 06:39:04 -0500
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	laurent.pinchart@ideasonboard.com,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Grant Likely <grant.likely@linaro.org>
-Subject: [PATCH v10 2/2] s5k5baf: add DT bindings for camera sensor
-Date: Thu, 05 Dec 2013 12:38:40 +0100
-Message-id: <1386243520-17117-3-git-send-email-a.hajda@samsung.com>
-In-reply-to: <1386243520-17117-1-git-send-email-a.hajda@samsung.com>
-References: <1386243520-17117-1-git-send-email-a.hajda@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:44081 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753685Ab3LPOTc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Dec 2013 09:19:32 -0500
+Message-ID: <52AF0BF0.3090403@iki.fi>
+Date: Mon, 16 Dec 2013 16:19:28 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC v2 3/7] v4l: add new tuner types for SDR
+References: <1387037729-1977-1-git-send-email-crope@iki.fi> <1387037729-1977-4-git-send-email-crope@iki.fi> <52AEBF6E.2090107@xs4all.nl> <52AEF3C9.9020906@iki.fi> <52AEF732.5080908@xs4all.nl>
+In-Reply-To: <52AEF732.5080908@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch adds the DT bindings documentation for
-Samsung S5K5BAF Image Sensor.
+On 16.12.2013 14:50, Hans Verkuil wrote:
+> On 12/16/2013 01:36 PM, Antti Palosaari wrote:
+>> On 16.12.2013 10:53, Hans Verkuil wrote:
+>>> On 12/14/2013 05:15 PM, Antti Palosaari wrote:
+>>
+>>>> @@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+>>>>    	struct video_device *vfd = video_devdata(file);
+>>>>    	struct v4l2_frequency *p = arg;
+>>>>
+>>>> -	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>>>> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>>>> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+>>>> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+>>>> +			return -EINVAL;
+>>>
+>>> This is wrong. As you mentioned in patch 1, the type field should always be set by
+>>> the driver. So type is not something that is set by the user.
+>>>
+>>> I would just set type to V4L2_TUNER_ADC here (all SDR devices have at least an ADC
+>>> tuner), and let the driver change it to TUNER_RF if this tuner is really an RF
+>>> tuner.
+>>
+>> I don't think so. It sounds very stupid to handle tuner type with
+>> different meaning in that single case - it sounds just a is a mistake
+>> (and that SDR case mistakes are not needed continue as no regressions
+>> apply). I can say I was very puzzled what is the reason my tuner type is
+>> always changed to wrong, until finally found it was overridden here.
+>>
+>> For me this looks more than it is just forced to "some" suitable value
+>> in a case app does not fill it correctly - not the way driver should
+>> return it to app. Tuner ID and type are here for Kernel driver could
+>> identify not the opposite and that is how it should be without unneeded
+>> exceptions.
+>>
+>> Also, API does not specify that kind of different meaning for tuner type
+>> in a case of g_frequency.
+>>
+>> Have to search some history where that odds is coming from...
+>
+> The application *does not set type* when calling G_FREQUENCY. The driver has
+> to fill that in. So the type field as received from the application is
+> uninitialized. That's the way the spec was defined, and that's the way
+> applications use G_FREQUENCY. There is nothing you can do about that.
+>
+> So drivers have to fill in the type based on vfl_type and the tuner index.
+> Since drivers often didn't do that the vfl_type check has been moved to the
+> v4l2 core. In the case of SDR the type is actually dependent on the tuner
+> index, so the core cannot fully initialize the type field.
+>
+> You can either leave it uninitialized for vfl_type SDR and leave it to the
+> SDR driver to fill in the type, or you can set it to ADC so the driver
+> only has to update the type field if the tuner index corresponds to the
+> RF tuner.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
----
-v10
-- bindings moved to separate patch,
-- improved clocks description.
----
- .../devicetree/bindings/media/samsung-s5k5baf.txt  | 58 ++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
-new file mode 100644
-index 0000000..1f51e04
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
-@@ -0,0 +1,58 @@
-+Samsung S5K5BAF UXGA 1/5" 2M CMOS Image Sensor with embedded SoC ISP
-+--------------------------------------------------------------------
-+
-+Required properties:
-+
-+- compatible	  : "samsung,s5k5baf";
-+- reg		  : I2C slave address of the sensor;
-+- vdda-supply	  : analog power supply 2.8V (2.6V to 3.0V);
-+- vddreg-supply	  : regulator input power supply 1.8V (1.7V to 1.9V)
-+		    or 2.8V (2.6V to 3.0);
-+- vddio-supply	  : I/O power supply 1.8V (1.65V to 1.95V)
-+		    or 2.8V (2.5V to 3.1V);
-+- stbyn-gpios	  : GPIO connected to STDBYN pin;
-+- rstn-gpios	  : GPIO connected to RSTN pin;
-+- clocks	  : list of phandle and clock specifier pairs
-+		    according to common clock bindings for the
-+		    clocks described in clock-names;
-+- clock-names	  : should include "mclk" for the sensor's master clock;
-+
-+Optional properties:
-+
-+- clock-frequency : the frequency at which the "mclk" clock should be
-+		    configured to operate, in Hz; if this property is not
-+		    specified default 24 MHz value will be used.
-+
-+The device node should contain one 'port' child node with one child 'endpoint'
-+node, according to the bindings defined in Documentation/devicetree/bindings/
-+media/video-interfaces.txt. The following are properties specific to those
-+nodes.
-+
-+endpoint node
-+-------------
-+
-+- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
-+	       video-interfaces.txt. If present it should be <1> - the device
-+	       supports only one data lane without re-mapping.
-+
-+Example:
-+
-+s5k5bafx@2d {
-+	compatible = "samsung,s5k5baf";
-+	reg = <0x2d>;
-+	vdda-supply = <&cam_io_en_reg>;
-+	vddreg-supply = <&vt_core_15v_reg>;
-+	vddio-supply = <&vtcam_reg>;
-+	stbyn-gpios = <&gpl2 0 1>;
-+	rstn-gpios = <&gpl2 1 1>;
-+	clock-names = "mclk";
-+	clocks = <&clock_cam 0>;
-+	clock-frequency = <24000000>;
-+
-+	port {
-+		s5k5bafx_ep: endpoint {
-+			remote-endpoint = <&csis1_ep>;
-+			data-lanes = <1>;
-+		};
-+	};
-+};
+commit 227690df75382e46a4f6ea1bbc5df855a674b47f
+Author: Hans Verkuil <hans.verkuil@cisco.com>
+Date:   Sun Jun 12 06:36:41 2011 -0300
+
+     [media] v4l2-ioctl.c: prefill tuner type for g_frequency and g/s_tuner
+
+     The subdevs are supposed to receive a valid tuner type for the 
+g_frequency
+     and g/s_tuner subdev ops. Some drivers do this, others don't. So 
+prefill
+     this in v4l2-ioctl.c based on whether the device node from which 
+this is
+     called is a radio node or not.
+
+     The spec does not require applications to fill in the type, and if they
+     leave it at 0 then the 'check_mode' call in tuner-core.c will return
+     an error and the ioctl does nothing.
+
+     Cc: stable@kernel.org
+     Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+
 -- 
-1.8.3.2
-
+http://palosaari.fi/
