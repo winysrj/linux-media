@@ -1,48 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3514 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490Ab3LJNZU (ORCPT
+Received: from juliette.telenet-ops.be ([195.130.137.74]:60555 "EHLO
+	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419Ab3LPT5v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 08:25:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 13/15] adv7604: set restart_stdi_once flag when signal is lost.
-Date: Tue, 10 Dec 2013 14:23:18 +0100
-Message-Id: <a27f389ba9707230ed567cc7a5e62ddb3726e5ab.1386681716.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
-References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+	Mon, 16 Dec 2013 14:57:51 -0500
+Message-ID: <1387223868.2892.1.camel@piranha.localdomain>
+Subject: Re: stable regression: tda18271_read_regs: [1-0060|M] ERROR:
+ i2c_transfer returned: -19
+From: Frederik Himpe <fhimpe@telenet.be>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	stable@vger.kernel.org
+Date: Mon, 16 Dec 2013 20:57:48 +0100
+In-Reply-To: <20131214092443.622b069d@samsung.com>
+References: <1386969579.3914.13.camel@piranha.localdomain>
+	 <20131214092443.622b069d@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+On za, 2013-12-14 at 09:24 -0200, Mauro Carvalho Chehab wrote:
+> Em Fri, 13 Dec 2013 22:19:39 +0100
+> Frederik Himpe <fhimpe@telenet.be> escreveu:
+> 
+> > [My excuses for multiposting, it seems gmane does not permit posting to all
+> > the relevant lists]
+> > 
+> > Since upgrading my system from Linux 3.12 to 3.12.3, my PCTV Systems
+> > nanoStick T2 290e does not work anymore.
+> > 
+> > This happens with 3.12.3:
+> > 
 
-If the restart_stdi_once trick fails to find a valid
-format the flag was never reset.
+> > [    3.844020] tda18271 1-0060: creating new instance
+> > [    3.868422] tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer returned: -19
+> > [    3.868492] Error reading device ID @ 1-0060, bailing out.
+> > [    3.868548] tda18271_attach: [1-0060|M] error -5 on line 1285
+> > [    3.868603] tda18271 1-0060: destroying instance
+> > [    3.868666] Em28xx: Initialized (Em28xx dvb Extension) extension
+> > [    3.894687] Registered IR keymap rc-pinnacle-pctv-hd
+> > [    3.894819] input: em28xx IR (em28174 #0) as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.7/rc/rc0/input23
+> > [    3.894979] rc0: em28xx IR (em28174 #0) as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.7/rc/rc0
+> > [    3.895570] Em28xx: Initialized (Em28xx Input Extension) extension
+> > 
+> > I see the same problem reported here:
+> > https://github.com/Hexxeh/rpi-firmware/issues/38 where it is mentioned
+> > that this regression also appeared in 3.10 stable series recently.
+> > 
+> > I noticed upstream commit 8393796dfa4cf5dffcceec464c7789bec3a2f471
+> > (media: dvb-frontends: Don't use dynamic static allocation)
+> > entered both 3.10.22 (which is the first version introducing the
+> > regression in 3.10 stable according to the linked bug), and 3.12.3.
+> > This file contains stuff related to tda18271. Could this be the 
+> > culprit?
+> > 
+> 
+> Well, for board EM28174_BOARD_PCTV_290E, it first attaches cxd2820r
+> and then the tuner tda18271.
+> 
+> I suspect that the issue is at cxd2820r. Could you please apply this
+> patch:
+> 	http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=0db3fa2741ad8371c21b3a6785416a4afc0cc1d4 
+> and see if it solves the issue?
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Cc: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 1 +
- 1 file changed, 1 insertion(+)
+I have applied this patch to 3.12.5 and I can confirm it works fine now.
+Can this patch be applied to the stable series in order to fix this
+regression in stable?
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index cbeda0f..0e69b24 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1216,6 +1216,7 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
- 	memset(timings, 0, sizeof(struct v4l2_dv_timings));
- 
- 	if (no_signal(sd)) {
-+		state->restart_stdi_once = true;
- 		v4l2_dbg(1, debug, sd, "%s: no valid signal\n", __func__);
- 		return -ENOLINK;
- 	}
+
 -- 
-1.8.4.rc3
+Frederik Himpe <fhimpe@telenet.be>
 
