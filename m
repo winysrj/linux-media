@@ -1,110 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44098 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754129Ab3LDA40 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 19:56:26 -0500
-Received: from avalon.ideasonboard.com (unknown [91.177.177.98])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 2CBF235AB1
-	for <linux-media@vger.kernel.org>; Wed,  4 Dec 2013 01:55:38 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 02/25] v4l: omap4iss: Don't split log strings on multiple lines
-Date: Wed,  4 Dec 2013 01:56:02 +0100
-Message-Id: <1386118585-12449-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1386118585-12449-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:33540 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752210Ab3LPD0i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Dec 2013 22:26:38 -0500
+Received: by mail-wi0-f175.google.com with SMTP id hi5so1545071wib.2
+        for <linux-media@vger.kernel.org>; Sun, 15 Dec 2013 19:26:36 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1387158047.1563.YahooMailNeo@web120606.mail.ne1.yahoo.com>
+References: <1387158047.1563.YahooMailNeo@web120606.mail.ne1.yahoo.com>
+Date: Sun, 15 Dec 2013 22:26:36 -0500
+Message-ID: <CAGoCfiyJvKR_rs2RhpssBPDtSWbGOYDxqujMDk0KqQgBuQp_mw@mail.gmail.com>
+Subject: Re: [3.12.5] Regression with PCTV 290e DVB-T2 adapter.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Chris Rankin <rankincj@yahoo.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Non-split strings help grepping for messages.
+> I have just tested my PCTV 290e DVB-T2 adapter with 3.12.5 and discovered that it fails with logs of messages like these:
+>
+> [11720.780975] __tda18271_write_regs: [7-0060|M] ERROR: idx = 0x5, len = 1, i2c_transfer returned: -19
+> [11720.788726] tda18271_init: [7-0060|M] error -19 on line 832
+> [11720.793001] tda18271_tune: [7-0060|M] error -19 on line 910
+> [11720.797279] tda18271_set_params: [7-0060|M] error -19 on line 985
+>
+> Reverting to 3.11.10 fixes this problem. I have raised https://bugzilla.kernel.org/show_bug.cgi?id=67041
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/omap4iss/iss.c         |  6 +++---
- drivers/staging/media/omap4iss/iss_csi2.c    | 13 ++++---------
- drivers/staging/media/omap4iss/iss_resizer.c |  5 +----
- drivers/staging/media/omap4iss/iss_video.c   |  4 ++--
- 4 files changed, 10 insertions(+), 18 deletions(-)
+Already reported and fixed.  See the thread that's been going on over
+the last two days named "stable regression: tda18271_read_regs:
+[1-0060|M] ERROR: i2c_transfer returned: -19".
 
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index 3ac986e..53dcb54 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -1073,9 +1073,9 @@ iss_register_subdev_group(struct iss_device *iss,
- 
- 		adapter = i2c_get_adapter(board_info->i2c_adapter_id);
- 		if (adapter == NULL) {
--			dev_err(iss->dev, "%s: Unable to get I2C adapter %d for "
--				"device %s\n", __func__,
--				board_info->i2c_adapter_id,
-+			dev_err(iss->dev,
-+				"%s: Unable to get I2C adapter %d for device %s\n",
-+				__func__, board_info->i2c_adapter_id,
- 				board_info->board_info->type);
- 			continue;
- 		}
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index 9ced9ce..c3a5fca 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -754,8 +754,8 @@ void omap4iss_csi2_isr(struct iss_csi2_device *csi2)
- 					 CSI2_COMPLEXIO_IRQSTATUS);
- 		writel(cpxio1_irqstatus,
- 			csi2->regs1 + CSI2_COMPLEXIO_IRQSTATUS);
--		dev_dbg(iss->dev, "CSI2: ComplexIO Error IRQ "
--			"%x\n", cpxio1_irqstatus);
-+		dev_dbg(iss->dev, "CSI2: ComplexIO Error IRQ %x\n",
-+			cpxio1_irqstatus);
- 		pipe->error = true;
- 	}
- 
-@@ -764,13 +764,8 @@ void omap4iss_csi2_isr(struct iss_csi2_device *csi2)
- 			      CSI2_IRQ_ECC_NO_CORRECTION |
- 			      CSI2_IRQ_COMPLEXIO_ERR |
- 			      CSI2_IRQ_FIFO_OVF)) {
--		dev_dbg(iss->dev, "CSI2 Err:"
--			" OCP:%d,"
--			" Short_pack:%d,"
--			" ECC:%d,"
--			" CPXIO:%d,"
--			" FIFO_OVF:%d,"
--			"\n",
-+		dev_dbg(iss->dev,
-+			"CSI2 Err: OCP:%d SHORT:%d ECC:%d CPXIO:%d OVF:%d\n",
- 			(csi2_irqstatus &
- 			 CSI2_IRQ_OCP_ERR) ? 1 : 0,
- 			(csi2_irqstatus &
-diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
-index cb5df52..e5a3a8cf 100644
---- a/drivers/staging/media/omap4iss/iss_resizer.c
-+++ b/drivers/staging/media/omap4iss/iss_resizer.c
-@@ -321,10 +321,7 @@ void omap4iss_resizer_isr(struct iss_resizer_device *resizer, u32 events)
- 
- 	if (events & (ISP5_IRQ_RSZ_FIFO_IN_BLK |
- 		      ISP5_IRQ_RSZ_FIFO_OVF)) {
--		dev_dbg(iss->dev, "RSZ Err:"
--			" FIFO_IN_BLK:%d,"
--			" FIFO_OVF:%d,"
--			"\n",
-+		dev_dbg(iss->dev, "RSZ Err: FIFO_IN_BLK:%d, FIFO_OVF:%d\n",
- 			(events &
- 			 ISP5_IRQ_RSZ_FIFO_IN_BLK) ? 1 : 0,
- 			(events &
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index 5a92bac..3e543d9 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -324,8 +324,8 @@ static int iss_video_buf_prepare(struct vb2_buffer *vb)
- 
- 	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
- 	if (!IS_ALIGNED(addr, 32)) {
--		dev_dbg(video->iss->dev, "Buffer address must be "
--			"aligned to 32 bytes boundary.\n");
-+		dev_dbg(video->iss->dev,
-+			"Buffer address must be aligned to 32 bytes boundary.\n");
- 		return -EINVAL;
- 	}
- 
+Cheers,
+
+Devin
+
 -- 
-1.8.3.2
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
