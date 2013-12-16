@@ -1,101 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4130 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754068Ab3LJPGI (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2221 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752523Ab3LPIyv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 10:06:08 -0500
+	Mon, 16 Dec 2013 03:54:51 -0500
+Message-ID: <52AEBFBF.7070502@xs4all.nl>
+Date: Mon, 16 Dec 2013 09:54:23 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 14/22] adv7842: mute audio before switching inputs to avoid noise/pops
-Date: Tue, 10 Dec 2013 16:04:00 +0100
-Message-Id: <e642262ddc675bff13ded71b1e204a254fb49af2.1386687810.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
-References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC v2 7/7] v4l: define own IOCTL ops for SDR FMT
+References: <1387037729-1977-1-git-send-email-crope@iki.fi> <1387037729-1977-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1387037729-1977-8-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+On 12/14/2013 05:15 PM, Antti Palosaari wrote:
+> Use own format ops for SDR data:
+> vidioc_enum_fmt_sdr_cap
+> vidioc_g_fmt_sdr_cap
+> vidioc_s_fmt_sdr_cap
+> vidioc_try_fmt_sdr_cap
 
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+The patch order is a bit weird. I would expect this patch to come before patch 6.
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 77b1696..943e578 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -20,10 +20,13 @@
- 
- /*
-  * References (c = chapter, p = page):
-- * REF_01 - Analog devices, ADV7842, Register Settings Recommendations,
-- *		Revision 2.5, June 2010
-+ * REF_01 - Analog devices, ADV7842,
-+ *		Register Settings Recommendations, Rev. 1.9, April 2011
-  * REF_02 - Analog devices, Software User Guide, UG-206,
-  *		ADV7842 I2C Register Maps, Rev. 0, November 2010
-+ * REF_03 - Analog devices, Hardware User Guide, UG-214,
-+ *		ADV7842 Fast Switching 2:1 HDMI 1.4 Receiver with 3D-Comb
-+ *		Decoder and Digitizer , Rev. 0, January 2011
-  */
- 
- 
-@@ -491,6 +494,11 @@ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state->i2c_hdmi, reg, val);
- }
- 
-+static inline int hdmi_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+{
-+	return hdmi_write(sd, reg, (hdmi_read(sd, reg) & mask) | val);
-+}
-+
- static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv7842_state *state = to_state(sd);
-@@ -1457,14 +1465,12 @@ static void enable_input(struct v4l2_subdev *sd)
- 	case ADV7842_MODE_SDP:
- 	case ADV7842_MODE_COMP:
- 	case ADV7842_MODE_RGB:
--		/* enable */
- 		io_write(sd, 0x15, 0xb0);   /* Disable Tristate of Pins (no audio) */
- 		break;
- 	case ADV7842_MODE_HDMI:
--		/* enable */
--		hdmi_write(sd, 0x1a, 0x0a); /* Unmute audio */
- 		hdmi_write(sd, 0x01, 0x00); /* Enable HDMI clock terminators */
- 		io_write(sd, 0x15, 0xa0);   /* Disable Tristate of Pins */
-+		hdmi_write_and_or(sd, 0x1a, 0xef, 0x00); /* Unmute audio */
- 		break;
- 	default:
- 		v4l2_dbg(2, debug, sd, "%s: Unknown mode %d\n",
-@@ -1475,9 +1481,9 @@ static void enable_input(struct v4l2_subdev *sd)
- 
- static void disable_input(struct v4l2_subdev *sd)
- {
--	/* disable */
-+	hdmi_write_and_or(sd, 0x1a, 0xef, 0x10); /* Mute audio [REF_01, c. 2.2.2] */
-+	msleep(16); /* 512 samples with >= 32 kHz sample rate [REF_03, c. 8.29] */
- 	io_write(sd, 0x15, 0xbe);   /* Tristate all outputs from video core */
--	hdmi_write(sd, 0x1a, 0x1a); /* Mute audio */
- 	hdmi_write(sd, 0x01, 0x78); /* Disable HDMI clock terminators */
- }
- 
-@@ -2430,6 +2436,9 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
- 			pdata->replicate_av_codes << 1 |
- 			pdata->invert_cbcr << 0);
- 
-+	/* HDMI audio */
-+	hdmi_write_and_or(sd, 0x1a, 0xf1, 0x08); /* Wait 1 s before unmute */
-+
- 	/* Drive strength */
- 	io_write_and_or(sd, 0x14, 0xc0, pdata->drive_strength.data<<4 |
- 			pdata->drive_strength.clock<<2 |
--- 
-1.8.4.rc3
+Regards,
+
+	Hans
+
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c   |  8 ++++----
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 18 +++++++++---------
+>  include/media/v4l2-ioctl.h           |  8 ++++++++
+>  3 files changed, 21 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index 9f15e25..a84f4ea 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -673,13 +673,13 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>  		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
+>  	} else if (is_sdr) {
+>  		/* SDR specific ioctls */
+> -		if (ops->vidioc_enum_fmt_vid_cap)
+> +		if (ops->vidioc_enum_fmt_sdr_cap)
+>  			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
+> -		if (ops->vidioc_g_fmt_vid_cap)
+> +		if (ops->vidioc_g_fmt_sdr_cap)
+>  			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
+> -		if (ops->vidioc_s_fmt_vid_cap)
+> +		if (ops->vidioc_s_fmt_sdr_cap)
+>  			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
+> -		if (ops->vidioc_try_fmt_vid_cap)
+> +		if (ops->vidioc_try_fmt_sdr_cap)
+>  			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+>  
+>  		if (is_rx) {
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index a7e6b52..18aa36a 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -939,7 +939,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+>  			return 0;
+>  		break;
+>  	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (is_sdr && is_rx && ops->vidioc_g_fmt_vid_cap)
+> +		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
+>  			return 0;
+>  		break;
+>  	default:
+> @@ -1062,9 +1062,9 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
+>  	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_vid_cap))
+> +		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_sdr_cap))
+>  			break;
+> -		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
+> +		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
+>  	}
+>  	return -EINVAL;
+>  }
+> @@ -1121,9 +1121,9 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
+>  	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_vid_cap))
+> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
+>  			break;
+> -		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
+> +		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
+>  	}
+>  	return -EINVAL;
+>  }
+> @@ -1190,10 +1190,10 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>  		CLEAR_AFTER_FIELD(p, fmt.sliced);
+>  		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
+>  	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_vid_cap))
+> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_sdr_cap))
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.sdr);
+> -		return ops->vidioc_s_fmt_vid_cap(file, fh, arg);
+> +		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
+>  	}
+>  	return -EINVAL;
+>  }
+> @@ -1260,10 +1260,10 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>  		CLEAR_AFTER_FIELD(p, fmt.sliced);
+>  		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
+>  	case V4L2_BUF_TYPE_SDR_CAPTURE:
+> -		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_vid_cap))
+> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_sdr_cap))
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.sdr);
+> -		return ops->vidioc_try_fmt_vid_cap(file, fh, arg);
+> +		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
+>  	}
+>  	return -EINVAL;
+>  }
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index e0b74a4..8be32f5 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -40,6 +40,8 @@ struct v4l2_ioctl_ops {
+>  					      struct v4l2_fmtdesc *f);
+>  	int (*vidioc_enum_fmt_vid_out_mplane)(struct file *file, void *fh,
+>  					      struct v4l2_fmtdesc *f);
+> +	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
+> +					    struct v4l2_fmtdesc *f);
+>  
+>  	/* VIDIOC_G_FMT handlers */
+>  	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
+> @@ -62,6 +64,8 @@ struct v4l2_ioctl_ops {
+>  					   struct v4l2_format *f);
+>  	int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh,
+>  					   struct v4l2_format *f);
+> +	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
+> +					struct v4l2_format *f);
+>  
+>  	/* VIDIOC_S_FMT handlers */
+>  	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
+> @@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
+>  					   struct v4l2_format *f);
+>  	int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh,
+>  					   struct v4l2_format *f);
+> +	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
+> +					struct v4l2_format *f);
+>  
+>  	/* VIDIOC_TRY_FMT handlers */
+>  	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
+> @@ -106,6 +112,8 @@ struct v4l2_ioctl_ops {
+>  					     struct v4l2_format *f);
+>  	int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh,
+>  					     struct v4l2_format *f);
+> +	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
+> +					  struct v4l2_format *f);
+>  
+>  	/* Buffer handlers */
+>  	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
+> 
 
