@@ -1,41 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1482 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753530Ab3LNL26 (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:25275 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184Ab3LPJq0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 06:28:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 11/15] saa7134: drop log_status for radio.
-Date: Sat, 14 Dec 2013 12:28:33 +0100
-Message-Id: <1387020517-26242-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 16 Dec 2013 04:46:26 -0500
+Date: Mon, 16 Dec 2013 12:45:44 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Daniel Jeong <gshark.jeong@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] i2c: lm3560: missing unlocks on error in
+ lm3560_set_ctrl()
+Message-ID: <20131216094544.GB13831@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+There are several error paths which don't unlock on error.
 
-There are no controls for the radio node, so just drop support for this ioctl.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa7134-video.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 2334bf9..88e6405 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -2125,7 +2125,6 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- 	.vidioc_s_tuner		= radio_s_tuner,
- 	.vidioc_g_frequency	= saa7134_g_frequency,
- 	.vidioc_s_frequency	= saa7134_s_frequency,
--	.vidioc_log_status	= v4l2_ctrl_log_status,
- 	.vidioc_subscribe_event	= v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
--- 
-1.8.4.3
-
+diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+index ab5857d66f2d..fd96cfd6a9ec 100644
+--- a/drivers/media/i2c/lm3560.c
++++ b/drivers/media/i2c/lm3560.c
+@@ -214,20 +214,22 @@ static int lm3560_set_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
+ 	case V4L2_CID_FLASH_STROBE_SOURCE:
+ 		rval = regmap_update_bits(flash->regmap,
+ 					  REG_CONFIG1, 0x04, (ctrl->val) << 2);
+-		if (rval < 0)
+-			goto err_out;
+ 		break;
+ 
+ 	case V4L2_CID_FLASH_STROBE:
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+-			return -EBUSY;
++		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH) {
++			rval = -EBUSY;
++			goto err_unlock;
++		}
+ 		flash->led_mode = V4L2_FLASH_LED_MODE_FLASH;
+ 		rval = lm3560_mode_ctrl(flash);
+ 		break;
+ 
+ 	case V4L2_CID_FLASH_STROBE_STOP:
+-		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+-			return -EBUSY;
++		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH) {
++			rval = -EBUSY;
++			goto err_unlock;
++		}
+ 		flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
+ 		rval = lm3560_mode_ctrl(flash);
+ 		break;
+@@ -247,8 +249,9 @@ static int lm3560_set_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
+ 		break;
+ 	}
+ 
++err_unlock:
+ 	mutex_unlock(&flash->lock);
+-err_out:
++
+ 	return rval;
+ }
+ 
