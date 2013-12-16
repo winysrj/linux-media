@@ -1,73 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49572 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750948Ab3LPWIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 17:08:24 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v3 4/7] v4l: define own IOCTL ops for SDR FMT
-Date: Tue, 17 Dec 2013 00:08:05 +0200
-Message-Id: <1387231688-8647-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1387231688-8647-1-git-send-email-crope@iki.fi>
-References: <1387231688-8647-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:36316 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752360Ab3LPKZq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Dec 2013 05:25:46 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Olivier GRENIE <olivier.grenie@parrot.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] dib8000: report Interleaving 4 correctly
+Date: Mon, 16 Dec 2013 05:22:39 -0200
+Message-Id: <1387178559-5477-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use own format ops for SDR data:
-vidioc_enum_fmt_sdr_cap
-vidioc_g_fmt_sdr_cap
-vidioc_s_fmt_sdr_cap
-vidioc_try_fmt_sdr_cap
+On ISDB-T, the valid values for interleaving are 0, 1, 2 and 4.
+While the first 3 are properly reported, the last one is reported
+as 3 instead. Fix it.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Tested with a Dektec DTA-2111 RF generator.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- include/media/v4l2-ioctl.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/dvb-frontends/dib8000.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index e0b74a4..8be32f5 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -40,6 +40,8 @@ struct v4l2_ioctl_ops {
- 					      struct v4l2_fmtdesc *f);
- 	int (*vidioc_enum_fmt_vid_out_mplane)(struct file *file, void *fh,
- 					      struct v4l2_fmtdesc *f);
-+	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
-+					    struct v4l2_fmtdesc *f);
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index f11c9f8f35b3..13fdc3d5f762 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -3429,9 +3429,13 @@ static int dib8000_get_frontend(struct dvb_frontend *fe)
+ 		fe->dtv_property_cache.layer[i].segment_count = val & 0x0F;
+ 		dprintk("dib8000_get_frontend : Layer %d segments = %d ", i, fe->dtv_property_cache.layer[i].segment_count);
  
- 	/* VIDIOC_G_FMT handlers */
- 	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -62,6 +64,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh,
- 					   struct v4l2_format *f);
-+	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
+-		val = dib8000_read_word(state, 499 + i);
+-		fe->dtv_property_cache.layer[i].interleaving = val & 0x3;
+-		dprintk("dib8000_get_frontend : Layer %d time_intlv = %d ", i, fe->dtv_property_cache.layer[i].interleaving);
++		val = dib8000_read_word(state, 499 + i) & 0x3;
++		/* Interleaving can be 0, 1, 2 or 4 */
++		if (val == 3)
++			val = 4;
++		fe->dtv_property_cache.layer[i].interleaving = val;
++		dprintk("dib8000_get_frontend : Layer %d time_intlv = %d ",
++			i, fe->dtv_property_cache.layer[i].interleaving);
  
- 	/* VIDIOC_S_FMT handlers */
- 	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh,
- 					   struct v4l2_format *f);
-+	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
- 
- 	/* VIDIOC_TRY_FMT handlers */
- 	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -106,6 +112,8 @@ struct v4l2_ioctl_ops {
- 					     struct v4l2_format *f);
- 	int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh,
- 					     struct v4l2_format *f);
-+	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
-+					  struct v4l2_format *f);
- 
- 	/* Buffer handlers */
- 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
+ 		val = dib8000_read_word(state, 481 + i);
+ 		switch (val & 0x7) {
 -- 
-1.8.4.2
+1.8.3.1
 
