@@ -1,82 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3122 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756099Ab3LTJcM (ORCPT
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:60487 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753042Ab3LPJky (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 04:32:12 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 50/50] adv7842: add drive strength enum and sync names with adv7604.
-Date: Fri, 20 Dec 2013 10:31:43 +0100
-Message-Id: <1387531903-20496-51-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 16 Dec 2013 04:40:54 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	posciak@chromium.org, arunkk.samsung@gmail.com
+Subject: [PATCH v2] [media] s5p-mfc: Add controls to set vp8 enc profile
+Date: Mon, 16 Dec 2013 15:10:42 +0530
+Message-Id: <1387186842-18658-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Kiran AVND <avnd.kiran@samsung.com>
 
-Add a proper driver strength enum and use the same names in the platform
-data as with adv7604.
+Add v4l2 controls to set desired profile for VP8 encoder.
+Acceptable levels for VP8 encoder are
+0: Version 0
+1: Version 1
+2: Version 2
+3: Version 3
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/i2c/adv7842.c |  7 ++++---
- include/media/adv7842.h     | 15 ++++++++++-----
- 2 files changed, 14 insertions(+), 8 deletions(-)
+Changes from v1
+---------------
+- Addressed review comments from Hans and Pawel
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg68970.html
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg68990.html
+---
+ Documentation/DocBook/media/v4l/controls.xml    |    9 +++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   11 +++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    6 ++----
+ drivers/media/v4l2-core/v4l2-ctrls.c            |    1 +
+ include/uapi/linux/v4l2-controls.h              |    1 +
+ 6 files changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 515a870..1effc21 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2541,9 +2541,10 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
- 	hdmi_write_and_or(sd, 0x1a, 0xf1, 0x08); /* Wait 1 s before unmute */
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index e4db4ac..a5a3188 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3193,6 +3193,15 @@ V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame.</entry>
+ 	      <row><entry spanname="descr">Quantization parameter for a P frame for VP8.</entry>
+ 	      </row>
  
- 	/* Drive strength */
--	io_write_and_or(sd, 0x14, 0xc0, pdata->drive_strength.data<<4 |
--			pdata->drive_strength.clock<<2 |
--			pdata->drive_strength.sync);
-+	io_write_and_or(sd, 0x14, 0xc0,
-+			pdata->dr_str_data << 4 |
-+			pdata->dr_str_clk << 2 |
-+			pdata->dr_str_sync);
- 
- 	/* HDMI free run */
- 	cp_write_and_or(sd, 0xba, 0xfc, pdata->hdmi_free_run_enable |
-diff --git a/include/media/adv7842.h b/include/media/adv7842.h
-index d72a8a7..3932209 100644
---- a/include/media/adv7842.h
-+++ b/include/media/adv7842.h
-@@ -108,6 +108,13 @@ enum adv7842_select_input {
- 	ADV7842_SELECT_SDP_YC,
++	      <row><entry></entry></row>
++	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_PROFILE</constant>&nbsp;</entry>
++		<entry>integer</entry>
++	      </row>
++	      <row><entry spanname="descr">Select the desired profile for VPx encoder.
++Acceptable values are 0, 1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.</entry>
++	      </row>
++
+           <row><entry></entry></row>
+         </tbody>
+       </tgroup>
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index d91f757..797e61d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -426,6 +426,7 @@ struct s5p_mfc_vp8_enc_params {
+ 	u8 rc_max_qp;
+ 	u8 rc_frame_qp;
+ 	u8 rc_p_frame_qp;
++	u8 profile;
  };
  
-+enum adv7842_drive_strength {
-+	ADV7842_DR_STR_LOW = 0,
-+	ADV7842_DR_STR_MEDIUM_LOW = 1,
-+	ADV7842_DR_STR_MEDIUM_HIGH = 2,
-+	ADV7842_DR_STR_HIGH = 3,
-+};
-+
- struct adv7842_sdp_csc_coeff {
- 	bool manual;
- 	uint16_t scaling;
-@@ -186,11 +193,9 @@ struct adv7842_platform_data {
- 	unsigned output_bus_lsb_to_msb:1;
+ /**
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 33e8ae3..d4eecae 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -650,6 +650,14 @@ static struct mfc_control controls[] = {
+ 		.step = 1,
+ 		.default_value = 10,
+ 	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_VPX_PROFILE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 3,
++		.step = 1,
++		.default_value = 0,
++	},
+ };
  
- 	/* IO register 0x14 */
--	struct {
--		unsigned data:2;
--		unsigned clock:2;
--		unsigned sync:2;
--	} drive_strength;
-+	enum adv7842_drive_strength dr_str_data;
-+	enum adv7842_drive_strength dr_str_clk;
-+	enum adv7842_drive_strength dr_str_sync;
+ #define NUM_CTRLS ARRAY_SIZE(controls)
+@@ -1601,6 +1609,9 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:
+ 		p->codec.vp8.rc_p_frame_qp = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
++		p->codec.vp8.profile = ctrl->val;
++		break;
+ 	default:
+ 		v4l2_err(&dev->v4l2_dev, "Invalid control, id=%d, val=%d\n",
+ 							ctrl->id, ctrl->val);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index b4886d6..f6ff2db 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -1197,10 +1197,8 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
+ 	reg |= ((p->num_b_frame & 0x3) << 16);
+ 	WRITEL(reg, S5P_FIMV_E_GOP_CONFIG_V6);
  
- 	/*
- 	 * IO register 0x19: Adjustment to the LLC DLL phase in
+-	/* profile & level */
+-	reg = 0;
+-	/** profile */
+-	reg |= (0x1 << 4);
++	/* profile - 0 ~ 3 */
++	reg = p_vp8->profile & 0x3;
+ 	WRITEL(reg, S5P_FIMV_E_PICTURE_PROFILE_V6);
+ 
+ 	/* rate control config. */
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 20840df..6ff002b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -749,6 +749,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_MAX_QP:			return "VPX Maximum QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP:		return "VPX I-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
++	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+ 
+ 	/* CAMERA controls */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 5b9dfc8..9970a9d 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -558,6 +558,7 @@ enum v4l2_vp8_golden_frame_sel {
+ #define V4L2_CID_MPEG_VIDEO_VPX_MAX_QP			(V4L2_CID_MPEG_BASE+508)
+ #define V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP		(V4L2_CID_MPEG_BASE+509)
+ #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
++#define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
+ 
+ /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+ #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
 -- 
-1.8.4.4
+1.7.9.5
 
