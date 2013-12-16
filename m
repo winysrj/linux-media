@@ -1,80 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:60026 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932310Ab3LWFME (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Dec 2013 00:12:04 -0500
-Message-ID: <52B7C5CB.5000709@huawei.com>
-Date: Mon, 23 Dec 2013 13:10:35 +0800
-From: Ding Tianhong <dingtianhong@huawei.com>
+Received: from smtp207.alice.it ([82.57.200.103]:61878 "EHLO smtp207.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751945Ab3LPIWq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Dec 2013 03:22:46 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH 1/2] [media] Documentation/DocBook/media/v4l/subdev-formats.xml: fix a typo
+Date: Mon, 16 Dec 2013 09:16:45 +0100
+Message-Id: <1387181806-17021-2-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1387181806-17021-1-git-send-email-ospite@studenti.unina.it>
+References: <1387181806-17021-1-git-send-email-ospite@studenti.unina.it>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: [PATCH 10/21] media: dvb_core: slight optimization of addr compare
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the recently added and possibly more efficient
-ether_addr_equal_unaligned to instead of memcmp.
+The xref to the v4l2-mbus-pixelcode-yuv8 table gets rendered as "Table
+4.22, “YUV Formats”", so use the verb in the third person singular
+because it refers to "Table":
+  s/list/lists/
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
-Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
 ---
- drivers/media/dvb-core/dvb_net.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index f91c80c..ff00f97 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -179,7 +179,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
- 	eth = eth_hdr(skb);
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index f72c1cc..bbe30cd 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -1178,7 +1178,7 @@
+       U, Y, V, Y order will be named <constant>V4L2_MBUS_FMT_UYVY8_2X8</constant>.
+       </para>
  
- 	if (*eth->h_dest & 1) {
--		if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
-+		if(ether_addr_equal_unaligned(eth->h_dest, dev->broadcast))
- 			skb->pkt_type=PACKET_BROADCAST;
- 		else
- 			skb->pkt_type=PACKET_MULTICAST;
-@@ -674,11 +674,11 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 					if (priv->rx_mode != RX_MODE_PROMISC) {
- 						if (priv->ule_skb->data[0] & 0x01) {
- 							/* multicast or broadcast */
--							if (memcmp(priv->ule_skb->data, bc_addr, ETH_ALEN)) {
-+							if (!ether_addr_equal_unaligned(priv->ule_skb->data, bc_addr)) {
- 								/* multicast */
- 								if (priv->rx_mode == RX_MODE_MULTI) {
- 									int i;
--									for(i = 0; i < priv->multi_num && memcmp(priv->ule_skb->data, priv->multi_macs[i], ETH_ALEN); i++)
-+									for(i = 0; i < priv->multi_num && !ether_addr_equal_unaligned(priv->ule_skb->data, priv->multi_macs[i]); i++)
- 										;
- 									if (i == priv->multi_num)
- 										drop = 1;
-@@ -688,7 +688,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 							}
- 							/* else: broadcast */
- 						}
--						else if (memcmp(priv->ule_skb->data, dev->dev_addr, ETH_ALEN))
-+						else if (!ether_addr_equal_unaligned(priv->ule_skb->data, dev->dev_addr))
- 							drop = 1;
- 						/* else: destination address matches the MAC address of our receiver device */
- 					}
-@@ -837,7 +837,7 @@ static void dvb_net_sec(struct net_device *dev,
- 	}
- 	if (pkt[5] & 0x02) {
- 		/* handle LLC/SNAP, see rfc-1042 */
--		if (pkt_len < 24 || memcmp(&pkt[12], "\xaa\xaa\x03\0\0\0", 6)) {
-+		if (pkt_len < 24 || !ether_addr_equal_unaligned(&pkt[12], "\xaa\xaa\x03\0\0\0")) {
- 			stats->rx_dropped++;
- 			return;
- 		}
+-	<para><xref linkend="v4l2-mbus-pixelcode-yuv8"/> list existing packet YUV
++	<para><xref linkend="v4l2-mbus-pixelcode-yuv8"/> lists existing packet YUV
+ 	formats and describes the organization of each pixel data in each sample.
+ 	When a format pattern is split across multiple samples each of the samples
+ 	in the pattern is described.</para>
 -- 
-1.8.0
-
+1.8.5.1
 
