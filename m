@@ -1,79 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34385 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:48897 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751611Ab3LLTOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Dec 2013 14:14:05 -0500
-Message-ID: <52AA0AF9.1000109@iki.fi>
-Date: Thu, 12 Dec 2013 21:14:01 +0200
+	id S1750863Ab3LPWIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Dec 2013 17:08:24 -0500
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC 3/4] v4l: add new tuner types for SDR
-References: <1386806043-5331-1-git-send-email-crope@iki.fi> <1386806043-5331-4-git-send-email-crope@iki.fi> <52A96ABF.50905@xs4all.nl> <52A9EE96.4050306@iki.fi>
-In-Reply-To: <52A9EE96.4050306@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v3 1/7] v4l: add new tuner types for SDR
+Date: Tue, 17 Dec 2013 00:08:02 +0200
+Message-Id: <1387231688-8647-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1387231688-8647-1-git-send-email-crope@iki.fi>
+References: <1387231688-8647-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12.12.2013 19:12, Antti Palosaari wrote:
-> On 12.12.2013 09:50, Hans Verkuil wrote:
->> On 12/12/2013 12:54 AM, Antti Palosaari wrote:
+Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_RF for SDR usage.
 
->>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
->>> b/drivers/media/v4l2-core/v4l2-ioctl.c
->>> index bc10684..ee91a9f 100644
->>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->>> @@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct
->>> v4l2_ioctl_ops *ops,
->>>       struct video_device *vfd = video_devdata(file);
->>>       struct v4l2_frequency *p = arg;
->>>
->>> -    p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
->>> -            V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->>> +    if (vfd->vfl_type == VFL_TYPE_SDR) {
->>> +        if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
->>> +            return -EINVAL;
->>
->> This isn't right. p->type is returned by the driver, not set by the user.
->> In the case of TYPE_SDR I would just set it to TUNER_SDR and let the
->> driver
->> update it for ADC tuners. You can also just leave it alone. This does
->> make
->> the assumption that SDR and ADC tuners are always separate tuners.
->> I.e., not
->> like radio and TV tuners that can be one physical tuner with two mutually
->> exclusive modes. It's my understanding that that is by definition true
->> for
->> SDR.
->
-> Aaah, so it is possible to use same tuner and that type is aimed for
-> selecting tuner operation mode. Makes sense.
->
-> So if I now understand V4L2 driver model correctly, there should be one
-> tuner that implements different functionality by using tuner type field.
->
-> I could change it easily, no problem.
+ADC is used for setting sampling rate (sampling frequency) to SDR
+device.
 
-http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-g-frequency
-I still don't understand that. Why both index and type should be defined 
-for VIDIOC_S_FREQUENCY, but the opposite command VIDIOC_G_FREQUENCY 
-requires only index and returns type too? It does not sound correct 
-behavior.
-If S_FREQUENCY/G_FREQUENCY should be able to handle multiple tuner types 
-for same tuner index, then type must be also given that driver could 
-detect required mode.
+Another tuner type, named as V4L2_TUNER_RF, is possible RF tuner.
+Is is used to down-convert RF frequency to range ADC could sample.
+Having RF tuner is optional, whilst in practice it is almost always
+there.
 
-http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-g-tuner
-How I can enumerate tuners. There is G_TUNER/S_TUNER for enumerating, 
-but documentation of these IOCTLs looks like only one tuner type per 
-tuner index is supported. That offers enumeration per tuner index.
+Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
+VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
+type is SDR (VFL_TYPE_SDR). For VIDIOC_G_FREQUENCY we do not check
+tuner type, instead override type with V4L2_TUNER_ADC in every
+case (requested by Hans in order to keep functionality in line with
+existing tuners and existing API does not specify it).
 
-regards
-Antti
+Prohibit VIDIOC_S_HW_FREQ_SEEK explicitly when device type is SDR,
+as device cannot do hardware seek without a hardware demodulator.
 
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 39 ++++++++++++++++++++++++++----------
+ include/uapi/linux/videodev2.h       |  2 ++
+ 2 files changed, 30 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 68e6b5e..04ec9f9 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1288,8 +1288,11 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_frequency *p = arg;
+ 
+-	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	if (vfd->vfl_type == VFL_TYPE_SDR)
++		p->type = V4L2_TUNER_ADC;
++	else
++		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	return ops->vidioc_g_frequency(file, fh, p);
+ }
+ 
+@@ -1300,10 +1303,15 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+ 	const struct v4l2_frequency *p = arg;
+ 	enum v4l2_tuner_type type;
+ 
+-	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-	if (p->type != type)
+-		return -EINVAL;
++	if (vfd->vfl_type == VFL_TYPE_SDR) {
++		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++			return -EINVAL;
++	} else {
++		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++		if (type != p->type)
++			return -EINVAL;
++	}
+ 	return ops->vidioc_s_frequency(file, fh, p);
+ }
+ 
+@@ -1383,6 +1391,10 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_hw_freq_seek *p = arg;
+ 	enum v4l2_tuner_type type;
+ 
++	/* s_hw_freq_seek is not supported for SDR for now */
++	if (vfd->vfl_type == VFL_TYPE_SDR)
++		return -EINVAL;
++
+ 	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+ 		V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	if (p->type != type)
+@@ -1882,11 +1894,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 	enum v4l2_tuner_type type;
+ 	int err;
+ 
+-	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-
+-	if (type != p->type)
+-		return -EINVAL;
++	if (vfd->vfl_type == VFL_TYPE_SDR) {
++		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++			return -EINVAL;
++		type = p->type; /* silence compiler warning */
++	} else {
++		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++		if (type != p->type)
++			return -EINVAL;
++	}
+ 	if (ops->vidioc_enum_freq_bands)
+ 		return ops->vidioc_enum_freq_bands(file, fh, p);
+ 	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 437f1b0..3fff116 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -159,6 +159,8 @@ enum v4l2_tuner_type {
+ 	V4L2_TUNER_RADIO	     = 1,
+ 	V4L2_TUNER_ANALOG_TV	     = 2,
+ 	V4L2_TUNER_DIGITAL_TV	     = 3,
++	V4L2_TUNER_ADC               = 4,
++	V4L2_TUNER_RF                = 5,
+ };
+ 
+ enum v4l2_memory {
 -- 
-http://palosaari.fi/
+1.8.4.2
+
