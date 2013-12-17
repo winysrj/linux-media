@@ -1,110 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3946 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab3LEDcv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 22:32:51 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB53WmFn046036
-	for <linux-media@vger.kernel.org>; Thu, 5 Dec 2013 04:32:50 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 1EE2E2A2222
-	for <linux-media@vger.kernel.org>; Thu,  5 Dec 2013 04:32:37 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131205033237.1EE2E2A2222@tschai.lan>
-Date: Thu,  5 Dec 2013 04:32:37 +0100 (CET)
+Received: from bombadil.infradead.org ([198.137.202.9]:41991 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756232Ab3LQSds (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Dec 2013 13:33:48 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 3/6] [media] dib8000: make a better estimation for dBm
+Date: Tue, 17 Dec 2013 13:30:43 -0200
+Message-Id: <1387294246-10155-4-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1387294246-10155-1-git-send-email-m.chehab@samsung.com>
+References: <1387294246-10155-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Use multiple linear segments to better interpolate the dBm
+for the signal strength.
 
-Results of the daily build of media_tree:
+The table that converts from linear strength to dB was
+empirically determinated with the help of a signal generator
+(DTA-2111).
 
-date:		Thu Dec  5 04:00:29 CET 2013
-git branch:	test
-git hash:	3f823e094b935c1882605f8720336ee23433a16d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+The entries from -35dBm to -22.5dBm were taken using just
+the signal generator and the board.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+For the entries from -36dBm to -51dBm, a 16 dB tap was used,
+in order to extend its range.
 
-Detailed results are available here:
+Signals below to -51dBm are just linearly interpolated.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/dib8000.c | 111 ++++++++++++++++++++++++++++------
+ 1 file changed, 92 insertions(+), 19 deletions(-)
 
-Full logs are available here:
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index faf469d1d437..7b10b73befbe 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -3843,35 +3843,108 @@ static const struct per_layer_regs per_layer_regs[] = {
+ 	{ 556, 581, 583 },
+ };
+ 
++struct linear_segments {
++	unsigned x;
++	signed y;
++};
++
++/*
++ * Table to estimate signal strength in dBm.
++ * This table was empirically determinated by measuring the signal
++ * strength generated by a DTA-2111 RF generator directly connected into
++ * a dib8076 device (a PixelView PV-D231U stick), using a good quality
++ * 3 meters RC6 cable and good RC6 connectors.
++ * The real value can actually be different on other devices, depending
++ * on several factors, like if LNA is enabled or not, if diversity is
++ * enabled, type of connectors, etc.
++ * Yet, it is better to use this measure in dB than a random non-linear
++ * percentage value, especially for antenna adjustments.
++ * On my tests, the precision of the measure using this table is about
++ * 0.5 dB, with sounds reasonable enough.
++ */
++static struct linear_segments strength_to_db_table[] = {
++	{ 55953, 108500 },	/* -22.5 dBm */
++	{ 55394, 108000 },
++	{ 53834, 107000 },
++	{ 52863, 106000 },
++	{ 52239, 105000 },
++	{ 52012, 104000 },
++	{ 51803, 103000 },
++	{ 51566, 102000 },
++	{ 51356, 101000 },
++	{ 51112, 100000 },
++	{ 50869,  99000 },
++	{ 50600,  98000 },
++	{ 50363,  97000 },
++	{ 50117,  96000 },	/* -35 dBm */
++	{ 49889,  95000 },
++	{ 49680,  94000 },
++	{ 49493,  93000 },
++	{ 49302,  92000 },
++	{ 48929,  91000 },
++	{ 48416,  90000 },
++	{ 48035,  89000 },
++	{ 47593,  88000 },
++	{ 47282,  87000 },
++	{ 46953,  86000 },
++	{ 46698,  85000 },
++	{ 45617,  84000 },
++	{ 44773,  83000 },
++	{ 43845,  82000 },
++	{ 43020,  81000 },
++	{ 42010,  80000 },	/* -51 dBm */
++	{     0,      0 },
++};
++
++static u32 interpolate_value(u32 value, struct linear_segments *segments,
++			     unsigned len)
++{
++	u64 tmp64;
++	u32 dx;
++	s32 dy;
++	int i, ret;
++
++	if (value >= segments[0].x)
++		return segments[0].y;
++	if (value < segments[len-1].x)
++		return segments[len-1].y;
++
++	for (i = 1; i < len - 1; i++) {
++		/* If value is identical, no need to interpolate */
++		if (value == segments[i].x)
++			return segments[i].y;
++		if (value > segments[i].x)
++			break;
++	}
++
++	/* Linear interpolation between the two (x,y) points */
++	dy = segments[i - 1].y - segments[i].y;
++	dx = segments[i - 1].x - segments[i].x;
++
++	tmp64 = value - segments[i].x;
++	tmp64 *= dy;
++	do_div(tmp64, dx);
++	ret = segments[i].y + tmp64;
++
++	return ret;
++}
++
+ static int dib8000_get_stats(struct dvb_frontend *fe, fe_status_t stat)
+ {
+ 	struct dib8000_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &state->fe[0]->dtv_property_cache;
+ 	int i, lock;
+-	u64 tmp;
+ 	u32 snr, val;
++	s32 db;
+ 	u16 strength;
+ 
+ 	/* Get Signal strength */
+ 	dib8000_read_signal_strength(fe, &strength);
+-
+-	/*
+-	 * Estimate it in dBm
+-	 * This calculus was empirically determinated by measuring the signal
+-	 * strength generated by a DTA-2111 RF generator directly connected into
+-	 * a dib8076 device. The real value can actually be different on other
+-	 * devices, depending if LNA is enabled or not, if diversity is enabled,
+-	 * etc.
+-	 */
+-	if (strength == 65535) {
+-		c->strength.stat[0].svalue = -22000;
+-	} else {
+-		tmp = strength * 25000L;
+-		do_div(tmp, 11646);
+-		c->strength.stat[0].svalue = tmp - 142569;
+-		if (c->strength.stat[0].svalue > -22000)
+-			c->strength.stat[0].svalue = -22000;
+-	}
++	val = strength;
++	db = interpolate_value(val,
++			       strength_to_db_table,
++			       ARRAY_SIZE(strength_to_db_table)) - 131000;
++	c->strength.stat[0].svalue = db;
+ 
+ 	/* Check if 1 second was elapsed */
+ 	if (!time_after(jiffies, state->get_stats_time))
+-- 
+1.8.3.1
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
