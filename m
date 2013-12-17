@@ -1,72 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernelconcepts.de ([212.60.202.196]:34858 "EHLO
-	mail.kernelconcepts.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932203Ab3LEOt7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 09:49:59 -0500
-Message-ID: <52A08795.3010809@kernelconcepts.de>
-Date: Thu, 05 Dec 2013 15:03:01 +0100
-From: Nils Faerber <nils.faerber@kernelconcepts.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:36821 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753625Ab3LQQkl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Dec 2013 11:40:41 -0500
+Message-ID: <52B07E86.1030100@iki.fi>
+Date: Tue, 17 Dec 2013 18:40:38 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
-	Joni Lapilainen <joni.lapilainen@gmail.com>,
-	=?UTF-8?B?0JjQstCw0LnQu9C+IA==?=
-	 =?UTF-8?B?0JTQuNC80LjRgtGA0L7Qsg==?= <freemangordon@abv.bg>,
-	Pavel Machek <pavel@ucw.cz>, aaro.koskinen@iki.fi
-Subject: Re: [PATCH] media: Add BCM2048 radio driver
-References: <1381847218-8408-1-git-send-email-pali.rohar@gmail.com> <201312022151.07599@pali> <52A030BE.7040709@xs4all.nl> <201312051420.56852@pali> <20131205135705.GA3969@earth.universe>
-In-Reply-To: <20131205135705.GA3969@earth.universe>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="x1fdQqOBHN9aK9MPn22bu4c2GblVcxiHl"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC v3 5/7] v4l: enable some IOCTLs for SDR receiver
+References: <1387231688-8647-1-git-send-email-crope@iki.fi> <1387231688-8647-6-git-send-email-crope@iki.fi> <52AFFEA3.7010200@xs4all.nl>
+In-Reply-To: <52AFFEA3.7010200@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---x1fdQqOBHN9aK9MPn22bu4c2GblVcxiHl
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On 17.12.2013 09:34, Hans Verkuil wrote:
+> On 12/16/2013 11:08 PM, Antti Palosaari wrote:
+>> +	} else if (is_sdr) {
 
-Am 05.12.2013 14:57, schrieb Sebastian Reichel:
-> On Thu, Dec 05, 2013 at 02:20:56PM +0100, Pali Roh=C3=A1r wrote:
->>> Anyway, I've posted the pull request. Please note, if you want
->>> to avoid having this driver be removed again in the future,
->>> then you (or someone else) should work on addressing the
->>> issues in the TODO file I added.
->>
->> Ok. CCing other people who works with n900 kernel.
->=20
-> Does the bcm2048's radio part work without the bluetooth driver?
+>> +
+>> +		if (is_rx) {
+>> +			SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
+>> +			SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
+>> +			SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
+>
+> Why would you want to enable these? Normal radio devices should never use
+> these, so why would sdr devices?
 
-At least I do not know.
-I just added the RDS data interface, I have no idea of about the
-hardware and the other parts of it, sorry.
+I though it might be good idea to select possible antenna input. I have 
+one rtl2832u prototype which has 2 physical antenna connector, but on 
+the real life input selection is not needed even on that case as 
+antennas are hardwired to different tuner inputs => selection is done 
+according to frequency. Almost all modern silicon tuners has multiple 
+inputs, whilst device has only one physical antenna connector.
 
-> -- Sebastian
-Cheers
-  nils
+All-in-all, it is not needed now and I can remove it without any noise 
+if you wish. It is trivial to add later if really needed.
 
---=20
-kernel concepts GmbH       Tel: +49-271-771091-12
-Sieghuetter Hauptweg 48
-D-57072 Siegen             Mob: +49-176-21024535
-http://www.kernelconcepts.de
+regards
+Antti
 
-
---x1fdQqOBHN9aK9MPn22bu4c2GblVcxiHl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAlKgh5UACgkQJXeIURG1qHiMQACcDhooAQilsBFxHQaxTdq9/KJs
-jzQAn0HKW+OllXU44DT7W73cWYWUHw9f
-=R6Hj
------END PGP SIGNATURE-----
-
---x1fdQqOBHN9aK9MPn22bu4c2GblVcxiHl--
+-- 
+http://palosaari.fi/
