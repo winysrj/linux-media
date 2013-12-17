@@ -1,70 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36421 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932101Ab3LITIY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 14:08:24 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] radio-bcm2048: fix signal of value
-Date: Mon,  9 Dec 2013 14:05:33 -0200
-Message-Id: <1386605133-8680-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3856 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752851Ab3LQIEL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Dec 2013 03:04:11 -0500
+Message-ID: <52B00563.7030608@xs4all.nl>
+Date: Tue, 17 Dec 2013 09:03:47 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Archit Taneja <archit@ti.com>
+CC: linux-media@vger.kernel.org, k.debski@samsung.com,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH 0/2] v4l: ti-vpe: Some VPE fixes
+References: <1386071473-10808-1-git-send-email-archit@ti.com> <52B002BD.6000105@xs4all.nl>
+In-Reply-To: <52B002BD.6000105@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As value can be initialized with a value lower than zero, change it
-to int, to avoid those warnings:
+On 12/17/2013 08:52 AM, Hans Verkuil wrote:
+> On 12/03/2013 12:51 PM, Archit Taneja wrote:
+>> This series fixes 2 issues in the VPE driver. The first fix allows us to use
+>> UYVY color format for source and destination buffers. The second fix makes sure
+>> we don't set pixel format widths which the VPDMA HW can't support. None of these
+>> fixes are fatal, so they don't necessarily need to go in for the 3.13-rc fixes.
+>>
+>> Archit Taneja (2):
+>>   v4l: ti-vpe: Fix the data_type value for UYVY VPDMA format
+>>   v4l: ti-vpe: make sure VPDMA line stride constraints are met
+>>
+>>  drivers/media/platform/ti-vpe/vpdma.c      |  4 +--
+>>  drivers/media/platform/ti-vpe/vpdma.h      |  5 ++-
+>>  drivers/media/platform/ti-vpe/vpdma_priv.h |  2 +-
+>>  drivers/media/platform/ti-vpe/vpe.c        | 53 ++++++++++++++++++++++--------
+>>  4 files changed, 47 insertions(+), 17 deletions(-)
+>>
+> 
+> For this patch series:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_rds_pi_read':
-drivers/staging/media/bcm2048/radio-bcm2048.c:1989:9: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
-  struct bcm2048_device *bdev = dev_get_drvdata(dev);  \
-         ^
-drivers/staging/media/bcm2048/radio-bcm2048.c:2070:1: note: in expansion of macro 'property_read'
- property_read(rds_pi, unsigned int, "%x")
- ^
-drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_fm_rds_flags_read':
-drivers/staging/media/bcm2048/radio-bcm2048.c:1989:9: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
-  struct bcm2048_device *bdev = dev_get_drvdata(dev);  \
-         ^
-drivers/staging/media/bcm2048/radio-bcm2048.c:2074:1: note: in expansion of macro 'property_read'
- property_read(fm_rds_flags, unsigned int, "%u")
- ^
-drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_region_bottom_frequency_read':
-drivers/staging/media/bcm2048/radio-bcm2048.c:1989:9: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
-  struct bcm2048_device *bdev = dev_get_drvdata(dev);  \
-         ^
-drivers/staging/media/bcm2048/radio-bcm2048.c:2077:1: note: in expansion of macro 'property_read'
- property_read(region_bottom_frequency, unsigned int, "%u")
- ^
-drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_region_top_frequency_read':
-drivers/staging/media/bcm2048/radio-bcm2048.c:1989:9: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
-  struct bcm2048_device *bdev = dev_get_drvdata(dev);  \
-         ^
-drivers/staging/media/bcm2048/radio-bcm2048.c:2078:1: note: in expansion of macro 'property_read'
- property_read(region_top_frequency, unsigned int, "%u")
+Ah, it's already merged. I missed that :-)
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards,
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 782cc11fd037..494ec3916ef5 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -1987,7 +1987,7 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 					char *buf)			\
- {									\
- 	struct bcm2048_device *bdev = dev_get_drvdata(dev);		\
--	size value;							\
-+	int value;							\
- 									\
- 	if (!bdev)							\
- 		return -ENODEV;						\
--- 
-1.8.3.1
+	Hans
 
