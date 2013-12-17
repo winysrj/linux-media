@@ -1,129 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vstkex01.macnetix.de ([193.111.113.9]:52587 "EHLO
-	vstkex01.macnetix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756796Ab3LEPPc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 10:15:32 -0500
-From: Nikolaus Schulz <schulz@macnetix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: <linux-media@vger.kernel.org>, Nikolaus Schulz <ns@htonl.de>,
-	"Nikolaus Schulz" <schulz@macnetix.de>
-Subject: [PATCH] libdvbv5: more fixes in the T2 delivery descriptor handler
-Date: Thu, 5 Dec 2013 16:10:03 +0100
-Message-ID: <1386256203-3007-1-git-send-email-schulz@macnetix.de>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:41989 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756279Ab3LQSds (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Dec 2013 13:33:48 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/6] [media] dib8000: estimate strength in dBm
+Date: Tue, 17 Dec 2013 13:30:42 -0200
+Message-Id: <1387294246-10155-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1387294246-10155-1-git-send-email-m.chehab@samsung.com>
+References: <1387294246-10155-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Fix a couple of memcpy calls, and remove a bogus one
-* Properly use lengths of centre_frequency loop and subcell_info loop
-  (they count bytes, not entries)
+Better to have Signal strength in dB.
+This takes a very rough estimation for the signal strength,
+that was calibrated using a Dektec DTA-2111 Gold RF generator
+and a Pixelview dib8076 stick.
 
-Signed-off-by: Nikolaus Schulz <schulz@macnetix.de>
+It estimates the signal strength using a linear equation where:
+	- the max is -22.5 dBm, with returns 55953
+	- the min is -35.0 dBm, with returns 50110
+
+With -22dBm, the signal strengh is returned as 65535.
+Unfortunately, the min strength generated with DTA-2111 is
+-35dBm.
+
+It should be noticed that approximating it by a linear equation
+is not right. I should probably be splitting it into 0.5 dB
+linear segments, in order to get a higher precision, just like
+it is done on mb86a20s, but that would force me to add some
+attenuators, in order to get dB levels below -35dBm, which is,
+btw, strong enough to get signal lock.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- lib/libdvbv5/descriptors/desc_t2_delivery.c |   35 ++++++++++++++-------------
- 1 files changed, 18 insertions(+), 17 deletions(-)
+ drivers/media/dvb-frontends/dib8000.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/lib/libdvbv5/descriptors/desc_t2_delivery.c b/lib/libdvbv5/descriptors/desc_t2_delivery.c
-index ab4361d..07a0956 100644
---- a/lib/libdvbv5/descriptors/desc_t2_delivery.c
-+++ b/lib/libdvbv5/descriptors/desc_t2_delivery.c
-@@ -32,6 +32,7 @@ void dvb_desc_t2_delivery_init(struct dvb_v5_fe_parms *parms,
- 	struct dvb_desc_t2_delivery *d = desc;
- 	unsigned char *p = (unsigned char *) buf;
- 	size_t desc_len = ext->length - 1, len, len2;
-+	uint8_t nmemb;
- 	int i;
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index 2dbf89365a97..faf469d1d437 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -11,6 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+ #include <linux/mutex.h>
++#include <asm/div64.h>
  
- 	len = offsetof(struct dvb_desc_t2_delivery, bitfield);
-@@ -42,7 +43,7 @@ void dvb_desc_t2_delivery_init(struct dvb_v5_fe_parms *parms,
- 		return;
- 	}
- 	if (desc_len < len2) {
--		memcpy(p, buf, len);
-+		memcpy(d, p, len);
- 		bswap16(d->system_id);
+ #include "dvb_math.h"
  
- 		if (desc_len != len)
-@@ -50,44 +51,41 @@ void dvb_desc_t2_delivery_init(struct dvb_v5_fe_parms *parms,
+@@ -1002,7 +1003,7 @@ static void dib8000_reset_stats(struct dvb_frontend *fe)
+ 	c->post_bit_error.len = 1;
+ 	c->post_bit_count.len = 1;
  
- 		return;
- 	}
--	memcpy(p, buf, len2);
-+	memcpy(d, p, len2);
- 	p += len2;
+-	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	c->strength.stat[0].scale = FE_SCALE_DECIBEL;
+ 	c->strength.stat[0].uvalue = 0;
  
--	len = desc_len - (p - buf);
--	memcpy(&d->centre_frequency, p, len);
--	p += len;
--
- 	if (d->tfs_flag)
--		d->frequency_loop_length = 1;
-+		d->frequency_loop_length = sizeof(*d->centre_frequency);
- 	else {
- 		d->frequency_loop_length = *p;
- 		p++;
- 	}
-+	nmemb = d->frequency_loop_length / sizeof(*d->centre_frequency);
+ 	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+@@ -3847,12 +3848,30 @@ static int dib8000_get_stats(struct dvb_frontend *fe, fe_status_t stat)
+ 	struct dib8000_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &state->fe[0]->dtv_property_cache;
+ 	int i, lock;
++	u64 tmp;
+ 	u32 snr, val;
+ 	u16 strength;
  
--	d->centre_frequency = calloc(d->frequency_loop_length,
--				     sizeof(*d->centre_frequency));
-+	d->centre_frequency = calloc(nmemb, sizeof(*d->centre_frequency));
- 	if (!d->centre_frequency) {
- 		dvb_perror("Out of memory");
- 		return;
- 	}
+ 	/* Get Signal strength */
+ 	dib8000_read_signal_strength(fe, &strength);
+-	c->strength.stat[0].uvalue = strength;
++
++	/*
++	 * Estimate it in dBm
++	 * This calculus was empirically determinated by measuring the signal
++	 * strength generated by a DTA-2111 RF generator directly connected into
++	 * a dib8076 device. The real value can actually be different on other
++	 * devices, depending if LNA is enabled or not, if diversity is enabled,
++	 * etc.
++	 */
++	if (strength == 65535) {
++		c->strength.stat[0].svalue = -22000;
++	} else {
++		tmp = strength * 25000L;
++		do_div(tmp, 11646);
++		c->strength.stat[0].svalue = tmp - 142569;
++		if (c->strength.stat[0].svalue > -22000)
++			c->strength.stat[0].svalue = -22000;
++	}
  
--	memcpy(d->centre_frequency, p, sizeof(*d->centre_frequency) * d->frequency_loop_length);
--	p += sizeof(*d->centre_frequency) * d->frequency_loop_length;
-+	memcpy(d->centre_frequency, p, d->frequency_loop_length);
-+	p += d->frequency_loop_length;
- 
--	for (i = 0; i < d->frequency_loop_length; i++)
-+	for (i = 0; i < nmemb; i++)
- 		bswap32(d->centre_frequency[i]);
- 
- 	d->subcel_info_loop_length = *p;
- 	p++;
-+	nmemb = d->subcel_info_loop_length / sizeof(*d->subcell);
- 
--	d->subcell = calloc(d->subcel_info_loop_length, sizeof(*d->subcell));
-+	d->subcell = calloc(nmemb, sizeof(*d->subcell));
- 	if (!d->subcell) {
- 		dvb_perror("Out of memory");
- 		return;
- 	}
--	memcpy(d->subcell, p, sizeof(*d->subcell) * d->subcel_info_loop_length);
-+	memcpy(d->subcell, p, d->subcel_info_loop_length);
- 
--	for (i = 0; i < d->subcel_info_loop_length; i++)
-+	for (i = 0; i < nmemb; i++)
- 		bswap16(d->subcell[i].transposer_frequency);
- }
- 
-@@ -97,6 +95,7 @@ void dvb_desc_t2_delivery_print(struct dvb_v5_fe_parms *parms,
- {
- 	const struct dvb_desc_t2_delivery *d = desc;
- 	int i;
-+	uint8_t nmemb;
- 
- 	dvb_log("|       DVB-T2 delivery");
- 	dvb_log("|           plp_id                    %d", d->plp_id);
-@@ -113,10 +112,12 @@ void dvb_desc_t2_delivery_print(struct dvb_v5_fe_parms *parms,
- 	dvb_log("|           bandwidth                 %d", d->bandwidth);
- 	dvb_log("|           SISO MISO                 %d", d->SISO_MISO);
- 
--	for (i = 0; i < d->frequency_loop_length; i++)
-+	nmemb = d->frequency_loop_length / sizeof(*d->centre_frequency);
-+	for (i = 0; i < nmemb; i++)
- 		dvb_log("|           centre frequency[%d]   %d", i, d->centre_frequency[i]);
- 
--	for (i = 0; i < d->subcel_info_loop_length; i++) {
-+	nmemb = d->subcel_info_loop_length / sizeof(*d->subcell);
-+	for (i = 0; i < nmemb; i++) {
- 		dvb_log("|           cell_id_extension[%d]  %d", i, d->subcell[i].cell_id_extension);
- 		dvb_log("|           transposer frequency   %d", d->subcell[i].transposer_frequency);
- 	}
+ 	/* Check if 1 second was elapsed */
+ 	if (!time_after(jiffies, state->get_stats_time))
 -- 
-1.7.2.5
+1.8.3.1
 
