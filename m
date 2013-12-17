@@ -1,78 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:40942 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752692Ab3LULEG (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1731 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753323Ab3LQNPZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Dec 2013 06:04:06 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MY50039ALET4X30@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Sat, 21 Dec 2013 06:04:05 -0500 (EST)
-Date: Sat, 21 Dec 2013 09:04:00 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kbuild test robot <fengguang.wu@intel.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [linuxtv-media:master 483/499] m88ds3103.c:undefined reference to
- `i2c_del_mux_adapter'
-Message-id: <20131221090400.766a9cdf@samsung.com>
-In-reply-to: <20131221085048.40a00d81@samsung.com>
-References: <52b4fca0.ygAJPoOJD83r3RML%fengguang.wu@intel.com>
- <20131221085048.40a00d81@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Tue, 17 Dec 2013 08:15:25 -0500
+Message-ID: <52B04DF2.3020601@xs4all.nl>
+Date: Tue, 17 Dec 2013 14:13:22 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 7/6] adv7511: verify EDID header
+References: <1386677334-20953-1-git-send-email-hverkuil@xs4all.nl> <9e6b2a84d52136da9f7f8ec66186e659de5a0230.1386677238.git.hans.verkuil@cisco.com>
+In-Reply-To: <9e6b2a84d52136da9f7f8ec66186e659de5a0230.1386677238.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 21 Dec 2013 08:50:48 -0200
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+Ignore EDID's where the header is wrong.
 
-> From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Date: Sat, 21 Dec 2013 05:42:11 -0200
-> Subject: [PATCH] [media] subdev autoselect only works if I2C and I2C_MUX is selected
-> 
-> As reported by the kbuild test robot <fengguang.wu@intel.com>:
-> 
-> > warning: (VIDEO_EM28XX_DVB) selects DVB_M88DS3103 which has unmet direct dependencies (MEDIA_SUPPORT && DVB_CORE && I2C && I2C_MUX)
-> >    drivers/built-in.o: In function `m88ds3103_release':  
-> > >> m88ds3103.c:(.text+0x1ab1af): undefined reference to `i2c_del_mux_adapter'  
-> >    drivers/built-in.o: In function `m88ds3103_attach':  
-> > >> (.text+0x1ab342): undefined reference to `i2c_add_mux_adapter'  
-> 
-> Reported-by: kbuild test robot <fengguang.wu@intel.com>
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7511.c | 35 ++++++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 11 deletions(-)
 
-It is the Christmas week. I don't think we'll have enough reviews for this,
-as most are preparing themselves to properly celebrate the birth of our
-Lord, or to just rest during Seasons.
-
-Due to that, I'll likely just apply this patch with a better description,
-as I intend to merge the pending patches at -next during this weekend,
-and I don't want to spread compilation breakages there.
-
-If we latter agree with some other solution, reverting this one while 
-applying other changes should be trivial.
-
-Happy Seasons!
-Mauro
-
-> 
-> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> index 8270388e2a0d..1d0758aeb8e4 100644
-> --- a/drivers/media/Kconfig
-> +++ b/drivers/media/Kconfig
-> @@ -172,6 +172,9 @@ comment "Media ancillary drivers (tuners, sensors, i2c, frontends)"
->  config MEDIA_SUBDRV_AUTOSELECT
->  	bool "Autoselect ancillary drivers (tuners, sensors, i2c, frontends)"
->  	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_CAMERA_SUPPORT
-> +	depends on HAS_IOMEM
-> +	select I2C
-> +	select I2C_MUX
->  	default y
->  	help
->  	  By default, a media driver auto-selects all possible ancillary
-> --
-
+diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+index f20450c..ee61894 100644
+--- a/drivers/media/i2c/adv7511.c
++++ b/drivers/media/i2c/adv7511.c
+@@ -965,26 +965,38 @@ static void adv7511_check_monitor_present_status(struct v4l2_subdev *sd)
+ 
+ static bool edid_block_verify_crc(uint8_t *edid_block)
+ {
+-	int i;
+ 	uint8_t sum = 0;
++	int i;
+ 
+ 	for (i = 0; i < 128; i++)
+-		sum += *(edid_block + i);
+-	return (sum == 0);
++		sum += edid_block[i];
++	return sum == 0;
+ }
+ 
+-static bool edid_segment_verify_crc(struct v4l2_subdev *sd, u32 segment)
++static bool edid_verify_crc(struct v4l2_subdev *sd, u32 segment)
+ {
+ 	struct adv7511_state *state = get_adv7511_state(sd);
+ 	u32 blocks = state->edid.blocks;
+ 	uint8_t *data = state->edid.data;
+ 
+-	if (edid_block_verify_crc(&data[segment * 256])) {
+-		if ((segment + 1) * 2 <= blocks)
+-			return edid_block_verify_crc(&data[segment * 256 + 128]);
++	if (!edid_block_verify_crc(&data[segment * 256]))
++		return false;
++	if ((segment + 1) * 2 <= blocks)
++		return edid_block_verify_crc(&data[segment * 256 + 128]);
++	return true;
++}
++
++static bool edid_verify_header(struct v4l2_subdev *sd, u32 segment)
++{
++	static const u8 hdmi_header[] = {
++		0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00
++	};
++	struct adv7511_state *state = get_adv7511_state(sd);
++	u8 *data = state->edid.data;
++
++	if (segment != 0)
+ 		return true;
+-	}
+-	return false;
++	return !memcmp(data, hdmi_header, sizeof(hdmi_header));
+ }
+ 
+ static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
+@@ -1013,9 +1025,10 @@ static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
+ 			state->edid.blocks = state->edid.data[0x7e] + 1;
+ 			v4l2_dbg(1, debug, sd, "%s: %d blocks in total\n", __func__, state->edid.blocks);
+ 		}
+-		if (!edid_segment_verify_crc(sd, segment)) {
++		if (!edid_verify_crc(sd, segment) ||
++		    !edid_verify_header(sd, segment)) {
+ 			/* edid crc error, force reread of edid segment */
+-			v4l2_dbg(1, debug, sd, "%s: edid crc error\n", __func__);
++			v4l2_err(sd, "%s: edid crc or header error\n", __func__);
+ 			state->have_monitor = false;
+ 			adv7511_s_power(sd, false);
+ 			adv7511_s_power(sd, true);
+-- 
+1.8.4.rc3
 
