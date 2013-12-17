@@ -1,160 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39862 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753830Ab3LNQQZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 11:16:25 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4907 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752135Ab3LQNTb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Dec 2013 08:19:31 -0500
+Message-ID: <52B04EE8.7040707@xs4all.nl>
+Date: Tue, 17 Dec 2013 14:17:28 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v2 7/7] v4l: define own IOCTL ops for SDR FMT
-Date: Sat, 14 Dec 2013 18:15:29 +0200
-Message-Id: <1387037729-1977-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1387037729-1977-1-git-send-email-crope@iki.fi>
-References: <1387037729-1977-1-git-send-email-crope@iki.fi>
+CC: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 24/22] adv7842: set LLC DLL phase from platform_data
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl> <9e9eaa702db4b0e0626dbf7200578e66d8281312.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <9e9eaa702db4b0e0626dbf7200578e66d8281312.1386687810.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use own format ops for SDR data:
-vidioc_enum_fmt_sdr_cap
-vidioc_g_fmt_sdr_cap
-vidioc_s_fmt_sdr_cap
-vidioc_try_fmt_sdr_cap
+The correct LLC DLL phase depends on the board layout, so this
+should be part of the platform_data.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Verified-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-dev.c   |  8 ++++----
- drivers/media/v4l2-core/v4l2-ioctl.c | 18 +++++++++---------
- include/media/v4l2-ioctl.h           |  8 ++++++++
- 3 files changed, 21 insertions(+), 13 deletions(-)
+ drivers/media/i2c/adv7842.c | 6 +-----
+ include/media/adv7842.h     | 6 ++++++
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 9f15e25..a84f4ea 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -673,13 +673,13 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
- 	} else if (is_sdr) {
- 		/* SDR specific ioctls */
--		if (ops->vidioc_enum_fmt_vid_cap)
-+		if (ops->vidioc_enum_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
--		if (ops->vidioc_g_fmt_vid_cap)
-+		if (ops->vidioc_g_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
--		if (ops->vidioc_s_fmt_vid_cap)
-+		if (ops->vidioc_s_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
--		if (ops->vidioc_try_fmt_vid_cap)
-+		if (ops->vidioc_try_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 82c57d7..2eb4058 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1591,9 +1591,6 @@ static void select_input(struct v4l2_subdev *sd,
+ 		afe_write(sd, 0x00, 0x00); /* power up ADC */
+ 		afe_write(sd, 0xc8, 0x00); /* phase control */
  
- 		if (is_rx) {
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index a7e6b52..18aa36a 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -939,7 +939,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
- 			return 0;
- 		break;
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
--		if (is_sdr && is_rx && ops->vidioc_g_fmt_vid_cap)
-+		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
- 			return 0;
- 		break;
- 	default:
-@@ -1062,9 +1062,9 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
--		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_vid_cap))
-+		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_sdr_cap))
- 			break;
--		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
-+		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1121,9 +1121,9 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
--		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_vid_cap))
-+		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
- 			break;
--		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
-+		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1190,10 +1190,10 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 		CLEAR_AFTER_FIELD(p, fmt.sliced);
- 		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
--		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_vid_cap))
-+		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_sdr_cap))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sdr);
--		return ops->vidioc_s_fmt_vid_cap(file, fh, arg);
-+		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1260,10 +1260,10 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 		CLEAR_AFTER_FIELD(p, fmt.sliced);
- 		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
--		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_vid_cap))
-+		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_sdr_cap))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sdr);
--		return ops->vidioc_try_fmt_vid_cap(file, fh, arg);
-+		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index e0b74a4..8be32f5 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -40,6 +40,8 @@ struct v4l2_ioctl_ops {
- 					      struct v4l2_fmtdesc *f);
- 	int (*vidioc_enum_fmt_vid_out_mplane)(struct file *file, void *fh,
- 					      struct v4l2_fmtdesc *f);
-+	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
-+					    struct v4l2_fmtdesc *f);
+-		io_write(sd, 0x19, 0x83); /* LLC DLL phase */
+-		io_write(sd, 0x33, 0x40); /* LLC DLL enable */
+-
+ 		io_write(sd, 0xdd, 0x90); /* Manual 2x output clock */
+ 		/* script says register 0xde, which don't exist in manual */
  
- 	/* VIDIOC_G_FMT handlers */
- 	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -62,6 +64,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh,
- 					   struct v4l2_format *f);
-+	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
+@@ -2603,8 +2600,7 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
+ 	io_write_and_or(sd, 0x20, 0xcf, 0x00);
  
- 	/* VIDIOC_S_FMT handlers */
- 	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh,
- 					   struct v4l2_format *f);
-+	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
+ 	/* LLC */
+-	/* Set phase to 16. TODO: get this from platform_data */
+-	io_write(sd, 0x19, 0x90);
++	io_write(sd, 0x19, 0x80 | pdata->llc_dll_phase);
+ 	io_write(sd, 0x33, 0x40);
  
- 	/* VIDIOC_TRY_FMT handlers */
- 	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -106,6 +112,8 @@ struct v4l2_ioctl_ops {
- 					     struct v4l2_format *f);
- 	int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh,
- 					     struct v4l2_format *f);
-+	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
-+					  struct v4l2_format *f);
+ 	/* interrupts */
+diff --git a/include/media/adv7842.h b/include/media/adv7842.h
+index 8b336ab..c67051a 100644
+--- a/include/media/adv7842.h
++++ b/include/media/adv7842.h
+@@ -192,6 +192,12 @@ struct adv7842_platform_data {
+ 		unsigned sync:2;
+ 	} drive_strength;
  
- 	/* Buffer handlers */
- 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
++	/*
++	 * IO register 0x19: Adjustment to the LLC DLL phase in
++	 * increments of 1/32 of a clock period.
++	 */
++	unsigned llc_dll_phase:5;
++
+ 	/* External RAM for 3-D comb or frame synchronizer */
+ 	unsigned sd_ram_size; /* ram size in MB */
+ 	unsigned sd_ram_ddr:1; /* ddr or sdr sdram */
 -- 
-1.8.4.2
+1.8.4.rc3
+
 
