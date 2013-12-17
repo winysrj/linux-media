@@ -1,105 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33574 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752487Ab3LOODT (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3597 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929Ab3LQNSz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Dec 2013 09:03:19 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Olivier GRENIE <olivier.grenie@parrot.com>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	stable@vger.kernel.org
-Subject: [PATCH 2/3] [media] dib8000: make 32 bits read atomic
-Date: Sun, 15 Dec 2013 09:00:09 -0200
-Message-Id: <1387105210-6893-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1387105210-6893-1-git-send-email-m.chehab@samsung.com>
-References: <1387105210-6893-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Tue, 17 Dec 2013 08:18:55 -0500
+Message-ID: <52B04EC5.5080303@xs4all.nl>
+Date: Tue, 17 Dec 2013 14:16:53 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 23/22] adv7842: return 0 if no change in s_dv_timings
+References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl> <9e9eaa702db4b0e0626dbf7200578e66d8281312.1386687810.git.hans.verkuil@cisco.com>
+In-Reply-To: <9e9eaa702db4b0e0626dbf7200578e66d8281312.1386687810.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the dvb-frontend kthread can be called anytime, it can race
-with some get status ioctl. So, it seems better to avoid one to
-race with the other while reading a 32 bits register.
-I can't see any other reason for having a mutex there at I2C, except
-to provide such kind of protection, as the I2C core already has a
-mutex to protect I2C transfers.
+Return 0 if the new timings are equal to the current timings as
+it caused extra cp-loss/lock interrupts.
 
-Note: instead of this approach, it could eventually remove the dib8000
-specific mutex for it, and either group the 4 ops into one xfer or
-to manually control the I2C mutex. The main advantage of the current
-approach is that the changes are smaller and more puntual.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/dib8000.c | 33 +++++++++++++++++++++++++--------
- 1 file changed, 25 insertions(+), 8 deletions(-)
+ drivers/media/i2c/adv7842.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 1e03961135ac..36c839cabe82 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -157,15 +157,10 @@ static u16 dib8000_i2c_read16(struct i2c_device *i2c, u16 reg)
- 	return ret;
- }
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index bafe3b5..82c57d7 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1453,6 +1453,11 @@ static int adv7842_s_dv_timings(struct v4l2_subdev *sd,
+ 	if (state->mode == ADV7842_MODE_SDP)
+ 		return -ENODATA;
  
--static u16 dib8000_read_word(struct dib8000_state *state, u16 reg)
-+static u16 __dib8000_read_word(struct dib8000_state *state, u16 reg)
- {
- 	u16 ret;
- 
--	if (mutex_lock_interruptible(&state->i2c_buffer_lock) < 0) {
--		dprintk("could not acquire lock");
--		return 0;
--	}
--
- 	state->i2c_write_buffer[0] = reg >> 8;
- 	state->i2c_write_buffer[1] = reg & 0xff;
- 
-@@ -183,6 +178,21 @@ static u16 dib8000_read_word(struct dib8000_state *state, u16 reg)
- 		dprintk("i2c read error on %d", reg);
- 
- 	ret = (state->i2c_read_buffer[0] << 8) | state->i2c_read_buffer[1];
-+
-+	return ret;
-+}
-+
-+static u16 dib8000_read_word(struct dib8000_state *state, u16 reg)
-+{
-+	u16 ret;
-+
-+	if (mutex_lock_interruptible(&state->i2c_buffer_lock) < 0) {
-+		dprintk("could not acquire lock");
++	if (v4l2_match_dv_timings(&state->timings, timings, 0)) {
++		v4l2_dbg(1, debug, sd, "%s: no change\n", __func__);
 +		return 0;
 +	}
 +
-+	ret = __dib8000_read_word(state, reg);
-+
- 	mutex_unlock(&state->i2c_buffer_lock);
+ 	bt = &timings->bt;
  
- 	return ret;
-@@ -192,8 +202,15 @@ static u32 dib8000_read32(struct dib8000_state *state, u16 reg)
- {
- 	u16 rw[2];
- 
--	rw[0] = dib8000_read_word(state, reg + 0);
--	rw[1] = dib8000_read_word(state, reg + 1);
-+	if (mutex_lock_interruptible(&state->i2c_buffer_lock) < 0) {
-+		dprintk("could not acquire lock");
-+		return 0;
-+	}
-+
-+	rw[0] = __dib8000_read_word(state, reg + 0);
-+	rw[1] = __dib8000_read_word(state, reg + 1);
-+
-+	mutex_unlock(&state->i2c_buffer_lock);
- 
- 	return ((rw[0] << 16) | (rw[1]));
- }
+ 	if (!v4l2_valid_dv_timings(timings, adv7842_get_dv_timings_cap(sd),
 -- 
-1.8.3.1
+1.8.4.rc3
+
 
