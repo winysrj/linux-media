@@ -1,186 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36067 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759992Ab3LHWb7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Dec 2013 17:31:59 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Jean Delvare <khali@linux-fr.org>
-Subject: [PATCH REVIEW 10/18] m88ds3103: use I2C mux for tuner I2C adapter
-Date: Mon,  9 Dec 2013 00:31:27 +0200
-Message-Id: <1386541895-8634-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1386541895-8634-1-git-send-email-crope@iki.fi>
-References: <1386541895-8634-1-git-send-email-crope@iki.fi>
+Received: from devils.ext.ti.com ([198.47.26.153]:40054 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752726Ab3LQMMb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Dec 2013 07:12:31 -0500
+Message-ID: <52B03FA3.2000407@ti.com>
+Date: Tue, 17 Dec 2013 17:42:19 +0530
+From: Archit Taneja <archit@ti.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <k.debski@samsung.com>,
+	<laurent.pinchart@ideasonboard.com>, <linux-omap@vger.kernel.org>,
+	<tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/8] v4l: ti-vpe: Add support for scaling and color conversion
+References: <1386837364-1264-1-git-send-email-archit@ti.com> <52B00488.9060907@xs4all.nl> <52B0335D.5060606@ti.com> <52B03A2F.8030800@xs4all.nl>
+In-Reply-To: <52B03A2F.8030800@xs4all.nl>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch standard I2C adapter to muxed I2C adapter.
+Hi,
 
-David reported that I2C adapter implementation caused deadlock.
-I discussed with Jean and he suggested to implement it as a
-multiplexed i2c adapter because tuner I2C bus could be seen like
-own I2C segment.
+On Tuesday 17 December 2013 05:19 PM, Hans Verkuil wrote:
+> On 12/17/13 12:19, Archit Taneja wrote:
+>> Hi Hans,
+>>
+>> On Tuesday 17 December 2013 01:30 PM, Hans Verkuil wrote:
+>>> On 12/12/2013 09:35 AM, Archit Taneja wrote:
+>>>> The VPE and VIP IPs in DRA7x contain common scaler and color
+>>>> conversion hardware blocks. We create libraries for these
+>>>> components such that the vpe driver and the vip driver(in future)
+>>>> can use these library funcs to configure the blocks.
+>>>>
+>>>> There are some points for which I would like comments:
+>>>>
+>>>> - For VPE, setting the format and colorspace for the source and
+>>>> destination queues is enough to determine how these blocks need
+>>>> to be configured and whether they need to be bypassed or not. So
+>>>> it didn't make sense to represent them as media controller
+>>>> entities. For VIP(driver not upstream yet), it's possible that
+>>>> there are multiple data paths which may or may not include these
+>>>> blocks. However, the current use cases don't require such
+>>>> flexibility. There may be a need to re-consider a media
+>>>> controller like setup once we work on the VIP driver. Is it a
+>>>> good idea in terms of user-space compatibilty if we use media
+>>>> controller framework in the future.
+>>>
+>>> As long as you don't need the mc, then there is no need to
+>>> implement it.
+>>
+>> The thing is that we want to use these blocks for a future capture
+>> hardware called VIP. A VIP port can capture multiple streams from
+>> different sensors in time slices, and each of those streams might be
+>> sharing the same hardware, but probably in different configurations.
+>> I'm not completely aware of media controller details, and whether it
+>> can help us here.
+>>
+>> I was just wondering if it would be a problem if we later realise
+>> that mc might be useful for some use cases. Would implementing it
+>> then break previous user space applications which don't call mc
+>> ioctls?
+>
+> My understanding is that in the current vpe driver the mc won't be
+> needed, so there is no point adding it. When implementing the vip
+> capture driver the mc might be needed, but that should not require
+> the vpe to add the mc API as well. It's a decision that has to be
+> made per driver.
 
-Reported-by: David Howells <dhowells@redhat.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/Kconfig          |  2 +-
- drivers/media/dvb-frontends/m88ds3103.c      | 73 +++++++++++-----------------
- drivers/media/dvb-frontends/m88ds3103_priv.h |  3 +-
- 3 files changed, 31 insertions(+), 47 deletions(-)
+That's right, vpe doesn't need mc. It might be needed for vip. The 
+reason I brought it up now is because some of the blocks like SC/CSC are 
+replicated in VIP hardware, and I created them in a 'library' sort of 
+way in this series. If vip driver uses mc, these blocks might need to 
+become media entities.
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index 6c46caf..dd12a1e 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -37,7 +37,7 @@ config DVB_STV6110x
- 
- config DVB_M88DS3103
- 	tristate "Montage M88DS3103"
--	depends on DVB_CORE && I2C
-+	depends on DVB_CORE && I2C && I2C_MUX
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y when you want to support this frontend.
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index 302c923..e07e8d6 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -1108,15 +1108,16 @@ static int m88ds3103_get_tune_settings(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--static u32 m88ds3103_tuner_i2c_func(struct i2c_adapter *adapter)
-+static void m88ds3103_release(struct dvb_frontend *fe)
- {
--	return I2C_FUNC_I2C;
-+	struct m88ds3103_priv *priv = fe->demodulator_priv;
-+	i2c_del_mux_adapter(priv->i2c_adapter);
-+	kfree(priv);
- }
- 
--static int m88ds3103_tuner_i2c_xfer(struct i2c_adapter *i2c_adap,
--		struct i2c_msg msg[], int num)
-+static int m88ds3103_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
- {
--	struct m88ds3103_priv *priv = i2c_get_adapdata(i2c_adap);
-+	struct m88ds3103_priv *priv = mux_priv;
- 	int ret;
- 	struct i2c_msg gate_open_msg[1] = {
- 		{
-@@ -1126,43 +1127,31 @@ static int m88ds3103_tuner_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			.buf = "\x03\x11",
- 		}
- 	};
--	dev_dbg(&priv->i2c->dev, "%s: num=%d\n", __func__, num);
- 
- 	mutex_lock(&priv->i2c_mutex);
- 
--	/* open i2c-gate */
-+	/* open tuner I2C repeater for 1 xfer, closes automatically */
- 	ret = i2c_transfer(priv->i2c, gate_open_msg, 1);
- 	if (ret != 1) {
--		mutex_unlock(&priv->i2c_mutex);
--		dev_warn(&priv->i2c->dev,
--				"%s: i2c wr failed=%d\n",
-+		dev_warn(&priv->i2c->dev, "%s: i2c wr failed=%d\n",
- 				KBUILD_MODNAME, ret);
--		ret = -EREMOTEIO;
--		goto err;
--	}
-+		if (ret >= 0)
-+			ret = -EREMOTEIO;
- 
--	ret = i2c_transfer(priv->i2c, msg, num);
--	mutex_unlock(&priv->i2c_mutex);
--	if (ret < 0)
--		dev_warn(&priv->i2c->dev, "%s: i2c failed=%d\n",
--				KBUILD_MODNAME, ret);
-+		return ret;
-+	}
- 
--	return ret;
--err:
--	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
--	return ret;
-+	return 0;
- }
- 
--static struct i2c_algorithm m88ds3103_tuner_i2c_algo = {
--	.master_xfer   = m88ds3103_tuner_i2c_xfer,
--	.functionality = m88ds3103_tuner_i2c_func,
--};
--
--static void m88ds3103_release(struct dvb_frontend *fe)
-+static int m88ds3103_deselect(struct i2c_adapter *adap, void *mux_priv,
-+		u32 chan)
- {
--	struct m88ds3103_priv *priv = fe->demodulator_priv;
--	i2c_del_adapter(&priv->i2c_adapter);
--	kfree(priv);
-+	struct m88ds3103_priv *priv = mux_priv;
-+
-+	mutex_unlock(&priv->i2c_mutex);
-+
-+	return 0;
- }
- 
- struct dvb_frontend *m88ds3103_attach(const struct m88ds3103_config *cfg,
-@@ -1228,24 +1217,18 @@ struct dvb_frontend *m88ds3103_attach(const struct m88ds3103_config *cfg,
- 	if (ret)
- 		goto err;
- 
-+	/* create mux i2c adapter for tuner */
-+	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
-+			m88ds3103_select, m88ds3103_deselect);
-+	if (priv->i2c_adapter == NULL)
-+		goto err;
-+
-+	*tuner_i2c_adapter = priv->i2c_adapter;
-+
- 	/* create dvb_frontend */
- 	memcpy(&priv->fe.ops, &m88ds3103_ops, sizeof(struct dvb_frontend_ops));
- 	priv->fe.demodulator_priv = priv;
- 
--	/* create i2c adapter for tuner */
--	strlcpy(priv->i2c_adapter.name, KBUILD_MODNAME,
--			sizeof(priv->i2c_adapter.name));
--	priv->i2c_adapter.algo = &m88ds3103_tuner_i2c_algo;
--	priv->i2c_adapter.algo_data = NULL;
--	i2c_set_adapdata(&priv->i2c_adapter, priv);
--	ret = i2c_add_adapter(&priv->i2c_adapter);
--	if (ret) {
--		dev_err(&i2c->dev, "%s: i2c bus could not be initialized\n",
--				KBUILD_MODNAME);
--		goto err;
--	}
--	*tuner_i2c_adapter = &priv->i2c_adapter;
--
- 	return &priv->fe;
- err:
- 	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
-diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
-index f3d0867..322db4d 100644
---- a/drivers/media/dvb-frontends/m88ds3103_priv.h
-+++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
-@@ -25,6 +25,7 @@
- #include "m88ds3103.h"
- #include "dvb_math.h"
- #include <linux/firmware.h>
-+#include <linux/i2c-mux.h>
- 
- #define M88DS3103_FIRMWARE "dvb-demod-m88ds3103.fw"
- #define M88DS3103_MCLK_KHZ 96000
-@@ -38,7 +39,7 @@ struct m88ds3103_priv {
- 	fe_delivery_system_t delivery_system;
- 	fe_status_t fe_status;
- 	bool warm; /* FW running */
--	struct i2c_adapter i2c_adapter;
-+	struct i2c_adapter *i2c_adapter;
- };
- 
- struct m88ds3103_reg_val {
--- 
-1.8.4.2
+>
+> When you start work on the vip driver it is probably a good idea to
+> talk to Laurent and myself first to see whether the mc is needed or
+> not.
 
+Thanks, that'll be quite useful. I'll look up some mc documentation and 
+drivers using mc myself as well.
+
+>
+> If you have a block diagram of the video hardware that you can share,
+> then that will be quite useful.
+
+Thanks for the clarification. I don't think the DRA7x documentation is 
+public yet. I'll try to look for a block diagram(or create one) and 
+share it with the list.
+
+Archit
