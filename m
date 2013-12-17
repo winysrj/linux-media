@@ -1,107 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1094 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754327Ab3LEIWl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 03:22:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 09/10] vb2: Improve file I/O emulation to handle buffers in any order
-Date: Thu,  5 Dec 2013 09:21:48 +0100
-Message-Id: <1386231709-14262-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1386231709-14262-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386231709-14262-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:63709 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760Ab3LQFdH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Dec 2013 00:33:07 -0500
+Message-ID: <52AFE107.4040705@gmail.com>
+Date: Mon, 16 Dec 2013 21:28:39 -0800
+From: Connor Behan <connor.behan@gmail.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Frederik Himpe <fhimpe@telenet.be>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	stable@vger.kernel.org
+Subject: Re: stable regression: tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer
+ returned: -19
+References: <1386969579.3914.13.camel@piranha.localdomain> <20131214092443.622b069d@samsung.com> <52ACE809.1000406@gmail.com> <CAGoCfiwxGU-j14oGDfvoYTA5WZUkQdM_3=80gfpWUjXVNN_nng@mail.gmail.com>
+In-Reply-To: <CAGoCfiwxGU-j14oGDfvoYTA5WZUkQdM_3=80gfpWUjXVNN_nng@mail.gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="DltcxB3loXq9jsvH6c3K1Bg9Tln8WUMOn"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--DltcxB3loXq9jsvH6c3K1Bg9Tln8WUMOn
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-videobuf2 file I/O emulation assumed that buffers dequeued from the
-driver would return in the order they were enqueued in the driver.
+Thanks for the detailed answer. I have tried your patch and updated the
+wiki page. Would a 950 or 950Q be safer to buy next time?
 
-Improve the file I/O emulator's book-keeping to remove this assumption.
+On 14/12/13 05:17 PM, Devin Heitmueller wrote:
+> I had a patch kicking around which fixed part of the issue, but it
+> didn't completely work because of the lgdt3305 having AGC enabled at
+> chip powerup (which interferes with analog tuning on the shared
+> tuner), and the internal v4l-dvb APIs don't provide any easy way to
+> reset the AGC from the analog side of the device.=20
 
-Also set the buf->size properly if a write() dequeues a buffer and the
-VB2_FILEIO_WRITE_IMMEDIATELY flag is set.
+By this do you mean that the functions exist but they aren't part of the
+public API? Maybe this problem can be addressed if there is ever "v4l3"
+or some other reason to break compatibility.
 
-Based on an initial patch by Andy Walls.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
----
- drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+--DltcxB3loXq9jsvH6c3K1Bg9Tln8WUMOn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 1434e23..7a489aa 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2317,6 +2317,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
- 		}
-+		fileio->index = q->num_buffers;
- 	}
- 
- 	/*
-@@ -2392,15 +2393,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	}
- 	fileio = q->fileio;
- 
--	index = fileio->index;
--	buf = &fileio->bufs[index];
--
- 	/*
- 	 * Check if we need to dequeue the buffer.
- 	 */
--	if (buf->queued) {
--		struct vb2_buffer *vb;
--
-+	index = fileio->index;
-+	if (index >= q->num_buffers) {
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
- 		 */
-@@ -2413,12 +2410,18 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 			return ret;
- 		fileio->dq_count += 1;
- 
-+		index = fileio->b.index;
-+		buf = &fileio->bufs[index];
-+		
- 		/*
- 		 * Get number of bytes filled by the driver
- 		 */
--		vb = q->bufs[index];
--		buf->size = vb2_get_plane_payload(vb, 0);
-+		buf->pos = 0;
- 		buf->queued = 0;
-+		buf->size = read ? vb2_get_plane_payload(q->bufs[index], 0)
-+				 : vb2_plane_size(q->bufs[index], 0);
-+	} else {
-+		buf = &fileio->bufs[index];
- 	}
- 
- 	/*
-@@ -2481,13 +2484,10 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		 */
- 		buf->pos = 0;
- 		buf->queued = 1;
--		buf->size = q->bufs[0]->v4l2_planes[0].length;
-+		buf->size = vb2_plane_size(q->bufs[index], 0);
- 		fileio->q_count += 1;
--
--		/*
--		 * Switch to the next buffer
--		 */
--		fileio->index = (index + 1) % q->num_buffers;
-+		if (fileio->index < q->num_buffers)
-+			fileio->index++;
- 	}
- 
- 	/*
--- 
-1.8.4.3
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.21 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
+iQEcBAEBAgAGBQJSr+ESAAoJENU6BEW0eg2r3ucH/Rr/AwVYH+tfrbnbZbQXNH9O
+0fxOP3tie0J5GE5Zp+D3BnPA/RqhYmbhjqfsTNfjnHPWcidtw8SSLKgRZwGpiz5B
+1FMP49zyIMRqgUA9VbHbGtRGKjudCQqKeGRRRWb4k8zJzYZbPwQ4C0vf1HXGXNq6
+3GwrgPTicV21WzAxmPLBLuPhEjD8J89VTtCHGcgK2QEOxHLRqbgvx06xFev/KB+r
+/gfm1iX5rKg8aWN8DgliFw5KXwYfceWTwKt4A31EsEIT3FIk23EnqFwq9isxOiTX
+xvuYBgZSycq38w4+KCiZtfJm5KecHSTa/iGtDlrJAXKGtcaj9tAweCczAL56WO0=
+=Mv/V
+-----END PGP SIGNATURE-----
+
+--DltcxB3loXq9jsvH6c3K1Bg9Tln8WUMOn--
