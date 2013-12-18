@@ -1,44 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:55863 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751382Ab3LEUwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 15:52:49 -0500
-From: Marek Vasut <marex@denx.de>
-To: Denis Carikli <denis@eukrea.com>
-Subject: Re: [PATCHv5][ 3/8] staging: imx-drm: Correct BGR666 and the board's dts that use them.
-Date: Thu, 5 Dec 2013 21:52:43 +0100
-Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org, Rob Herring <rob.herring@calxeda.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	devicetree@vger.kernel.org, driverdev-devel@linuxdriverproject.org,
-	David Airlie <airlied@linux.ie>,
-	dri-devel@lists.freedesktop.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Eric =?iso-8859-1?q?B=E9nard?= <eric@eukrea.com>
-References: <1386268092-21719-1-git-send-email-denis@eukrea.com> <1386268092-21719-3-git-send-email-denis@eukrea.com>
-In-Reply-To: <1386268092-21719-3-git-send-email-denis@eukrea.com>
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:59702 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751320Ab3LRKJN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Dec 2013 05:09:13 -0500
+Received: by mail-oa0-f43.google.com with SMTP id i7so7990305oag.16
+        for <linux-media@vger.kernel.org>; Wed, 18 Dec 2013 02:09:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201312052152.43971.marex@denx.de>
+In-Reply-To: <52B04D70.8060201@epfl.ch>
+References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
+	<52A1A76A.6070301@epfl.ch>
+	<CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>
+	<52B04D70.8060201@epfl.ch>
+Date: Wed, 18 Dec 2013 11:09:12 +0100
+Message-ID: <CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>
+Subject: Re: omap3isp device tree support
+From: Enrico <ebutera@users.berlios.de>
+To: florian.vaussard@epfl.ch
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, December 05, 2013 at 07:28:07 PM, Denis Carikli wrote:
-[...]
+On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard
+<florian.vaussard@epfl.ch> wrote:
+> So I converted the iommu to DT (patches just sent), used pdata quirks
+> for the isp / mtv9032 data, added a few patches from other people
+> (mainly clk to fix a crash when deferring the omap3isp probe), and a few
+> small hacks. I get a 3.13-rc3 (+ board-removal part from Tony Lindgren)
+> to boot on DT with a working MT9V032 camera. The missing part is the DT
+> binding for the omap3isp, but I guess that we will have to wait a bit
+> more for this.
+>
+> If you want to test, I have a development tree here [1]. Any feedback is
+> welcome.
+>
+> Cheers,
+>
+> Florian
+>
+> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
 
-Can you please explain the correction here ? Why is it needed ? What was the 
-problem ?
+Thanks Florian,
 
-Thanks!
+i will report what i get with my setup.
 
-Best regards,
-Marek Vasut
+Enrico
