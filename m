@@ -1,111 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4635 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754127Ab3L0DeB (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:45818 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755051Ab3LROuN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Dec 2013 22:34:01 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBR3XwTs059776
-	for <linux-media@vger.kernel.org>; Fri, 27 Dec 2013 04:34:00 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 66CCC2A2228
-	for <linux-media@vger.kernel.org>; Fri, 27 Dec 2013 04:33:30 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 18 Dec 2013 09:50:13 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MY0001SCBVONY70@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 18 Dec 2013 23:50:12 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131227033330.66CCC2A2228@tschai.lan>
-Date: Fri, 27 Dec 2013 04:33:30 +0100 (CET)
+Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v3 8/8] s5p-jpeg: Adjust g_volatile_ctrl callback to Exynos4x12
+ needs
+Date: Wed, 18 Dec 2013 15:49:35 +0100
+Message-id: <1387378175-23399-9-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1387378175-23399-1-git-send-email-j.anaszewski@samsung.com>
+References: <1387378175-23399-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Whereas S5PC210 device produces decoded JPEG subsampling
+values that map on V4L2_JPEG_CHROMA_SUBSAMPLNG values,
+the Exynos4x12 device doesn't. This patch adds helper
+function s5p_jpeg_to_user_subsampling, which performs
+suitable translation.
 
-Results of the daily build of media_tree:
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |   29 +++++++++++++++++++++------
+ 1 file changed, 23 insertions(+), 6 deletions(-)
 
-date:		Fri Dec 27 04:00:16 CET 2013
-git branch:	test
-git hash:	7d459937dc09bb8e448d9985ec4623779427d8a5
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index c46c9af..a009bd9 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -451,6 +451,13 @@ static int s5p_jpeg_adjust_fourcc_to_subsampling(
+ 	return 0;
+ }
+ 
++static int exynos4x12_decoded_subsampling[] = {
++	V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY,
++	V4L2_JPEG_CHROMA_SUBSAMPLING_444,
++	V4L2_JPEG_CHROMA_SUBSAMPLING_422,
++	V4L2_JPEG_CHROMA_SUBSAMPLING_420,
++};
++
+ static inline struct s5p_jpeg_ctx *ctrl_to_ctx(struct v4l2_ctrl *c)
+ {
+ 	return container_of(c->handler, struct s5p_jpeg_ctx, ctrl_handler);
+@@ -461,6 +468,21 @@ static inline struct s5p_jpeg_ctx *fh_to_ctx(struct v4l2_fh *fh)
+ 	return container_of(fh, struct s5p_jpeg_ctx, fh);
+ }
+ 
++static int s5p_jpeg_to_user_subsampling(struct s5p_jpeg_ctx *ctx)
++{
++	WARN_ON(ctx->subsampling > 3);
++
++	if (ctx->jpeg->variant->version == SJPEG_S5P) {
++		if (ctx->subsampling > 2)
++			return V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
++		return ctx->subsampling;
++	} else {
++		if (ctx->subsampling > 2)
++			return V4L2_JPEG_CHROMA_SUBSAMPLING_420;
++		return exynos4x12_decoded_subsampling[ctx->subsampling];
++	}
++}
++
+ static inline void s5p_jpeg_set_qtbl(void __iomem *regs,
+ 				     const unsigned char *qtbl,
+ 				     unsigned long tab, int len)
+@@ -1200,12 +1222,7 @@ static int s5p_jpeg_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+ 		spin_lock_irqsave(&jpeg->slock, flags);
+-
+-		WARN_ON(ctx->subsampling > S5P_SUBSAMPLING_MODE_GRAY);
+-		if (ctx->subsampling > 2)
+-			ctrl->val = V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY;
+-		else
+-			ctrl->val = ctx->subsampling;
++		ctrl->val = s5p_jpeg_to_user_subsampling(ctx);
+ 		spin_unlock_irqrestore(&jpeg->slock, flags);
+ 		break;
+ 	}
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
