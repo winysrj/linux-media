@@ -1,45 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:55019 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755271Ab3L1PqU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 10:46:20 -0500
-Received: by mail-ea0-f173.google.com with SMTP id o10so4355776eaj.18
-        for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 07:46:19 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 04/13] libdvbv5: fix deadlock on missing table sections
-Date: Sat, 28 Dec 2013 16:45:52 +0100
-Message-Id: <1388245561-8751-4-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
-References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([217.30.184.167]:44406 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752716Ab3LSEAX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Dec 2013 23:00:23 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v4 7/7] v4l: add device capability flag for SDR receiver
+Date: Thu, 19 Dec 2013 06:00:06 +0200
+Message-Id: <1387425606-7458-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1387425606-7458-1-git-send-email-crope@iki.fi>
+References: <1387425606-7458-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/libdvbv5/dvb-scan.c | 4 ++++
- 1 file changed, 4 insertions(+)
+VIDIOC_QUERYCAP IOCTL is used to query device capabilities. Add new
+capability flag to inform given device supports SDR capture.
 
-diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
-index 76712d4..9751f9d 100644
---- a/lib/libdvbv5/dvb-scan.c
-+++ b/lib/libdvbv5/dvb-scan.c
-@@ -96,6 +96,10 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
- 	uint8_t *buf = NULL;
- 	uint8_t *tbl = NULL;
- 	ssize_t table_length = 0;
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ include/uapi/linux/videodev2.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index c50e449..f596b7b 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -267,6 +267,8 @@ struct v4l2_capability {
+ #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
+ #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
+ 
++#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
 +
-+	// handle sections
-+	int start_id = -1;
-+	int start_section = -1;
- 	int first_section = -1;
- 	int last_section = -1;
- 	int table_id = -1;
+ #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
+ #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+ #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
 -- 
-1.8.3.2
+1.8.4.2
 
