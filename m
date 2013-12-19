@@ -1,40 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f49.google.com ([209.85.212.49]:65328 "EHLO
-	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753312Ab3LNNiS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 08:38:18 -0500
-Received: by mail-vb0-f49.google.com with SMTP id x11so2016435vbb.8
-        for <linux-media@vger.kernel.org>; Sat, 14 Dec 2013 05:38:17 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20131214092443.622b069d@samsung.com>
-References: <1386969579.3914.13.camel@piranha.localdomain>
-	<20131214092443.622b069d@samsung.com>
-Date: Sat, 14 Dec 2013 13:38:17 +0000
-Message-ID: <CAOBYczoSgS-0HW32BvAb0NsEDqiU9o+DosEjRvyb66XB=fU=_g@mail.gmail.com>
-Subject: Re: stable regression: tda18271_read_regs: [1-0060|M] ERROR:
- i2c_transfer returned: -19
-From: Robin Becker <robin@reportlab.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:43689 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752415Ab3LSEAW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Dec 2013 23:00:22 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v4 1/7] v4l: add device type for Software Defined Radio
+Date: Thu, 19 Dec 2013 06:00:00 +0200
+Message-Id: <1387425606-7458-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1387425606-7458-1-git-send-email-crope@iki.fi>
+References: <1387425606-7458-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->
-> Well, for board EM28174_BOARD_PCTV_290E, it first attaches cxd2820r
-> and then the tuner tda18271.
->
-> I suspect that the issue is at cxd2820r. Could you please apply this
-> patch:
->         http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=0db3fa2741ad8371c21b3a6785416a4afc0cc1d4
-> and see if it solves the issue?
->
-> Thanks!
-> Mauro
->
+Add new V4L device type VFL_TYPE_SDR for Software Defined Radio.
+It is registered as /dev/swradio0 (/dev/sdr0 was already reserved).
 
-I applied that patch to the latest 3.12.4 Arch linux kernel and it
-solves the problem for me. The error is gone and my pctv 290e devices
-work again. Thanks for the quick analysis.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 5 +++++
+ include/media/v4l2-dev.h           | 3 ++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 1cc1749..6a1e6a8 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -767,6 +767,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+  *	%VFL_TYPE_RADIO - A radio card
+  *
+  *	%VFL_TYPE_SUBDEV - A subdevice
++ *
++ *	%VFL_TYPE_SDR - Software Defined Radio
+  */
+ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 		int warn_if_nr_in_use, struct module *owner)
+@@ -806,6 +808,9 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	case VFL_TYPE_SUBDEV:
+ 		name_base = "v4l-subdev";
+ 		break;
++	case VFL_TYPE_SDR:
++		name_base = "swradio";
++		break;
+ 	default:
+ 		printk(KERN_ERR "%s called with unknown type: %d\n",
+ 		       __func__, type);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index c768c9f..eec6e46 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -24,7 +24,8 @@
+ #define VFL_TYPE_VBI		1
+ #define VFL_TYPE_RADIO		2
+ #define VFL_TYPE_SUBDEV		3
+-#define VFL_TYPE_MAX		4
++#define VFL_TYPE_SDR		4
++#define VFL_TYPE_MAX		5
+ 
+ /* Is this a receiver, transmitter or mem-to-mem? */
+ /* Ignored for VFL_TYPE_SUBDEV. */
 -- 
-Robin Becker
+1.8.4.2
+
