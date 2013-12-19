@@ -1,90 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4102 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754141Ab3LJPGL (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41577 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750910Ab3LSBCp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 10:06:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 17/22] adv7842: support g_edid ioctl
-Date: Tue, 10 Dec 2013 16:04:03 +0100
-Message-Id: <115be90a1e319c457b63c9f33c5eda060062c5e6.1386687810.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
-References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+	Wed, 18 Dec 2013 20:02:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	devel@driverdev.osuosl.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	kernel-janitors@vger.kernel.org,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [patch v2] [media] v4l: omap4iss: Restore irq flags correctly in omap4iss_video_buffer_next()
+Date: Thu, 19 Dec 2013 02:03:05 +0100
+Message-ID: <9772816.NZs94s1p3P@avalon>
+In-Reply-To: <20131216150612.GA15506@elgon.mountain>
+References: <20131216150612.GA15506@elgon.mountain>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+Hi Dan,
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+Thank you for the patch.
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 8390b93..c3ac4e9 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -1908,6 +1908,46 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
-+static int adv7842_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+	u8 *data = NULL;
-+
-+	if (edid->pad > ADV7842_EDID_PORT_VGA)
-+		return -EINVAL;
-+	if (edid->blocks == 0)
-+		return -EINVAL;
-+	if (edid->blocks > 2)
-+		return -EINVAL;
-+	if (edid->start_block > 1)
-+		return -EINVAL;
-+	if (edid->start_block == 1)
-+		edid->blocks = 1;
-+	if (!edid->edid)
-+		return -EINVAL;
-+
-+	switch (edid->pad) {
-+	case ADV7842_EDID_PORT_A:
-+	case ADV7842_EDID_PORT_B:
-+		if (state->hdmi_edid.present & (0x04 << edid->pad))
-+			data = state->hdmi_edid.edid;
-+		break;
-+	case ADV7842_EDID_PORT_VGA:
-+		if (state->vga_edid.present)
-+			data = state->vga_edid.edid;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	if (!data)
-+		return -ENODATA;
-+
-+	memcpy(edid->edid,
-+	       data + edid->start_block * 128,
-+	       edid->blocks * 128);
-+	return 0;
-+}
-+
- static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *e)
- {
- 	struct adv7842_state *state = to_state(sd);
-@@ -2720,6 +2760,7 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
- };
- 
- static const struct v4l2_subdev_pad_ops adv7842_pad_ops = {
-+	.get_edid = adv7842_get_edid,
- 	.set_edid = adv7842_set_edid,
- };
- 
+On Wednesday 18 December 2013 10:29:24 Dan Carpenter wrote:
+> The spin_lock_irqsave() macro is not nestable.  The second call will
+> overwrite the first record of "flags" so the IRQs will not be enabled
+> correctly at the end of the function.
+> 
+> In the current code, this function is always called from the IRQ handler
+> so everything works fine and this fix doesn't change anything.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree. I'll send a pull request shortly.
+
+> ---
+> v2:  Updated the change log
+> 
+> diff --git a/drivers/staging/media/omap4iss/iss_video.c
+> b/drivers/staging/media/omap4iss/iss_video.c index
+> 766491e6a8d0..c9b71c750b15 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.c
+> +++ b/drivers/staging/media/omap4iss/iss_video.c
+> @@ -451,9 +451,9 @@ struct iss_buffer *omap4iss_video_buffer_next(struct
+> iss_video *video) }
+> 
+>  	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && pipe->input != NULL) {
+> -		spin_lock_irqsave(&pipe->lock, flags);
+> +		spin_lock(&pipe->lock);
+>  		pipe->state &= ~ISS_PIPELINE_STREAM;
+> -		spin_unlock_irqrestore(&pipe->lock, flags);
+> +		spin_unlock(&pipe->lock);
+>  	}
+> 
+>  	buf = list_first_entry(&video->dmaqueue, struct iss_buffer,
+
 -- 
-1.8.4.rc3
+Regards,
+
+Laurent Pinchart
 
