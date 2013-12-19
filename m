@@ -1,288 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2493 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757198Ab3LFKSN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 05:18:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:44763 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752711Ab3LSEAX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Dec 2013 23:00:23 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Dinesh.Ram@cern.ch, edubezval@gmail.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 11/11] si4713: coding style cleanups
-Date: Fri,  6 Dec 2013 11:17:14 +0100
-Message-Id: <1386325034-19344-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v4 6/7] v4l: enable some IOCTLs for SDR receiver
+Date: Thu, 19 Dec 2013 06:00:05 +0200
+Message-Id: <1387425606-7458-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1387425606-7458-1-git-send-email-crope@iki.fi>
+References: <1387425606-7458-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Enable stream format (FMT) IOCTLs for SDR use. These are used for negotiate
+used data stream format.
 
-Fix most checkpatch errors/warnings.
+Reorganise some some IOCTL selection logic.
 
-It's mostly whitespace changes, except for replacing msleep with
-usleep_range and the jiffies comparison with time_is_after_jiffies().
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/radio/si4713/radio-usb-si4713.c |   4 +-
- drivers/media/radio/si4713/si4713.c           | 104 +++++++++++++-------------
- 2 files changed, 55 insertions(+), 53 deletions(-)
+ drivers/media/v4l2-core/v4l2-dev.c   | 21 ++++++++++++++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 53 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
-index d978844..691e487 100644
---- a/drivers/media/radio/si4713/radio-usb-si4713.c
-+++ b/drivers/media/radio/si4713/radio-usb-si4713.c
-@@ -207,7 +207,7 @@ static int si4713_send_startup_command(struct si4713_usb_device *radio)
- 		}
- 		if (time_is_before_jiffies(until_jiffies))
- 			return -EIO;
--		msleep(3);
-+		usleep_range(3000, 5000);
- 	}
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 6a1e6a8..a797cbe 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -562,7 +562,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	const struct v4l2_ioctl_ops *ops = vdev->ioctl_ops;
+ 	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
+-	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
++	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
  
- 	return retval;
-@@ -354,7 +354,7 @@ static int si4713_i2c_read(struct si4713_usb_device *radio, char *data, int len)
- 			data[0] = 0;
+@@ -671,9 +671,20 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			       ops->vidioc_try_fmt_sliced_vbi_out)))
+ 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
++	} else if (is_sdr) {
++		/* SDR specific ioctls */
++		if (ops->vidioc_enum_fmt_sdr_cap)
++			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
++		if (ops->vidioc_g_fmt_sdr_cap)
++			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
++		if (ops->vidioc_s_fmt_sdr_cap)
++			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
++		if (ops->vidioc_try_fmt_sdr_cap)
++			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+ 	}
+-	if (!is_radio) {
+-		/* ioctls valid for video or vbi */
++
++	if (is_vid || is_vbi || is_sdr) {
++		/* ioctls valid for video, vbi or sdr */
+ 		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+ 		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
+ 		SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
+@@ -681,6 +692,10 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
+ 		SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
+ 		SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
++	}
++
++	if (is_vid || is_vbi) {
++		/* ioctls valid for video or vbi */
+ 		if (ops->vidioc_s_std)
+ 			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_STD, vidioc_s_std);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index be06c21..7bd910b 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -243,6 +243,7 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 	const struct v4l2_vbi_format *vbi;
+ 	const struct v4l2_sliced_vbi_format *sliced;
+ 	const struct v4l2_window *win;
++	const struct v4l2_format_sdr *sdr;
+ 	unsigned i;
+ 
+ 	pr_cont("type=%s", prt_names(p->type, v4l2_type_names));
+@@ -316,6 +317,14 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 				sliced->service_lines[0][i],
+ 				sliced->service_lines[1][i]);
+ 		break;
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		sdr = &p->fmt.sdr;
++		pr_cont(", pixelformat=%c%c%c%c\n",
++			(sdr->pixelformat >>  0) & 0xff,
++			(sdr->pixelformat >>  8) & 0xff,
++			(sdr->pixelformat >> 16) & 0xff,
++			(sdr->pixelformat >> 24) & 0xff);
++		break;
+ 	}
+ }
+ 
+@@ -879,6 +888,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_vbi = vfd->vfl_type == VFL_TYPE_VBI;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 
+@@ -928,6 +938,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 		if (is_vbi && is_tx && ops->vidioc_g_fmt_sliced_vbi_out)
  			return 0;
- 		}
--		msleep(3);
-+		usleep_range(3000, 5000);
+ 		break;
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
++			return 0;
++		break;
+ 	default:
+ 		break;
  	}
- }
- 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index 6f28a2b..451b9c0 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -50,12 +50,12 @@ MODULE_VERSION("0.0.1");
- #define DEFAULT_RDS_PS_REPEAT_COUNT	0x0003
- #define DEFAULT_LIMITER_RTIME		0x1392
- #define DEFAULT_LIMITER_DEV		0x102CA
--#define DEFAULT_PILOT_FREQUENCY 	0x4A38
-+#define DEFAULT_PILOT_FREQUENCY		0x4A38
- #define DEFAULT_PILOT_DEVIATION		0x1A5E
- #define DEFAULT_ACOMP_ATIME		0x0000
- #define DEFAULT_ACOMP_RTIME		0xF4240L
- #define DEFAULT_ACOMP_GAIN		0x0F
--#define DEFAULT_ACOMP_THRESHOLD 	(-0x28)
-+#define DEFAULT_ACOMP_THRESHOLD		(-0x28)
- #define DEFAULT_MUTE			0x01
- #define DEFAULT_POWER_LEVEL		88
- #define DEFAULT_FREQUENCY		8800
-@@ -252,8 +252,8 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
- 
- 		if (client->irq)
- 			return -EBUSY;
--		msleep(1);
--	} while (jiffies <= until_jiffies);
-+		usleep_range(1000, 2000);
-+	} while (time_is_after_jiffies(until_jiffies));
- 
- 	return -EBUSY;
- }
-@@ -269,9 +269,9 @@ static int si4713_read_property(struct si4713_device *sdev, u16 prop, u32 *pv)
- 	int err;
- 	u8 val[SI4713_GET_PROP_NRESP];
- 	/*
--	 * 	.First byte = 0
--	 * 	.Second byte = property's MSB
--	 * 	.Third byte = property's LSB
-+	 *	.First byte = 0
-+	 *	.Second byte = property's MSB
-+	 *	.Third byte = property's LSB
- 	 */
- 	const u8 args[SI4713_GET_PROP_NARGS] = {
- 		0x00,
-@@ -306,11 +306,11 @@ static int si4713_write_property(struct si4713_device *sdev, u16 prop, u16 val)
- 	int rval;
- 	u8 resp[SI4713_SET_PROP_NRESP];
- 	/*
--	 * 	.First byte = 0
--	 * 	.Second byte = property's MSB
--	 * 	.Third byte = property's LSB
--	 * 	.Fourth byte = value's MSB
--	 * 	.Fifth byte = value's LSB
-+	 *	.First byte = 0
-+	 *	.Second byte = property's MSB
-+	 *	.Third byte = property's LSB
-+	 *	.Fourth byte = value's MSB
-+	 *	.Fifth byte = value's LSB
- 	 */
- 	const u8 args[SI4713_SET_PROP_NARGS] = {
- 		0x00,
-@@ -352,8 +352,8 @@ static int si4713_powerup(struct si4713_device *sdev)
- 	int err;
- 	u8 resp[SI4713_PWUP_NRESP];
- 	/*
--	 * 	.First byte = Enabled interrupts and boot function
--	 * 	.Second byte = Input operation mode
-+	 *	.First byte = Enabled interrupts and boot function
-+	 *	.Second byte = Input operation mode
- 	 */
- 	u8 args[SI4713_PWUP_NARGS] = {
- 		SI4713_PWUP_GPO2OEN | SI4713_PWUP_FUNC_TX,
-@@ -505,18 +505,18 @@ static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
- 		}
- 		if (jiffies_to_usecs(jiffies - start_jiffies) > usecs)
- 			return err < 0 ? err : -EIO;
--		/* We sleep here for 3 ms in order to avoid flooding the device
-+		/* We sleep here for 3-4 ms in order to avoid flooding the device
- 		 * with USB requests. The si4713 USB driver was developed
- 		 * by reverse engineering the Windows USB driver. The windows
- 		 * driver also has a ~2.5 ms delay between responses. */
--		msleep(3);
-+		usleep_range(3000, 4000);
+@@ -1047,6 +1061,10 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_tx || !ops->vidioc_enum_fmt_vid_out_mplane))
+ 			break;
+ 		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_sdr_cap))
++			break;
++		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
  	}
+ 	return -EINVAL;
  }
+@@ -1057,6 +1075,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
  
- /*
-  * si4713_tx_tune_freq - Sets the state of the RF carrier and sets the tuning
-- * 			frequency between 76 and 108 MHz in 10 kHz units and
-- * 			steps of 50 kHz.
-+ *			frequency between 76 and 108 MHz in 10 kHz units and
-+ *			steps of 50 kHz.
-  * @sdev: si4713_device structure for the device we are communicating
-  * @frequency: desired frequency (76 - 108 MHz, unit 10 KHz, step 50 kHz)
-  */
-@@ -525,9 +525,9 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
- 	int err;
- 	u8 val[SI4713_TXFREQ_NRESP];
- 	/*
--	 * 	.First byte = 0
--	 * 	.Second byte = frequency's MSB
--	 * 	.Third byte = frequency's LSB
-+	 *	.First byte = 0
-+	 *	.Second byte = frequency's MSB
-+	 *	.Third byte = frequency's LSB
- 	 */
- 	const u8 args[SI4713_TXFREQ_NARGS] = {
- 		0x00,
-@@ -555,11 +555,11 @@ static int si4713_tx_tune_freq(struct si4713_device *sdev, u16 frequency)
+@@ -1101,6 +1120,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_tx || is_vid || !ops->vidioc_g_fmt_sliced_vbi_out))
+ 			break;
+ 		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
++			break;
++		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1111,6 +1134,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
  
- /*
-  * si4713_tx_tune_power - Sets the RF voltage level between 88 and 120 dBuV in
-- * 			1 dB units. A value of 0x00 indicates off. The command
-- * 			also sets the antenna tuning capacitance. A value of 0
-- * 			indicates autotuning, and a value of 1 - 191 indicates
-- * 			a manual override, which results in a tuning
-- * 			capacitance of 0.25 pF x @antcap.
-+ *			1 dB units. A value of 0x00 indicates off. The command
-+ *			also sets the antenna tuning capacitance. A value of 0
-+ *			indicates autotuning, and a value of 1 - 191 indicates
-+ *			a manual override, which results in a tuning
-+ *			capacitance of 0.25 pF x @antcap.
-  * @sdev: si4713_device structure for the device we are communicating
-  * @power: tuning power (88 - 120 dBuV, unit/step 1 dB)
-  * @antcap: value of antenna tuning capacitor (0 - 191)
-@@ -570,10 +570,10 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
- 	int err;
- 	u8 val[SI4713_TXPWR_NRESP];
- 	/*
--	 * 	.First byte = 0
--	 * 	.Second byte = 0
--	 * 	.Third byte = power
--	 * 	.Fourth byte = antcap
-+	 *	.First byte = 0
-+	 *	.Second byte = 0
-+	 *	.Third byte = power
-+	 *	.Fourth byte = antcap
- 	 */
- 	u8 args[SI4713_TXPWR_NARGS] = {
- 		0x00,
-@@ -602,12 +602,12 @@ static int si4713_tx_tune_power(struct si4713_device *sdev, u8 power,
+@@ -1165,6 +1189,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_sdr_cap))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.sdr);
++		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1175,6 +1204,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
  
- /*
-  * si4713_tx_tune_measure - Enters receive mode and measures the received noise
-- * 			level in units of dBuV on the selected frequency.
-- * 			The Frequency must be between 76 and 108 MHz in 10 kHz
-- * 			units and steps of 50 kHz. The command also sets the
-- * 			antenna	tuning capacitance. A value of 0 means
-- * 			autotuning, and a value of 1 to 191 indicates manual
-- * 			override.
-+ *			level in units of dBuV on the selected frequency.
-+ *			The Frequency must be between 76 and 108 MHz in 10 kHz
-+ *			units and steps of 50 kHz. The command also sets the
-+ *			antenna	tuning capacitance. A value of 0 means
-+ *			autotuning, and a value of 1 to 191 indicates manual
-+ *			override.
-  * @sdev: si4713_device structure for the device we are communicating
-  * @frequency: desired frequency (76 - 108 MHz, unit 10 KHz, step 50 kHz)
-  * @antcap: value of antenna tuning capacitor (0 - 191)
-@@ -618,10 +618,10 @@ static int si4713_tx_tune_measure(struct si4713_device *sdev, u16 frequency,
- 	int err;
- 	u8 val[SI4713_TXMEA_NRESP];
- 	/*
--	 * 	.First byte = 0
--	 * 	.Second byte = frequency's MSB
--	 * 	.Third byte = frequency's LSB
--	 * 	.Fourth byte = antcap
-+	 *	.First byte = 0
-+	 *	.Second byte = frequency's MSB
-+	 *	.Third byte = frequency's LSB
-+	 *	.Fourth byte = antcap
- 	 */
- 	const u8 args[SI4713_TXMEA_NARGS] = {
- 		0x00,
-@@ -651,11 +651,11 @@ static int si4713_tx_tune_measure(struct si4713_device *sdev, u16 frequency,
- 
- /*
-  * si4713_tx_tune_status- Returns the status of the tx_tune_freq, tx_tune_mea or
-- * 			tx_tune_power commands. This command return the current
-- * 			frequency, output voltage in dBuV, the antenna tunning
-- * 			capacitance value and the received noise level. The
-- * 			command also clears the stcint interrupt bit when the
-- * 			first bit of its arguments is high.
-+ *			tx_tune_power commands. This command return the current
-+ *			frequency, output voltage in dBuV, the antenna tunning
-+ *			capacitance value and the received noise level. The
-+ *			command also clears the stcint interrupt bit when the
-+ *			first bit of its arguments is high.
-  * @sdev: si4713_device structure for the device we are communicating
-  * @intack: 0x01 to clear the seek/tune complete interrupt status indicator.
-  * @frequency: returned frequency
-@@ -670,7 +670,7 @@ static int si4713_tx_tune_status(struct si4713_device *sdev, u8 intack,
- 	int err;
- 	u8 val[SI4713_TXSTATUS_NRESP];
- 	/*
--	 * 	.First byte = intack bit
-+	 *	.First byte = intack bit
- 	 */
- 	const u8 args[SI4713_TXSTATUS_NARGS] = {
- 		intack & SI4713_INTACK_MASK,
-@@ -1364,7 +1364,7 @@ static int si4713_probe(struct i2c_client *client,
- 	struct v4l2_ctrl_handler *hdl;
- 	int rval, i;
- 
--	sdev = kzalloc(sizeof *sdev, GFP_KERNEL);
-+	sdev = kzalloc(sizeof(*sdev), GFP_KERNEL);
- 	if (!sdev) {
- 		dev_err(&client->dev, "Failed to alloc video device.\n");
- 		rval = -ENOMEM;
-@@ -1440,8 +1440,8 @@ static int si4713_probe(struct i2c_client *client,
- 			V4L2_CID_AUDIO_COMPRESSION_GAIN, 0, MAX_ACOMP_GAIN, 1,
- 			DEFAULT_ACOMP_GAIN);
- 	sdev->compression_threshold = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
--			V4L2_CID_AUDIO_COMPRESSION_THRESHOLD, MIN_ACOMP_THRESHOLD,
--			MAX_ACOMP_THRESHOLD, 1,
-+			V4L2_CID_AUDIO_COMPRESSION_THRESHOLD,
-+			MIN_ACOMP_THRESHOLD, MAX_ACOMP_THRESHOLD, 1,
- 			DEFAULT_ACOMP_THRESHOLD);
- 	sdev->compression_attack_time = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
- 			V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME, 0,
-@@ -1463,9 +1463,11 @@ static int si4713_probe(struct i2c_client *client,
- 			V4L2_CID_TUNE_PREEMPHASIS,
- 			V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
- 	sdev->tune_pwr_level = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
--			V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER, 1, DEFAULT_POWER_LEVEL);
-+			V4L2_CID_TUNE_POWER_LEVEL, 0, SI4713_MAX_POWER,
-+			1, DEFAULT_POWER_LEVEL);
- 	sdev->tune_ant_cap = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
--			V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP, 1, 0);
-+			V4L2_CID_TUNE_ANTENNA_CAPACITOR, 0, SI4713_MAX_ANTCAP,
-+			1, 0);
- 
- 	if (hdl->error) {
- 		rval = hdl->error;
+@@ -1229,6 +1259,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_sdr_cap))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.sdr);
++		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
 -- 
-1.8.4.rc3
+1.8.4.2
 
