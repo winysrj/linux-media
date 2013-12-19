@@ -1,60 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4897 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756047Ab3LTJcE (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2529 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913Ab3LSDdh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 04:32:04 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 18 Dec 2013 22:33:37 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBJ3XX6D032441
+	for <linux-media@vger.kernel.org>; Thu, 19 Dec 2013 04:33:35 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 99A9A2A2226
+	for <linux-media@vger.kernel.org>; Thu, 19 Dec 2013 04:33:16 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 29/50] adv7842: save platform data in state struct
-Date: Fri, 20 Dec 2013 10:31:22 +0100
-Message-Id: <1387531903-20496-30-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131219033316.99A9A2A2226@tschai.lan>
+Date: Thu, 19 Dec 2013 04:33:16 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index cbbfa77..4f93526 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -61,6 +61,7 @@ MODULE_LICENSE("GPL");
- */
- 
- struct adv7842_state {
-+	struct adv7842_platform_data pdata;
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
-@@ -2730,6 +2731,9 @@ static int adv7842_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	}
- 
-+	/* platform data */
-+	state->pdata = *pdata;
-+
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &adv7842_ops);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-@@ -2834,7 +2838,7 @@ static int adv7842_probe(struct i2c_client *client,
- 	if (err)
- 		goto err_work_queues;
- 
--	err = adv7842_core_init(sd, pdata);
-+	err = adv7842_core_init(sd);
- 	if (err)
- 		goto err_entity;
- 
--- 
-1.8.4.4
+date:		Thu Dec 19 04:00:23 CET 2013
+git branch:	test
+git hash:	c0ec1c4dd7d6b2bfb1eca116f9df4578d9193623
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: WARNINGS
+linux-3.12-i686: WARNINGS
+linux-3.13-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
