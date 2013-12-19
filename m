@@ -1,51 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:54864 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750719Ab3LKGJZ (ORCPT
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:54925 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751066Ab3LSQ7u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 01:09:25 -0500
-Received: by mail-pb0-f53.google.com with SMTP id ma3so9251151pbc.40
-        for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 22:09:24 -0800 (PST)
-Date: Tue, 10 Dec 2013 22:09:22 -0800
-From: Lisa Nguyen <lisa@xenapiadmin.com>
-To: prabhakar.csengg@gmail.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	linux-media@vger.kernel.org, m.chehab@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATCH v3] staging: media: davinci_vpfe: Rewrite return statement in
- vpfe_video.c
-Message-ID: <20131211060921.GA4772@ubuntu>
+	Thu, 19 Dec 2013 11:59:50 -0500
+Received: by mail-wg0-f41.google.com with SMTP id y10so5956491wgg.2
+        for <linux-media@vger.kernel.org>; Thu, 19 Dec 2013 08:59:49 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <52B323F0.2050701@iki.fi>
+References: <1387231688-8647-1-git-send-email-crope@iki.fi>
+	<1387231688-8647-7-git-send-email-crope@iki.fi>
+	<52B2BA92.8080706@xs4all.nl>
+	<52B323F0.2050701@iki.fi>
+Date: Thu, 19 Dec 2013 11:59:49 -0500
+Message-ID: <CAGoCfiz1kWHXPC-b-Exw=AYrNeOzaCgSvr3+zLuf12g5gyYJxA@mail.gmail.com>
+Subject: Re: [PATCH RFC v3 6/7] rtl2832_sdr: convert to SDR API
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rewrite the return statement in vpfe_video.c. This will prevent
-the checkpatch.pl script from generating a warning saying
-to remove () from this particular return statement.
+> I haven't
+> looked situation more carefully yet, but one thing that must be done at the
+> very first is to add some lock to prevent only DVB or V4L2 API could access
+> the hardware at time.
 
-Signed-off-by: Lisa Nguyen <lisa@xenapiadmin.com>
----
-Changes since v3:
-- Removed () from return statement per Laurent Pinchart's suggestion
+Probably worth mentioning that we have *lots* of devices that suffer
+from this problem.  Our general tact has to been to do nothing and let
+the driver crash and burn in non-predictable ways when userland tries
+to use both APIs at the same time.
 
- drivers/staging/media/davinci_vpfe/vpfe_video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+So while it's pretty pathetic that we still haven't resolved this
+after all these years, if you didn't address the issue in the initial
+release then you wouldn't be much worse off than lots of other
+devices.
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 24d98a6..3b036be 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -346,7 +346,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- 	}
- 	mutex_unlock(&mdev->graph_mutex);
- 
--	return (ret == 0) ? ret : -ETIMEDOUT ;
-+	return ret ? -ETIMEDOUT : 0;
- }
- 
- /*
+Devin
+
 -- 
-1.7.9.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
