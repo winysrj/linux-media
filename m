@@ -1,42 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3872 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752485Ab3LQHfd (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3760 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004Ab3LSIzz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 02:35:33 -0500
-Message-ID: <52AFFEA3.7010200@xs4all.nl>
-Date: Tue, 17 Dec 2013 08:34:59 +0100
+	Thu, 19 Dec 2013 03:55:55 -0500
+Message-ID: <52B2B478.4060401@xs4all.nl>
+Date: Thu, 19 Dec 2013 09:55:20 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
 To: Antti Palosaari <crope@iki.fi>
 CC: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v3 5/7] v4l: enable some IOCTLs for SDR receiver
-References: <1387231688-8647-1-git-send-email-crope@iki.fi> <1387231688-8647-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1387231688-8647-6-git-send-email-crope@iki.fi>
+Subject: Re: [PATCH RFC v4 6/7] v4l: enable some IOCTLs for SDR receiver
+References: <1387425606-7458-1-git-send-email-crope@iki.fi> <1387425606-7458-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1387425606-7458-7-git-send-email-crope@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/16/2013 11:08 PM, Antti Palosaari wrote:
+On 12/19/2013 05:00 AM, Antti Palosaari wrote:
 > Enable stream format (FMT) IOCTLs for SDR use. These are used for negotiate
 > used data stream format.
 > 
-> Enable input IOCTLs, VIDIOC_ENUMINPUT, VIDIOC_G_INPUT, VIDIOC_S_INPUT.
-> These are used to select possible antenna connector.
-> 
 > Reorganise some some IOCTL selection logic.
 > 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+Regards,
+
+	Hans
+
 > Signed-off-by: Antti Palosaari <crope@iki.fi>
 > ---
->  drivers/media/v4l2-core/v4l2-dev.c   | 27 ++++++++++++++++++++++++---
+>  drivers/media/v4l2-core/v4l2-dev.c   | 21 ++++++++++++++++++---
 >  drivers/media/v4l2-core/v4l2-ioctl.c | 35 +++++++++++++++++++++++++++++++++++
->  2 files changed, 59 insertions(+), 3 deletions(-)
+>  2 files changed, 53 insertions(+), 3 deletions(-)
 > 
 > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 6a1e6a8..5795e8d 100644
+> index 6a1e6a8..a797cbe 100644
 > --- a/drivers/media/v4l2-core/v4l2-dev.c
 > +++ b/drivers/media/v4l2-core/v4l2-dev.c
 > @@ -562,7 +562,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
@@ -48,7 +51,7 @@ On 12/16/2013 11:08 PM, Antti Palosaari wrote:
 >  	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
 >  	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
 >  
-> @@ -671,9 +671,26 @@ static void determine_valid_ioctls(struct video_device *vdev)
+> @@ -671,9 +671,20 @@ static void determine_valid_ioctls(struct video_device *vdev)
 >  			       ops->vidioc_try_fmt_sliced_vbi_out)))
 >  			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
 >  		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
@@ -62,20 +65,6 @@ On 12/16/2013 11:08 PM, Antti Palosaari wrote:
 > +			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
 > +		if (ops->vidioc_try_fmt_sdr_cap)
 > +			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
-> +
-> +		if (is_rx) {
-> +			SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
-> +			SET_VALID_IOCTL(ops, VIDIOC_G_INPUT, vidioc_g_input);
-> +			SET_VALID_IOCTL(ops, VIDIOC_S_INPUT, vidioc_s_input);
-
-Why would you want to enable these? Normal radio devices should never use
-these, so why would sdr devices?
-
-Regards,
-
-	Hans
-
-> +		}
 >  	}
 > -	if (!is_radio) {
 > -		/* ioctls valid for video or vbi */
@@ -85,7 +74,7 @@ Regards,
 >  		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
 >  		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
 >  		SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
-> @@ -681,6 +698,10 @@ static void determine_valid_ioctls(struct video_device *vdev)
+> @@ -681,6 +692,10 @@ static void determine_valid_ioctls(struct video_device *vdev)
 >  		SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
 >  		SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
 >  		SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
@@ -97,7 +86,7 @@ Regards,
 >  			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
 >  		SET_VALID_IOCTL(ops, VIDIOC_S_STD, vidioc_s_std);
 > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index da197e1..d0777bd 100644
+> index be06c21..7bd910b 100644
 > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
 > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
 > @@ -243,6 +243,7 @@ static void v4l_print_format(const void *arg, bool write_only)
