@@ -1,149 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:45570 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653Ab3LAVGV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Dec 2013 16:06:21 -0500
-Received: by mail-ea0-f180.google.com with SMTP id f15so8209108eak.25
-        for <linux-media@vger.kernel.org>; Sun, 01 Dec 2013 13:06:20 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 1/7] em28xx: add support for GPO controlled analog capturing LEDs
-Date: Sun,  1 Dec 2013 22:06:51 +0100
-Message-Id: <1385932017-2276-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:36193 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030186Ab3LTNqf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Dec 2013 08:46:35 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <52B4466A.2020700@xs4all.nl>
+References: <1387293923-27236-1-git-send-email-prabhakar.csengg@gmail.com>
+ <CA+V-a8sdCuO1U3Egn62g_QivmVUEXzF4RgKbi-Ksm7JZEY-KKA@mail.gmail.com>
+ <52B43DB0.8020107@xs4all.nl> <CA+V-a8tzXtPS5pjGqpno74-9s3gruJhBJ+WD23n1w2jsR7uZGA@mail.gmail.com>
+ <52B4466A.2020700@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 20 Dec 2013 19:16:13 +0530
+Message-ID: <CA+V-a8tDZd3eKiJUKogTEJAuvYEn7a5HRberoeSpzFj-0DVfAA@mail.gmail.com>
+Subject: Re: [PATCH] media: davinci_vpfe: fix build error
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, devel@driverdev.osuosl.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some devices are equipped with a capturing status LED that needs to be
-switched on/off explicitly via a GPO port.
+Hi Hans,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |   69 +++++++++++++++++---------------
- drivers/media/usb/em28xx/em28xx.h      |    9 +++++
- 2 Dateien geändert, 46 Zeilen hinzugefügt(+), 32 Zeilen entfernt(-)
+On Fri, Dec 20, 2013 at 7:00 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Prabhakar,
+>
+> On 12/20/2013 02:02 PM, Prabhakar Lad wrote:
+>> Hi Hans,
+>>
+>> On Fri, Dec 20, 2013 at 6:23 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> I just made a patch myself that I added to the pull request I just posted.
+>>>
+>>> You didn't CC me or CC the linux-media list when you posted your patch, so I
+>>> never saw it.
+>>>
+>> I dont know why this patch didnt make up in linux-media but its
+>> present DLOS [1].
+>
+> If it's not mailed to linux-media, then it doesn't end up in linux-media patchwork,
+> and then I won't see it when I process pending patches.
+>
+> While I am subscribed to DLOS I do not actually read it unless I know there is
+> something that I need to pay attention to.
+>
+This didnt land into linux-media becuase may be I sent it throught TI's network
+I usually send it via my home network.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index fc157af..31d6ab2 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -608,46 +608,51 @@ int em28xx_capture_start(struct em28xx *dev, int start)
- 	    dev->chip_id == CHIP_ID_EM2884 ||
- 	    dev->chip_id == CHIP_ID_EM28174) {
- 		/* The Transport Stream Enable Register moved in em2874 */
--		if (!start) {
--			rc = em28xx_write_reg_bits(dev, EM2874_R5F_TS_ENABLE,
--						   0x00,
--						   EM2874_TS1_CAPTURE_ENABLE);
--			return rc;
--		}
--
--		/* Enable Transport Stream */
- 		rc = em28xx_write_reg_bits(dev, EM2874_R5F_TS_ENABLE,
--					   EM2874_TS1_CAPTURE_ENABLE,
-+					   start ?
-+					       EM2874_TS1_CAPTURE_ENABLE : 0x00,
- 					   EM2874_TS1_CAPTURE_ENABLE);
--		return rc;
--	}
--
-+	} else {
-+		/* FIXME: which is the best order? */
-+		/* video registers are sampled by VREF */
-+		rc = em28xx_write_reg_bits(dev, EM28XX_R0C_USBSUSP,
-+					   start ? 0x10 : 0x00, 0x10);
-+		if (rc < 0)
-+			return rc;
- 
--	/* FIXME: which is the best order? */
--	/* video registers are sampled by VREF */
--	rc = em28xx_write_reg_bits(dev, EM28XX_R0C_USBSUSP,
--				   start ? 0x10 : 0x00, 0x10);
--	if (rc < 0)
--		return rc;
-+		if (start) {
-+			if (dev->board.is_webcam)
-+				rc = em28xx_write_reg(dev, 0x13, 0x0c);
- 
--	if (!start) {
--		/* disable video capture */
--		rc = em28xx_write_reg(dev, EM28XX_R12_VINENABLE, 0x27);
--		return rc;
--	}
-+			/* Enable video capture */
-+			rc = em28xx_write_reg(dev, 0x48, 0x00);
- 
--	if (dev->board.is_webcam)
--		rc = em28xx_write_reg(dev, 0x13, 0x0c);
-+			if (dev->mode == EM28XX_ANALOG_MODE)
-+				rc = em28xx_write_reg(dev,
-+						    EM28XX_R12_VINENABLE, 0x67);
-+			else
-+				rc = em28xx_write_reg(dev,
-+						    EM28XX_R12_VINENABLE, 0x37);
- 
--	/* enable video capture */
--	rc = em28xx_write_reg(dev, 0x48, 0x00);
-+			msleep(6);
-+		} else {
-+			/* disable video capture */
-+			rc = em28xx_write_reg(dev, EM28XX_R12_VINENABLE, 0x27);
-+		}
-+	}
- 
--	if (dev->mode == EM28XX_ANALOG_MODE)
--		rc = em28xx_write_reg(dev, EM28XX_R12_VINENABLE, 0x67);
--	else
--		rc = em28xx_write_reg(dev, EM28XX_R12_VINENABLE, 0x37);
-+	if (rc < 0)
-+		return rc;
- 
--	msleep(6);
-+	/* Switch (explicitly controlled) analog capturing LED on/off */
-+	if ((dev->mode == EM28XX_ANALOG_MODE)
-+	    && dev->board.analog_capturing_led) {
-+		struct em28xx_led *led = dev->board.analog_capturing_led;
-+		em28xx_write_reg_bits(dev, led->gpio_reg,
-+				      (!start ^ led->inverted) ?
-+				      ~led->gpio_mask : led->gpio_mask,
-+				      led->gpio_mask);
-+	}
- 
- 	return rc;
- }
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index f8726ad..8003c2f 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -374,6 +374,12 @@ enum em28xx_adecoder {
- 	EM28XX_TVAUDIO,
- };
- 
-+struct em28xx_led {
-+	u8 gpio_reg;
-+	u8 gpio_mask;
-+	bool inverted;
-+};
-+
- struct em28xx_board {
- 	char *name;
- 	int vchannels;
-@@ -410,6 +416,9 @@ struct em28xx_board {
- 	struct em28xx_input       input[MAX_EM28XX_INPUT];
- 	struct em28xx_input	  radio;
- 	char			  *ir_codes;
-+
-+	/* LEDs that need to be controlled explicitly */
-+	struct em28xx_led	  *analog_capturing_led;
- };
- 
- struct em28xx_eeprom {
--- 
-1.7.10.4
+>> I posted it the same day when you pinged me about this issue.
+>
+> I was a bit surprised that I didn't see a patch for this, you are very prompt
+> normally :-)
+>
+ :)
+>> Anyway your patch
+>> too didnt reach me and I also cannot find it in the ML. May be you
+>> directly issued the pull ?
+>
+> I directly issued the pull. It was such a trivial change.
+>
+No problem as long as its fixed :)
 
+Thanks,
+--Prabhakar Lad
