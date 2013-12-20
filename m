@@ -1,60 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:30567 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754079Ab3LDONT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 09:13:19 -0500
-Date: Wed, 4 Dec 2013 17:12:57 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Joerg Heckenbach <joerg@heckenbach-aw.de>,
-	Dwaine Garden <DwaineGarden@rogers.com>
-Cc: linux-media@vger.kernel.org
-Subject: re: V4L/DVB (4922): Add usbvision driver
-Message-ID: <20131204141257.GB11681@elgon.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:53960 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797Ab3LTWYX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Dec 2013 17:24:23 -0500
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 5/6] exynos4-is: Enable fimc-is clocks in probe() if runtime PM is disabled
+Date: Fri, 20 Dec 2013 23:23:26 +0100
+Message-Id: <1387578207-17625-6-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1387578207-17625-1-git-send-email-s.nawrocki@samsung.com>
+References: <1387578207-17625-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Joerg and Dwaine,
+Ensure the device works also when runtime PM is disabled. This will
+allow to drop an incorrect dependency on PM_RUNTIME.
 
-The patch 781aa1d1ab7b: "V4L/DVB (4922): Add usbvision driver" from
-Dec 4, 2006, leads to the following
-static checker warning:
-"drivers/media/usb/usbvision/usbvision-core.c:298 scratch_get()
-	 error: memcpy() 'data' too small (400 vs 401)"
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-is.c |   25 ++++++++++++++++++++-----
+ 1 files changed, 20 insertions(+), 5 deletions(-)
 
-drivers/media/usb/usbvision/usbvision-core.c
-   751          strip_len = 2 * (unsigned int)strip_header[1];
-   752          if (strip_len > USBVISION_STRIP_LEN_MAX) {
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If we overrun here...
-
-   753                  /* strip overrun */
-   754                  /* I think this never happens */
-   755                  usbvision_request_intra(usbvision);
-   756          }
-   757  
-   758          if (scratch_len(usbvision) < strip_len) {
-   759                  /* there is not enough data for the strip */
-   760                  return parse_state_out;
-   761          }
-   762  
-   763          if (usbvision->intra_frame_buffer) {
-   764                  Y = usbvision->intra_frame_buffer + frame->frmwidth * frame->curline;
-   765                  U = usbvision->intra_frame_buffer + image_size + (frame->frmwidth / 2) * (frame->curline / 2);
-   766                  V = usbvision->intra_frame_buffer + image_size / 4 * 5 + (frame->frmwidth / 2) * (frame->curline / 2);
-   767          } else {
-   768                  return parse_state_next_frame;
-   769          }
-   770  
-   771          clipmask_index = frame->curline * MAX_FRAME_WIDTH;
-   772  
-   773          scratch_get(usbvision, strip_data, strip_len);
-                                       ^^^^^^^^^^^^^^^^^^^^^
-Then we scribble on the stack here because "strip_data" only has
-USBVISION_STRIP_LEN_MAX bytes.  It is a security problem.
-
-regards,
-dan carpenter
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 8cb70c2..13a4228 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -781,6 +781,9 @@ static int fimc_is_debugfs_create(struct fimc_is *is)
+ 	return is->debugfs_entry == NULL ? -EIO : 0;
+ }
+ 
++static int fimc_is_runtime_resume(struct device *dev);
++static int fimc_is_runtime_suspend(struct device *dev);
++
+ static int fimc_is_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -835,14 +838,20 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 	}
+ 	pm_runtime_enable(dev);
+ 
++	if (!pm_runtime_enabled(dev)) {
++		ret = fimc_is_runtime_resume(dev);
++		if (ret < 0)
++			goto err_irq;
++	}
++
+ 	ret = pm_runtime_get_sync(dev);
+ 	if (ret < 0)
+-		goto err_irq;
++		goto err_pm;
+ 
+ 	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(is->alloc_ctx)) {
+ 		ret = PTR_ERR(is->alloc_ctx);
+-		goto err_irq;
++		goto err_pm;
+ 	}
+ 	/*
+ 	 * Register FIMC-IS V4L2 subdevs to this driver. The video nodes
+@@ -871,6 +880,9 @@ err_sd:
+ 	fimc_is_unregister_subdevs(is);
+ err_vb:
+ 	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
++err_pm:
++	if (!pm_runtime_enabled(dev))
++		fimc_is_runtime_suspend(dev);
+ err_irq:
+ 	free_irq(is->irq, is);
+ err_clk:
+@@ -919,10 +931,13 @@ static int fimc_is_suspend(struct device *dev)
+ 
+ static int fimc_is_remove(struct platform_device *pdev)
+ {
+-	struct fimc_is *is = platform_get_drvdata(pdev);
++	struct device *dev = &pdev->dev;
++	struct fimc_is *is = dev_get_drvdata(dev);
+ 
+-	pm_runtime_disable(&pdev->dev);
+-	pm_runtime_set_suspended(&pdev->dev);
++	pm_runtime_disable(dev);
++	pm_runtime_set_suspended(dev);
++	if (!pm_runtime_status_suspended(dev))
++		fimc_is_runtime_suspend(dev);
+ 	free_irq(is->irq, is);
+ 	fimc_is_unregister_subdevs(is);
+ 	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
+-- 
+1.7.4.1
 
