@@ -1,79 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:54075 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296Ab3LVPzi (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2923 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756089Ab3LTJcL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Dec 2013 10:55:38 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MY700GCITKOEN40@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Sun, 22 Dec 2013 10:55:37 -0500 (EST)
-Date: Sun, 22 Dec 2013 13:55:31 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>, LMML <linux-media@vger.kernel.org>,
-	Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Subject: Re: em28xx list_add corruption reported by list debug
-Message-id: <20131222135531.6af60f77@samsung.com>
-In-reply-to: <20131222130600.652f468a@samsung.com>
-References: <52B615C9.8040806@iki.fi> <20131222130600.652f468a@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Fri, 20 Dec 2013 04:32:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 43/50] adv7842: enable HDMI/DVI mode irq
+Date: Fri, 20 Dec 2013 10:31:36 +0100
+Message-Id: <1387531903-20496-44-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 22 Dec 2013 13:06:00 -0200
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+From: Martin Bugge <marbugge@cisco.com>
 
-> Em Sun, 22 Dec 2013 00:27:21 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
-> 
-> > I ran also this kind of bug. Device was PCTV 290e, which has that video 
-> > unused. I have no any analog em28xx webcam to test if that happens here too.
-> > 
-> > Fortunately I found one video device which does not crash nor dump debug 
-> > bug warnings. It is some old gspca webcam. Have to look example how 
-> > those videobuf callbacks are implemented there..
-> > 
-> > regards
-> > Antti
-> > 
-> > 
-> > [crope@localhost linux]$ cat /dev/video0
-> > cat: /dev/video0: Invalid argument
-> > [crope@localhost linux]$ cat /dev/video0
-> > cat: /dev/video0: Device or resource busy
-> > [crope@localhost linux]$
-> > 
-> > 
-> > joulu 22 00:08:24 localhost.localdomain kernel: em28174 #0: no endpoint 
-> > for analog mode and transfer type 0
-> 
-> It seems that there's something bad on em28174 registration: it should not
-> be creating a v4l2 device, if the device is DVB only.
-> 
-> The thing is that, when this driver was created, all devices were either
-> analog only or hybrid. Only very recently, pure DVB devices got added.
-> 
-> It shouldn't be that hard to split em28xx_init_dev() into a few routines
-> that would only register v4l2 if the device has analog support.
-> 
-> Again, this changeset:
-> 	https://patchwork.linuxtv.org/patch/17967/
-> 
-> Seems to be part of such solution, as it already splits the v4l2
-> register logic into a separate function. 
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 36 ++++++++++++++++++++++++++----------
+ 1 file changed, 26 insertions(+), 10 deletions(-)
 
-Ok, if I didn't make any mistake, this changeset should do the trick:
-	https://patchwork.linuxtv.org/patch/21282/
-
-Please notice that this is compile-tested only.
-
-Regards,
-Mauro
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 108e1b0..e6932f4 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1834,12 +1834,15 @@ static void adv7842_irq_enable(struct v4l2_subdev *sd, bool enable)
+ 		io_write(sd, 0x78, 0x03);
+ 		/* Enable SDP Standard Detection Change and SDP Video Detected */
+ 		io_write(sd, 0xa0, 0x09);
++		/* Enable HDMI_MODE interrupt */
++		io_write(sd, 0x69, 0x08);
+ 	} else {
+ 		io_write(sd, 0x46, 0x0);
+ 		io_write(sd, 0x5a, 0x0);
+ 		io_write(sd, 0x73, 0x0);
+ 		io_write(sd, 0x78, 0x0);
+ 		io_write(sd, 0xa0, 0x0);
++		io_write(sd, 0x69, 0x0);
+ 	}
+ }
+ 
+@@ -1847,7 +1850,7 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ {
+ 	struct adv7842_state *state = to_state(sd);
+ 	u8 fmt_change_cp, fmt_change_digital, fmt_change_sdp;
+-	u8 irq_status[5];
++	u8 irq_status[6];
+ 
+ 	adv7842_irq_enable(sd, false);
+ 
+@@ -1857,6 +1860,7 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	irq_status[2] = io_read(sd, 0x70);
+ 	irq_status[3] = io_read(sd, 0x75);
+ 	irq_status[4] = io_read(sd, 0x9d);
++	irq_status[5] = io_read(sd, 0x66);
+ 
+ 	/* and clear */
+ 	if (irq_status[0])
+@@ -1869,12 +1873,14 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 		io_write(sd, 0x76, irq_status[3]);
+ 	if (irq_status[4])
+ 		io_write(sd, 0x9e, irq_status[4]);
++	if (irq_status[5])
++		io_write(sd, 0x67, irq_status[5]);
+ 
+ 	adv7842_irq_enable(sd, true);
+ 
+-	v4l2_dbg(1, debug, sd, "%s: irq %x, %x, %x, %x, %x\n", __func__,
++	v4l2_dbg(1, debug, sd, "%s: irq %x, %x, %x, %x, %x, %x\n", __func__,
+ 		 irq_status[0], irq_status[1], irq_status[2],
+-		 irq_status[3], irq_status[4]);
++		 irq_status[3], irq_status[4], irq_status[5]);
+ 
+ 	/* format change CP */
+ 	fmt_change_cp = irq_status[0] & 0x9c;
+@@ -1891,22 +1897,32 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	else
+ 		fmt_change_digital = 0;
+ 
+-	/* notify */
++	/* format change */
+ 	if (fmt_change_cp || fmt_change_digital || fmt_change_sdp) {
+ 		v4l2_dbg(1, debug, sd,
+ 			 "%s: fmt_change_cp = 0x%x, fmt_change_digital = 0x%x, fmt_change_sdp = 0x%x\n",
+ 			 __func__, fmt_change_cp, fmt_change_digital,
+ 			 fmt_change_sdp);
+ 		v4l2_subdev_notify(sd, ADV7842_FMT_CHANGE, NULL);
++		if (handled)
++			*handled = true;
+ 	}
+ 
+-	/* 5v cable detect */
+-	if (irq_status[2])
+-		adv7842_s_detect_tx_5v_ctrl(sd);
+-
+-	if (handled)
+-		*handled = true;
++	/* HDMI/DVI mode */
++	if (irq_status[5] & 0x08) {
++		v4l2_dbg(1, debug, sd, "%s: irq %s mode\n", __func__,
++			 (io_read(sd, 0x65) & 0x08) ? "HDMI" : "DVI");
++		if (handled)
++			*handled = true;
++	}
+ 
++	/* tx 5v detect */
++	if (irq_status[2] & 0x3) {
++		v4l2_dbg(1, debug, sd, "%s: irq tx_5v\n", __func__);
++		adv7842_s_detect_tx_5v_ctrl(sd);
++		if (handled)
++			*handled = true;
++	}
+ 	return 0;
+ }
+ 
 -- 
+1.8.4.4
 
-Cheers,
-Mauro
