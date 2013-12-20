@@ -1,53 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3540 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756018Ab3LTJcD (ORCPT
+Received: from mail-we0-f179.google.com ([74.125.82.179]:47456 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024Ab3LTUJk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 04:32:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 25/50] adv7604: initialize timings to CEA 640x480p59.94.
-Date: Fri, 20 Dec 2013 10:31:18 +0100
-Message-Id: <1387531903-20496-26-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 20 Dec 2013 15:09:40 -0500
+Received: by mail-we0-f179.google.com with SMTP id q59so2888701wes.24
+        for <linux-media@vger.kernel.org>; Fri, 20 Dec 2013 12:09:37 -0800 (PST)
+Received: from [192.168.1.110] (093105185086.warszawa.vectranet.pl. [93.105.185.86])
+        by mx.google.com with ESMTPSA id jw4sm3385942wjc.20.2013.12.20.12.09.35
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Fri, 20 Dec 2013 12:09:36 -0800 (PST)
+Message-ID: <52B4A3FE.8020702@gmail.com>
+Date: Fri, 20 Dec 2013 21:09:34 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] Samsung S5K6BAF image sensor driver
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The following changes since commit 0400c5354ad09bf4c754132992bdde9ef3dbefcd:
 
-This timing must be supported by all HDMI equipment, so that's a
-reasonable default.
+   [media] dib8000: improve block statistics (2013-12-19 08:17:47 -0200)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+are available in the git repository at:
+   git://linuxtv.org/snawrocki/samsung.git v3.14-s5k5baf
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index be9699e..71c8570 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2207,6 +2207,8 @@ static struct i2c_client *adv7604_dummy_client(struct v4l2_subdev *sd,
- static int adv7604_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
-+	static const struct v4l2_dv_timings cea640x480 =
-+		V4L2_DV_BT_CEA_640X480P59_94;
- 	struct adv7604_state *state;
- 	struct adv7604_platform_data *pdata = client->dev.platform_data;
- 	struct v4l2_ctrl_handler *hdl;
-@@ -2234,7 +2236,8 @@ static int adv7604_probe(struct i2c_client *client,
- 		v4l_err(client, "No platform data!\n");
- 		return -ENODEV;
- 	}
--	memcpy(&state->pdata, pdata, sizeof(state->pdata));
-+	state->pdata = *pdata;
-+	state->timings = cea640x480;
- 
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &adv7604_ops);
--- 
-1.8.4.4
+Andrzej Hajda (2):
+       Add DT binding documentation for Samsung S5K5BAF camera sensor
+       Add driver for Samsung S5K5BAF camera sensor
 
+  .../devicetree/bindings/media/samsung-s5k5baf.txt  |   58 +
+  MAINTAINERS                                        |    7 +
+  drivers/media/i2c/Kconfig                          |    7 +
+  drivers/media/i2c/Makefile                         |    1 +
+  drivers/media/i2c/s5k5baf.c                        | 2043 
+++++++++++++++++++++
+  5 files changed, 2116 insertions(+), 0 deletions(-)
+  create mode 100644 
+Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
+  create mode 100644 drivers/media/i2c/s5k5baf.c
