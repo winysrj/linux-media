@@ -1,226 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s20.blu0.hotmail.com ([65.55.111.95]:7278 "EHLO
-	blu0-omc2-s20.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751775Ab3LCKUa (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4335 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755547Ab3LTJbz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Dec 2013 05:20:30 -0500
-Message-ID: <BLU0-SMTP92430758342451CF087FC3ADD50@phx.gbl>
-Date: Tue, 3 Dec 2013 18:15:13 +0800
-From: randy <lxr1234@hotmail.com>
-MIME-Version: 1.0
+	Fri, 20 Dec 2013 04:31:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-CC: kyungmin.park@samsung.com, k.debski@samsung.com,
-	m.chehab@samsung.com, jtp.park@samsung.com
-Subject: Can't open mfc v5 encode but decode can
-Content-Type: text/plain; charset="GB2312"
-Content-Transfer-Encoding: 7bit
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 04/50] ad9389b: retry setup if the state is inconsistent
+Date: Fri, 20 Dec 2013 10:30:57 +0100
+Message-Id: <1387531903-20496-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The kernel is 3.13-rc2, the mfc has been configured by dts, the dts is
-attached below. I have placed s5p-mfc.fw in /lib/firmware/ .
-I can use v4l2-ctl(from v4l2-utils) the encoder in the manufacturer
-kernel, but I can't in here. What is the problem?
-Thank you
-==================================log==================================
+From: Martin Bugge <marbugge@cisco.com>
 
-root@mifu:~# dmesg|grep mfc
-[    3.165000] s5p-mfc 13400000.codec: decoder registered as /dev/video0
-[    3.170000] s5p-mfc 13400000.codec: encoder registered as /dev/video1
-root@mifu:~# v4l2-ctl -d /dev/video0 --all
-Driver Info (not using libv4l2):
-        Driver name   : 13400000.codec[  153.415000] vidioc_g_crop:777:
-Cannont set crop
+Retry setup if the device is powered off when it should be powered on. This
+state can be caused by rapid hotplug toggles.
 
-        Card type     : 13400000.codec
-        Bus info      :
-        Driver version: 1.0.0
-        Capabilities  : 0x04007000
-                Video Capture Multiplanar
-                Video Output Multiplanar
-                Streaming
-root@mifu:~# v4l2-ctl -d /dev/video1 --all
-Failed to open /dev/video1: No such file or directory
-=============================dts=====================
-diff --git a/arch/arm/boot/dts/exynos4412-tiny4412.dts
-b/arch/arm/boot/dts/exynos4412-tiny4412.dts
-new file mode 100644
-index 0000000..fedd9cc
---- /dev/null
-+++ b/arch/arm/boot/dts/exynos4412-tiny4412.dts
-@@ -0,0 +1,173 @@
-+/*
-+ * Hardkernel's Exynos4412 based tiny4412 1306 board device tree source
-+ *
-+ * Copyright (c) 2013 Tomoya Gitsufuki <ayaka@mail.soulik.info>
-+ *
-+ * Device tree source file for Friendyarm tiny4412 1306 board which
-is based on
-+ * Samsung's Exynos4412 SoC.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ad9389b.c | 27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index cca7758..83225d6 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -904,7 +904,7 @@ static void ad9389b_notify_monitor_detect(struct v4l2_subdev *sd)
+ 	v4l2_subdev_notify(sd, AD9389B_MONITOR_DETECT, (void *)&mdt);
+ }
+ 
+-static void ad9389b_check_monitor_present_status(struct v4l2_subdev *sd)
++static void ad9389b_update_monitor_present_status(struct v4l2_subdev *sd)
+ {
+ 	struct ad9389b_state *state = get_ad9389b_state(sd);
+ 	/* read hotplug and rx-sense state */
+@@ -947,6 +947,31 @@ static void ad9389b_check_monitor_present_status(struct v4l2_subdev *sd)
+ 	ad9389b_s_ctrl(state->hdmi_mode_ctrl);
+ }
+ 
++static void ad9389b_check_monitor_present_status(struct v4l2_subdev *sd)
++{
++	struct ad9389b_state *state = get_ad9389b_state(sd);
++	int retry = 0;
 +
-+/dts-v1/;
-+#include "exynos4412.dtsi"
-+
-+/ {
-+	model = "Friendly Arm Tiny4412 1306 board based on Exynos4412";
-+	compatible = "friendlyarm,tiny4412-1306", "samsung,exynos4412";
-+
-+	memory {
-+		reg = <0x40000000 0x40000000>;
-+	};
-+
-+	chosen {
-+		bootargs ="root=/dev/mmcblk0p1 rootfstype=ext4 rw
-console=ttySAC0,115200 init=/sbin/init";
-+	};
-+
-+	leds {
-+		compatible = "gpio-leds";
-+		led1 {
-+			label = "led1:heart";
-+			gpios = <&gpm4 0 1>;
-+			default-state = "on";
-+			linux,default-trigger = "heartbeat";
-+		};
-+		led2 {
-+			label = "led2:mmc0";
-+			gpios = <&gpm4 1 1>;
-+			default-state = "on";
-+			linux,default-trigger = "mmc0";
-+		};
-+
-+	};
-+
-+	regulators {
-+		compatible = "simple-bus";
-+		#address-cells = <1>;
-+
-+		vemmc_reg: regulator-0 {
-+			compatible = "regulator-fixed";
-+			regulator-name = "VMEM_VDD_2.8V";
-+			regulator-min-microvolt = <2800000>;
-+			regulator-max-microvolt = <2800000>;
-+			gpio = <&gpk0 2 0>;
-+			enable-active-high;
-+		};
-+
-+	};
++	ad9389b_update_monitor_present_status(sd);
 +
 +	/*
-+	mshc@12550000 {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-0 = <&sd4_clk &sd4_cmd &sd4_bus4 &sd4_bus8>;
-+		pinctrl-names = "default";
-+		status = "okay";
++	 * Rapid toggling of the hotplug may leave the chip powered off,
++	 * even if we think it is on. In that case reset and power up again.
++	 */
++	while (state->power_on && (ad9389b_rd(sd, 0x41) & 0x40)) {
++		if (++retry > 5) {
++			v4l2_err(sd, "retried %d times, give up\n", retry);
++			return;
++		}
++		v4l2_dbg(1, debug, sd, "%s: reset and re-check status (%d)\n", __func__, retry);
++		ad9389b_notify_monitor_detect(sd);
++		cancel_delayed_work_sync(&state->edid_handler);
++		memset(&state->edid, 0, sizeof(struct ad9389b_state_edid));
++		ad9389b_s_power(sd, false);
++		ad9389b_update_monitor_present_status(sd);
++	}
++}
 +
-+		vmmc-supply = <&vemmc_reg>;
-+		clocks = <&clock 301>, <&clock 149>;
-+		clocks-name = "biu", "ciu";
-+
-+		num-slots = <1>;
-+		supports-highspeed;
-+		broken-cd;
-+		fifo-depth = <0x80>;
-+		card-detect-delay = <200>;
-+		samsung,dw-mshc-ciu-div = <3>;
-+		samsung,dw-mshc-sdr-timing = <2 3>;
-+		samsung,dw-mshc-ddr-timing = <1 2>;
-+
-+		slot@0 {
-+			reg = <0>;
-+			bus-width = <8>;
-+
-+		};
-+	};
-+	*/
-+
-+	rtc@10070000 {
-+		status = "okay";
-+	};
-+
-+	sdhci@12530000 {
-+		bus-width = <4>;
-+		pinctrl-0 = <&sd2_clk &sd2_cmd &sd2_bus4 &sd2_cd>;
-+		pinctrl-names = "default";
-+		status = "okay";
-+	};
-+	sdhci@1254000 {
-+		bus-width = <4>;
-+		pinctrl-0 = <&sd3_clk &sd3_cmd &sd3_bus4 &sd3_cd>;
-+		pinctrl-names = "default";
-+		status = "okay";
-+	};
-+
-+	usb_phy: usbphy@125B0000 {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		compatible = "samsung,exynos4210-usb2phy";
-+		reg = <0x125B0000 0x100>;
-+		ranges;
-+		status = "okay";
-+
-+		clocks = <&clock 2>, <&clock 305>;
-+		clock-names = "xusbxti", "otg";
-+		usbphy-sys {
-+			/* USB device and host PHY_CONTROL registers */
-+			/*reg = <0x10020704 0xc 0x1001021c 0x4>;*/
-+			reg = <0x10020704 0x8>;
-+		};
-+	};
-+
-+	ehci@12580000 {
-+		usb-phy = <&usb_phy>;
-+		status = "okay";
-+	};
-+
-+	codec@13400000 {
-+		samsung,mfc-r = <0x43000000 0x800000>;
-+		samsung,mfc-l = <0x51000000 0x800000>;
-+		status = "okay";
-+	};
-+
-+	serial@13800000 {
-+		status = "okay";
-+	};
-+
-+	serial@13810000 {
-+		status = "okay";
-+	};
-+
-+	serial@13820000 {
-+		status = "okay";
-+	};
-+
-+	serial@13830000 {
-+		status = "okay";
-+	};
-+
-+	fixed-rate-clocks {
-+		xxti {
-+			compatible = "samsung,clock-xxti";
-+			clock-frequency = <0>;
-+		};
-+
-+		xusbxti {
-+			compatible = "samsung,clock-xusbxti";
-+			clock-frequency = <24000000>;
-+		};
-+	};
-+
-+	i2c@13860000 {
-+		status = "okay";
-+		samsung,i2c-sda-delay = <100>;
-+		samsung,i2c-max-bus-freq = <200000>;
-+
-+		wm8960@10 {
-+			compatible = "wlf,wm8960";
-+			reg = <0x10>;
-+		};
-+	};
-+};
+ static bool edid_block_verify_crc(u8 *edid_block)
+ {
+ 	u8 sum = 0;
+-- 
+1.8.4.4
+
