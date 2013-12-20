@@ -1,83 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:60610 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751831Ab3LZLJz (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:59021 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581Ab3LTWXk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Dec 2013 06:09:55 -0500
-Message-ID: <52BC0E56.80003@huawei.com>
-Date: Thu, 26 Dec 2013 19:09:10 +0800
-From: Ding Tianhong <dingtianhong@huawei.com>
-MIME-Version: 1.0
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	"Mauro Carvalho Chehab" <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Netdev <netdev@vger.kernel.org>
-Subject: Re: [PATCH v3 13/19] media: dvb_core: slight optimization of addr
- compare
-References: <52BA5113.7070908@huawei.com> <52BABA23.2040709@cogentembedded.com>
-In-Reply-To: <52BABA23.2040709@cogentembedded.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+	Fri, 20 Dec 2013 17:23:40 -0500
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/6] exynos4-is: Power management related cleanups
+Date: Fri, 20 Dec 2013 23:23:21 +0100
+Message-Id: <1387578207-17625-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2013/12/25 18:57, Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 25-12-2013 7:29, Ding Tianhong wrote:
-> 
->> Use possibly more efficient ether_addr_equal
->> instead of memcmp.
-> 
->> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
->> Cc: linux-media@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
->> Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
->> ---
->>   drivers/media/dvb-core/dvb_net.c | 8 ++++----
->>   1 file changed, 4 insertions(+), 4 deletions(-)
-> 
->> diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
->> index f91c80c..3dfc33b 100644
->> --- a/drivers/media/dvb-core/dvb_net.c
->> +++ b/drivers/media/dvb-core/dvb_net.c
->> @@ -179,7 +179,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
->>       eth = eth_hdr(skb);
->>
->>       if (*eth->h_dest & 1) {
->> -        if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
->> +        if(ether_addr_equal(eth->h_dest,dev->broadcast))
-> 
->    There should be space after comma.
-> 
->> @@ -674,11 +674,11 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
->>                       if (priv->rx_mode != RX_MODE_PROMISC) {
->>                           if (priv->ule_skb->data[0] & 0x01) {
->>                               /* multicast or broadcast */
->> -                            if (memcmp(priv->ule_skb->data, bc_addr, ETH_ALEN)) {
->> +                            if (!ether_addr_equal(priv->ule_skb->data, bc_addr)) {
->>                                   /* multicast */
->>                                   if (priv->rx_mode == RX_MODE_MULTI) {
->>                                       int i;
->> -                                    for(i = 0; i < priv->multi_num && memcmp(priv->ule_skb->data, priv->multi_macs[i], ETH_ALEN); i++)
->> +                                    for(i = 0; i < priv->multi_num && !ether_addr_equal(priv->ule_skb->data, priv->multi_macs[i]); i++)
-> 
->    Shouldn't this line be broken?
-> 
+This series removes incorrect dependency of the driver on PM_RUNTIME
+and is a preparation for further work on actual implementation of
+suspend/resume for the FIMC-IS.
 
-ok, thanks.
+Sylwester Nawrocki (6):
+  exynos4-is: Leave FIMC clocks enabled when runtime PM is disabled
+  exynos4-is: Activate mipi-csis in probe() if runtime PM is disabled
+  exynos4-is: Enable FIMC-LITE clock if runtime PM is not used
+  exynos4-is: Correct clean up sequence on error path in
+    fimc_is_probe()
+  exynos4-is: Enable fimc-is clocks in probe() if runtime PM is
+    disabled
+  exynos4-is: Remove dependency on PM_RUNTIME from Kconfig
 
-Regards
->>                                           ;
->>                                       if (i == priv->multi_num)
->>                                           drop = 1;
-> 
-> WBR, Sergei
-> 
-> 
-> 
-> 
+ drivers/media/platform/exynos4-is/Kconfig     |    2 +-
+ drivers/media/platform/exynos4-is/fimc-core.c |   29 +++++++++++++-----------
+ drivers/media/platform/exynos4-is/fimc-is.c   |   29 +++++++++++++++++++------
+ drivers/media/platform/exynos4-is/fimc-lite.c |   24 +++++++++++---------
+ drivers/media/platform/exynos4-is/mipi-csis.c |   11 ++++++++-
+ 5 files changed, 62 insertions(+), 33 deletions(-)
 
+--
+1.7.4.1
 
