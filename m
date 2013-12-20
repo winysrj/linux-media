@@ -1,215 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:53957 "EHLO multi.imgtec.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:54644 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753401Ab3LMPO6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Dec 2013 10:14:58 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH 06/11] media: rc: img-ir: add NEC decoder module
-Date: Fri, 13 Dec 2013 15:12:54 +0000
-Message-ID: <1386947579-26703-7-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
-References: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1752613Ab3LTFuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Dec 2013 00:50:13 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v5 10/12] DocBook: document 1 Hz flag
+Date: Fri, 20 Dec 2013 07:49:52 +0200
+Message-Id: <1387518594-11609-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1387518594-11609-1-git-send-email-crope@iki.fi>
+References: <1387518594-11609-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an img-ir module for decoding the NEC and extended NEC infrared
-protocols.
+Update documention to reflect 1 Hz frequency step flag.
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/rc/img-ir/Kconfig      |   7 ++
- drivers/media/rc/img-ir/Makefile     |   1 +
- drivers/media/rc/img-ir/img-ir-nec.c | 149 +++++++++++++++++++++++++++++++++++
- 3 files changed, 157 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-nec.c
+ .../DocBook/media/v4l/vidioc-enum-freq-bands.xml          |  8 +++++---
+ Documentation/DocBook/media/v4l/vidioc-g-frequency.xml    |  3 ++-
+ Documentation/DocBook/media/v4l/vidioc-g-modulator.xml    |  6 ++++--
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml        | 15 ++++++++++++---
+ Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml |  8 ++++++--
+ 5 files changed, 29 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-index 60eaba6a0843..44d00227c6c4 100644
---- a/drivers/media/rc/img-ir/Kconfig
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -24,3 +24,10 @@ config IR_IMG_HW
- 	   signals in hardware. This is more reliable, consumes less processing
- 	   power since only a single interrupt is received for each scancode,
- 	   and allows an IR scancode to be used as a wake event.
-+
-+config IR_IMG_NEC
-+	tristate "NEC protocol support"
-+	depends on IR_IMG && IR_IMG_HW
-+	help
-+	   Say Y or M here to enable support for the NEC and extended NEC
-+	   protocols in the ImgTec infrared decoder block.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-index 4ef86edec873..f3052878f092 100644
---- a/drivers/media/rc/img-ir/Makefile
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -4,3 +4,4 @@ img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
- img-ir-objs			:= $(img-ir-y)
- 
- obj-$(CONFIG_IR_IMG)		+= img-ir.o
-+obj-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
-diff --git a/drivers/media/rc/img-ir/img-ir-nec.c b/drivers/media/rc/img-ir/img-ir-nec.c
-new file mode 100644
-index 000000000000..ba376caafaf2
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-nec.c
-@@ -0,0 +1,149 @@
-+/*
-+ * ImgTec IR Decoder setup for NEC protocol.
-+ *
-+ * Copyright 2010-2013 Imagination Technologies Ltd.
-+ */
-+
-+#include <linux/module.h>
-+
-+#include "img-ir-hw.h"
-+
-+/* Convert NEC data to a scancode */
-+static int img_ir_nec_scancode(int len, u64 raw, u64 protocols)
-+{
-+	unsigned int addr, addr_inv, data, data_inv;
-+	int scancode;
-+	/* a repeat code has no data */
-+	if (!len)
-+		return IMG_IR_REPEATCODE;
-+	if (len != 32)
-+		return IMG_IR_ERR_INVALID;
-+	addr     = (raw >>  0) & 0xff;
-+	addr_inv = (raw >>  8) & 0xff;
-+	data     = (raw >> 16) & 0xff;
-+	data_inv = (raw >> 24) & 0xff;
-+	/* Validate data */
-+	if ((data_inv ^ data) != 0xff)
-+		return IMG_IR_ERR_INVALID;
-+
-+	if ((addr_inv ^ addr) != 0xff) {
-+		/* Extended NEC */
-+		scancode = addr     << 16 |
-+			   addr_inv <<  8 |
-+			   data;
-+	} else {
-+		/* Normal NEC */
-+		scancode = addr << 8 |
-+			   data;
-+	}
-+	return scancode;
-+}
-+
-+/* Convert NEC scancode to NEC data filter */
-+static int img_ir_nec_filter(const struct img_ir_sc_filter *in,
-+			     struct img_ir_filter *out, u64 protocols)
-+{
-+	unsigned int addr, addr_inv, data, data_inv;
-+	unsigned int addr_m, addr_inv_m, data_m;
-+
-+	data     = in->data & 0xff;
-+	data_m   = in->mask & 0xff;
-+	data_inv = data ^ 0xff;
-+
-+	if (in->data & 0xff000000)
-+		return -EINVAL;
-+
-+	if (in->data & 0x00ff0000) {
-+		/* Extended NEC */
-+		addr       = (in->data >> 16) & 0xff;
-+		addr_m     = (in->mask >> 16) & 0xff;
-+		addr_inv   = (in->data >>  8) & 0xff;
-+		addr_inv_m = (in->mask >>  8) & 0xff;
-+	} else {
-+		/* Normal NEC */
-+		addr       = (in->data >>  8) & 0xff;
-+		addr_m     = (in->mask >>  8) & 0xff;
-+		addr_inv   = addr ^ 0xff;
-+		addr_inv_m = addr_m;
-+	}
-+
-+	out->data = data_inv << 24 |
-+		    data     << 16 |
-+		    addr_inv <<  8 |
-+		    addr;
-+	out->mask = data_m     << 24 |
-+		    data_m     << 16 |
-+		    addr_inv_m <<  8 |
-+		    addr_m;
-+	return 0;
-+}
-+
-+/*
-+ * NEC decoder
-+ * See also http://www.sbprojects.com/knowledge/ir/nec.php
-+ *        http://wiki.altium.com/display/ADOH/NEC+Infrared+Transmission+Protocol
-+ */
-+static struct img_ir_decoder img_ir_nec = {
-+	.type = RC_BIT_NEC,
-+	.control = {
-+		.decoden = 1,
-+		.code_type = IMG_IR_CODETYPE_PULSEDIST,
-+	},
-+	/* main timings */
-+	.unit = 562500, /* 562.5 us */
-+	.timings = {
-+		/* leader symbol */
-+		.ldr = {
-+			.pulse = { 16	/* 9ms */ },
-+			.space = { 8	/* 4.5ms */ },
-+		},
-+		/* 0 symbol */
-+		.s00 = {
-+			.pulse = { 1	/* 562.5 us */ },
-+			.space = { 1	/* 562.5 us */ },
-+		},
-+		/* 1 symbol */
-+		.s01 = {
-+			.pulse = { 1	/* 562.5 us */ },
-+			.space = { 3	/* 1687.5 us */ },
-+		},
-+		/* free time */
-+		.ft = {
-+			.minlen = 32,
-+			.maxlen = 32,
-+			.ft_min = 10,	/* 5.625 ms */
-+		},
-+	},
-+	/* repeat codes */
-+	.repeat = 108,			/* 108 ms */
-+	.rtimings = {
-+		/* leader symbol */
-+		.ldr = {
-+			.space = { 4	/* 2.25 ms */ },
-+		},
-+		/* free time */
-+		.ft = {
-+			.minlen = 0,	/* repeat code has no data */
-+			.maxlen = 0,
-+		},
-+	},
-+	/* scancode logic */
-+	.scancode = img_ir_nec_scancode,
-+	.filter = img_ir_nec_filter,
-+};
-+
-+static int __init img_ir_nec_init(void)
-+{
-+	return img_ir_register_decoder(&img_ir_nec);
-+}
-+module_init(img_ir_nec_init);
-+
-+static void __exit img_ir_nec_exit(void)
-+{
-+	img_ir_unregister_decoder(&img_ir_nec);
-+}
-+module_exit(img_ir_nec_exit);
-+
-+MODULE_AUTHOR("Imagination Technologies Ltd.");
-+MODULE_DESCRIPTION("ImgTec IR NEC protocol support");
-+MODULE_LICENSE("GPL");
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+index 6541ba0..e2e866c 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+@@ -100,7 +100,7 @@ See <xref linkend="v4l2-tuner-type" /></entry>
+ 	    <entry><structfield>capability</structfield></entry>
+ 	    <entry spanname="hspan">The tuner/modulator capability flags for
+ this frequency band, see <xref linkend="tuner-capability" />. The <constant>V4L2_TUNER_CAP_LOW</constant>
+-capability must be the same for all frequency bands of the selected tuner/modulator.
++or <constant>V4L2_TUNER_CAP_1HZ</constant> capability must be the same for all frequency bands of the selected tuner/modulator.
+ So either all bands have that capability set, or none of them have that capability.</entry>
+ 	  </row>
+ 	  <row>
+@@ -109,7 +109,8 @@ So either all bands have that capability set, or none of them have that capabili
+ 	    <entry spanname="hspan">The lowest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz, for this frequency band.</entry>
++Hz, for this frequency band. 1 Hz unit is used when capabilities flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+@@ -117,7 +118,8 @@ Hz, for this frequency band.</entry>
+ 	    <entry spanname="hspan">The highest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz, for this frequency band.</entry>
++Hz, for this frequency band. 1 Hz unit is used when capabilities flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+index c7a1c46..c7bd925 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+@@ -111,7 +111,8 @@ See <xref linkend="v4l2-tuner-type" /></entry>
+ 	    <entry>Tuning frequency in units of 62.5 kHz, or if the
+ &v4l2-tuner; or &v4l2-modulator; <structfield>capabilities</structfield> flag
+ <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz.</entry>
++Hz. 1 Hz unit is used when capabilities flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+index 7f4ac7e..afee56a 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+@@ -113,7 +113,8 @@ change for example with the current video standard.</entry>
+ 	    <entry>The lowest tunable frequency in units of 62.5
+ KHz, or if the <structfield>capability</structfield> flag
+ <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz.</entry>
++Hz, or if the <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in unit of 1 Hz.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+@@ -121,7 +122,8 @@ Hz.</entry>
+ 	    <entry>The highest tunable frequency in units of 62.5
+ KHz, or if the <structfield>capability</structfield> flag
+ <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz.</entry>
++Hz, or if the <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in unit of 1 Hz.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+index 6cc8201..6a43719 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+@@ -134,7 +134,9 @@ the structure refers to a radio tuner the
+ 	    <entry spanname="hspan">The lowest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz. If multiple frequency bands are supported, then
++Hz, or if the <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in unit of 1 Hz.
++If multiple frequency bands are supported, then
+ <structfield>rangelow</structfield> is the lowest frequency
+ of all the frequency bands.</entry>
+ 	  </row>
+@@ -144,7 +146,9 @@ of all the frequency bands.</entry>
+ 	    <entry spanname="hspan">The highest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz. If multiple frequency bands are supported, then
++Hz, or if the <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in unit of 1 Hz.
++If multiple frequency bands are supported, then
+ <structfield>rangehigh</structfield> is the highest frequency
+ of all the frequency bands.</entry>
+ 	  </row>
+@@ -270,7 +274,7 @@ applications must set the array to zero.</entry>
+ 	    <entry><constant>V4L2_TUNER_CAP_LOW</constant></entry>
+ 	    <entry>0x0001</entry>
+ 	    <entry>When set, tuning frequencies are expressed in units of
+-62.5&nbsp;Hz, otherwise in units of 62.5&nbsp;kHz.</entry>
++62.5&nbsp;Hz, otherwise in units of 62.5&nbsp;kHz (or 1 Hz).</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_TUNER_CAP_NORM</constant></entry>
+@@ -360,6 +364,11 @@ radio tuners.</entry>
+ 	<entry>The range to search when using the hardware seek functionality
+ 	is programmable, see &VIDIOC-S-HW-FREQ-SEEK; for details.</entry>
+ 	  </row>
++	  <row>
++	<entry><constant>V4L2_TUNER_CAP_1HZ</constant></entry>
++	<entry>0x1000</entry>
++	<entry>When set, tuning frequencies are expressed in unit of 1 Hz.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+index 5b379e7..d0bff5c 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+@@ -121,7 +121,9 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	    <entry>If non-zero, the lowest tunable frequency of the band to
+ search in units of 62.5 kHz, or if the &v4l2-tuner;
+ <structfield>capability</structfield> field has the
+-<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
++<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
++<structfield>capability</structfield> field has the
++<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in unit of 1 Hz.
+ If <structfield>rangelow</structfield> is zero a reasonable default value
+ is used.</entry>
+ 	  </row>
+@@ -131,7 +133,9 @@ is used.</entry>
+ 	    <entry>If non-zero, the highest tunable frequency of the band to
+ search in units of 62.5 kHz, or if the &v4l2-tuner;
+ <structfield>capability</structfield> field has the
+-<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
++<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
++<structfield>capability</structfield> field has the
++<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in unit of 1 Hz.
+ If <structfield>rangehigh</structfield> is zero a reasonable default value
+ is used.</entry>
+ 	  </row>
 -- 
-1.8.1.2
-
+1.8.4.2
 
