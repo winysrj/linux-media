@@ -1,303 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50213 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755248Ab3L1MQ3 (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4065 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755123Ab3LTJcB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 07:16:29 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 03/24] em28xx: move analog-specific init to em28xx-video
-Date: Sat, 28 Dec 2013 10:15:55 -0200
-Message-Id: <1388232976-20061-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Fri, 20 Dec 2013 04:32:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 18/50] adv7604: remove debouncing of ADV7604_FMT_CHANGE events
+Date: Fri, 20 Dec 2013 10:31:11 +0100
+Message-Id: <1387531903-20496-19-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+From: Mats Randgaard <matrandg@cisco.com>
 
-There are several init code inside em28xx-cards that are actually
-part of analog initialization. Move the code to em28x-video, in
-order to remove part of the mess.
+ADV7604_FMT_CHANGE events was debounced in adv7604_isr() to avoid
+that a receiver with a unstable input signal would block the event
+handling for other inputs. This solution was prone to errors.
 
-In thesis, no functional changes so far.
+A better protection agains interrupt blocking is to delay the call
+of the interrupt service routine in the adv7604 driver if too many
+interrupts are received within a given time.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c | 77 ---------------------------
- drivers/media/usb/em28xx/em28xx-video.c | 94 ++++++++++++++++++++++++++++++---
- 2 files changed, 87 insertions(+), 84 deletions(-)
+ drivers/media/i2c/adv7604.c | 15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 551cbc294190..4a439e5031e6 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2907,7 +2907,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 			   struct usb_interface *interface,
- 			   int minor)
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 4e7d39a..442f70a 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -78,7 +78,6 @@ struct adv7604_state {
+ 	struct workqueue_struct *work_queues;
+ 	struct delayed_work delayed_work_enable_hotplug;
+ 	bool restart_stdi_once;
+-	u32 prev_input_status;
+ 
+ 	/* i2c clients */
+ 	struct i2c_client *i2c_avlink;
+@@ -1524,9 +1523,7 @@ static int adv7604_g_mbus_fmt(struct v4l2_subdev *sd,
+ 
+ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
  {
--	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
- 	int retval;
- 	static const char *default_chip_name = "em28xx";
- 	const char *chip_name = default_chip_name;
-@@ -3034,15 +3033,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		}
- 	}
+-	struct adv7604_state *state = to_state(sd);
+ 	u8 fmt_change, fmt_change_digital, tx_5v;
+-	u32 input_status;
  
--	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
--	if (retval < 0) {
--		em28xx_errdev("Call to v4l2_device_register() failed!\n");
--		return retval;
--	}
--
--	v4l2_ctrl_handler_init(hdl, 8);
--	dev->v4l2_dev.ctrl_handler = hdl;
--
- 	rt_mutex_init(&dev->i2c_bus_lock);
+ 	v4l2_dbg(2, debug, sd, "%s: ", __func__);
  
- 	/* register i2c bus 0 */
-@@ -3071,75 +3061,11 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		}
- 	}
+@@ -1534,22 +1531,17 @@ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	fmt_change = io_read(sd, 0x43) & 0x98;
+ 	if (fmt_change)
+ 		io_write(sd, 0x44, fmt_change);
++
+ 	fmt_change_digital = is_digital_input(sd) ? (io_read(sd, 0x6b) & 0xc0) : 0;
+ 	if (fmt_change_digital)
+ 		io_write(sd, 0x6c, fmt_change_digital);
++
+ 	if (fmt_change || fmt_change_digital) {
+ 		v4l2_dbg(1, debug, sd,
+ 			"%s: fmt_change = 0x%x, fmt_change_digital = 0x%x\n",
+ 			__func__, fmt_change, fmt_change_digital);
  
--	/*
--	 * Default format, used for tvp5150 or saa711x output formats
--	 */
--	dev->vinmode = 0x10;
--	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
--		       EM28XX_VINCTRL_CCIR656_ENABLE;
--
- 	/* Do board specific init and eeprom reading */
- 	em28xx_card_setup(dev);
- 
--	/* Configure audio */
--	retval = em28xx_audio_setup(dev);
--	if (retval < 0) {
--		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
--			__func__, retval);
--		goto fail;
--	}
--	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
--		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
--			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
--		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
--			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
--	} else {
--		/* install the em28xx notify callback */
--		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
--				em28xx_ctrl_notify, dev);
--		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
--				em28xx_ctrl_notify, dev);
--	}
--
--	/* wake i2c devices */
--	em28xx_wake_i2c(dev);
--
--	/* init video dma queues */
--	INIT_LIST_HEAD(&dev->vidq.active);
--	INIT_LIST_HEAD(&dev->vbiq.active);
--
--	if (dev->board.has_msp34xx) {
--		/* Send a reset to other chips via gpio */
--		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
--		if (retval < 0) {
--			em28xx_errdev("%s: em28xx_write_reg - "
--				      "msp34xx(1) failed! error [%d]\n",
--				      __func__, retval);
--			goto fail;
+-		adv7604_g_input_status(sd, &input_status);
+-		if (input_status != state->prev_input_status) {
+-			v4l2_dbg(1, debug, sd,
+-				"%s: input_status = 0x%x, prev_input_status = 0x%x\n",
+-				__func__, input_status, state->prev_input_status);
+-			state->prev_input_status = input_status;
+-			v4l2_subdev_notify(sd, ADV7604_FMT_CHANGE, NULL);
 -		}
--		msleep(3);
--
--		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
--		if (retval < 0) {
--			em28xx_errdev("%s: em28xx_write_reg - "
--				      "msp34xx(2) failed! error [%d]\n",
--				      __func__, retval);
--			goto fail;
--		}
--		msleep(3);
--	}
--
--	retval = em28xx_register_analog_devices(dev);
--	if (retval < 0) {
--		goto fail;
--	}
--
--	/* Save some power by putting tuner to sleep */
--	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
--
- 	return 0;
++		v4l2_subdev_notify(sd, ADV7604_FMT_CHANGE, NULL);
  
--fail:
- 	if (dev->def_i2c_bus)
- 		em28xx_i2c_unregister(dev, 1);
- 	em28xx_i2c_unregister(dev, 0);
-@@ -3388,9 +3314,6 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	/* save our data pointer in this interface device */
- 	usb_set_intfdata(interface, dev);
+ 		if (handled)
+ 			*handled = true;
+@@ -2129,7 +2121,6 @@ static int adv7604_probe(struct i2c_client *client,
  
--	/* initialize videobuf2 stuff */
--	em28xx_vb2_setup(dev);
--
- 	/* allocate device struct */
- 	mutex_init(&dev->lock);
- 	mutex_lock(&dev->lock);
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 8b8a4eb96875..63f09b62d546 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -2186,10 +2186,80 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 	u8 val;
- 	int ret;
- 	unsigned int maxw;
-+	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
-+
-+	if (!dev->has_video) {
-+		/* This device does not support the v4l2 extension */
-+		return 0;
-+	}
+ 	/* initialize variables */
+ 	state->restart_stdi_once = true;
+-	state->prev_input_status = ~0;
+ 	state->selected_input = ~0;
  
- 	printk(KERN_INFO "%s: v4l2 driver version %s\n",
- 		dev->name, EM28XX_VERSION);
- 
-+	mutex_lock(&dev->lock);
-+
-+	ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
-+	if (ret < 0) {
-+		em28xx_errdev("Call to v4l2_device_register() failed!\n");
-+		goto err;
-+	}
-+
-+	v4l2_ctrl_handler_init(hdl, 8);
-+	dev->v4l2_dev.ctrl_handler = hdl;
-+
-+	/*
-+	 * Default format, used for tvp5150 or saa711x output formats
-+	 */
-+	dev->vinmode = 0x10;
-+	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
-+		       EM28XX_VINCTRL_CCIR656_ENABLE;
-+
-+	/* Configure audio */
-+	ret = em28xx_audio_setup(dev);
-+	if (ret < 0) {
-+		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
-+			__func__, ret);
-+		goto err;
-+	}
-+	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
-+	} else {
-+		/* install the em28xx notify callback */
-+		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
-+				em28xx_ctrl_notify, dev);
-+		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
-+				em28xx_ctrl_notify, dev);
-+	}
-+
-+	/* wake i2c devices */
-+	em28xx_wake_i2c(dev);
-+
-+	/* init video dma queues */
-+	INIT_LIST_HEAD(&dev->vidq.active);
-+	INIT_LIST_HEAD(&dev->vbiq.active);
-+
-+	if (dev->board.has_msp34xx) {
-+		/* Send a reset to other chips via gpio */
-+		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
-+		if (ret < 0) {
-+			em28xx_errdev("%s: em28xx_write_reg - msp34xx(1) failed! error [%d]\n",
-+				      __func__, ret);
-+			goto err;
-+		}
-+		msleep(3);
-+
-+		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
-+		if (ret < 0) {
-+			em28xx_errdev("%s: em28xx_write_reg - msp34xx(2) failed! error [%d]\n",
-+				      __func__, ret);
-+			goto err;
-+		}
-+		msleep(3);
-+	}
-+
- 	/* set default norm */
- 	dev->norm = V4L2_STD_PAL;
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
-@@ -2252,14 +2322,16 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 	/* Reset image controls */
- 	em28xx_colorlevels_set_default(dev);
- 	v4l2_ctrl_handler_setup(&dev->ctrl_handler);
--	if (dev->ctrl_handler.error)
--		return dev->ctrl_handler.error;
-+	ret = dev->ctrl_handler.error;
-+	if (ret)
-+		goto err;
- 
- 	/* allocate and fill video video_device struct */
- 	dev->vdev = em28xx_vdev_init(dev, &em28xx_video_template, "video");
- 	if (!dev->vdev) {
- 		em28xx_errdev("cannot allocate video_device.\n");
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err;
- 	}
- 	dev->vdev->queue = &dev->vb_vidq;
- 	dev->vdev->queue->lock = &dev->vb_queue_lock;
-@@ -2289,7 +2361,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 	if (ret) {
- 		em28xx_errdev("unable to register video device (error=%i).\n",
- 			      ret);
--		return ret;
-+		goto err;
- 	}
- 
- 	/* Allocate and fill vbi video_device struct */
-@@ -2318,7 +2390,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 					    vbi_nr[dev->devno]);
- 		if (ret < 0) {
- 			em28xx_errdev("unable to register vbi device\n");
--			return ret;
-+			goto err;
- 		}
- 	}
- 
-@@ -2327,13 +2399,14 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 						  "radio");
- 		if (!dev->radio_dev) {
- 			em28xx_errdev("cannot allocate video_device.\n");
--			return -ENODEV;
-+			ret = -ENODEV;
-+			goto err;
- 		}
- 		ret = video_register_device(dev->radio_dev, VFL_TYPE_RADIO,
- 					    radio_nr[dev->devno]);
- 		if (ret < 0) {
- 			em28xx_errdev("can't register radio device\n");
--			return ret;
-+			goto err;
- 		}
- 		em28xx_info("Registered radio device as %s\n",
- 			    video_device_node_name(dev->radio_dev));
-@@ -2346,5 +2419,12 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		em28xx_info("V4L2 VBI device registered as %s\n",
- 			    video_device_node_name(dev->vbi_dev));
- 
-+	/* Save some power by putting tuner to sleep */
-+	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-+
-+	/* initialize videobuf2 stuff */
-+	em28xx_vb2_setup(dev);
- 	return 0;
-+
-+err:
- }
+ 	/* platform data */
 -- 
-1.8.3.1
+1.8.4.4
 
