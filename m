@@ -1,111 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3766 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574Ab3LRDd7 (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:46881 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754589Ab3LTI7m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 22:33:59 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBI3XtLx081712
-	for <linux-media@vger.kernel.org>; Wed, 18 Dec 2013 04:33:57 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id B1D172A2226
-	for <linux-media@vger.kernel.org>; Wed, 18 Dec 2013 04:33:39 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131218033339.B1D172A2226@tschai.lan>
-Date: Wed, 18 Dec 2013 04:33:39 +0100 (CET)
+	Fri, 20 Dec 2013 03:59:42 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, k.debski@samsung.com,
+	prathyush.k@samsung.com, s.shirish@samsung.com, arun.m@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH] [media] exynos-gsc: swap cb/cr only for 3 plane formats
+Date: Fri, 20 Dec 2013 14:29:33 +0530
+Message-Id: <1387529973-6123-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Prathyush K <prathyush.k@samsung.com>
 
-Results of the daily build of media_tree:
+The address for cb/cr needs to be swapped for 3 plane formats like
+YVU420 and YVU420M. If these address gets swapped for other formats like
+NV21, it results in passing a NULL dma address to gscalar (which will
+result in a PAGE FAULT if sysmmu is enabled).
 
-date:		Wed Dec 18 04:00:30 CET 2013
-git branch:	test
-git hash:	675722b0e3917c6c917f1aa5f6d005cd3a0479f5
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+E.g. For NV21, the dma_address are (Y, CbCr, 0) and we swap them (Y, 0,
+CbCr) which is incorrect.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: WARNINGS
-linux-3.12-i686: WARNINGS
-linux-3.13-rc1-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Signed-off-by: Prathyush K <prathyush.k@samsung.com>
+Signed-off-by: Shirish S <s.shirish@samsung.com>
+Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Detailed results are available here:
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 9d0cc04..ff851fc 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -844,11 +844,7 @@ int gsc_prepare_addr(struct gsc_ctx *ctx, struct vb2_buffer *vb,
+ 			addr->cr = vb2_dma_contig_plane_dma_addr(vb, 2);
+ 	}
+ 
+-	if ((frame->fmt->pixelformat == V4L2_PIX_FMT_VYUY) ||
+-		(frame->fmt->pixelformat == V4L2_PIX_FMT_YVYU) ||
+-		(frame->fmt->pixelformat == V4L2_PIX_FMT_NV61) ||
+-		(frame->fmt->pixelformat == V4L2_PIX_FMT_YVU420) ||
+-		(frame->fmt->pixelformat == V4L2_PIX_FMT_NV21) ||
++	if ((frame->fmt->pixelformat == V4L2_PIX_FMT_YVU420) ||
+ 		(frame->fmt->pixelformat == V4L2_PIX_FMT_YVU420M))
+ 		swap(addr->cb, addr->cr);
+ 
+-- 
+1.7.9.5
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
