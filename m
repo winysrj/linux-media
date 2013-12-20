@@ -1,45 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:18588 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037Ab3L1WyE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 17:54:04 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MYJ0049KGY1VF50@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Sat, 28 Dec 2013 17:54:01 -0500 (EST)
-Date: Sat, 28 Dec 2013 20:53:52 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: "deadletterfile@att.net" <deadletterfile@att.net>
-Cc: linux-media@vger.kernel.org, tehpola@gmail.com
-Subject: Re: linuxtv patch/11200/
-Message-id: <20131228205352.69f57f86.m.chehab@samsung.com>
-In-reply-to: <52BF0C1A.4070804@att.net>
-References: <52BF0C1A.4070804@att.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:36389 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752617Ab3LTFuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Dec 2013 00:50:13 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v5 00/12] SDR API with documentation
+Date: Fri, 20 Dec 2013 07:49:42 +0200
+Message-Id: <1387518594-11609-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 28 Dec 2013 12:36:26 -0500
-"deadletterfile@att.net" <deadletterfile@att.net> escreveu:
+Now with documentation and changes from Hans.
 
-> I am writing regarding Mr. Mike Slegeir's patch 11200, which is listed
-> with a 'State: Not Applicable.'
+Antti Palosaari (11):
+  v4l: add device type for Software Defined Radio
+  v4l: add new tuner types for SDR
+  v4l: 1 Hz resolution flag for tuners
+  v4l: add stream format for SDR receiver
+  v4l: define own IOCTL ops for SDR FMT
+  v4l: enable some IOCTLs for SDR receiver
+  v4l: add device capability flag for SDR receiver
+  DocBook: fix wait.c location
+  DocBook: document 1 Hz flag
+  DocBook: Software Defined Radio Interface
+  v4l2-framework.txt: add SDR device type
 
-That only means that it is not applicable as a Kernel media patch.
+Hans Verkuil (1):
+  v4l: do not allow modulator ioctls for non-radio devices
 
-All non-Kernel-media patches at patchwork are tagged as such,
-with the exception of the patches for a user application that
-I (or a Kernel driver submaintainer) maintains, as I just use
-the same script to apply the patch, and my script automatically
-updates patchwork status to accepted when I apply a patch.
+ Documentation/DocBook/device-drivers.tmpl          |  2 +-
+ Documentation/DocBook/media/v4l/compat.xml         | 10 +++
+ Documentation/DocBook/media/v4l/dev-sdr.xml        | 99 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/io.xml             |  6 ++
+ Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
+ .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |  8 +-
+ Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |  6 ++
+ .../DocBook/media/v4l/vidioc-g-frequency.xml       |  3 +-
+ .../DocBook/media/v4l/vidioc-g-modulator.xml       |  6 +-
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml | 15 +++-
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |  8 +-
+ Documentation/video4linux/v4l2-framework.txt       |  1 +
+ drivers/media/v4l2-core/v4l2-dev.c                 | 30 ++++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 75 +++++++++++++---
+ include/media/v4l2-dev.h                           |  3 +-
+ include/media/v4l2-ioctl.h                         |  8 ++
+ include/trace/events/v4l2.h                        |  1 +
+ include/uapi/linux/videodev2.h                     | 16 ++++
+ 18 files changed, 270 insertions(+), 28 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
 
-If you think the patch should be applied on some userspace app, you
-should find its maintainer and ask him to apply the patch.
 -- 
+1.8.4.2
 
-Cheers,
-Mauro
