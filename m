@@ -1,71 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:39319 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752795Ab3LQVZg (ORCPT
+Received: from mail-we0-f181.google.com ([74.125.82.181]:48978 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817Ab3LTUXc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 16:25:36 -0500
-Received: by mail-wi0-f173.google.com with SMTP id hm19so3320729wib.6
-        for <linux-media@vger.kernel.org>; Tue, 17 Dec 2013 13:25:35 -0800 (PST)
+	Fri, 20 Dec 2013 15:23:32 -0500
+Received: by mail-we0-f181.google.com with SMTP id x55so2889309wes.26
+        for <linux-media@vger.kernel.org>; Fri, 20 Dec 2013 12:23:31 -0800 (PST)
+Received: from [192.168.1.110] (093105185086.warszawa.vectranet.pl. [93.105.185.86])
+        by mx.google.com with ESMTPSA id pl7sm3410441wjc.16.2013.12.20.12.23.29
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Fri, 20 Dec 2013 12:23:30 -0800 (PST)
+Message-ID: <52B4A741.5080901@gmail.com>
+Date: Fri, 20 Dec 2013 21:23:29 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <52B0BD72.9000804@iki.fi>
-References: <1386969579.3914.13.camel@piranha.localdomain>
-	<20131214092443.622b069d@samsung.com>
-	<52ACE809.1000406@gmail.com>
-	<CAGoCfiwxGU-j14oGDfvoYTA5WZUkQdM_3=80gfpWUjXVNN_nng@mail.gmail.com>
-	<52AFE107.4040705@gmail.com>
-	<CAGoCfiztzv-QFjmKXdiJreTPCYN1RTe5bPTO0awx5a-ER161qQ@mail.gmail.com>
-	<52B0BD72.9000804@iki.fi>
-Date: Tue, 17 Dec 2013 16:25:35 -0500
-Message-ID: <CAGoCfixT0rabuv-MAhw4vhhCxyeOgzjb3FGbORPTV3JgkhjKdw@mail.gmail.com>
-Subject: Re: stable regression: tda18271_read_regs: [1-0060|M] ERROR:
- i2c_transfer returned: -19
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Connor Behan <connor.behan@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Frederik Himpe <fhimpe@telenet.be>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL v2]  Samsung S5K6BAF image sensor driver
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 17, 2013 at 4:09 PM, Antti Palosaari <crope@iki.fi> wrote:
-> That shared DVB / V4L2 tuner is one problem that I have also currently (SDR
-> is on V4L2 API and DTV is provided via DVB API). I have decided to try model
-> where I separate RF tuner totally independent used DVB / V4L2 APIs, just to
-> plain I2C driver model. Idea is here to provide needed set of general
-> callbacks and communication and device binding is done via I2C driver model.
-> I am not sure though if there is any big caveats I haven't realized yet...
+The following changes since commit 0400c5354ad09bf4c754132992bdde9ef3dbefcd:
 
-It's a tough problem - a more strictly defined API in theory allows
-for better uniformity across drivers (although admittedly we've done a
-piss-poor job in practice).  However such a strictly defined API makes
-it harder to add hacks that are sometimes required by the silicon.
+   [media] dib8000: improve block statistics (2013-12-19 08:17:47 -0200)
 
-The additional abstractions provided by v4l2 subdev and tuner-core
-just make it that much harder to get past those layers and poke the
-device directly (which as much as I hate to admit it, is sometimes
-required to work around bugs and weird edge cases in the silicon not
-addressable via the API).  These problems are exacerbated by cases
-where there are order-of-operations requirements that cannot be
-accommodated by the API.
+are available in the git repository at:
+   git://linuxtv.org/snawrocki/samsung.git v3.14-s5k5baf
 
-All that said though, moving to an entirely I2C based API feels like
-to provides "too much flexibility" such that every bridge will talk a
-little differently to every tuner.  Given what a crappy job we've done
-in the past even with a strict framework, I cringe to think how much
-worse the problem would be if every developer took a different
-approach.
+Andrzej Hajda (2):
+       Add DT binding documentation for Samsung S5K5BAF camera sensor
+       Add driver for Samsung S5K5BAF camera sensor
 
-I'm not against implementing a callback which allows you to feed
-arbitrary I2C commands to a device, to be used *sparingly* for those
-cases where it is *really* required to do something not supported via
-the framework's API.  But I don't see it as a replacement for the
-existing frameworks for addressing tuners.
+  .../devicetree/bindings/media/samsung-s5k5baf.txt  |   58 +
+  MAINTAINERS                                        |    7 +
+  drivers/media/i2c/Kconfig                          |    7 +
+  drivers/media/i2c/Makefile                         |    1 +
+  drivers/media/i2c/s5k5baf.c                        | 2043 
+++++++++++++++++++++
+  5 files changed, 2116 insertions(+), 0 deletions(-)
+  create mode 100644 
+Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
+  create mode 100644 drivers/media/i2c/s5k5baf.c
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Comparing to the first version I just removed a duplicated Signed-off-by 
+tag.
