@@ -1,76 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3484 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760719Ab3LIJH7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 04:07:59 -0500
-Message-ID: <52A58861.1050504@xs4all.nl>
-Date: Mon, 09 Dec 2013 10:07:45 +0100
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3033 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755991Ab3LTJcB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Dec 2013 04:32:01 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [GIT PULL FOR v3.14] New si4713-usb driver
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 19/50] adv7604: improve HDMI audio handling
+Date: Fri, 20 Dec 2013 10:31:12 +0100
+Message-Id: <1387531903-20496-20-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Mats Randgaard <matrandg@cisco.com>
 
-I'm trying again to get this driver merged. The comments you made have all been
-addressed, so hopefully this will now be OK.
+- Mute audio before switching inputs to avoid noise/pops
+- Mute audio if audio FIFO over-/underflows (AD Recommended setting)
+- Reset FIFO if it over-/underflows (AD Recommended setting)
 
-Regards,
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-	Hans
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 442f70a..b5dcea8 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1387,14 +1387,12 @@ static void enable_input(struct v4l2_subdev *sd)
+ 	struct adv7604_state *state = to_state(sd);
+ 
+ 	if (is_analog_input(sd)) {
+-		/* enable */
+ 		io_write(sd, 0x15, 0xb0);   /* Disable Tristate of Pins (no audio) */
+ 	} else if (is_digital_input(sd)) {
+-		/* enable */
+ 		hdmi_write_and_or(sd, 0x00, 0xfc, state->selected_input);
+-		hdmi_write(sd, 0x1a, 0x0a); /* Unmute audio */
+ 		hdmi_write(sd, 0x01, 0x00); /* Enable HDMI clock terminators */
+ 		io_write(sd, 0x15, 0xa0);   /* Disable Tristate of Pins */
++		hdmi_write_and_or(sd, 0x1a, 0xef, 0x00); /* Unmute audio */
+ 	} else {
+ 		v4l2_dbg(2, debug, sd, "%s: Unknown port %d selected\n",
+ 				__func__, state->selected_input);
+@@ -1403,9 +1401,9 @@ static void enable_input(struct v4l2_subdev *sd)
+ 
+ static void disable_input(struct v4l2_subdev *sd)
+ {
+-	/* disable */
++	hdmi_write_and_or(sd, 0x1a, 0xef, 0x10); /* Mute audio */
++	msleep(16); /* 512 samples with >= 32 kHz sample rate [REF_03, c. 7.16.10] */
+ 	io_write(sd, 0x15, 0xbe);   /* Tristate all outputs from video core */
+-	hdmi_write(sd, 0x1a, 0x1a); /* Mute audio */
+ 	hdmi_write(sd, 0x01, 0x78); /* Disable HDMI clock terminators */
+ }
+ 
+@@ -2044,6 +2042,11 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
+ 	cp_write(sd, 0xc9, 0x2d); /* use prim_mode and vid_std as free run resolution
+ 				     for digital formats */
+ 
++	/* HDMI audio */
++	hdmi_write_and_or(sd, 0x15, 0xfc, 0x03); /* Mute on FIFO over-/underflow [REF_01, c. 1.2.18] */
++	hdmi_write_and_or(sd, 0x1a, 0xf1, 0x08); /* Wait 1 s before unmute */
++	hdmi_write_and_or(sd, 0x68, 0xf9, 0x06); /* FIFO reset on over-/underflow [REF_01, c. 1.2.19] */
++
+ 	/* TODO from platform data */
+ 	afe_write(sd, 0xb5, 0x01);  /* Setting MCLK to 256Fs */
+ 
+-- 
+1.8.4.4
 
-The following changes since commit 3f823e094b935c1882605f8720336ee23433a16d:
-
-  [media] exynos4-is: Simplify fimc-is hardware polling helpers (2013-12-04 15:54:19 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git si4713
-
-for you to fetch changes up to 8789394c0a0261ac35770212ab19172a2bd76ac1:
-
-  si4713: coding style cleanups (2013-12-09 10:01:58 +0100)
-
-----------------------------------------------------------------
-Dinesh Ram (8):
-      si4713: Reorganized drivers/media/radio directory
-      si4713: Modified i2c driver to handle cases where interrupts are not used
-      si4713: Reorganized includes in si4713.c/h
-      si4713: Bug fix for si4713_tx_tune_power() method in the i2c driver
-      si4713: HID blacklist Si4713 USB development board
-      si4713: Added the USB driver for Si4713
-      si4713: Added MAINTAINERS entry for radio-usb-si4713 driver
-      si4713: move supply list to si4713_platform_data
-
-Eduardo Valentin (1):
-      si4713: print product number
-
-Hans Verkuil (2):
-      si4713: si4713_set_rds_radio_text overwrites terminating \0
-      si4713: coding style cleanups
-
- MAINTAINERS                                                            |  12 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c                           |   7 +
- drivers/hid/hid-core.c                                                 |   1 +
- drivers/hid/hid-ids.h                                                  |   2 +
- drivers/media/radio/Kconfig                                            |  29 +--
- drivers/media/radio/Makefile                                           |   3 +-
- drivers/media/radio/si4713/Kconfig                                     |  40 ++++
- drivers/media/radio/si4713/Makefile                                    |   7 +
- drivers/media/radio/{radio-si4713.c => si4713/radio-platform-si4713.c} |   0
- drivers/media/radio/si4713/radio-usb-si4713.c                          | 540 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/radio/{si4713-i2c.c => si4713/si4713.c}                  | 279 ++++++++++++++-------------
- drivers/media/radio/{si4713-i2c.h => si4713/si4713.h}                  |   4 +-
- include/media/si4713.h                                                 |   2 +
- 13 files changed, 771 insertions(+), 155 deletions(-)
- create mode 100644 drivers/media/radio/si4713/Kconfig
- create mode 100644 drivers/media/radio/si4713/Makefile
- rename drivers/media/radio/{radio-si4713.c => si4713/radio-platform-si4713.c} (100%)
- create mode 100644 drivers/media/radio/si4713/radio-usb-si4713.c
- rename drivers/media/radio/{si4713-i2c.c => si4713/si4713.c} (86%)
- rename drivers/media/radio/{si4713-i2c.h => si4713/si4713.h} (98%)
