@@ -1,69 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:42482 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751334Ab3L2DqN convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4602 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756050Ab3LTJcE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 22:46:13 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MYJ00FI1UH04O60@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 28 Dec 2013 22:46:12 -0500 (EST)
-Date: Sun, 29 Dec 2013 01:44:04 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 10/13] libdvbv5: cleanup coding style
-Message-id: <20131229014404.600e5e05.m.chehab@samsung.com>
-In-reply-to: <1388245561-8751-10-git-send-email-neolynx@gmail.com>
-References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
- <1388245561-8751-10-git-send-email-neolynx@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+	Fri, 20 Dec 2013 04:32:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 30/50] adv7842: added DE vertical position in SDP-io-sync
+Date: Fri, 20 Dec 2013 10:31:23 +0100
+Message-Id: <1387531903-20496-31-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 28 Dec 2013 16:45:58 +0100
-André Roth <neolynx@gmail.com> escreveu:
+From: Martin Bugge <marbugge@cisco.com>
 
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 4 ++++
+ include/media/adv7842.h     | 4 ++++
+ 2 files changed, 8 insertions(+)
 
-Please merge it with the original patch. That makes easier to review.
-
-> Signed-off-by: André Roth <neolynx@gmail.com>
-> ---
->  lib/libdvbv5/descriptors.c          | 2 +-
->  lib/libdvbv5/descriptors/mpeg_pes.c | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-> index 6df8b8b..b5bc9b2 100644
-> --- a/lib/libdvbv5/descriptors.c
-> +++ b/lib/libdvbv5/descriptors.c
-> @@ -1358,6 +1358,6 @@ void hexdump(struct dvb_v5_fe_parms *parms, const char *prefix, const unsigned c
->  		for (i = strlen(hex); i < 49; i++)
->  			strncat(spaces, " ", sizeof(spaces));
->  		ascii[j] = '\0';
-> -		dvb_log("%s %s %s %s", prefix, hex, spaces, ascii);
-> +		dvb_log("%s%s %s %s", prefix, hex, spaces, ascii);
->  	}
->  }
-> diff --git a/lib/libdvbv5/descriptors/mpeg_pes.c b/lib/libdvbv5/descriptors/mpeg_pes.c
-> index c717297..0f0cde0 100644
-> --- a/lib/libdvbv5/descriptors/mpeg_pes.c
-> +++ b/lib/libdvbv5/descriptors/mpeg_pes.c
-> @@ -33,7 +33,7 @@ void dvb_mpeg_pes_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_
->  	bswap32(pes->bitfield);
->  	bswap16(pes->length);
->  
-> -	if (pes->sync != 0x000001 ) {
-> +	if (pes->sync != 0x000001) {
->  		dvb_logerr("mpeg pes invalid");
->  		return;
->  	}
-
-
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 4f93526..05d65a8 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -2397,6 +2397,10 @@ static int adv7842_core_init(struct v4l2_subdev *sd,
+ 		sdp_io_write(sd, 0x99, s->de_beg & 0xff);
+ 		sdp_io_write(sd, 0x9a, (s->de_end>>8) & 0xf);
+ 		sdp_io_write(sd, 0x9b, s->de_end & 0xff);
++		sdp_io_write(sd, 0xac, s->de_v_beg_o);
++		sdp_io_write(sd, 0xad, s->de_v_beg_e);
++		sdp_io_write(sd, 0xae, s->de_v_end_o);
++		sdp_io_write(sd, 0xaf, s->de_v_end_e);
+ 	}
+ 
+ 	/* todo, improve settings for sdram */
+diff --git a/include/media/adv7842.h b/include/media/adv7842.h
+index c02201d..c023f88 100644
+--- a/include/media/adv7842.h
++++ b/include/media/adv7842.h
+@@ -131,6 +131,10 @@ struct adv7842_sdp_io_sync_adjustment {
+ 	uint16_t hs_width;
+ 	uint16_t de_beg;
+ 	uint16_t de_end;
++	uint8_t de_v_beg_o;
++	uint8_t de_v_beg_e;
++	uint8_t de_v_end_o;
++	uint8_t de_v_end_e;
+ };
+ 
+ /* Platform dependent definition */
 -- 
+1.8.4.4
 
-Cheers,
-Mauro
