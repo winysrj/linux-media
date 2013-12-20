@@ -1,49 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33575 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754085Ab3LOODT (ORCPT
+Received: from mail-we0-f170.google.com ([74.125.82.170]:63294 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422643Ab3LTMrX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Dec 2013 09:03:19 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Olivier GRENIE <olivier.grenie@parrot.com>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Fri, 20 Dec 2013 07:47:23 -0500
+MIME-Version: 1.0
+In-Reply-To: <1387293923-27236-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1387293923-27236-1-git-send-email-prabhakar.csengg@gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 20 Dec 2013 18:17:01 +0530
+Message-ID: <CA+V-a8sdCuO1U3Egn62g_QivmVUEXzF4RgKbi-Ksm7JZEY-KKA@mail.gmail.com>
+Subject: Re: [PATCH] media: davinci_vpfe: fix build error
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: devel@driverdev.osuosl.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/3] Make dib807x to work again
-Date: Sun, 15 Dec 2013 09:00:07 -0200
-Message-Id: <1387105210-6893-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At least with my Pixelview PV-D231U stick, the dib8000 driver is
-deadly broken.
+Hi Hans,
 
-One issue was caused by a regression already solved by Oliver.
-Not sure why, but the patch was never merged upstream.
+On Tue, Dec 17, 2013 at 8:55 PM, Lad, Prabhakar
+<prabhakar.csengg@gmail.com> wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>
+> This patch includes linux/delay.h required for msleep,
+> which fixes following build error.
+>
+> dm365_isif.c: In function ‘isif_enable’:
+> dm365_isif.c:129:2: error: implicit declaration of function ‘msleep’
+>
+Will you pick this patch or shall I go ahead and  issue a pull to Mauro ?
 
-The other issue took me a long time to properly track and fix it.
-
-It is a race condition that it is detected by calling FE_GET_PROPERTY
-just after tuning into a channel.
-
-It seems that trying to read the TMCC tables before locking causes
-the tuner logic to fail. 
-
-So, be sure that FE_HAS_SYNC is there before executing the
-get_frontend() logic.
-
-Mauro Carvalho Chehab (2):
-  [media] dib8000: make 32 bits read atomic
-  [media] dib8000: Don't let tuner hang due to a call to get_frontend()
-
-Olivier Grenie (1):
-  [media] dib8000: fix regression with dib807x
-
- drivers/media/dvb-frontends/dib8000.c | 56 +++++++++++++++++++++++++++--------
- 1 file changed, 44 insertions(+), 12 deletions(-)
-
--- 
-1.8.3.1
-
+Regards,
+--Prabhakar Lad
