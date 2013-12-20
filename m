@@ -1,89 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2516 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750864Ab3LKHaT (ORCPT
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:61162 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797Ab3LTWYU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 02:30:19 -0500
-Message-ID: <52A81476.6020207@xs4all.nl>
-Date: Wed, 11 Dec 2013 08:29:58 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Wade Farnsworth <wade_farnsworth@mentor.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l2-dev: Add tracepoints for QBUF and DQBUF
-References: <52614DB9.8090908@mentor.com> <528FB50C.6060909@mentor.com> <529090A9.7030505@xs4all.nl> <5290D826.5080308@gmail.com> <5290DDD8.7070305@xs4all.nl> <20131210185359.49f3f020@samsung.com>
-In-Reply-To: <20131210185359.49f3f020@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 20 Dec 2013 17:24:20 -0500
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 3/6] exynos4-is: Enable FIMC-LITE clock if runtime PM is not used
+Date: Fri, 20 Dec 2013 23:23:24 +0100
+Message-Id: <1387578207-17625-4-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1387578207-17625-1-git-send-email-s.nawrocki@samsung.com>
+References: <1387578207-17625-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/10/2013 09:53 PM, Mauro Carvalho Chehab wrote:
-> Em Sat, 23 Nov 2013 17:54:48 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 11/23/2013 05:30 PM, Sylwester Nawrocki wrote:
->>> Hi,
->>>
->>> On 11/23/2013 12:25 PM, Hans Verkuil wrote:
->>>> Hi Wade,
->>>>
->>>> On 11/22/2013 08:48 PM, Wade Farnsworth wrote:
->>>>> Add tracepoints to the QBUF and DQBUF ioctls to enable rudimentary
->>>>> performance measurements using standard kernel tracers.
->>>>>
->>>>> Signed-off-by: Wade Farnsworth<wade_farnsworth@mentor.com>
->>>>> ---
->>>>>
->>>>> This is the update to the RFC patch I posted a few weeks back.  I've added
->>>>> several bits of metadata to the tracepoint output per Mauro's suggestion.
->>>>
->>>> I don't like this. All v4l2 ioctls can already be traced by doing e.g.
->>>> echo 1 (or echo 2)>/sys/class/video4linux/video0/debug.
->>>>
->>>> So this code basically duplicates that functionality. It would be nice to be able
->>>> to tie in the existing tracing code (v4l2-ioctl.c) into tracepoints.
->>>
->>> I think it would be really nice to have this kind of support for standard
->>> traces at the v4l2 subsystem. Presumably it could even gradually replace
->>> the v4l2 custom debug infrastructure.
->>>
->>> If I understand things correctly, the current tracing/profiling 
->>> infrastructure
->>> is much less invasive than inserting printks all over, which may cause 
->>> changes
->>> in control flow. I doubt the system could be reliably profiled by 
->>> enabling all
->>> those debug prints.
->>>
->>> So my vote would be to add support for standard tracers, like in other
->>> subsystems in the kernel.
->>
->> The reason for the current system is to trace which ioctls are called in
->> what order by a misbehaving application. It's very useful for that,
->> especially when trying to debug user problems.
->>
->> I don't mind switching to tracepoints as long as this functionality is
->> kept one way or another.
-> 
-> I agree with Sylwester: we should move to tracepoints, and this is a good
-> start.
+Ensure the device also works when runtime PM is disabled.
 
-As I mentioned, I don't mind switching to tracepoints, but not in the way the
-current patch does it. I certainly don't agree with you merging this patch
-as-is without further discussion.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-lite.c |   24 +++++++++++++-----------
+ 1 files changed, 13 insertions(+), 11 deletions(-)
 
-To make it official:
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index d3b32b6..1234734 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1549,38 +1549,40 @@ static int fimc_lite_probe(struct platform_device *pdev)
+ 			       0, dev_name(dev), fimc);
+ 	if (ret) {
+ 		dev_err(dev, "Failed to install irq (%d)\n", ret);
+-		goto err_clk;
++		goto err_clk_put;
+ 	}
+ 
+ 	/* The video node will be created within the subdev's registered() op */
+ 	ret = fimc_lite_create_capture_subdev(fimc);
+ 	if (ret)
+-		goto err_clk;
++		goto err_clk_put;
+ 
+ 	platform_set_drvdata(pdev, fimc);
+ 	pm_runtime_enable(dev);
+-	ret = pm_runtime_get_sync(dev);
+-	if (ret < 0)
+-		goto err_sd;
++
++	if (!pm_runtime_enabled(dev)) {
++		ret = clk_enable(fimc->clock);
++		if (ret < 0)
++			goto err_clk_put;
++	}
+ 
+ 	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(fimc->alloc_ctx)) {
+ 		ret = PTR_ERR(fimc->alloc_ctx);
+-		goto err_pm;
++		goto err_clk_dis;
+ 	}
+ 
+-	pm_runtime_put(dev);
+-
+ 	fimc_lite_set_default_config(fimc);
+ 
+ 	dev_dbg(dev, "FIMC-LITE.%d registered successfully\n",
+ 		fimc->index);
+ 	return 0;
+-err_pm:
+-	pm_runtime_put(dev);
++
++err_clk_dis:
++	clk_disable(fimc->clock);
+ err_sd:
+ 	fimc_lite_unregister_capture_subdev(fimc);
+-err_clk:
++err_clk_put:
+ 	fimc_lite_clk_put(fimc);
+ 	return ret;
+ }
+-- 
+1.7.4.1
 
-Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-If we do tracepoints, then we do it right and for all ioctls, not in this
-half-baked manner.
-
-Please revert.
-
-Regards,
-
-	Hans
