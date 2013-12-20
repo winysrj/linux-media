@@ -1,59 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:18075 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753845Ab3LCNOw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 08:14:52 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MX8008RMFGRZZD0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Dec 2013 22:14:51 +0900 (KST)
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1560 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755763Ab3LTJjn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Dec 2013 04:39:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>, lxr1234@hotmail.com,
-	jtp.park@samsung.com, m.chehab@samsung.com,
-	kyungmin.park@samsung.com
-Subject: [PATCH] media: v4l2-dev: fix video device index assignment
-Date: Tue, 03 Dec 2013 14:14:29 +0100
-Message-id: <1386076469-26761-1-git-send-email-m.szyprowski@samsung.com>
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 46/50] adv7842: Composite sync adjustment
+Date: Fri, 20 Dec 2013 10:31:39 +0100
+Message-Id: <1387531903-20496-47-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The side effect of commit 1056e4388b045 ("v4l2-dev: Fix race condition on
-__video_register_device") is the increased number of index value assigned
-on video_device registration. Before that commit video_devices were
-numbered from 0, after it, the indexes starts from 1, because get_index()
-always count the device, which is being registered. Some device drivers
-rely on video_device index number for internal purposes, i.e. s5p-mfc
-driver stopped working after that patch. This patch restores the old method
-of numbering the video_device indexes.
+From: Martin Bugge <marbugge@cisco.com>
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-In my opinion this patch should be applied also to stable v3.12 series.
----
- drivers/media/v4l2-core/v4l2-dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/adv7842.c | 8 ++++++++
+ include/media/adv7842.h     | 4 ++++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index b5aaaac427ad..0a30dbf3d05c 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -872,8 +872,8 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 
- 	/* Should not happen since we thought this minor was free */
- 	WARN_ON(video_device[vdev->minor] != NULL);
--	video_device[vdev->minor] = vdev;
- 	vdev->index = get_index(vdev);
-+	video_device[vdev->minor] = vdev;
- 	mutex_unlock(&videodev_lock);
- 
- 	if (vdev->ioctl_ops)
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 518f1e2..ba74863 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -2439,6 +2439,10 @@ static void adv7842_s_sdp_io(struct v4l2_subdev *sd, struct adv7842_sdp_io_sync_
+ 		sdp_io_write(sd, 0x99, s->de_beg & 0xff);
+ 		sdp_io_write(sd, 0x9a, (s->de_end >> 8) & 0xf);
+ 		sdp_io_write(sd, 0x9b, s->de_end & 0xff);
++		sdp_io_write(sd, 0xa8, s->vs_beg_o);
++		sdp_io_write(sd, 0xa9, s->vs_beg_e);
++		sdp_io_write(sd, 0xaa, s->vs_end_o);
++		sdp_io_write(sd, 0xab, s->vs_end_e);
+ 		sdp_io_write(sd, 0xac, s->de_v_beg_o);
+ 		sdp_io_write(sd, 0xad, s->de_v_beg_e);
+ 		sdp_io_write(sd, 0xae, s->de_v_end_o);
+@@ -2453,6 +2457,10 @@ static void adv7842_s_sdp_io(struct v4l2_subdev *sd, struct adv7842_sdp_io_sync_
+ 		sdp_io_write(sd, 0x99, 0x00);
+ 		sdp_io_write(sd, 0x9a, 0x00);
+ 		sdp_io_write(sd, 0x9b, 0x00);
++		sdp_io_write(sd, 0xa8, 0x04);
++		sdp_io_write(sd, 0xa9, 0x04);
++		sdp_io_write(sd, 0xaa, 0x04);
++		sdp_io_write(sd, 0xab, 0x04);
+ 		sdp_io_write(sd, 0xac, 0x04);
+ 		sdp_io_write(sd, 0xad, 0x04);
+ 		sdp_io_write(sd, 0xae, 0x04);
+diff --git a/include/media/adv7842.h b/include/media/adv7842.h
+index 772cdec..5a7eb50 100644
+--- a/include/media/adv7842.h
++++ b/include/media/adv7842.h
+@@ -131,6 +131,10 @@ struct adv7842_sdp_io_sync_adjustment {
+ 	uint16_t hs_width;
+ 	uint16_t de_beg;
+ 	uint16_t de_end;
++	uint8_t vs_beg_o;
++	uint8_t vs_beg_e;
++	uint8_t vs_end_o;
++	uint8_t vs_end_e;
+ 	uint8_t de_v_beg_o;
+ 	uint8_t de_v_beg_e;
+ 	uint8_t de_v_end_o;
 -- 
-1.7.9.5
+1.8.4.4
 
