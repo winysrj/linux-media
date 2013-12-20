@@ -1,65 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44084 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751570Ab3LKQHv (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4360 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932072Ab3LTL5k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 11:07:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Josh Wu <josh.wu@atmel.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v2 6/7] v4l: atmel-isi: Fix color component ordering
-Date: Wed, 11 Dec 2013 17:07:44 +0100
-Message-Id: <1386778065-14135-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 20 Dec 2013 06:57:40 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBKBvb4x025814
+	for <linux-media@vger.kernel.org>; Fri, 20 Dec 2013 12:57:39 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.61.168.73] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 0321F2A2226
+	for <linux-media@vger.kernel.org>; Fri, 20 Dec 2013 12:57:17 +0100 (CET)
+Message-ID: <52B430AB.5010808@xs4all.nl>
+Date: Fri, 20 Dec 2013 12:57:31 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.14] Fixes
+References: <52B42EB0.2040100@xs4all.nl>
+In-Reply-To: <52B42EB0.2040100@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ISI_CFG2.YCC_SWAP field controls color component ordering. The
-datasheet lists the following orderings for the memory formats.
+Ignore this, I'll post a new pull request in a moment. The last patch was broken
+due to a mistake on my side.
 
-YCC_SWAP	Byte 0	Byte 1	Byte 2	Byte 3
-00: Default	Cb(i)	Y(i)	Cr(i)	Y(i+1)
-01: Mode1	Cr(i)	Y(i)	Cb(i)	Y(i+1)
-10: Mode2	Y(i)	Cb(i)	Y(i+1)	Cr(i)
-11: Mode3	Y(i)	Cr(i)	Y(i+1)	Cb(i)
+Regards,
 
-This is based on a sensor format set to CbYCrY (UYVY). The driver
-hardcodes the output memory format to YUYV, configure the ordering
-accordingly.
+	Hans
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/platform/soc_camera/atmel-isi.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 3e8d412..9c4cadc 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -112,16 +112,16 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
- 	case V4L2_MBUS_FMT_Y8_1X8:
- 		cr = ISI_CFG2_GRAYSCALE;
- 		break;
--	case V4L2_MBUS_FMT_UYVY8_2X8:
-+	case V4L2_MBUS_FMT_VYUY8_2X8:
- 		cr = ISI_CFG2_YCC_SWAP_MODE_3;
- 		break;
--	case V4L2_MBUS_FMT_VYUY8_2X8:
-+	case V4L2_MBUS_FMT_UYVY8_2X8:
- 		cr = ISI_CFG2_YCC_SWAP_MODE_2;
- 		break;
--	case V4L2_MBUS_FMT_YUYV8_2X8:
-+	case V4L2_MBUS_FMT_YVYU8_2X8:
- 		cr = ISI_CFG2_YCC_SWAP_MODE_1;
- 		break;
--	case V4L2_MBUS_FMT_YVYU8_2X8:
-+	case V4L2_MBUS_FMT_YUYV8_2X8:
- 		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
- 		break;
- 	/* RGB, TODO */
--- 
-1.8.3.2
-
+On 12/20/2013 12:49 PM, Hans Verkuil wrote:
+> Hi Mauro,
+> 
+> This empties my list of pending patches.
+> 
+> I will do one other pull request today (to move the omap2 and sn9c102 to staging)
+> and another in one week for the adv patches, assuming there will be no comments.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit d22d32e117c19efa1761d871d9dab5e294b7b77d:
+> 
+>   [media] Add USB IDs for Winfast DTV Dongle Mini-D (2013-12-19 09:26:15 -0200)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v3.14b
+> 
+> for you to fetch changes up to 72631040c65e0b00c02788ff012a697faa1e86ef:
+> 
+>   videodev2: Set vb2_rect's width and height as unsigned (2013-12-20 11:45:07 +0100)
+> 
+> ----------------------------------------------------------------
+> Antonio Ospite (2):
+>       Documentation/DocBook/media/v4l/subdev-formats.xml: fix a typo
+>       Documentation/DocBook/media/v4l: fix typo, s/packet/packed/
+> 
+> Archit Taneja (8):
+>       v4l: ti-vpe: create a scaler block library
+>       v4l: ti-vpe: support loading of scaler coefficients
+>       v4l: ti-vpe: make vpe driver load scaler coefficients
+>       v4l: ti-vpe: enable basic scaler support
+>       v4l: ti-vpe: create a color space converter block library
+>       v4l: ti-vpe: Add helper to perform color conversion
+>       v4l: ti-vpe: enable CSC support for VPE
+>       v4l: ti-vpe: Add a type specifier to describe vpdma data format type
+> 
+> Fengguang Wu (2):
+>       fix coccinelle warnings
+>       fix coccinelle warnings
+> 
+> Hans Verkuil (25):
+>       v4l2: move tracepoints to video_usercopy
+>       vb2: push the mmap semaphore down to __buf_prepare()
+>       vb2: simplify qbuf/prepare_buf by removing callback.
+>       vb2: fix race condition between REQBUFS and QBUF/PREPARE_BUF.
+>       vb2: remove the 'fileio = NULL' hack.
+>       vb2: retry start_streaming in case of insufficient buffers.
+>       vb2: don't set index, don't start streaming for write()
+>       vb2: return ENOBUFS in start_streaming in case of too few buffers.
+>       vb2: Improve file I/O emulation to handle buffers in any order
+>       DocBook: drop the word 'only'.
+>       saa7134: move the queue data from saa7134_fh to saa7134_dev.
+>       saa7134: convert to the control framework.
+>       saa7134: cleanup radio/video/empress ioctl handling
+>       saa7134: remove dev from saa7134_fh, use saa7134_fh for empress node
+>       saa7134: share resource management between normal and empress nodes.
+>       saa7134: add support for control events.
+>       saa7134: use V4L2_IN_ST_NO_SIGNAL instead of NO_SYNC
+>       saa6752hs: drop compat control code.
+>       saa6752hs: move to media/i2c
+>       saa6752hs.h: drop empty header.
+>       saa7134: drop log_status for radio.
+>       saa6588: after calling CMD_CLOSE, CMD_POLL is broken.
+>       saa6588: remove unused CMD_OPEN.
+>       saa6588: add support for non-blocking mode.
+>       saa7134: don't set vfd->debug.
+> 
+> Joe Perches (1):
+>       media: Remove OOM message after input_allocate_device
+> 
+> Matthias Schwarzott (2):
+>       cx231xx: Add missing selects for MEDIA_SUBDRV_AUTOSELECT
+>       cx231xx: fix i2c debug prints
+> 
+> Ricardo Ribalda (1):
+>       videodev2: Set vb2_rect's width and height as unsigned
+> 
+> Wei Yongjun (1):
+>       radio-bcm2048: fix missing unlock on error in bcm2048_rds_fifo_receive()
+> 
+>  Documentation/DocBook/media/v4l/subdev-formats.xml  |    6 +-
+>  Documentation/DocBook/media/v4l/vidioc-streamon.xml |    2 +-
+>  drivers/media/i2c/Kconfig                           |   12 +
+>  drivers/media/i2c/Makefile                          |    1 +
+>  drivers/media/i2c/mt9v032.c                         |   38 +-
+>  drivers/media/i2c/saa6588.c                         |   50 +--
+>  drivers/media/{pci/saa7134 => i2c}/saa6752hs.c      |   19 +-
+>  drivers/media/pci/bt8xx/bttv-driver.c               |    4 +-
+>  drivers/media/pci/saa7134/Kconfig                   |    1 +
+>  drivers/media/pci/saa7134/Makefile                  |    2 +-
+>  drivers/media/pci/saa7134/saa7134-core.c            |   11 +-
+>  drivers/media/pci/saa7134/saa7134-empress.c         |  359 +++++-------------
+>  drivers/media/pci/saa7134/saa7134-vbi.c             |   11 +-
+>  drivers/media/pci/saa7134/saa7134-video.c           |  777 +++++++++++++++------------------------
+>  drivers/media/pci/saa7134/saa7134.h                 |   66 +++-
+>  drivers/media/platform/davinci/vpbe_display.c       |    2 +-
+>  drivers/media/platform/davinci/vpif_capture.c       |    2 +-
+>  drivers/media/platform/davinci/vpif_display.c       |    2 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c        |    2 +-
+>  drivers/media/platform/s5p-tv/mixer_video.c         |    2 +-
+>  drivers/media/platform/soc_camera/mx2_camera.c      |    2 +-
+>  drivers/media/platform/ti-vpe/Makefile              |    2 +-
+>  drivers/media/platform/ti-vpe/csc.c                 |  196 ++++++++++
+>  drivers/media/platform/ti-vpe/csc.h                 |   68 ++++
+>  drivers/media/platform/ti-vpe/sc.c                  |  311 ++++++++++++++++
+>  drivers/media/platform/ti-vpe/sc.h                  |  208 +++++++++++
+>  drivers/media/platform/ti-vpe/sc_coeff.h            | 1342 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/media/platform/ti-vpe/vpdma.c               |   36 +-
+>  drivers/media/platform/ti-vpe/vpdma.h               |    7 +
+>  drivers/media/platform/ti-vpe/vpe.c                 |  251 ++++++++-----
+>  drivers/media/platform/ti-vpe/vpe_regs.h            |  187 ----------
+>  drivers/media/rc/imon.c                             |    8 +-
+>  drivers/media/usb/cx231xx/Kconfig                   |    2 +
+>  drivers/media/usb/cx231xx/cx231xx-i2c.c             |   16 +-
+>  drivers/media/usb/em28xx/em28xx-input.c             |    4 +-
+>  drivers/media/usb/pwc/pwc-if.c                      |    1 -
+>  drivers/media/v4l2-core/v4l2-dev.c                  |    9 -
+>  drivers/media/v4l2-core/v4l2-ioctl.c                |    9 +
+>  drivers/media/v4l2-core/videobuf2-core.c            |  452 ++++++++++++-----------
+>  drivers/staging/media/bcm2048/radio-bcm2048.c       |   11 +-
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c     |    2 +
+>  include/media/saa6588.h                             |    2 +-
+>  include/media/saa6752hs.h                           |   26 --
+>  include/media/videobuf2-core.h                      |   17 +-
+>  include/uapi/linux/v4l2-controls.h                  |    4 +
+>  45 files changed, 3153 insertions(+), 1389 deletions(-)
+>  rename drivers/media/{pci/saa7134 => i2c}/saa6752hs.c (98%)
+>  create mode 100644 drivers/media/platform/ti-vpe/csc.c
+>  create mode 100644 drivers/media/platform/ti-vpe/csc.h
+>  create mode 100644 drivers/media/platform/ti-vpe/sc.c
+>  create mode 100644 drivers/media/platform/ti-vpe/sc.h
+>  create mode 100644 drivers/media/platform/ti-vpe/sc_coeff.h
+>  delete mode 100644 include/media/saa6752hs.h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
