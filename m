@@ -1,66 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:64547 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755301Ab3L1RFF (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3884 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755987Ab3LTJjo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 12:05:05 -0500
-Received: by mail-wg0-f47.google.com with SMTP id n12so8896437wgh.2
-        for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 09:05:04 -0800 (PST)
-Received: from [192.168.1.100] (188.29.109.137.threembb.co.uk. [188.29.109.137])
-        by mx.google.com with ESMTPSA id fj8sm60691903wib.1.2013.12.28.09.05.03
-        for <linux-media@vger.kernel.org>
-        (version=SSLv3 cipher=RC4-SHA bits=128/128);
-        Sat, 28 Dec 2013 09:05:03 -0800 (PST)
-Message-ID: <1388250291.5893.5.camel@canaries32-MCP7A>
-Subject: [PATCH 3/3] m88rs2000: Correct m88rs2000_get_fec
-From: Malcolm Priestley <tvboxspy@gmail.com>
+	Fri, 20 Dec 2013 04:39:44 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Date: Sat, 28 Dec 2013 17:04:51 +0000
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 40/50] adv7842: restart STDI once if format is not found.
+Date: Fri, 20 Dec 2013 10:31:33 +0100
+Message-Id: <1387531903-20496-41-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Value of fec is achieved by the upper nibble bits 6,7 & 8.
+From: Martin Bugge <marbugge@cisco.com>
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+The STDI block may measure wrong values, especially for lcvs and lcf.
+If the driver can not find any valid timing, the STDI block is restarted
+to measure the video timings again. The function will return an error,
+but the restart of STDI will generate a new STDI interrupt and the format
+detection process will restart.
+
+Copied from adv7604.
+
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Cc: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/m88rs2000.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/media/i2c/adv7842.c | 49 +++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 41 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
-index 002b109..b235146 100644
---- a/drivers/media/dvb-frontends/m88rs2000.c
-+++ b/drivers/media/dvb-frontends/m88rs2000.c
-@@ -581,18 +581,20 @@ static fe_code_rate_t m88rs2000_get_fec(struct m88rs2000_state *state)
- 	reg = m88rs2000_readreg(state, 0x76);
- 	m88rs2000_writereg(state, 0x9a, 0xb0);
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index eab9a1b..ae7252c 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -85,6 +85,7 @@ struct adv7842_state {
+ 	bool is_cea_format;
+ 	struct workqueue_struct *work_queues;
+ 	struct delayed_work delayed_work_enable_hotplug;
++	bool restart_stdi_once;
+ 	bool hdmi_port_a;
  
-+	reg &= 0xf0;
-+	reg >>= 5;
-+
- 	switch (reg) {
--	case 0x88:
-+	case 0x4:
- 		return FEC_1_2;
--	case 0x68:
-+	case 0x3:
- 		return FEC_2_3;
--	case 0x48:
-+	case 0x2:
- 		return FEC_3_4;
--	case 0x28:
-+	case 0x1:
- 		return FEC_5_6;
--	case 0x18:
-+	case 0x0:
- 		return FEC_7_8;
--	case 0x08:
- 	default:
- 		break;
+ 	/* i2c clients */
+@@ -1345,6 +1346,7 @@ static int adv7842_query_dv_timings(struct v4l2_subdev *sd,
+ 
+ 	/* read STDI */
+ 	if (read_stdi(sd, &stdi)) {
++		state->restart_stdi_once = true;
+ 		v4l2_dbg(1, debug, sd, "%s: no valid signal\n", __func__);
+ 		return -ENOLINK;
  	}
+@@ -1355,6 +1357,7 @@ static int adv7842_query_dv_timings(struct v4l2_subdev *sd,
+ 		uint32_t freq;
+ 
+ 		timings->type = V4L2_DV_BT_656_1120;
++
+ 		bt->width = (hdmi_read(sd, 0x07) & 0x0f) * 256 + hdmi_read(sd, 0x08);
+ 		bt->height = (hdmi_read(sd, 0x09) & 0x0f) * 256 + hdmi_read(sd, 0x0a);
+ 		freq = (hdmi_read(sd, 0x06) * 1000000) +
+@@ -1391,21 +1394,50 @@ static int adv7842_query_dv_timings(struct v4l2_subdev *sd,
+ 		}
+ 		adv7842_fill_optional_dv_timings_fields(sd, timings);
+ 	} else {
+-		/* Interlaced? */
+-		if (stdi.interlaced) {
+-			v4l2_dbg(1, debug, sd, "%s: interlaced video not supported\n", __func__);
+-			return -ERANGE;
+-		}
+-
++		/* find format
++		 * Since LCVS values are inaccurate [REF_03, p. 339-340],
++		 * stdi2dv_timings() is called with lcvs +-1 if the first attempt fails.
++		 */
++		if (!stdi2dv_timings(sd, &stdi, timings))
++			goto found;
++		stdi.lcvs += 1;
++		v4l2_dbg(1, debug, sd, "%s: lcvs + 1 = %d\n", __func__, stdi.lcvs);
++		if (!stdi2dv_timings(sd, &stdi, timings))
++			goto found;
++		stdi.lcvs -= 2;
++		v4l2_dbg(1, debug, sd, "%s: lcvs - 1 = %d\n", __func__, stdi.lcvs);
+ 		if (stdi2dv_timings(sd, &stdi, timings)) {
++			/*
++			 * The STDI block may measure wrong values, especially
++			 * for lcvs and lcf. If the driver can not find any
++			 * valid timing, the STDI block is restarted to measure
++			 * the video timings again. The function will return an
++			 * error, but the restart of STDI will generate a new
++			 * STDI interrupt and the format detection process will
++			 * restart.
++			 */
++			if (state->restart_stdi_once) {
++				v4l2_dbg(1, debug, sd, "%s: restart STDI\n", __func__);
++				/* TODO restart STDI for Sync Channel 2 */
++				/* enter one-shot mode */
++				cp_write_and_or(sd, 0x86, 0xf9, 0x00);
++				/* trigger STDI restart */
++				cp_write_and_or(sd, 0x86, 0xf9, 0x04);
++				/* reset to continuous mode */
++				cp_write_and_or(sd, 0x86, 0xf9, 0x02);
++				state->restart_stdi_once = false;
++				return -ENOLINK;
++			}
+ 			v4l2_dbg(1, debug, sd, "%s: format not supported\n", __func__);
+ 			return -ERANGE;
+ 		}
++		state->restart_stdi_once = true;
+ 	}
++found:
+ 
+ 	if (debug > 1)
+-		v4l2_print_dv_timings(sd->name, "adv7842_query_dv_timings: ",
+-				      timings, true);
++		v4l2_print_dv_timings(sd->name, "adv7842_query_dv_timings:",
++				timings, true);
+ 	return 0;
+ }
+ 
+@@ -2804,6 +2836,7 @@ static int adv7842_probe(struct i2c_client *client,
+ 	state->mode = pdata->mode;
+ 
+ 	state->hdmi_port_a = pdata->input == ADV7842_SELECT_HDMI_PORT_A;
++	state->restart_stdi_once = true;
+ 
+ 	/* i2c access to adv7842? */
+ 	rev = adv_smbus_read_byte_data_check(client, 0xea, false) << 8 |
 -- 
-1.8.5.2
-
+1.8.4.4
 
