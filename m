@@ -1,75 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60953 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753522Ab3LZSEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Dec 2013 13:04:54 -0500
-Message-ID: <52BC6FC3.6060307@iki.fi>
-Date: Thu, 26 Dec 2013 20:04:51 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from outrelay01.libero.it ([212.52.84.101]:44404 "EHLO
+	outrelay01.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756461Ab3LTAB0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Dec 2013 19:01:26 -0500
+Message-ID: <11263904.4519411387497676102.JavaMail.defaultUser@defaultHost>
+Date: Fri, 20 Dec 2013 01:01:16 +0100 (CET)
+From: benitajohnson313 <benitajohnson313@libero.it>
+Reply-To: benitajohnson112@outlook.com
+Subject: Ciao
 MIME-Version: 1.0
-To: jana1972@centrum.cz, linux-media@vger.kernel.org
-Subject: Re: A list of Linux drivers
-References: <52BC1AF4.30282.3DD8741B@jana1972.centrum.cz>, <CA+MoWDr+U5wuMF8MPh_mWaesTKG7CQLq+jsvDuzoT7D+MQu9Xw@mail.gmail.com> <52BC3A45.19032.3E52CAB5@jana1972.centrum.cz>
-In-Reply-To: <52BC3A45.19032.3E52CAB5@jana1972.centrum.cz>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moi Jahn
-There is not very many suitable alternatives that are available on 
-market as of today. Maybe PCTV 460e/461e only?. 460e is older one which 
-is replaced by 461e. I think it is currently bigger change to get new 
-461e if you order one.
-460e is em28xx + tda10071
-461e is em28xx + m88ds3103
-
-460e has been supported ages, but 461e was added recently. That means 
-you will need to compile 461e drivers separately.
-
-And I am not even sure if it works for MIPS. I have simply no hardware 
-to test. Anyhow, possible fix should be rather easy.
-
-regards
-Antti
+Ciao
+Il mio nome è BenitaJohnson
+ho visto il tuo profilo toda (forum.ubuntu-it.org/viewtopic.php) e si è 
+interessata in voi, mi piacerebbe anche sapere che il più, e voglio che tu 
+inviare una mail al mio indirizzo mail così posso darvi la mia immagine per voi 
+sa che io am.Here è il mio indirizzo email (benitajohnson112@outlook.com)
+Io credo che possiamo passare da qui! Sono in attesa di tua mail al mio 
+indirizzo di posta elettronica di cui sopra.
+Benita
+(Ricordate la distanza o il colore non importa, ma amore questioni molto nella 
+vita)
+vi prego di contattarmi qui (benitajohnson112@outlook.com)
 
 
-On 26.12.2013 15:16, Jahn wrote:
-> Peter,
-> Thank you for the reply.
-> But I would like to use a USB tuner with my satelite receiver( as the second tuner)
-> and not sure which tuner will suit the best  my needs.
-> So I wonder if there is a list of tuners (with Linux drivers)  that I can choose from .
-> Or can anyone advice a good/cheap DVB-S2 USB tuner?
-> Preferably with open source driver
->
-> Thank you for  your reply.
->
->> Check the file: drivers/media/tuners/Kconfig
->>
->> On Thu, Dec 26, 2013 at 12:03 PM, Jahn <jana1972@centrum.cz> wrote: >
->> Is there  available a list of tuners that are supported  in Linux (
->> those that have a driver) > preferably in MIPS Linux ? > Thanks > > --
->>> To unsubscribe from this list: send the line "unsubscribe
->> linux-media" in > the body of a message to majordomo@vger.kernel.org >
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
->> --
->> Peter
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media"
->> in the body of a message to majordomo@vger.kernel.org More majordomo
->> info at  http://vger.kernel.org/majordomo-info.html
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
--- 
-http://palosaari.fi/
+Hello
+My name is BenitaJohnson
+i saw your profile toda(forum.ubuntu-it.org/viewtopic.php) and became 
+interested in you,i will also like to know you the more,and i want you to send 
+an email to my email address so i can give you my picture for you to know whom 
+i am.Here is my email address    (benitajohnson112@outlook.com)
+I believe we can move from here!I am waiting for your mail to my email address 
+above.
+Benita
+(Remeber the distance or colour does not matter but love matters alot in life)
+please contact me here (benitajohnson112@outlook.com)
