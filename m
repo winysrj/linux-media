@@ -1,99 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1654 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753554Ab3LNL3A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 06:29:00 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:59087 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751284Ab3LTFuM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Dec 2013 00:50:12 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 09/15] saa6752hs: move to media/i2c
-Date: Sat, 14 Dec 2013 12:28:31 +0100
-Message-Id: <1387020517-26242-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387020517-26242-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v5 06/12] v4l: enable some IOCTLs for SDR receiver
+Date: Fri, 20 Dec 2013 07:49:48 +0200
+Message-Id: <1387518594-11609-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1387518594-11609-1-git-send-email-crope@iki.fi>
+References: <1387518594-11609-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Enable stream format (FMT) IOCTLs for SDR use. These are used for negotiate
+used data stream format.
 
-This driver is independent from saa7134, so there is no reason why this
-shouldn't be in media/i2c like all other i2c media drivers.
+Reorganise some some IOCTL selection logic.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- drivers/media/i2c/Kconfig                      | 12 ++++++++++++
- drivers/media/i2c/Makefile                     |  1 +
- drivers/media/{pci/saa7134 => i2c}/saa6752hs.c |  0
- drivers/media/pci/saa7134/Kconfig              |  1 +
- drivers/media/pci/saa7134/Makefile             |  2 +-
- 5 files changed, 15 insertions(+), 1 deletion(-)
- rename drivers/media/{pci/saa7134 => i2c}/saa6752hs.c (100%)
+ drivers/media/v4l2-core/v4l2-dev.c   | 21 ++++++++++++++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 53 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 842654d..91899e4 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -655,6 +655,18 @@ config VIDEO_UPD64083
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called upd64083.
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index a034b4c..84b2a84 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -562,7 +562,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	const struct v4l2_ioctl_ops *ops = vdev->ioctl_ops;
+ 	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
+-	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
++	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
  
-+comment "Audio/Video compression chips"
+@@ -671,9 +671,20 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			       ops->vidioc_try_fmt_sliced_vbi_out)))
+ 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
++	} else if (is_sdr) {
++		/* SDR specific ioctls */
++		if (ops->vidioc_enum_fmt_sdr_cap)
++			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
++		if (ops->vidioc_g_fmt_sdr_cap)
++			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
++		if (ops->vidioc_s_fmt_sdr_cap)
++			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
++		if (ops->vidioc_try_fmt_sdr_cap)
++			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+ 	}
+-	if (!is_radio) {
+-		/* ioctls valid for video or vbi */
 +
-+config VIDEO_SAA6752HS
-+	tristate "Philips SAA6752HS MPEG-2 Audio/Video Encoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Philips SAA6752HS MPEG-2 video and MPEG-audio/AC-3
-+	  audio encoder with multiplexer.
++	if (is_vid || is_vbi || is_sdr) {
++		/* ioctls valid for video, vbi or sdr */
+ 		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+ 		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
+ 		SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
+@@ -681,6 +692,10 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
+ 		SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
+ 		SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
++	}
 +
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called saa6752hs.
-+
- comment "Miscellaneous helper chips"
++	if (is_vid || is_vbi) {
++		/* ioctls valid for video or vbi */
+ 		if (ops->vidioc_s_std)
+ 			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_STD, vidioc_s_std);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index be06c21..7bd910b 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -243,6 +243,7 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 	const struct v4l2_vbi_format *vbi;
+ 	const struct v4l2_sliced_vbi_format *sliced;
+ 	const struct v4l2_window *win;
++	const struct v4l2_format_sdr *sdr;
+ 	unsigned i;
  
- config VIDEO_THS7303
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index e03f177..6d1cfa5 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -19,6 +19,7 @@ obj-$(CONFIG_VIDEO_SAA717X) += saa717x.o
- obj-$(CONFIG_VIDEO_SAA7127) += saa7127.o
- obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
- obj-$(CONFIG_VIDEO_SAA7191) += saa7191.o
-+obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
- obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
- obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
-diff --git a/drivers/media/pci/saa7134/saa6752hs.c b/drivers/media/i2c/saa6752hs.c
-similarity index 100%
-rename from drivers/media/pci/saa7134/saa6752hs.c
-rename to drivers/media/i2c/saa6752hs.c
-diff --git a/drivers/media/pci/saa7134/Kconfig b/drivers/media/pci/saa7134/Kconfig
-index 15b90d6..7883393 100644
---- a/drivers/media/pci/saa7134/Kconfig
-+++ b/drivers/media/pci/saa7134/Kconfig
-@@ -6,6 +6,7 @@ config VIDEO_SAA7134
- 	select VIDEO_TVEEPROM
- 	select CRC32
- 	select VIDEO_SAA6588 if MEDIA_SUBDRV_AUTOSELECT
-+	select VIDEO_SAA6752HS if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
- 	  This is a video4linux driver for Philips SAA713x based
- 	  TV cards.
-diff --git a/drivers/media/pci/saa7134/Makefile b/drivers/media/pci/saa7134/Makefile
-index 3537548..58de9b0 100644
---- a/drivers/media/pci/saa7134/Makefile
-+++ b/drivers/media/pci/saa7134/Makefile
-@@ -4,7 +4,7 @@ saa7134-y +=	saa7134-ts.o saa7134-tvaudio.o saa7134-vbi.o
- saa7134-y +=	saa7134-video.o
- saa7134-$(CONFIG_VIDEO_SAA7134_RC) += saa7134-input.o
+ 	pr_cont("type=%s", prt_names(p->type, v4l2_type_names));
+@@ -316,6 +317,14 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 				sliced->service_lines[0][i],
+ 				sliced->service_lines[1][i]);
+ 		break;
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		sdr = &p->fmt.sdr;
++		pr_cont(", pixelformat=%c%c%c%c\n",
++			(sdr->pixelformat >>  0) & 0xff,
++			(sdr->pixelformat >>  8) & 0xff,
++			(sdr->pixelformat >> 16) & 0xff,
++			(sdr->pixelformat >> 24) & 0xff);
++		break;
+ 	}
+ }
  
--obj-$(CONFIG_VIDEO_SAA7134) +=  saa6752hs.o saa7134.o saa7134-empress.o
-+obj-$(CONFIG_VIDEO_SAA7134) +=  saa7134.o saa7134-empress.o
+@@ -879,6 +888,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_vbi = vfd->vfl_type == VFL_TYPE_VBI;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
  
- obj-$(CONFIG_VIDEO_SAA7134_ALSA) += saa7134-alsa.o
+@@ -928,6 +938,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 		if (is_vbi && is_tx && ops->vidioc_g_fmt_sliced_vbi_out)
+ 			return 0;
+ 		break;
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
++			return 0;
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -1047,6 +1061,10 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_tx || !ops->vidioc_enum_fmt_vid_out_mplane))
+ 			break;
+ 		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_sdr_cap))
++			break;
++		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1057,6 +1075,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
  
+@@ -1101,6 +1120,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_tx || is_vid || !ops->vidioc_g_fmt_sliced_vbi_out))
+ 			break;
+ 		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
++			break;
++		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1111,6 +1134,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 
+@@ -1165,6 +1189,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_sdr_cap))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.sdr);
++		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1175,6 +1204,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
++	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 
+@@ -1229,6 +1259,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.sliced);
+ 		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_sdr_cap))
++			break;
++		CLEAR_AFTER_FIELD(p, fmt.sdr);
++		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
+ 	}
+ 	return -EINVAL;
+ }
 -- 
-1.8.4.3
+1.8.4.2
 
