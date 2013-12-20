@@ -1,49 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3856 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752851Ab3LQIEL (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4897 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756047Ab3LTJcE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 03:04:11 -0500
-Message-ID: <52B00563.7030608@xs4all.nl>
-Date: Tue, 17 Dec 2013 09:03:47 +0100
+	Fri, 20 Dec 2013 04:32:04 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: linux-media@vger.kernel.org, k.debski@samsung.com,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH 0/2] v4l: ti-vpe: Some VPE fixes
-References: <1386071473-10808-1-git-send-email-archit@ti.com> <52B002BD.6000105@xs4all.nl>
-In-Reply-To: <52B002BD.6000105@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 29/50] adv7842: save platform data in state struct
+Date: Fri, 20 Dec 2013 10:31:22 +0100
+Message-Id: <1387531903-20496-30-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/17/2013 08:52 AM, Hans Verkuil wrote:
-> On 12/03/2013 12:51 PM, Archit Taneja wrote:
->> This series fixes 2 issues in the VPE driver. The first fix allows us to use
->> UYVY color format for source and destination buffers. The second fix makes sure
->> we don't set pixel format widths which the VPDMA HW can't support. None of these
->> fixes are fatal, so they don't necessarily need to go in for the 3.13-rc fixes.
->>
->> Archit Taneja (2):
->>   v4l: ti-vpe: Fix the data_type value for UYVY VPDMA format
->>   v4l: ti-vpe: make sure VPDMA line stride constraints are met
->>
->>  drivers/media/platform/ti-vpe/vpdma.c      |  4 +--
->>  drivers/media/platform/ti-vpe/vpdma.h      |  5 ++-
->>  drivers/media/platform/ti-vpe/vpdma_priv.h |  2 +-
->>  drivers/media/platform/ti-vpe/vpe.c        | 53 ++++++++++++++++++++++--------
->>  4 files changed, 47 insertions(+), 17 deletions(-)
->>
-> 
-> For this patch series:
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+From: Martin Bugge <marbugge@cisco.com>
 
-Ah, it's already merged. I missed that :-)
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-Regards,
-
-	Hans
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index cbbfa77..4f93526 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -61,6 +61,7 @@ MODULE_LICENSE("GPL");
+ */
+ 
+ struct adv7842_state {
++	struct adv7842_platform_data pdata;
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
+@@ -2730,6 +2731,9 @@ static int adv7842_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 	}
+ 
++	/* platform data */
++	state->pdata = *pdata;
++
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &adv7842_ops);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+@@ -2834,7 +2838,7 @@ static int adv7842_probe(struct i2c_client *client,
+ 	if (err)
+ 		goto err_work_queues;
+ 
+-	err = adv7842_core_init(sd, pdata);
++	err = adv7842_core_init(sd);
+ 	if (err)
+ 		goto err_entity;
+ 
+-- 
+1.8.4.4
 
