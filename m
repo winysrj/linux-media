@@ -1,93 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4134 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821Ab3LSIpw (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:52439 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754123Ab3LTWY0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 03:45:52 -0500
-Message-ID: <52B2B21D.6010006@xs4all.nl>
-Date: Thu, 19 Dec 2013 09:45:17 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v4 0/7] SDR API
-References: <1387425606-7458-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1387425606-7458-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 20 Dec 2013 17:24:26 -0500
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 6/6] exynos4-is: Remove dependency on PM_RUNTIME from Kconfig
+Date: Fri, 20 Dec 2013 23:23:27 +0100
+Message-Id: <1387578207-17625-7-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1387578207-17625-1-git-send-email-s.nawrocki@samsung.com>
+References: <1387578207-17625-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/19/2013 04:59 AM, Antti Palosaari wrote:
-> Here is the full set of implementation.
-> 
-> But..... API Documentation is the really hard part as it is in XML format.
-> I have wasted already quite too much time for it :/ The reason is that
-> I don't have any XML editor, just plain text editor. Is there any WYSIWYG
-> XML editor for Linux? If there is no even editor I wonder if it is wise at
-> all to keep documentation in XML format...
+Now when the sub-drivers are fixed to work with runtime PM disabled
+this erroneous dependency can be removed.
+The CAM and ISP power domains should be left in active state by the
+platform if runtime PM is not used.
 
-If there is a GUI editor that works I am not aware of it. This page might be
-useful:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos4-is/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-http://www.tldp.org/HOWTO/html_single/DocBook-Demystification-HOWTO/#AEN253
-
-I am just using a regular editor (vim) and it isn't as bad as it seems at first
-sight. A lot of copy-and-paste from elsewhere generally does the trick :-)
-
-DocBook is the kernel standard, so we're stuck with it. It's not my favorite
-either, but that's life.
-
-I use a little script to build a single html file (as is done by the daily
-build):
-
-
----- cut here ------
-#!/bin/sh
-
-make DOCBOOKS=media_api.xml htmldocs
-xmllint --noent --postvalid "<FULLPATH>/media-git/Documentation/DocBook/media_api.xml" >/tmp/x.xml 2>/dev/null
-xmllint --noent --postvalid --noout /tmp/x.xml
-xmlto html-nochunks -m Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/media Documentation/DocBook/media_api.xml
----- cut here ------
-
-This builds only the media part, not all the other kernel docs, and it builds it as
-a single file which is 1) easier to read and 2) catches some errors that are not
-found if it is split into a zillion little html files.
-
-In addition the line numbers of errors refer to the single /tmp/x.xml file, so the
-line numbers are actually useful. Without that trick line numbers are pretty
-meaningless since it is next to impossible to decipher to which file they map.
-
-> We used Altova XMLSpy on our structured data formats course and I would like
-> to see something similar.
-
-If you find something that works, let us know :-)
-
-Regards,
-
-	Hans
-
-> 
-> regards
-> Antti
-> 
-> Antti Palosaari (7):
->   v4l: add device type for Software Defined Radio
->   v4l: add new tuner types for SDR
->   v4l: 1 Hz resolution flag for tuners
->   v4l: add stream format for SDR receiver
->   v4l: define own IOCTL ops for SDR FMT
->   v4l: enable some IOCTLs for SDR receiver
->   v4l: add device capability flag for SDR receiver
-> 
->  drivers/media/v4l2-core/v4l2-dev.c   | 26 +++++++++++--
->  drivers/media/v4l2-core/v4l2-ioctl.c | 75 ++++++++++++++++++++++++++++++------
->  include/media/v4l2-dev.h             |  3 +-
->  include/media/v4l2-ioctl.h           |  8 ++++
->  include/trace/events/v4l2.h          |  1 +
->  include/uapi/linux/videodev2.h       | 16 ++++++++
->  6 files changed, 114 insertions(+), 15 deletions(-)
-> 
+diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+index d2d3b4b..01ed1ec 100644
+--- a/drivers/media/platform/exynos4-is/Kconfig
++++ b/drivers/media/platform/exynos4-is/Kconfig
+@@ -1,7 +1,7 @@
+ 
+ config VIDEO_SAMSUNG_EXYNOS4_IS
+ 	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
+-	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PM_RUNTIME
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on (PLAT_S5P || ARCH_EXYNOS)
+ 	help
+ 	  Say Y here to enable camera host interface devices for
+-- 
+1.7.4.1
 
