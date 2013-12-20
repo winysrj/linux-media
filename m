@@ -1,68 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44084 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550Ab3LKQHu (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2436 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755993Ab3LTJcI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 11:07:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Fri, 20 Dec 2013 04:32:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Josh Wu <josh.wu@atmel.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v2 4/7] v4l: atmel-isi: Reset the ISI when starting the stream
-Date: Wed, 11 Dec 2013 17:07:42 +0100
-Message-Id: <1386778065-14135-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 38/50] adv7842: mute audio before switching inputs to avoid noise/pops
+Date: Fri, 20 Dec 2013 10:31:31 +0100
+Message-Id: <1387531903-20496-39-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The queue setup operation isn't the right place to reset the ISI. Move
-the reset call to the start streaming operation.
+From: Mats Randgaard <matrandg@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Josh Wu <josh.wu@atmel.com>
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/soc_camera/atmel-isi.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/media/i2c/adv7842.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index ea8816c..ae2c8c1 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -241,16 +241,6 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
- 	unsigned long size;
--	int ret;
--
--	/* Reset ISI */
--	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
--	if (ret < 0) {
--		dev_err(icd->parent, "Reset ISI timed out\n");
--		return ret;
--	}
--	/* Disable all interrupts */
--	isi_writel(isi, ISI_INTDIS, ~0UL);
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index a26c70c..bbd80ac 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -20,10 +20,13 @@
  
- 	size = icd->sizeimage;
+ /*
+  * References (c = chapter, p = page):
+- * REF_01 - Analog devices, ADV7842, Register Settings Recommendations,
+- *		Revision 2.5, June 2010
++ * REF_01 - Analog devices, ADV7842,
++ *		Register Settings Recommendations, Rev. 1.9, April 2011
+  * REF_02 - Analog devices, Software User Guide, UG-206,
+  *		ADV7842 I2C Register Maps, Rev. 0, November 2010
++ * REF_03 - Analog devices, Hardware User Guide, UG-214,
++ *		ADV7842 Fast Switching 2:1 HDMI 1.4 Receiver with 3D-Comb
++ *		Decoder and Digitizer , Rev. 0, January 2011
+  */
  
-@@ -390,6 +380,16 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
- 	u32 sr = 0;
-+	int ret;
+ 
+@@ -491,6 +494,11 @@ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ 	return adv_smbus_write_byte_data(state->i2c_hdmi, reg, val);
+ }
+ 
++static inline int hdmi_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++{
++	return hdmi_write(sd, reg, (hdmi_read(sd, reg) & mask) | val);
++}
 +
-+	/* Reset ISI */
-+	ret = atmel_isi_wait_status(isi, WAIT_ISI_RESET);
-+	if (ret < 0) {
-+		dev_err(icd->parent, "Reset ISI timed out\n");
-+		return ret;
-+	}
-+	/* Disable all interrupts */
-+	isi_writel(isi, ISI_INTDIS, ~0UL);
+ static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
+ {
+ 	struct adv7842_state *state = to_state(sd);
+@@ -1459,14 +1467,12 @@ static void enable_input(struct v4l2_subdev *sd)
+ 	case ADV7842_MODE_SDP:
+ 	case ADV7842_MODE_COMP:
+ 	case ADV7842_MODE_RGB:
+-		/* enable */
+ 		io_write(sd, 0x15, 0xb0);   /* Disable Tristate of Pins (no audio) */
+ 		break;
+ 	case ADV7842_MODE_HDMI:
+-		/* enable */
+-		hdmi_write(sd, 0x1a, 0x0a); /* Unmute audio */
+ 		hdmi_write(sd, 0x01, 0x00); /* Enable HDMI clock terminators */
+ 		io_write(sd, 0x15, 0xa0);   /* Disable Tristate of Pins */
++		hdmi_write_and_or(sd, 0x1a, 0xef, 0x00); /* Unmute audio */
+ 		break;
+ 	default:
+ 		v4l2_dbg(2, debug, sd, "%s: Unknown mode %d\n",
+@@ -1477,9 +1483,9 @@ static void enable_input(struct v4l2_subdev *sd)
  
- 	spin_lock_irq(&isi->lock);
- 	/* Clear any pending interrupt */
+ static void disable_input(struct v4l2_subdev *sd)
+ {
+-	/* disable */
++	hdmi_write_and_or(sd, 0x1a, 0xef, 0x10); /* Mute audio [REF_01, c. 2.2.2] */
++	msleep(16); /* 512 samples with >= 32 kHz sample rate [REF_03, c. 8.29] */
+ 	io_write(sd, 0x15, 0xbe);   /* Tristate all outputs from video core */
+-	hdmi_write(sd, 0x1a, 0x1a); /* Mute audio */
+ 	hdmi_write(sd, 0x01, 0x78); /* Disable HDMI clock terminators */
+ }
+ 
+@@ -2432,6 +2438,9 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
+ 			pdata->replicate_av_codes << 1 |
+ 			pdata->invert_cbcr << 0);
+ 
++	/* HDMI audio */
++	hdmi_write_and_or(sd, 0x1a, 0xf1, 0x08); /* Wait 1 s before unmute */
++
+ 	/* Drive strength */
+ 	io_write_and_or(sd, 0x14, 0xc0, pdata->drive_strength.data<<4 |
+ 			pdata->drive_strength.clock<<2 |
 -- 
-1.8.3.2
+1.8.4.4
 
