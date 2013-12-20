@@ -1,40 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-m07.mx.aol.com ([64.12.143.81]:52464 "EHLO
-	omr-m07.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755718Ab3LVCms (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1870 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756045Ab3LTJcD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Dec 2013 21:42:48 -0500
-Message-ID: <52B6503F.7090402@netscape.net>
-Date: Sat, 21 Dec 2013 23:36:47 -0300
-From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
-	<alfredodelaiti@netscape.net>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] cx23885 Radio Support [was: cx23885: Add basic analog
- radio support]
-References: <CAEN_-SBR5qGJfUk6h+n04Q4zP-zofiLO+Jr6pOBJU2nqYBuDWQ@mail.gmail.com> <524F0F57.5020605@netscape.net> <20131031081255.65111ad6@samsung.com> <52839246.7050600@netscape.net> <52B413F1.2040306@xs4all.nl>
-In-Reply-To: <52B413F1.2040306@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Fri, 20 Dec 2013 04:32:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 01/50] ad9389b: verify EDID header
+Date: Fri, 20 Dec 2013 10:30:54 +0100
+Message-Id: <1387531903-20496-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+From: Mats Randgaard <matrandg@cisco.com>
 
-El 20/12/13 06:54, Hans Verkuil escribió:
-> Hi Alfredo,
->
-> It's a rather late review for which I apologize.
->
-> Anyway, this patch needs more work, see my comments below.
->
->
+Ignore EDIDs where the header is wrong.
 
-Hans thank you very much for your comments.
-I'll have to wait until January to work with your suggestions, because 
-I'm very busy right now.
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ad9389b.c | 26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
-Thanks again,
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index b06a7e5..e7f7171 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -978,7 +978,7 @@ static bool edid_block_verify_crc(u8 *edid_block)
+ 	return sum == 0;
+ }
+ 
+-static bool edid_segment_verify_crc(struct v4l2_subdev *sd, u32 segment)
++static bool edid_verify_crc(struct v4l2_subdev *sd, u32 segment)
+ {
+ 	struct ad9389b_state *state = get_ad9389b_state(sd);
+ 	u32 blocks = state->edid.blocks;
+@@ -992,6 +992,25 @@ static bool edid_segment_verify_crc(struct v4l2_subdev *sd, u32 segment)
+ 	return false;
+ }
+ 
++static bool edid_verify_header(struct v4l2_subdev *sd, u32 segment)
++{
++	static const u8 hdmi_header[] = {
++		0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00
++	};
++	struct ad9389b_state *state = get_ad9389b_state(sd);
++	u8 *data = state->edid.data;
++	int i;
++
++	if (segment)
++		return true;
++
++	for (i = 0; i < ARRAY_SIZE(hdmi_header); i++)
++		if (data[i] != hdmi_header[i])
++			return false;
++
++	return true;
++}
++
+ static bool ad9389b_check_edid_status(struct v4l2_subdev *sd)
+ {
+ 	struct ad9389b_state *state = get_ad9389b_state(sd);
+@@ -1019,9 +1038,10 @@ static bool ad9389b_check_edid_status(struct v4l2_subdev *sd)
+ 		v4l2_dbg(1, debug, sd, "%s: %d blocks in total\n",
+ 				__func__, state->edid.blocks);
+ 	}
+-	if (!edid_segment_verify_crc(sd, segment)) {
++	if (!edid_verify_crc(sd, segment) ||
++			!edid_verify_header(sd, segment)) {
+ 		/* edid crc error, force reread of edid segment */
+-		v4l2_err(sd, "%s: edid crc error\n", __func__);
++		v4l2_err(sd, "%s: edid crc or header error\n", __func__);
+ 		state->have_monitor = false;
+ 		ad9389b_s_power(sd, false);
+ 		ad9389b_s_power(sd, true);
+-- 
+1.8.4.4
 
-Alfredo
