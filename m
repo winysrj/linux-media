@@ -1,124 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:42465 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754498Ab3LVSK7 (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4696 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755995Ab3LTJcH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Dec 2013 13:10:59 -0500
-Received: by mail-ea0-f181.google.com with SMTP id m10so1996797eaj.12
-        for <linux-media@vger.kernel.org>; Sun, 22 Dec 2013 10:10:58 -0800 (PST)
-Message-ID: <52B72B71.9070406@googlemail.com>
-Date: Sun, 22 Dec 2013 19:12:01 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx DEADLOCK reported by lock debug
-References: <52B1C79C.1070408@iki.fi> <52B5C718.7030605@googlemail.com> <52B5F229.6020301@iki.fi> <52B6EE79.9070105@googlemail.com> <20131222125306.671b9960@samsung.com>
-In-Reply-To: <20131222125306.671b9960@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 20 Dec 2013 04:32:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 36/50] adv7842: remove connector type. Never used for anything useful
+Date: Fri, 20 Dec 2013 10:31:29 +0100
+Message-Id: <1387531903-20496-37-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 22.12.2013 15:53, schrieb Mauro Carvalho Chehab:
-> Em Sun, 22 Dec 2013 14:51:53 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 21.12.2013 20:55, schrieb Antti Palosaari:
->>> On 21.12.2013 18:51, Frank Schäfer wrote:
->>>> Hi Antti,
->>>>
->>>> thank you for reporting this issue.
->>>>
->>>> Am 18.12.2013 17:04, schrieb Antti Palosaari:
->>>>> That same lock debug deadlock is still there (maybe ~4 times I report
->>>>> it during 2 years). Is that possible to fix easily at all?
->>>> Patches are always welcome. ;)
->>> haha, I cannot simply learn every driver I meet some problems...
->> Hint:
->>
->> If you report a bug ~4 times in 2 years but never get a reply, it
->> usually means
->> a) nobody cares
->> b) nobody has the resources (time, knowledge) to fix it.
->>
->> So you either have to live with this issue or to fix it yourself.
-> It is the latter case: fixing it require lots of efforts.
-Yes, I know. ;-)
+From: Mats Randgaard <matrandg@cisco.com>
 
-> One way to fix would be to change em28xx_close_extension() to
-> something like:
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index f6076a512e8f..d938e2bbd62f 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -1350,13 +1350,19 @@ void em28xx_init_extension(struct em28xx *dev)
->  
->  void em28xx_close_extension(struct em28xx *dev)
->  {
-> +	int (*fini)(struct em28xx *) = NULL;
->  	const struct em28xx_ops *ops = NULL;
->  
->  	mutex_lock(&em28xx_devlist_mutex);
->  	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
-> -		if (ops->fini)
-> -			ops->fini(dev);
-> +		fini = ops->fini;
->  	}
->  	list_del(&dev->devlist);
->  	mutex_unlock(&em28xx_devlist_mutex);
-> +
-> +	if (fini) {
-> +		mutex_lock(&dev->lock);
-> +		fini(dev);
-> +		mutex_unlock(&dev->lock);
-> +	}
->  }
->
-> Please note that the above is not 100% correct, as one device may have
-> more than one extension.
->
-> Then, it should be sure that on every place that em28xx_close_extension()
-> is called, dev->lock is not taken.
->
-> As an alternative, eventually the extension list could be moved to the
-> struct em28xx, but a device list is still needed, in order to handle
-> extension module removal.
->
-> Another way that would probably be better is to convert the em28xx
-> code that handles extension (extension here is dvb, rc, alsa) to use
-> krefs, And add a kref free code that would call ops->fini. Note that,
-> in this case, dev itself would also need to be a kref.
->
-> I suspect that using kref would would be cleaner, but a change like that
-> would require to rewrite the extensions code.
+May also be wrong if the receiver is connected to more than one connector.
 
-I have zero knowledge about how the locking correctness stuff works, but
-what about improving it ?
-Shouldn't it notice that flush_work() waits until the work is done
-before the lock is acquired ?
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 4 ----
+ include/media/adv7842.h     | 3 ---
+ 2 files changed, 7 deletions(-)
 
-> Btw, there's a related RFC patchset that splits the V4L2 interface from
-> em28xx, transforming it also into an extension. With such patch, a DVB 
-> only device should not call any v4l2 init code, nor require V4L2 to be
-> enabled:
-> 	https://patchwork.linuxtv.org/patch/17967/ 
-
-Yes, I remember it and it would be a big step forward.
-
-> The above RFC requires testing.
->
-> I may be able to find some time to do work on it this end of the year,
-> starting with the V4L2 split patchset, depending if I finish some other
-> things already on my todo list.
-
-I'm going to review the patch within the next days and do some testing.
-
-Regards,
-Frank
-
-> Regards,
-> Mauro
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index f16437c..ab44897 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -82,7 +82,6 @@ struct adv7842_state {
+ 	bool is_cea_format;
+ 	struct workqueue_struct *work_queues;
+ 	struct delayed_work delayed_work_enable_hotplug;
+-	bool connector_hdmi;
+ 	bool hdmi_port_a;
+ 
+ 	/* i2c clients */
+@@ -2166,8 +2165,6 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
+ 
+ 	v4l2_info(sd, "-----Chip status-----\n");
+ 	v4l2_info(sd, "Chip power: %s\n", no_power(sd) ? "off" : "on");
+-	v4l2_info(sd, "Connector type: %s\n", state->connector_hdmi ?
+-			"HDMI" : (is_digital_input(sd) ? "DVI-D" : "DVI-A"));
+ 	v4l2_info(sd, "HDMI/DVI-D port selected: %s\n",
+ 			state->hdmi_port_a ? "A" : "B");
+ 	v4l2_info(sd, "EDID A %s, B %s\n",
+@@ -2801,7 +2798,6 @@ static int adv7842_probe(struct i2c_client *client,
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &adv7842_ops);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	state->connector_hdmi = pdata->connector_hdmi;
+ 	state->mode = pdata->mode;
+ 
+ 	state->hdmi_port_a = pdata->input == ADV7842_SELECT_HDMI_PORT_A;
+diff --git a/include/media/adv7842.h b/include/media/adv7842.h
+index c12de2d..24fed11 100644
+--- a/include/media/adv7842.h
++++ b/include/media/adv7842.h
+@@ -139,9 +139,6 @@ struct adv7842_sdp_io_sync_adjustment {
+ 
+ /* Platform dependent definition */
+ struct adv7842_platform_data {
+-	/* connector - HDMI or DVI? */
+-	unsigned connector_hdmi:1;
+-
+ 	/* chip reset during probe */
+ 	unsigned chip_reset:1;
+ 
+-- 
+1.8.4.4
 
