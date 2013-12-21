@@ -1,113 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3028 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753847Ab3LOLSm (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3970 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752571Ab3LUDON (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Dec 2013 06:18:42 -0500
-Message-ID: <52AD8FF9.2020901@xs4all.nl>
-Date: Sun, 15 Dec 2013 12:18:17 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: luca.risolia@linux-projects.org
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC PATCH 1/2] sn9c102: prepare for removal by moving it to
- staging.
-References: <1386850822-3487-1-git-send-email-hverkuil@xs4all.nl> <1386850822-3487-2-git-send-email-hverkuil@xs4all.nl> <1628977.YDkQVgTYrx@laptop>
-In-Reply-To: <1628977.YDkQVgTYrx@laptop>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 20 Dec 2013 22:14:13 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBL3EA5o056618
+	for <linux-media@vger.kernel.org>; Sat, 21 Dec 2013 04:14:12 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id AC19C2A2226
+	for <linux-media@vger.kernel.org>; Sat, 21 Dec 2013 04:13:50 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131221031350.AC19C2A2226@tschai.lan>
+Date: Sat, 21 Dec 2013 04:13:50 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Luca,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 12/14/2013 06:13 PM, Luca Risolia wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> During the last media summit meeting it was decided to move this driver to
->> staging as the first step to removing it altogether.
->>
->> Most webcams covered by this driver are now supported by gspca. Nobody has
->> the hardware to convert the remaining devices to gspca.
-> 
-> I have all the boards given by the manufacturer. Last time I tried the gspca 
-> driver it certainly did not work with most of the sn9c1xx-based models the 
-> gspca driver claims to be supporting (which were a subset of the devices 
-> actually supported by sn9c102).
-> 
->> This driver needs a major overhaul to have it conform to the latest
->> frameworks and compliancy tests.
-> 
-> What is not compliant? I will offer my help to update the driver in case but 
-> cannot give my help to fix or test all the boards again with the gspca, as it 
-> would be a considerable amount of extra work.
+Results of the daily build of media_tree:
 
-Work is ongoing to move all drivers to the latest V4L2 frameworks (control
-framework, using v4l2_fh, v4l2_device, video_ioctl2 & unlocked_ioctl, videobuf2
-were possible). This reduces code complexity of the drivers and will eventually
-allow us to get rid of old core legacy code. In addition, using these frameworks
-will help drivers to pass the v4l2-compliance test tool (part of v4l-utils.git).
+date:		Sat Dec 21 04:00:44 CET 2013
+git branch:	test
+git hash:	c57f87e62368c33ebda11a4993380c8e5a19a5c5
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-For most drivers not yet converted I have hardware myself that I can use to do
-the conversion and testing, but not for the sn9c102.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12-i686: ERRORS
+linux-3.13-rc1-i686: ERRORS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12-x86_64: ERRORS
+linux-3.13-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Given the fact that that driver caters to very old webcams that few people use,
-and for which cheap modern webcam replacements are easily available, it is the
-opinion of the core v4l2 developers that it is not worth the effort for us to
-convert the driver.
+Detailed results are available here:
 
-The first step in that process is to move it to staging to signal that unless
-something is done this driver will be removed.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-There are a number of options:
+Full logs are available here:
 
-1) Nothing is done. In that case the driver will be removed, probably end of
-   next year.
-2) You convert the driver to the various frameworks, make it pass v4l2-compliance,
-   etc. In that case there is no reason to remove it.
-3) My estimate is that option 2) is time consuming. It might be easier for you
-   to add support for the webcams to gspca instead.
-4) Send the webcams that are not (or not correctly) supported by gscpa to Hans
-   de Goede, and let him add support for them to gspca. I don't know if he
-   wants to, though. He may well decide that it is not worth it, although I
-   assume he would be willing to at least fix gspca for webcams that are not
-   correctly supported.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
->> Without hardware, however, this is next to impossible. Given the fact that
->> this driver seems to be pretty much unused (it has been removed from Fedora
->> several versions ago and nobody complained about that), we decided to drop
->> this driver.
-> 
-> As no one has the hardware, what is the reason why the sn9c102 has been moved 
-> into gspca, although the sn9c102 driver has been already present in the kernel 
-> since years before?
+The Media Infrastructure API from this daily build is here:
 
-Frankly because sn9c102 isn't very good code. In all fairness, none of todays
-frameworks existed when sn9c102 was first created. It would be done quite
-differently today. Note that AFAIK HdG has some of the webcams supported by both
-gspca and sn9c102, I'm assuming those are working fine with gspca.
-
-> In my opinion the fact that the module has been removed from Fedora does not 
-> imply that the driver is unused. For sure that does not mean the sn9c102 
-> driver is unuseful, since gspca does not work properly with all the devices, 
-> as I mentioned.
-
-The fact that nobody has been complaining about the removal from Fedora indicates
-that very few people still use the webcams supported by sn9c102.
-
-That in itself is not a problem, but the fact that the code is really old and
-needs a lot of work is. Within 1-2 years I am going to require that all V4L2
-drivers use at least some of the core frameworks in order to enforce consistent
-API behavior. sn9c102 is one of the very few drivers that has the unlucky
-combination of being too complex to easily/quickly convert, is only rarely used,
-and for which there is a cheap and easy upgrade path for the few remaining users
-(if any) of that driver (i.e. buy a uvc webcam).
-
-We have removed drivers in the past as well for similar reasons. It's done very
-rarely: only if they start blocking progress, there is nobody motivated to
-convert them, and they are only rarely (if ever) used.
-
-Regards,
-
-	Hans
+http://www.xs4all.nl/~hverkuil/spec/media.html
