@@ -1,119 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:35834 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab3LAVGW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Dec 2013 16:06:22 -0500
-Received: by mail-ea0-f174.google.com with SMTP id b10so8210595eae.5
-        for <linux-media@vger.kernel.org>; Sun, 01 Dec 2013 13:06:21 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 5/7] em28xx: prepare for supporting multiple LEDs
-Date: Sun,  1 Dec 2013 22:06:55 +0100
-Message-Id: <1385932017-2276-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1385932017-2276-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:40942 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752692Ab3LULEG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Dec 2013 06:04:06 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MY50039ALET4X30@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 21 Dec 2013 06:04:05 -0500 (EST)
+Date: Sat, 21 Dec 2013 09:04:00 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: kbuild test robot <fengguang.wu@intel.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [linuxtv-media:master 483/499] m88ds3103.c:undefined reference to
+ `i2c_del_mux_adapter'
+Message-id: <20131221090400.766a9cdf@samsung.com>
+In-reply-to: <20131221085048.40a00d81@samsung.com>
+References: <52b4fca0.ygAJPoOJD83r3RML%fengguang.wu@intel.com>
+ <20131221085048.40a00d81@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Introduce a LED role and store all LEDs in an array.
-Also provide a helper function to retrieve a specific LED.
+Em Sat, 21 Dec 2013 08:50:48 -0200
+Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |   31 ++++++++++++++++++++++++-------
- drivers/media/usb/em28xx/em28xx.h      |   10 +++++++++-
- 2 Dateien geändert, 33 Zeilen hinzugefügt(+), 8 Zeilen entfernt(-)
+> From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Date: Sat, 21 Dec 2013 05:42:11 -0200
+> Subject: [PATCH] [media] subdev autoselect only works if I2C and I2C_MUX is selected
+> 
+> As reported by the kbuild test robot <fengguang.wu@intel.com>:
+> 
+> > warning: (VIDEO_EM28XX_DVB) selects DVB_M88DS3103 which has unmet direct dependencies (MEDIA_SUPPORT && DVB_CORE && I2C && I2C_MUX)
+> >    drivers/built-in.o: In function `m88ds3103_release':  
+> > >> m88ds3103.c:(.text+0x1ab1af): undefined reference to `i2c_del_mux_adapter'  
+> >    drivers/built-in.o: In function `m88ds3103_attach':  
+> > >> (.text+0x1ab342): undefined reference to `i2c_add_mux_adapter'  
+> 
+> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 31d6ab2..4a8179a 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -600,6 +600,22 @@ int em28xx_colorlevels_set_default(struct em28xx *dev)
- 	return em28xx_write_reg(dev, EM28XX_R1A_BOFFSET, 0x00);
- }
- 
-+const struct em28xx_led *em28xx_find_led(struct em28xx *dev,
-+					 enum em28xx_led_role role)
-+{
-+	if (dev->board.leds) {
-+		u8 k = 0;
-+		while (dev->board.leds[k].role >= 0 &&
-+			       dev->board.leds[k].role < EM28XX_NUM_LED_ROLES) {
-+			if (dev->board.leds[k].role == role)
-+				return &dev->board.leds[k];
-+			k++;
-+		}
-+	}
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(em28xx_find_led);
-+
- int em28xx_capture_start(struct em28xx *dev, int start)
- {
- 	int rc;
-@@ -645,13 +661,14 @@ int em28xx_capture_start(struct em28xx *dev, int start)
- 		return rc;
- 
- 	/* Switch (explicitly controlled) analog capturing LED on/off */
--	if ((dev->mode == EM28XX_ANALOG_MODE)
--	    && dev->board.analog_capturing_led) {
--		struct em28xx_led *led = dev->board.analog_capturing_led;
--		em28xx_write_reg_bits(dev, led->gpio_reg,
--				      (!start ^ led->inverted) ?
--				      ~led->gpio_mask : led->gpio_mask,
--				      led->gpio_mask);
-+	if (dev->mode == EM28XX_ANALOG_MODE) {
-+		const struct em28xx_led *led;
-+		led = em28xx_find_led(dev, EM28XX_LED_ANALOG_CAPTURING);
-+		if (led)
-+			em28xx_write_reg_bits(dev, led->gpio_reg,
-+					      (!start ^ led->inverted) ?
-+					      ~led->gpio_mask : led->gpio_mask,
-+					      led->gpio_mask);
- 	}
- 
- 	return rc;
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index df828c6..f60f236 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -377,7 +377,13 @@ enum em28xx_adecoder {
- 	EM28XX_TVAUDIO,
- };
- 
-+enum em28xx_led_role {
-+	EM28XX_LED_ANALOG_CAPTURING = 0,
-+	EM28XX_NUM_LED_ROLES, /* must be the last */
-+};
-+
- struct em28xx_led {
-+	enum em28xx_led_role role;
- 	u8 gpio_reg;
- 	u8 gpio_mask;
- 	bool inverted;
-@@ -433,7 +439,7 @@ struct em28xx_board {
- 	char			  *ir_codes;
- 
- 	/* LEDs that need to be controlled explicitly */
--	struct em28xx_led	  *analog_capturing_led;
-+	struct em28xx_led	  *leds;
- 
- 	/* Buttons */
- 	struct em28xx_button	  *buttons;
-@@ -711,6 +717,8 @@ int em28xx_audio_analog_set(struct em28xx *dev);
- int em28xx_audio_setup(struct em28xx *dev);
- 
- int em28xx_colorlevels_set_default(struct em28xx *dev);
-+const struct em28xx_led *em28xx_find_led(struct em28xx *dev,
-+					 enum em28xx_led_role role);
- int em28xx_capture_start(struct em28xx *dev, int start);
- int em28xx_vbi_supported(struct em28xx *dev);
- int em28xx_set_outfmt(struct em28xx *dev);
--- 
-1.7.10.4
+It is the Christmas week. I don't think we'll have enough reviews for this,
+as most are preparing themselves to properly celebrate the birth of our
+Lord, or to just rest during Seasons.
+
+Due to that, I'll likely just apply this patch with a better description,
+as I intend to merge the pending patches at -next during this weekend,
+and I don't want to spread compilation breakages there.
+
+If we latter agree with some other solution, reverting this one while 
+applying other changes should be trivial.
+
+Happy Seasons!
+Mauro
+
+> 
+> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+> index 8270388e2a0d..1d0758aeb8e4 100644
+> --- a/drivers/media/Kconfig
+> +++ b/drivers/media/Kconfig
+> @@ -172,6 +172,9 @@ comment "Media ancillary drivers (tuners, sensors, i2c, frontends)"
+>  config MEDIA_SUBDRV_AUTOSELECT
+>  	bool "Autoselect ancillary drivers (tuners, sensors, i2c, frontends)"
+>  	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_CAMERA_SUPPORT
+> +	depends on HAS_IOMEM
+> +	select I2C
+> +	select I2C_MUX
+>  	default y
+>  	help
+>  	  By default, a media driver auto-selects all possible ancillary
+> --
+
 
