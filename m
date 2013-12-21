@@ -1,110 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1126 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752403Ab3LHDdv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Dec 2013 22:33:51 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB83XmgB023051
-	for <linux-media@vger.kernel.org>; Sun, 8 Dec 2013 04:33:50 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id D69C72A2222
-	for <linux-media@vger.kernel.org>; Sun,  8 Dec 2013 04:33:45 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20131208033345.D69C72A2222@tschai.lan>
-Date: Sun,  8 Dec 2013 04:33:45 +0100 (CET)
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:38437 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754014Ab3LULlA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Dec 2013 06:41:00 -0500
+Received: by mail-wi0-f181.google.com with SMTP id hq4so4714217wib.2
+        for <linux-media@vger.kernel.org>; Sat, 21 Dec 2013 03:40:59 -0800 (PST)
+Received: from [192.168.1.110] (093105185086.warszawa.vectranet.pl. [93.105.185.86])
+        by mx.google.com with ESMTPSA id c1sm4687871wje.4.2013.12.21.03.40.57
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Sat, 21 Dec 2013 03:40:58 -0800 (PST)
+Message-ID: <52B57E48.5090303@gmail.com>
+Date: Sat, 21 Dec 2013 12:40:56 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] exynos4-is runtime PM related cleanups
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The following changes since commit c57f87e62368c33ebda11a4993380c8e5a19a5c5:
 
-Results of the daily build of media_tree:
+   [media] anysee: fix non-working E30 Combo Plus DVB-T (2013-12-20 
+14:24:20 -0200)
 
-date:		Sun Dec  8 04:00:18 CET 2013
-git branch:	test
-git hash:	3f823e094b935c1882605f8720336ee23433a16d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+are available in the git repository at:
+   git://linuxtv.org/snawrocki/samsung.git v3.14-exynos4-is-pm-rework
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Sylwester Nawrocki (6):
+       exynos4-is: Leave FIMC clocks enabled when runtime PM is disabled
+       exynos4-is: Activate mipi-csis in probe() if runtime PM is disabled
+       exynos4-is: Enable FIMC-LITE clock if runtime PM is not used
+       exynos4-is: Correct clean up sequence on error path in 
+fimc_is_probe()
+       exynos4-is: Enable fimc-is clocks in probe() if runtime PM is 
+disabled
+       exynos4-is: Remove dependency on PM_RUNTIME from Kconfig
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+  drivers/media/platform/exynos4-is/Kconfig     |    2 +-
+  drivers/media/platform/exynos4-is/fimc-core.c |   29 
++++++++++++++-----------
+  drivers/media/platform/exynos4-is/fimc-is.c   |   29 
++++++++++++++++++++------
+  drivers/media/platform/exynos4-is/fimc-lite.c |   24 +++++++++++---------
+  drivers/media/platform/exynos4-is/mipi-csis.c |   11 ++++++++-
+  5 files changed, 62 insertions(+), 33 deletions(-)
