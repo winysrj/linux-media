@@ -1,209 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:53561 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290Ab3LVOMS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Dec 2013 09:12:18 -0500
-Date: Sun, 22 Dec 2013 12:12:06 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Rob Clark <robdclark@gmail.com>
-Cc: Colin Cross <ccross@android.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	David Airlie <airlied@linux.ie>,
-	Inki Dae <inki.dae@samsung.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"open list:DMA BUFFER SHARIN..." <linux-media@vger.kernel.org>,
-	"open list:DMA BUFFER SHARIN..." <dri-devel@lists.freedesktop.org>,
-	"open list:DMA BUFFER SHARIN..." <linaro-mm-sig@lists.linaro.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-arm-kernel@lists.infradead.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-samsung-soc@vger.kernel.org>
-Subject: Re: [PATCH] dma-buf: avoid using IS_ERR_OR_NULL
-Message-id: <20131222121206.624e56fe@samsung.com>
-In-reply-to: <CAF6AEGuQSWOw6KWVo-uorJ+8M3-kLzYHdOOfdHWUDi=SkzUUVA@mail.gmail.com>
-References: <1387586630-1954-1-git-send-email-ccross@android.com>
- <CAF6AEGuQSWOw6KWVo-uorJ+8M3-kLzYHdOOfdHWUDi=SkzUUVA@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:52196 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751192Ab3LUW1X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Dec 2013 17:27:23 -0500
+Message-ID: <52B615C9.8040806@iki.fi>
+Date: Sun, 22 Dec 2013 00:27:21 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Subject: em28xx list_add corruption reported by list debug
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 21 Dec 2013 07:42:17 -0500
-Rob Clark <robdclark@gmail.com> escreveu:
+I ran also this kind of bug. Device was PCTV 290e, which has that video 
+unused. I have no any analog em28xx webcam to test if that happens here too.
 
-> On Fri, Dec 20, 2013 at 7:43 PM, Colin Cross <ccross@android.com> wrote:
-> > dma_buf_map_attachment and dma_buf_vmap can return NULL or
-> > ERR_PTR on a error.  This encourages a common buggy pattern in
-> > callers:
-> >         sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-> >         if (IS_ERR_OR_NULL(sgt))
-> >                 return PTR_ERR(sgt);
-> >
-> > This causes the caller to return 0 on an error.  IS_ERR_OR_NULL
-> > is almost always a sign of poorly-defined error handling.
-> >
-> > This patch converts dma_buf_map_attachment to always return
-> > ERR_PTR, and fixes the callers that incorrectly handled NULL.
-> > There are a few more callers that were not checking for NULL
-> > at all, which would have dereferenced a NULL pointer later.
-> > There are also a few more callers that correctly handled NULL
-> > and ERR_PTR differently, I left those alone but they could also
-> > be modified to delete the NULL check.
-> >
-> > This patch also converts dma_buf_vmap to always return NULL.
-> > All the callers to dma_buf_vmap only check for NULL, and would
-> > have dereferenced an ERR_PTR and panic'd if one was ever
-> > returned. This is not consistent with the rest of the dma buf
-> > APIs, but matches the expectations of all of the callers.
-> >
-> > Signed-off-by: Colin Cross <ccross@android.com>
-> > ---
-> >  drivers/base/dma-buf.c                         | 18 +++++++++++-------
-> >  drivers/gpu/drm/drm_prime.c                    |  2 +-
-> >  drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |  2 +-
-> >  drivers/media/v4l2-core/videobuf2-dma-contig.c |  2 +-
-> >  4 files changed, 14 insertions(+), 10 deletions(-)
-> >
-> > diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> > index 1e16cbd61da2..cfe1d8bc7bb8 100644
-> > --- a/drivers/base/dma-buf.c
-> > +++ b/drivers/base/dma-buf.c
-> > @@ -251,9 +251,8 @@ EXPORT_SYMBOL_GPL(dma_buf_put);
-> >   * @dmabuf:    [in]    buffer to attach device to.
-> >   * @dev:       [in]    device to be attached.
-> >   *
-> > - * Returns struct dma_buf_attachment * for this attachment; may return negative
-> > - * error codes.
-> > - *
-> > + * Returns struct dma_buf_attachment * for this attachment; returns ERR_PTR on
-> > + * error.
-> >   */
-> >  struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-> >                                           struct device *dev)
-> > @@ -319,9 +318,8 @@ EXPORT_SYMBOL_GPL(dma_buf_detach);
-> >   * @attach:    [in]    attachment whose scatterlist is to be returned
-> >   * @direction: [in]    direction of DMA transfer
-> >   *
-> > - * Returns sg_table containing the scatterlist to be returned; may return NULL
-> > - * or ERR_PTR.
-> > - *
-> > + * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
-> > + * on error.
-> >   */
-> >  struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
-> >                                         enum dma_data_direction direction)
-> > @@ -334,6 +332,8 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
-> >                 return ERR_PTR(-EINVAL);
-> >
-> >         sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
-> > +       if (!sg_table)
-> > +               sg_table = ERR_PTR(-ENOMEM);
-> >
-> >         return sg_table;
-> >  }
-> > @@ -544,6 +544,8 @@ EXPORT_SYMBOL_GPL(dma_buf_mmap);
-> >   * These calls are optional in drivers. The intended use for them
-> >   * is for mapping objects linear in kernel space for high use objects.
-> >   * Please attempt to use kmap/kunmap before thinking about these interfaces.
-> > + *
-> > + * Returns NULL on error.
-> >   */
-> >  void *dma_buf_vmap(struct dma_buf *dmabuf)
-> >  {
-> > @@ -566,7 +568,9 @@ void *dma_buf_vmap(struct dma_buf *dmabuf)
-> >         BUG_ON(dmabuf->vmap_ptr);
-> >
-> >         ptr = dmabuf->ops->vmap(dmabuf);
-> > -       if (IS_ERR_OR_NULL(ptr))
-> > +       if (WARN_ON_ONCE(IS_ERR(ptr)))
-> 
-> since vmap is optional, the WARN_ON might be a bit strong..  although
-> it would be a bit strange for an exporter to supply a vmap fxn which
-> always returned NULL, not sure about that.  Just thought I'd mention
-> it in case anyone else had an opinion about that.
-> 
-> But either way:
-> 
-> Reviewed-by: Rob Clark <robdclark@gmail.com>
+Fortunately I found one video device which does not crash nor dump debug 
+bug warnings. It is some old gspca webcam. Have to look example how 
+those videobuf callbacks are implemented there..
 
-IMHO, a WARN_ON_ONCE() here (or some other error report printk) seems ok, 
-as, if this function is called, the caller would be expecting it to not
-fail.
+regards
+Antti
 
-Either way:
 
-Reviewed-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+[crope@localhost linux]$ cat /dev/video0
+cat: /dev/video0: Invalid argument
+[crope@localhost linux]$ cat /dev/video0
+cat: /dev/video0: Device or resource busy
+[crope@localhost linux]$
 
-> 
-> 
-> > +               ptr = NULL;
-> > +       if (!ptr)
-> >                 goto out_unlock;
-> >
-> >         dmabuf->vmap_ptr = ptr;
-> > diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
-> > index 56805c39c906..bb516fdd195d 100644
-> > --- a/drivers/gpu/drm/drm_prime.c
-> > +++ b/drivers/gpu/drm/drm_prime.c
-> > @@ -471,7 +471,7 @@ struct drm_gem_object *drm_gem_prime_import(struct drm_device *dev,
-> >         get_dma_buf(dma_buf);
-> >
-> >         sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-> > -       if (IS_ERR_OR_NULL(sgt)) {
-> > +       if (IS_ERR(sgt)) {
-> >                 ret = PTR_ERR(sgt);
-> >                 goto fail_detach;
-> >         }
-> > diff --git a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-> > index 59827cc5e770..c786cd4f457b 100644
-> > --- a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-> > +++ b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-> > @@ -224,7 +224,7 @@ struct drm_gem_object *exynos_dmabuf_prime_import(struct drm_device *drm_dev,
-> >         get_dma_buf(dma_buf);
-> >
-> >         sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-> > -       if (IS_ERR_OR_NULL(sgt)) {
-> > +       if (IS_ERR(sgt)) {
-> >                 ret = PTR_ERR(sgt);
-> >                 goto err_buf_detach;
-> >         }
-> > diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > index 33d3871d1e13..880be0782dd9 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > @@ -719,7 +719,7 @@ static int vb2_dc_map_dmabuf(void *mem_priv)
-> >
-> >         /* get the associated scatterlist for this buffer */
-> >         sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
-> > -       if (IS_ERR_OR_NULL(sgt)) {
-> > +       if (IS_ERR(sgt)) {
-> >                 pr_err("Error getting dmabuf scatterlist\n");
-> >                 return -EINVAL;
-> >         }
-> > --
-> > 1.8.5.1
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+joulu 22 00:08:24 localhost.localdomain kernel: em28174 #0: no endpoint 
+for analog mode and transfer type 0
+joulu 22 00:08:31 localhost.localdomain kernel: ------------[ cut here 
+]------------
+joulu 22 00:08:31 localhost.localdomain kernel: WARNING: CPU: 3 PID: 
+6892 at lib/list_debug.c:33 __list_add+0xac/0xc0()
+joulu 22 00:08:31 localhost.localdomain kernel: list_add corruption. 
+prev->next should be next (ffff88030b686498), but was           (null). 
+(prev=ffff88030c6c1748).
+joulu 22 00:08:31 localhost.localdomain kernel: Modules linked in: 
+rc_pinnacle_pctv_hd(O) em28xx_rc(O) tda18271(O) cxd2820r(O) 
+em28xx_dvb(O) r820t(O) mn88472(O) rtl2832_sd...b_usb_af901
+joulu 22 00:08:31 localhost.localdomain kernel: CPU: 3 PID: 6892 Comm: 
+cat Tainted: G         C O 3.13.0-rc1+ #77
+joulu 22 00:08:31 localhost.localdomain kernel: Hardware name: System 
+manufacturer System Product Name/M5A78L-M/USB3, BIOS 1503    11/14/2012
+joulu 22 00:08:31 localhost.localdomain kernel:  0000000000000009 
+ffff8803052afcb8 ffffffff816b8da9 ffff8803052afd00
+joulu 22 00:08:31 localhost.localdomain kernel:  ffff8803052afcf0 
+ffffffff8106bcfd ffff88030c6c5348 ffff88030b686498
+joulu 22 00:08:31 localhost.localdomain kernel:  ffff88030c6c1748 
+0000000000000292 0000000000000001 ffff8803052afd50
+joulu 22 00:08:31 localhost.localdomain kernel: Call Trace:
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffff816b8da9>] 
+dump_stack+0x4d/0x66
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffff8106bcfd>] 
+warn_slowpath_common+0x7d/0xa0
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffff8106bd6c>] 
+warn_slowpath_fmt+0x4c/0x50
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffff8134c2dc>] 
+__list_add+0xac/0xc0
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffffa0273a7b>] 
+buffer_queue+0x7b/0xb0 [em28xx]
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffffa025a2d4>] 
+__enqueue_in_driver+0x74/0x80 [videobuf2_core]
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffffa025c568>] 
+vb2_streamon+0xa8/0x190 [videobuf2_core]
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffffa025dd12>] 
+__vb2_init_fileio+0x332/0x3a0 [videobuf2_core]
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffffa025e733>] 
+__vb2_perform_fileio+0x483/0x620 [videobuf2_core]
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffffa025eae4>] 
+vb2_fop_read+0xc4/0x5e0 [videobuf2_core]
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffffa022da55>] 
+v4l2_read+0x65/0xb0 [videodev]
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffff811cc498>] 
+vfs_read+0x98/0x170
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffff811ccfdc>] 
+SyS_read+0x4c/0xa0
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffff8110affc>] ? 
+__audit_syscall_entry+0x9c/0xf0
+joulu 22 00:08:31 localhost.localdomain kernel:  [<ffffffff816ca729>] 
+system_call_fastpath+0x16/0x1b
+joulu 22 00:08:31 localhost.localdomain kernel: ---[ end trace 
+dcb247cebbcc2a82 ]---
+
 
 
 -- 
-
-Cheers,
-Mauro
+http://palosaari.fi/
