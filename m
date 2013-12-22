@@ -1,129 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44086 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461Ab3LKQHt (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:54075 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753296Ab3LVPzi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 11:07:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Josh Wu <josh.wu@atmel.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v2 3/7] v4l: atmel-isi: Defer clock (un)preparation to enable/disable time
-Date: Wed, 11 Dec 2013 17:07:41 +0100
-Message-Id: <1386778065-14135-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sun, 22 Dec 2013 10:55:38 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MY700GCITKOEN40@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 22 Dec 2013 10:55:37 -0500 (EST)
+Date: Sun, 22 Dec 2013 13:55:31 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Palosaari <crope@iki.fi>, LMML <linux-media@vger.kernel.org>,
+	Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Subject: Re: em28xx list_add corruption reported by list debug
+Message-id: <20131222135531.6af60f77@samsung.com>
+In-reply-to: <20131222130600.652f468a@samsung.com>
+References: <52B615C9.8040806@iki.fi> <20131222130600.652f468a@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The PCLK and MCK clocks are prepared and unprepared at probe and remove
-time. Clock (un)preparation isn't needed before enabling/disabling the
-clocks, and the enable/disable operation happen in non-atomic context.
-We can thus defer (un)preparation to enable/disable time.
+Em Sun, 22 Dec 2013 13:06:00 -0200
+Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/platform/soc_camera/atmel-isi.c | 35 ++++++---------------------
- 1 file changed, 8 insertions(+), 27 deletions(-)
+> Em Sun, 22 Dec 2013 00:27:21 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+> 
+> > I ran also this kind of bug. Device was PCTV 290e, which has that video 
+> > unused. I have no any analog em28xx webcam to test if that happens here too.
+> > 
+> > Fortunately I found one video device which does not crash nor dump debug 
+> > bug warnings. It is some old gspca webcam. Have to look example how 
+> > those videobuf callbacks are implemented there..
+> > 
+> > regards
+> > Antti
+> > 
+> > 
+> > [crope@localhost linux]$ cat /dev/video0
+> > cat: /dev/video0: Invalid argument
+> > [crope@localhost linux]$ cat /dev/video0
+> > cat: /dev/video0: Device or resource busy
+> > [crope@localhost linux]$
+> > 
+> > 
+> > joulu 22 00:08:24 localhost.localdomain kernel: em28174 #0: no endpoint 
+> > for analog mode and transfer type 0
+> 
+> It seems that there's something bad on em28174 registration: it should not
+> be creating a v4l2 device, if the device is DVB only.
+> 
+> The thing is that, when this driver was created, all devices were either
+> analog only or hybrid. Only very recently, pure DVB devices got added.
+> 
+> It shouldn't be that hard to split em28xx_init_dev() into a few routines
+> that would only register v4l2 if the device has analog support.
+> 
+> Again, this changeset:
+> 	https://patchwork.linuxtv.org/patch/17967/
+> 
+> Seems to be part of such solution, as it already splits the v4l2
+> register logic into a separate function. 
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index faa7f8d..ea8816c 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -721,13 +721,13 @@ static int isi_camera_clock_start(struct soc_camera_host *ici)
- 	struct atmel_isi *isi = ici->priv;
- 	int ret;
- 
--	ret = clk_enable(isi->pclk);
-+	ret = clk_prepare_enable(isi->pclk);
- 	if (ret)
- 		return ret;
- 
--	ret = clk_enable(isi->mck);
-+	ret = clk_prepare_enable(isi->mck);
- 	if (ret) {
--		clk_disable(isi->pclk);
-+		clk_disable_unprepare(isi->pclk);
- 		return ret;
- 	}
- 
-@@ -739,8 +739,8 @@ static void isi_camera_clock_stop(struct soc_camera_host *ici)
- {
- 	struct atmel_isi *isi = ici->priv;
- 
--	clk_disable(isi->mck);
--	clk_disable(isi->pclk);
-+	clk_disable_unprepare(isi->mck);
-+	clk_disable_unprepare(isi->pclk);
- }
- 
- static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
-@@ -869,9 +869,6 @@ static int atmel_isi_remove(struct platform_device *pdev)
- 			isi->p_fb_descriptors,
- 			isi->fb_descriptors_phys);
- 
--	clk_unprepare(isi->mck);
--	clk_unprepare(isi->pclk);
--
- 	return 0;
- }
- 
-@@ -902,10 +899,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	if (IS_ERR(isi->pclk))
- 		return PTR_ERR(isi->pclk);
- 
--	ret = clk_prepare(isi->pclk);
--	if (ret)
--		return ret;
--
- 	isi->pdata = pdata;
- 	isi->active = NULL;
- 	spin_lock_init(&isi->lock);
-@@ -916,27 +909,21 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	isi->mck = devm_clk_get(dev, "isi_mck");
- 	if (IS_ERR(isi->mck)) {
- 		dev_err(dev, "Failed to get isi_mck\n");
--		ret = PTR_ERR(isi->mck);
--		goto err_clk_get_mck;
-+		return PTR_ERR(isi->mck);
- 	}
- 
--	ret = clk_prepare(isi->mck);
--	if (ret)
--		goto err_clk_prepare_mck;
--
- 	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
- 	ret = clk_set_rate(isi->mck, pdata->mck_hz);
- 	if (ret < 0)
--		goto err_set_mck_rate;
-+		return ret;
- 
- 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
- 				sizeof(struct fbd) * MAX_BUFFER_NUM,
- 				&isi->fb_descriptors_phys,
- 				GFP_KERNEL);
- 	if (!isi->p_fb_descriptors) {
--		ret = -ENOMEM;
- 		dev_err(&pdev->dev, "Can't allocate descriptors!\n");
--		goto err_alloc_descriptors;
-+		return -ENOMEM;
- 	}
- 
- 	for (i = 0; i < MAX_BUFFER_NUM; i++) {
-@@ -1002,12 +989,6 @@ err_alloc_ctx:
- 			sizeof(struct fbd) * MAX_BUFFER_NUM,
- 			isi->p_fb_descriptors,
- 			isi->fb_descriptors_phys);
--err_alloc_descriptors:
--err_set_mck_rate:
--	clk_unprepare(isi->mck);
--err_clk_prepare_mck:
--err_clk_get_mck:
--	clk_unprepare(isi->pclk);
- 
- 	return ret;
- }
+Ok, if I didn't make any mistake, this changeset should do the trick:
+	https://patchwork.linuxtv.org/patch/21282/
+
+Please notice that this is compile-tested only.
+
+Regards,
+Mauro
 -- 
-1.8.3.2
 
+Cheers,
+Mauro
