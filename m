@@ -1,103 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:47531 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784Ab3LMDI2 (ORCPT
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:42465 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754498Ab3LVSK7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Dec 2013 22:08:28 -0500
+	Sun, 22 Dec 2013 13:10:59 -0500
+Received: by mail-ea0-f181.google.com with SMTP id m10so1996797eaj.12
+        for <linux-media@vger.kernel.org>; Sun, 22 Dec 2013 10:10:58 -0800 (PST)
+Message-ID: <52B72B71.9070406@googlemail.com>
+Date: Sun, 22 Dec 2013 19:12:01 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <52A9D6FE.30302@samsung.com>
-References: <1383650355-28838-1-git-send-email-arun.kk@samsung.com>
-	<52A9D6FE.30302@samsung.com>
-Date: Fri, 13 Dec 2013 08:38:27 +0530
-Message-ID: <CALt3h7982XtWv_EesvVD+hOPG-7BitKS5niYwC4H+nqGUEm01A@mail.gmail.com>
-Subject: Re: [PATCH v11 1/2] [media] exynos5-is: Adds DT binding documentation
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	Mark Rutland <Mark.Rutland@arm.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx DEADLOCK reported by lock debug
+References: <52B1C79C.1070408@iki.fi> <52B5C718.7030605@googlemail.com> <52B5F229.6020301@iki.fi> <52B6EE79.9070105@googlemail.com> <20131222125306.671b9960@samsung.com>
+In-Reply-To: <20131222125306.671b9960@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Thu, Dec 12, 2013 at 9:02 PM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> Hi Arun,
+Am 22.12.2013 15:53, schrieb Mauro Carvalho Chehab:
+> Em Sun, 22 Dec 2013 14:51:53 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 >
-> (Adding Mark and Mauro to Cc)
->
-> On 05/11/13 12:19, Arun Kumar K wrote:
->> From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>> Am 21.12.2013 20:55, schrieb Antti Palosaari:
+>>> On 21.12.2013 18:51, Frank Schäfer wrote:
+>>>> Hi Antti,
+>>>>
+>>>> thank you for reporting this issue.
+>>>>
+>>>> Am 18.12.2013 17:04, schrieb Antti Palosaari:
+>>>>> That same lock debug deadlock is still there (maybe ~4 times I report
+>>>>> it during 2 years). Is that possible to fix easily at all?
+>>>> Patches are always welcome. ;)
+>>> haha, I cannot simply learn every driver I meet some problems...
+>> Hint:
 >>
->> The patch adds the DT binding doc for exynos5 SoC camera
->> subsystem.
+>> If you report a bug ~4 times in 2 years but never get a reply, it
+>> usually means
+>> a) nobody cares
+>> b) nobody has the resources (time, knowledge) to fix it.
 >>
->> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> ---
->>  .../bindings/media/exynos5250-camera.txt           |  126 ++++++++++++++++++++
->>  1 file changed, 126 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/exynos5250-camera.txt b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
->> new file mode 100644
->> index 0000000..09420ba
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
->> @@ -0,0 +1,126 @@
->> +Samsung EXYNOS5 SoC Camera Subsystem
->> +------------------------------------
->> +
->> +The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
->> +represented by separate device tree nodes. Currently this includes: FIMC-LITE,
->> +MIPI CSIS and FIMC-IS.
->> +
->> +The sub-device nodes are referenced using phandles in the common 'camera' node
->> +which also includes common properties of the whole subsystem not really
->> +specific to any single sub-device, like common camera port pins or the common
->> +camera bus clocks.
->> +
->> +Common 'camera' node
->> +--------------------
->> +
->> +Required properties:
->> +
->> +- compatible         : must be "samsung,exynos5250-fimc"
->> +- clocks             : list of clock specifiers, corresponding to entries in
->> +                          the clock-names property
->> +- clock-names                : must contain "sclk_bayer" entry
->> +- samsung,csis               : list of phandles to the mipi-csis device nodes
->> +- samsung,fimc-lite  : list of phandles to the fimc-lite device nodes
->> +- samsung,fimc-is    : phandle to the fimc-is device node
->> +
->> +The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
->> +to define a required pinctrl state named "default".
->> +
->> +'parallel-ports' node
->> +---------------------
->> +
->> +This node should contain child 'port' nodes specifying active parallel video
->> +input ports. It includes camera A, camera B and RGB bay inputs.
->> +'reg' property in the port nodes specifies the input type:
->> + 1 - parallel camport A
->> + 2 - parallel camport B
->> + 5 - RGB camera bay
->> +
->> +3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
+>> So you either have to live with this issue or to fix it yourself.
+> It is the latter case: fixing it require lots of efforts.
+Yes, I know. ;-)
+
+> One way to fix would be to change em28xx_close_extension() to
+> something like:
 >
-> Was there posted a version of this patch with Mark's comments addressed:
-> http://www.spinics.net/lists/devicetree/msg11550.html ? I couldn't find it.
+> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+> index f6076a512e8f..d938e2bbd62f 100644
+> --- a/drivers/media/usb/em28xx/em28xx-core.c
+> +++ b/drivers/media/usb/em28xx/em28xx-core.c
+> @@ -1350,13 +1350,19 @@ void em28xx_init_extension(struct em28xx *dev)
+>  
+>  void em28xx_close_extension(struct em28xx *dev)
+>  {
+> +	int (*fini)(struct em28xx *) = NULL;
+>  	const struct em28xx_ops *ops = NULL;
+>  
+>  	mutex_lock(&em28xx_devlist_mutex);
+>  	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+> -		if (ops->fini)
+> -			ops->fini(dev);
+> +		fini = ops->fini;
+>  	}
+>  	list_del(&dev->devlist);
+>  	mutex_unlock(&em28xx_devlist_mutex);
+> +
+> +	if (fini) {
+> +		mutex_lock(&dev->lock);
+> +		fini(dev);
+> +		mutex_unlock(&dev->lock);
+> +	}
+>  }
 >
+> Please note that the above is not 100% correct, as one device may have
+> more than one extension.
+>
+> Then, it should be sure that on every place that em28xx_close_extension()
+> is called, dev->lock is not taken.
+>
+> As an alternative, eventually the extension list could be moved to the
+> struct em28xx, but a device list is still needed, in order to handle
+> extension module removal.
+>
+> Another way that would probably be better is to convert the em28xx
+> code that handles extension (extension here is dvb, rc, alsa) to use
+> krefs, And add a kref free code that would call ops->fini. Note that,
+> in this case, dev itself would also need to be a kref.
+>
+> I suspect that using kref would would be cleaner, but a change like that
+> would require to rewrite the extensions code.
 
+I have zero knowledge about how the locking correctness stuff works, but
+what about improving it ?
+Shouldn't it notice that flush_work() waits until the work is done
+before the lock is acquired ?
 
-I think it is missed as I also couldn't find it. I can quickly send an
-updated patch
-with these reviews addressed.
+> Btw, there's a related RFC patchset that splits the V4L2 interface from
+> em28xx, transforming it also into an extension. With such patch, a DVB 
+> only device should not call any v4l2 init code, nor require V4L2 to be
+> enabled:
+> 	https://patchwork.linuxtv.org/patch/17967/ 
 
-Regards
-Arun
+Yes, I remember it and it would be a big step forward.
+
+> The above RFC requires testing.
+>
+> I may be able to find some time to do work on it this end of the year,
+> starting with the V4L2 split patchset, depending if I finish some other
+> things already on my todo list.
+
+I'm going to review the patch within the next days and do some testing.
+
+Regards,
+Frank
+
+> Regards,
+> Mauro
+
