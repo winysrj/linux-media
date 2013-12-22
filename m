@@ -1,88 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41981 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756274Ab3LQSdr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 13:33:47 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:41551 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755931Ab3LVVR4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Dec 2013 16:17:56 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 4/6] [media] dib8000: Fix UCB measure with DVBv5 stats
-Date: Tue, 17 Dec 2013 13:30:44 -0200
-Message-Id: <1387294246-10155-5-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1387294246-10155-1-git-send-email-m.chehab@samsung.com>
-References: <1387294246-10155-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC] v4l lockdep error
+Date: Sun, 22 Dec 2013 23:17:25 +0200
+Message-Id: <1387747046-12677-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On dib8000, the block error count is a monotonic 32 bits register.
-With DVBv5 stats, we use a 64 bits counter, that it is reset
-when a new channel is tuned.
+I know that patch is a little bit stupid, but at least it seems
+to kill that "INFO: possible circular locking dependency detected"
+/ DEADLOCK warning reported by lockdep.
 
-Change the UCB counting start from 0 and to be returned with
-64 bits, just like the API requests.
+Somehow this kind of warnings are very annoying when you don't know
+it is a "feature". Like what happens to me; I made my first V4L2
+driver and then enabled all kind of Kernel debugs to see if there is
+possible issues. And kaboom, that jumped to out. It took really a
+some time to figure it is not my module, but coming from v4l core
+layers.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/dib8000.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+Antti Palosaari (1):
+  v4l: disable lockdep on vb2_fop_mmap()
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 7b10b73befbe..ef0d9ec0df23 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -119,6 +119,7 @@ struct dib8000_state {
- 	u8 longest_intlv_layer;
- 	u16 output_mode;
- 
-+	s64 init_ucb;
- #ifdef DIB8000_AGC_FREEZE
- 	u16 agc1_max;
- 	u16 agc1_min;
-@@ -986,10 +987,13 @@ static u16 dib8000_identify(struct i2c_device *client)
- 	return value;
- }
- 
-+static int dib8000_read_unc_blocks(struct dvb_frontend *fe, u32 *unc);
-+
- static void dib8000_reset_stats(struct dvb_frontend *fe)
- {
- 	struct dib8000_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &state->fe[0]->dtv_property_cache;
-+	u32 ucb;
- 
- 	memset(&c->strength, 0, sizeof(c->strength));
- 	memset(&c->cnr, 0, sizeof(c->cnr));
-@@ -1010,6 +1014,9 @@ static void dib8000_reset_stats(struct dvb_frontend *fe)
- 	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+
-+	dib8000_read_unc_blocks(fe, &ucb);
-+	state->init_ucb = -ucb;
- }
- 
- static int dib8000_reset(struct dvb_frontend *fe)
-@@ -3989,14 +3996,12 @@ static int dib8000_get_stats(struct dvb_frontend *fe, fe_status_t stat)
- 	c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
- 	c->post_bit_count.stat[0].uvalue += 100000000;
- 
--	/*
--	 * FIXME: this is refreshed on every second, but a time
--	 * drift between dib8000 and PC clock may cause troubles
--	 */
- 	dib8000_read_unc_blocks(fe, &val);
-+	if (val < state->init_ucb)
-+		state->init_ucb += 1L << 32;
- 
- 	c->block_error.stat[0].scale = FE_SCALE_COUNTER;
--	c->block_error.stat[0].uvalue += val;
-+	c->block_error.stat[0].uvalue = val + state->init_ucb;
- 
- 	if (state->revision < 0x8002)
- 		return 0;
+ drivers/media/v4l2-core/videobuf2-core.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
 -- 
-1.8.3.1
+1.8.4.2
 
