@@ -1,46 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:54925 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066Ab3LSQ7u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 11:59:50 -0500
-Received: by mail-wg0-f41.google.com with SMTP id y10so5956491wgg.2
-        for <linux-media@vger.kernel.org>; Thu, 19 Dec 2013 08:59:49 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:54581 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754531Ab3LVOep (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Dec 2013 09:34:45 -0500
+Message-ID: <52B6F883.8060103@iki.fi>
+Date: Sun, 22 Dec 2013 16:34:43 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <52B323F0.2050701@iki.fi>
-References: <1387231688-8647-1-git-send-email-crope@iki.fi>
-	<1387231688-8647-7-git-send-email-crope@iki.fi>
-	<52B2BA92.8080706@xs4all.nl>
-	<52B323F0.2050701@iki.fi>
-Date: Thu, 19 Dec 2013 11:59:49 -0500
-Message-ID: <CAGoCfiz1kWHXPC-b-Exw=AYrNeOzaCgSvr3+zLuf12g5gyYJxA@mail.gmail.com>
-Subject: Re: [PATCH RFC v3 6/7] rtl2832_sdr: convert to SDR API
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx DEADLOCK reported by lock debug
+References: <52B1C79C.1070408@iki.fi> <52B5C718.7030605@googlemail.com> <52B5F229.6020301@iki.fi> <52B6EE79.9070105@googlemail.com>
+In-Reply-To: <52B6EE79.9070105@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I haven't
-> looked situation more carefully yet, but one thing that must be done at the
-> very first is to add some lock to prevent only DVB or V4L2 API could access
-> the hardware at time.
+On 22.12.2013 15:51, Frank Schäfer wrote:
+> Am 21.12.2013 20:55, schrieb Antti Palosaari:
+>> On 21.12.2013 18:51, Frank Schäfer wrote:
+>>> Hi Antti,
+>>>
+>>> thank you for reporting this issue.
+>>>
+>>> Am 18.12.2013 17:04, schrieb Antti Palosaari:
+>>>> That same lock debug deadlock is still there (maybe ~4 times I report
+>>>> it during 2 years). Is that possible to fix easily at all?
+>>>
+>>> Patches are always welcome. ;)
+>>
+>> haha, I cannot simply learn every driver I meet some problems...
+> Hint:
+>
+> If you report a bug ~4 times in 2 years but never get a reply, it
+> usually means
+> a) nobody cares
+> b) nobody has the resources (time, knowledge) to fix it.
+>
+> So you either have to live with this issue or to fix it yourself.
 
-Probably worth mentioning that we have *lots* of devices that suffer
-from this problem.  Our general tact has to been to do nothing and let
-the driver crash and burn in non-predictable ways when userland tries
-to use both APIs at the same time.
+OK, as you request me to fix it, I will fix that by making DVB USB v2 
+driver for these em28xx devices I have added.
 
-So while it's pretty pathetic that we still haven't resolved this
-after all these years, if you didn't address the issue in the initial
-release then you wouldn't be much worse off than lots of other
-devices.
+It should not be very much work as em28xx protocol is still relatively easy.
 
-Devin
+regards
+Antti
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
