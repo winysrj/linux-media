@@ -1,56 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44079 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750759Ab3LKQHs (ORCPT
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:58671 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754548Ab3LVSum (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 11:07:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Josh Wu <josh.wu@atmel.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v2 0/7] Atmel ISI fixes and improvements
-Date: Wed, 11 Dec 2013 17:07:38 +0100
-Message-Id: <1386778065-14135-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sun, 22 Dec 2013 13:50:42 -0500
+Received: by mail-ee0-f54.google.com with SMTP id e51so1704634eek.27
+        for <linux-media@vger.kernel.org>; Sun, 22 Dec 2013 10:50:41 -0800 (PST)
+Message-ID: <52B734C0.6010409@googlemail.com>
+Date: Sun, 22 Dec 2013 19:51:44 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx DEADLOCK reported by lock debug
+References: <52B1C79C.1070408@iki.fi> <52B5C718.7030605@googlemail.com> <52B5F229.6020301@iki.fi> <52B6EE79.9070105@googlemail.com> <52B6F883.8060103@iki.fi> <52B7293C.5010206@googlemail.com> <52B72BEB.4010902@iki.fi>
+In-Reply-To: <52B72BEB.4010902@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Am 22.12.2013 19:14, schrieb Antti Palosaari:
+> On 22.12.2013 20:02, Frank Schäfer wrote:
+>> Am 22.12.2013 15:34, schrieb Antti Palosaari:
+>>> On 22.12.2013 15:51, Frank Schäfer wrote:
+>>>> Am 21.12.2013 20:55, schrieb Antti Palosaari:
+>>>>> On 21.12.2013 18:51, Frank Schäfer wrote:
+>>>>>> Hi Antti,
+>>>>>>
+>>>>>> thank you for reporting this issue.
+>>>>>>
+>>>>>> Am 18.12.2013 17:04, schrieb Antti Palosaari:
+>>>>>>> That same lock debug deadlock is still there (maybe ~4 times I
+>>>>>>> report
+>>>>>>> it during 2 years). Is that possible to fix easily at all?
+>>>>>>
+>>>>>> Patches are always welcome. ;)
+>>>>>
+>>>>> haha, I cannot simply learn every driver I meet some problems...
+>>>> Hint:
+>>>>
+>>>> If you report a bug ~4 times in 2 years but never get a reply, it
+>>>> usually means
+>>>> a) nobody cares
+>>>> b) nobody has the resources (time, knowledge) to fix it.
+>>>>
+>>>> So you either have to live with this issue or to fix it yourself.
+>>>
+>>> OK, as you request me to fix it, I will fix that by making DVB USB v2
+>>> driver for these em28xx devices I have added.
+>>>
+>>> It should not be very much work as em28xx protocol is still relatively
+>>> easy.
+>> How would that help to get those lockdep false warnings fixed ?
+>> Btw: these warnings should appear for _all_ em28xx extensions (dvb,
+>> input, audio).
+>
+> I am already looking to silence that v4l2 lockdep report. It is hard
+> to say how much it is work as I simply don't know even reasons.
+>
+> I suspect that if I start learning and fixing em28xx driver it will
+> take week or two as a workload. Writing new dvb-usb driver is only max
+> 2 days of work and as a bonus you will get some missing features for
+> free:
+> 1) power-management
+> 2) suspend/resume
+> 3) PID filters
+Sure, but we already have a driver for these devices.
+I agree with you that em28xx is a big mess, but at least in this case it
+doesn't do anything wrong.
+Does this false warning really make you so nervous that you're willing
+to spent 2 days for it ?
+I appreciate that, but I suggest to spend these 2 days for fixing the
+issue instead of just avoiding it.
 
-Here's the second version of a set of miscellaneous fixes and improvement
-patches for the atmel-isi driver. Please see individual commit messages for
-more information.
-
-Patch 5/7 makes the MCK clock optional. The goal is to remove it completely,
-but we first need to port boards to the new clock handling mechanism. The
-patch in itself will not have any effect until then, but getting it in v3.14
-will help with dependency management for arch/ changes in the next kernel
-versions.
-
-Josh told me he isn't planning to send a pull request for the atmel-isi driver
-for v3.14 so I'll send one with this series in a couple of days.
-
-Changes compared to v1:
-
-- Added patches 6/7 and 7/7
-- Rebased on the latest linuxtv master branch
-
-Josh Wu (2):
-  v4l: atmel-isi: remove SOF wait in start_streaming()
-  v4l: atmel-isi: Should clear bits before set the hardware register
-
-Laurent Pinchart (5):
-  v4l: atmel-isi: Use devm_* managed allocators
-  v4l: atmel-isi: Defer clock (un)preparation to enable/disable time
-  v4l: atmel-isi: Reset the ISI when starting the stream
-  v4l: atmel-isi: Make the MCK clock optional
-  v4l: atmel-isi: Fix color component ordering
-
- drivers/media/platform/soc_camera/atmel-isi.c | 179 ++++++++------------------
- include/media/atmel-isi.h                     |   2 +
- 2 files changed, 55 insertions(+), 126 deletions(-)
-
--- 
 Regards,
+Frank
 
-Laurent Pinchart
+>
+> regards
+> Antti
+>
 
