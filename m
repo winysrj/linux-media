@@ -1,82 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:34664 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754569Ab3LVV1N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Dec 2013 16:27:13 -0500
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: rob.herring@calxeda.com
-Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] V4L: s5k6a3: Add DT binding documentation
-Date: Sun, 22 Dec 2013 22:27:00 +0100
-Message-Id: <1387747620-24676-1-git-send-email-s.nawrocki@samsung.com>
+Received: from multi.imgtec.com ([194.200.65.239]:60147 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754635Ab3LWKl1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Dec 2013 05:41:27 -0500
+Message-ID: <52B81354.303@imgtec.com>
+Date: Mon, 23 Dec 2013 10:41:24 +0000
+From: James Hogan <james.hogan@imgtec.com>
+MIME-Version: 1.0
+To: Tomasz Figa <tomasz.figa@gmail.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	"Pawel Moll" <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	<devicetree@vger.kernel.org>, Rob Landley <rob@landley.net>,
+	<linux-doc@vger.kernel.org>
+Subject: Re: [PATCH 01/11] dt: binding: add binding for ImgTec IR block
+References: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com> <1386947579-26703-2-git-send-email-james.hogan@imgtec.com> <3633330.ixgGf52iFP@flatron>
+In-Reply-To: <3633330.ixgGf52iFP@flatron>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT binding documentation for the Samsung S5K6A3(YX)
-raw image sensor.
+On 22/12/13 12:48, Tomasz Figa wrote:
+>> diff --git a/Documentation/devicetree/bindings/media/img-ir.txt b/Documentation/devicetree/bindings/media/img-ir.txt
+>> new file mode 100644
+>> index 000000000000..6f623b094ea6
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/img-ir.txt
+>> @@ -0,0 +1,20 @@
+>> +* ImgTec Infrared (IR) decoder
+>> +
+>> +Required properties:
+>> +- compatible:		Should be "img,ir"
+> 
+> This compatible string isn't really very specific. Is there some IP
+> revision string that could be added, to account for possible design
+> changes that may require binding change?
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-This patch adds missing documentation [1] for the "samsung,s5k6a3"
-compatible. Rob, can you please merge it through your tree if it 
-looks OK ?
+Yes, agreed. I'll try and find a more unambiguous name for the IP block.
 
-Thanks,
-Sylwester
+>> +- reg:			Physical base address of the controller and length of
+>> +			memory mapped region.
+>> +- interrupts:		The interrupt specifier to the cpu.
+>> +
+>> +Optional properties:
+>> +- clocks:		Clock specifier for base clock.
+>> +			Defaults to 32.768KHz if not specified.
+> 
+> To make the binding less fragile and allow interoperability with non-DT
+> platforms it may be better to provide also clock-names property (so you
+> can use clk_get(); that's a Linux implementation detail, though, but to
+> make our lives easier IMHO they should be sometimes considered too).
 
-[1] http://www.spinics.net/lists/devicetree/msg10693.html
+Good idea. Looking at the hardware manual it actually describes 3 clock
+inputs, and although only one is needed by the driver it makes sense for
+the DT binding to be able to describe them all. I'll probably go with
+these clock-names values:
+"core": Core clock (32.867kHz)
+"sys": System side (fast) clock
+"mod": Power modulation clock
 
-Changes since v3 (https://linuxtv.org/patch/20429):
- - rephrased 'clocks' and 'clock-names' properties' description.
----
- .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++++++++++++++++++++
- 1 files changed, 33 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
-
-diff --git a/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
-new file mode 100644
-index 0000000..cce01e8
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
-@@ -0,0 +1,33 @@
-+Samsung S5K6A3(YX) raw image sensor
-+---------------------------------
-+
-+S5K6A3(YX) is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-+and CCI (I2C compatible) control bus.
-+
-+Required properties:
-+
-+- compatible	: "samsung,s5k6a3";
-+- reg		: I2C slave address of the sensor;
-+- svdda-supply	: core voltage supply;
-+- svddio-supply	: I/O voltage supply;
-+- afvdd-supply	: AF (actuator) voltage supply;
-+- gpios		: specifier of a GPIO connected to the RESET pin;
-+- clocks	: should contain list of phandle and clock specifier pairs
-+		  according to common clock bindings for the clocks described
-+		  in the clock-names property;
-+- clock-names	: should contain "extclk" entry for the sensor's EXTCLK clock;
-+
-+Optional properties:
-+
-+- clock-frequency : the frequency at which the "extclk" clock should be
-+		    configured to operate, in Hz; if this property is not
-+		    specified default 24 MHz value will be used.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should be
-+used to specify link to the image data receiver. The S5K6A3(YX) device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Following properties are valid for the endpoint node:
-+
-+- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
-+  video-interfaces.txt.  The sensor supports only one data lane.
--- 
-1.7.4.1
+Cheers
+James
 
