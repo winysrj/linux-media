@@ -1,100 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:62468 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755685Ab3L3Mt2 (ORCPT
+Received: from szxga01-in.huawei.com ([119.145.14.64]:60026 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932310Ab3LWFME (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 07:49:28 -0500
-Received: by mail-ee0-f48.google.com with SMTP id e49so4963353eek.21
-        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:27 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 06/18] libdvbv5: implement dvb_fe_dummy for logging
-Date: Mon, 30 Dec 2013 13:48:39 +0100
-Message-Id: <1388407731-24369-6-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+	Mon, 23 Dec 2013 00:12:04 -0500
+Message-ID: <52B7C5CB.5000709@huawei.com>
+Date: Mon, 23 Dec 2013 13:10:35 +0800
+From: Ding Tianhong <dingtianhong@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: [PATCH 10/21] media: dvb_core: slight optimization of addr compare
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dvbv5 functions use the dvb_v5_fe_parms struct for logging.
-This struct is normally obtained by opening a dvb device. For
-situations where the opening of a dvb device is not desired,
-the dvb_fe_dummy can be used.
+Use the recently added and possibly more efficient
+ether_addr_equal_unaligned to instead of memcmp.
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
 ---
- lib/include/descriptors.h  | 6 ++++++
- lib/include/dvb-fe.h       | 2 ++
- lib/libdvbv5/descriptors.c | 2 ++
- lib/libdvbv5/dvb-fe.c      | 7 +++++++
- 4 files changed, 17 insertions(+)
+ drivers/media/dvb-core/dvb_net.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/lib/include/descriptors.h b/lib/include/descriptors.h
-index 5ab29a0..6f89aeb 100644
---- a/lib/include/descriptors.h
-+++ b/lib/include/descriptors.h
-@@ -63,7 +63,13 @@ struct dvb_desc {
- } __attribute__((packed));
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index f91c80c..ff00f97 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -179,7 +179,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
+ 	eth = eth_hdr(skb);
  
- void dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc);
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
- void dvb_desc_default_print  (struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc);
-+#ifdef __cplusplus
-+}
-+#endif
- 
- #define dvb_desc_foreach( _desc, _tbl ) \
- 	for( struct dvb_desc *_desc = _tbl->descriptor; _desc; _desc = _desc->next ) \
-diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
-index b0e2bf9..8cf2697 100644
---- a/lib/include/dvb-fe.h
-+++ b/lib/include/dvb-fe.h
-@@ -119,6 +119,8 @@ struct dvb_v5_fe_parms {
- extern "C" {
- #endif
- 
-+struct dvb_v5_fe_parms *dvb_fe_dummy();
-+
- struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend,
- 				    unsigned verbose, unsigned use_legacy_call);
- struct dvb_v5_fe_parms *dvb_fe_open2(int adapter, int frontend,
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index 437b2f4..bc3d51a 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -69,6 +69,8 @@ void dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, st
- 
- void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
-+	if (!parms)
-+		parms = dvb_fe_dummy();
- 	dvb_log("|                   %s (%#02x)", dvb_descriptors[desc->type].name, desc->type);
- 	hexdump(parms, "|                       ", desc->data, desc->length);
- }
-diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-index cc32ec0..4672267 100644
---- a/lib/libdvbv5/dvb-fe.c
-+++ b/lib/libdvbv5/dvb-fe.c
-@@ -35,6 +35,13 @@ static void dvb_v5_free(struct dvb_v5_fe_parms *parms)
- 	free(parms);
- }
- 
-+struct dvb_v5_fe_parms dummy_fe;
-+struct dvb_v5_fe_parms *dvb_fe_dummy()
-+{
-+	dummy_fe.logfunc = dvb_default_log;
-+	return &dummy_fe;
-+}
-+
- struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
- 				    unsigned use_legacy_call)
- {
+ 	if (*eth->h_dest & 1) {
+-		if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
++		if(ether_addr_equal_unaligned(eth->h_dest, dev->broadcast))
+ 			skb->pkt_type=PACKET_BROADCAST;
+ 		else
+ 			skb->pkt_type=PACKET_MULTICAST;
+@@ -674,11 +674,11 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 					if (priv->rx_mode != RX_MODE_PROMISC) {
+ 						if (priv->ule_skb->data[0] & 0x01) {
+ 							/* multicast or broadcast */
+-							if (memcmp(priv->ule_skb->data, bc_addr, ETH_ALEN)) {
++							if (!ether_addr_equal_unaligned(priv->ule_skb->data, bc_addr)) {
+ 								/* multicast */
+ 								if (priv->rx_mode == RX_MODE_MULTI) {
+ 									int i;
+-									for(i = 0; i < priv->multi_num && memcmp(priv->ule_skb->data, priv->multi_macs[i], ETH_ALEN); i++)
++									for(i = 0; i < priv->multi_num && !ether_addr_equal_unaligned(priv->ule_skb->data, priv->multi_macs[i]); i++)
+ 										;
+ 									if (i == priv->multi_num)
+ 										drop = 1;
+@@ -688,7 +688,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 							}
+ 							/* else: broadcast */
+ 						}
+-						else if (memcmp(priv->ule_skb->data, dev->dev_addr, ETH_ALEN))
++						else if (!ether_addr_equal_unaligned(priv->ule_skb->data, dev->dev_addr))
+ 							drop = 1;
+ 						/* else: destination address matches the MAC address of our receiver device */
+ 					}
+@@ -837,7 +837,7 @@ static void dvb_net_sec(struct net_device *dev,
+ 	}
+ 	if (pkt[5] & 0x02) {
+ 		/* handle LLC/SNAP, see rfc-1042 */
+-		if (pkt_len < 24 || memcmp(&pkt[12], "\xaa\xaa\x03\0\0\0", 6)) {
++		if (pkt_len < 24 || !ether_addr_equal_unaligned(&pkt[12], "\xaa\xaa\x03\0\0\0")) {
+ 			stats->rx_dropped++;
+ 			return;
+ 		}
 -- 
-1.8.3.2
+1.8.0
+
 
