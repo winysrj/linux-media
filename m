@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:54568 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757480Ab3LWSdx (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52632 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750964Ab3LXMXm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Dec 2013 13:33:53 -0500
-Received: by mail-ob0-f174.google.com with SMTP id wn1so5714783obc.5
-        for <linux-media@vger.kernel.org>; Mon, 23 Dec 2013 10:33:52 -0800 (PST)
+	Tue, 24 Dec 2013 07:23:42 -0500
+Received: from avalon.localnet (unknown [91.178.148.87])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 08E0935A67
+	for <linux-media@vger.kernel.org>; Tue, 24 Dec 2013 13:22:51 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.14] OMAP4 ISS fixes
+Date: Tue, 24 Dec 2013 13:24:08 +0100
+Message-ID: <1772163.7Po6Rjmdc4@avalon>
 MIME-Version: 1.0
-In-Reply-To: <CA+2YH7sF2mGXKWLWa5_LLxXhMf5WOsFODJBZ+Lovz8KP0qyuKA@mail.gmail.com>
-References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
-	<52A1A76A.6070301@epfl.ch>
-	<CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>
-	<52B04D70.8060201@epfl.ch>
-	<CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>
-	<CA+2YH7sF2mGXKWLWa5_LLxXhMf5WOsFODJBZ+Lovz8KP0qyuKA@mail.gmail.com>
-Date: Mon, 23 Dec 2013 19:33:50 +0100
-Message-ID: <CA+2YH7vfwTxnorkm4saFt2rZ5SRWcH92XQvX=VMJcK4jPrYRig@mail.gmail.com>
-Subject: Re: omap3isp device tree support
-From: Enrico <ebutera@users.berlios.de>
-To: florian.vaussard@epfl.ch
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 23, 2013 at 6:45 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Wed, Dec 18, 2013 at 11:09 AM, Enrico <ebutera@users.berlios.de> wrote:
->> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard
->> <florian.vaussard@epfl.ch> wrote:
->>> So I converted the iommu to DT (patches just sent), used pdata quirks
->>> for the isp / mtv9032 data, added a few patches from other people
->>> (mainly clk to fix a crash when deferring the omap3isp probe), and a few
->>> small hacks. I get a 3.13-rc3 (+ board-removal part from Tony Lindgren)
->>> to boot on DT with a working MT9V032 camera. The missing part is the DT
->>> binding for the omap3isp, but I guess that we will have to wait a bit
->>> more for this.
->>>
->>> If you want to test, I have a development tree here [1]. Any feedback is
->>> welcome.
->>>
->>> Cheers,
->>>
->>> Florian
->>>
->>> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
->>
->> Thanks Florian,
->>
->> i will report what i get with my setup.
->
-> Uhm it's unrelated to omap3isp but i get a kernel panic in serial_omap_probe:
+Hi Mauro,
 
-Sorry for the noise, it was a stupid problem with DT.
+The following changes since commit 7d459937dc09bb8e448d9985ec4623779427d8a5:
 
-Enrico
+  [media] Add driver for Samsung S5K5BAF camera sensor (2013-12-21 07:01:36 
+-0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap4iss/next
+
+for you to fetch changes up to 7b5084c8f99aea161ab53cce828357912ec80891:
+
+  v4l: omap4iss: Restore irq flags correctly in omap4iss_video_buffer_next() 
+(2013-12-24 13:23:09 +0100)
+
+----------------------------------------------------------------
+Dan Carpenter (2):
+      v4l: omap4iss: use snprintf() to make smatch happy
+      v4l: omap4iss: Restore irq flags correctly in 
+omap4iss_video_buffer_next()
+
+ drivers/staging/media/omap4iss/iss_csi2.c  | 3 +--
+ drivers/staging/media/omap4iss/iss_video.c | 4 ++--
+ 2 files changed, 3 insertions(+), 4 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
