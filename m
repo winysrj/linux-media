@@ -1,110 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1515 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754394Ab3LGDct (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 22:32:49 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB73WjkD070406
-	for <linux-media@vger.kernel.org>; Sat, 7 Dec 2013 04:32:47 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 93AE62A2222
-	for <linux-media@vger.kernel.org>; Sat,  7 Dec 2013 04:32:44 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:59653 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887Ab3LXLpc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Dec 2013 06:45:32 -0500
+Received: by mail-pb0-f52.google.com with SMTP id uo5so6416853pbc.39
+        for <linux-media@vger.kernel.org>; Tue, 24 Dec 2013 03:45:32 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131207033244.93AE62A2222@tschai.lan>
-Date: Sat,  7 Dec 2013 04:32:44 +0100 (CET)
+Cc: a.hajda@samsung.com, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org
+Subject: [PATCH 2/3] [media] s5k5baf: Fix checkpatch error
+Date: Tue, 24 Dec 2013 17:12:04 +0530
+Message-Id: <1387885325-17639-2-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1387885325-17639-1-git-send-email-sachin.kamat@linaro.org>
+References: <1387885325-17639-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Fixes the following error:
+ERROR: return is not a function, parentheses are not required
+FILE: drivers/media/i2c/s5k5baf.c:1353:
 
-Results of the daily build of media_tree:
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/i2c/s5k5baf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-date:		Sat Dec  7 04:00:24 CET 2013
-git branch:	test
-git hash:	3f823e094b935c1882605f8720336ee23433a16d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index 139bdd4f5dde..974b865c2ee1 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -1350,8 +1350,8 @@ static enum selection_rect s5k5baf_get_sel_rect(u32 pad, u32 target)
+ 
+ static int s5k5baf_is_bound_target(u32 target)
+ {
+-	return (target == V4L2_SEL_TGT_CROP_BOUNDS ||
+-		target == V4L2_SEL_TGT_COMPOSE_BOUNDS);
++	return target == V4L2_SEL_TGT_CROP_BOUNDS ||
++		target == V4L2_SEL_TGT_COMPOSE_BOUNDS;
+ }
+ 
+ static int s5k5baf_get_selection(struct v4l2_subdev *sd,
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
