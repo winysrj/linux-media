@@ -1,57 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52691 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752230Ab3LML3e (ORCPT
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:57882 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751974Ab3LXLpf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Dec 2013 06:29:34 -0500
-Date: Fri, 13 Dec 2013 13:29:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	David Cohen <dacohen@gmail.com>
-Subject: Re: [RFCv2 PATCH 2/2] omap24xx/tcm825x: move to staging for future
- removal.
-Message-ID: <20131213112930.GU30652@valkosipuli.retiisi.org.uk>
-References: <1386851193-3845-1-git-send-email-hverkuil@xs4all.nl>
- <1386851193-3845-3-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1386851193-3845-3-git-send-email-hverkuil@xs4all.nl>
+	Tue, 24 Dec 2013 06:45:35 -0500
+Received: by mail-pb0-f42.google.com with SMTP id uo5so6415607pbc.15
+        for <linux-media@vger.kernel.org>; Tue, 24 Dec 2013 03:45:34 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org
+Subject: [PATCH 3/3] [media] s5k5baf: Fix potential NULL pointer dereferencing
+Date: Tue, 24 Dec 2013 17:12:05 +0530
+Message-Id: <1387885325-17639-3-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1387885325-17639-1-git-send-email-sachin.kamat@linaro.org>
+References: <1387885325-17639-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Dereference 'fw' after the NULL check.
 
-On Thu, Dec 12, 2013 at 01:26:33PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The omap24xx driver and the tcm825x sensor driver are the only two
-> remaining drivers to still use the old deprecated v4l2-int-device API.
-> 
-> Nobody maintains these drivers anymore. But unfortunately the v4l2-int-device
-> API is used by out-of-tree drivers (MXC platform). This is a very bad situation
-> since as long as this deprecated API stays in the kernel there is no reason for
-> those out-of-tree drivers to convert.
-> 
-> This patch moves v4l2-int-device and the two drivers that depend on it to
-> staging in preparation for their removal.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/i2c/s5k5baf.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Do you think we should move these to staging instead of removing them right
-away? These drivers have never been in a usable state in the mainline
-kernel due to missing platform data. Currently they suffer from other
-problems, too. I'd be surprised if they compile.
-
-If I wanted to get them working again I'd start with this since it's not
-very far from the state where they used to work:
-
-<URL:http://vihersipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=~sailus/linux-omap/.git;a=summary>
-
-The branch is n800-cam . Porting to up-to-date APIs can then be done, and I
-think David did some work to that end.
-
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index 974b865c2ee1..4b8381111cbd 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -548,12 +548,14 @@ static void s5k5baf_synchronize(struct s5k5baf *state, int timeout, u16 addr)
+ static u16 *s5k5baf_fw_get_seq(struct s5k5baf *state, u16 seq_id)
+ {
+ 	struct s5k5baf_fw *fw = state->fw;
+-	u16 *data = fw->data + 2 * fw->count;
++	u16 *data;
+ 	int i;
+ 
+ 	if (fw == NULL)
+ 		return NULL;
+ 
++	data = fw->data + 2 * fw->count;
++
+ 	for (i = 0; i < fw->count; ++i) {
+ 		if (fw->seq[i].id == seq_id)
+ 			return data + fw->seq[i].offset;
 -- 
-Kind regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
