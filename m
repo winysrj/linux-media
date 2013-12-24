@@ -1,27 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from node1.t-mail.cz ([62.141.0.166]:50934 "EHLO mailout1.t-email.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751831Ab3LXJqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Dec 2013 04:46:10 -0500
-Received: from mailout1.t-email.cz (localhost [127.0.0.1])
-	by sagator.hkbl408 (Postfix) with ESMTP id 3C9E614EF
-	for <linux-media@vger.kernel.org>; Tue, 24 Dec 2013 10:39:34 +0100 (CET)
-Received: from [192.168.1.2] (49-67-80-78.tmcz.cz [78.80.67.49])
-	by mailout1.t-email.cz (Postfix) with ESMTP
-	for <linux-media@vger.kernel.org>; Tue, 24 Dec 2013 10:39:34 +0100 (CET)
-From: "Jahn" <jana1972@centrum.cz>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:39743 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887Ab3LXLpa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Dec 2013 06:45:30 -0500
+Received: by mail-pd0-f178.google.com with SMTP id y10so6252411pdj.37
+        for <linux-media@vger.kernel.org>; Tue, 24 Dec 2013 03:45:29 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Date: Tue, 24 Dec 2013 10:39:34 +0100
-MIME-Version: 1.0
-Subject: cx24116.h
-Reply-to: jana1972@centrum.cz
-Message-ID: <52B96466.15961.333F5A8B@jana1972.centrum.cz>
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-description: Mail message body
+Cc: a.hajda@samsung.com, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org
+Subject: [PATCH 1/3] [media] s5k5baf: Fix build warning
+Date: Tue, 24 Dec 2013 17:12:03 +0530
+Message-Id: <1387885325-17639-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Is there anywhere a datasheet for cx24116 conexant chip?
-Thanks
+Fixes the following warnings:
+drivers/media/i2c/s5k5baf.c: In function 's5k5baf_fw_parse':
+drivers/media/i2c/s5k5baf.c:362:3: warning:
+format '%d' expects argument of type 'int', but argument 3 has type 'size_t' [-Wformat=]
+drivers/media/i2c/s5k5baf.c:383:4: warning:
+format '%d' expects argument of type 'int', but argument 4 has type 'size_t' [-Wformat=]
+
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+---
+ drivers/media/i2c/s5k5baf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index e3b44a87460b..139bdd4f5dde 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -359,7 +359,7 @@ static int s5k5baf_fw_parse(struct device *dev, struct s5k5baf_fw **fw,
+ 	int ret;
+ 
+ 	if (count < S5K5BAG_FW_TAG_LEN + 1) {
+-		dev_err(dev, "firmware file too short (%d)\n", count);
++		dev_err(dev, "firmware file too short (%zu)\n", count);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -379,7 +379,7 @@ static int s5k5baf_fw_parse(struct device *dev, struct s5k5baf_fw **fw,
+ 
+ 	f = (struct s5k5baf_fw *)d;
+ 	if (count < 1 + 2 * f->count) {
+-		dev_err(dev, "invalid firmware header (count=%d size=%d)\n",
++		dev_err(dev, "invalid firmware header (count=%d size=%zu)\n",
+ 			f->count, 2 * (count + S5K5BAG_FW_TAG_LEN));
+ 		return -EINVAL;
+ 	}
+-- 
+1.7.9.5
 
