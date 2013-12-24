@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2156 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751662Ab3LQHcV (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52684 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974Ab3LXMcX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 02:32:21 -0500
-Message-ID: <52AFFDE6.6080908@xs4all.nl>
-Date: Tue, 17 Dec 2013 08:31:50 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v3 2/7] v4l: 1 Hz resolution flag for tuners
-References: <1387231688-8647-1-git-send-email-crope@iki.fi> <1387231688-8647-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1387231688-8647-3-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 24 Dec 2013 07:32:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 3/3] omap3isp: ccdc: Don't hang when the SBL fails to become idle
+Date: Tue, 24 Dec 2013 13:32:44 +0100
+Message-Id: <1387888364-21631-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1387888364-21631-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1387888364-21631-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/16/2013 11:08 PM, Antti Palosaari wrote:
-> Add V4L2_TUNER_CAP_1HZ for 1 Hz resolution.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  include/uapi/linux/videodev2.h | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 3fff116..97a5e50 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1341,6 +1341,7 @@ struct v4l2_modulator {
->  #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
->  #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
->  #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
-> +#define V4L2_TUNER_CAP_1HZ		0x1000
->  
->  /*  Flags for the 'rxsubchans' field */
->  #define V4L2_TUNER_SUB_MONO		0x0001
-> 
+Under abnormal conditions (such as glitches on the HSYNC/VSYNC signals)
+the CCDC output SBL can fail to become idle. The driver currently logs
+this condition to the kernel log and doesn't restart the CCDC. This
+results in CCDC video capture hanging without any notification to
+userspace.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cancel the pipeline and mark the CCDC as crashed instead of hanging.
+Userspace will be notified of the problem and will then be able to close
+and reopen the device to trigger a reset of the ISP.
 
-Regards,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispccdc.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-	Hans
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 561c991..5db2c88 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -1516,6 +1516,8 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
+ 
+ 	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
+ 		dev_info(isp->dev, "CCDC won't become idle!\n");
++		isp->crashed |= 1U << ccdc->subdev.entity.id;
++		omap3isp_pipeline_cancel_stream(pipe);
+ 		goto done;
+ 	}
+ 
+-- 
+1.8.3.2
+
