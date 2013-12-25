@@ -1,106 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3595 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756115Ab3LTJcM (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34768 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752391Ab3LYXoA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 04:32:12 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [REVIEW PATCH 45/50] adv7842: obtain free-run mode from the platform_data.
-Date: Fri, 20 Dec 2013 10:31:38 +0100
-Message-Id: <1387531903-20496-46-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 25 Dec 2013 18:44:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC v1.1 2/2] media: v4l: Only get module if it's different than the driver for v4l2_dev
+Date: Thu, 26 Dec 2013 00:44:28 +0100
+Message-ID: <1814672.r475G5dY7x@avalon>
+In-Reply-To: <1387288164-15250-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1386936216-32296-2-git-send-email-sakari.ailus@linux.intel.com> <1387288164-15250-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+Hi Sakari,
 
-The free-run mode can be board-specific.
+Thank you for the patch.
 
-Also updated the platform_data in ezkit to ensure that what was the old
-default value is now explicitly specified, so the behavior for that board
-is unchanged.
+On Tuesday 17 December 2013 15:49:24 Sakari Ailus wrote:
+> When the sub-device is registered, increment the use count of the sub-device
+> owner only if it's different from the owner of the driver for the media
+> device. This avoids increasing the use count by the module itself and thus
+> making it possible to unload it when it's not in use.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>
----
- arch/blackfin/mach-bf609/boards/ezkit.c |  2 ++
- drivers/media/i2c/adv7842.c             | 11 ++++++++---
- include/media/adv7842.h                 | 14 ++++++++++++--
- 3 files changed, 22 insertions(+), 5 deletions(-)
+This looks good to me, but I wonder whether a more generic solution won't be 
+needed, to solve the multiple circular reference issues we (will) have with 
+subdevices and clocks. My gut feeling is that such a generic solution will 
+also cater for the needs of the problem you're trying to solve here.
 
-diff --git a/arch/blackfin/mach-bf609/boards/ezkit.c b/arch/blackfin/mach-bf609/boards/ezkit.c
-index 28bdd8b..39a7969 100644
---- a/arch/blackfin/mach-bf609/boards/ezkit.c
-+++ b/arch/blackfin/mach-bf609/boards/ezkit.c
-@@ -1025,6 +1025,8 @@ static struct adv7842_platform_data adv7842_data = {
- 	.ain_sel = ADV7842_AIN10_11_12_NC_SYNC_4_1,
- 	.prim_mode = ADV7842_PRIM_MODE_SDP,
- 	.vid_std_select = ADV7842_SDP_VID_STD_CVBS_SD_4x1,
-+	.hdmi_free_run_enable = 1,
-+	.sdp_free_run_auto = 1,
- 	.i2c_sdp_io = 0x40,
- 	.i2c_sdp = 0x41,
- 	.i2c_cp = 0x42,
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index ecbe3f2..518f1e2 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -1624,8 +1624,6 @@ static void select_input(struct v4l2_subdev *sd,
- 		/* deinterlacer enabled and 3D comb */
- 		sdp_write_and_or(sd, 0x12, 0xf6, 0x09);
- 
--		sdp_write(sd, 0xdd, 0x08); /* free run auto */
--
- 		break;
- 
- 	case ADV7842_MODE_COMP:
-@@ -2538,7 +2536,14 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
- 			pdata->drive_strength.sync);
- 
- 	/* HDMI free run */
--	cp_write(sd, 0xba, (pdata->hdmi_free_run_mode << 1) | 0x01);
-+	cp_write_and_or(sd, 0xba, 0xfc, pdata->hdmi_free_run_enable |
-+					(pdata->hdmi_free_run_mode << 1));
-+
-+	/* SPD free run */
-+	sdp_write_and_or(sd, 0xdd, 0xf0, pdata->sdp_free_run_force |
-+					 (pdata->sdp_free_run_cbar_en << 1) |
-+					 (pdata->sdp_free_run_man_col_en << 2) |
-+					 (pdata->sdp_free_run_force << 3));
- 
- 	/* TODO from platform data */
- 	cp_write(sd, 0x69, 0x14);   /* Enable CP CSC */
-diff --git a/include/media/adv7842.h b/include/media/adv7842.h
-index a4851bf..772cdec 100644
---- a/include/media/adv7842.h
-+++ b/include/media/adv7842.h
-@@ -192,8 +192,18 @@ struct adv7842_platform_data {
- 	unsigned sd_ram_size; /* ram size in MB */
- 	unsigned sd_ram_ddr:1; /* ddr or sdr sdram */
- 
--	/* Free run */
--	unsigned hdmi_free_run_mode;
-+	/* HDMI free run, CP-reg 0xBA */
-+	unsigned hdmi_free_run_enable:1;
-+	/* 0 = Mode 0: run when there is no TMDS clock
-+	   1 = Mode 1: run when there is no TMDS clock or the
-+	       video resolution does not match programmed one. */
-+	unsigned hdmi_free_run_mode:1;
-+
-+	/* SDP free run, CP-reg 0xDD */
-+	unsigned sdp_free_run_auto:1;
-+	unsigned sdp_free_run_man_col_en:1;
-+	unsigned sdp_free_run_cbar_en:1;
-+	unsigned sdp_free_run_force:1;
- 
- 	struct adv7842_sdp_csc_coeff sdp_csc_coeff;
- 
+This being said, there's no reason to delay this patch until a more generic 
+solution is available, so
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+> Changes since v1:
+> 
+> - Check that v4l2_dev->dev and v4l2_dev->dev->driver are non-NULL before
+>   using them.
+> - Store the information on the same owner into struct v4l2_subdev. This
+> avoids issues related to unregistering subdevs through
+> v4l2_device_unregister().
+> 
+>  drivers/media/v4l2-core/v4l2-device.c | 18 +++++++++++++++---
+>  include/media/v4l2-subdev.h           |  1 +
+>  2 files changed, 16 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-device.c
+> b/drivers/media/v4l2-core/v4l2-device.c index 02d1b63..015f92a 100644
+> --- a/drivers/media/v4l2-core/v4l2-device.c
+> +++ b/drivers/media/v4l2-core/v4l2-device.c
+> @@ -158,7 +158,17 @@ int v4l2_device_register_subdev(struct v4l2_device
+> *v4l2_dev, /* Warn if we apparently re-register a subdev */
+>  	WARN_ON(sd->v4l2_dev != NULL);
+> 
+> -	if (!try_module_get(sd->owner))
+> +	/*
+> +	 * The reason to acquire the module here is to avoid unloading
+> +	 * a module of sub-device which is registered to a media
+> +	 * device. To make it possible to unload modules for media
+> +	 * devices that also register sub-devices, do not
+> +	 * try_module_get() such sub-device owners.
+> +	 */
+> +	sd->owner_v4l2_dev = v4l2_dev->dev && v4l2_dev->dev->driver &&
+> +		sd->owner == v4l2_dev->dev->driver->owner;
+> +
+> +	if (!sd->owner_v4l2_dev && !try_module_get(sd->owner))
+>  		return -ENODEV;
+> 
+>  	sd->v4l2_dev = v4l2_dev;
+> @@ -192,7 +202,8 @@ error_unregister:
+>  	if (sd->internal_ops && sd->internal_ops->unregistered)
+>  		sd->internal_ops->unregistered(sd);
+>  error_module:
+> -	module_put(sd->owner);
+> +	if (!sd->owner_v4l2_dev)
+> +		module_put(sd->owner);
+>  	sd->v4l2_dev = NULL;
+>  	return err;
+>  }
+> @@ -280,6 +291,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev
+> *sd) }
+>  #endif
+>  	video_unregister_device(sd->devnode);
+> -	module_put(sd->owner);
+> +	if (!sd->owner_v4l2_dev)
+> +		module_put(sd->owner);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index d67210a..6d03b54 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -579,6 +579,7 @@ struct v4l2_subdev {
+>  #endif
+>  	struct list_head list;
+>  	struct module *owner;
+> +	bool owner_v4l2_dev;
+>  	u32 flags;
+>  	struct v4l2_device *v4l2_dev;
+>  	const struct v4l2_subdev_ops *ops;
 -- 
-1.8.4.4
+Regards,
+
+Laurent Pinchart
 
