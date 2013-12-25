@@ -1,111 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3298 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753Ab3L2DeV (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34677 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752330Ab3LYXXP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 22:34:21 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBT3YIud061399
-	for <linux-media@vger.kernel.org>; Sun, 29 Dec 2013 04:34:20 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 674E92A2228
-	for <linux-media@vger.kernel.org>; Sun, 29 Dec 2013 04:33:47 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131229033347.674E92A2228@tschai.lan>
-Date: Sun, 29 Dec 2013 04:33:47 +0100 (CET)
+	Wed, 25 Dec 2013 18:23:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC 1/2] media: Use a better owner for the media device
+Date: Thu, 26 Dec 2013 00:23:41 +0100
+Message-ID: <7531072.aOyNN2I7IG@avalon>
+In-Reply-To: <1386936216-32296-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1386936216-32296-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Sun Dec 29 04:00:16 CET 2013
-git branch:	test
-git hash:	7d459937dc09bb8e448d9985ec4623779427d8a5
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+On Friday 13 December 2013 14:03:35 Sakari Ailus wrote:
+> mdev->fops->owner is actually the owner of the very same module which
+> implements media_device_register(), so it can't be unloaded anyway. Instead,
+> use THIS_MODULE through a macro as does video_register_device().
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+This looks good to me.
 
-Detailed results are available here:
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+> ---
+>  drivers/media/media-device.c  | 7 ++++---
+>  drivers/media/media-devnode.c | 5 +++--
+>  include/media/media-device.h  | 4 +++-
+>  include/media/media-devnode.h | 3 ++-
+>  4 files changed, 12 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index d5a7a13..51217f0 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -372,7 +372,8 @@ static void media_device_release(struct media_devnode
+> *mdev) * - dev must point to the parent device
+>   * - model must be filled with the device model name
+>   */
+> -int __must_check media_device_register(struct media_device *mdev)
+> +int __must_check __media_device_register(struct media_device *mdev,
+> +					 struct module *owner)
+>  {
+>  	int ret;
+> 
+> @@ -388,7 +389,7 @@ int __must_check media_device_register(struct
+> media_device *mdev) mdev->devnode.fops = &media_device_fops;
+>  	mdev->devnode.parent = mdev->dev;
+>  	mdev->devnode.release = media_device_release;
+> -	ret = media_devnode_register(&mdev->devnode);
+> +	ret = media_devnode_register(&mdev->devnode, owner);
+>  	if (ret < 0)
+>  		return ret;
+> 
+> @@ -400,7 +401,7 @@ int __must_check media_device_register(struct
+> media_device *mdev)
+> 
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(media_device_register);
+> +EXPORT_SYMBOL_GPL(__media_device_register);
+> 
+>  /**
+>   * media_device_unregister - unregister a media device
+> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+> index fb0f046..7acd19c 100644
+> --- a/drivers/media/media-devnode.c
+> +++ b/drivers/media/media-devnode.c
+> @@ -232,7 +232,8 @@ static const struct file_operations media_devnode_fops =
+> { * the media_devnode structure is *not* called, so the caller is
+> responsible for * freeing any data.
+>   */
+> -int __must_check media_devnode_register(struct media_devnode *mdev)
+> +int __must_check media_devnode_register(struct media_devnode *mdev,
+> +					struct module *owner)
+>  {
+>  	int minor;
+>  	int ret;
+> @@ -253,7 +254,7 @@ int __must_check media_devnode_register(struct
+> media_devnode *mdev)
+> 
+>  	/* Part 2: Initialize and register the character device */
+>  	cdev_init(&mdev->cdev, &media_devnode_fops);
+> -	mdev->cdev.owner = mdev->fops->owner;
+> +	mdev->cdev.owner = owner;
+> 
+>  	ret = cdev_add(&mdev->cdev, MKDEV(MAJOR(media_dev_t), mdev->minor), 1);
+>  	if (ret < 0) {
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 12155a9..6e6db78 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -87,7 +87,9 @@ struct media_device {
+>  /* media_devnode to media_device */
+>  #define to_media_device(node) container_of(node, struct media_device,
+> devnode)
+> 
+> -int __must_check media_device_register(struct media_device *mdev);
+> +int __must_check __media_device_register(struct media_device *mdev,
+> +					 struct module *owner);
+> +#define media_device_register(mdev) __media_device_register(mdev,
+> THIS_MODULE) void media_device_unregister(struct media_device *mdev);
+> 
+>  int __must_check media_device_register_entity(struct media_device *mdev,
+> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+> index 3446af2..0dc7060 100644
+> --- a/include/media/media-devnode.h
+> +++ b/include/media/media-devnode.h
+> @@ -82,7 +82,8 @@ struct media_devnode {
+>  /* dev to media_devnode */
+>  #define to_media_devnode(cd) container_of(cd, struct media_devnode, dev)
+> 
+> -int __must_check media_devnode_register(struct media_devnode *mdev);
+> +int __must_check media_devnode_register(struct media_devnode *mdev,
+> +					struct module *owner);
+>  void media_devnode_unregister(struct media_devnode *mdev);
+> 
+>  static inline struct media_devnode *media_devnode_data(struct file *filp)
+-- 
+Regards,
 
-Full logs are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
