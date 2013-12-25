@@ -1,83 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41678 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754055Ab3LCROM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Dec 2013 12:14:12 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 01/18] v4l: omap4iss: Add support for OMAP4 camera interface - Core
-Date: Tue, 03 Dec 2013 18:14:15 +0100
-Message-ID: <1506831.WPYrDVrDpX@avalon>
-In-Reply-To: <20131203150243.33a00f58.m.chehab@samsung.com>
-References: <1383523603-3907-1-git-send-email-laurent.pinchart@ideasonboard.com> <1383523603-3907-2-git-send-email-laurent.pinchart@ideasonboard.com> <20131203150243.33a00f58.m.chehab@samsung.com>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:5310 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448Ab3LYD3r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Dec 2013 22:29:47 -0500
+Message-ID: <52BA5113.7070908@huawei.com>
+Date: Wed, 25 Dec 2013 11:29:23 +0800
+From: Ding Tianhong <dingtianhong@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Netdev <netdev@vger.kernel.org>
+Subject: [PATCH v3 13/19] media: dvb_core: slight optimization of addr compare
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Use possibly more efficient ether_addr_equal
+instead of memcmp.
 
-On Tuesday 03 December 2013 15:02:43 Mauro Carvalho Chehab wrote:
-> Em Mon,  4 Nov 2013 01:06:26 +0100
-> 
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> > From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-> > 
-> > This adds a very simplistic driver to utilize the CSI2A interface inside
-> > the ISS subsystem in OMAP4, and dump the data to memory.
-> > 
-> > Check Documentation/video4linux/omap4_camera.txt for details.
-> > 
-> > This commit adds the driver core, registers definitions and
-> > documentation.
-> > 
-> > Signed-off-by: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-> > 
-> > [Port the driver to v3.12-rc3, including the following changes
-> > - Don't include plat/ headers
-> > - Don't use cpu_is_omap44xx() macro
-> > - Don't depend on EXPERIMENTAL
-> > - Fix s_crop operation prototype
-> > - Update link_notify prototype
-> > - Rename media_entity_remote_source to media_entity_remote_pad]
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  Documentation/video4linux/omap4_camera.txt |   60 ++
-> >  drivers/staging/media/omap4iss/iss.c       | 1477 +++++++++++++++++++++++
-> >  drivers/staging/media/omap4iss/iss.h       |  153 +++
-> >  drivers/staging/media/omap4iss/iss_regs.h  |  883 +++++++++++++++++
-> >  include/media/omap4iss.h                   |   65 ++
-> >  5 files changed, 2638 insertions(+)
-> >  create mode 100644 Documentation/video4linux/omap4_camera.txt
-> >  create mode 100644 drivers/staging/media/omap4iss/iss.c
-> >  create mode 100644 drivers/staging/media/omap4iss/iss.h
-> >  create mode 100644 drivers/staging/media/omap4iss/iss_regs.h
-> >  create mode 100644 include/media/omap4iss.h
-> 
-> ...
-> 
-> > +	/*
-> > +	 * atomic_set() doesn't include memory barrier on ARM platform for 
-SMP
-> > +	 * scenario. We'll call it here to avoid race conditions.
-> > +	 */
-> > +	atomic_set(stopping, 1);
-> > +	smp_wmb();
-> 
-> Hmm... if atomic_set() is broken on ARM, you should be fixing its
-> implementation, and not adding any hacks like the above on all places
-> where atomic ops are needed.
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+---
+ drivers/media/dvb-core/dvb_net.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-I'll investigate that. Can I address that in a follow-up patch ?
-
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index f91c80c..3dfc33b 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -179,7 +179,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
+ 	eth = eth_hdr(skb);
+ 
+ 	if (*eth->h_dest & 1) {
+-		if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
++		if(ether_addr_equal(eth->h_dest,dev->broadcast))
+ 			skb->pkt_type=PACKET_BROADCAST;
+ 		else
+ 			skb->pkt_type=PACKET_MULTICAST;
+@@ -674,11 +674,11 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 					if (priv->rx_mode != RX_MODE_PROMISC) {
+ 						if (priv->ule_skb->data[0] & 0x01) {
+ 							/* multicast or broadcast */
+-							if (memcmp(priv->ule_skb->data, bc_addr, ETH_ALEN)) {
++							if (!ether_addr_equal(priv->ule_skb->data, bc_addr)) {
+ 								/* multicast */
+ 								if (priv->rx_mode == RX_MODE_MULTI) {
+ 									int i;
+-									for(i = 0; i < priv->multi_num && memcmp(priv->ule_skb->data, priv->multi_macs[i], ETH_ALEN); i++)
++									for(i = 0; i < priv->multi_num && !ether_addr_equal(priv->ule_skb->data, priv->multi_macs[i]); i++)
+ 										;
+ 									if (i == priv->multi_num)
+ 										drop = 1;
+@@ -688,7 +688,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 							}
+ 							/* else: broadcast */
+ 						}
+-						else if (memcmp(priv->ule_skb->data, dev->dev_addr, ETH_ALEN))
++						else if (!ether_addr_equal(priv->ule_skb->data, dev->dev_addr))
+ 							drop = 1;
+ 						/* else: destination address matches the MAC address of our receiver device */
+ 					}
 -- 
-Regards,
+1.8.0
 
-Laurent Pinchart
 
