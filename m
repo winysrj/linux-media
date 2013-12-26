@@ -1,134 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2598 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290Ab3LLHur (ORCPT
+Received: from szxga02-in.huawei.com ([119.145.14.65]:60610 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751831Ab3LZLJz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Dec 2013 02:50:47 -0500
-Message-ID: <52A96ABF.50905@xs4all.nl>
-Date: Thu, 12 Dec 2013 08:50:23 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 26 Dec 2013 06:09:55 -0500
+Message-ID: <52BC0E56.80003@huawei.com>
+Date: Thu, 26 Dec 2013 19:09:10 +0800
+From: Ding Tianhong <dingtianhong@huawei.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC 3/4] v4l: add new tuner types for SDR
-References: <1386806043-5331-1-git-send-email-crope@iki.fi> <1386806043-5331-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1386806043-5331-4-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	"Mauro Carvalho Chehab" <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Netdev <netdev@vger.kernel.org>
+Subject: Re: [PATCH v3 13/19] media: dvb_core: slight optimization of addr
+ compare
+References: <52BA5113.7070908@huawei.com> <52BABA23.2040709@cogentembedded.com>
+In-Reply-To: <52BABA23.2040709@cogentembedded.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2013 12:54 AM, Antti Palosaari wrote:
-> Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_SDR for SDR usage.
+On 2013/12/25 18:57, Sergei Shtylyov wrote:
+> Hello.
 > 
-> ADC is used for setting sampling rate (sampling frequency) to SDR
-> device.
+> On 25-12-2013 7:29, Ding Tianhong wrote:
 > 
-> Another tuner type, SDR, is possible RF tuner. Is is used to
-> down-convert RF frequency to range ADC could sample. It is optional
-> for SDR device.
+>> Use possibly more efficient ether_addr_equal
+>> instead of memcmp.
 > 
-> Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
-> VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
-> type is SDR (VFL_TYPE_SDR).
-
-Shouldn't you also adapt s_hw_freq_seek?
-
+>> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>> Cc: linux-media@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
+>> Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+>> ---
+>>   drivers/media/dvb-core/dvb_net.c | 8 ++++----
+>>   1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 38 +++++++++++++++++++++++++-----------
->  include/uapi/linux/videodev2.h       |  2 ++
->  2 files changed, 29 insertions(+), 11 deletions(-)
+>> diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+>> index f91c80c..3dfc33b 100644
+>> --- a/drivers/media/dvb-core/dvb_net.c
+>> +++ b/drivers/media/dvb-core/dvb_net.c
+>> @@ -179,7 +179,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
+>>       eth = eth_hdr(skb);
+>>
+>>       if (*eth->h_dest & 1) {
+>> -        if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
+>> +        if(ether_addr_equal(eth->h_dest,dev->broadcast))
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index bc10684..ee91a9f 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1288,8 +1288,13 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
->  	struct video_device *vfd = video_devdata(file);
->  	struct v4l2_frequency *p = arg;
->  
-> -	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
-> +			return -EINVAL;
-
-This isn't right. p->type is returned by the driver, not set by the user.
-In the case of TYPE_SDR I would just set it to TUNER_SDR and let the driver
-update it for ADC tuners. You can also just leave it alone. This does make
-the assumption that SDR and ADC tuners are always separate tuners. I.e., not
-like radio and TV tuners that can be one physical tuner with two mutually
-exclusive modes. It's my understanding that that is by definition true for
-SDR.
-
-> +	} else {
-> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +	}
->  	return ops->vidioc_g_frequency(file, fh, p);
->  }
->  
-> @@ -1300,10 +1305,16 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
->  	const struct v4l2_frequency *p = arg;
->  	enum v4l2_tuner_type type;
->  
-> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> -	if (p->type != type)
-> -		return -EINVAL;
-> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
-> +			return -EINVAL;
-> +		type = p->type;
-> +	} else {
-> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +		if (type != p->type)
-> +			return -EINVAL;
-> +	}
->  	return ops->vidioc_s_frequency(file, fh, p);
->  }
->  
-> @@ -1882,11 +1893,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
->  	enum v4l2_tuner_type type;
->  	int err;
->  
-> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> -
-> -	if (type != p->type)
-> -		return -EINVAL;
-> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_SDR)
-> +			return -EINVAL;
-> +		type = p->type;
-> +	} else {
-> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +		if (type != p->type)
-> +			return -EINVAL;
-> +	}
->  	if (ops->vidioc_enum_freq_bands)
->  		return ops->vidioc_enum_freq_bands(file, fh, p);
->  	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index b8ee9048..6c6a601 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -159,6 +159,8 @@ enum v4l2_tuner_type {
->  	V4L2_TUNER_RADIO	     = 1,
->  	V4L2_TUNER_ANALOG_TV	     = 2,
->  	V4L2_TUNER_DIGITAL_TV	     = 3,
-> +	V4L2_TUNER_ADC               = 4,
-> +	V4L2_TUNER_SDR               = 5,
->  };
->  
->  enum v4l2_memory {
+>    There should be space after comma.
+> 
+>> @@ -674,11 +674,11 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+>>                       if (priv->rx_mode != RX_MODE_PROMISC) {
+>>                           if (priv->ule_skb->data[0] & 0x01) {
+>>                               /* multicast or broadcast */
+>> -                            if (memcmp(priv->ule_skb->data, bc_addr, ETH_ALEN)) {
+>> +                            if (!ether_addr_equal(priv->ule_skb->data, bc_addr)) {
+>>                                   /* multicast */
+>>                                   if (priv->rx_mode == RX_MODE_MULTI) {
+>>                                       int i;
+>> -                                    for(i = 0; i < priv->multi_num && memcmp(priv->ule_skb->data, priv->multi_macs[i], ETH_ALEN); i++)
+>> +                                    for(i = 0; i < priv->multi_num && !ether_addr_equal(priv->ule_skb->data, priv->multi_macs[i]); i++)
+> 
+>    Shouldn't this line be broken?
 > 
 
-Regards,
+ok, thanks.
 
-	Hans
+Regards
+>>                                           ;
+>>                                       if (i == priv->multi_num)
+>>                                           drop = 1;
+> 
+> WBR, Sergei
+> 
+> 
+> 
+> 
+
+
