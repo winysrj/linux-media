@@ -1,159 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38329 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753511Ab3LIXOg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Dec 2013 18:14:36 -0500
-Message-ID: <52A64ED3.3000902@iki.fi>
-Date: Tue, 10 Dec 2013 01:14:27 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:33890 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753288Ab3LZObW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Dec 2013 09:31:22 -0500
+Received: by mail-lb0-f180.google.com with SMTP id x18so3773165lbi.11
+        for <linux-media@vger.kernel.org>; Thu, 26 Dec 2013 06:31:20 -0800 (PST)
+Message-ID: <52BC3DB5.9090605@cogentembedded.com>
+Date: Thu, 26 Dec 2013 18:31:17 +0400
+From: Valentine <valentine.barshak@cogentembedded.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: SDR sampling rate - control or IOCTL?
-References: <528E3D41.5010508@iki.fi> <20131121154923.32d76094@samsung.com> <528E4F7B.4040208@xs4all.nl> <528E51EB.2080404@iki.fi> <20131121171203.65719175@samsung.com> <528E6B99.5030108@iki.fi> <20131121185449.1104ea67@samsung.com> <528E78CC.2040808@iki.fi>
-In-Reply-To: <528E78CC.2040808@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add preliminary R-Car M2
+ support
+References: <1387830486-10650-1-git-send-email-valentine.barshak@cogentembedded.com> <1590143.Lfusyumoi4@avalon>
+In-Reply-To: <1590143.Lfusyumoi4@avalon>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21.11.2013 23:19, Antti Palosaari wrote:
-> On 21.11.2013 22:54, Mauro Carvalho Chehab wrote:
->> Em Thu, 21 Nov 2013 22:22:49 +0200
->> Antti Palosaari <crope@iki.fi> escreveu:
+On 12/26/2013 06:18 PM, Laurent Pinchart wrote:
+> Hi Valentine,
+>
+> Thank you for the patch.
+>
+> On Tuesday 24 December 2013 00:28:06 Valentine Barshak wrote:
+>> This adds R-Car M2 (R8A7791) VIN support.
 >>
->>> On 21.11.2013 21:12, Mauro Carvalho Chehab wrote:
->>>> Em Thu, 21 Nov 2013 20:33:15 +0200
->>>> Antti Palosaari <crope@iki.fi> escreveu:
->>>>
->>>>> On 21.11.2013 20:22, Hans Verkuil wrote:
->
->>>>>> BTW, can the sample rate change while streaming? Typically things
->>>>>> you set
->>>>>> through S_FMT can not be changed while streaming.
->>>>>
->>>>> Yes, but in practice it is uncommon. When I reverse-engineered Mirics
->>>>> MSi2500 USB ADC I did it hundred of times. Just started streaming and
->>>>> injected numbers to ADC control registers, then calculated sampling
->>>>> rate
->>>>> from the stream.
->>>>
->>>> That's not an use case. It is just a developer's procedure. Anyway, you
->>>> could still measure the bit rate like that, if you do a stream start
->>>> and
->>>> stop.
->>>>
->>>>> That is only use case I know currently, there still could be some
->>>>> others.
->>>>
->>>> Seriously? Since the Shannon theorem, all theory used on DSP assumes
->>>> that
->>>> the samples are spaced at the very same bit rate.
->>>>
->>>>> Nothing prevents do to it, the key issue is that
->>>>> sampling rate is needed to known by app.
->>>>
->>>> No, it is harder than that: if the bit rate changes, then you need
->>>> to pack
->>>> the sampling rate changes when they occur inside the stream, as
->>>> otherwise
->>>> userspace will have no means to detect such changes.
->>>
->>> Heh, I cannot understood you. Could you explain why it works for me?
->>> Here is video I recorded just for you:
->>> http://palosaari.fi/linux/v4l-dvb/mirics_msi3101_sdrsharp_sampling_rate.mp4
->>>
->>>
->>> It is Mirics MSi3101 streaming FM radio with sampling rate 2.048 Msps,
->>> then I switch to 1.024 Msps and back few times - on the fly. IMHO
->>> results are just as expected. Sound start cracking when DSP application
->>> sampling rate does not match, but when you change it back to correct it
->>> recovers.
+>> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
+>> ---
+>>   drivers/media/platform/soc_camera/rcar_vin.c | 6 ++++--
+>>   1 file changed, 4 insertions(+), 2 deletions(-)
 >>
->> In other words, changing the sampling rate while streaming breaks
->> decoding.
->
-> Of course, in a case DSP does not know what it is. I have found that
-> changing frequency during streaming breaks my audio as well.
->
->
->>> If I will add button to tell app DSP that sampling rate is changed, it
->>> will work for both cases. I haven't yet implemented that settings
->>> button, it is hard coded to SDRSharp plugin.
->>>
->>> Could you explain why it works if it is impossible as you said?
+>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+>> b/drivers/media/platform/soc_camera/rcar_vin.c index 6866bb4..8b79727
+>> 100644
+>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>> @@ -106,6 +106,7 @@
+>>   #define VIN_MAX_HEIGHT		2048
 >>
->> I can't imagine any "magic" button that will be able to discover
->> on what exact sample the sampling rate changed. The hardware may
->> have buffers; the DMA engines and the USB stack for sure have, and
->> also V4L. Knowing on what exact sample the sampling rate changed
->> would require hardware support, to properly tag the sample where the
->> change started to apply.
+>>   enum chip_id {
+>> +	RCAR_M2,
+>>   	RCAR_H2,
 >
-> "Magic button". It is just DSP application which sends request to
-> hardware. And if hardware says OK, that magic SDR application says for
-> own DSP hey change sampling rate to mach stream.
+> What about renaming RCAR_H2 to RCAR_GEN2 instead, and using RCAR_GEN2 for both
+> r8a7790 and r8a7791 (but keeping the "r8a7790-vin" and "r8a7791-vin" device
+> IDs as you've done below) ? They're identical so far (at least from what's
+> implemented in the driver, you might be aware of features specific to the H2
+> or M2 that are not yet supported but will be implemented in the near future).
+
+Yes, the driver won't see any difference at this point.
+The h/w (at least the input data formats supported) seems a bit different though.
+The M2 variant doesn't seem to support 4-bit data (AOT H2).
+I'm not aware or any M2 or H2 specific features that need to be implemented in the near future.
+I've preferred to keep them separate just in case.
+I wouldn't mind to use the same (GEN2) id for both but we may need to split them in the future.
+
 >
-> There is huge amount of bits streaming, no need to tag. You could just
-> throw away second or two - does not matter. Imagine it similarly like a
-> UDP VoIP call - when you lose data, so what, it is 20ms of audio and
-> none cares.
-> It is similarly here, if you lose some data due to sampling rate
-> mismatch, so what. It is only few ms of audio (or some other). One way
-> radio channel is something it should be robust for such issues - you
-> cannot request retry.
->
->> If the hardware supports it, I don't see an reason why blocking calling
->> VIDIOC_S_FMT in the middle of a stream.
+>>   	RCAR_H1,
+>>   	RCAR_M1,
+>> @@ -302,8 +303,8 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>>   		dmr = 0;
+>>   		break;
+>>   	case V4L2_PIX_FMT_RGB32:
+>> -		if (priv->chip == RCAR_H2 || priv->chip == RCAR_H1 ||
+>> -		    priv->chip == RCAR_E1) {
+>> +		if (priv->chip == RCAR_M2 || priv->chip == RCAR_H2 ||
+>> +		    priv->chip == RCAR_H1 || priv->chip == RCAR_E1) {
+>>   			dmr = VNDMR_EXRGB;
+>>   			break;
+>>   		}
+>> @@ -1384,6 +1385,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops =
+>> { };
 >>
->> However, on all other hardwares, samples will be lost or will be
->> badly decoded, with would cause audio/video artifacts or even break
->> the decoding code if not properly written.
->>
->> Anyway, if samples will be lost anyway, the right thing to do is to
->> just stop streaming, change the sampling rate and start streaming
->> again. This way, you'll know that all buffers received before the
->> changes will have the old sampling rate, and all new buffers, the new
->> one.
+>>   static struct platform_device_id rcar_vin_id_table[] = {
+>> +	{ "r8a7791-vin",  RCAR_M2 },
+>>   	{ "r8a7790-vin",  RCAR_H2 },
+>>   	{ "r8a7779-vin",  RCAR_H1 },
+>>   	{ "r8a7778-vin",  RCAR_M1 },
 >
-> I cannot agree. It is too slow, without real benefits, for many use cases.
->
-> Also, I am pretty sure many of the hw DSP implementations will not
-> restart streaming when they hunt for demodulation lock. There is likely
-> just a long shift-register or FIFO where bits are running even different
-> sampling rates etc. are tested.
 
-I did some study of runtime sampling rate changes and I am very sure it 
-is *required*, especially for digital receivers, like DTV dedulators, 
-where timing is important. The main reason is synchronization - not only 
-for when channel is acquired but for run time synchronization too in 
-order to maintain receiver sync (lock).
-
-Here is one document which explains some reasons and solutions for 
-digital receiver synchronization:
-http://www.cs.tut.fi/kurssit/TLT-5806/Synch.pdf
-
-You can find a lot of more information when search "Synchronization 
-Techniques for Digital Receivers"
-
-What goes to Mirics MSi2500 ADC, it has even flag to signal when 
-sampling rate is changed. Due to that you will not even lose many 
-samples and it is possible to make demodulator design simpler. It is 
-byte 5 in USB packet header which changes between 10/90 when sampling 
-rate is changed as I shown in earlier video. I am pretty sure that they 
-have had good reason to add support for run time sampling rate change as 
-it is the only software based TV demodulator solution currently.
-
-**********
-So the requirements are what I listed originally + it must be possible 
-to change sampling rate during streaming.
-
-Now I am testing similar solution than VIDIOC_ENUM_FREQ_BANDS
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Thanks,
+Val.
