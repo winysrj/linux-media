@@ -1,91 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:55174 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090Ab3LQXNz (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39141 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753022Ab3LZOSS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 18:13:55 -0500
-Received: by mail-wg0-f48.google.com with SMTP id z12so6814286wgg.27
-        for <linux-media@vger.kernel.org>; Tue, 17 Dec 2013 15:13:54 -0800 (PST)
+	Thu, 26 Dec 2013 09:18:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Valentine Barshak <valentine.barshak@cogentembedded.com>
+Cc: linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add preliminary R-Car M2 support
+Date: Thu, 26 Dec 2013 15:18:47 +0100
+Message-ID: <1590143.Lfusyumoi4@avalon>
+In-Reply-To: <1387830486-10650-1-git-send-email-valentine.barshak@cogentembedded.com>
+References: <1387830486-10650-1-git-send-email-valentine.barshak@cogentembedded.com>
 MIME-Version: 1.0
-From: Zafrullah Syed <zafrullahmehdi@gmail.com>
-Date: Wed, 18 Dec 2013 00:13:34 +0100
-Message-ID: <CAAGt+t1QqKQ28fFvO22hdPZGxgDAvL1DkdhhYsZ-tm74aEm_4w@mail.gmail.com>
-Subject: mt9v032 media-ctl wrong commands
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+Hi Valentine,
 
-I am facing media-ctl commands problems past some days. My caspa
-camera driver is "omap3isp" and using "mt9v032" sensor.
+Thank you for the patch.
 
-My medi-ctl commands are as follows:
+On Tuesday 24 December 2013 00:28:06 Valentine Barshak wrote:
+> This adds R-Car M2 (R8A7791) VIN support.
+> 
+> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
+> ---
+>  drivers/media/platform/soc_camera/rcar_vin.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+> b/drivers/media/platform/soc_camera/rcar_vin.c index 6866bb4..8b79727
+> 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -106,6 +106,7 @@
+>  #define VIN_MAX_HEIGHT		2048
+> 
+>  enum chip_id {
+> +	RCAR_M2,
+>  	RCAR_H2,
 
-$ media-ctl -r -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-ISP CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3
-ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-output":0[1]'
+What about renaming RCAR_H2 to RCAR_GEN2 instead, and using RCAR_GEN2 for both 
+r8a7790 and r8a7791 (but keeping the "r8a7790-vin" and "r8a7791-vin" device 
+IDs as you've done below) ? They're identical so far (at least from what's 
+implemented in the driver, you might be aware of features specific to the H2 
+or M2 that are not yet supported but will be implemented in the near future).
 
-$ media-ctl -V '"mt9v032 3-005c":0[SGRBG10 752x480], "OMAP3 ISP
-CCDC":2[SGRBG10 752x480], "OMAP3 ISP preview":1[UYVY 752x480], "OMAP3
-ISP resizer":1[UYVY 752x480]'
+>  	RCAR_H1,
+>  	RCAR_M1,
+> @@ -302,8 +303,8 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  		dmr = 0;
+>  		break;
+>  	case V4L2_PIX_FMT_RGB32:
+> -		if (priv->chip == RCAR_H2 || priv->chip == RCAR_H1 ||
+> -		    priv->chip == RCAR_E1) {
+> +		if (priv->chip == RCAR_M2 || priv->chip == RCAR_H2 ||
+> +		    priv->chip == RCAR_H1 || priv->chip == RCAR_E1) {
+>  			dmr = VNDMR_EXRGB;
+>  			break;
+>  		}
+> @@ -1384,6 +1385,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops =
+> { };
+> 
+>  static struct platform_device_id rcar_vin_id_table[] = {
+> +	{ "r8a7791-vin",  RCAR_M2 },
+>  	{ "r8a7790-vin",  RCAR_H2 },
+>  	{ "r8a7779-vin",  RCAR_H1 },
+>  	{ "r8a7778-vin",  RCAR_M1 },
 
-After giving these commands and running gstreamer pipeline, i get
+-- 
+Regards,
 
-ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Failed
-to enumerate possible video formats device '/dev/video6' can work with
-and
-Failed to get number 0 in pixelformat enumeration for /dev/video6. (25
-- Inappropriate ioctl for device)
+Laurent Pinchart
 
-detailed problem is listed here( http://goo.gl/PSYOjR )
-
-I guess these are because of wrong media-ctl commands? Even if I
-change the camera resolution to something else like 734x471 or
-640x480, I get these two same errors. Any inputs on where I am doing
-wrong?
-
-The output of media device information
-is(http://pastebin.com/xKrQMzcL) , entity 12 is my camera sensor,
-which has the following pads and sinks:
-
-- entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video6
-pad0: Sink
-<- "OMAP3 ISP resizer":1 [ENABLED]
-
-- entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev5
-pad0: Sink
-<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-
-- entity 14: OMAP3 ISP AF (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev6
-pad0: Sink
-<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-
-- entity 15: OMAP3 ISP histogram (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev7
-pad0: Sink
-<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-
-- entity 16: mt9v032 3-005c (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev8
-pad0: Source
-[fmt:SGRBG10/752x480
- crop:(1,5)/752x480]
--> "OMAP3 ISP CCDC":0 [ENABLED]
-
-
-Other Info: /dev/Video 6 Lists formats http://pastebin.com/JvjaktsP
-                /dev/Video6  all properties http://pastebin.com/ybSUSmBV
-
-Many Thanks & Regards,
-Zafrullah
