@@ -1,85 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36902 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753536Ab3LROkS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Dec 2013 09:40:18 -0500
-Message-ID: <52B1B3CD.8010103@iki.fi>
-Date: Wed, 18 Dec 2013 16:40:13 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH REVIEW 03/18] Montage M88DS3103 DVB-S/S2 demodulator driver
-References: <1386541895-8634-1-git-send-email-crope@iki.fi> <1386541895-8634-4-git-send-email-crope@iki.fi> <20131218103535.2a7a2f32@samsung.com>
-In-Reply-To: <20131218103535.2a7a2f32@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4635 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754127Ab3L0DeB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Dec 2013 22:34:01 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBR3XwTs059776
+	for <linux-media@vger.kernel.org>; Fri, 27 Dec 2013 04:34:00 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 66CCC2A2228
+	for <linux-media@vger.kernel.org>; Fri, 27 Dec 2013 04:33:30 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131227033330.66CCC2A2228@tschai.lan>
+Date: Fri, 27 Dec 2013 04:33:30 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18.12.2013 14:35, Mauro Carvalho Chehab wrote:
-> Hi Antti,
->
-> Em Mon,  9 Dec 2013 00:31:20 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> DVB-S/S2 satellite television demodulator driver.
->> + *    You should have received a copy of the GNU General Public License along
->> + *    with this program; if not, write to the Free Software Foundation, Inc.,
->> + *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
->> + */
->
-> New versions of checkpatch complain about the above:
->
-> ERROR: Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.
-> #73: FILE: drivers/media/dvb-frontends/m88ds3103.c:16:
-> + *    You should have received a copy of the GNU General Public License along$
->
-> What they're likely want to prevent is to have future big mass patches just
-> to fix the GNU address.
->
-> This is not needed, anyway, as kernel has the /COPYING file with has the
-> GPLv2 license.
->
-> So, could you please remove this and resend the pull request?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Hey, that is written almost year ago and those new checkpatch 
-requirements are very new, I think from latest release candidate version.
+Results of the daily build of media_tree:
 
-However, I could send new patch top of that set which meets latest 
-3.13-rc4 checkpatch requirements.
+date:		Fri Dec 27 04:00:16 CET 2013
+git branch:	test
+git hash:	7d459937dc09bb8e448d9985ec4623779427d8a5
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
->> +static int m88ds3103_wr_regs(struct m88ds3103_priv *priv,
->> +	u8 buf[1 + len];
->
-> Please, don't use dynamic buffer.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Same here. Fixed already by later patched.
+Detailed results are available here:
 
->> +static int m88ds3103_rd_regs(struct m88ds3103_priv *priv,
-> Same here.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Same here. Fixed already by later patched.
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
 
->> diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
-
->> +static const struct m88ds3103_reg_val m88ds3103_dvbs_init_reg_vals[] = {
->
-> Why to put this inside a header file? Is it shared with some other c file?
-
-It is private header file, not the shared one which is named as 
-m88ds3103.h. Having inittabs inside private header file is common 
-practice among DVB frontend driver. I think almost all demod driver has 
-done it similarly. I suspect the main reason is just to separate static 
-stuff out from code to keep driver file itself shorter.
-
-I think it is good practice. It is place for another discussion whether 
-it is good practice or not.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/spec/media.html
