@@ -1,111 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3655 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693Ab3LVDdz (ORCPT
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:45916 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755237Ab3L1PqU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Dec 2013 22:33:55 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBM3XpVI040142
-	for <linux-media@vger.kernel.org>; Sun, 22 Dec 2013 04:33:53 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id D2B642A2226
-	for <linux-media@vger.kernel.org>; Sun, 22 Dec 2013 04:33:29 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131222033329.D2B642A2226@tschai.lan>
-Date: Sun, 22 Dec 2013 04:33:29 +0100 (CET)
+	Sat, 28 Dec 2013 10:46:20 -0500
+Received: by mail-ee0-f44.google.com with SMTP id b57so4433532eek.31
+        for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 07:46:17 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 01/13] libdvbv5: fix reading multisection tables
+Date: Sat, 28 Dec 2013 16:45:49 +0100
+Message-Id: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/libdvbv5/dvb-scan.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-Results of the daily build of media_tree:
+diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+index e9ccc72..af3a052 100644
+--- a/lib/libdvbv5/dvb-scan.c
++++ b/lib/libdvbv5/dvb-scan.c
+@@ -187,15 +187,19 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+ 		dvb_table_header_init(h);
+ 		if (id != -1 && h->id != id) { /* search for a specific table id */
+ 			continue;
+-		} else {
+-			if (table_id == -1)
+-				table_id = h->id;
+-			else if (h->id != table_id) {
+-				dvb_logwarn("dvb_read_section: table ID mismatch reading multi section table: %d != %d", h->id, table_id);
+-				continue;
+-			}
+ 		}
+ 
++		/*if (id != -1) {*/
++			/*if (table_id == -1)*/
++				/*table_id = h->id;*/
++			/*else if (h->id != table_id) {*/
++				/*dvb_logwarn("dvb_read_section: table ID mismatch reading multi section table: %d != %d", h->id, table_id);*/
++				/*free(buf);*/
++				/*continue;*/
++			/*}*/
++		/*}*/
++
++		dvb_logerr("dvb_read_section: got section %d, last %di, filter %d", h->section_id, h->last_section, id );
+ 		/* handle the sections */
+ 		if (first_section == -1)
+ 			first_section = h->section_id;
+-- 
+1.8.3.2
 
-date:		Sun Dec 22 04:00:26 CET 2013
-git branch:	test
-git hash:	c57f87e62368c33ebda11a4993380c8e5a19a5c5
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
