@@ -1,86 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:30268 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751267Ab3LRLWG (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:50199 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755245Ab3L1MQ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Dec 2013 06:22:06 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MY000A0G28S6A00@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Dec 2013 06:22:04 -0500 (EST)
-Date: Wed, 18 Dec 2013 09:21:58 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, sw0312.kim@samsung.com,
-	andrzej.p@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH v2 09/16] s5p-jpeg: Split jpeg-hw.h to jpeg-hw-s5p.c and
- jpeg-hw-s5p.c
-Message-id: <20131218092158.4102dc89@samsung.com>
-In-reply-to: <1385373503-1657-10-git-send-email-j.anaszewski@samsung.com>
-References: <1385373503-1657-1-git-send-email-j.anaszewski@samsung.com>
- <1385373503-1657-10-git-send-email-j.anaszewski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Sat, 28 Dec 2013 07:16:28 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 13/24] em28xx: retry I2C ops if failed by timeout
+Date: Sat, 28 Dec 2013 10:16:05 -0200
+Message-Id: <1388232976-20061-14-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 Nov 2013 10:58:16 +0100
-Jacek Anaszewski <j.anaszewski@samsung.com> escreveu:
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-> Move function definitions from jpeg-hw.h to jpeg-hw-s5p.c
-> and put function declarations in the jpeg-hw-s5p.h.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+At least on HVR-950, sometimes an I2C operation fails.
 
-...
+This seems to be more frequent when the device is connected
+into an USB 3.0 port.
 
-> +void jpeg_reset(void __iomem *regs);
-> +void jpeg_poweron(void __iomem *regs);
-> +void jpeg_input_raw_mode(void __iomem *regs, unsigned long mode);
-> +void jpeg_input_raw_y16(void __iomem *regs, bool y16);
-> +void jpeg_proc_mode(void __iomem *regs, unsigned long mode);
-> +void jpeg_subsampling_mode(void __iomem *regs, unsigned int mode);
-> +unsigned int jpeg_get_subsampling_mode(void __iomem *regs);
-> +void jpeg_dri(void __iomem *regs, unsigned int dri);
-> +void jpeg_qtbl(void __iomem *regs, unsigned int t, unsigned int n);
-> +void jpeg_htbl_ac(void __iomem *regs, unsigned int t);
-> +void jpeg_htbl_dc(void __iomem *regs, unsigned int t);
-> +void jpeg_y(void __iomem *regs, unsigned int y);
-> +void jpeg_x(void __iomem *regs, unsigned int x);
-> +void jpeg_rst_int_enable(void __iomem *regs, bool enable);
-> +void jpeg_data_num_int_enable(void __iomem *regs, bool enable);
-> +void jpeg_final_mcu_num_int_enable(void __iomem *regs, bool enbl);
-> +void jpeg_timer_enable(void __iomem *regs, unsigned long val);
-> +void jpeg_timer_disable(void __iomem *regs);
-> +int jpeg_timer_stat(void __iomem *regs);
-> +void jpeg_clear_timer_stat(void __iomem *regs);
-> +void jpeg_enc_stream_int(void __iomem *regs, unsigned long size);
-> +int jpeg_enc_stream_stat(void __iomem *regs);
-> +void jpeg_clear_enc_stream_stat(void __iomem *regs);
-> +void jpeg_outform_raw(void __iomem *regs, unsigned long format);
-> +void jpeg_jpgadr(void __iomem *regs, unsigned long addr);
-> +void jpeg_imgadr(void __iomem *regs, unsigned long addr);
-> +void jpeg_coef(void __iomem *regs, unsigned int i,
-> +			     unsigned int j, unsigned int coef);
-> +void jpeg_start(void __iomem *regs);
-> +int jpeg_result_stat_ok(void __iomem *regs);
-> +int jpeg_stream_stat_ok(void __iomem *regs);
-> +void jpeg_clear_int(void __iomem *regs);
-> +unsigned int jpeg_compressed_size(void __iomem *regs);
+Instead of report an error, try to repeat it, for up to
+20 ms. That makes the code more reliable.
 
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c | 67 ++++++++++++++++++++---------------
+ 1 file changed, 38 insertions(+), 29 deletions(-)
 
-NACK. Please don't pollute Kernel name space. 
-
-Those functions are specific to s5p. They should all be prepended by s5p_, 
-or otherwise it will risk to cause conflicts with other global symbols
-that could have the same name, for kernels compiled will allyesconfig.
-
-Regards,
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 9fa7ed51e5b1..26f7b0a2e83a 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -181,6 +181,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ 	 * Zero length reads always succeed, even if no device is connected
+ 	 */
+ 
++retry:
+ 	/* Write to i2c device */
+ 	ret = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
+ 	if (ret != len) {
+@@ -200,11 +201,8 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ 		ret = dev->em28xx_read_reg(dev, 0x05);
+ 		if (ret == 0) /* success */
+ 			return len;
+-		if (ret == 0x10) {
+-			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
+-				    addr);
+-			return -ENODEV;
+-		}
++		if (ret == 0x10)
++			goto retry;
+ 		if (ret < 0) {
+ 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+ 				    ret);
+@@ -218,6 +216,11 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ 		 */
+ 	}
+ 
++	if (ret == 0x10) {
++		em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
++			    addr);
++		return -ENODEV;
++	}
+ 	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
+ 	return -EIO;
+ }
+@@ -228,6 +231,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+  */
+ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ {
++	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
+ 	int ret;
+ 
+ 	if (len < 1 || len > 64)
+@@ -237,30 +241,35 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ 	 * Zero length reads always succeed, even if no device is connected
+ 	 */
+ 
+-	/* Read data from i2c device */
+-	ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
+-	if (ret < 0) {
+-		em28xx_warn("reading from i2c device at 0x%x failed (error=%i)\n",
+-			    addr, ret);
+-		return ret;
+-	}
+-	/*
+-	 * NOTE: some devices with two i2c busses have the bad habit to return 0
+-	 * bytes if we are on bus B AND there was no write attempt to the
+-	 * specified slave address before AND no device is present at the
+-	 * requested slave address.
+-	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
+-	 * spamming the system log on device probing and do nothing here.
+-	 */
+-
+-	/* Check success of the i2c operation */
+-	ret = dev->em28xx_read_reg(dev, 0x05);
+-	if (ret == 0) /* success */
+-		return len;
+-	if (ret < 0) {
+-		em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+-			    ret);
+-		return ret;
++	while (time_is_after_jiffies(timeout)) {
++		/* Read data from i2c device */
++		ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
++		if (ret < 0) {
++			em28xx_warn("reading from i2c device at 0x%x failed (error=%i)\n",
++				    addr, ret);
++			return ret;
++		}
++		/*
++		 * NOTE: some devices with two i2c busses have the bad habit to return 0
++		* bytes if we are on bus B AND there was no write attempt to the
++		* specified slave address before AND no device is present at the
++		* requested slave address.
++		* Anyway, the next check will fail with -ENODEV in this case, so avoid
++		* spamming the system log on device probing and do nothing here.
++		*/
++
++		/* Check success of the i2c operation */
++		ret = dev->em28xx_read_reg(dev, 0x05);
++		if (ret == 0) /* success */
++			return len;
++		if (ret < 0) {
++			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
++				    ret);
++			return ret;
++		}
++		if (ret != 0x10)
++			break;
++		msleep(5);
+ 	}
+ 	if (ret == 0x10) {
+ 		em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
 -- 
+1.8.3.1
 
-Cheers,
-Mauro
