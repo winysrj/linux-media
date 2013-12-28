@@ -1,130 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:38634 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755876Ab3L3Mtk (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:50191 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755229Ab3L1MQ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 07:49:40 -0500
-Received: by mail-ee0-f46.google.com with SMTP id d49so4940687eek.5
-        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:39 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 17/18] libdvbv5: remove header files from SOURCES in Makefile.am
-Date: Mon, 30 Dec 2013 13:48:50 +0100
-Message-Id: <1388407731-24369-17-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sat, 28 Dec 2013 07:16:27 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 22/24] em28xx: use a better value for I2C timeouts
+Date: Sat, 28 Dec 2013 10:16:14 -0200
+Message-Id: <1388232976-20061-23-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/libdvbv5/Makefile.am | 87 ++++++++++++++++++++++++------------------------
- 1 file changed, 43 insertions(+), 44 deletions(-)
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-index ddf9ea1..8f89531 100644
---- a/lib/libdvbv5/Makefile.am
-+++ b/lib/libdvbv5/Makefile.am
-@@ -52,52 +52,51 @@ noinst_LTLIBRARIES = libdvbv5.la
- endif
+In the lack of a better spec, let's assume the timeout
+values compatible with SMBus spec:
+	http://smbus.org/specs/smbus110.pdf
+
+at chapter 8 - Electrical Characteristics of SMBus devices
+
+Ok, SMBus is a subset of I2C, and not all devices will be
+following it, but the timeout value before this patch was not
+even following the spec.
+
+So, while we don't have a better guess for it, use 35 + 1
+ms as the timeout.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx.h | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index db47c2236ca4..9af19332b0f1 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -183,8 +183,21 @@
  
- libdvbv5_la_SOURCES = \
--	crc32.c crc32.h \
--	../include/dvb-frontend.h \
-+	crc32.c \
- 	dvb-legacy-channel-format.c \
- 	dvb-zap-format.c \
--	dvb-v5.c	dvb-v5.h \
--	parse_string.c	parse_string.h \
--	dvb-demux.c	../include/dvb-demux.h \
--	dvb-fe.c	../include/dvb-fe.h \
--	dvb-log.c	../include/dvb-log.h \
--	dvb-file.c	../include/dvb-file.h \
--	dvb-v5-std.c	../include/dvb-v5-std.h \
--	dvb-sat.c	../include/dvb-sat.h \
--	dvb-scan.c	../include/dvb-scan.h \
--	descriptors.c	../include/descriptors.h \
--	descriptors/header.c		../include/libdvbv5/header.h \
--	descriptors/atsc_header.c	../include/libdvbv5/atsc_header.h \
--	descriptors/pat.c		../include/libdvbv5/pat.h \
--	descriptors/pmt.c		../include/libdvbv5/pmt.h \
--	descriptors/nit.c		../include/libdvbv5/nit.h \
--	descriptors/sdt.c		../include/libdvbv5/sdt.h \
--	descriptors/vct.c		../include/libdvbv5/vct.h \
--	descriptors/mgt.c		../include/libdvbv5/mgt.h \
--	descriptors/eit.c		../include/libdvbv5/eit.h \
--	descriptors/atsc_eit.c		../include/libdvbv5/atsc_eit.h \
--	descriptors/desc_language.c		../include/libdvbv5/desc_language.h \
--	descriptors/desc_network_name.c		../include/libdvbv5/desc_network_name.h \
--	descriptors/desc_cable_delivery.c	../include/libdvbv5/desc_cable_delivery.h \
--	descriptors/desc_sat.c			../include/libdvbv5/desc_sat.h \
--	descriptors/desc_terrestrial_delivery.c  ../include/libdvbv5/desc_terrestrial_delivery.h \
--	descriptors/desc_t2_delivery.c		../include/libdvbv5/desc_t2_delivery.h \
--	descriptors/desc_service.c		../include/libdvbv5/desc_service.h \
--	descriptors/desc_frequency_list.c	../include/libdvbv5/desc_frequency_list.h \
--	descriptors/desc_service_list.c		../include/libdvbv5/desc_service_list.h \
--	descriptors/desc_event_short.c		../include/libdvbv5/desc_event_short.h \
--	descriptors/desc_event_extended.c	../include/libdvbv5/desc_event_extended.h \
--	descriptors/desc_atsc_service_location.c ../include/libdvbv5/desc_atsc_service_location.h \
--	descriptors/desc_hierarchy.c		../include/libdvbv5/desc_hierarchy.h \
--	descriptors/desc_extension.c		../include/libdvbv5/desc_extension.h \
--	descriptors/desc_isdbt_delivery.c	../include/libdvbv5/desc_isdbt_delivery.h \
--	descriptors/desc_logical_channel.c	../include/libdvbv5/desc_logical_channel.h \
--	descriptors/desc_ts_info.c		../include/libdvbv5/desc_ts_info.h \
--	descriptors/desc_partial_reception.c	../include/libdvbv5/desc_partial_reception.h \
--	descriptors/desc_service_location.c	../include/libdvbv5/desc_service_location.h \
--	descriptors/mpeg_ts.c		../include/libdvbv5/mpeg_ts.h \
--	descriptors/mpeg_pes.c		../include/libdvbv5/mpeg_pes.h \
--	descriptors/mpeg_es.c		../include/libdvbv5/mpeg_es.h
-+	dvb-v5.c	 \
-+	parse_string.c	 \
-+	dvb-demux.c	 \
-+	dvb-fe.c	 \
-+	dvb-log.c	\
-+	dvb-file.c	\
-+	dvb-v5-std.c	\
-+	dvb-sat.c	\
-+	dvb-scan.c	\
-+	descriptors.c	\
-+	descriptors/header.c		\
-+	descriptors/atsc_header.c	\
-+	descriptors/pat.c		\
-+	descriptors/pmt.c		\
-+	descriptors/nit.c		\
-+	descriptors/sdt.c		\
-+	descriptors/vct.c		\
-+	descriptors/mgt.c		\
-+	descriptors/eit.c		\
-+	descriptors/atsc_eit.c		\
-+	descriptors/desc_language.c		\
-+	descriptors/desc_network_name.c		\
-+	descriptors/desc_cable_delivery.c	\
-+	descriptors/desc_sat.c			\
-+	descriptors/desc_terrestrial_delivery.c  \
-+	descriptors/desc_t2_delivery.c		\
-+	descriptors/desc_service.c		\
-+	descriptors/desc_frequency_list.c	\
-+	descriptors/desc_service_list.c		\
-+	descriptors/desc_event_short.c		\
-+	descriptors/desc_event_extended.c	\
-+	descriptors/desc_atsc_service_location.c \
-+	descriptors/desc_hierarchy.c		\
-+	descriptors/desc_extension.c		\
-+	descriptors/desc_isdbt_delivery.c	\
-+	descriptors/desc_logical_channel.c	\
-+	descriptors/desc_ts_info.c		\
-+	descriptors/desc_partial_reception.c	\
-+	descriptors/desc_service_location.c	\
-+	descriptors/mpeg_ts.c		\
-+	descriptors/mpeg_pes.c		\
-+	descriptors/mpeg_es.c
+ #define EM28XX_INTERLACED_DEFAULT 1
  
- libdvbv5_la_CPPFLAGS = -I../.. $(ENFORCE_LIBDVBV5_STATIC)
- libdvbv5_la_LDFLAGS = $(LIBDVBV5_VERSION) $(ENFORCE_LIBDVBV5_STATIC) -lm
+-/* time in msecs to wait for i2c xfers to finish */
+-#define EM2800_I2C_XFER_TIMEOUT		20
++/*
++ * Time in msecs to wait for i2c xfers to finish.
++ * 35ms is the maximum time a SMBUS device could wait when
++ * clock stretching is used. As the transfer itself will take
++ * some time to happen, set it to 35 ms.
++ *
++ * Ok, I2C doesn't specify any limit. So, eventually, we may need
++ * to increase this timeout.
++ *
++ * FIXME: this assumes that an I2C message is not longer than 1ms.
++ * This is actually dependent on the I2C bus speed, although most
++ * devices use a 100kHz clock. So, this assumtion is true most of
++ * the time.
++ */
++#define EM2800_I2C_XFER_TIMEOUT		36
+ 
+ /* time in msecs to wait for AC97 xfers to finish */
+ #define EM2800_AC97_XFER_TIMEOUT	100
 -- 
-1.8.3.2
+1.8.3.1
 
