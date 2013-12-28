@@ -1,69 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57912 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161645Ab3LFNe3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 08:34:29 -0500
-Message-ID: <1386336562.4088.5.camel@weser.hi.pengutronix.de>
-Subject: Re: [PATCHv5][ 2/8] staging: imx-drm: Add RGB666 support for
- parallel display.
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Denis Carikli <denis@eukrea.com>, Marek Vasut <marex@denx.de>,
-	Mark Rutland <mark.rutland@arm.com>,
-	devel@driverdev.osuosl.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Eric =?ISO-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Rob Herring <rob.herring@calxeda.com>,
-	devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-media@vger.kernel.org,
-	driverdev-devel@linuxdriverproject.org,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Date: Fri, 06 Dec 2013 14:29:22 +0100
-In-Reply-To: <20131206131403.GA30960@ulmo.nvidia.com>
-References: <1386268092-21719-1-git-send-email-denis@eukrea.com>
-	 <1386268092-21719-2-git-send-email-denis@eukrea.com>
-	 <20131206131403.GA30960@ulmo.nvidia.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:64547 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755301Ab3L1RFF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 12:05:05 -0500
+Received: by mail-wg0-f47.google.com with SMTP id n12so8896437wgh.2
+        for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 09:05:04 -0800 (PST)
+Received: from [192.168.1.100] (188.29.109.137.threembb.co.uk. [188.29.109.137])
+        by mx.google.com with ESMTPSA id fj8sm60691903wib.1.2013.12.28.09.05.03
+        for <linux-media@vger.kernel.org>
+        (version=SSLv3 cipher=RC4-SHA bits=128/128);
+        Sat, 28 Dec 2013 09:05:03 -0800 (PST)
+Message-ID: <1388250291.5893.5.camel@canaries32-MCP7A>
+Subject: [PATCH 3/3] m88rs2000: Correct m88rs2000_get_fec
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Sat, 28 Dec 2013 17:04:51 +0000
 Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 06.12.2013, 14:14 +0100 schrieb Thierry Reding:
-> On Thu, Dec 05, 2013 at 07:28:06PM +0100, Denis Carikli wrote:
-> [...]
-> > diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-> [...]
-> > @@ -155,6 +156,8 @@ static int ipu_pixfmt_to_map(u32 fmt)
-> >  		return IPU_DC_MAP_BGR666;
-> >  	case V4L2_PIX_FMT_BGR24:
-> >  		return IPU_DC_MAP_BGR24;
-> > +	case V4L2_PIX_FMT_RGB666:
-> > +		return IPU_DC_MAP_RGB666;
-> 
-> Why is this DRM driver even using V4L2 pixel formats in the first place?
-> 
-Because imx-drm is actually a misnomer. The i.MX IPU is a multifunction
-device, which as one part has the display controllers, but also camera
-interfaces and mem-to-mem scaler devices, which are hooked up via the
-V4L2 interface.
+Value of fec is achieved by the upper nibble bits 6,7 & 8.
 
-The generic IPU part, which is used for example for programming the DMA
-channels is using V4L2 pixel formats as a common base. We have patches
-to split this out and make this fact more visible. (The IPU core will be
-placed aside the Tegra host1x driver)
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb-frontends/m88rs2000.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-Regards,
-Lucas
+diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
+index 002b109..b235146 100644
+--- a/drivers/media/dvb-frontends/m88rs2000.c
++++ b/drivers/media/dvb-frontends/m88rs2000.c
+@@ -581,18 +581,20 @@ static fe_code_rate_t m88rs2000_get_fec(struct m88rs2000_state *state)
+ 	reg = m88rs2000_readreg(state, 0x76);
+ 	m88rs2000_writereg(state, 0x9a, 0xb0);
+ 
++	reg &= 0xf0;
++	reg >>= 5;
++
+ 	switch (reg) {
+-	case 0x88:
++	case 0x4:
+ 		return FEC_1_2;
+-	case 0x68:
++	case 0x3:
+ 		return FEC_2_3;
+-	case 0x48:
++	case 0x2:
+ 		return FEC_3_4;
+-	case 0x28:
++	case 0x1:
+ 		return FEC_5_6;
+-	case 0x18:
++	case 0x0:
+ 		return FEC_7_8;
+-	case 0x08:
+ 	default:
+ 		break;
+ 	}
 -- 
-Pengutronix e.K.                           | Lucas Stach                 |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5076 |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.8.5.2
+
 
