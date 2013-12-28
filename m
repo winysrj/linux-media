@@ -1,79 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:46152 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750896Ab3LSOWq (ORCPT
+Received: from mail-we0-f176.google.com ([74.125.82.176]:42624 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755301Ab3L1RAu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 09:22:46 -0500
-Date: Thu, 19 Dec 2013 14:22:41 +0000
-From: Luis Henriques <luis.henriques@canonical.com>
-To: Frederik Himpe <fhimpe@telenet.be>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: stable regression: tda18271_read_regs: [1-0060|M] ERROR:
- i2c_transfer returned: -19
-Message-ID: <20131219142241.GD3866@hercules>
-References: <1386969579.3914.13.camel@piranha.localdomain>
- <20131214092443.622b069d@samsung.com>
- <1387223868.2892.1.camel@piranha.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1387223868.2892.1.camel@piranha.localdomain>
+	Sat, 28 Dec 2013 12:00:50 -0500
+Received: by mail-we0-f176.google.com with SMTP id p61so8873517wes.21
+        for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 09:00:49 -0800 (PST)
+Received: from [192.168.1.100] (188.29.109.137.threembb.co.uk. [188.29.109.137])
+        by mx.google.com with ESMTPSA id dd3sm21794713wjb.9.2013.12.28.09.00.46
+        for <linux-media@vger.kernel.org>
+        (version=SSLv3 cipher=RC4-SHA bits=128/128);
+        Sat, 28 Dec 2013 09:00:47 -0800 (PST)
+Message-ID: <1388250040.5893.1.camel@canaries32-MCP7A>
+Subject: [PATCH 1/3] m88rs2000: correct read status lock value.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Sat, 28 Dec 2013 17:00:40 +0000
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 16, 2013 at 08:57:48PM +0100, Frederik Himpe wrote:
-> On za, 2013-12-14 at 09:24 -0200, Mauro Carvalho Chehab wrote:
-> > Em Fri, 13 Dec 2013 22:19:39 +0100
-> > Frederik Himpe <fhimpe@telenet.be> escreveu:
-> > 
-> > > [My excuses for multiposting, it seems gmane does not permit posting to all
-> > > the relevant lists]
-> > > 
-> > > Since upgrading my system from Linux 3.12 to 3.12.3, my PCTV Systems
-> > > nanoStick T2 290e does not work anymore.
-> > > 
-> > > This happens with 3.12.3:
-> > > 
-> 
-> > > [    3.844020] tda18271 1-0060: creating new instance
-> > > [    3.868422] tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer returned: -19
-> > > [    3.868492] Error reading device ID @ 1-0060, bailing out.
-> > > [    3.868548] tda18271_attach: [1-0060|M] error -5 on line 1285
-> > > [    3.868603] tda18271 1-0060: destroying instance
-> > > [    3.868666] Em28xx: Initialized (Em28xx dvb Extension) extension
-> > > [    3.894687] Registered IR keymap rc-pinnacle-pctv-hd
-> > > [    3.894819] input: em28xx IR (em28174 #0) as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.7/rc/rc0/input23
-> > > [    3.894979] rc0: em28xx IR (em28174 #0) as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.7/rc/rc0
-> > > [    3.895570] Em28xx: Initialized (Em28xx Input Extension) extension
-> > > 
-> > > I see the same problem reported here:
-> > > https://github.com/Hexxeh/rpi-firmware/issues/38 where it is mentioned
-> > > that this regression also appeared in 3.10 stable series recently.
-> > > 
-> > > I noticed upstream commit 8393796dfa4cf5dffcceec464c7789bec3a2f471
-> > > (media: dvb-frontends: Don't use dynamic static allocation)
-> > > entered both 3.10.22 (which is the first version introducing the
-> > > regression in 3.10 stable according to the linked bug), and 3.12.3.
-> > > This file contains stuff related to tda18271. Could this be the 
-> > > culprit?
-> > > 
-> > 
-> > Well, for board EM28174_BOARD_PCTV_290E, it first attaches cxd2820r
-> > and then the tuner tda18271.
-> > 
-> > I suspect that the issue is at cxd2820r. Could you please apply this
-> > patch:
-> > 	http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=0db3fa2741ad8371c21b3a6785416a4afc0cc1d4 
-> > and see if it solves the issue?
-> 
-> I have applied this patch to 3.12.5 and I can confirm it works fine now.
-> Can this patch be applied to the stable series in order to fix this
-> regression in stable?
+The correct lock values is when bits of the value 0xee are set.
 
-I'm also queuing this patch for the 3.11 kernel.
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb-frontends/m88rs2000.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Cheers,
---
-Luis
+diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
+index 02699c1..f9d04db 100644
+--- a/drivers/media/dvb-frontends/m88rs2000.c
++++ b/drivers/media/dvb-frontends/m88rs2000.c
+@@ -469,7 +469,7 @@ static int m88rs2000_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	*status = 0;
+ 
+-	if ((reg & 0x7) == 0x7) {
++	if ((reg & 0xee) == 0xee) {
+ 		*status = FE_HAS_CARRIER | FE_HAS_SIGNAL | FE_HAS_VITERBI
+ 			| FE_HAS_SYNC | FE_HAS_LOCK;
+ 		if (state->config->set_ts_params)
+@@ -677,7 +677,7 @@ static int m88rs2000_set_frontend(struct dvb_frontend *fe)
+ 
+ 	for (i = 0; i < 25; i++) {
+ 		reg = m88rs2000_readreg(state, 0x8c);
+-		if ((reg & 0x7) == 0x7) {
++		if ((reg & 0xee) == 0xee) {
+ 			status = FE_HAS_LOCK;
+ 			break;
+ 		}
+-- 
+1.8.5.2
+
