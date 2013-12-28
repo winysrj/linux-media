@@ -1,44 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4847 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987Ab3LXPm3 (ORCPT
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:34834 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755276Ab3L1PqW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Dec 2013 10:42:29 -0500
-Message-ID: <52B9AB5B.3040009@xs4all.nl>
-Date: Tue, 24 Dec 2013 16:42:19 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 28 Dec 2013 10:46:22 -0500
+Received: by mail-ee0-f41.google.com with SMTP id t10so4512470eei.28
+        for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 07:46:21 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 06/13] libdvbv5: fix eit times
+Date: Sat, 28 Dec 2013 16:45:54 +0100
+Message-Id: <1388245561-8751-6-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Jim Davis <jim.epost@gmail.com>,
-	kbuild test robot <fengguang.wu@intel.com>
-Subject: [PATCH for v3.14] sn9c102: fix build dependency
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver should only build if MEDIA_USB_SUPPORT is set.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Jim Davis <jim.epost@gmail.com>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- drivers/staging/media/sn9c102/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/libdvbv5/descriptors/eit.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/media/sn9c102/Kconfig b/drivers/staging/media/sn9c102/Kconfig
-index d8ae235..c9aba59 100644
---- a/drivers/staging/media/sn9c102/Kconfig
-+++ b/drivers/staging/media/sn9c102/Kconfig
-@@ -1,6 +1,6 @@
- config USB_SN9C102
- 	tristate "USB SN9C1xx PC Camera Controller support (DEPRECATED)"
--	depends on VIDEO_V4L2
-+	depends on VIDEO_V4L2 && MEDIA_USB_SUPPORT
- 	---help---
- 	  This driver is DEPRECATED, please use the gspca sonixb and
- 	  sonixj modules instead.
+diff --git a/lib/libdvbv5/descriptors/eit.c b/lib/libdvbv5/descriptors/eit.c
+index d13b14c..e70cf3b 100644
+--- a/lib/libdvbv5/descriptors/eit.c
++++ b/lib/libdvbv5/descriptors/eit.c
+@@ -155,9 +155,8 @@ void dvb_time(const uint8_t data[5], struct tm *tm)
+   tm->tm_mday  = day;
+   tm->tm_mon   = month - 1;
+   tm->tm_year  = year;
+-  tm->tm_isdst = -1;
+-  tm->tm_wday  = 0;
+-  tm->tm_yday  = 0;
++  tm->tm_isdst = 1; // dst in effect, do not adjust
++  mktime( tm );
+ }
+ 
+ 
 -- 
-1.8.5.2
+1.8.3.2
 
