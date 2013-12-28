@@ -1,50 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2708 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760679Ab3LII4u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 03:56:50 -0500
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB98ulpc077015
-	for <linux-media@vger.kernel.org>; Mon, 9 Dec 2013 09:56:49 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 83D862A2223
-	for <linux-media@vger.kernel.org>; Mon,  9 Dec 2013 09:56:42 +0100 (CET)
-Message-ID: <52A585CA.4040603@xs4all.nl>
-Date: Mon, 09 Dec 2013 09:56:42 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.13] vb2: regression fix: always set length field.
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:50217 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755250Ab3L1MQ3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 07:16:29 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 18/24] em28xx: improve I2C timeout error message
+Date: Sat, 28 Dec 2013 10:16:10 -0200
+Message-Id: <1388232976-20061-19-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-Please queue this regression fix for 3.13.
+Since sometimes em28xx is returning 0x02 or 0x04 at the I2C status
+register, output what's the returned status:
 
-Regards,
+[ 1090.939820] em2882/3 #0: write to i2c device at 0xc2 timed out (ret=0x04)
+[ 1090.939826] xc2028 19-0061: Error on line 1290: -5
+[ 1091.140136] em2882/3 #0: write to i2c device at 0xc2 timed out (ret=0x04)
+[ 1091.140155] xc2028 19-0061: Error on line 1290: -5
+[ 1091.828622] em2882/3 #0: write to i2c device at 0xc2 timed out (ret=0x02)
+[ 1091.828625] xc2028 19-0061: i2c input error: rc = -5 (should be 2)
+[ 1091.928731] em2882/3 #0: write to i2c device at 0xc2 timed out (ret=0x02)
+[ 1091.928734] xc2028 19-0061: i2c input error: rc = -5 (should be 2)
 
-	Hans
+As that may help to latter improve the code.
 
-The following changes since commit 3f823e094b935c1882605f8720336ee23433a16d:
+Also, as those errors are now present, remove that bogus comment that
+only 0x00 and 0x10 values are present.
 
-  [media] exynos4-is: Simplify fimc-is hardware polling helpers (2013-12-04 15:54:19 -0200)
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-are available in the git repository at:
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index d972e2f67214..420fddf7da3a 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -209,11 +209,6 @@ retry:
+ 			return ret;
+ 		}
+ 		msleep(5);
+-		/*
+-		 * NOTE: do we really have to wait for success ?
+-		 * Never seen anything else than 0x00 or 0x10
+-		 * (even with high payload) ...
+-		 */
+ 	}
+ 
+ 	if (ret == 0x10) {
+@@ -221,7 +216,8 @@ retry:
+ 			    addr);
+ 		return -ENODEV;
+ 	}
+-	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
++	em28xx_warn("write to i2c device at 0x%x timed out (ret=0x%02x)\n",
++		    addr, ret);
+ 	return -EIO;
+ }
+ 
+-- 
+1.8.3.1
 
-  git://linuxtv.org/hverkuil/media_tree.git vb2fix
-
-for you to fetch changes up to acc386d22c031646e3c8678c5a6c31f468ff5ea7:
-
-  vb2: regression fix: always set length field. (2013-12-09 09:53:21 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      vb2: regression fix: always set length field.
-
- drivers/media/v4l2-core/videobuf2-core.c | 21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
