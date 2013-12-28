@@ -1,176 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:45686 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474Ab3LMFM4 (ORCPT
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:52687 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755288Ab3L1Pq2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Dec 2013 00:12:56 -0500
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org
-Cc: s.nawrocki@samsung.com, mark.rutland@arm.com,
-	shaik.ameer@samsung.com, arunkk.samsung@gmail.com
-Subject: [PATCH v10 1/2] [media] exynos5-is: Adds DT binding documentation
-Date: Fri, 13 Dec 2013 10:42:42 +0530
-Message-Id: <1386911563-26236-2-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1386911563-26236-1-git-send-email-arun.kk@samsung.com>
-References: <1386911563-26236-1-git-send-email-arun.kk@samsung.com>
+	Sat, 28 Dec 2013 10:46:28 -0500
+Received: by mail-ee0-f54.google.com with SMTP id e51so3764751eek.41
+        for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 07:46:28 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 11/13] libdvbv5: fix double entry in Makefile.am
+Date: Sat, 28 Dec 2013 16:45:59 +0100
+Message-Id: <1388245561-8751-11-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-
-The patch adds the DT binding doc for exynos5 SoC camera
-subsystem.
-
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- .../bindings/media/exynos5250-camera.txt           |  136 ++++++++++++++++++++
- 1 file changed, 136 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
+ lib/libdvbv5/Makefile.am | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/exynos5250-camera.txt b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
-new file mode 100644
-index 0000000..0c36bc4
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
-@@ -0,0 +1,136 @@
-+Samsung EXYNOS5 SoC Camera Subsystem
-+------------------------------------
-+
-+The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
-+represented by separate device tree nodes. Currently this includes: FIMC-LITE,
-+MIPI CSIS and FIMC-IS.
-+
-+The sub-device nodes are referenced using phandles in the common 'camera' node
-+which also includes common properties of the whole subsystem not really
-+specific to any single sub-device, like common camera port pins or the common
-+camera bus clocks.
-+
-+Common 'camera' node
-+--------------------
-+
-+Required properties:
-+
-+- compatible		: must be "samsung,exynos5250-fimc"
-+- clocks		: list of phandles and clock specifiers, corresponding
-+			  to entries in the clock-names property
-+- clock-names		: must contain "sclk_bayer" entry
-+- samsung,csis		: list of phandles to the mipi-csis device nodes
-+- samsung,fimc-lite	: list of phandles to the fimc-lite device nodes
-+- samsung,fimc-is	: phandle to the fimc-is device node
-+
-+The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
-+to define a required pinctrl state named "default".
-+
-+'parallel-ports' node
-+---------------------
-+
-+This node should contain child 'port' nodes specifying active parallel video
-+input ports. It includes camera A, camera B and RGB bay inputs.
-+'reg' property in the port nodes specifies the input type:
-+ 1 - parallel camport A
-+ 2 - parallel camport B
-+ 5 - RGB camera bay
-+
-+3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
-+
-+Required properties:
-+
-+For describing the input type in the child nodes, the following properties
-+have to be present in the parallel-ports node:
-+- #address-cells: Must be 1
-+- #size-cells: Must be 0
-+
-+Image sensor nodes
-+------------------
-+
-+The sensor device nodes should be added to their control bus controller (e.g.
-+I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
-+using the common video interfaces bindings, defined in video-interfaces.txt.
-+
-+Example:
-+
-+	aliases {
-+		fimc-lite0 = &fimc_lite_0
-+	};
-+
-+	/* Parallel bus IF sensor */
-+	i2c_0: i2c@13860000 {
-+		s5k6aa: sensor@3c {
-+			compatible = "samsung,s5k6aafx";
-+			reg = <0x3c>;
-+			vddio-supply = <...>;
-+
-+			clock-frequency = <24000000>;
-+			clocks = <...>;
-+			clock-names = "mclk";
-+
-+			port {
-+				s5k6aa_ep: endpoint {
-+					remote-endpoint = <&fimc0_ep>;
-+					bus-width = <8>;
-+					hsync-active = <0>;
-+					vsync-active = <1>;
-+					pclk-sample = <1>;
-+				};
-+			};
-+		};
-+	};
-+
-+	/* MIPI CSI-2 bus IF sensor */
-+	s5c73m3: sensor@1a {
-+		compatible = "samsung,s5c73m3";
-+		reg = <0x1a>;
-+		vddio-supply = <...>;
-+
-+		clock-frequency = <24000000>;
-+		clocks = <...>;
-+		clock-names = "mclk";
-+
-+		port {
-+			s5c73m3_1: endpoint {
-+				data-lanes = <1 2 3 4>;
-+				remote-endpoint = <&csis0_ep>;
-+			};
-+		};
-+	};
-+
-+	camera {
-+		compatible = "samsung,exynos5250-fimc";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		status = "okay";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&cam_port_a_clk_active>;
-+
-+		samsung,csis = <&csis_0>, <&csis_1>;
-+		samsung,fimc-lite = <&fimc_lite_0>, <&fimc_lite_1>, <&fimc_lite_2>;
-+		samsung,fimc-is = <&fimc_is>;
-+
-+		/* parallel camera ports */
-+		parallel-ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			/* camera A input */
-+			port@1 {
-+				reg = <1>;
-+				camport_a_ep: endpoint {
-+					remote-endpoint = <&s5k6aa_ep>;
-+					bus-width = <8>;
-+					hsync-active = <0>;
-+					vsync-active = <1>;
-+					pclk-sample = <1>;
-+				};
-+			};
-+		};
-+	};
-+
-+MIPI-CSIS device binding is defined in samsung-mipi-csis.txt, FIMC-LITE
-+device binding is defined in exynos-fimc-lite.txt and FIMC-IS binding
-+is defined in exynos5-fimc-is.txt.
+diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
+index 368baf8..dc5005f 100644
+--- a/lib/libdvbv5/Makefile.am
++++ b/lib/libdvbv5/Makefile.am
+@@ -47,7 +47,6 @@ libdvbv5_la_SOURCES = \
+   descriptors/desc_partial_reception.c  ../include/descriptors/desc_partial_reception.h \
+   descriptors/nit.c  ../include/descriptors/nit.h \
+   descriptors/sdt.c  ../include/descriptors/sdt.h \
+-  descriptors/vct.c  ../include/descriptors/vct.h \
+   descriptors/atsc_header.c ../include/descriptors/atsc_header.h \
+   descriptors/vct.c  ../include/descriptors/vct.h \
+   descriptors/mgt.c  ../include/descriptors/mgt.h \
+@@ -58,7 +57,7 @@ libdvbv5_la_SOURCES = \
+   descriptors/mpeg_pes.c  ../include/descriptors/mpeg_pes.h \
+   descriptors/mpeg_es.c  ../include/descriptors/mpeg_es.h
+ 
+-libdvbv5_la_CPPFLAGS = $(ENFORCE_LIBDVBV5_STATIC)
++libdvbv5_la_CPPFLAGS = $(ENFORCE_LIBDVBV5_STATIC) -std=c99
+ libdvbv5_la_LDFLAGS = $(LIBDVBV5_VERSION) $(ENFORCE_LIBDVBV5_STATIC) -lm
+ libdvbv5_la_LIBADD = $(LTLIBICONV)
+ 
 -- 
-1.7.9.5
+1.8.3.2
 
