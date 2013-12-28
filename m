@@ -1,36 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51844 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751676Ab3LLQ5o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Dec 2013 11:57:44 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
+Received: from bombadil.infradead.org ([198.137.202.9]:50197 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755242Ab3L1MQ2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 07:16:28 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 0/2] V4L2 SDR stream format
-Date: Thu, 12 Dec 2013 18:57:25 +0200
-Message-Id: <1386867447-1018-1-git-send-email-crope@iki.fi>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 14/24] em28xx: remove a false positive warning
+Date: Sat, 28 Dec 2013 10:16:06 -0200
+Message-Id: <1388232976-20061-15-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I think that needs device capability flag too (struct v4l2_capability)
-but bits on that struct are quite short. Add it after V4L2_CAP_MODULATOR ?
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
+gcc knows nothing about jiffies. So, it produces this error:
 
-OK, now all the API pieces seems to be there, so I am converting my existing
-SDR drivers to that API and make some tests.
+	drivers/media/usb/em28xx/em28xx-i2c.c: In function ‘em28xx_i2c_recv_bytes’:
+	drivers/media/usb/em28xx/em28xx-i2c.c:274:5: warning: ‘ret’ may be used uninitialized in this function [-Wmaybe-uninitialized]
 
-Antti Palosaari (2):
-  v4l2: add stream format for SDR receiver
-  v4l2: enable FMT IOCTLs for SDR
+It is a false positive, however, removing it is as easy as replacing
+a while by a do/while construction.
 
- drivers/media/v4l2-core/v4l2-dev.c   | 12 ++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
- include/trace/events/v4l2.h          |  1 +
- include/uapi/linux/videodev2.h       | 11 +++++++++++
- 4 files changed, 51 insertions(+)
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 26f7b0a2e83a..d972e2f67214 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -241,7 +241,7 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ 	 * Zero length reads always succeed, even if no device is connected
+ 	 */
+ 
+-	while (time_is_after_jiffies(timeout)) {
++	do {
+ 		/* Read data from i2c device */
+ 		ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
+ 		if (ret < 0) {
+@@ -270,7 +270,8 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ 		if (ret != 0x10)
+ 			break;
+ 		msleep(5);
+-	}
++	} while (time_is_after_jiffies(timeout));
++
+ 	if (ret == 0x10) {
+ 		em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
+ 		return -ENODEV;
 -- 
-1.8.4.2
+1.8.3.1
 
