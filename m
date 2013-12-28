@@ -1,69 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:60147 "EHLO multi.imgtec.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754635Ab3LWKl1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Dec 2013 05:41:27 -0500
-Message-ID: <52B81354.303@imgtec.com>
-Date: Mon, 23 Dec 2013 10:41:24 +0000
-From: James Hogan <james.hogan@imgtec.com>
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:54506 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755290Ab3L1Pq3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 10:46:29 -0500
+Received: by mail-ea0-f173.google.com with SMTP id o10so4355822eaj.18
+        for <linux-media@vger.kernel.org>; Sat, 28 Dec 2013 07:46:28 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 12/13] libdvbv5: fix missing includes
+Date: Sat, 28 Dec 2013 16:46:00 +0100
+Message-Id: <1388245561-8751-12-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-To: Tomasz Figa <tomasz.figa@gmail.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	"Pawel Moll" <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	<devicetree@vger.kernel.org>, Rob Landley <rob@landley.net>,
-	<linux-doc@vger.kernel.org>
-Subject: Re: [PATCH 01/11] dt: binding: add binding for ImgTec IR block
-References: <1386947579-26703-1-git-send-email-james.hogan@imgtec.com> <1386947579-26703-2-git-send-email-james.hogan@imgtec.com> <3633330.ixgGf52iFP@flatron>
-In-Reply-To: <3633330.ixgGf52iFP@flatron>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/12/13 12:48, Tomasz Figa wrote:
->> diff --git a/Documentation/devicetree/bindings/media/img-ir.txt b/Documentation/devicetree/bindings/media/img-ir.txt
->> new file mode 100644
->> index 000000000000..6f623b094ea6
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/img-ir.txt
->> @@ -0,0 +1,20 @@
->> +* ImgTec Infrared (IR) decoder
->> +
->> +Required properties:
->> +- compatible:		Should be "img,ir"
-> 
-> This compatible string isn't really very specific. Is there some IP
-> revision string that could be added, to account for possible design
-> changes that may require binding change?
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/libdvbv5/dvb-file.c     | 1 +
+ lib/libdvbv5/dvb-sat.c      | 1 +
+ lib/libdvbv5/dvb-scan.c     | 1 +
+ lib/libdvbv5/parse_string.c | 1 +
+ 4 files changed, 4 insertions(+)
 
-Yes, agreed. I'll try and find a more unambiguous name for the IP block.
-
->> +- reg:			Physical base address of the controller and length of
->> +			memory mapped region.
->> +- interrupts:		The interrupt specifier to the cpu.
->> +
->> +Optional properties:
->> +- clocks:		Clock specifier for base clock.
->> +			Defaults to 32.768KHz if not specified.
-> 
-> To make the binding less fragile and allow interoperability with non-DT
-> platforms it may be better to provide also clock-names property (so you
-> can use clk_get(); that's a Linux implementation detail, though, but to
-> make our lives easier IMHO they should be sometimes considered too).
-
-Good idea. Looking at the hardware manual it actually describes 3 clock
-inputs, and although only one is needed by the driver it makes sense for
-the DT binding to be able to describe them all. I'll probably go with
-these clock-names values:
-"core": Core clock (32.867kHz)
-"sys": System side (fast) clock
-"mod": Power modulation clock
-
-Cheers
-James
+diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
+index 9abb1f7..d5b00e2 100644
+--- a/lib/libdvbv5/dvb-file.c
++++ b/lib/libdvbv5/dvb-file.c
+@@ -21,6 +21,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <strings.h> // strcasecmp
+ #include <unistd.h>
+ 
+ #include "dvb-file.h"
+diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+index 3cbcf03..c35e3d7 100644
+--- a/lib/libdvbv5/dvb-sat.c
++++ b/lib/libdvbv5/dvb-sat.c
+@@ -21,6 +21,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
++#include <strings.h> // strcasecmp
+ 
+ #include "dvb-fe.h"
+ #include "dvb-v5-std.h"
+diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+index 6f3def6..d0f0b39 100644
+--- a/lib/libdvbv5/dvb-scan.c
++++ b/lib/libdvbv5/dvb-scan.c
+@@ -35,6 +35,7 @@
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ #include <stdlib.h>
++#include <sys/time.h>
+ 
+ #include "dvb-scan.h"
+ #include "dvb-frontend.h"
+diff --git a/lib/libdvbv5/parse_string.c b/lib/libdvbv5/parse_string.c
+index f7b745e..8bd56f3 100644
+--- a/lib/libdvbv5/parse_string.c
++++ b/lib/libdvbv5/parse_string.c
+@@ -27,6 +27,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <strings.h> // strcasecmp
+ 
+ #include "parse_string.h"
+ #include "dvb-log.h"
+-- 
+1.8.3.2
 
