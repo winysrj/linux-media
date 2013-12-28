@@ -1,58 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2104 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553Ab3LFKRg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 05:17:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Dinesh.Ram@cern.ch, edubezval@gmail.com,
-	Dinesh Ram <dinesh.ram@cern.ch>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 03/11] si4713: Reorganized includes in si4713.c/h
-Date: Fri,  6 Dec 2013 11:17:06 +0100
-Message-Id: <1386325034-19344-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:50219 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755253Ab3L1MQ3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 07:16:29 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 02/24] em28xx: some cosmetic changes
+Date: Sat, 28 Dec 2013 10:15:54 -0200
+Message-Id: <1388232976-20061-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Dinesh Ram <Dinesh.Ram@cern.ch>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-Moved the header <linux/regulator/consumer.h> from si4713.c to si4713.h
+In order to make easier for the next patches, do some
+cosmetic changes.
 
-Signed-off-by: Dinesh Ram <dinesh.ram@cern.ch>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Eduardo Valentin <edubezval@gmail.com>
-Acked-by: Eduardo Valentin <edubezval@gmail.com>
+No functional changes.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/radio/si4713/si4713.c | 1 -
- drivers/media/radio/si4713/si4713.h | 1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/em28xx/em28xx-cards.c |  2 +-
+ drivers/media/usb/em28xx/em28xx-video.c |  2 --
+ drivers/media/usb/em28xx/em28xx.h       | 11 ++++++-----
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index 5d26b9a..096947c 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -31,7 +31,6 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-common.h>
--#include <linux/regulator/consumer.h>
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 19827e79cf53..551cbc294190 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2106,7 +2106,7 @@ struct em28xx_board em28xx_boards[] = {
+ 	},
+ 	/* 1b80:e1cc Delock 61959
+ 	 * Empia EM2874B + Micronas DRX 3913KA2 + NXP TDA18271HDC2
+-         * mostly the same as MaxMedia UB-425-TC but different remote */
++	 * mostly the same as MaxMedia UB-425-TC but different remote */
+ 	[EM2874_BOARD_DELOCK_61959] = {
+ 		.name          = "Delock 61959",
+ 		.tuner_type    = TUNER_ABSENT,
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 70ffe259df5b..8b8a4eb96875 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -51,8 +51,6 @@
  
- #include "si4713.h"
+ #define DRIVER_DESC         "Empia em28xx based USB video device driver"
  
-diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
-index 25cdea2..1410cd2 100644
---- a/drivers/media/radio/si4713/si4713.h
-+++ b/drivers/media/radio/si4713/si4713.h
-@@ -15,6 +15,7 @@
- #ifndef SI4713_I2C_H
- #define SI4713_I2C_H
+-#define EM28XX_VERSION "0.2.0"
+-
+ static unsigned int isoc_debug;
+ module_param(isoc_debug, int, 0644);
+ MODULE_PARM_DESC(isoc_debug, "enable debug messages [isoc transfers]");
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 0259270dda46..7ae05ebc13c1 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -26,6 +26,8 @@
+ #ifndef _EM28XX_H
+ #define _EM28XX_H
  
-+#include <linux/regulator/consumer.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
- #include <media/si4713.h>
++#define EM28XX_VERSION "0.2.0"
++
+ #include <linux/workqueue.h>
+ #include <linux/i2c.h>
+ #include <linux/mutex.h>
+@@ -522,9 +524,12 @@ struct em28xx {
+ 	int model;		/* index in the device_data struct */
+ 	int devno;		/* marks the number of this device */
+ 	enum em28xx_chip_id chip_id;
+-	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
+ 
++	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
+ 	unsigned char disconnected:1;	/* device has been diconnected */
++	unsigned int has_audio_class:1;
++	unsigned int has_alsa_audio:1;
++	unsigned int is_audio_only:1;
+ 
+ 	int audio_ifnum;
+ 
+@@ -544,10 +549,6 @@ struct em28xx {
+ 	/* Vinmode/Vinctl used at the driver */
+ 	int vinmode, vinctl;
+ 
+-	unsigned int has_audio_class:1;
+-	unsigned int has_alsa_audio:1;
+-	unsigned int is_audio_only:1;
+-
+ 	/* Controls audio streaming */
+ 	struct work_struct wq_trigger;	/* Trigger to start/stop audio for alsa module */
+ 	atomic_t       stream_started;	/* stream should be running if true */
 -- 
-1.8.4.rc3
+1.8.3.1
 
