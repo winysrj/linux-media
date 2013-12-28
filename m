@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:32861 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757212Ab3LFKyM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 05:54:12 -0500
-Received: by mail-oa0-f41.google.com with SMTP id j17so574722oag.28
-        for <linux-media@vger.kernel.org>; Fri, 06 Dec 2013 02:54:12 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <52A1A76A.6070301@epfl.ch>
-References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
-	<52A1A76A.6070301@epfl.ch>
-Date: Fri, 6 Dec 2013 11:54:11 +0100
-Message-ID: <CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>
-Subject: Re: omap3isp device tree support
-From: Enrico <ebutera@users.berlios.de>
-To: florian.vaussard@epfl.ch
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:18588 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751037Ab3L1WyE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 17:54:04 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYJ0049KGY1VF50@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 28 Dec 2013 17:54:01 -0500 (EST)
+Date: Sat, 28 Dec 2013 20:53:52 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: "deadletterfile@att.net" <deadletterfile@att.net>
+Cc: linux-media@vger.kernel.org, tehpola@gmail.com
+Subject: Re: linuxtv patch/11200/
+Message-id: <20131228205352.69f57f86.m.chehab@samsung.com>
+In-reply-to: <52BF0C1A.4070804@att.net>
+References: <52BF0C1A.4070804@att.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 6, 2013 at 11:31 AM, Florian Vaussard
-<florian.vaussard@epfl.ch> wrote:
-> Hello,
->
-> On 12/06/2013 11:13 AM, Enrico wrote:
->> Hi,
->>
->> i know there is some work going on for omap3isp device tree support,
->> but right now is it possible to enable it in some other way in a DT
->> kernel?
->>
->
-> The DT support is not yet ready, but an RFC binding has been proposed.
-> It won't be ready for 3.14.
->
->> I've tried enabling it in board-generic.c (omap3_init_camera(...) with
->> proper platform data) but it hangs early at boot, do someone know if
->> it's possible and how to do it?
->>
->
-> I did the same a few days ago, and went through several problems
-> (panics, half DT support,...). Now I am able to probe the ISP, I still
-> have one kernel panic to fix. Hope to send the patches in 1 or 2 days.
-> We are still in a transition period, but things should calm down in the
-> coming releases.
->
-> Cheers,
->
-> Florian
->
-> [1] http://www.spinics.net/lists/linux-media/msg69424.html
+Em Sat, 28 Dec 2013 12:36:26 -0500
+"deadletterfile@att.net" <deadletterfile@att.net> escreveu:
 
-Thanks Florian, i will gladly help in testing.
+> I am writing regarding Mr. Mike Slegeir's patch 11200, which is listed
+> with a 'State: Not Applicable.'
 
-Enrico
+That only means that it is not applicable as a Kernel media patch.
+
+All non-Kernel-media patches at patchwork are tagged as such,
+with the exception of the patches for a user application that
+I (or a Kernel driver submaintainer) maintains, as I just use
+the same script to apply the patch, and my script automatically
+updates patchwork status to accepted when I apply a patch.
+
+If you think the patch should be applied on some userspace app, you
+should find its maintainer and ask him to apply the patch.
+-- 
+
+Cheers,
+Mauro
