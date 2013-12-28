@@ -1,62 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4141 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756014Ab3LTJcC (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:50232 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755262Ab3L1MQa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 04:32:02 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 24/50] adv7604: sync polarities from platform data
-Date: Fri, 20 Dec 2013 10:31:17 +0100
-Message-Id: <1387531903-20496-25-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
-References: <1387531903-20496-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 28 Dec 2013 07:16:30 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3 17/24] em28xx: initialize audio latter
+Date: Sat, 28 Dec 2013 10:16:09 -0200
+Message-Id: <1388232976-20061-18-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Better to first write the GPIOs of the input mux, before initializing
+the audio.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/i2c/adv7604.c | 5 +++--
- include/media/adv7604.h     | 4 ++++
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/media/usb/em28xx/em28xx-video.c | 42 ++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 0bc9e1a..be9699e 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2126,9 +2126,10 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
- 					pdata->replicate_av_codes << 1 |
- 					pdata->invert_cbcr << 0);
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 4d6c9f8e1497..ea3653248d25 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -2243,8 +2243,6 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
+ 		       EM28XX_VINCTRL_CCIR656_ENABLE;
  
--	/* TODO from platform data */
- 	cp_write(sd, 0x69, 0x30);   /* Enable CP CSC */
--	io_write(sd, 0x06, 0xa6);   /* positive VS and HS */
+-
+-
+ 	/* request some modules */
+ 
+ 	if (dev->board.has_msp34xx)
+@@ -2296,26 +2294,6 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	em28xx_tuner_setup(dev);
+ 	em28xx_init_camera(dev);
+ 
+-	/* Configure audio */
+-	ret = em28xx_audio_setup(dev);
+-	if (ret < 0) {
+-		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
+-			__func__, ret);
+-		goto err;
+-	}
+-	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
+-		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
+-			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
+-		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
+-			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
+-	} else {
+-		/* install the em28xx notify callback */
+-		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
+-				em28xx_ctrl_notify, dev);
+-		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
+-				em28xx_ctrl_notify, dev);
+-	}
+-
+ 	/* wake i2c devices */
+ 	em28xx_wake_i2c(dev);
+ 
+@@ -2361,6 +2339,26 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 
+ 	video_mux(dev, 0);
+ 
++	/* Configure audio */
++	ret = em28xx_audio_setup(dev);
++	if (ret < 0) {
++		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
++			__func__, ret);
++		goto err;
++	}
++	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
++		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
++			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
++		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
++			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
++	} else {
++		/* install the em28xx notify callback */
++		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
++				em28xx_ctrl_notify, dev);
++		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
++				em28xx_ctrl_notify, dev);
++	}
 +
-+	/* VS, HS polarities */
-+	io_write(sd, 0x06, 0xa0 | pdata->inv_vs_pol << 2 | pdata->inv_hs_pol << 1);
- 
- 	/* Adjust drive strength */
- 	io_write(sd, 0x14, 0x40 | pdata->dr_str_data << 4 |
-diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-index baf7250..d262a3a 100644
---- a/include/media/adv7604.h
-+++ b/include/media/adv7604.h
-@@ -113,6 +113,10 @@ struct adv7604_platform_data {
- 	unsigned replicate_av_codes:1;
- 	unsigned invert_cbcr:1;
- 
-+	/* IO register 0x06 */
-+	unsigned inv_vs_pol:1;
-+	unsigned inv_hs_pol:1;
-+
- 	/* IO register 0x14 */
- 	enum adv7604_drive_strength dr_str_data;
- 	enum adv7604_drive_strength dr_str_clk;
+ 	/* Audio defaults */
+ 	dev->mute = 1;
+ 	dev->volume = 0x1f;
 -- 
-1.8.4.4
+1.8.3.1
 
