@@ -1,255 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50235 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755267Ab3L1MQa (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:42396 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751753Ab3L2Dkp convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Dec 2013 07:16:30 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3 05/24] em28xx: initialize analog I2C devices at the right place
-Date: Sat, 28 Dec 2013 10:15:57 -0200
-Message-Id: <1388232976-20061-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sat, 28 Dec 2013 22:40:45 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYJ00FGPU7W4O60@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 28 Dec 2013 22:40:44 -0500 (EST)
+Date: Sun, 29 Dec 2013 01:40:31 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 05/13] libdvbv5: eit parsing updated
+Message-id: <20131229014031.08517155.m.chehab@samsung.com>
+In-reply-to: <1388245561-8751-5-git-send-email-neolynx@gmail.com>
+References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+ <1388245561-8751-5-git-send-email-neolynx@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Em Sat, 28 Dec 2013 16:45:53 +0100
+André Roth <neolynx@gmail.com> escreveu:
 
-In order to initialize the analog tuner, v4l2 should be registere
-first, or otherwise we get an oops:
+> Signed-off-by: André Roth <neolynx@gmail.com>
+> ---
+>  lib/include/descriptors.h      |  6 ++++++
+>  lib/include/descriptors/eit.h  |  1 +
+>  lib/include/dvb-fe.h           |  2 ++
+>  lib/libdvbv5/descriptors.c     |  1 +
+>  lib/libdvbv5/descriptors/eit.c | 28 +++++++++++++++++++++++-----
+>  lib/libdvbv5/dvb-fe.c          |  7 +++++++
+>  lib/libdvbv5/dvb-scan.c        | 22 +++++++---------------
+>  7 files changed, 47 insertions(+), 20 deletions(-)
+> 
+> diff --git a/lib/include/descriptors.h b/lib/include/descriptors.h
+> index 5ab29a0..6f89aeb 100644
+> --- a/lib/include/descriptors.h
+> +++ b/lib/include/descriptors.h
+> @@ -63,7 +63,13 @@ struct dvb_desc {
+>  } __attribute__((packed));
+>  
+>  void dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc);
+> +#ifdef __cplusplus
+> +extern "C" {
+> +#endif
+>  void dvb_desc_default_print  (struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc);
+> +#ifdef __cplusplus
+> +}
+> +#endif
+>  
+>  #define dvb_desc_foreach( _desc, _tbl ) \
+>  	for( struct dvb_desc *_desc = _tbl->descriptor; _desc; _desc = _desc->next ) \
+> diff --git a/lib/include/descriptors/eit.h b/lib/include/descriptors/eit.h
+> index 2af9696..d2ebdb4 100644
+> --- a/lib/include/descriptors/eit.h
+> +++ b/lib/include/descriptors/eit.h
+> @@ -56,6 +56,7 @@ struct dvb_table_eit_event {
+>  	struct dvb_table_eit_event *next;
+>  	struct tm start;
+>  	uint32_t duration;
+> +	uint16_t service_id;
+>  } __attribute__((packed));
+>  
+>  struct dvb_table_eit {
+> diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+> index b0e2bf9..8cf2697 100644
+> --- a/lib/include/dvb-fe.h
+> +++ b/lib/include/dvb-fe.h
+> @@ -119,6 +119,8 @@ struct dvb_v5_fe_parms {
+>  extern "C" {
+>  #endif
+>  
+> +struct dvb_v5_fe_parms *dvb_fe_dummy();
+> +
 
-[   51.783537] BUG: unable to handle kernel NULL pointer dereference at        )
-[   51.784479] IP: [<ffffffff81319fbb>] __list_add+0x1b/0xc0
-[   51.784479] PGD 0
-[   51.784479] Oops: 0000 [#1] SMP
-[   51.784479] Modules linked in: tvp5150 em28xx(+) tveeprom v4l2_common videode
-[   51.784479] CPU: 0 PID: 946 Comm: systemd-udevd Not tainted 3.13.0-rc1+ #38
-[   51.784479] Hardware name: PCCHIPS P17G/P17G, BIOS 080012  05/14/2008
-[   51.784479] task: ffff880027482080 ti: ffff88003c9b6000 task.ti: ffff88003c90
-[   51.784479] RIP: 0010:[<ffffffff81319fbb>]  [<ffffffff81319fbb>] __list_add+0
-[   51.784479] RSP: 0018:ffff88003c9b7a10  EFLAGS: 00010246
-[   51.784479] RAX: 0000000000000000 RBX: ffff880036d12428 RCX: 0000000000000000
-[   51.784479] RDX: ffff880036ce6040 RSI: 0000000000000000 RDI: ffff880036d12428
-[   51.784479] RBP: ffff88003c9b7a28 R08: 0000000000000000 R09: 0000000000000001
-[   51.784479] R10: 0000000000000001 R11: 0000000000000000 R12: ffff880036ce6040
-[   51.784479] R13: 0000000000000000 R14: ffff880036ce62c0 R15: ffffffffa045c176
-[   51.784479] FS:  00007fba89124880(0000) GS:ffff88003f400000(0000) knlGS:00000
-[   51.784479] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[   51.784479] CR2: 0000000000000000 CR3: 000000003bccf000 CR4: 00000000000007f0
-[   51.784479] Stack:
-[   51.784479]  ffff880036d12428 ffff880036ce6038 0000000000000000 ffff88003c9b0
-[   51.784479]  ffffffffa0425bbc ffff880028246800 ffff880036d12428 ffff880036ce8
-[   51.784479]  ffff88003c9b7a80 ffffffffa044d733 ffff88003c9b7a90 ffff880036ce8
-[   51.784479] Call Trace:
-[   51.784479]  [<ffffffffa0425bbc>] v4l2_device_register_subdev+0xdc/0x120 [vi]
-[   51.784479]  [<ffffffffa044d733>] v4l2_i2c_new_subdev_board+0xa3/0x100 [v4l2]
-[   51.784479]  [<ffffffffa044d7fa>] v4l2_i2c_new_subdev+0x6a/0x90 [v4l2_common]
-[   51.784479]  [<ffffffffa0455dcb>] em28xx_usb_probe+0xd3b/0x10a0 [em28xx]
-[   51.784479]  [<ffffffff81478f74>] usb_probe_interface+0x1c4/0x2f0
-[   51.784479]  [<ffffffff81400127>] driver_probe_device+0x87/0x390
-[   51.784479]  [<ffffffff81400503>] __driver_attach+0x93/0xa0
-[   51.784479]  [<ffffffff81400470>] ? __device_attach+0x40/0x40
-[   51.784479]  [<ffffffff813fe153>] bus_for_each_dev+0x63/0xa0
-[   51.784479]  [<ffffffff813ffb7e>] driver_attach+0x1e/0x20
-[   51.784479]  [<ffffffff813ff760>] bus_add_driver+0x180/0x250
-[   51.784479]  [<ffffffff81400b34>] driver_register+0x64/0xf0
-[   51.784479]  [<ffffffff81477751>] usb_register_driver+0x81/0x160
-[   51.784479]  [<ffffffffa0467000>] ? 0xffffffffa0466fff
-[   51.784479]  [<ffffffffa046701e>] em28xx_usb_driver_init+0x1e/0x1000 [em28xx]
-[   51.784479]  [<ffffffff8100214a>] do_one_initcall+0xfa/0x1b0
-[   51.784479]  [<ffffffff81053793>] ? set_memory_nx+0x43/0x50
-[   51.784479]  [<ffffffff810d9926>] load_module+0x1bc6/0x24b0
-[   51.784479]  [<ffffffff810d5940>] ? store_uevent+0x40/0x40
-[   51.784479]  [<ffffffff810da386>] SyS_finit_module+0x86/0xb0
-[   51.784479]  [<ffffffff81666529>] system_call_fastpath+0x16/0x1b
-[   51.784479] Code: ff ff 5b 41 5c 41 5d 41 5e 41 5f 5d c3 0f 1f 00 55 48 89 e
-[   51.784479] RIP  [<ffffffff81319fbb>] __list_add+0x1b/0xc0
-[   51.784479]  RSP <ffff88003c9b7a10>
-[   51.784479] CR2: 0000000000000000
-[   52.218397] ---[ end trace 0bd601544e51b8a3 ]---
+Not sure if I understood or liked this. Please add a description on the
+patch, explaining what you're doing and why a dvb_fe_dummy() function
+is needed.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 64 ------------------------------
- drivers/media/usb/em28xx/em28xx-video.c | 70 ++++++++++++++++++++++++++++++++-
- 2 files changed, 69 insertions(+), 65 deletions(-)
+>  struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend,
+>  				    unsigned verbose, unsigned use_legacy_call);
+>  struct dvb_v5_fe_parms *dvb_fe_open2(int adapter, int frontend,
+> diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
+> index 437b2f4..18884b0 100644
+> --- a/lib/libdvbv5/descriptors.c
+> +++ b/lib/libdvbv5/descriptors.c
+> @@ -69,6 +69,7 @@ void dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, st
+>  
+>  void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
+>  {
+> +	if (!parms) parms = dvb_fe_dummy();
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 53dc82409bc2..4fccbed539f9 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2362,24 +2362,6 @@ static struct em28xx_hash_table em28xx_i2c_hash[] = {
- };
- /* NOTE: introduce a separate hash table for devices with 16 bit eeproms */
- 
--/* I2C possible address to saa7115, tvp5150, msp3400, tvaudio */
--static unsigned short saa711x_addrs[] = {
--	0x4a >> 1, 0x48 >> 1,   /* SAA7111, SAA7111A and SAA7113 */
--	0x42 >> 1, 0x40 >> 1,   /* SAA7114, SAA7115 and SAA7118 */
--	I2C_CLIENT_END };
--
--static unsigned short tvp5150_addrs[] = {
--	0xb8 >> 1,
--	0xba >> 1,
--	I2C_CLIENT_END
--};
--
--static unsigned short msp3400_addrs[] = {
--	0x80 >> 1,
--	0x88 >> 1,
--	I2C_CLIENT_END
--};
--
- int em28xx_tuner_callback(void *ptr, int component, int command, int arg)
- {
- 	struct em28xx_i2c_bus *i2c_bus = ptr;
-@@ -2784,54 +2766,8 @@ static void em28xx_card_setup(struct em28xx *dev)
- 	/* Allow override tuner type by a module parameter */
- 	if (tuner >= 0)
- 		dev->tuner_type = tuner;
--
--	/* request some modules */
--	if (dev->board.has_msp34xx)
--		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
--			"msp3400", 0, msp3400_addrs);
--
--	if (dev->board.decoder == EM28XX_SAA711X)
--		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
--			"saa7115_auto", 0, saa711x_addrs);
--
--	if (dev->board.decoder == EM28XX_TVP5150)
--		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
--			"tvp5150", 0, tvp5150_addrs);
--
--	if (dev->board.adecoder == EM28XX_TVAUDIO)
--		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
--			"tvaudio", dev->board.tvaudio_addr, NULL);
--
--	if (dev->board.tuner_type != TUNER_ABSENT) {
--		int has_demod = (dev->tda9887_conf & TDA9887_PRESENT);
--
--		if (dev->board.radio.type)
--			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
--				"tuner", dev->board.radio_addr, NULL);
--
--		if (has_demod)
--			v4l2_i2c_new_subdev(&dev->v4l2_dev,
--				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
--				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
--		if (dev->tuner_addr == 0) {
--			enum v4l2_i2c_tuner_type type =
--				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
--			struct v4l2_subdev *sd;
--
--			sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
--				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
--				0, v4l2_i2c_tuner_addrs(type));
--
--			if (sd)
--				dev->tuner_addr = v4l2_i2c_subdev_addr(sd);
--		} else {
--			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
--				"tuner", dev->tuner_addr, NULL);
--		}
--	}
- }
- 
--
- static void request_module_async(struct work_struct *work)
- {
- 	struct em28xx *dev = container_of(work,
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index b0b1a3d4534b..3baf22464c0d 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -2053,6 +2053,25 @@ static struct video_device em28xx_radio_template = {
- 	.ioctl_ops 	      = &radio_ioctl_ops,
- };
- 
-+
-+/* I2C possible address to saa7115, tvp5150, msp3400, tvaudio */
-+static unsigned short saa711x_addrs[] = {
-+	0x4a >> 1, 0x48 >> 1,   /* SAA7111, SAA7111A and SAA7113 */
-+	0x42 >> 1, 0x40 >> 1,   /* SAA7114, SAA7115 and SAA7118 */
-+	I2C_CLIENT_END };
-+
-+static unsigned short tvp5150_addrs[] = {
-+	0xb8 >> 1,
-+	0xba >> 1,
-+	I2C_CLIENT_END
-+};
-+
-+static unsigned short msp3400_addrs[] = {
-+	0x80 >> 1,
-+	0x88 >> 1,
-+	I2C_CLIENT_END
-+};
-+
- /******************************** usb interface ******************************/
- 
- static struct video_device *em28xx_vdev_init(struct em28xx *dev,
-@@ -2220,7 +2239,56 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
- 		       EM28XX_VINCTRL_CCIR656_ENABLE;
- 
--        /* Initialize tuner and camera */
-+
-+
-+	/* request some modules */
-+
-+	if (dev->board.has_msp34xx)
-+		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-+			"msp3400", 0, msp3400_addrs);
-+
-+	if (dev->board.decoder == EM28XX_SAA711X)
-+		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-+			"saa7115_auto", 0, saa711x_addrs);
-+
-+	if (dev->board.decoder == EM28XX_TVP5150)
-+		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-+			"tvp5150", 0, tvp5150_addrs);
-+
-+	if (dev->board.adecoder == EM28XX_TVAUDIO)
-+		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-+			"tvaudio", dev->board.tvaudio_addr, NULL);
-+
-+	/* Initialize tuner and camera */
-+
-+	if (dev->board.tuner_type != TUNER_ABSENT) {
-+		int has_demod = (dev->tda9887_conf & TDA9887_PRESENT);
-+
-+		if (dev->board.radio.type)
-+			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-+				"tuner", dev->board.radio_addr, NULL);
-+
-+		if (has_demod)
-+			v4l2_i2c_new_subdev(&dev->v4l2_dev,
-+				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
-+				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
-+		if (dev->tuner_addr == 0) {
-+			enum v4l2_i2c_tuner_type type =
-+				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
-+			struct v4l2_subdev *sd;
-+
-+			sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
-+				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
-+				0, v4l2_i2c_tuner_addrs(type));
-+
-+			if (sd)
-+				dev->tuner_addr = v4l2_i2c_subdev_addr(sd);
-+		} else {
-+			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-+				"tuner", dev->tuner_addr, NULL);
-+		}
-+	}
-+
- 	em28xx_tuner_setup(dev);
- 	em28xx_init_camera(dev);
- 
+Please put the set statement on a different line.
+
+>  	dvb_log("|                   %s (%#02x)", dvb_descriptors[desc->type].name, desc->type);
+>  	hexdump(parms, "|                       ", desc->data, desc->length);
+>  }
+> diff --git a/lib/libdvbv5/descriptors/eit.c b/lib/libdvbv5/descriptors/eit.c
+> index ccfe1a6..d13b14c 100644
+> --- a/lib/libdvbv5/descriptors/eit.c
+> +++ b/lib/libdvbv5/descriptors/eit.c
+> @@ -29,6 +29,11 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
+>  	struct dvb_table_eit_event **head;
+>  
+>  	if (*table_length > 0) {
+> +		memcpy(eit, p, sizeof(struct dvb_table_eit) - sizeof(eit->event));
+
+Check for size before copying.
+
+> +
+> +		bswap16(eit->transport_id);
+> +		bswap16(eit->network_id);
+> +
+>  		/* find end of curent list */
+>  		head = &eit->event;
+>  		while (*head != NULL)
+> @@ -48,8 +53,18 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
+>  	struct dvb_table_eit_event *last = NULL;
+>  	while ((uint8_t *) p < buf + buflen - 4) {
+>  		struct dvb_table_eit_event *event = (struct dvb_table_eit_event *) malloc(sizeof(struct dvb_table_eit_event));
+> -		memcpy(event, p, sizeof(struct dvb_table_eit_event) - sizeof(event->descriptor) - sizeof(event->next) - sizeof(event->start) - sizeof(event->duration));
+> -		p += sizeof(struct dvb_table_eit_event) - sizeof(event->descriptor) - sizeof(event->next) - sizeof(event->start) - sizeof(event->duration);
+> +		memcpy(event, p, sizeof(struct dvb_table_eit_event) -
+> +				 sizeof(event->descriptor) -
+> +				 sizeof(event->next) -
+> +				 sizeof(event->start) -
+> +				 sizeof(event->duration) -
+> +				 sizeof(event->service_id));
+
+Please replace those ugly sizeof() by offset_of(). Makes the code more
+readable and easier to analize.
+
+Also, please check for buf size before copying.
+
+> +		p += sizeof(struct dvb_table_eit_event) -
+> +		     sizeof(event->descriptor) -
+> +		     sizeof(event->next) -
+> +		     sizeof(event->start) -
+> +		     sizeof(event->duration) -
+> +		     sizeof(event->service_id);
+>  
+>  		bswap16(event->event_id);
+>  		bswap16(event->bitfield);
+> @@ -57,9 +72,11 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
+>  		event->descriptor = NULL;
+>  		event->next = NULL;
+>  		dvb_time(event->dvbstart, &event->start);
+> -		event->duration = bcd(event->dvbduration[0]) * 3600 +
+> -				  bcd(event->dvbduration[1]) * 60 +
+> -				  bcd(event->dvbduration[2]);
+> +		event->duration = bcd((uint32_t) event->dvbduration[0]) * 3600 +
+> +				  bcd((uint32_t) event->dvbduration[1]) * 60 +
+> +				  bcd((uint32_t) event->dvbduration[2]);
+> +
+> +		event->service_id = eit->header.id;
+>  
+>  		if(!*head)
+>  			*head = event;
+> @@ -102,6 +119,7 @@ void dvb_table_eit_print(struct dvb_v5_fe_parms *parms, struct dvb_table_eit *ei
+>  		char start[255];
+>  		strftime(start, sizeof(start), "%F %T", &event->start);
+>  		dvb_log("|- %7d", event->event_id);
+> +		dvb_log("|   Service               %d", event->service_id);
+>  		dvb_log("|   Start                 %s UTC", start);
+>  		dvb_log("|   Duration              %dh %dm %ds", event->duration / 3600, (event->duration % 3600) / 60, event->duration % 60);
+>  		dvb_log("|   free CA mode          %d", event->free_CA_mode);
+> diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+> index cc32ec0..4672267 100644
+> --- a/lib/libdvbv5/dvb-fe.c
+> +++ b/lib/libdvbv5/dvb-fe.c
+> @@ -35,6 +35,13 @@ static void dvb_v5_free(struct dvb_v5_fe_parms *parms)
+>  	free(parms);
+>  }
+>  
+> +struct dvb_v5_fe_parms dummy_fe;
+> +struct dvb_v5_fe_parms *dvb_fe_dummy()
+> +{
+> +	dummy_fe.logfunc = dvb_default_log;
+> +	return &dummy_fe;
+> +}
+> +
+>  struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+>  				    unsigned use_legacy_call)
+>  {
+
+
+> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+> index 9751f9d..421434e 100644
+> --- a/lib/libdvbv5/dvb-scan.c
+> +++ b/lib/libdvbv5/dvb-scan.c
+> @@ -102,7 +102,7 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  	int start_section = -1;
+>  	int first_section = -1;
+>  	int last_section = -1;
+> -	int table_id = -1;
+> +	/*int table_id = -1;*/
+>  	int sections = 0;
+>  	struct dmx_sct_filter_params f;
+>  	struct dvb_table_header *h;
+> @@ -112,7 +112,6 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  	*table = NULL;
+>  
+>  	// FIXME: verify known table
+> -
+>  	memset(&f, 0, sizeof(f));
+>  	f.pid = pid;
+>  	f.filter.filter[0] = tid;
+> @@ -202,21 +201,11 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  			continue;
+>  		}
+>  
+> -		/*if (id != -1) {*/
+> -			/*if (table_id == -1)*/
+> -				/*table_id = h->id;*/
+> -			/*else if (h->id != table_id) {*/
+> -				/*dvb_logwarn("dvb_read_section: table ID mismatch reading multi section table: %d != %d", h->id, table_id);*/
+> -				/*free(buf);*/
+> -				/*continue;*/
+> -			/*}*/
+> -		/*}*/
+> -
+> -		dvb_logerr("dvb_read_section: got section %d, last %di, filter %d", h->section_id, h->last_section, id );
+> +		/*dvb_logerr("dvb_read_section: got section %d, last %d, filter %d", h->section_id, h->last_section, id );*/
+>  		/* handle the sections */
+>  		if (first_section == -1)
+>  			first_section = h->section_id;
+> -		else if (h->section_id == first_section)
+> +		else if (start_id == h->id && h->section_id == first_section)
+>  			break;
+>  
+>  		if (last_section == -1)
+> @@ -248,8 +237,11 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  		if (id != -1 && ++sections == last_section + 1) {
+>  			dvb_logerr("dvb_read_section: ++sections == last_section + 1");
+>  			break;
+> +		}
+>  	}
+> -	free(buf);
+> +
+> +	if (buf)
+> +		free(buf);
+>  
+>  	dvb_dmx_stop(dmx_fd);
+>  
+
+The above should be at patch 1. It is being really confusing to
+understand what you're doing with all those changes  to the
+table sequencing parser.
+
 -- 
-1.8.3.1
 
+Cheers,
+Mauro
