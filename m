@@ -1,48 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:48978 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750817Ab3LTUXc (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:42492 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751334Ab3L2DqW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 15:23:32 -0500
-Received: by mail-we0-f181.google.com with SMTP id x55so2889309wes.26
-        for <linux-media@vger.kernel.org>; Fri, 20 Dec 2013 12:23:31 -0800 (PST)
-Received: from [192.168.1.110] (093105185086.warszawa.vectranet.pl. [93.105.185.86])
-        by mx.google.com with ESMTPSA id pl7sm3410441wjc.16.2013.12.20.12.23.29
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Fri, 20 Dec 2013 12:23:30 -0800 (PST)
-Message-ID: <52B4A741.5080901@gmail.com>
-Date: Fri, 20 Dec 2013 21:23:29 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL v2]  Samsung S5K6BAF image sensor driver
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 28 Dec 2013 22:46:22 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYJ00EJJUH9UT60@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 28 Dec 2013 22:46:21 -0500 (EST)
+Date: Sun, 29 Dec 2013 01:42:25 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 09/13] libdvbv5: fix section counting
+Message-id: <20131229014225.01feb88e.m.chehab@samsung.com>
+In-reply-to: <1388245561-8751-9-git-send-email-neolynx@gmail.com>
+References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+ <1388245561-8751-9-git-send-email-neolynx@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 0400c5354ad09bf4c754132992bdde9ef3dbefcd:
+Em Sat, 28 Dec 2013 16:45:57 +0100
+André Roth <neolynx@gmail.com> escreveu:
 
-   [media] dib8000: improve block statistics (2013-12-19 08:17:47 -0200)
+> Signed-off-by: André Roth <neolynx@gmail.com>
+> ---
+>  lib/libdvbv5/dvb-scan.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+> index bd9d2fb..6f3def6 100644
+> --- a/lib/libdvbv5/dvb-scan.c
+> +++ b/lib/libdvbv5/dvb-scan.c
+> @@ -208,7 +208,7 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  		else if (start_id == h->id && h->section_id == first_section)
+>  			break;
+>  
+> -		if (last_section == -1)
+> +		if (last_section == -1 || h->last_section > last_section)
 
-are available in the git repository at:
-   git://linuxtv.org/snawrocki/samsung.git v3.14-s5k5baf
+Patch 1.
 
-Andrzej Hajda (2):
-       Add DT binding documentation for Samsung S5K5BAF camera sensor
-       Add driver for Samsung S5K5BAF camera sensor
+>  			last_section = h->last_section;
+>  
+>  		if (!tbl) {
 
-  .../devicetree/bindings/media/samsung-s5k5baf.txt  |   58 +
-  MAINTAINERS                                        |    7 +
-  drivers/media/i2c/Kconfig                          |    7 +
-  drivers/media/i2c/Makefile                         |    1 +
-  drivers/media/i2c/s5k5baf.c                        | 2043 
-++++++++++++++++++++
-  5 files changed, 2116 insertions(+), 0 deletions(-)
-  create mode 100644 
-Documentation/devicetree/bindings/media/samsung-s5k5baf.txt
-  create mode 100644 drivers/media/i2c/s5k5baf.c
 
-Comparing to the first version I just removed a duplicated Signed-off-by 
-tag.
+-- 
+
+Cheers,
+Mauro
