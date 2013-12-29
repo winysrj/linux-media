@@ -1,64 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:30790 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751689Ab3LSLai (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52010 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082Ab3L2Con (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 06:30:38 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MY100A38XB1YT40@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 19 Dec 2013 06:30:37 -0500 (EST)
-Date: Thu, 19 Dec 2013 09:30:32 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Nikolaus Schulz <ns@htonl.de>
-Cc: schulz@macnetix.de, linux-media@vger.kernel.org
-Subject: Re: [PATCH] libdvbv5: more fixes in the T2 delivery descriptor handler
-Message-id: <20131219093032.392163a0@samsung.com>
-In-reply-to: <20131219023744.GA21176@pcewns01.macnetix.de>
-References: <1386256203-3007-1-git-send-email-schulz@macnetix.de>
- <20131218104931.743fc6d3@samsung.com>
- <20131219023744.GA21176@pcewns01.macnetix.de>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Sat, 28 Dec 2013 21:44:43 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/2] em28xx-audio: allocate URBs at device driver init
+Date: Sun, 29 Dec 2013 00:44:22 -0200
+Message-Id: <1388285062-29217-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1388285062-29217-1-git-send-email-mchehab@redhat.com>
+References: <1388285062-29217-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 19 Dec 2013 03:37:48 +0100
-Nikolaus Schulz <schulz@macnetix.de> escreveu:
+Instead of allocating/deallocating URBs and transfer buffers
+every time stream is started/stopped, just do it once.
 
-> Hi Mauro,
-> 
-> I didn't have the time yet to look at your comments and that patch
-> again, but:
-> 
-> Please note that my email address <schulz@macnetix.de> is shut down as
-> of today[1].
-> 
-> Please use my alternate address, <ns@htonl.de>, for any further replies
-> or followups.
+That reduces the memory allocation pressure and makes the
+code that start/stop streaming a way simpler.
 
-Ok. Well, if anyone replies to the thread, it will to to both addresses,
-so it should reach you anyway.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/em28xx/em28xx-audio.c | 128 ++++++++++++++++++--------------
+ 1 file changed, 73 insertions(+), 55 deletions(-)
 
-> Maybe Patchwork[2] should also be updated accordingly?
-
-I think that you'll need to create an account at patchwork, in order
-to add your new address. Not sure if it allows you to delete the
-old address through.
-
-> 
-> Thanks,
-> Nikolaus
-> 
-> [1] I don't know if the local admin will disable the old email address
->     <schulz@macnetix.de> in time, but I definitely will no longer read
->     messages sent to it, from now on.
-> [2] https://patchwork.linuxtv.org/patch/20943/
-
-
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 825acf8bfb60..7dc890c211f9 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -3,7 +3,7 @@
+  *
+  *  Copyright (C) 2006 Markus Rechberger <mrechberger@gmail.com>
+  *
+- *  Copyright (C) 2007-2011 Mauro Carvalho Chehab <mchehab@redhat.com>
++ *  Copyright (C) 2007-2013 Mauro Carvalho Chehab
+  *	- Port to work with the in-kernel driver
+  *	- Cleanups, fixes, alsa-controls, etc.
+  *
+@@ -70,16 +70,6 @@ static int em28xx_deinit_isoc_audio(struct em28xx *dev)
+ 			usb_kill_urb(urb);
+ 		else
+ 			usb_unlink_urb(urb);
+-
+-		usb_free_coherent(dev->udev,
+-				  urb->transfer_buffer_length,
+-				  dev->adev.transfer_buffer[i],
+-				  urb->transfer_dma);
+-
+-		dev->adev.transfer_buffer[i] = NULL;
+-
+-		usb_free_urb(urb);
+-		dev->adev.urb[i] = NULL;
+ 	}
+ 
+ 	return 0;
+@@ -174,53 +164,14 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ static int em28xx_init_audio_isoc(struct em28xx *dev)
+ {
+ 	int       i, errCode;
+-	const int sb_size = EM28XX_NUM_AUDIO_PACKETS *
+-			    EM28XX_AUDIO_MAX_PACKET_SIZE;
+ 
+ 	dprintk("Starting isoc transfers\n");
+ 
++	/* Start streaming */
+ 	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+-		struct urb *urb;
+-		int j, k;
+-		void *buf;
+-
+-		urb = usb_alloc_urb(EM28XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
+-		if (!urb) {
+-			em28xx_errdev("usb_alloc_urb failed!\n");
+-			for (j = 0; j < i; j++) {
+-				usb_free_urb(dev->adev.urb[j]);
+-				kfree(dev->adev.transfer_buffer[j]);
+-			}
+-			return -ENOMEM;
+-		}
+-
+-		buf = usb_alloc_coherent(dev->udev, sb_size, GFP_ATOMIC,
+-					 &urb->transfer_dma);
+-		if (!buf)
+-			return -ENOMEM;
+-		dev->adev.transfer_buffer[i] = buf;
+-		memset(buf, 0x80, sb_size);
++		memset(dev->adev.transfer_buffer[i], 0x80,
++		       dev->adev.urb[i]->transfer_buffer_length);
+ 
+-		urb->dev = dev->udev;
+-		urb->context = dev;
+-		urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
+-		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
+-		urb->transfer_buffer = dev->adev.transfer_buffer[i];
+-		urb->interval = 1;
+-		urb->complete = em28xx_audio_isocirq;
+-		urb->number_of_packets = EM28XX_NUM_AUDIO_PACKETS;
+-		urb->transfer_buffer_length = sb_size;
+-
+-		for (j = k = 0; j < EM28XX_NUM_AUDIO_PACKETS;
+-			     j++, k += EM28XX_AUDIO_MAX_PACKET_SIZE) {
+-			urb->iso_frame_desc[j].offset = k;
+-			urb->iso_frame_desc[j].length =
+-			    EM28XX_AUDIO_MAX_PACKET_SIZE;
+-		}
+-		dev->adev.urb[i] = urb;
+-	}
+-
+-	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+ 		errCode = usb_submit_urb(dev->adev.urb[i], GFP_ATOMIC);
+ 		if (errCode) {
+ 			em28xx_errdev("submit of audio urb failed\n");
+@@ -643,13 +594,37 @@ static struct snd_pcm_ops snd_em28xx_pcm_capture = {
+ 	.page      = snd_pcm_get_vmalloc_page,
+ };
+ 
++
++static void em28xx_audio_free_urb(struct em28xx *dev)
++{
++	int i;
++
++	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
++		struct urb *urb = dev->adev.urb[i];
++
++		if (!dev->adev.urb[i])
++			continue;
++
++		usb_free_coherent(dev->udev,
++				  urb->transfer_buffer_length,
++				  dev->adev.transfer_buffer[i],
++				  urb->transfer_dma);
++
++		usb_free_urb(urb);
++		dev->adev.urb[i] = NULL;
++		dev->adev.transfer_buffer[i] = NULL;
++	}
++}
++
+ static int em28xx_audio_init(struct em28xx *dev)
+ {
+ 	struct em28xx_audio *adev = &dev->adev;
+ 	struct snd_pcm      *pcm;
+ 	struct snd_card     *card;
+ 	static int          devnr;
+-	int                 err;
++	int                 err, i;
++	const int sb_size = EM28XX_NUM_AUDIO_PACKETS *
++			    EM28XX_AUDIO_MAX_PACKET_SIZE;
+ 
+ 	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
+ 		/* This device does not support the extension (in this case
+@@ -662,7 +637,7 @@ static int em28xx_audio_init(struct em28xx *dev)
+ 
+ 	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
+ 			 "Rechberger\n");
+-	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab\n");
++	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2007-2013 Mauro Carvalho Chehab\n");
+ 
+ 	err = snd_card_create(index[devnr], "Em28xx Audio", THIS_MODULE, 0,
+ 			      &card);
+@@ -704,6 +679,47 @@ static int em28xx_audio_init(struct em28xx *dev)
+ 		em28xx_cvol_new(card, dev, "Surround", AC97_SURROUND_MASTER);
+ 	}
+ 
++	/* Alloc URB and transfer buffers */
++	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
++		struct urb *urb;
++		int j, k;
++		void *buf;
++
++		urb = usb_alloc_urb(EM28XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
++		if (!urb) {
++			em28xx_errdev("usb_alloc_urb failed!\n");
++			em28xx_audio_free_urb(dev);
++			return -ENOMEM;
++		}
++		dev->adev.urb[i] = urb;
++
++		buf = usb_alloc_coherent(dev->udev, sb_size, GFP_ATOMIC,
++					 &urb->transfer_dma);
++		if (!buf) {
++			em28xx_errdev("usb_alloc_coherent failed!\n");
++			em28xx_audio_free_urb(dev);
++			return -ENOMEM;
++		}
++		dev->adev.transfer_buffer[i] = buf;
++
++		urb->dev = dev->udev;
++		urb->context = dev;
++		urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
++		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
++		urb->transfer_buffer = dev->adev.transfer_buffer[i];
++		urb->interval = 1;
++		urb->complete = em28xx_audio_isocirq;
++		urb->number_of_packets = EM28XX_NUM_AUDIO_PACKETS;
++		urb->transfer_buffer_length = sb_size;
++
++		for (j = k = 0; j < EM28XX_NUM_AUDIO_PACKETS;
++			     j++, k += EM28XX_AUDIO_MAX_PACKET_SIZE) {
++			urb->iso_frame_desc[j].offset = k;
++			urb->iso_frame_desc[j].length =
++			    EM28XX_AUDIO_MAX_PACKET_SIZE;
++		}
++	}
++
+ 	err = snd_card_register(card);
+ 	if (err < 0) {
+ 		snd_card_free(card);
+@@ -728,6 +744,8 @@ static int em28xx_audio_fini(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
++	em28xx_audio_free_urb(dev);
++
+ 	if (dev->adev.sndcard) {
+ 		snd_card_free(dev->adev.sndcard);
+ 		dev->adev.sndcard = NULL;
 -- 
+1.8.3.1
 
-Cheers,
-Mauro
