@@ -1,235 +1,398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:62562 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755685Ab3L3Mt0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Dec 2013 07:49:26 -0500
-Received: by mail-ee0-f45.google.com with SMTP id d49so5056394eek.4
-        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:24 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38408 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751887Ab3L2EwO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:52:14 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 02/18] libdvbv5: service location descriptor support
-Date: Mon, 30 Dec 2013 13:48:35 +0100
-Message-Id: <1388407731-24369-2-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/6] msi3101: convert to SDR API
+Date: Sun, 29 Dec 2013 06:51:36 +0200
+Message-Id: <1388292700-18369-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1388292700-18369-1-git-send-email-crope@iki.fi>
+References: <1388292700-18369-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement the service location descriptor (0xa1), and small cleanups.
+Convert to SDR API.
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- lib/include/descriptors.h                        |  4 +-
- lib/include/descriptors/desc_service_location.h  | 69 +++++++++++++++++++++++
- lib/libdvbv5/Makefile.am                         |  3 +-
- lib/libdvbv5/descriptors.c                       |  2 +-
- lib/libdvbv5/descriptors/desc_service_location.c | 70 ++++++++++++++++++++++++
- 5 files changed, 145 insertions(+), 3 deletions(-)
- create mode 100644 lib/include/descriptors/desc_service_location.h
- create mode 100644 lib/libdvbv5/descriptors/desc_service_location.c
+ drivers/staging/media/msi3101/sdr-msi3101.c | 204 ++++++++++++++++++++--------
+ 1 file changed, 148 insertions(+), 56 deletions(-)
 
-diff --git a/lib/include/descriptors.h b/lib/include/descriptors.h
-index 2e614f0..5ab29a0 100644
---- a/lib/include/descriptors.h
-+++ b/lib/include/descriptors.h
-@@ -1,4 +1,4 @@
--  /*
-+/*
-  * Copyright (c) 2011-2012 - Mauro Carvalho Chehab <mchehab@redhat.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -216,6 +216,8 @@ enum descriptors {
- 	/* SCTE 35 2004 */
- 	CUE_identifier_descriptor			= 0x8a,
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 16ce417..9c54c63 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -386,10 +386,39 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
+ #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
  
-+	extended_channel_name				= 0xa0,
-+	service_location				= 0xa1,
- 	/* From http://www.etherguidesystems.com/Help/SDOs/ATSC/Semantics/Descriptors/Default.aspx */
- 	component_name_descriptor			= 0xa3,
+ #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
+-#define V4L2_PIX_FMT_SDR_S12     v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
+-#define V4L2_PIX_FMT_SDR_S14     v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
++#define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
++#define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
+ #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
  
-diff --git a/lib/include/descriptors/desc_service_location.h b/lib/include/descriptors/desc_service_location.h
-new file mode 100644
-index 0000000..89ed055
---- /dev/null
-+++ b/lib/include/descriptors/desc_service_location.h
-@@ -0,0 +1,69 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
++static const struct v4l2_frequency_band bands_adc[] = {
++	{
++		.tuner = 0,
++		.type = V4L2_TUNER_ADC,
++		.index = 0,
++		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow   =  1200000,
++		.rangehigh  = 15000000,
++	},
++};
 +
-+#ifndef _SERVICE_LOCATION_H
-+#define _SERVICE_LOCATION_H
++static const struct v4l2_frequency_band bands_rf[] = {
++	{
++		.tuner = 1,
++		.type = V4L2_TUNER_RF,
++		.index = 0,
++		.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow   =   49000000 / 62.5,
++		.rangehigh  =  263000000 / 62.5,
++	}, {
++		.tuner = 1,
++		.type = V4L2_TUNER_RF,
++		.index = 1,
++		.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow   =  390000000 / 62.5,
++		.rangehigh  =  960000000 / 62.5,
++	},
++};
 +
-+#include <stdint.h>
-+#include <unistd.h> /* ssize_t */
-+
-+struct dvb_desc_service_location_element {
-+	uint8_t stream_type;
-+	union {
-+		uint16_t bitfield;
-+		struct {
-+			uint16_t elementary_pid:13;
-+			uint16_t reserved:3;
-+		};
-+	};
-+	uint8_t language[4];
-+} __attribute__((packed));
-+
-+struct dvb_desc_service_location {
-+	uint8_t type;
-+	uint8_t length;
-+	struct dvb_desc *next;
-+
-+	union {
-+		uint16_t bitfield;
-+		struct {
-+			uint16_t pcr_pid:13;
-+			uint16_t reserved:3;
-+		};
-+	};
-+	uint8_t elements;
-+	struct dvb_desc_service_location_element *element;
-+} __attribute__((packed));
-+
-+struct dvb_v5_fe_parms;
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+void dvb_desc_service_location_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc);
-+void dvb_desc_service_location_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc);
-+void dvb_desc_service_location_free (struct dvb_desc *desc);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-index 2ad5902..80e8adb 100644
---- a/lib/libdvbv5/Makefile.am
-+++ b/lib/libdvbv5/Makefile.am
-@@ -48,7 +48,8 @@ libdvbv5_la_SOURCES = \
-   descriptors/nit.c  ../include/descriptors/nit.h \
-   descriptors/sdt.c  ../include/descriptors/sdt.h \
-   descriptors/vct.c  ../include/descriptors/vct.h \
--  descriptors/eit.c  ../include/descriptors/eit.h
-+  descriptors/eit.c  ../include/descriptors/eit.h \
-+  descriptors/desc_service_location.c  ../include/descriptors/desc_service_location.h
+ /* stream formats */
+ struct msi3101_format {
+ 	char	*name;
+@@ -437,6 +466,7 @@ struct msi3101_state {
+ 	/* Pointer to our usb_device, will be NULL after unplug */
+ 	struct usb_device *udev; /* Both mutexes most be hold when setting! */
  
- libdvbv5_la_CPPFLAGS = $(ENFORCE_LIBDVBV5_STATIC)
- libdvbv5_la_LDFLAGS = $(LIBDVBV5_VERSION) $(ENFORCE_LIBDVBV5_STATIC) -lm
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index 5ce9241..437b2f4 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -69,7 +69,7 @@ void dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, st
++	unsigned int f_adc, f_tuner;
+ 	u32 pixelformat;
  
- void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
--	dvb_log("|                   %s (0x%02x)", dvb_descriptors[desc->type].name, desc->type);
-+	dvb_log("|                   %s (%#02x)", dvb_descriptors[desc->type].name, desc->type);
- 	hexdump(parms, "|                       ", desc->data, desc->length);
+ 	unsigned int isoc_errors; /* number of contiguous ISOC errors */
+@@ -479,16 +509,6 @@ leave:
  }
  
-diff --git a/lib/libdvbv5/descriptors/desc_service_location.c b/lib/libdvbv5/descriptors/desc_service_location.c
-new file mode 100644
-index 0000000..3759665
---- /dev/null
-+++ b/lib/libdvbv5/descriptors/desc_service_location.c
-@@ -0,0 +1,70 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
-+
-+#include "descriptors/desc_service_location.h"
-+#include "descriptors.h"
-+#include "dvb-fe.h"
-+
-+void dvb_desc_service_location_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
-+{
-+	struct dvb_desc_service_location *service_location = (struct dvb_desc_service_location *) desc;
-+	/* copy from .next */
-+	memcpy(((uint8_t *) service_location )
-+			+ sizeof(service_location->type)
-+			+ sizeof(service_location->length)
-+			+ sizeof(service_location->next),
-+		buf,
-+		sizeof(service_location->bitfield) + sizeof(service_location->elements));
-+	buf +=  sizeof(service_location->bitfield) + sizeof(service_location->elements);
-+
-+	bswap16(service_location->bitfield);
-+
-+	// FIXME: handle elements == 0
-+	service_location->element = malloc(service_location->elements * sizeof(struct dvb_desc_service_location_element));
-+	int i;
-+	struct dvb_desc_service_location_element *element = service_location->element;
-+	for(i = 0; i < service_location->elements; i++) {
-+		memcpy(element, buf, sizeof(struct dvb_desc_service_location_element) - 1); /* no \0 in lang */
-+		buf += sizeof(struct dvb_desc_service_location_element) - 1;
-+		element->language[3] = '\0';
-+		bswap16(element->bitfield);
-+		element++;
+ /*
+- * Integer to 32-bit IEEE floating point representation routine is taken
+- * from Radeon R600 driver (drivers/gpu/drm/radeon/r600_blit_kms.c).
+- *
+- * TODO: Currently we do conversion here in Kernel, but in future that will
+- * be moved to the libv4l2 library as video format conversions are.
+- */
+-#define I2F_FRAC_BITS  23
+-#define I2F_MASK ((1 << I2F_FRAC_BITS) - 1)
+-
+-/*
+  * +===========================================================================
+  * |   00-1023 | USB packet type '504'
+  * +===========================================================================
+@@ -1016,12 +1036,11 @@ static int msi3101_querycap(struct file *file, void *fh,
+ 	strlcpy(cap->card, s->vdev.name, sizeof(cap->card));
+ 	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+-			V4L2_CAP_READWRITE;
++			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+ 
+-
+ /* Videobuf2 operations */
+ static int msi3101_queue_setup(struct vb2_queue *vq,
+ 		const struct v4l2_format *fmt, unsigned int *nbuffers,
+@@ -1037,9 +1056,9 @@ static int msi3101_queue_setup(struct vb2_queue *vq,
+ 	 *   3, wMaxPacketSize 3x 1024 bytes
+ 	 * 504, max IQ sample pairs per 1024 frame
+ 	 *   2, two samples, I and Q
+-	 *   4, 32-bit float
++	 *   2, 16-bit is enough for single sample
+ 	 */
+-	sizes[0] = PAGE_ALIGN(3 * 504 * 2 * 4); /* = 12096 */
++	sizes[0] = PAGE_ALIGN(3 * 504 * 2 * 2);
+ 	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
+ 			__func__, *nbuffers, sizes[0]);
+ 	return 0;
+@@ -1527,28 +1546,27 @@ static struct vb2_ops msi3101_vb2_ops = {
+ 
+ static int msi3101_enum_input(struct file *file, void *fh, struct v4l2_input *i)
+ {
+-	if (i->index != 0)
++	if (i->index > 0)
+ 		return -EINVAL;
+-
+-	strlcpy(i->name, "SDR data", sizeof(i->name));
+-	i->type = V4L2_INPUT_TYPE_CAMERA;
+-
++	strlcpy(i->name, "Antenna #0", sizeof(i->name));
++	i->type = V4L2_INPUT_TYPE_TUNER;
+ 	return 0;
+ }
+ 
+ static int msi3101_g_input(struct file *file, void *fh, unsigned int *i)
+ {
+ 	*i = 0;
+-
+ 	return 0;
+ }
+ 
+ static int msi3101_s_input(struct file *file, void *fh, unsigned int i)
+ {
+-	return i ? -EINVAL : 0;
++	if (i > 0)
++		return -EINVAL;
++	return 0;
+ }
+ 
+-static int msi3101_enum_fmt_vid_cap(struct file *file, void *priv,
++static int msi3101_enum_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_fmtdesc *f)
+ {
+ 	struct msi3101_state *s = video_drvdata(file);
+@@ -1563,70 +1581,70 @@ static int msi3101_enum_fmt_vid_cap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int msi3101_g_fmt_vid_cap(struct file *file, void *priv,
++static int msi3101_g_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_format *f)
+ {
+ 	struct msi3101_state *s = video_drvdata(file);
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+-	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
+ 		return -EINVAL;
+ 
+-	f->fmt.pix.pixelformat = s->pixelformat;
++	f->fmt.sdr.pixelformat = s->pixelformat;
+ 
+ 	return 0;
+ }
+ 
+-static int msi3101_s_fmt_vid_cap(struct file *file, void *priv,
++static int msi3101_s_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_format *f)
+ {
+ 	struct msi3101_state *s = video_drvdata(file);
+ 	struct vb2_queue *q = &s->vb_queue;
+ 	int i;
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+-			(char *)&f->fmt.pix.pixelformat);
++			(char *)&f->fmt.sdr.pixelformat);
+ 
+-	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
+ 		return -EINVAL;
+ 
+ 	if (vb2_is_busy(q))
+ 		return -EBUSY;
+ 
+ 	for (i = 0; i < NUM_FORMATS; i++) {
+-		if (formats[i].pixelformat == f->fmt.pix.pixelformat) {
+-			s->pixelformat = f->fmt.pix.pixelformat;
++		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
++			s->pixelformat = f->fmt.sdr.pixelformat;
+ 			return 0;
+ 		}
+ 	}
+ 
+-	f->fmt.pix.pixelformat = formats[0].pixelformat;
++	f->fmt.sdr.pixelformat = formats[0].pixelformat;
+ 	s->pixelformat = formats[0].pixelformat;
+ 
+ 	return 0;
+ }
+ 
+-static int msi3101_try_fmt_vid_cap(struct file *file, void *priv,
++static int msi3101_try_fmt_sdr_cap(struct file *file, void *priv,
+ 		struct v4l2_format *f)
+ {
+ 	struct msi3101_state *s = video_drvdata(file);
+ 	int i;
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+-			(char *)&f->fmt.pix.pixelformat);
++			(char *)&f->fmt.sdr.pixelformat);
+ 
+-	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
+ 		return -EINVAL;
+ 
+ 	for (i = 0; i < NUM_FORMATS; i++) {
+-		if (formats[i].pixelformat == f->fmt.pix.pixelformat)
++		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
+ 			return 0;
+ 	}
+ 
+-	f->fmt.pix.pixelformat = formats[0].pixelformat;
++	f->fmt.sdr.pixelformat = formats[0].pixelformat;
+ 
+ 	return 0;
+ }
+ 
+-static int vidioc_s_tuner(struct file *file, void *priv,
++static int msi3101_s_tuner(struct file *file, void *priv,
+ 		const struct v4l2_tuner *v)
+ {
+ 	struct msi3101_state *s = video_drvdata(file);
+@@ -1635,35 +1653,106 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *v)
++static int msi3101_g_tuner(struct file *file, void *priv, struct v4l2_tuner *v)
+ {
+ 	struct msi3101_state *s = video_drvdata(file);
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+-	strcpy(v->name, "SDR RX");
+-	v->capability = V4L2_TUNER_CAP_LOW;
++	if (v->index == 0) {
++		strlcpy(v->name, "ADC: Mirics MSi2500", sizeof(v->name));
++		v->type = V4L2_TUNER_ADC;
++		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
++		v->rangelow =   1200000;
++		v->rangehigh = 15000000;
++	} else if (v->index == 1) {
++		strlcpy(v->name, "RF: Mirics MSi001", sizeof(v->name));
++		v->type = V4L2_TUNER_RF;
++		v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS;
++		v->rangelow =    49000000 / 62.5;
++		v->rangehigh =  960000000 / 62.5;
++	} else {
++		return -EINVAL;
 +	}
+ 
+ 	return 0;
+ }
+ 
+-static int vidioc_s_frequency(struct file *file, void *priv,
++static int msi3101_g_frequency(struct file *file, void *priv,
++		struct v4l2_frequency *f)
++{
++	struct msi3101_state *s = video_drvdata(file);
++	int ret  = 0;
++	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
++			__func__, f->tuner, f->type);
++
++	if (f->tuner == 0)
++		f->frequency = s->f_adc;
++	else if (f->tuner == 1)
++		f->frequency = s->f_tuner;
++	else
++		return -EINVAL;
++
++	return ret;
 +}
 +
-+void dvb_desc_service_location_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
-+{
-+	const struct dvb_desc_service_location *service_location = (const struct dvb_desc_service_location *) desc;
-+	dvb_log("|    pcr pid      %d", service_location->pcr_pid);
-+	dvb_log("|    streams:");
-+	int i;
-+	struct dvb_desc_service_location_element *element = service_location->element;
-+	for(i = 0; i < service_location->elements; i++) {
-+		dvb_log("|      pid %d, type %d: %s", element[i].elementary_pid, element[i].stream_type, element[i].language);
++static int msi3101_s_frequency(struct file *file, void *priv,
+ 		const struct v4l2_frequency *f)
+ {
+ 	struct msi3101_state *s = video_drvdata(file);
+-	dev_dbg(&s->udev->dev, "%s: frequency=%lu Hz (%u)\n",
+-			__func__, f->frequency * 625UL / 10UL, f->frequency);
++	int ret;
++	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
++			__func__, f->tuner, f->type, f->frequency);
++
++	if (f->tuner == 0) {
++		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
++				__func__, f->frequency);
++		s->f_adc = f->frequency;
++		ret = v4l2_ctrl_s_ctrl_int64(s->ctrl_sampling_rate,
++				f->frequency);
++	} else if (f->tuner == 1) {
++		dev_dbg(&s->udev->dev, "%s: RF frequency=%lu Hz\n",
++				__func__, f->frequency * 625UL / 10UL);
++		s->f_tuner = f->frequency;
++		ret = v4l2_ctrl_s_ctrl_int64(s->ctrl_tuner_rf,
++				f->frequency * 625UL / 10UL);
++	} else {
++		return -EINVAL;
 +	}
-+	dvb_log("| 	%d elements", service_location->elements);
++
++	return ret;
 +}
 +
-+void dvb_desc_service_location_free(struct dvb_desc *desc)
++static int msi3101_enum_freq_bands(struct file *file, void *priv,
++		struct v4l2_frequency_band *band)
 +{
-+	const struct dvb_desc_service_location *service_location = (const struct dvb_desc_service_location *) desc;
-+	free(service_location->element);
-+}
++	struct msi3101_state *s = video_drvdata(file);
++	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
++			__func__, band->tuner, band->type, band->index);
 +
++	if (band->tuner == 0) {
++		if (band->index >= ARRAY_SIZE(bands_adc))
++			return -EINVAL;
++
++		*band = bands_adc[band->index];
++	} else if (band->tuner == 1) {
++		if (band->index >= ARRAY_SIZE(bands_rf))
++			return -EINVAL;
+ 
+-	return v4l2_ctrl_s_ctrl_int64(s->ctrl_tuner_rf,
+-			f->frequency * 625UL / 10UL);
++		*band = bands_rf[band->index];
++	} else {
++		return -EINVAL;
++	}
++
++	return 0;
+ }
+ 
+ static const struct v4l2_ioctl_ops msi3101_ioctl_ops = {
+ 	.vidioc_querycap          = msi3101_querycap,
+ 
+-	.vidioc_enum_fmt_vid_cap  = msi3101_enum_fmt_vid_cap,
+-	.vidioc_g_fmt_vid_cap     = msi3101_g_fmt_vid_cap,
+-	.vidioc_s_fmt_vid_cap     = msi3101_s_fmt_vid_cap,
+-	.vidioc_try_fmt_vid_cap   = msi3101_try_fmt_vid_cap,
++	.vidioc_enum_fmt_sdr_cap  = msi3101_enum_fmt_sdr_cap,
++	.vidioc_g_fmt_sdr_cap     = msi3101_g_fmt_sdr_cap,
++	.vidioc_s_fmt_sdr_cap     = msi3101_s_fmt_sdr_cap,
++	.vidioc_try_fmt_sdr_cap   = msi3101_try_fmt_sdr_cap,
+ 
+ 	.vidioc_enum_input        = msi3101_enum_input,
+ 	.vidioc_g_input           = msi3101_g_input,
+@@ -1679,9 +1768,12 @@ static const struct v4l2_ioctl_ops msi3101_ioctl_ops = {
+ 	.vidioc_streamon          = vb2_ioctl_streamon,
+ 	.vidioc_streamoff         = vb2_ioctl_streamoff,
+ 
+-	.vidioc_g_tuner           = vidioc_g_tuner,
+-	.vidioc_s_tuner           = vidioc_s_tuner,
+-	.vidioc_s_frequency       = vidioc_s_frequency,
++	.vidioc_g_tuner           = msi3101_g_tuner,
++	.vidioc_s_tuner           = msi3101_s_tuner,
++
++	.vidioc_g_frequency       = msi3101_g_frequency,
++	.vidioc_s_frequency       = msi3101_s_frequency,
++	.vidioc_enum_freq_bands   = msi3101_enum_freq_bands,
+ 
+ 	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+@@ -1844,7 +1936,7 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	s->udev = udev;
+ 
+ 	/* Init videobuf2 queue structure */
+-	s->vb_queue.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	s->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
+ 	s->vb_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+ 	s->vb_queue.drv_priv = s;
+ 	s->vb_queue.buf_struct_size = sizeof(struct msi3101_frame_buf);
+@@ -1892,7 +1984,7 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	s->vdev.v4l2_dev = &s->v4l2_dev;
+ 	s->vdev.lock = &s->v4l2_lock;
+ 
+-	ret = video_register_device(&s->vdev, VFL_TYPE_GRABBER, -1);
++	ret = video_register_device(&s->vdev, VFL_TYPE_SDR, -1);
+ 	if (ret < 0) {
+ 		dev_err(&s->udev->dev,
+ 				"Failed to register as video device (%d)\n",
 -- 
-1.8.3.2
+1.8.4.2
 
