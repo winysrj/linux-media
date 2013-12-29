@@ -1,62 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3998 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754059Ab3LJPGE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 10:06:04 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:45827 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751848Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:05:28 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 06/22] adv7842: added DE vertical position in SDP-io-sync
-Date: Tue, 10 Dec 2013 16:03:52 +0100
-Message-Id: <55b0ba2d0a0d72307cd1373ff80f976103edff3e.1386687810.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
-References: <0b624eb4cc9c2b7c88323771dca10c503785fcb7.1386687810.git.hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v6 01/12] v4l: add device type for Software Defined Radio
+Date: Sun, 29 Dec 2013 06:03:53 +0200
+Message-Id: <1388289844-2766-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1388289844-2766-1-git-send-email-crope@iki.fi>
+References: <1388289844-2766-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Bugge <marbugge@cisco.com>
+Add new V4L device type VFL_TYPE_SDR for Software Defined Radio.
+It is registered as /dev/swradio0 (/dev/sdr0 was already reserved).
 
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7842.c | 4 ++++
- include/media/adv7842.h     | 4 ++++
- 2 files changed, 8 insertions(+)
+ drivers/media/v4l2-core/v4l2-dev.c | 6 ++++++
+ include/media/v4l2-dev.h           | 3 ++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index d350c86..828fd23 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2415,6 +2415,10 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
- 		sdp_io_write(sd, 0x99, s->de_beg & 0xff);
- 		sdp_io_write(sd, 0x9a, (s->de_end>>8) & 0xf);
- 		sdp_io_write(sd, 0x9b, s->de_end & 0xff);
-+		sdp_io_write(sd, 0xac, s->de_v_beg_o);
-+		sdp_io_write(sd, 0xad, s->de_v_beg_e);
-+		sdp_io_write(sd, 0xae, s->de_v_end_o);
-+		sdp_io_write(sd, 0xaf, s->de_v_end_e);
- 	}
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 1cc1749..a034b4c 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -767,6 +767,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+  *	%VFL_TYPE_RADIO - A radio card
+  *
+  *	%VFL_TYPE_SUBDEV - A subdevice
++ *
++ *	%VFL_TYPE_SDR - Software Defined Radio
+  */
+ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 		int warn_if_nr_in_use, struct module *owner)
+@@ -806,6 +808,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	case VFL_TYPE_SUBDEV:
+ 		name_base = "v4l-subdev";
+ 		break;
++	case VFL_TYPE_SDR:
++		/* Use device name 'swradio' because 'sdr' was already taken. */
++		name_base = "swradio";
++		break;
+ 	default:
+ 		printk(KERN_ERR "%s called with unknown type: %d\n",
+ 		       __func__, type);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index c768c9f..eec6e46 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -24,7 +24,8 @@
+ #define VFL_TYPE_VBI		1
+ #define VFL_TYPE_RADIO		2
+ #define VFL_TYPE_SUBDEV		3
+-#define VFL_TYPE_MAX		4
++#define VFL_TYPE_SDR		4
++#define VFL_TYPE_MAX		5
  
- 	/* todo, improve settings for sdram */
-diff --git a/include/media/adv7842.h b/include/media/adv7842.h
-index b0cfc5f..f4e9d0d 100644
---- a/include/media/adv7842.h
-+++ b/include/media/adv7842.h
-@@ -131,6 +131,10 @@ struct adv7842_sdp_io_sync_adjustment {
- 	uint16_t hs_width;
- 	uint16_t de_beg;
- 	uint16_t de_end;
-+	uint8_t de_v_beg_o;
-+	uint8_t de_v_beg_e;
-+	uint8_t de_v_end_o;
-+	uint8_t de_v_end_e;
- };
- 
- /* Platform dependent definition */
+ /* Is this a receiver, transmitter or mem-to-mem? */
+ /* Ignored for VFL_TYPE_SUBDEV. */
 -- 
-1.8.4.rc3
+1.8.4.2
 
