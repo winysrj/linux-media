@@ -1,59 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp208.alice.it ([82.57.200.104]:20411 "EHLO smtp208.alice.it"
+Received: from mail.kapsi.fi ([217.30.184.167]:54345 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752595Ab3LPIRG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Dec 2013 03:17:06 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
+	id S1751363Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:05:28 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH 2/2] [media] Documentation/DocBook/media/v4l: fix typo, s/packet/packed/
-Date: Mon, 16 Dec 2013 09:16:46 +0100
-Message-Id: <1387181806-17021-3-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1387181806-17021-1-git-send-email-ospite@studenti.unina.it>
-References: <1387181806-17021-1-git-send-email-ospite@studenti.unina.it>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v6 03/12] v4l: 1 Hz resolution flag for tuners
+Date: Sun, 29 Dec 2013 06:03:55 +0200
+Message-Id: <1388289844-2766-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1388289844-2766-1-git-send-email-crope@iki.fi>
+References: <1388289844-2766-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change "packet" to "packed" where the doc is talking about packed data
-formats.
+Add V4L2_TUNER_CAP_1HZ for 1 Hz resolution.
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/subdev-formats.xml | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/uapi/linux/videodev2.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index bbe30cd..be21be3 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -89,7 +89,7 @@
-       <constant>V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE</constant>.
-       </para>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 3fff116..97a5e50 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1341,6 +1341,7 @@ struct v4l2_modulator {
+ #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
+ #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
+ #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
++#define V4L2_TUNER_CAP_1HZ		0x1000
  
--      <para>The following tables list existing packet RGB formats.</para>
-+      <para>The following tables list existing packed RGB formats.</para>
- 
-       <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-rgb">
- 	<title>RGB formats</title>
-@@ -615,7 +615,7 @@
- 	</mediaobject>
-       </figure>
- 
--      <para>The following table lists existing packet Bayer formats. The data
-+      <para>The following table lists existing packed Bayer formats. The data
-       organization is given as an example for the first pixel only.</para>
- 
-       <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-bayer">
-@@ -1178,7 +1178,7 @@
-       U, Y, V, Y order will be named <constant>V4L2_MBUS_FMT_UYVY8_2X8</constant>.
-       </para>
- 
--	<para><xref linkend="v4l2-mbus-pixelcode-yuv8"/> lists existing packet YUV
-+	<para><xref linkend="v4l2-mbus-pixelcode-yuv8"/> lists existing packed YUV
- 	formats and describes the organization of each pixel data in each sample.
- 	When a format pattern is split across multiple samples each of the samples
- 	in the pattern is described.</para>
+ /*  Flags for the 'rxsubchans' field */
+ #define V4L2_TUNER_SUB_MONO		0x0001
 -- 
-1.8.5.1
+1.8.4.2
 
