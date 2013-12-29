@@ -1,87 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:13518 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933022Ab3LDRNi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Dec 2013 12:13:38 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
-Cc: linux@arm.linux.org.uk, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, jiada_wang@mentor.com,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RESEND PATCH v7 3/5] clkdev: Fix race condition in clock lookup from
- device tree
-Date: Wed, 04 Dec 2013 18:12:05 +0100
-Message-id: <1386177127-2894-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1386177127-2894-1-git-send-email-s.nawrocki@samsung.com>
-References: <1386177127-2894-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:33948 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751739Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:05:28 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v6 07/12] v4l: add device capability flag for SDR receiver
+Date: Sun, 29 Dec 2013 06:03:59 +0200
+Message-Id: <1388289844-2766-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1388289844-2766-1-git-send-email-crope@iki.fi>
+References: <1388289844-2766-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is currently a race condition in the device tree part of clk_get()
-function, since the pointer returned from of_clk_get_by_name() may become
-invalid before __clk_get() call. E.g. due to the clock provider driver
-remove() callback being called in between of_clk_get_by_name() and
-__clk_get().
+VIDIOC_QUERYCAP IOCTL is used to query device capabilities. Add new
+capability flag to inform given device supports SDR capture.
 
-Fix this by doing both the look up and __clk_get() operations with the
-clock providers list mutex held. This ensures that the clock pointer
-returned from __of_clk_get_from_provider() call and passed to __clk_get()
-is valid, as long as the clock supplier module first removes its clock
-provider instance and then does clk_unregister() on the corresponding
-clocks.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reviewed-by: Mike Turquette <mturquette@linaro.org>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
-Changes since v2:
- - none.
+ include/uapi/linux/videodev2.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Changes since v1:
- - include "clk.h".
----
- drivers/clk/clkdev.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-index 442a313..48f6721 100644
---- a/drivers/clk/clkdev.c
-+++ b/drivers/clk/clkdev.c
-@@ -21,6 +21,8 @@
- #include <linux/clkdev.h>
- #include <linux/of.h>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index c50e449..f596b7b 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -267,6 +267,8 @@ struct v4l2_capability {
+ #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
+ #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
  
-+#include "clk.h"
++#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
 +
- static LIST_HEAD(clocks);
- static DEFINE_MUTEX(clocks_mutex);
- 
-@@ -39,7 +41,13 @@ struct clk *of_clk_get(struct device_node *np, int index)
- 	if (rc)
- 		return ERR_PTR(rc);
- 
--	clk = of_clk_get_from_provider(&clkspec);
-+	of_clk_lock();
-+	clk = __of_clk_get_from_provider(&clkspec);
-+
-+	if (!IS_ERR(clk) && !__clk_get(clk))
-+		clk = ERR_PTR(-ENOENT);
-+
-+	of_clk_unlock();
- 	of_node_put(clkspec.np);
- 	return clk;
- }
-@@ -157,7 +165,7 @@ struct clk *clk_get(struct device *dev, const char *con_id)
- 
- 	if (dev) {
- 		clk = of_clk_get_by_name(dev->of_node, con_id);
--		if (!IS_ERR(clk) && __clk_get(clk))
-+		if (!IS_ERR(clk))
- 			return clk;
- 	}
- 
+ #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
+ #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+ #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
 -- 
-1.7.9.5
+1.8.4.2
 
