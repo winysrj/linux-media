@@ -1,66 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4883 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053Ab3LEIWW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 03:22:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:46726 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751963Ab3L2EwO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:52:14 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net
-Subject: vb2: various cleanups and improvements
-Date: Thu,  5 Dec 2013 09:21:39 +0100
-Message-Id: <1386231709-14262-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/6] msi3101: add u8 sample format
+Date: Sun, 29 Dec 2013 06:51:37 +0200
+Message-Id: <1388292700-18369-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1388292700-18369-1-git-send-email-crope@iki.fi>
+References: <1388292700-18369-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series does some cleanups in the qbuf/prepare_buf handling
-(the first two patches). The third patch removes the 'fileio = NULL'
-hack. That hack no longer works when dealing with asynchronous calls
-from a kernel thread so it had to be fixed.
+Add unsigned 8-bit sample format. Format is got directly from
+hardware, but it is converted from signed to unsigned. It is worst
+known sampling resolution hardware offer.
 
-The next three patches implement retrying start_streaming() if there are
-not enough buffers queued for the DMA engine to start. I know that there
-are more drivers that can be simplified with this feature available in
-the core. Those drivers do the retry of start_streaming in the buf_queue
-op which frankly defeats the purpose of having a central start_streaming
-op. But I leave it to the driver developers to decide whether or not to
-cleanup their drivers.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/msi3101/sdr-msi3101.c | 67 ++++++++++++++++++++++++++++-
+ 1 file changed, 66 insertions(+), 1 deletion(-)
 
-The big advantage is that apps can just call STREAMON first, then start
-queuing buffers without having to know the minimum number of buffers that
-have to be queued before the DMA engine will kick in. It always annoyed
-me that vb2 didn't take care of that for me as it is easy enough to do.
-
-The next two patches add vb2 thread support which is necessary
-for both videobuf2-dvb (the vb2 replacement of videobuf-dvb) and for e.g.
-alsa drivers where you use the same trick as with dvb.
-
-The thread implementation has been tested with both alsa recording and
-playback for an internal driver (sorry, I can't share the source yet).
-
-The next patch adds a fix based on a patch from Andy that removes the
-file I/O emulation assumption that buffers are dequeued in the same
-order that they were enqueued.
-
-The final patch fixes another race condition between QBUF/PREPARE_BUF
-and REQBUFS in the USERPTR case, also caused by the fact that __prepare_buf
-temporarily unlocks the queue lock. The race was found by Laurent.
-
-Regards,
-
-        Hans
-
-New in v3:
-
-- Added a comment to the thread_start function making it explicit that
-  it is for use with videobuf2-dvb only.
-- Added patch 10/10 to address yet another race condition.
-
-New in v2:
-
-- Added a PREPARING state in patch 1 to prevent a race condition that Laurent
-  mentioned (two QBUF calls with the same index number at the same time).
-- Changed some minor issues in patch 4 that Laurent mentioned in his review.
-- Added the reworked version of Andy's original patch to remove the order
-  assumption in the file I/O emulation.
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 9c54c63..2110488 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -385,6 +385,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
+ #define MSI3101_CID_TUNER_IF              ((V4L2_CID_USER_BASE | 0xf000) + 12)
+ #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
+ 
++#define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+ #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
+ #define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
+ #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
+@@ -428,6 +429,9 @@ struct msi3101_format {
+ /* format descriptions for capture and preview */
+ static struct msi3101_format formats[] = {
+ 	{
++		.name		= "I/Q 8-bit unsigned",
++		.pixelformat	= V4L2_PIX_FMT_SDR_U8,
++	}, {
+ 		.name		= "I/Q 8-bit signed",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
+ 	}, {
+@@ -487,6 +491,7 @@ struct msi3101_state {
+ 	u32 next_sample; /* for track lost packets */
+ 	u32 sample; /* for sample rate calc */
+ 	unsigned long jiffies;
++	unsigned long jiffies_next;
+ 	unsigned int sample_ctrl_bit[4];
+ };
+ 
+@@ -572,6 +577,63 @@ static int msi3101_convert_stream_504(struct msi3101_state *s, u8 *dst,
+ 	return dst_len;
+ }
+ 
++static int msi3101_convert_stream_504_u8(struct msi3101_state *s, u8 *dst,
++		u8 *src, unsigned int src_len)
++{
++	int i, j, i_max, dst_len = 0;
++	u32 sample_num[3];
++	s8 *s8src;
++	u8 *u8dst;
++
++	/* There could be 1-3 1024 bytes URB frames */
++	i_max = src_len / 1024;
++	u8dst = (u8 *) dst;
++
++	for (i = 0; i < i_max; i++) {
++		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
++		if (i == 0 && s->next_sample != sample_num[0]) {
++			dev_dbg_ratelimited(&s->udev->dev,
++					"%d samples lost, %d %08x:%08x\n",
++					sample_num[0] - s->next_sample,
++					src_len, s->next_sample, sample_num[0]);
++		}
++
++		/*
++		 * Dump all unknown 'garbage' data - maybe we will discover
++		 * someday if there is something rational...
++		 */
++		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
++
++		/* 504 x I+Q samples */
++		src += 16;
++
++		s8src = (s8 *) src;
++		for (j = 0; j < 1008; j++)
++			*u8dst++ = *s8src++ + 128;
++
++		src += 1008;
++		dst += 1008;
++		dst_len += 1008;
++	}
++
++	/* calculate samping rate and output it in 10 seconds intervals */
++	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
++#define MSECS 10000UL
++		unsigned int samples = sample_num[i_max - 1] - s->sample;
++		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
++		s->sample = sample_num[i_max - 1];
++		dev_dbg(&s->udev->dev,
++				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
++				src_len, samples, MSECS,
++				samples * 1000UL / MSECS);
++	}
++
++	/* next sample (sample = sample + i * 504) */
++	s->next_sample = sample_num[i_max - 1] + 504;
++
++	return dst_len;
++}
++
+ /*
+  * +===========================================================================
+  * |   00-1023 | USB packet type '384'
+@@ -1159,7 +1221,10 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 		reg7 = 0x000c9407;
+ 	}
+ 
+-	if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
++	if (s->pixelformat == V4L2_PIX_FMT_SDR_U8) {
++		s->convert_stream = msi3101_convert_stream_504_u8;
++		reg7 = 0x000c9407;
++	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
+ 		s->convert_stream = msi3101_convert_stream_504;
+ 		reg7 = 0x000c9407;
+ 	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_MSI2500_384) {
+-- 
+1.8.4.2
 
