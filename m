@@ -1,93 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46984 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:48827 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752687Ab3LSEAX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Dec 2013 23:00:23 -0500
+	id S1751896Ab3L2EwO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:52:14 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v4 4/7] v4l: add stream format for SDR receiver
-Date: Thu, 19 Dec 2013 06:00:03 +0200
-Message-Id: <1387425606-7458-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1387425606-7458-1-git-send-email-crope@iki.fi>
-References: <1387425606-7458-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 4/6] msi3101: add u16 LE sample format
+Date: Sun, 29 Dec 2013 06:51:38 +0200
+Message-Id: <1388292700-18369-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1388292700-18369-1-git-send-email-crope@iki.fi>
+References: <1388292700-18369-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new V4L2 stream format definition, V4L2_BUF_TYPE_SDR_CAPTURE,
-for SDR receiver.
+Add unsigned 16-bit little endian sample format. That stream
+format is scaled from hardware 14-bit signed value. That is best
+known sampling resolution that MSi2500 ADC provides.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+It is not guaranteed to be little endian, but host endian which is
+usually little endian - room for improvement.
+
 Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
- include/trace/events/v4l2.h          |  1 +
- include/uapi/linux/videodev2.h       | 11 +++++++++++
- 3 files changed, 13 insertions(+)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 79 +++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 0397fc6..be06c21 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -149,6 +149,7 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY] = "vid-out-overlay",
- 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
-+	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
- };
- EXPORT_SYMBOL(v4l2_type_names);
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 2110488..41894c1 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -386,6 +386,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
+ #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
  
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-index ef94eca..b9bb1f2 100644
---- a/include/trace/events/v4l2.h
-+++ b/include/trace/events/v4l2.h
-@@ -18,6 +18,7 @@
- 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY, "VIDEO_OUTPUT_OVERLAY" },\
- 		{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" },\
- 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" }, \
-+		{ V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" },         \
- 		{ V4L2_BUF_TYPE_PRIVATE,	      "PRIVATE" })
+ #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
++#define V4L2_PIX_FMT_SDR_U16LE  v4l2_fourcc('D', 'U', '1', '6') /* unsigned 16-bit LE */
+ #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
+ #define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
+ #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
+@@ -432,6 +433,9 @@ static struct msi3101_format formats[] = {
+ 		.name		= "I/Q 8-bit unsigned",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_U8,
+ 	}, {
++		.name		= "I/Q 16-bit unsigned little endian",
++		.pixelformat	= V4L2_PIX_FMT_SDR_U16LE,
++	}, {
+ 		.name		= "I/Q 8-bit signed",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
+ 	}, {
+@@ -857,6 +861,78 @@ static int msi3101_convert_stream_252(struct msi3101_state *s, u8 *dst,
+ 	return dst_len;
+ }
  
- #define show_field(field)						\
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 97a5e50..c50e449 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -139,6 +139,7 @@ enum v4l2_buf_type {
- #endif
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
-+	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -1695,6 +1696,15 @@ struct v4l2_pix_format_mplane {
- } __attribute__ ((packed));
- 
- /**
-+ * struct v4l2_format_sdr - SDR format definition
-+ * @pixelformat:	little endian four character code (fourcc)
-+ */
-+struct v4l2_format_sdr {
-+	__u32				pixelformat;
-+	__u8				reserved[28];
-+} __attribute__ ((packed));
++static int msi3101_convert_stream_252_u16(struct msi3101_state *s, u8 *dst,
++		u8 *src, unsigned int src_len)
++{
++	int i, j, i_max, dst_len = 0;
++	u32 sample_num[3];
++	u16 *u16dst = (u16 *) dst;
++	struct {signed int x:14;} se;
 +
-+/**
-  * struct v4l2_format - stream data format
-  * @type:	enum v4l2_buf_type; type of the data stream
-  * @pix:	definition of an image format
-@@ -1712,6 +1722,7 @@ struct v4l2_format {
- 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
- 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
- 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-+		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
- 		__u8	raw_data[200];                   /* user-defined */
- 	} fmt;
- };
++	/* There could be 1-3 1024 bytes URB frames */
++	i_max = src_len / 1024;
++
++	for (i = 0; i < i_max; i++) {
++		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
++		if (i == 0 && s->next_sample != sample_num[0]) {
++			dev_dbg_ratelimited(&s->udev->dev,
++					"%d samples lost, %d %08x:%08x\n",
++					sample_num[0] - s->next_sample,
++					src_len, s->next_sample, sample_num[0]);
++		}
++
++		/*
++		 * Dump all unknown 'garbage' data - maybe we will discover
++		 * someday if there is something rational...
++		 */
++		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
++
++		/* 252 x I+Q samples */
++		src += 16;
++
++		for (j = 0; j < 1008; j += 4) {
++			unsigned int usample[2];
++			int ssample[2];
++
++			usample[0] = src[j + 0] >> 0 | src[j + 1] << 8;
++			usample[1] = src[j + 2] >> 0 | src[j + 3] << 8;
++
++			/* sign extension from 14-bit to signed int */
++			ssample[0] = se.x = usample[0];
++			ssample[1] = se.x = usample[1];
++
++			/* from signed to unsigned */
++			usample[0] = ssample[0] + 8192;
++			usample[1] = ssample[1] + 8192;
++
++			/* from 14-bit to 16-bit */
++			*u16dst++ = (usample[0] << 2) | (usample[0] >> 12);
++			*u16dst++ = (usample[1] << 2) | (usample[1] >> 12);
++		}
++
++		src += 1008;
++		dst += 1008;
++		dst_len += 1008;
++	}
++
++	/* calculate samping rate and output it in 10 seconds intervals */
++	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
++#define MSECS 10000UL
++		unsigned int samples = sample_num[i_max - 1] - s->sample;
++		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
++		s->sample = sample_num[i_max - 1];
++		dev_dbg(&s->udev->dev,
++				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
++				src_len, samples, MSECS,
++				samples * 1000UL / MSECS);
++	}
++
++	/* next sample (sample = sample + i * 252) */
++	s->next_sample = sample_num[i_max - 1] + 252;
++
++	return dst_len;
++}
++
+ /*
+  * This gets called for the Isochronous pipe (stream). This is done in interrupt
+  * time, so it has to be fast, not crash, and not stall. Neat.
+@@ -1224,6 +1300,9 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 	if (s->pixelformat == V4L2_PIX_FMT_SDR_U8) {
+ 		s->convert_stream = msi3101_convert_stream_504_u8;
+ 		reg7 = 0x000c9407;
++	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_U16LE) {
++		s->convert_stream = msi3101_convert_stream_252_u16;
++		reg7 = 0x00009407;
+ 	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
+ 		s->convert_stream = msi3101_convert_stream_504;
+ 		reg7 = 0x000c9407;
 -- 
 1.8.4.2
 
