@@ -1,167 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:19638 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767Ab3LKLRm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 06:17:42 -0500
-Date: Wed, 11 Dec 2013 09:17:28 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.13-rc4] media fixes
-Message-id: <20131211091728.53c89d80@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: base64
+Received: from mail.kapsi.fi ([217.30.184.167]:33493 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751921Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:05:28 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v6 11/12] DocBook: Software Defined Radio Interface
+Date: Sun, 29 Dec 2013 06:04:03 +0200
+Message-Id: <1388289844-2766-12-git-send-email-crope@iki.fi>
+In-Reply-To: <1388289844-2766-1-git-send-email-crope@iki.fi>
+References: <1388289844-2766-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpIaSBMaW51
-cywNCg0KUGxlYXNlIHB1bGwgZnJvbToNCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9s
-aW51eC9rZXJuZWwvZ2l0L21jaGVoYWIvbGludXgtbWVkaWEgdjRsX2Zvcl9saW51cw0KDQpGb3Ig
-YSBkdmIgY29yZSBkZWFkbG9jayBmaXgsIGEgY291cGxlIHZpZGVvYnVmMiBmaXhlcyBhbiBhIHNl
-cmllcyBvZiBtZWRpYQ0KZHJpdmVyIGZpeGVzLg0KDQpUaGFuayB5b3UhDQpNYXVybw0KDQpUaGUg
-Zm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0IDZjZTRlYWMxZjYwMGIzNGYyZjdmNThmOWNk
-OGYwNTAzZDc5ZTQyYWU6DQoNCiAgTGludXggMy4xMy1yYzEgKDIwMTMtMTEtMjIgMTE6MzA6NTUg
-LTA4MDApDQoNCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5IGF0Og0KDQogIGdp
-dDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9tY2hlaGFiL2xpbnV4
-LW1lZGlhIHY0bF9mb3JfbGludXMNCg0KZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIDY0
-YzgzMmE0Zjc5NTQyODA5ZDZjMTBiOGVjNjIyNWZmOGI3NjA5MmU6DQoNCiAgW21lZGlhXSB2aWRl
-b2J1ZjItZG1hLXNnOiBmaXggcG9zc2libGUgbWVtb3J5IGxlYWsgKDIwMTMtMTItMTAgMDU6NDA6
-NTcgLTAyMDApDQoNCi0gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KQWxleGV5IEtob3Jvc2hpbG92ICgxKToNCiAgICAgIFtt
-ZWRpYV0gZHZiX2RlbXV4OiBmaXggZGVhZGxvY2sgaW4gZG14X3NlY3Rpb25fZmVlZF9yZWxlYXNl
-X2ZpbHRlcigpDQoNCkFudHRpIFBhbG9zYWFyaSAoNCk6DQogICAgICBbbWVkaWFdIGFmOTAzNTog
-YWRkIFswNDEzOjZhMDVdIExlYWR0ZWsgV2luRmFzdCBEVFYgRG9uZ2xlIER1YWwNCiAgICAgIFtt
-ZWRpYV0gYWY5MDM1OiBmaXggYnJva2VuIEkyQyBhbmQgVVNCIEkvTw0KICAgICAgW21lZGlhXSBh
-ZjkwMzM6IGZpeCBicm9rZW4gSTJDDQogICAgICBbbWVkaWFdIHJ0bDI4MzA6IGFkZCBwYXJlbnQg
-Zm9yIEkyQyBhZGFwdGVyDQoNCkRhbiBDYXJwZW50ZXIgKDIpOg0KICAgICAgW21lZGlhXSBjeDIz
-MXh4OiB1c2UgYWZ0ZXIgZnJlZSBvbiBlcnJvciBwYXRoIGluIHByb2JlDQogICAgICBbbWVkaWFd
-IGFmOTAzNTogdW5sb2NrIG9uIGVycm9yIGluIGFmOTAzNV9pMmNfbWFzdGVyX3hmZXIoKQ0KDQpF
-dmdlbnkgUGxlaG92ICgxKToNCiAgICAgIFttZWRpYV0gY3hkMjgyMHJfYzogZml4IGlmX2N0bCBj
-YWxjdWxhdGlvbg0KDQpGZWxpcGUgUGVuYSAoMSk6DQogICAgICBbbWVkaWFdIHRlY2huaXNhdC11
-c2IyOiBmaXggdHlwbyBpbiB2YXJpYWJsZSBuYW1lDQoNCkdlZXJ0IFV5dHRlcmhvZXZlbiAoMSk6
-DQogICAgICBbbWVkaWFdIHJhZGlvLXNoYXJrOiBNYXJrIHNoYXJrX3Jlc3VtZV9sZWRzKCkgaW5s
-aW5lIHRvIGtpbGwgY29tcGlsZXIgd2FybmluZw0KDQpHZW9yZyBLYWluZGwgKDEpOg0KICAgICAg
-W21lZGlhXSB1c2J0djogQWRkIHN1cHBvcnQgZm9yIFBBTCB2aWRlbyBzb3VyY2UNCg0KR2V5c2xh
-biBHLiBCZW0gKDEpOg0KICAgICAgW21lZGlhXSB2aWRlb2J1ZjItZG1hLXNnOiBmaXggcG9zc2li
-bGUgbWVtb3J5IGxlYWsNCg0KSGFucyBWZXJrdWlsICg0KToNCiAgICAgIFttZWRpYV0gYnR0djog
-ZG9uJ3Qgc2V0dXAgdGhlIGNvbnRyb2xzIGlmIHRoZXJlIGFyZSBubyB2aWRlbyBkZXZpY2VzDQog
-ICAgICBbbWVkaWFdIHRlZjY4NjIvcmFkaW8tdGVhNTc2NDogYWN0dWFsbHkgYXNzaWduIGNsYW1w
-IHJlc3VsdA0KICAgICAgW21lZGlhXSB3bTg3NzU6IGZpeCBicm9rZW4gYXVkaW8gcm91dGluZw0K
-ICAgICAgW21lZGlhXSB2YjI6IHJlZ3Jlc3Npb24gZml4OiBhbHdheXMgc2V0IGxlbmd0aCBmaWVs
-ZC4NCg0KSGFucyBkZSBHb2VkZSAoMik6DQogICAgICBbbWVkaWFdIGdzcGNhX3N1bnBsdXM6IEFk
-ZCBuZXcgdXNiLWlkIGZvciAwNmQ2OjAwNDENCiAgICAgIFttZWRpYV0gcmFkaW8tc2hhcmsyOiBN
-YXJrIHNoYXJrX3Jlc3VtZV9sZWRzKCkgaW5saW5lIHRvIGtpbGwgY29tcGlsZXIgd2FybmluZw0K
-DQpKb25hdGhhbiBNY0Nyb2hhbiAoMSk6DQogICAgICBbbWVkaWFdIG1lZGlhX3RyZWU6IEZpeCBz
-cGVsbGluZyBlcnJvcnMNCg0KTGF1cmVudCBQaW5jaGFydCAoMSk6DQogICAgICBbbWVkaWFdIHY0
-bDogb21hcDNpc3A6IERvbid0IGNoZWNrIGZvciBtaXNzaW5nIGdldF9mbXQgb3Agb24gcmVtb3Rl
-IHN1YmRldg0KDQpMaWJpbiBZYW5nICgyKToNCiAgICAgIFttZWRpYV0gbWFydmVsbC1jY2ljOiBk
-cm9wIHJlc291cmNlIGZyZWUgaW4gZHJpdmVyIHJlbW92ZQ0KICAgICAgW21lZGlhXSBtZWRpYTog
-bWFydmVsbC1jY2ljOiB1c2UgZGV2bSB0byByZWxlYXNlIGNsaw0KDQpNaWNoYWVsIEtydWZreSAo
-MSk6DQogICAgICBbbWVkaWFdIGR2Yl9kZW11eDogY2xlYW4gdXAgd2hpdGVzcGFjZSBpbiBjb21t
-ZW50cyBmcm9tIHByZXZpb3VzIHBhdGNoICh0cml2aWFsKQ0KDQpPbmRyZWogWmFyeSAoMSk6DQog
-ICAgICBbbWVkaWFdIGdzcGNhLXN0azExMzU6IEFkZCBkZWxheSBhZnRlciBjb25maWd1cmluZyBj
-bG9jaw0KDQpQaGlsaXBwIFphYmVsICgxKToNCiAgICAgIFttZWRpYV0gdmlkZW9idWYyOiBBZGQg
-c3VwcG9ydCBmb3IgZmlsZSBhY2Nlc3MgbW9kZSBmbGFncyBmb3IgRE1BQlVGIGV4cG9ydGluZw0K
-DQpSaWNhcmRvIFJpYmFsZGEgKDIpOg0KICAgICAgW21lZGlhXSBlbTI4eHgtdmlkZW86IFN3YXAg
-cmVsZWFzZSBvcmRlciB0byBhdm9pZCBsb2NrIG5lc3RpbmcNCiAgICAgIFttZWRpYV0gdGhzNzMw
-MzogRGVjbGFyZSBhcyBzdGF0aWMgYSBwcml2YXRlIGZ1bmN0aW9uDQoNClNhY2hpbiBLYW1hdCAo
-MSk6DQogICAgICBbbWVkaWFdIG10OXAwMzE6IEluY2x1ZGUgbGludXgvb2YuaCBoZWFkZXINCg0K
-V2VpIFlvbmdqdW4gKDIpOg0KICAgICAgW21lZGlhXSB2NGw6IHZzcDE6IEZpeCBlcnJvciByZXR1
-cm4gY29kZSBpbiB2c3AxX3ZpZGVvX2luaXQoKQ0KICAgICAgW21lZGlhXSBzYWE3MTY0OiBmaXgg
-cmV0dXJuIHZhbHVlIGNoZWNrIGluIHNhYTcxNjRfaW5pdGRldigpDQoNCiBEb2N1bWVudGF0aW9u
-L0RvY0Jvb2svbWVkaWEvdjRsL3ZpZGlvYy1leHBidWYueG1sIHwgICA4ICstDQogZHJpdmVycy9t
-ZWRpYS9jb21tb24vc2lhbm8vc21zY29yZWFwaS5oICAgICAgICAgICB8ICAgNCArLQ0KIGRyaXZl
-cnMvbWVkaWEvY29tbW9uL3NpYW5vL3Ntc2R2Yi5oICAgICAgICAgICAgICAgfCAgIDIgKy0NCiBk
-cml2ZXJzL21lZGlhL2R2Yi1jb3JlL2R2Yl9kZW11eC5jICAgICAgICAgICAgICAgIHwgICA5ICst
-DQogZHJpdmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL2FmOTAzMy5jICAgICAgICAgICAgICB8ICAx
-MiArLQ0KIGRyaXZlcnMvbWVkaWEvZHZiLWZyb250ZW5kcy9jeGQyODIwcl9jLmMgICAgICAgICAg
-fCAgIDIgKy0NCiBkcml2ZXJzL21lZGlhL2R2Yi1mcm9udGVuZHMvZGliODAwMC5jICAgICAgICAg
-ICAgIHwgICA0ICstDQogZHJpdmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL2RyeGtfaGFyZC5jICAg
-ICAgICAgICB8ICAxOCArLS0NCiBkcml2ZXJzL21lZGlhL2R2Yi1mcm9udGVuZHMvcnRsMjgzMC5j
-ICAgICAgICAgICAgIHwgICAxICsNCiBkcml2ZXJzL21lZGlhL2kyYy9hZHY3MTgzX3JlZ3MuaCAg
-ICAgICAgICAgICAgICAgIHwgICA2ICstDQogZHJpdmVycy9tZWRpYS9pMmMvYWR2NzYwNC5jICAg
-ICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQ0KIGRyaXZlcnMvbWVkaWEvaTJjL2Fkdjc4NDIu
-YyAgICAgICAgICAgICAgICAgICAgICAgfCAgIDIgKy0NCiBkcml2ZXJzL21lZGlhL2kyYy9pci1r
-YmQtaTJjLmMgICAgICAgICAgICAgICAgICAgIHwgICAyICstDQogZHJpdmVycy9tZWRpYS9pMmMv
-bTVtb2xzL201bW9sc19jb250cm9scy5jICAgICAgICB8ICAgMiArLQ0KIGRyaXZlcnMvbWVkaWEv
-aTJjL210OXAwMzEuYyAgICAgICAgICAgICAgICAgICAgICAgfCAgIDEgKw0KIGRyaXZlcnMvbWVk
-aWEvaTJjL3M1YzczbTMvczVjNzNtMy1jb3JlLmMgICAgICAgICAgfCAgIDIgKy0NCiBkcml2ZXJz
-L21lZGlhL2kyYy9zNWM3M20zL3M1YzczbTMuaCAgICAgICAgICAgICAgIHwgICAyICstDQogZHJp
-dmVycy9tZWRpYS9pMmMvc2FhNzExNS5jICAgICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQ0K
-IGRyaXZlcnMvbWVkaWEvaTJjL3NvY19jYW1lcmEvb3Y1NjQyLmMgICAgICAgICAgICAgfCAgIDIg
-Ky0NCiBkcml2ZXJzL21lZGlhL2kyYy90aHM3MzAzLmMgICAgICAgICAgICAgICAgICAgICAgIHwg
-ICAzICstDQogZHJpdmVycy9tZWRpYS9pMmMvd204Nzc1LmMgICAgICAgICAgICAgICAgICAgICAg
-ICB8ICAgNCArLQ0KIGRyaXZlcnMvbWVkaWEvcGNpL2J0OHh4L2J0dHYtZHJpdmVyLmMgICAgICAg
-ICAgICAgfCAgIDMgKy0NCiBkcml2ZXJzL21lZGlhL3BjaS9jeDE4L2N4MTgtZHJpdmVyLmggICAg
-ICAgICAgICAgIHwgICAyICstDQogZHJpdmVycy9tZWRpYS9wY2kvY3gyMzg4NS9jeDIzODg1LTQx
-Ny5jICAgICAgICAgICB8ICAgMiArLQ0KIGRyaXZlcnMvbWVkaWEvcGNpL3BsdXRvMi9wbHV0bzIu
-YyAgICAgICAgICAgICAgICAgfCAgIDIgKy0NCiBkcml2ZXJzL21lZGlhL3BjaS9zYWE3MTY0L3Nh
-YTcxNjQtY29yZS5jICAgICAgICAgIHwgICA0ICstDQogZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9j
-b2RhLmMgICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQ0KIGRyaXZlcnMvbWVkaWEvcGxhdGZv
-cm0vZXh5bm9zNC1pcy9maW1jLWNvcmUuYyAgICAgfCAgIDIgKy0NCiBkcml2ZXJzL21lZGlhL3Bs
-YXRmb3JtL2V4eW5vczQtaXMvbWVkaWEtZGV2LmMgICAgIHwgICAyICstDQogZHJpdmVycy9tZWRp
-YS9wbGF0Zm9ybS9tYXJ2ZWxsLWNjaWMvbW1wLWRyaXZlci5jICB8ICA0NiArLS0tLS0NCiBkcml2
-ZXJzL21lZGlhL3BsYXRmb3JtL29tYXAzaXNwL2lzcC5jICAgICAgICAgICAgIHwgICAyICstDQog
-ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9vbWFwM2lzcC9pc3B2aWRlby5jICAgICAgICB8ICAgNyAr
-LQ0KIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczVwLW1mYy9yZWdzLW1mYy5oICAgICAgICAgfCAg
-IDIgKy0NCiBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3M1cC1tZmMvczVwX21mYy5jICAgICAgICAg
-IHwgIDEyICstDQogZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zNXAtbWZjL3M1cF9tZmNfY3RybC5j
-ICAgICB8ICAgMiArLQ0KIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczVwLXR2L21peGVyLmggICAg
-ICAgICAgICAgfCAgIDIgKy0NCiBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3M1cC10di9taXhlcl92
-aWRlby5jICAgICAgIHwgICA0ICstDQogZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zb2NfY2FtZXJh
-L29tYXAxX2NhbWVyYS5jICB8ICAgMiArLQ0KIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vdml2aS5j
-ICAgICAgICAgICAgICAgICAgICAgfCAgIDQgKy0NCiBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3Zz
-cDEvdnNwMV9kcnYuYyAgICAgICAgICAgIHwgICAyICstDQogZHJpdmVycy9tZWRpYS9wbGF0Zm9y
-bS92c3AxL3ZzcDFfdmlkZW8uYyAgICAgICAgICB8ICAgNCArLQ0KIGRyaXZlcnMvbWVkaWEvcmFk
-aW8vcmFkaW8tc2hhcmsuYyAgICAgICAgICAgICAgICAgfCAgIDQgKy0NCiBkcml2ZXJzL21lZGlh
-L3JhZGlvL3JhZGlvLXNoYXJrMi5jICAgICAgICAgICAgICAgIHwgICA0ICstDQogZHJpdmVycy9t
-ZWRpYS9yYWRpby9yYWRpby1zaTQ3NnguYyAgICAgICAgICAgICAgICB8ICAgNCArLQ0KIGRyaXZl
-cnMvbWVkaWEvcmFkaW8vcmFkaW8tdGVhNTc2NC5jICAgICAgICAgICAgICAgfCAgIDIgKy0NCiBk
-cml2ZXJzL21lZGlhL3JhZGlvL3RlZjY4NjIuYyAgICAgICAgICAgICAgICAgICAgIHwgICAyICst
-DQogZHJpdmVycy9tZWRpYS9yYy9pbW9uLmMgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAg
-MiArLQ0KIGRyaXZlcnMvbWVkaWEvcmMvcmVkcmF0My5jICAgICAgICAgICAgICAgICAgICAgICAg
-fCAgIDIgKy0NCiBkcml2ZXJzL21lZGlhL3R1bmVycy9tdDIwNjMuYyAgICAgICAgICAgICAgICAg
-ICAgIHwgICA0ICstDQogZHJpdmVycy9tZWRpYS90dW5lcnMvdHVuZXIteGMyMDI4LXR5cGVzLmgg
-ICAgICAgICB8ICAgMiArLQ0KIGRyaXZlcnMvbWVkaWEvdXNiL2N4MjMxeHgvY3gyMzF4eC1jYXJk
-cy5jICAgICAgICAgfCAgIDIgKy0NCiBkcml2ZXJzL21lZGlhL3VzYi9kdmItdXNiLXYyL2FmOTAz
-NS5jICAgICAgICAgICAgIHwgIDE3ICsrLQ0KIGRyaXZlcnMvbWVkaWEvdXNiL2R2Yi11c2ItdjIv
-bXhsMTExc2YuYyAgICAgICAgICAgfCAgIDQgKy0NCiBkcml2ZXJzL21lZGlhL3VzYi9kdmItdXNi
-L3RlY2huaXNhdC11c2IyLmMgICAgICAgIHwgICAyICstDQogZHJpdmVycy9tZWRpYS91c2IvZW0y
-OHh4L2VtMjh4eC12aWRlby5jICAgICAgICAgICB8ICAgMiArLQ0KIGRyaXZlcnMvbWVkaWEvdXNi
-L2dzcGNhL2dsODYwL2dsODYwLmMgICAgICAgICAgICAgfCAgIDIgKy0NCiBkcml2ZXJzL21lZGlh
-L3VzYi9nc3BjYS9wYWMyMDcuYyAgICAgICAgICAgICAgICAgIHwgICAyICstDQogZHJpdmVycy9t
-ZWRpYS91c2IvZ3NwY2EvcGFjNzMwMi5jICAgICAgICAgICAgICAgICB8ICAgMiArLQ0KIGRyaXZl
-cnMvbWVkaWEvdXNiL2dzcGNhL3N0azExMzUuYyAgICAgICAgICAgICAgICAgfCAgIDMgKw0KIGRy
-aXZlcnMvbWVkaWEvdXNiL2dzcGNhL3N0djA2ODAuYyAgICAgICAgICAgICAgICAgfCAgIDIgKy0N
-CiBkcml2ZXJzL21lZGlhL3VzYi9nc3BjYS9zdW5wbHVzLmMgICAgICAgICAgICAgICAgIHwgICAx
-ICsNCiBkcml2ZXJzL21lZGlhL3VzYi9nc3BjYS96YzN4eC5jICAgICAgICAgICAgICAgICAgIHwg
-ICAyICstDQogZHJpdmVycy9tZWRpYS91c2IvcHdjL3B3Yy1pZi5jICAgICAgICAgICAgICAgICAg
-ICB8ICAgMiArLQ0KIGRyaXZlcnMvbWVkaWEvdXNiL3VzYnR2L3VzYnR2LmMgICAgICAgICAgICAg
-ICAgICAgfCAxNzQgKysrKysrKysrKysrKysrKystLS0tLQ0KIGRyaXZlcnMvbWVkaWEvdXNiL3V2
-Yy91dmNfdmlkZW8uYyAgICAgICAgICAgICAgICAgfCAgIDIgKy0NCiBkcml2ZXJzL21lZGlhL3Y0
-bDItY29yZS92NGwyLWN0cmxzLmMgICAgICAgICAgICAgIHwgICAyICstDQogZHJpdmVycy9tZWRp
-YS92NGwyLWNvcmUvdmlkZW9idWYyLWNvcmUuYyAgICAgICAgICB8ICAyOSArKystDQogZHJpdmVy
-cy9tZWRpYS92NGwyLWNvcmUvdmlkZW9idWYyLWRtYS1jb250aWcuYyAgICB8ICAgNCArLQ0KIGRy
-aXZlcnMvbWVkaWEvdjRsMi1jb3JlL3ZpZGVvYnVmMi1kbWEtc2cuYyAgICAgICAgfCAgIDMgKy0N
-CiBpbmNsdWRlL21lZGlhL3ZpZGVvYnVmMi1jb3JlLmggICAgICAgICAgICAgICAgICAgIHwgICAy
-ICstDQogNzAgZmlsZXMgY2hhbmdlZCwgMjkzIGluc2VydGlvbnMoKyksIDE5MCBkZWxldGlvbnMo
-LSkNCg0KDQoNCi0gLS0gDQoNCkNoZWVycywNCk1hdXJvDQotLS0tLUJFR0lOIFBHUCBTSUdOQVRV
-UkUtLS0tLQ0KVmVyc2lvbjogR251UEcgdjIuMC4yMiAoR05VL0xpbnV4KQ0KDQppUUljQkFFQkFn
-QUdCUUpTcUVuUEFBb0pFQWhmUHIyTzVPRVZubXNRQUlFZHo4Zzg4VmF6M1c3ajFsUEhHL2QyDQpw
-QVo4VzhRbC9lbmRkQWFvekFydHIrUnc4MVg1ZlA1RzRhRVkxTlBGekhwbkpWeXFXcFdCemdlWW8r
-T3FqaFBWDQpLWnRUN0NROTM5WXBpVE55MWNIeFNLdDZvZ3RVWXE5MFp3S0dpUVRyTTh1bEVnUUtC
-WmlLUXZkVkNJck50cXBUDQppQUJIUTdlMDhTTUFZMlNtU05pMURYek9NcWEzRTBCbVFKWm5ZRjlU
-b1p2L1JuZFl4aTZtWllUZ0pTZUZ2dWFWDQpqR1Y1aFNacGVJVTBxYVZBWXUwK1hyUWUzeUN3YUJl
-VUxxbzYxMjJoaGRpMDZTS3NnbUdzTVJueDJ4RlRXMFpvDQpsRStrNXQrN1hiUzBqREM1WjRyY1hU
-ZHpNdHFkSEpZQTAyUFFzN1RacmdDMVd2LzJUUklmTGRNYTBQVW9qWWJxDQo1ME9SQnBUc09LSkFR
-SUlnc0hGZlQ1VVdQMy9oc0ZXN1hpRlY0MWlUVmpseklsTXlncFl2OVJqWEJKbTQ3eHgwDQowL1Vi
-TXppY05QbVhKUCt5ZUZEWVh5dXl2eWUxRSt1ampVSFgwSG1yRzdsQUwrc2FaZHVzczN2SzZzMXdH
-VzBBDQpMRHUxL1JVRXZIOVV5anBaY2F6V2JJYWZDSk9uOXNmS1FYd2ZNYmw2ZmxQZlFyU0VranNS
-VlJLL21hQ2lFWE50DQpQRWtCWTRzdzVWUUdIZjVjYTFSOS9tVEVyTWxEQnpWVzV5SmdQUGJmV3R0
-M3NzZ21KVUtTNGtScVJZeG1xWkVGDQoxZ2F3QUxzQ0JpQ1ErdW9DVnpJK201Nnp4VStLdVNuaE90
-d3N4aHQxSjJBbzMwRUlsTkFwcWYvYTlkcHc5WkxtDQpGejc1UnNRSFJXL2J5WE9XaXQveQ0KPVdI
-MU8NCi0tLS0tRU5EIFBHUCBTSUdOQVRVUkUtLS0tLQ0K
+Document V4L2 SDR interface.
+
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |  10 ++
+ Documentation/DocBook/media/v4l/dev-sdr.xml        | 107 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/io.xml             |   6 ++
+ Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
+ Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   7 ++
+ .../DocBook/media/v4l/vidioc-querycap.xml          |   6 ++
+ 6 files changed, 137 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
+
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 0c7195e..85fb864 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2523,6 +2523,16 @@ that used it. It was originally scheduled for removal in 2.6.35.
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 3.14</title>
++      <orderedlist>
++        <listitem>
++	  <para>Added Software Defined Radio (SDR) Interface.
++	  </para>
++        </listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+new file mode 100644
+index 0000000..db4859f
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -0,0 +1,107 @@
++  <title>Software Defined Radio Interface (SDR)</title>
++
++  <para>
++SDR is an abbreviation of Software Defined Radio, the radio device
++which uses application software for modulation or demodulation. This interface
++is intended for controlling and data streaming of such devices.
++  </para>
++
++  <para>
++SDR devices are accessed through character device special files named
++<filename>/dev/swradio0</filename> to <filename>/dev/swradio255</filename>
++with major number 81 and dynamically allocated minor numbers 0 to 255.
++  </para>
++
++  <section>
++    <title>Querying Capabilities</title>
++
++    <para>
++Devices supporting the SDR receiver interface set the
++<constant>V4L2_CAP_SDR_CAPTURE</constant> and
++<constant>V4L2_CAP_TUNER</constant> flag in the
++<structfield>capabilities</structfield> field of &v4l2-capability;
++returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
++Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
++At least one of the read/write, streaming or asynchronous I/O methods must
++be supported.
++    </para>
++  </section>
++
++  <section>
++    <title>Supplemental Functions</title>
++
++    <para>
++SDR devices can support <link linkend="control">controls</link>, and must
++support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
++for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
++frequency.
++    </para>
++
++    <para>
++The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
++the <constant>V4L2_TUNER_RF</constant> is used for RF tuners. The tuner index
++of the RF tuner (if any) must always follow the ADC tuner index. Normally the
++ADC tuner is #0 and the RF tuner is #1.
++    </para>
++
++    <para>
++The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
++    </para>
++  </section>
++
++  <section>
++    <title>Data Format Negotiation</title>
++
++    <para>
++The SDR capture device uses the <link linkend="format">format</link> ioctls to
++select the capture format. Both the sampling resolution and the data streaming
++format are bound to that selectable format. In addition to basic
++<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
++must be supported too.
++    </para>
++
++    <para>
++To use the <link linkend="format">format</link> ioctls applications set the
++<structfield>type</structfield> field of a &v4l2-format; to
++<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-format-sdr;
++<structfield>sdr</structfield> member of the <structfield>fmt</structfield>
++union as needed per the desired operation.
++Currently only the <structfield>pixelformat</structfield> field of
++&v4l2-format-sdr; is used. The content of that field is the V4L2 fourcc code
++of the data format.
++    </para>
++
++    <table pgwide="1" frame="none" id="v4l2-format-sdr">
++      <title>struct <structname>v4l2_format_sdr</structname></title>
++      <tgroup cols="3">
++        &cs-str;
++        <tbody valign="top">
++          <row>
++            <entry>__u32</entry>
++            <entry><structfield>pixelformat</structfield></entry>
++            <entry>
++The pixel format or type of compression, set by the
++application. This is a little endian
++<link linkend="v4l2-fourcc">four character code</link>. V4L2 defines
++standard RGB formats in <xref linkend="rgb-formats" />, YUV formats in
++<xref linkend="yuv-formats" />, and reserved codes in
++<xref linkend="reserved-formats" />
++           </entry>
++          </row>
++          <row>
++            <entry>__u8</entry>
++            <entry><structfield>reserved[28]</structfield></entry>
++            <entry>This array is reserved for future extensions.
++Drivers and applications must set it to zero.</entry>
++          </row>
++        </tbody>
++      </tgroup>
++    </table>
++
++    <para>
++An SDR device may support <link linkend="rw">read/write</link>
++and/or streaming (<link linkend="mmap">memory mapping</link>
++or <link linkend="userp">user pointer</link>) I/O.
++    </para>
++
++  </section>
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 2c4c068..1fb11e8 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -1005,6 +1005,12 @@ should set this to 0.</entry>
+ 	    <entry>Buffer for video output overlay (OSD), see <xref
+ 		linkend="osd" />.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
++	    <entry>11</entry>
++	    <entry>Buffer for Software Defined Radio (SDR), see <xref
++		linkend="sdr" />.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 8469fe1..a27fcae 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -529,6 +529,7 @@ and discussions on the V4L mailing list.</revremark>
+     <section id="ttx"> &sub-dev-teletext; </section>
+     <section id="radio"> &sub-dev-radio; </section>
+     <section id="rds"> &sub-dev-rds; </section>
++    <section id="sdr"> &sub-dev-sdr; </section>
+     <section id="event"> &sub-dev-event; </section>
+     <section id="subdev"> &sub-dev-subdev; </section>
+   </chapter>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+index ee8f56e..ffed137 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+@@ -172,6 +172,13 @@ capture and output devices.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
++	    <entry>&v4l2-format-sdr;</entry>
++	    <entry><structfield>sdr</structfield></entry>
++	    <entry>Definition of an data format, see
++<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>__u8</entry>
+ 	    <entry><structfield>raw_data</structfield>[200]</entry>
+ 	    <entry>Place holder for future extensions.</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+index d5a3c97..370d49d 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
+@@ -296,6 +296,12 @@ modulator programming see
+ <xref linkend="tuner" />.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CAP_SDR_CAPTURE</constant></entry>
++	    <entry>0x00100000</entry>
++	    <entry>The device supports the
++<link linkend="sdr">SDR Capture</link> interface.</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
+ 	    <entry>0x01000000</entry>
+ 	    <entry>The device supports the <link
+-- 
+1.8.4.2
+
