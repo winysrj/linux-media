@@ -1,52 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35776 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109Ab3LJNmz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 08:42:55 -0500
-Received: from avalon.localnet (9.6-200-80.adsl-dyn.isp.belgacom.be [80.200.6.9])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id E392935A6A
-	for <linux-media@vger.kernel.org>; Tue, 10 Dec 2013 14:42:06 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46855 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752085Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:05:28 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.14] MT9V032 sensor driver fixes and features
-Date: Tue, 10 Dec 2013 14:43:05 +0100
-Message-ID: <6204235.ElnWnsnMf4@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v6 12/12] v4l2-framework.txt: add SDR device type
+Date: Sun, 29 Dec 2013 06:04:04 +0200
+Message-Id: <1388289844-2766-13-git-send-email-crope@iki.fi>
+In-Reply-To: <1388289844-2766-1-git-send-email-crope@iki.fi>
+References: <1388289844-2766-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add SDR device type to v4l2-framework.txt document.
 
-The following changes since commit 431cb350187c6bf1ed083622d633418a298a7216:
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/video4linux/v4l2-framework.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-  [media] az6007: support Technisat Cablestar Combo HDCI (minus remote) 
-(2013-12-10 07:15:54 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git sensors/mt9v034
-
-for you to fetch changes up to eea7b9b80c2495491791ca3a0577e64d25ca5f1a:
-
-  mt9v032: Add support for the MT9V034 (2013-12-10 14:40:10 +0100)
-
-----------------------------------------------------------------
-Laurent Pinchart (6):
-      mt9v032: Remove unused macro
-      mt9v032: Fix pixel array size
-      mt9v032: Fix binning configuration
-      mt9v032: Add support for monochrome models
-      mt9v032: Add support for model-specific parameters
-      mt9v032: Add support for the MT9V034
-
- drivers/media/i2c/mt9v032.c | 232 ++++++++++++++++++++++++++++++++++---------
- 1 file changed, 187 insertions(+), 45 deletions(-)
-
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 6c4866b..ae3a2cc 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -768,6 +768,7 @@ types exist:
+ VFL_TYPE_GRABBER: videoX for video input/output devices
+ VFL_TYPE_VBI: vbiX for vertical blank data (i.e. closed captions, teletext)
+ VFL_TYPE_RADIO: radioX for radio tuners
++VFL_TYPE_SDR: swradioX for Software Defined Radio tuners
+ 
+ The last argument gives you a certain amount of control over the device
+ device node number used (i.e. the X in videoX). Normally you will pass -1
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.4.2
 
