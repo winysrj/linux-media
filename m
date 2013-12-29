@@ -1,56 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s38.blu0.hotmail.com ([65.55.111.113]:15700 "EHLO
-	blu0-omc2-s38.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752802Ab3LEA1R (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:31082 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751753Ab3L2D0G convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Dec 2013 19:27:17 -0500
-Message-ID: <BLU0-SMTP1838921C2F758F2B715A141ADD70@phx.gbl>
-Date: Thu, 5 Dec 2013 08:27:18 +0800
-From: randy <lxr1234@hotmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Kamil Debski <k.debski@samsung.com>, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, m.chehab@samsung.com,
-	jtp.park@samsung.com
-Subject: Re: Can't open mfc v5 encode but decode can
-References: <BLU0-SMTP92430758342451CF087FC3ADD50@phx.gbl> <058401cef014$b29674e0$17c35ea0$%debski@samsung.com>
-In-Reply-To: <058401cef014$b29674e0$17c35ea0$%debski@samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+	Sat, 28 Dec 2013 22:26:06 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYJ00AWNTJH3S50@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 28 Dec 2013 22:26:05 -0500 (EST)
+Date: Sun, 29 Dec 2013 01:25:58 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 04/13] libdvbv5: fix deadlock on missing table sections
+Message-id: <20131229012558.4e5687d0.m.chehab@samsung.com>
+In-reply-to: <1388245561-8751-4-git-send-email-neolynx@gmail.com>
+References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+ <1388245561-8751-4-git-send-email-neolynx@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Em Sat, 28 Dec 2013 16:45:52 +0100
+André Roth <neolynx@gmail.com> escreveu:
 
-? 2013?12?03? 18:44, Kamil Debski ??:
-> Hi Randy,
+> Signed-off-by: André Roth <neolynx@gmail.com>
+> ---
+>  lib/libdvbv5/dvb-scan.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 > 
-> We also experienced this issue. One of the changes in the v4l2
-> core affected the MFC driver. A fix for MFC has been prepared by
-> Marek Szyprowski and should be sent out soon.
-> 
-When it is sending, may you CC me, I will test it.
-> Also another tip - in 3.13 a check on bytesused and length fields 
-> in planes array has been implemented. So make sure to set them 
-> appropriately.
-> 
-> Best wishes,
+> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+> index 76712d4..9751f9d 100644
+> --- a/lib/libdvbv5/dvb-scan.c
+> +++ b/lib/libdvbv5/dvb-scan.c
+> @@ -96,6 +96,10 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  	uint8_t *buf = NULL;
+>  	uint8_t *tbl = NULL;
+>  	ssize_t table_length = 0;
+> +
+> +	// handle sections
+> +	int start_id = -1;
+> +	int start_section = -1;
 
-Could you give me some example code of using samsung mfc v5 encode?
-I only get some sample from samsung BSP's android-4.2.2, in
-hardware/samsung_slsi/exynos4/multimedia/ , has
-codecs/video/exynos4/mfc_v4l2/enc/src/SsbSipMfcEncAPI.c achived this?
-Thanks
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+Again, this seems to be part of patch 1.
 
-iQEcBAEBAgAGBQJSn8hmAAoJEPb4VsMIzTzizmgH/jhGpvElUflD7SmBZCyyAvWD
-FluwSt/OzpJXd3K+EId1/AnudCF2heh6cofZ7qub1FuQ/BsisbMiYMGFYveJJluX
-qFIjmu8840lVGGK5KcPH2wAYNqYQ3izmNkVvlqCBUBC2fZ/n6sby3jQBV4WqBzJ2
-owB8Ky1LNO8n4xzYNyrkXNfsl5eMMc7nnL5Gs5L2wt60eR9mcT2aOMkWOzuGeZgn
-IqxTUC14oR5H8yvMH8xla9IEHhSWJJWU5VtP/w20Bv2TCoEEXEdxQSjFUyiqfeKJ
-zxnToqD9i9K5IQqV7prb21LS5VoDVpEHfFekMaNg23o+xo5w6PWaUbojQ/5oSG8=
-=2ws7
------END PGP SIGNATURE-----
+>  	int first_section = -1;
+>  	int last_section = -1;
+>  	int table_id = -1;
+
+
+-- 
+
+Cheers,
+Mauro
