@@ -1,79 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57026 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:40661 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750733Ab3LYFUm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Dec 2013 00:20:42 -0500
-Message-ID: <52BA6B27.2040401@iki.fi>
-Date: Wed, 25 Dec 2013 07:20:39 +0200
+	id S1751870Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:05:28 -0500
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 2/3] si2165: Add first driver version
-References: <1386918133-21628-1-git-send-email-zzam@gentoo.org> <1386918133-21628-3-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1386918133-21628-3-git-send-email-zzam@gentoo.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v6 00/12] SDR API with documentation
+Date: Sun, 29 Dec 2013 06:03:52 +0200
+Message-Id: <1388289844-2766-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moi Matthias
+That version contains documentation fixes reported by Hans.
 
-On 13.12.2013 09:02, Matthias Schwarzott wrote:
-> DVB-T: works with 8MHz BW channels in germany
-> DVB-C: works with QAM256
+Antti Palosaari (11):
+  v4l: add device type for Software Defined Radio
+  v4l: add new tuner types for SDR
+  v4l: 1 Hz resolution flag for tuners
+  v4l: add stream format for SDR receiver
+  v4l: define own IOCTL ops for SDR FMT
+  v4l: enable some IOCTLs for SDR receiver
+  v4l: add device capability flag for SDR receiver
+  DocBook: fix wait.c location
+  DocBook: document 1 Hz flag
+  DocBook: Software Defined Radio Interface
+  v4l2-framework.txt: add SDR device type
 
-I didn't tested with a modulator, but only live signals. DVB-T seems to 
-work. DVB-C didn't find any channels. Symbol rate is 6875000 and both 
-QAM128 and QAM256 modulations. I suspect symbol rate... Symbol rate is 
-like a bandwidth in case of DVB-T (bw could be calculated easily from sr 
-just adding rolloff factor).
+Hans Verkuil (1):
+  v4l: do not allow modulator ioctls for non-radio devices
 
-> TODO:
-> - Extract firmware into file
-Check from windows driver how it is there. There is many tricks to do 
-that, but I prefer hexdump.
-hexdump -C WinDriver.sys | grep "AA BB CC"
-hexdump -s 0x27588 -n 20000 -e '63/1 "%02x "' -e '"\n"'  WinDriver.sys
-
-After that implement extractor to get_dvb_firmware script.
-
-> - Verify lock is correctly detected
-> - Strength and Noise reporting
-
-Statistics are not mandatory, you could implement later. Signal strength 
-is difficult task for demod. That could be done using RF and IF AGC 
-feedbacks, but it is still very rough estimate. AGC feedbacks are also 
-very much RF tuner dependent.
-
-> - Set correct bandwidth / qam parameters
-
-That was likely reason DVB-C didn't worked :)
-
-> - what dvb-c standard is to be announced
-
-Annex A is normal DVB-C, with 8 MHz BW.
-
-There is also Annex B and C, another was 6 MHz BW and the other has a 
-little bit different rolloff factor. IIRC B is 6MHz and C is like A, but 
-different rolloff.
-
-> - Compiler warnings
-
-yeah, tons of those. Kernel has also tool for checking style etc. issues 
-scripts/checkpatch.pl. You must use it too.
-
-
-You have put all logic to single file. It looks like that chips has 
-integrated two physically rather separately demods, one for DVB-T and 
-one for DVB-C. If there is not much registers that are programmed just 
-similarly in both cases, please consider splitting DVB-C and DVB-T to 
-own files (and maybe one file for general stuff and select weather to 
-call T or C). Driver is even now quite big, almost 3000 LOC in that 
-single file.
-
-
-regards
-Antti
+ Documentation/DocBook/device-drivers.tmpl          |   2 +-
+ Documentation/DocBook/media/v4l/compat.xml         |  10 ++
+ Documentation/DocBook/media/v4l/dev-sdr.xml        | 107 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/io.xml             |   6 ++
+ Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
+ .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |   8 +-
+ Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   7 ++
+ .../DocBook/media/v4l/vidioc-g-frequency.xml       |   5 +-
+ .../DocBook/media/v4l/vidioc-g-modulator.xml       |   6 +-
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |  15 ++-
+ .../DocBook/media/v4l/vidioc-querycap.xml          |   6 ++
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   8 +-
+ Documentation/video4linux/v4l2-framework.txt       |   1 +
+ drivers/media/v4l2-core/v4l2-dev.c                 |  30 +++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  75 ++++++++++++---
+ include/media/v4l2-dev.h                           |   3 +-
+ include/media/v4l2-ioctl.h                         |   8 ++
+ include/trace/events/v4l2.h                        |   1 +
+ include/uapi/linux/videodev2.h                     |  16 +++
+ 19 files changed, 286 insertions(+), 29 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
 
 -- 
-http://palosaari.fi/
+1.8.4.2
+
