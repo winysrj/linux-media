@@ -1,54 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4297 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751218Ab3LSJVx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Dec 2013 04:21:53 -0500
-Message-ID: <52B2BA92.8080706@xs4all.nl>
-Date: Thu, 19 Dec 2013 10:21:22 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v3 6/7] rtl2832_sdr: convert to SDR API
-References: <1387231688-8647-1-git-send-email-crope@iki.fi> <1387231688-8647-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1387231688-8647-7-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:44283 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751525Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:05:28 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v6 02/12] v4l: add new tuner types for SDR
+Date: Sun, 29 Dec 2013 06:03:54 +0200
+Message-Id: <1388289844-2766-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1388289844-2766-1-git-send-email-crope@iki.fi>
+References: <1388289844-2766-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/16/2013 11:08 PM, Antti Palosaari wrote:
-> It was abusing video device API. Use SDR API instead.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 291 ++++++++++++++++++-----
->  1 file changed, 227 insertions(+), 64 deletions(-)
-> 
+Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_RF for SDR usage.
 
-A question: does this driver only do SDR, or does it also 
-do 'regular' video and/or radio?
+ADC is used for setting sampling rate (sampling frequency) to SDR
+device.
 
-If it does, then how does it switch from one tuner mode to another?
+Another tuner type, named as V4L2_TUNER_RF, is possible RF tuner.
+Is is used to down-convert RF frequency to range ADC could sample.
+Having RF tuner is optional, whilst in practice it is almost always
+there.
 
-E.g. from ANALOG_TV to RADIO to SDR?
+Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
+VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
+type is SDR (VFL_TYPE_SDR). For VIDIOC_G_FREQUENCY we do not check
+tuner type, instead override type with V4L2_TUNER_ADC in every
+case (requested by Hans in order to keep functionality in line with
+existing tuners and existing API does not specify it).
 
-During the Barcelona summit in 2012 we discussed this. See the last two
-slides of my presentation:
+Prohibit VIDIOC_S_HW_FREQ_SEEK explicitly when device type is SDR,
+as device cannot do hardware seek without a hardware demodulator.
 
-http://linuxtv.org/downloads/presentations/media_ws_2012_EU/ambiguities2.odp
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 39 ++++++++++++++++++++++++++----------
+ include/uapi/linux/videodev2.h       |  2 ++
+ 2 files changed, 30 insertions(+), 11 deletions(-)
 
-Basically this proposal was accepted provided that the code to handle tuner
-ownership should be shared between DVB and V4L2.
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 68e6b5e..0397fc6 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1288,8 +1288,11 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_frequency *p = arg;
+ 
+-	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	if (vfd->vfl_type == VFL_TYPE_SDR)
++		p->type = V4L2_TUNER_ADC;
++	else
++		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	return ops->vidioc_g_frequency(file, fh, p);
+ }
+ 
+@@ -1300,10 +1303,15 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+ 	const struct v4l2_frequency *p = arg;
+ 	enum v4l2_tuner_type type;
+ 
+-	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-	if (p->type != type)
+-		return -EINVAL;
++	if (vfd->vfl_type == VFL_TYPE_SDR) {
++		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++			return -EINVAL;
++	} else {
++		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++		if (type != p->type)
++			return -EINVAL;
++	}
+ 	return ops->vidioc_s_frequency(file, fh, p);
+ }
+ 
+@@ -1383,6 +1391,10 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_hw_freq_seek *p = arg;
+ 	enum v4l2_tuner_type type;
+ 
++	/* s_hw_freq_seek is not supported for SDR for now */
++	if (vfd->vfl_type == VFL_TYPE_SDR)
++		return -EINVAL;
++
+ 	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+ 		V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	if (p->type != type)
+@@ -1882,11 +1894,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 	enum v4l2_tuner_type type;
+ 	int err;
+ 
+-	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-
+-	if (type != p->type)
+-		return -EINVAL;
++	if (vfd->vfl_type == VFL_TYPE_SDR) {
++		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++			return -EINVAL;
++		type = p->type;
++	} else {
++		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++		if (type != p->type)
++			return -EINVAL;
++	}
+ 	if (ops->vidioc_enum_freq_bands)
+ 		return ops->vidioc_enum_freq_bands(file, fh, p);
+ 	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 437f1b0..3fff116 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -159,6 +159,8 @@ enum v4l2_tuner_type {
+ 	V4L2_TUNER_RADIO	     = 1,
+ 	V4L2_TUNER_ANALOG_TV	     = 2,
+ 	V4L2_TUNER_DIGITAL_TV	     = 3,
++	V4L2_TUNER_ADC               = 4,
++	V4L2_TUNER_RF                = 5,
+ };
+ 
+ enum v4l2_memory {
+-- 
+1.8.4.2
 
-I made an initial attempt for this here:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/tuner
-
-I never had the time to continue with it, but it might be useful for rtl2832.
-
-Regards,
-
-	Hans
