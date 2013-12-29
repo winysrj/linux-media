@@ -1,56 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54459 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932321Ab3LTNRV (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:20874 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756586Ab3L2Cxu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Dec 2013 08:17:21 -0500
+	Sat, 28 Dec 2013 21:53:50 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYJ005NNS1P0G60@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 28 Dec 2013 21:53:49 -0500 (EST)
+Date: Sun, 29 Dec 2013 00:53:35 -0200
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] dib8000: fix compilation error
-Date: Fri, 20 Dec 2013 08:14:06 -0200
-Message-Id: <1387534446-25329-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 01/13] libdvbv5: fix reading multisection tables
+Message-id: <20131229005335.049c4b67.m.chehab@samsung.com>
+In-reply-to: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+References: <1388245561-8751-1-git-send-email-neolynx@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by  kbuild test robot <fengguang.wu@intel.com>:
+Em Sat, 28 Dec 2013 16:45:49 +0100
+André Roth <neolynx@gmail.com> escreveu:
 
-with a random config:
+> Signed-off-by: André Roth <neolynx@gmail.com>
+> ---
+>  lib/libdvbv5/dvb-scan.c | 18 +++++++++++-------
+>  1 file changed, 11 insertions(+), 7 deletions(-)
+> 
+> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+> index e9ccc72..af3a052 100644
+> --- a/lib/libdvbv5/dvb-scan.c
+> +++ b/lib/libdvbv5/dvb-scan.c
+> @@ -187,15 +187,19 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  		dvb_table_header_init(h);
+>  		if (id != -1 && h->id != id) { /* search for a specific table id */
+>  			continue;
+> -		} else {
+> -			if (table_id == -1)
+> -				table_id = h->id;
+> -			else if (h->id != table_id) {
+> -				dvb_logwarn("dvb_read_section: table ID mismatch reading multi section table: %d != %d", h->id, table_id);
+> -				continue;
+> -			}
+>  		}
+>  
+> +		/*if (id != -1) {*/
+> +			/*if (table_id == -1)*/
+> +				/*table_id = h->id;*/
+> +			/*else if (h->id != table_id) {*/
+> +				/*dvb_logwarn("dvb_read_section: table ID mismatch reading multi section table: %d != %d", h->id, table_id);*/
+> +				/*free(buf);*/
+> +				/*continue;*/
+> +			/*}*/
+> +		/*}*/
+> +
 
-   drivers/built-in.o: In function `dib8000_get_time_us.isra.16':
->> dib8000.c:(.text+0x3075aa): undefined reference to `__udivdi3'
+Could you please better describe this patch? What but is it supposed to
+fix?
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/dib8000.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+If this is a bug fix, why are you commenting all lines instead of dropping?
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 7539d7af2cf7..481ee49e6a37 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -3951,7 +3951,7 @@ static u32 dib8000_get_time_us(struct dvb_frontend *fe, int layer)
- 	struct dib8000_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &state->fe[0]->dtv_property_cache;
- 	int ini_layer, end_layer, i;
--	u64 time_us;
-+	u64 time_us, tmp64;
- 	u32 tmp, denom;
- 	int guard, rate_num, rate_denum, bits_per_symbol, nsegs;
- 	int interleaving, fft_div;
-@@ -4048,7 +4048,9 @@ static u32 dib8000_get_time_us(struct dvb_frontend *fe, int layer)
- 
- 	/* Estimate the period for the total bit rate */
- 	time_us = rate_denum * (1008 * 1562500L);
--	time_us = time_us + time_us / guard;
-+	tmp64 = time_us;
-+	do_div(tmp64, guard);
-+	time_us = time_us + tmp64;
- 	time_us += denom / 2;
- 	do_div(time_us, denom);
- 
+> +		dvb_logerr("dvb_read_section: got section %d, last %di, filter %d", h->section_id, h->last_section, id );
+>  		/* handle the sections */
+>  		if (first_section == -1)
+>  			first_section = h->section_id;
+
+
 -- 
-1.8.3.1
 
+Cheers,
+Mauro
