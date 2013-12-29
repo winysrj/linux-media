@@ -1,76 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4907 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752135Ab3LQNTb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 08:19:31 -0500
-Message-ID: <52B04EE8.7040707@xs4all.nl>
-Date: Tue, 17 Dec 2013 14:17:28 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:58044 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751887Ab3L2EF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Dec 2013 23:05:28 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-CC: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 24/22] adv7842: set LLC DLL phase from platform_data
-References: <1386687848-21265-1-git-send-email-hverkuil@xs4all.nl> <9e9eaa702db4b0e0626dbf7200578e66d8281312.1386687810.git.hans.verkuil@cisco.com>
-In-Reply-To: <9e9eaa702db4b0e0626dbf7200578e66d8281312.1386687810.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v6 10/12] DocBook: document 1 Hz flag
+Date: Sun, 29 Dec 2013 06:04:02 +0200
+Message-Id: <1388289844-2766-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1388289844-2766-1-git-send-email-crope@iki.fi>
+References: <1388289844-2766-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The correct LLC DLL phase depends on the board layout, so this
-should be part of the platform_data.
+Update documention to reflect 1 Hz frequency step flag.
 
-Verified-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/i2c/adv7842.c | 6 +-----
- include/media/adv7842.h     | 6 ++++++
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ .../DocBook/media/v4l/vidioc-enum-freq-bands.xml          |  8 +++++---
+ Documentation/DocBook/media/v4l/vidioc-g-frequency.xml    |  5 +++--
+ Documentation/DocBook/media/v4l/vidioc-g-modulator.xml    |  6 ++++--
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml        | 15 ++++++++++++---
+ Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml |  8 ++++++--
+ 5 files changed, 30 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 82c57d7..2eb4058 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -1591,9 +1591,6 @@ static void select_input(struct v4l2_subdev *sd,
- 		afe_write(sd, 0x00, 0x00); /* power up ADC */
- 		afe_write(sd, 0xc8, 0x00); /* phase control */
- 
--		io_write(sd, 0x19, 0x83); /* LLC DLL phase */
--		io_write(sd, 0x33, 0x40); /* LLC DLL enable */
--
- 		io_write(sd, 0xdd, 0x90); /* Manual 2x output clock */
- 		/* script says register 0xde, which don't exist in manual */
- 
-@@ -2603,8 +2600,7 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
- 	io_write_and_or(sd, 0x20, 0xcf, 0x00);
- 
- 	/* LLC */
--	/* Set phase to 16. TODO: get this from platform_data */
--	io_write(sd, 0x19, 0x90);
-+	io_write(sd, 0x19, 0x80 | pdata->llc_dll_phase);
- 	io_write(sd, 0x33, 0x40);
- 
- 	/* interrupts */
-diff --git a/include/media/adv7842.h b/include/media/adv7842.h
-index 8b336ab..c67051a 100644
---- a/include/media/adv7842.h
-+++ b/include/media/adv7842.h
-@@ -192,6 +192,12 @@ struct adv7842_platform_data {
- 		unsigned sync:2;
- 	} drive_strength;
- 
-+	/*
-+	 * IO register 0x19: Adjustment to the LLC DLL phase in
-+	 * increments of 1/32 of a clock period.
-+	 */
-+	unsigned llc_dll_phase:5;
-+
- 	/* External RAM for 3-D comb or frame synchronizer */
- 	unsigned sd_ram_size; /* ram size in MB */
- 	unsigned sd_ram_ddr:1; /* ddr or sdr sdram */
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+index 6541ba0..60ad9ea 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+@@ -100,7 +100,7 @@ See <xref linkend="v4l2-tuner-type" /></entry>
+ 	    <entry><structfield>capability</structfield></entry>
+ 	    <entry spanname="hspan">The tuner/modulator capability flags for
+ this frequency band, see <xref linkend="tuner-capability" />. The <constant>V4L2_TUNER_CAP_LOW</constant>
+-capability must be the same for all frequency bands of the selected tuner/modulator.
++or <constant>V4L2_TUNER_CAP_1HZ</constant> capability must be the same for all frequency bands of the selected tuner/modulator.
+ So either all bands have that capability set, or none of them have that capability.</entry>
+ 	  </row>
+ 	  <row>
+@@ -109,7 +109,8 @@ So either all bands have that capability set, or none of them have that capabili
+ 	    <entry spanname="hspan">The lowest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz, for this frequency band.</entry>
++Hz, for this frequency band. 1 Hz unit is used when <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+@@ -117,7 +118,8 @@ Hz, for this frequency band.</entry>
+ 	    <entry spanname="hspan">The highest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz, for this frequency band.</entry>
++Hz, for this frequency band. 1 Hz unit is used when <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+index c7a1c46..01870c4 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+@@ -109,9 +109,10 @@ See <xref linkend="v4l2-tuner-type" /></entry>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>frequency</structfield></entry>
+ 	    <entry>Tuning frequency in units of 62.5 kHz, or if the
+-&v4l2-tuner; or &v4l2-modulator; <structfield>capabilities</structfield> flag
++&v4l2-tuner; or &v4l2-modulator; <structfield>capability</structfield> flag
+ <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz.</entry>
++Hz. 1 Hz unit is used when <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+index 7f4ac7e..7068b59 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+@@ -113,7 +113,8 @@ change for example with the current video standard.</entry>
+ 	    <entry>The lowest tunable frequency in units of 62.5
+ KHz, or if the <structfield>capability</structfield> flag
+ <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz.</entry>
++Hz, or if the <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+@@ -121,7 +122,8 @@ Hz.</entry>
+ 	    <entry>The highest tunable frequency in units of 62.5
+ KHz, or if the <structfield>capability</structfield> flag
+ <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz.</entry>
++Hz, or if the <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+index 6cc8201..b0d8659 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+@@ -134,7 +134,9 @@ the structure refers to a radio tuner the
+ 	    <entry spanname="hspan">The lowest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz. If multiple frequency bands are supported, then
++Hz, or if the <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.
++If multiple frequency bands are supported, then
+ <structfield>rangelow</structfield> is the lowest frequency
+ of all the frequency bands.</entry>
+ 	  </row>
+@@ -144,7 +146,9 @@ of all the frequency bands.</entry>
+ 	    <entry spanname="hspan">The highest tunable frequency in
+ units of 62.5 kHz, or if the <structfield>capability</structfield>
+ flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+-Hz. If multiple frequency bands are supported, then
++Hz, or if the <structfield>capability</structfield> flag
++<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.
++If multiple frequency bands are supported, then
+ <structfield>rangehigh</structfield> is the highest frequency
+ of all the frequency bands.</entry>
+ 	  </row>
+@@ -270,7 +274,7 @@ applications must set the array to zero.</entry>
+ 	    <entry><constant>V4L2_TUNER_CAP_LOW</constant></entry>
+ 	    <entry>0x0001</entry>
+ 	    <entry>When set, tuning frequencies are expressed in units of
+-62.5&nbsp;Hz, otherwise in units of 62.5&nbsp;kHz.</entry>
++62.5 Hz instead of 62.5 kHz.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_TUNER_CAP_NORM</constant></entry>
+@@ -360,6 +364,11 @@ radio tuners.</entry>
+ 	<entry>The range to search when using the hardware seek functionality
+ 	is programmable, see &VIDIOC-S-HW-FREQ-SEEK; for details.</entry>
+ 	  </row>
++	  <row>
++	<entry><constant>V4L2_TUNER_CAP_1HZ</constant></entry>
++	<entry>0x1000</entry>
++	<entry>When set, tuning frequencies are expressed in units of 1 Hz instead of 62.5 kHz.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+index 5b379e7..a5fc4c4 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+@@ -121,7 +121,9 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	    <entry>If non-zero, the lowest tunable frequency of the band to
+ search in units of 62.5 kHz, or if the &v4l2-tuner;
+ <structfield>capability</structfield> field has the
+-<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
++<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
++<structfield>capability</structfield> field has the
++<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in units of 1 Hz.
+ If <structfield>rangelow</structfield> is zero a reasonable default value
+ is used.</entry>
+ 	  </row>
+@@ -131,7 +133,9 @@ is used.</entry>
+ 	    <entry>If non-zero, the highest tunable frequency of the band to
+ search in units of 62.5 kHz, or if the &v4l2-tuner;
+ <structfield>capability</structfield> field has the
+-<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
++<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
++<structfield>capability</structfield> field has the
++<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in units of 1 Hz.
+ If <structfield>rangehigh</structfield> is zero a reasonable default value
+ is used.</entry>
+ 	  </row>
 -- 
-1.8.4.rc3
-
+1.8.4.2
 
