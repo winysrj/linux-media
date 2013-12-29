@@ -1,110 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2413 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753471Ab3LJNZQ (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3298 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751753Ab3L2DeV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Dec 2013 08:25:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 28 Dec 2013 22:34:21 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBT3YIud061399
+	for <linux-media@vger.kernel.org>; Sun, 29 Dec 2013 04:34:20 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 674E92A2228
+	for <linux-media@vger.kernel.org>; Sun, 29 Dec 2013 04:33:47 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 05/15] adv7604: Receive CEA formats as RGB on VGA (RGB) input
-Date: Tue, 10 Dec 2013 14:23:10 +0100
-Message-Id: <bec4c1794438fe30ec2a11430dd294d1080dd79b.1386681716.git.hans.verkuil@cisco.com>
-In-Reply-To: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386681800-6787-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
-References: <0e2706623dab5b0bba9603d9877d0e5153ad1627.1386681716.git.hans.verkuil@cisco.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131229033347.674E92A2228@tschai.lan>
+Date: Sun, 29 Dec 2013 04:33:47 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <matrandg@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-If the input is ADV7604_INPUT_VGA_RGB and RGB quantization range is
-set to V4L2_DV_RGB_RANGE_AUTO, video with CEA timings will be
-received as RGB. For ADV7604_INPUT_VGA_COMP, automatic CSC mode
-will be selected.
+Results of the daily build of media_tree:
 
-See table 44 on page 205 in "ADV7604 Hardware Manual, Rev. F, August 2010"
-for details.
+date:		Sun Dec 29 04:00:16 CET 2013
+git branch:	test
+git hash:	7d459937dc09bb8e448d9985ec4623779427d8a5
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-Signed-off-by: Mats Randgaard <matrandg@cisco.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 50 ++++++++++++++++++++++++++++++---------------
- 1 file changed, 33 insertions(+), 17 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 37f3994..7187378 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -911,25 +911,41 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- {
- 	struct adv7604_state *state = to_state(sd);
- 
-+	v4l2_dbg(2, debug, sd, "%s: rgb_quantization_range = %d\n",
-+		       __func__, state->rgb_quantization_range);
-+
- 	switch (state->rgb_quantization_range) {
- 	case V4L2_DV_RGB_RANGE_AUTO:
--		/* automatic */
--		if (is_digital_input(sd) && !(hdmi_read(sd, 0x05) & 0x80)) {
--			/* receiving DVI-D signal */
--
--			/* ADV7604 selects RGB limited range regardless of
--			   input format (CE/IT) in automatic mode */
--			if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861) {
--				/* RGB limited range (16-235) */
--				io_write_and_or(sd, 0x02, 0x0f, 0x00);
--
--			} else {
--				/* RGB full range (0-255) */
--				io_write_and_or(sd, 0x02, 0x0f, 0x10);
--			}
--		} else {
--			/* receiving HDMI or analog signal, set automode */
-+		if (state->selected_input == ADV7604_INPUT_VGA_RGB) {
-+			/* Receiving analog RGB signal
-+			 * Set RGB full range (0-255) */
-+			io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+			break;
-+		}
-+
-+		if (state->selected_input == ADV7604_INPUT_VGA_COMP) {
-+			/* Receiving analog YPbPr signal
-+			 * Set automode */
-+			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
-+			break;
-+		}
-+
-+		if (hdmi_read(sd, 0x05) & 0x80) {
-+			/* Receiving HDMI signal
-+			 * Set automode */
- 			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
-+			break;
-+		}
-+
-+		/* Receiving DVI-D signal
-+		 * ADV7604 selects RGB limited range regardless of
-+		 * input format (CE/IT) in automatic mode */
-+		if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861) {
-+			/* RGB limited range (16-235) */
-+			io_write_and_or(sd, 0x02, 0x0f, 0x00);
-+		} else {
-+			/* RGB full range (0-255) */
-+			io_write_and_or(sd, 0x02, 0x0f, 0x10);
- 		}
- 		break;
- 	case V4L2_DV_RGB_RANGE_LIMITED:
-@@ -1709,7 +1725,7 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
- 	char *input_color_space_txt[16] = {
- 		"RGB limited range (16-235)", "RGB full range (0-255)",
- 		"YCbCr Bt.601 (16-235)", "YCbCr Bt.709 (16-235)",
--		"XvYCC Bt.601", "XvYCC Bt.709",
-+		"xvYCC Bt.601", "xvYCC Bt.709",
- 		"YCbCr Bt.601 (0-255)", "YCbCr Bt.709 (0-255)",
- 		"invalid", "invalid", "invalid", "invalid", "invalid",
- 		"invalid", "invalid", "automatic"
--- 
-1.8.4.rc3
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
