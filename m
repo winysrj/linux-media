@@ -1,110 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2712 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145Ab3LFDeV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Dec 2013 22:34:21 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id rB63YH1Z050152
-	for <linux-media@vger.kernel.org>; Fri, 6 Dec 2013 04:34:19 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 6056D2A2222
-	for <linux-media@vger.kernel.org>; Fri,  6 Dec 2013 04:34:05 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:61572 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755851Ab3L3Mtg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Dec 2013 07:49:36 -0500
+Received: by mail-ea0-f174.google.com with SMTP id b10so4969241eae.5
+        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:35 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20131206033405.6056D2A2222@tschai.lan>
-Date: Fri,  6 Dec 2013 04:34:05 +0100 (CET)
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 15/18] libdvbv5: remove c99 comments
+Date: Mon, 30 Dec 2013 13:48:48 +0100
+Message-Id: <1388407731-24369-15-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/libdvbv5/descriptors/atsc_eit.c              |  2 +-
+ lib/libdvbv5/descriptors/desc_service_list.c     |  4 +++-
+ lib/libdvbv5/descriptors/desc_service_location.c |  2 +-
+ lib/libdvbv5/dvb-file.c                          | 21 +++++++++++----------
+ lib/libdvbv5/dvb-log.c                           |  2 +-
+ lib/libdvbv5/dvb-sat.c                           |  2 --
+ lib/libdvbv5/dvb-scan.c                          |  4 ++--
+ 7 files changed, 19 insertions(+), 18 deletions(-)
 
-Results of the daily build of media_tree:
+diff --git a/lib/libdvbv5/descriptors/atsc_eit.c b/lib/libdvbv5/descriptors/atsc_eit.c
+index 4ee38ae..8d3791d 100644
+--- a/lib/libdvbv5/descriptors/atsc_eit.c
++++ b/lib/libdvbv5/descriptors/atsc_eit.c
+@@ -68,7 +68,7 @@ void atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+                 atsc_time(event->start_time, &event->start);
+ 		event->source_id = eit->header.id;
+ 
+-                //FIXME: title
++                /* FIXME: title */
+                 p += event->title_length - 1;
+ 
+ 		if(!*head)
+diff --git a/lib/libdvbv5/descriptors/desc_service_list.c b/lib/libdvbv5/descriptors/desc_service_list.c
+index ab91622..18aa313 100644
+--- a/lib/libdvbv5/descriptors/desc_service_list.c
++++ b/lib/libdvbv5/descriptors/desc_service_list.c
+@@ -23,6 +23,8 @@
+ #include "descriptors.h"
+ #include "dvb-fe.h"
+ 
++/* FIXME: implement */
++
+ void dvb_desc_service_list_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+ {
+ 	/*struct dvb_desc_service_list *slist = (struct dvb_desc_service_list *) desc;*/
+@@ -38,7 +40,7 @@ void dvb_desc_service_list_init(struct dvb_v5_fe_parms *parms, const uint8_t *bu
+ 	/*}*/
+ 
+ 	/*return sizeof(struct dvb_desc_service_list) + slist->length + sizeof(struct dvb_desc_service_list_table);*/
+-	//FIXME: make linked list
++	/* FIXME: make linked list */
+ }
+ 
+ void dvb_desc_service_list_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_service_location.c b/lib/libdvbv5/descriptors/desc_service_location.c
+index 3759665..b205428 100644
+--- a/lib/libdvbv5/descriptors/desc_service_location.c
++++ b/lib/libdvbv5/descriptors/desc_service_location.c
+@@ -36,7 +36,7 @@ void dvb_desc_service_location_init(struct dvb_v5_fe_parms *parms, const uint8_t
+ 
+ 	bswap16(service_location->bitfield);
+ 
+-	// FIXME: handle elements == 0
++	 /* FIXME: handle elements == 0 */
+ 	service_location->element = malloc(service_location->elements * sizeof(struct dvb_desc_service_location_element));
+ 	int i;
+ 	struct dvb_desc_service_location_element *element = service_location->element;
+diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
+index 1e41fbb..de19dc5 100644
+--- a/lib/libdvbv5/dvb-file.c
++++ b/lib/libdvbv5/dvb-file.c
+@@ -784,20 +784,21 @@ static char *dvb_vchannel(struct dvb_table_nit *nit, uint16_t service_id)
+ 	if (!nit)
+ 		return NULL;
+ 
+-for( struct dvb_desc_logical_channel *desc = (struct dvb_desc_logical_channel *) nit->descriptor; desc; desc = (struct dvb_desc_logical_channel *) desc->next ) \
++	/* FIXME: use dvb_desc_find(struct dvb_desc_logical_channel, desc, nit, logical_channel_number_descriptor) { */
++	for( struct dvb_desc_logical_channel *desc = (struct dvb_desc_logical_channel *) nit->descriptor; desc; desc = (struct dvb_desc_logical_channel *) desc->next ) {
+ 		if(desc->type == logical_channel_number_descriptor) {
+-//	dvb_desc_find(struct dvb_desc_logical_channel, desc, nit, logical_channel_number_descriptor) {
+-		struct dvb_desc_logical_channel *d = (void *)desc;
++			struct dvb_desc_logical_channel *d = (void *)desc;
+ 
+-		size_t len;
++			size_t len;
+ 
+-		len = d->length / sizeof(d->lcn);
++			len = d->length / sizeof(d->lcn);
+ 
+-		for (i = 0; i < len; i++) {
+-			if (service_id == d->lcn[i].service_id) {
+-				asprintf(&buf, "%d.%d",
+-					d->lcn[i].logical_channel_number, i);
+-				return buf;
++			for (i = 0; i < len; i++) {
++				if (service_id == d->lcn[i].service_id) {
++					asprintf(&buf, "%d.%d",
++						d->lcn[i].logical_channel_number, i);
++					return buf;
++				}
+ 			}
+ 		}
+ 	}
+diff --git a/lib/libdvbv5/dvb-log.c b/lib/libdvbv5/dvb-log.c
+index 7fa811f..2be056a 100644
+--- a/lib/libdvbv5/dvb-log.c
++++ b/lib/libdvbv5/dvb-log.c
+@@ -44,7 +44,7 @@ static const struct loglevel {
+ 
+ void dvb_default_log(int level, const char *fmt, ...)
+ {
+-	if(level > sizeof(loglevels) / sizeof(struct loglevel) - 2) // ignore LOG_COLOROFF as well
++	if(level > sizeof(loglevels) / sizeof(struct loglevel) - 2) /* ignore LOG_COLOROFF as well */
+ 		level = LOG_INFO;
+ 	va_list ap;
+ 	va_start(ap, fmt);
+diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+index 09eb4d1..ea3e2c1 100644
+--- a/lib/libdvbv5/dvb-sat.c
++++ b/lib/libdvbv5/dvb-sat.c
+@@ -214,8 +214,6 @@ static void dvbsat_diseqc_prep_frame_addr(struct diseqc_cmd *cmd,
+ 	cmd->address = diseqc_addr[type];
+ }
+ 
+-//struct dvb_v5_fe_parms *parms; // legacy code, used for parms->fd, FIXME anyway
+-
+ /* Inputs are numbered from 1 to 16, according with the spec */
+ static int dvbsat_diseqc_write_to_port_group(struct dvb_v5_fe_parms *parms, struct diseqc_cmd *cmd,
+ 					     int high_band,
+diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+index d0f0b39..5f8596e 100644
+--- a/lib/libdvbv5/dvb-scan.c
++++ b/lib/libdvbv5/dvb-scan.c
+@@ -98,7 +98,7 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+ 	uint8_t *tbl = NULL;
+ 	ssize_t table_length = 0;
+ 
+-	// handle sections
++	/* handle sections */
+ 	int start_id = -1;
+ 	int start_section = -1;
+ 	int first_section = -1;
+@@ -112,7 +112,7 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+ 		return -4;
+ 	*table = NULL;
+ 
+-	// FIXME: verify known table
++	 /* FIXME: verify known table */
+ 	memset(&f, 0, sizeof(f));
+ 	f.pid = pid;
+ 	f.filter.filter[0] = tid;
+-- 
+1.8.3.2
 
-date:		Fri Dec  6 04:02:22 CET 2013
-git branch:	test
-git hash:	3f823e094b935c1882605f8720336ee23433a16d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
