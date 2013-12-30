@@ -1,178 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32964 "EHLO mail.kapsi.fi"
+Received: from smtp206.alice.it ([82.57.200.102]:37657 "EHLO smtp206.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753810Ab3LNQYl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Dec 2013 11:24:41 -0500
-Message-ID: <52AC8645.2010707@iki.fi>
-Date: Sat, 14 Dec 2013 18:24:37 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH RFC v2 7/7] v4l: define own IOCTL ops for SDR FMT
-References: <1387037729-1977-1-git-send-email-crope@iki.fi> <1387037729-1977-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1387037729-1977-8-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S932073Ab3L3P4w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Dec 2013 10:56:52 -0500
+Date: Mon, 30 Dec 2013 16:56:25 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: hdegoede@redhat.com, m.chehab@samsung.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: question about drivers/media/usb/gspca/kinect.c
+Message-Id: <20131230165625.814796d9e041d2261e1d078a@studenti.unina.it>
+In-Reply-To: <alpine.DEB.2.02.1312251956490.2020@localhost6.localdomain6>
+References: <alpine.DEB.2.02.1312251956490.2020@localhost6.localdomain6>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, Mauro, Hans,
+On Wed, 25 Dec 2013 20:00:34 +0100 (CET)
+Julia Lawall <julia.lawall@lip6.fr> wrote:
 
-On 14.12.2013 18:15, Antti Palosaari wrote:
-> Use own format ops for SDR data:
-> vidioc_enum_fmt_sdr_cap
-> vidioc_g_fmt_sdr_cap
-> vidioc_s_fmt_sdr_cap
-> vidioc_try_fmt_sdr_cap
-
-To be honest, I am a little bit against that patch. Is there any good 
-reason we duplicate these FMT ops every-time when new stream format is 
-added? For my eyes that is mostly just bloating the code without good 
-reason.
-
-regards
-Antti
-
-
->
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->   drivers/media/v4l2-core/v4l2-dev.c   |  8 ++++----
->   drivers/media/v4l2-core/v4l2-ioctl.c | 18 +++++++++---------
->   include/media/v4l2-ioctl.h           |  8 ++++++++
->   3 files changed, 21 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 9f15e25..a84f4ea 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -673,13 +673,13 @@ static void determine_valid_ioctls(struct video_device *vdev)
->   		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
->   	} else if (is_sdr) {
->   		/* SDR specific ioctls */
-> -		if (ops->vidioc_enum_fmt_vid_cap)
-> +		if (ops->vidioc_enum_fmt_sdr_cap)
->   			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
-> -		if (ops->vidioc_g_fmt_vid_cap)
-> +		if (ops->vidioc_g_fmt_sdr_cap)
->   			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
-> -		if (ops->vidioc_s_fmt_vid_cap)
-> +		if (ops->vidioc_s_fmt_sdr_cap)
->   			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
-> -		if (ops->vidioc_try_fmt_vid_cap)
-> +		if (ops->vidioc_try_fmt_sdr_cap)
->   			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
->
->   		if (is_rx) {
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index a7e6b52..18aa36a 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -939,7 +939,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
->   			return 0;
->   		break;
->   	case V4L2_BUF_TYPE_SDR_CAPTURE:
-> -		if (is_sdr && is_rx && ops->vidioc_g_fmt_vid_cap)
-> +		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
->   			return 0;
->   		break;
->   	default:
-> @@ -1062,9 +1062,9 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
->   			break;
->   		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
->   	case V4L2_BUF_TYPE_SDR_CAPTURE:
-> -		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_vid_cap))
-> +		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_sdr_cap))
->   			break;
-> -		return ops->vidioc_enum_fmt_vid_cap(file, fh, arg);
-> +		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
->   	}
->   	return -EINVAL;
->   }
-> @@ -1121,9 +1121,9 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
->   			break;
->   		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
->   	case V4L2_BUF_TYPE_SDR_CAPTURE:
-> -		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_vid_cap))
-> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
->   			break;
-> -		return ops->vidioc_g_fmt_vid_cap(file, fh, arg);
-> +		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
->   	}
->   	return -EINVAL;
->   }
-> @@ -1190,10 +1190,10 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->   		CLEAR_AFTER_FIELD(p, fmt.sliced);
->   		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
->   	case V4L2_BUF_TYPE_SDR_CAPTURE:
-> -		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_vid_cap))
-> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_sdr_cap))
->   			break;
->   		CLEAR_AFTER_FIELD(p, fmt.sdr);
-> -		return ops->vidioc_s_fmt_vid_cap(file, fh, arg);
-> +		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
->   	}
->   	return -EINVAL;
->   }
-> @@ -1260,10 +1260,10 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->   		CLEAR_AFTER_FIELD(p, fmt.sliced);
->   		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
->   	case V4L2_BUF_TYPE_SDR_CAPTURE:
-> -		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_vid_cap))
-> +		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_sdr_cap))
->   			break;
->   		CLEAR_AFTER_FIELD(p, fmt.sdr);
-> -		return ops->vidioc_try_fmt_vid_cap(file, fh, arg);
-> +		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
->   	}
->   	return -EINVAL;
->   }
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index e0b74a4..8be32f5 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -40,6 +40,8 @@ struct v4l2_ioctl_ops {
->   					      struct v4l2_fmtdesc *f);
->   	int (*vidioc_enum_fmt_vid_out_mplane)(struct file *file, void *fh,
->   					      struct v4l2_fmtdesc *f);
-> +	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
-> +					    struct v4l2_fmtdesc *f);
->
->   	/* VIDIOC_G_FMT handlers */
->   	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
-> @@ -62,6 +64,8 @@ struct v4l2_ioctl_ops {
->   					   struct v4l2_format *f);
->   	int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh,
->   					   struct v4l2_format *f);
-> +	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
-> +					struct v4l2_format *f);
->
->   	/* VIDIOC_S_FMT handlers */
->   	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
-> @@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
->   					   struct v4l2_format *f);
->   	int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh,
->   					   struct v4l2_format *f);
-> +	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
-> +					struct v4l2_format *f);
->
->   	/* VIDIOC_TRY_FMT handlers */
->   	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
-> @@ -106,6 +112,8 @@ struct v4l2_ioctl_ops {
->   					     struct v4l2_format *f);
->   	int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh,
->   					     struct v4l2_format *f);
-> +	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
-> +					  struct v4l2_format *f);
->
->   	/* Buffer handlers */
->   	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
+> The following code, in the function send_cmd, looks too concise:
+> 
+>         do {
+>                 actual_len = kinect_read(udev, ibuf, 0x200);
+>         } while (actual_len == 0);
+>         PDEBUG(D_USBO, "Control reply: %d", res);
+>         if (actual_len < sizeof(*rhdr)) {
+>                 pr_err("send_cmd: Input control transfer failed (%d)\n", res);
+>                 return res;
+>         }
+> 
+> It seems that actual_len might be less than sizeof(*rhdr) either because 
+> an error code is returned by the call to kinect_read or because a shorter 
+> length is returned than the desired one.  In the error code case, I would 
+> guess that one would want to return the error code, but I don't know what 
+> on would want to return in the other case.  In any case, res is not 
+> defined by this code, so what is returned is whatever the result of the 
+> previous call to kinect_write happened to be.
+> 
+> How should the code be changed?
 >
 
+Thanks Julia,
+
+some other drivers return -EIO when the actual transfer length does not
+match the requested one[1], and from Documentation/usb/error-codes.txt
+[2] it looks like -EREMOTEIO is also used to represent partial
+transfers in some cases. So I'd say either one of the two is OK.
+
+The interested code is almost the same used in libfreenect[3], so I'd
+stay with a minimal change here:
+
+diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
+index 3773a8a..48084736 100644
+--- a/drivers/media/usb/gspca/kinect.c
++++ b/drivers/media/usb/gspca/kinect.c
+@@ -158,7 +158,7 @@ static int send_cmd(struct gspca_dev *gspca_dev, uint16_t cmd, void *cmdbuf,
+        PDEBUG(D_USBO, "Control reply: %d", res);
+        if (actual_len < sizeof(*rhdr)) {
+                pr_err("send_cmd: Input control transfer failed (%d)\n", res);
+-               return res;
++               return actual_len < 0 ? actual_len : -EREMOTEIO;
+        }
+        actual_len -= sizeof(*rhdr);
+
+Proper patches on their way, to libfreenect too.
+
+Thanks again,
+   Antonio
+
+[1]
+http://lxr.linux.no/#linux+v3.12.6/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c#L37
+[2]
+http://lxr.linux.no/#linux+v3.12.6/Documentation/usb/error-codes.txt#L134
+[3]
+https://github.com/OpenKinect/libfreenect/blob/master/src/flags.c#L87
 
 -- 
-http://palosaari.fi/
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
