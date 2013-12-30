@@ -1,62 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27366 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753448Ab3LZQiV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Dec 2013 11:38:21 -0500
-Message-ID: <52BC5B71.5000308@redhat.com>
-Date: Thu, 26 Dec 2013 17:38:09 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:38634 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755876Ab3L3Mtk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Dec 2013 07:49:40 -0500
+Received: by mail-ee0-f46.google.com with SMTP id d49so4940687eek.5
+        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:39 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 17/18] libdvbv5: remove header files from SOURCES in Makefile.am
+Date: Mon, 30 Dec 2013 13:48:50 +0100
+Message-Id: <1388407731-24369-17-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Julia.Lawall@lip6.fr
-Subject: Fwd: question about drivers/media/usb/gspca/kinect.c
-References: <alpine.DEB.2.02.1312251956490.2020@localhost6.localdomain6>
-In-Reply-To: <alpine.DEB.2.02.1312251956490.2020@localhost6.localdomain6>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/libdvbv5/Makefile.am | 87 ++++++++++++++++++++++++------------------------
+ 1 file changed, 43 insertions(+), 44 deletions(-)
 
-Forwarding this to Antonio, the author of the kinect driver, who is
-the best person to answer this.
-
-Regards,
-
-Hans
-
-
-
--------- Original Message --------
-Subject: question about drivers/media/usb/gspca/kinect.c
-Date: Wed, 25 Dec 2013 20:00:34 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: hdegoede@redhat.com, m.chehab@samsung.com, linux-media@vger.kernel.org,        linux-kernel@vger.kernel.org
-
-The following code, in the function send_cmd, looks too concise:
-
-         do {
-                 actual_len = kinect_read(udev, ibuf, 0x200);
-         } while (actual_len == 0);
-         PDEBUG(D_USBO, "Control reply: %d", res);
-         if (actual_len < sizeof(*rhdr)) {
-                 pr_err("send_cmd: Input control transfer failed (%d)\n", res);
-                 return res;
-         }
-
-It seems that actual_len might be less than sizeof(*rhdr) either because
-an error code is returned by the call to kinect_read or because a shorter
-length is returned than the desired one.  In the error code case, I would
-guess that one would want to return the error code, but I don't know what
-on would want to return in the other case.  In any case, res is not
-defined by this code, so what is returned is whatever the result of the
-previous call to kinect_write happened to be.
-
-How should the code be changed?
-
-thanks,
-julia
-
+diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
+index ddf9ea1..8f89531 100644
+--- a/lib/libdvbv5/Makefile.am
++++ b/lib/libdvbv5/Makefile.am
+@@ -52,52 +52,51 @@ noinst_LTLIBRARIES = libdvbv5.la
+ endif
+ 
+ libdvbv5_la_SOURCES = \
+-	crc32.c crc32.h \
+-	../include/dvb-frontend.h \
++	crc32.c \
+ 	dvb-legacy-channel-format.c \
+ 	dvb-zap-format.c \
+-	dvb-v5.c	dvb-v5.h \
+-	parse_string.c	parse_string.h \
+-	dvb-demux.c	../include/dvb-demux.h \
+-	dvb-fe.c	../include/dvb-fe.h \
+-	dvb-log.c	../include/dvb-log.h \
+-	dvb-file.c	../include/dvb-file.h \
+-	dvb-v5-std.c	../include/dvb-v5-std.h \
+-	dvb-sat.c	../include/dvb-sat.h \
+-	dvb-scan.c	../include/dvb-scan.h \
+-	descriptors.c	../include/descriptors.h \
+-	descriptors/header.c		../include/libdvbv5/header.h \
+-	descriptors/atsc_header.c	../include/libdvbv5/atsc_header.h \
+-	descriptors/pat.c		../include/libdvbv5/pat.h \
+-	descriptors/pmt.c		../include/libdvbv5/pmt.h \
+-	descriptors/nit.c		../include/libdvbv5/nit.h \
+-	descriptors/sdt.c		../include/libdvbv5/sdt.h \
+-	descriptors/vct.c		../include/libdvbv5/vct.h \
+-	descriptors/mgt.c		../include/libdvbv5/mgt.h \
+-	descriptors/eit.c		../include/libdvbv5/eit.h \
+-	descriptors/atsc_eit.c		../include/libdvbv5/atsc_eit.h \
+-	descriptors/desc_language.c		../include/libdvbv5/desc_language.h \
+-	descriptors/desc_network_name.c		../include/libdvbv5/desc_network_name.h \
+-	descriptors/desc_cable_delivery.c	../include/libdvbv5/desc_cable_delivery.h \
+-	descriptors/desc_sat.c			../include/libdvbv5/desc_sat.h \
+-	descriptors/desc_terrestrial_delivery.c  ../include/libdvbv5/desc_terrestrial_delivery.h \
+-	descriptors/desc_t2_delivery.c		../include/libdvbv5/desc_t2_delivery.h \
+-	descriptors/desc_service.c		../include/libdvbv5/desc_service.h \
+-	descriptors/desc_frequency_list.c	../include/libdvbv5/desc_frequency_list.h \
+-	descriptors/desc_service_list.c		../include/libdvbv5/desc_service_list.h \
+-	descriptors/desc_event_short.c		../include/libdvbv5/desc_event_short.h \
+-	descriptors/desc_event_extended.c	../include/libdvbv5/desc_event_extended.h \
+-	descriptors/desc_atsc_service_location.c ../include/libdvbv5/desc_atsc_service_location.h \
+-	descriptors/desc_hierarchy.c		../include/libdvbv5/desc_hierarchy.h \
+-	descriptors/desc_extension.c		../include/libdvbv5/desc_extension.h \
+-	descriptors/desc_isdbt_delivery.c	../include/libdvbv5/desc_isdbt_delivery.h \
+-	descriptors/desc_logical_channel.c	../include/libdvbv5/desc_logical_channel.h \
+-	descriptors/desc_ts_info.c		../include/libdvbv5/desc_ts_info.h \
+-	descriptors/desc_partial_reception.c	../include/libdvbv5/desc_partial_reception.h \
+-	descriptors/desc_service_location.c	../include/libdvbv5/desc_service_location.h \
+-	descriptors/mpeg_ts.c		../include/libdvbv5/mpeg_ts.h \
+-	descriptors/mpeg_pes.c		../include/libdvbv5/mpeg_pes.h \
+-	descriptors/mpeg_es.c		../include/libdvbv5/mpeg_es.h
++	dvb-v5.c	 \
++	parse_string.c	 \
++	dvb-demux.c	 \
++	dvb-fe.c	 \
++	dvb-log.c	\
++	dvb-file.c	\
++	dvb-v5-std.c	\
++	dvb-sat.c	\
++	dvb-scan.c	\
++	descriptors.c	\
++	descriptors/header.c		\
++	descriptors/atsc_header.c	\
++	descriptors/pat.c		\
++	descriptors/pmt.c		\
++	descriptors/nit.c		\
++	descriptors/sdt.c		\
++	descriptors/vct.c		\
++	descriptors/mgt.c		\
++	descriptors/eit.c		\
++	descriptors/atsc_eit.c		\
++	descriptors/desc_language.c		\
++	descriptors/desc_network_name.c		\
++	descriptors/desc_cable_delivery.c	\
++	descriptors/desc_sat.c			\
++	descriptors/desc_terrestrial_delivery.c  \
++	descriptors/desc_t2_delivery.c		\
++	descriptors/desc_service.c		\
++	descriptors/desc_frequency_list.c	\
++	descriptors/desc_service_list.c		\
++	descriptors/desc_event_short.c		\
++	descriptors/desc_event_extended.c	\
++	descriptors/desc_atsc_service_location.c \
++	descriptors/desc_hierarchy.c		\
++	descriptors/desc_extension.c		\
++	descriptors/desc_isdbt_delivery.c	\
++	descriptors/desc_logical_channel.c	\
++	descriptors/desc_ts_info.c		\
++	descriptors/desc_partial_reception.c	\
++	descriptors/desc_service_location.c	\
++	descriptors/mpeg_ts.c		\
++	descriptors/mpeg_pes.c		\
++	descriptors/mpeg_es.c
+ 
+ libdvbv5_la_CPPFLAGS = -I../.. $(ENFORCE_LIBDVBV5_STATIC)
+ libdvbv5_la_LDFLAGS = $(LIBDVBV5_VERSION) $(ENFORCE_LIBDVBV5_STATIC) -lm
+-- 
+1.8.3.2
 
