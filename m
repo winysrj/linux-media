@@ -1,85 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42043 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753891Ab3LZXho (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Dec 2013 18:37:44 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Valentine Barshak <valentine.barshak@cogentembedded.com>
-Cc: linux-sh@vger.kernel.org, linux-media@vger.kernel.org,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH V2] media: soc_camera: rcar_vin: Add preliminary R-Car M2 support
-Date: Fri, 27 Dec 2013 00:38:11 +0100
-Message-ID: <2370627.KrZrtTfMjV@avalon>
-In-Reply-To: <1388071909-12207-1-git-send-email-valentine.barshak@cogentembedded.com>
-References: <1388071909-12207-1-git-send-email-valentine.barshak@cogentembedded.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp207.alice.it ([82.57.200.103]:22189 "EHLO smtp207.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756099Ab3L3Ql6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Dec 2013 11:41:58 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: hdegoede@redhat.com, m.chehab@samsung.com,
+	Julia Lawall <julia.lawall@lip6.fr>,
+	Antonio Ospite <ospite@studenti.unina.it>
+Subject: [PATCH 2/2] gspca_kinect: fix messages about kinect_read() return value
+Date: Mon, 30 Dec 2013 17:41:46 +0100
+Message-Id: <1388421706-8366-2-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <20131230165625.814796d9e041d2261e1d078a@studenti.unina.it>
+References: <20131230165625.814796d9e041d2261e1d078a@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Valentine,
+Messages relative to kinect_read() are printing "res" which contains the
+return value of a previous kinect_write().
 
-Thank you for the patch.
+Print the correct value in the messages.
 
-On Thursday 26 December 2013 19:31:49 Valentine Barshak wrote:
-> This adds R-Car M2 (R8A7791) VIN support. Both H2 and M2
-> variants look the same from the driver's point of view,
-> so use GEN2 id for both.
-> 
-> Changes in V2:
-> * Used the same (RCAR_GEN2) id for both H2 and M2 variants
->   since they are no different from the driver's point of view.
-> 
-> Signed-off-by: Valentine Barshak <valentine.barshak@cogentembedded.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ drivers/media/usb/gspca/kinect.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
-> b/drivers/media/platform/soc_camera/rcar_vin.c index 6866bb4..3b1c05a
-> 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -106,7 +106,7 @@
->  #define VIN_MAX_HEIGHT		2048
-> 
->  enum chip_id {
-> -	RCAR_H2,
-> +	RCAR_GEN2,
->  	RCAR_H1,
->  	RCAR_M1,
->  	RCAR_E1,
-> @@ -302,7 +302,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->  		dmr = 0;
->  		break;
->  	case V4L2_PIX_FMT_RGB32:
-> -		if (priv->chip == RCAR_H2 || priv->chip == RCAR_H1 ||
-> +		if (priv->chip == RCAR_GEN2 || priv->chip == RCAR_H1 ||
->  		    priv->chip == RCAR_E1) {
->  			dmr = VNDMR_EXRGB;
->  			break;
-> @@ -1384,7 +1384,8 @@ static struct soc_camera_host_ops rcar_vin_host_ops =
-> { };
-> 
->  static struct platform_device_id rcar_vin_id_table[] = {
-> -	{ "r8a7790-vin",  RCAR_H2 },
-> +	{ "r8a7791-vin",  RCAR_GEN2 },
-> +	{ "r8a7790-vin",  RCAR_GEN2 },
->  	{ "r8a7779-vin",  RCAR_H1 },
->  	{ "r8a7778-vin",  RCAR_M1 },
->  	{ "uPD35004-vin", RCAR_E1 },
+diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
+index 48084736..081f051 100644
+--- a/drivers/media/usb/gspca/kinect.c
++++ b/drivers/media/usb/gspca/kinect.c
+@@ -155,9 +155,10 @@ static int send_cmd(struct gspca_dev *gspca_dev, uint16_t cmd, void *cmdbuf,
+ 	do {
+ 		actual_len = kinect_read(udev, ibuf, 0x200);
+ 	} while (actual_len == 0);
+-	PDEBUG(D_USBO, "Control reply: %d", res);
++	PDEBUG(D_USBO, "Control reply: %d", actual_len);
+ 	if (actual_len < sizeof(*rhdr)) {
+-		pr_err("send_cmd: Input control transfer failed (%d)\n", res);
++		pr_err("send_cmd: Input control transfer failed (%d)\n",
++		       actual_len);
+ 		return actual_len < 0 ? actual_len : -EREMOTEIO;
+ 	}
+ 	actual_len -= sizeof(*rhdr);
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.2
 
