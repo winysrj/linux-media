@@ -1,77 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s31.blu0.hotmail.com ([65.55.111.106]:9510 "EHLO
-	blu0-omc2-s31.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932909Ab3LIKit (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:53519 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755882Ab3L3Mtl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Dec 2013 05:38:49 -0500
-Message-ID: <BLU0-SMTP479D8750DBFA66B9D41FE4AADD30@phx.gbl>
-Date: Mon, 9 Dec 2013 18:38:36 +0800
-From: randy <lxr1234@hotmail.com>
-MIME-Version: 1.0
+	Mon, 30 Dec 2013 07:49:41 -0500
+Received: by mail-ea0-f174.google.com with SMTP id b10so5061862eae.33
+        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:40 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-CC: Kamil Debski <k.debski@samsung.com>
-Subject: Re: Can't open mfc v5 encode but decode can
-References: <BLU0-SMTP92430758342451CF087FC3ADD50@phx.gbl> <058401cef014$b29674e0$17c35ea0$%debski@samsung.com> <BLU0-SMTP1838921C2F758F2B715A141ADD70@phx.gbl> <06b801cef19d$69da8090$3d8f81b0$%debski@samsung.com>
-In-Reply-To: <06b801cef19d$69da8090$3d8f81b0$%debski@samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 18/18] libdvbv5: README updated for shared libdvbv5
+Date: Mon, 30 Dec 2013 13:48:51 +0100
+Message-Id: <1388407731-24369-18-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ README        |  8 ++++----
+ README.libv4l | 12 ++++++++++++
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
-? 2013?12?05? 17:36, Kamil Debski ??:
-> Hi Randy,
-> 
->> -----Original Message----- From: randy
->> [mailto:lxr1234@hotmail.com] Sent: Thursday, December 05, 2013
->> 1:27 AM To: linux-media@vger.kernel.org Cc: Kamil Debski;
->> m.szyprowski@samsung.com; kyungmin.park@samsung.com; 
->> m.chehab@samsung.com; jtp.park@samsung.com Subject: Re: Can't
->> open mfc v5 encode but decode can
->> 
->> -----BEGIN PGP SIGNED MESSAGE----- Hash: SHA1
->> 
->> ? 2013?12?03? 18:44, Kamil Debski ??:
->>> Hi Randy,
->>> 
->>> We also experienced this issue. One of the changes in the v4l2
->>> core affected the MFC driver. A fix for MFC has been prepared
->>> by Marek Szyprowski and should be sent out soon.
->>> 
->> When it is sending, may you CC me, I will test it.
->>> Also another tip - in 3.13 a check on bytesused and length
->>> fields in planes array has been implemented. So make sure to
->>> set them appropriately.
->>> 
->>> Best wishes,
->> 
->> Could you give me some example code of using samsung mfc v5
->> encode? I only get some sample from samsung BSP's android-4.2.2,
->> in hardware/samsung_slsi/exynos4/multimedia/ , has 
->> codecs/video/exynos4/mfc_v4l2/enc/src/SsbSipMfcEncAPI.c achived
->> this? Thanks
-> 
-> You can find the example applications here: 
-> http://git.infradead.org/users/kmpark/public-apps
-> 
-> Best wishes,
-Thank you.
-Well, mem2mem device seems hard to use for me, I never use streaming
-before(I always use libv4l to do a read/write wrapper). I will some time
-to make it work in my program :)
-Thank you again for your help and work.
-						Ayaka
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+diff --git a/README b/README
+index 0cccc00..a9f8089 100644
+--- a/README
++++ b/README
+@@ -3,13 +3,13 @@ v4l-utils
+ 
+ Linux V4L2 and DVB API utilities and v4l libraries (libv4l).
+ You can always find the latest development v4l-utils in the git repo:
+-http://git.linuxtv.org/v4l-utils.git 
++http://git.linuxtv.org/v4l-utils.git
+ 
+ 
+-v4l libraries (libv4l)
+-----------------------
++v4l libraries (libv4l, libdvbv5)
++--------------------------------
+ 
+-See README.lib for more information on libv4l, libv4l is released
++See README.libv4l for more information on libv4l, libv4l is released
+ under the GNU Lesser General Public License.
+ 
+ 
+diff --git a/README.libv4l b/README.libv4l
+index 0be503f..7170801 100644
+--- a/README.libv4l
++++ b/README.libv4l
+@@ -59,6 +59,18 @@ hardware can _really_ do it should use ENUM_FMT, not randomly try a bunch of
+ S_FMT's). For more details on the v4l2_ functions see libv4l2.h .
+ 
+ 
++libdvbv5
++--------
++
++This library provides the DVBv5 API to userspace programs. It can be used to
++open DVB adapters, tune transponders and read PES and other data streams.
++There are as well several parsers for DVB, ATSC, ISBT formats.
++
++The API is currently EXPERIMENTAL and likely to change.
++Run configure with --enable-libdvbv5 in order to build a shared lib and
++install the header files.
++
++
+ wrappers
+ --------
+ 
+-- 
+1.8.3.2
 
-iQEcBAEBAgAGBQJSpZ2mAAoJEPb4VsMIzTzioU0IAMWLh0keqK5z0C/FVPS8nJRA
-yoaeMRwU0TTMe0gqsWkys+rg4o4Aec0aSQAhstolQuj80Btc511WKueq0e+l6R3/
-wVsBiGaPNzsG5bgbcLwk5grY8R1I1ID534rMiKIBiz/2uW1D+OMYTq6mvnAExJMG
-OdeGalb/KWm4SFMSHXj8iGr6f+8x7YzrrHaBfJB16KUEKDLcH0VdKWgDxmAgRrUY
-fTzBtum2tvld/EYZhOt7QrPkVq1z0/s9xiZoPE2eIDEC42XGbmAwOZClUzFMD6cV
-KAfRAWI3uWp4QetZMXh4X/rynYc8ppL0otjDnCUcWhdtmN/+QR2NDeyqO3EQfNY=
-=YL7b
------END PGP SIGNATURE-----
