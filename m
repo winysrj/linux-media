@@ -1,71 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44223 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751332Ab3LQVJM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Dec 2013 16:09:12 -0500
-Message-ID: <52B0BD72.9000804@iki.fi>
-Date: Tue, 17 Dec 2013 23:09:06 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mxweb03do.versatel-west.de ([62.214.96.174]:42479 "HELO
+	mxweb03do.versatel-west.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756124Ab3L3TVb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Dec 2013 14:21:31 -0500
+Message-ID: <52C1C600.5000806@cinnamon-sage.de>
+Date: Mon, 30 Dec 2013 20:14:08 +0100
+From: Lars Hanisch <dvb@cinnamon-sage.de>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Connor Behan <connor.behan@gmail.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Frederik Himpe <fhimpe@telenet.be>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: stable regression: tda18271_read_regs: [1-0060|M] ERROR: i2c_transfer
- returned: -19
-References: <1386969579.3914.13.camel@piranha.localdomain>	<20131214092443.622b069d@samsung.com>	<52ACE809.1000406@gmail.com>	<CAGoCfiwxGU-j14oGDfvoYTA5WZUkQdM_3=80gfpWUjXVNN_nng@mail.gmail.com>	<52AFE107.4040705@gmail.com> <CAGoCfiztzv-QFjmKXdiJreTPCYN1RTe5bPTO0awx5a-ER161qQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiztzv-QFjmKXdiJreTPCYN1RTe5bPTO0awx5a-ER161qQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Digital Devices Cine S2 V6.5, PCIe, Dual
+References: <52C146AC.6050208@grumpydevil.homelinux.org>
+In-Reply-To: <52C146AC.6050208@grumpydevil.homelinux.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Off-topic, Cc:s dropped, related to DVB / V4L2 tuner communication problems.
+Hi,
 
-On 17.12.2013 07:39, Devin Heitmueller wrote:
-> Hi Connor,
->
-> On Tue, Dec 17, 2013 at 12:28 AM, Connor Behan <connor.behan@gmail.com> wrote:
->> Thanks for the detailed answer. I have tried your patch and updated the
->> wiki page. Would a 950 or 950Q be safer to buy next time?
->
-> The 950 has long since been obsoleted.  You cannot buy them anymore.
-> The 950q though is well supported and doesn't have this issue as it
-> uses a different chip.
->
->> On 14/12/13 05:17 PM, Devin Heitmueller wrote:
->>> I had a patch kicking around which fixed part of the issue, but it
->>> didn't completely work because of the lgdt3305 having AGC enabled at
->>> chip powerup (which interferes with analog tuning on the shared
->>> tuner), and the internal v4l-dvb APIs don't provide any easy way to
->>> reset the AGC from the analog side of the device.
->>
->> By this do you mean that the functions exist but they aren't part of the
->> public API? Maybe this problem can be addressed if there is ever "v4l3"
->> or some other reason to break compatibility.
->
-> No, these are internal APIs that dictate how the various driver
-> components talk to each other.  Because the V4L and DVB subsystems
-> were developed independently of each other, they do a really crappy
-> job of communicating between them (a problem which manifests itself in
-> particular when sharing hardware resources such as tuners).
->
-> The problem *can* be fixed, but it would likely require
-> extensions/changes to the basic frameworks used to communicate between
-> the different drivers.
+Am 30.12.2013 11:10, schrieb Rudy Zijlstra:
+> Dear List,
+> 
+> I have a DVB card as mentioned in the subject
+> 
+> 03:00.0 Multimedia controller [0480]: Device [dd01:0003]
+>         Subsystem: Device [dd01:0021]
+>         Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+>         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Interrupt: pin A routed to IRQ 17
+>         Region 0: Memory at f0900000 (64-bit, non-prefetchable) [size=64K]
+>         Capabilities: [50] Power Management version 3
+>                 Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+>                 Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+>         Capabilities: [90] Express (v2) Endpoint, MSI 00
+>                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+>                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE+ FLReset-
+>                 DevCtl: Report errors: Correctable- Non-Fatal+ Fatal+ Unsupported+
+>                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
+>                         MaxPayload 128 bytes, MaxReadReq 512 bytes
+>                 DevSta: CorrErr- UncorrErr- FatalErr- UnsuppReq- AuxPwr- TransPend-
+>                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s, Latency L0 unlimited, L1 <1us
+>                         ClockPM- Surprise- LLActRep- BwNot-
+>                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+>                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+>                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+>                 DevCap2: Completion Timeout: Range A, TimeoutDis+
+>                 DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis+
+>                 LnkCtl2: Target Link Speed: 2.5GT/s, EnterCompliance- SpeedDis-, Selectable De-emphasis: -6dB
+>                          Transmit Margin: Normal Operating Range, EnterModifiedCompliance- ComplianceSOS-
+>                          Compliance De-emphasis: -6dB
+>                 LnkSta2: Current De-emphasis Level: -6dB
+>         Capabilities: [100 v1] Vendor Specific Information: ID=0000 Rev=0 Len=00c <?>
+>         Kernel driver in use: DDBridge
+>         Kernel modules: ddbridge
+> 
+> Kernel 3.12.3 sees the device, but does not enable it. Only the ddbridge driver is loaded, none of the tuner/demod drivers:
+> 
+> root@mythtest:~# lsmod
+> Module                  Size  Used by
+> ddbridge               17766  0
+> 
+> Nor, judging from dmesg output, is the firmware loaded:
+> [    1.624996] Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH
+> [    1.652565] pci 0000:01:19.0: enabling device (0000 -> 0002)
+> [    1.677601] DDBridge driver detected: Digital Devices PCIe bridge
+> [    1.683598] HW ffffffff FW ffffffff
+> [    2.160410] Adding 2097148k swap on /dev/sda3.  Priority:-1 extents:1 across:2097148k
+> [    2.190386] Switched to clocksource tsc
+> 
+> 
+> What is the best kernel to have this dvb-card working?
+> Or, alternatively, the best combination of kernel version and out-of-kernel stack?
 
-That shared DVB / V4L2 tuner is one problem that I have also currently 
-(SDR is on V4L2 API and DTV is provided via DVB API). I have decided to 
-try model where I separate RF tuner totally independent used DVB / V4L2 
-APIs, just to plain I2C driver model. Idea is here to provide needed set 
-of general callbacks and communication and device binding is done via 
-I2C driver model.
-I am not sure though if there is any big caveats I haven't realized yet...
+ I think the best out-of-kernel stack at the moment ist the one by Oliver Endriss.
+ http://www.vdr-portal.de/board18-vdr-hardware/board102-dvb-karten/p1077194-#post1077194
 
-regards
-Antti
+ I use it for my Cine C/T and it's working really good.
 
--- 
-http://palosaari.fi/
+Regards,
+Lars.
+
+> 
+> 
+> Thanks,
+> 
+> 
+> Rudy
+> 
+> 
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
