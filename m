@@ -1,110 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:49836 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750815Ab3LRGFi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Dec 2013 01:05:38 -0500
-Message-ID: <52B13B2B.4040401@gentoo.org>
-Date: Wed, 18 Dec 2013 07:05:31 +0100
-From: Matthias Schwarzott <zzam@gentoo.org>
-MIME-Version: 1.0
-To: =?UTF-8?B?U3ZlbiBNw7xsbGVy?= <xpert-reactos@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: Aw: Re:  Re: Card with si2165
-References: <trinity-3c856476-f7bf-4d9b-b00d-707bcf956c5b-1387066356197@3capp-gmx-bs46>, <52AE1020.9020908@gentoo.org> <trinity-3abf9a2f-d1ae-4948-b124-7d2aa566b28c-1387182406449@3capp-gmx-bs08>, <52AF6075.7030202@gentoo.org> <trinity-694fffe1-2ff0-46db-9cd8-ec08b156703e-1387230575663@3capp-gmx-bs08>
-In-Reply-To: <trinity-694fffe1-2ff0-46db-9cd8-ec08b156703e-1387230575663@3capp-gmx-bs08>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3342 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753446Ab3L3DwQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Dec 2013 22:52:16 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id rBU3qDpp091454
+	for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:52:15 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 3A9AE2A2229
+	for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:51:41 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20131230035141.3A9AE2A2229@tschai.lan>
+Date: Mon, 30 Dec 2013 04:51:41 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16.12.2013 22:49, "Sven Müller" wrote:
-> 
-> 
->> Gesendet: Montag, 16. Dezember 2013 um 21:20 Uhr
->> Von: "Matthias Schwarzott" <zzam@gentoo.org>
->> An: "Sven Müller" <xpert-reactos@gmx.de>, linux-media@vger.kernel.org
->> Betreff: Re: Aw: Re: Card with si2165
->>
->> On 16.12.2013 09:26, "Sven Müller" wrote:
->>>
->>> I have a Hauppauge WINTV HVR 5500-HD.
->>>
->>
->> Hi
->>
->> I think first you should check if this is exactly the same card as you
->> have: http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-5500
->>
-> 
-> It's the same card.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-So could you please check if the information is up to date.
+Results of the daily build of media_tree:
 
-* Add missing components, e.g. si2165
-* What about the tuner for DVB-C/T - it could be a tda18271 - can you
-verify this?
-* Maybe add a picture if you can take one.
-* Add dmesg of the cx23885 driver if it at least tries to do stuff with
-the card.
-* You can pass cx23885 the parameter i2c_scan, but I think it will not
-differ from your i2cdetect calls.
+date:		Mon Dec 30 04:00:28 CET 2013
+git branch:	test
+git hash:	7d459937dc09bb8e448d9985ec4623779427d8a5
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
 
-> i2c-9	i2c       	cx23885[0]                      	I2C adapter
-> i2c-10	i2c       	cx23885[0]                      	I2C adapter
-> i2c-11	i2c       	cx23885[0]                      	I2C adapter
-> 
->From cx23885 sources I guess bus 9 and 10 are the external buses:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-> # i2cdetect -y 9
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          -- -- 05 -- -- -- -- -- 0b -- -- -- -- 
-> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- -- 
-> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 
-> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 70: -- -- -- -- -- -- -- --                         
-> # i2cdetect -y 10
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- -- 
-> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 
-> 60: 60 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 70: -- -- -- -- -- -- -- --                         
-Here could be a tuner at 0x60.
+Detailed results are available here:
 
-> # i2cdetect -y 11
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- -- 
-> 40: -- -- -- -- 44 -- -- -- -- -- -- -- 4c -- -- -- 
-> 50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f 
-> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 70: -- -- -- -- -- -- -- --            
-> 
-Compare to cx23885-i2c.c:
-At 0x44 is the internal cx25837
-At 0x4c is the flatiron
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-To detect more you need the correct GPIO configuration I think, so that
-all components are out of reset state.
+Full logs are available here:
 
-If dmesg also shows the tda18271, most likely this is also used for DVB-C/T.
-Now you need to find out how to set the GPIOs so that you can talk to
-si2165 via i2c.
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-And second, how this type of cards handle the multiple frontend stuff.
+The Media Infrastructure API from this daily build is here:
 
-I wonder if the subdevice id of your card is really identical to
-HVR4400, if yes, the eeprom is necessary to detect the exact used
-components.
-
-Regards
-Matthias
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
