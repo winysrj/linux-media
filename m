@@ -1,63 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1659 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753903Ab3LOLbs (ORCPT
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:50217 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751820Ab3L3NhD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Dec 2013 06:31:48 -0500
-Message-ID: <52AD9306.1060408@xs4all.nl>
-Date: Sun, 15 Dec 2013 12:31:18 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 30 Dec 2013 08:37:03 -0500
+Received: by mail-ea0-f180.google.com with SMTP id f15so5108992eak.11
+        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 05:37:01 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH] xc2028: disable device power-down because power state handling is broken
+Date: Mon, 30 Dec 2013 14:37:58 +0100
+Message-Id: <1388410678-12641-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC v2 7/7] v4l: define own IOCTL ops for SDR FMT
-References: <1387037729-1977-1-git-send-email-crope@iki.fi> <1387037729-1977-8-git-send-email-crope@iki.fi> <52AC8645.2010707@iki.fi> <20131215092326.74c28792.m.chehab@samsung.com>
-In-Reply-To: <20131215092326.74c28792.m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/2013 12:23 PM, Mauro Carvalho Chehab wrote:
-> Em Sat, 14 Dec 2013 18:24:37 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
-> 
->> Hello, Mauro, Hans,
->>
->> On 14.12.2013 18:15, Antti Palosaari wrote:
->>> Use own format ops for SDR data:
->>> vidioc_enum_fmt_sdr_cap
->>> vidioc_g_fmt_sdr_cap
->>> vidioc_s_fmt_sdr_cap
->>> vidioc_try_fmt_sdr_cap
->>
->> To be honest, I am a little bit against that patch. Is there any good 
->> reason we duplicate these FMT ops every-time when new stream format is 
->> added? For my eyes that is mostly just bloating the code without good 
->> reason.
-> 
-> The is one reason: when the same device can be used in both SDR and non
-> SDR mode (radio, video, vbi), then either the driver or the core would
-> need to select the right set of vidioc_*fmt_* ops.
-> 
-> In the past, all drivers had about the same logic for such tests.
-> Yet, as the implementations weren't the same, several of them were
-> implementing it wrong.
-> 
-> So, we ended by moving those validations to the core.
+xc2028 power state handling is broken.
+I2C read/write operations fail when the device is powered down at that moment,
+which causes the get_rf_strength and get_rf_strength callbacks (and probably
+others, too) to fail.
+I don't know how to fix this properly, so disable the device power-down until
+anyone comes up with a better solution.
 
-I do think there is room for improvement here, though. Rather than
-passing v4l2_format to the ops I would have preferred passing the appropriate
-struct of the union instead.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/tuners/tuner-xc2028.c |    4 +++-
+ 1 Datei geändert, 3 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
 
-And I never really liked it that try and set were split up. A 'try' boolean
-would reduce the number of ops.
+diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+index 4be5cf8..cb3dc5e 100644
+--- a/drivers/media/tuners/tuner-xc2028.c
++++ b/drivers/media/tuners/tuner-xc2028.c
+@@ -1291,16 +1291,18 @@ static int xc2028_sleep(struct dvb_frontend *fe)
+ 		dump_stack();
+ 	}
+ 
++	/* FIXME: device power-up/-down handling is broken */
++/*
+ 	mutex_lock(&priv->lock);
+ 
+ 	if (priv->firm_version < 0x0202)
+ 		rc = send_seq(priv, {0x00, XREG_POWER_DOWN, 0x00, 0x00});
+ 	else
+ 		rc = send_seq(priv, {0x80, XREG_POWER_DOWN, 0x00, 0x00});
+-
+ 	priv->state = XC2028_SLEEP;
+ 
+ 	mutex_unlock(&priv->lock);
++*/
+ 
+ 	return rc;
+ }
+-- 
+1.7.10.4
 
-The first improvement is something that can be done at some point. It's too
-late (and probably not worth it) to do anything about the second.
-
-Regards,
-
-	Hans
-
-PS: Antti, I'll review the code in more detail tomorrow.
