@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44020 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653Ab3LKP4c (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:49092 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755619Ab3L3Mtc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Dec 2013 10:56:32 -0500
-Received: from avalon.localnet (unknown [91.178.175.146])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id F305035A6A
-	for <linux-media@vger.kernel.org>; Wed, 11 Dec 2013 16:55:43 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 30 Dec 2013 07:49:32 -0500
+Received: by mail-ee0-f49.google.com with SMTP id c41so5057096eek.36
+        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:31 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.14] V4L2 OF fixes
-Date: Wed, 11 Dec 2013 16:56:45 +0100
-Message-ID: <3622703.qMZfg9Weee@avalon>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 11/18] libdvbv5: cleanup coding style
+Date: Mon, 30 Dec 2013 13:48:44 +0100
+Message-Id: <1388407731-24369-11-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/libdvbv5/descriptors.c          | 2 +-
+ lib/libdvbv5/descriptors/mpeg_pes.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-The following changes since commit 989af88339db26345e23271dae1089d949c4a0f1:
-
-  [media] v4l: vsp1: Add LUT support (2013-12-11 09:25:20 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git v4l2/core
-
-for you to fetch changes up to 4b3ee9dbee6e2b806ce0bc041066d8c73c0e850c:
-
-  v4l: of: Drop endpoint node reference in v4l2_of_get_remote_port() 
-(2013-12-11 16:55:37 +0100)
-
-----------------------------------------------------------------
-Laurent Pinchart (3):
-      v4l: of: Return an int in v4l2_of_parse_endpoint()
-      v4l: of: Remove struct v4l2_of_endpoint remote field
-      v4l: of: Drop endpoint node reference in v4l2_of_get_remote_port()
-
- drivers/media/v4l2-core/v4l2-of.c | 10 +++++++---
- include/media/v4l2-of.h           |  6 ++----
- 2 files changed, 9 insertions(+), 7 deletions(-)
-
+diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
+index 226349e..f46aa4a 100644
+--- a/lib/libdvbv5/descriptors.c
++++ b/lib/libdvbv5/descriptors.c
+@@ -1359,6 +1359,6 @@ void hexdump(struct dvb_v5_fe_parms *parms, const char *prefix, const unsigned c
+ 		for (i = strlen(hex); i < 49; i++)
+ 			strncat(spaces, " ", sizeof(spaces));
+ 		ascii[j] = '\0';
+-		dvb_log("%s %s %s %s", prefix, hex, spaces, ascii);
++		dvb_log("%s%s %s %s", prefix, hex, spaces, ascii);
+ 	}
+ }
+diff --git a/lib/libdvbv5/descriptors/mpeg_pes.c b/lib/libdvbv5/descriptors/mpeg_pes.c
+index 1b518a3..98364a3 100644
+--- a/lib/libdvbv5/descriptors/mpeg_pes.c
++++ b/lib/libdvbv5/descriptors/mpeg_pes.c
+@@ -33,7 +33,7 @@ void dvb_mpeg_pes_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_
+ 	bswap32(pes->bitfield);
+ 	bswap16(pes->length);
+ 
+-	if (pes->sync != 0x000001 ) {
++	if (pes->sync != 0x000001) {
+ 		dvb_logerr("mpeg pes invalid");
+ 		return;
+ 	}
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
