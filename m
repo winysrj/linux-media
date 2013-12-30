@@ -1,68 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43145 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754163Ab3LVSOH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Dec 2013 13:14:07 -0500
-Message-ID: <52B72BEB.4010902@iki.fi>
-Date: Sun, 22 Dec 2013 20:14:03 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:63041 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755764Ab3L3Mta (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Dec 2013 07:49:30 -0500
+Received: by mail-ea0-f169.google.com with SMTP id l9so4438430eaj.28
+        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 04:49:28 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 07/18] libdvbv5: fix EIT parsing
+Date: Mon, 30 Dec 2013 13:48:40 +0100
+Message-Id: <1388407731-24369-7-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx DEADLOCK reported by lock debug
-References: <52B1C79C.1070408@iki.fi> <52B5C718.7030605@googlemail.com> <52B5F229.6020301@iki.fi> <52B6EE79.9070105@googlemail.com> <52B6F883.8060103@iki.fi> <52B7293C.5010206@googlemail.com>
-In-Reply-To: <52B7293C.5010206@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22.12.2013 20:02, Frank Sch‰fer wrote:
-> Am 22.12.2013 15:34, schrieb Antti Palosaari:
->> On 22.12.2013 15:51, Frank Sch‰fer wrote:
->>> Am 21.12.2013 20:55, schrieb Antti Palosaari:
->>>> On 21.12.2013 18:51, Frank Sch‰fer wrote:
->>>>> Hi Antti,
->>>>>
->>>>> thank you for reporting this issue.
->>>>>
->>>>> Am 18.12.2013 17:04, schrieb Antti Palosaari:
->>>>>> That same lock debug deadlock is still there (maybe ~4 times I report
->>>>>> it during 2 years). Is that possible to fix easily at all?
->>>>>
->>>>> Patches are always welcome. ;)
->>>>
->>>> haha, I cannot simply learn every driver I meet some problems...
->>> Hint:
->>>
->>> If you report a bug ~4 times in 2 years but never get a reply, it
->>> usually means
->>> a) nobody cares
->>> b) nobody has the resources (time, knowledge) to fix it.
->>>
->>> So you either have to live with this issue or to fix it yourself.
->>
->> OK, as you request me to fix it, I will fix that by making DVB USB v2
->> driver for these em28xx devices I have added.
->>
->> It should not be very much work as em28xx protocol is still relatively
->> easy.
-> How would that help to get those lockdep false warnings fixed ?
-> Btw: these warnings should appear for _all_ em28xx extensions (dvb,
-> input, audio).
+the dvb_table_eit_event now contains the service_id,
+indicating where the events belong to.
 
-I am already looking to silence that v4l2 lockdep report. It is hard to 
-say how much it is work as I simply don't know even reasons.
+Signed-off-by: Andr√© Roth <neolynx@gmail.com>
+---
+ lib/include/descriptors/eit.h  |  3 ++-
+ lib/libdvbv5/descriptors/eit.c | 35 ++++++++++++++++++++++++++---------
+ 2 files changed, 28 insertions(+), 10 deletions(-)
 
-I suspect that if I start learning and fixing em28xx driver it will take 
-week or two as a workload. Writing new dvb-usb driver is only max 2 days 
-of work and as a bonus you will get some missing features for free:
-1) power-management
-2) suspend/resume
-3) PID filters
-
-regards
-Antti
-
+diff --git a/lib/include/descriptors/eit.h b/lib/include/descriptors/eit.h
+index 2af9696..ca08fd4 100644
+--- a/lib/include/descriptors/eit.h
++++ b/lib/include/descriptors/eit.h
+@@ -40,7 +40,7 @@
+ struct dvb_table_eit_event {
+ 	uint16_t event_id;
+ 	union {
+-		uint16_t bitfield;
++		uint16_t bitfield1; /* first 2 bytes are MJD, they need to be bswapped */
+ 		uint8_t dvbstart[5];
+ 	} __attribute__((packed));
+ 	uint8_t dvbduration[3];
+@@ -56,6 +56,7 @@ struct dvb_table_eit_event {
+ 	struct dvb_table_eit_event *next;
+ 	struct tm start;
+ 	uint32_t duration;
++	uint16_t service_id;
+ } __attribute__((packed));
+ 
+ struct dvb_table_eit {
+diff --git a/lib/libdvbv5/descriptors/eit.c b/lib/libdvbv5/descriptors/eit.c
+index ccfe1a6..c2d01c3 100644
+--- a/lib/libdvbv5/descriptors/eit.c
++++ b/lib/libdvbv5/descriptors/eit.c
+@@ -29,6 +29,11 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
+ 	struct dvb_table_eit_event **head;
+ 
+ 	if (*table_length > 0) {
++		memcpy(eit, p, sizeof(struct dvb_table_eit) - sizeof(eit->event));
++
++		bswap16(eit->transport_id);
++		bswap16(eit->network_id);
++
+ 		/* find end of curent list */
+ 		head = &eit->event;
+ 		while (*head != NULL)
+@@ -48,18 +53,30 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
+ 	struct dvb_table_eit_event *last = NULL;
+ 	while ((uint8_t *) p < buf + buflen - 4) {
+ 		struct dvb_table_eit_event *event = (struct dvb_table_eit_event *) malloc(sizeof(struct dvb_table_eit_event));
+-		memcpy(event, p, sizeof(struct dvb_table_eit_event) - sizeof(event->descriptor) - sizeof(event->next) - sizeof(event->start) - sizeof(event->duration));
+-		p += sizeof(struct dvb_table_eit_event) - sizeof(event->descriptor) - sizeof(event->next) - sizeof(event->start) - sizeof(event->duration);
++		memcpy(event, p, sizeof(struct dvb_table_eit_event) -
++				 sizeof(event->descriptor) -
++				 sizeof(event->next) -
++				 sizeof(event->start) -
++				 sizeof(event->duration) -
++				 sizeof(event->service_id));
++		p += sizeof(struct dvb_table_eit_event) -
++		     sizeof(event->descriptor) -
++		     sizeof(event->next) -
++		     sizeof(event->start) -
++		     sizeof(event->duration) -
++		     sizeof(event->service_id);
+ 
+ 		bswap16(event->event_id);
+-		bswap16(event->bitfield);
++		bswap16(event->bitfield1);
+ 		bswap16(event->bitfield2);
+ 		event->descriptor = NULL;
+ 		event->next = NULL;
+ 		dvb_time(event->dvbstart, &event->start);
+-		event->duration = bcd(event->dvbduration[0]) * 3600 +
+-				  bcd(event->dvbduration[1]) * 60 +
+-				  bcd(event->dvbduration[2]);
++		event->duration = bcd((uint32_t) event->dvbduration[0]) * 3600 +
++				  bcd((uint32_t) event->dvbduration[1]) * 60 +
++				  bcd((uint32_t) event->dvbduration[2]);
++
++		event->service_id = eit->header.id;
+ 
+ 		if(!*head)
+ 			*head = event;
+@@ -102,6 +119,7 @@ void dvb_table_eit_print(struct dvb_v5_fe_parms *parms, struct dvb_table_eit *ei
+ 		char start[255];
+ 		strftime(start, sizeof(start), "%F %T", &event->start);
+ 		dvb_log("|- %7d", event->event_id);
++		dvb_log("|   Service               %d", event->service_id);
+ 		dvb_log("|   Start                 %s UTC", start);
+ 		dvb_log("|   Duration              %dh %dm %ds", event->duration / 3600, (event->duration % 3600) / 60, event->duration % 60);
+ 		dvb_log("|   free CA mode          %d", event->free_CA_mode);
+@@ -137,9 +155,8 @@ void dvb_time(const uint8_t data[5], struct tm *tm)
+   tm->tm_mday  = day;
+   tm->tm_mon   = month - 1;
+   tm->tm_year  = year;
+-  tm->tm_isdst = -1;
+-  tm->tm_wday  = 0;
+-  tm->tm_yday  = 0;
++  tm->tm_isdst = 1; /* dst in effect, do not adjust */
++  mktime( tm );
+ }
+ 
+ 
 -- 
-http://palosaari.fi/
+1.8.3.2
+
