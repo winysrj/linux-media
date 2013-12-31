@@ -1,60 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1926 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757132Ab3LFKRm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 05:17:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-qc0-f173.google.com ([209.85.216.173]:39224 "EHLO
+	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932365Ab3LaAtH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Dec 2013 19:49:07 -0500
+Received: by mail-qc0-f173.google.com with SMTP id m20so11295778qcx.4
+        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 16:49:05 -0800 (PST)
+Received: from mythbox.ladodomain ([64.184.115.227])
+        by mx.google.com with ESMTPSA id c10sm59245862qaq.16.2013.12.30.16.49.03
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Mon, 30 Dec 2013 16:49:04 -0800 (PST)
+Message-ID: <52C2147E.4010902@gmail.com>
+Date: Mon, 30 Dec 2013 19:49:02 -0500
+From: Bob Lightfoot <boblfoot@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Dinesh.Ram@cern.ch, edubezval@gmail.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 09/11] si4713: si4713_set_rds_radio_text overwrites terminating \0
-Date: Fri,  6 Dec 2013 11:17:12 +0100
-Message-Id: <1386325034-19344-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386325034-19344-1-git-send-email-hverkuil@xs4all.nl>
+Subject: Question about cx23885 and tda8290 modules
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello:
+	I am running Centos 6.5 with their 2.6.32-431.1.2.0.1.el6.x86_64
+kernel.  My tuner card is seen as cx23885 and tda8290.  I have a
+/dev/dvb/adapter0 and /dev/video0 , /dev/video1 but do not see a
+/dev/radio.  the dmesg output is showing a radio tuner.  What is
+missing that I don't get a /dev/radio.
 
-si4713_set_rds_radio_text will overwrite the terminating zero at the
-end of the rds radio text string in order to send out a carriage return
-as per the RDS spec.
-
-Use a separate char buffer for the CR instead of corrupting the control
-string.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Eduardo Valentin <edubezval@gmail.com>
-Acked-by: Eduardo Valentin <edubezval@gmail.com>
----
- drivers/media/radio/si4713/si4713.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index 097d4e0..17e0106 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -831,8 +831,9 @@ static int si4713_set_rds_ps_name(struct si4713_device *sdev, char *ps_name)
- 	return rval;
- }
- 
--static int si4713_set_rds_radio_text(struct si4713_device *sdev, char *rt)
-+static int si4713_set_rds_radio_text(struct si4713_device *sdev, const char *rt)
- {
-+	static const char cr[RDS_RADIOTEXT_BLK_SIZE] = { RDS_CARRIAGE_RETURN, 0 };
- 	int rval = 0, i;
- 	u16 t_index = 0;
- 	u8 b_index = 0, cr_inserted = 0;
-@@ -856,7 +857,7 @@ static int si4713_set_rds_radio_text(struct si4713_device *sdev, char *rt)
- 			for (i = 0; i < RDS_RADIOTEXT_BLK_SIZE; i++) {
- 				if (!rt[t_index + i] ||
- 				    rt[t_index + i] == RDS_CARRIAGE_RETURN) {
--					rt[t_index + i] = RDS_CARRIAGE_RETURN;
-+					rt = cr;
- 					cr_inserted = 1;
- 					break;
- 				}
--- 
-1.8.4.rc3
-
+Bob Lightfoot
