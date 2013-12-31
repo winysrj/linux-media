@@ -1,137 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4792 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933531Ab3LINnq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Dec 2013 08:43:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, awalls@md.metrocast.net,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	s.nawrocki@samsung.com, g.liakhovetski@gmx.de,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [RFCv4 PATCH 7/8] vb2: return ENODATA in start_streaming in case of too few buffers.
-Date: Mon,  9 Dec 2013 14:43:11 +0100
-Message-Id: <1386596592-48678-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
-References: <1386596592-48678-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-vc0-f179.google.com ([209.85.220.179]:35200 "EHLO
+	mail-vc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752539Ab3LaCm6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Dec 2013 21:42:58 -0500
+Received: by mail-vc0-f179.google.com with SMTP id ie18so6263014vcb.10
+        for <linux-media@vger.kernel.org>; Mon, 30 Dec 2013 18:42:56 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1402873.pE5TYkBor8@avalon>
+References: <CAFu4+mW7ja=FR3Csw_svfnSCtivZNACgaTV-J7vD=15vKHzQtg@mail.gmail.com>
+	<CAFu4+mWAaw9jqpqiw_SiuaQs-y=VEZxPYmdv+W-mkdEckXTQ5Q@mail.gmail.com>
+	<1402873.pE5TYkBor8@avalon>
+Date: Tue, 31 Dec 2013 10:42:56 +0800
+Message-ID: <CAFu4+mWKGX4EpGYRMCwOfPO7ELhby7sx-DLHSZg=2Wj0v3S_CQ@mail.gmail.com>
+Subject: Re: DMABUF doesn't work when frame size not equal to the size of GPU bo
+From: Chuanbo Weng <strgnm@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, t.stanislaws@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-This works together with the retry_start_streaming mechanism to allow userspace
-to start streaming even if not all required buffers have been queued.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/davinci/vpbe_display.c   | 2 +-
- drivers/media/platform/davinci/vpif_capture.c   | 2 +-
- drivers/media/platform/davinci/vpif_display.c   | 2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 2 +-
- drivers/media/platform/s5p-tv/mixer_video.c     | 2 +-
- drivers/media/platform/soc_camera/mx2_camera.c  | 2 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 ++
- 7 files changed, 8 insertions(+), 6 deletions(-)
+2013/12/29 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Chuanbo,
+>
+> On Friday 27 December 2013 09:55:40 Chuanbo Weng wrote:
+>> > Hi all,
+>> >
+>> > (My environment is intel platform, HD4000 GPU, kernel 3.10.19, logitech
+>> > 270 webcam)
+>> >
+>> > As title said, I discover this issue when I run the program shown by
+>> > Laurent Pinchart:
+>> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg54806.html
+>> >
+>> > If the frame is (width, height) = (640, 480), DMABUF works well.
+>> > If the frame is (width, height) = (160, 120), v4lfd receives no event.
+>> >
+>> > And I dig into drm kernel code, find that: i915_gem_create will create a
+>> > GPU buffer object on intel platform. The size of GPU bo will be bigger
+>> > than frame size, for the reason that i915_gem_create will roundup the bo
+>> > size to multiple of PAGE_SIZE when the frame is (width, height) = (160,
+>> > 120). For (width, height) = (640, 480), the frame size is already multiple
+>> > of PAGE_SIZE, so GPU bo is exactly equal to frame size.
+>
+> That should in theory not be an issue). This might be a stupid question, but
+> have you tried to capture 160x120 images directly (with yavta for instance)
+> without using DMABUF ?
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index eac472b..53be7fc 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -347,7 +347,7 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	/* If buffer queue is empty, return error */
- 	if (list_empty(&layer->dma_queue)) {
- 		v4l2_err(&vpbe_dev->v4l2_dev, "buffer queue is empty\n");
--		return -EINVAL;
-+		return -ENODATA;
- 	}
- 	/* Get the next frame from the buffer queue */
- 	layer->next_frm = layer->cur_frm = list_entry(layer->dma_queue.next,
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 52ac5e6..4b04a27 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -277,7 +277,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (list_empty(&common->dma_queue)) {
- 		spin_unlock_irqrestore(&common->irqlock, flags);
- 		vpif_dbg(1, debug, "buffer queue is empty\n");
--		return -EIO;
-+		return -ENODATA;
- 	}
- 
- 	/* Get the next frame from the buffer queue */
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index c31bcf1..c5070dc 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -239,7 +239,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (list_empty(&common->dma_queue)) {
- 		spin_unlock_irqrestore(&common->irqlock, flags);
- 		vpif_err("buffer queue is empty\n");
--		return -EIO;
-+		return -ENODATA;
- 	}
- 
- 	/* Get the next frame from the buffer queue */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 4ff3b6c..3bdfe85 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1863,7 +1863,7 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
- 		if (ctx->src_bufs_cnt < ctx->pb_count) {
- 			mfc_err("Need minimum %d OUTPUT buffers\n",
- 					ctx->pb_count);
--			return -EINVAL;
-+			return -ENODATA;
- 		}
- 	}
- 
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index 81b97db..220ec31 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -948,7 +948,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	if (count == 0) {
- 		mxr_dbg(mdev, "no output buffers queued\n");
--		return -EINVAL;
-+		return -ENODATA;
- 	}
- 
- 	/* block any changes in output configuration */
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 45a0276..587e3d1 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -659,7 +659,7 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 	unsigned long flags;
- 
- 	if (count < 2)
--		return -EINVAL;
-+		return -ENODATA;
- 
- 	spin_lock_irqsave(&pcdev->lock, flags);
- 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 24d98a6..a81b0ab 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -1201,6 +1201,8 @@ static int vpfe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	unsigned long addr;
- 	int ret;
- 
-+	if (count == 0)
-+		return -ENODATA;
- 	ret = mutex_lock_interruptible(&video->lock);
- 	if (ret)
- 		goto streamoff;
--- 
-1.8.4.3
+Thanks for your reply! Please forgive me if it's a stupid question
+because I'm new in camera
+and v4l2 region. Yes, of course, I have tried to capture 160x120
+images using yavta and v4l-utils
+without using DMABUF (using MMAP), it works well. So it proves the
+camera support this width
+and height.I strongly recommend you to tried 160x120 images using
+DMABUF on your machine,
+because I have tried 3 cameras (two logiteh, one microsoft) and all of
+them don't work.
+>
+>> > I also dump the uvc driver infomation, there is some infomation i
+>> > think maybe important:
+>> > uvcvideo: Stream 1 error event 07 01 len 4
+>> >
+>> > Looking forward to the discussion!
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
+Thanks,
+Chuanbo Weng
