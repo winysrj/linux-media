@@ -1,40 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40016 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760039Ab3LHWb4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Dec 2013 17:31:56 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH REVIEW 18/18] m88ds3103: fix possible i2c deadlock
-Date: Mon,  9 Dec 2013 00:31:35 +0200
-Message-Id: <1386541895-8634-19-git-send-email-crope@iki.fi>
-In-Reply-To: <1386541895-8634-1-git-send-email-crope@iki.fi>
-References: <1386541895-8634-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45081 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab3LaIv0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Dec 2013 03:51:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: florian.vaussard@epfl.ch
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Regression inside omap3isp/resizer (was: 3fdfeda causes a regression)
+Date: Tue, 31 Dec 2013 09:51:57 +0100
+Message-ID: <5578156.0MrbcJaUWJ@avalon>
+In-Reply-To: <52B8AF81.3040804@epfl.ch>
+References: <52B02A7A.4010901@epfl.ch> <52B8AF81.3040804@epfl.ch>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adapter is locked by I2C core already. Use unlocked i2c_transfer()
-version __i2c_transfer() to avoid deadlock.
+Hi Florian,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/m88ds3103.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Sorry for the late reply.
 
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index 76bd85a..b5503ed 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -1159,7 +1159,7 @@ static int m88ds3103_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
- 	mutex_lock(&priv->i2c_mutex);
- 
- 	/* open tuner I2C repeater for 1 xfer, closes automatically */
--	ret = i2c_transfer(priv->i2c, gate_open_msg, 1);
-+	ret = __i2c_transfer(priv->i2c, gate_open_msg, 1);
- 	if (ret != 1) {
- 		dev_warn(&priv->i2c->dev, "%s: i2c wr failed=%d\n",
- 				KBUILD_MODNAME, ret);
+On Monday 23 December 2013 22:47:45 Florian Vaussard wrote:
+> On 12/17/2013 11:42 AM, Florian Vaussard wrote:
+> > Hello Laurent,
+> > 
+> > I was working on having a functional IOMMU/ISP for 3.14, and had an
+> > issue with an image completely distorted. Comparing with another kernel,
+> > I saw that PRV_HORZ_INFO and PRV_VERT_INFO differed. On the newer
+> > kernel, sph, eph, svl, and slv were all off-by 2, causing my final image
+> > to miss 4 pixels on each line, thus distorting the result.
+> > 
+> > Your commit 3fdfedaaa7f243f3347084231c64f6c1be0ba131 '[media] omap3isp:
+> > preview: Lower the crop margins' indeed changes PRV_HORZ_INFO and
+> > PRV_VERT_INFO by removing the if() condition. Reverting it made my image
+> > to be valid again.
+> > 
+> > FYI, my pipeline is:
+> > 
+> > MT9V032 (SGRBG10 752x480) -> CCDC -> PREVIEW (UYVY 752x480) -> RESIZER
+> > -> out
+> 
+> Just an XMAS ping on this :-) Do you have any idea how to solve this
+> without reverting the patch?
+
+The patch indeed changed the preview engine margins, but the change is 
+supposed to be handled by applications. As a base for this discussion could 
+you please provide the media-ctl -p output before and after applying the patch 
+? You can strip the unrelated media entities out of the output.
+
 -- 
-1.8.4.2
+Regards,
+
+Laurent Pinchart
 
