@@ -1,73 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33661 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752963Ab3LFJow (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Dec 2013 04:44:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-sh@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] v4l: sh_vou: Fix warnings due to improper casts and printk formats
-Date: Fri, 06 Dec 2013 10:44:59 +0100
-Message-ID: <6115347.uBxN6mlE0m@avalon>
-In-Reply-To: <1385547327-13657-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1385547327-13657-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:32315 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752261Ab3LaHoF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Dec 2013 02:44:05 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYN00KYGUTFCO60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 Dec 2013 07:44:03 +0000 (GMT)
+Message-id: <52C275B9.1030803@samsung.com>
+Date: Tue, 31 Dec 2013 08:43:53 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Chuanbo Weng <strgnm@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: DMABUF doesn't work when frame size not equal to the size of GPU bo
+References: <CAFu4+mW7ja=FR3Csw_svfnSCtivZNACgaTV-J7vD=15vKHzQtg@mail.gmail.com>
+ <CAFu4+mWAaw9jqpqiw_SiuaQs-y=VEZxPYmdv+W-mkdEckXTQ5Q@mail.gmail.com>
+ <1402873.pE5TYkBor8@avalon>
+ <CAFu4+mWKGX4EpGYRMCwOfPO7ELhby7sx-DLHSZg=2Wj0v3S_CQ@mail.gmail.com>
+In-reply-to: <CAFu4+mWKGX4EpGYRMCwOfPO7ELhby7sx-DLHSZg=2Wj0v3S_CQ@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 27 November 2013 11:15:27 Laurent Pinchart wrote:
-> Use the %zu printk specifier to print size_t variables, and cast
-> pointers to uintptr_t instead of unsigned int where applicable. This
-> fixes warnings on platforms where pointers and/or dma_addr_t have a
-> different size than int.
+Hi Chuanbo Weng,
 
-Let's drop this, I'll resend a patch based on the new %pad printk modifier to 
-print dma_addr_t.
+I suspect that the problem might be caused by difference
+between size of DMABUF object and buffer size in V4L2.
+What is the content of v4l2_format returned by VIDIOC_G_FMT?
+What is the content of V4l2_buffer structure passed by VIDIOC_QBUF?
 
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/sh_vou.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> Changes compared to v1:
-> 
-> - Cast to uintptr_t instead of unsigned long
-> 
-> diff --git a/drivers/media/platform/sh_vou.c
-> b/drivers/media/platform/sh_vou.c index 4f30341..69e2125 100644
-> --- a/drivers/media/platform/sh_vou.c
-> +++ b/drivers/media/platform/sh_vou.c
-> @@ -286,7 +286,7 @@ static int sh_vou_buf_prepare(struct videobuf_queue *vq,
-> vb->size = vb->height * bytes_per_line;
->  	if (vb->baddr && vb->bsize < vb->size) {
->  		/* User buffer too small */
-> -		dev_warn(vq->dev, "User buffer too small: [%u] @ %lx\n",
-> +		dev_warn(vq->dev, "User buffer too small: [%zu] @ %lx\n",
->  			 vb->bsize, vb->baddr);
->  		return -EINVAL;
->  	}
-> @@ -302,9 +302,9 @@ static int sh_vou_buf_prepare(struct videobuf_queue *vq,
-> }
-> 
->  	dev_dbg(vou_dev->v4l2_dev.dev,
-> -		"%s(): fmt #%d, %u bytes per line, phys 0x%x, type %d, state %d\n",
-> +		"%s(): fmt #%d, %u bytes per line, phys 0x%lx, type %d, state %d\n",
->  		__func__, vou_dev->pix_idx, bytes_per_line,
-> -		videobuf_to_dma_contig(vb), vb->memory, vb->state);
-> +		(uintptr_t)videobuf_to_dma_contig(vb), vb->memory, vb->state);
-> 
->  	return 0;
->  }
--- 
 Regards,
+Tomasz Stanislawski
 
-Laurent Pinchart
+On 12/31/2013 03:42 AM, Chuanbo Weng wrote:
+> Hi Laurent,
+> 
+> 
+> 2013/12/29 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> Hi Chuanbo,
+>>
+>> On Friday 27 December 2013 09:55:40 Chuanbo Weng wrote:
+>>>> Hi all,
+>>>>
+>>>> (My environment is intel platform, HD4000 GPU, kernel 3.10.19, logitech
+>>>> 270 webcam)
+>>>>
+>>>> As title said, I discover this issue when I run the program shown by
+>>>> Laurent Pinchart:
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg54806.html
+>>>>
+>>>> If the frame is (width, height) = (640, 480), DMABUF works well.
+>>>> If the frame is (width, height) = (160, 120), v4lfd receives no event.
+>>>>
+>>>> And I dig into drm kernel code, find that: i915_gem_create will create a
+>>>> GPU buffer object on intel platform. The size of GPU bo will be bigger
+>>>> than frame size, for the reason that i915_gem_create will roundup the bo
+>>>> size to multiple of PAGE_SIZE when the frame is (width, height) = (160,
+>>>> 120). For (width, height) = (640, 480), the frame size is already multiple
+>>>> of PAGE_SIZE, so GPU bo is exactly equal to frame size.
+>>
+>> That should in theory not be an issue). This might be a stupid question, but
+>> have you tried to capture 160x120 images directly (with yavta for instance)
+>> without using DMABUF ?
+> 
+> Thanks for your reply! Please forgive me if it's a stupid question
+> because I'm new in camera
+> and v4l2 region. Yes, of course, I have tried to capture 160x120
+> images using yavta and v4l-utils
+> without using DMABUF (using MMAP), it works well. So it proves the
+> camera support this width
+> and height.I strongly recommend you to tried 160x120 images using
+> DMABUF on your machine,
+> because I have tried 3 cameras (two logiteh, one microsoft) and all of
+> them don't work.
+>>
+>>>> I also dump the uvc driver infomation, there is some infomation i
+>>>> think maybe important:
+>>>> uvcvideo: Stream 1 error event 07 01 len 4
+>>>>
+>>>> Looking forward to the discussion!
+>>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
+> 
+> Thanks,
+> Chuanbo Weng
+> 
 
