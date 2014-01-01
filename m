@@ -1,52 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:34844 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952AbaAOVU2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 16:20:28 -0500
-Received: by mail-ee0-f52.google.com with SMTP id e53so1126450eek.25
-        for <linux-media@vger.kernel.org>; Wed, 15 Jan 2014 13:20:27 -0800 (PST)
-Message-ID: <52D6FBD7.4080005@googlemail.com>
-Date: Wed, 15 Jan 2014 22:21:27 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:46501 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754736AbaAAWXA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 17:23:00 -0500
+Received: by mail-wg0-f54.google.com with SMTP id n12so12182309wgh.9
+        for <linux-media@vger.kernel.org>; Wed, 01 Jan 2014 14:22:59 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] em28xx-audio: flush work at .fini
-References: <1389717879-24939-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389717879-24939-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGoCfiz1+7M4P7At7BrVZtVGM_4ntMZR6z4hTurhVzLNnG=Pcg@mail.gmail.com>
+References: <CAJghqepkKXth6_jqj5jU-HghAHxBBkaphCpR5MqfuRGXHXA4Sg@mail.gmail.com>
+	<CAJghqeopSEER-ExtW8LhXYkCNH99Mwj5W7JCZAEf65CTpBu94Q@mail.gmail.com>
+	<CAJghqerGcLUZCAT9LGP+5LzFLVCmHS1JUqNDTP1_Mj7b24fKhQ@mail.gmail.com>
+	<1388254550.2129.83.camel@palomino.walls.org>
+	<CAJghqeptMtc2OTUuCY8MUY14kj-d6KPpUAUCxjw8Nod6TNOMaA@mail.gmail.com>
+	<1388586278.1879.21.camel@palomino.walls.org>
+	<CAJghqerAVmCd_xcW9x2y=gKd4uq9-3P0CTmW_UpAjA42WQNNTw@mail.gmail.com>
+	<CAGoCfixgun79tR_Nr+Qp9NdPPwYaUaX_HwqXj85rnOEXbEEH0w@mail.gmail.com>
+	<1388614684.2023.8.camel@palomino.walls.org>
+	<CAGoCfiz1+7M4P7At7BrVZtVGM_4ntMZR6z4hTurhVzLNnG=Pcg@mail.gmail.com>
+Date: Wed, 1 Jan 2014 17:22:59 -0500
+Message-ID: <CAGoCfiwepBBtjD5R77f1M8aGpszVK6o-AjzLSy+VVxQsFN=opA@mail.gmail.com>
+Subject: Re: Fwd: v4l2: The device does not support the streaming I/O method.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Andy <dssnosher@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 14.01.2014 17:44, schrieb Mauro Carvalho Chehab:
-> As a pending action might be still there at the work
-> thread, flush it.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-audio.c | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-> index 74575e0ed41b..1563f71a5ea2 100644
-> --- a/drivers/media/usb/em28xx/em28xx-audio.c
-> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
-> @@ -967,6 +967,8 @@ static int em28xx_audio_fini(struct em28xx *dev)
->  	em28xx_info("Closing audio extension");
->  
->  	snd_card_disconnect(dev->adev.sndcard);
-> +	flush_work(&dev->wq_trigger);
-> +
->  	em28xx_audio_free_urb(dev);
->  
->  	if (dev->adev.sndcard) {
-audio_trigger() doesn't re-schedule the work and flush_work() waits
-until the current work is finished.
+On Wed, Jan 1, 2014 at 5:21 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Wed, Jan 1, 2014 at 5:18 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>> uncompressed video is available from /dev/video32 in an odd Conexant
+>> macroblock format that is called 'HM12' under linux.
 
-No, wait ! You are calling flush_work here for synchronization, right ?
-That makes sense, but you should update the patch description. ;)
+One more point worth making - I doubt ffmpeg supports HM12 natively.
+You would either have to add the functionality to ffmpeg to do the
+colorspace conversion, or you might be able to wrap ffmpeg around
+libv4l2convert via LD_LIBRARY_PATH.
 
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
