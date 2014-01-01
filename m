@@ -1,140 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:35881 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbaAGRbN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 12:31:13 -0500
-Received: by mail-ob0-f175.google.com with SMTP id uz6so476697obc.34
-        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 09:31:12 -0800 (PST)
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:49846 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754494AbaAASvE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 13:51:04 -0500
+Received: by mail-ea0-f174.google.com with SMTP id b10so5856677eae.5
+        for <linux-media@vger.kernel.org>; Wed, 01 Jan 2014 10:51:02 -0800 (PST)
+Message-ID: <52C463D8.7020406@googlemail.com>
+Date: Wed, 01 Jan 2014 19:52:08 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAGj5WxDuZadCm+Hwp=BDPwPf1fb4nuFXLotK8ePR7Q14-zvkMg@mail.gmail.com>
-References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
-	<52CC275B.5030907@gmx.de>
-	<CAGj5WxDuZadCm+Hwp=BDPwPf1fb4nuFXLotK8ePR7Q14-zvkMg@mail.gmail.com>
-Date: Tue, 7 Jan 2014 19:31:11 +0200
-Message-ID: <CAF0Ff2kVYCY=9WJgGw9FMUnjC5a2RG364OxmByCyF+KoQBpxLA@mail.gmail.com>
-Subject: Re: Upstreaming SAA716x driver to the media_tree
-From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-To: Luis Alves <ljalvs@gmail.com>
-Cc: Andreas Regel <andreas.regel@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>,
-	Chris Lee <updatelee@gmail.com>,
-	Manu Abraham <abraham.manu@gmail.com>, crazycat69@narod.ru,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: unlisted-recipients:; Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3 11/24] tvp5150: make read operations atomic
+References: <1388232976-20061-1-git-send-email-mchehab@redhat.com> <1388232976-20061-12-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1388232976-20061-12-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Luis,
-
-can you explain to us all here how exactly you came up to those
-particular I2C fixes:
-
-https://github.com/ljalves/linux_media/commit/be7cd1ff82cc20578b805ad508d089f818ae726d
-
-because essentially they are the same as what i did years ago -
-included as source code in drivers i made for some TBS cards (source
-code is available all over online) or we just have the exact same case
-with you as before:
-
-http://www.spinics.net/lists/linux-media/msg65888.html
-
-http://www.spinics.net/lists/linux-media/msg65889.html
-
-and you're continue to taking credit for patches i made or basically
-stealing them.
-
-if they were some trivial patches i won't mind, but even they are
-small, they are nothing like trivial.
-
-so, i believe you will have really hard time to explain "your" I2C
-fixes, because for example the SDA hold time value of 0x14 is needed
-for only one particular SAA716x-based card (other such cards can work
-with wide range of SDA hold time settings) and i'm sure you don't know
-that card and cannot cite its model or any technical details why
-that's needed, because you don't have it, as well it takes quite an
-effort and good knowledge of I2C signaling with oscilloscope to figure
-out that value, as well that exactly that value needs changing.
-
-why you didn't use for example 0x16 or 0x13 for SDA hold time in
-"your" I2C patch?!
-
-so, one time, like the previous time, excuse that you just didn't know
-who the author of that work is may fly, but second time, especially
-considering that the SAA716x code base from which i'm sure you took
-(not to use stole) those settings contains my name as copyright,
-because i actually added to that code base new code i developed from
-scratch like for example saa716x_input.[c|h], is another thing you
-cannot explain.
-
-so, i was waiting Manu to upstream his SAA716x driver code some day
-and then submit the improvements i made to it. yet again you're trying
-to take that from me and again, conveniently you included many people
-on CC, but not me.
-
-in my opinion what you're doing is not right, because that patch is
-not clean-room reverse-engineering, you just took those changes from
-another open-source base and if nothing else it's at least common
-courtesy in open-source community when you didn't make them to not
-submit them as "your" patches.
-
-i also think with your actions you're actually hurting the community,
-because people like me, that do actually have the technical
-understanding and can help and contribute further improvements are
-driven away from the community, because
-effectively the community accepting behavior like yours is encouraging
-code stealing!!
-
---konstantin
-
-On Tue, Jan 7, 2014 at 6:33 PM, Luis Alves <ljalvs@gmail.com> wrote:
-> HI Andreas,
+Am 28.12.2013 13:16, schrieb Mauro Carvalho Chehab:
+> From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 >
-> My initial commit is based on:
-> http://powarman.dyndns.org/hgwebdir.cgi/v4l-dvb-saa716x/
-> (I think it's your repo with some commits from Soeren Moch)
+> Instead of using two I2C operations between write and read,
+> use just one i2c_transfer. That allows I2C mutexes to not
+> let any other I2C transfer between the two.
 >
-> The difference to my working area is that I have the driver placed in
-> "drivers/media/pci/saa716x" (instead of
-> "drivers/media/common/saa716x") and everything is rebased on the
-> latest media_tree.
-> On top of that I just have 2 commits: one to be able to build FF cards
-> and another to fix some i2c issues.
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/i2c/tvp5150.c | 22 ++++++++++------------
+>  1 file changed, 10 insertions(+), 12 deletions(-)
 >
-> You can check my repo here:
-> https://github.com/ljalves/linux_media/commits/saa716x
->
-> Regards,
-> Luis
->
->
-> On Tue, Jan 7, 2014 at 4:12 PM, Andreas Regel <andreas.regel@gmx.de> wrote:
->> Hi Luis,
->>
->> Am 07.01.2014 12:58, schrieb Luis Alves:
->>> Hi,
->>>
->>> I'm finishing a new frontend driver for one of my dvb cards, but the
->>> pcie bridge uses the (cursed) saa716x.
->>> As far as I know the progress to upstream Manu's driver to the
->>> media_tree has stalled.
->>>
->>> In CC I've placed some of the people that I found working on it
->>> lately, supporting a few dvb cards.
->>>
->>> It would be good if we could gather everything in one place and send a
->>> few patchs to get this upstreamed for once...
->>>
->>> Manu, do you see any inconvenience in sending your driver to the
->>> linux_media tree?
->>> I'm available to place some effort on this task.
->>
->> which repository of the saa761x is your work based on?
->>
->> Regards,
->> Andreas
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 89c0b13463b7..d6ba457fcf67 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -58,21 +58,19 @@ static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
+>  	struct i2c_client *c = v4l2_get_subdevdata(sd);
+>  	unsigned char buffer[1];
+>  	int rc;
+> +	struct i2c_msg msg[] = {
+> +		{ .addr = c->addr, .flags = 0,
+> +		  .buf = &addr, .len = 1 },
+I would use        .buf = buffer        here, too.
+
+> +		{ .addr = c->addr, .flags = I2C_M_RD,
+> +		  .buf = buffer, .len = 1 }
+> +	};
+>  
+>  	buffer[0] = addr;
+>  
+> -	rc = i2c_master_send(c, buffer, 1);
+> -	if (rc < 0) {
+> -		v4l2_err(sd, "i2c i/o error: rc == %d (should be 1)\n", rc);
+> -		return rc;
+> -	}
+> -
+> -	msleep(10);
+That's the critical change.
+
+> -
+> -	rc = i2c_master_recv(c, buffer, 1);
+> -	if (rc < 0) {
+> -		v4l2_err(sd, "i2c i/o error: rc == %d (should be 1)\n", rc);
+> -		return rc;
+> +	rc = i2c_transfer(c->adapter, msg, 2);
+> +	if (rc < 0 || rc != 2) {
+> +		v4l2_err(sd, "i2c i/o error: rc == %d (should be 2)\n", rc);
+> +		return rc < 0 ? rc : -EIO;
+>  	}
+>  
+>  	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, buffer[0]);
+Looks good and works without problems with my HVR-900 and WinTV 2
+devices (both em28xx).
+
