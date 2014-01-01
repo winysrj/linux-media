@@ -1,45 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3453 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496AbaATMqv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 07:46:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 17/21] v4l2-ctrls.c: return elem_size instead of strlen
-Date: Mon, 20 Jan 2014 13:46:10 +0100
-Message-Id: <1390221974-28194-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-qe0-f47.google.com ([209.85.128.47]:39098 "EHLO
+	mail-qe0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754350AbaAAPLB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 10:11:01 -0500
+Received: by mail-qe0-f47.google.com with SMTP id t7so13327411qeb.20
+        for <linux-media@vger.kernel.org>; Wed, 01 Jan 2014 07:11:00 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1388585667.1879.15.camel@palomino.walls.org>
+References: <52C1E98D.1000905@fedoraproject.org>
+	<1388585667.1879.15.camel@palomino.walls.org>
+Date: Wed, 1 Jan 2014 10:11:00 -0500
+Message-ID: <CALzAhNVF1P8tXCbghYF210syeXbCMXFQAuqJSRs6iPYej90Y_A@mail.gmail.com>
+Subject: Re: HVR-1800/1850 aka CX23885
+From: Steven Toth <stoth@kernellabs.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Bob Lightfoot <boblfoot@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+> >   I know the HVR-1850-MCE
+> > had working fm radio in Vista and that dmesg shows linux as seeing the
+> > radio.
+>
+> Analog support for the HVR-1850 in Linux was added late.  It would not
+> surprise me if FM radio support in that driver didn't exist or was not
+> tested at all.  I have not looked at that driver lately.
 
-When getting a string and the size given by the application is too
-short return the max length the string can have (elem_size) instead
-of the string length + 1. That makes more sense.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Bob, the last time I worked on the driver the FM radio was not functional.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 0559c1b..a226b5d 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1289,7 +1289,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 	case V4L2_CTRL_TYPE_STRING:
- 		len = strlen(ptr.p_char);
- 		if (c->size < len + 1) {
--			c->size = len + 1;
-+			c->size = ctrl->elem_size;
- 			return -ENOSPC;
- 		}
- 		return copy_to_user(c->string, ptr.p_char, len + 1) ?
 -- 
-1.8.5.2
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
