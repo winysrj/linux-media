@@ -1,198 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:51422 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752209AbaATTkJ (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54104 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754750AbaAAW3k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 14:40:09 -0500
-Received: by mail-la0-f42.google.com with SMTP id hr13so3908551lab.29
-        for <linux-media@vger.kernel.org>; Mon, 20 Jan 2014 11:40:08 -0800 (PST)
-From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Subject: [RFC PATCH 2/4] rc-core: Add support for reading/writing wakeup scancodes via sysfs
-Date: Mon, 20 Jan 2014 21:39:45 +0200
-Message-Id: <1390246787-15616-3-git-send-email-a.seppala@gmail.com>
-In-Reply-To: <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
-References: <20140115173559.7e53239a@samsung.com>
- <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 1 Jan 2014 17:29:40 -0500
+Message-ID: <1388615498.2023.12.camel@palomino.walls.org>
+Subject: Re: Fwd: v4l2: The device does not support the streaming I/O method.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Andy <dssnosher@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Wed, 01 Jan 2014 17:31:38 -0500
+In-Reply-To: <CAGoCfiwepBBtjD5R77f1M8aGpszVK6o-AjzLSy+VVxQsFN=opA@mail.gmail.com>
+References: <CAJghqepkKXth6_jqj5jU-HghAHxBBkaphCpR5MqfuRGXHXA4Sg@mail.gmail.com>
+	 <CAJghqeopSEER-ExtW8LhXYkCNH99Mwj5W7JCZAEf65CTpBu94Q@mail.gmail.com>
+	 <CAJghqerGcLUZCAT9LGP+5LzFLVCmHS1JUqNDTP1_Mj7b24fKhQ@mail.gmail.com>
+	 <1388254550.2129.83.camel@palomino.walls.org>
+	 <CAJghqeptMtc2OTUuCY8MUY14kj-d6KPpUAUCxjw8Nod6TNOMaA@mail.gmail.com>
+	 <1388586278.1879.21.camel@palomino.walls.org>
+	 <CAJghqerAVmCd_xcW9x2y=gKd4uq9-3P0CTmW_UpAjA42WQNNTw@mail.gmail.com>
+	 <CAGoCfixgun79tR_Nr+Qp9NdPPwYaUaX_HwqXj85rnOEXbEEH0w@mail.gmail.com>
+	 <1388614684.2023.8.camel@palomino.walls.org>
+	 <CAGoCfiz1+7M4P7At7BrVZtVGM_4ntMZR6z4hTurhVzLNnG=Pcg@mail.gmail.com>
+	 <CAGoCfiwepBBtjD5R77f1M8aGpszVK6o-AjzLSy+VVxQsFN=opA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for /sys/class/rc/rc?/wakeup_scancodes file
-which can be used to read/write new wakeup scancodes to/from hardware.
+On Wed, 2014-01-01 at 17:22 -0500, Devin Heitmueller wrote:
+> On Wed, Jan 1, 2014 at 5:21 PM, Devin Heitmueller
+> <dheitmueller@kernellabs.com> wrote:
+> > On Wed, Jan 1, 2014 at 5:18 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> >> uncompressed video is available from /dev/video32 in an odd Conexant
+> >> macroblock format that is called 'HM12' under linux.
+> 
+> One more point worth making - I doubt ffmpeg supports HM12 natively.
 
-The contents of the scancode file are simply white space separated
-bytes.
+mplayer/mencoder knows how to handle HM12.
 
-How to read:
- cat /sys/class/rc/rc?/wakeup_scancodes
+But yeah it's and odd format.  It is an intermediate by-product of the
+CX23416's MPEG-2 encoding process.  It's kind of a debugging/bonus that
+the chip provides the stream. 
 
-How to write:
- echo "0x1 0x2 0x3" > /sys/class/rc/rc?/wakeup_scancodes
+> You would either have to add the functionality to ffmpeg to do the
+> colorspace conversion, or you might be able to wrap ffmpeg around
+> libv4l2convert via LD_LIBRARY_PATH.
 
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
----
- drivers/media/rc/rc-main.c | 129 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 129 insertions(+)
+Yeah.
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 02e2f38..a2a68f3 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -967,6 +967,119 @@ out:
- 	return ret;
- }
- 
-+/**
-+ * show_wakeup_scancodes() - shows the current IR wake scancode(s)
-+ * @device:	the device descriptor
-+ * @mattr:	the device attribute struct (unused)
-+ * @buf:	a pointer to the output buffer
-+ *
-+ * This routine is a callback routine for input read the IR wake scancode(s).
-+ * it is trigged by reading /sys/class/rc/rc?/wakeup_scancodes.
-+ * It returns the currently active IR wake scancode or empty buffer if wake
-+ * scancode is not active.
-+ *
-+ * dev->lock is taken to guard against races between device
-+ * registration, store_wakeup_scancodes and show_wakeup_scancodes.
-+ */
-+static ssize_t show_wakeup_scancodes(struct device *device,
-+				     struct device_attribute *mattr, char *buf)
-+{
-+	int ret, pos = 0;
-+	struct rc_wakeup_scancode *scancode, *next;
-+	LIST_HEAD(scancode_list);
-+	struct rc_dev *dev = to_rc_dev(device);
-+
-+	if (!dev || !dev->s_wakeup_scancodes)
-+		return -ENODEV;
-+
-+	mutex_lock(&dev->lock);
-+
-+	ret = dev->s_wakeup_scancodes(dev, &scancode_list, 0);
-+
-+	list_for_each_entry_safe_reverse(scancode, next, &scancode_list,
-+					 list_item) {
-+		pos += scnprintf(buf + pos, PAGE_SIZE - pos, "0x%x ",
-+				 scancode->value);
-+		list_del(&scancode->list_item);
-+		kfree(scancode);
-+	}
-+	pos += scnprintf(buf + pos, PAGE_SIZE - pos, "\n");
-+
-+	mutex_unlock(&dev->lock);
-+
-+	if (ret < 0)
-+		return ret;
-+
-+	return pos;
-+}
-+
-+/**
-+ * store_wakeup_scancodes() - changes the current IR wake scancode(s)
-+ * @device:	the device descriptor
-+ * @mattr:	the device attribute struct (unused)
-+ * @buf:	a pointer to the input buffer
-+ * @len:	length of the input buffer
-+ *
-+ * This routine is for changing the IR wake scancode.
-+ * It is trigged by writing to /sys/class/rc/rc?/wakeup_scancodes.
-+ * Writing bytes separated by white space will pass them to the hardware.
-+ * Writing "" (empty) will clear active wake scancode.
-+ * Returns -EINVAL if too many values or invalid values were used
-+ * otherwise @len.
-+ *
-+ * dev->lock is taken to guard against races between device
-+ * registration, store_wakeup_scancodes and show_wakeup_scancodes.
-+ */
-+static ssize_t store_wakeup_scancodes(struct device *device,
-+				      struct device_attribute *mattr,
-+				      const char *data,
-+				      size_t len)
-+{
-+	int ret = 0, error = 0;
-+	char *tmp;
-+	u8 value;
-+	struct rc_wakeup_scancode *scancode, *next;
-+	LIST_HEAD(scancode_list);
-+	struct rc_dev *dev = to_rc_dev(device);
-+
-+	if (!dev || !dev->s_wakeup_scancodes)
-+		return -ENODEV;
-+
-+	mutex_lock(&dev->lock);
-+
-+	while ((tmp = strsep((char **) &data, " ,\t\n")) != NULL) {
-+		if (!*tmp)
-+			break;
-+
-+		if (sscanf(tmp, "0x%2hhx", &value) != 1 &&
-+		    sscanf(tmp,   "%2hhx", &value) != 1) {
-+			error = 1;
-+			break;
-+		} else {
-+			scancode = kmalloc(sizeof(struct rc_wakeup_scancode),
-+					   GFP_KERNEL);
-+			scancode->value = value;
-+			list_add(&scancode->list_item, &scancode_list);
-+		}
-+	}
-+
-+	if (error)
-+		IR_dprintk(1, "Error parsing value of %s", tmp);
-+	else
-+		ret = dev->s_wakeup_scancodes(dev, &scancode_list, 1);
-+
-+	list_for_each_entry_safe(scancode, next, &scancode_list, list_item) {
-+		list_del(&scancode->list_item);
-+		kfree(scancode);
-+	}
-+
-+	mutex_unlock(&dev->lock);
-+	if (ret < 0)
-+		return ret;
-+
-+	return error ? -EINVAL : len;
-+}
-+
- static void rc_dev_release(struct device *device)
- {
- }
-@@ -1019,6 +1132,15 @@ static struct device_type rc_dev_type = {
- 	.uevent		= rc_dev_uevent,
- };
- 
-+static struct device_attribute dev_attr_wakeup_scancodes = {
-+	.attr	= {
-+		.name = "wakeup_scancodes",
-+		.mode = S_IRUGO | S_IWUSR,
-+	},
-+	.show = show_wakeup_scancodes,
-+	.store = store_wakeup_scancodes,
-+};
-+
- struct rc_dev *rc_allocate_device(void)
- {
- 	struct rc_dev *dev;
-@@ -1175,6 +1297,13 @@ int rc_register_device(struct rc_dev *dev)
- 		dev->enabled_protocols = rc_type;
- 	}
- 
-+	/* Create sysfs entry only if device has wake scancode support */
-+	if (dev->s_wakeup_scancodes) {
-+		rc = device_create_file(&dev->dev, &dev_attr_wakeup_scancodes);
-+		if (rc < 0)
-+			goto out_raw;
-+	}
-+
- 	mutex_unlock(&dev->lock);
- 
- 	IR_dprintk(1, "Registered rc%ld (driver: %s, remote: %s, mode %s)\n",
--- 
-1.8.3.2
+> Devin
+
+Regards,
+Andy
 
