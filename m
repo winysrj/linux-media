@@ -1,58 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:42085 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751283AbaAMJ2V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 04:28:21 -0500
-Received: by mail-pa0-f45.google.com with SMTP id ld10so2868144pab.18
-        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 01:28:21 -0800 (PST)
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] Update the README name for libv4l
-Date: Mon, 13 Jan 2014 14:58:06 +0530
-Message-Id: <1389605286-19642-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:41072 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753810AbaAATqi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 14:46:38 -0500
+Received: by mail-wg0-f41.google.com with SMTP id y10so15675781wgg.0
+        for <linux-media@vger.kernel.org>; Wed, 01 Jan 2014 11:46:36 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAJghqerAVmCd_xcW9x2y=gKd4uq9-3P0CTmW_UpAjA42WQNNTw@mail.gmail.com>
+References: <CAJghqepkKXth6_jqj5jU-HghAHxBBkaphCpR5MqfuRGXHXA4Sg@mail.gmail.com>
+	<CAJghqeopSEER-ExtW8LhXYkCNH99Mwj5W7JCZAEf65CTpBu94Q@mail.gmail.com>
+	<CAJghqerGcLUZCAT9LGP+5LzFLVCmHS1JUqNDTP1_Mj7b24fKhQ@mail.gmail.com>
+	<1388254550.2129.83.camel@palomino.walls.org>
+	<CAJghqeptMtc2OTUuCY8MUY14kj-d6KPpUAUCxjw8Nod6TNOMaA@mail.gmail.com>
+	<1388586278.1879.21.camel@palomino.walls.org>
+	<CAJghqerAVmCd_xcW9x2y=gKd4uq9-3P0CTmW_UpAjA42WQNNTw@mail.gmail.com>
+Date: Wed, 1 Jan 2014 14:46:36 -0500
+Message-ID: <CAGoCfixgun79tR_Nr+Qp9NdPPwYaUaX_HwqXj85rnOEXbEEH0w@mail.gmail.com>
+Subject: Re: Fwd: v4l2: The device does not support the streaming I/O method.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy <dssnosher@gmail.com>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On Wed, Jan 1, 2014 at 2:41 PM, Andy <dssnosher@gmail.com> wrote:
+> I am trying to stream /dev/video0 to http and encode it in h.264.
 
-The README for libv4l was renamed from README.lib to
-README.libv4l but the reference to it was not fixed.
-This patch fixes the above.
+Last I checked, the ffmpeg v4l2 input interface is just for raw video.
+ What you probably want to do is just use v4l2-ctl to setup the tuner
+appropriately, and then pass in /dev/video0 as a standard filehandle
+to ffmpeg (i.e. "-i /dev/video0").
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- README            |    2 +-
- v4l-utils.spec.in |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Devin
 
-diff --git a/README b/README
-index 0cccc00..c4f6c0c 100644
---- a/README
-+++ b/README
-@@ -9,7 +9,7 @@ http://git.linuxtv.org/v4l-utils.git
- v4l libraries (libv4l)
- ----------------------
- 
--See README.lib for more information on libv4l, libv4l is released
-+See README.libv4l for more information on libv4l, libv4l is released
- under the GNU Lesser General Public License.
- 
- 
-diff --git a/v4l-utils.spec.in b/v4l-utils.spec.in
-index 3b6aade..dd8959b 100644
---- a/v4l-utils.spec.in
-+++ b/v4l-utils.spec.in
-@@ -150,7 +150,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
- 
- %files -n libv4l
- %defattr(-,root,root,-)
--%doc COPYING.LIB COPYING ChangeLog README.lib TODO
-+%doc COPYING.LIB COPYING ChangeLog README.libv4l TODO
- %{_libdir}/libv4l*.so.*
- %{_libdir}/libv4l
- 
 -- 
-1.7.9.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
