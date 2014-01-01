@@ -1,113 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58564 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543AbaAIUuR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 15:50:17 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: florian.vaussard@epfl.ch
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: Regression inside omap3isp/resizer
-Date: Thu, 09 Jan 2014 21:50:56 +0100
-Message-ID: <3366016.CmlMrXrv32@avalon>
-In-Reply-To: <52CF0A82.40700@epfl.ch>
-References: <52B02A7A.4010901@epfl.ch> <1530474.IjFu1Njy3V@avalon> <52CF0A82.40700@epfl.ch>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47280 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754198AbaAAOWj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jan 2014 09:22:39 -0500
+Message-ID: <1388586278.1879.21.camel@palomino.walls.org>
+Subject: Re: Fwd: v4l2: The device does not support the streaming I/O method.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Andy <dssnosher@gmail.com>
+Cc: linux-media@vger.kernel.org
+Date: Wed, 01 Jan 2014 09:24:38 -0500
+In-Reply-To: <CAJghqeptMtc2OTUuCY8MUY14kj-d6KPpUAUCxjw8Nod6TNOMaA@mail.gmail.com>
+References: <CAJghqepkKXth6_jqj5jU-HghAHxBBkaphCpR5MqfuRGXHXA4Sg@mail.gmail.com>
+	 <CAJghqeopSEER-ExtW8LhXYkCNH99Mwj5W7JCZAEf65CTpBu94Q@mail.gmail.com>
+	 <CAJghqerGcLUZCAT9LGP+5LzFLVCmHS1JUqNDTP1_Mj7b24fKhQ@mail.gmail.com>
+	 <1388254550.2129.83.camel@palomino.walls.org>
+	 <CAJghqeptMtc2OTUuCY8MUY14kj-d6KPpUAUCxjw8Nod6TNOMaA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
+On Sun, 2013-12-29 at 15:27 -0500, Andy wrote:
+> Are there any other viable options to stream /dev/video0 then?
 
-On Thursday 09 January 2014 21:45:54 Florian Vaussard wrote:
-> On 01/09/2014 09:34 PM, Laurent Pinchart wrote:
-> > On Thursday 09 January 2014 19:09:48 Florian Vaussard wrote:
-> >> On 12/31/2013 09:51 AM, Laurent Pinchart wrote:
-> >>> Hi Florian,
-> >>> 
-> >>> Sorry for the late reply.
-> >> 
-> >> Now it is my turn to be late.
-> >> 
-> >>> On Monday 23 December 2013 22:47:45 Florian Vaussard wrote:
-> >>>> On 12/17/2013 11:42 AM, Florian Vaussard wrote:
-> >>>>> Hello Laurent,
-> >>>>> 
-> >>>>> I was working on having a functional IOMMU/ISP for 3.14, and had an
-> >>>>> issue with an image completely distorted. Comparing with another
-> >>>>> kernel, I saw that PRV_HORZ_INFO and PRV_VERT_INFO differed. On the
-> >>>>> newer kernel, sph, eph, svl, and slv were all off-by 2, causing my
-> >>>>> final image to miss 4 pixels on each line, thus distorting the result.
-> >>>>> 
-> >>>>> Your commit 3fdfedaaa7f243f3347084231c64f6c1be0ba131 '[media]
-> >>>>> omap3isp: preview: Lower the crop margins' indeed changes
-> >>>>> PRV_HORZ_INFO and PRV_VERT_INFO by removing the if() condition.
-> >>>>> Reverting it made my image to be valid again.
-> >>>>> 
-> >>>>> FYI, my pipeline is:
-> >>>>> 
-> >>>>> MT9V032 (SGRBG10 752x480) -> CCDC -> PREVIEW (UYVY 752x480) -> RESIZER
-> >>>>> -> out
-> >>>> 
-> >>>> Just an XMAS ping on this :-) Do you have any idea how to solve this
-> >>>> without reverting the patch?
-> >>> 
-> >>> The patch indeed changed the preview engine margins, but the change is
-> >>> supposed to be handled by applications. As a base for this discussion
-> >>> could you please provide the media-ctl -p output before and after
-> >>> applying the patch ? You can strip the unrelated media entities out of
-> >>> the output.
-> >> 
-> >> Ok, so I understand the rationale behind this patch, but I am a bit
-> >> concerned. If this patch requires a change in userspace, this is somehow
-> >> breaking the userspace, isn't? For example in my case, I will have to
-> >> change my initialization scripts in order to pass the correct resolution
-> >> to the pipeline. Most people have probably hard-coded the resolution
-> >> into their script / application.
-> > 
-> > But they shouldn't have. This has never been considered as an ABI.
-> > Userspace needs to computes and propagates resolutions through the
-> > pipeline dynamically, no hardcode them.
-> > 
-> > If your initialization script read the kernel version and aborted for any
-> > version other than v3.6, an upgrade to a newer kernel would break the
-> > system but you wouldn't call it a kernel regression :-)
->
-> :-) I should have a closer look to the configuration step, I agree that
-> hardcoding is bad.
-> 
-> > Problems with pipeline configuration shouldn't result in distorted images
-> > though. The driver is supposed to refuse to start streaming when the
-> > pipeline is misconfigured by making sure that resolutions on connected
-> > source and sink pads are identical. A valid pipeline should not distort
-> > the image.
->
-> Indeed.
-> 
-> > After a quick look at the code the problem we're dealing with seems to be
-> > different and shouldn't affect userspace scripts if solved properly. I
-> > haven't touched the preview engine crop configuration code for some time
-> > now, so I'll need to refresh my memory, but it seems that the removal of
-> > 
-> > -       if (format->code != V4L2_MBUS_FMT_Y8_1X8 &&
-> > -           format->code != V4L2_MBUS_FMT_Y10_1X10) {
-> > -               sph -= 2;
-> > -               eph += 2;
-> > -               slv -= 2;
-> > -               elv += 2;
-> > -       }
-> > 
-> > was wrong. The change to the margins and to preview_try_crop() seem
-> > correct, but the preview_config_input_size() function should probably
-> > have been kept unmodified. Could you please test reverting that part of
-> > the patch only ?
->
-> Ok. I will be away from my hardware until Tuesday, but I will test ASAP.
+I'm not sure what you mean by stream; what are you trying to do?
 
-I'll be away from my hardware next week, so you can take your time :-)
+By default the ivtv driver and the PVR-150 output an MPEG-2 Program
+Stream containing MPEG-2 Video and MPEG-2 Audio Elementary Streams.
 
--- 
+Any Linux video application worth it's salt (mplayer, VLC, ffmpeg)
+should be able to handle that MPEG-2 PS with no problem.
+
+It's just a matter of using the correct command line argument to do what
+you want to do.  mplayer only needs the device node name as a command
+line argument to play back the stream.
+
 Regards,
+Andy
 
-Laurent Pinchart
+
+
+
+> On Sat, Dec 28, 2013 at 1:15 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > On Fri, 2013-12-27 at 00:37 -0500, Andy wrote:
+> >> I am trying to capture input from /dev/video0 which is Hauppauge Win
+> >> 150 MCE PCI card but I get the following error which has no record on
+> >> google
+> >>
+> >> [video4linux2,v4l2 @ 0xb080d60] The device does not support the
+> >> streaming I/O method.
+> >> /dev/video0: Function not implemented
+> >
+> > The ivtv driver does not support the V4L2 Streaming I/O ioctl()'s for
+> > transferring video data buffers.  It only supports the read()/write()
+> > calls.
+> >
+> > I'm not sure about ffmpeg, but mplayer is happy to read() the mpeg
+> > stream from standard input or the device node:
+> >
+> > # cat /dev/video0 | mplayer
+> > or
+> > # mplayer /dev/video0
+> >
+> > Regards,
+> > Andy
+> >
+> >> Here is the ffmpeg command
+> >> ffmpeg -y -f:v video4linux2 -i /dev/video0 -f:a alsa -ac 1 -i hw:1,0
+> >> -threads 2 -override_ffserver -flags +global_header -vcodec libx264 -s
+> >> 320x240 -preset superfast -r 7.5 -acodec aac -ar 44100
+> >> ipgoeshere:port/dvbstest.ffm
+> >>
+> >> Disregard the DVB syntax, not relevant
+> >>
+> >> Any idea what is causing the error?
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+
 
