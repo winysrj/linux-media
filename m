@@ -1,98 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:50912 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750800AbaAKWM2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jan 2014 17:12:28 -0500
-Received: by mail-qa0-f49.google.com with SMTP id w8so3943901qac.36
-        for <linux-media@vger.kernel.org>; Sat, 11 Jan 2014 14:12:27 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfiyQgs3So3bVg_VG9ii0SeR1Dit3SrV_6-3ox8MmqfVqDQ@mail.gmail.com>
-References: <1389068966-14594-1-git-send-email-tmester@ieee.org>
-	<1389068966-14594-3-git-send-email-tmester@ieee.org>
-	<CAGoCfix3GRETd+YXNSimpDY8StVPzc0sEMpzhdnuLf1eA4g+vw@mail.gmail.com>
-	<CAGoCfizhR=QJaonNzesLSVRZ+rEZCaY+QLVi7ksF1wx4N=Sm7Q@mail.gmail.com>
-	<CAEEHgGXjTfP4FPjSe6YxEODjWSCovZ4Z+ggS2ZCqxm5qfWd+EQ@mail.gmail.com>
-	<CAGoCfiyQgs3So3bVg_VG9ii0SeR1Dit3SrV_6-3ox8MmqfVqDQ@mail.gmail.com>
-Date: Sat, 11 Jan 2014 15:12:27 -0700
-Message-ID: <CAEEHgGW008UFbe722vLt0suSxix_4KrM=9G2g82J9rfEypeCyg@mail.gmail.com>
-Subject: Re: [PATCH 3/3] au8522, au0828: Added demodulator reset
-From: Tim Mester <tmester@ieee.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:27507 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750782AbaABUtm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jan 2014 15:49:42 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYS0044VKITF730@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 02 Jan 2014 15:49:41 -0500 (EST)
+Date: Thu, 02 Jan 2014 18:49:37 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL for v3.14] mem2mem patches
+Message-id: <20140102184937.0837e4a0@samsung.com>
+In-reply-to: <014501cf008e$364ee590$a2ecb0b0$%debski@samsung.com>
+References: <014501cf008e$364ee590$a2ecb0b0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 8, 2014 at 1:26 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> Hi Tim,
->
-> On Wed, Jan 8, 2014 at 12:12 AM, Tim Mester <tmester@ieee.org> wrote:
->>   Commit 2e68a75990011ccd looks interesting.  It makes sense to me
->> that if we are gating the clock, and it is possible that we are
->> glitching the clock line, it could put the internal synchronous logic
->> into a bad state.  If that happens, it would generally require a reset
->> under a stable clock to get out of that condition.  I will give that
->> patch a try an see if it addresses issue 1), mentioned above.
->
-> Yeah, the whole thing about the clocks not being enabled/disabled in
-> the correct order relative to enabling the sub-blocks did result in
-> some strange cases where sub-block wouldn't reactivate properly,
-> requiring a reset to return it to a working state.  It was
-> specifically this issue I was concerned about might be the "right fix"
-> for the problem you are hitting.
->
-> Note:  you need more than just 2e68a75990011ccd.  That is actually an
-> add-on to the real commit that restructures the clock managment:
-> 39c39b0e612b5d35feb00329b527b266df8f7fd2
->
->> However, I'm not sure if that will do anything about issue 2). Do you
->> have any insight into that one?
->
-> Well, I've never been a fan of how the code just does a blind "return
-> 0" if the target modulation and frequency are the same as it's in
-> theory already tuned to.  Have you tried commenting out just that
-> block and see if it makes a difference?  IIRC, the dvb-frontend kernel
-> thread should automatically re-issue a set_frontend() call if the
-> signal lock drops out.
->
-> As for the underlying problem, I'm not sure.  Generally once the
-> signal is locked it continues to work.  If you set the xc5000 debug=1
-> modprobe option, do you see lines in the log that say "xc5000: PLL not
-> locked"?
->
-> How reproducible is the issue, and how often does it happen?  I've got
-> some newer firmware that might be worth trying which isn't upstream
-> yet (assuming for a moment that it's an xc5000 issue).  If you believe
-> you can repro the issue pretty regularly, you and I can work offline
-> to try that out.
->
-> Devin
->
+Em Tue, 24 Dec 2013 10:55:00 +0100
+Kamil Debski <k.debski@samsung.com> escreveu:
+
+> The following changes since commit 7d459937dc09bb8e448d9985ec4623779427d8a5:
+> 
+>   [media] Add driver for Samsung S5K5BAF camera sensor (2013-12-21 07:01:36
+> -0200)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/kdebski/media.git master
+> 
+> for you to fetch changes up to 0f6616ebb7a04219ad7aa84dd9ff9c7ac9323529:
+> 
+>   s5p-mfc: Add controls to set vp8 enc profile (2013-12-24 10:37:27 +0100)
+> 
+> ----------------------------------------------------------------
+> Arun Kumar K (1):
+>       s5p-mfc: Add QP setting support for vp8 encoder
+> 
+> Kiran AVND (1):
+>       s5p-mfc: Add controls to set vp8 enc profile
+> 
+> Marek Szyprowski (1):
+>       media: s5p_mfc: remove s5p_mfc_get_node_type() function
+> 
+> Shaik Ameer Basha (4):
+>       exynos-scaler: Add new driver for Exynos5 SCALER
+>       exynos-scaler: Add core functionality for the SCALER driver
+>       exynos-scaler: Add m2m functionality for the SCALER driver
+
+>       exynos-scaler: Add DT bindings for SCALER driver
+
+This one is missing DT maintainer's ack.
+
+> 
+>  Documentation/DocBook/media/v4l/controls.xml       |   41 +
+>  .../devicetree/bindings/media/exynos5-scaler.txt   |   22 +
+>  drivers/media/platform/Kconfig                     |    8 +
+>  drivers/media/platform/Makefile                    |    1 +
+>  drivers/media/platform/exynos-scaler/Makefile      |    3 +
+>  drivers/media/platform/exynos-scaler/scaler-m2m.c  |  787 +++++++++++++
+>  drivers/media/platform/exynos-scaler/scaler-regs.c |  336 ++++++
+>  drivers/media/platform/exynos-scaler/scaler-regs.h |  331 ++++++
+>  drivers/media/platform/exynos-scaler/scaler.c      | 1238
+> ++++++++++++++++++++
+>  drivers/media/platform/exynos-scaler/scaler.h      |  375 ++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c           |   28 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   14 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   55 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   26 +-
+>  drivers/media/v4l2-core/v4l2-ctrls.c               |    5 +
+>  include/uapi/linux/v4l2-controls.h                 |    5 +
+>  16 files changed, 3241 insertions(+), 34 deletions(-)
+>  create mode 100644
+> Documentation/devicetree/bindings/media/exynos5-scaler.txt
+>  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
+>  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
+>  create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.c
+>  create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.h
+>  create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
+>  create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
+> 
+> 
 > --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Devin,
 
-  My device is the 950q, so it uses the AU8522_DEMODLOCKING method.
-It does not appear to be an xc5000 issue on the surface.   When I
-originally put the patch together, I removed the return if the
-frequency was the same, and added the reset_demodulator() call at the
-end of the set_frontend() function. It seemed to work the same as the
-patch that I submitted.
+-- 
 
-I have not been able to tell that it keeps the au8522 from losing
-lock, but it allows it to come back.  I see this issue about once a
-every 2-3 weeks on average, which is less frequent than the other
-issues.
-
-If you believe that this issue could result in a xc5000 and au8522
-interaction, then I should be able to try out the updated firmware. It
-will just take some time to know the results.
-
- Thanks,
-
- Tim
+Cheers,
+Mauro
