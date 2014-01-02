@@ -1,93 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4332 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbaATMqk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 07:46:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 03/21] v4l2-ctrls: use pr_info/cont instead of printk.
-Date: Mon, 20 Jan 2014 13:45:56 +0100
-Message-Id: <1390221974-28194-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-vb0-f43.google.com ([209.85.212.43]:33973 "EHLO
+	mail-vb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763AbaABCWo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 21:22:44 -0500
+Received: by mail-vb0-f43.google.com with SMTP id p6so6836150vbe.2
+        for <linux-media@vger.kernel.org>; Wed, 01 Jan 2014 18:22:44 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <3150357.rYSWurtcIU@avalon>
+References: <CAFu4+mW7ja=FR3Csw_svfnSCtivZNACgaTV-J7vD=15vKHzQtg@mail.gmail.com>
+	<52C275B9.1030803@samsung.com>
+	<CAFu4+mV7D_Ys-tobgtoi92pvuS41mqE71PQf_e0qS_6rOnvV3g@mail.gmail.com>
+	<3150357.rYSWurtcIU@avalon>
+Date: Thu, 2 Jan 2014 10:22:44 +0800
+Message-ID: <CAFu4+mWp7eKpW66XLQmPMoan8Uqf+K8eietsOjJ9R7TaCOV52g@mail.gmail.com>
+Subject: Re: DMABUF doesn't work when frame size not equal to the size of GPU bo
+From: Chuanbo Weng <strgnm@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent and Tomasz,
+       As I said in my previous email, you can download the code from
+the github address.
+I think you can easily reproduce this issue by running my program
+(Especially Laurent) and
+get more information from this program.
+       Could you please tell me whether you have reproduced this issue?
 
-Codingstyle fix.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+Thanks,
+Chuanbo Weng
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 0b9246b..1060365 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2036,45 +2036,45 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 	if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
- 		return;
- 
--	printk(KERN_INFO "%s%s%s: ", prefix, colon, ctrl->name);
-+	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		printk(KERN_CONT "%d", ctrl->cur.val);
-+		pr_cont("%d", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_BOOLEAN:
--		printk(KERN_CONT "%s", ctrl->cur.val ? "true" : "false");
-+		pr_cont("%s", ctrl->cur.val ? "true" : "false");
- 		break;
- 	case V4L2_CTRL_TYPE_MENU:
--		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
-+		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
-+		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_BITMASK:
--		printk(KERN_CONT "0x%08x", ctrl->cur.val);
-+		pr_cont("0x%08x", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		printk(KERN_CONT "%lld", ctrl->cur.val64);
-+		pr_cont("%lld", ctrl->cur.val64);
- 		break;
- 	case V4L2_CTRL_TYPE_STRING:
--		printk(KERN_CONT "%s", ctrl->cur.string);
-+		pr_cont("%s", ctrl->cur.string);
- 		break;
- 	default:
--		printk(KERN_CONT "unknown type %d", ctrl->type);
-+		pr_cont("unknown type %d", ctrl->type);
- 		break;
- 	}
- 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
- 			   V4L2_CTRL_FLAG_GRABBED |
- 			   V4L2_CTRL_FLAG_VOLATILE)) {
- 		if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
--			printk(KERN_CONT " inactive");
-+			pr_cont(" inactive");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_GRABBED)
--			printk(KERN_CONT " grabbed");
-+			pr_cont(" grabbed");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
--			printk(KERN_CONT " volatile");
-+			pr_cont(" volatile");
- 	}
--	printk(KERN_CONT "\n");
-+	pr_cont("\n");
- }
- 
- /* Log all controls owned by the handler */
--- 
-1.8.5.2
-
+2013/12/31 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Chuanbo,
+>
+> On Tuesday 31 December 2013 19:21:09 Chuanbo Weng wrote:
+>> 2013/12/31 Tomasz Stanislawski <t.stanislaws@samsung.com>:
+>> > Hi Chuanbo Weng,
+>> >
+>> > I suspect that the problem might be caused by difference
+>> > between size of DMABUF object and buffer size in V4L2.
+>>
+>> Thanks for your reply! I agree with you because my experiment prove it
+>> (Even when the bo is bigget than frame size, not smaller!!!).
+>>
+>> > What is the content of v4l2_format returned by VIDIOC_G_FMT?
+>>
+>> The content is V4L2_PIX_FMT_YUYV. (And if the content V4L2_PIX_FMT_MJPEG,
+>> this issue doesn't happen.)
+>
+> Could you please give us the content of all the other fields ?
+>
+>> > What is the content of V4l2_buffer structure passed by VIDIOC_QBUF?
+>
+> Same here.
+>
+>> The fd in v4l2_buffer structure is fd of gem object created by
+>> DRM_IOCTL_MODE_CREATE_DUMB.
+>>
+>> I've upload the program that can reproduce this issue on intel platform. You
+>> just need to clone it from
+>> https://github.com/strgnm/v4l2-dmabuf-test.git
+>> Then build and run as said in README.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
