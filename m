@@ -1,73 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:46411 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755563AbaAHVns (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 16:43:48 -0500
-Received: by mail-ob0-f172.google.com with SMTP id gq1so2373644obb.17
-        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 13:43:48 -0800 (PST)
+Received: from blu0-omc2-s17.blu0.hotmail.com ([65.55.111.92]:59350 "EHLO
+	blu0-omc2-s17.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750807AbaABLfO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Jan 2014 06:35:14 -0500
+Message-ID: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl>
+Date: Thu, 2 Jan 2014 19:35:21 +0800
+From: randy <lxr1234@hotmail.com>
 MIME-Version: 1.0
-In-Reply-To: <52CDC0C5.6010109@gmail.com>
-References: <CABMudhTFmbv-PrNiGcW2yoGPiXuJ13fCmoqDFFBJfEjLk=gSgw@mail.gmail.com>
-	<CAGoCfizK7ZFgHTcLgaJRaP-Bvjriv7+fu+=yw+btMEC+GvoU7w@mail.gmail.com>
-	<CABMudhQ16ZhvFcwoTdHnU4B9cjVScV4Ohh81izoQDstWsV8X_A@mail.gmail.com>
-	<CAGoCfiws5YdmiY8wYkE4_=yKSc3WxABMyUZiT22rTafs-g4SnA@mail.gmail.com>
-	<CABMudhTjgXpitX83K2x6_Lyse=Rts0h+t-9LZpUNCAV8yacOJw@mail.gmail.com>
-	<52CDC0C5.6010109@gmail.com>
-Date: Wed, 8 Jan 2014 13:43:48 -0800
-Message-ID: <CABMudhSAQdWmOr0iZ+aq_yB1=3Wy4go=WzUjuGRNWW99dJ4_9Q@mail.gmail.com>
-Subject: Re: How can I find out what is the driver for device node '/dev/video11'
-From: m silverstri <michael.j.silverstri@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+CC: Kamil Debski <k.debski@samsung.com>, m.szyprowski@samsung.com
+Subject: using MFC memory to memery encoder, start stream and queue order
+ problem
+Content-Type: text/plain; charset="GB2312"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sylwester, Devin,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Thank you.
+Hello
 
-On Wed, Jan 8, 2014 at 1:19 PM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> On 01/08/2014 08:15 PM, m silverstri wrote:
->>
->> Thanks.
->>
->> I am studying android source code.
->>  From here,  it has code which open("/dev/video11", O_RDWR, 0) as
->> decoding device.
->>
->>
->> http://androidxref.com/4.4.2_r1/xref/hardware/samsung_slsi/exynos5/libhwjpeg/ExynosJpegBase.cpp
->
->
-> What you're looking for might be this proprietary Samsung JPEG codec driver
-> used in Android.
->
-> https://android.googlesource.com/kernel/exynos/+/android-exynos-3.4/drivers/media/video/exynos/jpeg/
->
-> If you intend to use mainline kernel you need to consider the s5p-jpeg
-> driver,
-> which exposes to user space standard interface without any proprietary
-> additions
-> incompatible with the V4L2 spec.
->
->
->> I want to find out which is the corresponding driver code for device
->> '/dev/video11'.
->
->
-> I suspect these numbers are fixed in the Android kernel (they are hard
-> coded in the user space library as you're pointing out above), which is
-> a pretty bad practice.
->
-> It's better to use VIDIOC_QUERYCAP ioctl to find a video device with
-> specific name, as Devin suggested. You can also find a video device
-> exposed by a specific driver through sysfs, as is done in
-> exynos_v4l2_open_devname() function in this a bit less hacky code:
->
-> https://android.googlesource.com/platform/hardware/samsung_slsi/exynos5/+/jb-mr1-release/libv4l2/exynos_v4l2.c
->
-> Thanks,
-> Sylwester
+I have follow the README of the v4l2-mfc-encoder from the
+http://git.infradead.org/users/kmpark/public-apps
+it seems that I can use the mfc encoder in exynos4412(using 3.5 kernel
+from manufacturer).
+But I have a problem with the contain of the README and I can't get the
+key frame(the I-frame in H.264). It said that
+"6. Enqueue CAPTURE buffers.
+7. Enqueue OUTPUT buffer with first frame.
+8. Start streaming (VIDIOC_STREAMON) on both ends."
+so I shall enqueue buffer before start stream, to enqueue a buffer, I
+need to dequeue first, but without start stream, it will failed in both
+side.
+In this way I start OUTPUT(input raw video) stream first then dequeue
+and enqueue the first frame, then I start the CAPTURE(output encoded
+video) frame, dequeue CAPTURE to get a buffer, get the data from
+buffer then enqueue the buffer. The first frame of CAPTURE is always a
+22 bytes
+frame(I don't know whether they are the same data all the time, but
+size is the same from m.planes[0].bytesused), but it seems not a key
+frame.
+
+What is the problem, and how to solve it.
+
+P.S I don't test the Linux 3.13-rc4, as the driver is not ready for
+encoder before.
+
+						Thank you
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQEcBAEBAgAGBQJSxU74AAoJEPb4VsMIzTzi2oEH/1JJqfeZhMwogvWSVz+M3J4Y
+2Bnej0RBBKF0Gu508IWrHy9t+DPg3c3wJt1M0j+GtUsv2Q+Jl2vlmDTLV/Gafzo6
+xywye4raHpqHreFv4Q55SIseDbfV79eO84uv4RuV/fXEuPpo1MlZf9SOGCiAfoQI
+ozxqoOPD2l2VaSA/351gtT93lkOREF2EnmVf2Wa31WWHw0LV3aoY9/OosxOiY9Fy
+mVHHpYheDwHXdPfrxHXWKEA5GOJ7h0ozc66MPe7JInKSGdUcDrdrFxdSVwyZ/21B
+Oc2Aw9RMd85NwjXBc9hYH++3f73tcVhzMCF7Swyb+bsn4Mzyr64Bn4VsYaDqiCc=
+=HCKX
+-----END PGP SIGNATURE-----
