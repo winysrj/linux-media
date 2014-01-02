@@ -1,57 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:62877 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752816AbaAQRo2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 12:44:28 -0500
-Received: by mail-ea0-f174.google.com with SMTP id b10so1898300eae.33
-        for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 09:44:27 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 1/3] em28xx-video: do not unregister the v4l2 dummy clock before v4l2_device_unregister() has been called
-Date: Fri, 17 Jan 2014 18:45:30 +0100
-Message-Id: <1389980732-8375-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:26222 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751631AbaABM34 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jan 2014 07:29:56 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYR00206XDU0B40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 02 Jan 2014 12:29:54 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'randy' <lxr1234@hotmail.com>, linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl>
+In-reply-to: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl>
+Subject: RE: using MFC memory to memery encoder,
+ start stream and queue order problem
+Date: Thu, 02 Jan 2014 13:29:52 +0100
+Message-id: <02c701cf07b6$565cd340$031679c0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Otherwiese the core refuses to unregister the clock and the following warning
-appears in the system log:
+Hi Randy,
 
-"WARNING: ... at drivers/media/v4l2-core/v4l2-clk.c:231 v4l2_clk_unregister+0x8a/0x90 [videodev]()
- v4l2_clk_unregister(): Refusing to unregister ref-counted 11-0030:mclk clock!"
+> From: randy [mailto:lxr1234@hotmail.com]
+> Sent: Thursday, January 02, 2014 12:35 PM
+> 
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Hello
+> 
+> I have follow the README of the v4l2-mfc-encoder from the
+> http://git.infradead.org/users/kmpark/public-apps
+> it seems that I can use the mfc encoder in exynos4412(using 3.5 kernel
+> from manufacturer).
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |    6 +++---
- 1 Datei geändert, 3 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
+So it is not the mainline kernel. Could you give a link to this kernel?
+I have doubts that this kernel is using the open source driver. The
+driver present in that kernel could be a significantly modified driver.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index c3c9289..09e18da 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1918,14 +1918,14 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
- 		video_unregister_device(dev->vdev);
- 	}
- 
-+	v4l2_ctrl_handler_free(&dev->ctrl_handler);
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+
- 	if (dev->clk) {
- 		v4l2_clk_unregister_fixed(dev->clk);
- 		dev->clk = NULL;
- 	}
- 
--	v4l2_ctrl_handler_free(&dev->ctrl_handler);
--	v4l2_device_unregister(&dev->v4l2_dev);
--
- 	if (dev->users)
- 		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
- 	mutex_unlock(&dev->lock);
+> But I have a problem with the contain of the README and I can't get the
+> key frame(the I-frame in H.264). It said that "6. Enqueue CAPTURE
+> buffers.
+> 7. Enqueue OUTPUT buffer with first frame.
+> 8. Start streaming (VIDIOC_STREAMON) on both ends."
+> so I shall enqueue buffer before start stream, to enqueue a buffer, I
+> need to dequeue first, but without start stream, it will failed in both
+> side.
+
+I think I don't understand this. You should enqueue the buffers and then
+start streaming. I think dequeueing is not mentioned here. First enqueue
+then dequeue.
+
+> In this way I start OUTPUT(input raw video) stream first then dequeue
+> and enqueue the first frame, then I start the CAPTURE(output encoded
+> video) frame, dequeue CAPTURE to get a buffer, get the data from buffer
+> then enqueue the buffer. The first frame of CAPTURE is always a
+> 22 bytes
+> frame(I don't know whether they are the same data all the time, but
+> size is the same from m.planes[0].bytesused), but it seems not a key
+> frame.
+> 
+> What is the problem, and how to solve it.
+> 
+> P.S I don't test the Linux 3.13-rc4, as the driver is not ready for
+> encoder before.
+> 
+> 						Thank you
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.12 (GNU/Linux)
+> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+> 
+> iQEcBAEBAgAGBQJSxU74AAoJEPb4VsMIzTzi2oEH/1JJqfeZhMwogvWSVz+M3J4Y
+> 2Bnej0RBBKF0Gu508IWrHy9t+DPg3c3wJt1M0j+GtUsv2Q+Jl2vlmDTLV/Gafzo6
+> xywye4raHpqHreFv4Q55SIseDbfV79eO84uv4RuV/fXEuPpo1MlZf9SOGCiAfoQI
+> ozxqoOPD2l2VaSA/351gtT93lkOREF2EnmVf2Wa31WWHw0LV3aoY9/OosxOiY9Fy
+> mVHHpYheDwHXdPfrxHXWKEA5GOJ7h0ozc66MPe7JInKSGdUcDrdrFxdSVwyZ/21B
+> Oc2Aw9RMd85NwjXBc9hYH++3f73tcVhzMCF7Swyb+bsn4Mzyr64Bn4VsYaDqiCc=
+> =HCKX
+> -----END PGP SIGNATURE-----
+
+Best wishes,
 -- 
-1.7.10.4
+Kamil Debski
+Samsung R&D Institute Poland
+
 
