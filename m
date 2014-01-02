@@ -1,75 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:46397 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752359AbaAXOC7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 09:02:59 -0500
-From: Martin Bugge <marbugge@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/4] [media] adv7842: log-status for Audio Video Info frames (AVI)
-Date: Fri, 24 Jan 2014 14:50:05 +0100
-Message-Id: <1390571406-11215-4-git-send-email-marbugge@cisco.com>
-In-Reply-To: <1390571406-11215-1-git-send-email-marbugge@cisco.com>
-References: <1390571406-11215-1-git-send-email-marbugge@cisco.com>
+Received: from mga09.intel.com ([134.134.136.24]:6898 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750711AbaABKat convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jan 2014 05:30:49 -0500
+From: "Ayoub, Hani" <hani.ayoub@intel.com>
+To: Paulo Assis <pj.assis@gmail.com>
+CC: "linux-uvc-devel@lists.sourceforge.net"
+	<linux-uvc-devel@lists.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RE: [linux-uvc-devel] Closing Bulk Stream in V4L2 UVC Linux driver
+Date: Thu, 2 Jan 2014 10:30:44 +0000
+Message-ID: <24AEC8CA92A64D49B27AF3710E3431292ADCBB90@HASMSX103.ger.corp.intel.com>
+References: <24AEC8CA92A64D49B27AF3710E3431292ADCA3C2@HASMSX103.ger.corp.intel.com>
+ <CAPueXH6CnuR3QRbc+wPrby62u_xZOZrgNqmpsjSA8octuP-5qg@mail.gmail.com>
+In-Reply-To: <CAPueXH6CnuR3QRbc+wPrby62u_xZOZrgNqmpsjSA8octuP-5qg@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clear any pending AVI checksum-errors.
-To be able to display last received AVI.
+Thanks for the answer.
+First, I mentioned something wrong below, I meant "AltSet 0" (alternateSetting set 0) instead of "AltSet 1" (alternateSetting set 1). Sorry about that.
 
-Cc: Mats Randgaard <matrandg@cisco.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
----
- drivers/media/i2c/adv7842.c | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+What STREAMOFF does is the following:
+      - uvc_uninit_video (frees URB buffers)
+      - usb_set_interface 0 (sends set alternate 0)
+      - uvc_queue_enable 0 (sends vb2_streamoff)
+      - uvc_video_clock_cleanup (cleanup some memory)
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 3aa1a7c..209b175 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2191,7 +2191,8 @@ static void print_avi_infoframe(struct v4l2_subdev *sd)
- {
- 	int i;
- 	uint8_t buf[14];
--	uint8_t avi_inf_len;
-+	u8 avi_len;
-+	u8 avi_ver;
- 	struct avi_info_frame avi;
- 
- 	if (!(hdmi_read(sd, 0x05) & 0x80)) {
-@@ -2204,18 +2205,20 @@ static void print_avi_infoframe(struct v4l2_subdev *sd)
- 	}
- 
- 	if (io_read(sd, 0x88) & 0x10) {
--		/* Note: the ADV7842 calculated incorrect checksums for InfoFrames
--		   with a length of 14 or 15. See the ADV7842 Register Settings
--		   Recommendations document for more details. */
--		v4l2_info(sd, "AVI infoframe checksum error\n");
--		return;
-+		v4l2_info(sd, "AVI infoframe checksum error has occurred earlier\n");
-+		io_write(sd, 0x8a, 0x10); /* clear AVI_INF_CKS_ERR_RAW */
-+		if (io_read(sd, 0x88) & 0x10) {
-+			v4l2_info(sd, "AVI infoframe checksum error still present\n");
-+			io_write(sd, 0x8a, 0x10); /* clear AVI_INF_CKS_ERR_RAW */
-+		}
- 	}
- 
--	avi_inf_len = infoframe_read(sd, 0xe2);
-+	avi_len = infoframe_read(sd, 0xe2);
-+	avi_ver = infoframe_read(sd, 0xe1);
- 	v4l2_info(sd, "AVI infoframe version %d (%d byte)\n",
--		  infoframe_read(sd, 0xe1), avi_inf_len);
-+		  avi_ver, avi_len);
- 
--	if (infoframe_read(sd, 0xe1) != 0x02)
-+	if (avi_ver != 0x02)
- 		return;
- 
- 	for (i = 0; i < 14; i++)
--- 
-1.8.1.4
+What STREAMON does is the following:
+	- uvc_video_clock_init (init some memory)
+	- uvc_queue_enable (sends vb2_streamon)
+	- uvc_commit_video (sends commit to USB)
+	- uvc_init_video (allocated URB buffers)
+
+So when do you think the device should "open"/"close" a stream/interface? 
+Maybe "open" stream when "commit" is received and "close" stream when "set alternate 0" is received?
+
+Thanks,
+Hani;
+
+-----Original Message-----
+From: Paulo Assis [mailto:pj.assis@gmail.com] 
+Sent: Thursday, January 02, 2014 11:43
+To: Ayoub, Hani
+Cc: linux-uvc-devel@lists.sourceforge.net; Linux Media Mailing List
+Subject: Re: [linux-uvc-devel] Closing Bulk Stream in V4L2 UVC Linux driver
+
+Hi,
+guvcview just handles this like any other V4L2 device. You should look at the driver in this case, and check what it does when a VIDIOC_STREAMOFF is received.
+
+Regards,
+Paulo
+
+PS: adding linux media to CC
+
+
+2014/1/1 Ayoub, Hani <hani.ayoub@intel.com>:
+> Hi,
+>
+> I'm trying to bring up a device which sends data using BULK transfer 
+> using
+> V4L2 UVC Linux driver (Ubuntu 12.04).
+>
+> Using guvcview, I can see that the device transfer data successfully 
+> and I can see a stream. However, that works fine ONLY the first time I 
+> run guvcview after I plug-in the device, closing the app and 
+> re-launching it does not show any pictures... to get a good stream I 
+> have to re-plug-in the device to the USB 3.0 port.
+>
+>
+>
+> Via USB analyzer, I can see that when closing the application (closing 
+> the
+> device) an "AltSet 1" (alternateSetting set 1) is sent although it's 
+> prohibited by spec (UVC 1.1 section 2.4.3) - so the device ignores it, 
+> this (I think) is the reason why the stream doesn't work when 
+> re-launching the application.
+>
+>
+>
+> My question is: how should I properly close the stream in BULK? Is 
+> there any way to "patch" V4L or the application to make closing the device works fine?
+>
+> There are some similar discussions in the web, but I think there's no 
+> real answer (some references below)
+>
+>
+>
+> References:
+>
+> *         Thread1
+>
+> *         Thread2
+>
+> *         Thread3
+>
+> *         Thread4
+>
+>
+>
+> Thanks,
+>
+> Hani;
+>
+> ---------------------------------------------------------------------
+> Intel Israel (74) Limited
+>
+> This e-mail and any attachments may contain confidential material for 
+> the sole use of the intended recipient(s). Any review or distribution 
+> by others is strictly prohibited. If you are not the intended 
+> recipient, please contact the sender and delete all copies.
+>
+>
+> ----------------------------------------------------------------------
+> -------- Rapidly troubleshoot problems before they affect your 
+> business. Most IT organizations don't have a clear picture of how 
+> application performance affects their revenue. With AppDynamics, you 
+> get 100% visibility into your Java,.NET, & PHP application. Start your 
+> 15-day FREE TRIAL of AppDynamics Pro!
+> http://pubads.g.doubleclick.net/gampad/clk?id=84349831&iu=/4140/ostg.c
+> lktrk _______________________________________________
+> Linux-uvc-devel mailing list
+> Linux-uvc-devel@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/linux-uvc-devel
+>
+---------------------------------------------------------------------
+Intel Israel (74) Limited
+
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
 
