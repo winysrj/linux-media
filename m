@@ -1,41 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f175.google.com ([209.85.128.175]:54003 "EHLO
-	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932361AbaAFXzX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 18:55:23 -0500
-Received: by mail-ve0-f175.google.com with SMTP id jx11so9531855veb.20
-        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 15:55:22 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CABMudhRhgwL01ey5Av6wxUkNjKNiuFVfcS4tPS0Oj6umALGjxA@mail.gmail.com>
-References: <CABMudhTYJnKx45EPt2T4F73woQO5mkDwpY4y8TjnaJY3SSBAWw@mail.gmail.com>
-	<CAOMZO5ABFuYidfFcqXK0ENj190dkU=GrE7X2Ss5WpRJ1B5-edQ@mail.gmail.com>
-	<CABMudhRhgwL01ey5Av6wxUkNjKNiuFVfcS4tPS0Oj6umALGjxA@mail.gmail.com>
-Date: Mon, 6 Jan 2014 21:55:22 -0200
-Message-ID: <CAOMZO5C=fS=z_2k7acKtXDZ8e2_e=bQxK8pmczJpj0ZEwMn5TA@mail.gmail.com>
-Subject: Re: How to enable "CONFIG_V4L2_MEM2MEM_DEV"
-From: Fabio Estevam <festevam@gmail.com>
-To: m silverstri <michael.j.silverstri@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from moutng.kundenserver.de ([212.227.126.171]:52209 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570AbaABMIH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jan 2014 07:08:07 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH, RFC 06/30] [media] usbvision: remove bogus sleep_on_timeout
+Date: Thu,  2 Jan 2014 13:07:30 +0100
+Message-Id: <1388664474-1710039-7-git-send-email-arnd@arndb.de>
+In-Reply-To: <1388664474-1710039-1-git-send-email-arnd@arndb.de>
+References: <1388664474-1710039-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 6, 2014 at 9:42 PM, m silverstri
-<michael.j.silverstri@gmail.com> wrote:
-> Thanks.  I try the latest (I clone linux from
-> https://github.com/torvalds/linux) and do 'make ARCH=arm
-> CROSS_COMPILE=/usr/bin/arm-linux-gnueabi- imx_v6_v7_defconfig' again,
-> I see
->
-> " CONFIG_V4L2_MEM2MEM_DEV=y" in the generated .config.
->
-> But when I try to add 'CONFIG_VIDEO_SAMSUNG_S5P_JPEG=y' to
-> imx_v6_v7_defconfig and re'make, I don't see
-> CONFIG_VIDEO_SAMSUNG_S5P_JPEG=y in the generated .config.
+There is no reason to use sleep_on_timeout here, and we want to get
+rid of that interface. Use the simpler msleep_interruptible instead.
 
-CONFIG_VIDEO_SAMSUNG_S5P_JPEG is to be used with Samsung SoC, not with
-Freescale i.mx family.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/usb/usbvision/usbvision.h | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Regards,
+diff --git a/drivers/media/usb/usbvision/usbvision.h b/drivers/media/usb/usbvision/usbvision.h
+index 8a25876..eb6dc8a 100644
+--- a/drivers/media/usb/usbvision/usbvision.h
++++ b/drivers/media/usb/usbvision/usbvision.h
+@@ -205,10 +205,8 @@ enum {
+ 
+ /* Debugging aid */
+ #define USBVISION_SAY_AND_WAIT(what) { \
+-	wait_queue_head_t wq; \
+-	init_waitqueue_head(&wq); \
+ 	printk(KERN_INFO "Say: %s\n", what); \
+-	interruptible_sleep_on_timeout(&wq, HZ * 3); \
++	msleep_interruptible(3000); \
+ }
+ 
+ /*
+-- 
+1.8.3.2
 
-Fabio Estevam
