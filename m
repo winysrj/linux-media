@@ -1,101 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:52901 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707AbaABJni convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jan 2014 04:43:38 -0500
-Received: by mail-ig0-f177.google.com with SMTP id uy17so33238851igb.4
-        for <linux-media@vger.kernel.org>; Thu, 02 Jan 2014 01:43:35 -0800 (PST)
+Received: from mail-la0-f49.google.com ([209.85.215.49]:47882 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751516AbaACOWn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jan 2014 09:22:43 -0500
+Received: by mail-la0-f49.google.com with SMTP id er20so7971159lab.22
+        for <linux-media@vger.kernel.org>; Fri, 03 Jan 2014 06:22:40 -0800 (PST)
+From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Subject: [PATCH] nuvoton-cir: Add support for user configurable wake-up codes
+Date: Fri,  3 Jan 2014 16:18:43 +0200
+Message-Id: <1388758723-21653-1-git-send-email-a.seppala@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <24AEC8CA92A64D49B27AF3710E3431292ADCA3C2@HASMSX103.ger.corp.intel.com>
-References: <24AEC8CA92A64D49B27AF3710E3431292ADCA3C2@HASMSX103.ger.corp.intel.com>
-From: Paulo Assis <pj.assis@gmail.com>
-Date: Thu, 2 Jan 2014 09:43:14 +0000
-Message-ID: <CAPueXH6CnuR3QRbc+wPrby62u_xZOZrgNqmpsjSA8octuP-5qg@mail.gmail.com>
-Subject: Re: [linux-uvc-devel] Closing Bulk Stream in V4L2 UVC Linux driver
-To: "Ayoub, Hani" <hani.ayoub@intel.com>
-Cc: "linux-uvc-devel@lists.sourceforge.net"
-	<linux-uvc-devel@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-guvcview just handles this like any other V4L2 device. You should look
-at the driver in this case, and check what it does when a
-VIDIOC_STREAMOFF is received.
+This patch introduces module parameters for setting wake-up codes to be
+programmed into the hardware FIFO. This allows users to provide custom
+IR sample sequences to trigger system wake-up from sleep states.
 
-Regards,
-Paulo
+Usage:
+   modprobe nuvoton-cir wake_samples=0x90,0x11,0xa1... (up to 67 bytes)
 
-PS: adding linux media to CC
+Here is a summary of module parameters introduced by this patch:
+ * wake_samples: FIFO values to compare against received IR codes when
+   in sleep state.
 
+ * cmp_deep: Number of bytes the hardware will compare against. This is
+   currently autodetected by the driver.
 
-2014/1/1 Ayoub, Hani <hani.ayoub@intel.com>:
-> Hi,
->
-> Iím trying to bring up a device which sends data using BULK transfer using
-> V4L2 UVC Linux driver (Ubuntu 12.04).
->
-> Using guvcview, I can see that the device transfer data successfully and I
-> can see a stream. However, that works fine ONLY the first time I run
-> guvcview after I plug-in the device, closing the app and re-launching it
-> does not show any picturesÖ to get a good stream I have to re-plug-in the
-> device to the USB 3.0 port.
->
->
->
-> Via USB analyzer, I can see that when closing the application (closing the
-> device) an ìAltSet 1î (alternateSetting set 1) is sent although itís
-> prohibited by spec (UVC 1.1 section 2.4.3) ñ so the device ignores it, this
-> (I think) is the reason why the stream doesnít work when re-launching the
-> application.
->
->
->
-> My question is: how should I properly close the stream in BULK? Is there any
-> way to ìpatchî V4L or the application to make closing the device works fine?
->
-> There are some similar discussions in the web, but I think thereís no real
-> answer (some references below)
->
->
->
-> References:
->
-> ∑         Thread1
->
-> ∑         Thread2
->
-> ∑         Thread3
->
-> ∑         Thread4
->
->
->
-> Thanks,
->
-> Hani;
->
-> ---------------------------------------------------------------------
-> Intel Israel (74) Limited
->
-> This e-mail and any attachments may contain confidential material for
-> the sole use of the intended recipient(s). Any review or distribution
-> by others is strictly prohibited. If you are not the intended
-> recipient, please contact the sender and delete all copies.
->
->
-> ------------------------------------------------------------------------------
-> Rapidly troubleshoot problems before they affect your business. Most IT
-> organizations don't have a clear picture of how application performance
-> affects their revenue. With AppDynamics, you get 100% visibility into your
-> Java,.NET, & PHP application. Start your 15-day FREE TRIAL of AppDynamics
-> Pro!
-> http://pubads.g.doubleclick.net/gampad/clk?id=84349831&iu=/4140/ostg.clktrk
-> _______________________________________________
-> Linux-uvc-devel mailing list
-> Linux-uvc-devel@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/linux-uvc-devel
->
+ * cmp_tolerance: The maximum allowed value difference between a single
+   wake-up byte and a sample read from IR to be still considered a match.
+   Default is 5.
+
+Signed-off-by: Antti Sepp√§l√§ <a.seppala@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 65 +++++++++++++++++++++++++++++++-----------
+ drivers/media/rc/nuvoton-cir.h |  6 ++--
+ 2 files changed, 51 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 21ee0dc..b11ee43 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -39,6 +39,15 @@
+ 
+ #include "nuvoton-cir.h"
+ 
++/* debugging module parameter */
++static int debug;
++
++/* Wake up configuration parameters */
++static unsigned char wake_samples[WAKE_FIFO_LEN];
++static unsigned int num_wake_samples;
++static unsigned char cmp_deep;
++static unsigned char cmp_tolerance = CIR_WAKE_CMP_TOLERANCE;
++
+ /* write val to config reg */
+ static inline void nvt_cr_write(struct nvt_dev *nvt, u8 val, u8 reg)
+ {
+@@ -418,13 +427,38 @@ static void nvt_cir_regs_init(struct nvt_dev *nvt)
+ 
+ static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
+ {
++	int i;
++	u8 cmp_reg = CIR_WAKE_FIFO_CMP_BYTES;
++	u8 ircon_reg = CIR_WAKE_IRCON_RXEN | CIR_WAKE_IRCON_R |
++		       CIR_WAKE_IRCON_RXINV | CIR_WAKE_IRCON_SAMPLE_PERIOD_SEL;
++	/*
++	 * Enable TX and RX, specific carrier on = low, off = high, and set
++	 * sample period (currently 50us)
++	 */
++	nvt_cir_wake_reg_write(nvt, ircon_reg | CIR_WAKE_IRCON_MODE1,
++			       CIR_WAKE_IRCON);
++
++	/* clear cir wake rx fifo */
++	nvt_clear_cir_wake_fifo(nvt);
++
++	/* Write samples from module parameter to fifo */
++	for (i = 0; i < num_wake_samples; i++)
++		nvt_cir_wake_reg_write(nvt, wake_samples[i],
++				       CIR_WAKE_WR_FIFO_DATA);
++
++	/* Switch cir to wakeup mode and disable fifo writing */
++	nvt_cir_wake_reg_write(nvt, ircon_reg | CIR_WAKE_IRCON_MODE0,
++			       CIR_WAKE_IRCON);
++
+ 	/* set number of bytes needed for wake from s3 (default 65) */
+-	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFO_CMP_BYTES,
+-			       CIR_WAKE_FIFO_CMP_DEEP);
++	if (cmp_deep)
++		cmp_reg = cmp_deep;
++	else if (num_wake_samples)
++		cmp_reg = num_wake_samples;
++	nvt_cir_wake_reg_write(nvt, cmp_reg, CIR_WAKE_FIFO_CMP_DEEP);
+ 
+ 	/* set tolerance/variance allowed per byte during wake compare */
+-	nvt_cir_wake_reg_write(nvt, CIR_WAKE_CMP_TOLERANCE,
+-			       CIR_WAKE_FIFO_CMP_TOL);
++	nvt_cir_wake_reg_write(nvt, cmp_tolerance, CIR_WAKE_FIFO_CMP_TOL);
+ 
+ 	/* set sample limit count (PE interrupt raised when reached) */
+ 	nvt_cir_wake_reg_write(nvt, CIR_RX_LIMIT_COUNT >> 8, CIR_WAKE_SLCH);
+@@ -434,18 +468,6 @@ static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
+ 	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFOCON_RX_TRIGGER_LEV,
+ 			       CIR_WAKE_FIFOCON);
+ 
+-	/*
+-	 * Enable TX and RX, specific carrier on = low, off = high, and set
+-	 * sample period (currently 50us)
+-	 */
+-	nvt_cir_wake_reg_write(nvt, CIR_WAKE_IRCON_MODE0 | CIR_WAKE_IRCON_RXEN |
+-			       CIR_WAKE_IRCON_R | CIR_WAKE_IRCON_RXINV |
+-			       CIR_WAKE_IRCON_SAMPLE_PERIOD_SEL,
+-			       CIR_WAKE_IRCON);
+-
+-	/* clear cir wake rx fifo */
+-	nvt_clear_cir_wake_fifo(nvt);
+-
+ 	/* clear any and all stray interrupts */
+ 	nvt_cir_wake_reg_write(nvt, 0xff, CIR_WAKE_IRSTS);
+ }
+@@ -1232,6 +1254,17 @@ static void nvt_exit(void)
+ module_param(debug, int, S_IRUGO | S_IWUSR);
+ MODULE_PARM_DESC(debug, "Enable debugging output");
+ 
++module_param_array(wake_samples, byte, &num_wake_samples, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(wake_samples, "FIFO sample bytes triggering wake");
++
++module_param(cmp_deep, byte, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(cmp_deep, "How many bytes need to compare\n"
++			   "\t\t(0 = auto (default))");
++
++module_param(cmp_tolerance, byte, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(cmp_tolerance, "Data tolerance to each wake sample byte\n"
++				"\t\t(default = 5)");
++
+ MODULE_DEVICE_TABLE(pnp, nvt_ids);
+ MODULE_DESCRIPTION("Nuvoton W83667HG-A & W83677HG-I CIR driver");
+ 
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index 07e8310..8209f84 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -31,10 +31,6 @@
+ /* platform driver name to register */
+ #define NVT_DRIVER_NAME "nuvoton-cir"
+ 
+-/* debugging module parameter */
+-static int debug;
+-
+-
+ #define nvt_pr(level, text, ...) \
+ 	printk(level KBUILD_MODNAME ": " text, ## __VA_ARGS__)
+ 
+@@ -64,6 +60,8 @@ static int debug;
+ #define TX_BUF_LEN 256
+ #define RX_BUF_LEN 32
+ 
++#define WAKE_FIFO_LEN 67
++
+ struct nvt_dev {
+ 	struct pnp_dev *pdev;
+ 	struct rc_dev *rdev;
+-- 
+1.8.3.2
+
