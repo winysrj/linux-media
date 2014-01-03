@@ -1,42 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:40914 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751405AbaAIPT2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jan 2014 10:19:28 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1W1HOH-0002cf-9y
-	for linux-media@vger.kernel.org; Thu, 09 Jan 2014 16:19:25 +0100
-Received: from exchange.muehlbauer.de ([194.25.158.132])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 09 Jan 2014 16:19:25 +0100
-Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 09 Jan 2014 16:19:25 +0100
-To: linux-media@vger.kernel.org
-From: Tom <Bassai_Dai@gmx.net>
-Subject: CCDC won't become idle!
-Date: Thu, 9 Jan 2014 15:19:00 +0000 (UTC)
-Message-ID: <loom.20140109T161322-713@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-oa0-f54.google.com ([209.85.219.54]:36095 "EHLO
+	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750746AbaACPwQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jan 2014 10:52:16 -0500
+Received: by mail-oa0-f54.google.com with SMTP id h16so16401557oag.27
+        for <linux-media@vger.kernel.org>; Fri, 03 Jan 2014 07:52:15 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <52C6D90D.9010906@xs4all.nl>
+References: <1375453200-28459-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1375453200-28459-3-git-send-email-ricardo.ribalda@gmail.com>
+ <52C6CEC6.8020602@xs4all.nl> <CAPybu_1ABrgBGYNicL37cBE_A2-eYq4=7Cwa-nfEJWndVqq2EQ@mail.gmail.com>
+ <52C6D90D.9010906@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 3 Jan 2014 16:51:55 +0100
+Message-ID: <CAPybu_2NAyE+Os9NJSSRY0n1+6ObWYpfH1m9Nj0c+B-xj+KVYg@mail.gmail.com>
+Subject: Re: [PATCH v4 2/2] videobuf2-dma-sg: Replace vb2_dma_sg_desc with sg_table
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hello Hans
 
-sorry for questioning this issue again, but by all the articles I found I
-never got clear reason for the idle problem of the ccdc.
+What if we move the dma_map_sg and dma_unmap_sg to the vb2 interface,
+and there do something like:
 
-With my camera its a kind of randomly problem. I grab images with the yavta
-tool. I configured it to wait for pressing ENTER before giving the STREAMON
-command. So now sometimes all works fine. I grab my images and they are as I
-imagined. But sometimes I get the ccdc won't become idle error. I really
-don't understand what this error causes. 
+n_sg= dma_map_sg()
+if (n_sg=-ENOMEM){
+   split_table() //Breaks down the sg_table into monopages sg
+   n_sg= dma_map_sg()
+}
+if (n_sg=-ENOMEM)
+  return -ENOMEM
 
-Are there any clear reasons what this problem causes?
+Regards
 
-Best regrads, Tom
 
+
+On Fri, Jan 3, 2014 at 4:36 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 01/03/2014 04:17 PM, Ricardo Ribalda Delgado wrote:
+>> Hello Hans
+>>
+>> Thank you very much for your mail.
+>>
+>> For what I understand sg_alloc_table_from_pages does not allocate any
+>> page or bounce buffer, it just take a set of N pages and makes a
+>> sg_table from it, on the process it finds out if page A and A+1are on
+>> the same pfn and if it is true they will share the sg. So it is a
+>> later function that produces the error.  As I see it, before this
+>> patch we were reimplementing sg_alloc_table_from_pages.
+>>
+>> Which function is returning -ENOMEM?
+>
+> That's dma_map_sg(), which uses the scatter list constructed by
+> sg_alloc_table_from_pages(). For x86 that ends up in lib/swiotlb.c,
+> swiotlb_map_sg_attrs().
+>
+> Regards,
+>
+>         Hans
+>
+>>
+>>
+>> Regards!
+>>
+>>
+>>
+>> On Fri, Jan 3, 2014 at 3:52 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> Hi Ricardo,
+>>>
+>>> I've run into a problem that is caused by this patch:
+>>>
+>>> On 08/02/2013 04:20 PM, Ricardo Ribalda Delgado wrote:
+>>>> Replace the private struct vb2_dma_sg_desc with the struct sg_table so
+>>>> we can benefit from all the helping functions in lib/scatterlist.c for
+>>>> things like allocating the sg or compacting the descriptor
+>>>>
+>>>> marvel-ccic and solo6x10 drivers, that uses this api has been updated
+>>>>
+>>>> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>>> Reviewed-by: Andre Heider <a.heider@gmail.com>
+>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>>>> ---
+>>>>  drivers/media/platform/marvell-ccic/mcam-core.c    |   14 +--
+>>>>  drivers/media/v4l2-core/videobuf2-dma-sg.c         |  103 ++++++++------------
+>>>>  drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 ++--
+>>>>  include/media/videobuf2-dma-sg.h                   |   10 +-
+>>>>  4 files changed, 63 insertions(+), 84 deletions(-)
+>>>>
+>>>
+>>> <snip>
+>>>
+>>>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>>>> index 4999c48..2f86054 100644
+>>>> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>>>> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>>>
+>>> <snip>
+>>>
+>>>> @@ -99,17 +98,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+>>>>       buf->vaddr = NULL;
+>>>>       buf->write = 0;
+>>>>       buf->offset = 0;
+>>>> -     buf->sg_desc.size = size;
+>>>> +     buf->size = size;
+>>>>       /* size is already page aligned */
+>>>> -     buf->sg_desc.num_pages = size >> PAGE_SHIFT;
+>>>> -
+>>>> -     buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
+>>>> -                                   sizeof(*buf->sg_desc.sglist));
+>>>> -     if (!buf->sg_desc.sglist)
+>>>> -             goto fail_sglist_alloc;
+>>>> -     sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
+>>>> +     buf->num_pages = size >> PAGE_SHIFT;
+>>>>
+>>>> -     buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
+>>>> +     buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+>>>>                            GFP_KERNEL);
+>>>>       if (!buf->pages)
+>>>>               goto fail_pages_array_alloc;
+>>>> @@ -118,6 +111,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+>>>>       if (ret)
+>>>>               goto fail_pages_alloc;
+>>>>
+>>>> +     ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
+>>>> +                     buf->num_pages, 0, size, gfp_flags);
+>>>> +     if (ret)
+>>>> +             goto fail_table_alloc;
+>>>> +
+>>>>       buf->handler.refcount = &buf->refcount;
+>>>>       buf->handler.put = vb2_dma_sg_put;
+>>>>       buf->handler.arg = buf;
+>>>
+>>> The problem here is the switch from sg_init_table to sg_alloc_table_from_pages. If
+>>> the PCI hardware only accepts 32-bit DMA transfers, but it is used on a 64-bit OS
+>>> with > 4GB physical memory, then the kernel will allocate DMA bounce buffers for you.
+>>>
+>>> With sg_init_table that works fine since each page in the scatterlist maps to a
+>>> bounce buffer that is also just one page, but with sg_alloc_table_from_pages the DMA
+>>> bounce buffers can be multiple pages. This is in turn rounded up to the next power of
+>>> 2 and allocated in the 32-bit address space. Unfortunately, due to memory fragmentation
+>>> this very quickly fails with -ENOMEM.
+>>>
+>>> I discovered this while converting saa7134 to vb2. I think that when DMA bounce
+>>> buffers are needed, then it should revert to sg_init_table.
+>>>
+>>> I don't know whether this bug also affects non-v4l drivers.
+>>>
+>>> For now at least I won't try to fix this myself as I have discovered that dma-sg
+>>> doesn't work anyway for saa7134 due to a hardware limitation so I will switch to
+>>> dma-contig for that driver.
+>>>
+>>> But at the very least I thought I should write this down so others know about this
+>>> subtle problem and perhaps someone else wants to tackle this.
+>>>
+>>> I actually think that the solo driver is affected by this (I haven't tested it yet).
+>>> And at some point we need to convert bttv and cx88 to vb2 as well, and I expect that
+>>> they will hit the same problem.
+>>>
+>>> If someone knows a better solution than switching to sg_init_table if bounce buffers
+>>> are needed, then let me know.
+>>>
+>>> Regards,
+>>>
+>>>         Hans
+>>
+>>
+>>
+>
+
+
+
+-- 
+Ricardo Ribalda
