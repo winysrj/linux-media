@@ -1,109 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:54350 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925AbaAID2t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 22:28:49 -0500
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: s.nawrocki@samsung.com, posciak@google.com, hverkuil@xs4all.nl,
-	shaik.ameer@samsung.com, m.chehab@samsung.com
-Subject: [PATCH v5 0/4] Exynos5 Series SCALER Driver
-Date: Thu,  9 Jan 2014 08:58:10 +0530
-Message-Id: <1389238094-19386-1-git-send-email-shaik.ameer@samsung.com>
+Received: from blu0-omc2-s5.blu0.hotmail.com ([65.55.111.80]:15472 "EHLO
+	blu0-omc2-s5.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751931AbaACPQ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jan 2014 10:16:57 -0500
+Message-ID: <BLU0-SMTP150C8C0DB0E9A3A9F4104F8ADCA0@phx.gbl>
+Date: Fri, 3 Jan 2014 23:16:52 +0800
+From: randy <lxr1234@hotmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Kamil Debski <k.debski@samsung.com>
+Subject: Re: using MFC memory to memery encoder, start stream and queue order
+ problem
+References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl> <02c701cf07b6$565cd340$031679c0$%debski@samsung.com> <BLU0-SMTP266BE9BC66B254061740251ADCB0@phx.gbl> <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com>
+In-Reply-To: <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for SCALER device which is a
-new device for scaling, blending, color fill  and color space
-conversion on EXYNOS5410/5420 SoCs.
+I rewrite my program, it takes the order as below
+1.request buffer.
+2.mmap input buffer with OUTPUT
+3.output buffer with CAPTURE.
+4.filled input buffer with the first frame.
+5.enqueue the first frame in the input buffer in OUTPUT side
+6.enqueue the output buffer in CAPTURE side
+7.start stream
+8.dequeue CAPTURE buffer and make output buffer pointer to data of it.
+9.get output data from output buffer
+/* the buffer get size is 22 below */
+10.dequeue OUTPUT
+/* timed out, it will never end */
+Is there any problem with the order? I don't do any thing simultaneously
+below, it seems to difficult to me to understand and not easy to debug.
+I am not sure whether the mmap is correct, but I think it it as I don't
+get segment fault.
 
-This device supports the following as key features.
-    input image format
-        - YCbCr420 2P(UV/VU), 3P
-        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
-        - YCbCr444 2P(UV,VU), 3P
-        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
-        - Pre-multiplexed ARGB8888, L8A8 and L8
-    output image format
-        - YCbCr420 2P(UV/VU), 3P
-        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
-        - YCbCr444 2P(UV,VU), 3P
-        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
-        - Pre-multiplexed ARGB8888
-    input rotation
-        - 0/90/180/270 degree, X/Y/XY Flip
-    scale ratio
-        - 1/4 scale down to 16 scale up
-    color space conversion
-        - RGB to YUV / YUV to RGB
-    Size - Exynos5420
-        - Input : 16x16 to 8192x8192
-        - Output:   4x4 to 8192x8192
-    Size - Exynos5410
-        - Input/Output: 4x4 to 4096x4096
-    alpha blending, color fill
 
-Rebased on:
------------
-git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git:master
+And the thing in the next is like this I think
+11.filled input buffer with the next frame
+12.enqueue the next frame in the input buffer in OUTPUT side
+13.dequeue CAPTURE buffer and make output buffer pointer to data of it.
+14.dequeue OUTPUT
+goto 11
+Is it correct
 
-Changes from v4:
----------------
-Addressed review comments from, Sylwester Nawrocki and Mauro Carvalho Chehab
-Links to the review comments:
-	1] https://linuxtv.org/patch/20307/
-	2] https://linuxtv.org/patch/20308/
-	3] https://linuxtv.org/patch/20451/
+I doubt the REAME
+5. Request CAPTURE and OUTPUT buffers. Due to hardware limitations of MFC on
+   some platforms it is recommended to use V4L2_MEMORY_MMAP buffers.
+6. Enqueue CAPTURE buffers.
+7. Enqueue OUTPUT buffer with first frame.
+8. Start streaming (VIDIOC_STREAMON) on both ends.
+9. Simultaneously:
+I don't need to dequeue the OUTPUT buffer which is with first frame?
+   - enqueue buffers with next frames,
+   - dequeue used OUTPUT buffers (blocking operation),
+   - dequeue buffers with encoded stream (blocking operation),
+   - enqueue free CAPTURE buffers.
 
-Changes from v3:
----------------
-Addressed review comments from, Sylwester Nawrocki and Hans Verkuil.
-Links to the review comments:
-        1] https://linuxtv.org/patch/20072/
-        2] https://linuxtv.org/patch/20073/
 
-Changes from v2:
----------------
-Addressed review comments from, Inki Dae, Hans Verkuil and Sylwester Nawrocki.
-Links to the review comments:
-        1] https://linuxtv.org/patch/19783/
-        2] https://linuxtv.org/patch/19784/
-        3] https://linuxtv.org/patch/19785/
-        4] https://linuxtv.org/patch/19786/
-        5] https://linuxtv.org/patch/19787/
-
-Changes from v1:
----------------
-1] Split the previous single patch into multiple patches.
-2] Added DT binding documentation.
-3] Removed the unnecessary header file inclusions.
-4] Fix the condition check in mscl_prepare_address for swapping cb/cr addresses.
-
-Shaik Ameer Basha (4):
-  [media] exynos-scaler: Add new driver for Exynos5 SCALER
-  [media] exynos-scaler: Add core functionality for the SCALER driver
-  [media] exynos-scaler: Add m2m functionality for the SCALER driver
-  [media] exynos-scaler: Add DT bindings for SCALER driver
-
- .../devicetree/bindings/media/exynos5-scaler.txt   |   22 +
- drivers/media/platform/Kconfig                     |    8 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/exynos-scaler/Makefile      |    3 +
- drivers/media/platform/exynos-scaler/scaler-m2m.c  |  788 +++++++++++++
- drivers/media/platform/exynos-scaler/scaler-regs.c |  337 ++++++
- drivers/media/platform/exynos-scaler/scaler-regs.h |  331 ++++++
- drivers/media/platform/exynos-scaler/scaler.c      | 1231 ++++++++++++++++++++
- drivers/media/platform/exynos-scaler/scaler.h      |  376 ++++++
- 9 files changed, 3097 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
- create mode 100644 drivers/media/platform/exynos-scaler/Makefile
- create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
- create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.c
- create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.h
- create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
- create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
-
--- 
-1.7.9.5
-
+							Thank you.
