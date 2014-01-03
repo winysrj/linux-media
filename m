@@ -1,97 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:61810 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527AbaAVXCI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jan 2014 18:02:08 -0500
-Received: by mail-ee0-f50.google.com with SMTP id d17so72890eek.23
-        for <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 15:02:06 -0800 (PST)
-Message-ID: <52E04DEB.2000800@gmail.com>
-Date: Thu, 23 Jan 2014 00:02:03 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4821 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966AbaACPhD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jan 2014 10:37:03 -0500
+Message-ID: <52C6D90D.9010906@xs4all.nl>
+Date: Fri, 03 Jan 2014 16:36:45 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 05/21] videodev2.h: add struct v4l2_query_ext_ctrl
- and VIDIOC_QUERY_EXT_CTRL.
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl> <1390221974-28194-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390221974-28194-6-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v4 2/2] videobuf2-dma-sg: Replace vb2_dma_sg_desc with
+ sg_table
+References: <1375453200-28459-1-git-send-email-ricardo.ribalda@gmail.com> <1375453200-28459-3-git-send-email-ricardo.ribalda@gmail.com> <52C6CEC6.8020602@xs4all.nl> <CAPybu_1ABrgBGYNicL37cBE_A2-eYq4=7Cwa-nfEJWndVqq2EQ@mail.gmail.com>
+In-Reply-To: <CAPybu_1ABrgBGYNicL37cBE_A2-eYq4=7Cwa-nfEJWndVqq2EQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/20/2014 01:45 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
->
-> Add a new struct and ioctl to extend the amount of information you can
-> get for a control.
->
-> It gives back a unit string, the range is now a s64 type, and the matrix
-> and element size can be reported through cols/rows/elem_size.
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> ---
->   include/uapi/linux/videodev2.h | 30 ++++++++++++++++++++++++++++++
->   1 file changed, 30 insertions(+)
->
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 4d7782a..9e5b7d4 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1272,6 +1272,34 @@ struct v4l2_queryctrl {
->   	__u32		     reserved[2];
->   };
->
-> +/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
-> +struct v4l2_query_ext_ctrl {
-> +	__u32		     id;
-> +	__u32		     type;
-> +	char		     name[32];
-> +	char		     unit[32];
+On 01/03/2014 04:17 PM, Ricardo Ribalda Delgado wrote:
+> Hello Hans
+> 
+> Thank you very much for your mail.
+> 
+> For what I understand sg_alloc_table_from_pages does not allocate any
+> page or bounce buffer, it just take a set of N pages and makes a
+> sg_table from it, on the process it finds out if page A and A+1are on
+> the same pfn and if it is true they will share the sg. So it is a
+> later function that produces the error.  As I see it, before this
+> patch we were reimplementing sg_alloc_table_from_pages.
+> 
+> Which function is returning -ENOMEM?
 
-> +	union {
-> +		__s64 val;
-> +		__u32 reserved[4];
-> +	} min;
-> +	union {
-> +		__s64 val;
-> +		__u32 reserved[4];
-> +	} max;
-> +	union {
-> +		__u64 val;
-> +		__u32 reserved[4];
-> +	} step;
-> +	union {
-> +		__s64 val;
-> +		__u32 reserved[4];
-> +	} def;
+That's dma_map_sg(), which uses the scatter list constructed by
+sg_alloc_table_from_pages(). For x86 that ends up in lib/swiotlb.c,
+swiotlb_map_sg_attrs().
 
-Are these reserved[] arrays of any use ?
-
-> +	__u32                flags;
-> +	__u32                cols, rows;
-
-nit: I would put them on separate lines and use full words.
-
-> +	__u32                elem_size;
-> +	__u32		     reserved[17];
-> +};
-> +
->   /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
->   struct v4l2_querymenu {
->   	__u32		id;
-> @@ -1965,6 +1993,8 @@ struct v4l2_create_buffers {
->      Never use these in applications! */
->   #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
->
-> +#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
-> +
->   /* Reminder: when adding new ioctls please add support for them to
->      drivers/media/video/v4l2-compat-ioctl32.c as well! */
-
---
 Regards,
-Sylwester
+
+	Hans
+
+> 
+> 
+> Regards!
+> 
+> 
+> 
+> On Fri, Jan 3, 2014 at 3:52 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Ricardo,
+>>
+>> I've run into a problem that is caused by this patch:
+>>
+>> On 08/02/2013 04:20 PM, Ricardo Ribalda Delgado wrote:
+>>> Replace the private struct vb2_dma_sg_desc with the struct sg_table so
+>>> we can benefit from all the helping functions in lib/scatterlist.c for
+>>> things like allocating the sg or compacting the descriptor
+>>>
+>>> marvel-ccic and solo6x10 drivers, that uses this api has been updated
+>>>
+>>> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>> Reviewed-by: Andre Heider <a.heider@gmail.com>
+>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>>> ---
+>>>  drivers/media/platform/marvell-ccic/mcam-core.c    |   14 +--
+>>>  drivers/media/v4l2-core/videobuf2-dma-sg.c         |  103 ++++++++------------
+>>>  drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 ++--
+>>>  include/media/videobuf2-dma-sg.h                   |   10 +-
+>>>  4 files changed, 63 insertions(+), 84 deletions(-)
+>>>
+>>
+>> <snip>
+>>
+>>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>>> index 4999c48..2f86054 100644
+>>> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>>> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>>
+>> <snip>
+>>
+>>> @@ -99,17 +98,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+>>>       buf->vaddr = NULL;
+>>>       buf->write = 0;
+>>>       buf->offset = 0;
+>>> -     buf->sg_desc.size = size;
+>>> +     buf->size = size;
+>>>       /* size is already page aligned */
+>>> -     buf->sg_desc.num_pages = size >> PAGE_SHIFT;
+>>> -
+>>> -     buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
+>>> -                                   sizeof(*buf->sg_desc.sglist));
+>>> -     if (!buf->sg_desc.sglist)
+>>> -             goto fail_sglist_alloc;
+>>> -     sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
+>>> +     buf->num_pages = size >> PAGE_SHIFT;
+>>>
+>>> -     buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
+>>> +     buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+>>>                            GFP_KERNEL);
+>>>       if (!buf->pages)
+>>>               goto fail_pages_array_alloc;
+>>> @@ -118,6 +111,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+>>>       if (ret)
+>>>               goto fail_pages_alloc;
+>>>
+>>> +     ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
+>>> +                     buf->num_pages, 0, size, gfp_flags);
+>>> +     if (ret)
+>>> +             goto fail_table_alloc;
+>>> +
+>>>       buf->handler.refcount = &buf->refcount;
+>>>       buf->handler.put = vb2_dma_sg_put;
+>>>       buf->handler.arg = buf;
+>>
+>> The problem here is the switch from sg_init_table to sg_alloc_table_from_pages. If
+>> the PCI hardware only accepts 32-bit DMA transfers, but it is used on a 64-bit OS
+>> with > 4GB physical memory, then the kernel will allocate DMA bounce buffers for you.
+>>
+>> With sg_init_table that works fine since each page in the scatterlist maps to a
+>> bounce buffer that is also just one page, but with sg_alloc_table_from_pages the DMA
+>> bounce buffers can be multiple pages. This is in turn rounded up to the next power of
+>> 2 and allocated in the 32-bit address space. Unfortunately, due to memory fragmentation
+>> this very quickly fails with -ENOMEM.
+>>
+>> I discovered this while converting saa7134 to vb2. I think that when DMA bounce
+>> buffers are needed, then it should revert to sg_init_table.
+>>
+>> I don't know whether this bug also affects non-v4l drivers.
+>>
+>> For now at least I won't try to fix this myself as I have discovered that dma-sg
+>> doesn't work anyway for saa7134 due to a hardware limitation so I will switch to
+>> dma-contig for that driver.
+>>
+>> But at the very least I thought I should write this down so others know about this
+>> subtle problem and perhaps someone else wants to tackle this.
+>>
+>> I actually think that the solo driver is affected by this (I haven't tested it yet).
+>> And at some point we need to convert bttv and cx88 to vb2 as well, and I expect that
+>> they will hit the same problem.
+>>
+>> If someone knows a better solution than switching to sg_init_table if bounce buffers
+>> are needed, then let me know.
+>>
+>> Regards,
+>>
+>>         Hans
+> 
+> 
+> 
+
