@@ -1,56 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:42043 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754324AbaAASwX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 13:52:23 -0500
-Received: by mail-ee0-f54.google.com with SMTP id e51so5077125eek.41
-        for <linux-media@vger.kernel.org>; Wed, 01 Jan 2014 10:52:22 -0800 (PST)
-Message-ID: <52C46428.1060101@googlemail.com>
-Date: Wed, 01 Jan 2014 19:53:28 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: unlisted-recipients:; Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3 12/24] tuner-xc2028: remove unused code
-References: <1388232976-20061-1-git-send-email-mchehab@redhat.com> <1388232976-20061-13-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1388232976-20061-13-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3878 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753109AbaACDe2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jan 2014 22:34:28 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s033YOEN010993
+	for <linux-media@vger.kernel.org>; Fri, 3 Jan 2014 04:34:26 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 702122A0142
+	for <linux-media@vger.kernel.org>; Fri,  3 Jan 2014 04:33:47 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140103033347.702122A0142@tschai.lan>
+Date: Fri,  3 Jan 2014 04:33:47 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 28.12.2013 13:16, schrieb Mauro Carvalho Chehab:
-> From: Mauro Carvalho Chehab <m.chehab@samsung.com>
->
-> This macro is not used. remove it.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/tuners/tuner-xc2028.c | 9 ---------
->  1 file changed, 9 deletions(-)
->
-> diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-> index 4be5cf808a40..1057da54c6e0 100644
-> --- a/drivers/media/tuners/tuner-xc2028.c
-> +++ b/drivers/media/tuners/tuner-xc2028.c
-> @@ -134,15 +134,6 @@ struct xc2028_data {
->  	_rc;								\
->  })
->  
-> -#define i2c_rcv(priv, buf, size) ({					\
-> -	int _rc;							\
-> -	_rc = tuner_i2c_xfer_recv(&priv->i2c_props, buf, size);		\
-> -	if (size != _rc)						\
-> -		tuner_err("i2c input error: rc = %d (should be %d)\n",	\
-> -			   _rc, (int)size); 				\
-> -	_rc;								\
-> -})
-> -
->  #define i2c_send_recv(priv, obuf, osize, ibuf, isize) ({		\
->  	int _rc;							\
->  	_rc = tuner_i2c_xfer_send_recv(&priv->i2c_props, obuf, osize,	\
-Looks good and works, so this patch can is ready for the media tree.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
+date:		Fri Jan  3 04:00:32 CET 2014
+git branch:	test
+git hash:	f7d40eea8e3e531f1517ab7eded552e8837ef5da
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-0.slh.2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
