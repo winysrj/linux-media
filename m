@@ -1,201 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:62709 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbaAHSD6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 13:03:58 -0500
-Date: Wed, 08 Jan 2014 16:03:51 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: jean-philippe francois <jp.francois@cynove.com>,
-	linux-usb@vger.kernel.org, LMML <linux-media@vger.kernel.org>,
-	Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: Isochronous transfer error on USB3
-Message-id: <20140108160351.7cca3766@samsung.com>
-In-reply-to: <20140108150512.4e9e6f01@samsung.com>
-References: <CAGGh5h3TCYiCuubm27h5O7DLknwU9-fUqMjxk_pFEaiXW61mGw@mail.gmail.com>
- <20130311230028.GE5412@xanatos>
- <CAGGh5h1wPQWtvP0rHSjsC-jLJwEX1Leb8eYgK6adP2Hc5skn2Q@mail.gmail.com>
- <CAGGh5h3V5=dGo3dARyrwp9ERhcK_1Nty_gTX27qEr1ZEdQoATg@mail.gmail.com>
- <20130318165124.GD17414@xanatos>
- <20131229025440.526a9feb.m.chehab@samsung.com> <20140102220722.GC9621@xanatos>
- <20140108143128.618bfca2@samsung.com> <20140108150512.4e9e6f01@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-ob0-f170.google.com ([209.85.214.170]:46676 "EHLO
+	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751931AbaACPSM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jan 2014 10:18:12 -0500
+Received: by mail-ob0-f170.google.com with SMTP id wp18so15875874obc.29
+        for <linux-media@vger.kernel.org>; Fri, 03 Jan 2014 07:18:11 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <52C6CEC6.8020602@xs4all.nl>
+References: <1375453200-28459-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1375453200-28459-3-git-send-email-ricardo.ribalda@gmail.com> <52C6CEC6.8020602@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Fri, 3 Jan 2014 16:17:51 +0100
+Message-ID: <CAPybu_1ABrgBGYNicL37cBE_A2-eYq4=7Cwa-nfEJWndVqq2EQ@mail.gmail.com>
+Subject: Re: [PATCH v4 2/2] videobuf2-dma-sg: Replace vb2_dma_sg_desc with sg_table
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 08 Jan 2014 15:05:12 -0200
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+Hello Hans
 
-> Em Wed, 08 Jan 2014 14:31:28 -0200
-> Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
-> 
-> > Em Thu, 02 Jan 2014 14:07:22 -0800
-> > Sarah Sharp <sarah.a.sharp@linux.intel.com> escreveu:
-> > 
-> > > On Sun, Dec 29, 2013 at 02:54:40AM -0200, Mauro Carvalho Chehab wrote:
-> > > > It seems that usb_unlink_urb() is causing troubles with xHCI: the
-> > > > endpoint stops streaming, but, after that, it doesn't start again,
-> > > > and lots of debug messages are produced. I emailed you the full log
-> > > > after start streaming in priv (too big for vger), but basically, 
-> > > > it produces:
-> > > > 
-> > > > [ 1635.754546] xhci_hcd 0000:00:14.0: Endpoint 0x81 not halted, refusing to reset.
-> > > > [ 1635.754562] xhci_hcd 0000:00:14.0: Endpoint 0x82 not halted, refusing to reset.
-> > > > [ 1635.754577] xhci_hcd 0000:00:14.0: Endpoint 0x83 not halted, refusing to reset.
-> > > > [ 1635.754594] xhci_hcd 0000:00:14.0: Endpoint 0x84 not halted, refusing to reset.
-> > > 
-> > > I think that's due to the driver (or userspace) attempting to reset the
-> > > endpoint when it didn't actually receive a stall (-EPIPE) status from an
-> > > URB.  When that happens, the xHCI host controller endpoint "toggle" bits
-> > > get out of sync with the device toggle bits, and the result is that all
-> > > transfers will fail to the endpoint from then on until you switch
-> > > alternate interface settings or unplug/replug the device.
-> > > 
-> > > Try this patch:
-> > > 
-> > > http://marc.info/?l=linux-usb&m=138116117104619&w=2
-> > > 
-> > > It's still under RFC, and I know it has race conditions, but it will let
-> > > you quickly test whether this fixes your issue.
-> > 
-> > Didn't work fine, or at least it didn't solve all the problems. Also, it
-> > started to cause OOPSes due to the race conditions.
-> > 
-> > > 
-> > > This has been a long-standing xHCI driver bug.  I asked my OPW intern to
-> > > work on the patch to fix it, but she may be a bit busy with her new job
-> > > to finish up the RFC.  I'll probably have to take over finishing the
-> > > patch, if this turns out to be your issue.
-> > > 
-> > > > (Not sure why it is trying to stop all endpoints - as just one endpoint was
-> > > > requested to restart).
-> > > 
-> > > Something is calling into usb_clear_halt() with all the endpoints.
-> > > Userspace, perhaps? 
-> > 
-> > No, userspace is not doing it. The userspace doesn't even know that this
-> > device is USB (and were written at the time that all media drivers were
-> > PCI only - so it doesn't have any USB specific call on it).
-> > 
-> > > You could add WARN() calls to usb_clear_halt() to
-> > > see what code is resetting the endpoints.  In any case, it's not part of
-> > > the USB core code to change configuration or alt settings, since I don't
-> > > see any xHCI driver output from the endpoint bandwidth code in this
-> > > chunk of the dmesg you sent:
-> > 
-> > The em28xx-audio.c driver may need to call usb_set_interface() while
-> > the video is still streaming, in order to unmute the audio. That happens
-> > when the audio device is opened.
-> > 
-> > With EHCI, this works properly.
-> > 
-> > > [ 1649.640783] xhci_hcd 0000:00:14.0: Removing canceled TD starting at 0xb41e8580 (dma).
-> > > [ 1649.640784] xhci_hcd 0000:00:14.0: TRB to noop at offset 0xb41e8580
-> > > [ 1649.643159] xhci_hcd 0000:00:14.0: Endpoint 0x81 not halted, refusing to reset.
-> > > [ 1649.643188] xhci_hcd 0000:00:14.0: Endpoint 0x82 not halted, refusing to reset.
-> > > [ 1649.643215] xhci_hcd 0000:00:14.0: Endpoint 0x83 not halted, refusing to reset.
-> > > [ 1649.643239] xhci_hcd 0000:00:14.0: Endpoint 0x84 not halted, refusing to reset.
-> > > [ 1649.735539] xhci_hcd 0000:00:14.0: ERROR no room on ep ring, try ring expansion
-> > > 
-> > > Sarah Sharp
-> > 
-> > Btw, sometimes, I get such logs:
-> > 
-> > [  646.192273] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
-> > [  646.192292] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
-> > [  646.192311] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
-> > [  646.192329] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
-> > [  646.192351] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
-> > [  646.192376] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
-> > 
-> > After adding some debug at em28xx-audio, triggering alsa trigger start
-> > events, I'm getting those:
-> > 
-> > [ 3078.971224] snd_em28xx_capture_trigger: start capture
-> > [ 3078.971284] xhci_hcd 0000:00:14.0: ERROR no room on ep ring, try ring expansion
-> > [ 3078.971311] xhci_hcd 0000:00:14.0: ring expansion succeed, now has 4 segments
-> > [ 3078.971350] xhci_hcd 0000:00:14.0: ERROR no room on ep ring, try ring expansion
-> > [ 3078.971387] xhci_hcd 0000:00:14.0: ring expansion succeed, now has 8 segments
-> > [ 3079.034626] em28xx_audio_isocirq, 64 packets (first one with size 12)
-> > 
-> > Here, some audio data arrives.
-> > 
-> > [ 3079.034665] snd_em28xx_capture_trigger: stop capture
-> > 
-> > It seems, however, that this didn't arrive in time, and causes an alsa
-> > buffer underrun. So, it cancels the existing URBs.
-> > 
-> > PS.: Even with EHCI, it causes a few ALSA underruns before it gets steady.
-> > I suspect that this is due to em28xx time to synchronize audio and video
-> > streams.
-> > 
-> > [ 3079.034736] xhci_hcd 0000:00:14.0: Cancel URB ffff880207900000, dev 4, ep 0x83, starting at offset 0x1ffb13850
-> > [ 3079.034755] xhci_hcd 0000:00:14.0: // Ding dong!
-> > [ 3079.034783] xhci_hcd 0000:00:14.0: Stopped on Transfer TRB
-> > [ 3079.034790] snd_em28xx_capture_trigger: start capture
-> > 
-> > While xHCI is still canceling the URBs, a new trigger happens, and it
-> > calls usb_submit_urb().
-> > 
-> > [ 3079.034819] xhci_hcd 0000:00:14.0: Removing canceled TD starting at 0x1ffb13850 (dma).
-> > [ 3079.034835] xhci_hcd 0000:00:14.0: TRB to noop at offset 0x1ffb13850
-> > ...
-> > [ 3079.036341] xhci_hcd 0000:00:14.0: Removing canceled TD starting at 0xb624b850 (dma).
-> > [ 3079.036352] xhci_hcd 0000:00:14.0: TRB to noop at offset 0xb624b850
-> > [ 3079.036365] em28xx_audio_isocirq, 64 packets (first one with size 0)
-> > 
-> > But xHCI only finishes cancelling the first URB here...
-> > 
-> > [ 3079.036382] xhci_hcd 0000:00:14.0: Cancel URB ffff880207900800, dev 4, ep 0x83, starting at offset 0x1ff937010
-> > ...
-> > [ 3079.043158] xhci_hcd 0000:00:14.0: TRB to noop at offset 0x1ffb13840
-> > [ 3079.043170] em28xx_audio_isocirq, 64 packets (first one with size 0)
-> > 
-> > And only here, it finishes to cancel the entire operation.
-> > 
-> > [ 3079.043231] xhci_hcd 0000:00:14.0: ERROR no room on ep ring, try ring expansion
-> > [ 3079.043299] xhci_hcd 0000:00:14.0: ring expansion succeed, now has 16 segments
-> > [ 3079.428996] em28xx_audio_isocirq, 64 packets (first one with size 64)
-> > 
-> > Finally, after ~400ms after the new usb_submit_urb(), the first audio packet
-> > appears...
-> > 
-> > [ 3079.429069] snd_em28xx_capture_trigger: stop capture
-> > 
-> > However, this is not fast enough to avoid ALSA buffer underrun. So,
-> > the driver cancels the existing URBs...
-> > 
-> > [ 3079.429204] xhci_hcd 0000:00:14.0: Cancel URB ffff880207900000, dev 4, ep 0x83, starting at offset 0xc5a7f4b0
-> > [ 3079.429241] snd_em28xx_capture_trigger: start capture
-> > 
-> > And submits a new set.
-> > 
-> > Not sure how to fix it.
-> 
-> Hmm... calling xawtv with a very high-latency alsa buffer works (the
-> default latency is 30ms, with works fine with an EHCI port):
-> 
-> 	$ xawtv --alsa-latency 500
-> 
-> Of course, a half-second latency means that audio and video won't be 
-> properly synchronized, but at least audio works.
-> 
-> I'll turn off the USB logs and do more experiences with the latency,
-> in order to have an idea on how faster is EHCI to handle the
-> ISOC requests, when compared with xHCI.
+Thank you very much for your mail.
 
-Ok, at lest on my quad-core 3rd gen i7core notebook, a latency of 65ms
-is enough for audio to work on em28xx with xHCI. However, using such
-latency on EHCI causes underruns. A latency of 90ms seems to work fine
-on both drivers.
+For what I understand sg_alloc_table_from_pages does not allocate any
+page or bounce buffer, it just take a set of N pages and makes a
+sg_table from it, on the process it finds out if page A and A+1are on
+the same pfn and if it is true they will share the sg. So it is a
+later function that produces the error.  As I see it, before this
+patch we were reimplementing sg_alloc_table_from_pages.
 
-I'm starting to wander that maybe xHCI is not using the same urb->interval
-than EHCI, and if this could explain those issues.
+Which function is returning -ENOMEM?
 
-Regards,
+
+Regards!
+
+
+
+On Fri, Jan 3, 2014 at 3:52 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Ricardo,
+>
+> I've run into a problem that is caused by this patch:
+>
+> On 08/02/2013 04:20 PM, Ricardo Ribalda Delgado wrote:
+>> Replace the private struct vb2_dma_sg_desc with the struct sg_table so
+>> we can benefit from all the helping functions in lib/scatterlist.c for
+>> things like allocating the sg or compacting the descriptor
+>>
+>> marvel-ccic and solo6x10 drivers, that uses this api has been updated
+>>
+>> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> Reviewed-by: Andre Heider <a.heider@gmail.com>
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>> ---
+>>  drivers/media/platform/marvell-ccic/mcam-core.c    |   14 +--
+>>  drivers/media/v4l2-core/videobuf2-dma-sg.c         |  103 ++++++++------------
+>>  drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 ++--
+>>  include/media/videobuf2-dma-sg.h                   |   10 +-
+>>  4 files changed, 63 insertions(+), 84 deletions(-)
+>>
+>
+> <snip>
+>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> index 4999c48..2f86054 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>
+> <snip>
+>
+>> @@ -99,17 +98,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+>>       buf->vaddr = NULL;
+>>       buf->write = 0;
+>>       buf->offset = 0;
+>> -     buf->sg_desc.size = size;
+>> +     buf->size = size;
+>>       /* size is already page aligned */
+>> -     buf->sg_desc.num_pages = size >> PAGE_SHIFT;
+>> -
+>> -     buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
+>> -                                   sizeof(*buf->sg_desc.sglist));
+>> -     if (!buf->sg_desc.sglist)
+>> -             goto fail_sglist_alloc;
+>> -     sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
+>> +     buf->num_pages = size >> PAGE_SHIFT;
+>>
+>> -     buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
+>> +     buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+>>                            GFP_KERNEL);
+>>       if (!buf->pages)
+>>               goto fail_pages_array_alloc;
+>> @@ -118,6 +111,11 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+>>       if (ret)
+>>               goto fail_pages_alloc;
+>>
+>> +     ret = sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
+>> +                     buf->num_pages, 0, size, gfp_flags);
+>> +     if (ret)
+>> +             goto fail_table_alloc;
+>> +
+>>       buf->handler.refcount = &buf->refcount;
+>>       buf->handler.put = vb2_dma_sg_put;
+>>       buf->handler.arg = buf;
+>
+> The problem here is the switch from sg_init_table to sg_alloc_table_from_pages. If
+> the PCI hardware only accepts 32-bit DMA transfers, but it is used on a 64-bit OS
+> with > 4GB physical memory, then the kernel will allocate DMA bounce buffers for you.
+>
+> With sg_init_table that works fine since each page in the scatterlist maps to a
+> bounce buffer that is also just one page, but with sg_alloc_table_from_pages the DMA
+> bounce buffers can be multiple pages. This is in turn rounded up to the next power of
+> 2 and allocated in the 32-bit address space. Unfortunately, due to memory fragmentation
+> this very quickly fails with -ENOMEM.
+>
+> I discovered this while converting saa7134 to vb2. I think that when DMA bounce
+> buffers are needed, then it should revert to sg_init_table.
+>
+> I don't know whether this bug also affects non-v4l drivers.
+>
+> For now at least I won't try to fix this myself as I have discovered that dma-sg
+> doesn't work anyway for saa7134 due to a hardware limitation so I will switch to
+> dma-contig for that driver.
+>
+> But at the very least I thought I should write this down so others know about this
+> subtle problem and perhaps someone else wants to tackle this.
+>
+> I actually think that the solo driver is affected by this (I haven't tested it yet).
+> And at some point we need to convert bttv and cx88 to vb2 as well, and I expect that
+> they will hit the same problem.
+>
+> If someone knows a better solution than switching to sg_init_table if bounce buffers
+> are needed, then let me know.
+>
+> Regards,
+>
+>         Hans
+
+
+
 -- 
-
-Cheers,
-Mauro
+Ricardo Ribalda
