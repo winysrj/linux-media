@@ -1,63 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s5.blu0.hotmail.com ([65.55.111.80]:15472 "EHLO
-	blu0-omc2-s5.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751931AbaACPQ5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jan 2014 10:16:57 -0500
-Message-ID: <BLU0-SMTP150C8C0DB0E9A3A9F4104F8ADCA0@phx.gbl>
-Date: Fri, 3 Jan 2014 23:16:52 +0800
-From: randy <lxr1234@hotmail.com>
+Received: from mail-ob0-f169.google.com ([209.85.214.169]:43687 "EHLO
+	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751161AbaACLae (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jan 2014 06:30:34 -0500
+Received: by mail-ob0-f169.google.com with SMTP id wm4so15690069obc.0
+        for <linux-media@vger.kernel.org>; Fri, 03 Jan 2014 03:30:33 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Kamil Debski <k.debski@samsung.com>
-Subject: Re: using MFC memory to memery encoder, start stream and queue order
- problem
-References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl> <02c701cf07b6$565cd340$031679c0$%debski@samsung.com> <BLU0-SMTP266BE9BC66B254061740251ADCB0@phx.gbl> <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com>
-In-Reply-To: <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>
+References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
+	<52A1A76A.6070301@epfl.ch>
+	<CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>
+	<52B04D70.8060201@epfl.ch>
+	<CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>
+Date: Fri, 3 Jan 2014 12:30:33 +0100
+Message-ID: <CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
+Subject: Re: omap3isp device tree support
+From: Enrico <ebutera@users.berlios.de>
+To: florian.vaussard@epfl.ch
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I rewrite my program, it takes the order as below
-1.request buffer.
-2.mmap input buffer with OUTPUT
-3.output buffer with CAPTURE.
-4.filled input buffer with the first frame.
-5.enqueue the first frame in the input buffer in OUTPUT side
-6.enqueue the output buffer in CAPTURE side
-7.start stream
-8.dequeue CAPTURE buffer and make output buffer pointer to data of it.
-9.get output data from output buffer
-/* the buffer get size is 22 below */
-10.dequeue OUTPUT
-/* timed out, it will never end */
-Is there any problem with the order? I don't do any thing simultaneously
-below, it seems to difficult to me to understand and not easy to debug.
-I am not sure whether the mmap is correct, but I think it it as I don't
-get segment fault.
+On Wed, Dec 18, 2013 at 11:09 AM, Enrico <ebutera@users.berlios.de> wrote:
+> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard
+> <florian.vaussard@epfl.ch> wrote:
+>> So I converted the iommu to DT (patches just sent), used pdata quirks
+>> for the isp / mtv9032 data, added a few patches from other people
+>> (mainly clk to fix a crash when deferring the omap3isp probe), and a few
+>> small hacks. I get a 3.13-rc3 (+ board-removal part from Tony Lindgren)
+>> to boot on DT with a working MT9V032 camera. The missing part is the DT
+>> binding for the omap3isp, but I guess that we will have to wait a bit
+>> more for this.
+>>
+>> If you want to test, I have a development tree here [1]. Any feedback is
+>> welcome.
+>>
+>> Cheers,
+>>
+>> Florian
+>>
+>> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
+>
+> Thanks Florian,
+>
+> i will report what i get with my setup.
 
+And here i am.
 
-And the thing in the next is like this I think
-11.filled input buffer with the next frame
-12.enqueue the next frame in the input buffer in OUTPUT side
-13.dequeue CAPTURE buffer and make output buffer pointer to data of it.
-14.dequeue OUTPUT
-goto 11
-Is it correct
+I can confirm it works, video source is tvp5150 (with platform data in
+pdata-quirks.c) in bt656 mode.
 
-I doubt the REAME
-5. Request CAPTURE and OUTPUT buffers. Due to hardware limitations of MFC on
-   some platforms it is recommended to use V4L2_MEMORY_MMAP buffers.
-6. Enqueue CAPTURE buffers.
-7. Enqueue OUTPUT buffer with first frame.
-8. Start streaming (VIDIOC_STREAMON) on both ends.
-9. Simultaneously:
-I don't need to dequeue the OUTPUT buffer which is with first frame?
-   - enqueue buffers with next frames,
-   - dequeue used OUTPUT buffers (blocking operation),
-   - dequeue buffers with encoded stream (blocking operation),
-   - enqueue free CAPTURE buffers.
+Laurent, i used the two bt656 patches from your omap3isp/bt656 tree so
+if you want to push it you can add a Tested-by me.
 
+There is only one problem, but it's unrelated to your DT work.
 
-							Thank you.
+It's an old problem (see for example [1] and [2]), seen by other
+people too and it seems it's still there.
+Basically if i capture with yavta while the system is idle then it
+just waits without getting any frame.
+If i add some cpu load (usually i do a "cat /dev/zero" in a ssh
+terminal) it starts capturing correctly.
+
+The strange thing is that i do get isp interrupts in the idle case, so
+i don't know why they don't "propagate" to yavta.
+
+Any hints on how to debug this?
+
+Enrico
+
+[1]: https://linuxtv.org/patch/7836/
+[2]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg44923.html
