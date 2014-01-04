@@ -1,76 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54175 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752577AbaAYRLJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:09 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 47/52] msi3101: calculate tuner filters
-Date: Sat, 25 Jan 2014 19:10:41 +0200
-Message-Id: <1390669846-8131-48-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:44192 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754064AbaADR0I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 12:26:08 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v4 14/22] [media] em28xx: unify module version
+Date: Sat,  4 Jan 2014 08:55:43 -0200
+Message-Id: <1388832951-11195-15-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Calculate tuner filters from sampling rate and use it if not
-defined manually.
+Use the same module version on all em28xx sub-modules, and use
+the same naming convention to describe the driver.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/staging/media/msi3101/sdr-msi3101.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/media/usb/em28xx/em28xx-audio.c | 3 ++-
+ drivers/media/usb/em28xx/em28xx-core.c  | 2 --
+ drivers/media/usb/em28xx/em28xx-dvb.c   | 4 +++-
+ drivers/media/usb/em28xx/em28xx-input.c | 3 ++-
+ drivers/media/usb/em28xx/em28xx-video.c | 4 +---
+ drivers/media/usb/em28xx/em28xx.h       | 1 +
+ 6 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index cb66f81..02960c7 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -1416,7 +1416,7 @@ static int msi3101_set_tuner(struct msi3101_state *s)
- 		{5000000, 0x04}, /* 5 MHz */
- 		{6000000, 0x05}, /* 6 MHz */
- 		{7000000, 0x06}, /* 7 MHz */
--		{8000000, 0x07}, /* 8 MHz */
-+		{    ~0U, 0x07}, /* 8 MHz */
- 	};
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 263886adcf26..a6eef06ffdcd 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -747,7 +747,8 @@ static void __exit em28xx_alsa_unregister(void)
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Markus Rechberger <mrechberger@gmail.com>");
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
+-MODULE_DESCRIPTION("Em28xx Audio driver");
++MODULE_DESCRIPTION(DRIVER_DESC " - audio interface");
++MODULE_VERSION(EM28XX_VERSION);
  
- 	unsigned int f_rf = s->f_tuner;
-@@ -1473,8 +1473,12 @@ static int msi3101_set_tuner(struct msi3101_state *s)
- 	if (i == ARRAY_SIZE(if_freq_lut))
- 		goto err;
+ module_init(em28xx_alsa_register);
+ module_exit(em28xx_alsa_unregister);
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 36b2f1ab4474..2ad84ff1fc4f 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -39,8 +39,6 @@
+ 		      "Mauro Carvalho Chehab <mchehab@infradead.org>, " \
+ 		      "Sascha Sommer <saschasommer@freenet.de>"
  
-+	/* user has not requested bandwidth, set some reasonable */
-+	if (bandwidth == 0)
-+		bandwidth = s->f_adc;
+-#define DRIVER_DESC         "Empia em28xx based USB core driver"
+-
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_DESC);
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index f72663a9b5c5..7fa1c804c34c 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -54,9 +54,11 @@
+ #include "m88ds3103.h"
+ #include "m88ts2022.h"
+ 
+-MODULE_DESCRIPTION("driver for em28xx based DVB cards");
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
+ MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION(DRIVER_DESC " - digital TV interface");
++MODULE_VERSION(EM28XX_VERSION);
 +
- 	for (i = 0; i < ARRAY_SIZE(bandwidth_lut); i++) {
--		if (bandwidth == bandwidth_lut[i].freq) {
-+		if (bandwidth <= bandwidth_lut[i].freq) {
- 			bandwidth = bandwidth_lut[i].val;
- 			break;
- 		}
-@@ -1483,6 +1487,9 @@ static int msi3101_set_tuner(struct msi3101_state *s)
- 	if (i == ARRAY_SIZE(bandwidth_lut))
- 		goto err;
  
-+	dev_dbg(&s->udev->dev, "%s: bandwidth selected=%d\n",
-+			__func__, bandwidth_lut[i].freq);
-+
- #define F_OUT_STEP 1
- #define R_REF 4
- 	f_vco = (f_rf + f_if + f_if1) * lo_div;
-@@ -1925,9 +1932,9 @@ static int msi3101_probe(struct usb_interface *intf,
- 		.id	= MSI3101_CID_TUNER_BW,
- 		.type	= V4L2_CTRL_TYPE_INTEGER,
- 		.name	= "Tuner Bandwidth",
--		.min	= 200000,
-+		.min	= 0,
- 		.max	= 8000000,
--		.def    = 600000,
-+		.def    = 0,
- 		.step	= 1,
- 	};
- 	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
+ static unsigned int debug;
+ module_param(debug, int, 0644);
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index eed7dd79f734..f3b629dd57ae 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -836,7 +836,8 @@ static void __exit em28xx_rc_unregister(void)
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
+-MODULE_DESCRIPTION("Em28xx Input driver");
++MODULE_DESCRIPTION(DRIVER_DESC " - input interface");
++MODULE_VERSION(EM28XX_VERSION);
+ 
+ module_init(em28xx_rc_register);
+ module_exit(em28xx_rc_unregister);
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 328d724a13ea..999cbfe766a3 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -50,8 +50,6 @@
+ 		      "Mauro Carvalho Chehab <mchehab@infradead.org>, " \
+ 		      "Sascha Sommer <saschasommer@freenet.de>"
+ 
+-#define DRIVER_DESC         "Empia em28xx based USB video device driver"
+-
+ static unsigned int isoc_debug;
+ module_param(isoc_debug, int, 0644);
+ MODULE_PARM_DESC(isoc_debug, "enable debug messages [isoc transfers]");
+@@ -78,7 +76,7 @@ do {\
+   } while (0)
+ 
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+-MODULE_DESCRIPTION(DRIVER_DESC);
++MODULE_DESCRIPTION(DRIVER_DESC " - v4l2 interface");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(EM28XX_VERSION);
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index ac79501f5d9f..db47c2236ca4 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -27,6 +27,7 @@
+ #define _EM28XX_H
+ 
+ #define EM28XX_VERSION "0.2.1"
++#define DRIVER_DESC    "Empia em28xx device driver"
+ 
+ #include <linux/workqueue.h>
+ #include <linux/i2c.h>
 -- 
-1.8.5.3
+1.8.3.1
 
