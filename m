@@ -1,225 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1044 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754748AbaAFOVo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 20/27] v4l2-ctrls: add matrix support.
-Date: Mon,  6 Jan 2014 15:21:19 +0100
-Message-Id: <1389018086-15903-21-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:18597 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753901AbaADOJi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 09:09:38 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYV00F69RC04S50@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 04 Jan 2014 09:09:36 -0500 (EST)
+Date: Sat, 04 Jan 2014 12:09:32 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 00/24] em28xx: split analog part into a separate module
+Message-id: <20140104120932.3fb142ce@samsung.com>
+In-reply-to: <52C71DA0.3000405@googlemail.com>
+References: <1388232976-20061-1-git-send-email-mchehab@redhat.com>
+ <52C71DA0.3000405@googlemail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Fri, 03 Jan 2014 21:29:20 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Finish the userspace-facing matrix support.
+> Am 28.12.2013 13:15, schrieb Mauro Carvalho Chehab:
+> > This patch series split em28xx into a separate V4L2 driver,
+> > allowing the new dvb-only chips to be supported without requiring
+> > V4L2.
+> >
+> > While testing the original patchset, I noticed several issues with
+> > HVR-950. The remaining patches on this series fix most of those
+> > issues.
+> >
+> > There's one remaining issue: on my tests, when connecting the device
+> > into an USB 3.0 port, the AC97 EMP202 is not properly detected. 
+> > Also, the audio doesn't work fine. I'm still investigating what
+> > would be the root cause for that.
+> >
+> > Mauro Carvalho Chehab (24):
+> >   em28xx: move some video-specific functions to em28xx-video
+> >   em28xx: some cosmetic changes
+> >   em28xx: move analog-specific init to em28xx-video
+> >   em28xx: make em28xx-video to be a separate module
+> >   em28xx: initialize analog I2C devices at the right place
+> >   em28xx-cards: remove a now dead code
+> >   em28xx: fix a cut and paste error
+> 
+> I tried to review the core/V4L2 split patches [1-7] in detail, but it's
+> nearly impossible.
+> With one patch, you introduce issues which you then fix with other
+> patches later.
+> Patch 3 for example breaks compilation 2 times and introduces a deadlock
+> and an oops...
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 106 ++++++++++++++++++++---------------
- 1 file changed, 61 insertions(+), 45 deletions(-)
+That's actually the only patch that broke compilation. This patch was
+actually generated as an intermediate step to patch 4, using git citool,
+in order to make easier to review the code changes, splitting the code
+move from the actual device split.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 3655b51..8d6711e 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1159,6 +1159,8 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 		ptr.p_s32[idx] = ctrl->default_value;
- 		break;
- 	default:
-+		idx *= ctrl->elem_size;
-+		memset(ptr.p + idx, 0, ctrl->elem_size);
- 		break;
- 	}
- }
-@@ -1276,7 +1278,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 	u32 len;
- 
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
-+		return copy_to_user(c->p, ptr.p, c->size);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
-@@ -1327,8 +1329,17 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 	u32 size;
- 
- 	ctrl->is_new = 1;
--	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_from_user(ptr.p, c->p, ctrl->elem_size);
-+	if (ctrl->is_ptr && !ctrl->is_string) {
-+		unsigned idx;
-+
-+		ret = copy_from_user(ptr.p, c->p, c->size);
-+		if (ret || !ctrl->is_matrix)
-+			return ret;
-+		for (idx = c->size / ctrl->elem_size;
-+		     idx < ctrl->rows * ctrl->cols; idx++)
-+			ctrl->type_ops->init(ctrl, idx, ptr);
-+		return 0;
-+	}
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER64:
-@@ -1371,21 +1382,7 @@ static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
- {
- 	if (ctrl == NULL)
- 		return;
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		strcpy(to.p_char, from.p_char);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		*to.p_s64 = *from.p_s64;
--		break;
--	default:
--		if (ctrl->is_ptr)
--			memcpy(to.p, from.p, ctrl->elem_size);
--		else
--			*to.p_s32 = *from.p_s32;
--		break;
--	}
-+	memcpy(to.p, from.p, ctrl->rows * ctrl->cols * ctrl->elem_size);
- }
- 
- /* Copy the new value to the current value. */
-@@ -1446,15 +1443,19 @@ static void store_to_new(struct v4l2_ctrl *ctrl, unsigned store)
- static int cluster_changed(struct v4l2_ctrl *master)
- {
- 	bool changed = false;
-+	unsigned idx;
- 	int i;
- 
- 	for (i = 0; i < master->ncontrols; i++) {
- 		struct v4l2_ctrl *ctrl = master->cluster[i];
-+		bool ctrl_changed = false;
- 
- 		if (ctrl == NULL)
- 			continue;
--		ctrl->has_changed = !ctrl->type_ops->equal(ctrl, 0,
-+		for (idx = 0; idx < ctrl->rows * ctrl->cols; idx++)
-+			ctrl_changed |= !ctrl->type_ops->equal(ctrl, idx,
- 						ctrl->stores[0], ctrl->new);
-+		ctrl->has_changed = ctrl_changed;
- 		changed |= ctrl->has_changed;
- 	}
- 	return changed;
-@@ -1501,26 +1502,32 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
- 			struct v4l2_ext_control *c)
- {
- 	union v4l2_ctrl_ptr ptr;
--
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_INTEGER:
--	case V4L2_CTRL_TYPE_INTEGER_MENU:
--	case V4L2_CTRL_TYPE_MENU:
--	case V4L2_CTRL_TYPE_BITMASK:
--	case V4L2_CTRL_TYPE_BOOLEAN:
--	case V4L2_CTRL_TYPE_BUTTON:
--	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		ptr.p_s32 = &c->value;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	case V4L2_CTRL_TYPE_INTEGER64:
--		ptr.p_s64 = &c->value64;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	default:
--		ptr.p = c->p;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
-+	unsigned idx;
-+	int err = 0;
-+
-+	if (!ctrl->is_ptr) {
-+		switch (ctrl->type) {
-+		case V4L2_CTRL_TYPE_INTEGER:
-+		case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		case V4L2_CTRL_TYPE_MENU:
-+		case V4L2_CTRL_TYPE_BITMASK:
-+		case V4L2_CTRL_TYPE_BOOLEAN:
-+		case V4L2_CTRL_TYPE_BUTTON:
-+		case V4L2_CTRL_TYPE_CTRL_CLASS:
-+			ptr.p_s32 = &c->value;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+
-+		case V4L2_CTRL_TYPE_INTEGER64:
-+			ptr.p_s64 = &c->value64;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+		default:
-+			break;
-+		}
- 	}
-+	ptr.p = c->p;
-+	for (idx = 0; !err && idx < c->size / ctrl->elem_size; idx++)
-+		err = ctrl->type_ops->validate(ctrl, idx, ptr);
-+	return err;
- }
- 
- static inline u32 node2id(struct list_head *node)
-@@ -1744,6 +1751,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	struct v4l2_ctrl *ctrl;
- 	bool is_matrix;
- 	unsigned sz_extra, tot_prop_size;
-+	unsigned idx;
- 	void *props;
- 	int err;
- 	int s;
-@@ -1869,7 +1877,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			ctrl->stores[s].p = props + s * tot_prop_size;
- 	}
- 	for (s = -1; s <= (int)nstores; s++)
--		ctrl->type_ops->init(ctrl, 0, ctrl->stores[s]);
-+		for (idx = 0; idx < rows * cols; idx++)
-+			ctrl->type_ops->init(ctrl, idx, ctrl->stores[s]);
- 
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
-@@ -2566,12 +2575,16 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 			have_clusters = true;
- 		if (ctrl->cluster[0] != ctrl)
- 			ref = find_ref_lock(hdl, ctrl->cluster[0]->id);
--		if (ctrl->is_ptr && !ctrl->is_string && c->size < ctrl->elem_size) {
--			if (get) {
--				c->size = ctrl->elem_size;
--				return -ENOSPC;
-+		if (ctrl->is_ptr && !ctrl->is_string) {
-+			if (c->size == 0 || c->size % ctrl->elem_size) {
-+				if (get) {
-+					c->size = ctrl->rows * ctrl->cols * ctrl->elem_size;
-+					return -ENOSPC;
-+				}
-+				return -EFAULT;
- 			}
--			return -EFAULT;
-+			if (c->size > ctrl->rows * ctrl->cols * ctrl->elem_size)
-+				c->size = ctrl->rows * ctrl->cols * ctrl->elem_size;
- 		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
-@@ -3202,7 +3215,7 @@ EXPORT_SYMBOL(v4l2_ctrl_notify);
- int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 			s64 min, s64 max, u64 step, s64 def)
- {
--	int ret = check_range(ctrl->type, min, max, step, def);
-+	int ret;
- 	struct v4l2_ext_control c;
- 
- 	switch (ctrl->type) {
-@@ -3212,6 +3225,9 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
-+		if (ctrl->is_matrix)
-+			return -EINVAL;
-+		ret = check_range(ctrl->type, min, max, step, def);
- 		if (ret)
- 			return ret;
- 		break;
+Anyway, it shouldn't break compilation.
+
+The OOPS was fixed on a separate patch (patch 5). I opted to keep it in
+separate, as it seemed interesting to preserve in git history why that
+change happened. Eventually, I can reorder the patch to avoid the OOPS
+to actually happen on bisect.
+
+> Can you please rework these patches and resend them when you think they
+> are ready for reviewing ?
+
+Done. See Patch series v4.
+
+> I've made some basic tests with the whole series applied and didn't
+> observe any problems so far.
+
+Ok. Then the better seems to apply them upstream, in order to allow
+them to have a broader testing.
+
+> Unfortunately I don't have a DVB-only device, too.
+
+I'm acquiring two new em28xx devices. Let's hope that at least one of them
+is DVB-only.
+
+> 
+> Regards,
+> Frank
+> 
+> >   em28xx: add warn messages for timeout
+> >   em28xx: improve extension information messages
+> >   em28xx: convert i2c wait completion logic to use jiffies
+> >   tvp5150: make read operations atomic
+> >   tuner-xc2028: remove unused code
+> >   em28xx: retry I2C ops if failed by timeout
+> >   em28xx: remove a false positive warning
+> >   em28xx: check if a device has audio earlier
+> >   em28xx: properly implement AC97 wait code
+> >   em28xx: initialize audio latter
+> >   em28xx: improve I2C timeout error message
+> >   em28xx: unify module version
+> >   em28xx: Fix em28xx deplock
+> >   em28xx: USB: adjust for changed 3.8 USB API
+> >   em28xx: use a better value for I2C timeouts
+> >   em28xx: don't return -ENODEV for I2C xfer errors
+> >   em28xx: cleanup I2C debug messages
+> >
+> >  drivers/media/i2c/tvp5150.c              |  22 +-
+> >  drivers/media/tuners/tuner-xc2028.c      |   9 -
+> >  drivers/media/usb/em28xx/Kconfig         |   6 +-
+> >  drivers/media/usb/em28xx/Makefile        |   5 +-
+> >  drivers/media/usb/em28xx/em28xx-audio.c  |   9 +-
+> >  drivers/media/usb/em28xx/em28xx-camera.c |   1 +
+> >  drivers/media/usb/em28xx/em28xx-cards.c  | 310 ++--------------
+> >  drivers/media/usb/em28xx/em28xx-core.c   | 295 +--------------
+> >  drivers/media/usb/em28xx/em28xx-dvb.c    |  11 +-
+> >  drivers/media/usb/em28xx/em28xx-i2c.c    | 226 ++++++------
+> >  drivers/media/usb/em28xx/em28xx-input.c  |   7 +-
+> >  drivers/media/usb/em28xx/em28xx-v4l.h    |  24 ++
+> >  drivers/media/usb/em28xx/em28xx-vbi.c    |   1 +
+> >  drivers/media/usb/em28xx/em28xx-video.c  | 607 +++++++++++++++++++++++++++++--
+> >  drivers/media/usb/em28xx/em28xx.h        |  52 +--
+> >  15 files changed, 835 insertions(+), 750 deletions(-)
+> >  create mode 100644 drivers/media/usb/em28xx/em28xx-v4l.h
+> >
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.8.5.2
 
+Cheers,
+Mauro
