@@ -1,79 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40539 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752225AbaAYRLB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:01 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:56360 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754691AbaADRIr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 12:08:47 -0500
+Received: by mail-ee0-f49.google.com with SMTP id c41so7182441eek.36
+        for <linux-media@vger.kernel.org>; Sat, 04 Jan 2014 09:08:45 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/52] rtl2832_sdr: implement sampling rate
-Date: Sat, 25 Jan 2014 19:10:00 +0200
-Message-Id: <1390669846-8131-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 09/11] libdvbv5: use TABLE_INIT macro
+Date: Sat,  4 Jan 2014 18:07:59 +0100
+Message-Id: <1388855282-19295-9-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
+References: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now it is possible to set desired sampling rate via v4l2 controls.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ lib/include/libdvbv5/descriptors.h |    2 +-
+ lib/libdvbv5/descriptors.c         |   24 +++++++++++++-----------
+ 2 files changed, 14 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index c4b72c1..0e12e1a 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -38,6 +38,8 @@
- #include <media/v4l2-event.h>
- #include <media/videobuf2-vmalloc.h>
+diff --git a/lib/include/libdvbv5/descriptors.h b/lib/include/libdvbv5/descriptors.h
+index d5feb4f..bc80940 100644
+--- a/lib/include/libdvbv5/descriptors.h
++++ b/lib/include/libdvbv5/descriptors.h
+@@ -35,7 +35,7 @@
  
-+#include <linux/math64.h>
+ struct dvb_v5_fe_parms;
+ 
+-typedef void (*dvb_table_init_func)(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++typedef void (*dvb_table_init_func)(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, void *table, ssize_t *table_length);
+ 
+ struct dvb_table_init {
+ 	dvb_table_init_func init;
+diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
+index 48f3fe7..c7d535c 100644
+--- a/lib/libdvbv5/descriptors.c
++++ b/lib/libdvbv5/descriptors.c
+@@ -78,18 +78,20 @@ static void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct d
+ 	hexdump(parms, "|           ", desc->data, desc->length);
+ }
+ 
++#define TABLE_INIT( _x ) { (dvb_table_init_func) _x##_init, sizeof(struct _x) }
 +
- /* TODO: These should be moved to V4L2 API */
- #define RTL2832_SDR_CID_SAMPLING_MODE       ((V4L2_CID_USER_BASE | 0xf000) +  0)
- #define RTL2832_SDR_CID_SAMPLING_RATE       ((V4L2_CID_USER_BASE | 0xf000) +  1)
-@@ -643,7 +645,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 	struct dvb_frontend *fe = s->fe;
- 	int ret;
- 	unsigned int f_sr, f_if;
--	u8 buf[3], tmp;
-+	u8 buf[4], tmp;
- 	u64 u64tmp;
- 	u32 u32tmp;
+ const struct dvb_table_init dvb_table_initializers[] = {
+-	[DVB_TABLE_PAT]          = { dvb_table_pat_init, sizeof(struct dvb_table_pat) },
+-	[DVB_TABLE_CAT]          = { dvb_table_cat_init, sizeof(struct dvb_table_cat) },
+-	[DVB_TABLE_PMT]          = { dvb_table_pmt_init, sizeof(struct dvb_table_pmt) },
+-	[DVB_TABLE_NIT]          = { dvb_table_nit_init, sizeof(struct dvb_table_nit) },
+-	[DVB_TABLE_SDT]          = { dvb_table_sdt_init, sizeof(struct dvb_table_sdt) },
+-	[DVB_TABLE_EIT]          = { dvb_table_eit_init, sizeof(struct dvb_table_eit) },
+-	[DVB_TABLE_EIT_SCHEDULE] = { dvb_table_eit_init, sizeof(struct dvb_table_eit) },
+-	[ATSC_TABLE_MGT]         = { atsc_table_mgt_init, sizeof(struct atsc_table_mgt) },
+-	[ATSC_TABLE_EIT]         = { atsc_table_eit_init, sizeof(struct atsc_table_eit) },
+-	[ATSC_TABLE_TVCT]        = { atsc_table_vct_init, sizeof(struct atsc_table_vct) },
+-	[ATSC_TABLE_CVCT]        = { atsc_table_vct_init, sizeof(struct atsc_table_vct) },
++	[DVB_TABLE_PAT]          = TABLE_INIT(dvb_table_pat),
++	[DVB_TABLE_CAT]          = TABLE_INIT(dvb_table_cat),
++	[DVB_TABLE_PMT]          = TABLE_INIT(dvb_table_pmt),
++	[DVB_TABLE_NIT]          = TABLE_INIT(dvb_table_nit),
++	[DVB_TABLE_SDT]          = TABLE_INIT(dvb_table_sdt),
++	[DVB_TABLE_EIT]          = TABLE_INIT(dvb_table_eit),
++	[DVB_TABLE_EIT_SCHEDULE] = TABLE_INIT(dvb_table_eit),
++	[ATSC_TABLE_MGT]         = TABLE_INIT(atsc_table_mgt),
++	[ATSC_TABLE_EIT]         = TABLE_INIT(atsc_table_eit),
++	[ATSC_TABLE_TVCT]        = TABLE_INIT(atsc_table_vct),
++	[ATSC_TABLE_CVCT]        = TABLE_INIT(atsc_table_vct),
+ };
  
-@@ -696,8 +698,17 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 	if (ret)
- 		goto err;
- 
--	ret = rtl2832_sdr_wr_regs(s, 0x19f, "\x03\x84", 2);
--	ret = rtl2832_sdr_wr_regs(s, 0x1a1, "\x00\x00", 2);
-+	/* program sampling rate (resampling down) */
-+	u32tmp = div_u64(s->cfg->xtal * 0x400000ULL, f_sr * 4U);
-+	u32tmp <<= 2;
-+	buf[0] = (u32tmp >> 24) & 0xff;
-+	buf[1] = (u32tmp >> 16) & 0xff;
-+	buf[2] = (u32tmp >>  8) & 0xff;
-+	buf[3] = (u32tmp >>  0) & 0xff;
-+	ret = rtl2832_sdr_wr_regs(s, 0x19f, buf, 4);
-+	if (ret)
-+		goto err;
-+
- 	ret = rtl2832_sdr_wr_regs(s, 0x11c, "\xca", 1);
- 	ret = rtl2832_sdr_wr_regs(s, 0x11d, "\xdc", 1);
- 	ret = rtl2832_sdr_wr_regs(s, 0x11e, "\xd7", 1);
-@@ -1090,8 +1101,8 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 		.id	= RTL2832_SDR_CID_SAMPLING_RATE,
- 		.type	= V4L2_CTRL_TYPE_INTEGER64,
- 		.name	= "Sampling Rate",
--		.min	=  500000,
--		.max	= 4000000,
-+		.min	=  900001,
-+		.max	= 2800000,
- 		.def    = 2048000,
- 		.step	= 1,
- 	};
+ char *default_charset = "iso-8859-1";
 -- 
-1.8.5.3
+1.7.10.4
 
