@@ -1,108 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59498 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751166AbaAKOHD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jan 2014 09:07:03 -0500
-Message-ID: <1389449331.1917.7.camel@palomino.walls.org>
-Subject: Re: [PATCH] [media] cx18: introduce a helper function to avoid
- array overrun
-From: Andy Walls <awalls@md.metrocast.net>
-To: Ethan Zhao <ethan.kernel@gmail.com>
-Cc: Hans Verkuil <hansverk@cisco.com>, hans.verkuil@cisco.com,
-	m.chehab@samsung.com, gregkh@linuxfoundation.org,
-	linux-media <linux-media@vger.kernel.org>
-Date: Sat, 11 Jan 2014 09:08:51 -0500
-In-Reply-To: <52CFF06B.9000302@cisco.com>
-References: <1389020826-807-1-git-send-email-ethan.kernel@gmail.com>
-	 <52CFF06B.9000302@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43693 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753270AbaADN7R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:17 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v4 15/22] [media] em28xx: Fix em28xx deplock
+Date: Sat,  4 Jan 2014 08:55:44 -0200
+Message-Id: <1388832951-11195-16-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2014-01-10 at 14:06 +0100, Hans Verkuil wrote:
-> Also CC to linux-media and Andy Walls who maintains this driver.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> On 01/06/14 16:07, Ethan Zhao wrote:
-> > cx18_i2c_register() is called in cx18_init_subdevs() with index
-> > greater than length of hw_bus array, that will cause array overrun,
-> > introduce a helper cx18_get_max_bus_num() to avoid it.
-> > 
-> > V2: fix a typo and use ARRAY_SIZE macro
-> > 
-> > Signed-off-by: Ethan Zhao <ethan.kernel@gmail.com>
+When em28xx extensions are loaded/removed, there are two locks:
 
-Hi Ethan,
+a single static em28xx_devlist_mutex that registers each extension
+and the struct em28xx dev->lock.
 
-There is no need for this change.  See below.
+When extensions are registered, em28xx_devlist_mutex is taken first,
+and then dev->lock.
 
-> > ---
-> >  drivers/media/pci/cx18/cx18-driver.c | 2 +-
-> >  drivers/media/pci/cx18/cx18-i2c.c    | 5 +++++
-> >  drivers/media/pci/cx18/cx18-i2c.h    | 1 +
-> >  3 files changed, 7 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
-> > index 6386ced..dadcd4a 100644
-> > --- a/drivers/media/pci/cx18/cx18-driver.c
-> > +++ b/drivers/media/pci/cx18/cx18-driver.c
-> > @@ -856,7 +856,7 @@ static void cx18_init_subdevs(struct cx18 *cx)
-> >  	u32 device;
-> >  	int i;
-> >  
-> > -	for (i = 0, device = 1; i < 32; i++, device <<= 1) {
-> > +	for (i = 0, device = 1; i < cx18_get_max_bus_num(); i++, device <<= 1) {
-> >  
-> >  		if (!(device & hw))
-> >  			continue;
+Be sure that, when extensions are being removed, the same order
+will be used.
 
-This check of "!(device & hw)" already does the bounds check.  Card
-specific, I2C device presence flags are statically compiled into the
-driver in cx18-cards.c and are used in this check.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 5 +++--
+ drivers/media/usb/em28xx/em28xx-core.c  | 2 ++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-The ivtv driver does the same sort of check in
-ivtv-driver.c:ivtv_load_and_init_modules().
-
-Both the cx18 and ivtv drivers are very mature, so I don't want any
-unecessary code churn in them to address non-problems.
-
-Regards,
-Andy
-
-> > diff --git a/drivers/media/pci/cx18/cx18-i2c.c b/drivers/media/pci/cx18/cx18-i2c.c
-> > index 4af8cd6..1a7b49b 100644
-> > --- a/drivers/media/pci/cx18/cx18-i2c.c
-> > +++ b/drivers/media/pci/cx18/cx18-i2c.c
-> > @@ -108,6 +108,11 @@ static int cx18_i2c_new_ir(struct cx18 *cx, struct i2c_adapter *adap, u32 hw,
-> >  	       -1 : 0;
-> >  }
-> >  
-> > +int cx18_get_max_bus_num(void)
-> > +{
-> > +	return ARRAY_SIZE(hw_bus);
-> > +}
-> > +
-> >  int cx18_i2c_register(struct cx18 *cx, unsigned idx)
-> >  {
-> >  	struct v4l2_subdev *sd;
-> > diff --git a/drivers/media/pci/cx18/cx18-i2c.h b/drivers/media/pci/cx18/cx18-i2c.h
-> > index 1180fdc..6f2ceb5 100644
-> > --- a/drivers/media/pci/cx18/cx18-i2c.h
-> > +++ b/drivers/media/pci/cx18/cx18-i2c.h
-> > @@ -21,6 +21,7 @@
-> >   *  02111-1307  USA
-> >   */
-> >  
-> > +int cx18_get_max_bus_num(void);
-> >  int cx18_i2c_register(struct cx18 *cx, unsigned idx);
-> >  struct v4l2_subdev *cx18_find_hw(struct cx18 *cx, u32 hw);
-> >  
-> > 
-
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 4fe742429f2c..36aec50e5c3b 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3334,9 +3334,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 	dev->disconnected = 1;
+ 
+ 	if (dev->is_audio_only) {
+-		mutex_lock(&dev->lock);
+ 		em28xx_close_extension(dev);
+-		mutex_unlock(&dev->lock);
+ 		return;
+ 	}
+ 
+@@ -3355,10 +3353,13 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
+ 		em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
+ 	}
++	mutex_unlock(&dev->lock);
+ 
+ 	em28xx_close_extension(dev);
++
+ 	/* NOTE: must be called BEFORE the resources are released */
+ 
++	mutex_lock(&dev->lock);
+ 	if (!dev->users)
+ 		em28xx_release_resources(dev);
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 2ad84ff1fc4f..97cc83c3c287 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -1097,10 +1097,12 @@ void em28xx_close_extension(struct em28xx *dev)
+ 	const struct em28xx_ops *ops = NULL;
+ 
+ 	mutex_lock(&em28xx_devlist_mutex);
++	mutex_lock(&dev->lock);
+ 	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+ 		if (ops->fini)
+ 			ops->fini(dev);
+ 	}
++	mutex_unlock(&dev->lock);
+ 	list_del(&dev->devlist);
+ 	mutex_unlock(&em28xx_devlist_mutex);
+ }
+-- 
+1.8.3.1
 
