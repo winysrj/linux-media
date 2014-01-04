@@ -1,78 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:48350 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752071AbaAMSaz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 13:30:55 -0500
-Received: by mail-ea0-f170.google.com with SMTP id k10so3482441eaj.15
-        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 10:30:54 -0800 (PST)
-Message-ID: <52D43125.9010601@googlemail.com>
-Date: Mon, 13 Jan 2014 19:32:05 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] em28xx: fix check for audio only usb interfaces when
- changing the usb alternate setting
-References: <1389447750-2642-1-git-send-email-fschaefer.oss@googlemail.com> <1389447750-2642-2-git-send-email-fschaefer.oss@googlemail.com> <20140112153729.6f87cd2e@samsung.com>
-In-Reply-To: <20140112153729.6f87cd2e@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43703 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753681AbaADN7T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:19 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v4 12/22] [media] em28xx: properly implement AC97 wait code
+Date: Sat,  4 Jan 2014 08:55:41 -0200
+Message-Id: <1388832951-11195-13-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12.01.2014 18:37, Mauro Carvalho Chehab wrote:
-> Em Sat, 11 Jan 2014 14:42:30 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Previously, we've been assuming that the video endpoints are always at usb
->> interface 0. Hence, if vendor audio endpoints are provided at a separate
->> interface, they were supposed to be at interface number > 0.
->> Instead of checking for (interface number > 0) to determine if an interface is a
->> pure audio interface, dev->is_audio_only should be checked.
->>
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>   drivers/media/usb/em28xx/em28xx-audio.c |   15 +++++++++++++--
->>   1 Datei geändert, 13 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
->>
->> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
->> index b2ae954..18b745f 100644
->> --- a/drivers/media/usb/em28xx/em28xx-audio.c
->> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
->> @@ -243,11 +243,22 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
->>   	}
->>   
->>   	runtime->hw = snd_em28xx_hw_capture;
->> -	if ((dev->alt == 0 || dev->ifnum) && dev->adev.users == 0) {
->> -		if (dev->ifnum)
->> +	if (dev->adev.users == 0 && (dev->alt == 0 || dev->is_audio_only)) {
->> +		if (dev->is_audio_only)
->> +			/* vendor audio is on a separate interface */
->>   			dev->alt = 1;
->>   		else
->> +			/* vendor audio is on the same interface as video */
->>   			dev->alt = 7;
->> +			/*
->> +			 * FIXME: The intention seems to be to select the alt
->> +			 * setting with the largest wMaxPacketSize for the video
->> +			 * endpoint.
->> +			 * At least dev->alt and dev->dvb_alt_isoc should be
->> +			 * used instead, but we should probably not touch it at
->> +			 * all if it is already >0, because wMaxPacketSize of
->> +			 * the audio endpoints seems to be the same for all.
->> +			 */
-> Actually, it should take into account only the analog case, since, in
-> digital mode, the audio comes via the MPEG stream instead.
-Yes, of course you are absolutely right.
-I will fix the comment.
+Instead of assuming that msleep() is precise, use a jiffies
+based code to wait for AC97 to be available.
 
->
-> Ok, it makes sense to return -EBUSY if one tries to use it while using
-> DVB.
->
->>   
->>   		dprintk("changing alternate number on interface %d to %d\n",
->>   			dev->ifnum, dev->alt);
->
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c | 7 +++++--
+ drivers/media/usb/em28xx/em28xx.h      | 5 ++++-
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 818248d3fd28..36b2f1ab4474 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -23,6 +23,7 @@
+  */
+ 
+ #include <linux/init.h>
++#include <linux/jiffies.h>
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -254,16 +255,18 @@ EXPORT_SYMBOL_GPL(em28xx_toggle_reg_bits);
+  */
+ static int em28xx_is_ac97_ready(struct em28xx *dev)
+ {
+-	int ret, i;
++	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_AC97_XFER_TIMEOUT);
++	int ret;
+ 
+ 	/* Wait up to 50 ms for AC97 command to complete */
+-	for (i = 0; i < 10; i++, msleep(5)) {
++	while (time_is_after_jiffies(timeout)) {
+ 		ret = em28xx_read_reg(dev, EM28XX_R43_AC97BUSY);
+ 		if (ret < 0)
+ 			return ret;
+ 
+ 		if (!(ret & 0x01))
+ 			return 0;
++		msleep (5);
+ 	}
+ 
+ 	em28xx_warn("AC97 command still being executed: not handled properly!\n");
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 9d6f43e4681f..ac79501f5d9f 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -182,9 +182,12 @@
+ 
+ #define EM28XX_INTERLACED_DEFAULT 1
+ 
+-/* time in msecs to wait for i2c writes to finish */
++/* time in msecs to wait for i2c xfers to finish */
+ #define EM2800_I2C_XFER_TIMEOUT		20
+ 
++/* time in msecs to wait for AC97 xfers to finish */
++#define EM2800_AC97_XFER_TIMEOUT	100
++
+ /* max. number of button state polling addresses */
+ #define EM28XX_NUM_BUTTON_ADDRESSES_MAX		5
+ 
+-- 
+1.8.3.1
 
