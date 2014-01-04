@@ -1,255 +1,399 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:58051 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751708AbaAYPXp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 10:23:45 -0500
-Received: from minime.bse ([77.20.120.199]) by mail.gmx.com (mrgmx003) with
- ESMTPSA (Nemesis) id 0M0xbD-1VIYUb1OEJ-00vA9X for
- <linux-media@vger.kernel.org>; Sat, 25 Jan 2014 16:23:42 +0100
-Date: Sat, 25 Jan 2014 16:23:40 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Robert Longbottom <rongblor@googlemail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
-Message-ID: <20140125152339.GA18168@minime.bse>
-References: <7D00B0B1-8873-4CB2-903F-8B98749C75FF@googlemail.com>
- <20140121101950.GA13818@minime.bse>
- <52DECF44.1070609@googlemail.com>
- <52DEDFCB.6010802@googlemail.com>
- <20140122115334.GA14710@minime.bse>
- <52DFC300.8010508@googlemail.com>
- <20140122135036.GA14871@minime.bse>
- <52E00AD0.2020402@googlemail.com>
- <20140123132741.GA15756@minime.bse>
- <52E1273F.90207@googlemail.com>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:37977 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752110AbaADRIm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 12:08:42 -0500
+Received: by mail-ee0-f43.google.com with SMTP id c13so7128884eek.16
+        for <linux-media@vger.kernel.org>; Sat, 04 Jan 2014 09:08:41 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 02/11] libdvbv5: add attribute packed to structs and unions
+Date: Sat,  4 Jan 2014 18:07:52 +0100
+Message-Id: <1388855282-19295-2-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
+References: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="yrj/dFKFPuw6o+aM"
-Content-Disposition: inline
-In-Reply-To: <52E1273F.90207@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: André Roth <neolynx@gmail.com>
+---
+ lib/include/libdvbv5/atsc_header.h                |    2 +-
+ lib/include/libdvbv5/desc_atsc_service_location.h |    4 ++--
+ lib/include/libdvbv5/desc_cable_delivery.h        |    8 ++++----
+ lib/include/libdvbv5/desc_event_extended.h        |    4 ++--
+ lib/include/libdvbv5/desc_frequency_list.h        |    4 ++--
+ lib/include/libdvbv5/desc_isdbt_delivery.h        |    4 ++--
+ lib/include/libdvbv5/desc_logical_channel.h       |    4 ++--
+ lib/include/libdvbv5/desc_sat.h                   |    4 ++--
+ lib/include/libdvbv5/desc_service_location.h      |    8 ++++----
+ lib/include/libdvbv5/desc_t2_delivery.h           |    4 ++--
+ lib/include/libdvbv5/header.h                     |    4 ++--
+ lib/include/libdvbv5/mpeg_es.h                    |    6 +++---
+ lib/include/libdvbv5/mpeg_ts.h                    |    2 +-
+ lib/include/libdvbv5/nit.h                        |    4 ++--
+ lib/include/libdvbv5/pat.h                        |    2 +-
+ lib/include/libdvbv5/pmt.h                        |   16 ++++++++--------
+ lib/include/libdvbv5/sdt.h                        |    2 +-
+ lib/include/libdvbv5/vct.h                        |    4 ++--
+ 18 files changed, 43 insertions(+), 43 deletions(-)
 
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+diff --git a/lib/include/libdvbv5/atsc_header.h b/lib/include/libdvbv5/atsc_header.h
+index 1e7148e..9685b37 100644
+--- a/lib/include/libdvbv5/atsc_header.h
++++ b/lib/include/libdvbv5/atsc_header.h
+@@ -36,7 +36,7 @@ struct atsc_table_header {
+ 			uint16_t priv:1;
+ 			uint16_t syntax:1;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	uint16_t id;
+ 	uint8_t  current_next:1;
+ 	uint8_t  version:5;
+diff --git a/lib/include/libdvbv5/desc_atsc_service_location.h b/lib/include/libdvbv5/desc_atsc_service_location.h
+index 47113f2..1ff2341 100644
+--- a/lib/include/libdvbv5/desc_atsc_service_location.h
++++ b/lib/include/libdvbv5/desc_atsc_service_location.h
+@@ -32,7 +32,7 @@ struct atsc_desc_service_location_elementary {
+ 			uint16_t elementary_pid:13;
+ 			uint16_t reserved:3;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	char ISO_639_language_code[3];
+ } __attribute__((packed));
+ 
+@@ -49,7 +49,7 @@ struct atsc_desc_service_location {
+ 			uint16_t pcr_pid:13;
+ 			uint16_t reserved:3;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 
+ 	uint8_t number_elements;
+ } __attribute__((packed));
+diff --git a/lib/include/libdvbv5/desc_cable_delivery.h b/lib/include/libdvbv5/desc_cable_delivery.h
+index 70f5a5b..c2bab5a 100644
+--- a/lib/include/libdvbv5/desc_cable_delivery.h
++++ b/lib/include/libdvbv5/desc_cable_delivery.h
+@@ -37,16 +37,16 @@ struct dvb_desc_cable_delivery {
+ 		struct {
+ 			uint16_t fec_outer:4;
+ 			uint16_t reserved_future_use:12;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ 	uint8_t modulation;
+ 	union {
+ 		uint32_t bitfield2;
+ 		struct {
+ 			uint32_t fec_inner:4;
+ 			uint32_t symbol_rate:28;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ } __attribute__((packed));
+ 
+ struct dvb_v5_fe_parms;
+diff --git a/lib/include/libdvbv5/desc_event_extended.h b/lib/include/libdvbv5/desc_event_extended.h
+index a543590..03fb1f1 100644
+--- a/lib/include/libdvbv5/desc_event_extended.h
++++ b/lib/include/libdvbv5/desc_event_extended.h
+@@ -34,9 +34,9 @@ struct dvb_desc_event_extended {
+ 		struct {
+ 			uint8_t last_id:4;
+ 			uint8_t id:4;
+-		};
++		} __attribute__((packed));
+ 		uint8_t ids;
+-	};
++	} __attribute__((packed));
+ 
+ 	unsigned char language[4];
+ 	char *text;
+diff --git a/lib/include/libdvbv5/desc_frequency_list.h b/lib/include/libdvbv5/desc_frequency_list.h
+index e6e7945..55723c7 100644
+--- a/lib/include/libdvbv5/desc_frequency_list.h
++++ b/lib/include/libdvbv5/desc_frequency_list.h
+@@ -38,8 +38,8 @@ struct dvb_desc_frequency_list {
+ 		struct {
+ 			uint8_t freq_type:2;
+ 			uint8_t reserved:6;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ } __attribute__((packed));
+ 
+ struct dvb_v5_fe_parms;
+diff --git a/lib/include/libdvbv5/desc_isdbt_delivery.h b/lib/include/libdvbv5/desc_isdbt_delivery.h
+index 4df30df..5bac178 100644
+--- a/lib/include/libdvbv5/desc_isdbt_delivery.h
++++ b/lib/include/libdvbv5/desc_isdbt_delivery.h
+@@ -38,8 +38,8 @@ struct isdbt_desc_terrestrial_delivery_system {
+ 			uint16_t transmission_mode:2;
+ 			uint16_t guard_interval:2;
+ 			uint16_t area_code:6;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ } __attribute__((packed));
+ 
+ struct dvb_v5_fe_parms;
+diff --git a/lib/include/libdvbv5/desc_logical_channel.h b/lib/include/libdvbv5/desc_logical_channel.h
+index ce1206c..bbccb81 100644
+--- a/lib/include/libdvbv5/desc_logical_channel.h
++++ b/lib/include/libdvbv5/desc_logical_channel.h
+@@ -36,8 +36,8 @@ struct dvb_desc_logical_channel_number {
+ 			uint16_t logical_channel_number:10;
+ 			uint16_t reserved:5;
+ 			uint16_t visible_service_flag:1;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ } __attribute__((packed));
+ 
+ struct dvb_desc_logical_channel {
+diff --git a/lib/include/libdvbv5/desc_sat.h b/lib/include/libdvbv5/desc_sat.h
+index bb55319..9e192c6 100644
+--- a/lib/include/libdvbv5/desc_sat.h
++++ b/lib/include/libdvbv5/desc_sat.h
+@@ -42,8 +42,8 @@ struct dvb_desc_sat {
+ 		struct {
+ 			uint32_t fec:4;
+ 			uint32_t symbol_rate:28;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ } __attribute__((packed));
+ 
+ struct dvb_v5_fe_parms;
+diff --git a/lib/include/libdvbv5/desc_service_location.h b/lib/include/libdvbv5/desc_service_location.h
+index 89ed055..046bedc 100644
+--- a/lib/include/libdvbv5/desc_service_location.h
++++ b/lib/include/libdvbv5/desc_service_location.h
+@@ -31,8 +31,8 @@ struct dvb_desc_service_location_element {
+ 		struct {
+ 			uint16_t elementary_pid:13;
+ 			uint16_t reserved:3;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ 	uint8_t language[4];
+ } __attribute__((packed));
+ 
+@@ -46,8 +46,8 @@ struct dvb_desc_service_location {
+ 		struct {
+ 			uint16_t pcr_pid:13;
+ 			uint16_t reserved:3;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ 	uint8_t elements;
+ 	struct dvb_desc_service_location_element *element;
+ } __attribute__((packed));
+diff --git a/lib/include/libdvbv5/desc_t2_delivery.h b/lib/include/libdvbv5/desc_t2_delivery.h
+index a36f6c1..a51f897 100644
+--- a/lib/include/libdvbv5/desc_t2_delivery.h
++++ b/lib/include/libdvbv5/desc_t2_delivery.h
+@@ -43,8 +43,8 @@ struct dvb_desc_t2_delivery {
+ 			uint16_t reserved:2;
+ 			uint16_t bandwidth:3;
+ 			uint16_t SISO_MISO:2;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ 
+ 	uint32_t *centre_frequency;
+ 	uint8_t frequency_loop_length;
+diff --git a/lib/include/libdvbv5/header.h b/lib/include/libdvbv5/header.h
+index c8cd466..39871c9 100644
+--- a/lib/include/libdvbv5/header.h
++++ b/lib/include/libdvbv5/header.h
+@@ -35,7 +35,7 @@ struct dvb_ts_packet_header {
+ 			uint16_t payload_unit_start_indicator:1;
+ 			uint16_t transport_error_indicator:1;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	uint8_t continuity_counter:4;
+ 	uint8_t adaptation_field_control:2;
+ 	uint8_t transport_scrambling_control:2;
+@@ -55,7 +55,7 @@ struct dvb_table_header {
+ 			uint8_t  zero2:1;
+ 			uint8_t  syntax:1;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	uint16_t id;
+ 	uint8_t  current_next:1;
+ 	uint8_t  version:5;
+diff --git a/lib/include/libdvbv5/mpeg_es.h b/lib/include/libdvbv5/mpeg_es.h
+index 4c6a862..4f1786e 100644
+--- a/lib/include/libdvbv5/mpeg_es.h
++++ b/lib/include/libdvbv5/mpeg_es.h
+@@ -47,7 +47,7 @@ struct dvb_mpeg_es_seq_start {
+ 			uint32_t height:12;
+ 			uint32_t width:12;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	union {
+ 		uint32_t bitfield3;
+ 		struct {
+@@ -58,7 +58,7 @@ struct dvb_mpeg_es_seq_start {
+ 			uint32_t one:1;
+ 			uint32_t bitrate:18;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ } __attribute__((packed));
+ 
+ struct dvb_mpeg_es_pic_start {
+@@ -77,7 +77,7 @@ struct dvb_mpeg_es_pic_start {
+ 			uint32_t coding_type:3;
+ 			uint32_t temporal_ref:10;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ } __attribute__((packed));
+ 
+ enum dvb_mpeg_es_frame_t
+diff --git a/lib/include/libdvbv5/mpeg_ts.h b/lib/include/libdvbv5/mpeg_ts.h
+index de4fc3f..a877f42 100644
+--- a/lib/include/libdvbv5/mpeg_ts.h
++++ b/lib/include/libdvbv5/mpeg_ts.h
+@@ -51,7 +51,7 @@ struct dvb_mpeg_ts {
+ 			uint16_t payload_start:1;
+ 			uint16_t tei:1;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	struct {
+ 		uint8_t continuity_counter:4;
+ 		uint8_t adaptation_field:2;
+diff --git a/lib/include/libdvbv5/nit.h b/lib/include/libdvbv5/nit.h
+index 09fe596..48feecc 100644
+--- a/lib/include/libdvbv5/nit.h
++++ b/lib/include/libdvbv5/nit.h
+@@ -49,7 +49,7 @@ struct dvb_table_nit_transport {
+ 			uint16_t section_length:12;
+ 			uint16_t reserved:4;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	struct dvb_desc *descriptor;
+ 	struct dvb_table_nit_transport *next;
+ } __attribute__((packed));
+@@ -62,7 +62,7 @@ struct dvb_table_nit {
+ 			uint16_t desc_length:12;
+ 			uint16_t reserved:4;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	struct dvb_desc *descriptor;
+ 	struct dvb_table_nit_transport *transport;
+ } __attribute__((packed));
+diff --git a/lib/include/libdvbv5/pat.h b/lib/include/libdvbv5/pat.h
+index 899815c..2004836 100644
+--- a/lib/include/libdvbv5/pat.h
++++ b/lib/include/libdvbv5/pat.h
+@@ -38,7 +38,7 @@ struct dvb_table_pat_program {
+ 			uint16_t pid:13;
+ 			uint8_t  reserved:3;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	struct dvb_table_pat_program *next;
+ } __attribute__((packed));
+ 
+diff --git a/lib/include/libdvbv5/pmt.h b/lib/include/libdvbv5/pmt.h
+index e1d44cb..f1b7cef 100644
+--- a/lib/include/libdvbv5/pmt.h
++++ b/lib/include/libdvbv5/pmt.h
+@@ -64,16 +64,16 @@ struct dvb_table_pmt_stream {
+ 		struct {
+ 			uint16_t elementary_pid:13;
+ 			uint16_t reserved:3;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ 	union {
+ 		uint16_t bitfield2;
+ 		struct {
+ 			uint16_t section_length:10;
+ 			uint16_t zero:2;
+ 			uint16_t reserved2:4;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ 	struct dvb_desc *descriptor;
+ 	struct dvb_table_pmt_stream *next;
+ } __attribute__((packed));
+@@ -85,8 +85,8 @@ struct dvb_table_pmt {
+ 		struct {
+ 			uint16_t pcr_pid:13;
+ 			uint16_t reserved2:3;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ 
+ 	union {
+ 		uint16_t bitfield2;
+@@ -94,8 +94,8 @@ struct dvb_table_pmt {
+ 			uint16_t prog_length:10;
+ 			uint16_t zero3:2;
+ 			uint16_t reserved3:4;
+-		};
+-	};
++		} __attribute__((packed));
++	} __attribute__((packed));
+ 	struct dvb_table_pmt_stream *stream;
+ } __attribute__((packed));
+ 
+diff --git a/lib/include/libdvbv5/sdt.h b/lib/include/libdvbv5/sdt.h
+index 77ec5b1..17c51f2 100644
+--- a/lib/include/libdvbv5/sdt.h
++++ b/lib/include/libdvbv5/sdt.h
+@@ -44,7 +44,7 @@ struct dvb_table_sdt_service {
+ 			uint16_t free_CA_mode:1;
+ 			uint16_t running_status:3;
+ 		} __attribute__((packed));
+-	};
++	} __attribute__((packed));
+ 	struct dvb_desc *descriptor;
+ 	struct dvb_table_sdt_service *next;
+ } __attribute__((packed));
+diff --git a/lib/include/libdvbv5/vct.h b/lib/include/libdvbv5/vct.h
+index 6935f30..0dc64fd 100644
+--- a/lib/include/libdvbv5/vct.h
++++ b/lib/include/libdvbv5/vct.h
+@@ -104,8 +104,8 @@ union atsc_table_vct_descriptor_length {
+ 	struct {
+ 		uint16_t descriptor_length:10;
+ 		uint16_t reserved:6;
+-	};
+-};
++	} __attribute__((packed));
++} __attribute__((packed));
+ 
+ #define atsc_vct_channel_foreach(_channel, _vct) \
+ 	for (struct atsc_table_vct_channel *_channel = _vct->channel; _channel; _channel = _channel->next) \
+-- 
+1.7.10.4
 
-On Thu, Jan 23, 2014 at 02:29:19PM +0000, Robert Longbottom wrote:
-> Jan 23 14:24:48 quad kernel: [154562.493224] bits: FMTCHG* VSYNC
-> HSYNC OFLOW FBUS   NUML => 625
-> Jan 23 14:24:49 quad kernel: [154562.994015] bttv: 0: timeout:
-> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
-> Jan 23 14:24:49 quad kernel: [154563.496010] bttv: 0: timeout:
-> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
-> Jan 23 14:24:50 quad kernel: [154563.997020] bttv: 0: timeout:
-> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
-> Jan 23 14:24:50 quad kernel: [154564.498018] bttv: 0: timeout:
-> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
-> Jan 23 14:24:51 quad kernel: [154564.999023] bttv: 0: timeout:
-> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
-> Jan 23 14:24:51 quad kernel: [154565.500024] bttv: 0: timeout:
-> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
-> Jan 23 14:24:52 quad kernel: [154566.001014] bttv: 0: timeout:
-> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
-> Jan 23 14:24:52 quad kernel: [154566.502016] bttv: 0: timeout:
-> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
-
-The chip didn't lock to the input signal.
-What kind of input are you feeding into the card?
-
-Can you run the attached program while xawtv is running?
-It will dump most of the registers of the bt8xx video function.
-
-  Daniel
-
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="dumpbt8xx.c"
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-static char path[100], *fname;
-
-#define BT848	(1 << 0)
-#define BT848A	(1 << 1)
-#define BT878	(1 << 2)
-#define SINCE_BT878	BT878
-#define SINCE_BT848A	SINCE_BT878 | BT848A
-#define SINCE_BT848	SINCE_BT848A | BT848
-
-static const struct {
-	uint16_t offset;
-	uint16_t chips;
-	const char *name;
-} regs[] = {
-	0x000, SINCE_BT848, "DSTATUS",
-	0x004, SINCE_BT848, "IFORM",
-	0x008, SINCE_BT848, "TDEC",
-	0x00C, SINCE_BT848, "E_CROP",
-	0x010, SINCE_BT848, "E_VDELAY_LO",
-	0x014, SINCE_BT848, "E_VACTIVE_LO",
-	0x018, SINCE_BT848, "E_HDELAY_LO",
-	0x01C, SINCE_BT848, "E_HACTIVE_LO",
-	0x020, SINCE_BT848, "E_HSCALE_HI",
-	0x024, SINCE_BT848, "E_HSCALE_LO",
-	0x028, SINCE_BT848, "BRIGHT",
-	0x02C, SINCE_BT848, "E_CONTROL",
-	0x030, SINCE_BT848, "CONTRAST_LO",
-	0x034, SINCE_BT848, "SAT_U_LO",
-	0x038, SINCE_BT848, "SAT_V_LO",
-	0x03C, SINCE_BT848, "HUE",
-	0x040, SINCE_BT848, "E_SCLOOP",
-	0x044, SINCE_BT848, "WC_UP",
-	0x048, SINCE_BT848, "OFORM",
-	0x04C, SINCE_BT848, "E_VSCALE_HI",
-	0x050, SINCE_BT848, "E_VSCALE_LO",
-	0x054, SINCE_BT848, "TEST",
-	0x058, SINCE_BT878, "ARESET",
-	0x060, SINCE_BT848, "ADELAY",
-	0x064, SINCE_BT848, "BDELAY",
-	0x068, SINCE_BT848, "ADC",
-	0x06C, SINCE_BT848, "E_VTC",
-	0x078, SINCE_BT848, "WC_DOWN",
-	0x080, SINCE_BT848A, "TGLB",
-	0x084, SINCE_BT848A, "TGCTRL",
-	0x08C, SINCE_BT848, "O_CROP",
-	0x090, SINCE_BT848, "O_VDELAY_LO",
-	0x094, SINCE_BT848, "O_VACTIVE_LO",
-	0x098, SINCE_BT848, "O_HDELAY_LO",
-	0x09C, SINCE_BT848, "O_HACTIVE_LO",
-	0x0A0, SINCE_BT848, "O_HSCALE_HI",
-	0x0A4, SINCE_BT848, "O_HSCALE_LO",
-	0x0AC, SINCE_BT848, "O_CONTROL",
-	0x0B0, SINCE_BT848, "VTOTAL_LO",
-	0x0B4, SINCE_BT848, "VTOTAL_HI",
-	0x0C0, SINCE_BT848, "O_SCLOOP",
-	0x0CC, SINCE_BT848, "O_VSCALE_HI",
-	0x0D0, SINCE_BT848, "O_VSCALE_LO",
-	0x0D4, SINCE_BT848, "COLOR_FMT",
-	0x0D8, SINCE_BT848, "COLOR_CTL",
-	0x0DC, SINCE_BT848, "CAP_CTL",
-	0x0E0, SINCE_BT848, "VBI_PACK_SIZE",
-	0x0E4, SINCE_BT848, "VBI_PACK_DEL",
-	0x0E8, SINCE_BT848A, "FCAP",
-	0x0EC, SINCE_BT848, "O_VTC",
-	0x0F0, SINCE_BT848A, "PLL_F_LO",
-	0x0F4, SINCE_BT848A, "PLL_F_HI",
-	0x0F8, SINCE_BT848A, "PLL_XCI",
-	0x0FC, SINCE_BT848A, "DVSIF",
-	0x100, SINCE_BT848, "INT_STAT",
-	0x104, SINCE_BT848, "INT_MASK",
-	0x10C, SINCE_BT848, "GPIO_DMA_CTL",
-	0x110, SINCE_BT848, "I2C",
-	0x114, SINCE_BT848, "RISC_STRT_ADD",
-	0x118, SINCE_BT848, "GPIO_OUT_EN",
-	0x11C, SINCE_BT848, "GPIO_REG_INP",
-	0x120, SINCE_BT848, "RISC_COUNT",
-	0x200, SINCE_BT848, "GPIO_DATA",
-};
-
-#define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
-
-static long get_attr(const char *attr)
-{
-	char name[80], buf[20] = {0};
-	int fd;
-
-	strcpy(fname, attr);
-	fd = open(path, O_RDONLY);
-	if (fd == -1) {
-		perror("open");
-		return -1;
-	}
-	read(fd, buf, sizeof(buf) - 1);
-	close(fd);
-	return strtol(buf, NULL, 0);
-}
-
-static uint32_t get_config(unsigned int offset)
-{
-	uint8_t buf[4];
-	ssize_t n;
-	int fd;
-
-	strcpy(fname, "config");
-	fd = open(path, O_RDONLY);
-	if (fd == -1) {
-		perror("open");
-		return 0;
-	}
-	n = pread(fd, buf, 4, offset);
-	close(fd);
-	if (n != 4) {
-		perror("pread");
-		return 0;
-	}
-	return (buf[3] << 24) + (buf[2] << 16) + (buf[1] << 8) + buf[0];
-}
-
-int main(int argc, char **argv)
-{
-	int fd, i, chip;
-	uint32_t *p;
-	struct stat st;
-
-	if (argc != 2) {
-		fprintf(stderr, "%s /dev/videoX\n", argv[0]);
-		return 1;
-	}
-	if (stat(argv[1], &st)) {
-		perror("stat");
-		return 1;
-	}
-	if (!S_ISCHR(st.st_mode) || major(st.st_rdev) != 81) {
-		fprintf(stderr, "%s is not a video device\n", argv[1]);
-		return 1;
-	}
-	fname = path + sprintf(path, "/sys/dev/char/81:%i/device/", minor(st.st_rdev));
-	if (get_attr("vendor") != 0x109e) {
-bad_chip:
-		fputs("Not a bt8xx device\n", stderr);
-		return 1;
-	}
-
-	switch (get_attr("device")) {
-	case 0x0350:
-		if ((get_config(8) & 0xff) == 0x12)
-			chip = BT848A;
-		else
-			chip = BT848;
-		break;
-	case 0x0351:
-		chip = BT848A;
-		break;
-	case 0x036e:
-	case 0x036f:
-	case 0x036c:
-		chip = BT878;
-		break;
-	default:
-		goto bad_chip;
-	}
-
-	strcpy(fname, "resource0");
-       	fd = open(path, O_RDWR|O_SYNC);
-	if (fd == -1)
-		return 1;
-	p = mmap(NULL, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	if (p == MAP_FAILED)
-		return 1;
-	for (i = 0; i < ARRAY_SIZE(regs); i++) {
-		if (chip & regs[i].chips)
-			printf("%03X %08X %s\n", regs[i].offset,
-			       p[regs[i].offset / 4], regs[i].name);
-	}
-	return 0;
-}
-
---yrj/dFKFPuw6o+aM--
