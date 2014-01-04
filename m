@@ -1,69 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:58456 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144AbaAFLsd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 06:48:33 -0500
-Received: by mail-ob0-f181.google.com with SMTP id uy5so17817709obc.26
-        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 03:48:33 -0800 (PST)
+Received: from mail-ve0-f170.google.com ([209.85.128.170]:40643 "EHLO
+	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313AbaADR6u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 12:58:50 -0500
 MIME-Version: 1.0
-In-Reply-To: <1387885325-17639-1-git-send-email-sachin.kamat@linaro.org>
-References: <1387885325-17639-1-git-send-email-sachin.kamat@linaro.org>
-Date: Mon, 6 Jan 2014 17:18:33 +0530
-Message-ID: <CAK9yfHyw8VM1oPKsVig3hKDqLG5qfXMAq9p0Fq2U9GiW_KcTBw@mail.gmail.com>
-Subject: Re: [PATCH 1/3] [media] s5k5baf: Fix build warning
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+In-Reply-To: <1388833760-23260-1-git-send-email-m.chehab@samsung.com>
+References: <1388833760-23260-1-git-send-email-m.chehab@samsung.com>
+Date: Sat, 4 Jan 2014 18:58:49 +0100
+Message-ID: <CA+O4pC+w7PCrMN-MHexfER79ovR+6hHGppLy0929UjjckUUCmQ@mail.gmail.com>
+Subject: Re: [PATCH v4 RFC 1/2] [media] em28xx: retry I2C write ops if failed
+ by timeout
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	USB list <linux-usb@vger.kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 24 December 2013 17:12, Sachin Kamat <sachin.kamat@linaro.org> wrote:
-> Fixes the following warnings:
-> drivers/media/i2c/s5k5baf.c: In function 's5k5baf_fw_parse':
-> drivers/media/i2c/s5k5baf.c:362:3: warning:
-> format '%d' expects argument of type 'int', but argument 3 has type 'size_t' [-Wformat=]
-> drivers/media/i2c/s5k5baf.c:383:4: warning:
-> format '%d' expects argument of type 'int', but argument 4 has type 'size_t' [-Wformat=]
+Did you trace the i2c messages on the bus? This seems like papering
+the actual bug.
+
+USB 3.0 is a disaster with Linux, maybe your hardware or your
+controller driver is not okay?
+There are other bugreports out there which are USB 3.0 related, some
+of our customers reported that since 3.6.0 is okay while 3.7.10 give
+them a complete system lock up also with the driver in question here.
+
+
+On Sat, Jan 4, 2014 at 12:09 PM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+> At least on HVR-950, sometimes an I2C operation fails.
 >
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+> This seems to be more frequent when the device is connected
+> into an USB 3.0 port.
+>
+> Instead of report an error, try to repeat it, for up to
+> 20 ms. That makes the code more reliable.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 > ---
->  drivers/media/i2c/s5k5baf.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/media/usb/em28xx/em28xx-i2c.c | 23 +++++++++++------------
+>  1 file changed, 11 insertions(+), 12 deletions(-)
 >
-> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-> index e3b44a87460b..139bdd4f5dde 100644
-> --- a/drivers/media/i2c/s5k5baf.c
-> +++ b/drivers/media/i2c/s5k5baf.c
-> @@ -359,7 +359,7 @@ static int s5k5baf_fw_parse(struct device *dev, struct s5k5baf_fw **fw,
->         int ret;
+> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> index 6cd3d909bb3a..35d6808aa9ff 100644
+> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> @@ -189,6 +189,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>          * Zero length reads always succeed, even if no device is connected
+>          */
 >
->         if (count < S5K5BAG_FW_TAG_LEN + 1) {
-> -               dev_err(dev, "firmware file too short (%d)\n", count);
-> +               dev_err(dev, "firmware file too short (%zu)\n", count);
->                 return -EINVAL;
+> +retry:
+>         /* Write to i2c device */
+>         ret = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
+>         if (ret != len) {
+> @@ -208,26 +209,24 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>                 ret = dev->em28xx_read_reg(dev, 0x05);
+>                 if (ret == 0) /* success */
+>                         return len;
+> -               if (ret == 0x10) {
+> -                       em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
+> -                                   addr);
+> -                       return -EREMOTEIO;
+> -               }
+> +               if (ret == 0x10)
+> +                       goto retry;
+>                 if (ret < 0) {
+>                         em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+>                                     ret);
+>                         return ret;
+>                 }
+>                 msleep(5);
+> -               /*
+> -                * NOTE: do we really have to wait for success ?
+> -                * Never seen anything else than 0x00 or 0x10
+> -                * (even with high payload) ...
+> -                */
 >         }
 >
-> @@ -379,7 +379,7 @@ static int s5k5baf_fw_parse(struct device *dev, struct s5k5baf_fw **fw,
+> -       if (i2c_debug)
+> -               em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
+> +       if (ret == 0x10) {
+> +               if (i2c_debug)
+> +                       em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
+> +                                   addr);
+> +       } else {
+> +               em28xx_warn("write to i2c device at 0x%x timed out (ret=0x%02x)\n",
+> +                           addr, ret);
+> +       }
+>         return -EREMOTEIO;
+>  }
 >
->         f = (struct s5k5baf_fw *)d;
->         if (count < 1 + 2 * f->count) {
-> -               dev_err(dev, "invalid firmware header (count=%d size=%d)\n",
-> +               dev_err(dev, "invalid firmware header (count=%d size=%zu)\n",
->                         f->count, 2 * (count + S5K5BAG_FW_TAG_LEN));
->                 return -EINVAL;
->         }
 > --
-> 1.7.9.5
+> 1.8.3.1
 >
-
-Gentle ping on this series :)
-
--- 
-With warm regards,
-Sachin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
