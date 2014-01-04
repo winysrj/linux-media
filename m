@@ -1,88 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60477 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754099AbaAULSN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jan 2014 06:18:13 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2] media: i2c: mt9p031: Check return value of clk_prepare_enable/clk_set_rate
-Date: Tue, 21 Jan 2014 12:18:58 +0100
-Message-ID: <4346570.zM53heUM7x@avalon>
-In-Reply-To: <1390281657-7185-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1390281657-7185-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:43701 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753680AbaADN7T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:19 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v4 07/22] [media] em28xx: improve extension information messages
+Date: Sat,  4 Jan 2014 08:55:36 -0200
+Message-Id: <1388832951-11195-8-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Add a message with consistent prints before and after each
+extension initialization, and provide a better text for module
+load.
 
-Thank you for the patch.
+While here, add a missing sanity check for extension finish
+code at em28xx-v4l extension.
 
-On Tuesday 21 January 2014 10:50:57 Prabhakar Lad wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> clk_set_rate(), clk_prepare_enable() functions can fail, so check the return
-> values to avoid surprises.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-audio.c |  4 +++-
+ drivers/media/usb/em28xx/em28xx-core.c  |  2 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  7 ++++---
+ drivers/media/usb/em28xx/em28xx-input.c |  4 ++++
+ drivers/media/usb/em28xx/em28xx-video.c | 10 ++++++++--
+ 5 files changed, 20 insertions(+), 7 deletions(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
-> ---
->  Changes for v2:
->  1: Called regulator_bulk_disable() in the error path
-> 
->  drivers/media/i2c/mt9p031.c |   15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index e5ddf47..05278f5 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -222,12 +222,15 @@ static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
-> 
->  	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
->  	struct mt9p031_platform_data *pdata = mt9p031->pdata;
-> +	int ret;
-> 
->  	mt9p031->clk = devm_clk_get(&client->dev, NULL);
->  	if (IS_ERR(mt9p031->clk))
->  		return PTR_ERR(mt9p031->clk);
-> 
-> -	clk_set_rate(mt9p031->clk, pdata->ext_freq);
-> +	ret = clk_set_rate(mt9p031->clk, pdata->ext_freq);
-> +	if (ret < 0)
-> +		return ret;
-> 
->  	mt9p031->pll.ext_clock = pdata->ext_freq;
->  	mt9p031->pll.pix_clock = pdata->target_freq;
-> @@ -286,8 +289,14 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
->  		return ret;
-> 
->  	/* Emable clock */
-> -	if (mt9p031->clk)
-> -		clk_prepare_enable(mt9p031->clk);
-> +	if (mt9p031->clk) {
-> +		ret = clk_prepare_enable(mt9p031->clk);
-> +		if (ret) {
-> +			regulator_bulk_disable(ARRAY_SIZE(mt9p031->regulators),
-> +					       mt9p031->regulators);
-> +			return ret;
-> +		}
-> +	}
-> 
->  	/* Now RESET_BAR must be high */
->  	if (gpio_is_valid(mt9p031->reset)) {
-
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 2fdb66ee44ab..263886adcf26 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -649,7 +649,8 @@ static int em28xx_audio_init(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
+-	printk(KERN_INFO "em28xx-audio.c: probing for em28xx Audio Vendor Class\n");
++	em28xx_info("Binding audio extension\n");
++
+ 	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
+ 			 "Rechberger\n");
+ 	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab\n");
+@@ -702,6 +703,7 @@ static int em28xx_audio_init(struct em28xx *dev)
+ 	adev->sndcard = card;
+ 	adev->udev = dev->udev;
+ 
++	em28xx_info("Audio extension successfully initialized\n");
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 1113d4e107d8..33cf26e106b5 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -1069,7 +1069,7 @@ int em28xx_register_extension(struct em28xx_ops *ops)
+ 		ops->init(dev);
+ 	}
+ 	mutex_unlock(&em28xx_devlist_mutex);
+-	printk(KERN_INFO "Em28xx: Initialized (%s) extension\n", ops->name);
++	printk(KERN_INFO "em28xx: Registered (%s) extension\n", ops->name);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(em28xx_register_extension);
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index ddc0e609065d..f72663a9b5c5 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -274,7 +274,7 @@ static int em28xx_stop_feed(struct dvb_demux_feed *feed)
+ static int em28xx_dvb_bus_ctrl(struct dvb_frontend *fe, int acquire)
+ {
+ 	struct em28xx_i2c_bus *i2c_bus = fe->dvb->priv;
+-        struct em28xx *dev = i2c_bus->dev;
++	struct em28xx *dev = i2c_bus->dev;
+ 
+ 	if (acquire)
+ 		return em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+@@ -992,10 +992,11 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 
+ 	if (!dev->board.has_dvb) {
+ 		/* This device does not support the extension */
+-		printk(KERN_INFO "em28xx_dvb: This device does not support the extension\n");
+ 		return 0;
+ 	}
+ 
++	em28xx_info("Binding DVB extension\n");
++
+ 	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
+ 
+ 	if (dvb == NULL) {
+@@ -1407,7 +1408,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 	/* MFE lock */
+ 	dvb->adapter.mfe_shared = mfe_shared;
+ 
+-	em28xx_info("Successfully loaded em28xx-dvb\n");
++	em28xx_info("DVB extension successfully initialized\n");
+ ret:
+ 	em28xx_set_mode(dev, EM28XX_SUSPEND);
+ 	mutex_unlock(&dev->lock);
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 93a7d02b9cb4..eed7dd79f734 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -692,6 +692,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
++	em28xx_info("Registering input extension\n");
++
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+ 	rc = rc_allocate_device();
+ 	if (!ir || !rc)
+@@ -785,6 +787,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+ 	if (err)
+ 		goto error;
+ 
++	em28xx_info("Input extension successfully initalized\n");
++
+ 	return 0;
+ 
+ error:
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 56d1b46164a0..b767262c642b 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1884,6 +1884,11 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 
+ 	/*FIXME: I2C IR should be disconnected */
+ 
++	if (!dev->has_video) {
++		/* This device does not support the v4l2 extension */
++		return 0;
++	}
++
+ 	if (dev->radio_dev) {
+ 		if (video_is_registered(dev->radio_dev))
+ 			video_unregister_device(dev->radio_dev);
+@@ -2215,8 +2220,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
+-	printk(KERN_INFO "%s: v4l2 driver version %s\n",
+-		dev->name, EM28XX_VERSION);
++	em28xx_info("Registering V4L2 extension\n");
+ 
+ 	mutex_lock(&dev->lock);
+ 
+@@ -2498,6 +2502,8 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	/* initialize videobuf2 stuff */
+ 	em28xx_vb2_setup(dev);
+ 
++	em28xx_info("V4L2 extension successfully initialized\n");
++
+ err:
+ 	mutex_unlock(&dev->lock);
+ 	return ret;
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.1
 
