@@ -1,95 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:60004 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751350AbaAIMzx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 07:55:53 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ4005WHX937A80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Jan 2014 12:55:51 +0000 (GMT)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH] s5k5baf: allow to handle arbitrary long i2c sequences
-Date: Thu, 09 Jan 2014 13:55:43 +0100
-Message-id: <1389272143-22394-1-git-send-email-a.hajda@samsung.com>
-In-reply-to: <20140108122709.39263bb9@samsung.com>
-References: <20140108122709.39263bb9@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:43714 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754068AbaADN7U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:20 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v4 11/22] [media] em28xx: check if a device has audio earlier
+Date: Sat,  4 Jan 2014 08:55:40 -0200
+Message-Id: <1388832951-11195-12-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using variable length array in s5k5baf_write_arr_seq
-caused an implicit assumption that i2c sequences should be short.
-The patch rewrites the function so it can handle sequences
-of any length and do not uses variable length array.
+Better to split chipset detection from the audio setup. So, move the
+detection code to em28xx_init_dev().
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
-Hi Dan and Mauro,
+ drivers/media/usb/em28xx/em28xx-cards.c | 11 +++++++++++
+ drivers/media/usb/em28xx/em28xx-core.c  | 12 +-----------
+ 2 files changed, 12 insertions(+), 11 deletions(-)
 
-I hope this patch solves the issue.
-
-Regards
-Andrzej
----
- drivers/media/i2c/s5k5baf.c | 30 +++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index 089fba6..3de1287 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -478,25 +478,33 @@ static void s5k5baf_write_arr_seq(struct s5k5baf *state, u16 addr,
- 				  u16 count, const u16 *seq)
- {
- 	struct i2c_client *c = v4l2_get_subdevdata(&state->sd);
--	__be16 buf[count + 1];
--	int ret, n;
-+	__be16 buf[65];
- 
- 	s5k5baf_i2c_write(state, REG_CMDWR_ADDR, addr);
- 	if (state->error)
- 		return;
- 
-+	v4l2_dbg(3, debug, c, "i2c_write_seq(count=%d): %*ph\n", count,
-+		 min(2 * count, 64), seq);
-+
- 	buf[0] = __constant_cpu_to_be16(REG_CMD_BUF);
--	for (n = 1; n <= count; ++n)
--		buf[n] = cpu_to_be16(*seq++);
- 
--	n *= 2;
--	ret = i2c_master_send(c, (char *)buf, n);
--	v4l2_dbg(3, debug, c, "i2c_write_seq(count=%d): %*ph\n", count,
--		 min(2 * count, 64), seq - count);
-+	while (count > 0) {
-+		int n = min_t(int, count, ARRAY_SIZE(buf) - 1);
-+		int ret, i;
- 
--	if (ret != n) {
--		v4l2_err(c, "i2c_write_seq: error during transfer (%d)\n", ret);
--		state->error = ret;
-+		for (i = 1; i <= n; ++i)
-+			buf[i] = cpu_to_be16(*seq++);
-+
-+		i *= 2;
-+		ret = i2c_master_send(c, (char *)buf, i);
-+		if (ret != i) {
-+			v4l2_err(c, "i2c_write_seq: error during transfer (%d)\n", ret);
-+			state->error = ret;
-+			break;
-+		}
-+
-+		count -= n;
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index d1c75e66554c..4fe742429f2c 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2930,6 +2930,16 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 		}
  	}
- }
  
++	if (dev->chip_id == CHIP_ID_EM2870 ||
++	    dev->chip_id == CHIP_ID_EM2874 ||
++	    dev->chip_id == CHIP_ID_EM28174 ||
++	    dev->chip_id == CHIP_ID_EM28178) {
++		/* Digital only device - don't load any alsa module */
++		dev->audio_mode.has_audio = false;
++		dev->has_audio_class = false;
++		dev->has_alsa_audio = false;
++	}
++
+ 	if (chip_name != default_chip_name)
+ 		printk(KERN_INFO DRIVER_NAME
+ 		       ": chip ID is %s\n", chip_name);
+@@ -3196,6 +3206,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 	dev->alt   = -1;
+ 	dev->is_audio_only = has_audio && !(has_video || has_dvb);
+ 	dev->has_alsa_audio = has_audio;
++	dev->audio_mode.has_audio = has_audio;
+ 	dev->has_video = has_video;
+ 	dev->audio_ifnum = ifnum;
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 33cf26e106b5..818248d3fd28 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -505,18 +505,8 @@ int em28xx_audio_setup(struct em28xx *dev)
+ 	int vid1, vid2, feat, cfg;
+ 	u32 vid;
+ 
+-	if (dev->chip_id == CHIP_ID_EM2870 ||
+-	    dev->chip_id == CHIP_ID_EM2874 ||
+-	    dev->chip_id == CHIP_ID_EM28174 ||
+-	    dev->chip_id == CHIP_ID_EM28178) {
+-		/* Digital only device - don't load any alsa module */
+-		dev->audio_mode.has_audio = false;
+-		dev->has_audio_class = false;
+-		dev->has_alsa_audio = false;
++	if (!dev->audio_mode.has_audio)
+ 		return 0;
+-	}
+-
+-	dev->audio_mode.has_audio = true;
+ 
+ 	/* See how this device is configured */
+ 	cfg = em28xx_read_reg(dev, EM28XX_R00_CHIPCFG);
 -- 
-1.8.3.2
+1.8.3.1
 
