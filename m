@@ -1,128 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2394 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754748AbaAFOVl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ea0-f175.google.com ([209.85.215.175]:36450 "EHLO
+	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754491AbaADRIo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 12:08:44 -0500
+Received: by mail-ea0-f175.google.com with SMTP id z10so7149202ead.20
+        for <linux-media@vger.kernel.org>; Sat, 04 Jan 2014 09:08:43 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 13/27] v4l2-ctrls: add function to apply a configuration store.
-Date: Mon,  6 Jan 2014 15:21:12 +0100
-Message-Id: <1389018086-15903-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 05/11] libdvbv5: fix PMT parser
+Date: Sat,  4 Jan 2014 18:07:55 +0100
+Message-Id: <1388855282-19295-5-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
+References: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Drivers need to be able to select a specific store. Add a new function that can
-be used to apply a given store.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 67 ++++++++++++++++++++++++++++++++++++
- include/media/v4l2-ctrls.h           |  2 ++
- 2 files changed, 69 insertions(+)
+ lib/include/libdvbv5/pmt.h     |    6 +++++-
+ lib/libdvbv5/descriptors/pmt.c |   22 +++++++++++++++-------
+ 2 files changed, 20 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 3e32e21..66724b7 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1423,6 +1423,15 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- 	ptr_to_ptr(ctrl, ctrl->stores[0], ctrl->new);
- }
+diff --git a/lib/include/libdvbv5/pmt.h b/lib/include/libdvbv5/pmt.h
+index f1b7cef..a2183ac 100644
+--- a/lib/include/libdvbv5/pmt.h
++++ b/lib/include/libdvbv5/pmt.h
+@@ -96,9 +96,13 @@ struct dvb_table_pmt {
+ 			uint16_t reserved3:4;
+ 		} __attribute__((packed));
+ 	} __attribute__((packed));
++	struct dvb_desc *descriptor;
+ 	struct dvb_table_pmt_stream *stream;
+ } __attribute__((packed));
  
-+static void store_to_new(struct v4l2_ctrl *ctrl, unsigned store)
-+{
-+	if (ctrl == NULL)
-+		return;
-+	ptr_to_ptr(ctrl, ctrl->stores[store ? store : ctrl->cur_store],
-+			ctrl->new);
-+	ctrl->is_new = true;
-+}
++#define dvb_pmt_field_first header
++#define dvb_pmt_field_last descriptor
 +
- /* Return non-zero if one or more of the controls in the cluster has a new
-    value that differs from the current value. */
- static int cluster_changed(struct v4l2_ctrl *master)
-@@ -3087,6 +3096,64 @@ int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
- }
- EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
+ #define dvb_pmt_stream_foreach(_stream, _pmt) \
+   for (struct dvb_table_pmt_stream *_stream = _pmt->stream; _stream; _stream = _stream->next) \
  
-+int v4l2_ctrl_apply_store(struct v4l2_ctrl_handler *hdl, unsigned store)
-+{
-+	struct v4l2_ctrl_ref *ref;
-+	bool found_store = false;
-+	unsigned i;
-+
-+	if (hdl == NULL || store == 0)
-+		return -EINVAL;
-+
-+	mutex_lock(hdl->lock);
-+
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-+		struct v4l2_ctrl *master;
-+
-+		if (store > ref->ctrl->nstores)
-+			continue;
-+		found_store = true;
-+		if (ref->ctrl->cur_store) {
-+			if (ref->ctrl->cur_store == store)
-+				continue;
-+			ref->ctrl->cur_store = store;
-+			ref->ctrl->stores[0] = ref->ctrl->stores[store];
-+			send_event(NULL, ref->ctrl, V4L2_EVENT_CTRL_CH_VALUE);
-+			continue;
-+		}
-+		master = ref->ctrl->cluster[0];
-+		if (ref->ctrl != master)
-+			continue;
-+		if (master->handler != hdl)
-+			v4l2_ctrl_lock(master);
-+		for (i = 0; i < master->ncontrols; i++)
-+			store_to_new(master->cluster[i], store);
-+
-+		/* For volatile autoclusters that are currently in auto mode
-+		   we need to discover if it will be set to manual mode.
-+		   If so, then we have to copy the current volatile values
-+		   first since those will become the new manual values (which
-+		   may be overwritten by explicit new values from this set
-+		   of controls). */
-+		if (master->is_auto && master->has_volatiles &&
-+						!is_cur_manual(master)) {
-+			s32 new_auto_val = *master->stores[store].p_s32;
-+
-+			/* If the new value == the manual value, then copy
-+			   the current volatile values. */
-+			if (new_auto_val == master->manual_mode_value)
-+				update_from_auto_cluster(master);
-+		}
-+
-+		try_or_set_cluster(NULL, master, 0, true, 0);
-+		if (master->handler != hdl)
-+			v4l2_ctrl_unlock(master);
-+	}
-+	mutex_unlock(hdl->lock);
-+	return found_store ? 0 : -EINVAL;
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_apply_store);
-+
- void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
+@@ -108,7 +112,7 @@ struct dvb_v5_fe_parms;
+ extern "C" {
+ #endif
+ 
+-void dvb_table_pmt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++void dvb_table_pmt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, struct dvb_table_pmt *pmt, ssize_t *table_length);
+ void dvb_table_pmt_free(struct dvb_table_pmt *pmt);
+ void dvb_table_pmt_print(struct dvb_v5_fe_parms *parms, const struct dvb_table_pmt *pmt);
+ 
+diff --git a/lib/libdvbv5/descriptors/pmt.c b/lib/libdvbv5/descriptors/pmt.c
+index 3915414..5d42eb7 100644
+--- a/lib/libdvbv5/descriptors/pmt.c
++++ b/lib/libdvbv5/descriptors/pmt.c
+@@ -26,10 +26,9 @@
+ #include <string.h> /* memcpy */
+ 
+ void dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+-			ssize_t buflen, uint8_t *table, ssize_t *table_length)
++			ssize_t buflen, struct dvb_table_pmt *pmt, ssize_t *table_length)
  {
- 	if (ctrl == NULL)
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 911b22a..2b9b2da 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -704,6 +704,8 @@ s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
-   */
- int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
+ 	const uint8_t *p = buf, *endbuf = buf + buflen - 4;
+-	struct dvb_table_pmt *pmt = (void *)table;
+ 	struct dvb_table_pmt_stream **head = &pmt->stream;
+ 	size_t size;
  
-+int v4l2_ctrl_apply_store(struct v4l2_ctrl_handler *hdl, unsigned store);
-+
- /* Internal helper functions that deal with control events. */
- extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
- void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
+@@ -38,13 +37,13 @@ void dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		while (*head != NULL)
+ 			head = &(*head)->next;
+ 	} else {
+-		size = offsetof(struct dvb_table_pmt, stream);
++		size = offsetof(struct dvb_table_pmt, dvb_pmt_field_last);
+ 		if (p + size > endbuf) {
+ 			dvb_logerr("PMT table was truncated. Need %zu bytes, but has only %zu.",
+ 				size, buflen);
+ 			return;
+ 		}
+-		memcpy(table, p, size);
++		memcpy(pmt, p, size);
+ 		p += size;
+ 		*table_length = sizeof(struct dvb_table_pmt);
+ 
+@@ -52,7 +51,8 @@ void dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		bswap16(pmt->bitfield2);
+ 		pmt->stream = NULL;
+ 
+-		/* skip prog section */
++		dvb_parse_descriptors(parms, p, pmt->prog_length,
++				      &pmt->descriptor);
+ 		p += pmt->prog_length;
+ 	}
+ 
+@@ -74,15 +74,22 @@ void dvb_table_pmt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
+ 		*head = stream;
+ 		head = &(*head)->next;
+ 
++		if (stream->section_length > endbuf - p) {
++			dvb_logerr("PMT stream section length > buffer: %zd", stream->section_length - (endbuf - p));
++			stream->section_length = endbuf - p;
++		}
+ 		/* get the descriptors for each program */
+ 		dvb_parse_descriptors(parms, p, stream->section_length,
+ 				      &stream->descriptor);
+ 
+ 		p += stream->section_length;
+ 	}
+-	if (endbuf - p)
+-		dvb_logerr("PAT table has %zu spurious bytes at the end.",
++	if (p < endbuf)
++		dvb_logerr("PMT table has %zu spurious bytes at the end.",
+ 			   endbuf - p);
++	if (p > endbuf)
++		dvb_logerr("PMT oops  %zu ",
++			   p - endbuf);
+ }
+ 
+ void dvb_table_pmt_free(struct dvb_table_pmt *pmt)
+@@ -94,6 +101,7 @@ void dvb_table_pmt_free(struct dvb_table_pmt *pmt)
+ 		stream = stream->next;
+ 		free(tmp);
+ 	}
++	dvb_free_descriptors((struct dvb_desc **) &pmt->descriptor);
+ 	free(pmt);
+ }
+ 
 -- 
-1.8.5.2
+1.7.10.4
 
