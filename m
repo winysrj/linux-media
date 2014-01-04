@@ -1,111 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4316 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473AbaAPDdv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 22:33:51 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0G3Xl8o059002
-	for <linux-media@vger.kernel.org>; Thu, 16 Jan 2014 04:33:49 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id A7F8F2A00A0
-	for <linux-media@vger.kernel.org>; Thu, 16 Jan 2014 04:33:43 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140116033343.A7F8F2A00A0@tschai.lan>
-Date: Thu, 16 Jan 2014 04:33:43 +0100 (CET)
+Received: from bombadil.infradead.org ([198.137.202.9]:43690 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753319AbaADN7R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:17 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v4 13/22] [media] em28xx: initialize audio latter
+Date: Sat,  4 Jan 2014 08:55:42 -0200
+Message-Id: <1388832951-11195-14-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Better to first write the GPIOs of the input mux, before initializing
+the audio.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c | 40 ++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-date:		Thu Jan 16 04:00:23 CET 2014
-git branch:	test
-git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index b767262c642b..328d724a13ea 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -2291,26 +2291,6 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	em28xx_tuner_setup(dev);
+ 	em28xx_init_camera(dev);
+ 
+-	/* Configure audio */
+-	ret = em28xx_audio_setup(dev);
+-	if (ret < 0) {
+-		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
+-			__func__, ret);
+-		goto err;
+-	}
+-	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
+-		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
+-			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
+-		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
+-			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
+-	} else {
+-		/* install the em28xx notify callback */
+-		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
+-				em28xx_ctrl_notify, dev);
+-		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
+-				em28xx_ctrl_notify, dev);
+-	}
+-
+ 	/* wake i2c devices */
+ 	em28xx_wake_i2c(dev);
+ 
+@@ -2356,6 +2336,26 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 
+ 	video_mux(dev, 0);
+ 
++	/* Configure audio */
++	ret = em28xx_audio_setup(dev);
++	if (ret < 0) {
++		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
++			__func__, ret);
++		goto err;
++	}
++	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
++		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
++			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
++		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
++			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
++	} else {
++		/* install the em28xx notify callback */
++		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
++				em28xx_ctrl_notify, dev);
++		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
++				em28xx_ctrl_notify, dev);
++	}
++
+ 	/* Audio defaults */
+ 	dev->mute = 1;
+ 	dev->volume = 0x1f;
+-- 
+1.8.3.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
