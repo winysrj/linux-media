@@ -1,77 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54574 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750778AbaAWVJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 16:09:10 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 00/13] SDR API
-Date: Thu, 23 Jan 2014 23:08:40 +0200
-Message-Id: <1390511333-25837-1-git-send-email-crope@iki.fi>
+Received: from r012.red.fastwebserver.de ([217.79.190.12]:33944 "EHLO
+	links-clan.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754545AbaADWv7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Jan 2014 17:51:59 -0500
+From: "Links (Markus)" <help.markus+git@gmail.com>
+Cc: "Links (Markus)" <help.markus+git@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] support for CX23103 Video Grabber USB
+Date: Sat,  4 Jan 2014 23:44:34 +0100
+Message-Id: <1388875474-24364-1-git-send-email-help.markus+git@gmail.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I think it is ready enough. PULL request will follow in next days...
+From: "Links (Markus)" <help.markus+git@gmail.com>
 
+	modified:   drivers/media/usb/cx231xx/cx231xx-cards.c
 
-The next step I	am going to add SDR API is tuner gain controls.
+Signed-off-by: Links (Markus) <help.markus+git@gmail.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Modern silicon RF tuners used nowadays has many controllable gains
-on signal path. Usually there is at least 3 amplifiers:
-1) LNA gain. That is first amplifier just after antenna input pins.
-2) Mixer gain. Quite middle of the signal path, where RF signal is
-down-converted to IF/BB.
-3) IF gain. That is last gain in order to adjust output signal
-level to optimal level of demodulator.
-
-Each gain controls could be often manual or automatic mode (AGC).
-Total gain is something like sum of all gains. My plan is to implement
-these 3 gains with manual/auto switch and group all those to one
-master/total gain.
-
-Antti
-
-Antti Palosaari (12):
-  v4l: add device type for Software Defined Radio
-  v4l: add new tuner types for SDR
-  v4l: 1 Hz resolution flag for tuners
-  v4l: add stream format for SDR receiver
-  v4l: define own IOCTL ops for SDR FMT
-  v4l: enable some IOCTLs for SDR receiver
-  v4l: add device capability flag for SDR receiver
-  DocBook: document 1 Hz flag
-  DocBook: Software Defined Radio Interface
-  DocBook: mark SDR API as Experimental
-  v4l2-framework.txt: add SDR device type
-  devices.txt: add video4linux device for Software Defined Radio
-
-Hans Verkuil (1):
-  v4l: do not allow modulator ioctls for non-radio devices
-
- Documentation/DocBook/media/v4l/compat.xml         |  13 +++
- Documentation/DocBook/media/v4l/dev-sdr.xml        | 110 +++++++++++++++++++++
- Documentation/DocBook/media/v4l/io.xml             |   6 ++
- Documentation/DocBook/media/v4l/pixfmt.xml         |   8 ++
- Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
- .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |   8 +-
- Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   7 ++
- .../DocBook/media/v4l/vidioc-g-frequency.xml       |   5 +-
- .../DocBook/media/v4l/vidioc-g-modulator.xml       |   6 +-
- Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |  15 ++-
- .../DocBook/media/v4l/vidioc-querycap.xml          |   6 ++
- .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   8 +-
- Documentation/devices.txt                          |   7 ++
- Documentation/video4linux/v4l2-framework.txt       |   1 +
- drivers/media/v4l2-core/v4l2-dev.c                 |  30 +++++-
- drivers/media/v4l2-core/v4l2-ioctl.c               |  75 +++++++++++---
- include/media/v4l2-dev.h                           |   3 +-
- include/media/v4l2-ioctl.h                         |   8 ++
- include/trace/events/v4l2.h                        |   1 +
- include/uapi/linux/videodev2.h                     |  16 +++
- 20 files changed, 306 insertions(+), 28 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 528cce9..2ee03e4 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -709,6 +709,8 @@ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+ 
+ /* table of devices that work with this driver */
+ struct usb_device_id cx231xx_id_table[] = {
++	{USB_DEVICE(0x1D19, 0x6109),
++	.driver_info = CX231XX_BOARD_PV_XCAPTURE_USB},
+ 	{USB_DEVICE(0x0572, 0x5A3C),
+ 	 .driver_info = CX231XX_BOARD_UNKNOWN},
+ 	{USB_DEVICE(0x0572, 0x58A2),
 -- 
-1.8.5.3
+1.7.10.4
 
