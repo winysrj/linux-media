@@ -1,89 +1,301 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3791 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753138AbaA0Oeq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 09:34:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:49919 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754713AbaADRIs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 12:08:48 -0500
+Received: by mail-ee0-f51.google.com with SMTP id b15so7243384eek.10
+        for <linux-media@vger.kernel.org>; Sat, 04 Jan 2014 09:08:47 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 04/22] videodev2.h: add initial support for complex controls.
-Date: Mon, 27 Jan 2014 15:34:06 +0100
-Message-Id: <1390833264-8503-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 11/11] libdvbv5: remove unneeded includes
+Date: Sat,  4 Jan 2014 18:08:01 +0100
+Message-Id: <1388855282-19295-11-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
+References: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Complex controls are controls that can be used for compound and array
-types. This allows for more complex data structures to be used with the
-control framework.
-
-Such controls always have the V4L2_CTRL_FLAG_HIDDEN flag set. Note that
-'simple' controls can also set that flag.
-
-The existing V4L2_CTRL_FLAG_NEXT_CTRL flag will only enumerate controls
-that do not have the HIDDEN flag, so a new V4L2_CTRL_FLAG_NEXT_HIDDEN flag
-is added to enumerate hidden controls. Set both flags to enumerate any
-controls (hidden or not).
-
-Complex control types will start at V4L2_CTRL_COMPLEX_TYPES. In addition, any
-control that uses the new 'p' field or the existing 'string' field will have
-flag V4L2_CTRL_FLAG_IS_PTR set.
-
-While not strictly necessary, adding that flag makes life for applications
-a lot simpler. If the flag is not set, then the control value is set
-through the value or value64 fields of struct v4l2_ext_control, otherwise
-a pointer points to the value.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- include/uapi/linux/videodev2.h | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ lib/libdvbv5/descriptors/desc_atsc_service_location.c |    1 -
+ lib/libdvbv5/descriptors/desc_ca.c                    |    1 -
+ lib/libdvbv5/descriptors/desc_ca_identifier.c         |    1 -
+ lib/libdvbv5/descriptors/desc_cable_delivery.c        |    1 -
+ lib/libdvbv5/descriptors/desc_event_extended.c        |    1 -
+ lib/libdvbv5/descriptors/desc_event_short.c           |    1 -
+ lib/libdvbv5/descriptors/desc_extension.c             |    1 -
+ lib/libdvbv5/descriptors/desc_frequency_list.c        |    1 -
+ lib/libdvbv5/descriptors/desc_hierarchy.c             |    1 -
+ lib/libdvbv5/descriptors/desc_isdbt_delivery.c        |    1 -
+ lib/libdvbv5/descriptors/desc_language.c              |    1 -
+ lib/libdvbv5/descriptors/desc_logical_channel.c       |    1 -
+ lib/libdvbv5/descriptors/desc_network_name.c          |    1 -
+ lib/libdvbv5/descriptors/desc_partial_reception.c     |    1 -
+ lib/libdvbv5/descriptors/desc_sat.c                   |    1 -
+ lib/libdvbv5/descriptors/desc_service.c               |    1 -
+ lib/libdvbv5/descriptors/desc_service_list.c          |    1 -
+ lib/libdvbv5/descriptors/desc_service_location.c      |    1 -
+ lib/libdvbv5/descriptors/desc_t2_delivery.c           |    1 -
+ lib/libdvbv5/descriptors/desc_terrestrial_delivery.c  |    1 -
+ lib/libdvbv5/descriptors/desc_ts_info.c               |    1 -
+ 21 files changed, 21 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 6ae7bbe..4d7782a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1228,6 +1228,7 @@ struct v4l2_ext_control {
- 		__s32 value;
- 		__s64 value64;
- 		char *string;
-+		void *p;
- 	};
- } __attribute__ ((packed));
+diff --git a/lib/libdvbv5/descriptors/desc_atsc_service_location.c b/lib/libdvbv5/descriptors/desc_atsc_service_location.c
+index d47eee0..a654adc 100644
+--- a/lib/libdvbv5/descriptors/desc_atsc_service_location.c
++++ b/lib/libdvbv5/descriptors/desc_atsc_service_location.c
+@@ -18,7 +18,6 @@
+  *
+  */
  
-@@ -1252,7 +1253,10 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
- 	V4L2_CTRL_TYPE_STRING        = 7,
- 	V4L2_CTRL_TYPE_BITMASK       = 8,
--	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
-+	V4L2_CTRL_TYPE_INTEGER_MENU  = 9,
-+
-+	/* Complex types are >= 0x0100 */
-+	V4L2_CTRL_COMPLEX_TYPES	     = 0x0100,
- };
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/desc_atsc_service_location.h>
+ #include <libdvbv5/dvb-fe.h>
  
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
-@@ -1288,9 +1292,12 @@ struct v4l2_querymenu {
- #define V4L2_CTRL_FLAG_SLIDER 		0x0020
- #define V4L2_CTRL_FLAG_WRITE_ONLY 	0x0040
- #define V4L2_CTRL_FLAG_VOLATILE		0x0080
-+#define V4L2_CTRL_FLAG_HIDDEN		0x0100
-+#define V4L2_CTRL_FLAG_IS_PTR		0x0200
+diff --git a/lib/libdvbv5/descriptors/desc_ca.c b/lib/libdvbv5/descriptors/desc_ca.c
+index 01d3b8c..791bda2 100644
+--- a/lib/libdvbv5/descriptors/desc_ca.c
++++ b/lib/libdvbv5/descriptors/desc_ca.c
+@@ -20,7 +20,6 @@
+  */
  
--/*  Query flag, to be ORed with the control ID */
-+/*  Query flags, to be ORed with the control ID */
- #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
-+#define V4L2_CTRL_FLAG_NEXT_HIDDEN	0x40000000
+ #include <libdvbv5/desc_ca.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
  
- /*  User-class control IDs defined by V4L2 */
- #define V4L2_CID_MAX_CTRLS		1024
+ int dvb_desc_ca_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_ca_identifier.c b/lib/libdvbv5/descriptors/desc_ca_identifier.c
+index c986ac7..3102d01 100644
+--- a/lib/libdvbv5/descriptors/desc_ca_identifier.c
++++ b/lib/libdvbv5/descriptors/desc_ca_identifier.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_ca_identifier.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+ int dvb_desc_ca_identifier_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_cable_delivery.c b/lib/libdvbv5/descriptors/desc_cable_delivery.c
+index 5263a56..0b599e6 100644
+--- a/lib/libdvbv5/descriptors/desc_cable_delivery.c
++++ b/lib/libdvbv5/descriptors/desc_cable_delivery.c
+@@ -21,7 +21,6 @@
+  */
+ 
+ #include <libdvbv5/desc_cable_delivery.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+ int dvb_desc_cable_delivery_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_event_extended.c b/lib/libdvbv5/descriptors/desc_event_extended.c
+index 6689aa2..de20d06 100644
+--- a/lib/libdvbv5/descriptors/desc_event_extended.c
++++ b/lib/libdvbv5/descriptors/desc_event_extended.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_event_extended.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ #include <parse_string.h>
+ 
+diff --git a/lib/libdvbv5/descriptors/desc_event_short.c b/lib/libdvbv5/descriptors/desc_event_short.c
+index a4fb2d0..c4f5efe 100644
+--- a/lib/libdvbv5/descriptors/desc_event_short.c
++++ b/lib/libdvbv5/descriptors/desc_event_short.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_event_short.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ #include <parse_string.h>
+ 
+diff --git a/lib/libdvbv5/descriptors/desc_extension.c b/lib/libdvbv5/descriptors/desc_extension.c
+index 91748bb..0aaeba8 100644
+--- a/lib/libdvbv5/descriptors/desc_extension.c
++++ b/lib/libdvbv5/descriptors/desc_extension.c
+@@ -18,7 +18,6 @@
+  *
+  */
+ 
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/desc_extension.h>
+ #include <libdvbv5/desc_t2_delivery.h>
+ #include <libdvbv5/dvb-fe.h>
+diff --git a/lib/libdvbv5/descriptors/desc_frequency_list.c b/lib/libdvbv5/descriptors/desc_frequency_list.c
+index e1183b9..1ee563c 100644
+--- a/lib/libdvbv5/descriptors/desc_frequency_list.c
++++ b/lib/libdvbv5/descriptors/desc_frequency_list.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_frequency_list.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+ int dvb_desc_frequency_list_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_hierarchy.c b/lib/libdvbv5/descriptors/desc_hierarchy.c
+index 0f7675c..a85c8da 100644
+--- a/lib/libdvbv5/descriptors/desc_hierarchy.c
++++ b/lib/libdvbv5/descriptors/desc_hierarchy.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_hierarchy.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+ int dvb_desc_hierarchy_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_isdbt_delivery.c b/lib/libdvbv5/descriptors/desc_isdbt_delivery.c
+index 9ef5df4..336ca85 100644
+--- a/lib/libdvbv5/descriptors/desc_isdbt_delivery.c
++++ b/lib/libdvbv5/descriptors/desc_isdbt_delivery.c
+@@ -18,7 +18,6 @@
+  *
+  */
+ 
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/desc_isdbt_delivery.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+diff --git a/lib/libdvbv5/descriptors/desc_language.c b/lib/libdvbv5/descriptors/desc_language.c
+index cfc91b7..5477ae7 100644
+--- a/lib/libdvbv5/descriptors/desc_language.c
++++ b/lib/libdvbv5/descriptors/desc_language.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_language.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+ int dvb_desc_language_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_logical_channel.c b/lib/libdvbv5/descriptors/desc_logical_channel.c
+index 6ebea03..7137c57 100644
+--- a/lib/libdvbv5/descriptors/desc_logical_channel.c
++++ b/lib/libdvbv5/descriptors/desc_logical_channel.c
+@@ -22,7 +22,6 @@
+  *	http://tdt.telecom.pt/recursos/apresentacoes/Signalling Specifications for DTT deployment in Portugal.pdf
+  */
+ 
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/desc_logical_channel.h>
+ #include <libdvbv5/dvb-fe.h>
+ #include <parse_string.h>
+diff --git a/lib/libdvbv5/descriptors/desc_network_name.c b/lib/libdvbv5/descriptors/desc_network_name.c
+index 03f98fa..95d8501 100644
+--- a/lib/libdvbv5/descriptors/desc_network_name.c
++++ b/lib/libdvbv5/descriptors/desc_network_name.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_network_name.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ #include "parse_string.h"
+ 
+diff --git a/lib/libdvbv5/descriptors/desc_partial_reception.c b/lib/libdvbv5/descriptors/desc_partial_reception.c
+index 4d19f14..0e4d25c 100644
+--- a/lib/libdvbv5/descriptors/desc_partial_reception.c
++++ b/lib/libdvbv5/descriptors/desc_partial_reception.c
+@@ -19,7 +19,6 @@
+  * Described on ARIB STD-B10 as Partial reception descriptor
+  */
+ 
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/desc_partial_reception.h>
+ #include <libdvbv5/dvb-fe.h>
+ #include <parse_string.h>
+diff --git a/lib/libdvbv5/descriptors/desc_sat.c b/lib/libdvbv5/descriptors/desc_sat.c
+index b57ee22..c763e4e 100644
+--- a/lib/libdvbv5/descriptors/desc_sat.c
++++ b/lib/libdvbv5/descriptors/desc_sat.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_sat.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+ int dvb_desc_sat_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_service.c b/lib/libdvbv5/descriptors/desc_service.c
+index fdcea02..f13a9e6 100644
+--- a/lib/libdvbv5/descriptors/desc_service.c
++++ b/lib/libdvbv5/descriptors/desc_service.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_service.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ #include <parse_string.h>
+ 
+diff --git a/lib/libdvbv5/descriptors/desc_service_list.c b/lib/libdvbv5/descriptors/desc_service_list.c
+index a9a99e9..7334f01 100644
+--- a/lib/libdvbv5/descriptors/desc_service_list.c
++++ b/lib/libdvbv5/descriptors/desc_service_list.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <libdvbv5/desc_service_list.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+ /* FIXME: implement */
+diff --git a/lib/libdvbv5/descriptors/desc_service_location.c b/lib/libdvbv5/descriptors/desc_service_location.c
+index 8dde550..3023561 100644
+--- a/lib/libdvbv5/descriptors/desc_service_location.c
++++ b/lib/libdvbv5/descriptors/desc_service_location.c
+@@ -19,7 +19,6 @@
+  */
+ 
+ #include <libdvbv5/desc_service_location.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+ int dvb_desc_service_location_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_t2_delivery.c b/lib/libdvbv5/descriptors/desc_t2_delivery.c
+index b7f2d0b..0d5cab6 100644
+--- a/lib/libdvbv5/descriptors/desc_t2_delivery.c
++++ b/lib/libdvbv5/descriptors/desc_t2_delivery.c
+@@ -19,7 +19,6 @@
+  * Based on ETSI EN 300 468 V1.11.1 (2010-04)
+  */
+ 
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/desc_extension.h>
+ #include <libdvbv5/desc_t2_delivery.h>
+ #include <libdvbv5/dvb-fe.h>
+diff --git a/lib/libdvbv5/descriptors/desc_terrestrial_delivery.c b/lib/libdvbv5/descriptors/desc_terrestrial_delivery.c
+index 0c568b0..7eb4b2b 100644
+--- a/lib/libdvbv5/descriptors/desc_terrestrial_delivery.c
++++ b/lib/libdvbv5/descriptors/desc_terrestrial_delivery.c
+@@ -22,7 +22,6 @@
+  */
+ 
+ #include <libdvbv5/desc_terrestrial_delivery.h>
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/dvb-fe.h>
+ 
+ int dvb_desc_terrestrial_delivery_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+diff --git a/lib/libdvbv5/descriptors/desc_ts_info.c b/lib/libdvbv5/descriptors/desc_ts_info.c
+index f2867e5..7a6e520 100644
+--- a/lib/libdvbv5/descriptors/desc_ts_info.c
++++ b/lib/libdvbv5/descriptors/desc_ts_info.c
+@@ -19,7 +19,6 @@
+  * Described on ARIB STD-B10 as TS information descriptor
+  */
+ 
+-#include <libdvbv5/descriptors.h>
+ #include <libdvbv5/desc_ts_info.h>
+ #include <libdvbv5/dvb-fe.h>
+ #include <parse_string.h>
 -- 
-1.8.5.2
+1.7.10.4
 
