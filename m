@@ -1,96 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43683 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:43689 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753226AbaADN7R (ORCPT
+	with ESMTP id S1753236AbaADN7R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:17 -0500
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v4 20/22] [media] em28xx: use usb_alloc_coherent() for audio
-Date: Sat,  4 Jan 2014 08:55:49 -0200
-Message-Id: <1388832951-11195-21-git-send-email-m.chehab@samsung.com>
+Subject: [PATCH v4 17/22] [media] em28xx-i2c: Fix error code for I2C error transfers
+Date: Sat,  4 Jan 2014 08:55:46 -0200
+Message-Id: <1388832951-11195-18-git-send-email-m.chehab@samsung.com>
 In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
 References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of allocating transfer buffers with kmalloc() use
-usb_alloc_coherent().
+The proper error code for I2C errors are EREMOTEIO. The em28xx driver
+is using EIO instead.
 
-That makes it work also with arm CPUs.
+Replace all occurrences of EIO at em28xx-i2c, in order to fix it.
 
 Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/usb/em28xx/em28xx-audio.c | 31 ++++++++++++++++++++-----------
- 1 file changed, 20 insertions(+), 11 deletions(-)
+ drivers/media/usb/em28xx/em28xx-i2c.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index a6eef06ffdcd..e5120430ec80 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -64,16 +64,22 @@ static int em28xx_deinit_isoc_audio(struct em28xx *dev)
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 9fa7ed51e5b1..8b35aa51b9bb 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -72,7 +72,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ 	if (ret != 2 + len) {
+ 		em28xx_warn("failed to trigger write to i2c address 0x%x (error=%i)\n",
+ 			    addr, ret);
+-		return (ret < 0) ? ret : -EIO;
++		return (ret < 0) ? ret : -EREMOTEIO;
+ 	}
+ 	/* wait for completion */
+ 	while (time_is_after_jiffies(timeout)) {
+@@ -91,7 +91,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ 		msleep(5);
+ 	}
+ 	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
+-	return -EIO;
++	return -EREMOTEIO;
+ }
  
- 	dprintk("Stopping isoc\n");
- 	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
-+		struct urb *urb = dev->adev.urb[i];
-+
- 		if (!irqs_disabled())
--			usb_kill_urb(dev->adev.urb[i]);
-+			usb_kill_urb(urb);
- 		else
--			usb_unlink_urb(dev->adev.urb[i]);
-+			usb_unlink_urb(urb);
- 
--		usb_free_urb(dev->adev.urb[i]);
--		dev->adev.urb[i] = NULL;
-+		usb_free_coherent(dev->udev,
-+				  urb->transfer_buffer_length,
-+				  dev->adev.transfer_buffer[i],
-+				  urb->transfer_dma);
- 
--		kfree(dev->adev.transfer_buffer[i]);
- 		dev->adev.transfer_buffer[i] = NULL;
-+
-+		usb_free_urb(urb);
-+		dev->adev.urb[i] = NULL;
+ /*
+@@ -115,7 +115,7 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ 	if (ret != 2) {
+ 		em28xx_warn("failed to trigger read from i2c address 0x%x (error=%i)\n",
+ 			    addr, ret);
+-		return (ret < 0) ? ret : -EIO;
++		return (ret < 0) ? ret : -EREMOTEIO;
  	}
  
- 	return 0;
-@@ -176,12 +182,8 @@ static int em28xx_init_audio_isoc(struct em28xx *dev)
- 	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
- 		struct urb *urb;
- 		int j, k;
-+		void *buf;
+ 	/* wait for completion */
+@@ -142,7 +142,7 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ 	if (ret != len) {
+ 		em28xx_warn("reading from i2c device at 0x%x failed: couldn't get the received message from the bridge (error=%i)\n",
+ 			    addr, ret);
+-		return (ret < 0) ? ret : -EIO;
++		return (ret < 0) ? ret : -EREMOTEIO;
+ 	}
+ 	for (i = 0; i < len; i++)
+ 		buf[i] = buf2[len - 1 - i];
+@@ -162,7 +162,7 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
+ 	ret = em2800_i2c_recv_bytes(dev, addr, &buf, 1);
+ 	if (ret == 1)
+ 		return 0;
+-	return (ret < 0) ? ret : -EIO;
++	return (ret < 0) ? ret : -EREMOTEIO;
+ }
  
--		dev->adev.transfer_buffer[i] = kmalloc(sb_size, GFP_ATOMIC);
--		if (!dev->adev.transfer_buffer[i])
--			return -ENOMEM;
--
--		memset(dev->adev.transfer_buffer[i], 0x80, sb_size);
- 		urb = usb_alloc_urb(EM28XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
- 		if (!urb) {
- 			em28xx_errdev("usb_alloc_urb failed!\n");
-@@ -192,10 +194,17 @@ static int em28xx_init_audio_isoc(struct em28xx *dev)
- 			return -ENOMEM;
+ /*
+@@ -191,7 +191,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ 		} else {
+ 			em28xx_warn("%i bytes write to i2c device at 0x%x requested, but %i bytes written\n",
+ 				    len, addr, ret);
+-			return -EIO;
++			return -EREMOTEIO;
  		}
+ 	}
  
-+		buf = usb_alloc_coherent(dev->udev, sb_size, GFP_ATOMIC,
-+					 &urb->transfer_dma);
-+		if (!buf)
-+			return -ENOMEM;
-+		dev->adev.transfer_buffer[i] = buf;
-+		memset(buf, 0x80, sb_size);
-+
- 		urb->dev = dev->udev;
- 		urb->context = dev;
- 		urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
--		urb->transfer_flags = URB_ISO_ASAP;
-+		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
- 		urb->transfer_buffer = dev->adev.transfer_buffer[i];
- 		urb->interval = 1;
- 		urb->complete = em28xx_audio_isocirq;
+@@ -219,7 +219,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ 	}
+ 
+ 	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
+-	return -EIO;
++	return -EREMOTEIO;
+ }
+ 
+ /*
+@@ -268,7 +268,7 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ 	}
+ 
+ 	em28xx_warn("unknown i2c error (status=%i)\n", ret);
+-	return -EIO;
++	return -EREMOTEIO;
+ }
+ 
+ /*
+@@ -283,7 +283,7 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
+ 	ret = em28xx_i2c_recv_bytes(dev, addr, &buf, 1);
+ 	if (ret == 1)
+ 		return 0;
+-	return (ret < 0) ? ret : -EIO;
++	return (ret < 0) ? ret : -EREMOTEIO;
+ }
+ 
+ /*
+@@ -312,7 +312,7 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ 		} else {
+ 			em28xx_warn("%i bytes write to i2c device at 0x%x requested, but %i bytes written\n",
+ 				    len, addr, ret);
+-			return -EIO;
++			return -EREMOTEIO;
+ 		}
+ 	}
+ 	/* Check success */
 -- 
 1.8.3.1
 
