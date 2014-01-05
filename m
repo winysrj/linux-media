@@ -1,57 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s35.blu0.hotmail.com ([65.55.111.110]:42656 "EHLO
-	blu0-omc2-s35.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751595AbaAGPqH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jan 2014 10:46:07 -0500
-Message-ID: <BLU0-SMTP16701F268FC849BF9937149ADB60@phx.gbl>
-Date: Tue, 7 Jan 2014 23:45:59 +0800
-From: randy <lxr1234@hotmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: a.hajda@samsung.com
-Subject: How to get the key frame when using mfc encoder
-Content-Type: text/plain; charset="GB2312"
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:30192 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751050AbaAENFV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 08:05:21 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYX00LDKJ0W9N40@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 05 Jan 2014 08:05:20 -0500 (EST)
+Date: Sun, 05 Jan 2014 11:05:15 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 06/22] [media] em28xx: add warn messages for timeout
+Message-id: <20140105110515.4da29d44@samsung.com>
+In-reply-to: <52C93940.5060402@googlemail.com>
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+ <1388832951-11195-7-git-send-email-m.chehab@samsung.com>
+ <52C93940.5060402@googlemail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Em Sun, 05 Jan 2014 11:51:44 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Hello
-  Well, in this time, I think I have wroten a program to use mfc
-encoder of exynos4412 correctly. But how to get a I-frame in H.264, I
-think the first dequeue frame in CAPTURE after I start streams in both
-in is the key frame which is always 22 bytes long, but it can't be
-used to create sdp in libav. When I use the v4l2-mfc-encoder to encode
-H.264 with only one frame from demo source, the output file's size is
-always 155 bytes.
-The furture encoded size got by my program is about 140000 to 16000
-bytes (the raw image is 640*480 in nv12, that size is from bytesused
-in dequeued v4l2_buffer)
-Is it my program using mfc encoder correct?
+> Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
+> > changeset 45f04e82d035 added a logic to check if em28xx got
+> > a timeout on an I2C transfer.
+> >
+> > That patch started to produce a series of errors that is present
+> > with HVR-950, like:
+> >
+> > [ 4032.218656] xc2028 19-0061: Error on line 1299: -19
+> >
+> > However, as there are several places where -ENODEV is produced,
+> > there's no way to know what's happening.
+> >
+> > So, let's add a printk to report what error condition was reached:
+> >
+> > [ 4032.218652] em2882/3 #0: I2C transfer timeout on writing to addr 0xc2
+> > [ 4032.218656] xc2028 19-0061: Error on line 1299: -19
+> >
+> > Interesting enough, when connected to an USB3 port, the number of
+> > errors increase:
+> >
+> > [ 4249.941375] em2882/3 #0: I2C transfer timeout on writing to addr 0xb8
+> > [ 4249.941378] tvp5150 19-005c: i2c i/o error: rc == -19 (should be 2)
+> > [ 4250.023854] em2882/3 #0: I2C transfer timeout on writing to addr 0xc2
+> > [ 4250.023857] xc2028 19-0061: Error on line 1299: -19
+> >
+> > Due to that, I suspect that the logic in the driver is wrong: instead
+> > of just returning an error if 0x10 is returned, it should be waiting for
+> > a while and read the I2C status register again.
+> >
+> > However, more tests are needed.
+> The patch description isn't up-to-date.
+> It turned out that the bug is in the xc2028 driver.
+> 
+> See
+> http://www.spinics.net/lists/linux-media/msg71107.html
+> 
+> >
+> > For now, instead of just returning -ENODEV, output an error message
+> > to help debug what's happening.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > ---
+> >  drivers/media/usb/em28xx/em28xx-i2c.c | 12 ++++++++++--
+> >  1 file changed, 10 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> > index c4ff9739a7ae..9e6a11d01858 100644
+> > --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> > +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> > @@ -80,6 +80,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+> >  		if (ret == 0x80 + len - 1) {
+> >  			return len;
+> >  		} else if (ret == 0x94 + len - 1) {
+> > +			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
+> >  			return -ENODEV;
+> >  		} else if (ret < 0) {
+> >  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+> > @@ -123,6 +124,7 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+> >  		if (ret == 0x84 + len - 1) {
+> >  			break;
+> >  		} else if (ret == 0x94 + len - 1) {
+> > +			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
+> >  			return -ENODEV;
+> >  		} else if (ret < 0) {
+> >  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+> > @@ -198,6 +200,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+> >  		if (ret == 0) { /* success */
+> >  			return len;
+> >  		} else if (ret == 0x10) {
+> > +			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x", addr);
+> >  			return -ENODEV;
+> >  		} else if (ret < 0) {
+> >  			em28xx_warn("failed to read i2c transfer status from bridge (error=%i)\n",
+> > @@ -255,6 +258,7 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+> >  	}
+> >  	if (ret > 0) {
+> >  		if (ret == 0x10) {
+> > +			em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
+> >  			return -ENODEV;
+> >  		} else {
+> >  			em28xx_warn("unknown i2c error (status=%i)\n", ret);
+> > @@ -316,8 +320,10 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+> >  	 */
+> >  	if (!ret)
+> >  		return len;
+> > -	else if (ret > 0)
+> > +	else if (ret > 0) {
+> > +		em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
+> >  		return -ENODEV;
+> > +	}
+> >  
+> >  	return ret;
+> >  	/*
+> > @@ -367,8 +373,10 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+> >  	 */
+> >  	if (!ret)
+> >  		return len;
+> > -	else if (ret > 0)
+> > +	else if (ret > 0) {
+> > +		em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
+> >  		return -ENODEV;
+> > +	}
+> >  
+> >  	return ret;
+> >  	/*
+> NACK.
+> This will spam the system log on i2c device probing (especially with
+> sensors).
 
-Is there any way to force mfc encoder to encode a I-frame?
+A driver returning -ENODEV should really have a log explaining what
+happened with the device.
 
-And I have a problem with the data transporting way in v4l2-mfc-encoder,
-it use m.userptr, I think it is not need, as it has been mmap  to
-bufs->addr before, just fill the bufs->addr is enough, and for mfc,
-the buffer type V4L2_MEMORY_MMAP,  I think that it had better use
-m.mem_offset from v4l2 document, why it use userptr?
+Anyway, see changeset 19/22. 
 
+This is part of a changeset that cleanups the I2C return code and 
+printk mess.
 
-Thank you
-							ayaka
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+After changeset 19/22, the timeout messages will be displayed only
+if debug is enabled, and it will return the proper error code for
+I2C I/O errors, as described at I2C Documentation/.
 
-iQEcBAEBAgAGBQJSzCEzAAoJEPb4VsMIzTziVqkH/3O9DQhG0+/r+FN2Z+O3f7Oe
-6n3mO+qTl0kwEMgUWfNWNMLfsRtCDC+OYsBRIcJohOv5jx5t4Rm98zz7vXndIR/w
-Y0PpLO5Dx3s2VHFNEU/VSQONgKWOwqbXgsNSks2VW05uhaB/S4cxrYHUREBvsqeo
-g6D2qsAICe+htdYuOdMYKkeXuIV6xY4ltQ4Cf1dXFWy4Wk70T6fDZuKSIOMhOZyW
-FPRMZ3Eogmr7LegV7HuC8+jhh9yexWKzqLJUy4zvxuQKN0IZBGJ9ystTzxCwdJJb
-DUJ2imGwkRvyIAILEWukV8w5sEgM9J/PgHqDyFrTYU1zvzShnPutDUS4zb/kPsM=
-=NCxg
------END PGP SIGNATURE-----
+Regards,
+Mauro
