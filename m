@@ -1,145 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:25780 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbaAGRbD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 12:31:03 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ100DEBKNRD760@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 Jan 2014 12:31:03 -0500 (EST)
-Date: Tue, 07 Jan 2014 15:30:58 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 17/18] libdvbv5: remove header files from SOURCES in
- Makefile.am
-Message-id: <20140107153058.4e8de28b@samsung.com>
-In-reply-to: <1388407731-24369-17-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
- <1388407731-24369-17-git-send-email-neolynx@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1477 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881AbaAEMFS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 07:05:18 -0500
+Message-ID: <52C94A64.2050300@xs4all.nl>
+Date: Sun, 05 Jan 2014 13:04:52 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC v6 10/12] DocBook: document 1 Hz flag
+References: <1388289844-2766-1-git-send-email-crope@iki.fi> <1388289844-2766-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1388289844-2766-11-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Dec 2013 13:48:50 +0100
-André Roth <neolynx@gmail.com> escreveu:
+More small fixes:
 
-description?
+On 12/29/2013 05:04 AM, Antti Palosaari wrote:
+> Update documention to reflect 1 Hz frequency step flag.
 
-I'm not sure if this is ok. If you remove the headers, wouldn't it remove the
-C source dependencies from the .h headers?
+documention -> documentation
 
-> Signed-off-by: André Roth <neolynx@gmail.com>
-> ---
->  lib/libdvbv5/Makefile.am | 87 ++++++++++++++++++++++++------------------------
->  1 file changed, 43 insertions(+), 44 deletions(-)
 > 
-> diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-> index ddf9ea1..8f89531 100644
-> --- a/lib/libdvbv5/Makefile.am
-> +++ b/lib/libdvbv5/Makefile.am
-> @@ -52,52 +52,51 @@ noinst_LTLIBRARIES = libdvbv5.la
->  endif
->  
->  libdvbv5_la_SOURCES = \
-> -	crc32.c crc32.h \
-> -	../include/dvb-frontend.h \
-> +	crc32.c \
->  	dvb-legacy-channel-format.c \
->  	dvb-zap-format.c \
-> -	dvb-v5.c	dvb-v5.h \
-> -	parse_string.c	parse_string.h \
-> -	dvb-demux.c	../include/dvb-demux.h \
-> -	dvb-fe.c	../include/dvb-fe.h \
-> -	dvb-log.c	../include/dvb-log.h \
-> -	dvb-file.c	../include/dvb-file.h \
-> -	dvb-v5-std.c	../include/dvb-v5-std.h \
-> -	dvb-sat.c	../include/dvb-sat.h \
-> -	dvb-scan.c	../include/dvb-scan.h \
-> -	descriptors.c	../include/descriptors.h \
-> -	descriptors/header.c		../include/libdvbv5/header.h \
-> -	descriptors/atsc_header.c	../include/libdvbv5/atsc_header.h \
-> -	descriptors/pat.c		../include/libdvbv5/pat.h \
-> -	descriptors/pmt.c		../include/libdvbv5/pmt.h \
-> -	descriptors/nit.c		../include/libdvbv5/nit.h \
-> -	descriptors/sdt.c		../include/libdvbv5/sdt.h \
-> -	descriptors/vct.c		../include/libdvbv5/vct.h \
-> -	descriptors/mgt.c		../include/libdvbv5/mgt.h \
-> -	descriptors/eit.c		../include/libdvbv5/eit.h \
-> -	descriptors/atsc_eit.c		../include/libdvbv5/atsc_eit.h \
-> -	descriptors/desc_language.c		../include/libdvbv5/desc_language.h \
-> -	descriptors/desc_network_name.c		../include/libdvbv5/desc_network_name.h \
-> -	descriptors/desc_cable_delivery.c	../include/libdvbv5/desc_cable_delivery.h \
-> -	descriptors/desc_sat.c			../include/libdvbv5/desc_sat.h \
-> -	descriptors/desc_terrestrial_delivery.c  ../include/libdvbv5/desc_terrestrial_delivery.h \
-> -	descriptors/desc_t2_delivery.c		../include/libdvbv5/desc_t2_delivery.h \
-> -	descriptors/desc_service.c		../include/libdvbv5/desc_service.h \
-> -	descriptors/desc_frequency_list.c	../include/libdvbv5/desc_frequency_list.h \
-> -	descriptors/desc_service_list.c		../include/libdvbv5/desc_service_list.h \
-> -	descriptors/desc_event_short.c		../include/libdvbv5/desc_event_short.h \
-> -	descriptors/desc_event_extended.c	../include/libdvbv5/desc_event_extended.h \
-> -	descriptors/desc_atsc_service_location.c ../include/libdvbv5/desc_atsc_service_location.h \
-> -	descriptors/desc_hierarchy.c		../include/libdvbv5/desc_hierarchy.h \
-> -	descriptors/desc_extension.c		../include/libdvbv5/desc_extension.h \
-> -	descriptors/desc_isdbt_delivery.c	../include/libdvbv5/desc_isdbt_delivery.h \
-> -	descriptors/desc_logical_channel.c	../include/libdvbv5/desc_logical_channel.h \
-> -	descriptors/desc_ts_info.c		../include/libdvbv5/desc_ts_info.h \
-> -	descriptors/desc_partial_reception.c	../include/libdvbv5/desc_partial_reception.h \
-> -	descriptors/desc_service_location.c	../include/libdvbv5/desc_service_location.h \
-> -	descriptors/mpeg_ts.c		../include/libdvbv5/mpeg_ts.h \
-> -	descriptors/mpeg_pes.c		../include/libdvbv5/mpeg_pes.h \
-> -	descriptors/mpeg_es.c		../include/libdvbv5/mpeg_es.h
-> +	dvb-v5.c	 \
-> +	parse_string.c	 \
-> +	dvb-demux.c	 \
-> +	dvb-fe.c	 \
-> +	dvb-log.c	\
-> +	dvb-file.c	\
-> +	dvb-v5-std.c	\
-> +	dvb-sat.c	\
-> +	dvb-scan.c	\
-> +	descriptors.c	\
-> +	descriptors/header.c		\
-> +	descriptors/atsc_header.c	\
-> +	descriptors/pat.c		\
-> +	descriptors/pmt.c		\
-> +	descriptors/nit.c		\
-> +	descriptors/sdt.c		\
-> +	descriptors/vct.c		\
-> +	descriptors/mgt.c		\
-> +	descriptors/eit.c		\
-> +	descriptors/atsc_eit.c		\
-> +	descriptors/desc_language.c		\
-> +	descriptors/desc_network_name.c		\
-> +	descriptors/desc_cable_delivery.c	\
-> +	descriptors/desc_sat.c			\
-> +	descriptors/desc_terrestrial_delivery.c  \
-> +	descriptors/desc_t2_delivery.c		\
-> +	descriptors/desc_service.c		\
-> +	descriptors/desc_frequency_list.c	\
-> +	descriptors/desc_service_list.c		\
-> +	descriptors/desc_event_short.c		\
-> +	descriptors/desc_event_extended.c	\
-> +	descriptors/desc_atsc_service_location.c \
-> +	descriptors/desc_hierarchy.c		\
-> +	descriptors/desc_extension.c		\
-> +	descriptors/desc_isdbt_delivery.c	\
-> +	descriptors/desc_logical_channel.c	\
-> +	descriptors/desc_ts_info.c		\
-> +	descriptors/desc_partial_reception.c	\
-> +	descriptors/desc_service_location.c	\
-> +	descriptors/mpeg_ts.c		\
-> +	descriptors/mpeg_pes.c		\
-> +	descriptors/mpeg_es.c
->  
->  libdvbv5_la_CPPFLAGS = -I../.. $(ENFORCE_LIBDVBV5_STATIC)
->  libdvbv5_la_LDFLAGS = $(LIBDVBV5_VERSION) $(ENFORCE_LIBDVBV5_STATIC) -lm
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  .../DocBook/media/v4l/vidioc-enum-freq-bands.xml          |  8 +++++---
+>  Documentation/DocBook/media/v4l/vidioc-g-frequency.xml    |  5 +++--
+>  Documentation/DocBook/media/v4l/vidioc-g-modulator.xml    |  6 ++++--
+>  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml        | 15 ++++++++++++---
+>  Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml |  8 ++++++--
+>  5 files changed, 30 insertions(+), 12 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+> index 6541ba0..60ad9ea 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+> @@ -100,7 +100,7 @@ See <xref linkend="v4l2-tuner-type" /></entry>
+>  	    <entry><structfield>capability</structfield></entry>
+>  	    <entry spanname="hspan">The tuner/modulator capability flags for
+>  this frequency band, see <xref linkend="tuner-capability" />. The <constant>V4L2_TUNER_CAP_LOW</constant>
+> -capability must be the same for all frequency bands of the selected tuner/modulator.
+> +or <constant>V4L2_TUNER_CAP_1HZ</constant> capability must be the same for all frequency bands of the selected tuner/modulator.
+>  So either all bands have that capability set, or none of them have that capability.</entry>
+>  	  </row>
+>  	  <row>
+> @@ -109,7 +109,8 @@ So either all bands have that capability set, or none of them have that capabili
+>  	    <entry spanname="hspan">The lowest tunable frequency in
+>  units of 62.5 kHz, or if the <structfield>capability</structfield>
+>  flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+> -Hz, for this frequency band.</entry>
+> +Hz, for this frequency band. 1 Hz unit is used when <structfield>capability</structfield> flag
+
+Change to:
+
+"Hz, for this frequency band. A 1 Hz unit is used when the <structfield>capability</structfield> flag"
 
 
--- 
+> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__u32</entry>
+> @@ -117,7 +118,8 @@ Hz, for this frequency band.</entry>
+>  	    <entry spanname="hspan">The highest tunable frequency in
+>  units of 62.5 kHz, or if the <structfield>capability</structfield>
+>  flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+> -Hz, for this frequency band.</entry>
+> +Hz, for this frequency band. 1 Hz unit is used when <structfield>capability</structfield> flag
 
-Cheers,
-Mauro
+Change to:
+
+"Hz, for this frequency band. A 1 Hz unit is used when the <structfield>capability</structfield> flag"
+
+> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__u32</entry>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+> index c7a1c46..01870c4 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+> @@ -109,9 +109,10 @@ See <xref linkend="v4l2-tuner-type" /></entry>
+>  	    <entry>__u32</entry>
+>  	    <entry><structfield>frequency</structfield></entry>
+>  	    <entry>Tuning frequency in units of 62.5 kHz, or if the
+> -&v4l2-tuner; or &v4l2-modulator; <structfield>capabilities</structfield> flag
+> +&v4l2-tuner; or &v4l2-modulator; <structfield>capability</structfield> flag
+>  <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+> -Hz.</entry>
+> +Hz. 1 Hz unit is used when <structfield>capability</structfield> flag
+
+Change to:
+
+"Hz. A 1 Hz unit is used when the <structfield>capability</structfield> flag"
+
+> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__u32</entry>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+> index 7f4ac7e..7068b59 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+> @@ -113,7 +113,8 @@ change for example with the current video standard.</entry>
+>  	    <entry>The lowest tunable frequency in units of 62.5
+>  KHz, or if the <structfield>capability</structfield> flag
+>  <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+> -Hz.</entry>
+> +Hz, or if the <structfield>capability</structfield> flag
+> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__u32</entry>
+> @@ -121,7 +122,8 @@ Hz.</entry>
+>  	    <entry>The highest tunable frequency in units of 62.5
+>  KHz, or if the <structfield>capability</structfield> flag
+>  <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+> -Hz.</entry>
+> +Hz, or if the <structfield>capability</structfield> flag
+> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__u32</entry>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+> index 6cc8201..b0d8659 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+> @@ -134,7 +134,9 @@ the structure refers to a radio tuner the
+>  	    <entry spanname="hspan">The lowest tunable frequency in
+>  units of 62.5 kHz, or if the <structfield>capability</structfield>
+>  flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+> -Hz. If multiple frequency bands are supported, then
+> +Hz, or if the <structfield>capability</structfield> flag
+> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.
+> +If multiple frequency bands are supported, then
+>  <structfield>rangelow</structfield> is the lowest frequency
+>  of all the frequency bands.</entry>
+>  	  </row>
+> @@ -144,7 +146,9 @@ of all the frequency bands.</entry>
+>  	    <entry spanname="hspan">The highest tunable frequency in
+>  units of 62.5 kHz, or if the <structfield>capability</structfield>
+>  flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
+> -Hz. If multiple frequency bands are supported, then
+> +Hz, or if the <structfield>capability</structfield> flag
+> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.
+> +If multiple frequency bands are supported, then
+>  <structfield>rangehigh</structfield> is the highest frequency
+>  of all the frequency bands.</entry>
+>  	  </row>
+> @@ -270,7 +274,7 @@ applications must set the array to zero.</entry>
+>  	    <entry><constant>V4L2_TUNER_CAP_LOW</constant></entry>
+>  	    <entry>0x0001</entry>
+>  	    <entry>When set, tuning frequencies are expressed in units of
+> -62.5&nbsp;Hz, otherwise in units of 62.5&nbsp;kHz.</entry>
+> +62.5 Hz instead of 62.5 kHz.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_TUNER_CAP_NORM</constant></entry>
+> @@ -360,6 +364,11 @@ radio tuners.</entry>
+>  	<entry>The range to search when using the hardware seek functionality
+>  	is programmable, see &VIDIOC-S-HW-FREQ-SEEK; for details.</entry>
+>  	  </row>
+> +	  <row>
+> +	<entry><constant>V4L2_TUNER_CAP_1HZ</constant></entry>
+> +	<entry>0x1000</entry>
+> +	<entry>When set, tuning frequencies are expressed in units of 1 Hz instead of 62.5 kHz.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+> index 5b379e7..a5fc4c4 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+> @@ -121,7 +121,9 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+>  	    <entry>If non-zero, the lowest tunable frequency of the band to
+>  search in units of 62.5 kHz, or if the &v4l2-tuner;
+>  <structfield>capability</structfield> field has the
+> -<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
+> +<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
+> +<structfield>capability</structfield> field has the
+> +<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in units of 1 Hz.
+>  If <structfield>rangelow</structfield> is zero a reasonable default value
+>  is used.</entry>
+>  	  </row>
+> @@ -131,7 +133,9 @@ is used.</entry>
+>  	    <entry>If non-zero, the highest tunable frequency of the band to
+>  search in units of 62.5 kHz, or if the &v4l2-tuner;
+>  <structfield>capability</structfield> field has the
+> -<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
+> +<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
+> +<structfield>capability</structfield> field has the
+> +<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in units of 1 Hz.
+>  If <structfield>rangehigh</structfield> is zero a reasonable default value
+>  is used.</entry>
+>  	  </row>
+> 
+
+After making these minor changes you can add my:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
