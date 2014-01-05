@@ -1,101 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3874 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753584AbaA0Oe4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 09:34:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 10/22] v4l2-ctrls: compare values only once.
-Date: Mon, 27 Jan 2014 15:34:12 +0100
-Message-Id: <1390833264-8503-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:27478 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751122AbaAENR4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 08:17:56 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYX003XVJLVZK40@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 05 Jan 2014 08:17:55 -0500 (EST)
+Date: Sun, 05 Jan 2014 11:17:50 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 13/22] [media] em28xx: initialize audio latter
+Message-id: <20140105111750.353b5916@samsung.com>
+In-reply-to: <52C94207.1050101@googlemail.com>
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+ <1388832951-11195-14-git-send-email-m.chehab@samsung.com>
+ <52C94207.1050101@googlemail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Sun, 05 Jan 2014 12:29:11 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-When setting a control the control's new value is compared to the current
-value twice: once by new_to_cur(), once by cluster_changed(). Not a big
-deal when dealing with simple values, but it can be a problem when dealing
-with compound types or matrices. So fix this: cluster_changed() sets the
-has_changed flag, which is used by new_to_cur() instead of having to do
-another compare.
+> Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
+> > Better to first write the GPIOs of the input mux, before initializing
+> > the audio.
+> Why are you making this change ?
+> 
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > ---
+> >  drivers/media/usb/em28xx/em28xx-video.c | 40 ++++++++++++++++-----------------
+> >  1 file changed, 20 insertions(+), 20 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> > index b767262c642b..328d724a13ea 100644
+> > --- a/drivers/media/usb/em28xx/em28xx-video.c
+> > +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> > @@ -2291,26 +2291,6 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+> >  	em28xx_tuner_setup(dev);
+> >  	em28xx_init_camera(dev);
+> >  
+> > -	/* Configure audio */
+> > -	ret = em28xx_audio_setup(dev);
+> > -	if (ret < 0) {
+> > -		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
+> > -			__func__, ret);
+> > -		goto err;
+> > -	}
+> > -	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
+> > -		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
+> > -			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
+> > -		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
+> > -			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
+> > -	} else {
+> > -		/* install the em28xx notify callback */
+> > -		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
+> > -				em28xx_ctrl_notify, dev);
+> > -		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
+> > -				em28xx_ctrl_notify, dev);
+> > -	}
+> > -
+> >  	/* wake i2c devices */
+> >  	em28xx_wake_i2c(dev);
+> >  
+> > @@ -2356,6 +2336,26 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+> >  
+> >  	video_mux(dev, 0);
+> >  
+> > +	/* Configure audio */
+> > +	ret = em28xx_audio_setup(dev);
+> > +	if (ret < 0) {
+> > +		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
+> > +			__func__, ret);
+> > +		goto err;
+> > +	}
+> > +	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
+> > +		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
+> > +			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
+> > +		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
+> > +			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
+> > +	} else {
+> > +		/* install the em28xx notify callback */
+> > +		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
+> > +				em28xx_ctrl_notify, dev);
+> > +		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
+> > +				em28xx_ctrl_notify, dev);
+> > +	}
+> > +
+> >  	/* Audio defaults */
+> >  	dev->mute = 1;
+> >  	dev->volume = 0x1f;
+> Well, the v4l/core split didn't change the order.
+> And if the current order would be wrong, then you would also have to
+> call audio_setup() each time the user switches the input.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 17 +++++++++++------
- include/media/v4l2-ctrls.h           |  3 +++
- 2 files changed, 14 insertions(+), 6 deletions(-)
+Maybe this is needed anyway. Btw, there's a bug on xawtv: if you maximize
+a window, audio stops playing. I didn't have time yet to identify why.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b945008..87f9a4e 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1395,8 +1395,11 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
- 
- 	if (ctrl == NULL)
- 		return;
--	changed = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
--	ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
-+
-+	/* has_changed is set by cluster_changed */
-+	changed = ctrl->has_changed;
-+	if (changed)
-+		ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
- 
- 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
- 		/* Note: CH_FLAGS is only set for auto clusters. */
-@@ -1433,17 +1436,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
-    value that differs from the current value. */
- static int cluster_changed(struct v4l2_ctrl *master)
- {
--	int diff = 0;
-+	bool changed = false;
- 	int i;
- 
--	for (i = 0; !diff && i < master->ncontrols; i++) {
-+	for (i = 0; i < master->ncontrols; i++) {
- 		struct v4l2_ctrl *ctrl = master->cluster[i];
- 
- 		if (ctrl == NULL)
- 			continue;
--		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
-+		ctrl->has_changed = !ctrl->type_ops->equal(ctrl,
-+						ctrl->stores[0], ctrl->new);
-+		changed |= ctrl->has_changed;
- 	}
--	return diff;
-+	return changed;
- }
- 
- /* Control range checking */
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index aaf7333..5a39877 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -96,6 +96,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   * @is_new:	Set when the user specified a new value for this control. It
-   *		is also set when called from v4l2_ctrl_handler_setup. Drivers
-   *		should never set this flag.
-+  * @has_changed: Set when the current value differs from the new value. Drivers
-+  *		should never use this flag.
-   * @is_private: If set, then this control is private to its handler and it
-   *		will not be added to any other handlers. Drivers can set
-   *		this flag.
-@@ -159,6 +161,7 @@ struct v4l2_ctrl {
- 	unsigned int done:1;
- 
- 	unsigned int is_new:1;
-+	unsigned int has_changed:1;
- 	unsigned int is_private:1;
- 	unsigned int is_auto:1;
- 	unsigned int is_int:1;
+> So unless you are trying to fix a real bug, I wouldn't change it.
+> The current order is sane and we likely could never change it back later
+> without risking regressions...
+
+Sometimes, ac97 is not properly detected here with HVR-950. Not sure
+what happens. I need to do more tests. Perhaps it happens only on USB 3.0
+ports.
+
+In any case, it makes sense to first wake up I2C devices, then to set
+the video mux, before start probing for audio, as the audio setting
+may depend on the video mux settings.
+
 -- 
-1.8.5.2
 
+Cheers,
+Mauro
