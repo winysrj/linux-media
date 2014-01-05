@@ -1,110 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4714 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708AbaABDec (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 22:34:32 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s023YSSq027418
-	for <linux-media@vger.kernel.org>; Thu, 2 Jan 2014 04:34:30 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 88BB92A222A
-	for <linux-media@vger.kernel.org>; Thu,  2 Jan 2014 04:33:52 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140102033352.88BB92A222A@tschai.lan>
-Date: Thu,  2 Jan 2014 04:33:52 +0100 (CET)
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:53332 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751428AbaAEU4Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 15:56:16 -0500
+Received: by mail-ee0-f44.google.com with SMTP id b57so7549741eek.17
+        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 12:56:15 -0800 (PST)
+Message-ID: <52C9C733.9050006@googlemail.com>
+Date: Sun, 05 Jan 2014 21:57:23 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 20/22] [media] em28xx: use usb_alloc_coherent() for
+ audio
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-21-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388832951-11195-21-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
+> Instead of allocating transfer buffers with kmalloc() use
+> usb_alloc_coherent().
+>
+> That makes it work also with arm CPUs.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-audio.c | 31 ++++++++++++++++++++-----------
+>  1 file changed, 20 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+> index a6eef06ffdcd..e5120430ec80 100644
+> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+> @@ -64,16 +64,22 @@ static int em28xx_deinit_isoc_audio(struct em28xx *dev)
+>  
+>  	dprintk("Stopping isoc\n");
+>  	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+> +		struct urb *urb = dev->adev.urb[i];
+> +
+>  		if (!irqs_disabled())
+> -			usb_kill_urb(dev->adev.urb[i]);
+> +			usb_kill_urb(urb);
+>  		else
+> -			usb_unlink_urb(dev->adev.urb[i]);
+> +			usb_unlink_urb(urb);
+>  
+> -		usb_free_urb(dev->adev.urb[i]);
+> -		dev->adev.urb[i] = NULL;
+> +		usb_free_coherent(dev->udev,
+> +				  urb->transfer_buffer_length,
+> +				  dev->adev.transfer_buffer[i],
+> +				  urb->transfer_dma);
+>  
+> -		kfree(dev->adev.transfer_buffer[i]);
+>  		dev->adev.transfer_buffer[i] = NULL;
+> +
+> +		usb_free_urb(urb);
+> +		dev->adev.urb[i] = NULL;
+>  	}
+>  
+>  	return 0;
+> @@ -176,12 +182,8 @@ static int em28xx_init_audio_isoc(struct em28xx *dev)
+>  	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>  		struct urb *urb;
+>  		int j, k;
+> +		void *buf;
+>  
+> -		dev->adev.transfer_buffer[i] = kmalloc(sb_size, GFP_ATOMIC);
+> -		if (!dev->adev.transfer_buffer[i])
+> -			return -ENOMEM;
+> -
+> -		memset(dev->adev.transfer_buffer[i], 0x80, sb_size);
+>  		urb = usb_alloc_urb(EM28XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
+>  		if (!urb) {
+>  			em28xx_errdev("usb_alloc_urb failed!\n");
+> @@ -192,10 +194,17 @@ static int em28xx_init_audio_isoc(struct em28xx *dev)
+>  			return -ENOMEM;
+>  		}
+>  
+> +		buf = usb_alloc_coherent(dev->udev, sb_size, GFP_ATOMIC,
+> +					 &urb->transfer_dma);
+> +		if (!buf)
+> +			return -ENOMEM;
+> +		dev->adev.transfer_buffer[i] = buf;
+> +		memset(buf, 0x80, sb_size);
+> +
+>  		urb->dev = dev->udev;
+>  		urb->context = dev;
+>  		urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
+> -		urb->transfer_flags = URB_ISO_ASAP;
+> +		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+>  		urb->transfer_buffer = dev->adev.transfer_buffer[i];
+>  		urb->interval = 1;
+>  		urb->complete = em28xx_audio_isocirq;
 
-Results of the daily build of media_tree:
+Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 
-date:		Thu Jan  2 04:00:25 CET 2014
-git branch:	test
-git hash:	7d459937dc09bb8e448d9985ec4623779427d8a5
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
