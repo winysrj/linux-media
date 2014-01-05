@@ -1,217 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3865 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753976AbaAaPqR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 10:46:17 -0500
-Message-ID: <52EBC534.8080903@xs4all.nl>
-Date: Fri, 31 Jan 2014 16:45:56 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	k.debski@samsung.com
-Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use
- it
-References: <201308281419.52009.hverkuil@xs4all.nl> <344618801.kmLM0jZvMY@avalon> <52A9ADF6.2090900@xs4all.nl> <18082456.iNCn4Qe0lB@avalon>
-In-Reply-To: <18082456.iNCn4Qe0lB@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:21834 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335AbaAEV0D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 16:26:03 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYY003FC67E3M10@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 05 Jan 2014 16:26:02 -0500 (EST)
+Date: Sun, 05 Jan 2014 19:25:57 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 21/22] [media] em28xx-audio: allocate URBs at device
+ driver init
+Message-id: <20140105192557.7feefa69@samsung.com>
+In-reply-to: <52C9C870.3050006@googlemail.com>
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
+ <1388832951-11195-22-git-send-email-m.chehab@samsung.com>
+ <52C9C870.3050006@googlemail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Em Sun, 05 Jan 2014 22:02:40 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-On 01/31/2014 04:39 PM, Laurent Pinchart wrote:
-> Hi Hans,
+> Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
+> > From: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Is this line still correct ? ;)
 > 
-> On Thursday 12 December 2013 13:37:10 Hans Verkuil wrote:
->> Sakari asked me to reply to this old thread...
+> > Instead of allocating/deallocating URBs and transfer buffers
+> > every time stream is started/stopped, just do it once.
+> >
+> > That reduces the memory allocation pressure and makes the
+> > code that start/stop streaming a way simpler.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Two Signed-off-by lines ? ;)
 > 
-> He asked me to reply as well :-)
-> 
->> On 09/06/13 13:05, Laurent Pinchart wrote:
->>> On Thursday 05 September 2013 19:31:30 Sakari Ailus wrote:
->>>> On Sat, Aug 31, 2013 at 11:43:18PM +0200, Laurent Pinchart wrote:
->>>>> On Friday 30 August 2013 19:08:48 Sakari Ailus wrote:
->>>>>> On Fri, Aug 30, 2013 at 01:31:44PM +0200, Laurent Pinchart wrote:
->>>>>>> On Thursday 29 August 2013 14:33:39 Sakari Ailus wrote:
->>>>>>>> On Thu, Aug 29, 2013 at 01:25:05AM +0200, Laurent Pinchart wrote:
->>>>>>>>> On Wednesday 28 August 2013 19:39:19 Sakari Ailus wrote:
->>>>>>>>>> On Wed, Aug 28, 2013 at 06:14:44PM +0200, Laurent Pinchart
->>>>>>>>>> wrote:
->>>>>>>>>> ...
->>>>>>>>>>
->>>>>>>>>>>>> UVC devices timestamp frames when the frame is captured,
->>>>>>>>>>>>> not when the first pixel is transmitted.
->>>>>>>>>>>>
->>>>>>>>>>>> I.e. we shouldn't set the SOF flag? "When the frame is
->>>>>>>>>>>> captured" doesn't say much, or almost anything in terms of
->>>>>>>>>>>> *when*. The frames have exposure time and rolling shutter
->>>>>>>>>>>> makes a difference, too.
->>>>>>>>>>>
->>>>>>>>>>> The UVC 1.1 specification defines the timestamp as
->>>>>>>>>>>
->>>>>>>>>>> "The source clock time in native deviceclock units when the
->>>>>>>>>>> raw frame capture begins."
->>>>>>>>>>>
->>>>>>>>>>> What devices do in practice may differ :-)
->>>>>>>>>>
->>>>>>>>>> I think that this should mean start-of-frame - exposure time.
->>>>>>>>>> I'd really wonder if any practical implementation does that
->>>>>>>>>> however.
->>>>>>>>>
->>>>>>>>> It's start-of-frame - exposure time - internal delays (UVC webcams
->>>>>>>>> are supposed to report their internal delay value as well).
->>>>>>>>
->>>>>>>> Do they report it? How about the exposure time?
->>>>>>>
->>>>>>> It's supposed to be configurable.
->>>>>>
->>>>>> Is the exposure reported with the frame so it could be used to
->>>>>> construct
->>>>>> the per-frame SOF timestamp?
->>>>>
->>>>> Not when auto-exposure is turned on I'm afraid :-S
->>>>>
->>>>> I believe that the capture timestamp makes more sense than the SOF
->>>>> timestamp for applications. SOF/EOF are more of a poor man's timestamp
->>>>> in case nothing else is available, but when you want to synchronize
->>>>> multiple audio and/or video streams the capture timestamp is what you're
->>>>> interested in. I don't think converting a capture timestamp to an SOF
->>>>> would be a good idea.
->>>>
->>>> I'm not quite sure of that --- I think the SOF/EOF will be more stable
->>>> than the exposure start which depends on the exposure time. If you're
->>>> recording a video you may want to keep the time between the frames
->>>> constant.
->>>
->>> I can see two main use cases for timestamps. The first one is multi-stream
->>> synchronization (audio and video, stereo video, ...), the second one is
->>> playback rate control.
->>>
->>> To synchronize media streams you need to timestamp samples with a common
->>> clock. Timestamps must be correlated to the time at which the sound and/or
->>> image events occur. If we consider the speed of sound and speed of light
->>> as negligible (the former could be compensated for if needed, but that's
->>> out of scope), the time at which the sound or image is produced can be
->>> considered as equal to the time at which they're captured. Given that we
->>> only need to synchronize streams here, an offset wouldn't matter, so any
->>> clock that is synchronized to the capture clock with a fixed offset would
->>> do. The SOF event, in particular, will do if the capture time and device
->>> processing time is constant, and if interrupt latencies are kept small
->>> enough.. So will the EOF event if the transmission time is also constant.
->>>
->>> Granted, frames are not captured at a precise point of time, as the sensor
->>> needs to be exposed for a certain duration. There is thus no such thing as
->>> a capture time, we instead have a capture interval. However, that's
->>> irrelevant for multi-video synchronization purposes. It could matter for
->>> audio+video synchronization though.
->>>
->>> Regarding playback rate control, the goal is to render frames at the same
->>> rate they are captured. If the frame rate isn't constant (for instance
->>> because of a variable exposure time), then a time stamp is required for
->>> every frame. Here we care about the difference between timestamps for two
->>> consecutive frames, and the start of capture timestamp is what will give
->>> best results.
->>>
->>> Let's consider three frames, A, B and C, captured as follows.
->>>
->>>
->>> 00000000001111111111222222222233333333334444444444555555555566666666667777
->>> 01234567890123456789012345678901234567890123456789012345678901234567890123
->>>
->>> | --------- A ------------ |      | ----- B ----- |      | ----- C ----- |
->>>
->>> On the playback side, we want to display A for a duration of 34. If we
->>> timestamp the frames with the start of capture time, we will have the
->>> following timestamps.
->>>
->>> A  0
->>> B  34
->>> C  57
->>>
->>> B-A = 34, which is the time during which A needs to be displayed.
->>>
->>> If we use the end of capture time, we will get
->>>
->>> A  27
->>> B  50
->>> C  73
->>>
->>> B-A = 23, which is too short.
->>>
->>>> Nevertheless --- if we don't get such a timestamp from the device this
->>>> will only remain speculation. Applications might be best using e.g. half
->>>> the frame period to get a guesstimate of the differences between the two
->>>> timestamps.
->>>
->>> Obviously if the device can't provide the start of capture timestamp we
->>> will need to use any source of timestamps, but I believe we should aim
->>> for start of capture as a first class citizen.
->>>
->>>>>>>> If you know them all you can calculate the SOF timestamp. The fewer
->>>>>>>> timestamps are available for user programs the better.
->>>>>>>>
->>>>>>>> It's another matter then if there are webcams that report these
->>>>>>>> values wrong.
->>>>>>>
->>>>>>> There most probably are :-)
->>>>>>>
->>>>>>>> Then you could get timestamps that are complete garbage. But I guess
->>>>>>>> you could compare them to the current monotonic timestamp and detect
->>>>>>>> such cases.
->>>>>>>>
->>>>>>>>>> What's your suggestion; should we use the SOF flag for this or
->>>>>>>>>> do you prefer the end-of-frame timestamp instead? I think it'd
->>>>>>>>>> be quite nice for drivers to know which one is which without
->>>>>>>>>> having to guess, and based on the above start-of-frame comes as
->>>>>>>>>> close to that definition as is meaningful.
->>>>>>>>>
->>>>>>>>> SOF is better than EOF. Do we need a start-of-capture flag, or
->>>>>>>>> could we document SOF as meaning start-of-capture or start-of-
->>>>>>>>> reception depending on what the device can do ?
->>>>>>>>
->>>>>>>> One possibility is to dedicate a few flags for this; by using three
->>>>>>>> bits we'd get eight different timestamps already. But I have to say
->>>>>>>> that fewer is better. :-)
->>>>>>>
->>>>>>> Does it really need to be a per-buffer flag ? This seems to be a
->>>>>>> driver-wide (or at least device-wide) behaviour to me.
->>>>>>
->>>>>> Same goes for timestamp clock sources. It was concluded to use buffer
->>>>>> flags for those as well.
->>>>>
->>>>> Yes, and I don't think I was convinced, so I'm not convinced here either
->>>>>
->>>>> :-)
->>>>>
->>>>>> Using a control for the purpose would however require quite non-zero
->>>>>> amount of initialisation code from each driver so that would probably
->>>>>> need to be sorted out first.
->>>>>
->>>>> We could also use a capabilities flag.
->>>>
->>>> Interesting idea. I'm fine that as well. Hans?
->>
->> That would work for uvc, but not in the general case. Depending on the video
->> routing you might have either SOF or EOF timestamps. Unlikely, I admit, but
->> I feel keeping this flag in v4l2_buffers is the most generic solution.
-> 
-> My main concern about this (beside using an extra buffer flags bit, which is a 
-> scarce resource - but OK, that's not really a big concern) is complexity for 
-> userspace. Correctly handling buffer timestamps when the timestamp type can 
-> vary per buffer isn't easy, and I most applications will likely implement it 
-> wrong. I expect most applications to look at the timestamp type of the first 
-> buffer and use that information for all subsequent buffers. This would defeat 
-> the point of having per-buffer timestamp types.
+> > ---
+> >  drivers/media/usb/em28xx/em28xx-audio.c | 128 ++++++++++++++++++--------------
+> >  1 file changed, 73 insertions(+), 55 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+> > index e5120430ec80..30ee389a07f0 100644
+> > --- a/drivers/media/usb/em28xx/em28xx-audio.c
+> > +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+> > @@ -3,7 +3,7 @@
+> >   *
+> >   *  Copyright (C) 2006 Markus Rechberger <mrechberger@gmail.com>
+> >   *
+> > - *  Copyright (C) 2007-2011 Mauro Carvalho Chehab <mchehab@redhat.com>
+> > + *  Copyright (C) 2007-2014 Mauro Carvalho Chehab
+> >   *	- Port to work with the in-kernel driver
+> >   *	- Cleanups, fixes, alsa-controls, etc.
+> >   *
+> > @@ -70,16 +70,6 @@ static int em28xx_deinit_isoc_audio(struct em28xx *dev)
+> >  			usb_kill_urb(urb);
+> >  		else
+> >  			usb_unlink_urb(urb);
+> > -
+> > -		usb_free_coherent(dev->udev,
+> > -				  urb->transfer_buffer_length,
+> > -				  dev->adev.transfer_buffer[i],
+> > -				  urb->transfer_dma);
+> > -
+> > -		dev->adev.transfer_buffer[i] = NULL;
+> > -
+> > -		usb_free_urb(urb);
+> > -		dev->adev.urb[i] = NULL;
+> >  	}
+> >  
+> >  	return 0;
+> > @@ -174,53 +164,14 @@ static void em28xx_audio_isocirq(struct urb *urb)
+> >  static int em28xx_init_audio_isoc(struct em28xx *dev)
+> >  {
+> >  	int       i, errCode;
+> > -	const int sb_size = EM28XX_NUM_AUDIO_PACKETS *
+> > -			    EM28XX_AUDIO_MAX_PACKET_SIZE;
+> >  
+> >  	dprintk("Starting isoc transfers\n");
+> >  
+> > +	/* Start streaming */
+> >  	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+> > -		struct urb *urb;
+> > -		int j, k;
+> > -		void *buf;
+> > -
+> > -		urb = usb_alloc_urb(EM28XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
+> > -		if (!urb) {
+> > -			em28xx_errdev("usb_alloc_urb failed!\n");
+> > -			for (j = 0; j < i; j++) {
+> > -				usb_free_urb(dev->adev.urb[j]);
+> > -				kfree(dev->adev.transfer_buffer[j]);
+> > -			}
+> > -			return -ENOMEM;
+> > -		}
+> > -
+> > -		buf = usb_alloc_coherent(dev->udev, sb_size, GFP_ATOMIC,
+> > -					 &urb->transfer_dma);
+> > -		if (!buf)
+> > -			return -ENOMEM;
+> > -		dev->adev.transfer_buffer[i] = buf;
+> > -		memset(buf, 0x80, sb_size);
+> > -
+> > -		urb->dev = dev->udev;
+> > -		urb->context = dev;
+> > -		urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
+> > -		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+> > -		urb->transfer_buffer = dev->adev.transfer_buffer[i];
+> > -		urb->interval = 1;
+> > -		urb->complete = em28xx_audio_isocirq;
+> > -		urb->number_of_packets = EM28XX_NUM_AUDIO_PACKETS;
+> > -		urb->transfer_buffer_length = sb_size;
+> > -
+> > -		for (j = k = 0; j < EM28XX_NUM_AUDIO_PACKETS;
+> > -			     j++, k += EM28XX_AUDIO_MAX_PACKET_SIZE) {
+> > -			urb->iso_frame_desc[j].offset = k;
+> > -			urb->iso_frame_desc[j].length =
+> > -			    EM28XX_AUDIO_MAX_PACKET_SIZE;
+> > -		}
+> > -		dev->adev.urb[i] = urb;
+> > -	}
+> > +		memset(dev->adev.transfer_buffer[i], 0x80,
+> > +		       dev->adev.urb[i]->transfer_buffer_length);
+> >  
+> > -	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+> >  		errCode = usb_submit_urb(dev->adev.urb[i], GFP_ATOMIC);
+> >  		if (errCode) {
+> >  			em28xx_errdev("submit of audio urb failed\n");
+> > @@ -643,13 +594,36 @@ static struct snd_pcm_ops snd_em28xx_pcm_capture = {
+> >  	.page      = snd_pcm_get_vmalloc_page,
+> >  };
+> >  
+> > +static void em28xx_audio_free_urb(struct em28xx *dev)
+> > +{
+> > +	int i;
+> > +
+> > +	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+> > +		struct urb *urb = dev->adev.urb[i];
+> > +
+> > +		if (!dev->adev.urb[i])
+> > +			continue;
+> > +
+> > +		usb_free_coherent(dev->udev,
+> > +				  urb->transfer_buffer_length,
+> > +				  dev->adev.transfer_buffer[i],
+> > +				  urb->transfer_dma);
+> > +
+> > +		usb_free_urb(urb);
+> > +		dev->adev.urb[i] = NULL;
+> > +		dev->adev.transfer_buffer[i] = NULL;
+> > +	}
+> > +}
+> > +
+> >  static int em28xx_audio_init(struct em28xx *dev)
+> >  {
+> >  	struct em28xx_audio *adev = &dev->adev;
+> >  	struct snd_pcm      *pcm;
+> >  	struct snd_card     *card;
+> >  	static int          devnr;
+> > -	int                 err;
+> > +	int                 err, i;
+> > +	const int sb_size = EM28XX_NUM_AUDIO_PACKETS *
+> > +			    EM28XX_AUDIO_MAX_PACKET_SIZE;
+> >  
+> >  	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
+> >  		/* This device does not support the extension (in this case
+> > @@ -662,7 +636,8 @@ static int em28xx_audio_init(struct em28xx *dev)
+> >  
+> >  	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
+> >  			 "Rechberger\n");
+> > -	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab\n");
+> > +	printk(KERN_INFO
+> > +	       "em28xx-audio.c: Copyright (C) 2007-2014 Mauro Carvalho Chehab\n");
+> >  
+> >  	err = snd_card_create(index[devnr], "Em28xx Audio", THIS_MODULE, 0,
+> >  			      &card);
+> > @@ -704,6 +679,47 @@ static int em28xx_audio_init(struct em28xx *dev)
+> >  		em28xx_cvol_new(card, dev, "Surround", AC97_SURROUND_MASTER);
+> >  	}
+> >  
+> > +	/* Alloc URB and transfer buffers */
+> > +	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+> > +		struct urb *urb;
+> > +		int j, k;
+> > +		void *buf;
+> > +
+> > +		urb = usb_alloc_urb(EM28XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
+> > +		if (!urb) {
+> > +			em28xx_errdev("usb_alloc_urb failed!\n");
+> > +			em28xx_audio_free_urb(dev);
+> > +			return -ENOMEM;
+> > +		}
+> > +		dev->adev.urb[i] = urb;
+> > +
+> > +		buf = usb_alloc_coherent(dev->udev, sb_size, GFP_ATOMIC,
+> > +					 &urb->transfer_dma);
+> > +		if (!buf) {
+> > +			em28xx_errdev("usb_alloc_coherent failed!\n");
+> > +			em28xx_audio_free_urb(dev);
+> > +			return -ENOMEM;
+> > +		}
+> > +		dev->adev.transfer_buffer[i] = buf;
+> > +
+> > +		urb->dev = dev->udev;
+> > +		urb->context = dev;
+> > +		urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
+> > +		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+> > +		urb->transfer_buffer = dev->adev.transfer_buffer[i];
+> > +		urb->interval = 1;
+> > +		urb->complete = em28xx_audio_isocirq;
+> > +		urb->number_of_packets = EM28XX_NUM_AUDIO_PACKETS;
+> > +		urb->transfer_buffer_length = sb_size;
+> > +
+> > +		for (j = k = 0; j < EM28XX_NUM_AUDIO_PACKETS;
+> > +			     j++, k += EM28XX_AUDIO_MAX_PACKET_SIZE) {
+> > +			urb->iso_frame_desc[j].offset = k;
+> > +			urb->iso_frame_desc[j].length =
+> > +			    EM28XX_AUDIO_MAX_PACKET_SIZE;
+> > +		}
+> > +	}
+> > +
+> >  	err = snd_card_register(card);
+> >  	if (err < 0) {
+> >  		snd_card_free(card);
+> > @@ -728,6 +744,8 @@ static int em28xx_audio_fini(struct em28xx *dev)
+> >  		return 0;
+> >  	}
+> >  
+> > +	em28xx_audio_free_urb(dev);
+> > +
+> >  	if (dev->adev.sndcard) {
+> >  		snd_card_free(dev->adev.sndcard);
+> >  		dev->adev.sndcard = NULL;
+> I don't get it.
+> How does this patch reduce the memory allocation pressure ?
+> You are still allocating the same amount of memory.
 
-How about defining a capability for use with ENUMINPUT/OUTPUT? I agree that this
-won't change between buffers, but it is a property of a specific input or output.
+True, but it is not de-allocating/reallocating the same amount of
+memory every time, for every start/stop trigger. Depending on the
+userspace and the amount of available RAM, this could cause memory 
+fragmentation.
 
-There are more than enough bits available in v4l2_input/output to add one for
-SOF timestamps.
+If you take a look at xHCI logs, you'll see that those operations
+are very expensive, and that it occurs too often.
 
-Regards,
+> The only differences is that you already do this when the device isn't
+> used yet and don't free it when gets unused again.
+> IMHO that makes things worse, not better.
 
-	Hans
+Why is it worse?
+
+FYI, we're currently allocating DVB buffers at the device init too,
+due to the memory fragmentation problems. This is actually critical
+if you try to use it on an ARM with limited amount of RAM.
+
+> And yes, it makes the code that starts/stops streaming a way simpler.
+> But at the same time it makes the module initialization code the same
+> amount more complicated.
+
+
+
+-- 
+
+Cheers,
+Mauro
