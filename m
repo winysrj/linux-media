@@ -1,126 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4775 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753773AbaA0OfF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 09:35:05 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 19/22] DocBook media: update VIDIOC_G/S/TRY_EXT_CTRLS.
-Date: Mon, 27 Jan 2014 15:34:21 +0100
-Message-Id: <1390833264-8503-20-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ea0-f171.google.com ([209.85.215.171]:58254 "EHLO
+	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751541AbaAEVIP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 16:08:15 -0500
+Received: by mail-ea0-f171.google.com with SMTP id h10so7538745eak.2
+        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 13:08:14 -0800 (PST)
+Message-ID: <52C9CA02.8090104@googlemail.com>
+Date: Sun, 05 Jan 2014 22:09:22 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] em28xx: rename I2C timeout to EM28XX_I2C_XFER_TIMEOUT
+References: <1388926014-3706-1-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388926014-3706-1-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Am 05.01.2014 13:46, schrieb Mauro Carvalho Chehab:
+> This macro is used by all em28xx devices, and not just em2800.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-i2c.c | 6 +++---
+>  drivers/media/usb/em28xx/em28xx.h     | 2 +-
+>  2 files changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> index 9fa7ed51e5b1..a22fec727ae7 100644
+> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> @@ -49,7 +49,7 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+>   */
+>  static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>  {
+> -	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
+> +	unsigned long timeout = jiffies + msecs_to_jiffies(EM28XX_I2C_XFER_TIMEOUT);
+>  	int ret;
+>  	u8 b2[6];
+>  
+> @@ -100,7 +100,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>   */
+>  static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>  {
+> -	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
+> +	unsigned long timeout = jiffies + msecs_to_jiffies(EM28XX_I2C_XFER_TIMEOUT);
+>  	u8 buf2[4];
+>  	int ret;
+>  	int i;
+> @@ -171,7 +171,7 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
+>  static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>  				 u16 len, int stop)
+>  {
+> -	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
+> +	unsigned long timeout = jiffies + msecs_to_jiffies(EM28XX_I2C_XFER_TIMEOUT);
+>  	int ret;
+>  
+>  	if (len < 1 || len > 64)
+> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+> index 9fe061ff1227..544c7ebeaba9 100644
+> --- a/drivers/media/usb/em28xx/em28xx.h
+> +++ b/drivers/media/usb/em28xx/em28xx.h
+> @@ -184,7 +184,7 @@
+>  #define EM28XX_INTERLACED_DEFAULT 1
+>  
+>  /* time in msecs to wait for i2c xfers to finish */
+> -#define EM2800_I2C_XFER_TIMEOUT		20
+> +#define EM28XX_I2C_XFER_TIMEOUT		20
+>  
+>  /* time in msecs to wait for AC97 xfers to finish */
+>  #define EM28XX_AC97_XFER_TIMEOUT	100
 
-Document the support for the new complex type controls.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 43 ++++++++++++++++++----
- 1 file changed, 35 insertions(+), 8 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index b3bb957..d946d6b 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -72,23 +72,30 @@ initialize the <structfield>id</structfield>,
- <structfield>size</structfield> and <structfield>reserved2</structfield> fields
- of each &v4l2-ext-control; and call the
- <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
--must also set the <structfield>string</structfield> field.</para>
-+must also set the <structfield>string</structfield> field. Controls
-+of complex types (<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set)
-+must set the <structfield>p</structfield> field.</para>
- 
-     <para>If the <structfield>size</structfield> is too small to
- receive the control result (only relevant for pointer-type controls
- like strings), then the driver will set <structfield>size</structfield>
- to a valid value and return an &ENOSPC;. You should re-allocate the
--string memory to this new size and try again. It is possible that the
--same issue occurs again if the string has grown in the meantime. It is
-+memory to this new size and try again. For the string type it is possible that
-+the same issue occurs again if the string has grown in the meantime. It is
- recommended to call &VIDIOC-QUERYCTRL; first and use
- <structfield>maximum</structfield>+1 as the new <structfield>size</structfield>
- value. It is guaranteed that that is sufficient memory.
- </para>
- 
-+    <para>Matrices are set and retrieved row-by-row. You cannot set a partial
-+matrix, all elements have to be set or retrieved. The total size is calculated
-+as <structfield>rows</structfield> * <structfield>cols</structfield> * <structfield>elem_size</structfield>.
-+These values can be obtained by calling &VIDIOC-QUERY-EXT-CTRL;.</para>
-+
-     <para>To change the value of a set of controls applications
- initialize the <structfield>id</structfield>, <structfield>size</structfield>,
- <structfield>reserved2</structfield> and
--<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
-+<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
- call the <constant>VIDIOC_S_EXT_CTRLS</constant> ioctl. The controls
- will only be set if <emphasis>all</emphasis> control values are
- valid.</para>
-@@ -96,11 +103,17 @@ valid.</para>
-     <para>To check if a set of controls have correct values applications
- initialize the <structfield>id</structfield>, <structfield>size</structfield>,
- <structfield>reserved2</structfield> and
--<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
-+<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
- call the <constant>VIDIOC_TRY_EXT_CTRLS</constant> ioctl. It is up to
- the driver whether wrong values are automatically adjusted to a valid
- value or if an error is returned.</para>
- 
-+    <para>For matrices it is possible to only set or check only the first
-+<constant>X</constant> elements by setting size to <constant>X * elem_size</constant>,
-+where <structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
-+Matrix elements are set row-by-row. Matrix elements that are not explicitly
-+set will be initialized to their default value.</para>
-+
-     <para>When the <structfield>id</structfield> or
- <structfield>ctrl_class</structfield> is invalid drivers return an
- &EINVAL;. When the value is out of bounds drivers can choose to take
-@@ -158,19 +171,33 @@ applications must set the array to zero.</entry>
- 	    <entry></entry>
- 	    <entry>__s32</entry>
- 	    <entry><structfield>value</structfield></entry>
--	    <entry>New value or current value.</entry>
-+	    <entry>New value or current value. Valid if this control is not of
-+type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
-+<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>__s64</entry>
- 	    <entry><structfield>value64</structfield></entry>
--	    <entry>New value or current value.</entry>
-+	    <entry>New value or current value. Valid if this control is of
-+type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
-+<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>char *</entry>
- 	    <entry><structfield>string</structfield></entry>
--	    <entry>A pointer to a string.</entry>
-+	    <entry>A pointer to a string. Valid if this control is of
-+type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>void *</entry>
-+	    <entry><structfield>p</structfield></entry>
-+	    <entry>A pointer to a complex type which can be a matrix and/or a
-+complex type (the control's type is >= <constant>V4L2_CTRL_COMPLEX_TYPES</constant>).
-+Valid if <constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set for this control.
-+</entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
--- 
-1.8.5.2
+Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 
