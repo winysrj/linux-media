@@ -1,138 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:54626 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752081AbaAIIgS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 03:36:18 -0500
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-To: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	s.nawrocki@samsung.com, posciak@google.com, hverkuil@xs4all.nl,
-	m.chehab@samsung.com
-Subject: Re: [PATCH v5 2/4] [media] exynos-scaler: Add core functionality for
- the SCALER driver
-Date: Thu, 09 Jan 2014 09:35:56 +0100
-Message-id: <6360580.TZncfE63yq@amdc1032>
-In-reply-to: <1389238094-19386-3-git-send-email-shaik.ameer@samsung.com>
-References: <1389238094-19386-1-git-send-email-shaik.ameer@samsung.com>
- <1389238094-19386-3-git-send-email-shaik.ameer@samsung.com>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset=ISO-8859-1
+Received: from mail-ea0-f178.google.com ([209.85.215.178]:36891 "EHLO
+	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750915AbaAEKy1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 05:54:27 -0500
+Received: by mail-ea0-f178.google.com with SMTP id d10so7580331eaj.9
+        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 02:54:26 -0800 (PST)
+Message-ID: <52C93A26.1070607@googlemail.com>
+Date: Sun, 05 Jan 2014 11:55:34 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 07/22] [media] em28xx: improve extension information
+ messages
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-8-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388832951-11195-8-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Hi,
-
-On Thursday, January 09, 2014 08:58:12 AM Shaik Ameer Basha wrote:
-> This patch adds the core functionality for the SCALER driver.
-> 
-> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
+> Add a message with consistent prints before and after each
+> extension initialization, and provide a better text for module
+> load.
+>
+> While here, add a missing sanity check for extension finish
+> code at em28xx-v4l extension.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 > ---
->  drivers/media/platform/exynos-scaler/scaler.c | 1231 +++++++++++++++++++++++++
->  drivers/media/platform/exynos-scaler/scaler.h |  376 ++++++++
->  2 files changed, 1607 insertions(+)
->  create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
->  create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
-
-[...]
-
-> +static int scaler_probe(struct platform_device *pdev)
-> +{
-> +	struct scaler_dev *scaler;
-> +	struct resource *res;
-> +	struct device *dev = &pdev->dev;
-> +	int ret;
+>  drivers/media/usb/em28xx/em28xx-audio.c |  4 +++-
+>  drivers/media/usb/em28xx/em28xx-core.c  |  2 +-
+>  drivers/media/usb/em28xx/em28xx-dvb.c   |  7 ++++---
+>  drivers/media/usb/em28xx/em28xx-input.c |  4 ++++
+>  drivers/media/usb/em28xx/em28xx-video.c | 10 ++++++++--
+>  5 files changed, 20 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+> index 2fdb66ee44ab..263886adcf26 100644
+> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+> @@ -649,7 +649,8 @@ static int em28xx_audio_init(struct em28xx *dev)
+>  		return 0;
+>  	}
+>  
+> -	printk(KERN_INFO "em28xx-audio.c: probing for em28xx Audio Vendor Class\n");
+> +	em28xx_info("Binding audio extension\n");
 > +
-> +	if (!dev->of_node)
-> +		return -ENODEV;
+>  	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
+>  			 "Rechberger\n");
+>  	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab\n");
+> @@ -702,6 +703,7 @@ static int em28xx_audio_init(struct em28xx *dev)
+>  	adev->sndcard = card;
+>  	adev->udev = dev->udev;
+>  
+> +	em28xx_info("Audio extension successfully initialized\n");
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+> index 1113d4e107d8..33cf26e106b5 100644
+> --- a/drivers/media/usb/em28xx/em28xx-core.c
+> +++ b/drivers/media/usb/em28xx/em28xx-core.c
+> @@ -1069,7 +1069,7 @@ int em28xx_register_extension(struct em28xx_ops *ops)
+>  		ops->init(dev);
+>  	}
+>  	mutex_unlock(&em28xx_devlist_mutex);
+> -	printk(KERN_INFO "Em28xx: Initialized (%s) extension\n", ops->name);
+> +	printk(KERN_INFO "em28xx: Registered (%s) extension\n", ops->name);
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL(em28xx_register_extension);
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index ddc0e609065d..f72663a9b5c5 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -274,7 +274,7 @@ static int em28xx_stop_feed(struct dvb_demux_feed *feed)
+>  static int em28xx_dvb_bus_ctrl(struct dvb_frontend *fe, int acquire)
+>  {
+>  	struct em28xx_i2c_bus *i2c_bus = fe->dvb->priv;
+> -        struct em28xx *dev = i2c_bus->dev;
+> +	struct em28xx *dev = i2c_bus->dev;
+>  
+>  	if (acquire)
+>  		return em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+> @@ -992,10 +992,11 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>  
+>  	if (!dev->board.has_dvb) {
+>  		/* This device does not support the extension */
+> -		printk(KERN_INFO "em28xx_dvb: This device does not support the extension\n");
+>  		return 0;
+>  	}
+>  
+> +	em28xx_info("Binding DVB extension\n");
 > +
-> +	scaler = devm_kzalloc(dev, sizeof(*scaler), GFP_KERNEL);
-> +	if (!scaler)
-> +		return -ENOMEM;
+>  	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
+>  
+>  	if (dvb == NULL) {
+> @@ -1407,7 +1408,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>  	/* MFE lock */
+>  	dvb->adapter.mfe_shared = mfe_shared;
+>  
+> -	em28xx_info("Successfully loaded em28xx-dvb\n");
+> +	em28xx_info("DVB extension successfully initialized\n");
+>  ret:
+>  	em28xx_set_mode(dev, EM28XX_SUSPEND);
+>  	mutex_unlock(&dev->lock);
+> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+> index 93a7d02b9cb4..eed7dd79f734 100644
+> --- a/drivers/media/usb/em28xx/em28xx-input.c
+> +++ b/drivers/media/usb/em28xx/em28xx-input.c
+> @@ -692,6 +692,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+>  		return 0;
+>  	}
+>  
+> +	em28xx_info("Registering input extension\n");
 > +
-> +	scaler->pdev = pdev;
-> +	scaler->variant = scaler_get_variant_data(pdev);
+>  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+>  	rc = rc_allocate_device();
+>  	if (!ir || !rc)
+> @@ -785,6 +787,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+>  	if (err)
+>  		goto error;
+>  
+> +	em28xx_info("Input extension successfully initalized\n");
 > +
-> +	init_waitqueue_head(&scaler->irq_queue);
-> +	spin_lock_init(&scaler->slock);
-> +	mutex_init(&scaler->lock);
-> +	scaler->clock = ERR_PTR(-EINVAL);
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	scaler->regs = devm_request_and_ioremap(dev, res);
-> +	if (!scaler->regs)
-> +		return -ENODEV;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> +	if (!res) {
-> +		dev_err(dev, "failed to get IRQ resource\n");
-> +		return -ENXIO;
+>  	return 0;
+>  
+>  error:
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index 56d1b46164a0..b767262c642b 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -1884,6 +1884,11 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+>  
+>  	/*FIXME: I2C IR should be disconnected */
+>  
+> +	if (!dev->has_video) {
+> +		/* This device does not support the v4l2 extension */
+> +		return 0;
 > +	}
 > +
-> +	ret = scaler_clk_get(scaler);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = devm_request_irq(dev, res->start, scaler_irq_handler,
-> +				0, pdev->name, scaler);
-> +	if (ret < 0) {
-> +		dev_err(dev, "failed to install irq (%d)\n", ret);
-> +		goto err_clk;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, scaler);
-> +	pm_runtime_enable(dev);
-> +
-> +	/* Initialize the continious memory allocator */
-> +	scaler->alloc_ctx = vb2_dma_contig_init_ctx(dev);
-> +	if (IS_ERR(scaler->alloc_ctx)) {
-> +		ret = PTR_ERR(scaler->alloc_ctx);
-> +		goto err_clk;
-> +	}
-> +
-> +	ret = v4l2_device_register(dev, &scaler->v4l2_dev);
-> +	if (ret < 0)
-> +		goto err_clk;
-> +
-> +	ret = scaler_register_m2m_device(scaler);
-> +	if (ret < 0)
-> +		goto err_v4l2;
-> +
-> +	dev_info(dev, "registered successfully\n");
-> +	return 0;
-> +
-> +err_v4l2:
-> +	v4l2_device_unregister(&scaler->v4l2_dev);
-> +err_clk:
-> +	scaler_clk_put(scaler);
+That's a separate change and AFAICS it's not needed.
 
-vb2_dma_contig_cleanup_ctx() and pm_runtime_disable() calls on
-failure are missing
-
-> +	return ret;
-> +}
+>  	if (dev->radio_dev) {
+>  		if (video_is_registered(dev->radio_dev))
+>  			video_unregister_device(dev->radio_dev);
+> @@ -2215,8 +2220,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+>  		return 0;
+>  	}
+>  
+> -	printk(KERN_INFO "%s: v4l2 driver version %s\n",
+> -		dev->name, EM28XX_VERSION);
+> +	em28xx_info("Registering V4L2 extension\n");
+>  
+>  	mutex_lock(&dev->lock);
+>  
+> @@ -2498,6 +2502,8 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+>  	/* initialize videobuf2 stuff */
+>  	em28xx_vb2_setup(dev);
+>  
+> +	em28xx_info("V4L2 extension successfully initialized\n");
 > +
-> +static int scaler_remove(struct platform_device *pdev)
-> +{
-> +	struct scaler_dev *scaler = platform_get_drvdata(pdev);
-> +
-> +	scaler_unregister_m2m_device(scaler);
-> +	v4l2_device_unregister(&scaler->v4l2_dev);
-> +
-> +	vb2_dma_contig_cleanup_ctx(scaler->alloc_ctx);
-> +	pm_runtime_disable(&pdev->dev);
-> +	scaler_clk_put(scaler);
-> +
-> +	scaler_dbg(scaler, "%s driver unloaded\n", pdev->name);
-> +	return 0;
-> +}
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+>  err:
+>  	mutex_unlock(&dev->lock);
+>  	return ret;
 
