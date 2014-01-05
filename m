@@ -1,135 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:49320 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751057AbaAFOa1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Jan 2014 09:30:27 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1W0BCE-0002he-1i
-	for linux-media@vger.kernel.org; Mon, 06 Jan 2014 15:30:26 +0100
-Received: from exchange.muehlbauer.de ([194.25.158.132])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 15:30:26 +0100
-Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 15:30:26 +0100
-To: linux-media@vger.kernel.org
-From: Tom <Bassai_Dai@gmx.net>
-Subject: Add private controls to =?utf-8?b?Y3RybF9oYW5kbGVy?=
-Date: Mon, 6 Jan 2014 14:30:03 +0000 (UTC)
-Message-ID: <loom.20140106T152825-137@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:55641 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750992AbaAELGn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 06:06:43 -0500
+Received: by mail-ee0-f44.google.com with SMTP id b57so7402859eek.31
+        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 03:06:42 -0800 (PST)
+Message-ID: <52C93D07.4030405@googlemail.com>
+Date: Sun, 05 Jan 2014 12:07:51 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 10/22] [media] tuner-xc2028: remove unused code
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-11-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1388832951-11195-11-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
+> This macro is not used. remove it.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/tuners/tuner-xc2028.c | 9 ---------
+>  1 file changed, 9 deletions(-)
+>
+> diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+> index 4be5cf808a40..1057da54c6e0 100644
+> --- a/drivers/media/tuners/tuner-xc2028.c
+> +++ b/drivers/media/tuners/tuner-xc2028.c
+> @@ -134,15 +134,6 @@ struct xc2028_data {
+>  	_rc;								\
+>  })
+>  
+> -#define i2c_rcv(priv, buf, size) ({					\
+> -	int _rc;							\
+> -	_rc = tuner_i2c_xfer_recv(&priv->i2c_props, buf, size);		\
+> -	if (size != _rc)						\
+> -		tuner_err("i2c input error: rc = %d (should be %d)\n",	\
+> -			   _rc, (int)size); 				\
+> -	_rc;								\
+> -})
+> -
+>  #define i2c_send_recv(priv, obuf, osize, ibuf, isize) ({		\
+>  	int _rc;							\
+>  	_rc = tuner_i2c_xfer_send_recv(&priv->i2c_props, obuf, osize,	\
 
-I want to add some driver specific ctrls to my ctrl-handler which are not
-defined in the "/include/uapi/linux/v4l2-controls.h".
-I read that I would need the "V4L2_CID_PRIVATE_BASE" to define the new IDs,
-but I don't get how I can add them to my ctrl-handler so that they are
-accessible by calling VIDIOC_S_CTRL. 
-
-Can someone give me a hint how I can add my own controls to my ctrl-handler?
-
-what I tried:
-
-#define V4L2_SENS_TEST1			(V4L2_CID_PRIVATE_BASE + 1)
-#define V4L2_SENS_TEST2			(V4L2_CID_PRIVATE_BASE + 2)
-#define V4L2_SENS_TEST3			(V4L2_CID_PRIVATE_BASE + 3)
-
-static int ov3640_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
-{
-				.
-				.
-				.
-//I can add the standard controls as usual...
-
-	v4l2_ctrl_handler_init(&ov3640->ctrl_handler, 19);
-
-	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
-			V4L2_CID_BRIGHTNESS, -48, 48, 1, 0);
-	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
-			V4L2_CID_CONTRAST, -12, 12, 1, 0);
-	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
-			V4L2_CID_SATURATION, -32, 32, 1, 0);
-				.
-				.
-				.
-//so far so good...
-
-	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
-			V4L2_SENS_TEST1, 0, 1, 1, 0);
-	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
-			V4L2_SENS_TEST2, 0, 1, 1, 0);
-	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
-			V4L2_SENS_TEST3, 0, 1, 1, 0);
-
-//but I cannot add these three controls like this. 
-
-	if (ov3640->ctrl_handler.error) {
-		dev_err(&client->dev, "control initialization error %d\n",
-			ov3640->ctrl_handler.error);
-		ret = ov3640->ctrl_handler.error;
-		goto done;
-	}
-
-//the ctrl-handler will give me an ERROR back when adding these 3 controls
-
-}
-
-static int ov3640_ctrl(struct v4l2_ctrl *ctrl, int command)
-{
-	struct ov3640 *ov3640 = container_of(ctrl->handler, struct ov3640,
-ctrl_handler);
-	int ret = 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		ret = ov3640_set_brightness(ov3640, ctrl->val, command);
-		break;
-	case V4L2_CID_CONTRAST:
-		ret = ov3640_set_contrast(ov3640, ctrl->val, command);
-		break;
-	case V4L2_CID_SATURATION:
-		ret = ov3640_set_saturation(ov3640, ctrl->val, command);
-		break;
-	case V4L2_SENS_TEST1://!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	case V4L2_SENS_TEST2://!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	case V4L2_SENS_TEST3://!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		ret = ov3640_test(ov3640, ctrl->val, ctrl->id, command);
-		break;
-	}
-
-	return ret;
-}
-
-static int ov3640_set_ctrl(struct v4l2_ctrl *ctrl)
-{
-	int ret;
-	int command = SET_DATA;
-
-	ret = ov3640_ctrl(ctrl, command);
-	return ret;
-}
-
-static int ov3640_get_ctrl(struct v4l2_ctrl *ctrl)
-{
-	int ret;
-	int command = GET_DATA;
-
-	ret = ov3640_ctrl(ctrl, command);
-	return ret;
-}
-
-static struct v4l2_ctrl_ops ov3640_ctrl_ops = {
-	.s_ctrl = ov3640_set_ctrl,
-	.g_volatile_ctrl = ov3640_get_ctrl,
-};
-
-Best Regards, Tom
+Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 
