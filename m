@@ -1,184 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:22132 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752319AbaAMRuw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 12:50:52 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZC0071TPKR9Q70@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Jan 2014 12:50:51 -0500 (EST)
-Date: Mon, 13 Jan 2014 15:50:37 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 0/7] Fix remaining issues with em28xx device removal
-Message-id: <20140113155037.01e5f9cd@samsung.com>
-In-reply-to: <52D422B0.2020104@iki.fi>
-References: <1389567649-26838-1-git-send-email-m.chehab@samsung.com>
- <52D422B0.2020104@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1912 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754117AbaAFOVi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 02/27] v4l2-ctrls: add unit string.
+Date: Mon,  6 Jan 2014 15:21:01 +0100
+Message-Id: <1389018086-15903-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 13 Jan 2014 19:30:24 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On 13.01.2014 01:00, Mauro Carvalho Chehab wrote:
-> > Even after Frank's series, there are several issues with device module
-> > removal.
-> >
-> > This series fix those issues, by use kref to deallocate the common
-> > data (struct em28xx *dev).
-> >
-> > It also fixes a circular deppendency inside em28xx-audio.
-> >
-> > Mauro Carvalho Chehab (7):
-> >    em28xx-audio: fix return code on device disconnect
-> >    em28xx-audio: simplify error handling
-> >    em28xx: Only deallocate struct em28xx after finishing all extensions
-> >    em28xx-audio: disconnect before freeing URBs
-> >    em28xx-audio: remove a deplock circular dependency
-> >    em28xx: print a message at disconnect
-> >    em28xx: Fix usb diconnect logic
-> >
-> >   drivers/media/usb/em28xx/em28xx-audio.c | 47 ++++++++++++++++++++-------------
-> >   drivers/media/usb/em28xx/em28xx-cards.c | 41 +++++++++++++---------------
-> >   drivers/media/usb/em28xx/em28xx-dvb.c   |  7 ++++-
-> >   drivers/media/usb/em28xx/em28xx-input.c | 10 ++++++-
-> >   drivers/media/usb/em28xx/em28xx-video.c | 13 ++++-----
-> >   drivers/media/usb/em28xx/em28xx.h       |  9 +++++--
-> >   6 files changed, 76 insertions(+), 51 deletions(-)
-> >
-> 
-> 
-> 
-> Tested-by: Antti Palosaari <crope@iki.fi>
-> 
-> 
-> I tested quite many em28xx devices and it seems to work very well.
-> 
-> However, there is that (it looks new) error dump coming after device is 
-> unplugged.
+The upcoming VIDIOC_QUERY_EXT_CTRL adds support for a unit string. This
+allows userspace to show the unit belonging to a particular control.
 
-That's likely because now the lockdep code is able to go one step further
-on their tests.
+This patch adds support for the unit string to the control framework.
 
-> tammi 13 18:50:56 localhost.localdomain kernel: usb 8-2: USB disconnect, 
-> device number 2
-> tammi 13 18:50:56 localhost.localdomain kernel: em2884 #0: Disconnecting 
-> em2884 #0
-> tammi 13 18:50:56 localhost.localdomain kernel: em2884 #0: Disconnecting 
-> video extension
-> tammi 13 18:50:56 localhost.localdomain kernel: em2884 #0: V4L2 device 
-> video0 deregistered
-> tammi 13 18:50:56 localhost.localdomain kernel: em2884 #0: Disconnecting 
-> audio extension
-> tammi 13 18:50:56 localhost.localdomain kernel: em2884 #0: Disconnecting 
-> DVB extension
-> tammi 13 18:50:56 localhost.localdomain kernel: xc5000 6-0061: 
-> destroying instance
-> tammi 13 18:50:56 localhost.localdomain kernel: em2884 #0: Disconnecting 
-> input extensionINFO: trying to register non-static key.
-> tammi 13 18:50:56 localhost.localdomain kernel: the code is fine but 
-> needs lockdep annotation.
-> tammi 13 18:50:56 localhost.localdomain kernel: turning off the locking 
-> correctness validator.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-common.c |  3 ++-
+ drivers/media/v4l2-core/v4l2-ctrls.c  | 36 +++++++++++++++++++++--------------
+ include/media/v4l2-ctrls.h            | 13 +++++++++----
+ 3 files changed, 33 insertions(+), 19 deletions(-)
 
-I suspect that the reason is because we're not flushing/canceling the
-pending work on em28xx-alsa and em28xx-rc.
-
-I can't reproduce it here, but could you please check if this patch fixes
-it?
-	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/144f41066bdab280869e309f76f7a42ad5b2be72
-
-> tammi 13 18:50:56 localhost.localdomain kernel: CPU: 3 PID: 34 Comm: 
-> khubd Tainted: G           O 3.13.0-rc1+ #79
-> tammi 13 18:50:56 localhost.localdomain kernel: Hardware name: System 
-> manufacturer System Product Name/M5A78L-M/USB3, BIOS 1801    11/12/2013
-> tammi 13 18:50:56 localhost.localdomain kernel:  ffff88030da1a8a0 
-> ffff88030dbb99a8 ffffffff816b8da9 0000000000000002
-> tammi 13 18:50:56 localhost.localdomain kernel:  ffff88030dbb99b8 
-> ffffffff816b285c ffff88030dbb9a28 ffffffff810bb9ae
-> tammi 13 18:50:56 localhost.localdomain kernel:  ffffffff810b9bc9 
-> 00000007810b648d ffff88030da1a8a0 ffffffff810cbe27
-> tammi 13 18:50:56 localhost.localdomain kernel: Call Trace:
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff816b8da9>] 
-> dump_stack+0x4d/0x66
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff816b285c>] 
-> register_lock_class.part.40+0x38/0x3c
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff810bb9ae>] 
-> __lock_acquire+0x9fe/0xc40
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff810b9bc9>] ? 
-> mark_held_locks+0xb9/0x140
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff810cbe27>] ? 
-> vprintk_emit+0x1d7/0x5e0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff810bbca0>] 
-> lock_acquire+0xb0/0x150
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff81087f75>] ? 
-> flush_work+0x5/0x60
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff81087fa6>] 
-> flush_work+0x36/0x60
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff81087f75>] ? 
-> flush_work+0x5/0x60
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff8108858a>] 
-> __cancel_work_timer+0x8a/0x120
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff81088653>] 
-> cancel_delayed_work_sync+0x13/0x20
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffffa0839ba8>] 
-> em28xx_ir_fini+0x48/0xc0 [em28xx_rc]
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffffa07a4b8e>] 
-> em28xx_close_extension+0x3e/0x70 [em28xx]
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffffa07a6600>] 
-> em28xx_usb_disconnect+0x60/0x80 [em28xx]
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814b7c87>] 
-> usb_unbind_interface+0x67/0x1d0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814378ff>] 
-> __device_release_driver+0x7f/0xf0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff81437995>] 
-> device_release_driver+0x25/0x40
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814371fc>] 
-> bus_remove_device+0x11c/0x1a0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff81433c26>] 
-> device_del+0x136/0x1d0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814b5660>] 
-> usb_disable_device+0xb0/0x290
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814aa5f5>] 
-> usb_disconnect+0xb5/0x1d0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814acfe6>] 
-> hub_port_connect_change+0xd6/0xad0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814b40a4>] ? 
-> usb_control_msg+0xd4/0x110
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814adcf3>] 
-> hub_events+0x313/0x9b0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814ae3c5>] 
-> hub_thread+0x35/0x190
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff810b12d0>] ? 
-> abort_exclusive_wait+0xb0/0xb0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff814ae390>] ? 
-> hub_events+0x9b0/0x9b0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff8109044f>] 
-> kthread+0xff/0x120
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff81090350>] ? 
-> kthread_create_on_node+0x250/0x250
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff816ca67c>] 
-> ret_from_fork+0x7c/0xb0
-> tammi 13 18:50:56 localhost.localdomain kernel:  [<ffffffff81090350>] ? 
-> kthread_create_on_node+0x250/0x250
-> tammi 13 18:50:56 localhost.localdomain kernel: em2884 #0: Freeing device
-> 
-> regards
-> Antti
-> 
-> 
-> 
-
-
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index ccaa38f..ee8ea66 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -114,12 +114,13 @@ EXPORT_SYMBOL(v4l2_ctrl_check);
+ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 _min, s32 _max, s32 _step, s32 _def)
+ {
+ 	const char *name;
++	const char *unit = NULL;
+ 	s64 min = _min;
+ 	s64 max = _max;
+ 	u64 step = _step;
+ 	s64 def = _def;
+ 
+-	v4l2_ctrl_fill(qctrl->id, &name, &qctrl->type,
++	v4l2_ctrl_fill(qctrl->id, &name, &unit, &qctrl->type,
+ 		       &min, &max, &step, &def, &qctrl->flags);
+ 
+ 	if (name == NULL)
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d36d7f5..bb63d2a 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -858,8 +858,9 @@ const char *v4l2_ctrl_get_name(u32 id)
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_get_name);
+ 
+-void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+-		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags)
++void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
++		    enum v4l2_ctrl_type *type, s64 *min, s64 *max,
++		    u64 *step, s64 *def, u32 *flags)
+ {
+ 	*name = v4l2_ctrl_get_name(id);
+ 	*flags = 0;
+@@ -1622,7 +1623,8 @@ unlock:
+ /* Add a new control */
+ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
+-			u32 id, const char *name, enum v4l2_ctrl_type type,
++			u32 id, const char *name, const char *unit,
++			enum v4l2_ctrl_type type,
+ 			s64 min, s64 max, u64 step, s64 def,
+ 			u32 flags, const char * const *qmenu,
+ 			const s64 *qmenu_int, void *priv)
+@@ -1670,6 +1672,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->ops = ops;
+ 	ctrl->id = id;
+ 	ctrl->name = name;
++	ctrl->unit = unit;
+ 	ctrl->type = type;
+ 	ctrl->flags = flags;
+ 	ctrl->minimum = min;
+@@ -1704,6 +1707,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 	bool is_menu;
+ 	struct v4l2_ctrl *ctrl;
+ 	const char *name = cfg->name;
++	const char *unit = cfg->unit;
+ 	const char * const *qmenu = cfg->qmenu;
+ 	const s64 *qmenu_int = cfg->qmenu_int;
+ 	enum v4l2_ctrl_type type = cfg->type;
+@@ -1714,8 +1718,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 	s64 def = cfg->def;
+ 
+ 	if (name == NULL)
+-		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
+-								&def, &flags);
++		v4l2_ctrl_fill(cfg->id, &name, &unit, &type,
++			       &min, &max, &step, &def, &flags);
+ 
+ 	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU ||
+ 		   cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU);
+@@ -1731,7 +1735,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 
+-	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name,
++	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
+ 			type, min, max,
+ 			is_menu ? cfg->menu_skip_mask : step,
+ 			def, flags, qmenu, qmenu_int, priv);
+@@ -1747,16 +1751,17 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+ 			u32 id, s64 min, s64 max, u64 step, s64 def)
+ {
+ 	const char *name;
++	const char *unit = NULL;
+ 	enum v4l2_ctrl_type type;
+ 	u32 flags;
+ 
+-	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
++	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
+ 	if (type == V4L2_CTRL_TYPE_MENU
+ 	    || type == V4L2_CTRL_TYPE_INTEGER_MENU) {
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, type,
++	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
+ 			     min, max, step, def, flags, NULL, NULL, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std);
+@@ -1770,6 +1775,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 	const s64 *qmenu_int = NULL;
+ 	unsigned int qmenu_int_len = 0;
+ 	const char *name;
++	const char *unit = NULL;
+ 	enum v4l2_ctrl_type type;
+ 	s64 min;
+ 	s64 max = _max;
+@@ -1777,7 +1783,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 	u64 step;
+ 	u32 flags;
+ 
+-	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
++	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
+ 
+ 	if (type == V4L2_CTRL_TYPE_MENU)
+ 		qmenu = v4l2_ctrl_get_menu(id);
+@@ -1788,7 +1794,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, type,
++	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
+ 			     0, max, mask, def, flags, qmenu, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
+@@ -1800,6 +1806,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+ {
+ 	enum v4l2_ctrl_type type;
+ 	const char *name;
++	const char *unit = NULL;
+ 	u32 flags;
+ 	u64 step;
+ 	s64 min;
+@@ -1814,12 +1821,12 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 
+-	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
++	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
+ 	if (type != V4L2_CTRL_TYPE_MENU || qmenu == NULL) {
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, type, 0, max, mask, def,
++	return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
+ 			     flags, qmenu, NULL, NULL);
+ 
+ }
+@@ -1831,6 +1838,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 			u32 id, u8 _max, u8 _def, const s64 *qmenu_int)
+ {
+ 	const char *name;
++	const char *unit = NULL;
+ 	enum v4l2_ctrl_type type;
+ 	s64 min;
+ 	u64 step;
+@@ -1838,12 +1846,12 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 	s64 def = _def;
+ 	u32 flags;
+ 
+-	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
++	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
+ 	if (type != V4L2_CTRL_TYPE_INTEGER_MENU) {
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, type,
++	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
+ 			     0, max, 0, def, flags, NULL, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 0b347e8..3998049 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -85,6 +85,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   * @ops:	The control ops.
+   * @id:	The control ID.
+   * @name:	The control name.
++  * @unit:	The control's unit. May be NULL.
+   * @type:	The control type.
+   * @minimum:	The control's minimum value.
+   * @maximum:	The control's maximum value.
+@@ -130,6 +131,7 @@ struct v4l2_ctrl {
+ 	const struct v4l2_ctrl_ops *ops;
+ 	u32 id;
+ 	const char *name;
++	const char *unit;
+ 	enum v4l2_ctrl_type type;
+ 	s64 minimum, maximum, default_value;
+ 	union {
+@@ -207,6 +209,7 @@ struct v4l2_ctrl_handler {
+   * @ops:	The control ops.
+   * @id:	The control ID.
+   * @name:	The control name.
++  * @unit:	The control's unit.
+   * @type:	The control type.
+   * @min:	The control's minimum value.
+   * @max:	The control's maximum value.
+@@ -230,6 +233,7 @@ struct v4l2_ctrl_config {
+ 	const struct v4l2_ctrl_ops *ops;
+ 	u32 id;
+ 	const char *name;
++	const char *unit;
+ 	enum v4l2_ctrl_type type;
+ 	s64 min;
+ 	s64 max;
+@@ -249,15 +253,16 @@ struct v4l2_ctrl_config {
+   * and @name will be NULL.
+   *
+   * This function will overwrite the contents of @name, @type and @flags.
+-  * The contents of @min, @max, @step and @def may be modified depending on
+-  * the type.
++  * The contents of @unit, @min, @max, @step and @def may be modified depending
++  * on the type.
+   *
+   * Do not use in drivers! It is used internally for backwards compatibility
+   * control handling only. Once all drivers are converted to use the new
+   * control framework this function will no longer be exported.
+   */
+-void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+-		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags);
++void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
++		    enum v4l2_ctrl_type *type, s64 *min, s64 *max,
++		    u64 *step, s64 *def, u32 *flags);
+ 
+ 
+ /** v4l2_ctrl_handler_init_class() - Initialize the control handler.
 -- 
+1.8.5.2
 
-Cheers,
-Mauro
