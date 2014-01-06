@@ -1,68 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58984 "EHLO mail.kapsi.fi"
+Received: from plane.gmane.org ([80.91.229.3]:50369 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751108AbaAWVJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 16:09:10 -0500
-From: Antti Palosaari <crope@iki.fi>
+	id S1750899AbaAFOhY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jan 2014 09:37:24 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1W0BIv-0007Z9-V9
+	for linux-media@vger.kernel.org; Mon, 06 Jan 2014 15:37:21 +0100
+Received: from exchange.muehlbauer.de ([194.25.158.132])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 15:37:21 +0100
+Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 15:37:21 +0100
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [REVIEW PATCH 01/13] v4l: add device type for Software Defined Radio
-Date: Thu, 23 Jan 2014 23:08:41 +0200
-Message-Id: <1390511333-25837-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1390511333-25837-1-git-send-email-crope@iki.fi>
-References: <1390511333-25837-1-git-send-email-crope@iki.fi>
+From: Tom <Bassai_Dai@gmx.net>
+Subject: Re: Add private controls to =?utf-8?b?Y3RybF9oYW5kbGVy?=
+Date: Mon, 6 Jan 2014 14:36:58 +0000 (UTC)
+Message-ID: <loom.20140106T153640-448@post.gmane.org>
+References: <loom.20140106T152825-137@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new V4L device type VFL_TYPE_SDR for Software Defined Radio.
-It is registered as /dev/swradio0 (/dev/sdr0 was already reserved).
+Tom <Bassai_Dai <at> gmx.net> writes:
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dev.c | 6 ++++++
- include/media/v4l2-dev.h           | 3 ++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+sorry I forgot to tell that I am using linux version 3.10.
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index b5aaaac..2ccacf2 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -758,6 +758,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
-  *	%VFL_TYPE_RADIO - A radio card
-  *
-  *	%VFL_TYPE_SUBDEV - A subdevice
-+ *
-+ *	%VFL_TYPE_SDR - Software Defined Radio
-  */
- int __video_register_device(struct video_device *vdev, int type, int nr,
- 		int warn_if_nr_in_use, struct module *owner)
-@@ -797,6 +799,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	case VFL_TYPE_SUBDEV:
- 		name_base = "v4l-subdev";
- 		break;
-+	case VFL_TYPE_SDR:
-+		/* Use device name 'swradio' because 'sdr' was already taken. */
-+		name_base = "swradio";
-+		break;
- 	default:
- 		printk(KERN_ERR "%s called with unknown type: %d\n",
- 		       __func__, type);
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index c768c9f..eec6e46 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -24,7 +24,8 @@
- #define VFL_TYPE_VBI		1
- #define VFL_TYPE_RADIO		2
- #define VFL_TYPE_SUBDEV		3
--#define VFL_TYPE_MAX		4
-+#define VFL_TYPE_SDR		4
-+#define VFL_TYPE_MAX		5
- 
- /* Is this a receiver, transmitter or mem-to-mem? */
- /* Ignored for VFL_TYPE_SUBDEV. */
--- 
-1.8.5.3
+Best Regards, Tom
+
 
