@@ -1,294 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:63710 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754960AbaAHLXy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 06:23:54 -0500
-Received: by mail-ee0-f51.google.com with SMTP id b15so617291eek.10
-        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 03:23:53 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 2/3] libdvbv5: implement MGT table parser
-Date: Wed,  8 Jan 2014 12:23:27 +0100
-Message-Id: <1389180208-3458-2-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1389180208-3458-1-git-send-email-neolynx@gmail.com>
-References: <1389180208-3458-1-git-send-email-neolynx@gmail.com>
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:62974 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754254AbaAFRrX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 12:47:23 -0500
+Received: by mail-ea0-f170.google.com with SMTP id k10so8103667eaj.29
+        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 09:47:22 -0800 (PST)
+Message-ID: <52CAEC6D.1080701@googlemail.com>
+Date: Mon, 06 Jan 2014 18:48:29 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 08/22] [media] em28xx: convert i2c wait completion
+ logic to use jiffies
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-9-git-send-email-m.chehab@samsung.com> <52C93C17.8090705@googlemail.com> <20140105111027.06cb2aff@samsung.com>
+In-Reply-To: <20140105111027.06cb2aff@samsung.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Master Guide Table is used in ATSC. Implementation
-according to specs A/65:2009
+Am 05.01.2014 14:10, schrieb Mauro Carvalho Chehab:
+> Em Sun, 05 Jan 2014 12:03:51 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
+>>> The I2C wait completion/timeout logic currently assumes that
+>>> msleep(5) will wait exaclty 5 ms. This is not true at all,
+>>> as it depends on CONFIG_HZ.
+>>>
+>>> Convert it to use jiffies, in order to not wait for more time
+>>> than needed.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>>> ---
+>>>  drivers/media/usb/em28xx/em28xx-i2c.c | 65 ++++++++++++++++++-----------------
+>>>  1 file changed, 34 insertions(+), 31 deletions(-)
+>>>
+>>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> index 9e6a11d01858..9fa7ed51e5b1 100644
+>>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> @@ -26,6 +26,7 @@
+>>>  #include <linux/kernel.h>
+>>>  #include <linux/usb.h>
+>>>  #include <linux/i2c.h>
+>>> +#include <linux/jiffies.h>
+>>>  
+>>>  #include "em28xx.h"
+>>>  #include "tuner-xc2028.h"
+>>> @@ -48,8 +49,8 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+>>>   */
+>>>  static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>>>  {
+>>> +	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
+>>>  	int ret;
+>>> -	int write_timeout;
+>>>  	u8 b2[6];
+>>>  
+>>>  	if (len < 1 || len > 4)
+>>> @@ -74,15 +75,15 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>>>  		return (ret < 0) ? ret : -EIO;
+>>>  	}
+>>>  	/* wait for completion */
+>>> -	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
+>>> -	     write_timeout -= 5) {
+>>> +	while (time_is_after_jiffies(timeout)) {
+>> AFAIU, it must be time_is_before_jiffies(timeout).
+> This is tricky, but it is right. 
+>
+> See its description at jiffies.h:
+>
+> 	/* time_is_after_jiffies(a) return true if a is after jiffies */
+> 	#define time_is_after_jiffies(a) time_before(jiffies, a)
+Urgh... yes, you are right.
+I've read this, but didn't notice that we check the timeout jiffies and
+not the current jiffies. :/
+Sorry for the noise.
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/descriptors/mgt.h  |  79 +++++++++++++++++++++++
- lib/libdvbv5/Makefile.am       |   3 +-
- lib/libdvbv5/descriptors.c     |   1 +
- lib/libdvbv5/descriptors/mgt.c | 140 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 222 insertions(+), 1 deletion(-)
- create mode 100644 lib/include/descriptors/mgt.h
- create mode 100644 lib/libdvbv5/descriptors/mgt.c
-
-diff --git a/lib/include/descriptors/mgt.h b/lib/include/descriptors/mgt.h
-new file mode 100644
-index 0000000..9c583b4
---- /dev/null
-+++ b/lib/include/descriptors/mgt.h
-@@ -0,0 +1,79 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
-+
-+#ifndef _MGT_H
-+#define _MGT_H
-+
-+#include <stdint.h>
-+#include <unistd.h> /* ssize_t */
-+
-+#include "descriptors/atsc_header.h"
-+#include "descriptors.h"
-+
-+#define ATSC_TABLE_MGT 0xC7
-+
-+struct atsc_table_mgt_table {
-+	uint16_t type;
-+	union {
-+		uint16_t bitfield;
-+		struct {
-+			uint16_t pid:13;
-+			uint16_t one:3;
-+		} __attribute__((packed));
-+	} __attribute__((packed));
-+        uint8_t type_version:5;
-+        uint8_t one2:3;
-+        uint32_t size;
-+	union {
-+		uint16_t bitfield2;
-+		struct {
-+			uint16_t desc_length:12;
-+			uint16_t one3:4;
-+		} __attribute__((packed));
-+	} __attribute__((packed));
-+	struct dvb_desc *descriptor;
-+	struct atsc_table_mgt_table *next;
-+} __attribute__((packed));
-+
-+struct atsc_table_mgt {
-+	struct atsc_table_header header;
-+        uint16_t tables;
-+        struct atsc_table_mgt_table *table;
-+	struct dvb_desc *descriptor;
-+} __attribute__((packed));
-+
-+#define atsc_mgt_table_foreach( _tran, _mgt ) \
-+  for( struct atsc_table_mgt_table *_tran = _mgt->table; _tran; _tran = _tran->next ) \
-+
-+struct dvb_v5_fe_parms;
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+void atsc_table_mgt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
-+void atsc_table_mgt_free(struct atsc_table_mgt *mgt);
-+void atsc_table_mgt_print(struct dvb_v5_fe_parms *parms, struct atsc_table_mgt *mgt);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-index 2ad5902..44f68d4 100644
---- a/lib/libdvbv5/Makefile.am
-+++ b/lib/libdvbv5/Makefile.am
-@@ -48,7 +48,8 @@ libdvbv5_la_SOURCES = \
-   descriptors/nit.c  ../include/descriptors/nit.h \
-   descriptors/sdt.c  ../include/descriptors/sdt.h \
-   descriptors/vct.c  ../include/descriptors/vct.h \
--  descriptors/eit.c  ../include/descriptors/eit.h
-+  descriptors/eit.c  ../include/descriptors/eit.h \
-+  descriptors/mgt.c  ../include/descriptors/mgt.h \
- 
- libdvbv5_la_CPPFLAGS = $(ENFORCE_LIBDVBV5_STATIC)
- libdvbv5_la_LDFLAGS = $(LIBDVBV5_VERSION) $(ENFORCE_LIBDVBV5_STATIC) -lm
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index d0887f4..7385027 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -36,6 +36,7 @@
- #include "descriptors/sdt.h"
- #include "descriptors/eit.h"
- #include "descriptors/vct.h"
-+#include "descriptors/mgt.h"
- #include "descriptors/desc_language.h"
- #include "descriptors/desc_network_name.h"
- #include "descriptors/desc_cable_delivery.h"
-diff --git a/lib/libdvbv5/descriptors/mgt.c b/lib/libdvbv5/descriptors/mgt.c
-new file mode 100644
-index 0000000..7279982
---- /dev/null
-+++ b/lib/libdvbv5/descriptors/mgt.c
-@@ -0,0 +1,140 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
-+
-+#include "descriptors/mgt.h"
-+#include "dvb-fe.h"
-+
-+void atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
-+{
-+	const uint8_t *p = buf, *endbuf = buf + buflen - 4; /* minus CRC */
-+	struct atsc_table_mgt *mgt = (struct atsc_table_mgt *) table;
-+	struct dvb_desc **head_desc;
-+	struct atsc_table_mgt_table **head;
-+	int i = 0;
-+	struct atsc_table_mgt_table *last = NULL;
-+	size_t size = offsetof(struct atsc_table_mgt, table);
-+
-+	if (p + size > endbuf) {
-+		dvb_logerr("%s: short read %zd/%zd bytes", __func__,
-+			   size, endbuf - p);
-+		return;
-+	}
-+
-+	if (*table_length > 0) {
-+		/* find end of curent lists */
-+		head_desc = &mgt->descriptor;
-+		while (*head_desc != NULL)
-+			head_desc = &(*head_desc)->next;
-+		head = &mgt->table;
-+		while (*head != NULL)
-+			head = &(*head)->next;
-+
-+		/* FIXME: read current mgt->tables for loop below */
-+	} else {
-+		memcpy(table, p, size);
-+		*table_length = sizeof(struct atsc_table_mgt);
-+
-+		bswap16(mgt->tables);
-+
-+		mgt->descriptor = NULL;
-+		mgt->table = NULL;
-+		head_desc = &mgt->descriptor;
-+		head = &mgt->table;
-+	}
-+	p += size;
-+
-+	while (i++ < mgt->tables && p < endbuf) {
-+		struct atsc_table_mgt_table *table;
-+
-+		size = offsetof(struct atsc_table_mgt_table, descriptor);
-+		if (p + size > endbuf) {
-+			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
-+				   size, endbuf - p);
-+			return;
-+		}
-+		table = (struct atsc_table_mgt_table *) malloc(sizeof(struct atsc_table_mgt_table));
-+		memcpy(table, p, size);
-+		p += size;
-+
-+		bswap16(table->type);
-+		bswap16(table->bitfield);
-+		bswap16(table->bitfield2);
-+		bswap32(table->size);
-+		table->descriptor = NULL;
-+		table->next = NULL;
-+
-+		if(!*head)
-+			*head = table;
-+		if(last)
-+			last->next = table;
-+
-+		/* get the descriptors for each table */
-+		size = table->desc_length;
-+		if (p + size > endbuf) {
-+			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
-+				   size, endbuf - p);
-+			return;
-+		}
-+		dvb_parse_descriptors(parms, p, size, &table->descriptor);
-+
-+		p += size;
-+		last = table;
-+	}
-+	/* TODO: parse MGT descriptors here into head_desc */
-+}
-+
-+void atsc_table_mgt_free(struct atsc_table_mgt *mgt)
-+{
-+	struct atsc_table_mgt_table *table = mgt->table;
-+
-+	dvb_free_descriptors((struct dvb_desc **) &mgt->descriptor);
-+	while(table) {
-+		struct atsc_table_mgt_table *tmp = table;
-+
-+		dvb_free_descriptors((struct dvb_desc **) &table->descriptor);
-+		table = table->next;
-+		free(tmp);
-+	}
-+	free(mgt);
-+}
-+
-+void atsc_table_mgt_print(struct dvb_v5_fe_parms *parms, struct atsc_table_mgt *mgt)
-+{
-+	const struct atsc_table_mgt_table *table = mgt->table;
-+	uint16_t tables = 0;
-+
-+	dvb_log("MGT");
-+	atsc_table_header_print(parms, &mgt->header);
-+	dvb_log("| tables           %d", mgt->tables);
-+	while(table) {
-+                dvb_log("|- type %04x    %d", table->type, table->pid);
-+                dvb_log("|  one          %d", table->one);
-+                dvb_log("|  one2         %d", table->one2);
-+                dvb_log("|  type version %d", table->type_version);
-+                dvb_log("|  size         %d", table->size);
-+                dvb_log("|  one3         %d", table->one3);
-+                dvb_log("|  desc_length  %d", table->desc_length);
-+		dvb_print_descriptors(parms, table->descriptor);
-+		table = table->next;
-+		tables++;
-+	}
-+	dvb_log("|_  %d tables", tables);
-+}
-+
--- 
-1.8.3.2
+>
+>>>  		ret = dev->em28xx_read_reg(dev, 0x05);
+>>> -		if (ret == 0x80 + len - 1) {
+>>> +		if (ret == 0x80 + len - 1)
+>>>  			return len;
+>>> -		} else if (ret == 0x94 + len - 1) {
+>>> +		if (ret == 0x94 + len - 1) {
+>>>  			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
+>>>  			return -ENODEV;
+>>> -		} else if (ret < 0) {
+>>> +		}
+>>> +		if (ret < 0) {
+>>>  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+>>>  				    ret);
+>>>  			return ret;
+>>> @@ -99,9 +100,9 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>>>   */
+>>>  static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>>>  {
+>>> +	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
+>>>  	u8 buf2[4];
+>>>  	int ret;
+>>> -	int read_timeout;
+>>>  	int i;
+>>>  
+>>>  	if (len < 1 || len > 4)
+>>> @@ -118,15 +119,15 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>>>  	}
+>>>  
+>>>  	/* wait for completion */
+>>> -	for (read_timeout = EM2800_I2C_XFER_TIMEOUT; read_timeout > 0;
+>>> -	     read_timeout -= 5) {
+>>> +	while (time_is_after_jiffies(timeout)) {
+>> The same here...
+>>
+>>>  		ret = dev->em28xx_read_reg(dev, 0x05);
+>>> -		if (ret == 0x84 + len - 1) {
+>>> +		if (ret == 0x84 + len - 1)
+>>>  			break;
+>>> -		} else if (ret == 0x94 + len - 1) {
+>>> +		if (ret == 0x94 + len - 1) {
+>>>  			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
+>>>  			return -ENODEV;
+>>> -		} else if (ret < 0) {
+>>> +		}
+>>> +		if (ret < 0) {
+>>>  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+>>>  				    ret);
+>>>  			return ret;
+>>> @@ -170,7 +171,8 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
+>>>  static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>>>  				 u16 len, int stop)
+>>>  {
+>>> -	int write_timeout, ret;
+>>> +	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
+>>> +	int ret;
+>>>  
+>>>  	if (len < 1 || len > 64)
+>>>  		return -EOPNOTSUPP;
+>>> @@ -193,17 +195,18 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>>>  		}
+>>>  	}
+>>>  
+>>> -	/* Check success of the i2c operation */
+>>> -	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
+>>> -	     write_timeout -= 5) {
+>>> +	/* wait for completion */
+>>> +	while (time_is_after_jiffies(timeout)) {
+>> ... and here.
+>>
+>>>  		ret = dev->em28xx_read_reg(dev, 0x05);
+>>> -		if (ret == 0) { /* success */
+>>> +		if (ret == 0) /* success */
+>>>  			return len;
+>>> -		} else if (ret == 0x10) {
+>>> -			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x", addr);
+>>> +		if (ret == 0x10) {
+>>> +			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
+>>> +				    addr);
+>>>  			return -ENODEV;
+>>> -		} else if (ret < 0) {
+>>> -			em28xx_warn("failed to read i2c transfer status from bridge (error=%i)\n",
+>>> +		}
+>>> +		if (ret < 0) {
+>>> +			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+>>>  				    ret);
+>>>  			return ret;
+>>>  		}
+>>> @@ -214,6 +217,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>>>  		 * (even with high payload) ...
+>>>  		 */
+>>>  	}
+>>> +
+>>>  	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
+>>>  	return -EIO;
+>>>  }
+>>> @@ -251,21 +255,20 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+>>>  
+>>>  	/* Check success of the i2c operation */
+>>>  	ret = dev->em28xx_read_reg(dev, 0x05);
+>>> +	if (ret == 0) /* success */
+>>> +		return len;
+>>>  	if (ret < 0) {
+>>> -		em28xx_warn("failed to read i2c transfer status from bridge (error=%i)\n",
+>>> +		em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+>>>  			    ret);
+>>>  		return ret;
+>>>  	}
+>>> -	if (ret > 0) {
+>>> -		if (ret == 0x10) {
+>>> -			em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
+>>> -			return -ENODEV;
+>>> -		} else {
+>>> -			em28xx_warn("unknown i2c error (status=%i)\n", ret);
+>>> -			return -EIO;
+>>> -		}
+>>> +	if (ret == 0x10) {
+>>> +		em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
+>>> +		return -ENODEV;
+>>>  	}
+>>> -	return len;
+>>> +
+>>> +	em28xx_warn("unknown i2c error (status=%i)\n", ret);
+>>> +	return -EIO;
+>>>  }
+>>>  
+>>>  /*
+>
 
