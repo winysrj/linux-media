@@ -1,70 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.HRZ.Uni-Dortmund.DE ([129.217.128.51]:44014 "EHLO
-	unimail.uni-dortmund.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752517AbaAOVzv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 16:55:51 -0500
-Message-ID: <52D703E2.7000103@tu-dortmund.de>
-Date: Wed, 15 Jan 2014 22:55:46 +0100
-From: Alexander Lochmann <alexander.lochmann@tu-dortmund.de>
+Received: from mail-ob0-f169.google.com ([209.85.214.169]:56611 "EHLO
+	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755403AbaAFVW0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 16:22:26 -0500
+Received: by mail-ob0-f169.google.com with SMTP id wm4so19106616obc.28
+        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 13:22:26 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Patch for TechnoTrend S2-4600
-References: <52C9975A.2060900@tu-dortmund.de> <20140115144238.07f7261f@samsung.com>
-In-Reply-To: <20140115144238.07f7261f@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Mon, 6 Jan 2014 13:22:25 -0800
+Message-ID: <CABMudhTYJnKx45EPt2T4F73woQO5mkDwpY4y8TjnaJY3SSBAWw@mail.gmail.com>
+Subject: How to enable "CONFIG_V4L2_MEM2MEM_DEV"
+From: m silverstri <michael.j.silverstri@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+I have added 'CONFIG_V4L2_MEM2MEM_DEV=y'  to my 'imx_v6_v7_defconfig'
+and do a "make ARCH=arm CROSS_COMPILE=/usr/bin/arm-linux-gnueabi-
+imx_v6_v7_defconfig", I don't see CONFIG_V4L2_MEM2MEM_DEV being set to
+'y' in .config that was automatically generated.
 
-thanks for you reply.
+I think I am making changes to the right 'imx_v6_v7_defconfig' file
+since when i add
+'CONFIG_V4L_TEST_DRIVERS=y' to 'imx_v6_v7_defconfig', I see
+'CONFIG_V4L_TEST_DRIVERS=y' in .config when I do "make ARCH=arm
+CROSS_COMPILE=/usr/bin/arm-linux-gnueabi- imx_v6_v7_defconfig"
 
-Sorry, i was not aware of the fact that i have to ask the author. :-( 
-They published it at bitbucket. Thus i thought it is okay to propose a 
-patch.
-In which kernel tree was it merged? The mainline one at kernel.org?
+I am not sure why CONFIG_V4L2_MEM2MEM_DEV is not being set when I put
+'CONFIG_V4L2_MEM2MEM_DEV=y'
 
-Regards,
-Alex
+And from the  Kconfig, V4L2_MEM2MEM_DEV only depends on VIDEOBUF2_CORE
+# Used by drivers that need v4l2-mem2mem.ko
+config V4L2_MEM2MEM_DEV
+        tristate
+        depends on VIDEOBUF2_CORE
 
-On 01/15/2014 05:42 PM, Mauro Carvalho Chehab wrote:
-> Em Sun, 05 Jan 2014 18:33:14 +0100
-> Alexander Lochmann <alexander.lochmann@tu-dortmund.de> escreveu:
->
->> Hi guys,
->>
->> i'm sending you a patch that adds support for the TechnoTrend S2-4600
->> DVB-S2 device to a 3.12 (5e01dc7b26d9f24f39abace5da98ccbd6a5ceb52)
->> mainline kernel.
->> I just extracted the drivers for the two frontends (ds3103 and ts2202)
->> from [1] and added them to a mainline kernel. Furthermore, i modified
->> the dw2102 driver to support the new frontends (= copied the necessary
->> lines of code from the origin dw2102) . In addition, i attached a
->> firmware for the dw2102 extracted from [3].
->> I appreciate, if you review my patch and may integrate it into the
->> mainline tree.
-> Hi Alexander,
->
-> You can't simply extract those patches from some other tree and send, without
-> the driver's author ack.
->
-> Also, recently a driver for ts2202 and ds3103 was merged in the Kernel. It
-> may not have the IDs for your device, but it shouldn't likely be hard to
-> add support for it, if you have some programming skills.
->
-> Regards,
-> Mauro
->
->> Thank you!
->> Greetings
->> Alex
->>
->> [1]
->> https://bitbucket.org/liplianin/s2-liplianin-v37/get/67ce08afdbe7.tar.bz2
->> [2] http://www.tt-downloads.de/Linux/s2-TT4600-linux-20120815.tgz
->> [3] http://www.tt-downloads.de/Linux/linux_tt-connect_s2-4600.pdf
->
+and I have CONFIG_VIDEOBUF2_CORE=y
 
+
+Thank you.
