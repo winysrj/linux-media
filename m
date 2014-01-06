@@ -1,106 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2984 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750928AbaAOHjZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 02:39:25 -0500
-Message-ID: <52D63B23.5000505@xs4all.nl>
-Date: Wed, 15 Jan 2014 08:39:15 +0100
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4165 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753873AbaAFOVn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:43 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Jianle Wang <victure86@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: how can I get compat_ioctl support for v4l2_subdev_fops
-References: <CACDDY7429te6a7cUQ0Z=sX6TELjn48FQHiuW=YtBsyOkzrCqZA@mail.gmail.com>
-In-Reply-To: <CACDDY7429te6a7cUQ0Z=sX6TELjn48FQHiuW=YtBsyOkzrCqZA@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 25/27] v4l2-ctrls: add support for u8, u16 and prop_selection types.
+Date: Mon,  6 Jan 2014 15:21:24 +0100
+Message-Id: <1389018086-15903-26-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jianle,
-
-On 01/15/2014 07:28 AM, Jianle Wang wrote:
-> Hi all, :
-> I use the media-ctl from http://git.ideasonboard.org/media-ctl.git
-> It is compiled into a 32 bit application. Run on a 64 bit CPU. The
-> version of kernel is 3.10.
-> 
-> When call ioctl(, VIDIOC_SUBDEV_S_SELECTION,), meet the below warning:
-> [   97.186338] c0 707 (drv_test) compat_ioctl32: unknown ioctl 'V',
-> dir=3, #62 (0xc040563e)
-> [   97.203252] c0 707 (drv_test) WARNING: no compat_ioctl for v4l-subdev1
-> 
-> VIDIOC_SUBDEV_S_SELECTION is not supported for compat_iocl. And I list
-> others subdev’s ioctl, which are also not included
-> 
-> in v4l2_compat_iocl32().
-> How can I get these compat_ioctl?
-> Have they been added in v4l2_compat_iocl32() or We have added a
-> compat_ioctl32 in v4l2_subdev_fops?
-
-It's a bug, I'm afraid. A lot of the SUBDEV ioctls are missing in v4l2_compat_ioctl32.
-Try the patch below, that should fix it.
-
-Regards,
-
-	Hans
-
-> 
-> VIDIOC_SUBDEV_G_FMT
-> VIDIOC_SUBDEV_S_FMT
-> VIDIOC_SUBDEV_G_CROP
-> VIDIOC_SUBDEV_S_CROP
-> VIDIOC_SUBDEV_ENUM_MBUS_CODE
-> VIDIOC_SUBDEV_ENUM_FRAME_SIZE
-> VIDIOC_SUBDEV_G_FRAME_INTERVAL
-> VIDIOC_SUBDEV_S_FRAME_INTERVAL
-> VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL
-> VIDIOC_SUBDEV_G_SELECTION
-> VIDIOC_SUBDEV_S_SELECTION
-> default
-> v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 30 ++++++++++++++++++++++++++++++
+ include/media/v4l2-ctrls.h           |  3 +++
+ 2 files changed, 33 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 8f7a6a4..15d3586 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -1007,6 +1007,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 		return ret;
- 
- 	switch (cmd) {
-+	/* V4L2 ioctls */
- 	case VIDIOC_QUERYCAP:
- 	case VIDIOC_RESERVED:
- 	case VIDIOC_ENUM_FMT:
-@@ -1087,8 +1088,21 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_QUERY_DV_TIMINGS:
- 	case VIDIOC_DV_TIMINGS_CAP:
- 	case VIDIOC_ENUM_FREQ_BANDS:
-+
-+	/* V4L2 subdev ioctls */
- 	case VIDIOC_SUBDEV_G_EDID32:
- 	case VIDIOC_SUBDEV_S_EDID32:
-+	case VIDIOC_SUBDEV_G_FMT:
-+	case VIDIOC_SUBDEV_S_FMT:
-+	case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
-+	case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
-+	case VIDIOC_SUBDEV_ENUM_MBUS_CODE:
-+	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE:
-+	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL:
-+	case VIDIOC_SUBDEV_G_CROP:
-+	case VIDIOC_SUBDEV_S_CROP:
-+	case VIDIOC_SUBDEV_G_SELECTION:
-+	case VIDIOC_SUBDEV_S_SELECTION:
- 		ret = do_video_ioctl(file, cmd, arg);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 2191451..6c7640b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1165,6 +1165,10 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return ptr1.p_s64[idx] == ptr2.p_s64[idx];
++	case V4L2_PROP_TYPE_U8:
++		return ptr1.p_u8[idx] == ptr2.p_u8[idx];
++	case V4L2_PROP_TYPE_U16:
++		return ptr1.p_u16[idx] == ptr2.p_u16[idx];
+ 	default:
+ 		if (ctrl->is_int)
+ 			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
+@@ -1192,6 +1196,12 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+ 		ptr.p_s32[idx] = ctrl->default_value;
  		break;
++	case V4L2_PROP_TYPE_U8:
++		ptr.p_u8[idx] = ctrl->default_value;
++		break;
++	case V4L2_PROP_TYPE_U16:
++		ptr.p_u16[idx] = ctrl->default_value;
++		break;
+ 	default:
+ 		idx *= ctrl->elem_size;
+ 		memset(ptr.p + idx, 0, ctrl->elem_size);
+@@ -1228,6 +1238,18 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ 	case V4L2_CTRL_TYPE_STRING:
+ 		pr_cont("%s", ptr.p_char);
+ 		break;
++	case V4L2_PROP_TYPE_U8:
++		pr_cont("%u", (unsigned)*ptr.p_u8);
++		break;
++	case V4L2_PROP_TYPE_U16:
++		pr_cont("%u", (unsigned)*ptr.p_u16);
++		break;
++	case V4L2_PROP_TYPE_SELECTION:
++		pr_cont("%ux%u@%dx%d (0x%x)",
++			ptr.p_sel->r.width, ptr.p_sel->r.height,
++			ptr.p_sel->r.left, ptr.p_sel->r.top,
++			ptr.p_sel->flags);
++		break;
+ 	default:
+ 		pr_cont("unknown type %d", ctrl->type);
+ 		break;
+@@ -1258,6 +1280,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
++	case V4L2_PROP_TYPE_U8:
++		return ROUND_TO_RANGE(ptr.p_u8[idx], u8, ctrl);
++	case V4L2_PROP_TYPE_U16:
++		return ROUND_TO_RANGE(ptr.p_u16[idx], u16, ctrl);
  
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+ 		ptr.p_s32[idx] = !!ptr.p_s32[idx];
+@@ -1504,6 +1530,8 @@ static int check_range(enum v4l2_ctrl_type type,
+ 		if (step != 1 || max > 1 || min < 0)
+ 			return -ERANGE;
+ 		/* fall through */
++	case V4L2_PROP_TYPE_U8:
++	case V4L2_PROP_TYPE_U16:
+ 	case V4L2_CTRL_TYPE_INTEGER:
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		if (step == 0 || min > max || def < min || def > max)
+@@ -3259,6 +3287,8 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
++	case V4L2_PROP_TYPE_U8:
++	case V4L2_PROP_TYPE_U16:
+ 		if (ctrl->is_matrix)
+ 			return -EINVAL;
+ 		ret = check_range(ctrl->type, min, max, step, def);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 514c427..09257e4 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -45,7 +45,10 @@ struct poll_table_struct;
+ union v4l2_ctrl_ptr {
+ 	s32 *p_s32;
+ 	s64 *p_s64;
++	u8 *p_u8;
++	u16 *p_u16;
+ 	char *p_char;
++	struct v4l2_prop_selection *p_sel;
+ 	void *p;
+ };
+ 
+-- 
+1.8.5.2
 
