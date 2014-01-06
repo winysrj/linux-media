@@ -1,41 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f179.google.com ([209.85.220.179]:38708 "EHLO
-	mail-vc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525AbaANDfQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 22:35:16 -0500
-Received: by mail-vc0-f179.google.com with SMTP id ia6so68316vcb.24
-        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 19:35:15 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CALzAhNW=uCLsu4sdrGyycxRoOdaRTFNM8yVj=Y+ahSZrWqrABg@mail.gmail.com>
-References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
-	<CAHFNz9KzKdC0xvq7nM6yF0DGQ3pCq7tUr0et-cvf6Wk5Htarxg@mail.gmail.com>
-	<CALzAhNW=uCLsu4sdrGyycxRoOdaRTFNM8yVj=Y+ahSZrWqrABg@mail.gmail.com>
-Date: Tue, 14 Jan 2014 09:05:15 +0530
-Message-ID: <CAHFNz9+Z9oBwezNURpOhoCn3Rk-HWHdZSh7CK7SopkPPv7Z6Qg@mail.gmail.com>
-Subject: Re: Upstreaming SAA716x driver to the media_tree
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Luis Alves <ljalvs@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Andreas Regel <andreas.regel@gmx.de>,
-	Chris Lee <updatelee@gmail.com>, crazycat69@narod.ru,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bombadil.infradead.org ([198.137.202.9]:50530 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751093AbaAFM0T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 07:26:19 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/2] em28xx: only initialize extensions on the main interface
+Date: Mon,  6 Jan 2014 07:22:55 -0200
+Message-Id: <1389000175-7301-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389000175-7301-1-git-send-email-m.chehab@samsung.com>
+References: <1389000175-7301-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 14, 2014 at 12:20 AM, Steven Toth <stoth@kernellabs.com> wrote:
->>> Manu, do you see any inconvenience in sending your driver to the
->>> linux_media tree?
->>> I'm available to place some effort on this task.
->>
->>
->> I can push the 716x driver and whatever additional changes that I have
->> later on this weekend, if that's okay with you.
->
-> I never saw a push.
+For devices with a separated audio-only interface (em2860), call
+em28xx_init_extension() only once.
 
-Spliiting and cleaning up the patches took up more time than expected.
-Please wait a few days.
+That fixes a bug with Kworld 305U:
+
+    [  658.730715] em2860 #0: V4L2 video device registered as video1
+    [  658.730728] em2860 #0: V4L2 VBI device registered as vbi0
+    [  658.736907] em2860 #0: Remote control support is not available for this card.
+    [  658.736965] em2860 #1: Remote control support is not available for this card.
+    [  658.737230] ------------[ cut here ]------------
+    [  658.737246] WARNING: CPU: 2 PID: 60 at lib/list_debug.c:36 __list_add+0x8a/0xc0()
+    [  658.737256] list_add double add: new=ffff8800a9a40410, prev=ffff8800a9a40410, next=ffffffffa08720d0.
+    [  658.737266] Modules linked in: tuner_xc2028 netconsole rc_hauppauge em28xx_rc rc_core tuner_simple tuner_types tda9887 tda8290 tuner tvp5150 msp3400 em28xx_v4l em28xx tveeprom
+ v4l2_common fuse ccm nf_conntrack_netbios_ns nf_conntrack_broadcast ipt_MASQUERADE ip6t_REJECT xt_conntrack ebtable_nat ebtable_broute bridge stp llc ebtable_filter ebtables ip6tabl
+e_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_security ip6table_raw ip6table_filter ip6_tables iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4
+nf_nat nf_conntrack iptable_mangle iptable_security bnep iptable_raw vfat fat arc4 iwldvm mac80211 x86_pkg_temp_thermal coretemp kvm_intel nfsd iwlwifi snd_hda_codec_hdmi kvm snd_hda
+_codec_realtek snd_hda_intel snd_hda_codec auth_rpcgss nfs_acl cfg80211 lockd snd_hwdep snd_seq btusb sunrpc crc32_pclmul bluetooth crc32c_intel snd_seq_device snd_pcm uvcvideo r8169
+ ghash_clmulni_intel videobuf2_vmalloc videobuf2_memops videobuf2_core snd_page_alloc snd_timer snd videodev mei_me iTCO_wdt mii shpchp joydev mei media iTCO_vendor_support lpc_ich m
+icrocode soundcore rfkill serio_raw i2c_i801 mfd_core nouveau i915 ttm i2c_algo_bit drm_kms_helper drm i2c_core mxm_wmi wmi video
+    [  658.738601] CPU: 2 PID: 60 Comm: kworker/2:1 Not tainted 3.13.0-rc1+ #18
+    [  658.738611] Hardware name: SAMSUNG ELECTRONICS CO., LTD. 550P5C/550P7C/SAMSUNG_NP1234567890, BIOS P04ABI.013.130220.dg 02/20/2013
+    [  658.738624] Workqueue: events request_module_async [em28xx]
+    [  658.738646]  0000000000000009 ffff8802209dfc68 ffffffff816a3c96 ffff8802209dfcb0
+    [  658.738700]  ffff8802209dfca0 ffffffff8106aaad ffff8800a9a40410 ffffffffa08720d0
+    [  658.738754]  ffff8800a9a40410 0000000000000000 0000000000000080 ffff8802209dfd00
+    [  658.738814] Call Trace:
+    [  658.738836]  [<ffffffff816a3c96>] dump_stack+0x45/0x56
+    [  658.738851]  [<ffffffff8106aaad>] warn_slowpath_common+0x7d/0xa0
+    [  658.738864]  [<ffffffff8106ab1c>] warn_slowpath_fmt+0x4c/0x50
+    [  658.738880]  [<ffffffffa0868a7d>] ? em28xx_init_extension+0x1d/0x80 [em28xx]
+    [  658.738898]  [<ffffffff81343b8a>] __list_add+0x8a/0xc0
+    [  658.738911]  [<ffffffffa0868a98>] em28xx_init_extension+0x38/0x80 [em28xx]
+    [  658.738927]  [<ffffffffa086a059>] request_module_async+0x19/0x110 [em28xx]
+    [  658.738942]  [<ffffffff810873b5>] process_one_work+0x1f5/0x510
+    [  658.738954]  [<ffffffff81087353>] ? process_one_work+0x193/0x510
+    [  658.738967]  [<ffffffff810880bb>] worker_thread+0x11b/0x3a0
+    [  658.738979]  [<ffffffff81087fa0>] ? manage_workers.isra.24+0x2b0/0x2b0
+    [  658.738992]  [<ffffffff8108ea2f>] kthread+0xff/0x120
+    [  658.739005]  [<ffffffff8108e930>] ? kthread_create_on_node+0x250/0x250
+    [  658.739017]  [<ffffffff816b517c>] ret_from_fork+0x7c/0xb0
+    [  658.739029]  [<ffffffff8108e930>] ? kthread_create_on_node+0x250/0x250
+    [  658.739040] ---[ end trace c1acd24b354108de ]---
+    [  658.739051] em2860 #1: Remote control support is not available for this card.
+    [  658.742407] em28xx-audio.c: probing for em28xx Audio Vendor Class
+    [  658.742429] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+    [  658.742440] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
+    [  658.744798] em28xx-audio.c: probing for em28xx Audio Vendor Class
+    [  658.744823] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+    [  658.744836] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
+    [  658.746849] em28xx-audio.c: probing for em28xx Audio Vendor Class
+    [  658.746863] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+    [  658.746874] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
+    ...
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 95ba1cefc350..849725e5acb1 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2779,6 +2779,18 @@ static void request_module_async(struct work_struct *work)
+ 	 * can be initialised right now. Otherwise, the module init
+ 	 * code will do it.
+ 	 */
++
++	/*
++	 * Devicdes with an audio-only interface also have a V4L/DVB/RC
++	 * interface. Don't register extensions twice on those devices.
++	 */
++	if (dev->is_audio_only) {
++#if defined(CONFIG_MODULES) && defined(MODULE)
++		request_module("em28xx-alsa");
++#endif
++		return 0;
++	}
++
+ 	em28xx_init_extension(dev);
+ 
+ #if defined(CONFIG_MODULES) && defined(MODULE)
+-- 
+1.8.3.1
+
