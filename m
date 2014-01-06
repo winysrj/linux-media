@@ -1,74 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45253 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931AbaASK4y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jan 2014 05:56:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] omap3isp: preview: Fix the crop margins
-Date: Sun, 19 Jan 2014 11:57:36 +0100
-Message-ID: <2311228.FujT41VdLF@avalon>
-In-Reply-To: <1389987458-7174-1-git-send-email-florian.vaussard@epfl.ch>
-References: <1389987458-7174-1-git-send-email-florian.vaussard@epfl.ch>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2909 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754749AbaAFOVl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 08/27] videodev2.h: add V4L2_CTRL_FLAG_CAN_STORE
+Date: Mon,  6 Jan 2014 15:21:07 +0100
+Message-Id: <1389018086-15903-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch.
+Controls/properties that have a configuration store will set this flag.
 
-On Friday 17 January 2014 20:37:38 Florian Vaussard wrote:
-> Commit 3fdfedaaa "[media] omap3isp: preview: Lower the crop margins"
-> accidentally changed the previewer's cropping, causing the previewer
-> to miss four pixels on each line, thus corrupting the final image.
-> Restored the removed setting.
-> 
-> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-I've applied this to my tree and will send a pull request.
-
-> ---
->  drivers/media/platform/omap3isp/isppreview.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isppreview.c
-> b/drivers/media/platform/omap3isp/isppreview.c index cd8831a..e2e4610
-> 100644
-> --- a/drivers/media/platform/omap3isp/isppreview.c
-> +++ b/drivers/media/platform/omap3isp/isppreview.c
-> @@ -1079,6 +1079,7 @@ static void preview_config_input_format(struct
-> isp_prev_device *prev, */
->  static void preview_config_input_size(struct isp_prev_device *prev, u32
-> active) {
-> +	const struct v4l2_mbus_framefmt *format = &prev->formats[PREV_PAD_SINK];
->  	struct isp_device *isp = to_isp_device(prev);
->  	unsigned int sph = prev->crop.left;
->  	unsigned int eph = prev->crop.left + prev->crop.width - 1;
-> @@ -1086,6 +1087,14 @@ static void preview_config_input_size(struct
-> isp_prev_device *prev, u32 active) unsigned int elv = prev->crop.top +
-> prev->crop.height - 1;
->  	u32 features;
-> 
-> +	if (format->code != V4L2_MBUS_FMT_Y8_1X8 &&
-> +	    format->code != V4L2_MBUS_FMT_Y10_1X10) {
-> +		sph -= 2;
-> +		eph += 2;
-> +		slv -= 2;
-> +		elv += 2;
-> +	}
-> +
->  	features = (prev->params.params[0].features & active)
-> 
->  		 | (prev->params.params[1].features & ~active);
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2dda52d..0803da9 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1323,6 +1323,7 @@ struct v4l2_querymenu {
+ #define V4L2_CTRL_FLAG_VOLATILE		0x0080
+ #define V4L2_CTRL_FLAG_PROPERTY		0x0100
+ #define V4L2_CTRL_FLAG_IS_PTR		0x0200
++#define V4L2_CTRL_FLAG_CAN_STORE	0x0400
+ 
+ /*  Query flags, to be ORed with the control ID */
+ #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.2
 
