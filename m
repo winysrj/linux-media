@@ -1,215 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1995 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752080AbaAGNHM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 08:07:12 -0500
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3881 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753882AbaAFOVn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:43 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 4/6] DocBook media: update four more sections
-Date: Tue,  7 Jan 2014 14:06:55 +0100
-Message-Id: <1389100017-42855-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
-References: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [RFCv1 PATCH 19/27] v4l2-ctrls: type_ops can handle matrix elements.
+Date: Mon,  6 Jan 2014 15:21:18 +0100
+Message-Id: <1389018086-15903-20-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Updates sections "Querying Capabilities", "Application Priority",
-"Video Inputs and Outputs" and "Audio Inputs and Outputs".
+Extend the control type operations to handle matrix elements.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/common.xml | 89 ++++++++++++------------------
- 1 file changed, 35 insertions(+), 54 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 40 ++++++++++++++++++++----------------
+ 1 file changed, 22 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-index da08df9..f1e4307 100644
---- a/Documentation/DocBook/media/v4l/common.xml
-+++ b/Documentation/DocBook/media/v4l/common.xml
-@@ -186,15 +186,15 @@ methods</link> supported by the device.</para>
- 
-     <para>Starting with kernel version 3.1, VIDIOC-QUERYCAP will return the
- V4L2 API version used by the driver, with generally matches the Kernel version.
--There's no need of using &VIDIOC-QUERYCAP; to check if an specific ioctl is
--supported, the V4L2 core now returns ENOIOCTLCMD if a driver doesn't provide
-+There's no need of using &VIDIOC-QUERYCAP; to check if a specific ioctl is
-+supported, the V4L2 core now returns ENOTTY if a driver doesn't provide
- support for an ioctl.</para>
- 
-     <para>Other features can be queried
- by calling the respective ioctl, for example &VIDIOC-ENUMINPUT;
- to learn about the number, types and names of video connectors on the
- device. Although abstraction is a major objective of this API, the
--ioctl also allows driver specific applications to reliable identify
-+&VIDIOC-QUERYCAP; ioctl also allows driver specific applications to reliably identify
- the driver.</para>
- 
-     <para>All V4L2 drivers must support
-@@ -224,9 +224,7 @@ Applications requiring a different priority will usually call
- the &VIDIOC-QUERYCAP; ioctl.</para>
- 
-     <para>Ioctls changing driver properties, such as &VIDIOC-S-INPUT;,
--return an &EBUSY; after another application obtained higher priority.
--An event mechanism to notify applications about asynchronous property
--changes has been proposed but not added yet.</para>
-+return an &EBUSY; after another application obtained higher priority.</para>
-   </section>
- 
-   <section id="video">
-@@ -234,9 +232,9 @@ changes has been proposed but not added yet.</para>
- 
-     <para>Video inputs and outputs are physical connectors of a
- device. These can be for example RF connectors (antenna/cable), CVBS
--a.k.a. Composite Video, S-Video or RGB connectors. Only video and VBI
--capture devices have inputs, output devices have outputs, at least one
--each. Radio devices have no video inputs or outputs.</para>
-+a.k.a. Composite Video, S-Video or RGB connectors. Video and VBI
-+capture devices have inputs. Video and VBI output devices have outputs,
-+at least one each. Radio devices have no video inputs or outputs.</para>
- 
-     <para>To learn about the number and attributes of the
- available inputs and outputs applications can enumerate them with the
-@@ -245,30 +243,13 @@ available inputs and outputs applications can enumerate them with the
- ioctl also contains signal status information applicable when the
- current video input is queried.</para>
- 
--    <para>The &VIDIOC-G-INPUT; and &VIDIOC-G-OUTPUT; ioctl return the
-+    <para>The &VIDIOC-G-INPUT; and &VIDIOC-G-OUTPUT; ioctls return the
- index of the current video input or output. To select a different
- input or output applications call the &VIDIOC-S-INPUT; and
--&VIDIOC-S-OUTPUT; ioctl. Drivers must implement all the input ioctls
-+&VIDIOC-S-OUTPUT; ioctls. Drivers must implement all the input ioctls
- when the device has one or more inputs, all the output ioctls when the
- device has one or more outputs.</para>
- 
--    <!--
--    <figure id=io-tree>
--      <title>Input and output enumeration is the root of most device properties.</title>
--      <mediaobject>
--	<imageobject>
--	  <imagedata fileref="links.pdf" format="ps" />
--	</imageobject>
--	<imageobject>
--	  <imagedata fileref="links.gif" format="gif" />
--	</imageobject>
--	<textobject>
--	  <phrase>Links between various device property structures.</phrase>
--	</textobject>
--      </mediaobject>
--    </figure>
--    -->
--
-     <example>
-       <title>Information about the current video input</title>
- 
-@@ -276,20 +257,20 @@ device has one or more outputs.</para>
- &v4l2-input; input;
- int index;
- 
--if (-1 == ioctl (fd, &VIDIOC-G-INPUT;, &amp;index)) {
--	perror ("VIDIOC_G_INPUT");
--	exit (EXIT_FAILURE);
-+if (-1 == ioctl(fd, &VIDIOC-G-INPUT;, &amp;index)) {
-+	perror("VIDIOC_G_INPUT");
-+	exit(EXIT_FAILURE);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b6edd81..3655b51 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1126,14 +1126,16 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+ 	case V4L2_CTRL_TYPE_BUTTON:
+ 		return false;
+ 	case V4L2_CTRL_TYPE_STRING:
++		idx *= ctrl->elem_size;
+ 		/* strings are always 0-terminated */
+-		return !strcmp(ptr1.p_char, ptr2.p_char);
++		return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		return *ptr1.p_s64 == *ptr2.p_s64;
++		return ptr1.p_s64[idx] == ptr2.p_s64[idx];
+ 	default:
+-		if (ctrl->is_ptr)
+-			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
+-		return *ptr1.p_s32 == *ptr2.p_s32;
++		if (ctrl->is_int)
++			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
++		idx *= ctrl->elem_size;
++		return !memcmp(ptr1.p + idx, ptr2.p + idx, ctrl->elem_size);
+ 	}
  }
  
--memset (&amp;input, 0, sizeof (input));
-+memset(&amp;input, 0, sizeof(input));
- input.index = index;
+@@ -1142,18 +1144,19 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+ {
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+-		memset(ptr.p_char, ' ', ctrl->minimum);
+-		ptr.p_char[ctrl->minimum] = '\0';
++		idx *= ctrl->elem_size;
++		memset(ptr.p_char + idx, ' ', ctrl->minimum);
++		ptr.p_char[idx + ctrl->minimum] = '\0';
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		*ptr.p_s64 = ctrl->default_value;
++		ptr.p_s64[idx] = ctrl->default_value;
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		*ptr.p_s32 = ctrl->default_value;
++		ptr.p_s32[idx] = ctrl->default_value;
+ 		break;
+ 	default:
+ 		break;
+@@ -1216,36 +1219,37 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
  
--if (-1 == ioctl (fd, &VIDIOC-ENUMINPUT;, &amp;input)) {
--	perror ("VIDIOC_ENUMINPUT");
--	exit (EXIT_FAILURE);
-+if (-1 == ioctl(fd, &VIDIOC-ENUMINPUT;, &amp;input)) {
-+	perror("VIDIOC_ENUMINPUT");
-+	exit(EXIT_FAILURE);
- }
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+-		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
++		return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
++		return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
  
--printf ("Current input: %s\n", input.name);
-+printf("Current input: %s\n", input.name);
-       </programlisting>
-     </example>
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		*ptr.p_s32 = !!*ptr.p_s32;
++		ptr.p_s32[idx] = !!ptr.p_s32[idx];
+ 		return 0;
  
-@@ -301,9 +282,9 @@ int index;
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
++		if (ptr.p_s32[idx] < ctrl->minimum || ptr.p_s32[idx] > ctrl->maximum)
+ 			return -ERANGE;
+-		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
++		if (ctrl->menu_skip_mask & (1 << ptr.p_s32[idx]))
+ 			return -EINVAL;
+ 		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+-		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
++		    ctrl->qmenu[ptr.p_s32[idx]][0] == '\0')
+ 			return -EINVAL;
+ 		return 0;
  
- index = 0;
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		*ptr.p_s32 &= ctrl->maximum;
++		ptr.p_s32[idx] &= ctrl->maximum;
+ 		return 0;
  
--if (-1 == ioctl (fd, &VIDIOC-S-INPUT;, &amp;index)) {
--	perror ("VIDIOC_S_INPUT");
--	exit (EXIT_FAILURE);
-+if (-1 == ioctl(fd, &VIDIOC-S-INPUT;, &amp;index)) {
-+	perror("VIDIOC_S_INPUT");
-+	exit(EXIT_FAILURE);
- }
-       </programlisting>
-     </example>
-@@ -343,7 +324,7 @@ available inputs and outputs applications can enumerate them with the
- also contains signal status information applicable when the current
- audio input is queried.</para>
+ 	case V4L2_CTRL_TYPE_BUTTON:
+ 	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		*ptr.p_s32 = 0;
++		ptr.p_s32[idx] = 0;
+ 		return 0;
  
--    <para>The &VIDIOC-G-AUDIO; and &VIDIOC-G-AUDOUT; ioctl report
-+    <para>The &VIDIOC-G-AUDIO; and &VIDIOC-G-AUDOUT; ioctls report
- the current audio input and output, respectively. Note that, unlike
- &VIDIOC-G-INPUT; and &VIDIOC-G-OUTPUT; these ioctls return a structure
- as <constant>VIDIOC_ENUMAUDIO</constant> and
-@@ -354,11 +335,11 @@ applications call the &VIDIOC-S-AUDIO; ioctl. To select an audio
- output (which presently has no changeable properties) applications
- call the &VIDIOC-S-AUDOUT; ioctl.</para>
- 
--    <para>Drivers must implement all input ioctls when the device
--has one or more inputs, all output ioctls when the device has one
--or more outputs. When the device has any audio inputs or outputs the
--driver must set the <constant>V4L2_CAP_AUDIO</constant> flag in the
--&v4l2-capability; returned by the &VIDIOC-QUERYCAP; ioctl.</para>
-+    <para>Drivers must implement all audio input ioctls when the device
-+has multiple selectable audio inputs, all audio output ioctls when the
-+device has multiple selectable audio outputs. When the device has any
-+audio inputs or outputs the driver must set the <constant>V4L2_CAP_AUDIO</constant>
-+flag in the &v4l2-capability; returned by the &VIDIOC-QUERYCAP; ioctl.</para>
- 
-     <example>
-       <title>Information about the current audio input</title>
-@@ -366,14 +347,14 @@ driver must set the <constant>V4L2_CAP_AUDIO</constant> flag in the
-       <programlisting>
- &v4l2-audio; audio;
- 
--memset (&amp;audio, 0, sizeof (audio));
-+memset(&amp;audio, 0, sizeof(audio));
- 
--if (-1 == ioctl (fd, &VIDIOC-G-AUDIO;, &amp;audio)) {
--	perror ("VIDIOC_G_AUDIO");
--	exit (EXIT_FAILURE);
-+if (-1 == ioctl(fd, &VIDIOC-G-AUDIO;, &amp;audio)) {
-+	perror("VIDIOC_G_AUDIO");
-+	exit(EXIT_FAILURE);
- }
- 
--printf ("Current input: %s\n", audio.name);
-+printf("Current input: %s\n", audio.name);
-       </programlisting>
-     </example>
- 
-@@ -383,13 +364,13 @@ printf ("Current input: %s\n", audio.name);
-       <programlisting>
- &v4l2-audio; audio;
- 
--memset (&amp;audio, 0, sizeof (audio)); /* clear audio.mode, audio.reserved */
-+memset(&amp;audio, 0, sizeof(audio)); /* clear audio.mode, audio.reserved */
- 
- audio.index = 0;
- 
--if (-1 == ioctl (fd, &VIDIOC-S-AUDIO;, &amp;audio)) {
--	perror ("VIDIOC_S_AUDIO");
--	exit (EXIT_FAILURE);
-+if (-1 == ioctl(fd, &VIDIOC-S-AUDIO;, &amp;audio)) {
-+	perror("VIDIOC_S_AUDIO");
-+	exit(EXIT_FAILURE);
- }
-       </programlisting>
-     </example>
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(ptr.p_char);
++		idx *= ctrl->elem_size;
++		len = strlen(ptr.p_char + idx);
+ 		if (len < ctrl->minimum)
+ 			return -ERANGE;
+ 		if ((len - ctrl->minimum) % ctrl->step)
 -- 
 1.8.5.2
 
