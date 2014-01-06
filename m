@@ -1,90 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:47658 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942AbaATIL3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 03:11:29 -0500
-Received: by mail-wi0-f175.google.com with SMTP id hr1so2859033wib.8
-        for <linux-media@vger.kernel.org>; Mon, 20 Jan 2014 00:11:28 -0800 (PST)
-MIME-Version: 1.0
-Date: Mon, 20 Jan 2014 09:11:28 +0100
-Message-ID: <CAENiEt-OA==jH_tA4HBP68RW3vGga99dpuFE+Zx7=QNYBqeC5A@mail.gmail.com>
-Subject: [PATCH] Added bayer 8-bit patterns to uvcvideo
-From: Edgar Thier <info@edgarthier.net>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:40854 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099AbaAFNAK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 08:00:10 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MYZ00BY4DG9FU40@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Jan 2014 08:00:09 -0500 (EST)
+Date: Mon, 06 Jan 2014 11:00:04 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] xc2028: disable device power-down because power state
+ handling is broken
+Message-id: <20140106110004.041e4fe6@samsung.com>
+In-reply-to: <1388410678-12641-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1388410678-12641-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bayer 8-bit GUIDs to uvcvideo and
-associate them with the corresponding V4L2 pixel formats.
+Em Mon, 30 Dec 2013 14:37:58 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Signed-off-by: Edgar Thier <info@edgarthier.net>
----
- drivers/media/usb/uvc/uvc_driver.c | 22 +++++++++++++++++++++-
- drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
- 2 files changed, 33 insertions(+), 1 deletion(-)
+> xc2028 power state handling is broken.
+> I2C read/write operations fail when the device is powered down at that moment,
+> which causes the get_rf_strength and get_rf_strength callbacks (and probably
+> others, too) to fail.
+> I don't know how to fix this properly, so disable the device power-down until
+> anyone comes up with a better solution.
+> 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/tuners/tuner-xc2028.c |    4 +++-
+>  1 Datei geändert, 3 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+> 
+> diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+> index 4be5cf8..cb3dc5e 100644
+> --- a/drivers/media/tuners/tuner-xc2028.c
+> +++ b/drivers/media/tuners/tuner-xc2028.c
+> @@ -1291,16 +1291,18 @@ static int xc2028_sleep(struct dvb_frontend *fe)
+>  		dump_stack();
+>  	}
+>  
+> +	/* FIXME: device power-up/-down handling is broken */
+> +/*
+>  	mutex_lock(&priv->lock);
+>  
+>  	if (priv->firm_version < 0x0202)
+>  		rc = send_seq(priv, {0x00, XREG_POWER_DOWN, 0x00, 0x00});
+>  	else
+>  		rc = send_seq(priv, {0x80, XREG_POWER_DOWN, 0x00, 0x00});
+> -
+>  	priv->state = XC2028_SLEEP;
+>  
+>  	mutex_unlock(&priv->lock);
+> +*/
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c
-b/drivers/media/usb/uvc/uvc_driver.c
-index c3bb250..84da426 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -108,11 +108,31 @@ static struct uvc_format_desc uvc_fmts[] = {
-         .fcc        = V4L2_PIX_FMT_Y16,
-     },
-     {
--        .name        = "RGB Bayer",
-+        .name        = "RGB Bayer (bggr)",
-         .guid        = UVC_GUID_FORMAT_BY8,
-         .fcc        = V4L2_PIX_FMT_SBGGR8,
-     },
-     {
-+        .name        = "RGB Bayer (bggr)",
-+        .guid        = UVC_GUID_FORMAT_BY8_BA81,
-+        .fcc        = V4L2_PIX_FMT_SBGGR8,
-+    },
-+    {
-+        .name        = "RGB Bayer (grbg)",
-+        .guid        = UVC_GUID_FORMAT_BY8_GRBG,
-+        .fcc        = V4L2_PIX_FMT_SGRBG8,
-+    },
-+    {
-+        .name        = "RGB Bayer (gbrg)",
-+        .guid        = UVC_GUID_FORMAT_BY8_GBRG,
-+        .fcc        = V4L2_PIX_FMT_SGBRG8,
-+    },
-+    {
-+        .name        = "RGB Bayer (rggb)",
-+        .guid        = UVC_GUID_FORMAT_BY8_RGGB,
-+        .fcc        = V4L2_PIX_FMT_SRGGB8,
-+    },
-+    {
-         .name        = "RGB565",
-         .guid        = UVC_GUID_FORMAT_RGBP,
-         .fcc        = V4L2_PIX_FMT_RGB565,
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 9e35982..57357d9 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -94,6 +94,18 @@
- #define UVC_GUID_FORMAT_BY8 \
-     { 'B',  'Y',  '8',  ' ', 0x00, 0x00, 0x10, 0x00, \
-      0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_BY8_BA81 \
-+    { 'B',  'A',  '8',  '1', 0x00, 0x00, 0x10, 0x00, \
-+     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_BY8_GRBG \
-+    { 'G',  'R',  'B',  'G', 0x00, 0x00, 0x10, 0x00, \
-+     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_BY8_GBRG \
-+    { 'G',  'B',  'R',  'G', 0x00, 0x00, 0x10, 0x00, \
-+     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_BY8_RGGB \
-+    { 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
-+     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
- #define UVC_GUID_FORMAT_RGBP \
-     { 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
-      0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
--- 
-1.8.5.3
+This patch is completely broken.
+
+First of all, there are both modprobe and config parameters that disables
+the poweroff mode.
+
+Second, it doesn't fix the bug, just hides it.
+
+Third, it keeps the xc3028 energized, with spends power and heats the
+device, with reduces its lifetime.
+
+I'm working on a proper fix for it.
+
+Cheers,
+Mauro
