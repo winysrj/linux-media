@@ -1,111 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3191 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753195AbaA0Ddu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jan 2014 22:33:50 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0R3XkfG068738
-	for <linux-media@vger.kernel.org>; Mon, 27 Jan 2014 04:33:48 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 039662A00A3
-	for <linux-media@vger.kernel.org>; Mon, 27 Jan 2014 04:33:41 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140127033341.039662A00A3@tschai.lan>
-Date: Mon, 27 Jan 2014 04:33:41 +0100 (CET)
+Received: from mail-ve0-f175.google.com ([209.85.128.175]:54003 "EHLO
+	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932361AbaAFXzX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 18:55:23 -0500
+Received: by mail-ve0-f175.google.com with SMTP id jx11so9531855veb.20
+        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 15:55:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CABMudhRhgwL01ey5Av6wxUkNjKNiuFVfcS4tPS0Oj6umALGjxA@mail.gmail.com>
+References: <CABMudhTYJnKx45EPt2T4F73woQO5mkDwpY4y8TjnaJY3SSBAWw@mail.gmail.com>
+	<CAOMZO5ABFuYidfFcqXK0ENj190dkU=GrE7X2Ss5WpRJ1B5-edQ@mail.gmail.com>
+	<CABMudhRhgwL01ey5Av6wxUkNjKNiuFVfcS4tPS0Oj6umALGjxA@mail.gmail.com>
+Date: Mon, 6 Jan 2014 21:55:22 -0200
+Message-ID: <CAOMZO5C=fS=z_2k7acKtXDZ8e2_e=bQxK8pmczJpj0ZEwMn5TA@mail.gmail.com>
+Subject: Re: How to enable "CONFIG_V4L2_MEM2MEM_DEV"
+From: Fabio Estevam <festevam@gmail.com>
+To: m silverstri <michael.j.silverstri@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, Jan 6, 2014 at 9:42 PM, m silverstri
+<michael.j.silverstri@gmail.com> wrote:
+> Thanks.  I try the latest (I clone linux from
+> https://github.com/torvalds/linux) and do 'make ARCH=arm
+> CROSS_COMPILE=/usr/bin/arm-linux-gnueabi- imx_v6_v7_defconfig' again,
+> I see
+>
+> " CONFIG_V4L2_MEM2MEM_DEV=y" in the generated .config.
+>
+> But when I try to add 'CONFIG_VIDEO_SAMSUNG_S5P_JPEG=y' to
+> imx_v6_v7_defconfig and re'make, I don't see
+> CONFIG_VIDEO_SAMSUNG_S5P_JPEG=y in the generated .config.
 
-Results of the daily build of media_tree:
+CONFIG_VIDEO_SAMSUNG_S5P_JPEG is to be used with Samsung SoC, not with
+Freescale i.mx family.
 
-date:		Mon Jan 27 04:00:35 CET 2014
-git branch:	test
-git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Fabio Estevam
