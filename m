@@ -1,98 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:27507 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782AbaABUtm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jan 2014 15:49:42 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MYS0044VKITF730@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 02 Jan 2014 15:49:41 -0500 (EST)
-Date: Thu, 02 Jan 2014 18:49:37 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL for v3.14] mem2mem patches
-Message-id: <20140102184937.0837e4a0@samsung.com>
-In-reply-to: <014501cf008e$364ee590$a2ecb0b0$%debski@samsung.com>
-References: <014501cf008e$364ee590$a2ecb0b0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4280 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755153AbaAFOjM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:39:12 -0500
+Message-ID: <52CAC006.7080907@xs4all.nl>
+Date: Mon, 06 Jan 2014 15:39:02 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Tom <Bassai_Dai@gmx.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: Add private controls to ctrl_handler
+References: <loom.20140106T152825-137@post.gmane.org>
+In-Reply-To: <loom.20140106T152825-137@post.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 24 Dec 2013 10:55:00 +0100
-Kamil Debski <k.debski@samsung.com> escreveu:
+On 01/06/2014 03:30 PM, Tom wrote:
+> Hello,
+> 
+> I want to add some driver specific ctrls to my ctrl-handler which are not
+> defined in the "/include/uapi/linux/v4l2-controls.h".
+> I read that I would need the "V4L2_CID_PRIVATE_BASE" to define the new IDs,
+> but I don't get how I can add them to my ctrl-handler so that they are
+> accessible by calling VIDIOC_S_CTRL. 
 
-> The following changes since commit 7d459937dc09bb8e448d9985ec4623779427d8a5:
-> 
->   [media] Add driver for Samsung S5K5BAF camera sensor (2013-12-21 07:01:36
-> -0200)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/kdebski/media.git master
-> 
-> for you to fetch changes up to 0f6616ebb7a04219ad7aa84dd9ff9c7ac9323529:
-> 
->   s5p-mfc: Add controls to set vp8 enc profile (2013-12-24 10:37:27 +0100)
-> 
-> ----------------------------------------------------------------
-> Arun Kumar K (1):
->       s5p-mfc: Add QP setting support for vp8 encoder
-> 
-> Kiran AVND (1):
->       s5p-mfc: Add controls to set vp8 enc profile
-> 
-> Marek Szyprowski (1):
->       media: s5p_mfc: remove s5p_mfc_get_node_type() function
-> 
-> Shaik Ameer Basha (4):
->       exynos-scaler: Add new driver for Exynos5 SCALER
->       exynos-scaler: Add core functionality for the SCALER driver
->       exynos-scaler: Add m2m functionality for the SCALER driver
+Don't use V4L2_CID_PRIVATE_BASE, that doesn't work with the control framework
+(for good but somewhat obscure reasons).
 
->       exynos-scaler: Add DT bindings for SCALER driver
+Instead use (V4L2_CID_USER_BASE | 0x1000) as the base for your private controls.
+If you want to upstream the code, then you should define a range for the private
+controls of this driver in v4l2-controls.h. Search for e.g. V4L2_CID_USER_S2255_BASE
+in that header to see how it is done.
 
-This one is missing DT maintainer's ack.
+Regards,
+
+	Hans
 
 > 
->  Documentation/DocBook/media/v4l/controls.xml       |   41 +
->  .../devicetree/bindings/media/exynos5-scaler.txt   |   22 +
->  drivers/media/platform/Kconfig                     |    8 +
->  drivers/media/platform/Makefile                    |    1 +
->  drivers/media/platform/exynos-scaler/Makefile      |    3 +
->  drivers/media/platform/exynos-scaler/scaler-m2m.c  |  787 +++++++++++++
->  drivers/media/platform/exynos-scaler/scaler-regs.c |  336 ++++++
->  drivers/media/platform/exynos-scaler/scaler-regs.h |  331 ++++++
->  drivers/media/platform/exynos-scaler/scaler.c      | 1238
-> ++++++++++++++++++++
->  drivers/media/platform/exynos-scaler/scaler.h      |  375 ++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc.c           |   28 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   14 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   55 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   26 +-
->  drivers/media/v4l2-core/v4l2-ctrls.c               |    5 +
->  include/uapi/linux/v4l2-controls.h                 |    5 +
->  16 files changed, 3241 insertions(+), 34 deletions(-)
->  create mode 100644
-> Documentation/devicetree/bindings/media/exynos5-scaler.txt
->  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
->  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
->  create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.c
->  create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.h
->  create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
->  create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
+> Can someone give me a hint how I can add my own controls to my ctrl-handler?
 > 
+> what I tried:
+> 
+> #define V4L2_SENS_TEST1			(V4L2_CID_PRIVATE_BASE + 1)
+> #define V4L2_SENS_TEST2			(V4L2_CID_PRIVATE_BASE + 2)
+> #define V4L2_SENS_TEST3			(V4L2_CID_PRIVATE_BASE + 3)
+> 
+> static int ov3640_probe(struct i2c_client *client,
+> 			const struct i2c_device_id *id)
+> {
+> 				.
+> 				.
+> 				.
+> //I can add the standard controls as usual...
+> 
+> 	v4l2_ctrl_handler_init(&ov3640->ctrl_handler, 19);
+> 
+> 	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
+> 			V4L2_CID_BRIGHTNESS, -48, 48, 1, 0);
+> 	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
+> 			V4L2_CID_CONTRAST, -12, 12, 1, 0);
+> 	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
+> 			V4L2_CID_SATURATION, -32, 32, 1, 0);
+> 				.
+> 				.
+> 				.
+> //so far so good...
+> 
+> 	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
+> 			V4L2_SENS_TEST1, 0, 1, 1, 0);
+> 	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
+> 			V4L2_SENS_TEST2, 0, 1, 1, 0);
+> 	v4l2_ctrl_new_std(&ov3640->ctrl_handler, &ov3640_ctrl_ops,
+> 			V4L2_SENS_TEST3, 0, 1, 1, 0);
+> 
+> //but I cannot add these three controls like this. 
+> 
+> 	if (ov3640->ctrl_handler.error) {
+> 		dev_err(&client->dev, "control initialization error %d\n",
+> 			ov3640->ctrl_handler.error);
+> 		ret = ov3640->ctrl_handler.error;
+> 		goto done;
+> 	}
+> 
+> //the ctrl-handler will give me an ERROR back when adding these 3 controls
+> 
+> }
+> 
+> static int ov3640_ctrl(struct v4l2_ctrl *ctrl, int command)
+> {
+> 	struct ov3640 *ov3640 = container_of(ctrl->handler, struct ov3640,
+> ctrl_handler);
+> 	int ret = 0;
+> 
+> 	switch (ctrl->id) {
+> 	case V4L2_CID_BRIGHTNESS:
+> 		ret = ov3640_set_brightness(ov3640, ctrl->val, command);
+> 		break;
+> 	case V4L2_CID_CONTRAST:
+> 		ret = ov3640_set_contrast(ov3640, ctrl->val, command);
+> 		break;
+> 	case V4L2_CID_SATURATION:
+> 		ret = ov3640_set_saturation(ov3640, ctrl->val, command);
+> 		break;
+> 	case V4L2_SENS_TEST1://!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+> 	case V4L2_SENS_TEST2://!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+> 	case V4L2_SENS_TEST3://!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+> 		ret = ov3640_test(ov3640, ctrl->val, ctrl->id, command);
+> 		break;
+> 	}
+> 
+> 	return ret;
+> }
+> 
+> static int ov3640_set_ctrl(struct v4l2_ctrl *ctrl)
+> {
+> 	int ret;
+> 	int command = SET_DATA;
+> 
+> 	ret = ov3640_ctrl(ctrl, command);
+> 	return ret;
+> }
+> 
+> static int ov3640_get_ctrl(struct v4l2_ctrl *ctrl)
+> {
+> 	int ret;
+> 	int command = GET_DATA;
+> 
+> 	ret = ov3640_ctrl(ctrl, command);
+> 	return ret;
+> }
+> 
+> static struct v4l2_ctrl_ops ov3640_ctrl_ops = {
+> 	.s_ctrl = ov3640_set_ctrl,
+> 	.g_volatile_ctrl = ov3640_get_ctrl,
+> };
+> 
+> Best Regards, Tom
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-
--- 
-
-Cheers,
-Mauro
