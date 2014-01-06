@@ -1,90 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:63348 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753841AbaAVBsm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jan 2014 20:48:42 -0500
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1401162337210.11956@axis700.grange>
-References: <CAK5ve-LbvQACmaZC4gFBf=Ca_nwp7KvvT+dLBhbipxRdLFYonw@mail.gmail.com>
- <Pine.LNX.4.64.1401162337210.11956@axis700.grange>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Tue, 21 Jan 2014 17:48:19 -0800
-Message-ID: <CAK5ve-KXEFr+bTmC=4Pubo7++R=uSsqRFLgAOvka0L5ikksujw@mail.gmail.com>
-Subject: Re: A question about DT support for soc_camera
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-tegra <linux-tegra@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3952 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754767AbaAFOVn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 22/27] v4l2-ctrls: add ctrl64 event.
+Date: Mon,  6 Jan 2014 15:21:21 +0100
+Message-Id: <1389018086-15903-23-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 16, 2014 at 3:04 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Bryan,
->
-> On Wed, 15 Jan 2014, Bryan Wu wrote:
->
->> Hi Guennadi,
->>
->> I'm working on upstream our Tegra soc_camera host driver. But found
->> the soc_camera framework is not fully supporting Device Tree probing,
->> am I wrong about that?
->
-> Mostly correct, yes, currently soc-camera doesn't support device-tree
-> probing.
->
->> While in upstream Tegra kernel, we only support
->> DT probing and there is no board files.
->>
->> Current soc_camera framework needs to put soc_camera_link information
->> in a board file and build up soc-camera-pdrv platform_device, then
->> finally register this soc-camera-pdrv platform_device.
->>
->> For the host driver, we can do DT probing but for i2c soc_camera
->> sensor driver I failed to find any DT probing in upstream kernel. So
->> how to do that without an board file but use DT for this whole thing?
->>
->> Can we use DT like this?
->> DTB file will pass those I2C, clock, regulator, GPIO information to
->> host driver. During host driver DT probing, we dynamically create
->> soc-camera-pdrv platform_device and soc_camera_link then register
->> them. Then the rest of the thing should be the same as None-DT
->> probing.
->
-> I've worked on soc-camera DT in the past, this might be the last published
-> version
->
-> http://marc.info/?l=linux-sh&m=134875489304837&w=1
->
-> As you see, it's quite old. Since then a few things happened. Device tree
-> support has been added to V4L2 (see
-> Documentation/devicetree/bindings/media/video-interfaces.txt and other
-> files in that directory for examples), it is based on asynchronous
-> probing, which is also supported by the soc-camera core and some its
-> host drivers (e.g.
->
-> commit 4dbfd040757b8bf22f4ac17e80b39c068061a16c
-> Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Date:   Tue Jul 30 02:59:49 2013 -0300
->
->     [media] V4L2: mx3_camera: add support for asynchronous subdevice registration
->
-> ). So, what you should do, is add asynchronous probing support to your
-> driver, add DT support to the soc-camera core, add it to your drivers.
-> Also see drivers/media/v4l2-core/v4l2-of.c for helper functions, you
-> should be using.
->
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Great, Guennadi. I will start to help to add DT for soc-camera.
+The current control event is not able to handle the 64-bit ranges or the
+config_store. Add a new extended event that is able to handle this.
 
-But one more question is how to add DT support for soc-camera sensor
-driver? For sensor driver, we need pass those regulator/gpio/clock
-information for power on/off operations. If we add I2C device node in
-DTS file to pass those settings to driver, driver will be
-automatically loaded and start to probing. But I think loading
-soc_camera sensor driver should be done by soc_camera core code during
-host driver registering. Any suggestions to solve this problem?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 61 ++++++++++++++++++++++++++++++------
+ include/uapi/linux/videodev2.h       | 19 ++++++++++-
+ 2 files changed, 69 insertions(+), 11 deletions(-)
 
-Thanks,
--Bryan
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 8d6711e..0014324 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1091,8 +1091,10 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
+ 	ev->u.ctrl.flags = ctrl->flags;
+ 	if (ctrl->is_ptr)
+ 		ev->u.ctrl.value64 = 0;
+-	else
++	else if (ctrl->type == V4L2_CTRL_TYPE_INTEGER64)
+ 		ev->u.ctrl.value64 = *ctrl->cur.p_s64;
++	else
++		ev->u.ctrl.value = *ctrl->cur.p_s32;
+ 	ev->u.ctrl.minimum = ctrl->minimum;
+ 	ev->u.ctrl.maximum = ctrl->maximum;
+ 	if (ctrl->type == V4L2_CTRL_TYPE_MENU
+@@ -1103,19 +1105,48 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
+ 	ev->u.ctrl.default_value = ctrl->default_value;
+ }
+ 
++static void fill_event64(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 changes)
++{
++	memset(ev->reserved, 0, sizeof(ev->reserved));
++	ev->type = V4L2_EVENT_CTRL64;
++	ev->id = ctrl->id;
++	ev->u.ctrl64.changes = changes;
++	ev->u.ctrl64.type = ctrl->type;
++	ev->u.ctrl64.config_store = ctrl->cur_store;
++	ev->u.ctrl64.flags = ctrl->flags;
++	if (ctrl->is_ptr)
++		ev->u.ctrl64.value64 = 0;
++	else if (ctrl->type == V4L2_CTRL_TYPE_INTEGER64)
++		ev->u.ctrl64.value64 = *ctrl->cur.p_s64;
++	else
++		ev->u.ctrl64.value = *ctrl->cur.p_s32;
++	ev->u.ctrl64.minimum = ctrl->minimum;
++	ev->u.ctrl64.maximum = ctrl->maximum;
++	if (ctrl->type == V4L2_CTRL_TYPE_MENU
++	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
++		ev->u.ctrl64.step = 1;
++	else
++		ev->u.ctrl64.step = ctrl->step;
++	ev->u.ctrl64.default_value = ctrl->default_value;
++}
++
+ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+ {
+ 	struct v4l2_event ev;
++	struct v4l2_event ev64;
+ 	struct v4l2_subscribed_event *sev;
+ 
+ 	if (list_empty(&ctrl->ev_subs))
+ 		return;
+ 	fill_event(&ev, ctrl, changes);
++	fill_event64(&ev64, ctrl, changes);
+ 
+ 	list_for_each_entry(sev, &ctrl->ev_subs, node)
+ 		if (sev->fh != fh ||
+-		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK))
++		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)) {
+ 			v4l2_event_queue_fh(sev->fh, &ev);
++			v4l2_event_queue_fh(sev->fh, &ev64);
++		}
+ }
+ 
+ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+@@ -3239,13 +3270,23 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 	ctrl->maximum = max;
+ 	ctrl->step = step;
+ 	ctrl->default_value = def;
+-	c.value = *ctrl->cur.p_s32;
+-	if (validate_new(ctrl, &c))
+-		c.value = def;
+-	if (c.value != *ctrl->cur.p_s32)
+-		ret = set_ctrl(NULL, ctrl, &c, V4L2_EVENT_CTRL_CH_RANGE);
+-	else
+-		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
++	if (ctrl->type == V4L2_CTRL_TYPE_INTEGER64) {
++		c.value64 = *ctrl->cur.p_s64;
++		if (validate_new(ctrl, &c))
++			c.value64 = def;
++		if (c.value64 != *ctrl->cur.p_s64)
++			ret = set_ctrl(NULL, ctrl, &c, V4L2_EVENT_CTRL_CH_RANGE);
++		else
++			send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
++	} else {
++		c.value = *ctrl->cur.p_s32;
++		if (validate_new(ctrl, &c))
++			c.value = def;
++		if (c.value != *ctrl->cur.p_s32)
++			ret = set_ctrl(NULL, ctrl, &c, V4L2_EVENT_CTRL_CH_RANGE);
++		else
++			send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
++	}
+ 	v4l2_ctrl_unlock(ctrl);
+ 	return ret;
+ }
+@@ -3324,7 +3365,7 @@ EXPORT_SYMBOL(v4l2_ctrl_log_status);
+ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+ 				const struct v4l2_event_subscription *sub)
+ {
+-	if (sub->type == V4L2_EVENT_CTRL)
++	if (sub->type == V4L2_EVENT_CTRL || sub->type == V4L2_EVENT_CTRL64)
+ 		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
+ 	return -EINVAL;
+ }
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 78aba44..afa335d 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1773,6 +1773,7 @@ struct v4l2_streamparm {
+ #define V4L2_EVENT_EOS				2
+ #define V4L2_EVENT_CTRL				3
+ #define V4L2_EVENT_FRAME_SYNC			4
++#define V4L2_EVENT_CTRL64			5
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
+ 
+ /* Payload for V4L2_EVENT_VSYNC */
+@@ -1781,7 +1782,7 @@ struct v4l2_event_vsync {
+ 	__u8 field;
+ } __attribute__ ((packed));
+ 
+-/* Payload for V4L2_EVENT_CTRL */
++/* Payload for V4L2_EVENT_CTRL/V4L2_EVENT_CTRL64 */
+ #define V4L2_EVENT_CTRL_CH_VALUE		(1 << 0)
+ #define V4L2_EVENT_CTRL_CH_FLAGS		(1 << 1)
+ #define V4L2_EVENT_CTRL_CH_RANGE		(1 << 2)
+@@ -1800,6 +1801,21 @@ struct v4l2_event_ctrl {
+ 	__s32 default_value;
+ };
+ 
++struct v4l2_event_ctrl64 {
++	__u32 changes;
++	__u32 type;
++	union {
++		__s32 value;
++		__s64 value64;
++	};
++	__u32 flags;
++	__u32 config_store;
++	__s64 minimum;
++	__s64 maximum;
++	__u64 step;
++	__s64 default_value;
++};
++
+ struct v4l2_event_frame_sync {
+ 	__u32 frame_sequence;
+ };
+@@ -1809,6 +1825,7 @@ struct v4l2_event {
+ 	union {
+ 		struct v4l2_event_vsync		vsync;
+ 		struct v4l2_event_ctrl		ctrl;
++		struct v4l2_event_ctrl64	ctrl64;
+ 		struct v4l2_event_frame_sync	frame_sync;
+ 		__u8				data[64];
+ 	} u;
+-- 
+1.8.5.2
+
