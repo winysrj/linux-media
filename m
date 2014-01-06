@@ -1,184 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43699 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753656AbaADN7T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:19 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v4 08/22] [media] em28xx: convert i2c wait completion logic to use jiffies
-Date: Sat,  4 Jan 2014 08:55:37 -0200
-Message-Id: <1388832951-11195-9-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3851 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754773AbaAFOVn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 24/27] v4l2-controls.h: add new property class and new properties.
+Date: Mon,  6 Jan 2014 15:21:23 +0100
+Message-Id: <1389018086-15903-25-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The I2C wait completion/timeout logic currently assumes that
-msleep(5) will wait exaclty 5 ms. This is not true at all,
-as it depends on CONFIG_HZ.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Convert it to use jiffies, in order to not wait for more time
-than needed.
+Add a class for properties (for demonstration purposes only, will need to be
+renamed) and capture/output crop/compose and motion detection matrix
+properties.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c | 65 ++++++++++++++++++-----------------
- 1 file changed, 34 insertions(+), 31 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c |  3 +++
+ include/uapi/linux/v4l2-controls.h   | 16 ++++++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 9e6a11d01858..9fa7ed51e5b1 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -26,6 +26,7 @@
- #include <linux/kernel.h>
- #include <linux/usb.h>
- #include <linux/i2c.h>
-+#include <linux/jiffies.h>
- 
- #include "em28xx.h"
- #include "tuner-xc2028.h"
-@@ -48,8 +49,8 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
-  */
- static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- {
-+	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
- 	int ret;
--	int write_timeout;
- 	u8 b2[6];
- 
- 	if (len < 1 || len > 4)
-@@ -74,15 +75,15 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		return (ret < 0) ? ret : -EIO;
- 	}
- 	/* wait for completion */
--	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
--	     write_timeout -= 5) {
-+	while (time_is_after_jiffies(timeout)) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
--		if (ret == 0x80 + len - 1) {
-+		if (ret == 0x80 + len - 1)
- 			return len;
--		} else if (ret == 0x94 + len - 1) {
-+		if (ret == 0x94 + len - 1) {
- 			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
- 			return -ENODEV;
--		} else if (ret < 0) {
-+		}
-+		if (ret < 0) {
- 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
- 				    ret);
- 			return ret;
-@@ -99,9 +100,9 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
-  */
- static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- {
-+	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
- 	u8 buf2[4];
- 	int ret;
--	int read_timeout;
- 	int i;
- 
- 	if (len < 1 || len > 4)
-@@ -118,15 +119,15 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 	}
- 
- 	/* wait for completion */
--	for (read_timeout = EM2800_I2C_XFER_TIMEOUT; read_timeout > 0;
--	     read_timeout -= 5) {
-+	while (time_is_after_jiffies(timeout)) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
--		if (ret == 0x84 + len - 1) {
-+		if (ret == 0x84 + len - 1)
- 			break;
--		} else if (ret == 0x94 + len - 1) {
-+		if (ret == 0x94 + len - 1) {
- 			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
- 			return -ENODEV;
--		} else if (ret < 0) {
-+		}
-+		if (ret < 0) {
- 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
- 				    ret);
- 			return ret;
-@@ -170,7 +171,8 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
- static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 				 u16 len, int stop)
- {
--	int write_timeout, ret;
-+	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
-+	int ret;
- 
- 	if (len < 1 || len > 64)
- 		return -EOPNOTSUPP;
-@@ -193,17 +195,18 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		}
- 	}
- 
--	/* Check success of the i2c operation */
--	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
--	     write_timeout -= 5) {
-+	/* wait for completion */
-+	while (time_is_after_jiffies(timeout)) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
--		if (ret == 0) { /* success */
-+		if (ret == 0) /* success */
- 			return len;
--		} else if (ret == 0x10) {
--			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x", addr);
-+		if (ret == 0x10) {
-+			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
-+				    addr);
- 			return -ENODEV;
--		} else if (ret < 0) {
--			em28xx_warn("failed to read i2c transfer status from bridge (error=%i)\n",
-+		}
-+		if (ret < 0) {
-+			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
- 				    ret);
- 			return ret;
- 		}
-@@ -214,6 +217,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		 * (even with high payload) ...
- 		 */
- 	}
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 0014324..2191451 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -852,6 +852,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
+ 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+ 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
 +
- 	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
- 	return -EIO;
- }
-@@ -251,21 +255,20 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
++	case V4L2_CID_PROPS_CLASS:		return "Properties";
+ 	default:
+ 		return NULL;
+ 	}
+@@ -987,6 +989,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
+ 	case V4L2_CID_IMAGE_PROC_CLASS:
+ 	case V4L2_CID_DV_CLASS:
+ 	case V4L2_CID_FM_RX_CLASS:
++	case V4L2_CID_PROPS_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 1666aab..6c3616e 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -60,6 +60,7 @@
+ #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
+ #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
+ #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
++#define V4L2_CTRL_CLASS_PROPS		0x00a20000	/* Properties */
  
- 	/* Check success of the i2c operation */
- 	ret = dev->em28xx_read_reg(dev, 0x05);
-+	if (ret == 0) /* success */
-+		return len;
- 	if (ret < 0) {
--		em28xx_warn("failed to read i2c transfer status from bridge (error=%i)\n",
-+		em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
- 			    ret);
- 		return ret;
- 	}
--	if (ret > 0) {
--		if (ret == 0x10) {
--			em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
--			return -ENODEV;
--		} else {
--			em28xx_warn("unknown i2c error (status=%i)\n", ret);
--			return -EIO;
--		}
-+	if (ret == 0x10) {
-+		em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
-+		return -ENODEV;
- 	}
--	return len;
+ /* User-class control IDs */
+ 
+@@ -886,4 +887,19 @@ enum v4l2_deemphasis {
+ 
+ #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
+ 
 +
-+	em28xx_warn("unknown i2c error (status=%i)\n", ret);
-+	return -EIO;
- }
- 
- /*
++/* Properties */
++
++#define V4L2_CID_PROPS_CLASS_BASE		(V4L2_CTRL_CLASS_PROPS | 0x900)
++#define V4L2_CID_PROPS_CLASS			(V4L2_CTRL_CLASS_PROPS | 1)
++
++#define V4L2_CID_CAPTURE_CROP			(V4L2_CID_PROPS_CLASS_BASE + 0)
++#define V4L2_CID_CAPTURE_COMPOSE		(V4L2_CID_PROPS_CLASS_BASE + 1)
++#define V4L2_CID_OUTPUT_CROP			(V4L2_CID_PROPS_CLASS_BASE + 2)
++#define V4L2_CID_OUTPUT_COMPOSE			(V4L2_CID_PROPS_CLASS_BASE + 3)
++
++/* TODO: use a Motion Detection property class */
++#define V4L2_CID_MD_REGION			(V4L2_CID_PROPS_CLASS_BASE + 4)
++#define V4L2_CID_MD_THRESHOLD			(V4L2_CID_PROPS_CLASS_BASE + 5)
++
+ #endif
 -- 
-1.8.3.1
+1.8.5.2
 
