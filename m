@@ -1,95 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49858 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753668AbaAaDhG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jan 2014 22:37:06 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4758 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754798AbaAFOVn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/2] DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
-Date: Fri, 31 Jan 2014 05:36:49 +0200
-Message-Id: <1391139409-11737-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1391139409-11737-1-git-send-email-crope@iki.fi>
-References: <1391139409-11737-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 26/27] v4l2-common.h: add new target
+Date: Mon,  6 Jan 2014 15:21:25 +0100
+Message-Id: <1389018086-15903-27-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document V4L2_SDR_FMT_CU16LE format.
-It is complex unsigned 16-bit little endian IQ sample. Used by
-software defined radio devices.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+This target can be used to set the frame size for devices that do not
+support S_STD or S_DV_TIMINGS.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        | 46 ++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
- 2 files changed, 47 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+ include/uapi/linux/v4l2-common.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-new file mode 100644
-index 0000000..26288ff
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-@@ -0,0 +1,46 @@
-+<refentry id="V4L2-SDR-FMT-CU16LE">
-+  <refmeta>
-+    <refentrytitle>V4L2_SDR_FMT_CU16LE ('CU16')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+    <refnamediv>
-+      <refname>
-+        <constant>V4L2_SDR_FMT_CU16LE</constant>
-+      </refname>
-+      <refpurpose>Complex unsigned 16-bit little endian IQ sample</refpurpose>
-+    </refnamediv>
-+    <refsect1>
-+      <title>Description</title>
-+      <para>
-+This format contains sequence of complex number samples. Each complex number
-+consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
-+represented as a 16 bit unsigned little endian number. I value comes first
-+and Q value after that.
-+      </para>
-+    <example>
-+      <title><constant>V4L2_SDR_FMT_CU16LE</constant> 1 sample</title>
-+      <formalpara>
-+        <title>Byte Order.</title>
-+        <para>Each cell is one byte.
-+          <informaltable frame="none">
-+            <tgroup cols="3" align="center">
-+              <colspec align="left" colwidth="2*" />
-+              <tbody valign="top">
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;0:</entry>
-+                  <entry>I'<subscript>0[7:0]</subscript></entry>
-+                  <entry>I'<subscript>0[15:8]</subscript></entry>
-+                </row>
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;2:</entry>
-+                  <entry>Q'<subscript>0[7:0]</subscript></entry>
-+                  <entry>Q'<subscript>0[15:8]</subscript></entry>
-+                </row>
-+              </tbody>
-+            </tgroup>
-+          </informaltable>
-+        </para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 40adcb8..f535d9b 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -818,6 +818,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
- interface only.</para>
+diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
+index 4f0667e..88c9f89 100644
+--- a/include/uapi/linux/v4l2-common.h
++++ b/include/uapi/linux/v4l2-common.h
+@@ -50,6 +50,8 @@
+ /* Current composing area plus all padding pixels */
+ #define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
  
-     &sub-sdr-cu08;
-+    &sub-sdr-cu16le;
- 
-   </section>
- 
++#define V4L2_SEL_TGT_FRAME_SIZE		0x0200
++
+ /* Backward compatibility target definitions --- to be removed. */
+ #define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
+ #define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
 -- 
-1.8.5.3
+1.8.5.2
 
