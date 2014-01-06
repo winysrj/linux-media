@@ -1,61 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:52672 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbaALQmT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jan 2014 11:42:19 -0500
-Received: by mail-ea0-f174.google.com with SMTP id b10so2812312eae.5
-        for <linux-media@vger.kernel.org>; Sun, 12 Jan 2014 08:42:18 -0800 (PST)
-Message-ID: <52D2C630.60906@googlemail.com>
-Date: Sun, 12 Jan 2014 17:43:28 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Chris Lee <updatelee@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Kworld 330u broken
-References: <CAA9z4LYNHuORA+QnO_3NBj4mwBxSMFY8pXoF2y-iYjJD+Xqteg@mail.gmail.com>
-In-Reply-To: <CAA9z4LYNHuORA+QnO_3NBj4mwBxSMFY8pXoF2y-iYjJD+Xqteg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4507 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751508AbaAFOVf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:35 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s06ELVJ2029346
+	for <linux-media@vger.kernel.org>; Mon, 6 Jan 2014 15:21:33 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.192.168.1.1 (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5BF3F2A009A
+	for <linux-media@vger.kernel.org>; Mon,  6 Jan 2014 15:21:27 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv1 PATCH 00/27] Add property & configuration store support
+Date: Mon,  6 Jan 2014 15:20:59 +0100
+Message-Id: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10.01.2014 05:08, Chris Lee wrote:
-> Im not sure exactly when it broke but alot of changes have happened in
-> em28xx lately and they've broken my Kworld 330u. The issue is that
->
-> ctl->demod = XC3028_FE_CHINA;
-> ctl->fname = XC2028_DEFAULT_FIRMWARE;
-> cfg.ctrl  = &ctl;
->
-> are no longer being set, this causes xc2028_attach
->
-> if (cfg->ctrl)
-> xc2028_set_config(fe, cfg->ctrl);
->
-> to never get called. Therefore never load the firmware. Ive attached
-> my logs to show you what I mean.
->
-> I quickly hacked up a patch, my tree is quite different from V4L's now
-> so the line numbers may not lineup anymore, and Im sure you guys wont
-> like it anyhow lol
->
-> Chris Lee
+This patch series adds support for properties, matrices and configuration
+stores to the control framework.
 
-Hi Chris,
+See this RFCv2 for a more detailed discussion:
 
-thank you for testing and the patch !
-The suggested changes in em28xx_attach_xc3028() look good, but instead 
-of introducing a second copy of em28xx_setup_xc3028() in em28xx-dvb,
-we should just move this function from the v4l extension back to the core.
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/71822
 
-Mauro, I can create a patch, but I assume there is already enough 
-pending em28xx stuff that requires rebasing, so I assume it's easier for 
-you to do it yourself.
-Let me know if I can assist you.
+Changes since that RFCv2 are:
+
+- I dropped the 'property' bit in the control ID, instead a new flag is
+  added: V4L2_CTRL_FLAG_PROPERTY.
+- A V4L2_CTRL_FLAG_IS_PTR flag is added to simplify applications: if set, then
+  applications need to use the 'p' field instead of 'val' or 'val64'. This can
+  be deduced from various other fields as well, but that leads to ugly code.
+  This flag is cheap to set and very helpful in applications.
+- Matrix types have been dropped. If cols or rows are > 1, then you have a
+  matrix, so there is no need for specific matrix types.
+- As a result it is no longer possible to set just a sub-rectangle of a
+  matrix. It is however possible to just set the first X elements of
+  a matrix/array. It became too complex to deal with the sub-rectangle,
+  both in the framework, for drivers and for applications, and there are
+  not enough benefits to warrant that effort.
+
+Other than those changes this patch series implements all the ideas described
+in RFCv2.
+
+The first 21 patches are pretty definitive and the only thing missing are
+the DocBook patches and a v4l2-controls.txt patch.
+
+Before I write those I would like to get feedback for this API enhancement.
+The actual API changes are surprisingly small, and most of the work done in
+the patches has more to do with data structure changes needed to simplify
+handling the more complex control types than with actual new code.
+
+Patch 22 adds a new event that can deal with the new 64-bit ranges and that
+adds a config_store field. However, I am not yet convinced that this is
+really needed. Feedback would be welcome.
+
+Patches 23-27 add test code for vivi to test matrices and to test the new
+selection properties. This code needs more work, particularly with regards
+to naming.
+
+A working v4l2-ctl that can handle the new stuff is available here:
+
+http://git.linuxtv.org/hverkuil/v4l-utils.git/shortlog/refs/heads/propapi
 
 Regards,
-Frank
 
+	Hans
 
