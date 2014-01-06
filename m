@@ -1,142 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59221 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752495AbaAYRLH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:07 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1214 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754815AbaAFOVo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:44 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 38/52] msi3101: add u16 LE sample format
-Date: Sat, 25 Jan 2014 19:10:32 +0200
-Message-Id: <1390669846-8131-39-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 21/27] videodev2.h: rename reserved2 to config_store in v4l2_buffer.
+Date: Mon,  6 Jan 2014 15:21:20 +0100
+Message-Id: <1389018086-15903-22-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add unsigned 16-bit little endian sample format. That stream
-format is scaled from hardware 14-bit signed value. That is best
-known sampling resolution that MSi2500 ADC provides.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It is not guaranteed to be little endian, but host endian which is
-usually little endian - room for improvement.
+When queuing buffers allow for passing the configuration store ID that
+should be associated with this buffer. Use the 'reserved2' field for this.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/msi3101/sdr-msi3101.c | 79 +++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
+ drivers/media/usb/cpia2/cpia2_v4l.c           | 2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
+ drivers/media/v4l2-core/videobuf2-core.c      | 2 +-
+ include/uapi/linux/videodev2.h                | 4 ++--
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index c50402d..7a64f18 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -386,6 +386,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
- #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index d5d42b6..51b7759 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -952,7 +952,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->sequence = cam->buffers[buf->index].seq;
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+-	buf->reserved2 = 0;
++	buf->config_store = 0;
+ 	buf->reserved = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
  
- #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
-+#define V4L2_PIX_FMT_SDR_U16LE  v4l2_fourcc('D', 'U', '1', '6') /* unsigned 16-bit LE */
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
- #define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
- #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
-@@ -432,6 +433,9 @@ static struct msi3101_format formats[] = {
- 		.name		= "I/Q 8-bit unsigned",
- 		.pixelformat	= V4L2_PIX_FMT_SDR_U8,
- 	}, {
-+		.name		= "I/Q 16-bit unsigned little endian",
-+		.pixelformat	= V4L2_PIX_FMT_SDR_U16LE,
-+	}, {
- 		.name		= "I/Q 8-bit signed",
- 		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
- 	}, {
-@@ -857,6 +861,78 @@ static int msi3101_convert_stream_252(struct msi3101_state *s, u8 *dst,
- 	return dst_len;
- }
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 0d9b97e..a381c92 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -322,7 +322,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__u32			config_store;
+ 	__u32			reserved;
+ };
  
-+static int msi3101_convert_stream_252_u16(struct msi3101_state *s, u8 *dst,
-+		u8 *src, unsigned int src_len)
-+{
-+	int i, j, i_max, dst_len = 0;
-+	u32 sample_num[3];
-+	u16 *u16dst = (u16 *) dst;
-+	struct {signed int x:14;} se;
-+
-+	/* There could be 1-3 1024 bytes URB frames */
-+	i_max = src_len / 1024;
-+
-+	for (i = 0; i < i_max; i++) {
-+		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
-+		if (i == 0 && s->next_sample != sample_num[0]) {
-+			dev_dbg_ratelimited(&s->udev->dev,
-+					"%d samples lost, %d %08x:%08x\n",
-+					sample_num[0] - s->next_sample,
-+					src_len, s->next_sample, sample_num[0]);
-+		}
-+
-+		/*
-+		 * Dump all unknown 'garbage' data - maybe we will discover
-+		 * someday if there is something rational...
-+		 */
-+		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
-+
-+		/* 252 x I+Q samples */
-+		src += 16;
-+
-+		for (j = 0; j < 1008; j += 4) {
-+			unsigned int usample[2];
-+			int ssample[2];
-+
-+			usample[0] = src[j + 0] >> 0 | src[j + 1] << 8;
-+			usample[1] = src[j + 2] >> 0 | src[j + 3] << 8;
-+
-+			/* sign extension from 14-bit to signed int */
-+			ssample[0] = se.x = usample[0];
-+			ssample[1] = se.x = usample[1];
-+
-+			/* from signed to unsigned */
-+			usample[0] = ssample[0] + 8192;
-+			usample[1] = ssample[1] + 8192;
-+
-+			/* from 14-bit to 16-bit */
-+			*u16dst++ = (usample[0] << 2) | (usample[0] >> 12);
-+			*u16dst++ = (usample[1] << 2) | (usample[1] >> 12);
-+		}
-+
-+		src += 1008;
-+		dst += 1008;
-+		dst_len += 1008;
-+	}
-+
-+	/* calculate samping rate and output it in 10 seconds intervals */
-+	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
-+#define MSECS 10000UL
-+		unsigned int samples = sample_num[i_max - 1] - s->sample;
-+		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
-+		s->sample = sample_num[i_max - 1];
-+		dev_dbg(&s->udev->dev,
-+				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
-+				src_len, samples, MSECS,
-+				samples * 1000UL / MSECS);
-+	}
-+
-+	/* next sample (sample = sample + i * 252) */
-+	s->next_sample = sample_num[i_max - 1] + 252;
-+
-+	return dst_len;
-+}
-+
- /*
-  * This gets called for the Isochronous pipe (stream). This is done in interrupt
-  * time, so it has to be fast, not crash, and not stall. Neat.
-@@ -1224,6 +1300,9 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
- 	if (s->pixelformat == V4L2_PIX_FMT_SDR_U8) {
- 		s->convert_stream = msi3101_convert_stream_504_u8;
- 		reg7 = 0x000c9407;
-+	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_U16LE) {
-+		s->convert_stream = msi3101_convert_stream_252_u16;
-+		reg7 = 0x00009407;
- 	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
- 		s->convert_stream = msi3101_convert_stream_504;
- 		reg7 = 0x000c9407;
+@@ -487,7 +487,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->reserved2, &up->reserved2) ||
++		put_user(kp->config_store, &up->config_store) ||
+ 		put_user(kp->reserved, &up->reserved))
+ 			return -EFAULT;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 12df9fd..5f35e1d 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -435,7 +435,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 
+ 	/* Copy back data such as timestamp, flags, etc. */
+ 	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
+-	b->reserved2 = vb->v4l2_buf.reserved2;
++	b->config_store = vb->v4l2_buf.config_store;
+ 	b->reserved = vb->v4l2_buf.reserved;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 789f876..78aba44 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -640,7 +640,7 @@ struct v4l2_plane {
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+  *		buffers (when type != *_MPLANE); number of elements in the
+  *		planes array for multi-plane buffers
+- * @input:	input number from which the video data has has been captured
++ * @config_store: this buffer should use this configuration store
+  *
+  * Contains data exchanged by application and driver using one of the Streaming
+  * I/O methods.
+@@ -664,7 +664,7 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__u32			config_store;
+ 	__u32			reserved;
+ };
+ 
 -- 
-1.8.5.3
+1.8.5.2
 
