@@ -1,91 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3697 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753767AbaAFOVi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 03/27] v4l2-ctrls: use pr_info/cont instead of printk.
-Date: Mon,  6 Jan 2014 15:21:02 +0100
-Message-Id: <1389018086-15903-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:51343 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755426AbaAFQI2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 11:08:28 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 3/6] [media] em28xx: use a better value for I2C timeouts
+Date: Mon,  6 Jan 2014 11:04:57 -0200
+Message-Id: <1389013500-3110-4-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389013500-3110-1-git-send-email-m.chehab@samsung.com>
+References: <1389013500-3110-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+In the lack of a better spec, let's assume the timeout
+values compatible with SMBus spec:
+	http://smbus.org/specs/smbus110.pdf
 
-Codingstyle fix.
+at chapter 8 - Electrical Characteristics of SMBus devices
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Ok, SMBus is a subset of I2C, and not all devices will be
+following it, but the timeout value before this patch was not
+even following the spec.
+
+So, while we don't have a better guess for it, use 35 + 1
+ms as the timeout.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/media/usb/em28xx/em28xx.h | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index bb63d2a..10bfab6 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2031,45 +2031,45 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 	if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
- 		return;
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 7ae05ebc13c1..949372e11887 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -182,8 +182,21 @@
  
--	printk(KERN_INFO "%s%s%s: ", prefix, colon, ctrl->name);
-+	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
+ #define EM28XX_INTERLACED_DEFAULT 1
  
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		printk(KERN_CONT "%d", ctrl->cur.val);
-+		pr_cont("%d", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_BOOLEAN:
--		printk(KERN_CONT "%s", ctrl->cur.val ? "true" : "false");
-+		pr_cont("%s", ctrl->cur.val ? "true" : "false");
- 		break;
- 	case V4L2_CTRL_TYPE_MENU:
--		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
-+		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
-+		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_BITMASK:
--		printk(KERN_CONT "0x%08x", ctrl->cur.val);
-+		pr_cont("0x%08x", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		printk(KERN_CONT "%lld", ctrl->cur.val64);
-+		pr_cont("%lld", ctrl->cur.val64);
- 		break;
- 	case V4L2_CTRL_TYPE_STRING:
--		printk(KERN_CONT "%s", ctrl->cur.string);
-+		pr_cont("%s", ctrl->cur.string);
- 		break;
- 	default:
--		printk(KERN_CONT "unknown type %d", ctrl->type);
-+		pr_cont("unknown type %d", ctrl->type);
- 		break;
- 	}
- 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
- 			   V4L2_CTRL_FLAG_GRABBED |
- 			   V4L2_CTRL_FLAG_VOLATILE)) {
- 		if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
--			printk(KERN_CONT " inactive");
-+			pr_cont(" inactive");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_GRABBED)
--			printk(KERN_CONT " grabbed");
-+			pr_cont(" grabbed");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
--			printk(KERN_CONT " volatile");
-+			pr_cont(" volatile");
- 	}
--	printk(KERN_CONT "\n");
-+	pr_cont("\n");
- }
+-/* time in msecs to wait for i2c writes to finish */
+-#define EM2800_I2C_XFER_TIMEOUT		20
++/*
++ * Time in msecs to wait for i2c xfers to finish.
++ * 35ms is the maximum time a SMBUS device could wait when
++ * clock stretching is used. As the transfer itself will take
++ * some time to happen, set it to 35 ms.
++ *
++ * Ok, I2C doesn't specify any limit. So, eventually, we may need
++ * to increase this timeout.
++ *
++ * FIXME: this assumes that an I2C message is not longer than 1ms.
++ * This is actually dependent on the I2C bus speed, although most
++ * devices use a 100kHz clock. So, this assumtion is true most of
++ * the time.
++ */
++#define EM28XX_I2C_XFER_TIMEOUT		36
  
- /* Log all controls owned by the handler */
+ /* max. number of button state polling addresses */
+ #define EM28XX_NUM_BUTTON_ADDRESSES_MAX		5
 -- 
-1.8.5.2
+1.8.3.1
 
