@@ -1,119 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:21506 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751405AbaAEU5X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 15:57:23 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MYY002804VMTD10@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Sun, 05 Jan 2014 15:57:22 -0500 (EST)
-Date: Sun, 05 Jan 2014 18:57:17 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 16/22] [media] em28xx: use a better value for I2C
- timeouts
-Message-id: <20140105185717.7a6bd8e3@samsung.com>
-In-reply-to: <52C9C2C7.7020509@googlemail.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
- <1388832951-11195-17-git-send-email-m.chehab@samsung.com>
- <52C9C2C7.7020509@googlemail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2728 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754716AbaAFOVn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 15/27] v4l2-ctrls: prepare for matrix support: add cols & rows fields.
+Date: Mon,  6 Jan 2014 15:21:14 +0100
+Message-Id: <1389018086-15903-16-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 05 Jan 2014 21:38:31 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
-> > In the lack of a better spec, let's assume the timeout
-> > values compatible with SMBus spec:
-> > 	http://smbus.org/specs/smbus110.pdf
-> >
-> > at chapter 8 - Electrical Characteristics of SMBus devices
-> >
-> > Ok, SMBus is a subset of I2C, and not all devices will be
-> > following it, but the timeout value before this patch was not
-> > even following the spec.
-> >
-> > So, while we don't have a better guess for it, use 35 + 1
-> > ms as the timeout.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > ---
-> >  drivers/media/usb/em28xx/em28xx.h | 17 +++++++++++++++--
-> >  1 file changed, 15 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-> > index db47c2236ca4..9af19332b0f1 100644
-> > --- a/drivers/media/usb/em28xx/em28xx.h
-> > +++ b/drivers/media/usb/em28xx/em28xx.h
-> > @@ -183,8 +183,21 @@
-> >  
-> >  #define EM28XX_INTERLACED_DEFAULT 1
-> >  
-> > -/* time in msecs to wait for i2c xfers to finish */
-> > -#define EM2800_I2C_XFER_TIMEOUT		20
-> > +/*
-> > + * Time in msecs to wait for i2c xfers to finish.
-> > + * 35ms is the maximum time a SMBUS device could wait when
-> > + * clock stretching is used. As the transfer itself will take
-> > + * some time to happen, set it to 35 ms.
-> > + *
-> > + * Ok, I2C doesn't specify any limit. So, eventually, we may need
-> > + * to increase this timeout.
-> > + *
-> > + * FIXME: this assumes that an I2C message is not longer than 1ms.
-> > + * This is actually dependent on the I2C bus speed, although most
-> > + * devices use a 100kHz clock. So, this assumtion is true most of
-> > + * the time.
-> > + */
-> > +#define EM2800_I2C_XFER_TIMEOUT		36
-> >  
-> >  /* time in msecs to wait for AC97 xfers to finish */
-> >  #define EM2800_AC97_XFER_TIMEOUT	100
-> Mauro...
-> What exactly are you fixing with this patch ?
+Add cols and rows fields to the core control structures in preparation
+for matrix support.
 
-It fixes some of the timeouts I noticed here with HVR-950.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 24 ++++++++++++++++--------
+ include/media/v4l2-ctrls.h           |  6 ++++++
+ 2 files changed, 22 insertions(+), 8 deletions(-)
 
-> Which devices are not working with the current timeout value ?
-> 
-> You really shouldn't increase the timout to 172% for all devices based
-> on such a fragile pure theory.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index a1c5e3e..8ed8a70 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1729,7 +1729,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			u32 id, const char *name, const char *unit,
+ 			enum v4l2_ctrl_type type,
+ 			s64 min, s64 max, u64 step, s64 def,
+-			u32 elem_size,
++			u32 cols, u32 rows, u32 elem_size,
+ 			u32 nstores, u32 initial_store,
+ 			u32 flags, const char * const *qmenu,
+ 			const s64 *qmenu_int, void *priv)
+@@ -1743,6 +1743,11 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	if (hdl->error)
+ 		return NULL;
+ 
++	if (cols == 0)
++		cols = 1;
++	if (rows == 0)
++		rows = 1;
++
+ 	if (type == V4L2_CTRL_TYPE_INTEGER64)
+ 		elem_size = sizeof(s64);
+ 	else if (type == V4L2_CTRL_TYPE_STRING)
+@@ -1823,6 +1828,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->is_string = type == V4L2_CTRL_TYPE_STRING;
+ 	ctrl->is_ptr = type >= V4L2_PROP_TYPES || ctrl->is_string;
+ 	ctrl->is_int = !ctrl->is_ptr && type != V4L2_CTRL_TYPE_INTEGER64;
++	ctrl->cols = cols;
++	ctrl->rows = rows;
+ 	ctrl->elem_size = elem_size;
+ 	ctrl->nstores = nstores;
+ 	ctrl->cur_store = initial_store;
+@@ -1893,8 +1900,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 
+ 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
+ 			type, min, max,
+-			is_menu ? cfg->menu_skip_mask : step,
+-			def, cfg->elem_size,
++			is_menu ? cfg->menu_skip_mask : step, def,
++			cfg->cols, cfg->rows, cfg->elem_size,
+ 			cfg->nstores, cfg->initial_store,
+ 			flags, qmenu, qmenu_int, priv);
+ 	if (ctrl)
+@@ -1921,7 +1928,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     min, max, step, def, 0, 0, 0,
++			     min, max, step, def, 0, 0, 0, 0, 0,
+ 			     flags, NULL, NULL, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std);
+@@ -1955,7 +1962,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     0, max, mask, def, 0, 0, 0,
++			     0, max, mask, def, 0, 0, 0, 0, 0,
+ 			     flags, qmenu, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
+@@ -1988,7 +1995,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     0, max, mask, def, 0, 0, 0,
++			     0, max, mask, def, 0, 0, 0, 0, 0,
+ 			     flags, qmenu, NULL, NULL);
+ 
+ }
+@@ -2014,7 +2021,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     0, max, 0, def, 0, 0, 0,
++			     0, max, 0, def, 0, 0, 0, 0, 0,
+ 			     flags, NULL, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
+@@ -2358,7 +2365,8 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
+ 	qc->min.val = ctrl->minimum;
+ 	qc->max.val = ctrl->maximum;
+ 	qc->def.val = ctrl->default_value;
+-	qc->cols = qc->rows = 1;
++	qc->cols = ctrl->cols;
++	qc->rows = ctrl->rows;
+ 	if (ctrl->type == V4L2_CTRL_TYPE_MENU
+ 	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
+ 		qc->step.val = 1;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 9ce740d..ad62b71 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -132,6 +132,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   * @minimum:	The control's minimum value.
+   * @maximum:	The control's maximum value.
+   * @default_value: The control's default value.
++  * @rows:	The number of rows in the matrix.
++  * @cols:	The number of columns in the matrix.
+   * @step:	The control's step value for non-menu controls.
+   * @elem_size:	The size in bytes of the control.
+   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
+@@ -184,6 +186,7 @@ struct v4l2_ctrl {
+ 	const char *unit;
+ 	enum v4l2_ctrl_type type;
+ 	s64 minimum, maximum, default_value;
++	u32 rows, cols;
+ 	u32 elem_size;
+ 	union {
+ 		u64 step;
+@@ -271,6 +274,8 @@ struct v4l2_ctrl_handler {
+   * @max:	The control's maximum value.
+   * @step:	The control's step value for non-menu controls.
+   * @def: 	The control's default value.
++  * @rows:	The number of rows in the matrix.
++  * @cols:	The number of columns in the matrix.
+   * @elem_size:	The size in bytes of the control.
+   * @nstores:	The number of configuration stores.
+   * @initial_store: The configuration store used as the initial current value.
+@@ -299,6 +304,7 @@ struct v4l2_ctrl_config {
+ 	s64 max;
+ 	u64 step;
+ 	s64 def;
++	u32 rows, cols;
+ 	u32 elem_size;
+ 	u32 nstores, initial_store;
+ 	u32 flags;
+-- 
+1.8.5.2
 
-It is not fragile. It is the SMBUS spec. It should _at_least_ wait up to
-the timeout specified there.
-
-Btw, it is not increasing the timeout. It is actually reducing it.
-
-See, this is the code before the patch:
-
-for (read_timeout = EM2800_I2C_XFER_TIMEOUT; read_timeout > 0;
-	     read_timeout -= 5) {
-		ret = dev->em28xx_read_reg(dev, 0x05);
-		if (ret == 0x84 + len - 1) {
-			break;
-		} else if (ret == 0x94 + len - 1) {
-			return -ENODEV;
-		} else if (ret < 0) {
-			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-				    ret);
-			return ret;
-		}
-		msleep(5);
-	}
-
-msleep(5) actually sleeps up to 20 ms, as the minimal time is the
-schedule() time - being 10 ms a typical value (CONFIG_HZ equal to 100). 
-
-So, the current code has a timeout of up to 100 ms.
-
-This patch is actually reducing from 100 ms to 36 ms.
-
-Regards,
-Mauro
