@@ -1,80 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:35927 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395AbaAEUhZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 15:37:25 -0500
-Received: by mail-ee0-f44.google.com with SMTP id b57so7653053eek.3
-        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 12:37:24 -0800 (PST)
-Message-ID: <52C9C2C7.7020509@googlemail.com>
-Date: Sun, 05 Jan 2014 21:38:31 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from mail.aswsp.com ([193.34.35.150]:32494 "EHLO mail.aswsp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752600AbaAFKRc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jan 2014 05:17:32 -0500
+Message-ID: <52CA8137.8080307@parrot.com>
+Date: Mon, 6 Jan 2014 11:11:03 +0100
+From: Julien BERAUD <julien.beraud@parrot.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 16/22] [media] em28xx: use a better value for I2C timeouts
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-17-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-17-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+To: Enrico <ebutera@users.berlios.de>, <florian.vaussard@epfl.ch>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Subject: Re: omap3isp device tree support
+References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>	<52A1A76A.6070301@epfl.ch>	<CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>	<52B04D70.8060201@epfl.ch>	<CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com> <CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
+In-Reply-To: <CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
-> In the lack of a better spec, let's assume the timeout
-> values compatible with SMBus spec:
-> 	http://smbus.org/specs/smbus110.pdf
->
-> at chapter 8 - Electrical Characteristics of SMBus devices
->
-> Ok, SMBus is a subset of I2C, and not all devices will be
-> following it, but the timeout value before this patch was not
-> even following the spec.
->
-> So, while we don't have a better guess for it, use 35 + 1
-> ms as the timeout.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx.h | 17 +++++++++++++++--
->  1 file changed, 15 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-> index db47c2236ca4..9af19332b0f1 100644
-> --- a/drivers/media/usb/em28xx/em28xx.h
-> +++ b/drivers/media/usb/em28xx/em28xx.h
-> @@ -183,8 +183,21 @@
->  
->  #define EM28XX_INTERLACED_DEFAULT 1
->  
-> -/* time in msecs to wait for i2c xfers to finish */
-> -#define EM2800_I2C_XFER_TIMEOUT		20
-> +/*
-> + * Time in msecs to wait for i2c xfers to finish.
-> + * 35ms is the maximum time a SMBUS device could wait when
-> + * clock stretching is used. As the transfer itself will take
-> + * some time to happen, set it to 35 ms.
-> + *
-> + * Ok, I2C doesn't specify any limit. So, eventually, we may need
-> + * to increase this timeout.
-> + *
-> + * FIXME: this assumes that an I2C message is not longer than 1ms.
-> + * This is actually dependent on the I2C bus speed, although most
-> + * devices use a 100kHz clock. So, this assumtion is true most of
-> + * the time.
-> + */
-> +#define EM2800_I2C_XFER_TIMEOUT		36
->  
->  /* time in msecs to wait for AC97 xfers to finish */
->  #define EM2800_AC97_XFER_TIMEOUT	100
-Mauro...
-What exactly are you fixing with this patch ?
-Which devices are not working with the current timeout value ?
 
-You really shouldn't increase the timout to 172% for all devices based
-on such a fragile pure theory.
+Le 03/01/2014 12:30, Enrico a écrit :
+> On Wed, Dec 18, 2013 at 11:09 AM, Enrico <ebutera@users.berlios.de> wrote:
+>> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard
+>> <florian.vaussard@epfl.ch> wrote:
+>>> So I converted the iommu to DT (patches just sent), used pdata quirks
+>>> for the isp / mtv9032 data, added a few patches from other people
+>>> (mainly clk to fix a crash when deferring the omap3isp probe), and a few
+>>> small hacks. I get a 3.13-rc3 (+ board-removal part from Tony Lindgren)
+>>> to boot on DT with a working MT9V032 camera. The missing part is the DT
+>>> binding for the omap3isp, but I guess that we will have to wait a bit
+>>> more for this.
+>>>
+>>> If you want to test, I have a development tree here [1]. Any feedback is
+>>> welcome.
+>>>
+>>> Cheers,
+>>>
+>>> Florian
+>>>
+>>> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
+>> Thanks Florian,
+>>
+>> i will report what i get with my setup.
+> And here i am.
+>
+> I can confirm it works, video source is tvp5150 (with platform data in
+> pdata-quirks.c) in bt656 mode.
+>
+> Laurent, i used the two bt656 patches from your omap3isp/bt656 tree so
+> if you want to push it you can add a Tested-by me.
+>
+> There is only one problem, but it's unrelated to your DT work.
+>
+> It's an old problem (see for example [1] and [2]), seen by other
+> people too and it seems it's still there.
+> Basically if i capture with yavta while the system is idle then it
+> just waits without getting any frame.
+> If i add some cpu load (usually i do a "cat /dev/zero" in a ssh
+> terminal) it starts capturing correctly.
+>
+> The strange thing is that i do get isp interrupts in the idle case, so
+> i don't know why they don't "propagate" to yavta.
+>
+> Any hints on how to debug this?
+>
+> Enrico
+>
+> [1]: https://linuxtv.org/patch/7836/
+> [2]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg44923.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have had what looked a lot like these problems before and it was due 
+to a wrong configuration of the ccdc cropping regarding to the blanking. 
+Could you send me the configuration of the pipeline that you apply with 
+media-ctl, just in case this is the same problem.
 
-NACK.
-
-
-
+Regards,
+Julien BERAUD
