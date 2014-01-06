@@ -1,230 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3688 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753447AbaA0OfD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 09:35:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2914 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751460AbaAFDdM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 22:33:12 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s063X8nt011218
+	for <linux-media@vger.kernel.org>; Mon, 6 Jan 2014 04:33:10 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id E5B652A0098
+	for <linux-media@vger.kernel.org>; Mon,  6 Jan 2014 04:33:04 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 16/22] v4l2-ctrls: add matrix support.
-Date: Mon, 27 Jan 2014 15:34:18 +0100
-Message-Id: <1390833264-8503-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140106033304.E5B652A0098@tschai.lan>
+Date: Mon,  6 Jan 2014 04:33:04 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Finish the userspace-facing matrix support.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 108 ++++++++++++++++++++---------------
- 1 file changed, 63 insertions(+), 45 deletions(-)
+date:		Mon Jan  6 04:00:26 CET 2014
+git branch:	test
+git hash:	f7d40eea8e3e531f1517ab7eded552e8837ef5da
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index a61e602..b4a9ada 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1173,6 +1173,8 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 		ptr.p_s32[idx] = ctrl->default_value;
- 		break;
- 	default:
-+		idx *= ctrl->elem_size;
-+		memset(ptr.p + idx, 0, ctrl->elem_size);
- 		break;
- 	}
- }
-@@ -1290,7 +1292,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 	u32 len;
- 
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
-+		return copy_to_user(c->p, ptr.p, c->size);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
-@@ -1334,8 +1336,17 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 	u32 size;
- 
- 	ctrl->is_new = 1;
--	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_from_user(ptr.p, c->p, ctrl->elem_size);
-+	if (ctrl->is_ptr && !ctrl->is_string) {
-+		unsigned idx;
-+
-+		ret = copy_from_user(ptr.p, c->p, c->size);
-+		if (ret || !ctrl->is_matrix)
-+			return ret;
-+		for (idx = c->size / ctrl->elem_size;
-+		     idx < ctrl->rows * ctrl->cols; idx++)
-+			ctrl->type_ops->init(ctrl, idx, ptr);
-+		return 0;
-+	}
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER64:
-@@ -1378,21 +1389,7 @@ static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
- {
- 	if (ctrl == NULL)
- 		return;
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		strcpy(to.p_char, from.p_char);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		*to.p_s64 = *from.p_s64;
--		break;
--	default:
--		if (ctrl->is_ptr)
--			memcpy(to.p, from.p, ctrl->elem_size);
--		else
--			*to.p_s32 = *from.p_s32;
--		break;
--	}
-+	memcpy(to.p, from.p, ctrl->rows * ctrl->cols * ctrl->elem_size);
- }
- 
- /* Copy the new value to the current value. */
-@@ -1444,15 +1441,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- static int cluster_changed(struct v4l2_ctrl *master)
- {
- 	bool changed = false;
-+	unsigned idx;
- 	int i;
- 
- 	for (i = 0; i < master->ncontrols; i++) {
- 		struct v4l2_ctrl *ctrl = master->cluster[i];
-+		bool ctrl_changed = false;
- 
- 		if (ctrl == NULL)
- 			continue;
--		ctrl->has_changed = !ctrl->type_ops->equal(ctrl, 0,
-+		for (idx = 0; idx < ctrl->rows * ctrl->cols; idx++)
-+			ctrl_changed |= !ctrl->type_ops->equal(ctrl, idx,
- 						ctrl->stores[0], ctrl->new);
-+		ctrl->has_changed = ctrl_changed;
- 		changed |= ctrl->has_changed;
- 	}
- 	return changed;
-@@ -1499,26 +1500,32 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
- 			struct v4l2_ext_control *c)
- {
- 	union v4l2_ctrl_ptr ptr;
--
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_INTEGER:
--	case V4L2_CTRL_TYPE_INTEGER_MENU:
--	case V4L2_CTRL_TYPE_MENU:
--	case V4L2_CTRL_TYPE_BITMASK:
--	case V4L2_CTRL_TYPE_BOOLEAN:
--	case V4L2_CTRL_TYPE_BUTTON:
--	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		ptr.p_s32 = &c->value;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	case V4L2_CTRL_TYPE_INTEGER64:
--		ptr.p_s64 = &c->value64;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	default:
--		ptr.p = c->p;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
-+	unsigned idx;
-+	int err = 0;
-+
-+	if (!ctrl->is_ptr) {
-+		switch (ctrl->type) {
-+		case V4L2_CTRL_TYPE_INTEGER:
-+		case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		case V4L2_CTRL_TYPE_MENU:
-+		case V4L2_CTRL_TYPE_BITMASK:
-+		case V4L2_CTRL_TYPE_BOOLEAN:
-+		case V4L2_CTRL_TYPE_BUTTON:
-+		case V4L2_CTRL_TYPE_CTRL_CLASS:
-+			ptr.p_s32 = &c->value;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+
-+		case V4L2_CTRL_TYPE_INTEGER64:
-+			ptr.p_s64 = &c->value64;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+		default:
-+			break;
-+		}
- 	}
-+	ptr.p = c->p;
-+	for (idx = 0; !err && idx < c->size / ctrl->elem_size; idx++)
-+		err = ctrl->type_ops->validate(ctrl, idx, ptr);
-+	return err;
- }
- 
- static inline u32 node2id(struct list_head *node)
-@@ -1745,6 +1752,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	struct v4l2_ctrl *ctrl;
- 	bool is_matrix;
- 	unsigned sz_extra, tot_ctrl_size;
-+	unsigned idx;
- 	void *data;
- 	int err;
- 	int s;
-@@ -1854,7 +1862,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->stores[0].p = data;
- 	}
- 	for (s = -1; s <= 0; s++)
--		ctrl->type_ops->init(ctrl, 0, ctrl->stores[s]);
-+		for (idx = 0; idx < rows * cols; idx++)
-+			ctrl->type_ops->init(ctrl, idx, ctrl->stores[s]);
- 
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
-@@ -2548,12 +2557,18 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 			have_clusters = true;
- 		if (ctrl->cluster[0] != ctrl)
- 			ref = find_ref_lock(hdl, ctrl->cluster[0]->id);
--		if (ctrl->is_ptr && !ctrl->is_string && c->size < ctrl->elem_size) {
--			if (get) {
--				c->size = ctrl->elem_size;
--				return -ENOSPC;
-+		if (ctrl->is_ptr && !ctrl->is_string) {
-+			unsigned tot_size = ctrl->rows * ctrl->cols *
-+					    ctrl->elem_size;
-+
-+			if (c->size < tot_size) {
-+				if (get) {
-+					c->size = tot_size;
-+					return -ENOSPC;
-+				}
-+				return -EFAULT;
- 			}
--			return -EFAULT;
-+			c->size = tot_size;
- 		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
-@@ -3093,7 +3108,7 @@ EXPORT_SYMBOL(v4l2_ctrl_notify);
- int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 			s64 min, s64 max, u64 step, s64 def)
- {
--	int ret = check_range(ctrl->type, min, max, step, def);
-+	int ret;
- 	struct v4l2_ext_control c;
- 
- 	switch (ctrl->type) {
-@@ -3103,6 +3118,9 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
-+		if (ctrl->is_matrix)
-+			return -EINVAL;
-+		ret = check_range(ctrl->type, min, max, step, def);
- 		if (ret)
- 			return ret;
- 		break;
--- 
-1.8.5.2
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
