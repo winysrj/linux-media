@@ -1,44 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:53780 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932278AbaAaPvu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 10:51:50 -0500
-Message-ID: <52EBC693.6040709@linux.intel.com>
-Date: Fri, 31 Jan 2014 17:51:47 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] v4l: subdev: Allow 32-bit compat IOCTLs
-References: <1391182129-5234-1-git-send-email-sakari.ailus@linux.intel.com> <52EBC33C.6050902@xs4all.nl>
-In-Reply-To: <52EBC33C.6050902@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3848 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754769AbaAFOVn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 17/27] v4l2-ctrls: new strings and props must be accessed through the new field.
+Date: Mon,  6 Jan 2014 15:21:16 +0100
+Message-Id: <1389018086-15903-18-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the comments.
+Require that 'new' string and pointer values are accessed through the 'new'
+field instead of through the union. This reduces the union to just val and
+val64.
 
-Hans Verkuil wrote:
-> Hi Sakari,
->
-> Sorry, this isn't right.
->
-> It should go through v4l2_compat_ioctl32, otherwise ioctls for e.g. extended controls
-> won't be converted correctly.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/si4713/si4713.c                | 4 ++--
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 3 +--
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 2 +-
+ include/media/v4l2-ctrls.h                         | 2 --
+ 4 files changed, 4 insertions(+), 7 deletions(-)
 
-Now that you mention it, indeed the state back when I thought this was 
-already implemented, the IOCTLs were exactly the same. Now that struct 
-v4l2_subdev_edid is used on VIDIOC_SUBDEV_G_EDID and 
-VIDIOC_SUBDEV_S_EDID32, this no longer holds.
-
-The two IOCTLs are already handled by v4l2_compat_ioctl32 explicitly. 
-Perhaps that's what you remember? :-)
-
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index 07d5153..718e10d 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -1098,11 +1098,11 @@ static int si4713_s_ctrl(struct v4l2_ctrl *ctrl)
+ 
+ 		switch (ctrl->id) {
+ 		case V4L2_CID_RDS_TX_PS_NAME:
+-			ret = si4713_set_rds_ps_name(sdev, ctrl->string);
++			ret = si4713_set_rds_ps_name(sdev, ctrl->new.p_char);
+ 			break;
+ 
+ 		case V4L2_CID_RDS_TX_RADIO_TEXT:
+-			ret = si4713_set_rds_radio_text(sdev, ctrl->string);
++			ret = si4713_set_rds_radio_text(sdev, ctrl->new.p_char);
+ 			break;
+ 
+ 		case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index e7effc8..bb7f4ccb 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1842,8 +1842,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	props = &ctrl->stores[1 + nstores];
+ 
+ 	if (ctrl->is_ptr) {
+-		ctrl->p = ctrl->new.p = props;
+-		for (s = 0; s <= nstores; s++)
++		for (s = -1; s <= (int)nstores; s++)
+ 			ctrl->stores[s].p = props + (s + 1) * elem_size;
+ 	} else {
+ 		ctrl->new.p = &ctrl->val;
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index d582c5b..a4a6bee 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -1127,7 +1127,7 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		solo_motion_toggle(solo_enc, ctrl->val);
+ 		return 0;
+ 	case V4L2_CID_OSD_TEXT:
+-		strcpy(solo_enc->osd_text, ctrl->string);
++		strcpy(solo_enc->osd_text, ctrl->new.p_char);
+ 		err = solo_osd_print(solo_enc);
+ 		return err;
+ 	default:
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 3bfd9a6..b735b5c 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -201,8 +201,6 @@ struct v4l2_ctrl {
+ 	union {
+ 		s32 val;
+ 		s64 val64;
+-		char *string;
+-		void *p;
+ 	};
+ 	union v4l2_ctrl_ptr *stores;
+ 	union v4l2_ctrl_ptr new;
 -- 
-Kind regards,
+1.8.5.2
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
