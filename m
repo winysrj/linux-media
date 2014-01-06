@@ -1,103 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.aswsp.com ([193.34.35.150]:13914 "EHLO mail.aswsp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755546AbaAHL4s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jan 2014 06:56:48 -0500
-Message-ID: <52CD3CA6.3080704@parrot.com>
-Date: Wed, 8 Jan 2014 12:55:18 +0100
-From: Julien BERAUD <julien.beraud@parrot.com>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1054 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753670AbaAFOW7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:22:59 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s06EMu28038096
+	for <linux-media@vger.kernel.org>; Mon, 6 Jan 2014 15:22:58 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 699082A009A
+	for <linux-media@vger.kernel.org>; Mon,  6 Jan 2014 15:22:52 +0100 (CET)
+Message-ID: <52CABC3C.60802@xs4all.nl>
+Date: Mon, 06 Jan 2014 15:22:52 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Enrico <ebutera@users.berlios.de>
-CC: <florian.vaussard@epfl.ch>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: omap3isp device tree support
-References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>	<52A1A76A.6070301@epfl.ch>	<CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>	<52B04D70.8060201@epfl.ch>	<CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>	<CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>	<52CA8137.8080307@parrot.com> <CA+2YH7u+1zOdcUDVDf1+VG2rgDdSa7HM-mxsxkzTj_iE3RtvMg@mail.gmail.com>
-In-Reply-To: <CA+2YH7u+1zOdcUDVDf1+VG2rgDdSa7HM-mxsxkzTj_iE3RtvMg@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Subject: Re: [RFCv1 PATCH 00/27] Add property & configuration store support
+References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Oops, forgot to mention that the git tree containing these patches can be found
+here:
 
-Le 07/01/2014 11:12, Enrico a écrit :
-> On Mon, Jan 6, 2014 at 11:11 AM, Julien BERAUD <julien.beraud@parrot.com> wrote:
->> Le 03/01/2014 12:30, Enrico a écrit :
->>> On Wed, Dec 18, 2013 at 11:09 AM, Enrico <ebutera@users.berlios.de> wrote:
->>>> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard
->>>> <florian.vaussard@epfl.ch> wrote:
->>>>> So I converted the iommu to DT (patches just sent), used pdata quirks
->>>>> for the isp / mtv9032 data, added a few patches from other people
->>>>> (mainly clk to fix a crash when deferring the omap3isp probe), and a few
->>>>> small hacks. I get a 3.13-rc3 (+ board-removal part from Tony Lindgren)
->>>>> to boot on DT with a working MT9V032 camera. The missing part is the DT
->>>>> binding for the omap3isp, but I guess that we will have to wait a bit
->>>>> more for this.
->>>>>
->>>>> If you want to test, I have a development tree here [1]. Any feedback is
->>>>> welcome.
->>>>>
->>>>> Cheers,
->>>>>
->>>>> Florian
->>>>>
->>>>> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
->>>> Thanks Florian,
->>>>
->>>> i will report what i get with my setup.
->>> And here i am.
->>>
->>> I can confirm it works, video source is tvp5150 (with platform data in
->>> pdata-quirks.c) in bt656 mode.
->>>
->>> Laurent, i used the two bt656 patches from your omap3isp/bt656 tree so
->>> if you want to push it you can add a Tested-by me.
->>>
->>> There is only one problem, but it's unrelated to your DT work.
->>>
->>> It's an old problem (see for example [1] and [2]), seen by other
->>> people too and it seems it's still there.
->>> Basically if i capture with yavta while the system is idle then it
->>> just waits without getting any frame.
->>> If i add some cpu load (usually i do a "cat /dev/zero" in a ssh
->>> terminal) it starts capturing correctly.
->>>
->>> The strange thing is that i do get isp interrupts in the idle case, so
->>> i don't know why they don't "propagate" to yavta.
->>>
->>> Any hints on how to debug this?
->>>
->>> Enrico
->>>
->>> [1]: https://linuxtv.org/patch/7836/
->>> [2]:
->>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg44923.html
->> I have had what looked a lot like these problems before and it was due to a
->> wrong configuration of the ccdc cropping regarding to the blanking. Could
->> you send me the configuration of the pipeline that you apply with media-ctl,
->> just in case this is the same problem.
-> i'm using:
->
-> media-ctl -r -l '"tvp5150 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-> CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> media-ctl --set-format '"tvp5150 2-005c":0 [UYVY 720x625]'
->
-> And then capture with yavta -s 720x625 (or 720x576, can't remember right now).
->
-> Thanks,
->
-> Enrico
-I don't think this is sufficient, though I am no expert about omap3 isp, 
-you should configure the format of the ccdc input and of the ccdc output 
-too.
-When I had this problem, it was solved by adding cropping at the input 
-of the CCDC, corresponding to the blanking period, which was :
-- media-ctl -v -f '"OMAP3 ISP CCDC":0 [UYVY2X8 720x576 (0,49/720x576)]'
-or
-- media-ctl -v -f '"OMAP3 ISP CCDC":0 [UYVY2X8 720x480 (0,45/720x480)]'
-respectively.
-
-I don't know if this can be of any help.
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/propapi6
 
 Regards,
-Julien BERAUD
+
+	Hans
+
+On 01/06/2014 03:20 PM, Hans Verkuil wrote:
+> This patch series adds support for properties, matrices and configuration
+> stores to the control framework.
+> 
+> See this RFCv2 for a more detailed discussion:
+> 
+> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/71822
+> 
+> Changes since that RFCv2 are:
+> 
+> - I dropped the 'property' bit in the control ID, instead a new flag is
+>   added: V4L2_CTRL_FLAG_PROPERTY.
+> - A V4L2_CTRL_FLAG_IS_PTR flag is added to simplify applications: if set, then
+>   applications need to use the 'p' field instead of 'val' or 'val64'. This can
+>   be deduced from various other fields as well, but that leads to ugly code.
+>   This flag is cheap to set and very helpful in applications.
+> - Matrix types have been dropped. If cols or rows are > 1, then you have a
+>   matrix, so there is no need for specific matrix types.
+> - As a result it is no longer possible to set just a sub-rectangle of a
+>   matrix. It is however possible to just set the first X elements of
+>   a matrix/array. It became too complex to deal with the sub-rectangle,
+>   both in the framework, for drivers and for applications, and there are
+>   not enough benefits to warrant that effort.
+> 
+> Other than those changes this patch series implements all the ideas described
+> in RFCv2.
+> 
+> The first 21 patches are pretty definitive and the only thing missing are
+> the DocBook patches and a v4l2-controls.txt patch.
+> 
+> Before I write those I would like to get feedback for this API enhancement.
+> The actual API changes are surprisingly small, and most of the work done in
+> the patches has more to do with data structure changes needed to simplify
+> handling the more complex control types than with actual new code.
+> 
+> Patch 22 adds a new event that can deal with the new 64-bit ranges and that
+> adds a config_store field. However, I am not yet convinced that this is
+> really needed. Feedback would be welcome.
+> 
+> Patches 23-27 add test code for vivi to test matrices and to test the new
+> selection properties. This code needs more work, particularly with regards
+> to naming.
+> 
+> A working v4l2-ctl that can handle the new stuff is available here:
+> 
+> http://git.linuxtv.org/hverkuil/v4l-utils.git/shortlog/refs/heads/propapi
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
