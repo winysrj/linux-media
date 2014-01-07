@@ -1,45 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:64822 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752473AbaAWTLK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 14:11:10 -0500
-Received: by mail-oa0-f41.google.com with SMTP id j17so2669192oag.28
-        for <linux-media@vger.kernel.org>; Thu, 23 Jan 2014 11:11:09 -0800 (PST)
+Received: from mail-oa0-f51.google.com ([209.85.219.51]:59935 "EHLO
+	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751464AbaAGP71 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 10:59:27 -0500
+Received: by mail-oa0-f51.google.com with SMTP id m1so362045oag.38
+        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 07:59:27 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20140122200142.002a39c2@samsung.com>
-References: <20140115173559.7e53239a@samsung.com>
-	<1390246787-15616-1-git-send-email-a.seppala@gmail.com>
-	<20140121122826.GA25490@pequod.mess.org>
-	<CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com>
-	<20140122162953.GA1665@pequod.mess.org>
-	<CAKv9HNbVQwAcG98S3_Mj4A6zo8Ae2fLT6vn4LOYW1UMrwQku7Q@mail.gmail.com>
-	<20140122210024.GA3223@pequod.mess.org>
-	<20140122200142.002a39c2@samsung.com>
-Date: Thu, 23 Jan 2014 21:11:09 +0200
-Message-ID: <CAKv9HNY7==4H2ZDrmaX+1BcarRAJd7zUE491oQ2ZJZXezpwOAw@mail.gmail.com>
-Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
-From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+In-Reply-To: <CAHFNz9KzKdC0xvq7nM6yF0DGQ3pCq7tUr0et-cvf6Wk5Htarxg@mail.gmail.com>
+References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
+	<CAHFNz9KzKdC0xvq7nM6yF0DGQ3pCq7tUr0et-cvf6Wk5Htarxg@mail.gmail.com>
+Date: Tue, 7 Jan 2014 15:59:27 +0000
+Message-ID: <CAGj5WxC5NeH8TEBevgZNEootxKWZh8CQUbYKOD7wWwwQ+c6X8w@mail.gmail.com>
+Subject: Re: Upstreaming SAA716x driver to the media_tree
+From: Luis Alves <ljalvs@gmail.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Andreas Regel <andreas.regel@gmx.de>,
+	Chris Lee <updatelee@gmail.com>, crazycat69@narod.ru,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 January 2014 00:01, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
-> Not sure if you saw it, but there's already another patchset proposing
-> that, that got submitted before this changeset:
->         https://patchwork.linuxtv.org/patch/21625/
+Hi Manu,
 
-I actually didn't notice that until now. Seems quite a similar kind of
-approach with even more advanced features than what I had in mind
-(namely the scancode filtering and masking).
+That would be great.
+Let me know if you need a hand!
 
-However it looks like that patchset has the same drawback about not
-knowing which protocol to use for the wakeup scancode as was pointed
-from my patch.
+Regards,
+Luis
 
-I think I'll try to come up with a new patch addressing the comments
-I've seen so far.
 
--Antti
+On Tue, Jan 7, 2014 at 1:10 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> Hi Luis,
+>
+>
+> On Tue, Jan 7, 2014 at 5:28 PM, Luis Alves <ljalvs@gmail.com> wrote:
+>> Hi,
+>>
+>> I'm finishing a new frontend driver for one of my dvb cards, but the
+>> pcie bridge uses the (cursed) saa716x.
+>> As far as I know the progress to upstream Manu's driver to the
+>> media_tree has stalled.
+>>
+>> In CC I've placed some of the people that I found working on it
+>> lately, supporting a few dvb cards.
+>>
+>> It would be good if we could gather everything in one place and send a
+>> few patchs to get this upstreamed for once...
+>>
+>> Manu, do you see any inconvenience in sending your driver to the
+>> linux_media tree?
+>> I'm available to place some effort on this task.
+>
+>
+> I can push the 716x driver and whatever additional changes that I have
+> later on this weekend, if that's okay with you.
+>
+>
+> Regards,
+>
+> Manu
