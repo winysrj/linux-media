@@ -1,56 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:62647 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751730AbaAOCqH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jan 2014 21:46:07 -0500
-Received: by mail-bk0-f51.google.com with SMTP id w10so520723bkz.10
-        for <linux-media@vger.kernel.org>; Tue, 14 Jan 2014 18:46:06 -0800 (PST)
-MIME-Version: 1.0
-Date: Wed, 15 Jan 2014 10:46:06 +0800
-Message-ID: <CAPgLHd_rrBkeHtRakwsu5NnGXiSwsubAzw5xZtB9UspTnmAh6w@mail.gmail.com>
-Subject: [PATCH -next] [media] radio-usb-si4713: fix sparse non static symbol warnings
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: hverkuil@xs4all.nl, m.chehab@samsung.com, Dinesh.Ram@cern.ch
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1713 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756149AbaAGDdX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 22:33:23 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s073XKZH062535
+	for <linux-media@vger.kernel.org>; Tue, 7 Jan 2014 04:33:22 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 44FE72A009A
+	for <linux-media@vger.kernel.org>; Tue,  7 Jan 2014 04:33:15 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140107033315.44FE72A009A@tschai.lan>
+Date: Tue,  7 Jan 2014 04:33:15 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Fixes the following sparse warnings:
+Results of the daily build of media_tree:
 
-drivers/media/radio/si4713/radio-usb-si4713.c:226:31: warning:
- symbol 'start_seq' was not declared. Should it be static?
-drivers/media/radio/si4713/radio-usb-si4713.c:291:29: warning:
- symbol 'command_table' was not declared. Should it be static?
+date:		Tue Jan  7 04:00:27 CET 2014
+git branch:	test
+git hash:	54a2a84ea9e8640b4f1df4e222e305d03bb64065
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/radio/si4713/radio-usb-si4713.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
-index f1e640d..779855b 100644
---- a/drivers/media/radio/si4713/radio-usb-si4713.c
-+++ b/drivers/media/radio/si4713/radio-usb-si4713.c
-@@ -223,7 +223,7 @@ struct si4713_start_seq_table {
-  * (0x03): Get serial number of the board (Response : CB000-00-00)
-  * (0x06, 0x03, 0x03, 0x08, 0x01, 0x0f) : Get Component revision
-  */
--struct si4713_start_seq_table start_seq[] = {
-+static struct si4713_start_seq_table start_seq[] = {
- 
- 	{ 1, { 0x03 } },
- 	{ 2, { 0x32, 0x7f } },
-@@ -288,7 +288,7 @@ struct si4713_command_table {
-  *	Byte 4 : Number of arguments + 1 (for the command byte)
-  *	Byte 5 : Number of response bytes
-  */
--struct si4713_command_table command_table[] = {
-+static struct si4713_command_table command_table[] = {
- 
- 	{ SI4713_CMD_POWER_UP,		{ 0x00, SI4713_PWUP_NARGS + 1, SI4713_PWUP_NRESP} },
- 	{ SI4713_CMD_GET_REV,		{ 0x03, 0x01, SI4713_GETREV_NRESP } },
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
