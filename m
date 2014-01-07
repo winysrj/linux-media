@@ -1,110 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1759 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806AbaAEDea (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 22:34:30 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s053YQjk067200
-	for <linux-media@vger.kernel.org>; Sun, 5 Jan 2014 04:34:28 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id DB2642A0098
-	for <linux-media@vger.kernel.org>; Sun,  5 Jan 2014 04:34:23 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140105033423.DB2642A0098@tschai.lan>
-Date: Sun,  5 Jan 2014 04:34:23 +0100 (CET)
+Received: from merlin.infradead.org ([205.233.59.134]:37703 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753215AbaAGRzn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 12:55:43 -0500
+Message-ID: <52CC3F9C.8090407@infradead.org>
+Date: Tue, 07 Jan 2014 09:55:40 -0800
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
+CC: linux-kernel@vger.kernel.org,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH -next] staging/media: fix sn9c102 dependencies
+References: <20140107173816.003dc67433cea097c097eb74@canb.auug.org.au>
+In-Reply-To: <20140107173816.003dc67433cea097c097eb74@canb.auug.org.au>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Results of the daily build of media_tree:
+Fix numerous build errors when USB is not enabled.  Examples:
 
-date:		Sun Jan  5 04:00:27 CET 2014
-git branch:	test
-git hash:	f7d40eea8e3e531f1517ab7eded552e8837ef5da
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+drivers/built-in.o: In function `sn9c102_stop_transfer':
+sn9c102_core.c:(.text+0xccbd0a): undefined reference to `usb_kill_urb'
+sn9c102_core.c:(.text+0xccbd15): undefined reference to `usb_free_urb'
+sn9c102_core.c:(.text+0xccbd4c): undefined reference to `usb_set_interface'
+drivers/built-in.o: In function `sn9c102_urb_complete':
+sn9c102_core.c:(.text+0xccdca5): undefined reference to `usb_submit_urb'
+drivers/built-in.o: In function `sn9c102_release_resources':
+sn9c102_core.c:(.text+0xcce62b): undefined reference to `usb_put_dev'
+drivers/built-in.o: In function `sn9c102_match_id':
+(.text+0xcce9d7): undefined reference to `usb_ifnum_to_if'
+drivers/built-in.o: In function `sn9c102_match_id':
+(.text+0xcce9de): undefined reference to `usb_match_id'
+drivers/built-in.o: In function `sn9c102_write_regs':
+(.text+0xccea7a): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `sn9c102_open':
+sn9c102_core.c:(.text+0xcd17b4): undefined reference to `usb_altnum_to_altsetting'
+sn9c102_core.c:(.text+0xcd1851): undefined reference to `usb_alloc_urb'
+drivers/built-in.o: In function `sn9c102_read_reg':
+(.text+0xcd1fdf): undefined reference to `usb_control_msg'
+drivers/built-in.o: In function `sn9c102_usb_probe':
+sn9c102_core.c:(.text+0xcd275d): undefined reference to `usb_get_dev'
+drivers/built-in.o: In function `sn9c102_usb_driver_init':
+sn9c102_core.c:(.init.text+0x3e4eb): undefined reference to `usb_register_driver'
+drivers/built-in.o: In function `sn9c102_usb_driver_exit':
+sn9c102_core.c:(.exit.text+0x7226): undefined reference to `usb_deregister'
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Luca Risolia <luca.risolia@studio.unibo.it>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/staging/media/sn9c102/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--- linux-next-20140107.orig/drivers/staging/media/sn9c102/Kconfig
++++ linux-next-20140107/drivers/staging/media/sn9c102/Kconfig
+@@ -1,6 +1,6 @@
+ config USB_SN9C102
+ 	tristate "USB SN9C1xx PC Camera Controller support (DEPRECATED)"
+-	depends on VIDEO_V4L2
++	depends on VIDEO_V4L2 && USB
+ 	---help---
+ 	  This driver is DEPRECATED, please use the gspca sonixb and
+ 	  sonixj modules instead.
