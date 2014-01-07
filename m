@@ -1,102 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1379 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753963AbaAaJ5L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:57:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:58094 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752707AbaAGWIE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 17:08:04 -0500
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 10/32] v4l2-ctrls: compare values only once.
-Date: Fri, 31 Jan 2014 10:56:08 +0100
-Message-Id: <1391162190-8620-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+Cc: linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] exynos4-is: Fix error paths in probe() for !pm_runtime_enabled()
+Date: Tue,  7 Jan 2014 23:07:52 +0100
+Message-Id: <1389132472-19245-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Ensure clk_disable() is called on error paths only when clk_enable()
+was previously called.
 
-When setting a control the control's new value is compared to the current
-value twice: once by new_to_cur(), once by cluster_changed(). Not a big
-deal when dealing with simple values, but it can be a problem when dealing
-with compound types or matrices. So fix this: cluster_changed() sets the
-has_changed flag, which is used by new_to_cur() instead of having to do
-another compare.
+This fixes following build warning:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+.../media-git/drivers/media/platform/exynos4-is/fimc-lite.c: In function 'fimc_lite_probe':
+.../media-git/drivers/media/platform/exynos4-is/fimc-lite.c:1583:1: warning: label 'err_sd' defined but not used [-Wunused-label]
+
+Reported-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 17 +++++++++++------
- include/media/v4l2-ctrls.h           |  3 +++
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ drivers/media/platform/exynos4-is/fimc-core.c |    3 ++-
+ drivers/media/platform/exynos4-is/fimc-lite.c |    5 +++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b945008..87f9a4e 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1395,8 +1395,11 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index a7dfd07..dcbea59 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -1027,7 +1027,8 @@ static int fimc_probe(struct platform_device *pdev)
+ 	return 0;
  
- 	if (ctrl == NULL)
- 		return;
--	changed = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
--	ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
-+
-+	/* has_changed is set by cluster_changed */
-+	changed = ctrl->has_changed;
-+	if (changed)
-+		ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
- 
- 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
- 		/* Note: CH_FLAGS is only set for auto clusters. */
-@@ -1433,17 +1436,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
-    value that differs from the current value. */
- static int cluster_changed(struct v4l2_ctrl *master)
- {
--	int diff = 0;
-+	bool changed = false;
- 	int i;
- 
--	for (i = 0; !diff && i < master->ncontrols; i++) {
-+	for (i = 0; i < master->ncontrols; i++) {
- 		struct v4l2_ctrl *ctrl = master->cluster[i];
- 
- 		if (ctrl == NULL)
- 			continue;
--		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
-+		ctrl->has_changed = !ctrl->type_ops->equal(ctrl,
-+						ctrl->stores[0], ctrl->new);
-+		changed |= ctrl->has_changed;
+ err_gclk:
+-	clk_disable(fimc->clock[CLK_GATE]);
++	if (!pm_runtime_enabled(dev))
++		clk_disable(fimc->clock[CLK_GATE]);
+ err_sd:
+ 	fimc_unregister_capture_subdev(fimc);
+ err_sclk:
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 1234734..5213ff0 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1563,7 +1563,7 @@ static int fimc_lite_probe(struct platform_device *pdev)
+ 	if (!pm_runtime_enabled(dev)) {
+ 		ret = clk_enable(fimc->clock);
+ 		if (ret < 0)
+-			goto err_clk_put;
++			goto err_sd;
  	}
--	return diff;
-+	return changed;
- }
  
- /* Control range checking */
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index aaf7333..5a39877 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -96,6 +96,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   * @is_new:	Set when the user specified a new value for this control. It
-   *		is also set when called from v4l2_ctrl_handler_setup. Drivers
-   *		should never set this flag.
-+  * @has_changed: Set when the current value differs from the new value. Drivers
-+  *		should never use this flag.
-   * @is_private: If set, then this control is private to its handler and it
-   *		will not be added to any other handlers. Drivers can set
-   *		this flag.
-@@ -159,6 +161,7 @@ struct v4l2_ctrl {
- 	unsigned int done:1;
+ 	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+@@ -1579,7 +1579,8 @@ static int fimc_lite_probe(struct platform_device *pdev)
+ 	return 0;
  
- 	unsigned int is_new:1;
-+	unsigned int has_changed:1;
- 	unsigned int is_private:1;
- 	unsigned int is_auto:1;
- 	unsigned int is_int:1;
+ err_clk_dis:
+-	clk_disable(fimc->clock);
++	if (!pm_runtime_enabled(dev))
++		clk_disable(fimc->clock);
+ err_sd:
+ 	fimc_lite_unregister_capture_subdev(fimc);
+ err_clk_put:
 -- 
-1.8.5.2
+1.7.4.1
 
