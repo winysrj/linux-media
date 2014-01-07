@@ -1,52 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.unixsol.org ([193.110.159.2]:57278 "EHLO ns.unixsol.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751559AbaANPzV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jan 2014 10:55:21 -0500
-Message-ID: <52D55DE7.4050309@unixsol.org>
-Date: Tue, 14 Jan 2014 17:55:19 +0200
-From: Georgi Chorbadzhiyski <gf@unixsol.org>
+Received: from mail-ea0-f176.google.com ([209.85.215.176]:46491 "EHLO
+	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752310AbaAGRcy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 12:32:54 -0500
+Received: by mail-ea0-f176.google.com with SMTP id h14so345961eaj.21
+        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 09:32:53 -0800 (PST)
+Message-ID: <52CC3A89.9020704@googlemail.com>
+Date: Tue, 07 Jan 2014 18:34:01 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 To: Mauro Carvalho Chehab <m.chehab@samsung.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: FE_READ_SNR and FE_READ_SIGNAL_STRENGTH docs
-References: <52D554BA.3070906@unixsol.org> <20140114133044.1d5276f4@samsung.com>
-In-Reply-To: <20140114133044.1d5276f4@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: [PATCH] xc2028: disable device power-down because power state
+ handling is broken
+References: <1388410678-12641-1-git-send-email-fschaefer.oss@googlemail.com> <20140106110004.041e4fe6@samsung.com>
+In-Reply-To: <20140106110004.041e4fe6@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Around 01/14/2014 05:30 PM, Mauro Carvalho Chehab scribbled:
-> Em Tue, 14 Jan 2014 17:16:10 +0200
-> Georgi Chorbadzhiyski <gf@unixsol.org> escreveu:
-> 
->> Hi guys, I'm confused the documentation on:
->>
->> http://linuxtv.org/downloads/v4l-dvb-apis/frontend_fcalls.html#FE_READ_SNR
->> http://linuxtv.org/downloads/v4l-dvb-apis/frontend_fcalls.html#FE_READ_SIGNAL_STRENGTH
->>
->> states that these ioctls return int16_t values but frontend.h states:
->>
->> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/dvb/frontend.h
->>
->> #define FE_READ_SIGNAL_STRENGTH  _IOR('o', 71, __u16)
->> #define FE_READ_SNR              _IOR('o', 72, __u16)
->>
->> So which one is true?
-> 
-> Documentation is wrong. The returned values are unsigned. Would you mind send
-> us a patch fixing it?
+Am 06.01.2014 14:00, schrieb Mauro Carvalho Chehab:
+> ...
+>
+> I'm working on a proper fix for it.
 
-I would be happy to, but I can't find the repo that holds the documentation.
+That was the actual goal of this patch. ;)
 
-> Btw, the better is to use the new statistics API, when it is
-> available:
-> 	http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#frontend-stat-properties
-> 
-> As it properly specifies the scale of each value.
+Thank you for looking at this issue.
+I'll get back to the remaing stuff later.
 
-When it's ready, I'll add support for the API in dvblast.
+Cheers,
+Frank
 
--- 
-Georgi Chorbadzhiyski | http://georgi.unixsol.org/ | http://github.com/gfto/
