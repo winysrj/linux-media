@@ -1,316 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:59945 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750992AbaAEKZI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 05:25:08 -0500
-Received: by mail-ea0-f176.google.com with SMTP id h14so7287295eaj.21
-        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 02:25:06 -0800 (PST)
-Message-ID: <52C93346.8070507@googlemail.com>
-Date: Sun, 05 Jan 2014 11:26:14 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 03/22] [media] em28xx: move analog-specific init to
- em28xx-video
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-4-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1995 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752080AbaAGNHM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 08:07:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 4/6] DocBook media: update four more sections
+Date: Tue,  7 Jan 2014 14:06:55 +0100
+Message-Id: <1389100017-42855-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
-> There are several init code inside em28xx-cards that are actually
-> part of analog initialization. Move the code to em28x-video, in
-> order to remove part of the mess.
->
-> In thesis, no functional changes so far.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-cards.c | 71 -------------------------
->  drivers/media/usb/em28xx/em28xx-video.c | 91 ++++++++++++++++++++++++++++++---
->  2 files changed, 84 insertions(+), 78 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index 551cbc294190..175cd776e0a1 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -2907,7 +2907,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  			   struct usb_interface *interface,
->  			   int minor)
->  {
-> -	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
->  	int retval;
->  	static const char *default_chip_name = "em28xx";
->  	const char *chip_name = default_chip_name;
-> @@ -3034,15 +3033,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  		}
->  	}
->  
-> -	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
-> -	if (retval < 0) {
-> -		em28xx_errdev("Call to v4l2_device_register() failed!\n");
-> -		return retval;
-> -	}
-> -
-> -	v4l2_ctrl_handler_init(hdl, 8);
-> -	dev->v4l2_dev.ctrl_handler = hdl;
-> -
->  	rt_mutex_init(&dev->i2c_bus_lock);
->  
->  	/* register i2c bus 0 */
-> @@ -3071,72 +3061,14 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  		}
->  	}
->  
-> -	/*
-> -	 * Default format, used for tvp5150 or saa711x output formats
-> -	 */
-> -	dev->vinmode = 0x10;
-> -	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
-> -		       EM28XX_VINCTRL_CCIR656_ENABLE;
-> -
->  	/* Do board specific init and eeprom reading */
->  	em28xx_card_setup(dev);
->  
-em28xx_card_setup() initializes some v4l2 subdevices, but now the v4l2
-device (dev->v4l2_dev) isn't ready at this point, because
-v4l2_device_register() isn't called yet.
-This introduces oopses.
-You are fixing this with patch 5/22 later, but patches should never
-introduce any oopses.
-The simplest soultion is to move patch 5/22 before this patch.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> -	/* Configure audio */
-> -	retval = em28xx_audio_setup(dev);
-> -	if (retval < 0) {
-> -		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
-> -			__func__, retval);
-> -		goto fail;
-> -	}
-> -	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-> -		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-> -			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-> -		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-> -			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
-> -	} else {
-> -		/* install the em28xx notify callback */
-> -		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
-> -				em28xx_ctrl_notify, dev);
-> -		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
-> -				em28xx_ctrl_notify, dev);
-> -	}
-> -
-> -	/* wake i2c devices */
-> -	em28xx_wake_i2c(dev);
-> -
-> -	/* init video dma queues */
-> -	INIT_LIST_HEAD(&dev->vidq.active);
-> -	INIT_LIST_HEAD(&dev->vbiq.active);
-> -
-> -	if (dev->board.has_msp34xx) {
-> -		/* Send a reset to other chips via gpio */
-> -		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
-> -		if (retval < 0) {
-> -			em28xx_errdev("%s: em28xx_write_reg - "
-> -				      "msp34xx(1) failed! error [%d]\n",
-> -				      __func__, retval);
-> -			goto fail;
-> -		}
-> -		msleep(3);
-> -
-> -		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
-> -		if (retval < 0) {
-> -			em28xx_errdev("%s: em28xx_write_reg - "
-> -				      "msp34xx(2) failed! error [%d]\n",
-> -				      __func__, retval);
-> -			goto fail;
-> -		}
-> -		msleep(3);
-> -	}
-> -
->  	retval = em28xx_register_analog_devices(dev);
->  	if (retval < 0) {
->  		goto fail;
->  	}
->  
-> -	/* Save some power by putting tuner to sleep */
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-> -
->  	return 0;
->  
->  fail:
-You also need to move the v4l2_ctrl_handler_free() and
-v4l2_device_unregister() calls to the error path of
-em28xx_register_analog_devices() and rework its error path.
+Updates sections "Querying Capabilities", "Application Priority",
+"Video Inputs and Outputs" and "Audio Inputs and Outputs".
 
-> @@ -3388,9 +3320,6 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->  	/* save our data pointer in this interface device */
->  	usb_set_intfdata(interface, dev);
->  
-> -	/* initialize videobuf2 stuff */
-> -	em28xx_vb2_setup(dev);
-> -
->  	/* allocate device struct */
->  	mutex_init(&dev->lock);
->  	mutex_lock(&dev->lock);
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index 8b8a4eb96875..85284626dbd6 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -2186,10 +2186,78 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  	u8 val;
->  	int ret;
->  	unsigned int maxw;
-> +	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
-> +
-> +	if (!dev->is_audio_only) {
-> +		/* This device does not support the v4l2 extension */
-> +		return 0;
-> +	}
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/common.xml | 89 ++++++++++++------------------
+ 1 file changed, 35 insertions(+), 54 deletions(-)
 
->   	printk(KERN_INFO "%s: v4l2 driver version %s\n",
->  		dev->name, EM28XX_VERSION);
->  
-> +	ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
-> +	if (ret < 0) {
-> +		em28xx_errdev("Call to v4l2_device_register() failed!\n");
-> +		goto err;
-> +	}
-> +
-> +	v4l2_ctrl_handler_init(hdl, 8);
-> +	dev->v4l2_dev.ctrl_handler = hdl;
-> +
-> +	/*
-> +	 * Default format, used for tvp5150 or saa711x output formats
-> +	 */
-> +	dev->vinmode = 0x10;
-> +	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
-> +		       EM28XX_VINCTRL_CCIR656_ENABLE;
-> +
-> +	/* Configure audio */
-> +	ret = em28xx_audio_setup(dev);
-> +	if (ret < 0) {
-> +		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
-> +			__func__, ret);
-> +		goto err;
-> +	}
-> +	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-> +		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-> +			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-> +		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-> +			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
-> +	} else {
-> +		/* install the em28xx notify callback */
-> +		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
-> +				em28xx_ctrl_notify, dev);
-> +		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
-> +				em28xx_ctrl_notify, dev);
-> +	}
-> +
-> +	/* wake i2c devices */
-> +	em28xx_wake_i2c(dev);
-> +
-> +	/* init video dma queues */
-> +	INIT_LIST_HEAD(&dev->vidq.active);
-> +	INIT_LIST_HEAD(&dev->vbiq.active);
-> +
-> +	if (dev->board.has_msp34xx) {
-> +		/* Send a reset to other chips via gpio */
-> +		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
-> +		if (ret < 0) {
-> +			em28xx_errdev("%s: em28xx_write_reg - msp34xx(1) failed! error [%d]\n",
-> +				      __func__, ret);
-> +			goto err;
-> +		}
-> +		msleep(3);
-> +
-> +		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
-> +		if (ret < 0) {
-> +			em28xx_errdev("%s: em28xx_write_reg - msp34xx(2) failed! error [%d]\n",
-> +				      __func__, ret);
-> +			goto err;
-> +		}
-> +		msleep(3);
-> +	}
-> +
->  	/* set default norm */
->  	dev->norm = V4L2_STD_PAL;
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
-> @@ -2252,14 +2320,16 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  	/* Reset image controls */
->  	em28xx_colorlevels_set_default(dev);
->  	v4l2_ctrl_handler_setup(&dev->ctrl_handler);
-> -	if (dev->ctrl_handler.error)
-> -		return dev->ctrl_handler.error;
-> +	ret = dev->ctrl_handler.error;
-> +	if (ret)
-> +		goto err;
->  
->  	/* allocate and fill video video_device struct */
->  	dev->vdev = em28xx_vdev_init(dev, &em28xx_video_template, "video");
->  	if (!dev->vdev) {
->  		em28xx_errdev("cannot allocate video_device.\n");
-> -		return -ENODEV;
-> +		ret = -ENODEV;
-> +		goto err;
->  	}
->  	dev->vdev->queue = &dev->vb_vidq;
->  	dev->vdev->queue->lock = &dev->vb_queue_lock;
-> @@ -2289,7 +2359,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  	if (ret) {
->  		em28xx_errdev("unable to register video device (error=%i).\n",
->  			      ret);
-> -		return ret;
-> +		goto err;
->  	}
->  
->  	/* Allocate and fill vbi video_device struct */
-> @@ -2318,7 +2388,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  					    vbi_nr[dev->devno]);
->  		if (ret < 0) {
->  			em28xx_errdev("unable to register vbi device\n");
-> -			return ret;
-> +			goto err;
->  		}
->  	}
->  
-> @@ -2327,13 +2397,14 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  						  "radio");
->  		if (!dev->radio_dev) {
->  			em28xx_errdev("cannot allocate video_device.\n");
-> -			return -ENODEV;
-> +			ret = -ENODEV;
-> +			goto err;
->  		}
->  		ret = video_register_device(dev->radio_dev, VFL_TYPE_RADIO,
->  					    radio_nr[dev->devno]);
->  		if (ret < 0) {
->  			em28xx_errdev("can't register radio device\n");
-> -			return ret;
-> +			goto err;
->  		}
->  		em28xx_info("Registered radio device as %s\n",
->  			    video_device_node_name(dev->radio_dev));
-> @@ -2346,5 +2417,11 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  		em28xx_info("V4L2 VBI device registered as %s\n",
->  			    video_device_node_name(dev->vbi_dev));
->  
-> +	/* Save some power by putting tuner to sleep */
-> +	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-> +
-> +	/* initialize videobuf2 stuff */
-> +	em28xx_vb2_setup(dev);
-> +err:
->  	return 0;
->  }
-Please return the error code. We are not checking it at the moment, but
-we don't want to introduce new bugs.
-As mentioned above, you also need to rework the error path and move the
-v4l2_ctrl_handler_free() and v4l2_device_unregister() calls from
-em28xx_init_dev() here.
-
+diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
+index da08df9..f1e4307 100644
+--- a/Documentation/DocBook/media/v4l/common.xml
++++ b/Documentation/DocBook/media/v4l/common.xml
+@@ -186,15 +186,15 @@ methods</link> supported by the device.</para>
+ 
+     <para>Starting with kernel version 3.1, VIDIOC-QUERYCAP will return the
+ V4L2 API version used by the driver, with generally matches the Kernel version.
+-There's no need of using &VIDIOC-QUERYCAP; to check if an specific ioctl is
+-supported, the V4L2 core now returns ENOIOCTLCMD if a driver doesn't provide
++There's no need of using &VIDIOC-QUERYCAP; to check if a specific ioctl is
++supported, the V4L2 core now returns ENOTTY if a driver doesn't provide
+ support for an ioctl.</para>
+ 
+     <para>Other features can be queried
+ by calling the respective ioctl, for example &VIDIOC-ENUMINPUT;
+ to learn about the number, types and names of video connectors on the
+ device. Although abstraction is a major objective of this API, the
+-ioctl also allows driver specific applications to reliable identify
++&VIDIOC-QUERYCAP; ioctl also allows driver specific applications to reliably identify
+ the driver.</para>
+ 
+     <para>All V4L2 drivers must support
+@@ -224,9 +224,7 @@ Applications requiring a different priority will usually call
+ the &VIDIOC-QUERYCAP; ioctl.</para>
+ 
+     <para>Ioctls changing driver properties, such as &VIDIOC-S-INPUT;,
+-return an &EBUSY; after another application obtained higher priority.
+-An event mechanism to notify applications about asynchronous property
+-changes has been proposed but not added yet.</para>
++return an &EBUSY; after another application obtained higher priority.</para>
+   </section>
+ 
+   <section id="video">
+@@ -234,9 +232,9 @@ changes has been proposed but not added yet.</para>
+ 
+     <para>Video inputs and outputs are physical connectors of a
+ device. These can be for example RF connectors (antenna/cable), CVBS
+-a.k.a. Composite Video, S-Video or RGB connectors. Only video and VBI
+-capture devices have inputs, output devices have outputs, at least one
+-each. Radio devices have no video inputs or outputs.</para>
++a.k.a. Composite Video, S-Video or RGB connectors. Video and VBI
++capture devices have inputs. Video and VBI output devices have outputs,
++at least one each. Radio devices have no video inputs or outputs.</para>
+ 
+     <para>To learn about the number and attributes of the
+ available inputs and outputs applications can enumerate them with the
+@@ -245,30 +243,13 @@ available inputs and outputs applications can enumerate them with the
+ ioctl also contains signal status information applicable when the
+ current video input is queried.</para>
+ 
+-    <para>The &VIDIOC-G-INPUT; and &VIDIOC-G-OUTPUT; ioctl return the
++    <para>The &VIDIOC-G-INPUT; and &VIDIOC-G-OUTPUT; ioctls return the
+ index of the current video input or output. To select a different
+ input or output applications call the &VIDIOC-S-INPUT; and
+-&VIDIOC-S-OUTPUT; ioctl. Drivers must implement all the input ioctls
++&VIDIOC-S-OUTPUT; ioctls. Drivers must implement all the input ioctls
+ when the device has one or more inputs, all the output ioctls when the
+ device has one or more outputs.</para>
+ 
+-    <!--
+-    <figure id=io-tree>
+-      <title>Input and output enumeration is the root of most device properties.</title>
+-      <mediaobject>
+-	<imageobject>
+-	  <imagedata fileref="links.pdf" format="ps" />
+-	</imageobject>
+-	<imageobject>
+-	  <imagedata fileref="links.gif" format="gif" />
+-	</imageobject>
+-	<textobject>
+-	  <phrase>Links between various device property structures.</phrase>
+-	</textobject>
+-      </mediaobject>
+-    </figure>
+-    -->
+-
+     <example>
+       <title>Information about the current video input</title>
+ 
+@@ -276,20 +257,20 @@ device has one or more outputs.</para>
+ &v4l2-input; input;
+ int index;
+ 
+-if (-1 == ioctl (fd, &VIDIOC-G-INPUT;, &amp;index)) {
+-	perror ("VIDIOC_G_INPUT");
+-	exit (EXIT_FAILURE);
++if (-1 == ioctl(fd, &VIDIOC-G-INPUT;, &amp;index)) {
++	perror("VIDIOC_G_INPUT");
++	exit(EXIT_FAILURE);
+ }
+ 
+-memset (&amp;input, 0, sizeof (input));
++memset(&amp;input, 0, sizeof(input));
+ input.index = index;
+ 
+-if (-1 == ioctl (fd, &VIDIOC-ENUMINPUT;, &amp;input)) {
+-	perror ("VIDIOC_ENUMINPUT");
+-	exit (EXIT_FAILURE);
++if (-1 == ioctl(fd, &VIDIOC-ENUMINPUT;, &amp;input)) {
++	perror("VIDIOC_ENUMINPUT");
++	exit(EXIT_FAILURE);
+ }
+ 
+-printf ("Current input: %s\n", input.name);
++printf("Current input: %s\n", input.name);
+       </programlisting>
+     </example>
+ 
+@@ -301,9 +282,9 @@ int index;
+ 
+ index = 0;
+ 
+-if (-1 == ioctl (fd, &VIDIOC-S-INPUT;, &amp;index)) {
+-	perror ("VIDIOC_S_INPUT");
+-	exit (EXIT_FAILURE);
++if (-1 == ioctl(fd, &VIDIOC-S-INPUT;, &amp;index)) {
++	perror("VIDIOC_S_INPUT");
++	exit(EXIT_FAILURE);
+ }
+       </programlisting>
+     </example>
+@@ -343,7 +324,7 @@ available inputs and outputs applications can enumerate them with the
+ also contains signal status information applicable when the current
+ audio input is queried.</para>
+ 
+-    <para>The &VIDIOC-G-AUDIO; and &VIDIOC-G-AUDOUT; ioctl report
++    <para>The &VIDIOC-G-AUDIO; and &VIDIOC-G-AUDOUT; ioctls report
+ the current audio input and output, respectively. Note that, unlike
+ &VIDIOC-G-INPUT; and &VIDIOC-G-OUTPUT; these ioctls return a structure
+ as <constant>VIDIOC_ENUMAUDIO</constant> and
+@@ -354,11 +335,11 @@ applications call the &VIDIOC-S-AUDIO; ioctl. To select an audio
+ output (which presently has no changeable properties) applications
+ call the &VIDIOC-S-AUDOUT; ioctl.</para>
+ 
+-    <para>Drivers must implement all input ioctls when the device
+-has one or more inputs, all output ioctls when the device has one
+-or more outputs. When the device has any audio inputs or outputs the
+-driver must set the <constant>V4L2_CAP_AUDIO</constant> flag in the
+-&v4l2-capability; returned by the &VIDIOC-QUERYCAP; ioctl.</para>
++    <para>Drivers must implement all audio input ioctls when the device
++has multiple selectable audio inputs, all audio output ioctls when the
++device has multiple selectable audio outputs. When the device has any
++audio inputs or outputs the driver must set the <constant>V4L2_CAP_AUDIO</constant>
++flag in the &v4l2-capability; returned by the &VIDIOC-QUERYCAP; ioctl.</para>
+ 
+     <example>
+       <title>Information about the current audio input</title>
+@@ -366,14 +347,14 @@ driver must set the <constant>V4L2_CAP_AUDIO</constant> flag in the
+       <programlisting>
+ &v4l2-audio; audio;
+ 
+-memset (&amp;audio, 0, sizeof (audio));
++memset(&amp;audio, 0, sizeof(audio));
+ 
+-if (-1 == ioctl (fd, &VIDIOC-G-AUDIO;, &amp;audio)) {
+-	perror ("VIDIOC_G_AUDIO");
+-	exit (EXIT_FAILURE);
++if (-1 == ioctl(fd, &VIDIOC-G-AUDIO;, &amp;audio)) {
++	perror("VIDIOC_G_AUDIO");
++	exit(EXIT_FAILURE);
+ }
+ 
+-printf ("Current input: %s\n", audio.name);
++printf("Current input: %s\n", audio.name);
+       </programlisting>
+     </example>
+ 
+@@ -383,13 +364,13 @@ printf ("Current input: %s\n", audio.name);
+       <programlisting>
+ &v4l2-audio; audio;
+ 
+-memset (&amp;audio, 0, sizeof (audio)); /* clear audio.mode, audio.reserved */
++memset(&amp;audio, 0, sizeof(audio)); /* clear audio.mode, audio.reserved */
+ 
+ audio.index = 0;
+ 
+-if (-1 == ioctl (fd, &VIDIOC-S-AUDIO;, &amp;audio)) {
+-	perror ("VIDIOC_S_AUDIO");
+-	exit (EXIT_FAILURE);
++if (-1 == ioctl(fd, &VIDIOC-S-AUDIO;, &amp;audio)) {
++	perror("VIDIOC_S_AUDIO");
++	exit(EXIT_FAILURE);
+ }
+       </programlisting>
+     </example>
+-- 
+1.8.5.2
 
