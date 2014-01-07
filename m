@@ -1,79 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:56360 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754691AbaADRIr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 12:08:47 -0500
-Received: by mail-ee0-f49.google.com with SMTP id c41so7182441eek.36
-        for <linux-media@vger.kernel.org>; Sat, 04 Jan 2014 09:08:45 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 09/11] libdvbv5: use TABLE_INIT macro
-Date: Sat,  4 Jan 2014 18:07:59 +0100
-Message-Id: <1388855282-19295-9-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
-References: <1388855282-19295-1-git-send-email-neolynx@gmail.com>
+Received: from mga03.intel.com ([143.182.124.21]:52918 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751819AbaAGPuu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jan 2014 10:50:50 -0500
+Date: Tue, 07 Jan 2014 23:50:47 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:master 395/499]
+ drivers/media/usb/em28xx/em28xx-video.c:1151:28: sparse: symbol
+ 'em28xx_ctrl_ops' was not declared. Should it be static?
+Message-ID: <52cc2257.SeWuc92AVYd//ecz%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+ boundary="=_52cc2257.NqaXn/jPZh+QLeFMwmFzQprkUnvV9lxo0dPGXgVD/wKmC19y"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/libdvbv5/descriptors.h |    2 +-
- lib/libdvbv5/descriptors.c         |   24 +++++++++++++-----------
- 2 files changed, 14 insertions(+), 12 deletions(-)
+This is a multi-part message in MIME format.
 
-diff --git a/lib/include/libdvbv5/descriptors.h b/lib/include/libdvbv5/descriptors.h
-index d5feb4f..bc80940 100644
---- a/lib/include/libdvbv5/descriptors.h
-+++ b/lib/include/libdvbv5/descriptors.h
-@@ -35,7 +35,7 @@
- 
- struct dvb_v5_fe_parms;
- 
--typedef void (*dvb_table_init_func)(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
-+typedef void (*dvb_table_init_func)(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, void *table, ssize_t *table_length);
- 
- struct dvb_table_init {
- 	dvb_table_init_func init;
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index 48f3fe7..c7d535c 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -78,18 +78,20 @@ static void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct d
- 	hexdump(parms, "|           ", desc->data, desc->length);
+--=_52cc2257.NqaXn/jPZh+QLeFMwmFzQprkUnvV9lxo0dPGXgVD/wKmC19y
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+tree:   git://linuxtv.org/media_tree.git master
+head:   2a9ecc17ed9f076ff199a4bf4ebd22b41badb505
+commit: 01c2819330b1e0ec6b53dcfac76ad75ff2c8ba4f [395/499] [media] em28xx: make em28xx-video to be a separate module
+reproduce: make C=1 CF=-D__CHECK_ENDIAN__
+
+
+sparse warnings: (new ones prefixed by >>)
+
+>> drivers/media/usb/em28xx/em28xx-video.c:1151:28: sparse: symbol 'em28xx_ctrl_ops' was not declared. Should it be static?
+--
+>> drivers/media/usb/em28xx/em28xx-cards.c:2164:36: sparse: cannot size expression
+
+Please consider folding the attached diff :-)
+
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+
+--=_52cc2257.NqaXn/jPZh+QLeFMwmFzQprkUnvV9lxo0dPGXgVD/wKmC19y
+Content-Type: text/x-diff;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="make-it-static-01c2819330b1e0ec6b53dcfac76ad75ff2c8ba4f.diff"
+
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: [PATCH linuxtv-media] em28xx: em28xx_ctrl_ops can be static
+TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org
+CC: linux-media@vger.kernel.org 
+CC: linux-kernel@vger.kernel.org 
+
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+---
+ em28xx-video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 7d11a16..7a3a514 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1148,7 +1148,7 @@ static int em28xx_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return (ret < 0) ? ret : 0;
  }
  
-+#define TABLE_INIT( _x ) { (dvb_table_init_func) _x##_init, sizeof(struct _x) }
-+
- const struct dvb_table_init dvb_table_initializers[] = {
--	[DVB_TABLE_PAT]          = { dvb_table_pat_init, sizeof(struct dvb_table_pat) },
--	[DVB_TABLE_CAT]          = { dvb_table_cat_init, sizeof(struct dvb_table_cat) },
--	[DVB_TABLE_PMT]          = { dvb_table_pmt_init, sizeof(struct dvb_table_pmt) },
--	[DVB_TABLE_NIT]          = { dvb_table_nit_init, sizeof(struct dvb_table_nit) },
--	[DVB_TABLE_SDT]          = { dvb_table_sdt_init, sizeof(struct dvb_table_sdt) },
--	[DVB_TABLE_EIT]          = { dvb_table_eit_init, sizeof(struct dvb_table_eit) },
--	[DVB_TABLE_EIT_SCHEDULE] = { dvb_table_eit_init, sizeof(struct dvb_table_eit) },
--	[ATSC_TABLE_MGT]         = { atsc_table_mgt_init, sizeof(struct atsc_table_mgt) },
--	[ATSC_TABLE_EIT]         = { atsc_table_eit_init, sizeof(struct atsc_table_eit) },
--	[ATSC_TABLE_TVCT]        = { atsc_table_vct_init, sizeof(struct atsc_table_vct) },
--	[ATSC_TABLE_CVCT]        = { atsc_table_vct_init, sizeof(struct atsc_table_vct) },
-+	[DVB_TABLE_PAT]          = TABLE_INIT(dvb_table_pat),
-+	[DVB_TABLE_CAT]          = TABLE_INIT(dvb_table_cat),
-+	[DVB_TABLE_PMT]          = TABLE_INIT(dvb_table_pmt),
-+	[DVB_TABLE_NIT]          = TABLE_INIT(dvb_table_nit),
-+	[DVB_TABLE_SDT]          = TABLE_INIT(dvb_table_sdt),
-+	[DVB_TABLE_EIT]          = TABLE_INIT(dvb_table_eit),
-+	[DVB_TABLE_EIT_SCHEDULE] = TABLE_INIT(dvb_table_eit),
-+	[ATSC_TABLE_MGT]         = TABLE_INIT(atsc_table_mgt),
-+	[ATSC_TABLE_EIT]         = TABLE_INIT(atsc_table_eit),
-+	[ATSC_TABLE_TVCT]        = TABLE_INIT(atsc_table_vct),
-+	[ATSC_TABLE_CVCT]        = TABLE_INIT(atsc_table_vct),
+-const struct v4l2_ctrl_ops em28xx_ctrl_ops = {
++static const struct v4l2_ctrl_ops em28xx_ctrl_ops = {
+ 	.s_ctrl = em28xx_s_ctrl,
  };
  
- char *default_charset = "iso-8859-1";
--- 
-1.7.10.4
 
+--=_52cc2257.NqaXn/jPZh+QLeFMwmFzQprkUnvV9lxo0dPGXgVD/wKmC19y--
