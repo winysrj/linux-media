@@ -1,40 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57756 "EHLO mail.kapsi.fi"
+Received: from mga01.intel.com ([192.55.52.88]:25902 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752355AbaAYRLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:03 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 12/52] rtl2832_sdr: pixel format for SDR
-Date: Sat, 25 Jan 2014 19:10:06 +0200
-Message-Id: <1390669846-8131-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+	id S1750843AbaAGMUP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jan 2014 07:20:15 -0500
+Date: Tue, 07 Jan 2014 20:19:56 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:master 444/499] ERROR: "em28xx_release_resources"
+ [drivers/media/usb/em28xx/em28xx-v4l.ko] undefined!
+Message-ID: <52cbf0ec.rVoJq8EHONgZw51h%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are used for converting / streaming I/Q data from SDR.
-* unsigned 8-bit
+tree:   git://linuxtv.org/media_tree.git master
+head:   7f95c904b9d7a42c96893fddd48b7615f549c5ff
+commit: 01c2819330b1e0ec6b53dcfac76ad75ff2c8ba4f [444/499] [media] em28xx: make em28xx-video to be a separate module
+config: make ARCH=s390 allmodconfig
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+All error/warnings:
+
+>> ERROR: "em28xx_release_resources" [drivers/media/usb/em28xx/em28xx-v4l.ko] undefined!
+
 ---
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 2c84654..d3db859 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -49,6 +49,8 @@
- #define RTL2832_SDR_CID_TUNER_IF            ((V4L2_CID_USER_BASE | 0xf000) + 12)
- #define RTL2832_SDR_CID_TUNER_GAIN          ((V4L2_CID_USER_BASE | 0xf000) + 13)
- 
-+#define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
-+
- #define MAX_BULK_BUFS            (8)
- #define BULK_BUFFER_SIZE         (8 * 512)
- 
--- 
-1.8.5.3
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
