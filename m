@@ -1,79 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([80.229.237.210]:35639 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752175AbaAVQ34 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jan 2014 11:29:56 -0500
-Date: Wed, 22 Jan 2014 16:29:53 +0000
-From: Sean Young <sean@mess.org>
-To: Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
-Message-ID: <20140122162953.GA1665@pequod.mess.org>
-References: <20140115173559.7e53239a@samsung.com>
- <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
- <20140121122826.GA25490@pequod.mess.org>
- <CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com>
+Received: from mail-oa0-f51.google.com ([209.85.219.51]:41183 "EHLO
+	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753508AbaAGKMw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 05:12:52 -0500
+Received: by mail-oa0-f51.google.com with SMTP id m1so2420308oag.24
+        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 02:12:51 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com>
+In-Reply-To: <52CA8137.8080307@parrot.com>
+References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
+	<52A1A76A.6070301@epfl.ch>
+	<CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>
+	<52B04D70.8060201@epfl.ch>
+	<CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>
+	<CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
+	<52CA8137.8080307@parrot.com>
+Date: Tue, 7 Jan 2014 11:12:51 +0100
+Message-ID: <CA+2YH7u+1zOdcUDVDf1+VG2rgDdSa7HM-mxsxkzTj_iE3RtvMg@mail.gmail.com>
+Subject: Re: omap3isp device tree support
+From: Enrico <ebutera@users.berlios.de>
+To: Julien BERAUD <julien.beraud@parrot.com>
+Cc: florian.vaussard@epfl.ch,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 22, 2014 at 05:46:28PM +0200, Antti Seppälä wrote:
-> On 21 January 2014 14:28, Sean Young <sean@mess.org> wrote:
-> > On Mon, Jan 20, 2014 at 09:39:43PM +0200, Antti Seppälä wrote:
-> >> This patch series introduces a simple sysfs file interface for reading
-> >> and writing wakeup scancodes to rc drivers.
-> >>
-> >> This is an improved version of my previous patch for nuvoton-cir which
-> >> did the same thing via module parameters. This is a more generic
-> >> approach allowing other drivers to utilize the interface as well.
-> >>
-> >> I did not port winbond-cir to this method of wakeup scancode setting yet
-> >> because I don't have the hardware to test it and I wanted first to get
-> >> some comments about how the patch series looks. I did however write a
-> >> simple support to read and write scancodes to rc-loopback module.
-> >
-> > Doesn't the nuvoton-cir driver need to know the IR protocol for wakeup?
-> >
-> > This is needed for winbond-cir; I guess this should be another sysfs
-> > file, something like "wakeup_protocol". Even if the nuvoton can only
-> > handle one IR protocol, maybe it should be exported (readonly) via
-> > sysfs?
-> >
-> > I'm happy to help with a winbond-cir implementation; I have the hardware.
-> >
-> >
-> > Sean
-> 
-> Nuvoton-cir doesn't care about the IR protocol because the hardware
-> compares raw IR pulse lengths and wakes the system if received pulse
-> is within certain tolerance of the one pre-programmed to the HW. This
-> approach is agnostic to the used IR protocol.
+On Mon, Jan 6, 2014 at 11:11 AM, Julien BERAUD <julien.beraud@parrot.com> wrote:
+>
+> Le 03/01/2014 12:30, Enrico a écrit :
+>>
+>> On Wed, Dec 18, 2013 at 11:09 AM, Enrico <ebutera@users.berlios.de> wrote:
+>>>
+>>> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard
+>>> <florian.vaussard@epfl.ch> wrote:
+>>>>
+>>>> So I converted the iommu to DT (patches just sent), used pdata quirks
+>>>> for the isp / mtv9032 data, added a few patches from other people
+>>>> (mainly clk to fix a crash when deferring the omap3isp probe), and a few
+>>>> small hacks. I get a 3.13-rc3 (+ board-removal part from Tony Lindgren)
+>>>> to boot on DT with a working MT9V032 camera. The missing part is the DT
+>>>> binding for the omap3isp, but I guess that we will have to wait a bit
+>>>> more for this.
+>>>>
+>>>> If you want to test, I have a development tree here [1]. Any feedback is
+>>>> welcome.
+>>>>
+>>>> Cheers,
+>>>>
+>>>> Florian
+>>>>
+>>>> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
+>>>
+>>> Thanks Florian,
+>>>
+>>> i will report what i get with my setup.
+>>
+>> And here i am.
+>>
+>> I can confirm it works, video source is tvp5150 (with platform data in
+>> pdata-quirks.c) in bt656 mode.
+>>
+>> Laurent, i used the two bt656 patches from your omap3isp/bt656 tree so
+>> if you want to push it you can add a Tested-by me.
+>>
+>> There is only one problem, but it's unrelated to your DT work.
+>>
+>> It's an old problem (see for example [1] and [2]), seen by other
+>> people too and it seems it's still there.
+>> Basically if i capture with yavta while the system is idle then it
+>> just waits without getting any frame.
+>> If i add some cpu load (usually i do a "cat /dev/zero" in a ssh
+>> terminal) it starts capturing correctly.
+>>
+>> The strange thing is that i do get isp interrupts in the idle case, so
+>> i don't know why they don't "propagate" to yavta.
+>>
+>> Any hints on how to debug this?
+>>
+>> Enrico
+>>
+>> [1]: https://linuxtv.org/patch/7836/
+>> [2]:
+>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg44923.html
+>
+> I have had what looked a lot like these problems before and it was due to a
+> wrong configuration of the ccdc cropping regarding to the blanking. Could
+> you send me the configuration of the pipeline that you apply with media-ctl,
+> just in case this is the same problem.
 
-Your patch talks about scancodes which is something entirely different.
-This should be renamed to something better.
+i'm using:
 
-So with the nuvoton you program a set of pulses and spaces; with the
-winbond you set the protocol and the scancode. I don't think there is
-any shared code here. Maybe it's better to implement the wakeup 
-sysfs files in the drivers themselves rather than in rcdev, I guess that
-depends on whether there are other devices that implement similar 
-functionality.
+media-ctl -r -l '"tvp5150 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+media-ctl --set-format '"tvp5150 2-005c":0 [UYVY 720x625]'
 
+And then capture with yavta -s 720x625 (or 720x576, can't remember right now).
 
-Sean
+Thanks,
 
-> I glanced over the winbond-cir driver and porting the driver to use
-> sysfs for wakeup scancodes looks doable. Also a new sysfs entry for
-> setting the wakeup protocol would indeed be needed... I will take a
-> closer look at this when I have some more time.
-> 
-> -Antti
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Enrico
