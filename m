@@ -1,90 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f171.google.com ([209.85.216.171]:56095 "EHLO
-	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753540AbaAATl7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 14:41:59 -0500
-Received: by mail-qc0-f171.google.com with SMTP id c9so12855371qcz.2
-        for <linux-media@vger.kernel.org>; Wed, 01 Jan 2014 11:41:59 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1388586278.1879.21.camel@palomino.walls.org>
-References: <CAJghqepkKXth6_jqj5jU-HghAHxBBkaphCpR5MqfuRGXHXA4Sg@mail.gmail.com>
-	<CAJghqeopSEER-ExtW8LhXYkCNH99Mwj5W7JCZAEf65CTpBu94Q@mail.gmail.com>
-	<CAJghqerGcLUZCAT9LGP+5LzFLVCmHS1JUqNDTP1_Mj7b24fKhQ@mail.gmail.com>
-	<1388254550.2129.83.camel@palomino.walls.org>
-	<CAJghqeptMtc2OTUuCY8MUY14kj-d6KPpUAUCxjw8Nod6TNOMaA@mail.gmail.com>
-	<1388586278.1879.21.camel@palomino.walls.org>
-Date: Wed, 1 Jan 2014 14:41:59 -0500
-Message-ID: <CAJghqerAVmCd_xcW9x2y=gKd4uq9-3P0CTmW_UpAjA42WQNNTw@mail.gmail.com>
-Subject: Re: Fwd: v4l2: The device does not support the streaming I/O method.
-From: Andy <dssnosher@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:25673 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752349AbaAGR3k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 12:29:40 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZ100CEQKLFJA60@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 07 Jan 2014 12:29:39 -0500 (EST)
+Date: Tue, 07 Jan 2014 15:29:34 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: [PATCH 15/18] libdvbv5: remove c99 comments
+Message-id: <20140107152934.3e39af3d@samsung.com>
+In-reply-to: <1388407731-24369-15-git-send-email-neolynx@gmail.com>
+References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+ <1388407731-24369-15-git-send-email-neolynx@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am trying to stream /dev/video0 to http and encode it in h.264.
+Em Mon, 30 Dec 2013 13:48:48 +0100
+André Roth <neolynx@gmail.com> escreveu:
 
-On Wed, Jan 1, 2014 at 9:24 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> On Sun, 2013-12-29 at 15:27 -0500, Andy wrote:
->> Are there any other viable options to stream /dev/video0 then?
->
-> I'm not sure what you mean by stream; what are you trying to do?
->
-> By default the ivtv driver and the PVR-150 output an MPEG-2 Program
-> Stream containing MPEG-2 Video and MPEG-2 Audio Elementary Streams.
->
-> Any Linux video application worth it's salt (mplayer, VLC, ffmpeg)
-> should be able to handle that MPEG-2 PS with no problem.
->
-> It's just a matter of using the correct command line argument to do what
-> you want to do.  mplayer only needs the device node name as a command
-> line argument to play back the stream.
->
-> Regards,
-> Andy
->
->
->
->
->> On Sat, Dec 28, 2013 at 1:15 PM, Andy Walls <awalls@md.metrocast.net> wrote:
->> > On Fri, 2013-12-27 at 00:37 -0500, Andy wrote:
->> >> I am trying to capture input from /dev/video0 which is Hauppauge Win
->> >> 150 MCE PCI card but I get the following error which has no record on
->> >> google
->> >>
->> >> [video4linux2,v4l2 @ 0xb080d60] The device does not support the
->> >> streaming I/O method.
->> >> /dev/video0: Function not implemented
->> >
->> > The ivtv driver does not support the V4L2 Streaming I/O ioctl()'s for
->> > transferring video data buffers.  It only supports the read()/write()
->> > calls.
->> >
->> > I'm not sure about ffmpeg, but mplayer is happy to read() the mpeg
->> > stream from standard input or the device node:
->> >
->> > # cat /dev/video0 | mplayer
->> > or
->> > # mplayer /dev/video0
->> >
->> > Regards,
->> > Andy
->> >
->> >> Here is the ffmpeg command
->> >> ffmpeg -y -f:v video4linux2 -i /dev/video0 -f:a alsa -ac 1 -i hw:1,0
->> >> -threads 2 -override_ffserver -flags +global_header -vcodec libx264 -s
->> >> 320x240 -preset superfast -r 7.5 -acodec aac -ar 44100
->> >> ipgoeshere:port/dvbstest.ffm
->> >>
->> >> Disregard the DVB syntax, not relevant
->> >>
->> >> Any idea what is causing the error?
->> >> --
->> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> >> the body of a message to majordomo@vger.kernel.org
->> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >
->> >
->
->
+> Signed-off-by: André Roth <neolynx@gmail.com>
+> ---
+>  lib/libdvbv5/descriptors/atsc_eit.c              |  2 +-
+>  lib/libdvbv5/descriptors/desc_service_list.c     |  4 +++-
+>  lib/libdvbv5/descriptors/desc_service_location.c |  2 +-
+>  lib/libdvbv5/dvb-file.c                          | 21 +++++++++++----------
+>  lib/libdvbv5/dvb-log.c                           |  2 +-
+>  lib/libdvbv5/dvb-sat.c                           |  2 --
+>  lib/libdvbv5/dvb-scan.c                          |  4 ++--
+>  7 files changed, 19 insertions(+), 18 deletions(-)
+> 
+> diff --git a/lib/libdvbv5/descriptors/atsc_eit.c b/lib/libdvbv5/descriptors/atsc_eit.c
+> index 4ee38ae..8d3791d 100644
+> --- a/lib/libdvbv5/descriptors/atsc_eit.c
+> +++ b/lib/libdvbv5/descriptors/atsc_eit.c
+> @@ -68,7 +68,7 @@ void atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
+>                  atsc_time(event->start_time, &event->start);
+>  		event->source_id = eit->header.id;
+>  
+> -                //FIXME: title
+> +                /* FIXME: title */
+>                  p += event->title_length - 1;
+>  
+>  		if(!*head)
+> diff --git a/lib/libdvbv5/descriptors/desc_service_list.c b/lib/libdvbv5/descriptors/desc_service_list.c
+> index ab91622..18aa313 100644
+> --- a/lib/libdvbv5/descriptors/desc_service_list.c
+> +++ b/lib/libdvbv5/descriptors/desc_service_list.c
+> @@ -23,6 +23,8 @@
+>  #include "descriptors.h"
+>  #include "dvb-fe.h"
+>  
+> +/* FIXME: implement */
+> +
+>  void dvb_desc_service_list_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
+>  {
+>  	/*struct dvb_desc_service_list *slist = (struct dvb_desc_service_list *) desc;*/
+> @@ -38,7 +40,7 @@ void dvb_desc_service_list_init(struct dvb_v5_fe_parms *parms, const uint8_t *bu
+>  	/*}*/
+>  
+>  	/*return sizeof(struct dvb_desc_service_list) + slist->length + sizeof(struct dvb_desc_service_list_table);*/
+> -	//FIXME: make linked list
+> +	/* FIXME: make linked list */
+>  }
+>  
+>  void dvb_desc_service_list_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
+> diff --git a/lib/libdvbv5/descriptors/desc_service_location.c b/lib/libdvbv5/descriptors/desc_service_location.c
+> index 3759665..b205428 100644
+> --- a/lib/libdvbv5/descriptors/desc_service_location.c
+> +++ b/lib/libdvbv5/descriptors/desc_service_location.c
+> @@ -36,7 +36,7 @@ void dvb_desc_service_location_init(struct dvb_v5_fe_parms *parms, const uint8_t
+>  
+>  	bswap16(service_location->bitfield);
+>  
+> -	// FIXME: handle elements == 0
+> +	 /* FIXME: handle elements == 0 */
+>  	service_location->element = malloc(service_location->elements * sizeof(struct dvb_desc_service_location_element));
+>  	int i;
+>  	struct dvb_desc_service_location_element *element = service_location->element;
+> diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
+> index 1e41fbb..de19dc5 100644
+> --- a/lib/libdvbv5/dvb-file.c
+> +++ b/lib/libdvbv5/dvb-file.c
+> @@ -784,20 +784,21 @@ static char *dvb_vchannel(struct dvb_table_nit *nit, uint16_t service_id)
+>  	if (!nit)
+>  		return NULL;
+>  
+> -for( struct dvb_desc_logical_channel *desc = (struct dvb_desc_logical_channel *) nit->descriptor; desc; desc = (struct dvb_desc_logical_channel *) desc->next ) \
+> +	/* FIXME: use dvb_desc_find(struct dvb_desc_logical_channel, desc, nit, logical_channel_number_descriptor) { */
+> +	for( struct dvb_desc_logical_channel *desc = (struct dvb_desc_logical_channel *) nit->descriptor; desc; desc = (struct dvb_desc_logical_channel *) desc->next ) {
+>  		if(desc->type == logical_channel_number_descriptor) {
+> -//	dvb_desc_find(struct dvb_desc_logical_channel, desc, nit, logical_channel_number_descriptor) {
+> -		struct dvb_desc_logical_channel *d = (void *)desc;
+> +			struct dvb_desc_logical_channel *d = (void *)desc;
+>  
+> -		size_t len;
+> +			size_t len;
+>  
+> -		len = d->length / sizeof(d->lcn);
+> +			len = d->length / sizeof(d->lcn);
+>  
+> -		for (i = 0; i < len; i++) {
+> -			if (service_id == d->lcn[i].service_id) {
+> -				asprintf(&buf, "%d.%d",
+> -					d->lcn[i].logical_channel_number, i);
+> -				return buf;
+> +			for (i = 0; i < len; i++) {
+> +				if (service_id == d->lcn[i].service_id) {
+> +					asprintf(&buf, "%d.%d",
+> +						d->lcn[i].logical_channel_number, i);
+> +					return buf;
+> +				}
+>  			}
+>  		}
+>  	}
+> diff --git a/lib/libdvbv5/dvb-log.c b/lib/libdvbv5/dvb-log.c
+> index 7fa811f..2be056a 100644
+> --- a/lib/libdvbv5/dvb-log.c
+> +++ b/lib/libdvbv5/dvb-log.c
+> @@ -44,7 +44,7 @@ static const struct loglevel {
+>  
+>  void dvb_default_log(int level, const char *fmt, ...)
+>  {
+> -	if(level > sizeof(loglevels) / sizeof(struct loglevel) - 2) // ignore LOG_COLOROFF as well
+> +	if(level > sizeof(loglevels) / sizeof(struct loglevel) - 2) /* ignore LOG_COLOROFF as well */
+>  		level = LOG_INFO;
+>  	va_list ap;
+>  	va_start(ap, fmt);
+> diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+> index 09eb4d1..ea3e2c1 100644
+> --- a/lib/libdvbv5/dvb-sat.c
+> +++ b/lib/libdvbv5/dvb-sat.c
+> @@ -214,8 +214,6 @@ static void dvbsat_diseqc_prep_frame_addr(struct diseqc_cmd *cmd,
+>  	cmd->address = diseqc_addr[type];
+>  }
+>  
+> -//struct dvb_v5_fe_parms *parms; // legacy code, used for parms->fd, FIXME anyway
+> -
+>  /* Inputs are numbered from 1 to 16, according with the spec */
+>  static int dvbsat_diseqc_write_to_port_group(struct dvb_v5_fe_parms *parms, struct diseqc_cmd *cmd,
+>  					     int high_band,
+> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+> index d0f0b39..5f8596e 100644
+> --- a/lib/libdvbv5/dvb-scan.c
+> +++ b/lib/libdvbv5/dvb-scan.c
+> @@ -98,7 +98,7 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  	uint8_t *tbl = NULL;
+>  	ssize_t table_length = 0;
+>  
+> -	// handle sections
+> +	/* handle sections */
+>  	int start_id = -1;
+>  	int start_section = -1;
+>  	int first_section = -1;
+> @@ -112,7 +112,7 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  		return -4;
+>  	*table = NULL;
+>  
+> -	// FIXME: verify known table
+> +	 /* FIXME: verify known table */
+>  	memset(&f, 0, sizeof(f));
+>  	f.pid = pid;
+>  	f.filter.filter[0] = tid;
+
+Only partially applies (as some patches introducing those comments weren't applied).
+
+-- 
+
+Cheers,
+Mauro
