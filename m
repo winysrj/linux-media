@@ -1,231 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1043 "EHLO
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4775 "EHLO
 	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754016AbaAaJ5R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:57:17 -0500
+	with ESMTP id S1751179AbaAGNHK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 08:07:10 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 16/32] v4l2-ctrls: add matrix support.
-Date: Fri, 31 Jan 2014 10:56:14 +0100
-Message-Id: <1391162190-8620-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/6] DocBook media: update copyright years and Introduction.
+Date: Tue,  7 Jan 2014 14:06:53 +0100
+Message-Id: <1389100017-42855-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
+References: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Finish the userspace-facing matrix support.
-
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 108 ++++++++++++++++++++---------------
- 1 file changed, 63 insertions(+), 45 deletions(-)
+ Documentation/DocBook/media/dvb/dvbapi.xml |  2 +-
+ Documentation/DocBook/media/v4l/v4l2.xml   |  1 +
+ Documentation/DocBook/media_api.tmpl       | 13 +++++++------
+ 3 files changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index a61e602..b4a9ada 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1173,6 +1173,8 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 		ptr.p_s32[idx] = ctrl->default_value;
- 		break;
- 	default:
-+		idx *= ctrl->elem_size;
-+		memset(ptr.p + idx, 0, ctrl->elem_size);
- 		break;
- 	}
- }
-@@ -1290,7 +1292,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 	u32 len;
+diff --git a/Documentation/DocBook/media/dvb/dvbapi.xml b/Documentation/DocBook/media/dvb/dvbapi.xml
+index 49f46e8..4c15396 100644
+--- a/Documentation/DocBook/media/dvb/dvbapi.xml
++++ b/Documentation/DocBook/media/dvb/dvbapi.xml
+@@ -28,7 +28,7 @@
+ 	<holder>Convergence GmbH</holder>
+ </copyright>
+ <copyright>
+-	<year>2009-2012</year>
++	<year>2009-2014</year>
+ 	<holder>Mauro Carvalho Chehab</holder>
+ </copyright>
  
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
-+		return copy_to_user(c->p, ptr.p, c->size);
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 53f5306..520b2a1 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -125,6 +125,7 @@ Remote Controller chapter.</contrib>
+       <year>2011</year>
+       <year>2012</year>
+       <year>2013</year>
++      <year>2014</year>
+       <holder>Bill Dirks, Michael H. Schimek, Hans Verkuil, Martin
+ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
+ 	Pawel Osciak</holder>
+diff --git a/Documentation/DocBook/media_api.tmpl b/Documentation/DocBook/media_api.tmpl
+index df6db3a..ba1d704 100644
+--- a/Documentation/DocBook/media_api.tmpl
++++ b/Documentation/DocBook/media_api.tmpl
+@@ -37,7 +37,7 @@
+ <title>LINUX MEDIA INFRASTRUCTURE API</title>
  
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
-@@ -1334,8 +1336,17 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 	u32 size;
+ <copyright>
+-	<year>2009-2012</year>
++	<year>2009-2014</year>
+ 	<holder>LinuxTV Developers</holder>
+ </copyright>
  
- 	ctrl->is_new = 1;
--	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_from_user(ptr.p, c->p, ctrl->elem_size);
-+	if (ctrl->is_ptr && !ctrl->is_string) {
-+		unsigned idx;
-+
-+		ret = copy_from_user(ptr.p, c->p, c->size);
-+		if (ret || !ctrl->is_matrix)
-+			return ret;
-+		for (idx = c->size / ctrl->elem_size;
-+		     idx < ctrl->rows * ctrl->cols; idx++)
-+			ctrl->type_ops->init(ctrl, idx, ptr);
-+		return 0;
-+	}
+@@ -58,12 +58,13 @@ Foundation. A copy of the license is included in the chapter entitled
+ 	<title>Introduction</title>
  
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER64:
-@@ -1378,21 +1389,7 @@ static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
- {
- 	if (ctrl == NULL)
- 		return;
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		strcpy(to.p_char, from.p_char);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		*to.p_s64 = *from.p_s64;
--		break;
--	default:
--		if (ctrl->is_ptr)
--			memcpy(to.p, from.p, ctrl->elem_size);
--		else
--			*to.p_s32 = *from.p_s32;
--		break;
--	}
-+	memcpy(to.p, from.p, ctrl->rows * ctrl->cols * ctrl->elem_size);
- }
+ 	<para>This document covers the Linux Kernel to Userspace API's used by
+-		video and radio straming devices, including video cameras,
++		video and radio streaming devices, including video cameras,
+ 		analog and digital TV receiver cards, AM/FM receiver cards,
+-		streaming capture devices.</para>
++		streaming capture and output devices, codec devices and remote
++		controllers.</para>
+ 	<para>It is divided into four parts.</para>
+-	<para>The first part covers radio, capture,
+-		cameras and analog TV devices.</para>
++	<para>The first part covers radio, video capture and output,
++		cameras, analog TV devices and codecs.</para>
+ 	<para>The second part covers the
+ 		API used for digital TV and Internet reception via one of the
+ 		several digital tv standards. While it is called as DVB API,
+@@ -96,7 +97,7 @@ Foundation. A copy of the license is included in the chapter entitled
+ </author>
+ </authorgroup>
+ <copyright>
+-	<year>2009-2012</year>
++	<year>2009-2014</year>
+ 	<holder>Mauro Carvalho Chehab</holder>
+ </copyright>
  
- /* Copy the new value to the current value. */
-@@ -1444,15 +1441,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- static int cluster_changed(struct v4l2_ctrl *master)
- {
- 	bool changed = false;
-+	unsigned idx;
- 	int i;
- 
- 	for (i = 0; i < master->ncontrols; i++) {
- 		struct v4l2_ctrl *ctrl = master->cluster[i];
-+		bool ctrl_changed = false;
- 
- 		if (ctrl == NULL)
- 			continue;
--		ctrl->has_changed = !ctrl->type_ops->equal(ctrl, 0,
-+		for (idx = 0; idx < ctrl->rows * ctrl->cols; idx++)
-+			ctrl_changed |= !ctrl->type_ops->equal(ctrl, idx,
- 						ctrl->stores[0], ctrl->new);
-+		ctrl->has_changed = ctrl_changed;
- 		changed |= ctrl->has_changed;
- 	}
- 	return changed;
-@@ -1499,26 +1500,32 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
- 			struct v4l2_ext_control *c)
- {
- 	union v4l2_ctrl_ptr ptr;
--
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_INTEGER:
--	case V4L2_CTRL_TYPE_INTEGER_MENU:
--	case V4L2_CTRL_TYPE_MENU:
--	case V4L2_CTRL_TYPE_BITMASK:
--	case V4L2_CTRL_TYPE_BOOLEAN:
--	case V4L2_CTRL_TYPE_BUTTON:
--	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		ptr.p_s32 = &c->value;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	case V4L2_CTRL_TYPE_INTEGER64:
--		ptr.p_s64 = &c->value64;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	default:
--		ptr.p = c->p;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
-+	unsigned idx;
-+	int err = 0;
-+
-+	if (!ctrl->is_ptr) {
-+		switch (ctrl->type) {
-+		case V4L2_CTRL_TYPE_INTEGER:
-+		case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		case V4L2_CTRL_TYPE_MENU:
-+		case V4L2_CTRL_TYPE_BITMASK:
-+		case V4L2_CTRL_TYPE_BOOLEAN:
-+		case V4L2_CTRL_TYPE_BUTTON:
-+		case V4L2_CTRL_TYPE_CTRL_CLASS:
-+			ptr.p_s32 = &c->value;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+
-+		case V4L2_CTRL_TYPE_INTEGER64:
-+			ptr.p_s64 = &c->value64;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+		default:
-+			break;
-+		}
- 	}
-+	ptr.p = c->p;
-+	for (idx = 0; !err && idx < c->size / ctrl->elem_size; idx++)
-+		err = ctrl->type_ops->validate(ctrl, idx, ptr);
-+	return err;
- }
- 
- static inline u32 node2id(struct list_head *node)
-@@ -1745,6 +1752,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	struct v4l2_ctrl *ctrl;
- 	bool is_matrix;
- 	unsigned sz_extra, tot_ctrl_size;
-+	unsigned idx;
- 	void *data;
- 	int err;
- 	int s;
-@@ -1854,7 +1862,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->stores[0].p = data;
- 	}
- 	for (s = -1; s <= 0; s++)
--		ctrl->type_ops->init(ctrl, 0, ctrl->stores[s]);
-+		for (idx = 0; idx < rows * cols; idx++)
-+			ctrl->type_ops->init(ctrl, idx, ctrl->stores[s]);
- 
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
-@@ -2548,12 +2557,18 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 			have_clusters = true;
- 		if (ctrl->cluster[0] != ctrl)
- 			ref = find_ref_lock(hdl, ctrl->cluster[0]->id);
--		if (ctrl->is_ptr && !ctrl->is_string && c->size < ctrl->elem_size) {
--			if (get) {
--				c->size = ctrl->elem_size;
--				return -ENOSPC;
-+		if (ctrl->is_ptr && !ctrl->is_string) {
-+			unsigned tot_size = ctrl->rows * ctrl->cols *
-+					    ctrl->elem_size;
-+
-+			if (c->size < tot_size) {
-+				if (get) {
-+					c->size = tot_size;
-+					return -ENOSPC;
-+				}
-+				return -EFAULT;
- 			}
--			return -EFAULT;
-+			c->size = tot_size;
- 		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
-@@ -3093,7 +3108,7 @@ EXPORT_SYMBOL(v4l2_ctrl_notify);
- int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 			s64 min, s64 max, u64 step, s64 def)
- {
--	int ret = check_range(ctrl->type, min, max, step, def);
-+	int ret;
- 	struct v4l2_ext_control c;
- 
- 	switch (ctrl->type) {
-@@ -3103,6 +3118,9 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
-+		if (ctrl->is_matrix)
-+			return -EINVAL;
-+		ret = check_range(ctrl->type, min, max, step, def);
- 		if (ret)
- 			return ret;
- 		break;
 -- 
 1.8.5.2
 
