@@ -1,113 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2373 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753980AbaAaJ5N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:57:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 22/32] v4l2-controls.txt: update to the new way of accessing controls.
-Date: Fri, 31 Jan 2014 10:56:20 +0100
-Message-Id: <1391162190-8620-23-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.22]:51379 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752543AbaAGQMQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jan 2014 11:12:16 -0500
+Received: from [192.168.0.33] ([94.134.193.85]) by mail.gmx.com (mrgmx002)
+ with ESMTPSA (Nemesis) id 0MQzIE-1Vp3Sd1bzS-00UNC8 for
+ <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 17:12:14 +0100
+Message-ID: <52CC275B.5030907@gmx.de>
+Date: Tue, 07 Jan 2014 17:12:11 +0100
+From: Andreas Regel <andreas.regel@gmx.de>
+MIME-Version: 1.0
+To: Luis Alves <ljalvs@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+CC: updatelee@gmail.com, abraham.manu@gmail.com, crazycat69@narod.ru,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: Upstreaming SAA716x driver to the media_tree
+References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
+In-Reply-To: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Luis,
 
-The way current and new values are accessed has changed. Update the
-document to bring it up to date with the code.
+Am 07.01.2014 12:58, schrieb Luis Alves:
+> Hi,
+> 
+> I'm finishing a new frontend driver for one of my dvb cards, but the
+> pcie bridge uses the (cursed) saa716x.
+> As far as I know the progress to upstream Manu's driver to the
+> media_tree has stalled.
+> 
+> In CC I've placed some of the people that I found working on it
+> lately, supporting a few dvb cards.
+> 
+> It would be good if we could gather everything in one place and send a
+> few patchs to get this upstreamed for once...
+> 
+> Manu, do you see any inconvenience in sending your driver to the
+> linux_media tree?
+> I'm available to place some effort on this task.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- Documentation/video4linux/v4l2-controls.txt | 46 +++++++++++++++++++----------
- 1 file changed, 31 insertions(+), 15 deletions(-)
+which repository of the saa761x is your work based on?
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index 1c353c2..f94dcfd 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -77,9 +77,9 @@ Basic usage for V4L2 and sub-device drivers
- 
-   Where foo->v4l2_dev is of type struct v4l2_device.
- 
--  Finally, remove all control functions from your v4l2_ioctl_ops:
--  vidioc_queryctrl, vidioc_querymenu, vidioc_g_ctrl, vidioc_s_ctrl,
--  vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
-+  Finally, remove all control functions from your v4l2_ioctl_ops (if any):
-+  vidioc_queryctrl, vidioc_query_ext_ctrl, vidioc_querymenu, vidioc_g_ctrl,
-+  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
-   Those are now no longer needed.
- 
- 1.3.2) For sub-device drivers do this:
-@@ -258,8 +258,8 @@ The new control value has already been validated, so all you need to do is
- to actually update the hardware registers.
- 
- You're done! And this is sufficient for most of the drivers we have. No need
--to do any validation of control values, or implement QUERYCTRL/QUERYMENU. And
--G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
-+to do any validation of control values, or implement QUERYCTRL, QUERY_EXT_CTRL
-+and QUERYMENU. And G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
- 
- 
- ==============================================================================
-@@ -288,24 +288,40 @@ of v4l2_device.
- Accessing Control Values
- ========================
- 
--The v4l2_ctrl struct contains these two unions:
-+The following union is used inside the control framework to access control
-+values:
- 
--	/* The current control value. */
--	union {
--		s32 val;
--		s64 val64;
--		char *string;
--	} cur;
-+union v4l2_ctrl_ptr {
-+	s32 *p_s32;
-+	s64 *p_s64;
-+	char *p_char;
-+	void *p;
-+};
-+
-+The v4l2_ctrl struct contains these fields that can be used to access both
-+current and new values:
- 
--	/* The new control value. */
- 	union {
- 		s32 val;
- 		s64 val64;
--		char *string;
- 	};
-+	union v4l2_ctrl_ptr new;
-+	union v4l2_ctrl_ptr cur;
-+
-+If the control has a simple s32 type or s64 type, then:
-+
-+	&ctrl->val == ctrl->new.p_s32
-+
-+or:
-+
-+	&ctrl->val64 == ctrl->new.p_s64
-+
-+For all other types use ctrl->new.p<something> instead of ctrl->val/val64.
-+Basically the val and val64 fields can be considered aliases since these
-+are used so often.
- 
- Within the control ops you can freely use these. The val and val64 speak for
--themselves. The string pointers point to character buffers of length
-+themselves. The p_char pointers point to character buffers of length
- ctrl->maximum + 1, and are always 0-terminated.
- 
- In most cases 'cur' contains the current cached control value. When you create
--- 
-1.8.5.2
+Regards,
+Andreas
 
