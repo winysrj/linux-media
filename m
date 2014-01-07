@@ -1,48 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:35175 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436AbaARWeW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jan 2014 17:34:22 -0500
-Received: by mail-wg0-f46.google.com with SMTP id x12so5655218wgg.13
-        for <linux-media@vger.kernel.org>; Sat, 18 Jan 2014 14:34:21 -0800 (PST)
-Message-ID: <52DB016B.5040108@googlemail.com>
-Date: Sat, 18 Jan 2014 23:34:19 +0100
-From: Gregor Jasny <gjasny@googlemail.com>
-MIME-Version: 1.0
-To: Andreas Weber <andy.weber.aw@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: How to tell libv4l2 which src_fmt should be prefered?
-References: <52DA5ABA.7070003@gmail.com>
-In-Reply-To: <52DA5ABA.7070003@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:9398 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751640AbaAGNyq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 08:54:46 -0500
+Date: Tue, 07 Jan 2014 11:54:38 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Ding Tianhong <dingtianhong@huawei.com>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	linux-media@vger.kernel.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Netdev <netdev@vger.kernel.org>
+Subject: Re: [PATCH v3 13/19] media: dvb_core: slight optimization of addr
+ compare
+Message-id: <20140107115438.02c7424e@samsung.com>
+In-reply-to: <52BC0E56.80003@huawei.com>
+References: <52BA5113.7070908@huawei.com> <52BABA23.2040709@cogentembedded.com>
+ <52BC0E56.80003@huawei.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Thu, 26 Dec 2013 19:09:10 +0800
+Ding Tianhong <dingtianhong@huawei.com> escreveu:
 
-On 18/01/14 11:43, Andreas Weber wrote:
-> Is there a way to tell libv4l2 which native source format it should
-> prefer to convert from? For example my uvcvideo webcam supports natively
-> YUYV and MJPG (see output below)
-> ...
->
-> So it picks up YUYV as source format. I had a look at
-> v4lconvert_try_format but can see no way how to do this.
+> On 2013/12/25 18:57, Sergei Shtylyov wrote:
+> > Hello.
+> > 
+> > On 25-12-2013 7:29, Ding Tianhong wrote:
+> > 
+> >> Use possibly more efficient ether_addr_equal
+> >> instead of memcmp.
+> > 
+> >> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> >> Cc: linux-media@vger.kernel.org
+> >> Cc: linux-kernel@vger.kernel.org
+> >> Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
+> >> Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+> >> ---
+> >>   drivers/media/dvb-core/dvb_net.c | 8 ++++----
+> >>   1 file changed, 4 insertions(+), 4 deletions(-)
+> > 
+> >> diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+> >> index f91c80c..3dfc33b 100644
+> >> --- a/drivers/media/dvb-core/dvb_net.c
+> >> +++ b/drivers/media/dvb-core/dvb_net.c
+> >> @@ -179,7 +179,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
+> >>       eth = eth_hdr(skb);
+> >>
+> >>       if (*eth->h_dest & 1) {
+> >> -        if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
+> >> +        if(ether_addr_equal(eth->h_dest,dev->broadcast))
+> > 
+> >    There should be space after comma.
+> > 
+> >> @@ -674,11 +674,11 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+> >>                       if (priv->rx_mode != RX_MODE_PROMISC) {
+> >>                           if (priv->ule_skb->data[0] & 0x01) {
+> >>                               /* multicast or broadcast */
+> >> -                            if (memcmp(priv->ule_skb->data, bc_addr, ETH_ALEN)) {
+> >> +                            if (!ether_addr_equal(priv->ule_skb->data, bc_addr)) {
+> >>                                   /* multicast */
+> >>                                   if (priv->rx_mode == RX_MODE_MULTI) {
+> >>                                       int i;
+> >> -                                    for(i = 0; i < priv->multi_num && memcmp(priv->ule_skb->data, priv->multi_macs[i], ETH_ALEN); i++)
+> >> +                                    for(i = 0; i < priv->multi_num && !ether_addr_equal(priv->ule_skb->data, priv->multi_macs[i]); i++)
+> > 
+> >    Shouldn't this line be broken?
+> > 
+> 
+> ok, thanks.
 
-If I understand the source correctly the table at [1] is the brain of 
-the conversion. MJPEG has a rank of 7, YUYV has a rank of 5. So YUYV is 
-chosen. The function that picks the conversion path is at [2].
+Also, since you're touching on those lines, could you please add an space
+after 'if' (on the first hunk) and after 'for' (on the second one)?
 
-Currently there is no way to influence the decision. Why do you want to 
-do this?
+> 
+> Regards
+> >>                                           ;
+> >>                                       if (i == priv->multi_num)
+> >>                                           drop = 1;
+> > 
+> > WBR, Sergei
+> > 
+> > 
+> > 
+> > 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 Thanks,
-Gregor
-
-[1] 
-http://git.linuxtv.org/v4l-utils.git/blob/HEAD:/lib/libv4lconvert/libv4lconvert.c#l75
-[2] 
-http://git.linuxtv.org/v4l-utils.git/blob/HEAD:/lib/libv4lconvert/libv4lconvert.c#l379
-
+Mauro
