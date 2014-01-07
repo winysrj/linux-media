@@ -1,90 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1625 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040AbaAaJ47 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:56:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 04/32] videodev2.h: add initial support for complex controls.
-Date: Fri, 31 Jan 2014 10:56:02 +0100
-Message-Id: <1391162190-8620-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:40364 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751395AbaAGEpL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 23:45:11 -0500
+Received: by mail-wg0-f47.google.com with SMTP id n12so16681750wgh.14
+        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 20:45:05 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1389068966-14594-3-git-send-email-tmester@ieee.org>
+References: <1389068966-14594-1-git-send-email-tmester@ieee.org>
+	<1389068966-14594-3-git-send-email-tmester@ieee.org>
+Date: Mon, 6 Jan 2014 23:45:05 -0500
+Message-ID: <CAGoCfix3GRETd+YXNSimpDY8StVPzc0sEMpzhdnuLf1eA4g+vw@mail.gmail.com>
+Subject: Re: [PATCH 3/3] au8522, au0828: Added demodulator reset
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Tim Mester <ttmesterr@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Tim Mester <tmester@ieee.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Jan 6, 2014 at 11:29 PM, Tim Mester <ttmesterr@gmail.com> wrote:
+> The demodulator can get in a state in ATSC mode where just
+> restarting the feed alone does not correct the corrupted stream.  The
+> demodulator reset in addition to the feed restart seems to correct
+> the condition.
+>
+> The au8522 driver has been modified so that when set_frontend() is
+> called with the same frequency and modulation mode, the demodulator
+> will be reset.  The au0282 drives uses this feature when it attempts
+> to restart the feed.
 
-Complex controls are controls that can be used for compound and array
-types. This allows for more complex data structures to be used with the
-control framework.
+What is the actual "corruption" that you are seeing?  Can you describe
+it in greater detail?  The original fix was specifically related to
+the internal FIFO on the au0828 where it can get shifted by one or
+more bits (i.e. the leading byte is no longer 0x47 but 0x47 << X).
+Hence it's an issue unrelated to the actual au8522.
 
-Such controls always have the V4L2_CTRL_FLAG_HIDDEN flag set. Note that
-'simple' controls can also set that flag.
+I suspect this is actually a different problem which out of dumb luck
+gets "fixed" by resetting the chip.  Without more details on the
+specific behavior you are seeing though I cannot really advise on what
+the correct change is.
 
-The existing V4L2_CTRL_FLAG_NEXT_CTRL flag will only enumerate controls
-that do not have the HIDDEN flag, so a new V4L2_CTRL_FLAG_NEXT_HIDDEN flag
-is added to enumerate hidden controls. Set both flags to enumerate any
-controls (hidden or not).
+This patch should not be accepted upstream without more discussion.
 
-Complex control types will start at V4L2_CTRL_COMPLEX_TYPES. In addition, any
-control that uses the new 'p' field or the existing 'string' field will have
-flag V4L2_CTRL_FLAG_IS_PTR set.
+Regards,
 
-While not strictly necessary, adding that flag makes life for applications
-a lot simpler. If the flag is not set, then the control value is set
-through the value or value64 fields of struct v4l2_ext_control, otherwise
-a pointer points to the value.
+Devin
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- include/uapi/linux/videodev2.h | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 6ae7bbe..4d7782a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1228,6 +1228,7 @@ struct v4l2_ext_control {
- 		__s32 value;
- 		__s64 value64;
- 		char *string;
-+		void *p;
- 	};
- } __attribute__ ((packed));
- 
-@@ -1252,7 +1253,10 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
- 	V4L2_CTRL_TYPE_STRING        = 7,
- 	V4L2_CTRL_TYPE_BITMASK       = 8,
--	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
-+	V4L2_CTRL_TYPE_INTEGER_MENU  = 9,
-+
-+	/* Complex types are >= 0x0100 */
-+	V4L2_CTRL_COMPLEX_TYPES	     = 0x0100,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
-@@ -1288,9 +1292,12 @@ struct v4l2_querymenu {
- #define V4L2_CTRL_FLAG_SLIDER 		0x0020
- #define V4L2_CTRL_FLAG_WRITE_ONLY 	0x0040
- #define V4L2_CTRL_FLAG_VOLATILE		0x0080
-+#define V4L2_CTRL_FLAG_HIDDEN		0x0100
-+#define V4L2_CTRL_FLAG_IS_PTR		0x0200
- 
--/*  Query flag, to be ORed with the control ID */
-+/*  Query flags, to be ORed with the control ID */
- #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
-+#define V4L2_CTRL_FLAG_NEXT_HIDDEN	0x40000000
- 
- /*  User-class control IDs defined by V4L2 */
- #define V4L2_CID_MAX_CTRLS		1024
 -- 
-1.8.5.2
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
