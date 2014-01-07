@@ -1,147 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1658 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006AbaAaKCl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 05:02:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 26/32] v4l2-ctrls/v4l2-controls.h: add MD controls
-Date: Fri, 31 Jan 2014 10:56:24 +0100
-Message-Id: <1391162190-8620-27-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:17251 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751963AbaAGRFl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 12:05:41 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZ100KIZJHG2Y70@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 07 Jan 2014 12:05:40 -0500 (EST)
+Date: Tue, 07 Jan 2014 15:05:35 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 08/18] libdvbv5: implement MGT parser
+Message-id: <20140107150535.70a0e9d2@samsung.com>
+In-reply-to: <1388407731-24369-8-git-send-email-neolynx@gmail.com>
+References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+ <1388407731-24369-8-git-send-email-neolynx@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Mon, 30 Dec 2013 13:48:41 +0100
+André Roth <neolynx@gmail.com> escreveu:
 
-Add the 'Detect' control class and the new motion detection controls.
-Those controls will be used by the solo6x10 and go7007 drivers.
+> Signed-off-by: André Roth <neolynx@gmail.com>
+> ---
+>  lib/include/descriptors/mgt.h  |  80 ++++++++++++++++++++++++++++
+>  lib/libdvbv5/Makefile.am       |   1 +
+>  lib/libdvbv5/descriptors.c     |   2 +
+>  lib/libdvbv5/descriptors/mgt.c | 117 +++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 200 insertions(+)
+>  create mode 100644 lib/include/descriptors/mgt.h
+>  create mode 100644 lib/libdvbv5/descriptors/mgt.c
+> 
+> diff --git a/lib/include/descriptors/mgt.h b/lib/include/descriptors/mgt.h
+> new file mode 100644
+> index 0000000..9eaac02
+> --- /dev/null
+> +++ b/lib/include/descriptors/mgt.h
+> @@ -0,0 +1,80 @@
+> +/*
+> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * as published by the Free Software Foundation version 2
+> + * of the License.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+> + *
+> + */
+> +
+> +#ifndef _MGT_H
+> +#define _MGT_H
+> +
+> +#include <stdint.h>
+> +#include <unistd.h> /* ssize_t */
+> +
+> +#include "descriptors/atsc_header.h"
+> +#include "descriptors.h"
+> +
+> +#define ATSC_TABLE_MGT 0xC7
+> +
+> +struct atsc_table_mgt_table {
+> +	uint16_t type;
+> +	union {
+> +		uint16_t bitfield;
+> +		struct {
+> +			uint16_t pid:13;
+> +			uint16_t one:3;
+> +		} __attribute__((packed));
+> +	} __attribute__((packed));
+> +        uint8_t type_version:5;
+> +        uint8_t one2:3;
+> +        uint32_t size;
+> +	union {
+> +		uint16_t bitfield2;
+> +		struct {
+> +			uint16_t desc_length:12;
+> +			uint16_t one3:4;
+> +		} __attribute__((packed));
+> +	} __attribute__((packed));
+> +	struct dvb_desc *descriptor;
+> +	struct atsc_table_mgt_table *next;
+> +} __attribute__((packed));
+> +
+> +struct atsc_table_mgt {
+> +	struct atsc_table_header header;
+> +        uint16_t tables;
+> +        struct atsc_table_mgt_table *table;
+> +	struct dvb_desc *descriptor;
+> +} __attribute__((packed));
+> +
+> +
+> +#define atsc_mgt_table_foreach( _tran, _mgt ) \
+> +  for( struct atsc_table_mgt_table *_tran = _mgt->table; _tran; _tran = _tran->next ) \
+> +
+> +struct dvb_v5_fe_parms;
+> +
+> +#ifdef __cplusplus
+> +extern "C" {
+> +#endif
+> +
+> +void atsc_table_mgt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
+> +void atsc_table_mgt_free(struct atsc_table_mgt *mgt);
+> +void atsc_table_mgt_print(struct dvb_v5_fe_parms *parms, struct atsc_table_mgt *mgt);
+> +
+> +#ifdef __cplusplus
+> +}
+> +#endif
+> +
+> +#endif
+> diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
+> index 33693cc..7755e05 100644
+> --- a/lib/libdvbv5/Makefile.am
+> +++ b/lib/libdvbv5/Makefile.am
+> @@ -49,6 +49,7 @@ libdvbv5_la_SOURCES = \
+>    descriptors/sdt.c  ../include/descriptors/sdt.h \
+>    descriptors/vct.c  ../include/descriptors/vct.h \
+>    descriptors/eit.c  ../include/descriptors/eit.h \
+> +  descriptors/mgt.c  ../include/descriptors/mgt.h \
+>    descriptors/desc_service_location.c  ../include/descriptors/desc_service_location.h \
+>    descriptors/mpeg_ts.c  ../include/descriptors/mpeg_ts.h \
+>    descriptors/mpeg_pes.c  ../include/descriptors/mpeg_pes.h \
+> diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
+> index bc3d51a..7b9e9d0 100644
+> --- a/lib/libdvbv5/descriptors.c
+> +++ b/lib/libdvbv5/descriptors.c
+> @@ -36,6 +36,7 @@
+>  #include "descriptors/sdt.h"
+>  #include "descriptors/eit.h"
+>  #include "descriptors/vct.h"
+> +#include "descriptors/mgt.h"
+>  #include "descriptors/desc_language.h"
+>  #include "descriptors/desc_network_name.h"
+>  #include "descriptors/desc_cable_delivery.h"
+> @@ -84,6 +85,7 @@ const struct dvb_table_init dvb_table_initializers[] = {
+>  	[DVB_TABLE_TVCT] = { dvb_table_vct_init, sizeof(struct dvb_table_vct) },
+>  	[DVB_TABLE_CVCT] = { dvb_table_vct_init, sizeof(struct dvb_table_vct) },
+>  	[DVB_TABLE_EIT_SCHEDULE] = { dvb_table_eit_init, sizeof(struct dvb_table_eit) },
+> +	[ATSC_TABLE_MGT]         = { atsc_table_mgt_init, sizeof(struct atsc_table_mgt) },
+>  };
+>  
+>  char *default_charset = "iso-8859-1";
+> diff --git a/lib/libdvbv5/descriptors/mgt.c b/lib/libdvbv5/descriptors/mgt.c
+> new file mode 100644
+> index 0000000..09d1cf2
+> --- /dev/null
+> +++ b/lib/libdvbv5/descriptors/mgt.c
+> @@ -0,0 +1,117 @@
+> +/*
+> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * as published by the Free Software Foundation version 2
+> + * of the License.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+> + *
+> + */
+> +
+> +#include "descriptors/mgt.h"
+> +#include "dvb-fe.h"
+> +
+> +void atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
+> +{
+> +	const uint8_t *p = buf;
+> +	struct atsc_table_mgt *mgt = (struct atsc_table_mgt *) table;
+> +	struct dvb_desc **head_desc;
+> +	struct atsc_table_mgt_table **head;
+> +	/*int desc_length;*/
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 27 +++++++++++++++++++++++++++
- include/uapi/linux/v4l2-controls.h   | 17 +++++++++++++++++
- 2 files changed, 44 insertions(+)
+If you don't need a line, just don't add it, instead of adding it
+commented.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 47b552d..9bce5f4 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -462,6 +462,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"RGB full range (0-255)",
- 		NULL,
- 	};
-+	static const char * const detect_md_mode[] = {
-+		"Disabled",
-+		"Global",
-+		"Threshold Grid",
-+		"Region Grid",
-+		NULL,
-+	};
- 
- 
- 	switch (id) {
-@@ -553,6 +560,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 	case V4L2_CID_DV_TX_RGB_RANGE:
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 		return dv_rgb_range;
-+	case V4L2_CID_DETECT_MD_MODE:
-+		return detect_md_mode;
- 
- 	default:
- 		return NULL;
-@@ -861,6 +870,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
- 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
-+
-+	/* Detection controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-+	case V4L2_CID_DETECT_CLASS:		return "Detection Controls";
-+	case V4L2_CID_DETECT_MD_MODE:		return "Motion Detection Mode";
-+	case V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD: return "MD Global Threshold";
-+	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:	return "MD Threshold Grid";
-+	case V4L2_CID_DETECT_MD_REGION_GRID:	return "MD Region Grid";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -971,6 +989,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
- 	case V4L2_CID_TEST_PATTERN:
- 	case V4L2_CID_TUNE_DEEMPHASIS:
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
-+	case V4L2_CID_DETECT_MD_MODE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-@@ -996,6 +1015,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
- 	case V4L2_CID_IMAGE_PROC_CLASS:
- 	case V4L2_CID_DV_CLASS:
- 	case V4L2_CID_FM_RX_CLASS:
-+	case V4L2_CID_DETECT_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -1041,6 +1061,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
- 		*type = V4L2_CTRL_TYPE_INTEGER64;
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		break;
-+	case V4L2_CID_DETECT_MD_REGION_GRID:
-+		*type = V4L2_CTRL_TYPE_U8;
-+		break;
-+	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
-+		*type = V4L2_CTRL_TYPE_U16;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-@@ -1077,6 +1103,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
- 	case V4L2_CID_PILOT_TONE_FREQUENCY:
- 	case V4L2_CID_TUNE_POWER_LEVEL:
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+	case V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2cbe605..93ff343 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -60,6 +60,7 @@
- #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
- #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
-+#define V4L2_CTRL_CLASS_DETECT		0x00a20000	/* Detection controls */
- 
- /* User-class control IDs */
- 
-@@ -895,4 +896,20 @@ enum v4l2_deemphasis {
- 
- #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
- 
-+
-+/*  Detection-class control IDs defined by V4L2 */
-+#define V4L2_CID_DETECT_CLASS_BASE		(V4L2_CTRL_CLASS_DETECT | 0x900)
-+#define V4L2_CID_DETECT_CLASS			(V4L2_CTRL_CLASS_DETECT | 1)
-+
-+#define V4L2_CID_DETECT_MD_MODE			(V4L2_CID_DETECT_CLASS_BASE + 1)
-+enum v4l2_detect_md_mode {
-+	V4L2_DETECT_MD_MODE_DISABLED		= 0,
-+	V4L2_DETECT_MD_MODE_GLOBAL		= 1,
-+	V4L2_DETECT_MD_MODE_THRESHOLD_GRID	= 2,
-+	V4L2_DETECT_MD_MODE_REGION_GRID		= 3,
-+};
-+#define V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD	(V4L2_CID_DETECT_CLASS_BASE + 2)
-+#define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
-+#define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
-+
- #endif
+> +
+> +	if (*table_length > 0) {
+> +		/* find end of curent lists */
+> +		head_desc = &mgt->descriptor;
+> +		while (*head_desc != NULL)
+> +			head_desc = &(*head_desc)->next;
+> +		head = &mgt->table;
+> +		while (*head != NULL)
+> +			head = &(*head)->next;
+> +	} else {
+> +		memcpy(table, p, sizeof(struct atsc_table_mgt) - sizeof(mgt->descriptor) - sizeof(mgt->table));
+
+Test before copy and use offsetof().
+
+> +		*table_length = sizeof(struct atsc_table_mgt);
+> +
+> +		mgt->descriptor = NULL;
+> +		mgt->table = NULL;
+> +		head_desc = &mgt->descriptor;
+> +		head = &mgt->table;
+> +		bswap16(mgt->tables);
+> +	}
+> +	p += sizeof(struct atsc_table_mgt) - sizeof(mgt->descriptor) - sizeof(mgt->table);
+
+Use offsetof().
+
+> +
+> +	/*dvb_parse_descriptors(parms, p, desc_length, head_desc);*/
+> +	/*p += desc_length;*/
+
+If not needed, don't add.
+
+> +        int i = 0;
+
+Please use tab, not spaces.
+
+> +	struct atsc_table_mgt_table *last = NULL;
+
+Please put data declaration at the beginning of the function.
+
+> +	while (i++ < mgt->tables && (uint8_t *) p < buf + buflen - 4) {
+> +		struct atsc_table_mgt_table *table = (struct atsc_table_mgt_table *) malloc(sizeof(struct atsc_table_mgt_table));
+
+Please add a blank line.
+
+> +		memcpy(table, p, sizeof(struct atsc_table_mgt_table) - sizeof(table->descriptor) - sizeof(table->next));
+> +		p += sizeof(struct atsc_table_mgt_table) - sizeof(table->descriptor) - sizeof(table->next);
+
+Please use offsetof().
+
+> +
+> +		bswap16(table->type);
+> +		bswap16(table->bitfield);
+> +		bswap16(table->bitfield2);
+> +		bswap32(table->size);
+> +		table->descriptor = NULL;
+> +		table->next = NULL;
+> +
+> +		if(!*head)
+> +			*head = table;
+> +		if(last)
+> +			last->next = table;
+> +
+> +		/* get the descriptors for each table */
+> +		struct dvb_desc **head_desc = &table->descriptor;
+> +		dvb_parse_descriptors(parms, p, table->desc_length, head_desc);
+> +
+> +		p += table->desc_length;
+> +		last = table;
+> +	}
+> +}
+> +
+> +void atsc_table_mgt_free(struct atsc_table_mgt *mgt)
+> +{
+> +	struct atsc_table_mgt_table *table = mgt->table;
+
+blank line.
+
+> +	dvb_free_descriptors((struct dvb_desc **) &mgt->descriptor);
+> +	while(table) {
+> +		dvb_free_descriptors((struct dvb_desc **) &table->descriptor);
+> +		struct atsc_table_mgt_table *tmp = table;
+> +		table = table->next;
+> +		free(tmp);
+> +	}
+> +	free(mgt);
+> +}
+> +
+> +void atsc_table_mgt_print(struct dvb_v5_fe_parms *parms, struct atsc_table_mgt *mgt)
+> +{
+> +	dvb_log("MGT");
+> +	atsc_table_header_print(parms, &mgt->header);
+> +	dvb_log("| tables           %d", mgt->tables);
+> +	/*dvb_print_descriptors(parms, mgt->descriptor);*/
+> +	const struct atsc_table_mgt_table *table = mgt->table;
+> +	uint16_t tables = 0;
+
+data declarations at the beginning of the function.
+
+> +	while(table) {
+
+space after while.
+
+> +                dvb_log("|- type %04x    %d", table->type, table->pid);
+> +                dvb_log("|  one          %d", table->one);
+> +                dvb_log("|  one2         %d", table->one2);
+> +                dvb_log("|  type version %d", table->type_version);
+> +                dvb_log("|  size         %d", table->size);
+> +                dvb_log("|  one3         %d", table->one3);
+> +                dvb_log("|  desc_length  %d", table->desc_length);
+> +		dvb_print_descriptors(parms, table->descriptor);
+> +		table = table->next;
+> +		tables++;
+> +	}
+> +	dvb_log("|_  %d tables", tables);
+> +}
+> +
+
+
 -- 
-1.8.5.2
 
+Cheers,
+Mauro
