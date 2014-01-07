@@ -1,80 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:52918 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751819AbaAGPuu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jan 2014 10:50:50 -0500
-Date: Tue, 07 Jan 2014 23:50:47 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linuxtv-media:master 395/499]
- drivers/media/usb/em28xx/em28xx-video.c:1151:28: sparse: symbol
- 'em28xx_ctrl_ops' was not declared. Should it be static?
-Message-ID: <52cc2257.SeWuc92AVYd//ecz%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="=_52cc2257.NqaXn/jPZh+QLeFMwmFzQprkUnvV9lxo0dPGXgVD/wKmC19y"
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:25141 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751300AbaAGQc6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 11:32:58 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZ100384HYVHO50@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 07 Jan 2014 11:32:55 -0500 (EST)
+Date: Tue, 07 Jan 2014 14:32:50 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 01/18] libdvbv5: fix reading multisection tables
+Message-id: <20140107143250.77c0f5df@samsung.com>
+In-reply-to: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
+Em Mon, 30 Dec 2013 13:48:34 +0100
+André Roth <neolynx@gmail.com> escreveu:
 
---=_52cc2257.NqaXn/jPZh+QLeFMwmFzQprkUnvV9lxo0dPGXgVD/wKmC19y
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+description?
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   2a9ecc17ed9f076ff199a4bf4ebd22b41badb505
-commit: 01c2819330b1e0ec6b53dcfac76ad75ff2c8ba4f [395/499] [media] em28xx: make em28xx-video to be a separate module
-reproduce: make C=1 CF=-D__CHECK_ENDIAN__
+What bug are you trying to fix?
+
+> Signed-off-by: André Roth <neolynx@gmail.com>
+> ---
+>  lib/libdvbv5/dvb-scan.c | 36 +++++++++++++++++++++++-------------
+>  1 file changed, 23 insertions(+), 13 deletions(-)
+> 
+> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+> index e9ccc72..520bf9c 100644
+> --- a/lib/libdvbv5/dvb-scan.c
+> +++ b/lib/libdvbv5/dvb-scan.c
+> @@ -96,9 +96,13 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  	uint8_t *buf = NULL;
+>  	uint8_t *tbl = NULL;
+>  	ssize_t table_length = 0;
+> +
+> +	// handle sections
+
+No C99 comments.
+
+> +	int start_id = -1;
+> +	int start_section = -1;
+>  	int first_section = -1;
+>  	int last_section = -1;
+> -	int table_id = -1;
+> +	/*int table_id = -1;*/
+
+Why to comment? If it is buggy, just remove it.
+
+>  	int sections = 0;
+>  	struct dmx_sct_filter_params f;
+>  	struct dvb_table_header *h;
+> @@ -108,7 +112,6 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  	*table = NULL;
+>  
+>  	// FIXME: verify known table
+> -
+>  	memset(&f, 0, sizeof(f));
+>  	f.pid = pid;
+>  	f.filter.filter[0] = tid;
+> @@ -185,24 +188,27 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  
+>  		h = (struct dvb_table_header *)buf;
+>  		dvb_table_header_init(h);
+> +
+> +		/* dvb_logdbg( "dvb_read_section: id %d, section %d/%d, current: %d", h->id, h->section_id, h->last_section, h->current_next ); */
+> +		if (start_id == h->id && start_section == h->section_id) {
+> +			dvb_logdbg( "dvb_read_section: section repeated, reading done" );
+> +			break;
+> +		}
+> +		if (start_id == -1) start_id = h->id;
+> +		if (start_section == -1) start_section = h->section_id;
+
+One statement per line, please.
+
+> +
+>  		if (id != -1 && h->id != id) { /* search for a specific table id */
+>  			continue;
+> -		} else {
+> -			if (table_id == -1)
+> -				table_id = h->id;
+> -			else if (h->id != table_id) {
+> -				dvb_logwarn("dvb_read_section: table ID mismatch reading multi section table: %d != %d", h->id, table_id);
+> -				continue;
+> -			}
+>  		}
+>  
+> +		/*dvb_logerr("dvb_read_section: got section %d, last %d, filter %d", h->section_id, h->last_section, id );*/
+
+Why are you adding a commented line?
+
+>  		/* handle the sections */
+>  		if (first_section == -1)
+>  			first_section = h->section_id;
+> -		else if (h->section_id == first_section)
+> +		else if (start_id == h->id && h->section_id == first_section)
+>  			break;
+>  
+> -		if (last_section == -1)
+> +		if (last_section == -1 || h->last_section > last_section)
+>  			last_section = h->last_section;
+>  
+>  		if (!tbl) {
+> @@ -228,10 +234,14 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
+>  		else
+>  			dvb_logerr("dvb_read_section: no initializer for table %d", tid);
+>  
+> -		if (++sections == last_section + 1)
+> +		if (id != -1 && ++sections == last_section + 1) {
+> +			dvb_logerr("dvb_read_section: ++sections == last_section + 1");
+>  			break;
+> +		}
+>  	}
+> -	free(buf);
+> +
+> +	if (buf)
+> +		free(buf);
+
+Buffer is always allocated at this point. No need to test before free.
+
+>  
+>  	dvb_dmx_stop(dmx_fd);
+>  
 
 
-sparse warnings: (new ones prefixed by >>)
+-- 
 
->> drivers/media/usb/em28xx/em28xx-video.c:1151:28: sparse: symbol 'em28xx_ctrl_ops' was not declared. Should it be static?
---
->> drivers/media/usb/em28xx/em28xx-cards.c:2164:36: sparse: cannot size expression
-
-Please consider folding the attached diff :-)
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
-
---=_52cc2257.NqaXn/jPZh+QLeFMwmFzQprkUnvV9lxo0dPGXgVD/wKmC19y
-Content-Type: text/x-diff;
- charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="make-it-static-01c2819330b1e0ec6b53dcfac76ad75ff2c8ba4f.diff"
-
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: [PATCH linuxtv-media] em28xx: em28xx_ctrl_ops can be static
-TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-CC: linux-media@vger.kernel.org 
-CC: linux-kernel@vger.kernel.org 
-
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
----
- em28xx-video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 7d11a16..7a3a514 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1148,7 +1148,7 @@ static int em28xx_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return (ret < 0) ? ret : 0;
- }
- 
--const struct v4l2_ctrl_ops em28xx_ctrl_ops = {
-+static const struct v4l2_ctrl_ops em28xx_ctrl_ops = {
- 	.s_ctrl = em28xx_s_ctrl,
- };
- 
-
---=_52cc2257.NqaXn/jPZh+QLeFMwmFzQprkUnvV9lxo0dPGXgVD/wKmC19y--
+Cheers,
+Mauro
