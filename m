@@ -1,195 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55304 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752322AbaANBU6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 20:20:58 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v7 06/12] v4l: enable some IOCTLs for SDR receiver
-Date: Tue, 14 Jan 2014 03:20:24 +0200
-Message-Id: <1389662430-32699-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1389662430-32699-1-git-send-email-crope@iki.fi>
-References: <1389662430-32699-1-git-send-email-crope@iki.fi>
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:50482 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751755AbaAHTgY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 14:36:24 -0500
+Received: by mail-ee0-f49.google.com with SMTP id c41so882299eek.22
+        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 11:36:23 -0800 (PST)
+Message-ID: <52CDA8FC.4060602@googlemail.com>
+Date: Wed, 08 Jan 2014 20:37:32 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 17/22] [media] em28xx-i2c: Fix error code for I2C error
+ transfers
+References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-18-git-send-email-m.chehab@samsung.com> <52C9C346.6040602@googlemail.com> <20140106075515.645ed96c@samsung.com> <52CC394D.3040700@googlemail.com> <20140108095543.1b9d0ba2@samsung.com>
+In-Reply-To: <20140108095543.1b9d0ba2@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable stream format (FMT) IOCTLs for SDR use. These are used for negotiate
-used data stream format.
+Am 08.01.2014 12:55, schrieb Mauro Carvalho Chehab:
+> Em Tue, 07 Jan 2014 18:28:45 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+...
+>
+>> But we also get this when a slave device isn't present or doesn't
+>> answer, which means it doesn't ACK the data.
+>> So ETIMEDOUT is wrong.
+> It is still a timeout: the device didn't answer in time.
+Ok, it's a 1 clock cycle timeout. :D :D :D
 
-Reorganise some some IOCTL selection logic.
+>
+>> Yes, 0x10 _could_ be a more general error. In that case EIO would be the
+>> better choice.
+>> But that's pure speculation as long as we don't have the datasheets.
+> The datasheet will not tell what are the corresponding Linux error codes.
+Sure, we have to map the errors on our own.
+But the datasheet should tell us for which error condition the bridge
+returns which i2c state.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/v4l2-core/v4l2-dev.c   | 21 ++++++++++++++++++---
- drivers/media/v4l2-core/v4l2-ioctl.c | 35 +++++++++++++++++++++++++++++++++++
- 2 files changed, 53 insertions(+), 3 deletions(-)
+> ETIMEDOUT is better than the generic unspecific EIO.
+The bridge should also be able to detect when something is fundamentally
+wrong with SCL/SDA lines (bus not ready).
+That's why I wouldn't return ETIMEDOUT for error codes we haven't seen
+so far.
+ETIMEDOUT for a clock stretching timeout (0x02 or 0x04) is of course right.
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 2ccacf2..6308a19 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -553,7 +553,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	const struct v4l2_ioctl_ops *ops = vdev->ioctl_ops;
- 	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
- 	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
--	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
-+	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
- 	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
- 	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
- 
-@@ -662,9 +662,20 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			       ops->vidioc_try_fmt_sliced_vbi_out)))
- 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
- 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
-+	} else if (is_sdr) {
-+		/* SDR specific ioctls */
-+		if (ops->vidioc_enum_fmt_sdr_cap)
-+			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
-+		if (ops->vidioc_g_fmt_sdr_cap)
-+			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
-+		if (ops->vidioc_s_fmt_sdr_cap)
-+			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
-+		if (ops->vidioc_try_fmt_sdr_cap)
-+			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
- 	}
--	if (!is_radio) {
--		/* ioctls valid for video or vbi */
-+
-+	if (is_vid || is_vbi || is_sdr) {
-+		/* ioctls valid for video, vbi or sdr */
- 		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
- 		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
- 		SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
-@@ -672,6 +683,10 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 		SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
- 		SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
- 		SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
-+	}
-+
-+	if (is_vid || is_vbi) {
-+		/* ioctls valid for video or vbi */
- 		if (ops->vidioc_s_std)
- 			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
- 		SET_VALID_IOCTL(ops, VIDIOC_S_STD, vidioc_s_std);
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 9a2acaf..95dd4f1 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -246,6 +246,7 @@ static void v4l_print_format(const void *arg, bool write_only)
- 	const struct v4l2_vbi_format *vbi;
- 	const struct v4l2_sliced_vbi_format *sliced;
- 	const struct v4l2_window *win;
-+	const struct v4l2_format_sdr *sdr;
- 	unsigned i;
- 
- 	pr_cont("type=%s", prt_names(p->type, v4l2_type_names));
-@@ -319,6 +320,14 @@ static void v4l_print_format(const void *arg, bool write_only)
- 				sliced->service_lines[0][i],
- 				sliced->service_lines[1][i]);
- 		break;
-+	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+		sdr = &p->fmt.sdr;
-+		pr_cont(", pixelformat=%c%c%c%c\n",
-+			(sdr->pixelformat >>  0) & 0xff,
-+			(sdr->pixelformat >>  8) & 0xff,
-+			(sdr->pixelformat >> 16) & 0xff,
-+			(sdr->pixelformat >> 24) & 0xff);
-+		break;
- 	}
- }
- 
-@@ -882,6 +891,7 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
- 	bool is_vbi = vfd->vfl_type == VFL_TYPE_VBI;
-+	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
- 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 
-@@ -931,6 +941,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
- 		if (is_vbi && is_tx && ops->vidioc_g_fmt_sliced_vbi_out)
- 			return 0;
- 		break;
-+	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
-+			return 0;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -1050,6 +1064,10 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!is_tx || !ops->vidioc_enum_fmt_vid_out_mplane))
- 			break;
- 		return ops->vidioc_enum_fmt_vid_out_mplane(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+		if (unlikely(!is_rx || !ops->vidioc_enum_fmt_sdr_cap))
-+			break;
-+		return ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1060,6 +1078,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_format *p = arg;
- 	struct video_device *vfd = video_devdata(file);
- 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
-+	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
- 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 
-@@ -1104,6 +1123,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!is_tx || is_vid || !ops->vidioc_g_fmt_sliced_vbi_out))
- 			break;
- 		return ops->vidioc_g_fmt_sliced_vbi_out(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
-+			break;
-+		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1114,6 +1137,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_format *p = arg;
- 	struct video_device *vfd = video_devdata(file);
- 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
-+	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
- 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 
-@@ -1168,6 +1192,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sliced);
- 		return ops->vidioc_s_fmt_sliced_vbi_out(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_s_fmt_sdr_cap))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.sdr);
-+		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1178,6 +1207,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_format *p = arg;
- 	struct video_device *vfd = video_devdata(file);
- 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
-+	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
- 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 
-@@ -1232,6 +1262,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sliced);
- 		return ops->vidioc_try_fmt_sliced_vbi_out(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_try_fmt_sdr_cap))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.sdr);
-+		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
--- 
-1.8.4.2
+>
+>> After reading the i2c fault codes descriptions again, I would agree to
+>> change it from ENODEV to ENXIO.
+>> ENXIO seems to be the intended error code for NACK errors and it's a bit
+>> more unspecific than ENODEV.
+>>
+>> Would that be acceptable for you ?
+> Yes.
+Ok. fine, then let's use ENXIO for 0x10.
+
+>
+>>> 	- ENXIO - when the device is not temporarily not responding
+>>> 		  (e. g. reg 05 returning something not 0x10 or 0x00)
+>> For those I would return just EIO.
+>> I thought we agree here ?
+> No. With em28xx/xc3028/tvp5150, we've got some temporary not responding
+> errors with return code 0x02 or 0x04, before fixing that xc3028 power down
+> bug.
+>
+> What I suspect is that codes 0x02 and 0x04 are related to I2C stretching,
+> and that's why they need to be retried up to a software given timeout.
+Yeah, that's very likely.
+ETIMEDOUT is ok for a clock stretching timeout, but I wonder why there
+should be two of them. Can we narrow that down further ?
+If you are looping over reg 0x05 only (not the whole procedure) after a
+write for a very long time, which of these two states are temporary and
+which never change ?
+My theory would be, that one of them is temporary and means "busy,
+client holds down SCL" and the other one is final and means "bridge gave
+up waiting for the client to continue" (internal timeout).
+
+> I prefer to use EIO only when we got an error while writing to reg 0x04
+> or when the read operation didn't return the number of requested bytes.
+The register read/write functions currently return the following error
+codes:
+
+device disconnected from USB port: -ENODEV
+len > URB_MAX_CTRL_SIZE: -EINVAL (Btw, this one should probably should
+be changed to a more appropriate error code)
+
+or the error codes from the USB transfer, filtered/maopped with
+usb_translate_errors():
+-ENOMEM
+-ENODEV
+-EOPNOTSUPP
+-EIO
+
+I'm not sure if it is necessary to filter/map them further.
+With the exeception of -EINVAL, they could probably be passed to to the
+i2c client, too.
+OTOH I doubt than any i2c client implements such a detailed error
+handling. ;)
+I have no objections against just returning EIO.
+
+Regards,
+Frank
+
 
