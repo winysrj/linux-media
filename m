@@ -1,116 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43697 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753625AbaADN7S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:18 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v4 22/22] [media] em28xx: retry read operation if it fails
-Date: Sat,  4 Jan 2014 08:55:51 -0200
-Message-Id: <1388832951-11195-23-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:34907 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751821AbaAHFDl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 00:03:41 -0500
+Received: by mail-qc0-f179.google.com with SMTP id i8so1057643qcq.24
+        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 21:03:41 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAGoCfix3GRETd+YXNSimpDY8StVPzc0sEMpzhdnuLf1eA4g+vw@mail.gmail.com>
+References: <1389068966-14594-1-git-send-email-tmester@ieee.org>
+	<1389068966-14594-3-git-send-email-tmester@ieee.org>
+	<CAGoCfix3GRETd+YXNSimpDY8StVPzc0sEMpzhdnuLf1eA4g+vw@mail.gmail.com>
+Date: Tue, 7 Jan 2014 22:03:41 -0700
+Message-ID: <CAEEHgGWO0iLP2fCf4QD0sBQT9p6WqZM748cTduaWKaMHEn74dA@mail.gmail.com>
+Subject: Re: [PATCH 3/3] au8522, au0828: Added demodulator reset
+From: Tim Mester <tmester@ieee.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C read operations can also take some time to happen.
+On Mon, Jan 6, 2014 at 9:45 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+>
+> On Mon, Jan 6, 2014 at 11:29 PM, Tim Mester <ttmesterr@gmail.com> wrote:
+> > The demodulator can get in a state in ATSC mode where just
+> > restarting the feed alone does not correct the corrupted stream.  The
+> > demodulator reset in addition to the feed restart seems to correct
+> > the condition.
+> >
+> > The au8522 driver has been modified so that when set_frontend() is
+> > called with the same frequency and modulation mode, the demodulator
+> > will be reset.  The au0282 drives uses this feature when it attempts
+> > to restart the feed.
+>
+> What is the actual "corruption" that you are seeing?  Can you describe
+> it in greater detail?  The original fix was specifically related to
+> the internal FIFO on the au0828 where it can get shifted by one or
+> more bits (i.e. the leading byte is no longer 0x47 but 0x47 << X).
+> Hence it's an issue unrelated to the actual au8522.
+>
+> I suspect this is actually a different problem which out of dumb luck
+> gets "fixed" by resetting the chip.  Without more details on the
+> specific behavior you are seeing though I cannot really advise on what
+> the correct change is.
+>
+> This patch should not be accepted upstream without more discussion.
+>
+> Regards,
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
 
-Try again, if it fails with return code different than 0x10
-until timeout.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c | 62 +++++++++++++++++++----------------
- 1 file changed, 34 insertions(+), 28 deletions(-)
+The patch really address two issues:
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index e030e0b7d645..6cd3d909bb3a 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -237,6 +237,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-  */
- static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- {
-+	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
- 	int ret;
- 
- 	if (len < 1 || len > 64)
-@@ -246,39 +247,44 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 	 * Zero length reads always succeed, even if no device is connected
- 	 */
- 
--	/* Read data from i2c device */
--	ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
--	if (ret < 0) {
--		em28xx_warn("reading from i2c device at 0x%x failed (error=%i)\n",
--			    addr, ret);
--		return ret;
--	}
--	/*
--	 * NOTE: some devices with two i2c busses have the bad habit to return 0
--	 * bytes if we are on bus B AND there was no write attempt to the
--	 * specified slave address before AND no device is present at the
--	 * requested slave address.
--	 * Anyway, the next check will fail with -EREMOTEIO in this case, so avoid
--	 * spamming the system log on device probing and do nothing here.
--	 */
-+	do {
-+		/* Read data from i2c device */
-+		ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
-+		if (ret < 0) {
-+			em28xx_warn("reading from i2c device at 0x%x failed (error=%i)\n",
-+				    addr, ret);
-+			return ret;
-+		}
-+		/*
-+		 * NOTE: some devices with two i2c busses have the bad habit to return 0
-+		* bytes if we are on bus B AND there was no write attempt to the
-+		* specified slave address before AND no device is present at the
-+		* requested slave address.
-+		* Anyway, the next check will fail with -EREMOTEIO in this case, so avoid
-+		* spamming the system log on device probing and do nothing here.
-+		*/
-+
-+		/* Check success of the i2c operation */
-+		ret = dev->em28xx_read_reg(dev, 0x05);
-+		if (ret == 0) /* success */
-+			return len;
-+		if (ret < 0) {
-+			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-+				    ret);
-+			return ret;
-+		}
-+		if (ret != 0x10)
-+			break;
-+		msleep(5);
-+	} while (time_is_after_jiffies(timeout));
- 
--	/* Check success of the i2c operation */
--	ret = dev->em28xx_read_reg(dev, 0x05);
--	if (ret == 0) /* success */
--		return len;
--	if (ret < 0) {
--		em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
--			    ret);
--		return ret;
--	}
- 	if (ret == 0x10) {
- 		if (i2c_debug)
--			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
-+			em28xx_warn("I2C transfer timeout on reading from addr 0x%02x",
- 				    addr);
--		return -EREMOTEIO;
-+	} else {
-+		em28xx_warn("unknown i2c error (status=%i)\n", ret);
- 	}
--
--	em28xx_warn("unknown i2c error (status=%i)\n", ret);
- 	return -EREMOTEIO;
- }
- 
--- 
-1.8.3.1
+1) The driver reports that the TS sync byte has not been found (the
+0x47), and that it is attempting to restart streaming. However, this
+message gets repeated indefinitely, and the streaming can never begin.
+Eventually, Mythtv gives up on the recoding.  When I reset the
+demodulator, the streaming immediately starts. I have not examined the
+data to see if it is a shifted sync byte or not, but the symptom seems
+similar.
 
+2) Occasionally, the au8522 report that it lost lock, and the TS
+stream stops flowing.  The au8522_set_frontend(), gets called, but
+because we are already tuned to the same frequency, nothing happens,
+and lock is never  re-established until we tune to a different
+channel, then back to the original one where lock was lost.
+
+I have only seen this behavior in ATSC mode. Back when I was using the
+device in QAM256 mode, I did not observe the Lock lost or the unable
+to start streaming issues.
+
+
+Thanks,
+
+Tim
