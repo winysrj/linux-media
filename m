@@ -1,68 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33619 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752265AbaANBU5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 20:20:57 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v7 01/12] v4l: add device type for Software Defined Radio
-Date: Tue, 14 Jan 2014 03:20:19 +0200
-Message-Id: <1389662430-32699-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1389662430-32699-1-git-send-email-crope@iki.fi>
-References: <1389662430-32699-1-git-send-email-crope@iki.fi>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:50449 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756136AbaAHMVR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 07:21:17 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZ300LVK0ZGG260@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 Jan 2014 07:21:16 -0500 (EST)
+Date: Wed, 08 Jan 2014 10:21:10 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: kbuild test robot <fengguang.wu@intel.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>, kbuild-all@01.org,
+	linux-media@vger.kernel.org
+Subject: Re: [kbuild-all] [linuxtv-media:master 499/499]
+ drivers/media/i2c/s5k5baf.c:362:3: warning: format '%d' expects argument of
+ type 'int', but argument 3 has type 'size_t'
+Message-id: <20140108102110.1a79579a@samsung.com>
+In-reply-to: <20140108083736.GA27840@mwanda>
+References: <52b94458.53lWHr3FG9kOLNn4%fengguang.wu@intel.com>
+ <20140108083736.GA27840@mwanda>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new V4L device type VFL_TYPE_SDR for Software Defined Radio.
-It is registered as /dev/swradio0 (/dev/sdr0 was already reserved).
+Em Wed, 8 Jan 2014 11:37:37 +0300
+Dan Carpenter <dan.carpenter@oracle.com> escreveu:
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dev.c | 6 ++++++
- include/media/v4l2-dev.h           | 3 ++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+> The other thing that concerned me with this was the sparse warning:
+> 
+> drivers/media/i2c/s5k5baf.c:481:26: error: bad constant expression
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index b5aaaac..2ccacf2 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -758,6 +758,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
-  *	%VFL_TYPE_RADIO - A radio card
-  *
-  *	%VFL_TYPE_SUBDEV - A subdevice
-+ *
-+ *	%VFL_TYPE_SDR - Software Defined Radio
-  */
- int __video_register_device(struct video_device *vdev, int type, int nr,
- 		int warn_if_nr_in_use, struct module *owner)
-@@ -797,6 +799,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	case VFL_TYPE_SUBDEV:
- 		name_base = "v4l-subdev";
- 		break;
-+	case VFL_TYPE_SDR:
-+		/* Use device name 'swradio' because 'sdr' was already taken. */
-+		name_base = "swradio";
-+		break;
- 	default:
- 		printk(KERN_ERR "%s called with unknown type: %d\n",
- 		       __func__, type);
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index c768c9f..eec6e46 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -24,7 +24,8 @@
- #define VFL_TYPE_VBI		1
- #define VFL_TYPE_RADIO		2
- #define VFL_TYPE_SUBDEV		3
--#define VFL_TYPE_MAX		4
-+#define VFL_TYPE_SDR		4
-+#define VFL_TYPE_MAX		5
+Hmm...
+	static void s5k5baf_write_arr_seq(struct s5k5baf *state, u16 addr,
+	                                  u16 count, const u16 *seq)
+	{
+	        struct i2c_client *c = v4l2_get_subdevdata(&state->sd);
+	        __be16 buf[count + 1];
+	        int ret, n;
+
+Yeah, allocating data like that at stack is not nice.
+
+I would simply replace the static allocation here by a dynamic one.
  
- /* Is this a receiver, transmitter or mem-to-mem? */
- /* Ignored for VFL_TYPE_SUBDEV. */
--- 
-1.8.4.2
+> It was hard to verify that this couldn't go over 512.  I guess 512 is
+> what we would consider an error in this context.  This seems like it
+> could be determined by the firmware?
+> 
+> regards,
+> dan carpenter
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+
+-- 
+
+Cheers,
+Mauro
