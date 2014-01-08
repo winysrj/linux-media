@@ -1,93 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:45525 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751816AbaA3MOO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jan 2014 07:14:14 -0500
-Date: Thu, 30 Jan 2014 15:14:09 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: moinejf@free.fr
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] gspca - topro: New subdriver for Topro webcams
-Message-ID: <20140130121408.GB17753@elgon.mountain>
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:49468 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757552AbaAHVTF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 16:19:05 -0500
+Received: by mail-ee0-f42.google.com with SMTP id e53so928460eek.29
+        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 13:19:04 -0800 (PST)
+Message-ID: <52CDC0C5.6010109@gmail.com>
+Date: Wed, 08 Jan 2014 22:19:01 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+To: m silverstri <michael.j.silverstri@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: How can I find out what is the driver for device node '/dev/video11'
+References: <CABMudhTFmbv-PrNiGcW2yoGPiXuJ13fCmoqDFFBJfEjLk=gSgw@mail.gmail.com> <CAGoCfizK7ZFgHTcLgaJRaP-Bvjriv7+fu+=yw+btMEC+GvoU7w@mail.gmail.com> <CABMudhQ16ZhvFcwoTdHnU4B9cjVScV4Ohh81izoQDstWsV8X_A@mail.gmail.com> <CAGoCfiws5YdmiY8wYkE4_=yKSc3WxABMyUZiT22rTafs-g4SnA@mail.gmail.com> <CABMudhTjgXpitX83K2x6_Lyse=Rts0h+t-9LZpUNCAV8yacOJw@mail.gmail.com>
+In-Reply-To: <CABMudhTjgXpitX83K2x6_Lyse=Rts0h+t-9LZpUNCAV8yacOJw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jean-François Moine,
+On 01/08/2014 08:15 PM, m silverstri wrote:
+> Thanks.
+>
+> I am studying android source code.
+>  From here,  it has code which open("/dev/video11", O_RDWR, 0) as
+> decoding device.
+>
+> http://androidxref.com/4.4.2_r1/xref/hardware/samsung_slsi/exynos5/libhwjpeg/ExynosJpegBase.cpp
 
-The patch 8f12b1ab2fac: "[media] gspca - topro: New subdriver for
-Topro webcams" from Sep 22, 2011, leads to the following
-static checker warning:
-	drivers/media/usb/gspca/topro.c:4642
-	sd_pkt_scan() warn: check 'data[]' for negative offsets s32min"
+What you're looking for might be this proprietary Samsung JPEG codec driver
+used in Android.
 
-drivers/media/usb/gspca/topro.c
-  4632                  data++;
+https://android.googlesource.com/kernel/exynos/+/android-exynos-3.4/drivers/media/video/exynos/jpeg/
 
-Should there be an "if (len < 8) return;" here?
+If you intend to use mainline kernel you need to consider the s5p-jpeg 
+driver,
+which exposes to user space standard interface without any proprietary 
+additions
+incompatible with the V4L2 spec.
 
-  4633                  len--;
-  4634                  if (*data == 0xff && data[1] == 0xd8) {
-  4635  /*fixme: there may be information in the 4 high bits*/
-  4636                          if ((data[6] & 0x0f) != sd->quality)
-  4637                                  set_dqt(gspca_dev, data[6] & 0x0f);
-  4638                          gspca_frame_add(gspca_dev, FIRST_PACKET,
-  4639                                          sd->jpeg_hdr, JPEG_HDR_SZ);
-  4640                          gspca_frame_add(gspca_dev, INTER_PACKET,
-  4641                                          data + 7, len - 7);
-  4642                  } else if (data[len - 2] == 0xff && data[len - 1] == 0xd9) {
-  4643                          gspca_frame_add(gspca_dev, LAST_PACKET,
-  4644                                          data, len);
-  4645                  } else {
-  4646                          gspca_frame_add(gspca_dev, INTER_PACKET,
-  4647                                          data, len);
-  4648                  }
-  4649                  return;
-  4650          }
-  4651  
-  4652          switch (*data) {
-  4653          case 0x55:
-  4654                  gspca_frame_add(gspca_dev, LAST_PACKET, data, 0);
-  4655  
-  4656                  if (len < 8
-                            ^^^^^^^
-The same as there is here.
+> I want to find out which is the corresponding driver code for device
+> '/dev/video11'.
 
-  4657                   || data[1] != 0xff || data[2] != 0xd8
-  4658                   || data[3] != 0xff || data[4] != 0xfe) {
-  4659  
-  4660                          /* Have only seen this with corrupt frames */
-  4661                          gspca_dev->last_packet_type = DISCARD_PACKET;
-  4662                          return;
-  4663                  }
-  4664                  if (data[7] != sd->quality)
-  4665                          set_dqt(gspca_dev, data[7]);
-  4666                  gspca_frame_add(gspca_dev, FIRST_PACKET,
-  4667                                  sd->jpeg_hdr, JPEG_HDR_SZ);
-  4668                  gspca_frame_add(gspca_dev, INTER_PACKET,
-  4669                                  data + 8, len - 8);
-  4670                  break;
-  4671          case 0xaa:
-  4672                  gspca_dev->last_packet_type = DISCARD_PACKET;
-  4673                  break;
-  4674          case 0xcc:
+I suspect these numbers are fixed in the Android kernel (they are hard
+coded in the user space library as you're pointing out above), which is
+a pretty bad practice.
 
-I suppose we could add a "if (len < 1)" here as well.
+It's better to use VIDIOC_QUERYCAP ioctl to find a video device with
+specific name, as Devin suggested. You can also find a video device
+exposed by a specific driver through sysfs, as is done in
+exynos_v4l2_open_devname() function in this a bit less hacky code:
 
-  4675                  if (data[1] != 0xff || data[2] != 0xd8)
-  4676                          gspca_frame_add(gspca_dev, INTER_PACKET,
-  4677                                          data + 1, len - 1);
-  4678                  else
-  4679                          gspca_dev->last_packet_type = DISCARD_PACKET;
-  4680                  break;
-  4681          }
-  4682  }
+https://android.googlesource.com/platform/hardware/samsung_slsi/exynos5/+/jb-mr1-release/libv4l2/exynos_v4l2.c
 
-
-regards,
-dan carpenter
-
+Thanks,
+Sylwester
