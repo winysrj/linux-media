@@ -1,53 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([80.229.237.210]:42524 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751824AbaATWKm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 17:10:42 -0500
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/4] [media] iguanair: simplify tx loop
-Date: Mon, 20 Jan 2014 22:10:39 +0000
-Message-Id: <1390255840-21786-2-git-send-email-sean@mess.org>
-In-Reply-To: <1390255840-21786-1-git-send-email-sean@mess.org>
-References: <1390255840-21786-1-git-send-email-sean@mess.org>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:52132 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756882AbaAHVVR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 16:21:17 -0500
+Received: by mail-oa0-f46.google.com with SMTP id l6so2434300oag.5
+        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 13:21:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAGj5WxBuBvQHg55eJLuje8aiin1ht7nnDjEO=NxUyC0x8U=8wA@mail.gmail.com>
+References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
+	<52CC275B.5030907@gmx.de>
+	<CAGj5WxDuZadCm+Hwp=BDPwPf1fb4nuFXLotK8ePR7Q14-zvkMg@mail.gmail.com>
+	<CAF0Ff2kVYCY=9WJgGw9FMUnjC5a2RG364OxmByCyF+KoQBpxLA@mail.gmail.com>
+	<CAGj5WxBuBvQHg55eJLuje8aiin1ht7nnDjEO=NxUyC0x8U=8wA@mail.gmail.com>
+Date: Wed, 8 Jan 2014 23:21:16 +0200
+Message-ID: <CAF0Ff2=URz=G5C7JDmQ9rb9h4vzr+T4NSimTMp1Ngqr2OHSiSQ@mail.gmail.com>
+Subject: Re: Upstreaming SAA716x driver to the media_tree
+From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+To: Luis Alves <ljalvs@gmail.com>
+Cc: Andreas Regel <andreas.regel@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>,
+	Chris Lee <updatelee@gmail.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	CrazyCat <crazycat69@narod.ru>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/iguanair.c | 14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+Luis, yes, here we're or more exactly you're again, because it's clear
+now you have the exact same patterns - i told you already - one time
+any excuse may fly, when it's a pattern it's a whole new story. so,
+excuses like this one:
 
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index 99a3a5a..a83519a 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -364,20 +364,14 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 			rc = -EINVAL;
- 			goto out;
- 		}
--		while (periods > 127) {
--			ir->packet->payload[size++] = 127 | space;
--			periods -= 127;
-+		while (periods) {
-+			unsigned p = min(periods, 127u);
-+			ir->packet->payload[size++] = p | space;
-+			periods -= p;
- 		}
--
--		ir->packet->payload[size++] = periods | space;
- 		space ^= 0x80;
- 	}
- 
--	if (count == 0) {
--		rc = -EINVAL;
--		goto out;
--	}
--
- 	ir->packet->header.start = 0;
- 	ir->packet->header.direction = DIR_OUT;
- 	ir->packet->header.cmd = CMD_SEND;
--- 
-1.8.4.2
+http://www.spinics.net/lists/linux-media/msg65889.html
 
+and the points you're making now are more than hollow.
+
+any reasonable man can see "your" I2C patch - there is many ways to do
+it, but somehow magically and by coincidence you again do them exactly
+like i did it - what i mean - when it's for specific board for example
+you may choose to add another case in the switch statement instead do
+it for all boards - of course, that's the case if you do it by
+yourself and not copy.
+
+so, it's public discussion, i have nothing to say to you in private,
+in fact everything i want to say to you is in public. i see no
+anything offensive in that someone that have full rights to do that
+step in and point out when there is something that is not right. if
+you take it as offensive that's your problem - in fact what you're
+doing is offensive, not that i care so much to take it that way. after
+all the discussion is public - everyone can form their own opinion.
+
+as far as if my email is empty - i can say the exact same for your
+work on SAA716x - that's work done mainly by Manu, Andreas and me -
+actually after Manu left it - i and Andreas obviously span the Manu
+code and went different ways from there. what i can claim full credit
+is I2C patches (need for certain TBS boards only) and
+"saa716x_input.[c|h]" - all of them GPL work - once again everyone can
+check the copyright notice of "saa716x_input.[c|h]" and that same code
+base contains the I2C patches and it's years old.
+
+so, when you finally make some code that is really yours and actually
+making code is easy comparing to understand how the silicone works and
+fix problems, you're free to take credit for it. until now i see only
+either you're taking open-source code that's not yours or do
+reverse-engineering of blobs that otherwise it's not easy to make and
+develop from scratch. at least the last action is totally legit,
+contrary to the first one which is simply unethical, especially in
+open-source.
+
+--konstantin
+
+On Tue, Jan 7, 2014 at 10:23 PM, Luis Alves <ljalvs@gmail.com> wrote:
+> Hi Konstantin,
+> (here we go again...)
+>
+> What the hell are you talking about? I didn't submit any I2C patch.
+> This email is just about Manu sending his SAA716x driver to the media_tree.
+>
+> And where do you see any "saa716x_input.[c|h]" in my repo?
+>
+> Anyway, since you asked I took some pics:
+> https://plus.google.com/photos/105602732859464871628/albums/5966247612074668305?authkey=CN3jl9mWhrDhQg
+> (SDA_HOLD setting in the comment)
+>
+> For SDA_HOLD = 0x19 the next clock rising edge is really close to the
+> data line release.
+> Even 0x14 is too close, so I will use a smaller value so maybe 0x10 is
+> fine for the 400kHZ clk speed.
+>
+> And I do have a TBS card that doesn't work with Manu default setting (0x19).
+>
+>
+> Your email besides being offending, is empty.
+> If someone's actions hurt the community are your own.
+>
+> Not going to enter in personal discussions in here nor going to waist
+> time answering to anymore of your offending emails.
+> If you want to exchange some thoughts, mail me personally.
+>
+> Regards,
+> Luis
+>
+>
+>
+>
+>
+>
+>
+> On Tue, Jan 7, 2014 at 5:31 PM, Konstantin Dimitrov
+> <kosio.dimitrov@gmail.com> wrote:
+>> Luis,
+>>
+>> can you explain to us all here how exactly you came up to those
+>> particular I2C fixes:
+>>
+>> https://github.com/ljalves/linux_media/commit/be7cd1ff82cc20578b805ad508d089f818ae726d
+>>
+>> because essentially they are the same as what i did years ago -
+>> included as source code in drivers i made for some TBS cards (source
+>> code is available all over online) or we just have the exact same case
+>> with you as before:
+>>
+>> http://www.spinics.net/lists/linux-media/msg65888.html
+>>
+>> http://www.spinics.net/lists/linux-media/msg65889.html
+>>
+>> and you're continue to taking credit for patches i made or basically
+>> stealing them.
+>>
+>> if they were some trivial patches i won't mind, but even they are
+>> small, they are nothing like trivial.
+>>
+>> so, i believe you will have really hard time to explain "your" I2C
+>> fixes, because for example the SDA hold time value of 0x14 is needed
+>> for only one particular SAA716x-based card (other such cards can work
+>> with wide range of SDA hold time settings) and i'm sure you don't know
+>> that card and cannot cite its model or any technical details why
+>> that's needed, because you don't have it, as well it takes quite an
+>> effort and good knowledge of I2C signaling with oscilloscope to figure
+>> out that value, as well that exactly that value needs changing.
+>>
+>> why you didn't use for example 0x16 or 0x13 for SDA hold time in
+>> "your" I2C patch?!
+>>
+>> so, one time, like the previous time, excuse that you just didn't know
+>> who the author of that work is may fly, but second time, especially
+>> considering that the SAA716x code base from which i'm sure you took
+>> (not to use stole) those settings contains my name as copyright,
+>> because i actually added to that code base new code i developed from
+>> scratch like for example saa716x_input.[c|h], is another thing you
+>> cannot explain.
+>>
+>> so, i was waiting Manu to upstream his SAA716x driver code some day
+>> and then submit the improvements i made to it. yet again you're trying
+>> to take that from me and again, conveniently you included many people
+>> on CC, but not me.
+>>
+>> in my opinion what you're doing is not right, because that patch is
+>> not clean-room reverse-engineering, you just took those changes from
+>> another open-source base and if nothing else it's at least common
+>> courtesy in open-source community when you didn't make them to not
+>> submit them as "your" patches.
+>>
+>> i also think with your actions you're actually hurting the community,
+>> because people like me, that do actually have the technical
+>> understanding and can help and contribute further improvements are
+>> driven away from the community, because
+>> effectively the community accepting behavior like yours is encouraging
+>> code stealing!!
+>>
+>> --konstantin
+>>
+>> On Tue, Jan 7, 2014 at 6:33 PM, Luis Alves <ljalvs@gmail.com> wrote:
+>>> HI Andreas,
+>>>
+>>> My initial commit is based on:
+>>> http://powarman.dyndns.org/hgwebdir.cgi/v4l-dvb-saa716x/
+>>> (I think it's your repo with some commits from Soeren Moch)
+>>>
+>>> The difference to my working area is that I have the driver placed in
+>>> "drivers/media/pci/saa716x" (instead of
+>>> "drivers/media/common/saa716x") and everything is rebased on the
+>>> latest media_tree.
+>>> On top of that I just have 2 commits: one to be able to build FF cards
+>>> and another to fix some i2c issues.
+>>>
+>>> You can check my repo here:
+>>> https://github.com/ljalves/linux_media/commits/saa716x
+>>>
+>>> Regards,
+>>> Luis
+>>>
+>>>
+>>> On Tue, Jan 7, 2014 at 4:12 PM, Andreas Regel <andreas.regel@gmx.de> wrote:
+>>>> Hi Luis,
+>>>>
+>>>> Am 07.01.2014 12:58, schrieb Luis Alves:
+>>>>> Hi,
+>>>>>
+>>>>> I'm finishing a new frontend driver for one of my dvb cards, but the
+>>>>> pcie bridge uses the (cursed) saa716x.
+>>>>> As far as I know the progress to upstream Manu's driver to the
+>>>>> media_tree has stalled.
+>>>>>
+>>>>> In CC I've placed some of the people that I found working on it
+>>>>> lately, supporting a few dvb cards.
+>>>>>
+>>>>> It would be good if we could gather everything in one place and send a
+>>>>> few patchs to get this upstreamed for once...
+>>>>>
+>>>>> Manu, do you see any inconvenience in sending your driver to the
+>>>>> linux_media tree?
+>>>>> I'm available to place some effort on this task.
+>>>>
+>>>> which repository of the saa761x is your work based on?
+>>>>
+>>>> Regards,
+>>>> Andreas
+>>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
