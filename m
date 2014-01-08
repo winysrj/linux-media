@@ -1,89 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:47771 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750992AbaAELL1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 06:11:27 -0500
-Received: by mail-ee0-f50.google.com with SMTP id c41so7317109eek.23
-        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 03:11:26 -0800 (PST)
-Message-ID: <52C93E22.2040806@googlemail.com>
-Date: Sun, 05 Jan 2014 12:12:34 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:59238 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751565AbaAHUOO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 15:14:14 -0500
+Date: Wed, 8 Jan 2014 15:14:13 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+cc: Hans de Goede <hdegoede@redhat.com>,
+	LMML <linux-media@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>,
+	<alsa-devel@alsa-project.org>, <linux-usb@vger.kernel.org>
+Subject: Re: Fw: Isochronous transfer error on USB3
+In-Reply-To: <20140108164800.70ea4169@samsung.com>
+Message-ID: <Pine.LNX.4.44L0.1401081508210.1659-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 11/22] [media] em28xx: check if a device has audio
- earlier
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-12-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-12-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
-> Better to split chipset detection from the audio setup. So, move the
-> detection code to em28xx_init_dev().
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-cards.c | 11 +++++++++++
->  drivers/media/usb/em28xx/em28xx-core.c  | 12 +-----------
->  2 files changed, 12 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index d1c75e66554c..4fe742429f2c 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -2930,6 +2930,16 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  		}
->  	}
->  
-> +	if (dev->chip_id == CHIP_ID_EM2870 ||
-> +	    dev->chip_id == CHIP_ID_EM2874 ||
-> +	    dev->chip_id == CHIP_ID_EM28174 ||
-> +	    dev->chip_id == CHIP_ID_EM28178) {
-> +		/* Digital only device - don't load any alsa module */
-> +		dev->audio_mode.has_audio = false;
-> +		dev->has_audio_class = false;
-> +		dev->has_alsa_audio = false;
-> +	}
-> +
->  	if (chip_name != default_chip_name)
->  		printk(KERN_INFO DRIVER_NAME
->  		       ": chip ID is %s\n", chip_name);
-> @@ -3196,6 +3206,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->  	dev->alt   = -1;
->  	dev->is_audio_only = has_audio && !(has_video || has_dvb);
->  	dev->has_alsa_audio = has_audio;
-> +	dev->audio_mode.has_audio = has_audio;
->  	dev->has_video = has_video;
->  	dev->audio_ifnum = ifnum;
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index 33cf26e106b5..818248d3fd28 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -505,18 +505,8 @@ int em28xx_audio_setup(struct em28xx *dev)
->  	int vid1, vid2, feat, cfg;
->  	u32 vid;
->  
-> -	if (dev->chip_id == CHIP_ID_EM2870 ||
-> -	    dev->chip_id == CHIP_ID_EM2874 ||
-> -	    dev->chip_id == CHIP_ID_EM28174 ||
-> -	    dev->chip_id == CHIP_ID_EM28178) {
-> -		/* Digital only device - don't load any alsa module */
-> -		dev->audio_mode.has_audio = false;
-> -		dev->has_audio_class = false;
-> -		dev->has_alsa_audio = false;
-> +	if (!dev->audio_mode.has_audio)
->  		return 0;
-> -	}
-> -
-> -	dev->audio_mode.has_audio = true;
->  
->  	/* See how this device is configured */
->  	cfg = em28xx_read_reg(dev, EM28XX_R00_CHIPCFG);
-It's not clear to me how one of these audio variables could ever become
-true with these chip types, so this code should probably just be removed.
+On Wed, 8 Jan 2014, Mauro Carvalho Chehab wrote:
+
+> Hi Hans/Takashi,
+> 
+> I'm getting an weird behavior with em28xx, especially when the device
+> is connected into an audio port.
+> 
+> I'm using, on my tests, an em28xx HVR-950 device, using this tree:
+> 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/em28xx-v4l2-v6
+> Where the alsa driver is at:
+> 	http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/em28xx-v4l2-v6:/drivers/media/usb/em28xx/em28xx-audio.c
+> 
+> I'm testing it with xawtv3 (http://git.linuxtv.org/xawtv3.git). The
+> ALSA userspace code there is at:
+> 	http://git.linuxtv.org/xawtv3.git/blob/HEAD:/common/alsa_stream.c
+> 
+> What happens is that, when I require xawtv3 to use any latency lower 
+> than 65 ms, the audio doesn't work, as it gets lots of underruns per
+> second. 
+> 
+> FYI, em28xx works at a 48000 KHz sampling rate, and its PM capture Hw
+> is described as:
+> 
+> static struct snd_pcm_hardware snd_em28xx_hw_capture = {
+> 	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
+> 		SNDRV_PCM_INFO_MMAP           |
+> 		SNDRV_PCM_INFO_INTERLEAVED    |
+> 		SNDRV_PCM_INFO_BATCH	      |
+> 		SNDRV_PCM_INFO_MMAP_VALID,
+> 
+> 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
+> 
+> 	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_KNOT,
+> 
+> 	.rate_min = 48000,
+> 	.rate_max = 48000,
+> 	.channels_min = 2,
+> 	.channels_max = 2,
+> 	.buffer_bytes_max = 62720 * 8,	/* just about the value in usbaudio.c */
+> 	.period_bytes_min = 64,		/* 12544/2, */
+> 	.period_bytes_max = 12544,
+> 	.periods_min = 2,
+> 	.periods_max = 98,		/* 12544, */
+> };
+> 
+> On my tests, I experimentally discovered that the minimal latency to
+> avoid ALSA library underruns is:
+> 	- 65ms when using xHCI;
+> 	- 25ms when using EHCI.
+> 
+> Any latency lower than that causes lots of overruns. Very high
+> latency also causes overruns (but on a lower rate, as the period
+> is bigger).
+> 
+> I'm wandering if is there anything that could be done either at Kernel
+> side or at userspace side to automatically get some configuration that
+> works as-is, without requiring the user to play with the latency parameter
+> by hand.
+> 
+> The alsa-info data is enclosed.
+> 
+> Thank you!
+> Mauro
+> 
+> PS.: I'm still trying to understand why the minimal allowed latency is
+> different when using xHCI, but I suspect that it is because it uses a
+> different urb->interval than EHCI.
+
+You may be able to answer some of these questions by collecting usbmon 
+traces (see Documentation/usb/usbmon.txt).  That would help pinpoint 
+sources of latency and tell you the actual URB intervals.
+
+25 ms to avoid underruns seems pretty large.  Other people, using audio 
+only (no video), find that EHCI can work well with latencies as low as 
+2 ms or so.  (That's using 3.13-rc, which includes some changes in the 
+snd-usb-audio driver.)
+
+Alan Stern
 
