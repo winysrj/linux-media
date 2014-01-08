@@ -1,639 +1,294 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3418 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752089AbaAGNHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 08:07:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:63710 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754960AbaAHLXy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 06:23:54 -0500
+Received: by mail-ee0-f51.google.com with SMTP id b15so617291eek.10
+        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 03:23:53 -0800 (PST)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 6/6] DocBook media: drop the old incorrect packed RGB table.
-Date: Tue,  7 Jan 2014 14:06:57 +0100
-Message-Id: <1389100017-42855-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
-References: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 2/3] libdvbv5: implement MGT table parser
+Date: Wed,  8 Jan 2014 12:23:27 +0100
+Message-Id: <1389180208-3458-2-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1389180208-3458-1-git-send-email-neolynx@gmail.com>
+References: <1389180208-3458-1-git-send-email-neolynx@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The Master Guide Table is used in ATSC. Implementation
+according to specs A/65:2009
 
-The old table is most definitely wrong. All applications and all
-drivers that I have ever tested follow the corrected table. Furthermore,
-that's what all applications expect as well. Any drivers that do not
-follow the corrected table are broken and should be fixed.
-
-This patch drops the old table and replaces it with the corrected
-table. This should prevent a lot of confusion.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: André Roth <neolynx@gmail.com>
 ---
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        | 513 ++-------------------
- 1 file changed, 49 insertions(+), 464 deletions(-)
+ lib/include/descriptors/mgt.h  |  79 +++++++++++++++++++++++
+ lib/libdvbv5/Makefile.am       |   3 +-
+ lib/libdvbv5/descriptors.c     |   1 +
+ lib/libdvbv5/descriptors/mgt.c | 140 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 222 insertions(+), 1 deletion(-)
+ create mode 100644 lib/include/descriptors/mgt.h
+ create mode 100644 lib/libdvbv5/descriptors/mgt.c
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-index 166c8d6..e1c4f8b 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-@@ -121,14 +121,14 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry><constant>V4L2_PIX_FMT_RGB332</constant></entry>
- 	    <entry>'RGB1'</entry>
- 	    <entry></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
- 	    <entry>r<subscript>2</subscript></entry>
- 	    <entry>r<subscript>1</subscript></entry>
- 	    <entry>r<subscript>0</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
- 	  </row>
- 	  <row id="V4L2-PIX-FMT-RGB444">
- 	    <entry><constant>V4L2_PIX_FMT_RGB444</constant></entry>
-@@ -159,18 +159,18 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>g<subscript>2</subscript></entry>
- 	    <entry>g<subscript>1</subscript></entry>
- 	    <entry>g<subscript>0</subscript></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>a</entry>
- 	    <entry>b<subscript>4</subscript></entry>
- 	    <entry>b<subscript>3</subscript></entry>
- 	    <entry>b<subscript>2</subscript></entry>
- 	    <entry>b<subscript>1</subscript></entry>
- 	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>a</entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
- 	    <entry>g<subscript>4</subscript></entry>
- 	    <entry>g<subscript>3</subscript></entry>
- 	  </row>
-@@ -181,17 +181,17 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>g<subscript>2</subscript></entry>
- 	    <entry>g<subscript>1</subscript></entry>
- 	    <entry>g<subscript>0</subscript></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry></entry>
- 	    <entry>b<subscript>4</subscript></entry>
- 	    <entry>b<subscript>3</subscript></entry>
- 	    <entry>b<subscript>2</subscript></entry>
- 	    <entry>b<subscript>1</subscript></entry>
- 	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
- 	    <entry>g<subscript>5</subscript></entry>
- 	    <entry>g<subscript>4</subscript></entry>
- 	    <entry>g<subscript>3</subscript></entry>
-@@ -201,32 +201,32 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>'RGBQ'</entry>
- 	    <entry></entry>
- 	    <entry>a</entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	    <entry></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
- 	    <entry>r<subscript>4</subscript></entry>
- 	    <entry>r<subscript>3</subscript></entry>
- 	    <entry>r<subscript>2</subscript></entry>
- 	    <entry>r<subscript>1</subscript></entry>
- 	    <entry>r<subscript>0</subscript></entry>
--	  </row>
--	  <row id="V4L2-PIX-FMT-RGB565X">
--	    <entry><constant>V4L2_PIX_FMT_RGB565X</constant></entry>
--	    <entry>'RGBR'</entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry>g<subscript>3</subscript></entry>
- 	    <entry></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
- 	    <entry>b<subscript>4</subscript></entry>
- 	    <entry>b<subscript>3</subscript></entry>
- 	    <entry>b<subscript>2</subscript></entry>
- 	    <entry>b<subscript>1</subscript></entry>
- 	    <entry>b<subscript>0</subscript></entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-RGB565X">
-+	    <entry><constant>V4L2_PIX_FMT_RGB565X</constant></entry>
-+	    <entry>'RGBR'</entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
- 	    <entry>g<subscript>5</subscript></entry>
- 	    <entry>g<subscript>4</subscript></entry>
- 	    <entry>g<subscript>3</subscript></entry>
-@@ -234,11 +234,11 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>g<subscript>2</subscript></entry>
- 	    <entry>g<subscript>1</subscript></entry>
- 	    <entry>g<subscript>0</subscript></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
- 	  </row>
- 	  <row id="V4L2-PIX-FMT-BGR666">
- 	    <entry><constant>V4L2_PIX_FMT_BGR666</constant></entry>
-@@ -385,6 +385,15 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry><constant>V4L2_PIX_FMT_RGB32</constant></entry>
- 	    <entry>'RGB4'</entry>
- 	    <entry></entry>
-+	    <entry>a<subscript>7</subscript></entry>
-+	    <entry>a<subscript>6</subscript></entry>
-+	    <entry>a<subscript>5</subscript></entry>
-+	    <entry>a<subscript>4</subscript></entry>
-+	    <entry>a<subscript>3</subscript></entry>
-+	    <entry>a<subscript>2</subscript></entry>
-+	    <entry>a<subscript>1</subscript></entry>
-+	    <entry>a<subscript>0</subscript></entry>
-+	    <entry></entry>
- 	    <entry>r<subscript>7</subscript></entry>
- 	    <entry>r<subscript>6</subscript></entry>
- 	    <entry>r<subscript>5</subscript></entry>
-@@ -411,25 +420,16 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry>b<subscript>2</subscript></entry>
- 	    <entry>b<subscript>1</subscript></entry>
- 	    <entry>b<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>a<subscript>7</subscript></entry>
--	    <entry>a<subscript>6</subscript></entry>
--	    <entry>a<subscript>5</subscript></entry>
--	    <entry>a<subscript>4</subscript></entry>
--	    <entry>a<subscript>3</subscript></entry>
--	    <entry>a<subscript>2</subscript></entry>
--	    <entry>a<subscript>1</subscript></entry>
--	    <entry>a<subscript>0</subscript></entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
+diff --git a/lib/include/descriptors/mgt.h b/lib/include/descriptors/mgt.h
+new file mode 100644
+index 0000000..9c583b4
+--- /dev/null
++++ b/lib/include/descriptors/mgt.h
+@@ -0,0 +1,79 @@
++/*
++ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation version 2
++ * of the License.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
++ *
++ */
++
++#ifndef _MGT_H
++#define _MGT_H
++
++#include <stdint.h>
++#include <unistd.h> /* ssize_t */
++
++#include "descriptors/atsc_header.h"
++#include "descriptors.h"
++
++#define ATSC_TABLE_MGT 0xC7
++
++struct atsc_table_mgt_table {
++	uint16_t type;
++	union {
++		uint16_t bitfield;
++		struct {
++			uint16_t pid:13;
++			uint16_t one:3;
++		} __attribute__((packed));
++	} __attribute__((packed));
++        uint8_t type_version:5;
++        uint8_t one2:3;
++        uint32_t size;
++	union {
++		uint16_t bitfield2;
++		struct {
++			uint16_t desc_length:12;
++			uint16_t one3:4;
++		} __attribute__((packed));
++	} __attribute__((packed));
++	struct dvb_desc *descriptor;
++	struct atsc_table_mgt_table *next;
++} __attribute__((packed));
++
++struct atsc_table_mgt {
++	struct atsc_table_header header;
++        uint16_t tables;
++        struct atsc_table_mgt_table *table;
++	struct dvb_desc *descriptor;
++} __attribute__((packed));
++
++#define atsc_mgt_table_foreach( _tran, _mgt ) \
++  for( struct atsc_table_mgt_table *_tran = _mgt->table; _tran; _tran = _tran->next ) \
++
++struct dvb_v5_fe_parms;
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++void atsc_table_mgt_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
++void atsc_table_mgt_free(struct atsc_table_mgt *mgt);
++void atsc_table_mgt_print(struct dvb_v5_fe_parms *parms, struct atsc_table_mgt *mgt);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif
+diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
+index 2ad5902..44f68d4 100644
+--- a/lib/libdvbv5/Makefile.am
++++ b/lib/libdvbv5/Makefile.am
+@@ -48,7 +48,8 @@ libdvbv5_la_SOURCES = \
+   descriptors/nit.c  ../include/descriptors/nit.h \
+   descriptors/sdt.c  ../include/descriptors/sdt.h \
+   descriptors/vct.c  ../include/descriptors/vct.h \
+-  descriptors/eit.c  ../include/descriptors/eit.h
++  descriptors/eit.c  ../include/descriptors/eit.h \
++  descriptors/mgt.c  ../include/descriptors/mgt.h \
  
--    <para>Bit 7 is the most significant bit. The value of a = alpha
-+    <para>Bit 7 is the most significant bit. The value of the a = alpha
- bits is undefined when reading from the driver, ignored when writing
- to the driver, except when alpha blending has been negotiated for a
- <link linkend="overlay">Video Overlay</link> or <link linkend="osd">
--Video Output Overlay</link> or when alpha component has been configured
-+Video Output Overlay</link> or when the alpha component has been configured
- for a <link linkend="capture">Video Capture</link> by means of <link
- linkend="v4l2-alpha-component"> <constant>V4L2_CID_ALPHA_COMPONENT
- </constant> </link> control.</para>
-@@ -512,421 +512,6 @@ image</title>
-       </formalpara>
-     </example>
- 
--    <important>
--      <para>Drivers may interpret these formats differently.</para>
--    </important>
--
--    <para>Some RGB formats above are uncommon and were probably
--defined in error. Drivers may interpret them as in <xref
--	linkend="rgb-formats-corrected" />.</para>
--
--    <table pgwide="1" frame="none" id="rgb-formats-corrected">
--      <title>Packed RGB Image Formats (corrected)</title>
--      <tgroup cols="37" align="center">
--	<colspec colname="id" align="left" />
--	<colspec colname="fourcc" />
--	<colspec colname="bit" />
--
--	<colspec colnum="4" colname="b07" align="center" />
--	<colspec colnum="5" colname="b06" align="center" />
--	<colspec colnum="6" colname="b05" align="center" />
--	<colspec colnum="7" colname="b04" align="center" />
--	<colspec colnum="8" colname="b03" align="center" />
--	<colspec colnum="9" colname="b02" align="center" />
--	<colspec colnum="10" colname="b01" align="center" />
--	<colspec colnum="11" colname="b00" align="center" />
--
--	<colspec colnum="13" colname="b17" align="center" />
--	<colspec colnum="14" colname="b16" align="center" />
--	<colspec colnum="15" colname="b15" align="center" />
--	<colspec colnum="16" colname="b14" align="center" />
--	<colspec colnum="17" colname="b13" align="center" />
--	<colspec colnum="18" colname="b12" align="center" />
--	<colspec colnum="19" colname="b11" align="center" />
--	<colspec colnum="20" colname="b10" align="center" />
--
--	<colspec colnum="22" colname="b27" align="center" />
--	<colspec colnum="23" colname="b26" align="center" />
--	<colspec colnum="24" colname="b25" align="center" />
--	<colspec colnum="25" colname="b24" align="center" />
--	<colspec colnum="26" colname="b23" align="center" />
--	<colspec colnum="27" colname="b22" align="center" />
--	<colspec colnum="28" colname="b21" align="center" />
--	<colspec colnum="29" colname="b20" align="center" />
--
--	<colspec colnum="31" colname="b37" align="center" />
--	<colspec colnum="32" colname="b36" align="center" />
--	<colspec colnum="33" colname="b35" align="center" />
--	<colspec colnum="34" colname="b34" align="center" />
--	<colspec colnum="35" colname="b33" align="center" />
--	<colspec colnum="36" colname="b32" align="center" />
--	<colspec colnum="37" colname="b31" align="center" />
--	<colspec colnum="38" colname="b30" align="center" />
--
--	<spanspec namest="b07" nameend="b00" spanname="b0" />
--	<spanspec namest="b17" nameend="b10" spanname="b1" />
--	<spanspec namest="b27" nameend="b20" spanname="b2" />
--	<spanspec namest="b37" nameend="b30" spanname="b3" />
--	<thead>
--	  <row>
--	    <entry>Identifier</entry>
--	    <entry>Code</entry>
--	    <entry>&nbsp;</entry>
--	    <entry spanname="b0">Byte&nbsp;0 in memory</entry>
--	    <entry spanname="b1">Byte&nbsp;1</entry>
--	    <entry spanname="b2">Byte&nbsp;2</entry>
--	    <entry spanname="b3">Byte&nbsp;3</entry>
--	  </row>
--	  <row>
--	    <entry>&nbsp;</entry>
--	    <entry>&nbsp;</entry>
--	    <entry>Bit</entry>
--	    <entry>7</entry>
--	    <entry>6</entry>
--	    <entry>5</entry>
--	    <entry>4</entry>
--	    <entry>3</entry>
--	    <entry>2</entry>
--	    <entry>1</entry>
--	    <entry>0</entry>
--	    <entry>&nbsp;</entry>
--	    <entry>7</entry>
--	    <entry>6</entry>
--	    <entry>5</entry>
--	    <entry>4</entry>
--	    <entry>3</entry>
--	    <entry>2</entry>
--	    <entry>1</entry>
--	    <entry>0</entry>
--	    <entry>&nbsp;</entry>
--	    <entry>7</entry>
--	    <entry>6</entry>
--	    <entry>5</entry>
--	    <entry>4</entry>
--	    <entry>3</entry>
--	    <entry>2</entry>
--	    <entry>1</entry>
--	    <entry>0</entry>
--	    <entry>&nbsp;</entry>
--	    <entry>7</entry>
--	    <entry>6</entry>
--	    <entry>5</entry>
--	    <entry>4</entry>
--	    <entry>3</entry>
--	    <entry>2</entry>
--	    <entry>1</entry>
--	    <entry>0</entry>
--	  </row>
--	</thead>
--	<tbody valign="top">
--	  <row><!-- id="V4L2-PIX-FMT-RGB332" -->
--	    <entry><constant>V4L2_PIX_FMT_RGB332</constant></entry>
--	    <entry>'RGB1'</entry>
--	    <entry></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-RGB444" -->
--	    <entry><constant>V4L2_PIX_FMT_RGB444</constant></entry>
--	    <entry>'R444'</entry>
--	    <entry></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>a<subscript>3</subscript></entry>
--	    <entry>a<subscript>2</subscript></entry>
--	    <entry>a<subscript>1</subscript></entry>
--	    <entry>a<subscript>0</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-RGB555" -->
--	    <entry><constant>V4L2_PIX_FMT_RGB555</constant></entry>
--	    <entry>'RGBO'</entry>
--	    <entry></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>a</entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-RGB565" -->
--	    <entry><constant>V4L2_PIX_FMT_RGB565</constant></entry>
--	    <entry>'RGBP'</entry>
--	    <entry></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry>g<subscript>5</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-RGB555X" -->
--	    <entry><constant>V4L2_PIX_FMT_RGB555X</constant></entry>
--	    <entry>'RGBQ'</entry>
--	    <entry></entry>
--	    <entry>a</entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	    <entry></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-RGB565X" -->
--	    <entry><constant>V4L2_PIX_FMT_RGB565X</constant></entry>
--	    <entry>'RGBR'</entry>
--	    <entry></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry>g<subscript>5</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	    <entry></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-BGR666" -->
--	    <entry><constant>V4L2_PIX_FMT_BGR666</constant></entry>
--	    <entry>'BGRH'</entry>
--	    <entry></entry>
--	    <entry>b<subscript>5</subscript></entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	    <entry>g<subscript>5</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry>r<subscript>5</subscript></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-BGR24" -->
--	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
--	    <entry>'BGR3'</entry>
--	    <entry></entry>
--	    <entry>b<subscript>7</subscript></entry>
--	    <entry>b<subscript>6</subscript></entry>
--	    <entry>b<subscript>5</subscript></entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>g<subscript>7</subscript></entry>
--	    <entry>g<subscript>6</subscript></entry>
--	    <entry>g<subscript>5</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>r<subscript>7</subscript></entry>
--	    <entry>r<subscript>6</subscript></entry>
--	    <entry>r<subscript>5</subscript></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-RGB24" -->
--	    <entry><constant>V4L2_PIX_FMT_RGB24</constant></entry>
--	    <entry>'RGB3'</entry>
--	    <entry></entry>
--	    <entry>r<subscript>7</subscript></entry>
--	    <entry>r<subscript>6</subscript></entry>
--	    <entry>r<subscript>5</subscript></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>g<subscript>7</subscript></entry>
--	    <entry>g<subscript>6</subscript></entry>
--	    <entry>g<subscript>5</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>b<subscript>7</subscript></entry>
--	    <entry>b<subscript>6</subscript></entry>
--	    <entry>b<subscript>5</subscript></entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-BGR32" -->
--	    <entry><constant>V4L2_PIX_FMT_BGR32</constant></entry>
--	    <entry>'BGR4'</entry>
--	    <entry></entry>
--	    <entry>b<subscript>7</subscript></entry>
--	    <entry>b<subscript>6</subscript></entry>
--	    <entry>b<subscript>5</subscript></entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>g<subscript>7</subscript></entry>
--	    <entry>g<subscript>6</subscript></entry>
--	    <entry>g<subscript>5</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>r<subscript>7</subscript></entry>
--	    <entry>r<subscript>6</subscript></entry>
--	    <entry>r<subscript>5</subscript></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>a<subscript>7</subscript></entry>
--	    <entry>a<subscript>6</subscript></entry>
--	    <entry>a<subscript>5</subscript></entry>
--	    <entry>a<subscript>4</subscript></entry>
--	    <entry>a<subscript>3</subscript></entry>
--	    <entry>a<subscript>2</subscript></entry>
--	    <entry>a<subscript>1</subscript></entry>
--	    <entry>a<subscript>0</subscript></entry>
--	  </row>
--	  <row><!-- id="V4L2-PIX-FMT-RGB32" -->
--	    <entry><constant>V4L2_PIX_FMT_RGB32</constant></entry>
--	    <entry>'RGB4'</entry>
--	    <entry></entry>
--	    <entry>a<subscript>7</subscript></entry>
--	    <entry>a<subscript>6</subscript></entry>
--	    <entry>a<subscript>5</subscript></entry>
--	    <entry>a<subscript>4</subscript></entry>
--	    <entry>a<subscript>3</subscript></entry>
--	    <entry>a<subscript>2</subscript></entry>
--	    <entry>a<subscript>1</subscript></entry>
--	    <entry>a<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>r<subscript>7</subscript></entry>
--	    <entry>r<subscript>6</subscript></entry>
--	    <entry>r<subscript>5</subscript></entry>
--	    <entry>r<subscript>4</subscript></entry>
--	    <entry>r<subscript>3</subscript></entry>
--	    <entry>r<subscript>2</subscript></entry>
--	    <entry>r<subscript>1</subscript></entry>
--	    <entry>r<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>g<subscript>7</subscript></entry>
--	    <entry>g<subscript>6</subscript></entry>
--	    <entry>g<subscript>5</subscript></entry>
--	    <entry>g<subscript>4</subscript></entry>
--	    <entry>g<subscript>3</subscript></entry>
--	    <entry>g<subscript>2</subscript></entry>
--	    <entry>g<subscript>1</subscript></entry>
--	    <entry>g<subscript>0</subscript></entry>
--	    <entry></entry>
--	    <entry>b<subscript>7</subscript></entry>
--	    <entry>b<subscript>6</subscript></entry>
--	    <entry>b<subscript>5</subscript></entry>
--	    <entry>b<subscript>4</subscript></entry>
--	    <entry>b<subscript>3</subscript></entry>
--	    <entry>b<subscript>2</subscript></entry>
--	    <entry>b<subscript>1</subscript></entry>
--	    <entry>b<subscript>0</subscript></entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
--
-     <para>A test utility to determine which RGB formats a driver
- actually supports is available from the LinuxTV v4l-dvb repository.
- See &v4l-dvb; for access instructions.</para>
+ libdvbv5_la_CPPFLAGS = $(ENFORCE_LIBDVBV5_STATIC)
+ libdvbv5_la_LDFLAGS = $(LIBDVBV5_VERSION) $(ENFORCE_LIBDVBV5_STATIC) -lm
+diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
+index d0887f4..7385027 100644
+--- a/lib/libdvbv5/descriptors.c
++++ b/lib/libdvbv5/descriptors.c
+@@ -36,6 +36,7 @@
+ #include "descriptors/sdt.h"
+ #include "descriptors/eit.h"
+ #include "descriptors/vct.h"
++#include "descriptors/mgt.h"
+ #include "descriptors/desc_language.h"
+ #include "descriptors/desc_network_name.h"
+ #include "descriptors/desc_cable_delivery.h"
+diff --git a/lib/libdvbv5/descriptors/mgt.c b/lib/libdvbv5/descriptors/mgt.c
+new file mode 100644
+index 0000000..7279982
+--- /dev/null
++++ b/lib/libdvbv5/descriptors/mgt.c
+@@ -0,0 +1,140 @@
++/*
++ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation version 2
++ * of the License.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
++ *
++ */
++
++#include "descriptors/mgt.h"
++#include "dvb-fe.h"
++
++void atsc_table_mgt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
++{
++	const uint8_t *p = buf, *endbuf = buf + buflen - 4; /* minus CRC */
++	struct atsc_table_mgt *mgt = (struct atsc_table_mgt *) table;
++	struct dvb_desc **head_desc;
++	struct atsc_table_mgt_table **head;
++	int i = 0;
++	struct atsc_table_mgt_table *last = NULL;
++	size_t size = offsetof(struct atsc_table_mgt, table);
++
++	if (p + size > endbuf) {
++		dvb_logerr("%s: short read %zd/%zd bytes", __func__,
++			   size, endbuf - p);
++		return;
++	}
++
++	if (*table_length > 0) {
++		/* find end of curent lists */
++		head_desc = &mgt->descriptor;
++		while (*head_desc != NULL)
++			head_desc = &(*head_desc)->next;
++		head = &mgt->table;
++		while (*head != NULL)
++			head = &(*head)->next;
++
++		/* FIXME: read current mgt->tables for loop below */
++	} else {
++		memcpy(table, p, size);
++		*table_length = sizeof(struct atsc_table_mgt);
++
++		bswap16(mgt->tables);
++
++		mgt->descriptor = NULL;
++		mgt->table = NULL;
++		head_desc = &mgt->descriptor;
++		head = &mgt->table;
++	}
++	p += size;
++
++	while (i++ < mgt->tables && p < endbuf) {
++		struct atsc_table_mgt_table *table;
++
++		size = offsetof(struct atsc_table_mgt_table, descriptor);
++		if (p + size > endbuf) {
++			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
++				   size, endbuf - p);
++			return;
++		}
++		table = (struct atsc_table_mgt_table *) malloc(sizeof(struct atsc_table_mgt_table));
++		memcpy(table, p, size);
++		p += size;
++
++		bswap16(table->type);
++		bswap16(table->bitfield);
++		bswap16(table->bitfield2);
++		bswap32(table->size);
++		table->descriptor = NULL;
++		table->next = NULL;
++
++		if(!*head)
++			*head = table;
++		if(last)
++			last->next = table;
++
++		/* get the descriptors for each table */
++		size = table->desc_length;
++		if (p + size > endbuf) {
++			dvb_logerr("%s: short read %zd/%zd bytes", __func__,
++				   size, endbuf - p);
++			return;
++		}
++		dvb_parse_descriptors(parms, p, size, &table->descriptor);
++
++		p += size;
++		last = table;
++	}
++	/* TODO: parse MGT descriptors here into head_desc */
++}
++
++void atsc_table_mgt_free(struct atsc_table_mgt *mgt)
++{
++	struct atsc_table_mgt_table *table = mgt->table;
++
++	dvb_free_descriptors((struct dvb_desc **) &mgt->descriptor);
++	while(table) {
++		struct atsc_table_mgt_table *tmp = table;
++
++		dvb_free_descriptors((struct dvb_desc **) &table->descriptor);
++		table = table->next;
++		free(tmp);
++	}
++	free(mgt);
++}
++
++void atsc_table_mgt_print(struct dvb_v5_fe_parms *parms, struct atsc_table_mgt *mgt)
++{
++	const struct atsc_table_mgt_table *table = mgt->table;
++	uint16_t tables = 0;
++
++	dvb_log("MGT");
++	atsc_table_header_print(parms, &mgt->header);
++	dvb_log("| tables           %d", mgt->tables);
++	while(table) {
++                dvb_log("|- type %04x    %d", table->type, table->pid);
++                dvb_log("|  one          %d", table->one);
++                dvb_log("|  one2         %d", table->one2);
++                dvb_log("|  type version %d", table->type_version);
++                dvb_log("|  size         %d", table->size);
++                dvb_log("|  one3         %d", table->one3);
++                dvb_log("|  desc_length  %d", table->desc_length);
++		dvb_print_descriptors(parms, table->descriptor);
++		table = table->next;
++		tables++;
++	}
++	dvb_log("|_  %d tables", tables);
++}
++
 -- 
-1.8.5.2
+1.8.3.2
 
