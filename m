@@ -1,54 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:45438 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755290AbaAHMos (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 07:44:48 -0500
-Date: Wed, 8 Jan 2014 15:45:06 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [media] Add driver for Samsung S5K5BAF camera sensor
-Message-ID: <20140108124505.GQ5443@mwanda>
-References: <20140108095840.GA10979@elgon.mountain>
- <52CD3D6B.9000400@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <52CD3D6B.9000400@samsung.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:64285 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756010AbaAHLwS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 06:52:18 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZ200DG1ZN2NBA0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 Jan 2014 11:52:14 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>
+Subject: [GIT PULL for v3.14 v2] mem2mem patches
+Date: Wed, 08 Jan 2014 12:52:15 +0100
+Message-id: <049c01cf0c68$136c23e0$3a446ba0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 08, 2014 at 12:58:35PM +0100, Andrzej Hajda wrote:
-> On 01/08/2014 10:58 AM, Dan Carpenter wrote:
-> > Hello Andrzej Hajda,
-> > 
-> > The patch 7d459937dc09: "[media] Add driver for Samsung S5K5BAF
-> > camera sensor" from Dec 5, 2013, leads to the following
-> > static checker warning:
-> > 
-> > 	drivers/media/i2c/s5k5baf.c:1043 s5k5baf_set_power()
-> > 	warn: add some parenthesis here?
-> > 
-> > drivers/media/i2c/s5k5baf.c
-> >   1036  static int s5k5baf_set_power(struct v4l2_subdev *sd, int on)
-> >   1037  {
-> >   1038          struct s5k5baf *state = to_s5k5baf(sd);
-> >   1039          int ret = 0;
-> >   1040  
-> >   1041          mutex_lock(&state->lock);
-> >   1042  
-> >   1043          if (!on != state->power)
-> >                     ^^^^^^^^^^^^^^^^^^^
-> > This would be cleaner if it were "if (on == state->power)"
-> 
-> This version works correctly only for 'on' equal 0 and 1, my version
-> works for all ints. On the other side documentation says only 0 and 1 is
-> allowed for s_power callbacks :)
-> I would stay with my version, similar approach is in other drivers.
+The following changes since commit 6892f65b7b9e14fe29b6e4f0dc4f7ed3796a6e71:
 
-Even "if (!!on == state->power)" like you do in s5k5baf_s_stream() would
-be more readable than the current code.
+  exynos-scaler: Add DT bindings for SCALER driver (2013-12-24 10:37:23
++0100)
 
-regards,
-dan carpenter
+are available in the git repository at:
+
+  git://linuxtv.org/kdebski/media.git master
+
+for you to fetch changes up to 0f6616ebb7a04219ad7aa84dd9ff9c7ac9323529:
+
+  s5p-mfc: Add controls to set vp8 enc profile (2013-12-24 10:37:27 +0100)
+
+----------------------------------------------------------------
+Arun Kumar K (1):
+      s5p-mfc: Add QP setting support for vp8 encoder
+
+Kiran AVND (1):
+      s5p-mfc: Add controls to set vp8 enc profile
+
+Marek Szyprowski (1):
+      media: s5p_mfc: remove s5p_mfc_get_node_type() function
+
+ Documentation/DocBook/media/v4l/controls.xml    |   41 +++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |   28 +++---------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |   14 +++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   55
++++++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   26 +++++++++--
+ drivers/media/v4l2-core/v4l2-ctrls.c            |    5 +++
+ include/uapi/linux/v4l2-controls.h              |    5 +++
+ 7 files changed, 140 insertions(+), 34 deletions(-)
 
