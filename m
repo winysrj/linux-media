@@ -1,268 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:25403 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364AbaAGQiZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 11:38:25 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ1003D1I801X50@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 Jan 2014 11:38:24 -0500 (EST)
-Date: Tue, 07 Jan 2014 14:38:18 -0200
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:58239 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757206AbaAHQbg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 11:31:36 -0500
+Date: Wed, 08 Jan 2014 14:31:28 -0200
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 02/18] libdvbv5: service location descriptor support
-Message-id: <20140107143818.7d2e3b27@samsung.com>
-In-reply-to: <1388407731-24369-2-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
- <1388407731-24369-2-git-send-email-neolynx@gmail.com>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: jean-philippe francois <jp.francois@cynove.com>,
+	linux-usb@vger.kernel.org, LMML <linux-media@vger.kernel.org>,
+	Shuah Khan <shuah.kh@samsung.com>
+Subject: Re: Isochronous transfer error on USB3
+Message-id: <20140108143128.618bfca2@samsung.com>
+In-reply-to: <20140102220722.GC9621@xanatos>
+References: <CAGGh5h3TCYiCuubm27h5O7DLknwU9-fUqMjxk_pFEaiXW61mGw@mail.gmail.com>
+ <20130311230028.GE5412@xanatos>
+ <CAGGh5h1wPQWtvP0rHSjsC-jLJwEX1Leb8eYgK6adP2Hc5skn2Q@mail.gmail.com>
+ <CAGGh5h3V5=dGo3dARyrwp9ERhcK_1Nty_gTX27qEr1ZEdQoATg@mail.gmail.com>
+ <20130318165124.GD17414@xanatos>
+ <20131229025440.526a9feb.m.chehab@samsung.com> <20140102220722.GC9621@xanatos>
 MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Dec 2013 13:48:35 +0100
-André Roth <neolynx@gmail.com> escreveu:
+Em Thu, 02 Jan 2014 14:07:22 -0800
+Sarah Sharp <sarah.a.sharp@linux.intel.com> escreveu:
 
-> Implement the service location descriptor (0xa1), and small cleanups.
+> On Sun, Dec 29, 2013 at 02:54:40AM -0200, Mauro Carvalho Chehab wrote:
+> > It seems that usb_unlink_urb() is causing troubles with xHCI: the
+> > endpoint stops streaming, but, after that, it doesn't start again,
+> > and lots of debug messages are produced. I emailed you the full log
+> > after start streaming in priv (too big for vger), but basically, 
+> > it produces:
+> > 
+> > [ 1635.754546] xhci_hcd 0000:00:14.0: Endpoint 0x81 not halted, refusing to reset.
+> > [ 1635.754562] xhci_hcd 0000:00:14.0: Endpoint 0x82 not halted, refusing to reset.
+> > [ 1635.754577] xhci_hcd 0000:00:14.0: Endpoint 0x83 not halted, refusing to reset.
+> > [ 1635.754594] xhci_hcd 0000:00:14.0: Endpoint 0x84 not halted, refusing to reset.
 > 
-> Signed-off-by: André Roth <neolynx@gmail.com>
-> ---
->  lib/include/descriptors.h                        |  4 +-
->  lib/include/descriptors/desc_service_location.h  | 69 +++++++++++++++++++++++
->  lib/libdvbv5/Makefile.am                         |  3 +-
->  lib/libdvbv5/descriptors.c                       |  2 +-
->  lib/libdvbv5/descriptors/desc_service_location.c | 70 ++++++++++++++++++++++++
->  5 files changed, 145 insertions(+), 3 deletions(-)
->  create mode 100644 lib/include/descriptors/desc_service_location.h
->  create mode 100644 lib/libdvbv5/descriptors/desc_service_location.c
+> I think that's due to the driver (or userspace) attempting to reset the
+> endpoint when it didn't actually receive a stall (-EPIPE) status from an
+> URB.  When that happens, the xHCI host controller endpoint "toggle" bits
+> get out of sync with the device toggle bits, and the result is that all
+> transfers will fail to the endpoint from then on until you switch
+> alternate interface settings or unplug/replug the device.
 > 
-> diff --git a/lib/include/descriptors.h b/lib/include/descriptors.h
-> index 2e614f0..5ab29a0 100644
-> --- a/lib/include/descriptors.h
-> +++ b/lib/include/descriptors.h
-> @@ -1,4 +1,4 @@
-> -  /*
-> +/*
->   * Copyright (c) 2011-2012 - Mauro Carvalho Chehab <mchehab@redhat.com>
->   *
->   * This program is free software; you can redistribute it and/or
-> @@ -216,6 +216,8 @@ enum descriptors {
->  	/* SCTE 35 2004 */
->  	CUE_identifier_descriptor			= 0x8a,
->  
-> +	extended_channel_name				= 0xa0,
-> +	service_location				= 0xa1,
->  	/* From http://www.etherguidesystems.com/Help/SDOs/ATSC/Semantics/Descriptors/Default.aspx */
->  	component_name_descriptor			= 0xa3,
->  
-> diff --git a/lib/include/descriptors/desc_service_location.h b/lib/include/descriptors/desc_service_location.h
-> new file mode 100644
-> index 0000000..89ed055
-> --- /dev/null
-> +++ b/lib/include/descriptors/desc_service_location.h
-> @@ -0,0 +1,69 @@
-> +/*
-> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation version 2
-> + * of the License.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-> + *
-> + */
-> +
-> +#ifndef _SERVICE_LOCATION_H
-> +#define _SERVICE_LOCATION_H
-> +
-> +#include <stdint.h>
-> +#include <unistd.h> /* ssize_t */
-> +
-> +struct dvb_desc_service_location_element {
-> +	uint8_t stream_type;
-> +	union {
-> +		uint16_t bitfield;
-> +		struct {
-> +			uint16_t elementary_pid:13;
-> +			uint16_t reserved:3;
-> +		};
-> +	};
-> +	uint8_t language[4];
-> +} __attribute__((packed));
-> +
-> +struct dvb_desc_service_location {
-> +	uint8_t type;
-> +	uint8_t length;
-> +	struct dvb_desc *next;
-> +
-> +	union {
-> +		uint16_t bitfield;
-> +		struct {
-> +			uint16_t pcr_pid:13;
-> +			uint16_t reserved:3;
-> +		};
-> +	};
-> +	uint8_t elements;
-> +	struct dvb_desc_service_location_element *element;
-> +} __attribute__((packed));
-> +
-> +struct dvb_v5_fe_parms;
-> +
-> +#ifdef __cplusplus
-> +extern "C" {
-> +#endif
-> +
-> +void dvb_desc_service_location_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc);
-> +void dvb_desc_service_location_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc);
-> +void dvb_desc_service_location_free (struct dvb_desc *desc);
-> +
-> +#ifdef __cplusplus
-> +}
-> +#endif
-> +
-> +#endif
-> diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-> index 2ad5902..80e8adb 100644
-> --- a/lib/libdvbv5/Makefile.am
-> +++ b/lib/libdvbv5/Makefile.am
-> @@ -48,7 +48,8 @@ libdvbv5_la_SOURCES = \
->    descriptors/nit.c  ../include/descriptors/nit.h \
->    descriptors/sdt.c  ../include/descriptors/sdt.h \
->    descriptors/vct.c  ../include/descriptors/vct.h \
-> -  descriptors/eit.c  ../include/descriptors/eit.h
-> +  descriptors/eit.c  ../include/descriptors/eit.h \
-> +  descriptors/desc_service_location.c  ../include/descriptors/desc_service_location.h
->  
->  libdvbv5_la_CPPFLAGS = $(ENFORCE_LIBDVBV5_STATIC)
->  libdvbv5_la_LDFLAGS = $(LIBDVBV5_VERSION) $(ENFORCE_LIBDVBV5_STATIC) -lm
-> diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-> index 5ce9241..437b2f4 100644
-> --- a/lib/libdvbv5/descriptors.c
-> +++ b/lib/libdvbv5/descriptors.c
-> @@ -69,7 +69,7 @@ void dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, st
->  
->  void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
->  {
-> -	dvb_log("|                   %s (0x%02x)", dvb_descriptors[desc->type].name, desc->type);
-> +	dvb_log("|                   %s (%#02x)", dvb_descriptors[desc->type].name, desc->type);
->  	hexdump(parms, "|                       ", desc->data, desc->length);
->  }
->  
-> diff --git a/lib/libdvbv5/descriptors/desc_service_location.c b/lib/libdvbv5/descriptors/desc_service_location.c
-> new file mode 100644
-> index 0000000..3759665
-> --- /dev/null
-> +++ b/lib/libdvbv5/descriptors/desc_service_location.c
-> @@ -0,0 +1,70 @@
-> +/*
-> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation version 2
-> + * of the License.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-> + *
-> + */
-> +
-> +#include "descriptors/desc_service_location.h"
-> +#include "descriptors.h"
-> +#include "dvb-fe.h"
-> +
-> +void dvb_desc_service_location_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
-> +{
-> +	struct dvb_desc_service_location *service_location = (struct dvb_desc_service_location *) desc;
+> Try this patch:
+> 
+> http://marc.info/?l=linux-usb&m=138116117104619&w=2
+> 
+> It's still under RFC, and I know it has race conditions, but it will let
+> you quickly test whether this fixes your issue.
 
-please add a blank line here.
+Didn't work fine, or at least it didn't solve all the problems. Also, it
+started to cause OOPSes due to the race conditions.
 
-> +	/* copy from .next */
-> +	memcpy(((uint8_t *) service_location )
-> +			+ sizeof(service_location->type)
-> +			+ sizeof(service_location->length)
-> +			+ sizeof(service_location->next),
-> +		buf,
-> +		sizeof(service_location->bitfield) + sizeof(service_location->elements));
-> +	buf +=  sizeof(service_location->bitfield) + sizeof(service_location->elements);
+> 
+> This has been a long-standing xHCI driver bug.  I asked my OPW intern to
+> work on the patch to fix it, but she may be a bit busy with her new job
+> to finish up the RFC.  I'll probably have to take over finishing the
+> patch, if this turns out to be your issue.
+> 
+> > (Not sure why it is trying to stop all endpoints - as just one endpoint was
+> > requested to restart).
+> 
+> Something is calling into usb_clear_halt() with all the endpoints.
+> Userspace, perhaps? 
 
-Use offsetof().
+No, userspace is not doing it. The userspace doesn't even know that this
+device is USB (and were written at the time that all media drivers were
+PCI only - so it doesn't have any USB specific call on it).
 
-> +
-> +	bswap16(service_location->bitfield);
-> +
-> +	// FIXME: handle elements == 0
+> You could add WARN() calls to usb_clear_halt() to
+> see what code is resetting the endpoints.  In any case, it's not part of
+> the USB core code to change configuration or alt settings, since I don't
+> see any xHCI driver output from the endpoint bandwidth code in this
+> chunk of the dmesg you sent:
 
-no C99 comments
+The em28xx-audio.c driver may need to call usb_set_interface() while
+the video is still streaming, in order to unmute the audio. That happens
+when the audio device is opened.
 
-> +	service_location->element = malloc(service_location->elements * sizeof(struct dvb_desc_service_location_element));
-> +	int i;
-> +	struct dvb_desc_service_location_element *element = service_location->element;
-> +	for(i = 0; i < service_location->elements; i++) {
-> +		memcpy(element, buf, sizeof(struct dvb_desc_service_location_element) - 1); /* no \0 in lang */
+With EHCI, this works properly.
 
-Please test before copy.
+> [ 1649.640783] xhci_hcd 0000:00:14.0: Removing canceled TD starting at 0xb41e8580 (dma).
+> [ 1649.640784] xhci_hcd 0000:00:14.0: TRB to noop at offset 0xb41e8580
+> [ 1649.643159] xhci_hcd 0000:00:14.0: Endpoint 0x81 not halted, refusing to reset.
+> [ 1649.643188] xhci_hcd 0000:00:14.0: Endpoint 0x82 not halted, refusing to reset.
+> [ 1649.643215] xhci_hcd 0000:00:14.0: Endpoint 0x83 not halted, refusing to reset.
+> [ 1649.643239] xhci_hcd 0000:00:14.0: Endpoint 0x84 not halted, refusing to reset.
+> [ 1649.735539] xhci_hcd 0000:00:14.0: ERROR no room on ep ring, try ring expansion
+> 
+> Sarah Sharp
 
-> +		buf += sizeof(struct dvb_desc_service_location_element) - 1;
-> +		element->language[3] = '\0';
-> +		bswap16(element->bitfield);
-> +		element++;
-> +	}
-> +}
-> +
-> +void dvb_desc_service_location_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
-> +{
-> +	const struct dvb_desc_service_location *service_location = (const struct dvb_desc_service_location *) desc;
-> +	dvb_log("|    pcr pid      %d", service_location->pcr_pid);
-> +	dvb_log("|    streams:");
-> +	int i;
+Btw, sometimes, I get such logs:
 
-blank line.
+[  646.192273] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
+[  646.192292] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
+[  646.192311] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
+[  646.192329] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
+[  646.192351] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
+[  646.192376] xhci_hcd 0000:00:14.0: Miss service interval error, set skip flag
 
-> +	struct dvb_desc_service_location_element *element = service_location->element;
+After adding some debug at em28xx-audio, triggering alsa trigger start
+events, I'm getting those:
 
-Please reorder: variable declarations should come before the dvb_log() calls.
+[ 3078.971224] snd_em28xx_capture_trigger: start capture
+[ 3078.971284] xhci_hcd 0000:00:14.0: ERROR no room on ep ring, try ring expansion
+[ 3078.971311] xhci_hcd 0000:00:14.0: ring expansion succeed, now has 4 segments
+[ 3078.971350] xhci_hcd 0000:00:14.0: ERROR no room on ep ring, try ring expansion
+[ 3078.971387] xhci_hcd 0000:00:14.0: ring expansion succeed, now has 8 segments
+[ 3079.034626] em28xx_audio_isocirq, 64 packets (first one with size 12)
 
-> +	for(i = 0; i < service_location->elements; i++) {
+Here, some audio data arrives.
 
-Space after "for". No need for {}, as there's just one statement on this for.
+[ 3079.034665] snd_em28xx_capture_trigger: stop capture
 
-> +		dvb_log("|      pid %d, type %d: %s", element[i].elementary_pid, element[i].stream_type, element[i].language);
-> +	}
-> +	dvb_log("| 	%d elements", service_location->elements);
-> +}
-> +
-> +void dvb_desc_service_location_free(struct dvb_desc *desc)
-> +{
-> +	const struct dvb_desc_service_location *service_location = (const struct dvb_desc_service_location *) desc;
+It seems, however, that this didn't arrive in time, and causes an alsa
+buffer underrun. So, it cancels the existing URBs.
 
-Please add a blank line.
+PS.: Even with EHCI, it causes a few ALSA underruns before it gets steady.
+I suspect that this is due to em28xx time to synchronize audio and video
+streams.
 
-> +	free(service_location->element);
-> +}
-> +
+[ 3079.034736] xhci_hcd 0000:00:14.0: Cancel URB ffff880207900000, dev 4, ep 0x83, starting at offset 0x1ffb13850
+[ 3079.034755] xhci_hcd 0000:00:14.0: // Ding dong!
+[ 3079.034783] xhci_hcd 0000:00:14.0: Stopped on Transfer TRB
+[ 3079.034790] snd_em28xx_capture_trigger: start capture
 
+While xHCI is still canceling the URBs, a new trigger happens, and it
+calls usb_submit_urb().
+
+[ 3079.034819] xhci_hcd 0000:00:14.0: Removing canceled TD starting at 0x1ffb13850 (dma).
+[ 3079.034835] xhci_hcd 0000:00:14.0: TRB to noop at offset 0x1ffb13850
+...
+[ 3079.036341] xhci_hcd 0000:00:14.0: Removing canceled TD starting at 0xb624b850 (dma).
+[ 3079.036352] xhci_hcd 0000:00:14.0: TRB to noop at offset 0xb624b850
+[ 3079.036365] em28xx_audio_isocirq, 64 packets (first one with size 0)
+
+But xHCI only finishes cancelling the first URB here...
+
+[ 3079.036382] xhci_hcd 0000:00:14.0: Cancel URB ffff880207900800, dev 4, ep 0x83, starting at offset 0x1ff937010
+...
+[ 3079.043158] xhci_hcd 0000:00:14.0: TRB to noop at offset 0x1ffb13840
+[ 3079.043170] em28xx_audio_isocirq, 64 packets (first one with size 0)
+
+And only here, it finishes to cancel the entire operation.
+
+[ 3079.043231] xhci_hcd 0000:00:14.0: ERROR no room on ep ring, try ring expansion
+[ 3079.043299] xhci_hcd 0000:00:14.0: ring expansion succeed, now has 16 segments
+[ 3079.428996] em28xx_audio_isocirq, 64 packets (first one with size 64)
+
+Finally, after ~400ms after the new usb_submit_urb(), the first audio packet
+appears...
+
+[ 3079.429069] snd_em28xx_capture_trigger: stop capture
+
+However, this is not fast enough to avoid ALSA buffer underrun. So,
+the driver cancels the existing URBs...
+
+[ 3079.429204] xhci_hcd 0000:00:14.0: Cancel URB ffff880207900000, dev 4, ep 0x83, starting at offset 0xc5a7f4b0
+[ 3079.429241] snd_em28xx_capture_trigger: start capture
+
+And submits a new set.
+
+Not sure how to fix it.
 
 -- 
 
 Cheers,
 Mauro
+
+PS.: I'm using this tree:
+	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/em28xx-v4l2-v6
+
+With this patch applied on my tests:
+
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 30ee389a07f0..57cba201a8ee 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -87,6 +87,8 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ 	struct snd_pcm_substream *substream;
+ 	struct snd_pcm_runtime   *runtime;
+ 
++printk("%s, %d packets (first one with size %d)\n", __func__, urb->number_of_packets, urb->iso_frame_desc[0].actual_length);
++
+ 	switch (urb->status) {
+ 	case 0:             /* success */
+ 	case -ETIMEDOUT:    /* NAK */
+@@ -372,14 +374,17 @@ static int snd_em28xx_capture_trigger(struct snd_pcm_substream *substream,
+ 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE: /* fall through */
+ 	case SNDRV_PCM_TRIGGER_RESUME: /* fall through */
+ 	case SNDRV_PCM_TRIGGER_START:
++printk("snd_em28xx_capture_trigger: start capture\n");
+ 		atomic_set(&dev->stream_started, 1);
+ 		break;
+ 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH: /* fall through */
+ 	case SNDRV_PCM_TRIGGER_SUSPEND: /* fall through */
+ 	case SNDRV_PCM_TRIGGER_STOP:
++printk("snd_em28xx_capture_trigger: stop capture\n");
+ 		atomic_set(&dev->stream_started, 0);
+ 		break;
+ 	default:
++printk("snd_em28xx_capture_trigger: invalid command\n");
+ 		retval = -EINVAL;
+ 	}
+ 	schedule_work(&dev->wq_trigger);
+diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
+index bb315970e475..9ed429d77492 100644
+--- a/drivers/usb/core/message.c
++++ b/drivers/usb/core/message.c
+@@ -993,6 +993,9 @@ int usb_clear_halt(struct usb_device *dev, int pipe)
+ 	int result;
+ 	int endp = usb_pipeendpoint(pipe);
+ 
++
++	WARN_ON(1);
++
+ 	if (usb_pipein(pipe))
+ 		endp |= USB_DIR_IN;
+ 
+
+
