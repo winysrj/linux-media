@@ -1,118 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:40381 "EHLO smtp5.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751751AbaAITwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jan 2014 14:52:21 -0500
-Message-ID: <52CEE5EC.3050704@epfl.ch>
-Date: Thu, 09 Jan 2014 19:09:48 +0100
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Reply-To: florian.vaussard@epfl.ch
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:52816 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbaAHUwR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 15:52:17 -0500
+Received: by mail-oa0-f52.google.com with SMTP id o6so2422584oag.11
+        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 12:52:16 -0800 (PST)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Regression inside omap3isp/resizer
-References: <52B02A7A.4010901@epfl.ch> <52B8AF81.3040804@epfl.ch> <5578156.0MrbcJaUWJ@avalon>
-In-Reply-To: <5578156.0MrbcJaUWJ@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <52CC90FB.3060102@narod.ru>
+References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
+	<52CC275B.5030907@gmx.de>
+	<CAGj5WxDuZadCm+Hwp=BDPwPf1fb4nuFXLotK8ePR7Q14-zvkMg@mail.gmail.com>
+	<CAF0Ff2kVYCY=9WJgGw9FMUnjC5a2RG364OxmByCyF+KoQBpxLA@mail.gmail.com>
+	<52CC90FB.3060102@narod.ru>
+Date: Wed, 8 Jan 2014 22:52:16 +0200
+Message-ID: <CAF0Ff2kXwbzk5xf5vwxopxwgR8ih6vVpnrTF751-mWFAXORQyg@mail.gmail.com>
+Subject: Re: Upstreaming SAA716x driver to the media_tree
+From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+To: CrazyCat <crazycat69@narod.ru>
+Cc: Luis Alves <ljalvs@gmail.com>,
+	Andreas Regel <andreas.regel@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>,
+	Chris Lee <updatelee@gmail.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Wed, Jan 8, 2014 at 1:42 AM, CrazyCat <crazycat69@narod.ru> wrote:
+> Konstantin Dimitrov пишет:
+>
+>> so, i was waiting Manu to upstream his SAA716x driver code some day
+>> and then submit the improvements i made to it. yet again you're trying
+>> to take that from me and again, conveniently you included many people
+>> on CC, but not me.
+>
+>
+> it's ok :) and stop compile binary blobs for TBS :) like 'stupid' binaries
+> for LNB power control and init for 6925/5925 :)
+>
 
-On 12/31/2013 09:51 AM, Laurent Pinchart wrote:
-> Hi Florian,
-> 
-> Sorry for the late reply.
-> 
+do you really believe that's mine decision to direct that to me?! what
+you're asking is not my decision to make.
 
-Now it is my turn to be late.
+>
+>
+>> in my opinion what you're doing is not right, because that patch is
+>> not clean-room reverse-engineering, you just took those changes from
+>> another open-source base and if nothing else it's at least common
+>> courtesy in open-source community when you didn't make them to not
+>> submit them as "your" patches.
+>
+>
+> this is open-source world :)
 
-> On Monday 23 December 2013 22:47:45 Florian Vaussard wrote:
->> On 12/17/2013 11:42 AM, Florian Vaussard wrote:
->>> Hello Laurent,
->>>
->>> I was working on having a functional IOMMU/ISP for 3.14, and had an
->>> issue with an image completely distorted. Comparing with another kernel,
->>> I saw that PRV_HORZ_INFO and PRV_VERT_INFO differed. On the newer
->>> kernel, sph, eph, svl, and slv were all off-by 2, causing my final image
->>> to miss 4 pixels on each line, thus distorting the result.
->>>
->>> Your commit 3fdfedaaa7f243f3347084231c64f6c1be0ba131 '[media] omap3isp:
->>> preview: Lower the crop margins' indeed changes PRV_HORZ_INFO and
->>> PRV_VERT_INFO by removing the if() condition. Reverting it made my image
->>> to be valid again.
->>>
->>> FYI, my pipeline is:
->>>
->>> MT9V032 (SGRBG10 752x480) -> CCDC -> PREVIEW (UYVY 752x480) -> RESIZER
->>> -> out
->>
->> Just an XMAS ping on this :-) Do you have any idea how to solve this
->> without reverting the patch?
-> 
-> The patch indeed changed the preview engine margins, but the change is 
-> supposed to be handled by applications. As a base for this discussion could 
-> you please provide the media-ctl -p output before and after applying the patch 
-> ? You can strip the unrelated media entities out of the output.
-> 
+no, it's not open-source world to take code that someone else made and
+say it's yours
 
-Ok, so I understand the rationale behind this patch, but I am a bit
-concerned. If this patch requires a change in userspace, this is somehow
-breaking the userspace, isn't? For example in my case, I will have to
-change my initialization scripts in order to pass the correct resolution
-to the pipeline. Most people have probably hard-coded the resolution
-into their script / application.
+>
+>
+>> i also think with your actions you're actually hurting the community,
+>> because people like me, that do actually have the technical
+>> understanding and can help and contribute further improvements are
+>> driven away from the community, because
+>> effectively the community accepting behavior like yours is encouraging
+>> code stealing!!
+>
+>
+> what stealed code ??? :) if you want write closed-source drivers for windose
+> - make it ! :)
+>
 
-For example, with the current Gumstix Overo, most people are using the
-3.6, which is the latest officially supported. I saw a number of them
-fighting to get a working pipeline. So when they will update to a 3.10+,
-their application will stop working correctly, and a big number of the
-users will have a hard time figuring out that they will have to update
-the pipeline's configuration to get back an image.
-
-The result of meida-ctl -p in the same with and without the patch
-applied, as the same script is calling media-ctl at startup to configure
-the pipeline. Stripped-down and ordered (camera -> output) result is
-coming below. Obviously the configuration should be updated when the
-patch is applied.
-
-Best regards,
-
-Florian
-
-- entity 16: mt9v032 2-005c (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev8
-	pad0: Output [SGRBG10 752x480 (1,5)/752x480]
-		-> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
-
-- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/v4l-subdev2
-	pad0: Input [SGRBG10 752x480]
-		<- 'mt9v032 2-005c':pad0 [ACTIVE]
-	pad2: Output [SGRBG10 752x479]
-		-> 'OMAP3 ISP preview':pad0 [ACTIVE]
-
-- entity 7: OMAP3 ISP preview (2 pads, 4 links)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/v4l-subdev3
-	pad0: Input [SGRBG10 752x479 (10,4)/734x471]
-		<- 'OMAP3 ISP CCDC':pad2 [ACTIVE]
-	pad1: Output [UYVY 734x471]
-		-> 'OMAP3 ISP resizer':pad0 [ACTIVE]
-
-- entity 10: OMAP3 ISP resizer (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev4
-	pad0: Input [UYVY 734x471 (0,0)/734x471]
-		<- 'OMAP3 ISP preview':pad1 [ACTIVE]
-	pad1: Output [UYVY 752x480]
-		-> 'OMAP3 ISP resizer output':pad0 [ACTIVE]
-
-- entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video6
-	pad0: Input
-		<- 'OMAP3 ISP resizer':pad1 [ACTIVE]
+i'm not discussing any closed source work here - i'm talking about
+patches made to code that is licensed under GPL.
