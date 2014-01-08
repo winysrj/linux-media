@@ -1,140 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2753 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154AbaA3HkE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jan 2014 02:40:04 -0500
-Message-ID: <52EA01AC.3000706@xs4all.nl>
-Date: Thu, 30 Jan 2014 08:39:24 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Amit Grover <amit.grover@samsung.com>
-CC: linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	prabhakar.csengg@gmail.com, s.nawrocki@samsung.com,
-	hans.verkuil@cisco.com, swaminath.p@samsung.com,
-	jtp.park@samsung.com, Rrob@landley.net, andrew.smirnov@gmail.com,
-	anatol.pomozov@gmail.com, jmccrohan@gmail.com, joe@perches.com,
-	awalls@md.metrocast.net, arun.kk@samsung.com,
-	austin.lobo@samsung.com
-Subject: Re: [PATCH v2 2/2] drivers/media: s5p-mfc: Add Horizontal and Vertical
- MV Search Range
-References: <52E0ED10.2020901@samsung.com> <1391060563-27015-1-git-send-email-amit.grover@samsung.com> <1391060563-27015-3-git-send-email-amit.grover@samsung.com>
-In-Reply-To: <1391060563-27015-3-git-send-email-amit.grover@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:17007 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756010AbaAHLwP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 06:52:15 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZ200BIBZN1D4A0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 Jan 2014 11:52:13 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
+	shaik.ameer@samsung.com
+Cc: linux-media@vger.kernel.org, Tomasz Figa <t.figa@samsung.com>
+References: <014501cf008e$364ee590$a2ecb0b0$%debski@samsung.com>
+ <20140102184937.0837e4a0@samsung.com>
+In-reply-to: <20140102184937.0837e4a0@samsung.com>
+Subject: RE: [GIT PULL for v3.14] mem2mem patches
+Date: Wed, 08 Jan 2014 12:52:12 +0100
+Message-id: <049b01cf0c68$11daae70$35900b50$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/30/2014 06:42 AM, Amit Grover wrote:
-> This patch adds Controls to set Horizontal and Vertical search range
-> for Motion Estimation block for Samsung MFC video Encoders.
+Hi Mauro, Shaik,
+
+I had consulted our local DT expert, Tomasz Figa, about this.
+
+His interpretation is in line with my opinion that this is 
+a trivial DT binding. It uses only existing properties and does
+not introduce new things.
+
+If you insist on having an ack from a DT maintainer then I will
+sent you a new pull request without Shaiks' patches.
+
+Shaik could you try to get an ack from a DT maintainer for this
+patch?
+
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
+
+
+> -----Original Message-----
+> From: Mauro Carvalho Chehab [mailto:m.chehab@samsung.com]
+> Sent: Thursday, January 02, 2014 9:50 PM
+> To: Kamil Debski
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: [GIT PULL for v3.14] mem2mem patches
 > 
-> Signed-off-by: Swami Nathan <swaminath.p@samsung.com>
-> Signed-off-by: Amit Grover <amit.grover@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   24 +++++++++++++++++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 ++------
->  4 files changed, 29 insertions(+), 6 deletions(-)
+> Em Tue, 24 Dec 2013 10:55:00 +0100
+> Kamil Debski <k.debski@samsung.com> escreveu:
 > 
-> diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-> index 2398cdf..8d0b686 100644
-> --- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-> +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-> @@ -229,6 +229,7 @@
->  #define S5P_FIMV_E_PADDING_CTRL_V6		0xf7a4
->  #define S5P_FIMV_E_MV_HOR_RANGE_V6		0xf7ac
->  #define S5P_FIMV_E_MV_VER_RANGE_V6		0xf7b0
-> +#define S5P_FIMV_E_MV_RANGE_V6_MASK		0x3fff
->  
->  #define S5P_FIMV_E_VBV_BUFFER_SIZE_V6		0xf84c
->  #define S5P_FIMV_E_VBV_INIT_DELAY_V6		0xf850
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index 6920b54..b90ee34 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -430,6 +430,8 @@ struct s5p_mfc_vp8_enc_params {
->  struct s5p_mfc_enc_params {
->  	u16 width;
->  	u16 height;
-> +	u32 mv_h_range;
-> +	u32 mv_v_range;
->  
->  	u16 gop_size;
->  	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index 4ff3b6c..704f30c1 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -208,6 +208,24 @@ static struct mfc_control controls[] = {
->  		.default_value = 0,
->  	},
->  	{
-> +		.id = V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE,
-> +		.type = V4L2_CTRL_TYPE_INTEGER,
-> +		.name = "Horizontal MV Search Range",
-
-Don't set the name here if the control is also defined in v4l2-ctrls.
-That way the string from v4l2-ctrls is the leading definition.
-
-Regards,
-
-	Hans
-
-> +		.minimum = 16,
-> +		.maximum = 128,
-> +		.step = 16,
-> +		.default_value = 32,
-> +	},
-> +	{
-> +		.id = V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE,
-> +		.type = V4L2_CTRL_TYPE_INTEGER,
-> +		.name = "Vertical MV Search Range",
-> +		.minimum = 16,
-> +		.maximum = 128,
-> +		.step = 16,
-> +		.default_value = 32,
-> +	},
-> +	{
->  		.id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
->  		.type = V4L2_CTRL_TYPE_INTEGER,
->  		.minimum = 0,
-> @@ -1377,6 +1395,12 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
->  	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
->  		p->vbv_size = ctrl->val;
->  		break;
-> +	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:
-> +		p->mv_h_range = ctrl->val;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
-> +		p->mv_v_range = ctrl->val;
-> +		break;
->  	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
->  		p->codec.h264.cpb_size = ctrl->val;
->  		break;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> index 461358c..3c10188 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> @@ -727,14 +727,10 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
->  	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
->  
->  	/* setting for MV range [16, 256] */
-> -	reg = 0;
-> -	reg &= ~(0x3FFF);
-> -	reg = 256;
-> +	reg = (p->mv_h_range & S5P_FIMV_E_MV_RANGE_V6_MASK);
->  	WRITEL(reg, S5P_FIMV_E_MV_HOR_RANGE_V6);
->  
-> -	reg = 0;
-> -	reg &= ~(0x3FFF);
-> -	reg = 256;
-> +	reg = (p->mv_v_range & S5P_FIMV_E_MV_RANGE_V6_MASK);
->  	WRITEL(reg, S5P_FIMV_E_MV_VER_RANGE_V6);
->  
->  	WRITEL(0x0, S5P_FIMV_E_FRAME_INSERTION_V6);
+> > The following changes since commit
+> 7d459937dc09bb8e448d9985ec4623779427d8a5:
+> >
+> >   [media] Add driver for Samsung S5K5BAF camera sensor (2013-12-21
+> > 07:01:36
+> > -0200)
+> >
+> > are available in the git repository at:
+> >
+> >   git://linuxtv.org/kdebski/media.git master
+> >
+> > for you to fetch changes up to
+> 0f6616ebb7a04219ad7aa84dd9ff9c7ac9323529:
+> >
+> >   s5p-mfc: Add controls to set vp8 enc profile (2013-12-24 10:37:27
+> > +0100)
+> >
+> > ----------------------------------------------------------------
+> > Arun Kumar K (1):
+> >       s5p-mfc: Add QP setting support for vp8 encoder
+> >
+> > Kiran AVND (1):
+> >       s5p-mfc: Add controls to set vp8 enc profile
+> >
+> > Marek Szyprowski (1):
+> >       media: s5p_mfc: remove s5p_mfc_get_node_type() function
+> >
+> > Shaik Ameer Basha (4):
+> >       exynos-scaler: Add new driver for Exynos5 SCALER
+> >       exynos-scaler: Add core functionality for the SCALER driver
+> >       exynos-scaler: Add m2m functionality for the SCALER driver
 > 
+> >       exynos-scaler: Add DT bindings for SCALER driver
+> 
+> This one is missing DT maintainer's ack.
+> 
+> >
+> >  Documentation/DocBook/media/v4l/controls.xml       |   41 +
+> >  .../devicetree/bindings/media/exynos5-scaler.txt   |   22 +
+> >  drivers/media/platform/Kconfig                     |    8 +
+> >  drivers/media/platform/Makefile                    |    1 +
+> >  drivers/media/platform/exynos-scaler/Makefile      |    3 +
+> >  drivers/media/platform/exynos-scaler/scaler-m2m.c  |  787
+> > +++++++++++++  drivers/media/platform/exynos-scaler/scaler-regs.c |
+> > 336 ++++++  drivers/media/platform/exynos-scaler/scaler-regs.h |  331
+> ++++++
+> >  drivers/media/platform/exynos-scaler/scaler.c      | 1238
+> > ++++++++++++++++++++
+> >  drivers/media/platform/exynos-scaler/scaler.h      |  375 ++++++
+> >  drivers/media/platform/s5p-mfc/s5p_mfc.c           |   28 +-
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   14 +-
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   55 +
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   26 +-
+> >  drivers/media/v4l2-core/v4l2-ctrls.c               |    5 +
+> >  include/uapi/linux/v4l2-controls.h                 |    5 +
+> >  16 files changed, 3241 insertions(+), 34 deletions(-)  create mode
+> > 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
+> >  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
+> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
+> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler-
+> regs.c
+> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler-
+> regs.h
+> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
+> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> media"
+> > in the body of a message to majordomo@vger.kernel.org More majordomo
+> > info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> --
+> 
+> Cheers,
+> Mauro
 
