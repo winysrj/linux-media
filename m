@@ -1,60 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2757 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750816AbaA1HEo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jan 2014 02:04:44 -0500
-Message-ID: <52E75663.1080604@xs4all.nl>
-Date: Tue, 28 Jan 2014 08:04:03 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Daniel Jeong <gshark.jeong@gmail.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFCv2,1/2] v4l2-controls.h: add addtional Flash fault bits
-References: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
-In-Reply-To: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:13935 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755121AbaAHOHt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 09:07:49 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZ3000PB5WXZE20@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 Jan 2014 14:07:45 +0000 (GMT)
+Message-id: <52CD5BB2.2080305@samsung.com>
+Date: Wed, 08 Jan 2014 15:07:46 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v4 2/2] videobuf2-dma-sg: Replace vb2_dma_sg_desc with
+ sg_table
+References: <1375453200-28459-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1375453200-28459-3-git-send-email-ricardo.ribalda@gmail.com>
+ <52C6CEC6.8020602@xs4all.nl>
+ <CAPybu_1ABrgBGYNicL37cBE_A2-eYq4=7Cwa-nfEJWndVqq2EQ@mail.gmail.com>
+ <52C6D90D.9010906@xs4all.nl>
+ <CAPybu_2NAyE+Os9NJSSRY0n1+6ObWYpfH1m9Nj0c+B-xj+KVYg@mail.gmail.com>
+In-reply-to: <CAPybu_2NAyE+Os9NJSSRY0n1+6ObWYpfH1m9Nj0c+B-xj+KVYg@mail.gmail.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2014 07:55 AM, Daniel Jeong wrote:
-> Add additional FLASH Fault bits to dectect faults from chip.
-> Some Flash drivers support UVLO, IVFM, NTC Trip faults.
-> UVLO : 	Under Voltage Lock Out Threshold crossed
-> IVFM : 	IVFM block reported and/or adjusted LED current Input Voltage Flash Monitor trip threshold
-> NTC  : 	NTC Threshold crossed. Many Flash drivers have a pin and the fault bit to 
-> serves as a threshold detector for negative temperature coefficient (NTC) thermistors.
+Hello All,
 
-Please document these new flags as well in Documentation/DocBook/media/v4l/controls.xml.
+On 2014-01-03 16:51, Ricardo Ribalda Delgado wrote:
+> Hello Hans
+>
+> What if we move the dma_map_sg and dma_unmap_sg to the vb2 interface,
+> and there do something like:
+>
+> n_sg= dma_map_sg()
+> if (n_sg=-ENOMEM){
+>     split_table() //Breaks down the sg_table into monopages sg
+>     n_sg= dma_map_sg()
+> }
+> if (n_sg=-ENOMEM)
+>    return -ENOMEM
 
-Regards,
+dma_map_sg/dma_unmap_sg should be moved to vb2-dma-sg memory allocator. 
+The best place for calling them is buf_prepare() and buf_finish() 
+callbacks. I think that I've already pointed this some time ago, but 
+unfortunately I didn't find enough time to convert existing code.
 
-	Hans
+For solving the problem described by Hans, I think that vb2-dma-sg 
+memory allocator should check dma mask of the client device and add 
+appropriate GFP_DMA or GFP_DMA32 flags to alloc_pages(). This should fix 
+the issues with failed dma_map_sg due to lack of bouncing buffers.
 
-> 
-> Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
-> ---
->  include/uapi/linux/v4l2-controls.h |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 1666aab..01d730c 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -803,6 +803,9 @@ enum v4l2_flash_strobe_source {
->  #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
->  #define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
->  #define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
-> +#define V4L2_FLASH_FAULT_UVLO			(1 << 6)
-> +#define V4L2_FLASH_FAULT_IVFM			(1 << 7)
-> +#define V4L2_FLASH_FAULT_NTC_TRIP		(1 << 8)
->  
->  #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
->  #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
-> 
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
