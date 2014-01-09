@@ -1,78 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f171.google.com ([209.85.215.171]:58254 "EHLO
-	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541AbaAEVIP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 16:08:15 -0500
-Received: by mail-ea0-f171.google.com with SMTP id h10so7538745eak.2
-        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 13:08:14 -0800 (PST)
-Message-ID: <52C9CA02.8090104@googlemail.com>
-Date: Sun, 05 Jan 2014 22:09:22 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from smtp4.epfl.ch ([128.178.224.219]:39044 "EHLO smtp4.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753095AbaAIUyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jan 2014 15:54:36 -0500
+Message-ID: <52CF0C87.4060102@epfl.ch>
+Date: Thu, 09 Jan 2014 21:54:31 +0100
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Reply-To: florian.vaussard@epfl.ch
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] em28xx: rename I2C timeout to EM28XX_I2C_XFER_TIMEOUT
-References: <1388926014-3706-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388926014-3706-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Enrico <ebutera@users.berlios.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sebastian Reichel <sre@debian.org>
+Subject: Re: omap3isp device tree support
+References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com> <5728278.SyrhtX3J9t@avalon> <52CF0612.2020303@epfl.ch> <4572159.CqBuj6p70x@avalon>
+In-Reply-To: <4572159.CqBuj6p70x@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.01.2014 13:46, schrieb Mauro Carvalho Chehab:
-> This macro is used by all em28xx devices, and not just em2800.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-i2c.c | 6 +++---
->  drivers/media/usb/em28xx/em28xx.h     | 2 +-
->  2 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> index 9fa7ed51e5b1..a22fec727ae7 100644
-> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> @@ -49,7 +49,7 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
->   */
->  static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->  {
-> -	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
-> +	unsigned long timeout = jiffies + msecs_to_jiffies(EM28XX_I2C_XFER_TIMEOUT);
->  	int ret;
->  	u8 b2[6];
->  
-> @@ -100,7 +100,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->   */
->  static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->  {
-> -	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
-> +	unsigned long timeout = jiffies + msecs_to_jiffies(EM28XX_I2C_XFER_TIMEOUT);
->  	u8 buf2[4];
->  	int ret;
->  	int i;
-> @@ -171,7 +171,7 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
->  static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
->  				 u16 len, int stop)
->  {
-> -	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
-> +	unsigned long timeout = jiffies + msecs_to_jiffies(EM28XX_I2C_XFER_TIMEOUT);
->  	int ret;
->  
->  	if (len < 1 || len > 64)
-> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-> index 9fe061ff1227..544c7ebeaba9 100644
-> --- a/drivers/media/usb/em28xx/em28xx.h
-> +++ b/drivers/media/usb/em28xx/em28xx.h
-> @@ -184,7 +184,7 @@
->  #define EM28XX_INTERLACED_DEFAULT 1
->  
->  /* time in msecs to wait for i2c xfers to finish */
-> -#define EM2800_I2C_XFER_TIMEOUT		20
-> +#define EM28XX_I2C_XFER_TIMEOUT		20
->  
->  /* time in msecs to wait for AC97 xfers to finish */
->  #define EM28XX_AC97_XFER_TIMEOUT	100
+Hi,
 
-Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+On 01/09/2014 09:49 PM, Laurent Pinchart wrote:
+> Hi Florian,
+> 
+> On Thursday 09 January 2014 21:26:58 Florian Vaussard wrote:
+>> On 01/07/2014 05:59 PM, Laurent Pinchart wrote:
+>>> On Friday 03 January 2014 12:30:33 Enrico wrote:
+>>>> On Wed, Dec 18, 2013 at 11:09 AM, Enrico wrote:
+>>>>> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard wrote:
+>>>>>> So I converted the iommu to DT (patches just sent),
+>>>
+>>> Florian, I've used your patches as a base for OMAP3 ISP DT work and they
+>>> seem pretty good (although patch 1/7 will need to be reworked, but that's
+>>> not a blocker). I've just had to fix a problem with the OMAP3 IOMMU,
+>>> please see
+>>>
+>>> http://git.linuxtv.org/pinchartl/media.git/commit/d3abafde0277f168df0b2912
+>>> b5d84550590d80b2
+>>
+>> According to the comments on the IOMMU/DT patches [1], some work is still
+>> needed to merge these patches, mainly to support other IOMMUs (OMAP4,
+>> OMAP5).
+> 
+> Sure, the code need to be reworked, but I believe it's going in the right 
+> direction and shouldn't be too complex to fix.
+> 
+>> So the current base is probably ok. I will resume my work on this soon.
+> 
+> Great, thanks.
+> 
+>> What are your comments on patch 1?
+> 
+> I just agree with Suman that there can be multiple IOMMUs and that the 
+> bus_set_iommu() call should thus be kept in the init function. The current 
+> infrastructure allows multiple IOMMUs to coexist as long as they're of the 
+> same type (I'm pretty sure we'll have to fix that at some point). I believe 
+> the problem that patch 1/7 tries to fix is actually the right behaviour.
+> 
 
+Yes I agree also with Suman, even if I do not really like the current
+"trick". With the move to DT, we can probably use something like
+<phandle> <-> consumer relations to improve this.
+
+>> I briefly looked at your fix, seems ok to me. I do not figure out how it
+>> worked for me.
+> 
+> I was puzzled by that as well :-)
+> 
+
+Will dig into this next week as well.
+
+Regards,
+
+Florian
