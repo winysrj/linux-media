@@ -1,232 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:48996 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbaAKUKW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jan 2014 15:10:22 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ9004P86P8UB50@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 11 Jan 2014 15:10:20 -0500 (EST)
-Date: Sat, 11 Jan 2014 18:10:15 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2 1/3] [media] em28xx-i2c: Fix error code for I2C error
- transfers
-Message-id: <20140111181015.0bf93da2@samsung.com>
-In-reply-to: <52D1393D.4000006@googlemail.com>
-References: <1389342820-12605-1-git-send-email-m.chehab@samsung.com>
- <1389342820-12605-2-git-send-email-m.chehab@samsung.com>
- <52D1393D.4000006@googlemail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from ks4004239.ip-142-4-213.net ([142.4.213.193]:36184 "EHLO
+	mon.libertas-tech.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751088AbaAIBed (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 20:34:33 -0500
+Received: from [198.2.75.28] (helo=vegas.nowhere.ca)
+	by mon.libertas-tech.com with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <keith.lawson@libertas-tech.com>)
+	id 1W141U-000211-6r
+	for linux-media@vger.kernel.org; Wed, 08 Jan 2014 20:03:00 -0500
+Received: from www-data by vegas.nowhere.ca with local (Exim 4.80)
+	(envelope-from <keith.lawson@libertas-tech.com>)
+	id 1W141L-00066j-W7
+	for linux-media@vger.kernel.org; Wed, 08 Jan 2014 20:02:52 -0500
+To: linux-media@vger.kernel.org
+Subject: Support for Empia 2980 video/audio capture chip set
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Wed, 08 Jan 2014 20:02:51 -0500
+From: Keith Lawson <keith.lawson@libertas-tech.com>
+Reply-To: keith.lawson@libertas-tech.com
+Message-ID: <1ed89f5b0a32bf26e17cee890a26b012@www.nowhere.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 11 Jan 2014 13:29:49 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Hello,
 
-> Am 10.01.2014 09:33, schrieb Mauro Carvalho Chehab:
-> > Follow the error codes for I2C as described at Documentation/i2c/fault-codes.
-> >
-> > In the case of the I2C status register (0x05), this is mapped into:
-> >
-> > 	- ENXIO - when reg 05 returns 0x10
-> > 	- ETIMEDOUT - when the device is not temporarily not responding
-> > 		      (e. g. reg 05 returning something not 0x10 or 0x00)
-> > 	- EIO - for generic I/O errors that don't fit into the above.
-> >
-> > In the specific case of 0-byte reads, used only during I2C device
-> > probing, it keeps returning -ENODEV.
-> >
-> > TODO: return EBUSY when reg 05 returns 0x20 on em2874 and upper.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > ---
-> >  drivers/media/usb/em28xx/em28xx-i2c.c | 37 +++++++++++++++++++----------------
-> >  1 file changed, 20 insertions(+), 17 deletions(-)
-> >
-> > diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> > index 342f35ad6070..76f956635bd9 100644
-> > --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> > +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> > @@ -80,7 +80,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
-> >  		if (ret == 0x80 + len - 1)
-> >  			return len;
-> >  		if (ret == 0x94 + len - 1) {
-> > -			return -ENODEV;
-> > +			return -ENXIO;
-> >  		}
-> >  		if (ret < 0) {
-> >  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-> > @@ -90,7 +90,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
-> >  		msleep(5);
-> >  	}
-> >  	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
-> > -	return -EIO;
-> > +	return -ETIMEDOUT;
-> Hmmm... we don't know anything about these unknown 2800 errors, they
-> probably do not exist at all.
-> But as the warning talks about a timeout, yes, let's return ETIMEDOUT
-> for now.
-> 
-> >  }
-> >  
-> >  /*
-> > @@ -123,7 +123,7 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
-> >  		if (ret == 0x84 + len - 1)
-> >  			break;
-> >  		if (ret == 0x94 + len - 1) {
-> > -			return -ENODEV;
-> > +			return -ENXIO;
-> >  		}
-> >  		if (ret < 0) {
-> >  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-> Now that I'm looking at this function again, the whole last code section
-> looks suspicious.
-> Maybe it is really necessary to make a pseudo read from regs 0x00-0x03,
-> but I wonder why we return the read data in this error case...
-> OTOH, I've spend a very long time on these functions making lots of
-> experiments, so I assume I had a good reason for this. ;)
+I sent the following message to the linux-usb mailing list and they 
+suggested I try here.
 
-Except for the return codes, better to not touch on em2800 I2C code. 
-There are few em2800 devices in the market. I remember that someone
-did some cleanup on that code in the past. It took couple years to be
-noticed.
+I'm trying to get a "Dazzle Video Capture USB V1.0" video capture card 
+working on a Linux device but it doesn't look like the chip set is 
+supported yet. I believe this card is the next version of the Pinnacle 
+VC100 capture card that worked with the em28xx kernel module. The 
+hardware vendor that sold the card says that this device has an Empia 
+2980 chip set in it so I'm inquiring about support for that chip set. 
+I'm just wondering about the best approach for getting the new chip 
+supported in the kernel. Is this something the em28xx maintainers would 
+naturally address in time or can I assist in getting this into the 
+kernel?
 
-Thankfully, the original author of the em2800 driver fixed it.
+Here's dmesg from the Debian box I'm working on:
 
-> > @@ -199,7 +199,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> >  		if (ret == 0) /* success */
-> >  			return len;
-> >  		if (ret == 0x10) {
-> > -			return -ENODEV;
-> > +			return -ENXIO;
-> >  		}
-> >  		if (ret < 0) {
-> >  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-> > @@ -213,9 +213,8 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> >  		 * (even with high payload) ...
-> >  		 */
-> >  	}
-> > -
-> > -	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
-> > -	return -EIO;
-> > +	em28xx_warn("write to i2c device at 0x%x timed out (status=%i)\n", addr, ret);
-> > +	return -ETIMEDOUT;
-> >  }
-> if (ret == 0x02 || ret == 0x04) { /* you may want to narrow this down a
-> bit more */
->     em28xx_warn("write to i2c device at 0x%x timed out (status=%i)\n",
-> addr, ret);
->     return -ETIMEDOUT;
-> 
-> em28xx_warn("write to i2c device at 0x%x failed with unknown error
-> (status=%i)\n", addr, ret);
-> return -EIO;
+[ 3198.920619] usb 3-1: new high-speed USB device number 5 usingxhci_hcd
+[ 3198.939394] usb 3-1: New USB device found, 
+idVendor=1b80,idProduct=e60a
+[ 3198.939399] usb 3-1: New USB device strings: Mfr=0, 
+Product=1,SerialNumber=2
+[ 3198.939403] usb 3-1: Product: Dazzle Video Capture USB Audio Device
+[ 3198.939405] usb 3-1: SerialNumber: 0
 
-Let's keep it as-is for now. -ETIMEDOUT is enough to detect that the
-error happened at reg 05, with makes easier for anyone to increase the
-timeout time and see if this fixes an issue related to timeout.
+l440:~$ uname -a
+Linux l440 3.10-3-amd64 #1 SMP Debian 3.10.11-1 (2013-09-10) x86_64
+GNU/Linux
 
-I considered adding there ret = 0x20 to return -EBUSY, but it seems
-unlikely that this error will ever be detected.
+If this isn't the appropriate list to ask this question please point me 
+in the right direction.
 
-> >  
-> >  /*
-> > @@ -245,7 +244,7 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
-> >  	 * bytes if we are on bus B AND there was no write attempt to the
-> >  	 * specified slave address before AND no device is present at the
-> >  	 * requested slave address.
-> > -	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
-> > +	 * Anyway, the next check will fail with -ENXIO in this case, so avoid
-> >  	 * spamming the system log on device probing and do nothing here.
-> >  	 */
-> >  
-> > @@ -259,10 +258,10 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
-> >  		return ret;
-> >  	}
-> >  	if (ret == 0x10)
-> > -		return -ENODEV;
-> > +		return -ENXIO;
-> >  
-> >  	em28xx_warn("unknown i2c error (status=%i)\n", ret);
-> > -	return -EIO;
-> > +	return -ETIMEDOUT;
-> The same here.
-> 
-> >  }
-> >  
-> >  /*
-> > @@ -318,7 +317,7 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> >  	if (!ret)
-> >  		return len;
-> >  	else if (ret > 0)
-> > -		return -ENODEV;
-> > +		return -ENXIO;
-> >  
-> >  	return ret;
-> >  	/*
-> > @@ -356,7 +355,7 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> >  	 * bytes if we are on bus B AND there was no write attempt to the
-> >  	 * specified slave address before AND no device is present at the
-> >  	 * requested slave address.
-> > -	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
-> > +	 * Anyway, the next check will fail with -ENXIO in this case, so avoid
-> >  	 * spamming the system log on device probing and do nothing here.
-> >  	 */
-> >  
-> > @@ -369,7 +368,7 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> >  	if (!ret)
-> >  		return len;
-> >  	else if (ret > 0)
-> > -		return -ENODEV;
-> > +		return -ENXIO;
-> >  
-> >  	return ret;
-> >  	/*
-> > @@ -410,7 +409,7 @@ static inline int i2c_check_for_device(struct em28xx_i2c_bus *i2c_bus, u16 addr)
-> >  		rc = em2800_i2c_check_for_device(dev, addr);
-> >  	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)
-> >  		rc = em25xx_bus_B_check_for_device(dev, addr);
-> > -	if (rc == -ENODEV) {
-> > +	if (rc == -ENXIO) {
-> >  		if (i2c_debug)
-> >  			printk(" no device\n");
-> >  	}
-> > @@ -498,11 +497,15 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
-> >  			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
-> >  			       i == num - 1 ? "stop" : "nonstop",
-> >  			       addr, msgs[i].len);
-> > -		if (!msgs[i].len) { /* no len: check only for device presence */
-> > +		if (!msgs[i].len) {
-> > +			/*
-> > +			 * no len: check only for device presence
-> > +			 * This code is only called during device probe.
-> > +			 */
-> >  			rc = i2c_check_for_device(i2c_bus, addr);
-> > -			if (rc == -ENODEV) {
-> > +			if (rc == -ENXIO) {
-> >  				rt_mutex_unlock(&dev->i2c_bus_lock);
-> > -				return rc;
-> > +				return -ENODEV;
-> I assume this is a small mistake ? ;)
-
-No. This is actually the only place where returning -ENODEV makes sense.
-Messages with size 0 are used only during device probing.
-
-> 
-> >  			}
-> >  		} else if (msgs[i].flags & I2C_M_RD) {
-> >  			/* read bytes */
-> 
-
-
--- 
-
-Cheers,
-Mauro
+Thanks,
+Keith
