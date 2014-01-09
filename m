@@ -1,482 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2089 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752353AbaATMqq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 07:46:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 08/21] v4l2-ctrls: create type_ops.
-Date: Mon, 20 Jan 2014 13:46:01 +0100
-Message-Id: <1390221974-28194-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58477 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754979AbaAIUeS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 15:34:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: florian.vaussard@epfl.ch
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
+Subject: Re: Regression inside omap3isp/resizer
+Date: Thu, 09 Jan 2014 21:34:57 +0100
+Message-ID: <1530474.IjFu1Njy3V@avalon>
+In-Reply-To: <52CEE5EC.3050704@epfl.ch>
+References: <52B02A7A.4010901@epfl.ch> <5578156.0MrbcJaUWJ@avalon> <52CEE5EC.3050704@epfl.ch>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Florian,
 
-Since complex controls can have non-standard types we need to be able to do
-type-specific checks etc. In order to make that easy type operations are added.
-There are four operations:
+On Thursday 09 January 2014 19:09:48 Florian Vaussard wrote:
+> On 12/31/2013 09:51 AM, Laurent Pinchart wrote:
+> > Hi Florian,
+> > 
+> > Sorry for the late reply.
+> 
+> Now it is my turn to be late.
+> 
+> > On Monday 23 December 2013 22:47:45 Florian Vaussard wrote:
+> >> On 12/17/2013 11:42 AM, Florian Vaussard wrote:
+> >>> Hello Laurent,
+> >>> 
+> >>> I was working on having a functional IOMMU/ISP for 3.14, and had an
+> >>> issue with an image completely distorted. Comparing with another kernel,
+> >>> I saw that PRV_HORZ_INFO and PRV_VERT_INFO differed. On the newer
+> >>> kernel, sph, eph, svl, and slv were all off-by 2, causing my final image
+> >>> to miss 4 pixels on each line, thus distorting the result.
+> >>> 
+> >>> Your commit 3fdfedaaa7f243f3347084231c64f6c1be0ba131 '[media] omap3isp:
+> >>> preview: Lower the crop margins' indeed changes PRV_HORZ_INFO and
+> >>> PRV_VERT_INFO by removing the if() condition. Reverting it made my image
+> >>> to be valid again.
+> >>> 
+> >>> FYI, my pipeline is:
+> >>> 
+> >>> MT9V032 (SGRBG10 752x480) -> CCDC -> PREVIEW (UYVY 752x480) -> RESIZER
+> >>> -> out
+> >> 
+> >> Just an XMAS ping on this :-) Do you have any idea how to solve this
+> >> without reverting the patch?
+> > 
+> > The patch indeed changed the preview engine margins, but the change is
+> > supposed to be handled by applications. As a base for this discussion
+> > could you please provide the media-ctl -p output before and after applying
+> > the patch ? You can strip the unrelated media entities out of the output.
+> 
+> Ok, so I understand the rationale behind this patch, but I am a bit
+> concerned. If this patch requires a change in userspace, this is somehow
+> breaking the userspace, isn't? For example in my case, I will have to
+> change my initialization scripts in order to pass the correct resolution
+> to the pipeline. Most people have probably hard-coded the resolution
+> into their script / application.
 
-- equal: check if two values are equal
-- init: initialize a value
-- log: log the value
-- validate: validate a new value
+But they shouldn't have. This has never been considered as an ABI. Userspace 
+needs to computes and propagates resolutions through the pipeline dynamically, 
+no hardcode them.
 
-This patch uses the v4l2_ctrl_ptr union for the first time.
+If your initialization script read the kernel version and aborted for any 
+version other than v3.6, an upgrade to a newer kernel would break the system 
+but you wouldn't call it a kernel regression :-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 267 ++++++++++++++++++++++-------------
- include/media/v4l2-ctrls.h           |  21 +++
- 2 files changed, 190 insertions(+), 98 deletions(-)
+Problems with pipeline configuration shouldn't result in distorted images 
+though. The driver is supposed to refuse to start streaming when the pipeline 
+is misconfigured by making sure that resolutions on connected source and sink 
+pads are identical. A valid pipeline should not distort the image.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 98e940f..9f97af4 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1123,6 +1123,149 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
- 			v4l2_event_queue_fh(sev->fh, &ev);
- }
- 
-+static bool std_equal(const struct v4l2_ctrl *ctrl,
-+		      union v4l2_ctrl_ptr ptr1,
-+		      union v4l2_ctrl_ptr ptr2)
-+{
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_BUTTON:
-+		return false;
-+	case V4L2_CTRL_TYPE_STRING:
-+		/* strings are always 0-terminated */
-+		return !strcmp(ptr1.p_char, ptr2.p_char);
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		return *ptr1.p_s64 == *ptr2.p_s64;
-+	default:
-+		if (ctrl->is_ptr)
-+			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
-+		return *ptr1.p_s32 == *ptr2.p_s32;
-+	}
-+}
-+
-+static void std_init(const struct v4l2_ctrl *ctrl,
-+		     union v4l2_ctrl_ptr ptr)
-+{
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_STRING:
-+		memset(ptr.p_char, ' ', ctrl->minimum);
-+		ptr.p_char[ctrl->minimum] = '\0';
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		*ptr.p_s64 = ctrl->default_value;
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_BITMASK:
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		*ptr.p_s32 = ctrl->default_value;
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+static void std_log(const struct v4l2_ctrl *ctrl)
-+{
-+	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
-+
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_INTEGER:
-+		pr_cont("%d", *ptr.p_s32);
-+		break;
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		pr_cont("%s", *ptr.p_s32 ? "true" : "false");
-+		break;
-+	case V4L2_CTRL_TYPE_MENU:
-+		pr_cont("%s", ctrl->qmenu[*ptr.p_s32]);
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		pr_cont("%lld", ctrl->qmenu_int[*ptr.p_s32]);
-+		break;
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		pr_cont("0x%08x", *ptr.p_s32);
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		pr_cont("%lld", *ptr.p_s64);
-+		break;
-+	case V4L2_CTRL_TYPE_STRING:
-+		pr_cont("%s", ptr.p_char);
-+		break;
-+	default:
-+		pr_cont("unknown type %d", ctrl->type);
-+		break;
-+	}
-+}
-+
-+/* Round towards the closest legal value */
-+#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
-+({								\
-+	offset_type offset;					\
-+	val += (ctrl)->step / 2;				\
-+	val = clamp_t(typeof(val), val,				\
-+		      (ctrl)->minimum, (ctrl)->maximum);	\
-+	offset = (val) - (ctrl)->minimum;			\
-+	offset = (ctrl)->step * (offset / (ctrl)->step);	\
-+	val = (ctrl)->minimum + offset;				\
-+	0;							\
-+})
-+
-+/* Validate a new control */
-+static int std_validate(const struct v4l2_ctrl *ctrl,
-+			union v4l2_ctrl_ptr ptr)
-+{
-+	size_t len;
-+
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_INTEGER:
-+		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
-+
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		*ptr.p_s32 = !!*ptr.p_s32;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
-+			return -ERANGE;
-+		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
-+			return -EINVAL;
-+		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
-+		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
-+			return -EINVAL;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		*ptr.p_s32 &= ctrl->maximum;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_BUTTON:
-+	case V4L2_CTRL_TYPE_CTRL_CLASS:
-+		*ptr.p_s32 = 0;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_STRING:
-+		len = strlen(ptr.p_char);
-+		if (len < ctrl->minimum)
-+			return -ERANGE;
-+		if ((len - ctrl->minimum) % ctrl->step)
-+			return -ERANGE;
-+		return 0;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static const struct v4l2_ctrl_type_ops std_type_ops = {
-+	.equal = std_equal,
-+	.init = std_init,
-+	.log = std_log,
-+	.validate = std_validate,
-+};
-+
- /* Helper function: copy the current control value back to the caller */
- static int cur_to_user(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
-@@ -1306,21 +1449,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
- 
- 		if (ctrl == NULL)
- 			continue;
--		switch (ctrl->type) {
--		case V4L2_CTRL_TYPE_BUTTON:
--			/* Button controls are always 'different' */
--			return 1;
--		case V4L2_CTRL_TYPE_STRING:
--			/* strings are always 0-terminated */
--			diff = strcmp(ctrl->string, ctrl->cur.string);
--			break;
--		case V4L2_CTRL_TYPE_INTEGER64:
--			diff = ctrl->val64 != ctrl->cur.val64;
--			break;
--		default:
--			diff = ctrl->val != ctrl->cur.val;
--			break;
--		}
-+		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
- 	}
- 	return diff;
- }
-@@ -1361,65 +1490,30 @@ static int check_range(enum v4l2_ctrl_type type,
- 	}
- }
- 
--/* Round towards the closest legal value */
--#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
--({								\
--	offset_type offset;					\
--	val += (ctrl)->step / 2;				\
--	val = clamp_t(typeof(val), val,				\
--		      (ctrl)->minimum, (ctrl)->maximum);	\
--	offset = (val) - (ctrl)->minimum;			\
--	offset = (ctrl)->step * (offset / (ctrl)->step);	\
--	val = (ctrl)->minimum + offset;				\
--	0;							\
--})
--
- /* Validate a new control */
- static int validate_new(const struct v4l2_ctrl *ctrl,
- 			struct v4l2_ext_control *c)
- {
--	size_t len;
-+	union v4l2_ctrl_ptr ptr;
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		return ROUND_TO_RANGE(*(s32 *)&c->value, u32, ctrl);
--	case V4L2_CTRL_TYPE_INTEGER64:
--		return ROUND_TO_RANGE(*(s64 *)&c->value64, u64, ctrl);
--
--	case V4L2_CTRL_TYPE_BOOLEAN:
--		c->value = !!c->value;
--		return 0;
--
--	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
--			return -ERANGE;
--		if (ctrl->menu_skip_mask & (1 << c->value))
--			return -EINVAL;
--		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
--		    ctrl->qmenu[c->value][0] == '\0')
--			return -EINVAL;
--		return 0;
--
-+	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
--		c->value &= ctrl->maximum;
--		return 0;
--
-+	case V4L2_CTRL_TYPE_BOOLEAN:
- 	case V4L2_CTRL_TYPE_BUTTON:
- 	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		c->value = 0;
--		return 0;
-+		ptr.p_s32 = &c->value;
-+		return ctrl->type_ops->validate(ctrl, ptr);
- 
--	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(c->string);
--		if (len < ctrl->minimum)
--			return -ERANGE;
--		if ((len - ctrl->minimum) % ctrl->step)
--			return -ERANGE;
--		return 0;
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		ptr.p_s64 = &c->value64;
-+		return ctrl->type_ops->validate(ctrl, ptr);
- 
- 	default:
--		return -EINVAL;
-+		ptr.p = c->p;
-+		return ctrl->type_ops->validate(ctrl, ptr);
- 	}
- }
- 
-@@ -1636,6 +1730,7 @@ unlock:
- /* Add a new control */
- static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
-+			const struct v4l2_ctrl_type_ops *type_ops,
- 			u32 id, const char *name, const char *unit,
- 			enum v4l2_ctrl_type type,
- 			s64 min, s64 max, u64 step, s64 def,
-@@ -1647,6 +1742,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	unsigned sz_extra;
- 	void *data;
- 	int err;
-+	int s;
- 
- 	if (hdl->error)
- 		return NULL;
-@@ -1706,6 +1802,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	INIT_LIST_HEAD(&ctrl->ev_subs);
- 	ctrl->handler = hdl;
- 	ctrl->ops = ops;
-+	ctrl->type_ops = type_ops ? type_ops : &std_type_ops;
- 	ctrl->id = id;
- 	ctrl->name = name;
- 	ctrl->unit = unit;
-@@ -1727,19 +1824,16 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->cur.val = ctrl->val = def;
- 	data = &ctrl->stores[1];
- 
--	if (ctrl->is_string) {
--		ctrl->string = ctrl->new.p_char = data;
--		ctrl->stores[0].p_char = data + elem_size;
--
--		if (ctrl->minimum)
--			memset(ctrl->cur.string, ' ', ctrl->minimum);
--	} else if (ctrl->is_ptr) {
-+	if (ctrl->is_ptr) {
- 		ctrl->p = ctrl->new.p = data;
- 		ctrl->stores[0].p = data + elem_size;
- 	} else {
- 		ctrl->new.p = &ctrl->val;
- 		ctrl->stores[0].p = &ctrl->cur.val;
- 	}
-+	for (s = -1; s <= 0; s++)
-+		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
-+
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
- 		return NULL;
-@@ -1784,7 +1878,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 
--	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
-+	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
- 			type, min, max,
- 			is_menu ? cfg->menu_skip_mask : step,
- 			def, cfg->elem_size,
-@@ -1812,7 +1906,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
- 			     min, max, step, def, 0,
- 			     flags, NULL, NULL, NULL);
- }
-@@ -1846,7 +1940,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
- 			     0, max, mask, def, 0,
- 			     flags, qmenu, qmenu_int, NULL);
- }
-@@ -1879,7 +1973,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
-+			     0, max, mask, def,
- 			     0, flags, qmenu, NULL, NULL);
- 
- }
-@@ -1904,7 +1999,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
- 			     0, max, 0, def, 0,
- 			     flags, NULL, qmenu_int, NULL);
- }
-@@ -2087,32 +2182,8 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 
- 	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
- 
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_INTEGER:
--		pr_cont("%d", ctrl->cur.val);
--		break;
--	case V4L2_CTRL_TYPE_BOOLEAN:
--		pr_cont("%s", ctrl->cur.val ? "true" : "false");
--		break;
--	case V4L2_CTRL_TYPE_MENU:
--		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
--		break;
--	case V4L2_CTRL_TYPE_BITMASK:
--		pr_cont("0x%08x", ctrl->cur.val);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		pr_cont("%lld", ctrl->cur.val64);
--		break;
--	case V4L2_CTRL_TYPE_STRING:
--		pr_cont("%s", ctrl->cur.string);
--		break;
--	default:
--		pr_cont("unknown type %d", ctrl->type);
--		break;
--	}
-+	ctrl->type_ops->log(ctrl);
-+
- 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
- 			   V4L2_CTRL_FLAG_GRABBED |
- 			   V4L2_CTRL_FLAG_VOLATILE)) {
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index e92b237..8e7fd44 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -67,6 +67,23 @@ struct v4l2_ctrl_ops {
- 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
- };
- 
-+/** struct v4l2_ctrl_type_ops - The control type operations that the driver has to provide.
-+  * @equal: return true if both values are equal.
-+  * @init: initialize the value.
-+  * @log: log the value.
-+  * @validate: validate the value. Return 0 on success and a negative value otherwise.
-+  */
-+struct v4l2_ctrl_type_ops {
-+	bool (*equal)(const struct v4l2_ctrl *ctrl,
-+		      union v4l2_ctrl_ptr ptr1,
-+		      union v4l2_ctrl_ptr ptr2);
-+	void (*init)(const struct v4l2_ctrl *ctrl,
-+		     union v4l2_ctrl_ptr ptr);
-+	void (*log)(const struct v4l2_ctrl *ctrl);
-+	int (*validate)(const struct v4l2_ctrl *ctrl,
-+			union v4l2_ctrl_ptr ptr);
-+};
-+
- typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
- 
- /** struct v4l2_ctrl - The control structure.
-@@ -102,6 +119,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   *		value, then the whole cluster is in manual mode. Drivers should
-   *		never set this flag directly.
-   * @ops:	The control ops.
-+  * @type_ops:	The control type ops.
-   * @id:	The control ID.
-   * @name:	The control name.
-   * @unit:	The control's unit. May be NULL.
-@@ -151,6 +169,7 @@ struct v4l2_ctrl {
- 	unsigned int manual_mode_value:8;
- 
- 	const struct v4l2_ctrl_ops *ops;
-+	const struct v4l2_ctrl_type_ops *type_ops;
- 	u32 id;
- 	const char *name;
- 	const char *unit;
-@@ -234,6 +253,7 @@ struct v4l2_ctrl_handler {
- 
- /** struct v4l2_ctrl_config - Control configuration structure.
-   * @ops:	The control ops.
-+  * @type_ops:	The control type ops. Only needed for complex controls.
-   * @id:	The control ID.
-   * @name:	The control name.
-   * @unit:	The control's unit.
-@@ -259,6 +279,7 @@ struct v4l2_ctrl_handler {
-   */
- struct v4l2_ctrl_config {
- 	const struct v4l2_ctrl_ops *ops;
-+	const struct v4l2_ctrl_type_ops *type_ops;
- 	u32 id;
- 	const char *name;
- 	const char *unit;
+After a quick look at the code the problem we're dealing with seems to be 
+different and shouldn't affect userspace scripts if solved properly. I haven't 
+touched the preview engine crop configuration code for some time now, so I'll 
+need to refresh my memory, but it seems that the removal of
+
+-       if (format->code != V4L2_MBUS_FMT_Y8_1X8 &&
+-           format->code != V4L2_MBUS_FMT_Y10_1X10) {
+-               sph -= 2;
+-               eph += 2;
+-               slv -= 2;
+-               elv += 2;
+-       }
+
+was wrong. The change to the margins and to preview_try_crop() seem correct, 
+but the preview_config_input_size() function should probably have been kept 
+unmodified. Could you please test reverting that part of the patch only ?
+
+Sakari, if you have time, could you please have a look at the code and give me 
+your opinion ?
+
+> For example, with the current Gumstix Overo, most people are using the 3.6,
+> which is the latest officially supported. I saw a number of them fighting to
+> get a working pipeline. So when they will update to a 3.10+, their
+> application will stop working correctly, and a big number of the users will
+> have a hard time figuring out that they will have to update the pipeline's
+> configuration to get back an image.
+>
+> The result of meida-ctl -p in the same with and without the patch applied,
+> as the same script is calling media-ctl at startup to configure the
+> pipeline. Stripped-down and ordered (camera -> output) result is coming
+> below. Obviously the configuration should be updated when the patch is
+> applied.
+> 
+> Best regards,
+> 
+> Florian
+> 
+> - entity 16: mt9v032 2-005c (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev8
+> 	pad0: Output [SGRBG10 752x480 (1,5)/752x480]
+> 		-> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
+> 
+> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev2
+> 	pad0: Input [SGRBG10 752x480]
+> 		<- 'mt9v032 2-005c':pad0 [ACTIVE]
+> 	pad2: Output [SGRBG10 752x479]
+> 		-> 'OMAP3 ISP preview':pad0 [ACTIVE]
+> 
+> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev3
+> 	pad0: Input [SGRBG10 752x479 (10,4)/734x471]
+> 		<- 'OMAP3 ISP CCDC':pad2 [ACTIVE]
+> 	pad1: Output [UYVY 734x471]
+> 		-> 'OMAP3 ISP resizer':pad0 [ACTIVE]
+> 
+> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev4
+> 	pad0: Input [UYVY 734x471 (0,0)/734x471]
+> 		<- 'OMAP3 ISP preview':pad1 [ACTIVE]
+> 	pad1: Output [UYVY 752x480]
+> 		-> 'OMAP3 ISP resizer output':pad0 [ACTIVE]
+> 
+> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+>              type Node subtype V4L
+>              device node name /dev/video6
+> 	pad0: Input
+> 		<- 'OMAP3 ISP resizer':pad1 [ACTIVE]
 -- 
-1.8.5.2
+Regards,
+
+Laurent Pinchart
 
