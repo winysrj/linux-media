@@ -1,110 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2153 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754647AbaADDdK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jan 2014 22:33:10 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s043X6cg003827
-	for <linux-media@vger.kernel.org>; Sat, 4 Jan 2014 04:33:08 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id AFB362A0098
-	for <linux-media@vger.kernel.org>; Sat,  4 Jan 2014 04:33:05 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140104033305.AFB362A0098@tschai.lan>
-Date: Sat,  4 Jan 2014 04:33:05 +0100 (CET)
+Received: from mail-oa0-f50.google.com ([209.85.219.50]:43366 "EHLO
+	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754775AbaAIXOs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 18:14:48 -0500
+Received: by mail-oa0-f50.google.com with SMTP id l6so4260977oag.9
+        for <linux-media@vger.kernel.org>; Thu, 09 Jan 2014 15:14:47 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <5728278.SyrhtX3J9t@avalon>
+References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
+	<CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>
+	<CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
+	<5728278.SyrhtX3J9t@avalon>
+Date: Fri, 10 Jan 2014 00:14:47 +0100
+Message-ID: <CA+2YH7tSJWgduXoCV5-qhSxrfPmcb5FfPGvHQAL=2xp+RQgxUQ@mail.gmail.com>
+Subject: Re: omap3isp device tree support
+From: Enrico <ebutera@users.berlios.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, Jan 7, 2014 at 5:59 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Enrico,
+>
+> On Friday 03 January 2014 12:30:33 Enrico wrote:
+>> On Wed, Dec 18, 2013 at 11:09 AM, Enrico wrote:
+>> > On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard wrote:
+>> >> So I converted the iommu to DT (patches just sent),
+>
+> Florian, I've used your patches as a base for OMAP3 ISP DT work and they seem
+> pretty good (although patch 1/7 will need to be reworked, but that's not a
+> blocker). I've just had to fix a problem with the OMAP3 IOMMU, please see
+>
+> http://git.linuxtv.org/pinchartl/media.git/commit/d3abafde0277f168df0b2912b5d84550590d80b2
+>
+> I'd appreciate your comments on that. I can post the patch already if you
+> think that would be helpful.
+>
+> You can find my work-in-progress branch at
+>
+> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp/dt
+>
+> (the last three patches are definitely not complete yet).
+>
+>> >> used pdata quirks for the isp / mtv9032 data, added a few patches from
+>> >> other people (mainly clk to fix a crash when deferring the omap3isp
+>> >> probe), and a few small hacks. I get a 3.13-rc3 (+ board-removal part
+>> >> from Tony Lindgren) to boot on DT with a working MT9V032 camera. The
+>> >> missing part is the DT binding for the omap3isp, but I guess that we will
+>> >> have to wait a bit more for this.
+>> >>
+>> >> If you want to test, I have a development tree here [1]. Any feedback is
+>> >> welcome.
+>> >>
+>> >> Cheers,
+>> >>
+>> >> Florian
+>> >>
+>> >> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
+>> >
+>> > Thanks Florian,
+>> >
+>> > i will report what i get with my setup.
+>>
+>> And here i am.
+>>
+>> I can confirm it works, video source is tvp5150 (with platform data in
+>> pdata-quirks.c) in bt656 mode.
+>>
+>> Laurent, i used the two bt656 patches from your omap3isp/bt656 tree so
+>> if you want to push it you can add a Tested-by me.
+>
+> The second patch is not clean enough in my opinion. I need to find time to
+> work on it. I had set some time aside for OMAP3 ISP development last week but
+> I've ended up working on DT support (not done yet, I've worked with Sakari and
+> he might finish the job in the upcoming weeks) instead of BT.656. I'm afraid
+> this will have to wait for around three weeks.
 
-Results of the daily build of media_tree:
+Yes i know the history of those patches, and if i'm not wrong you
+didn't have the hardware to test them so i just wanted to confirm that
+they work (apart from the other problem).
 
-date:		Sat Jan  4 04:00:29 CET 2014
-git branch:	test
-git hash:	f7d40eea8e3e531f1517ab7eded552e8837ef5da
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Enrico
