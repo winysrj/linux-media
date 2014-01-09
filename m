@@ -1,70 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:53914 "EHLO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932202AbaAIU1D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jan 2014 15:27:03 -0500
-Message-ID: <52CF0612.2020303@epfl.ch>
-Date: Thu, 09 Jan 2014 21:26:58 +0100
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Reply-To: florian.vaussard@epfl.ch
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Enrico <ebutera@users.berlios.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sebastian Reichel <sre@debian.org>
-Subject: Re: omap3isp device tree support
-References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com> <CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com> <CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com> <5728278.SyrhtX3J9t@avalon>
-In-Reply-To: <5728278.SyrhtX3J9t@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:54350 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750925AbaAID2t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 22:28:49 -0500
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: s.nawrocki@samsung.com, posciak@google.com, hverkuil@xs4all.nl,
+	shaik.ameer@samsung.com, m.chehab@samsung.com
+Subject: [PATCH v5 0/4] Exynos5 Series SCALER Driver
+Date: Thu,  9 Jan 2014 08:58:10 +0530
+Message-Id: <1389238094-19386-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurant,
+This patch adds support for SCALER device which is a
+new device for scaling, blending, color fill  and color space
+conversion on EXYNOS5410/5420 SoCs.
 
-On 01/07/2014 05:59 PM, Laurent Pinchart wrote:
-> Hi Enrico,
-> 
-> On Friday 03 January 2014 12:30:33 Enrico wrote:
->> On Wed, Dec 18, 2013 at 11:09 AM, Enrico wrote:
->>> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard wrote:
->>>> So I converted the iommu to DT (patches just sent),
-> 
-> Florian, I've used your patches as a base for OMAP3 ISP DT work and they seem 
-> pretty good (although patch 1/7 will need to be reworked, but that's not a 
-> blocker). I've just had to fix a problem with the OMAP3 IOMMU, please see
-> 
-> http://git.linuxtv.org/pinchartl/media.git/commit/d3abafde0277f168df0b2912b5d84550590d80b2
-> 
+This device supports the following as key features.
+    input image format
+        - YCbCr420 2P(UV/VU), 3P
+        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+        - YCbCr444 2P(UV,VU), 3P
+        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+        - Pre-multiplexed ARGB8888, L8A8 and L8
+    output image format
+        - YCbCr420 2P(UV/VU), 3P
+        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
+        - YCbCr444 2P(UV,VU), 3P
+        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
+        - Pre-multiplexed ARGB8888
+    input rotation
+        - 0/90/180/270 degree, X/Y/XY Flip
+    scale ratio
+        - 1/4 scale down to 16 scale up
+    color space conversion
+        - RGB to YUV / YUV to RGB
+    Size - Exynos5420
+        - Input : 16x16 to 8192x8192
+        - Output:   4x4 to 8192x8192
+    Size - Exynos5410
+        - Input/Output: 4x4 to 4096x4096
+    alpha blending, color fill
 
-According to the comments on the IOMMU/DT patches [1], some work is
-still needed to merge these patches, mainly to support other IOMMUs
-(OMAP4, OMAP5). So the current base is probably ok. I will resume my
-work on this soon. What are your comments on patch 1?
+Rebased on:
+-----------
+git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git:master
 
-I briefly looked at your fix, seems ok to me. I do not figure out how it
-worked for me. I will look at it closer next week.
+Changes from v4:
+---------------
+Addressed review comments from, Sylwester Nawrocki and Mauro Carvalho Chehab
+Links to the review comments:
+	1] https://linuxtv.org/patch/20307/
+	2] https://linuxtv.org/patch/20308/
+	3] https://linuxtv.org/patch/20451/
 
-> I'd appreciate your comments on that. I can post the patch already if you 
-> think that would be helpful.
-> 
+Changes from v3:
+---------------
+Addressed review comments from, Sylwester Nawrocki and Hans Verkuil.
+Links to the review comments:
+        1] https://linuxtv.org/patch/20072/
+        2] https://linuxtv.org/patch/20073/
 
-It is probably better to wait for the v2 of the iommu series. I can
-include your patch in it.
+Changes from v2:
+---------------
+Addressed review comments from, Inki Dae, Hans Verkuil and Sylwester Nawrocki.
+Links to the review comments:
+        1] https://linuxtv.org/patch/19783/
+        2] https://linuxtv.org/patch/19784/
+        3] https://linuxtv.org/patch/19785/
+        4] https://linuxtv.org/patch/19786/
+        5] https://linuxtv.org/patch/19787/
 
-> You can find my work-in-progress branch at
-> 
-> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp/dt
-> 
-> (the last three patches are definitely not complete yet).
-> 
+Changes from v1:
+---------------
+1] Split the previous single patch into multiple patches.
+2] Added DT binding documentation.
+3] Removed the unnecessary header file inclusions.
+4] Fix the condition check in mscl_prepare_address for swapping cb/cr addresses.
 
-Great news! A while ago, Sebastian Reichel (in CC) posted an RFC for the
-binding [2]. Are you working with him on this?
+Shaik Ameer Basha (4):
+  [media] exynos-scaler: Add new driver for Exynos5 SCALER
+  [media] exynos-scaler: Add core functionality for the SCALER driver
+  [media] exynos-scaler: Add m2m functionality for the SCALER driver
+  [media] exynos-scaler: Add DT bindings for SCALER driver
 
-Regards,
+ .../devicetree/bindings/media/exynos5-scaler.txt   |   22 +
+ drivers/media/platform/Kconfig                     |    8 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/exynos-scaler/Makefile      |    3 +
+ drivers/media/platform/exynos-scaler/scaler-m2m.c  |  788 +++++++++++++
+ drivers/media/platform/exynos-scaler/scaler-regs.c |  337 ++++++
+ drivers/media/platform/exynos-scaler/scaler-regs.h |  331 ++++++
+ drivers/media/platform/exynos-scaler/scaler.c      | 1231 ++++++++++++++++++++
+ drivers/media/platform/exynos-scaler/scaler.h      |  376 ++++++
+ 9 files changed, 3097 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
+ create mode 100644 drivers/media/platform/exynos-scaler/Makefile
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.c
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.h
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
+ create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
 
-Florian
+-- 
+1.7.9.5
 
-[1] https://lkml.org/lkml/2013/12/17/197
-[2] http://thread.gmane.org/gmane.linux.drivers.devicetree/50580
