@@ -1,257 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4225 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433AbaAYNqb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 08:46:31 -0500
-Message-ID: <52E3C024.2040601@xs4all.nl>
-Date: Sat, 25 Jan 2014 14:46:12 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ob0-f180.google.com ([209.85.214.180]:46757 "EHLO
+	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142AbaAISOI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 13:14:08 -0500
+Received: by mail-ob0-f180.google.com with SMTP id wo20so3647640obc.11
+        for <linux-media@vger.kernel.org>; Thu, 09 Jan 2014 10:14:07 -0800 (PST)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH v2] DocBook: Software Defined Radio Interface
-References: <1390656973-5087-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1390656973-5087-1-git-send-email-crope@iki.fi>
+In-Reply-To: <52CD3CA6.3080704@parrot.com>
+References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
+	<52A1A76A.6070301@epfl.ch>
+	<CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>
+	<52B04D70.8060201@epfl.ch>
+	<CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>
+	<CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
+	<52CA8137.8080307@parrot.com>
+	<CA+2YH7u+1zOdcUDVDf1+VG2rgDdSa7HM-mxsxkzTj_iE3RtvMg@mail.gmail.com>
+	<52CD3CA6.3080704@parrot.com>
+Date: Thu, 9 Jan 2014 19:14:07 +0100
+Message-ID: <CA+2YH7tYUi7RyGOObVP=p4aC84P7p5B3nNwoHCjhCNEgAebc1w@mail.gmail.com>
+Subject: Re: omap3isp device tree support
+From: Enrico <ebutera@users.berlios.de>
+To: Julien BERAUD <julien.beraud@parrot.com>
+Cc: florian.vaussard@epfl.ch,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jan 8, 2014 at 12:55 PM, Julien BERAUD <julien.beraud@parrot.com> wrote:
+>
+> Le 07/01/2014 11:12, Enrico a écrit :
+>
+>> On Mon, Jan 6, 2014 at 11:11 AM, Julien BERAUD <julien.beraud@parrot.com>
+>> wrote:
+>>>
+>>> Le 03/01/2014 12:30, Enrico a écrit :
+>>>>
+>>>> On Wed, Dec 18, 2013 at 11:09 AM, Enrico <ebutera@users.berlios.de>
+>>>> wrote:
+>>>>>
+>>>>> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard
+>>>>> <florian.vaussard@epfl.ch> wrote:
+>>>>>>
+>>>>>> So I converted the iommu to DT (patches just sent), used pdata quirks
+>>>>>> for the isp / mtv9032 data, added a few patches from other people
+>>>>>> (mainly clk to fix a crash when deferring the omap3isp probe), and a
+>>>>>> few
+>>>>>> small hacks. I get a 3.13-rc3 (+ board-removal part from Tony
+>>>>>> Lindgren)
+>>>>>> to boot on DT with a working MT9V032 camera. The missing part is the
+>>>>>> DT
+>>>>>> binding for the omap3isp, but I guess that we will have to wait a bit
+>>>>>> more for this.
+>>>>>>
+>>>>>> If you want to test, I have a development tree here [1]. Any feedback
+>>>>>> is
+>>>>>> welcome.
+>>>>>>
+>>>>>> Cheers,
+>>>>>>
+>>>>>> Florian
+>>>>>>
+>>>>>> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
+>>>>>
+>>>>> Thanks Florian,
+>>>>>
+>>>>> i will report what i get with my setup.
+>>>>
+>>>> And here i am.
+>>>>
+>>>> I can confirm it works, video source is tvp5150 (with platform data in
+>>>> pdata-quirks.c) in bt656 mode.
+>>>>
+>>>> Laurent, i used the two bt656 patches from your omap3isp/bt656 tree so
+>>>> if you want to push it you can add a Tested-by me.
+>>>>
+>>>> There is only one problem, but it's unrelated to your DT work.
+>>>>
+>>>> It's an old problem (see for example [1] and [2]), seen by other
+>>>> people too and it seems it's still there.
+>>>> Basically if i capture with yavta while the system is idle then it
+>>>> just waits without getting any frame.
+>>>> If i add some cpu load (usually i do a "cat /dev/zero" in a ssh
+>>>> terminal) it starts capturing correctly.
+>>>>
+>>>> The strange thing is that i do get isp interrupts in the idle case, so
+>>>> i don't know why they don't "propagate" to yavta.
+>>>>
+>>>> Any hints on how to debug this?
+>>>>
+>>>> Enrico
+>>>>
+>>>> [1]: https://linuxtv.org/patch/7836/
+>>>> [2]:
+>>>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg44923.html
+>>>
+>>> I have had what looked a lot like these problems before and it was due to
+>>> a
+>>> wrong configuration of the ccdc cropping regarding to the blanking. Could
+>>> you send me the configuration of the pipeline that you apply with
+>>> media-ctl,
+>>> just in case this is the same problem.
+>>
+>> i'm using:
+>>
+>> media-ctl -r -l '"tvp5150 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+>> CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>> media-ctl --set-format '"tvp5150 2-005c":0 [UYVY 720x625]'
+>>
+>> And then capture with yavta -s 720x625 (or 720x576, can't remember right
+>> now).
+>>
+>> Thanks,
+>>
+>> Enrico
+>
+> I don't think this is sufficient, though I am no expert about omap3 isp, you
+> should configure the format of the ccdc input and of the ccdc output too.
+> When I had this problem, it was solved by adding cropping at the input of
+> the CCDC, corresponding to the blanking period, which was :
+> - media-ctl -v -f '"OMAP3 ISP CCDC":0 [UYVY2X8 720x576 (0,49/720x576)]'
+> or
+> - media-ctl -v -f '"OMAP3 ISP CCDC":0 [UYVY2X8 720x480 (0,45/720x480)]'
+> respectively.
+>
+> I don't know if this can be of any help.
+>
+> Regards,
+> Julien BERAUD
 
-Regards,
+It seems i can't set cropping at the CCDC input (sink), but i can on
+output (source):
 
-	Hans
+- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev2
+        pad0: Sink
+                [fmt:UYVY2X8/720x625]
+                <- "OMAP3 ISP CCP2":1 []
+                <- "OMAP3 ISP CSI2a":1 []
+                <- "tvp5150 1-005c":0 [ENABLED]
+        pad1: Source
+                [fmt:UYVY2X8/720x576
+                 crop.bounds:(0,0)/720x624
+                 crop:(0,48)/720x576]
+                -> "OMAP3 ISP CCDC output":0 [ENABLED]
+                -> "OMAP3 ISP resizer":0 []
+        pad2: Source
+                [fmt:unknown/720x624]
+                -> "OMAP3 ISP preview":0 []
+                -> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
+                -> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
+                -> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
 
-On 01/25/2014 02:36 PM, Antti Palosaari wrote:
-> Document V4L2 SDR interface.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/compat.xml         |  10 ++
->  Documentation/DocBook/media/v4l/dev-sdr.xml        | 104 +++++++++++++++++++++
->  Documentation/DocBook/media/v4l/io.xml             |   6 ++
->  Documentation/DocBook/media/v4l/pixfmt.xml         |   8 ++
->  Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
->  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   7 ++
->  .../DocBook/media/v4l/vidioc-querycap.xml          |   6 ++
->  7 files changed, 142 insertions(+)
->  create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index c4cac6d..0b4db0e 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2535,6 +2535,16 @@ fields changed from _s32 to _u32.
->        </orderedlist>
->      </section>
->  
-> +    <section>
-> +      <title>V4L2 in Linux 3.15</title>
-> +      <orderedlist>
-> +        <listitem>
-> +	  <para>Added Software Defined Radio (SDR) Interface.
-> +	  </para>
-> +        </listitem>
-> +      </orderedlist>
-> +    </section>
-> +
->      <section id="other">
->        <title>Relation of V4L2 to other Linux multimedia APIs</title>
->  
-> diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-> new file mode 100644
-> index 0000000..332b87f
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-> @@ -0,0 +1,104 @@
-> +  <title>Software Defined Radio Interface (SDR)</title>
-> +
-> +  <para>
-> +SDR is an abbreviation of Software Defined Radio, the radio device
-> +which uses application software for modulation or demodulation. This interface
-> +is intended for controlling and data streaming of such devices.
-> +  </para>
-> +
-> +  <para>
-> +SDR devices are accessed through character device special files named
-> +<filename>/dev/swradio0</filename> to <filename>/dev/swradio255</filename>
-> +with major number 81 and dynamically allocated minor numbers 0 to 255.
-> +  </para>
-> +
-> +  <section>
-> +    <title>Querying Capabilities</title>
-> +
-> +    <para>
-> +Devices supporting the SDR receiver interface set the
-> +<constant>V4L2_CAP_SDR_CAPTURE</constant> and
-> +<constant>V4L2_CAP_TUNER</constant> flag in the
-> +<structfield>capabilities</structfield> field of &v4l2-capability;
-> +returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
-> +Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
-> +At least one of the read/write, streaming or asynchronous I/O methods must
-> +be supported.
-> +    </para>
-> +  </section>
-> +
-> +  <section>
-> +    <title>Supplemental Functions</title>
-> +
-> +    <para>
-> +SDR devices can support <link linkend="control">controls</link>, and must
-> +support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
-> +for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
-> +frequency.
-> +    </para>
-> +
-> +    <para>
-> +The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
-> +the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
-> +tuner index of the RF tuner (if any) must always follow the ADC tuner index.
-> +Normally the ADC tuner is #0 and the RF tuner is #1.
-> +    </para>
-> +
-> +    <para>
-> +The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
-> +    </para>
-> +  </section>
-> +
-> +  <section>
-> +    <title>Data Format Negotiation</title>
-> +
-> +    <para>
-> +The SDR capture device uses the <link linkend="format">format</link> ioctls to
-> +select the capture format. Both the sampling resolution and the data streaming
-> +format are bound to that selectable format. In addition to the basic
-> +<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
-> +must be supported as well.
-> +    </para>
-> +
-> +    <para>
-> +To use the <link linkend="format">format</link> ioctls applications set the
-> +<structfield>type</structfield> field of a &v4l2-format; to
-> +<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-format-sdr;
-> +<structfield>sdr</structfield> member of the <structfield>fmt</structfield>
-> +union as needed per the desired operation.
-> +Currently only the <structfield>pixelformat</structfield> field of
-> +&v4l2-format-sdr; is used. The content of that field is the V4L2 fourcc code
-> +of the data format.
-> +    </para>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-format-sdr">
-> +      <title>struct <structname>v4l2_format_sdr</structname></title>
-> +      <tgroup cols="3">
-> +        &cs-str;
-> +        <tbody valign="top">
-> +          <row>
-> +            <entry>__u32</entry>
-> +            <entry><structfield>pixelformat</structfield></entry>
-> +            <entry>
-> +The data format or type of compression, set by the application. This is a
-> +little endian <link linkend="v4l2-fourcc">four character code</link>.
-> +V4L2 defines SDR formats in <xref linkend="sdr-formats" />.
-> +           </entry>
-> +          </row>
-> +          <row>
-> +            <entry>__u8</entry>
-> +            <entry><structfield>reserved[28]</structfield></entry>
-> +            <entry>This array is reserved for future extensions.
-> +Drivers and applications must set it to zero.</entry>
-> +          </row>
-> +        </tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <para>
-> +An SDR device may support <link linkend="rw">read/write</link>
-> +and/or streaming (<link linkend="mmap">memory mapping</link>
-> +or <link linkend="userp">user pointer</link>) I/O.
-> +    </para>
-> +
-> +  </section>
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 2c4c068..1fb11e8 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -1005,6 +1005,12 @@ should set this to 0.</entry>
->  	    <entry>Buffer for video output overlay (OSD), see <xref
->  		linkend="osd" />.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
-> +	    <entry>11</entry>
-> +	    <entry>Buffer for Software Defined Radio (SDR), see <xref
-> +		linkend="sdr" />.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index 72d72bd..f586d34 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -811,6 +811,14 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
->      </table>
->    </section>
->  
-> +  <section id="sdr-formats">
-> +    <title>SDR Formats</title>
-> +
-> +    <para>These formats are used for <link linkend="sdr">SDR Capture</link>
-> +interface only.</para>
-> +
-> +  </section>
-> +
->    <section id="pixfmt-reserved">
->      <title>Reserved Format Identifiers</title>
->  
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index 74b7f27..6dd899c 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -537,6 +537,7 @@ and discussions on the V4L mailing list.</revremark>
->      <section id="ttx"> &sub-dev-teletext; </section>
->      <section id="radio"> &sub-dev-radio; </section>
->      <section id="rds"> &sub-dev-rds; </section>
-> +    <section id="sdr"> &sub-dev-sdr; </section>
->      <section id="event"> &sub-dev-event; </section>
->      <section id="subdev"> &sub-dev-subdev; </section>
->    </chapter>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-> index ee8f56e..f43f1a9 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-> @@ -172,6 +172,13 @@ capture and output devices.</entry>
->  	  </row>
->  	  <row>
->  	    <entry></entry>
-> +	    <entry>&v4l2-format-sdr;</entry>
-> +	    <entry><structfield>sdr</structfield></entry>
-> +	    <entry>Definition of a data format, see
-> +<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
->  	    <entry>__u8</entry>
->  	    <entry><structfield>raw_data</structfield>[200]</entry>
->  	    <entry>Place holder for future extensions.</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> index d5a3c97..370d49d 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> @@ -296,6 +296,12 @@ modulator programming see
->  <xref linkend="tuner" />.</entry>
->  	  </row>
->  	  <row>
-> +	    <entry><constant>V4L2_CAP_SDR_CAPTURE</constant></entry>
-> +	    <entry>0x00100000</entry>
-> +	    <entry>The device supports the
-> +<link linkend="sdr">SDR Capture</link> interface.</entry>
-> +	  </row>
-> +	  <row>
->  	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
->  	    <entry>0x01000000</entry>
->  	    <entry>The device supports the <link
-> 
+The strange thing is that with these settings the situation is even
+worse, i don't get any frames in yavta (while i see interrupts on
+omap3isp) even with the "cat /dev/zero" trick.
+
+So you are right, playing with cropping can make it work or not, are
+you sure you could set cropping at the ccdc input?
+
+Enrico
