@@ -1,127 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51126 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752229AbaAYRLB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:01 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 05/52] rtl2832_sdr: use get_if_frequency()
-Date: Sat, 25 Jan 2014 19:09:59 +0200
-Message-Id: <1390669846-8131-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58554 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751751AbaAIUsc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 15:48:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: florian.vaussard@epfl.ch
+Cc: Enrico <ebutera@users.berlios.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sebastian Reichel <sre@debian.org>
+Subject: Re: omap3isp device tree support
+Date: Thu, 09 Jan 2014 21:49:09 +0100
+Message-ID: <4572159.CqBuj6p70x@avalon>
+In-Reply-To: <52CF0612.2020303@epfl.ch>
+References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com> <5728278.SyrhtX3J9t@avalon> <52CF0612.2020303@epfl.ch>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Get IF from tuner and use it.
+Hi Florian,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 60 ++++++++++++++++++++----
- 1 file changed, 51 insertions(+), 9 deletions(-)
+On Thursday 09 January 2014 21:26:58 Florian Vaussard wrote:
+> On 01/07/2014 05:59 PM, Laurent Pinchart wrote:
+> > On Friday 03 January 2014 12:30:33 Enrico wrote:
+> >> On Wed, Dec 18, 2013 at 11:09 AM, Enrico wrote:
+> >>> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard wrote:
+> >>>> So I converted the iommu to DT (patches just sent),
+> > 
+> > Florian, I've used your patches as a base for OMAP3 ISP DT work and they
+> > seem pretty good (although patch 1/7 will need to be reworked, but that's
+> > not a blocker). I've just had to fix a problem with the OMAP3 IOMMU,
+> > please see
+> > 
+> > http://git.linuxtv.org/pinchartl/media.git/commit/d3abafde0277f168df0b2912
+> > b5d84550590d80b2
+>
+> According to the comments on the IOMMU/DT patches [1], some work is still
+> needed to merge these patches, mainly to support other IOMMUs (OMAP4,
+> OMAP5).
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 513da22..c4b72c1 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -208,7 +208,15 @@ static int rtl2832_sdr_rd_regs(struct rtl2832_sdr_state *s, u16 reg, u8 *val,
- 
- 	return rtl2832_sdr_rd(s, reg2, val, len);
- }
-+#endif
- 
-+/* write single register */
-+static int rtl2832_sdr_wr_reg(struct rtl2832_sdr_state *s, u16 reg, u8 val)
-+{
-+	return rtl2832_sdr_wr_regs(s, reg, &val, 1);
-+}
-+
-+#if 0
- /* read single register */
- static int rtl2832_sdr_rd_reg(struct rtl2832_sdr_state *s, u16 reg, u8 *val)
- {
-@@ -632,8 +640,12 @@ static void rtl2832_sdr_buf_queue(struct vb2_buffer *vb)
- 
- static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- {
-+	struct dvb_frontend *fe = s->fe;
- 	int ret;
--	unsigned int f_sr;
-+	unsigned int f_sr, f_if;
-+	u8 buf[3], tmp;
-+	u64 u64tmp;
-+	u32 u32tmp;
- 
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
-@@ -647,14 +659,42 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 	ret = rtl2832_sdr_wr_regs(s, 0x116, "\x00\x00", 2);
- 	ret = rtl2832_sdr_wr_regs(s, 0x118, "\x00", 1);
- 
--	if (s->cfg->tuner == RTL2832_TUNER_R820T) {
--		ret = rtl2832_sdr_wr_regs(s, 0x119, "\x38\x11", 2);
--		ret = rtl2832_sdr_wr_regs(s, 0x11b, "\x12", 1);
--		ret = rtl2832_sdr_wr_regs(s, 0x115, "\x01", 1);
--	} else {
--		ret = rtl2832_sdr_wr_regs(s, 0x119, "\x00\x00", 2);
--		ret = rtl2832_sdr_wr_regs(s, 0x11b, "\x00", 1);
--	}
-+	/* get IF from tuner */
-+	if (fe->ops.tuner_ops.get_if_frequency)
-+		ret = fe->ops.tuner_ops.get_if_frequency(fe, &f_if);
-+	else
-+		ret = -EINVAL;
-+
-+	if (ret)
-+		goto err;
-+
-+	/* program IF */
-+	u64tmp = f_if % s->cfg->xtal;
-+	u64tmp *= 0x400000;
-+	u64tmp = div_u64(u64tmp, s->cfg->xtal);
-+	u64tmp = -u64tmp;
-+	u32tmp = u64tmp & 0x3fffff;
-+
-+	dev_dbg(&s->udev->dev, "%s: f_if=%u if_ctl=%08x\n",
-+			__func__, f_if, u32tmp);
-+
-+	buf[0] = (u32tmp >> 16) & 0xff;
-+	buf[1] = (u32tmp >>  8) & 0xff;
-+	buf[2] = (u32tmp >>  0) & 0xff;
-+
-+	ret = rtl2832_sdr_wr_regs(s, 0x119, buf, 3);
-+	if (ret)
-+		goto err;
-+
-+	/* program BB / IF mode */
-+	if (f_if)
-+		tmp = 0x00;
-+	else
-+		tmp = 0x01;
-+
-+	ret = rtl2832_sdr_wr_reg(s, 0x1b1, tmp);
-+	if (ret)
-+		goto err;
- 
- 	ret = rtl2832_sdr_wr_regs(s, 0x19f, "\x03\x84", 2);
- 	ret = rtl2832_sdr_wr_regs(s, 0x1a1, "\x00\x00", 2);
-@@ -696,6 +736,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 	ret = rtl2832_sdr_wr_regs(s, 0x102, "\x40", 1);
- 
- 	if (s->cfg->tuner == RTL2832_TUNER_R820T) {
-+		ret = rtl2832_sdr_wr_regs(s, 0x115, "\x01", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x80", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x24", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
-@@ -751,6 +792,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x10", 1);
- 	}
- 
-+err:
- 	return ret;
- };
- 
+Sure, the code need to be reworked, but I believe it's going in the right 
+direction and shouldn't be too complex to fix.
+
+> So the current base is probably ok. I will resume my work on this soon.
+
+Great, thanks.
+
+> What are your comments on patch 1?
+
+I just agree with Suman that there can be multiple IOMMUs and that the 
+bus_set_iommu() call should thus be kept in the init function. The current 
+infrastructure allows multiple IOMMUs to coexist as long as they're of the 
+same type (I'm pretty sure we'll have to fix that at some point). I believe 
+the problem that patch 1/7 tries to fix is actually the right behaviour.
+
+> I briefly looked at your fix, seems ok to me. I do not figure out how it
+> worked for me.
+
+I was puzzled by that as well :-)
+
+> I will look at it closer next week.
+> 
+> > I'd appreciate your comments on that. I can post the patch already if you
+> > think that would be helpful.
+> 
+> It is probably better to wait for the v2 of the iommu series. I can include
+> your patch in it.
+
+Please feel free to do so.
+
+> > You can find my work-in-progress branch at
+> > 
+> > http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp/dt
+> > 
+> > (the last three patches are definitely not complete yet).
+> 
+> Great news! A while ago, Sebastian Reichel (in CC) posted an RFC for the
+> binding [2]. Are you working with him on this?
+
+No, I've replied to Sebastian's patch but haven't received any answer. My main 
+concern is that the proposal didn't use the V4L2 DT bindings to describe the 
+pipeline.
+
+> [1] https://lkml.org/lkml/2013/12/17/197
+> [2] http://thread.gmane.org/gmane.linux.drivers.devicetree/50580
 -- 
-1.8.5.3
+Regards,
+
+Laurent Pinchart
 
