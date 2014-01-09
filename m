@@ -1,129 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:18451 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725AbaA3Fky (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jan 2014 00:40:54 -0500
-From: Amit Grover <amit.grover@samsung.com>
-To: linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	prabhakar.csengg@gmail.com, s.nawrocki@samsung.com,
-	hans.verkuil@cisco.com, hverkuil@xs4all.nl, swaminath.p@samsung.com
-Cc: jtp.park@samsung.com, Rrob@landley.net, andrew.smirnov@gmail.com,
-	anatol.pomozov@gmail.com, jmccrohan@gmail.com, joe@perches.com,
-	awalls@md.metrocast.net, arun.kk@samsung.com,
-	amit.grover@samsung.com, austin.lobo@samsung.com
-Subject: [PATCH v2 2/2] drivers/media: s5p-mfc: Add Horizontal and Vertical MV
- Search Range
-Date: Thu, 30 Jan 2014 11:12:43 +0530
-Message-id: <1391060563-27015-3-git-send-email-amit.grover@samsung.com>
-In-reply-to: <1391060563-27015-1-git-send-email-amit.grover@samsung.com>
-References: <52E0ED10.2020901@samsung.com>
- <1391060563-27015-1-git-send-email-amit.grover@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58564 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752543AbaAIUuR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 15:50:17 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: florian.vaussard@epfl.ch
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
+Subject: Re: Regression inside omap3isp/resizer
+Date: Thu, 09 Jan 2014 21:50:56 +0100
+Message-ID: <3366016.CmlMrXrv32@avalon>
+In-Reply-To: <52CF0A82.40700@epfl.ch>
+References: <52B02A7A.4010901@epfl.ch> <1530474.IjFu1Njy3V@avalon> <52CF0A82.40700@epfl.ch>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds Controls to set Horizontal and Vertical search range
-for Motion Estimation block for Samsung MFC video Encoders.
+Hi Florian,
 
-Signed-off-by: Swami Nathan <swaminath.p@samsung.com>
-Signed-off-by: Amit Grover <amit.grover@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   24 +++++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 ++------
- 4 files changed, 29 insertions(+), 6 deletions(-)
+On Thursday 09 January 2014 21:45:54 Florian Vaussard wrote:
+> On 01/09/2014 09:34 PM, Laurent Pinchart wrote:
+> > On Thursday 09 January 2014 19:09:48 Florian Vaussard wrote:
+> >> On 12/31/2013 09:51 AM, Laurent Pinchart wrote:
+> >>> Hi Florian,
+> >>> 
+> >>> Sorry for the late reply.
+> >> 
+> >> Now it is my turn to be late.
+> >> 
+> >>> On Monday 23 December 2013 22:47:45 Florian Vaussard wrote:
+> >>>> On 12/17/2013 11:42 AM, Florian Vaussard wrote:
+> >>>>> Hello Laurent,
+> >>>>> 
+> >>>>> I was working on having a functional IOMMU/ISP for 3.14, and had an
+> >>>>> issue with an image completely distorted. Comparing with another
+> >>>>> kernel, I saw that PRV_HORZ_INFO and PRV_VERT_INFO differed. On the
+> >>>>> newer kernel, sph, eph, svl, and slv were all off-by 2, causing my
+> >>>>> final image to miss 4 pixels on each line, thus distorting the result.
+> >>>>> 
+> >>>>> Your commit 3fdfedaaa7f243f3347084231c64f6c1be0ba131 '[media]
+> >>>>> omap3isp: preview: Lower the crop margins' indeed changes
+> >>>>> PRV_HORZ_INFO and PRV_VERT_INFO by removing the if() condition.
+> >>>>> Reverting it made my image to be valid again.
+> >>>>> 
+> >>>>> FYI, my pipeline is:
+> >>>>> 
+> >>>>> MT9V032 (SGRBG10 752x480) -> CCDC -> PREVIEW (UYVY 752x480) -> RESIZER
+> >>>>> -> out
+> >>>> 
+> >>>> Just an XMAS ping on this :-) Do you have any idea how to solve this
+> >>>> without reverting the patch?
+> >>> 
+> >>> The patch indeed changed the preview engine margins, but the change is
+> >>> supposed to be handled by applications. As a base for this discussion
+> >>> could you please provide the media-ctl -p output before and after
+> >>> applying the patch ? You can strip the unrelated media entities out of
+> >>> the output.
+> >> 
+> >> Ok, so I understand the rationale behind this patch, but I am a bit
+> >> concerned. If this patch requires a change in userspace, this is somehow
+> >> breaking the userspace, isn't? For example in my case, I will have to
+> >> change my initialization scripts in order to pass the correct resolution
+> >> to the pipeline. Most people have probably hard-coded the resolution
+> >> into their script / application.
+> > 
+> > But they shouldn't have. This has never been considered as an ABI.
+> > Userspace needs to computes and propagates resolutions through the
+> > pipeline dynamically, no hardcode them.
+> > 
+> > If your initialization script read the kernel version and aborted for any
+> > version other than v3.6, an upgrade to a newer kernel would break the
+> > system but you wouldn't call it a kernel regression :-)
+>
+> :-) I should have a closer look to the configuration step, I agree that
+> hardcoding is bad.
+> 
+> > Problems with pipeline configuration shouldn't result in distorted images
+> > though. The driver is supposed to refuse to start streaming when the
+> > pipeline is misconfigured by making sure that resolutions on connected
+> > source and sink pads are identical. A valid pipeline should not distort
+> > the image.
+>
+> Indeed.
+> 
+> > After a quick look at the code the problem we're dealing with seems to be
+> > different and shouldn't affect userspace scripts if solved properly. I
+> > haven't touched the preview engine crop configuration code for some time
+> > now, so I'll need to refresh my memory, but it seems that the removal of
+> > 
+> > -       if (format->code != V4L2_MBUS_FMT_Y8_1X8 &&
+> > -           format->code != V4L2_MBUS_FMT_Y10_1X10) {
+> > -               sph -= 2;
+> > -               eph += 2;
+> > -               slv -= 2;
+> > -               elv += 2;
+> > -       }
+> > 
+> > was wrong. The change to the margins and to preview_try_crop() seem
+> > correct, but the preview_config_input_size() function should probably
+> > have been kept unmodified. Could you please test reverting that part of
+> > the patch only ?
+>
+> Ok. I will be away from my hardware until Tuesday, but I will test ASAP.
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-index 2398cdf..8d0b686 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-@@ -229,6 +229,7 @@
- #define S5P_FIMV_E_PADDING_CTRL_V6		0xf7a4
- #define S5P_FIMV_E_MV_HOR_RANGE_V6		0xf7ac
- #define S5P_FIMV_E_MV_VER_RANGE_V6		0xf7b0
-+#define S5P_FIMV_E_MV_RANGE_V6_MASK		0x3fff
- 
- #define S5P_FIMV_E_VBV_BUFFER_SIZE_V6		0xf84c
- #define S5P_FIMV_E_VBV_INIT_DELAY_V6		0xf850
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 6920b54..b90ee34 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -430,6 +430,8 @@ struct s5p_mfc_vp8_enc_params {
- struct s5p_mfc_enc_params {
- 	u16 width;
- 	u16 height;
-+	u32 mv_h_range;
-+	u32 mv_v_range;
- 
- 	u16 gop_size;
- 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 4ff3b6c..704f30c1 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -208,6 +208,24 @@ static struct mfc_control controls[] = {
- 		.default_value = 0,
- 	},
- 	{
-+		.id = V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Horizontal MV Search Range",
-+		.minimum = 16,
-+		.maximum = 128,
-+		.step = 16,
-+		.default_value = 32,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Vertical MV Search Range",
-+		.minimum = 16,
-+		.maximum = 128,
-+		.step = 16,
-+		.default_value = 32,
-+	},
-+	{
- 		.id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
- 		.type = V4L2_CTRL_TYPE_INTEGER,
- 		.minimum = 0,
-@@ -1377,6 +1395,12 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
- 		p->vbv_size = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:
-+		p->mv_h_range = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
-+		p->mv_v_range = ctrl->val;
-+		break;
- 	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
- 		p->codec.h264.cpb_size = ctrl->val;
- 		break;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 461358c..3c10188 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -727,14 +727,10 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
- 	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
- 
- 	/* setting for MV range [16, 256] */
--	reg = 0;
--	reg &= ~(0x3FFF);
--	reg = 256;
-+	reg = (p->mv_h_range & S5P_FIMV_E_MV_RANGE_V6_MASK);
- 	WRITEL(reg, S5P_FIMV_E_MV_HOR_RANGE_V6);
- 
--	reg = 0;
--	reg &= ~(0x3FFF);
--	reg = 256;
-+	reg = (p->mv_v_range & S5P_FIMV_E_MV_RANGE_V6_MASK);
- 	WRITEL(reg, S5P_FIMV_E_MV_VER_RANGE_V6);
- 
- 	WRITEL(0x0, S5P_FIMV_E_FRAME_INSERTION_V6);
+I'll be away from my hardware next week, so you can take your time :-)
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
