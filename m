@@ -1,147 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46915 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754199AbaA1LJy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jan 2014 06:09:54 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/4] synch videodev2.h headers with kernel SDR API
-Date: Tue, 28 Jan 2014 13:09:29 +0200
-Message-Id: <1390907372-2393-1-git-send-email-crope@iki.fi>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:28098 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751201AbaAILkP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 06:40:15 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZ400IS2TR20O10@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 Jan 2014 06:40:14 -0500 (EST)
+Received: from localhost.localdomain ([105.144.34.9])
+ by ussync3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MZ400GIXTQZ4X30@ussync3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 Jan 2014 06:40:14 -0500 (EST)
+Date: Thu, 09 Jan 2014 09:40:10 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [RFC PATCHv1] Fix audio with USB 3.0
+Message-id: <20140109094010.0d8559b5@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- contrib/freebsd/include/linux/videodev2.h | 16 ++++++++++++++++
- include/linux/videodev2.h                 | 16 ++++++++++++++++
- 2 files changed, 32 insertions(+)
+The PCM audio hardware is not properly described. This causes the driver
+to use a period shorter than it should be, causing problems with USB 3.0.
 
-diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
-index 5c75762..6d49f97 100644
---- a/contrib/freebsd/include/linux/videodev2.h
-+++ b/contrib/freebsd/include/linux/videodev2.h
-@@ -173,6 +173,7 @@ enum v4l2_buf_type {
- #endif
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
-+	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -193,6 +194,8 @@ enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
- 	V4L2_TUNER_ANALOG_TV	     = 2,
- 	V4L2_TUNER_DIGITAL_TV	     = 3,
-+	V4L2_TUNER_ADC               = 4,
-+	V4L2_TUNER_RF                = 5,
- };
- 
- enum v4l2_memory {
-@@ -298,6 +301,8 @@ struct v4l2_capability {
- #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
- #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
- 
-+#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
-+
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
- #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
-@@ -1373,6 +1378,7 @@ struct v4l2_modulator {
- #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
- #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
- #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
-+#define V4L2_TUNER_CAP_1HZ		0x1000
- 
- /*  Flags for the 'rxsubchans' field */
- #define V4L2_TUNER_SUB_MONO		0x0001
-@@ -1726,6 +1732,15 @@ struct v4l2_pix_format_mplane {
- } __attribute__ ((packed));
- 
- /**
-+ * struct v4l2_format_sdr - SDR format definition
-+ * @pixelformat:	little endian four character code (fourcc)
-+ */
-+struct v4l2_format_sdr {
-+	uint32_t				pixelformat;
-+	uint8_t				reserved[28];
-+} __attribute__ ((packed));
-+
-+/**
-  * struct v4l2_format - stream data format
-  * @type:	enum v4l2_buf_type; type of the data stream
-  * @pix:	definition of an image format
-@@ -1743,6 +1758,7 @@ struct v4l2_format {
- 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
- 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
- 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-+		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
- 		uint8_t	raw_data[200];                   /* user-defined */
- 	} fmt;
- };
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 6ae7bbe..27fedfe 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -139,6 +139,7 @@ enum v4l2_buf_type {
- #endif
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
-+	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -159,6 +160,8 @@ enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
- 	V4L2_TUNER_ANALOG_TV	     = 2,
- 	V4L2_TUNER_DIGITAL_TV	     = 3,
-+	V4L2_TUNER_ADC               = 4,
-+	V4L2_TUNER_RF                = 5,
- };
- 
- enum v4l2_memory {
-@@ -264,6 +267,8 @@ struct v4l2_capability {
- #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
- #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
- 
-+#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
-+
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
- #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
-@@ -1339,6 +1344,7 @@ struct v4l2_modulator {
- #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
- #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
- #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
-+#define V4L2_TUNER_CAP_1HZ		0x1000
- 
- /*  Flags for the 'rxsubchans' field */
- #define V4L2_TUNER_SUB_MONO		0x0001
-@@ -1692,6 +1698,15 @@ struct v4l2_pix_format_mplane {
- } __attribute__ ((packed));
- 
- /**
-+ * struct v4l2_format_sdr - SDR format definition
-+ * @pixelformat:	little endian four character code (fourcc)
-+ */
-+struct v4l2_format_sdr {
-+	__u32				pixelformat;
-+	__u8				reserved[28];
-+} __attribute__ ((packed));
-+
-+/**
-  * struct v4l2_format - stream data format
-  * @type:	enum v4l2_buf_type; type of the data stream
-  * @pix:	definition of an image format
-@@ -1709,6 +1724,7 @@ struct v4l2_format {
- 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
- 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
- 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-+		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
- 		__u8	raw_data[200];                   /* user-defined */
- 	} fmt;
- };
--- 
-1.8.5.3
+This is a first attempt to fix it.
 
+PS.: 
+
+1) This patch is not to be applied. It contains an ugly debug added for
+testing purposes, and uses a C99 comment;
+
+2) em28xx can accept other sample rates. It would be good to add support
+for those other rates, as some audio playback hardware may not support
+48KHz (I have one such hardware here). 
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 30ee389a07f0..1de4fac3db97 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -87,6 +87,14 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ 	struct snd_pcm_substream *substream;
+ 	struct snd_pcm_runtime   *runtime;
+ 
++size_t size = 0;
++
++if (!urb->status)
++for (i = 0; i < urb->number_of_packets; i++)
++	size =+ urb->iso_frame_desc[i].actual_length;
++
++printk("%s, status %d, %d packets (size %d)\n", __func__, urb->status, urb->number_of_packets, size);
++
+ 	switch (urb->status) {
+ 	case 0:             /* success */
+ 	case -ETIMEDOUT:    /* NAK */
+@@ -215,14 +223,15 @@ static struct snd_pcm_hardware snd_em28xx_hw_capture = {
+ 
+ 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 
+-	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_KNOT,
++//	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_KNOT,
++	.rates = SNDRV_PCM_RATE_48000,
+ 
+ 	.rate_min = 48000,
+ 	.rate_max = 48000,
+ 	.channels_min = 2,
+ 	.channels_max = 2,
+ 	.buffer_bytes_max = 62720 * 8,	/* just about the value in usbaudio.c */
+-	.period_bytes_min = 64,		/* 12544/2, */
++	.period_bytes_min = 188,
+ 	.period_bytes_max = 12544,
+ 	.periods_min = 2,
+ 	.periods_max = 98,		/* 12544, */
