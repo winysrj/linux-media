@@ -1,59 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48157 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751819AbaAWLcB (ORCPT
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:24568 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751779AbaAJNKJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 06:32:01 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: oliver@neukum.org
-Cc: linux-media@vger.kernel.org, Oliver Neukum <oneukum@suse.de>
-Subject: Re: [PATCH] uvc: simplify redundant check
-Date: Thu, 23 Jan 2014 12:32:47 +0100
-Message-ID: <4763775.AWFediJpdO@avalon>
-In-Reply-To: <1390472905-29586-1-git-send-email-oliver@neukum.org>
-References: <1390472905-29586-1-git-send-email-oliver@neukum.org>
+	Fri, 10 Jan 2014 08:10:09 -0500
+Message-ID: <52CFF094.5080408@cisco.com>
+Date: Fri, 10 Jan 2014 14:07:32 +0100
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Ethan Zhao <ethan.kernel@gmail.com>
+CC: hans.verkuil@cisco.com, m.chehab@samsung.com,
+	gregkh@linuxfoundation.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] media: gspaca: check pointer against NULL before using
+ it in create_urbs()
+References: <1389088562-463-1-git-send-email-ethan.kernel@gmail.com>
+In-Reply-To: <1389088562-463-1-git-send-email-ethan.kernel@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Oliver,
+Cc to linux-media and Hans de Goede (gspca maintainer).
 
-Thank you for the patch.
-
-On Thursday 23 January 2014 11:28:24 oliver@neukum.org wrote:
-> From: Oliver Neukum <oneukum@suse.de>
-> 
-> x < constant implies x + unsigned < constant
-> That check just obfuscates the code
-> 
-> Signed-off-by: Oliver Neukum <oneukum@suse.de>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I've applied the patch to my tree and will send a pull request for v3.15.
-
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index c3bb250..b6cac17 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -925,7 +925,7 @@ static int uvc_parse_standard_control(struct uvc_device
-> *dev, case UVC_VC_HEADER:
->  		n = buflen >= 12 ? buffer[11] : 0;
-> 
-> -		if (buflen < 12 || buflen < 12 + n) {
-> +		if (buflen < 12 + n) {
->  			uvc_trace(UVC_TRACE_DESCR, "device %d videocontrol "
->  				"interface %d HEADER error\n", udev->devnum,
->  				alts->desc.bInterfaceNumber);
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
 
+On 01/07/14 10:56, Ethan Zhao wrote:
+> function alt_xfer() may return NULL, should check its return value passed into
+> create_urbs() as parameter.
+> 
+> gspca_init_transfer()
+> {
+> ... ...
+> ret = create_urbs(gspca_dev,alt_xfer(&intf->altsetting[alt], xfer));
+> ... ...
+> }
+> 
+> Signed-off-by: Ethan Zhao <ethan.kernel@gmail.com>
+> ---
+>  drivers/media/usb/gspca/gspca.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+> index 048507b..eb45bc0 100644
+> --- a/drivers/media/usb/gspca/gspca.c
+> +++ b/drivers/media/usb/gspca/gspca.c
+> @@ -761,6 +761,8 @@ static int create_urbs(struct gspca_dev *gspca_dev,
+>  	struct urb *urb;
+>  	int n, nurbs, i, psize, npkt, bsize;
+>  
+> +	if (!ep)
+> +		return -EINVAL;
+>  	/* calculate the packet size and the number of packets */
+>  	psize = le16_to_cpu(ep->desc.wMaxPacketSize);
+>  
+> 
