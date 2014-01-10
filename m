@@ -1,49 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:8456 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752763AbaAPOsO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jan 2014 09:48:14 -0500
-Message-id: <52D7F128.5080805@samsung.com>
-Date: Thu, 16 Jan 2014 15:48:08 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: arun.kk@samsung.com
-Cc: LMML <linux-media@vger.kernel.org>,
-	devicetree <devicetree@vger.kernel.org>
-Subject: Re: Regarding FIMC-IS
-References: <2881916.910641389869230202.JavaMail.weblogic@epv6ml07>
-In-reply-to: <2881916.910641389869230202.JavaMail.weblogic@epv6ml07>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mga09.intel.com ([134.134.136.24]:25033 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750911AbaAJJHO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jan 2014 04:07:14 -0500
+Message-ID: <52CFB88C.4030109@linux.intel.com>
+Date: Fri, 10 Jan 2014 11:08:28 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [RFC v1.1 2/2] media: v4l: Only get module if it's different
+ than the driver for v4l2_dev
+References: <1386936216-32296-2-git-send-email-sakari.ailus@linux.intel.com> <1387288164-15250-1-git-send-email-sakari.ailus@linux.intel.com> <1814672.r475G5dY7x@avalon>
+In-Reply-To: <1814672.r475G5dY7x@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+Hi Laurent,
 
-Cc: linux-media, devicetree ML
+Laurent Pinchart wrote:
+> Hi Sakari,
+>
+> Thank you for the patch.
+>
+> On Tuesday 17 December 2013 15:49:24 Sakari Ailus wrote:
+>> When the sub-device is registered, increment the use count of the sub-device
+>> owner only if it's different from the owner of the driver for the media
+>> device. This avoids increasing the use count by the module itself and thus
+>> making it possible to unload it when it's not in use.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>
+> This looks good to me, but I wonder whether a more generic solution won't be
+> needed, to solve the multiple circular reference issues we (will) have with
+> subdevices and clocks. My gut feeling is that such a generic solution will
+> also cater for the needs of the problem you're trying to solve here.
 
-On 16/01/14 11:47, Arun Kumar K wrote:
-> 
-> Hi Sylwester,
-> 
-> Is there any update on Exynos5 FIMC-IS?
-> I was hoping it will come in 3.14 kernel but didn't see any pull request yet.
-> Please let me know if anything need to be done from my side.
+I can't immediately think of solving this in a generic fashion. There 
+are dependencies to API behaviour for instance. For clocks this could be 
+resolved by changing how clk_get() is used by sensor drivers, or 
+changing the clock framework to allow unregistering clocks even if they 
+have been obtained by the users but not enabled. Considering the current 
+implementation of clk_unregister(), the need for (some) changes is 
+apparent. (I could miss some changes elsewhere as I just checked 
+linux-media.)
 
-My apologies for all those delays, AFAIR your patch series is now being
-blocked only by a missing Ack on this patch:
-https://patchwork.linuxtv.org/patch/21083
+The above would still resolve this for clocks alone.
 
-I didn't send another pull request because Mauro asked for an explicit
-Ack for anything that is related to DT from a DT binding maintainer.
-I understand that, at the same time I think it is a bit too restrictive
-and successfully blocks any development involving DT in the media
-subsystem in the mainline kernel (your patch series have been floating
-on the mailing lists for over a year now...).
+> This being said, there's no reason to delay this patch until a more generic
+> solution is available, so
+>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I think "all" we need is a review/ack of the above patch with regards
-to DT binding correctness.
+Thanks!
 
-Regards,
-Sylwester
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
