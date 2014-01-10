@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59541 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753188AbaANBq0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 20:46:26 -0500
-Message-ID: <52D496F0.1050807@iki.fi>
-Date: Tue, 14 Jan 2014 03:46:24 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/6] msi3101: add u8 sample format
-References: <1388292700-18369-1-git-send-email-crope@iki.fi> <1388292700-18369-4-git-send-email-crope@iki.fi> <52C94CC2.30005@xs4all.nl>
-In-Reply-To: <52C94CC2.30005@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from dpocron.diepresse.apa.net ([194.232.102.6]:41763 "EHLO
+	dpocron.diepresse.apa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754993AbaAJMjz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jan 2014 07:39:55 -0500
+Received: from dpoportal4.diepresse.apa.net (dpoportal4.diepresse.local [192.168.0.20])
+	by dpocron.diepresse.apa.net (Postfix) with ESMTP id DFD13445F2
+	for <linux-media@vger.kernel.org>; Fri, 10 Jan 2014 13:33:08 +0100 (CET)
+Message-ID: <1212272346.1389357188905.JavaMail.root@dpoportal4.diepresse.apa.net>
+Date: Fri, 10 Jan 2014 13:33:08 +0100 (CET)
+From: franklinbuthelezi1@yahoo.com
+Reply-To: franklinbuthelezi1@yahoo.com
+To: linux-media@vger.kernel.org
+Subject: =?UTF-8?Q?DiePresse.com_Mein_Freund,_der_Fahrradh=C3=A4ndler?=
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05.01.2014 14:14, Hans Verkuil wrote:
-> On 12/29/2013 05:51 AM, Antti Palosaari wrote:
->> Add unsigned 8-bit sample format. Format is got directly from
->> hardware, but it is converted from signed to unsigned. It is worst
->> known sampling resolution hardware offer.
->>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> ---
->>   drivers/staging/media/msi3101/sdr-msi3101.c | 67 ++++++++++++++++++++++++++++-
->>   1 file changed, 66 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
->> index 9c54c63..2110488 100644
->> --- a/drivers/staging/media/msi3101/sdr-msi3101.c
->> +++ b/drivers/staging/media/msi3101/sdr-msi3101.c
->> @@ -385,6 +385,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
->>   #define MSI3101_CID_TUNER_IF              ((V4L2_CID_USER_BASE | 0xf000) + 12)
->>   #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
->>
->> +#define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
->>   #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
->>   #define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
->>   #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
->
-> These defines should be moved to videodev2.h and documented in DocBook.
+Folgender Artikel auf http://diepresse.com wird Ihnen von Franklin Buthelezi empfohlen:
 
-Indeed, but that driver is still on staging. I will move those later...
+Mein Freund, der Fahrradhändler
+Manche Dinge verändern sich über die langen Wintermonate hinweg. 
 
-regards
-Antti
+http://diepresse.com/home/leben/mode/kolumnezumtag/548717/index.do
+
+Notiz:
+Dear friend,
+ 
+I am the international operations manager of ABSA bank South Africa. My name is Franklin Buthelezi. I have a sensitive and private offer from the top executive to seek your partnership in re-profiling some offshore investment funds worth 11.5M U.S.D (Eleven Million five hundred thousand United States Dollars) I am constrained however to withhold most of the details for now. This is a legitimate transaction. 
+ 
+If we agree on the terms you will be given 15% of the total funds, if you are interested please write back via email providing me your personal details and phone number for further directives.
+ 
+If you are interested and willing to render your assistance please respond via my private email address stated below.
+ 
+I look forward to your response.
+ 
+Best regards
+Franklin Buthelezi
+Email: franklinbuthelezi1@yahoo.com
 
 
--- 
-http://palosaari.fi/
+------------------------------------
+DiePresse.com übernimmt keine Haftung für den Inhalt der persönlichen Nachricht.
+
+© DiePresse.com - http://diepresse.com
+
