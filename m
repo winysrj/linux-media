@@ -1,78 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:27927 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882AbaAILcD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 06:32:03 -0500
-Date: Thu, 09 Jan 2014 09:31:55 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Clemens Ladisch <clemens@ladisch.de>
-Cc: Hans de Goede <hdegoede@redhat.com>, Takashi Iwai <tiwai@suse.de>,
-	alsa-devel@alsa-project.org, linux-usb@vger.kernel.org,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [alsa-devel] Fw: Isochronous transfer error on USB3
-Message-id: <20140109093155.35494ce2@samsung.com>
-In-reply-to: <20140109092957.58092c3f@samsung.com>
-References: <20140108164800.70ea4169@samsung.com> <52CE5B09.6070203@ladisch.de>
- <20140109092957.58092c3f@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:24643 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751388AbaAJNJ1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jan 2014 08:09:27 -0500
+Message-ID: <52CFF06B.9000302@cisco.com>
+Date: Fri, 10 Jan 2014 14:06:51 +0100
+From: Hans Verkuil <hansverk@cisco.com>
+MIME-Version: 1.0
+To: Ethan Zhao <ethan.kernel@gmail.com>
+CC: hans.verkuil@cisco.com, m.chehab@samsung.com,
+	gregkh@linuxfoundation.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [PATCH] [media] cx18: introduce a helper function to avoid array
+ overrun
+References: <1389020826-807-1-git-send-email-ethan.kernel@gmail.com>
+In-Reply-To: <1389020826-807-1-git-send-email-ethan.kernel@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 9 Jan 2014 09:29:57 -0200
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
-
-> Em Thu, 09 Jan 2014 09:17:13 +0100
-> Clemens Ladisch <clemens@ladisch.de> escreveu:
-> 
-> > Mauro Carvalho Chehab wrote:
-> > > I'm getting an weird behavior with em28xx, especially when the device
-> > > is connected into an audio port.
-> > >
-> > > 	http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/em28xx-v4l2-v6:/drivers/media/usb/em28xx/em28xx-audio.c
-> > >
-> > > What happens is that, when I require xawtv3 to use any latency lower
-> > > than 65 ms, the audio doesn't work, as it gets lots of underruns per
-> > > second.
-> > 
-> > The driver uses five URBs with 64 frames each, so of course it
-> > will not be able to properly handle periods smaller than that.
-> > 
-> > > FYI, em28xx works at a 48000 KHz sampling rate, and its PM capture Hw
-> > > is described as:
-> > >
-> > > static struct snd_pcm_hardware snd_em28xx_hw_capture = {
-> > > 	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
-> > > 		SNDRV_PCM_INFO_MMAP           |
-> > > 		SNDRV_PCM_INFO_INTERLEAVED    |
-> > > 		SNDRV_PCM_INFO_BATCH	      |
-> > > 		SNDRV_PCM_INFO_MMAP_VALID,
-> > >
-> > > 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
-> > >
-> > > 	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_KNOT,
-> > 
-> > This should be just SNDRV_PCM_RATE_48000.
-> 
-> Ok.
-> 
-> > 
-> > > 	.period_bytes_min = 64,		/* 12544/2, */
-> > 
-> > This is wrong (if the driver doesn't install other constraints on the
-> > period length, like the USB audio class driver does).
-> 
-> Ok, how should it be estimated? Those values here were simply glued from
-> the USB audio class driver a long time ago without a further analysis.
-> 
-> I changed it to 188 (the minimum URB size I experimentally noticed with
-> the current settings) and it is now working fine with both xHCI and EHCI.
-
-PS.: using 188 there, the URBs now have a total actual size of 24 bytes.
+Also CC to linux-media and Andy Walls who maintains this driver.
 
 Regards,
--- 
 
-Cheers,
-Mauro
+	Hans
+
+On 01/06/14 16:07, Ethan Zhao wrote:
+> cx18_i2c_register() is called in cx18_init_subdevs() with index
+> greater than length of hw_bus array, that will cause array overrun,
+> introduce a helper cx18_get_max_bus_num() to avoid it.
+> 
+> V2: fix a typo and use ARRAY_SIZE macro
+> 
+> Signed-off-by: Ethan Zhao <ethan.kernel@gmail.com>
+> ---
+>  drivers/media/pci/cx18/cx18-driver.c | 2 +-
+>  drivers/media/pci/cx18/cx18-i2c.c    | 5 +++++
+>  drivers/media/pci/cx18/cx18-i2c.h    | 1 +
+>  3 files changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+> index 6386ced..dadcd4a 100644
+> --- a/drivers/media/pci/cx18/cx18-driver.c
+> +++ b/drivers/media/pci/cx18/cx18-driver.c
+> @@ -856,7 +856,7 @@ static void cx18_init_subdevs(struct cx18 *cx)
+>  	u32 device;
+>  	int i;
+>  
+> -	for (i = 0, device = 1; i < 32; i++, device <<= 1) {
+> +	for (i = 0, device = 1; i < cx18_get_max_bus_num(); i++, device <<= 1) {
+>  
+>  		if (!(device & hw))
+>  			continue;
+> diff --git a/drivers/media/pci/cx18/cx18-i2c.c b/drivers/media/pci/cx18/cx18-i2c.c
+> index 4af8cd6..1a7b49b 100644
+> --- a/drivers/media/pci/cx18/cx18-i2c.c
+> +++ b/drivers/media/pci/cx18/cx18-i2c.c
+> @@ -108,6 +108,11 @@ static int cx18_i2c_new_ir(struct cx18 *cx, struct i2c_adapter *adap, u32 hw,
+>  	       -1 : 0;
+>  }
+>  
+> +int cx18_get_max_bus_num(void)
+> +{
+> +	return ARRAY_SIZE(hw_bus);
+> +}
+> +
+>  int cx18_i2c_register(struct cx18 *cx, unsigned idx)
+>  {
+>  	struct v4l2_subdev *sd;
+> diff --git a/drivers/media/pci/cx18/cx18-i2c.h b/drivers/media/pci/cx18/cx18-i2c.h
+> index 1180fdc..6f2ceb5 100644
+> --- a/drivers/media/pci/cx18/cx18-i2c.h
+> +++ b/drivers/media/pci/cx18/cx18-i2c.h
+> @@ -21,6 +21,7 @@
+>   *  02111-1307  USA
+>   */
+>  
+> +int cx18_get_max_bus_num(void);
+>  int cx18_i2c_register(struct cx18 *cx, unsigned idx);
+>  struct v4l2_subdev *cx18_find_hw(struct cx18 *cx, u32 hw);
+>  
+> 
