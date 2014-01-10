@@ -1,91 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3848 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754769AbaAFOVn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 17/27] v4l2-ctrls: new strings and props must be accessed through the new field.
-Date: Mon,  6 Jan 2014 15:21:16 +0100
-Message-Id: <1389018086-15903-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:40264 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752361AbaAJLhQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jan 2014 06:37:16 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 0/3] em28xx: improve I2C code
+Date: Fri, 10 Jan 2014 06:33:37 -0200
+Message-Id: <1389342820-12605-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is a series of cleanup patches for em28xx I2C. It was originally
+part of a series of patches meant to split em28xx V4L2 module, but it
+made sense to submit as a separate patch set.
 
-Require that 'new' string and pointer values are accessed through the 'new'
-field instead of through the union. This reduces the union to just val and
-val64.
+Part of the original series were already merged, as the patches there
+were ok.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/si4713/si4713.c                | 4 ++--
- drivers/media/v4l2-core/v4l2-ctrls.c               | 3 +--
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 2 +-
- include/media/v4l2-ctrls.h                         | 2 --
- 4 files changed, 4 insertions(+), 7 deletions(-)
+The first patch on this series caused lots of discussions. I think we
+finally got an agreement on it.
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index 07d5153..718e10d 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -1098,11 +1098,11 @@ static int si4713_s_ctrl(struct v4l2_ctrl *ctrl)
- 
- 		switch (ctrl->id) {
- 		case V4L2_CID_RDS_TX_PS_NAME:
--			ret = si4713_set_rds_ps_name(sdev, ctrl->string);
-+			ret = si4713_set_rds_ps_name(sdev, ctrl->new.p_char);
- 			break;
- 
- 		case V4L2_CID_RDS_TX_RADIO_TEXT:
--			ret = si4713_set_rds_radio_text(sdev, ctrl->string);
-+			ret = si4713_set_rds_radio_text(sdev, ctrl->new.p_char);
- 			break;
- 
- 		case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e7effc8..bb7f4ccb 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1842,8 +1842,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	props = &ctrl->stores[1 + nstores];
- 
- 	if (ctrl->is_ptr) {
--		ctrl->p = ctrl->new.p = props;
--		for (s = 0; s <= nstores; s++)
-+		for (s = -1; s <= (int)nstores; s++)
- 			ctrl->stores[s].p = props + (s + 1) * elem_size;
- 	} else {
- 		ctrl->new.p = &ctrl->val;
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index d582c5b..a4a6bee 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -1127,7 +1127,7 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- 		solo_motion_toggle(solo_enc, ctrl->val);
- 		return 0;
- 	case V4L2_CID_OSD_TEXT:
--		strcpy(solo_enc->osd_text, ctrl->string);
-+		strcpy(solo_enc->osd_text, ctrl->new.p_char);
- 		err = solo_osd_print(solo_enc);
- 		return err;
- 	default:
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 3bfd9a6..b735b5c 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -201,8 +201,6 @@ struct v4l2_ctrl {
- 	union {
- 		s32 val;
- 		s64 val64;
--		char *string;
--		void *p;
- 	};
- 	union v4l2_ctrl_ptr *stores;
- 	union v4l2_ctrl_ptr new;
+The other two patches were just rebased, as the context lines change
+due to the changes on the first patch.
+
+Mauro Carvalho Chehab (3):
+  [media] em28xx-i2c: Fix error code for I2C error transfers
+  [media] em28xx: cleanup I2C debug messages
+  [media] em28xx: add timeout debug information if i2c_debug enabled
+
+ drivers/media/usb/em28xx/em28xx-i2c.c | 138 ++++++++++++++++++++--------------
+ 1 file changed, 83 insertions(+), 55 deletions(-)
+
 -- 
-1.8.5.2
+1.8.3.1
 
