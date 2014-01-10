@@ -1,106 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:42871 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932065AbaAGD7Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 22:59:16 -0500
-MIME-Version: 1.0
-In-Reply-To: <20140102182532.715b427e@samsung.com>
-References: <1380889594-10448-1-git-send-email-shaik.ameer@samsung.com>
-	<1380889594-10448-3-git-send-email-shaik.ameer@samsung.com>
-	<20140102182532.715b427e@samsung.com>
-Date: Tue, 7 Jan 2014 09:29:12 +0530
-Message-ID: <CAOD6ATpYUCqx5zdYTev4Us8paiX4WRB8P1Vma_9VuinX3dZ3UA@mail.gmail.com>
-Subject: Re: [PATCH v4 2/4] [media] exynos-scaler: Add core functionality for
- the SCALER driver
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Pawel Osciak <posciak@google.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2821 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750702AbaAJDdr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 22:33:47 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0A3Xh34045527
+	for <linux-media@vger.kernel.org>; Fri, 10 Jan 2014 04:33:45 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 3ECBA2A009C
+	for <linux-media@vger.kernel.org>; Fri, 10 Jan 2014 04:33:34 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140110033334.3ECBA2A009C@tschai.lan>
+Date: Fri, 10 Jan 2014 04:33:34 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the reveiw.
+Results of the daily build of media_tree:
 
-On Fri, Jan 3, 2014 at 1:55 AM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> Em Fri,  4 Oct 2013 17:56:32 +0530
-> Shaik Ameer Basha <shaik.ameer@samsung.com> escreveu:
->
->> This patch adds the core functionality for the SCALER driver.
->>
->> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
->> ---
->>  drivers/media/platform/exynos-scaler/scaler.c | 1238 +++++++++++++++++++++++++
->>  drivers/media/platform/exynos-scaler/scaler.h |  375 ++++++++
->>  2 files changed, 1613 insertions(+)
->>  create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
->>  create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
->>
->> diff --git a/drivers/media/platform/exynos-scaler/scaler.c b/drivers/media/platform/exynos-scaler/scaler.c
->> new file mode 100644
->> index 0000000..57635f2
->> --- /dev/null
->> +++ b/drivers/media/platform/exynos-scaler/scaler.c
->> @@ -0,0 +1,1238 @@
->> +/*
->> + * Copyright (c) 2013 Samsung Electronics Co., Ltd.
->> + *           http://www.samsung.com
->> + *
->> + * Samsung EXYNOS5 SoC series SCALER driver
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +
->> +#include <linux/clk.h>
->> +#include <linux/interrupt.h>
->> +#include <linux/module.h>
->> +#include <linux/of_platform.h>
->> +#include <linux/pm_runtime.h>
->> +
->> +#include "scaler-regs.h"
->> +
->> +#define SCALER_CLOCK_GATE_NAME       "scaler"
->> +
->> +static const struct scaler_fmt scaler_formats[] = {
->> +     {
->> +             .name           = "YUV 4:2:0 non-contig. 2p, Y/CbCr",
->> +             .pixelformat    = V4L2_PIX_FMT_NV12M,
->> +             .depth          = { 8, 4 },
->> +             .color          = SCALER_YUV420,
->> +             .color_order    = SCALER_CBCR,
->> +             .num_planes     = 2,
->> +             .num_comp       = 2,
->> +             .scaler_color   = SCALER_YUV420_2P_Y_UV,
->> +             .flags          = (SCALER_FMT_SRC | SCALER_FMT_DST),
->
-> Not a big deal, but you don't need parenthesis for any of those .flags
-> initialization.
->
+date:		Fri Jan 10 04:00:16 CET 2014
+git branch:	test
+git hash:	dad4c41827c71a84c8455e19431278e8c1edf118
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-Ok. I will fix this. and all other comments given by you in this patch series.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Regards,
-Shaik Ameer Basha
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-[...] Snip
+Full logs are available here:
 
->
-> --
->
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
