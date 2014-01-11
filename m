@@ -1,202 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37243 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753190AbaA0ARH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jan 2014 19:17:07 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/3] e4000: add manual gain controls
-Date: Mon, 27 Jan 2014 02:16:51 +0200
-Message-Id: <1390781812-20226-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1390781812-20226-1-git-send-email-crope@iki.fi>
-References: <1390781812-20226-1-git-send-email-crope@iki.fi>
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:51180 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751166AbaAKNgV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jan 2014 08:36:21 -0500
+Received: by mail-ee0-f42.google.com with SMTP id e49so626522eek.29
+        for <linux-media@vger.kernel.org>; Sat, 11 Jan 2014 05:36:20 -0800 (PST)
+Message-ID: <52D1491A.1070104@googlemail.com>
+Date: Sat, 11 Jan 2014 14:37:30 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/4] em28xx: use bInterval on em28xx-audio
+References: <1389379539-31550-1-git-send-email-m.chehab@samsung.com> <1389379539-31550-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389379539-31550-2-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add gain control for LNA, Mixer and IF. Expose controls via DVB
-frontend .set_config callback.
+Am 10.01.2014 19:45, schrieb Mauro Carvalho Chehab:
+> Just filling urb->interval with 1 is wrong, and causes a different
+> behaviour with xHCI.
+>
+> With EHCI, the URB size is typically 192 bytes. However, as
+> xHCI specifies intervals in microframes, the URB size becomes
+> too short (24 bytes).
+>
+> With this patch, the interval will be properly initialized, and
+> the device will behave the same if connected into a xHCI or an
+> EHCI device port.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-audio.c | 39 ++++++++++++++++++++++++++++++++-
+>  1 file changed, 38 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+> index 30ee389a07f0..8e6f04873422 100644
+> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+> @@ -620,10 +620,13 @@ static int em28xx_audio_init(struct em28xx *dev)
+>  	struct em28xx_audio *adev = &dev->adev;
+>  	struct snd_pcm      *pcm;
+>  	struct snd_card     *card;
+> +	struct usb_interface *intf;
+> +	struct usb_endpoint_descriptor *e, *ep = NULL;
+>  	static int          devnr;
+>  	int                 err, i;
+>  	const int sb_size = EM28XX_NUM_AUDIO_PACKETS *
+>  			    EM28XX_AUDIO_MAX_PACKET_SIZE;
+> +	u8 alt;
+>  
+>  	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
+>  		/* This device does not support the extension (in this case
+> @@ -679,6 +682,34 @@ static int em28xx_audio_init(struct em28xx *dev)
+>  		em28xx_cvol_new(card, dev, "Surround", AC97_SURROUND_MASTER);
+>  	}
+>  
+> +	if (dev->audio_ifnum)
+> +		alt = 1;
+> +	else
+> +		alt = 7;
+> +
+> +	intf = usb_ifnum_to_if(dev->udev, dev->audio_ifnum);
+> +
+> +	if (intf->num_altsetting <= alt) {
+> +		em28xx_errdev("alt %d doesn't exist on interface %d\n",
+> +			      dev->audio_ifnum, alt);
+> +		return -ENODEV;
+> +	}
+Hmm... yeah, this the alt setting code looks suspicious.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/e4000.c      | 68 +++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/e4000.h      |  6 ++++
- drivers/media/tuners/e4000_priv.h | 63 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 137 insertions(+)
+Take a look at snd_em28xx_capture_open():
 
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index 0153169..651de11 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -385,6 +385,73 @@ static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- 	return 0;
- }
- 
-+static int e4000_set_config(struct dvb_frontend *fe, void *priv_cfg)
-+{
-+	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000_ctrl *ctrl = priv_cfg;
-+	int ret;
-+	u8 buf[2];
-+	u8 u8tmp;
-+	dev_dbg(&priv->client->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
-+			ctrl->lna_gain, ctrl->mixer_gain, ctrl->if_gain);
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	if (ctrl->lna_gain == INT_MIN && ctrl->if_gain == INT_MIN)
-+		u8tmp = 0x17;
-+	else if (ctrl->lna_gain == INT_MIN)
-+		u8tmp = 0x19;
-+	else if (ctrl->if_gain == INT_MIN)
-+		u8tmp = 0x16;
-+	else
-+		u8tmp = 0x10;
-+
-+	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
-+	if (ret)
-+		goto err;
-+
-+	if (ctrl->mixer_gain == INT_MIN)
-+		u8tmp = 0x15;
-+	else
-+		u8tmp = 0x14;
-+
-+	ret = e4000_wr_reg(priv, 0x20, u8tmp);
-+	if (ret)
-+		goto err;
-+
-+	if (ctrl->lna_gain != INT_MIN) {
-+		ret = e4000_wr_reg(priv, 0x14, ctrl->lna_gain);
-+		if (ret)
-+			goto err;
-+	}
-+
-+	if (ctrl->mixer_gain != INT_MIN) {
-+		ret = e4000_wr_reg(priv, 0x15, ctrl->mixer_gain);
-+		if (ret)
-+			goto err;
-+	}
-+
-+	if (ctrl->if_gain != INT_MIN) {
-+		buf[0] = e4000_if_gain_lut[ctrl->if_gain].reg16_val;
-+		buf[1] = e4000_if_gain_lut[ctrl->if_gain].reg17_val;
-+		ret = e4000_wr_regs(priv, 0x16, buf, 2);
-+		if (ret)
-+			goto err;
-+	}
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	return 0;
-+err:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
- static const struct dvb_tuner_ops e4000_tuner_ops = {
- 	.info = {
- 		.name           = "Elonics E4000",
-@@ -395,6 +462,7 @@ static const struct dvb_tuner_ops e4000_tuner_ops = {
- 	.init = e4000_init,
- 	.sleep = e4000_sleep,
- 	.set_params = e4000_set_params,
-+	.set_config = e4000_set_config,
- 
- 	.get_if_frequency = e4000_get_if_frequency,
- };
-diff --git a/drivers/media/tuners/e4000.h b/drivers/media/tuners/e4000.h
-index e74b8b2..d95c472 100644
---- a/drivers/media/tuners/e4000.h
-+++ b/drivers/media/tuners/e4000.h
-@@ -40,4 +40,10 @@ struct e4000_config {
- 	u32 clock;
- };
- 
-+struct e4000_ctrl {
-+	int lna_gain;
-+	int mixer_gain;
-+	int if_gain;
-+};
-+
- #endif
-diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
-index 8f45a30..a75a383 100644
---- a/drivers/media/tuners/e4000_priv.h
-+++ b/drivers/media/tuners/e4000_priv.h
-@@ -145,4 +145,67 @@ static const struct e4000_if_filter e4000_if_filter_lut[] = {
- 	{ 0xffffffff, 0x00, 0x20 },
- };
- 
-+struct e4000_if_gain {
-+	u8 reg16_val;
-+	u8 reg17_val;
-+};
-+
-+static const struct e4000_if_gain e4000_if_gain_lut[] = {
-+	{0x00, 0x00},
-+	{0x20, 0x00},
-+	{0x40, 0x00},
-+	{0x02, 0x00},
-+	{0x22, 0x00},
-+	{0x42, 0x00},
-+	{0x04, 0x00},
-+	{0x24, 0x00},
-+	{0x44, 0x00},
-+	{0x01, 0x00},
-+	{0x21, 0x00},
-+	{0x41, 0x00},
-+	{0x03, 0x00},
-+	{0x23, 0x00},
-+	{0x43, 0x00},
-+	{0x05, 0x00},
-+	{0x25, 0x00},
-+	{0x45, 0x00},
-+	{0x07, 0x00},
-+	{0x27, 0x00},
-+	{0x47, 0x00},
-+	{0x0f, 0x00},
-+	{0x2f, 0x00},
-+	{0x4f, 0x00},
-+	{0x17, 0x00},
-+	{0x37, 0x00},
-+	{0x57, 0x00},
-+	{0x1f, 0x00},
-+	{0x3f, 0x00},
-+	{0x5f, 0x00},
-+	{0x1f, 0x01},
-+	{0x3f, 0x01},
-+	{0x5f, 0x01},
-+	{0x1f, 0x02},
-+	{0x3f, 0x02},
-+	{0x5f, 0x02},
-+	{0x1f, 0x03},
-+	{0x3f, 0x03},
-+	{0x5f, 0x03},
-+	{0x1f, 0x04},
-+	{0x3f, 0x04},
-+	{0x5f, 0x04},
-+	{0x1f, 0x0c},
-+	{0x3f, 0x0c},
-+	{0x5f, 0x0c},
-+	{0x1f, 0x14},
-+	{0x3f, 0x14},
-+	{0x5f, 0x14},
-+	{0x1f, 0x1c},
-+	{0x3f, 0x1c},
-+	{0x5f, 0x1c},
-+	{0x1f, 0x24},
-+	{0x3f, 0x24},
-+	{0x5f, 0x24},
-+	{0x7f, 0x24},
-+};
-+
- #endif
--- 
-1.8.5.3
+    if ((dev->alt == 0 || dev->audio_ifnum) && dev->adev.users == 0) {
+        if (dev->audio_ifnum)
+            dev->alt = 1;
+        else
+            dev->alt = 7;
+    ...
+    }
+
+I've been thinking about this for a while and I think this code is based
+on the following assumptions:
+1.) Video endpoints are always at interface 0
+2.) Hence, if the audio endpoints are on a separate interface, the
+interface number is > 0
+3.) Video interfaces always have alt settings 0-7 and 7 is the one with
+the highest bandwith.
+
+1.) is definitely wrong, the VAD Laplace webcam for example has video on
+interface #3.
+This needs to be fixed in the core, too.
+Because of that, the (dev->audio_ifnum > 0) check also needs to be fixed
+and dev->is_audio_only should be checked instead.
+3.) matches what I've seen so far, but seems to be safer to do the same
+what we are doing in em28xx_usb_probe() for the dvb video endpoints.
+
+Whether alt=1 and alt=max are a good choice is a separate question.
+
+How many altternate settings does the audio only interface of you em2860
+have and how do they look ?
+
+In case of vendor audio endpoints on the same interface as the video
+endpoints, wMaxPacketSize and bInterval seem to be the same for all alt
+settings.
+(The only device I know so far is the HVR-930c:   wMaxPacketSize =1x 196
+bytes, bInterval = 4).
+
+> +
+> +	for (i = 0; i < intf->altsetting[alt].desc.bNumEndpoints; i++) {
+> +		e = &intf->altsetting[alt].endpoint[i].desc;
+> +		if (!usb_endpoint_dir_in(e))
+> +			continue;
+> +		if (e->bEndpointAddress == EM28XX_EP_AUDIO) {
+> +			ep = e;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (!ep) {
+> +		em28xx_errdev("Couldn't find an audio endpoint");
+> +		return -ENODEV;
+> +	}
+> +
+>  	/* Alloc URB and transfer buffers */
+>  	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>  		struct urb *urb;
+> @@ -707,11 +738,17 @@ static int em28xx_audio_init(struct em28xx *dev)
+>  		urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
+>  		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+>  		urb->transfer_buffer = dev->adev.transfer_buffer[i];
+> -		urb->interval = 1;
+> +		urb->interval = 1 << (ep->bInterval - 1);
+>  		urb->complete = em28xx_audio_isocirq;
+>  		urb->number_of_packets = EM28XX_NUM_AUDIO_PACKETS;
+>  		urb->transfer_buffer_length = sb_size;
+>  
+> +		if (!i)
+> +			dprintk("Will use ep 0x%02x on intf %d alt %d interval = %d (rcv isoc pipe: 0x%08x)\n",
+> +				EM28XX_EP_AUDIO, dev->audio_ifnum, alt,
+> +				urb->interval,
+> +				urb->pipe);
+> +
+>  		for (j = k = 0; j < EM28XX_NUM_AUDIO_PACKETS;
+>  			     j++, k += EM28XX_AUDIO_MAX_PACKET_SIZE) {
+>  			urb->iso_frame_desc[j].offset = k;
 
