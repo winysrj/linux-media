@@ -1,52 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1727 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750881AbaAEMNZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 07:13:25 -0500
-Message-ID: <52C94C51.2010005@xs4all.nl>
-Date: Sun, 05 Jan 2014 13:13:05 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:50912 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750800AbaAKWM2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jan 2014 17:12:28 -0500
+Received: by mail-qa0-f49.google.com with SMTP id w8so3943901qac.36
+        for <linux-media@vger.kernel.org>; Sat, 11 Jan 2014 14:12:27 -0800 (PST)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
+In-Reply-To: <CAGoCfiyQgs3So3bVg_VG9ii0SeR1Dit3SrV_6-3ox8MmqfVqDQ@mail.gmail.com>
+References: <1389068966-14594-1-git-send-email-tmester@ieee.org>
+	<1389068966-14594-3-git-send-email-tmester@ieee.org>
+	<CAGoCfix3GRETd+YXNSimpDY8StVPzc0sEMpzhdnuLf1eA4g+vw@mail.gmail.com>
+	<CAGoCfizhR=QJaonNzesLSVRZ+rEZCaY+QLVi7ksF1wx4N=Sm7Q@mail.gmail.com>
+	<CAEEHgGXjTfP4FPjSe6YxEODjWSCovZ4Z+ggS2ZCqxm5qfWd+EQ@mail.gmail.com>
+	<CAGoCfiyQgs3So3bVg_VG9ii0SeR1Dit3SrV_6-3ox8MmqfVqDQ@mail.gmail.com>
+Date: Sat, 11 Jan 2014 15:12:27 -0700
+Message-ID: <CAEEHgGW008UFbe722vLt0suSxix_4KrM=9G2g82J9rfEypeCyg@mail.gmail.com>
+Subject: Re: [PATCH 3/3] au8522, au0828: Added demodulator reset
+From: Tim Mester <tmester@ieee.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v6 07/12] v4l: add device capability flag for SDR
- receiver
-References: <1388289844-2766-1-git-send-email-crope@iki.fi> <1388289844-2766-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1388289844-2766-8-git-send-email-crope@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/29/2013 05:03 AM, Antti Palosaari wrote:
-> VIDIOC_QUERYCAP IOCTL is used to query device capabilities. Add new
-> capability flag to inform given device supports SDR capture.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  include/uapi/linux/videodev2.h | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index c50e449..f596b7b 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -267,6 +267,8 @@ struct v4l2_capability {
->  #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
->  #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
->  
-> +#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
-> +
->  #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
->  #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
->  #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
-> 
+On Wed, Jan 8, 2014 at 1:26 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> Hi Tim,
+>
+> On Wed, Jan 8, 2014 at 12:12 AM, Tim Mester <tmester@ieee.org> wrote:
+>>   Commit 2e68a75990011ccd looks interesting.  It makes sense to me
+>> that if we are gating the clock, and it is possible that we are
+>> glitching the clock line, it could put the internal synchronous logic
+>> into a bad state.  If that happens, it would generally require a reset
+>> under a stable clock to get out of that condition.  I will give that
+>> patch a try an see if it addresses issue 1), mentioned above.
+>
+> Yeah, the whole thing about the clocks not being enabled/disabled in
+> the correct order relative to enabling the sub-blocks did result in
+> some strange cases where sub-block wouldn't reactivate properly,
+> requiring a reset to return it to a working state.  It was
+> specifically this issue I was concerned about might be the "right fix"
+> for the problem you are hitting.
+>
+> Note:  you need more than just 2e68a75990011ccd.  That is actually an
+> add-on to the real commit that restructures the clock managment:
+> 39c39b0e612b5d35feb00329b527b266df8f7fd2
+>
+>> However, I'm not sure if that will do anything about issue 2). Do you
+>> have any insight into that one?
+>
+> Well, I've never been a fan of how the code just does a blind "return
+> 0" if the target modulation and frequency are the same as it's in
+> theory already tuned to.  Have you tried commenting out just that
+> block and see if it makes a difference?  IIRC, the dvb-frontend kernel
+> thread should automatically re-issue a set_frontend() call if the
+> signal lock drops out.
+>
+> As for the underlying problem, I'm not sure.  Generally once the
+> signal is locked it continues to work.  If you set the xc5000 debug=1
+> modprobe option, do you see lines in the log that say "xc5000: PLL not
+> locked"?
+>
+> How reproducible is the issue, and how often does it happen?  I've got
+> some newer firmware that might be worth trying which isn't upstream
+> yet (assuming for a moment that it's an xc5000 issue).  If you believe
+> you can repro the issue pretty regularly, you and I can work offline
+> to try that out.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
 
-This new capability needs to be documented in DocBook as well (vidioc-querycap.xml).
+Devin,
 
-Regards,
+  My device is the 950q, so it uses the AU8522_DEMODLOCKING method.
+It does not appear to be an xc5000 issue on the surface.   When I
+originally put the patch together, I removed the return if the
+frequency was the same, and added the reset_demodulator() call at the
+end of the set_frontend() function. It seemed to work the same as the
+patch that I submitted.
 
-	Hans
+I have not been able to tell that it keeps the au8522 from losing
+lock, but it allows it to come back.  I see this issue about once a
+every 2-3 weeks on average, which is less frequent than the other
+issues.
+
+If you believe that this issue could result in a xc5000 and au8522
+interaction, then I should be able to try out the updated firmware. It
+will just take some time to know the results.
+
+ Thanks,
+
+ Tim
