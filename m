@@ -1,198 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:48384 "EHLO multi.imgtec.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752700AbaAQOAT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 09:00:19 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH v2 14/15] media: rc: img-ir: add Sharp decoder module
-Date: Fri, 17 Jan 2014 13:58:59 +0000
-Message-ID: <1389967140-20704-15-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
-References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:56851 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751125AbaAKM2l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jan 2014 07:28:41 -0500
+Received: by mail-ea0-f173.google.com with SMTP id o10so2440240eaj.18
+        for <linux-media@vger.kernel.org>; Sat, 11 Jan 2014 04:28:39 -0800 (PST)
+Message-ID: <52D1393D.4000006@googlemail.com>
+Date: Sat, 11 Jan 2014 13:29:49 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2 1/3] [media] em28xx-i2c: Fix error code for I2C error
+ transfers
+References: <1389342820-12605-1-git-send-email-m.chehab@samsung.com> <1389342820-12605-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389342820-12605-2-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an img-ir module for decoding the Sharp infrared protocol.
+Am 10.01.2014 09:33, schrieb Mauro Carvalho Chehab:
+> Follow the error codes for I2C as described at Documentation/i2c/fault-codes.
+>
+> In the case of the I2C status register (0x05), this is mapped into:
+>
+> 	- ENXIO - when reg 05 returns 0x10
+> 	- ETIMEDOUT - when the device is not temporarily not responding
+> 		      (e. g. reg 05 returning something not 0x10 or 0x00)
+> 	- EIO - for generic I/O errors that don't fit into the above.
+>
+> In the specific case of 0-byte reads, used only during I2C device
+> probing, it keeps returning -ENODEV.
+>
+> TODO: return EBUSY when reg 05 returns 0x20 on em2874 and upper.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-i2c.c | 37 +++++++++++++++++++----------------
+>  1 file changed, 20 insertions(+), 17 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> index 342f35ad6070..76f956635bd9 100644
+> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> @@ -80,7 +80,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>  		if (ret == 0x80 + len - 1)
+>  			return len;
+>  		if (ret == 0x94 + len - 1) {
+> -			return -ENODEV;
+> +			return -ENXIO;
+>  		}
+>  		if (ret < 0) {
+>  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+> @@ -90,7 +90,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>  		msleep(5);
+>  	}
+>  	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
+> -	return -EIO;
+> +	return -ETIMEDOUT;
+Hmmm... we don't know anything about these unknown 2800 errors, they
+probably do not exist at all.
+But as the warning talks about a timeout, yes, let's return ETIMEDOUT
+for now.
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
-v2:
-- Update to new scancode interface (32-bit NEC).
-- Update to new filtering interface (generic struct rc_scancode_filter).
-- Remove modularity and dynamic registration/unregistration, adding
-  Sharp directly to the list of decoders in img-ir-hw.c.
-- Fix typo in logic 1 pulse width comment.
-- Set tolerance to 20%, which seemed to be needed for the cases I have.
----
- drivers/media/rc/img-ir/Kconfig        |  7 +++
- drivers/media/rc/img-ir/Makefile       |  1 +
- drivers/media/rc/img-ir/img-ir-hw.c    |  4 ++
- drivers/media/rc/img-ir/img-ir-sharp.c | 99 ++++++++++++++++++++++++++++++++++
- 4 files changed, 111 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-sharp.c
+>  }
+>  
+>  /*
+> @@ -123,7 +123,7 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>  		if (ret == 0x84 + len - 1)
+>  			break;
+>  		if (ret == 0x94 + len - 1) {
+> -			return -ENODEV;
+> +			return -ENXIO;
+>  		}
+>  		if (ret < 0) {
+>  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+Now that I'm looking at this function again, the whole last code section
+looks suspicious.
+Maybe it is really necessary to make a pseudo read from regs 0x00-0x03,
+but I wonder why we return the read data in this error case...
+OTOH, I've spend a very long time on these functions making lots of
+experiments, so I assume I had a good reason for this. ;)
 
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-index ab36577..48627f9 100644
---- a/drivers/media/rc/img-ir/Kconfig
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -45,3 +45,10 @@ config IR_IMG_SONY
- 	help
- 	   Say Y here to enable support for the Sony protocol in the ImgTec
- 	   infrared decoder block.
-+
-+config IR_IMG_SHARP
-+	bool "Sharp protocol support"
-+	depends on IR_IMG_HW
-+	help
-+	   Say Y here to enable support for the Sharp protocol in the ImgTec
-+	   infrared decoder block.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-index 978c0c6..792a3c4 100644
---- a/drivers/media/rc/img-ir/Makefile
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -4,6 +4,7 @@ img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
- img-ir-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
- img-ir-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
- img-ir-$(CONFIG_IR_IMG_SONY)	+= img-ir-sony.o
-+img-ir-$(CONFIG_IR_IMG_SHARP)	+= img-ir-sharp.o
- img-ir-objs			:= $(img-ir-y)
- 
- obj-$(CONFIG_IR_IMG)		+= img-ir.o
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index 17fb527..fc84b75 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -23,6 +23,7 @@ static DEFINE_SPINLOCK(img_ir_decoders_lock);
- extern struct img_ir_decoder img_ir_nec;
- extern struct img_ir_decoder img_ir_jvc;
- extern struct img_ir_decoder img_ir_sony;
-+extern struct img_ir_decoder img_ir_sharp;
- 
- static bool img_ir_decoders_preprocessed;
- static struct img_ir_decoder *img_ir_decoders[] = {
-@@ -35,6 +36,9 @@ static struct img_ir_decoder *img_ir_decoders[] = {
- #ifdef CONFIG_IR_IMG_SONY
- 	&img_ir_sony,
- #endif
-+#ifdef CONFIG_IR_IMG_SHARP
-+	&img_ir_sharp,
-+#endif
- 	NULL
- };
- 
-diff --git a/drivers/media/rc/img-ir/img-ir-sharp.c b/drivers/media/rc/img-ir/img-ir-sharp.c
-new file mode 100644
-index 0000000..3397cc5
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-sharp.c
-@@ -0,0 +1,99 @@
-+/*
-+ * ImgTec IR Decoder setup for Sharp protocol.
-+ *
-+ * Copyright 2012-2014 Imagination Technologies Ltd.
-+ */
-+
-+#include "img-ir-hw.h"
-+
-+/* Convert Sharp data to a scancode */
-+static int img_ir_sharp_scancode(int len, u64 raw, int *scancode, u64 protocols)
-+{
-+	unsigned int addr, cmd, exp, chk;
-+
-+	if (len != 15)
-+		return -EINVAL;
-+
-+	addr = (raw >>   0) & 0x1f;
-+	cmd  = (raw >>   5) & 0xff;
-+	exp  = (raw >>  13) &  0x1;
-+	chk  = (raw >>  14) &  0x1;
-+
-+	/* validate data */
-+	if (!exp)
-+		return -EINVAL;
-+	if (chk)
-+		/* probably the second half of the message */
-+		return -EINVAL;
-+
-+	*scancode = addr << 8 | cmd;
-+	return IMG_IR_SCANCODE;
-+}
-+
-+/* Convert Sharp scancode to Sharp data filter */
-+static int img_ir_sharp_filter(const struct rc_scancode_filter *in,
-+			       struct img_ir_filter *out, u64 protocols)
-+{
-+	unsigned int addr, cmd, exp = 0, chk = 0;
-+	unsigned int addr_m, cmd_m, exp_m = 0, chk_m = 0;
-+
-+	addr   = (in->data >> 8) & 0x1f;
-+	addr_m = (in->mask >> 8) & 0x1f;
-+	cmd    = (in->data >> 0) & 0xff;
-+	cmd_m  = (in->mask >> 0) & 0xff;
-+	if (cmd_m) {
-+		/* if filtering commands, we can only match the first part */
-+		exp   = 1;
-+		exp_m = 1;
-+		chk   = 0;
-+		chk_m = 1;
-+	}
-+
-+	out->data = addr        |
-+		    cmd   <<  5 |
-+		    exp   << 13 |
-+		    chk   << 14;
-+	out->mask = addr_m      |
-+		    cmd_m <<  5 |
-+		    exp_m << 13 |
-+		    chk_m << 14;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Sharp decoder
-+ * See also http://www.sbprojects.com/knowledge/ir/sharp.php
-+ */
-+struct img_ir_decoder img_ir_sharp = {
-+	.type = RC_BIT_SHARP,
-+	.control = {
-+		.decoden = 0,
-+		.decodend2 = 1,
-+		.code_type = IMG_IR_CODETYPE_PULSEDIST,
-+		.d1validsel = 1,
-+	},
-+	/* main timings */
-+	.tolerance = 20,	/* 20% */
-+	.timings = {
-+		/* 0 symbol */
-+		.s10 = {
-+			.pulse = { 320	/* 320 us */ },
-+			.space = { 680	/* 1 ms period */ },
-+		},
-+		/* 1 symbol */
-+		.s11 = {
-+			.pulse = { 320	/* 320 us */ },
-+			.space = { 1680	/* 2 ms period */ },
-+		},
-+		/* free time */
-+		.ft = {
-+			.minlen = 15,
-+			.maxlen = 15,
-+			.ft_min = 5000,	/* 5 ms */
-+		},
-+	},
-+	/* scancode logic */
-+	.scancode = img_ir_sharp_scancode,
-+	.filter = img_ir_sharp_filter,
-+};
--- 
-1.8.3.2
+> @@ -199,7 +199,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>  		if (ret == 0) /* success */
+>  			return len;
+>  		if (ret == 0x10) {
+> -			return -ENODEV;
+> +			return -ENXIO;
+>  		}
+>  		if (ret < 0) {
+>  			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
+> @@ -213,9 +213,8 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>  		 * (even with high payload) ...
+>  		 */
+>  	}
+> -
+> -	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
+> -	return -EIO;
+> +	em28xx_warn("write to i2c device at 0x%x timed out (status=%i)\n", addr, ret);
+> +	return -ETIMEDOUT;
+>  }
+if (ret == 0x02 || ret == 0x04) { /* you may want to narrow this down a
+bit more */
+    em28xx_warn("write to i2c device at 0x%x timed out (status=%i)\n",
+addr, ret);
+    return -ETIMEDOUT;
 
+em28xx_warn("write to i2c device at 0x%x failed with unknown error
+(status=%i)\n", addr, ret);
+return -EIO;
+
+>  
+>  /*
+> @@ -245,7 +244,7 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+>  	 * bytes if we are on bus B AND there was no write attempt to the
+>  	 * specified slave address before AND no device is present at the
+>  	 * requested slave address.
+> -	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
+> +	 * Anyway, the next check will fail with -ENXIO in this case, so avoid
+>  	 * spamming the system log on device probing and do nothing here.
+>  	 */
+>  
+> @@ -259,10 +258,10 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+>  		return ret;
+>  	}
+>  	if (ret == 0x10)
+> -		return -ENODEV;
+> +		return -ENXIO;
+>  
+>  	em28xx_warn("unknown i2c error (status=%i)\n", ret);
+> -	return -EIO;
+> +	return -ETIMEDOUT;
+The same here.
+
+>  }
+>  
+>  /*
+> @@ -318,7 +317,7 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>  	if (!ret)
+>  		return len;
+>  	else if (ret > 0)
+> -		return -ENODEV;
+> +		return -ENXIO;
+>  
+>  	return ret;
+>  	/*
+> @@ -356,7 +355,7 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>  	 * bytes if we are on bus B AND there was no write attempt to the
+>  	 * specified slave address before AND no device is present at the
+>  	 * requested slave address.
+> -	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
+> +	 * Anyway, the next check will fail with -ENXIO in this case, so avoid
+>  	 * spamming the system log on device probing and do nothing here.
+>  	 */
+>  
+> @@ -369,7 +368,7 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>  	if (!ret)
+>  		return len;
+>  	else if (ret > 0)
+> -		return -ENODEV;
+> +		return -ENXIO;
+>  
+>  	return ret;
+>  	/*
+> @@ -410,7 +409,7 @@ static inline int i2c_check_for_device(struct em28xx_i2c_bus *i2c_bus, u16 addr)
+>  		rc = em2800_i2c_check_for_device(dev, addr);
+>  	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)
+>  		rc = em25xx_bus_B_check_for_device(dev, addr);
+> -	if (rc == -ENODEV) {
+> +	if (rc == -ENXIO) {
+>  		if (i2c_debug)
+>  			printk(" no device\n");
+>  	}
+> @@ -498,11 +497,15 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
+>  			       i == num - 1 ? "stop" : "nonstop",
+>  			       addr, msgs[i].len);
+> -		if (!msgs[i].len) { /* no len: check only for device presence */
+> +		if (!msgs[i].len) {
+> +			/*
+> +			 * no len: check only for device presence
+> +			 * This code is only called during device probe.
+> +			 */
+>  			rc = i2c_check_for_device(i2c_bus, addr);
+> -			if (rc == -ENODEV) {
+> +			if (rc == -ENXIO) {
+>  				rt_mutex_unlock(&dev->i2c_bus_lock);
+> -				return rc;
+> +				return -ENODEV;
+I assume this is a small mistake ? ;)
+
+>  			}
+>  		} else if (msgs[i].flags & I2C_M_RD) {
+>  			/* read bytes */
 
