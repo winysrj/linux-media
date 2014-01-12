@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:59935 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751464AbaAGP71 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 10:59:27 -0500
-Received: by mail-oa0-f51.google.com with SMTP id m1so362045oag.38
-        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 07:59:27 -0800 (PST)
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:39732 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751028AbaALQXr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jan 2014 11:23:47 -0500
+Received: by mail-ea0-f170.google.com with SMTP id k10so2893067eaj.29
+        for <linux-media@vger.kernel.org>; Sun, 12 Jan 2014 08:23:46 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFT/RFC PATCH 4/8] em28xx: move v4l2_device_disconnect() call from the core to the v4l extension
+Date: Sun, 12 Jan 2014 17:24:21 +0100
+Message-Id: <1389543865-2534-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1389543865-2534-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1389543865-2534-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHFNz9KzKdC0xvq7nM6yF0DGQ3pCq7tUr0et-cvf6Wk5Htarxg@mail.gmail.com>
-References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
-	<CAHFNz9KzKdC0xvq7nM6yF0DGQ3pCq7tUr0et-cvf6Wk5Htarxg@mail.gmail.com>
-Date: Tue, 7 Jan 2014 15:59:27 +0000
-Message-ID: <CAGj5WxC5NeH8TEBevgZNEootxKWZh8CQUbYKOD7wWwwQ+c6X8w@mail.gmail.com>
-Subject: Re: Upstreaming SAA716x driver to the media_tree
-From: Luis Alves <ljalvs@gmail.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Andreas Regel <andreas.regel@gmx.de>,
-	Chris Lee <updatelee@gmail.com>, crazycat69@narod.ru,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manu,
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |   10 ----------
+ drivers/media/usb/em28xx/em28xx-video.c |    5 +++++
+ 2 Dateien geändert, 5 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
 
-That would be great.
-Let me know if you need a hand!
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index e0040f8..34ff918b 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3338,16 +3338,6 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 
+ 	flush_request_modules(dev);
+ 
+-	mutex_lock(&dev->lock);
+-
+-	v4l2_device_disconnect(&dev->v4l2_dev);
+-
+-	if (dev->users)
+-		em28xx_warn("device %s is open! Deregistration and memory deallocation are deferred on close.\n",
+-			    video_device_node_name(dev->vdev));
+-
+-	mutex_unlock(&dev->lock);
+-
+ 	em28xx_close_extension(dev);
+ 
+ 	/* NOTE: must be called BEFORE the resources are released */
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 634e88a..7535762 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1893,6 +1893,8 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
++	v4l2_device_disconnect(&dev->v4l2_dev);
++
+ 	em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
+ 
+ 	if (dev->radio_dev) {
+@@ -1921,6 +1923,9 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 		dev->vdev = NULL;
+ 	}
+ 
++	if (dev->users)
++		em28xx_warn("Device is open ! Deregistration and memory deallocation are deferred on close.\n");
++
+ 	return 0;
+ }
+ 
+-- 
+1.7.10.4
 
-Regards,
-Luis
-
-
-On Tue, Jan 7, 2014 at 1:10 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
-> Hi Luis,
->
->
-> On Tue, Jan 7, 2014 at 5:28 PM, Luis Alves <ljalvs@gmail.com> wrote:
->> Hi,
->>
->> I'm finishing a new frontend driver for one of my dvb cards, but the
->> pcie bridge uses the (cursed) saa716x.
->> As far as I know the progress to upstream Manu's driver to the
->> media_tree has stalled.
->>
->> In CC I've placed some of the people that I found working on it
->> lately, supporting a few dvb cards.
->>
->> It would be good if we could gather everything in one place and send a
->> few patchs to get this upstreamed for once...
->>
->> Manu, do you see any inconvenience in sending your driver to the
->> linux_media tree?
->> I'm available to place some effort on this task.
->
->
-> I can push the 716x driver and whatever additional changes that I have
-> later on this weekend, if that's okay with you.
->
->
-> Regards,
->
-> Manu
