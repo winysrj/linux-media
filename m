@@ -1,104 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f41.google.com ([209.85.212.41]:38208 "EHLO
-	mail-vb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754445AbaA1Nll (ORCPT
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:48568 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751028AbaALQXo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jan 2014 08:41:41 -0500
-Received: by mail-vb0-f41.google.com with SMTP id g10so246550vbg.0
-        for <linux-media@vger.kernel.org>; Tue, 28 Jan 2014 05:41:40 -0800 (PST)
+	Sun, 12 Jan 2014 11:23:44 -0500
+Received: by mail-ee0-f51.google.com with SMTP id b15so2745313eek.10
+        for <linux-media@vger.kernel.org>; Sun, 12 Jan 2014 08:23:43 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFT/RFC PATCH 0/8] em28xx: move more v4l/dvb specific code to the extension modules and fix the resources handling
+Date: Sun, 12 Jan 2014 17:24:17 +0100
+Message-Id: <1389543865-2534-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <52E6DA4E.4020109@iki.fi>
-References: <1390781812-20226-1-git-send-email-crope@iki.fi>
-	<CAGoCfiyQ6-SA-5PYMgAv3Oq3gzcR-ReYCpL8Ak-KRVw0XHNd4Q@mail.gmail.com>
-	<52E5AAAD.5050906@iki.fi>
-	<CAOcJUbzN9dM-KnMEU3GooS183GPOSmoGyF5CGiX36ZBm7PqYZA@mail.gmail.com>
-	<52E6DA4E.4020109@iki.fi>
-Date: Tue, 28 Jan 2014 08:41:40 -0500
-Message-ID: <CAGoCfiypLAQJWLpJp-SJ498NXcr35V_Y_EADONHggGwsc70r1g@mail.gmail.com>
-Subject: Re: [PATCH 1/3] e4000: convert DVB tuner to I2C driver model
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+Patch 1 is fix for the analog device initialization on the first open() call.
+Patches 2-7 move some dvb and v4l specific code from the core module to the 
+extension modules and fix the resources releasing logic/order in the core and
+the v4l2 module. This will also fix the various sysfs group remove warnings 
+which we can see since kernel 3.13.
+Patch 8 finally removes some dead code lines and fixes leaking the memory of 
+video, vbi and radio video_device structs.
 
-> My biggest point was to criticize that general resistance of new design
-> models which has been DVB side, not only that simple change but many others
-> too. I am pretty sure the many "mistakes" are taken when there has not been
-> better alternative available at the time, and later was developed proper
-> solution, which is not still taken into use.
+I've tested all patches carefully with the devices I have, but because this is
+really critical stuff, they should be reviewed and tested by others, too.
 
-Sometimes the simplest looking changes can introduce all sorts of
-regressions.  Just look at the mess that was caused by Mauro's
-supposedly trivial "dynamic stack allocation" fixes as a prime
-example.
 
-In principle I don't have any objection to adopting common frameworks.
- That said, the changes you've proposed do deviate from how the
-framework currently works, and it might have been more constructive to
-post an RFC to the mailing list describing your proposed changes to
-the framework rather than just submitting a patch for a single tuner.
+Frank Schäfer (8):
+  em28xx-v4l: fix device initialization in em28xx_v4l2_open() for radio
+    and VBI mode
+  em28xx: move usb buffer pre-allocation and transfer uninit from the
+    core to the dvb extension
+  em28xx: move usb transfer uninit on device disconnect from the core to
+    the v4l-extension
+  em28xx: move v4l2_device_disconnect() call from the core to the v4l
+    extension
+  em28xx-v4l: move v4l2_ctrl_handler freeing and v4l2_device
+    unregistration to em28xx_v4l2_fini
+  em28xx: move v4l2 dummy clock deregistration from the core to the v4l
+    extension
+  em28xx: always call em28xx_release_resources() in the usb disconnect
+    handler
+  em28xx-v4l: fix the freeing of the video devices memory
 
-In this particular case, your approach does give us some advantages in
-being able to leverage the I2C framework, but it has costs as well.
-Specifically my concerns are as follows:
-
-1.  Removing the abstraction layer that dvb_attach() provided will
-make it more difficult to add resource tracking code to handle tuner
-locking/sharing.  To solve those problems would actually require us to
-later *reintroduce* a layer of abstraction between the bridge and
-tuner drivers if this patch were accepted as-is.
-
-Case in point - in the V4L2 layer, they actually went in the opposite
-direction - adding the V4L2 subdev framework in order to provide
-additional abstraction between the bridge and I2C devices.
-
-2.  Your approach now makes it the responsibility of the caller to
-explicitly call request_module(), something that is taken care of
-today by dvb_attach().  Right now you can't forget to include the
-dependency since it's taken care of for you - with your change the
-implementor *can* forget, and the result will be that it will fail
-*sometimes* based on whether the module happens to already be loaded.
-In theory your approach would give us a bit more flexibility to have
-drivers with fewer module dependencies if people are compiling the
-kernel from scratch for a single tuner, but that's hardly the common
-use case and it significantly increases the risk of new bugs in
-failing to specify dependencies.
-
-3.  Your change gives no consideration to analog or hybrid tuners.
-This isn't surprising since you've never worked in that area, but if
-the model you are proposing is to be applied to all tuners, then we
-need to fully understand the effects on tuner-core.ko.
-
-> I have also feeling that these wrong solutions and design models used are
-> one source of problems we have. All the chip I/Os should be modeled in a
-> standard manner to make sure it is possible to interconnect flexible. GPIOs
-> should be implemented as kernel GPIOs. I2C should be implemented as kernel
-> I2C. Clock should be implemented as a kernel clock. Chip power-management
-> should be implement as regulator (or what ever that is). TS interface also
-> should be modeled and implement in a standard manner. Implementing things
-> like that makes it possible to interconnect complex hardware without fearing
-> some small change will break functionality because of some home-brew
-> solution.
-
-Sure.  Modular design practices are a good thing.  Thanks for stating
-the obvious.  Did they also teach you about how refactoring can
-introduce bugs, especially in instances where there are no unit tests
-and you cannot exercise all the possible code paths?  :-)
-
-I am confident that after the above factors are considered/addressed
-that some variant of this patch can certainly be incorporated
-upstream, and I look forward to seeing the continued improvement of
-the codebase while not introducing new regressions.
-
-Devin
+ drivers/media/usb/em28xx/em28xx-cards.c |   48 ++--------------
+ drivers/media/usb/em28xx/em28xx-dvb.c   |   23 ++++++++
+ drivers/media/usb/em28xx/em28xx-video.c |   91 +++++++++++++++++++------------
+ 3 Dateien geändert, 85 Zeilen hinzugefügt(+), 77 Zeilen entfernt(-)
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.10.4
+
