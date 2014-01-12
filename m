@@ -1,279 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48371 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752596AbaAWKLg (ORCPT
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:57328 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945AbaALP2R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 05:11:36 -0500
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Amit Grover' <amit.grover@samsung.com>, m.chehab@samsung.com,
-	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, rob@landley.net,
-	kyungmin.park@samsung.com, jtp.park@samsung.com
-Cc: hans.verkuil@cisco.com, andrew.smirnov@gmail.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	arun.kk@samsung.com, anatol.pomozov@gmail.com, jmccrohan@gmail.com,
-	austin.lobo@samsung.com, 'Swami Nathan' <swaminath.p@samsung.com>
-References: <1388400186-22045-1-git-send-email-amit.grover@samsung.com>
-In-reply-to: <1388400186-22045-1-git-send-email-amit.grover@samsung.com>
-Subject: RE: [PATCH] [media] s5p-mfc: Add Horizontal and Vertical search range
- for Video Macro Blocks
-Date: Thu, 23 Jan 2014 11:11:31 +0100
-Message-id: <019f01cf1823$7e020fa0$7a062ee0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Sun, 12 Jan 2014 10:28:17 -0500
+Received: by mail-ee0-f45.google.com with SMTP id d49so2660926eek.18
+        for <linux-media@vger.kernel.org>; Sun, 12 Jan 2014 07:28:15 -0800 (PST)
+Message-ID: <52D2B4D6.2020806@googlemail.com>
+Date: Sun, 12 Jan 2014 16:29:26 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2 3/3] [media] em28xx: add timeout debug information
+ if i2c_debug enabled
+References: <1389342820-12605-1-git-send-email-m.chehab@samsung.com> <1389342820-12605-4-git-send-email-m.chehab@samsung.com> <52D143BE.3090607@googlemail.com> <20140111182737.4cf40c81@samsung.com>
+In-Reply-To: <20140111182737.4cf40c81@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Amit,
-
-> From: Amit Grover [mailto:amit.grover@samsung.com]
-> Sent: Monday, December 30, 2013 11:43 AM
-> 
-> This patch adds Controls to set Horizontal and Vertical search range
-> for Motion Estimation block for Samsung MFC video Encoders.
-> 
-> Signed-off-by: Swami Nathan <swaminath.p@samsung.com>
-> Signed-off-by: Amit Grover <amit.grover@samsung.com>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml    |   14 +++++++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   24
-> +++++++++++++++++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 ++------
->  drivers/media/v4l2-core/v4l2-ctrls.c            |   14 +++++++++++++
->  include/uapi/linux/v4l2-controls.h              |    2 ++
->  6 files changed, 58 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml
-> index 7a3b49b..70a0f6f 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -2258,6 +2258,20 @@ Applicable to the MPEG1, MPEG2, MPEG4
-> encoders.</entry>
->  VBV buffer control.</entry>
->  	      </row>
-> 
-> +		  <row><entry></entry></row>
-> +	      <row id="v4l2-mpeg-video-horz-search-range">
-> +		<entry
-> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE</constant
-
-HORZ is nowhere used. HOR is more commonly used in control names.
-V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE seems better.
-
-> >&nbsp;</entry>
-> +		<entry>integer</entry>
-> +	      </row><row><entry spanname="descr">Sets the Horizontal
-> search range for Video Macro blocks.</entry>
-> +	      </row>
-
-It's expressed in pixels? If so then it should be mentioned here. Also I
-think this lacks the mention that it is used for motion estimation.
-Please add a more detailed description.
-
-> +
-> +		 <row><entry></entry></row>
-> +	      <row id="v4l2-mpeg-video-vert-search-range">
-> +		<entry
-> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE</constant
-> >&nbsp;</entry>
-
-V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE seems better.
-
-> +		<entry>integer</entry>
-> +	      </row><row><entry spanname="descr">Sets the Vertical search
-> range for Video Macro blocks.</entry>
-> +	      </row>
-> +
-
-This description is too vague as well.
-
->  	      <row><entry></entry></row>
->  	      <row>
->  		<entry
-> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nb
-> sp;</entry>
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index 6920b54..f2c13c3 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -430,6 +430,8 @@ struct s5p_mfc_vp8_enc_params {
->  struct s5p_mfc_enc_params {
->  	u16 width;
->  	u16 height;
-> +	u32 horz_range;
-> +	u32 vert_range;
-
-mv_h_range ?
-mv_v_range ?
-
-> 
->  	u16 gop_size;
->  	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index 4ff3b6c..a02e7b8 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -208,6 +208,24 @@ static struct mfc_control controls[] = {
->  		.default_value = 0,
->  	},
->  	{
-> +		.id = V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE,
-> +		.type = V4L2_CTRL_TYPE_INTEGER,
-> +		.name = "horizontal search range of video macro block",
-
-This too should be property capitalised. Please mention the motion vectors
-too.
-
-> +		.minimum = 16,
-> +		.maximum = 128,
-> +		.step = 16,
-> +		.default_value = 32,
-> +	},
-> +	{
-> +		.id = V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE,
-> +		.type = V4L2_CTRL_TYPE_INTEGER,
-> +		.name = "vertical search range of video macro block",
-
-This too should be property capitalised. Please mention the motion vectors
-too.
-
-> +		.minimum = 16,
-> +		.maximum = 128,
-> +		.step = 16,
-> +		.default_value = 32,
-> +	},
-> +	{
->  		.id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
->  		.type = V4L2_CTRL_TYPE_INTEGER,
->  		.minimum = 0,
-> @@ -1377,6 +1395,12 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl
-> *ctrl)
->  	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
->  		p->vbv_size = ctrl->val;
->  		break;
-> +	case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:
-> +		p->horz_range = ctrl->val;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:
-> +		p->vert_range = ctrl->val;
-> +		break;
->  	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
->  		p->codec.h264.cpb_size = ctrl->val;
->  		break;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> index 461358c..47e1807 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> @@ -727,14 +727,10 @@ static int s5p_mfc_set_enc_params(struct
-> s5p_mfc_ctx *ctx)
->  	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
-> 
->  	/* setting for MV range [16, 256] */
-> -	reg = 0;
-> -	reg &= ~(0x3FFF);
-> -	reg = 256;
-> +	reg = (p->horz_range & 0x3fff);	/* conditional check in app */
->  	WRITEL(reg, S5P_FIMV_E_MV_HOR_RANGE_V6);
-
-Please add a S5P_FIMV_E_MV_HOR_RANGE_V6_MASK or something instead of this
-magic number.
-> 
-> -	reg = 0;
-> -	reg &= ~(0x3FFF);
-> -	reg = 256;
-> +	reg = (p->vert_range & 0x3fff);	/* conditional check in app */
-
-Please add a S5P_FIMV_E_MV_VER_RANGE_V6_MASK or something instead of this
-magic number.
-
->  	WRITEL(reg, S5P_FIMV_E_MV_VER_RANGE_V6);
-> 
->  	WRITEL(0x0, S5P_FIMV_E_FRAME_INSERTION_V6);
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-
-> core/v4l2-ctrls.c
-> index fb46790..7cf23d5 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -735,6 +735,8 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MPEG_VIDEO_DEC_PTS:			return
-"Video
-> Decoder PTS";
->  	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:			return
-"Video
-> Decoder Frame Count";
->  	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return
-"Initial
-> Delay for VBV Control";
-> +	case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:		return "hor
-> search range of video MB";
-
-This should be property capitalised. Please mention the motion vectors too.
-
-> +	case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:		return "vert
-> search range of video MB";
-
-This too should be property capitalised. Please mention the motion vectors
-too.
-
->  	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return
-> "Repeat Sequence Header";
-> 
->  	/* VPX controls */
-> @@ -905,6 +907,18 @@ void v4l2_ctrl_fill(u32 id, const char **name,
-> enum v4l2_ctrl_type *type,
->  		*min = 0;
->  		*max = *step = 1;
->  		break;
-> +	case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:
-> +		*type = V4L2_CTRL_TYPE_INTEGER;
-> +		*min = 16;
-> +		*max = 128;
-> +		*step = 16;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:
-> +		*type = V4L2_CTRL_TYPE_INTEGER;
-> +		*min = 16;
-> +		*max = 128;
-> +		*step = 16;
-> +		break;
->  	case V4L2_CID_PAN_RESET:
->  	case V4L2_CID_TILT_RESET:
->  	case V4L2_CID_FLASH_STROBE:
-> diff --git a/include/uapi/linux/v4l2-controls.h
-> b/include/uapi/linux/v4l2-controls.h
-> index 1666aab..bcce536 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -372,6 +372,8 @@ enum v4l2_mpeg_video_multi_slice_mode {
->  #define V4L2_CID_MPEG_VIDEO_DEC_FRAME
-> 	(V4L2_CID_MPEG_BASE+224)
->  #define V4L2_CID_MPEG_VIDEO_VBV_DELAY
-> 	(V4L2_CID_MPEG_BASE+225)
->  #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER
-> 	(V4L2_CID_MPEG_BASE+226)
-> +#define V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE
-> 	(V4L2_CID_MPEG_BASE+227)
-> +#define V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE
-> 	(V4L2_CID_MPEG_BASE+228)
-> 
->  #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP
-> 	(V4L2_CID_MPEG_BASE+300)
->  #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP
-> 	(V4L2_CID_MPEG_BASE+301)
-> --
-> 1.7.9.5
-
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+On 11.01.2014 21:27, Mauro Carvalho Chehab wrote:
+> Em Sat, 11 Jan 2014 14:14:38 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Am 10.01.2014 09:33, schrieb Mauro Carvalho Chehab:
+>>> If i2c_debug is enabled, we splicitly want to know when a
+>>> device fails with timeout.
+>>>
+>>> If i2c_debug==2, this is already provided, for each I2C transfer
+>>> that fails.
+>>>
+>>> However, most of the time, we don't need to go that far. We just
+>>> want to know that I2C transfers fail.
+>>>
+>>> So, add such errors for normal (ret == 0x10) I2C aborted timeouts.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>>> ---
+>>>   drivers/media/usb/em28xx/em28xx-i2c.c | 27 ++++++++++++++++++++++++---
+>>>   1 file changed, 24 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> index e8eb83160d36..7e1724076ac4 100644
+>>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> @@ -80,6 +80,9 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>>>   		if (ret == 0x80 + len - 1)
+>>>   			return len;
+>>>   		if (ret == 0x94 + len - 1) {
+>>> +			if (i2c_debug == 1)
+>>> +				em28xx_warn("R05 returned 0x%02x: I2C timeout",
+>>> +					    ret);
+>>>   			return -ENXIO;
+>>>   		}
+>>>   		if (ret < 0) {
+>>> @@ -124,6 +127,9 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+>>>   		if (ret == 0x84 + len - 1)
+>>>   			break;
+>>>   		if (ret == 0x94 + len - 1) {
+>>> +			if (i2c_debug == 1)
+>>> +				em28xx_warn("R05 returned 0x%02x: I2C timeout",
+>>> +					    ret);
+>>>   			return -ENXIO;
+>>>   		}
+>>>   		if (ret < 0) {
+>>> @@ -203,6 +209,9 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>>>   		if (ret == 0) /* success */
+>>>   			return len;
+>>>   		if (ret == 0x10) {
+>>> +			if (i2c_debug == 1)
+>>> +				em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
+>>> +					    addr);
+>>>   			return -ENXIO;
+>>>   		}
+>>>   		if (ret < 0) {
+>>> @@ -263,8 +272,12 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+>>>   			    ret);
+>>>   		return ret;
+>>>   	}
+>>> -	if (ret == 0x10)
+>>> +	if (ret == 0x10) {
+>>> +		if (i2c_debug == 1)
+>>> +			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
+>>> +				    addr);
+>>>   		return -ENXIO;
+>>> +	}
+>>>   
+>>>   	em28xx_warn("unknown i2c error (status=%i)\n", ret);
+>>>   	return -ETIMEDOUT;
+>>> @@ -322,8 +335,12 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>>>   	 */
+>>>   	if (!ret)
+>>>   		return len;
+>>> -	else if (ret > 0)
+>>> +	else if (ret > 0) {
+>>> +		if (i2c_debug == 1)
+>>> +			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
+>>> +				    ret);
+>>>   		return -ENXIO;
+>>> +	}
+>>>   
+>>>   	return ret;
+>>>   	/*
+>>> @@ -373,8 +390,12 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>>>   	 */
+>>>   	if (!ret)
+>>>   		return len;
+>>> -	else if (ret > 0)
+>>> +	else if (ret > 0) {
+>>> +		if (i2c_debug == 1)
+>>> +			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
+>>> +				    ret);
+>>>   		return -ENXIO;
+>>> +	}
+>>>   
+>>>   	return ret;
+>>>   	/*
+>> The error description should be "I2C ACK error".
+> Ok.
+>
+>> You are using (i2c_debug == 1) checks here, which should either be
+>> changed to (i2c_debug > 0) in case of 3 debug levels.
+> Actually, no. If you use i2c_debug = 2, you can't print anything on those
+> routines, as otherwise it will be printed on a line that it would supposed
+> to be a KERNEL_CONT message.
+Hmm ok, so this is to avoid output format issues.
+I remember that this is a bit tricky...
+That's why I was using some ordinary printks without \n linebreaks.
 
 
