@@ -1,103 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50530 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751093AbaAFM0T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 07:26:19 -0500
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:49697 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751200AbaALRk3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jan 2014 12:40:29 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZA00CXQUFG5E40@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 12 Jan 2014 12:40:28 -0500 (EST)
+Date: Sun, 12 Jan 2014 15:40:23 -0200
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/2] em28xx: only initialize extensions on the main interface
-Date: Mon,  6 Jan 2014 07:22:55 -0200
-Message-Id: <1389000175-7301-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389000175-7301-1-git-send-email-m.chehab@samsung.com>
-References: <1389000175-7301-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Chris Lee <updatelee@gmail.com>,
+	Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Kworld 330u broken
+Message-id: <20140112154023.3f2e196f@samsung.com>
+In-reply-to: <CAA9z4LbpsnDqS4U8rZzzKk6CmrH9cyAYjOtKOVC5goZz5Q13hA@mail.gmail.com>
+References: <CAA9z4LYNHuORA+QnO_3NBj4mwBxSMFY8pXoF2y-iYjJD+Xqteg@mail.gmail.com>
+ <52D2C630.60906@googlemail.com> <20140112145017.2f4658e6@samsung.com>
+ <CAA9z4LbpsnDqS4U8rZzzKk6CmrH9cyAYjOtKOVC5goZz5Q13hA@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For devices with a separated audio-only interface (em2860), call
-em28xx_init_extension() only once.
+Em Sun, 12 Jan 2014 09:53:43 -0700
+Chris Lee <updatelee@gmail.com> escreveu:
 
-That fixes a bug with Kworld 305U:
+> Thanks guys, appreciate it :) As soon as I see the patch fly by I'll
+> test it out, or you can email me directly if you want it tested before
+> it goes to the list. Either way Im flexible.
+> 
+> UDL
+> 
+> On Sun, Jan 12, 2014 at 9:50 AM, Mauro Carvalho Chehab
+> <m.chehab@samsung.com> wrote:
+> > Em Sun, 12 Jan 2014 17:43:28 +0100
+> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >
+> >> On 10.01.2014 05:08, Chris Lee wrote:
+> >> > Im not sure exactly when it broke but alot of changes have happened in
+> >> > em28xx lately and they've broken my Kworld 330u. The issue is that
+> >> >
+> >> > ctl->demod = XC3028_FE_CHINA;
+> >> > ctl->fname = XC2028_DEFAULT_FIRMWARE;
+> >> > cfg.ctrl  = &ctl;
+> >> >
+> >> > are no longer being set, this causes xc2028_attach
+> >> >
+> >> > if (cfg->ctrl)
+> >> > xc2028_set_config(fe, cfg->ctrl);
+> >> >
+> >> > to never get called. Therefore never load the firmware. Ive attached
+> >> > my logs to show you what I mean.
+> >> >
+> >> > I quickly hacked up a patch, my tree is quite different from V4L's now
+> >> > so the line numbers may not lineup anymore, and Im sure you guys wont
+> >> > like it anyhow lol
+> >> >
+> >> > Chris Lee
+> >>
+> >> Hi Chris,
+> >>
+> >> thank you for testing and the patch !
+> >> The suggested changes in em28xx_attach_xc3028() look good, but instead
+> >> of introducing a second copy of em28xx_setup_xc3028() in em28xx-dvb,
+> >> we should just move this function from the v4l extension back to the core.
+> >>
+> >> Mauro, I can create a patch, but I assume there is already enough
+> >> pending em28xx stuff that requires rebasing, so I assume it's easier for
+> >> you to do it yourself.
+> >> Let me know if I can assist you.
+> >
+> > Yes, I can handle it.
+> >
+> > Regards,
+> > Mauro
 
-    [  658.730715] em2860 #0: V4L2 video device registered as video1
-    [  658.730728] em2860 #0: V4L2 VBI device registered as vbi0
-    [  658.736907] em2860 #0: Remote control support is not available for this card.
-    [  658.736965] em2860 #1: Remote control support is not available for this card.
-    [  658.737230] ------------[ cut here ]------------
-    [  658.737246] WARNING: CPU: 2 PID: 60 at lib/list_debug.c:36 __list_add+0x8a/0xc0()
-    [  658.737256] list_add double add: new=ffff8800a9a40410, prev=ffff8800a9a40410, next=ffffffffa08720d0.
-    [  658.737266] Modules linked in: tuner_xc2028 netconsole rc_hauppauge em28xx_rc rc_core tuner_simple tuner_types tda9887 tda8290 tuner tvp5150 msp3400 em28xx_v4l em28xx tveeprom
- v4l2_common fuse ccm nf_conntrack_netbios_ns nf_conntrack_broadcast ipt_MASQUERADE ip6t_REJECT xt_conntrack ebtable_nat ebtable_broute bridge stp llc ebtable_filter ebtables ip6tabl
-e_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_security ip6table_raw ip6table_filter ip6_tables iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4
-nf_nat nf_conntrack iptable_mangle iptable_security bnep iptable_raw vfat fat arc4 iwldvm mac80211 x86_pkg_temp_thermal coretemp kvm_intel nfsd iwlwifi snd_hda_codec_hdmi kvm snd_hda
-_codec_realtek snd_hda_intel snd_hda_codec auth_rpcgss nfs_acl cfg80211 lockd snd_hwdep snd_seq btusb sunrpc crc32_pclmul bluetooth crc32c_intel snd_seq_device snd_pcm uvcvideo r8169
- ghash_clmulni_intel videobuf2_vmalloc videobuf2_memops videobuf2_core snd_page_alloc snd_timer snd videodev mei_me iTCO_wdt mii shpchp joydev mei media iTCO_vendor_support lpc_ich m
-icrocode soundcore rfkill serio_raw i2c_i801 mfd_core nouveau i915 ttm i2c_algo_bit drm_kms_helper drm i2c_core mxm_wmi wmi video
-    [  658.738601] CPU: 2 PID: 60 Comm: kworker/2:1 Not tainted 3.13.0-rc1+ #18
-    [  658.738611] Hardware name: SAMSUNG ELECTRONICS CO., LTD. 550P5C/550P7C/SAMSUNG_NP1234567890, BIOS P04ABI.013.130220.dg 02/20/2013
-    [  658.738624] Workqueue: events request_module_async [em28xx]
-    [  658.738646]  0000000000000009 ffff8802209dfc68 ffffffff816a3c96 ffff8802209dfcb0
-    [  658.738700]  ffff8802209dfca0 ffffffff8106aaad ffff8800a9a40410 ffffffffa08720d0
-    [  658.738754]  ffff8800a9a40410 0000000000000000 0000000000000080 ffff8802209dfd00
-    [  658.738814] Call Trace:
-    [  658.738836]  [<ffffffff816a3c96>] dump_stack+0x45/0x56
-    [  658.738851]  [<ffffffff8106aaad>] warn_slowpath_common+0x7d/0xa0
-    [  658.738864]  [<ffffffff8106ab1c>] warn_slowpath_fmt+0x4c/0x50
-    [  658.738880]  [<ffffffffa0868a7d>] ? em28xx_init_extension+0x1d/0x80 [em28xx]
-    [  658.738898]  [<ffffffff81343b8a>] __list_add+0x8a/0xc0
-    [  658.738911]  [<ffffffffa0868a98>] em28xx_init_extension+0x38/0x80 [em28xx]
-    [  658.738927]  [<ffffffffa086a059>] request_module_async+0x19/0x110 [em28xx]
-    [  658.738942]  [<ffffffff810873b5>] process_one_work+0x1f5/0x510
-    [  658.738954]  [<ffffffff81087353>] ? process_one_work+0x193/0x510
-    [  658.738967]  [<ffffffff810880bb>] worker_thread+0x11b/0x3a0
-    [  658.738979]  [<ffffffff81087fa0>] ? manage_workers.isra.24+0x2b0/0x2b0
-    [  658.738992]  [<ffffffff8108ea2f>] kthread+0xff/0x120
-    [  658.739005]  [<ffffffff8108e930>] ? kthread_create_on_node+0x250/0x250
-    [  658.739017]  [<ffffffff816b517c>] ret_from_fork+0x7c/0xb0
-    [  658.739029]  [<ffffffff8108e930>] ? kthread_create_on_node+0x250/0x250
-    [  658.739040] ---[ end trace c1acd24b354108de ]---
-    [  658.739051] em2860 #1: Remote control support is not available for this card.
-    [  658.742407] em28xx-audio.c: probing for em28xx Audio Vendor Class
-    [  658.742429] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-    [  658.742440] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
-    [  658.744798] em28xx-audio.c: probing for em28xx Audio Vendor Class
-    [  658.744823] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-    [  658.744836] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
-    [  658.746849] em28xx-audio.c: probing for em28xx Audio Vendor Class
-    [  658.746863] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-    [  658.746874] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
-    ...
+Patch follows.
 
+Regards,
+Mauro
+
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+[media] em28xx: fix xc3028 demod and firmware setup on DVB
+
+Now that em28xx can be compiled without V4L support, we should
+call em28xx_setup_xc3028() on both em28xx-v4l and em28xx-dvb
+modules.
+
+Reported-by: Chris Lee <updatelee@gmail.com>
 Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
 
 diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 95ba1cefc350..849725e5acb1 100644
+index 39cf49c44e10..6efb9029381b 100644
 --- a/drivers/media/usb/em28xx/em28xx-cards.c
 +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2779,6 +2779,18 @@ static void request_module_async(struct work_struct *work)
- 	 * can be initialised right now. Otherwise, the module init
- 	 * code will do it.
- 	 */
-+
-+	/*
-+	 * Devicdes with an audio-only interface also have a V4L/DVB/RC
-+	 * interface. Don't register extensions twice on those devices.
-+	 */
-+	if (dev->is_audio_only) {
-+#if defined(CONFIG_MODULES) && defined(MODULE)
-+		request_module("em28xx-alsa");
-+#endif
-+		return 0;
-+	}
-+
- 	em28xx_init_extension(dev);
+@@ -2768,6 +2768,55 @@ static void em28xx_card_setup(struct em28xx *dev)
+ 		dev->tuner_type = tuner;
+ }
  
- #if defined(CONFIG_MODULES) && defined(MODULE)
--- 
-1.8.3.1
-
++void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl)
++{
++	memset(ctl, 0, sizeof(*ctl));
++
++	ctl->fname   = XC2028_DEFAULT_FIRMWARE;
++	ctl->max_len = 64;
++	ctl->mts = em28xx_boards[dev->model].mts_firmware;
++
++	switch (dev->model) {
++	case EM2880_BOARD_EMPIRE_DUAL_TV:
++	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
++	case EM2882_BOARD_TERRATEC_HYBRID_XS:
++		ctl->demod = XC3028_FE_ZARLINK456;
++		break;
++	case EM2880_BOARD_TERRATEC_HYBRID_XS:
++	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
++	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
++		ctl->demod = XC3028_FE_ZARLINK456;
++		break;
++	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2:
++	case EM2882_BOARD_PINNACLE_HYBRID_PRO_330E:
++		ctl->demod = XC3028_FE_DEFAULT;
++		break;
++	case EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600:
++		ctl->demod = XC3028_FE_DEFAULT;
++		ctl->fname = XC3028L_DEFAULT_FIRMWARE;
++		break;
++	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850:
++	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
++	case EM2880_BOARD_PINNACLE_PCTV_HD_PRO:
++		/* FIXME: Better to specify the needed IF */
++		ctl->demod = XC3028_FE_DEFAULT;
++		break;
++	case EM2883_BOARD_KWORLD_HYBRID_330U:
++	case EM2882_BOARD_DIKOM_DK300:
++	case EM2882_BOARD_KWORLD_VS_DVBT:
++		ctl->demod = XC3028_FE_CHINA;
++		ctl->fname = XC2028_DEFAULT_FIRMWARE;
++		break;
++	case EM2882_BOARD_EVGA_INDTUBE:
++		ctl->demod = XC3028_FE_CHINA;
++		ctl->fname = XC3028L_DEFAULT_FIRMWARE;
++		break;
++	default:
++		ctl->demod = XC3028_FE_OREN538;
++	}
++}
++EXPORT_SYMBOL_GPL(em28xx_setup_xc3028);
++
+ static void request_module_async(struct work_struct *work)
+ {
+ 	struct em28xx *dev = container_of(work,
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 5c6be66ac858..7dba17576edf 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -828,11 +828,16 @@ static int em28xx_attach_xc3028(u8 addr, struct em28xx *dev)
+ {
+ 	struct dvb_frontend *fe;
+ 	struct xc2028_config cfg;
++	struct xc2028_ctrl ctl;
+ 
+ 	memset(&cfg, 0, sizeof(cfg));
+ 	cfg.i2c_adap  = &dev->i2c_adap[dev->def_i2c_bus];
+ 	cfg.i2c_addr  = addr;
+ 
++	memset(&ctl, 0, sizeof(ctl));
++	em28xx_setup_xc3028(dev, &ctl);
++	cfg.ctrl  = &ctl;
++
+ 	if (!dev->dvb->fe[0]) {
+ 		em28xx_errdev("/2: dvb frontend not attached. "
+ 				"Can't attach xc3028\n");
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 9c4462868330..a1dcceb7b2c0 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -2100,54 +2100,6 @@ static struct video_device *em28xx_vdev_init(struct em28xx *dev,
+ 	return vfd;
+ }
+ 
+-static void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl)
+-{
+-	memset(ctl, 0, sizeof(*ctl));
+-
+-	ctl->fname   = XC2028_DEFAULT_FIRMWARE;
+-	ctl->max_len = 64;
+-	ctl->mts = em28xx_boards[dev->model].mts_firmware;
+-
+-	switch (dev->model) {
+-	case EM2880_BOARD_EMPIRE_DUAL_TV:
+-	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
+-	case EM2882_BOARD_TERRATEC_HYBRID_XS:
+-		ctl->demod = XC3028_FE_ZARLINK456;
+-		break;
+-	case EM2880_BOARD_TERRATEC_HYBRID_XS:
+-	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+-	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+-		ctl->demod = XC3028_FE_ZARLINK456;
+-		break;
+-	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2:
+-	case EM2882_BOARD_PINNACLE_HYBRID_PRO_330E:
+-		ctl->demod = XC3028_FE_DEFAULT;
+-		break;
+-	case EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600:
+-		ctl->demod = XC3028_FE_DEFAULT;
+-		ctl->fname = XC3028L_DEFAULT_FIRMWARE;
+-		break;
+-	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850:
+-	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
+-	case EM2880_BOARD_PINNACLE_PCTV_HD_PRO:
+-		/* FIXME: Better to specify the needed IF */
+-		ctl->demod = XC3028_FE_DEFAULT;
+-		break;
+-	case EM2883_BOARD_KWORLD_HYBRID_330U:
+-	case EM2882_BOARD_DIKOM_DK300:
+-	case EM2882_BOARD_KWORLD_VS_DVBT:
+-		ctl->demod = XC3028_FE_CHINA;
+-		ctl->fname = XC2028_DEFAULT_FIRMWARE;
+-		break;
+-	case EM2882_BOARD_EVGA_INDTUBE:
+-		ctl->demod = XC3028_FE_CHINA;
+-		ctl->fname = XC3028L_DEFAULT_FIRMWARE;
+-		break;
+-	default:
+-		ctl->demod = XC3028_FE_OREN538;
+-	}
+-}
+-
+ static void em28xx_tuner_setup(struct em28xx *dev)
+ {
+ 	struct tuner_setup           tun_setup;
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index e76f993e3195..5d5d1b6f0294 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -762,6 +762,7 @@ void em28xx_close_extension(struct em28xx *dev);
+ extern struct em28xx_board em28xx_boards[];
+ extern struct usb_device_id em28xx_id_table[];
+ int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
++void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl);
+ void em28xx_release_resources(struct em28xx *dev);
+ 
+ /* Provided by em28xx-camera.c */
