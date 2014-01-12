@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49540 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48568 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbaAMCE1 (ORCPT
+	with ESMTP id S1750962AbaALTsf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jan 2014 21:04:27 -0500
+	Sun, 12 Jan 2014 14:48:35 -0500
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 4/7] em28xx-audio: disconnect before freeing URBs
-Date: Sun, 12 Jan 2014 21:00:46 -0200
-Message-Id: <1389567649-26838-5-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389567649-26838-1-git-send-email-m.chehab@samsung.com>
-References: <1389567649-26838-1-git-send-email-m.chehab@samsung.com>
+Subject: [PATCH] em28xx-audio: fix return code on device disconnect
+Date: Sun, 12 Jan 2014 14:44:52 -0200
+Message-Id: <1389545092-19665-1-git-send-email-m.chehab@samsung.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-URBs might be in usage. Disconnect the device before freeing
-them.
+Alsa has an special non-negative return code to indicate device removal
+at snd_em28xx_capture_pointer(). Use it, instead of an error code.
 
 Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/usb/em28xx/em28xx-audio.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/usb/em28xx/em28xx-audio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 8e959dae8358..cdc2fcf3e05e 100644
+index f3e320098f79..47766b796acb 100644
 --- a/drivers/media/usb/em28xx/em28xx-audio.c
 +++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -958,6 +958,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
- 		return 0;
- 	}
+@@ -434,7 +434,7 @@ static snd_pcm_uframes_t snd_em28xx_capture_pointer(struct snd_pcm_substream
  
-+	snd_card_disconnect(dev->adev.sndcard);
- 	em28xx_audio_free_urb(dev);
+ 	dev = snd_pcm_substream_chip(substream);
+ 	if (dev->disconnected)
+-		return -ENODEV;
++		return SNDRV_PCM_POS_XRUN;
  
- 	if (dev->adev.sndcard) {
+ 	spin_lock_irqsave(&dev->adev.slock, flags);
+ 	hwptr_done = dev->adev.hwptr_done_capture;
 -- 
 1.8.3.1
 
