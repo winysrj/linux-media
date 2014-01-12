@@ -1,156 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:51543 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754867AbaAHLXy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 06:23:54 -0500
-Received: by mail-ea0-f177.google.com with SMTP id n15so753076ead.8
-        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 03:23:52 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 1/3] libdvbv5: implement ATSC standard header
-Date: Wed,  8 Jan 2014 12:23:26 +0100
-Message-Id: <1389180208-3458-1-git-send-email-neolynx@gmail.com>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:39573 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142AbaALQXt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jan 2014 11:23:49 -0500
+Received: by mail-ee0-f51.google.com with SMTP id b15so2740750eek.24
+        for <linux-media@vger.kernel.org>; Sun, 12 Jan 2014 08:23:48 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFT/RFC PATCH 5/8] em28xx-v4l: move v4l2_ctrl_handler freeing and v4l2_device unregistration to em28xx_v4l2_fini
+Date: Sun, 12 Jan 2014 17:24:22 +0100
+Message-Id: <1389543865-2534-6-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1389543865-2534-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1389543865-2534-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ATSC standard header is slightly different from the one used
-in DVB. This implements the parser for it, and will be used by
-the VCT table for example.
+v4l2_ctrl_handler_free() and v4l2_device_unregister() are currently only called
+when the last user closes the device and the device is already disconnected.
+But that's wrong, we need to call these functions whenever the em28xx-v4l
+extension is closed and we can already do this if the device is still opened
+by some users.
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- lib/include/descriptors/atsc_header.h  | 63 ++++++++++++++++++++++++++++++++++
- lib/libdvbv5/descriptors/atsc_header.c | 47 +++++++++++++++++++++++++
- 2 files changed, 110 insertions(+)
- create mode 100644 lib/include/descriptors/atsc_header.h
- create mode 100644 lib/libdvbv5/descriptors/atsc_header.c
+ drivers/media/usb/em28xx/em28xx-video.c |    7 ++++---
+ 1 Datei geändert, 4 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
 
-diff --git a/lib/include/descriptors/atsc_header.h b/lib/include/descriptors/atsc_header.h
-new file mode 100644
-index 0000000..1e7148e
---- /dev/null
-+++ b/lib/include/descriptors/atsc_header.h
-@@ -0,0 +1,63 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 7535762..3ac8700 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1923,8 +1923,11 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 		dev->vdev = NULL;
+ 	}
+ 
++	v4l2_ctrl_handler_free(&dev->ctrl_handler);
++	v4l2_device_unregister(&dev->v4l2_dev);
 +
-+#ifndef _ATSC_HEADER_H
-+#define _ATSC_HEADER_H
-+
-+#include <stdint.h>
-+#include <unistd.h> /* ssize_t */
-+
-+#define ATSC_BASE_PID  0x1FFB
-+
-+struct atsc_table_header {
-+	uint8_t  table_id;
-+	union {
-+		uint16_t bitfield;
-+		struct {
-+			uint16_t section_length:12;
-+			uint16_t one:2;
-+			uint16_t priv:1;
-+			uint16_t syntax:1;
-+		} __attribute__((packed));
-+	};
-+	uint16_t id;
-+	uint8_t  current_next:1;
-+	uint8_t  version:5;
-+	uint8_t  one2:2;
-+
-+	uint8_t  section_id;
-+	uint8_t  last_section;
-+	uint8_t  protocol_version;
-+} __attribute__((packed));
-+
-+struct dvb_v5_fe_parms;
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+int  atsc_table_header_init (struct atsc_table_header *t);
-+void atsc_table_header_print(struct dvb_v5_fe_parms *parms, const struct atsc_table_header *t);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git a/lib/libdvbv5/descriptors/atsc_header.c b/lib/libdvbv5/descriptors/atsc_header.c
-new file mode 100644
-index 0000000..ed152ce
---- /dev/null
-+++ b/lib/libdvbv5/descriptors/atsc_header.c
-@@ -0,0 +1,47 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
-+
-+#include "descriptors/atsc_header.h"
-+#include "descriptors.h"
-+#include "dvb-fe.h"
-+
-+int atsc_table_header_init(struct atsc_table_header *t)
-+{
-+	bswap16(t->bitfield);
-+	bswap16(t->id);
-+	return 0;
-+}
-+
-+void atsc_table_header_print(struct dvb_v5_fe_parms *parms, const struct atsc_table_header *t)
-+{
-+	dvb_log("| table_id         %02x", t->table_id);
-+	dvb_log("| section_length   %d", t->section_length);
-+	dvb_log("| syntax           %d", t->syntax);
-+	dvb_log("| priv             %d", t->priv);
-+	dvb_log("| one              %d", t->one);
-+	dvb_log("| id               %d", t->id);
-+	dvb_log("| one2             %d", t->one2);
-+	dvb_log("| version          %d", t->version);
-+	dvb_log("| current_next     %d", t->current_next);
-+	dvb_log("| section_id       %d", t->section_id);
-+	dvb_log("| last_section     %d", t->last_section);
-+	dvb_log("| protocol_version %d", t->protocol_version);
-+}
-+
+ 	if (dev->users)
+-		em28xx_warn("Device is open ! Deregistration and memory deallocation are deferred on close.\n");
++		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
+ 
+ 	return 0;
+ }
+@@ -1951,8 +1954,6 @@ static int em28xx_v4l2_close(struct file *filp)
+ 
+ 		if (dev->disconnected) {
+ 			em28xx_release_resources(dev);
+-			v4l2_ctrl_handler_free(&dev->ctrl_handler);
+-			v4l2_device_unregister(&dev->v4l2_dev);
+ 			kfree(dev->alt_max_pkt_size_isoc);
+ 			goto exit;
+ 		}
 -- 
-1.8.3.2
+1.7.10.4
 
