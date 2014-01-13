@@ -1,55 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39083 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752572AbaAWVJO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 16:09:14 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 08/13] v4l: do not allow modulator ioctls for non-radio devices
-Date: Thu, 23 Jan 2014 23:08:48 +0200
-Message-Id: <1390511333-25837-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1390511333-25837-1-git-send-email-crope@iki.fi>
-References: <1390511333-25837-1-git-send-email-crope@iki.fi>
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:37164 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171AbaAMSuO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jan 2014 13:50:14 -0500
+Received: by mail-ea0-f181.google.com with SMTP id m10so3496346eaj.26
+        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 10:50:12 -0800 (PST)
+Message-ID: <52D435AC.5030306@googlemail.com>
+Date: Mon, 13 Jan 2014 19:51:24 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 6/7] em28xx: print a message at disconnect
+References: <1389567649-26838-1-git-send-email-m.chehab@samsung.com> <1389567649-26838-7-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389567649-26838-7-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+On 13.01.2014 00:00, Mauro Carvalho Chehab wrote:
+> That helps to identify if something fails and explain why em28xx
+> struct is not freed (if it ever happens).
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>   drivers/media/usb/em28xx/em28xx-audio.c | 2 ++
+>   drivers/media/usb/em28xx/em28xx-dvb.c   | 2 ++
+>   drivers/media/usb/em28xx/em28xx-input.c | 2 ++
+>   drivers/media/usb/em28xx/em28xx-video.c | 2 ++
+>   4 files changed, 8 insertions(+)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+> index 5e16fcf18cac..0ec4742c3ab0 100644
+> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+> @@ -962,6 +962,8 @@ static int em28xx_audio_fini(struct em28xx *dev)
+>   		return 0;
+>   	}
+>   
+> +	em28xx_info("Disconnecting audio extension");
+> +
+>   	snd_card_disconnect(dev->adev.sndcard);
+>   	em28xx_audio_free_urb(dev);
+>   
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index 8674ae5fce06..7ba209de57dd 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -1473,6 +1473,8 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+>   		return 0;
+>   	}
+>   
+> +	em28xx_info("Disconnecting DVB extension");
+> +
+>   	if (dev->dvb) {
+>   		struct em28xx_dvb *dvb = dev->dvb;
+>   
+> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+> index 33388b5922a0..bf04c5e1bd2a 100644
+> --- a/drivers/media/usb/em28xx/em28xx-input.c
+> +++ b/drivers/media/usb/em28xx/em28xx-input.c
+> @@ -812,6 +812,8 @@ static int em28xx_ir_fini(struct em28xx *dev)
+>   		return 0;
+>   	}
+>   
+> +	em28xx_info("Disconnecting input extension");
+> +
+>   	em28xx_shutdown_buttons(dev);
+>   
+>   	/* skip detach on non attached boards */
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index dc10cec772ba..004fe12ceec7 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -1894,6 +1894,8 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+>   		return 0;
+>   	}
+>   
+> +	em28xx_info("Disconnecting video extension");
+> +
+>   	v4l2_device_disconnect(&dev->v4l2_dev);
+>   
+>   	em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
 
-Modulator ioctls could be enabled mistakenly for non-radio devices.
-Currently those ioctls are only valid for radio. Fix it.
+I would say "Closing" instead of "Disconnecting". That's also how we 
+call the function that calls the extensions fini() methods.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-dev.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 6308a19..9adde0f 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -553,6 +553,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	const struct v4l2_ioctl_ops *ops = vdev->ioctl_ops;
- 	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
- 	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
-+	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
- 	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
- 	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
- 	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
-@@ -726,8 +727,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 		SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
- 		SET_VALID_IOCTL(ops, VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap);
- 	}
--	if (is_tx) {
--		/* transmitter only ioctls */
-+	if (is_tx && (is_radio || is_sdr)) {
-+		/* radio transmitter only ioctls */
- 		SET_VALID_IOCTL(ops, VIDIOC_G_MODULATOR, vidioc_g_modulator);
- 		SET_VALID_IOCTL(ops, VIDIOC_S_MODULATOR, vidioc_s_modulator);
- 	}
--- 
-1.8.5.3
 
