@@ -1,78 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:49846 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754494AbaAASvE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 13:51:04 -0500
-Received: by mail-ea0-f174.google.com with SMTP id b10so5856677eae.5
-        for <linux-media@vger.kernel.org>; Wed, 01 Jan 2014 10:51:02 -0800 (PST)
-Message-ID: <52C463D8.7020406@googlemail.com>
-Date: Wed, 01 Jan 2014 19:52:08 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: unlisted-recipients:; Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3 11/24] tvp5150: make read operations atomic
-References: <1388232976-20061-1-git-send-email-mchehab@redhat.com> <1388232976-20061-12-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1388232976-20061-12-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:45610 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751534AbaAMNCG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jan 2014 08:02:06 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZC00CPTC7GSUA0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Jan 2014 13:02:04 +0000 (GMT)
+Message-id: <52D3E3CB.60901@samsung.com>
+Date: Mon, 13 Jan 2014 14:02:03 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v4 2/2] videobuf2-dma-sg: Replace vb2_dma_sg_desc with
+ sg_table
+References: <1375453200-28459-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1375453200-28459-3-git-send-email-ricardo.ribalda@gmail.com>
+ <52C6CEC6.8020602@xs4all.nl>
+ <CAPybu_1ABrgBGYNicL37cBE_A2-eYq4=7Cwa-nfEJWndVqq2EQ@mail.gmail.com>
+ <52C6D90D.9010906@xs4all.nl>
+ <CAPybu_2NAyE+Os9NJSSRY0n1+6ObWYpfH1m9Nj0c+B-xj+KVYg@mail.gmail.com>
+ <52CD5BB2.2080305@samsung.com> <52D3B7E3.4030901@xs4all.nl>
+In-reply-to: <52D3B7E3.4030901@xs4all.nl>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 28.12.2013 13:16, schrieb Mauro Carvalho Chehab:
-> From: Mauro Carvalho Chehab <m.chehab@samsung.com>
->
-> Instead of using two I2C operations between write and read,
-> use just one i2c_transfer. That allows I2C mutexes to not
-> let any other I2C transfer between the two.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/i2c/tvp5150.c | 22 ++++++++++------------
->  1 file changed, 10 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 89c0b13463b7..d6ba457fcf67 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -58,21 +58,19 @@ static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
->  	struct i2c_client *c = v4l2_get_subdevdata(sd);
->  	unsigned char buffer[1];
->  	int rc;
-> +	struct i2c_msg msg[] = {
-> +		{ .addr = c->addr, .flags = 0,
-> +		  .buf = &addr, .len = 1 },
-I would use        .buf = buffer        here, too.
+Hello,
 
-> +		{ .addr = c->addr, .flags = I2C_M_RD,
-> +		  .buf = buffer, .len = 1 }
-> +	};
->  
->  	buffer[0] = addr;
->  
-> -	rc = i2c_master_send(c, buffer, 1);
-> -	if (rc < 0) {
-> -		v4l2_err(sd, "i2c i/o error: rc == %d (should be 1)\n", rc);
-> -		return rc;
-> -	}
-> -
-> -	msleep(10);
-That's the critical change.
+On 2014-01-13 10:54, Hans Verkuil wrote:
+> Hi Marek, Ricardo,
+>
+> On 01/08/2014 03:07 PM, Marek Szyprowski wrote:
+> > Hello All,
+> >
+> > On 2014-01-03 16:51, Ricardo Ribalda Delgado wrote:
+> >> Hello Hans
+> >>
+> >> What if we move the dma_map_sg and dma_unmap_sg to the vb2 interface,
+> >> and there do something like:
+> >>
+> >> n_sg= dma_map_sg()
+> >> if (n_sg=-ENOMEM){
+> >>     split_table() //Breaks down the sg_table into monopages sg
+> >>     n_sg= dma_map_sg()
+>
+> This is not a good approach. Remember that if swiotbl needs to allocate
+> e.g. 17 contiguous pages it will round up to the next power of two, so it
+> allocates 32 pages. So even if dma_map_sg succeeds, it might waste a lot
+> of memory.
+>
+> >> }
+> >> if (n_sg=-ENOMEM)
+> >>    return -ENOMEM
+> >
+> > dma_map_sg/dma_unmap_sg should be moved to vb2-dma-sg memory allocator.
+> > The best place for calling them is buf_prepare() and buf_finish()
+> > callbacks. I think that I've already pointed this some time ago, but
+> > unfortunately I didn't find enough time to convert existing code.
+>
+> That would be nice, but this is a separate issue.
+>
+> > For solving the problem described by Hans, I think that vb2-dma-sg
+> > memory allocator should check dma mask of the client device and add
+> > appropriate GFP_DMA or GFP_DMA32 flags to alloc_pages(). This should fix
+> > the issues with failed dma_map_sg due to lack of bouncing buffers.
+>
+> Those GFP flags are for the scatterlist itself, and that can be placed
+> anywhere in memory (frankly, I'm not sure why sg_alloc_table_from_pages
+> has a gfp_flags argument at all and I think it is used incorrectly in
+> videobuf2-dma-sg.c as well).
 
-> -
-> -	rc = i2c_master_recv(c, buffer, 1);
-> -	if (rc < 0) {
-> -		v4l2_err(sd, "i2c i/o error: rc == %d (should be 1)\n", rc);
-> -		return rc;
-> +	rc = i2c_transfer(c->adapter, msg, 2);
-> +	if (rc < 0 || rc != 2) {
-> +		v4l2_err(sd, "i2c i/o error: rc == %d (should be 2)\n", rc);
-> +		return rc < 0 ? rc : -EIO;
->  	}
->  
->  	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, buffer[0]);
-Looks good and works without problems with my HVR-900 and WinTV 2
-devices (both em28xx).
+I was talking about GFP flags passed to alloc_pages in vb2_dma_sg allocator,
+not the sg_alloc_table_from_pages().
+
+IMHO the following changes should fix your problem:
+
+1. add client struct device pointer to vb2_dma_sg_desc, so vb2_dma_sg
+allocator will be able to check dma parameters of the client device.
+
+2. add following check to vb2_dma_sg_alloc_compacted():
+
+if (dev->dma_mask) {
+     if (dev->dma_mask < DMA_BIT_MASK(32))
+         gfp_mask |= GFP_DMA;
+     else if (dev->dev_mask == DMA_BIT_MASK(32)
+         gfp_mask |= GFP_DMA32;
+}
+
+
+> I see two options. The first is the patch I included below: this adds a
+> bool to sg_alloc_table_from_pages() that tells it whether or not page
+> combining should be enabled. It also adds the vb2 queue's gfp_flags as
+> an argument to the get_userptr operation. In videobuf2-dma-sg.c that is
+> checked to see whether or not sg_alloc_table_from_pages() should enable
+> page-combining.
+>
+> The alternative would be to have vb2_queue_init check if the use of
+> V4L2_MEMORY_USERPTR would lead to dma bouncing based on the q->io_modes
+> and q->gfp_flags and if so, remove USERPTR support from io_modes. Do
+> we really want to have page bouncing for video capture?
+
+So the main problem is about user ptr modes? This once again shows that
+the current user pointer API is too limited and should be replaced by
+something more reliable.
+
+> Feedback would be welcome as I am not sure what the best solution is.
+
+
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
