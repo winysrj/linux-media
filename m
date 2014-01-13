@@ -1,46 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2550 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753314AbaAaNc3 (ORCPT
+Received: from mail-oa0-f51.google.com ([209.85.219.51]:62808 "EHLO
+	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629AbaAMTP2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 08:32:29 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 2/2] v4l2-dv-timings: mention missing 'reduced blanking V2'
-Date: Fri, 31 Jan 2014 14:32:16 +0100
-Message-Id: <1391175136-27875-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391175136-27875-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391175136-27875-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 13 Jan 2014 14:15:28 -0500
+Received: by mail-oa0-f51.google.com with SMTP id m1so8429247oag.24
+        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 11:15:28 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 13 Jan 2014 11:15:27 -0800
+Message-ID: <CABMudhSNJdxWZpZjmG-GYObUeMyBSOZs3_HSm8Vok9ecXf1Dnw@mail.gmail.com>
+Subject: When do I need to call 'v4l2_m2m_get_next_job()' in stop_streaming
+From: m silverstri <michael.j.silverstri@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-The VESA standard added a version 2 of the reduced blanking formula.
-Note in the comment that this is not yet supported by the v4l2_detect_cvt
-function.
+Can you please tell me when do I need to call 'v4l2_m2m_get_next_job()
+in stop streaming/job_abort?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dv-timings.c | 4 ++++
- 1 file changed, 4 insertions(+)
+I find 2 examples of v4l2 m2m driver, they implement
+stop_streaming/job_abort differently.
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index ee52b9f4..41bf3f9 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -324,6 +324,10 @@ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
-  * This function will attempt to detect if the given values correspond to a
-  * valid CVT format. If so, then it will return true, and fmt will be filled
-  * in with the found CVT timings.
-+ *
-+ * TODO: VESA defined a new version 2 of their reduced blanking
-+ * formula. Support for that is currently missing in this CVT
-+ * detection function.
-  */
- bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
- 		u32 polarities, struct v4l2_dv_timings *fmt)
--- 
-1.8.5.2
+One call v4l2_m2m_get_next_job() in stop streaming/job_abort?
 
+https://android.googlesource.com/kernel/exynos.git/+/6ced4b8c77c2be4f6e4c9d1216fd8b99f636569f/drivers/media/video/exynos/gsc/gsc-m2m.c
+
+but the one one does not:
+
+http://lxr.free-electrons.com/source/drivers/media/platform/s5p-jpeg/jpeg-core.c
+
+Can you please tell me how can I determine if I need to call
+v4l2_m2m_get_next_job() or not?
+
+Thank you.
