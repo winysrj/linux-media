@@ -1,48 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4146 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753967AbaAaJ5L (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53134 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368AbaAMVgT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:57:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 17/32] v4l2-ctrls: return elem_size instead of strlen
-Date: Fri, 31 Jan 2014 10:56:15 +0100
-Message-Id: <1391162190-8620-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 13 Jan 2014 16:36:19 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 7/7] [media] tea575x: Fix build with ARCH=c6x
+Date: Mon, 13 Jan 2014 16:32:38 -0200
+Message-Id: <1389637958-3884-8-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389637958-3884-1-git-send-email-m.chehab@samsung.com>
+References: <1389637958-3884-1-git-send-email-m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+In file included from /devel/v4l/temp/include/asm-generic/page.h:23:0,
+                 from /devel/v4l/temp/arch/c6x/include/asm/page.h:9,
+                 from /devel/v4l/temp/include/asm-generic/io.h:14,
+                 from arch/c6x/include/generated/asm/io.h:1,
+                 from /devel/v4l/temp/drivers/media/radio/tea575x.c:23:
+/devel/v4l/temp/arch/c6x/include/asm/setup.h:17:27: error: unknown type name ‘phys_addr_t’
+ extern int c6x_add_memory(phys_addr_t start, unsigned long size);
 
-When getting a string and the size given by the application is too
-short return the max length the string can have (elem_size) instead
-of the string length + 1. That makes more sense.
+It seems that, on such arch, the includes from asm/ should be
+after the ones from linux/.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+The proper fix would be to patch the arch files, but, as
+this fix is trivial, apply it. Also, we generally put the
+asm includes after the linux ones, anyway.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 2 +-
+ drivers/media/radio/tea575x.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b4a9ada..160e4c7 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1298,7 +1298,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 	case V4L2_CTRL_TYPE_STRING:
- 		len = strlen(ptr.p_char);
- 		if (c->size < len + 1) {
--			c->size = len + 1;
-+			c->size = ctrl->elem_size;
- 			return -ENOSPC;
- 		}
- 		return copy_to_user(c->string, ptr.p_char, len + 1) ?
+diff --git a/drivers/media/radio/tea575x.c b/drivers/media/radio/tea575x.c
+index cef06981b7c9..7c14060a40b8 100644
+--- a/drivers/media/radio/tea575x.c
++++ b/drivers/media/radio/tea575x.c
+@@ -20,12 +20,12 @@
+  *
+  */
+ 
+-#include <asm/io.h>
+ #include <linux/delay.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
++#include <asm/io.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
 -- 
-1.8.5.2
+1.8.3.1
 
