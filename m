@@ -1,67 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36722 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750855AbaA1JJQ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53137 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484AbaAMVgT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jan 2014 04:09:16 -0500
-Date: Tue, 28 Jan 2014 11:08:41 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Daniel Jeong <gshark.jeong@gmail.com>
+	Mon, 13 Jan 2014 16:36:19 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFCv2,1/2] v4l2-controls.h: add addtional Flash fault bits
-Message-ID: <20140128090841.GG13820@valkosipuli.retiisi.org.uk>
-References: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 3/7] [media] dib8000: Properly represent long long integers
+Date: Mon, 13 Jan 2014 16:32:34 -0200
+Message-Id: <1389637958-3884-4-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389637958-3884-1-git-send-email-m.chehab@samsung.com>
+References: <1389637958-3884-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+When compiling with avr32, it gets those errors:
 
-On Tue, Jan 28, 2014 at 03:55:57PM +0900, Daniel Jeong wrote:
-> Add additional FLASH Fault bits to dectect faults from chip.
-> Some Flash drivers support UVLO, IVFM, NTC Trip faults.
-> UVLO : 	Under Voltage Lock Out Threshold crossed
-> IVFM : 	IVFM block reported and/or adjusted LED current Input Voltage Flash Monitor trip threshold
-> NTC  : 	NTC Threshold crossed. Many Flash drivers have a pin and the fault bit to 
-> serves as a threshold detector for negative temperature coefficient (NTC) thermistors.
-> 
-> Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
-> ---
->  include/uapi/linux/v4l2-controls.h |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 1666aab..01d730c 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -803,6 +803,9 @@ enum v4l2_flash_strobe_source {
->  #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
->  #define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
->  #define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
-> +#define V4L2_FLASH_FAULT_UVLO			(1 << 6)
-> +#define V4L2_FLASH_FAULT_IVFM			(1 << 7)
-> +#define V4L2_FLASH_FAULT_NTC_TRIP		(1 << 8)
+	drivers/media/dvb-frontends/dib8000.c: In function 'dib8000_get_stats':
+	drivers/media/dvb-frontends/dib8000.c:4121: warning: integer constant is too large for 'long' type
 
-I object adding a new fault which is essentially the same as an existing
-fault, V4L2_FLASH_FAULT_OVER_TEMPERATURE.
+Fix integer representation to avoid overflow.
 
-As the practice has been to use human-readable names for the faults, I'd
-also suggest using V4L2_FLASH_FAULT_UNDER_VOLTAGE instead of
-V4L2_FLASH_FAULT_UVLO.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/dib8000.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-What's the IVFM block and what does it do?
-
->  #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
->  #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
-
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index 481ee49e6a37..dd4a99cff3e7 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -4118,7 +4118,7 @@ static int dib8000_get_stats(struct dvb_frontend *fe, fe_status_t stat)
+ 		/* Get UCB measures */
+ 		dib8000_read_unc_blocks(fe, &val);
+ 		if (val < state->init_ucb)
+-			state->init_ucb += 0x100000000L;
++			state->init_ucb += 0x100000000LL;
+ 
+ 		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
+ 		c->block_error.stat[0].uvalue = val + state->init_ucb;
+@@ -4128,7 +4128,7 @@ static int dib8000_get_stats(struct dvb_frontend *fe, fe_status_t stat)
+ 			time_us = dib8000_get_time_us(fe, -1);
+ 
+ 		if (time_us) {
+-			blocks = 1250000UL * 1000000UL;
++			blocks = 1250000ULL * 1000000ULL;
+ 			do_div(blocks, time_us * 8 * 204);
+ 			c->block_count.stat[0].scale = FE_SCALE_COUNTER;
+ 			c->block_count.stat[0].uvalue += blocks;
+@@ -4191,7 +4191,7 @@ static int dib8000_get_stats(struct dvb_frontend *fe, fe_status_t stat)
+ 			if (!time_us)
+ 				time_us = dib8000_get_time_us(fe, i);
+ 			if (time_us) {
+-				blocks = 1250000UL * 1000000UL;
++				blocks = 1250000ULL * 1000000ULL;
+ 				do_div(blocks, time_us * 8 * 204);
+ 				c->block_count.stat[0].scale = FE_SCALE_COUNTER;
+ 				c->block_count.stat[0].uvalue += blocks;
 -- 
-Kind regards,
+1.8.3.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
