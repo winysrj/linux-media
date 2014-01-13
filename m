@@ -1,179 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:53858 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753425AbaAGUXW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 15:23:22 -0500
-Received: by mail-oa0-f48.google.com with SMTP id k1so765529oag.7
-        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 12:23:22 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAF0Ff2kVYCY=9WJgGw9FMUnjC5a2RG364OxmByCyF+KoQBpxLA@mail.gmail.com>
-References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
-	<52CC275B.5030907@gmx.de>
-	<CAGj5WxDuZadCm+Hwp=BDPwPf1fb4nuFXLotK8ePR7Q14-zvkMg@mail.gmail.com>
-	<CAF0Ff2kVYCY=9WJgGw9FMUnjC5a2RG364OxmByCyF+KoQBpxLA@mail.gmail.com>
-Date: Tue, 7 Jan 2014 20:23:21 +0000
-Message-ID: <CAGj5WxBuBvQHg55eJLuje8aiin1ht7nnDjEO=NxUyC0x8U=8wA@mail.gmail.com>
-Subject: Re: Upstreaming SAA716x driver to the media_tree
-From: Luis Alves <ljalvs@gmail.com>
-To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Cc: Andreas Regel <andreas.regel@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>,
-	Chris Lee <updatelee@gmail.com>,
-	Manu Abraham <abraham.manu@gmail.com>, crazycat69@narod.ru,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:8417 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751355AbaAMLCR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jan 2014 06:02:17 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZC007WT6NP0U00@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Jan 2014 06:02:14 -0500 (EST)
+Date: Mon, 13 Jan 2014 09:02:08 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Rich Freeman <rich0@gentoo.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Issue with 3.12.5/7 and CX23880/1/2/3 DVB Card
+Message-id: <20140113090208.0437013b@samsung.com>
+In-reply-to: <CAGfcS_=jvT5ExkkXiXjzmwR4DgXogM59rwrLhRMLeHe=LRAYjA@mail.gmail.com>
+References: <CAGfcS_=jvT5ExkkXiXjzmwR4DgXogM59rwrLhRMLeHe=LRAYjA@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Konstantin,
-(here we go again...)
+Em Sun, 12 Jan 2014 16:26:41 -0500
+Rich Freeman <rich0@gentoo.org> escreveu:
 
-What the hell are you talking about? I didn't submit any I2C patch.
-This email is just about Manu sending his SAA716x driver to the media_tree.
+> I noticed that you authored commit
+> 19496d61f3962fd6470b106b779eddcdbe823c9b, which replaced a dynamic
+> buffer with a static one when sending data to the card.
+> 
+> This broke my ATI HD tuner, listed in lspci as:
+> 04:07.0 Multimedia video controller: Conexant Systems, Inc.
+> CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
+> 04:07.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3
+> PCI Video and Audio Decoder [Audio Port] (rev 05)
+> 04:07.2 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3
+> PCI Video and Audio Decoder [MPEG Port] (rev 05)
+> 
+> (I'd have to rip the card out to actually get the model number - it
+> has been ages since I bought it.)
+> 
+> The card fails to load firmware in 3.12.7 and will not record video.
+> It loads with a warning in 3.12.5, and recording works.
+> 
+> The warnings in 3.12.5 are:
+> Dec 20 10:52:04 rich kernel: [   31.747903] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747908] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747910] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747912] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747914] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747916] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747918] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747919] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747921] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747923] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747925] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747926] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747928] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747930] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747931] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747933] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747935] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747937] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747938] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747940] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747942] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747943] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747945] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747947] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747949] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747950] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747952] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747954] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747955] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747957] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747959] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747961] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747962] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747964] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747966] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747967] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747969] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.747971] nxt200x:
+> nxt200x_writebytes: i2c wr reg=002c: len=149 is too big!
+> Dec 20 10:52:04 rich kernel: [   31.750080] nxt200x: nxt2004_init:
+> Firmware upload complete
+> 
+> The error in 3.12.7 is:
+> Dec 19 17:35:21 rich kernel: [  128.768232] nxt200x: Error writing
+> multireg register 0x08
+> Dec 19 17:35:21 rich kernel: [  128.771271] nxt200x: Error writing
+> multireg register 0x08
+> Dec 19 17:35:21 rich kernel: [  128.783125] nxt200x: Error writing
+> multireg register 0x80
+> Dec 19 17:35:21 rich kernel: [  128.788617] nxt200x: Error writing
+> multireg register 0x08
+> Dec 19 17:35:21 rich kernel: [  128.794113] nxt200x: Error writing
+> multireg register 0x08
+> Dec 19 17:35:21 rich kernel: [  128.799608] nxt200x: Error writing
+> multireg register 0x80
+> Dec 19 17:35:21 rich kernel: [  128.802640] nxt200x: Error writing
+> multireg register 0x81
+> Dec 19 17:35:21 rich kernel: [  128.806025] nxt200x: Error writing
+> multireg register 0x82
+> Dec 19 17:35:21 rich kernel: [  128.811516] nxt200x: Error writing
+> multireg register 0x88
+> Dec 19 17:35:21 rich kernel: [  128.817014] nxt200x: Error writing
+> multireg register 0x80
+> Dec 19 17:35:21 rich kernel: [  129.048443] nxt200x: Timeout waiting
+> for nxt2004 to init.
+> Dec 19 17:35:22 rich kernel: [  129.770854] nxt200x: Timeout waiting
+> for nxt200x to stop. This is ok after firmware upload.
+> (this was a loop that overran my ring buffer, so I can't vouch for
+> which of those errors came first)
+> 
+> This is using the kernel.org git kernel built from the tagged releases.
+> 
+> I reverted your commit and the resulting 3.12.7 kernel worked fine,
+> initializing the card with no errors/warnings, and the card was able
+> to record video.
+> 
+> Hopefully this is helpful in resolving the problem.  If you need
+> additional info or would like me to test any patches let me know.  If
+> this is best directed elsewhere, let me know.
+> 
+> Rich Freeman
 
-And where do you see any "saa716x_input.[c|h]" in my repo?
+Can you please try the following patch?
 
-Anyway, since you asked I took some pics:
-https://plus.google.com/photos/105602732859464871628/albums/5966247612074668305?authkey=CN3jl9mWhrDhQg
-(SDA_HOLD setting in the comment)
+Thanks!
+Mauro
 
-For SDA_HOLD = 0x19 the next clock rising edge is really close to the
-data line release.
-Even 0x14 is too close, so I will use a smaller value so maybe 0x10 is
-fine for the 400kHZ clk speed.
+-
 
-And I do have a TBS card that doesn't work with Manu default setting (0x19).
+nxt200x: increase write buffer size
+
+The buffer size on nxt200x is not enough:
+
+	...
+	> Dec 20 10:52:04 rich kernel: [   31.747949] nxt200x: nxt200x_writebytes: i2c wr reg=002c: len=255 is too big!
+	...
+
+Increase it to 256 bytes.
+
+Reported-by: Rich Freeman <rich0@gentoo.org>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+diff --git a/drivers/media/dvb-frontends/nxt200x.c b/drivers/media/dvb-frontends/nxt200x.c
+index fbca9856313a..4bf057544607 100644
+--- a/drivers/media/dvb-frontends/nxt200x.c
++++ b/drivers/media/dvb-frontends/nxt200x.c
+@@ -40,7 +40,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ /* Max transfer size done by I2C transfer functions */
+-#define MAX_XFER_SIZE  64
++#define MAX_XFER_SIZE  256
+ 
+ #define NXT2002_DEFAULT_FIRMWARE "dvb-fe-nxt2002.fw"
+ #define NXT2004_DEFAULT_FIRMWARE "dvb-fe-nxt2004.fw"
 
 
-Your email besides being offending, is empty.
-If someone's actions hurt the community are your own.
+-- 
 
-Not going to enter in personal discussions in here nor going to waist
-time answering to anymore of your offending emails.
-If you want to exchange some thoughts, mail me personally.
-
-Regards,
-Luis
-
-
-
-
-
-
-
-On Tue, Jan 7, 2014 at 5:31 PM, Konstantin Dimitrov
-<kosio.dimitrov@gmail.com> wrote:
-> Luis,
->
-> can you explain to us all here how exactly you came up to those
-> particular I2C fixes:
->
-> https://github.com/ljalves/linux_media/commit/be7cd1ff82cc20578b805ad508d089f818ae726d
->
-> because essentially they are the same as what i did years ago -
-> included as source code in drivers i made for some TBS cards (source
-> code is available all over online) or we just have the exact same case
-> with you as before:
->
-> http://www.spinics.net/lists/linux-media/msg65888.html
->
-> http://www.spinics.net/lists/linux-media/msg65889.html
->
-> and you're continue to taking credit for patches i made or basically
-> stealing them.
->
-> if they were some trivial patches i won't mind, but even they are
-> small, they are nothing like trivial.
->
-> so, i believe you will have really hard time to explain "your" I2C
-> fixes, because for example the SDA hold time value of 0x14 is needed
-> for only one particular SAA716x-based card (other such cards can work
-> with wide range of SDA hold time settings) and i'm sure you don't know
-> that card and cannot cite its model or any technical details why
-> that's needed, because you don't have it, as well it takes quite an
-> effort and good knowledge of I2C signaling with oscilloscope to figure
-> out that value, as well that exactly that value needs changing.
->
-> why you didn't use for example 0x16 or 0x13 for SDA hold time in
-> "your" I2C patch?!
->
-> so, one time, like the previous time, excuse that you just didn't know
-> who the author of that work is may fly, but second time, especially
-> considering that the SAA716x code base from which i'm sure you took
-> (not to use stole) those settings contains my name as copyright,
-> because i actually added to that code base new code i developed from
-> scratch like for example saa716x_input.[c|h], is another thing you
-> cannot explain.
->
-> so, i was waiting Manu to upstream his SAA716x driver code some day
-> and then submit the improvements i made to it. yet again you're trying
-> to take that from me and again, conveniently you included many people
-> on CC, but not me.
->
-> in my opinion what you're doing is not right, because that patch is
-> not clean-room reverse-engineering, you just took those changes from
-> another open-source base and if nothing else it's at least common
-> courtesy in open-source community when you didn't make them to not
-> submit them as "your" patches.
->
-> i also think with your actions you're actually hurting the community,
-> because people like me, that do actually have the technical
-> understanding and can help and contribute further improvements are
-> driven away from the community, because
-> effectively the community accepting behavior like yours is encouraging
-> code stealing!!
->
-> --konstantin
->
-> On Tue, Jan 7, 2014 at 6:33 PM, Luis Alves <ljalvs@gmail.com> wrote:
->> HI Andreas,
->>
->> My initial commit is based on:
->> http://powarman.dyndns.org/hgwebdir.cgi/v4l-dvb-saa716x/
->> (I think it's your repo with some commits from Soeren Moch)
->>
->> The difference to my working area is that I have the driver placed in
->> "drivers/media/pci/saa716x" (instead of
->> "drivers/media/common/saa716x") and everything is rebased on the
->> latest media_tree.
->> On top of that I just have 2 commits: one to be able to build FF cards
->> and another to fix some i2c issues.
->>
->> You can check my repo here:
->> https://github.com/ljalves/linux_media/commits/saa716x
->>
->> Regards,
->> Luis
->>
->>
->> On Tue, Jan 7, 2014 at 4:12 PM, Andreas Regel <andreas.regel@gmx.de> wrote:
->>> Hi Luis,
->>>
->>> Am 07.01.2014 12:58, schrieb Luis Alves:
->>>> Hi,
->>>>
->>>> I'm finishing a new frontend driver for one of my dvb cards, but the
->>>> pcie bridge uses the (cursed) saa716x.
->>>> As far as I know the progress to upstream Manu's driver to the
->>>> media_tree has stalled.
->>>>
->>>> In CC I've placed some of the people that I found working on it
->>>> lately, supporting a few dvb cards.
->>>>
->>>> It would be good if we could gather everything in one place and send a
->>>> few patchs to get this upstreamed for once...
->>>>
->>>> Manu, do you see any inconvenience in sending your driver to the
->>>> linux_media tree?
->>>> I'm available to place some effort on this task.
->>>
->>> which repository of the saa761x is your work based on?
->>>
->>> Regards,
->>> Andreas
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+Mauro
