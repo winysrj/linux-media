@@ -1,58 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55353 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751414AbaANBoy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 20:44:54 -0500
-Message-ID: <52D49691.4000405@iki.fi>
-Date: Tue, 14 Jan 2014 03:44:49 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v6 07/12] v4l: add device capability flag for SDR
- receiver
-References: <1388289844-2766-1-git-send-email-crope@iki.fi> <1388289844-2766-8-git-send-email-crope@iki.fi> <52C94C51.2010005@xs4all.nl>
-In-Reply-To: <52C94C51.2010005@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2305 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362AbaAMD0U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jan 2014 22:26:20 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0D3QGB8091078
+	for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 04:26:18 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 6A68F2A009E
+	for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 04:26:03 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140113032603.6A68F2A009E@tschai.lan>
+Date: Mon, 13 Jan 2014 04:26:03 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05.01.2014 14:13, Hans Verkuil wrote:
-> On 12/29/2013 05:03 AM, Antti Palosaari wrote:
->> VIDIOC_QUERYCAP IOCTL is used to query device capabilities. Add new
->> capability flag to inform given device supports SDR capture.
->>
->> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
->> ---
->>   include/uapi/linux/videodev2.h | 2 ++
->>   1 file changed, 2 insertions(+)
->>
->> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->> index c50e449..f596b7b 100644
->> --- a/include/uapi/linux/videodev2.h
->> +++ b/include/uapi/linux/videodev2.h
->> @@ -267,6 +267,8 @@ struct v4l2_capability {
->>   #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
->>   #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
->>
->> +#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
->> +
->>   #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
->>   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
->>   #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
->>
->
-> This new capability needs to be documented in DocBook as well (vidioc-querycap.xml).
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-It is already.
+Results of the daily build of media_tree:
 
-regards
-Antti
+date:		Mon Jan 13 04:00:17 CET 2014
+git branch:	test
+git hash:	8b1fa5798dec77d9d2cd81751772a580474aa17f
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
--- 
-http://palosaari.fi/
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
