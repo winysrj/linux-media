@@ -1,43 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:30314 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901AbaA2Juc (ORCPT
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:32921 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752111AbaAMSwN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jan 2014 04:50:32 -0500
-From: Martin Bugge <marbugge@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Bugge <marbugge@cisco.com>,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH] [media] adv7842: Composite free-run platfrom-data fix
-Date: Wed, 29 Jan 2014 10:50:20 +0100
-Message-Id: <1390989020-14444-1-git-send-email-marbugge@cisco.com>
+	Mon, 13 Jan 2014 13:52:13 -0500
+Received: by mail-ea0-f179.google.com with SMTP id r15so3504534ead.24
+        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 10:52:12 -0800 (PST)
+Message-ID: <52D43623.3010808@googlemail.com>
+Date: Mon, 13 Jan 2014 19:53:23 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 7/7] em28xx: Fix usb diconnect logic
+References: <1389567649-26838-1-git-send-email-m.chehab@samsung.com> <1389567649-26838-8-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389567649-26838-8-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Incorrectly setting of free-run for Composite.
-Copy/paste regression fix.
+On 13.01.2014 00:00, Mauro Carvalho Chehab wrote:
+> Now that everything is extension, the usb disconnect logic should
+> be the same.
+>
+> While here, fix the device name.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>   drivers/media/usb/em28xx/em28xx-cards.c | 7 +------
+>   1 file changed, 1 insertion(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index df92f417634a..8fc0a437054e 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -3384,12 +3384,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+>   
+>   	dev->disconnected = 1;
+>   
+> -	if (dev->is_audio_only) {
+> -		em28xx_close_extension(dev);
+> -		return;
+> -	}
+> -
+> -	em28xx_info("disconnecting %s\n", dev->vdev->name);
+> +	em28xx_info("Disconnecting %s\n", dev->name);
+>   
+>   	flush_request_modules(dev);
+Great.
+I noticed this buggy section but finally forgot to remove it.
 
-Should go to kernel 3.14.
-
-Cc: Hans Verkuil <hansverk@cisco.com>
-Signed-off-by: Martin Bugge <marbugge@cisco.com>
----
- drivers/media/i2c/adv7842.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 1effc21..9bbd665 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2554,7 +2554,7 @@ static int adv7842_core_init(struct v4l2_subdev *sd)
- 	sdp_write_and_or(sd, 0xdd, 0xf0, pdata->sdp_free_run_force |
- 					 (pdata->sdp_free_run_cbar_en << 1) |
- 					 (pdata->sdp_free_run_man_col_en << 2) |
--					 (pdata->sdp_free_run_force << 3));
-+					 (pdata->sdp_free_run_auto << 3));
- 
- 	/* TODO from platform data */
- 	cp_write(sd, 0x69, 0x14);   /* Enable CP CSC */
--- 
-1.8.1.4
-
+Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
