@@ -1,104 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2115 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327AbaAaIFf (ORCPT
+Received: from mail-ea0-f171.google.com ([209.85.215.171]:43895 "EHLO
+	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888AbaAMWjs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 03:05:35 -0500
-Message-ID: <52EB5943.90100@xs4all.nl>
-Date: Fri, 31 Jan 2014 09:05:23 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 13 Jan 2014 17:39:48 -0500
+Message-ID: <52D46B30.6050503@gmail.com>
+Date: Mon, 13 Jan 2014 23:39:44 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
-References: <1391139409-11737-1-git-send-email-crope@iki.fi> <1391139409-11737-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1391139409-11737-2-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Emad Hosseini Moghadam <s.e.hossini.m@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Subject: Re: s3c-camif question
+References: <CACeCsj56M5ea_wWsePZkKn5=kdGEzORYUDiDnQ0K81=aMqbdTA@mail.gmail.com>
+In-Reply-To: <CACeCsj56M5ea_wWsePZkKn5=kdGEzORYUDiDnQ0K81=aMqbdTA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Emad,
 
+(adding linux-media at Cc)
+
+On 01/13/2014 10:43 PM, Emad Hosseini Moghadam wrote:
+> Dear Mr. Nawrocki,
+>
+> I am writing a driver for an image sensor, using i2c-s3c2410 and
+> s3c-camif platforms,in order to initialize the registers of the image
+> sensor. My cpu is s3c2440 . I have some questions regarding s3c-camif,
+> if it is possible for you of course:
+>
+> 1. I think it is impossible to initialize the registers of my image
+> sensor by s3c-camif. Then, why s3c-camif needs the information of the
+> sensor in "struct s3c_camif_sensor_info"?
+
+Basically the driver of an image sensor is supposed to take care of the
+I2C registers details. It implements some v4l2_subdevice callbacks, of 
+which
+some can be called by the host interface driver (s3c-camif). You can do
+some initialization for example in s_power() callback, or during a first
+call to s_stream(). For an example see ov9650 driver [1].
+
+s3c-camif registers an I2C client device for the sensor, so it needs an
+information to which physical I2C bus the sensor is connected (i2c bus
+adapter id) and what is an I2C slave address of the sensor.
+
+The other members of struct s3c_camif_plat_data [2] include sensor master
+clock frequency information - so s3c-camif driver sets clock frequency
+appropriate for the sensor; polarization of signals like pixel clock, 
+VSYNC,
+HSYNC - in order to match configuration of the parallel video interface at
+the sensor (transmitter) and the application processor SoC (receiver) side.
+
+> 2. Would you please tell me how can I initialize the "struct
+> s3c_camif_sensor_info" or give a sample?
+
+For your reference, a patch I used for mini2440 board and ov9650 sensor
+can be found at [2].
+
+I hope it helps, please ask if anything is not clear.
+
+--
 Regards,
+Sylwester
 
-	Hans
-
-On 01/31/2014 04:36 AM, Antti Palosaari wrote:
-> Document V4L2_SDR_FMT_CU16LE format.
-> It is complex unsigned 16-bit little endian IQ sample. Used by
-> software defined radio devices.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        | 46 ++++++++++++++++++++++
->  Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
->  2 files changed, 47 insertions(+)
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-> new file mode 100644
-> index 0000000..26288ff
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-> @@ -0,0 +1,46 @@
-> +<refentry id="V4L2-SDR-FMT-CU16LE">
-> +  <refmeta>
-> +    <refentrytitle>V4L2_SDR_FMT_CU16LE ('CU16')</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +    <refnamediv>
-> +      <refname>
-> +        <constant>V4L2_SDR_FMT_CU16LE</constant>
-> +      </refname>
-> +      <refpurpose>Complex unsigned 16-bit little endian IQ sample</refpurpose>
-> +    </refnamediv>
-> +    <refsect1>
-> +      <title>Description</title>
-> +      <para>
-> +This format contains sequence of complex number samples. Each complex number
-> +consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
-> +represented as a 16 bit unsigned little endian number. I value comes first
-> +and Q value after that.
-> +      </para>
-> +    <example>
-> +      <title><constant>V4L2_SDR_FMT_CU16LE</constant> 1 sample</title>
-> +      <formalpara>
-> +        <title>Byte Order.</title>
-> +        <para>Each cell is one byte.
-> +          <informaltable frame="none">
-> +            <tgroup cols="3" align="center">
-> +              <colspec align="left" colwidth="2*" />
-> +              <tbody valign="top">
-> +                <row>
-> +                  <entry>start&nbsp;+&nbsp;0:</entry>
-> +                  <entry>I'<subscript>0[7:0]</subscript></entry>
-> +                  <entry>I'<subscript>0[15:8]</subscript></entry>
-> +                </row>
-> +                <row>
-> +                  <entry>start&nbsp;+&nbsp;2:</entry>
-> +                  <entry>Q'<subscript>0[7:0]</subscript></entry>
-> +                  <entry>Q'<subscript>0[15:8]</subscript></entry>
-> +                </row>
-> +              </tbody>
-> +            </tgroup>
-> +          </informaltable>
-> +        </para>
-> +      </formalpara>
-> +    </example>
-> +  </refsect1>
-> +</refentry>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index 40adcb8..f535d9b 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -818,6 +818,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
->  interface only.</para>
->  
->      &sub-sdr-cu08;
-> +    &sub-sdr-cu16le;
->  
->    </section>
->  
-> 
+[1] 
+http://git.linuxtv.org/media_tree.git/blob/eab924d0e2bdfd53c902162b0b499b8464c1fb4a:/drivers/media/i2c/ov9650.c
+[2] 
+http://git.linuxtv.org/snawrocki/media.git/commitdiff/48a72b878abdc9795da753981beff4a99ff80656
