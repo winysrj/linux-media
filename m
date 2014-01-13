@@ -1,59 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:28792 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751389AbaAPOtu (ORCPT
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:42085 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbaAMJ2V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jan 2014 09:49:50 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZI00D501702050@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Jan 2014 23:49:48 +0900 (KST)
-Content-transfer-encoding: 8BIT
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] exynos4-is: fimc-lite: compile runtime PM callbacks in
- conditionally
-Date: Thu, 16 Jan 2014 15:49:28 +0100
-Message-id: <1389883768-7775-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 13 Jan 2014 04:28:21 -0500
+Received: by mail-pa0-f45.google.com with SMTP id ld10so2868144pab.18
+        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 01:28:21 -0800 (PST)
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] Update the README name for libv4l
+Date: Mon, 13 Jan 2014 14:58:06 +0530
+Message-Id: <1389605286-19642-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enclose the runtime PM helpers in #ifdef CONFIG_PM_RUNTIME/#endif
-to avoid following compile warning when CONFIG_PM_RUNTIME is disabled:
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-CC      drivers/media/platform/exynos4-is/fimc-lite.o
-drivers/media/platform/exynos4-is/fimc-lite.c:1591:12: warning: ‘fimc_lite_runtime_resume’ defined but not used [-Wunused-function]
-drivers/media/platform/exynos4-is/fimc-lite.c:1599:12: warning: ‘fimc_lite_runtime_suspend’ defined but not used [-Wunused-function]
+The README for libv4l was renamed from README.lib to
+README.libv4l but the reference to it was not fixed.
+This patch fixes the above.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/platform/exynos4-is/fimc-lite.c |    2 ++
- 1 file changed, 2 insertions(+)
+ README            |    2 +-
+ v4l-utils.spec.in |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index 5213ff0..779ec3c 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -1588,6 +1588,7 @@ err_clk_put:
- 	return ret;
- }
+diff --git a/README b/README
+index 0cccc00..c4f6c0c 100644
+--- a/README
++++ b/README
+@@ -9,7 +9,7 @@ http://git.linuxtv.org/v4l-utils.git
+ v4l libraries (libv4l)
+ ----------------------
  
-+#ifdef CONFIG_PM_RUNTIME
- static int fimc_lite_runtime_resume(struct device *dev)
- {
- 	struct fimc_lite *fimc = dev_get_drvdata(dev);
-@@ -1603,6 +1604,7 @@ static int fimc_lite_runtime_suspend(struct device *dev)
- 	clk_disable(fimc->clock);
- 	return 0;
- }
-+#endif
+-See README.lib for more information on libv4l, libv4l is released
++See README.libv4l for more information on libv4l, libv4l is released
+ under the GNU Lesser General Public License.
  
- #ifdef CONFIG_PM_SLEEP
- static int fimc_lite_resume(struct device *dev)
+ 
+diff --git a/v4l-utils.spec.in b/v4l-utils.spec.in
+index 3b6aade..dd8959b 100644
+--- a/v4l-utils.spec.in
++++ b/v4l-utils.spec.in
+@@ -150,7 +150,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+ 
+ %files -n libv4l
+ %defattr(-,root,root,-)
+-%doc COPYING.LIB COPYING ChangeLog README.lib TODO
++%doc COPYING.LIB COPYING ChangeLog README.libv4l TODO
+ %{_libdir}/libv4l*.so.*
+ %{_libdir}/libv4l
+ 
 -- 
 1.7.9.5
 
