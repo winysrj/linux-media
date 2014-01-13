@@ -1,372 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1103 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883AbaAFOVi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 01/27] v4l2-ctrls: increase internal min/max/step/def to 64 bit
-Date: Mon,  6 Jan 2014 15:21:00 +0100
-Message-Id: <1389018086-15903-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:64216 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751623AbaAMWBJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jan 2014 17:01:09 -0500
+Received: by mail-ee0-f53.google.com with SMTP id t10so455998eei.26
+        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 14:01:08 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 1/2] em28xx: fix usb alternate setting for analog and digital video endpoints > 0
+Date: Mon, 13 Jan 2014 23:02:06 +0100
+Message-Id: <1389650527-3962-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The current code assumes that the analog + digital video endpoints are always at
+interface number 0 when changing the alternate setting.
+This seems to work fine for most existing devices.
+However, at least the SpeedLink VAD Laplace webcam has the video endpoint on
+interface number 3 (which fortunately doesn't cause any trouble because ist uses
+bulk transfers only).
+We already consider the actual interface number for audio endpoints, so
+rename the the audio_ifnum variable and use it for all device types.
+Also get get rid of a pointless (ifnum < 0) in em28xx-audio.
 
-While VIDIOC_QUERYCTRL is limited to 32 bit min/max/step/def values
-for controls, the upcoming VIDIOC_QUERY_EXT_CTRL isn't. So increase
-the internal representation to 64 bits in preparation.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/v4l2-core/v4l2-common.c       |  6 ++-
- drivers/media/v4l2-core/v4l2-ctrls.c        | 76 +++++++++++++++++------------
- drivers/staging/media/msi3101/sdr-msi3101.c |  2 +-
- include/media/v4l2-ctrls.h                  | 38 +++++++--------
- 4 files changed, 69 insertions(+), 53 deletions(-)
+ drivers/media/usb/em28xx/em28xx-audio.c |   18 +++++++++---------
+ drivers/media/usb/em28xx/em28xx-cards.c |    2 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c   |    2 +-
+ drivers/media/usb/em28xx/em28xx-video.c |    2 +-
+ drivers/media/usb/em28xx/em28xx.h       |    3 +--
+ 5 Dateien geändert, 13 Zeilen hinzugefügt(+), 14 Zeilen entfernt(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 433d6d7..ccaa38f 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -111,9 +111,13 @@ int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
- EXPORT_SYMBOL(v4l2_ctrl_check);
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index f3e3200..f80c3533 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -266,7 +266,7 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+ 	dprintk("opening device and trying to acquire exclusive lock\n");
  
- /* Fill in a struct v4l2_queryctrl */
--int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 step, s32 def)
-+int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 _min, s32 _max, s32 _step, s32 _def)
- {
- 	const char *name;
-+	s64 min = _min;
-+	s64 max = _max;
-+	u64 step = _step;
-+	s64 def = _def;
+ 	runtime->hw = snd_em28xx_hw_capture;
+-	if ((dev->alt == 0 || dev->audio_ifnum) && dev->adev.users == 0) {
++	if ((dev->alt == 0 || dev->ifnum) && dev->adev.users == 0) {
+ 		int nonblock = !!(substream->f_flags & O_NONBLOCK);
  
- 	v4l2_ctrl_fill(qctrl->id, &name, &qctrl->type,
- 		       &min, &max, &step, &def, &qctrl->flags);
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index fb46790..d36d7f5 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -859,7 +859,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- EXPORT_SYMBOL(v4l2_ctrl_get_name);
+ 		if (nonblock) {
+@@ -274,14 +274,14 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+ 				return -EAGAIN;
+ 		} else
+ 			mutex_lock(&dev->lock);
+-		if (dev->audio_ifnum)
++		if (dev->ifnum)
+ 			dev->alt = 1;
+ 		else
+ 			dev->alt = 7;
  
- void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
--		    s32 *min, s32 *max, s32 *step, s32 *def, u32 *flags)
-+		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags)
- {
- 	*name = v4l2_ctrl_get_name(id);
- 	*flags = 0;
-@@ -1317,7 +1317,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ 		dprintk("changing alternate number on interface %d to %d\n",
+-			dev->audio_ifnum, dev->alt);
+-		usb_set_interface(dev->udev, dev->audio_ifnum, dev->alt);
++			dev->ifnum, dev->alt);
++		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
  
- /* Control range checking */
- static int check_range(enum v4l2_ctrl_type type,
--		s32 min, s32 max, u32 step, s32 def)
-+		s64 min, s64 max, u64 step, s64 def)
- {
- 	switch (type) {
- 	case V4L2_CTRL_TYPE_BOOLEAN:
-@@ -1325,7 +1325,8 @@ static int check_range(enum v4l2_ctrl_type type,
- 			return -ERANGE;
- 		/* fall through */
- 	case V4L2_CTRL_TYPE_INTEGER:
--		if (step <= 0 || min > max || def < min || def > max)
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		if (step == 0 || min > max || def < min || def > max)
- 			return -ERANGE;
- 		return 0;
- 	case V4L2_CTRL_TYPE_BITMASK:
-@@ -1350,23 +1351,30 @@ static int check_range(enum v4l2_ctrl_type type,
+ 		/* Sets volume, mute, etc */
+ 		dev->mute = 0;
+@@ -728,16 +728,16 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
+ 	int		    urb_size, bytes_per_transfer;
+ 	u8 alt;
+ 
+-	if (dev->audio_ifnum)
++	if (dev->ifnum)
+ 		alt = 1;
+ 	else
+ 		alt = 7;
+ 
+-	intf = usb_ifnum_to_if(dev->udev, dev->audio_ifnum);
++	intf = usb_ifnum_to_if(dev->udev, dev->ifnum);
+ 
+ 	if (intf->num_altsetting <= alt) {
+ 		em28xx_errdev("alt %d doesn't exist on interface %d\n",
+-			      dev->audio_ifnum, alt);
++			      dev->ifnum, alt);
+ 		return -ENODEV;
  	}
- }
  
-+/* Round towards the closest legal value */
-+#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
-+({								\
-+	offset_type offset;					\
-+	val += (ctrl)->step / 2;				\
-+	val = clamp_t(typeof(val), val,				\
-+		      (ctrl)->minimum, (ctrl)->maximum);	\
-+	offset = (val) - (ctrl)->minimum;			\
-+	offset = (ctrl)->step * (offset / (ctrl)->step);	\
-+	val = (ctrl)->minimum + offset;				\
-+	0;							\
-+})
-+
- /* Validate a new control */
- static int validate_new(const struct v4l2_ctrl *ctrl,
- 			struct v4l2_ext_control *c)
- {
- 	size_t len;
--	u32 offset;
--	s32 val;
+@@ -761,7 +761,7 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
  
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		/* Round towards the closest legal value */
--		val = c->value + ctrl->step / 2;
--		val = clamp(val, ctrl->minimum, ctrl->maximum);
--		offset = val - ctrl->minimum;
--		offset = ctrl->step * (offset / ctrl->step);
--		c->value = ctrl->minimum + offset;
--		return 0;
-+		return ROUND_TO_RANGE(*(s32 *)&c->value, u32, ctrl);
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		return ROUND_TO_RANGE(*(s64 *)&c->value64, u64, ctrl);
+ 	em28xx_info("Endpoint 0x%02x %s on intf %d alt %d interval = %d, size %d\n",
+ 		     EM28XX_EP_AUDIO, usb_speed_string(dev->udev->speed),
+-		     dev->audio_ifnum, alt,
++		     dev->ifnum, alt,
+ 		     interval,
+ 		     ep_size);
  
- 	case V4L2_CTRL_TYPE_BOOLEAN:
- 		c->value = !!c->value;
-@@ -1392,9 +1400,6 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
- 		c->value = 0;
- 		return 0;
+@@ -869,7 +869,7 @@ static int em28xx_audio_init(struct em28xx *dev)
+ 	static int          devnr;
+ 	int		    err;
  
--	case V4L2_CTRL_TYPE_INTEGER64:
--		return 0;
+-	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
++	if (!dev->has_alsa_audio) {
+ 		/* This device does not support the extension (in this case
+ 		   the device is expecting the snd-usb-audio module or
+ 		   doesn't have analog audio support at all) */
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 6efb902..c7e3667 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3273,7 +3273,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 	dev->has_alsa_audio = has_audio;
+ 	dev->audio_mode.has_audio = has_audio;
+ 	dev->has_video = has_video;
+-	dev->audio_ifnum = ifnum;
++	dev->ifnum = ifnum;
+ 
+ 	/* Checks if audio is provided by some interface */
+ 	for (i = 0; i < udev->config->desc.bNumInterfaces; i++) {
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 7dba175..4c0338b 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -203,7 +203,7 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 		dvb_alt = dev->dvb_alt_isoc;
+ 	}
+ 
+-	usb_set_interface(dev->udev, 0, dvb_alt);
++	usb_set_interface(dev->udev, dev->ifnum, dvb_alt);
+ 	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+ 	if (rc < 0)
+ 		return rc;
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index a1dcceb..9c1916a 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -382,7 +382,7 @@ set_alt:
+ 	}
+ 	em28xx_videodbg("setting alternate %d with wMaxPacketSize=%u\n",
+ 		       dev->alt, dev->max_pkt_size);
+-	errCode = usb_set_interface(dev->udev, 0, dev->alt);
++	errCode = usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+ 	if (errCode < 0) {
+ 		em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
+ 			      dev->alt, errCode);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 5d5d1b6..f5e7da6 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -547,8 +547,6 @@ struct em28xx {
+ 	unsigned int has_alsa_audio:1;
+ 	unsigned int is_audio_only:1;
+ 
+-	int audio_ifnum;
 -
- 	case V4L2_CTRL_TYPE_STRING:
- 		len = strlen(c->string);
- 		if (len < ctrl->minimum)
-@@ -1618,7 +1623,7 @@ unlock:
- static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, const char *name, enum v4l2_ctrl_type type,
--			s32 min, s32 max, u32 step, s32 def,
-+			s64 min, s64 max, u64 step, s64 def,
- 			u32 flags, const char * const *qmenu,
- 			const s64 *qmenu_int, void *priv)
- {
-@@ -1703,10 +1708,10 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	const s64 *qmenu_int = cfg->qmenu_int;
- 	enum v4l2_ctrl_type type = cfg->type;
- 	u32 flags = cfg->flags;
--	s32 min = cfg->min;
--	s32 max = cfg->max;
--	u32 step = cfg->step;
--	s32 def = cfg->def;
-+	s64 min = cfg->min;
-+	s64 max = cfg->max;
-+	u64 step = cfg->step;
-+	s64 def = cfg->def;
+ 	struct v4l2_device v4l2_dev;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	struct v4l2_clk *clk;
+@@ -662,6 +660,7 @@ struct em28xx {
  
- 	if (name == NULL)
- 		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
-@@ -1739,7 +1744,7 @@ EXPORT_SYMBOL(v4l2_ctrl_new_custom);
- /* Helper function for standard non-menu controls */
- struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
--			u32 id, s32 min, s32 max, u32 step, s32 def)
-+			u32 id, s64 min, s64 max, u64 step, s64 def)
- {
- 	const char *name;
- 	enum v4l2_ctrl_type type;
-@@ -1759,15 +1764,17 @@ EXPORT_SYMBOL(v4l2_ctrl_new_std);
- /* Helper function for standard menu controls */
- struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
--			u32 id, s32 max, s32 mask, s32 def)
-+			u32 id, u8 _max, u64 mask, u8 _def)
- {
- 	const char * const *qmenu = NULL;
- 	const s64 *qmenu_int = NULL;
- 	unsigned int qmenu_int_len = 0;
- 	const char *name;
- 	enum v4l2_ctrl_type type;
--	s32 min;
--	s32 step;
-+	s64 min;
-+	s64 max = _max;
-+	s64 def = _def;
-+	u64 step;
- 	u32 flags;
- 
- 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-@@ -1788,14 +1795,16 @@ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
- 
- /* Helper function for standard menu controls with driver defined menu */
- struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
--			const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
--			s32 mask, s32 def, const char * const *qmenu)
-+			const struct v4l2_ctrl_ops *ops, u32 id, u8 _max,
-+			u64 mask, u8 _def, const char * const *qmenu)
- {
- 	enum v4l2_ctrl_type type;
- 	const char *name;
- 	u32 flags;
--	s32 step;
--	s32 min;
-+	u64 step;
-+	s64 min;
-+	s64 max = _max;
-+	s64 def = _def;
- 
- 	/* v4l2_ctrl_new_std_menu_items() should only be called for
- 	 * standard controls without a standard menu.
-@@ -1819,12 +1828,14 @@ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu_items);
- /* Helper function for standard integer menu controls */
- struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
--			u32 id, s32 max, s32 def, const s64 *qmenu_int)
-+			u32 id, u8 _max, u8 _def, const s64 *qmenu_int)
- {
- 	const char *name;
- 	enum v4l2_ctrl_type type;
--	s32 min;
--	s32 step;
-+	s64 min;
-+	u64 step;
-+	s64 max = _max;
-+	s64 def = _def;
- 	u32 flags;
- 
- 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-@@ -2851,13 +2862,14 @@ void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void
- EXPORT_SYMBOL(v4l2_ctrl_notify);
- 
- int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
--			s32 min, s32 max, u32 step, s32 def)
-+			s64 min, s64 max, u64 step, s64 def)
- {
- 	int ret = check_range(ctrl->type, min, max, step, def);
- 	struct v4l2_ext_control c;
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
-+	case V4L2_CTRL_TYPE_INTEGER64:
- 	case V4L2_CTRL_TYPE_BOOLEAN:
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 4c3bf77..1152ca3 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -1713,7 +1713,7 @@ static int msi3101_s_ctrl(struct v4l2_ctrl *ctrl)
- 					ctrl_handler);
- 	int ret;
- 	dev_dbg(&s->udev->dev,
--			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
-+			"%s: id=%d name=%s val=%d min=%lld max=%lld step=%llu\n",
- 			__func__, ctrl->id, ctrl->name, ctrl->val,
- 			ctrl->minimum, ctrl->maximum, ctrl->step);
- 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 16f7f26..0b347e8 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -131,10 +131,10 @@ struct v4l2_ctrl {
- 	u32 id;
- 	const char *name;
- 	enum v4l2_ctrl_type type;
--	s32 minimum, maximum, default_value;
-+	s64 minimum, maximum, default_value;
- 	union {
--		u32 step;
--		u32 menu_skip_mask;
-+		u64 step;
-+		u64 menu_skip_mask;
- 	};
- 	union {
- 		const char * const *qmenu;
-@@ -231,12 +231,12 @@ struct v4l2_ctrl_config {
- 	u32 id;
- 	const char *name;
- 	enum v4l2_ctrl_type type;
--	s32 min;
--	s32 max;
--	u32 step;
--	s32 def;
-+	s64 min;
-+	s64 max;
-+	u64 step;
-+	s64 def;
- 	u32 flags;
--	u32 menu_skip_mask;
-+	u64 menu_skip_mask;
- 	const char * const *qmenu;
- 	const s64 *qmenu_int;
- 	unsigned int is_private:1;
-@@ -257,7 +257,7 @@ struct v4l2_ctrl_config {
-   * control framework this function will no longer be exported.
-   */
- void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
--		    s32 *min, s32 *max, s32 *step, s32 *def, u32 *flags);
-+		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags);
- 
- 
- /** v4l2_ctrl_handler_init_class() - Initialize the control handler.
-@@ -362,7 +362,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
-   */
- struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
--			u32 id, s32 min, s32 max, u32 step, s32 def);
-+			u32 id, s64 min, s64 max, u64 step, s64 def);
- 
- /** v4l2_ctrl_new_std_menu() - Allocate and initialize a new standard V4L2 menu control.
-   * @hdl:	The control handler.
-@@ -372,9 +372,9 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
-   * @mask: 	The control's skip mask for menu controls. This makes it
-   *		easy to skip menu items that are not valid. If bit X is set,
-   *		then menu item X is skipped. Of course, this only works for
--  *		menus with <= 32 menu items. There are no menus that come
-+  *		menus with <= 64 menu items. There are no menus that come
-   *		close to that number, so this is OK. Should we ever need more,
--  *		then this will have to be extended to a u64 or a bit array.
-+  *		then this will have to be extended to a bit array.
-   * @def: 	The control's default value.
-   *
-   * Same as v4l2_ctrl_new_std(), but @min is set to 0 and the @mask value
-@@ -384,7 +384,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
-   */
- struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
--			u32 id, s32 max, s32 mask, s32 def);
-+			u32 id, u8 max, u64 mask, u8 def);
- 
- /** v4l2_ctrl_new_std_menu_items() - Create a new standard V4L2 menu control
-   * with driver specific menu.
-@@ -395,9 +395,9 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
-   * @mask:	The control's skip mask for menu controls. This makes it
-   *		easy to skip menu items that are not valid. If bit X is set,
-   *		then menu item X is skipped. Of course, this only works for
--  *		menus with <= 32 menu items. There are no menus that come
-+  *		menus with <= 64 menu items. There are no menus that come
-   *		close to that number, so this is OK. Should we ever need more,
--  *		then this will have to be extended to a u64 or a bit array.
-+  *		then this will have to be extended to a bit array.
-   * @def:	The control's default value.
-   * @qmenu:	The new menu.
-   *
-@@ -406,8 +406,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
-   *
-   */
- struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
--			const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
--			s32 mask, s32 def, const char * const *qmenu);
-+			const struct v4l2_ctrl_ops *ops, u32 id, u8 max,
-+			u64 mask, u8 def, const char * const *qmenu);
- 
- /** v4l2_ctrl_new_int_menu() - Create a new standard V4L2 integer menu control.
-   * @hdl:	The control handler.
-@@ -424,7 +424,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
-   */
- struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
--			u32 id, s32 max, s32 def, const s64 *qmenu_int);
-+			u32 id, u8 max, u8 def, const s64 *qmenu_int);
- 
- /** v4l2_ctrl_add_ctrl() - Add a control from another handler to this handler.
-   * @hdl:	The control handler.
-@@ -560,7 +560,7 @@ void v4l2_ctrl_grab(struct v4l2_ctrl *ctrl, bool grabbed);
-   * take the lock itself.
-   */
- int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
--			s32 min, s32 max, u32 step, s32 def);
-+			s64 min, s64 max, u64 step, s64 def);
- 
- /** v4l2_ctrl_lock() - Helper function to lock the handler
-   * associated with the control.
+ 	/* usb transfer */
+ 	struct usb_device *udev;	/* the usb device */
++	u8 ifnum;		/* number of the assigned usb interface */
+ 	u8 analog_ep_isoc;	/* address of isoc endpoint for analog */
+ 	u8 analog_ep_bulk;	/* address of bulk endpoint for analog */
+ 	u8 dvb_ep_isoc;		/* address of isoc endpoint for DVB */
 -- 
-1.8.5.2
+1.7.10.4
 
