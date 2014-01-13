@@ -1,39 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:14680 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932087AbaAWRGG (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53140 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368AbaAMVgU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 12:06:06 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZV00EEK665DY50@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Jan 2014 17:06:05 +0000 (GMT)
-Message-id: <52E14BFA.10407@samsung.com>
-Date: Thu, 23 Jan 2014 18:06:02 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 13/21] v4l2-ctrls: use 'new' to access pointer
- controls
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
- <1390221974-28194-14-git-send-email-hverkuil@xs4all.nl>
-In-reply-to: <1390221974-28194-14-git-send-email-hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Mon, 13 Jan 2014 16:36:20 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 2/7] [media] radio-usb-si4713: make si4713_register_i2c_adapter static
+Date: Mon, 13 Jan 2014 16:32:33 -0200
+Message-Id: <1389637958-3884-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389637958-3884-1-git-send-email-m.chehab@samsung.com>
+References: <1389637958-3884-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20/01/14 13:46, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Require that 'new' string and pointer values are accessed through the 'new'
-> field instead of through the union. This reduces the union to just val and
-> val64.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This function isn't used nowhere outside the same .c file.
+Fixes this warning:
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+drivers/media/radio/si4713/radio-usb-si4713.c:418:5: warning: no previous prototype for 'si4713_register_i2c_adapter' [-Wmissing-prototypes]
+ int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
+     ^
+
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/radio/si4713/radio-usb-si4713.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
+index d97884494d04..f1e640d71188 100644
+--- a/drivers/media/radio/si4713/radio-usb-si4713.c
++++ b/drivers/media/radio/si4713/radio-usb-si4713.c
+@@ -415,7 +415,7 @@ static struct i2c_adapter si4713_i2c_adapter_template = {
+ 	.algo   = &si4713_algo,
+ };
+ 
+-int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
++static int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
+ {
+ 	radio->i2c_adapter = si4713_i2c_adapter_template;
+ 	/* set up sysfs linkage to our parent device */
+-- 
+1.8.3.1
 
