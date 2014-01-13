@@ -1,111 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2124 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751682AbaANDds (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52131 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751534AbaAMQl0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 22:33:48 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0E3XjEQ088826
-	for <linux-media@vger.kernel.org>; Tue, 14 Jan 2014 04:33:47 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id CB4042A00A0
-	for <linux-media@vger.kernel.org>; Tue, 14 Jan 2014 04:33:43 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140114033343.CB4042A00A0@tschai.lan>
-Date: Tue, 14 Jan 2014 04:33:43 +0100 (CET)
+	Mon, 13 Jan 2014 11:41:26 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 2/2] radio-usb-si4713: make si4713_register_i2c_adapter static
+Date: Mon, 13 Jan 2014 11:36:21 -0200
+Message-Id: <1389620181-22601-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389620181-22601-1-git-send-email-m.chehab@samsung.com>
+References: <1389620181-22601-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This function isn't used nowhere outside the same .c file.
+Fixes this warning:
 
-Results of the daily build of media_tree:
+drivers/media/radio/si4713/radio-usb-si4713.c:418:5: warning: no previous prototype for 'si4713_register_i2c_adapter' [-Wmissing-prototypes]
+ int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
+     ^
 
-date:		Tue Jan 14 04:00:25 CET 2014
-git branch:	test
-git hash:	eab924d0e2bdfd53c902162b0b499b8464c1fb4a
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/radio/si4713/radio-usb-si4713.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
+index d97884494d04..f1e640d71188 100644
+--- a/drivers/media/radio/si4713/radio-usb-si4713.c
++++ b/drivers/media/radio/si4713/radio-usb-si4713.c
+@@ -415,7 +415,7 @@ static struct i2c_adapter si4713_i2c_adapter_template = {
+ 	.algo   = &si4713_algo,
+ };
+ 
+-int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
++static int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
+ {
+ 	radio->i2c_adapter = si4713_i2c_adapter_template;
+ 	/* set up sysfs linkage to our parent device */
+-- 
+1.8.3.1
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
