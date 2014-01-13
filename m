@@ -1,88 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1298 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051AbaAQKEU (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52126 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753094AbaAMQkH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 05:04:20 -0500
-Message-ID: <52D90012.6080608@xs4all.nl>
-Date: Fri, 17 Jan 2014 11:04:02 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/6] v4l: disable lockdep on vb2_fop_mmap()
-References: <1388292700-18369-1-git-send-email-crope@iki.fi> <1388292700-18369-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1388292700-18369-7-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 13 Jan 2014 11:40:07 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH 1/2] [media] sh_vou: comment unused vars
+Date: Mon, 13 Jan 2014 11:36:20 -0200
+Message-Id: <1389620181-22601-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+Fix two warns below, by commenting the unused code:
 
-Is this still needed after this commit was merged?
+drivers/media/platform/sh_vou.c: In function 'sh_vou_configure_geometry':
+drivers/media/platform/sh_vou.c:446:49: warning: variable 'height_max' set but not used [-Wunused-but-set-variable]
+  unsigned int black_left, black_top, width_max, height_max,
+                                                 ^
+drivers/media/platform/sh_vou.c: In function 'sh_vou_isr':
+drivers/media/platform/sh_vou.c:1056:13: warning: variable 'side' set but not used [-Wunused-but-set-variable]
+  static int side;
+             ^
 
-http://git.linuxtv.org/media_tree.git/commit/b18a8ff29d80b132018d33479e86ab8ecaee6b46
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/platform/sh_vou.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-Regards,
-
-	Hans
-
-On 12/29/2013 05:51 AM, Antti Palosaari wrote:
-> Avoid that lockdep warning:
-> 
-> [ INFO: possible circular locking dependency detected ]
-> 3.13.0-rc1+ #77 Tainted: G         C O
-> -------------------------------------------------------
-> video_source:sr/32072 is trying to acquire lock:
->  (&dev->mutex#2){+.+.+.}, at: [<ffffffffa073fde3>] vb2_fop_mmap+0x33/0x90 [videobuf2_core]
-> 
->                                                 but task is already holding lock:
->  (&mm->mmap_sem){++++++}, at: [<ffffffff8117825f>] vm_mmap_pgoff+0x6f/0xc0
-> 
->  Possible unsafe locking scenario:
->        CPU0                    CPU1
->        ----                    ----
->   lock(&mm->mmap_sem);
->                                lock(&dev->mutex#2);
->                                lock(&mm->mmap_sem);
->   lock(&dev->mutex#2);
->                                                  *** DEADLOCK ***
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 14 +++++++++++++-
->  1 file changed, 13 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 12df9fd..2a74295 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2641,12 +2641,24 @@ int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
->  	struct video_device *vdev = video_devdata(file);
->  	struct mutex *lock = vdev->queue->lock ? vdev->queue->lock : vdev->lock;
->  	int err;
-> +	/*
-> +	 * FIXME: Ugly hack. Disable possible lockdep as it detects possible
-> +	 * deadlock. "INFO: possible circular locking dependency detected"
-> +	 */
-> +	lockdep_off();
->  
-> -	if (lock && mutex_lock_interruptible(lock))
-> +	if (lock && mutex_lock_interruptible(lock)) {
-> +		lockdep_on();
->  		return -ERESTARTSYS;
-> +	}
-> +
->  	err = vb2_mmap(vdev->queue, vma);
-> +
->  	if (lock)
->  		mutex_unlock(lock);
-> +
-> +	lockdep_on();
-> +
->  	return err;
->  }
->  EXPORT_SYMBOL_GPL(vb2_fop_mmap);
-> 
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 65c9f180a309..e5f1d4c14f2c 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -443,7 +443,7 @@ static void sh_vou_configure_geometry(struct sh_vou_device *vou_dev,
+ 				      int pix_idx, int w_idx, int h_idx)
+ {
+ 	struct sh_vou_fmt *fmt = vou_fmt + pix_idx;
+-	unsigned int black_left, black_top, width_max, height_max,
++	unsigned int black_left, black_top, width_max,
+ 		frame_in_height, frame_out_height, frame_out_top;
+ 	struct v4l2_rect *rect = &vou_dev->rect;
+ 	struct v4l2_pix_format *pix = &vou_dev->pix;
+@@ -451,10 +451,10 @@ static void sh_vou_configure_geometry(struct sh_vou_device *vou_dev,
+ 
+ 	if (vou_dev->std & V4L2_STD_525_60) {
+ 		width_max = 858;
+-		height_max = 262;
++		/* height_max = 262; */
+ 	} else {
+ 		width_max = 864;
+-		height_max = 312;
++		/* height_max = 312; */
+ 	}
+ 
+ 	frame_in_height = pix->height / 2;
+@@ -1053,7 +1053,6 @@ static irqreturn_t sh_vou_isr(int irq, void *dev_id)
+ 	static unsigned long j;
+ 	struct videobuf_buffer *vb;
+ 	static int cnt;
+-	static int side;
+ 	u32 irq_status = sh_vou_reg_a_read(vou_dev, VOUIR), masked;
+ 	u32 vou_status = sh_vou_reg_a_read(vou_dev, VOUSTR);
+ 
+@@ -1081,7 +1080,7 @@ static irqreturn_t sh_vou_isr(int irq, void *dev_id)
+ 		irq_status, masked, vou_status, cnt);
+ 
+ 	cnt++;
+-	side = vou_status & 0x10000;
++	/* side = vou_status & 0x10000; */
+ 
+ 	/* Clear only set interrupts */
+ 	sh_vou_reg_a_write(vou_dev, VOUIR, masked);
+-- 
+1.8.3.1
 
