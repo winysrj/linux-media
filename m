@@ -1,70 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:39791 "EHLO
-	alan.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751487AbaATSQX (ORCPT
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:40622 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362AbaAMMsY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 13:16:23 -0500
-Received: from alan.etchedpixels.co.uk (localhost [127.0.0.1])
-	by alan.etchedpixels.co.uk (8.14.4/8.14.4/Debian-2.1ubuntu4) with ESMTP id s0KI34Y5007276
-	for <linux-media@vger.kernel.org>; Mon, 20 Jan 2014 18:03:04 GMT
-Subject: [PATCH] dvb-frontends: Add static
-To: linux-media@vger.kernel.org
-From: Alan <gnomes@lxorguk.ukuu.org.uk>
-Date: Mon, 20 Jan 2014 18:03:04 +0000
-Message-ID: <20140120180239.7250.13091.stgit@alan.etchedpixels.co.uk>
+	Mon, 13 Jan 2014 07:48:24 -0500
+Received: by mail-ie0-f181.google.com with SMTP id at1so191249iec.40
+        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 04:48:24 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20140113090208.0437013b@samsung.com>
+References: <CAGfcS_=jvT5ExkkXiXjzmwR4DgXogM59rwrLhRMLeHe=LRAYjA@mail.gmail.com>
+	<20140113090208.0437013b@samsung.com>
+Date: Mon, 13 Jan 2014 07:48:24 -0500
+Message-ID: <CAGfcS_kXyFgoFgpLx8d3_PFKc4mxYFvQhycTQ=18scTsXbyokg@mail.gmail.com>
+Subject: Re: Issue with 3.12.5/7 and CX23880/1/2/3 DVB Card
+From: Rich Freeman <rich0@gentoo.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add static to tda m_* variables in the header. They don't need to be global.
-With some cleanup they could probably even be marked const.
+On Mon, Jan 13, 2014 at 6:02 AM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+> Em Sun, 12 Jan 2014 16:26:41 -0500
+> Rich Freeman <rich0@gentoo.org> escreveu:
+>
+>> I noticed that you authored commit
+>> 19496d61f3962fd6470b106b779eddcdbe823c9b, which replaced a dynamic
+>> buffer with a static one when sending data to the card.
+>
+> Can you please try the following patch?
+>
+> nxt200x: increase write buffer size
 
-Reported-by: Christian Schneider <christian@ch-sc.de>
-Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=68191
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- drivers/media/dvb-frontends/tda18271c2dd_maps.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+After applying your patch to 3.12.7 (from the git tag) the firmware
+loads without any warnings, and the card operates normally.  I think
+that did the trick.
 
-diff --git a/drivers/media/dvb-frontends/tda18271c2dd_maps.h b/drivers/media/dvb-frontends/tda18271c2dd_maps.h
-index b87661b..f3bca5c 100644
---- a/drivers/media/dvb-frontends/tda18271c2dd_maps.h
-+++ b/drivers/media/dvb-frontends/tda18271c2dd_maps.h
-@@ -5,7 +5,7 @@ enum HF_S {
- 	HF_DVBC_8MHZ, HF_DVBC
- };
- 
--struct SStandardParam m_StandardTable[] = {
-+static struct SStandardParam m_StandardTable[] = {
- 	{       0,        0, 0x00, 0x00 },    /* HF_None */
- 	{ 6000000,  7000000, 0x1D, 0x2C },    /* HF_B, */
- 	{ 6900000,  8000000, 0x1E, 0x2C },    /* HF_DK, */
-@@ -27,7 +27,7 @@ struct SStandardParam m_StandardTable[] = {
- 	{       0,        0, 0x00, 0x00 },    /* HF_DVBC (Unused) */
- };
- 
--struct SMap  m_BP_Filter_Map[] = {
-+static struct SMap  m_BP_Filter_Map[] = {
- 	{   62000000,  0x00 },
- 	{   84000000,  0x01 },
- 	{  100000000,  0x02 },
-@@ -799,14 +799,14 @@ static struct SRFBandMap  m_RF_Band_Map[7] = {
- 	{  865000000,  489500000,   697500000,  842000000},
- };
- 
--u8 m_Thermometer_Map_1[16] = {
-+static u8 m_Thermometer_Map_1[16] = {
- 	60, 62, 66, 64,
- 	74, 72, 68, 70,
- 	90, 88, 84, 86,
- 	76, 78, 82, 80,
- };
- 
--u8 m_Thermometer_Map_2[16] = {
-+static u8 m_Thermometer_Map_2[16] = {
- 	92, 94, 98, 96,
- 	106, 104, 100, 102,
- 	122, 120, 116, 118,
+Thanks for the prompt response!
 
+Rich
