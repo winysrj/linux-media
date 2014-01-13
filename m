@@ -1,119 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43740 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754373AbaADOAj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 09:00:39 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v4 06/22] [media] em28xx: add warn messages for timeout
-Date: Sat,  4 Jan 2014 08:55:35 -0200
-Message-Id: <1388832951-11195-7-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:57354 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437AbaAMSc6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jan 2014 13:32:58 -0500
+Received: by mail-ee0-f51.google.com with SMTP id b15so3372428eek.38
+        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 10:32:57 -0800 (PST)
+Message-ID: <52D431A1.5040207@googlemail.com>
+Date: Mon, 13 Jan 2014 19:34:09 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Chris Lee <updatelee@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Kworld 330u broken
+References: <CAA9z4LYNHuORA+QnO_3NBj4mwBxSMFY8pXoF2y-iYjJD+Xqteg@mail.gmail.com> <52D2C630.60906@googlemail.com> <20140112145017.2f4658e6@samsung.com> <CAA9z4LbpsnDqS4U8rZzzKk6CmrH9cyAYjOtKOVC5goZz5Q13hA@mail.gmail.com> <20140112154023.3f2e196f@samsung.com>
+In-Reply-To: <20140112154023.3f2e196f@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-changeset 45f04e82d035 added a logic to check if em28xx got
-a timeout on an I2C transfer.
+On 12.01.2014 18:40, Mauro Carvalho Chehab wrote:
+> Em Sun, 12 Jan 2014 09:53:43 -0700
+> Chris Lee <updatelee@gmail.com> escreveu:
+>
+>> Thanks guys, appreciate it :) As soon as I see the patch fly by I'll
+>> test it out, or you can email me directly if you want it tested before
+>> it goes to the list. Either way Im flexible.
+>>
+>> UDL
+>>
+>> On Sun, Jan 12, 2014 at 9:50 AM, Mauro Carvalho Chehab
+>> <m.chehab@samsung.com> wrote:
+>>> Em Sun, 12 Jan 2014 17:43:28 +0100
+>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>
+>>>> On 10.01.2014 05:08, Chris Lee wrote:
+>>>>> Im not sure exactly when it broke but alot of changes have happened in
+>>>>> em28xx lately and they've broken my Kworld 330u. The issue is that
+>>>>>
+>>>>> ctl->demod = XC3028_FE_CHINA;
+>>>>> ctl->fname = XC2028_DEFAULT_FIRMWARE;
+>>>>> cfg.ctrl  = &ctl;
+>>>>>
+>>>>> are no longer being set, this causes xc2028_attach
+>>>>>
+>>>>> if (cfg->ctrl)
+>>>>> xc2028_set_config(fe, cfg->ctrl);
+>>>>>
+>>>>> to never get called. Therefore never load the firmware. Ive attached
+>>>>> my logs to show you what I mean.
+>>>>>
+>>>>> I quickly hacked up a patch, my tree is quite different from V4L's now
+>>>>> so the line numbers may not lineup anymore, and Im sure you guys wont
+>>>>> like it anyhow lol
+>>>>>
+>>>>> Chris Lee
+>>>> Hi Chris,
+>>>>
+>>>> thank you for testing and the patch !
+>>>> The suggested changes in em28xx_attach_xc3028() look good, but instead
+>>>> of introducing a second copy of em28xx_setup_xc3028() in em28xx-dvb,
+>>>> we should just move this function from the v4l extension back to the core.
+>>>>
+>>>> Mauro, I can create a patch, but I assume there is already enough
+>>>> pending em28xx stuff that requires rebasing, so I assume it's easier for
+>>>> you to do it yourself.
+>>>> Let me know if I can assist you.
+>>> Yes, I can handle it.
+>>>
+>>> Regards,
+>>> Mauro
+> Patch follows.
+>
+> Regards,
+> Mauro
+>
+> From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>
+> [media] em28xx: fix xc3028 demod and firmware setup on DVB
+>
+> Now that em28xx can be compiled without V4L support, we should
+> call em28xx_setup_xc3028() on both em28xx-v4l and em28xx-dvb
+> modules.
+>
+> Reported-by: Chris Lee <updatelee@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index 39cf49c44e10..6efb9029381b 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -2768,6 +2768,55 @@ static void em28xx_card_setup(struct em28xx *dev)
+>   		dev->tuner_type = tuner;
+>   }
+>   
+> +void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl)
+> +{
+> +	memset(ctl, 0, sizeof(*ctl));
+> +
+> +	ctl->fname   = XC2028_DEFAULT_FIRMWARE;
+> +	ctl->max_len = 64;
+> +	ctl->mts = em28xx_boards[dev->model].mts_firmware;
+> +
+> +	switch (dev->model) {
+> +	case EM2880_BOARD_EMPIRE_DUAL_TV:
+> +	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
+> +	case EM2882_BOARD_TERRATEC_HYBRID_XS:
+> +		ctl->demod = XC3028_FE_ZARLINK456;
+> +		break;
+> +	case EM2880_BOARD_TERRATEC_HYBRID_XS:
+> +	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+> +	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+> +		ctl->demod = XC3028_FE_ZARLINK456;
+> +		break;
+> +	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2:
+> +	case EM2882_BOARD_PINNACLE_HYBRID_PRO_330E:
+> +		ctl->demod = XC3028_FE_DEFAULT;
+> +		break;
+> +	case EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600:
+> +		ctl->demod = XC3028_FE_DEFAULT;
+> +		ctl->fname = XC3028L_DEFAULT_FIRMWARE;
+> +		break;
+> +	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850:
+> +	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
+> +	case EM2880_BOARD_PINNACLE_PCTV_HD_PRO:
+> +		/* FIXME: Better to specify the needed IF */
+> +		ctl->demod = XC3028_FE_DEFAULT;
+> +		break;
+> +	case EM2883_BOARD_KWORLD_HYBRID_330U:
+> +	case EM2882_BOARD_DIKOM_DK300:
+> +	case EM2882_BOARD_KWORLD_VS_DVBT:
+> +		ctl->demod = XC3028_FE_CHINA;
+> +		ctl->fname = XC2028_DEFAULT_FIRMWARE;
+> +		break;
+> +	case EM2882_BOARD_EVGA_INDTUBE:
+> +		ctl->demod = XC3028_FE_CHINA;
+> +		ctl->fname = XC3028L_DEFAULT_FIRMWARE;
+> +		break;
+> +	default:
+> +		ctl->demod = XC3028_FE_OREN538;
+> +	}
+> +}
+> +EXPORT_SYMBOL_GPL(em28xx_setup_xc3028);
+> +
+>   static void request_module_async(struct work_struct *work)
+>   {
+>   	struct em28xx *dev = container_of(work,
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index 5c6be66ac858..7dba17576edf 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -828,11 +828,16 @@ static int em28xx_attach_xc3028(u8 addr, struct em28xx *dev)
+>   {
+>   	struct dvb_frontend *fe;
+>   	struct xc2028_config cfg;
+> +	struct xc2028_ctrl ctl;
+>   
+>   	memset(&cfg, 0, sizeof(cfg));
+>   	cfg.i2c_adap  = &dev->i2c_adap[dev->def_i2c_bus];
+>   	cfg.i2c_addr  = addr;
+>   
+> +	memset(&ctl, 0, sizeof(ctl));
+> +	em28xx_setup_xc3028(dev, &ctl);
+> +	cfg.ctrl  = &ctl;
+> +
+>   	if (!dev->dvb->fe[0]) {
+>   		em28xx_errdev("/2: dvb frontend not attached. "
+>   				"Can't attach xc3028\n");
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index 9c4462868330..a1dcceb7b2c0 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -2100,54 +2100,6 @@ static struct video_device *em28xx_vdev_init(struct em28xx *dev,
+>   	return vfd;
+>   }
+>   
+> -static void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl)
+> -{
+> -	memset(ctl, 0, sizeof(*ctl));
+> -
+> -	ctl->fname   = XC2028_DEFAULT_FIRMWARE;
+> -	ctl->max_len = 64;
+> -	ctl->mts = em28xx_boards[dev->model].mts_firmware;
+> -
+> -	switch (dev->model) {
+> -	case EM2880_BOARD_EMPIRE_DUAL_TV:
+> -	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
+> -	case EM2882_BOARD_TERRATEC_HYBRID_XS:
+> -		ctl->demod = XC3028_FE_ZARLINK456;
+> -		break;
+> -	case EM2880_BOARD_TERRATEC_HYBRID_XS:
+> -	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+> -	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+> -		ctl->demod = XC3028_FE_ZARLINK456;
+> -		break;
+> -	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2:
+> -	case EM2882_BOARD_PINNACLE_HYBRID_PRO_330E:
+> -		ctl->demod = XC3028_FE_DEFAULT;
+> -		break;
+> -	case EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600:
+> -		ctl->demod = XC3028_FE_DEFAULT;
+> -		ctl->fname = XC3028L_DEFAULT_FIRMWARE;
+> -		break;
+> -	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850:
+> -	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
+> -	case EM2880_BOARD_PINNACLE_PCTV_HD_PRO:
+> -		/* FIXME: Better to specify the needed IF */
+> -		ctl->demod = XC3028_FE_DEFAULT;
+> -		break;
+> -	case EM2883_BOARD_KWORLD_HYBRID_330U:
+> -	case EM2882_BOARD_DIKOM_DK300:
+> -	case EM2882_BOARD_KWORLD_VS_DVBT:
+> -		ctl->demod = XC3028_FE_CHINA;
+> -		ctl->fname = XC2028_DEFAULT_FIRMWARE;
+> -		break;
+> -	case EM2882_BOARD_EVGA_INDTUBE:
+> -		ctl->demod = XC3028_FE_CHINA;
+> -		ctl->fname = XC3028L_DEFAULT_FIRMWARE;
+> -		break;
+> -	default:
+> -		ctl->demod = XC3028_FE_OREN538;
+> -	}
+> -}
+> -
+>   static void em28xx_tuner_setup(struct em28xx *dev)
+>   {
+>   	struct tuner_setup           tun_setup;
+> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+> index e76f993e3195..5d5d1b6f0294 100644
+> --- a/drivers/media/usb/em28xx/em28xx.h
+> +++ b/drivers/media/usb/em28xx/em28xx.h
+> @@ -762,6 +762,7 @@ void em28xx_close_extension(struct em28xx *dev);
+>   extern struct em28xx_board em28xx_boards[];
+>   extern struct usb_device_id em28xx_id_table[];
+>   int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
+> +void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl);
+>   void em28xx_release_resources(struct em28xx *dev);
+>   
+>   /* Provided by em28xx-camera.c */
 
-That patch started to produce a series of errors that is present
-with HVR-950, like:
-
-[ 4032.218656] xc2028 19-0061: Error on line 1299: -19
-
-However, as there are several places where -ENODEV is produced,
-there's no way to know what's happening.
-
-So, let's add a printk to report what error condition was reached:
-
-[ 4032.218652] em2882/3 #0: I2C transfer timeout on writing to addr 0xc2
-[ 4032.218656] xc2028 19-0061: Error on line 1299: -19
-
-Interesting enough, when connected to an USB3 port, the number of
-errors increase:
-
-[ 4249.941375] em2882/3 #0: I2C transfer timeout on writing to addr 0xb8
-[ 4249.941378] tvp5150 19-005c: i2c i/o error: rc == -19 (should be 2)
-[ 4250.023854] em2882/3 #0: I2C transfer timeout on writing to addr 0xc2
-[ 4250.023857] xc2028 19-0061: Error on line 1299: -19
-
-Due to that, I suspect that the logic in the driver is wrong: instead
-of just returning an error if 0x10 is returned, it should be waiting for
-a while and read the I2C status register again.
-
-However, more tests are needed.
-
-For now, instead of just returning -ENODEV, output an error message
-to help debug what's happening.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index c4ff9739a7ae..9e6a11d01858 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -80,6 +80,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x80 + len - 1) {
- 			return len;
- 		} else if (ret == 0x94 + len - 1) {
-+			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
- 			return -ENODEV;
- 		} else if (ret < 0) {
- 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-@@ -123,6 +124,7 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x84 + len - 1) {
- 			break;
- 		} else if (ret == 0x94 + len - 1) {
-+			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
- 			return -ENODEV;
- 		} else if (ret < 0) {
- 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-@@ -198,6 +200,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		if (ret == 0) { /* success */
- 			return len;
- 		} else if (ret == 0x10) {
-+			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x", addr);
- 			return -ENODEV;
- 		} else if (ret < 0) {
- 			em28xx_warn("failed to read i2c transfer status from bridge (error=%i)\n",
-@@ -255,6 +258,7 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 	}
- 	if (ret > 0) {
- 		if (ret == 0x10) {
-+			em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
- 			return -ENODEV;
- 		} else {
- 			em28xx_warn("unknown i2c error (status=%i)\n", ret);
-@@ -316,8 +320,10 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	 */
- 	if (!ret)
- 		return len;
--	else if (ret > 0)
-+	else if (ret > 0) {
-+		em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
- 		return -ENODEV;
-+	}
- 
- 	return ret;
- 	/*
-@@ -367,8 +373,10 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	 */
- 	if (!ret)
- 		return len;
--	else if (ret > 0)
-+	else if (ret > 0) {
-+		em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
- 		return -ENODEV;
-+	}
- 
- 	return ret;
- 	/*
--- 
-1.8.3.1
+Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 
