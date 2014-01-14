@@ -1,96 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1485 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751455AbaAaJ45 (ORCPT
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:45347 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751329AbaANO1X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:56:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 03/32] v4l2-ctrls: use pr_info/cont instead of printk.
-Date: Fri, 31 Jan 2014 10:56:01 +0100
-Message-Id: <1391162190-8620-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 14 Jan 2014 09:27:23 -0500
+From: Monam Agarwal <monamagarwal123@gmail.com>
+To: m.chehab@samsung.com, gregkh@linuxfoundation.org,
+	monamagarwal123@gmail.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	paul.gortmaker@windriver.com
+Subject: [PATCH] Staging: media: Fix line length exceeding 80 characters in as102_drv.c
+Date: Tue, 14 Jan 2014 19:57:08 +0530
+Message-Id: <1389709628-3421-1-git-send-email-monamagarwal123@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch fixes the following checkpatch.pl warning in as102/as102_drv.c
+WARNING: line over 80 characters in the file 
 
-Codingstyle fix.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Monam Agarwal <monamagarwal123@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/staging/media/as102/as102_drv.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 72ffe76..df8ed0a 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2045,45 +2045,45 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 	if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
- 		return;
+diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+index 8b7bb95..7c294bf 100644
+--- a/drivers/staging/media/as102/as102_drv.c
++++ b/drivers/staging/media/as102/as102_drv.c
+@@ -133,7 +133,8 @@ static int as10x_pid_filter(struct as102_dev_t *dev,
+ 		filter.pid = pid;
  
--	printk(KERN_INFO "%s%s%s: ", prefix, colon, ctrl->name);
-+	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		printk(KERN_CONT "%d", ctrl->cur.val);
-+		pr_cont("%d", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_BOOLEAN:
--		printk(KERN_CONT "%s", ctrl->cur.val ? "true" : "false");
-+		pr_cont("%s", ctrl->cur.val ? "true" : "false");
- 		break;
- 	case V4L2_CTRL_TYPE_MENU:
--		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
-+		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
-+		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_BITMASK:
--		printk(KERN_CONT "0x%08x", ctrl->cur.val);
-+		pr_cont("0x%08x", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		printk(KERN_CONT "%lld", ctrl->cur.val64);
-+		pr_cont("%lld", ctrl->cur.val64);
- 		break;
- 	case V4L2_CTRL_TYPE_STRING:
--		printk(KERN_CONT "%s", ctrl->cur.string);
-+		pr_cont("%s", ctrl->cur.string);
- 		break;
- 	default:
--		printk(KERN_CONT "unknown type %d", ctrl->type);
-+		pr_cont("unknown type %d", ctrl->type);
+ 		ret = as10x_cmd_add_PID_filter(bus_adap, &filter);
+-		dprintk(debug, "ADD_PID_FILTER([%02d -> %02d], 0x%04x) ret = %d\n",
++		dprintk(debug,
++			"ADD_PID_FILTER([%02d -> %02d], 0x%04x) ret = %d\n",
+ 			index, filter.idx, filter.pid, ret);
  		break;
  	}
- 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
- 			   V4L2_CTRL_FLAG_GRABBED |
- 			   V4L2_CTRL_FLAG_VOLATILE)) {
- 		if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
--			printk(KERN_CONT " inactive");
-+			pr_cont(" inactive");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_GRABBED)
--			printk(KERN_CONT " grabbed");
-+			pr_cont(" grabbed");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
--			printk(KERN_CONT " volatile");
-+			pr_cont(" volatile");
- 	}
--	printk(KERN_CONT "\n");
-+	pr_cont("\n");
- }
- 
- /* Log all controls owned by the handler */
 -- 
-1.8.5.2
+1.7.9.5
 
