@@ -1,55 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34300 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753257AbaA0AjO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jan 2014 19:39:14 -0500
-Message-ID: <52E5AAAD.5050906@iki.fi>
-Date: Mon, 27 Jan 2014 02:39:09 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from youngberry.canonical.com ([91.189.89.112]:58228 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906AbaANIfr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jan 2014 03:35:47 -0500
+Message-ID: <52D4F6BA.9010802@canonical.com>
+Date: Tue, 14 Jan 2014 09:35:06 +0100
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Michael Krufky <mkrufky@linuxtv.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 1/3] e4000: convert DVB tuner to I2C driver model
-References: <1390781812-20226-1-git-send-email-crope@iki.fi> <CAGoCfiyQ6-SA-5PYMgAv3Oq3gzcR-ReYCpL8Ak-KRVw0XHNd4Q@mail.gmail.com>
-In-Reply-To: <CAGoCfiyQ6-SA-5PYMgAv3Oq3gzcR-ReYCpL8Ak-KRVw0XHNd4Q@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Colin Cross <ccross@google.com>
+CC: lkml <linux-kernel@vger.kernel.org>,
+	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	robdclark@gmail.com,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	daniel@ffwll.ch, Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/7] sched: allow try_to_wake_up to be used internally
+ outside of core.c
+References: <20140113122818.20574.34710.stgit@patser>	<20140113123126.20574.74329.stgit@patser> <CAMbhsRTBSzAsBke0H4cwJMUe4449KbD6cvyLuNV4ijx0L+czFw@mail.gmail.com>
+In-Reply-To: <CAMbhsRTBSzAsBke0H4cwJMUe4449KbD6cvyLuNV4ijx0L+czFw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.01.2014 02:28, Devin Heitmueller wrote:
-> On Sun, Jan 26, 2014 at 7:16 PM, Antti Palosaari <crope@iki.fi> wrote:
->> Driver conversion from proprietary DVB tuner model to more
->> general I2C driver model.
+op 13-01-14 19:50, Colin Cross schreef:
+> On Mon, Jan 13, 2014 at 4:31 AM, Maarten Lankhorst
+> <maarten.lankhorst@canonical.com> wrote:
+>> The kernel fence implementation doesn't use event queues, but needs
+>> to perform the same wake up. The symbol is not exported, since the
+>> fence implementation is not built as a module.
+>>
+>> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+>> ---
+>>  include/linux/wait.h |    1 +
+>>  kernel/sched/core.c  |    2 +-
+>>  2 files changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/include/linux/wait.h b/include/linux/wait.h
+>> index eaa00b10abaa..c54e3ef50134 100644
+>> --- a/include/linux/wait.h
+>> +++ b/include/linux/wait.h
+>> @@ -12,6 +12,7 @@
+>>  typedef struct __wait_queue wait_queue_t;
+>>  typedef int (*wait_queue_func_t)(wait_queue_t *wait, unsigned mode, int flags, void *key);
+>>  int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key);
+>> +int try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags);
+>>
+>>  struct __wait_queue {
+>>         unsigned int            flags;
+>> diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+>> index a88f4a485c5e..f41d317042dd 100644
+>> --- a/kernel/sched/core.c
+>> +++ b/kernel/sched/core.c
+>> @@ -1578,7 +1578,7 @@ static void ttwu_queue(struct task_struct *p, int cpu)
+>>   * Return: %true if @p was woken up, %false if it was already running.
+>>   * or @state didn't match @p's state.
+>>   */
+>> -static int
+>> +int
+>>  try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
+>>  {
+>>         unsigned long flags;
+>>
+> wake_up_state is already available in linux/sched.h, can you use that?
 >
-> Mike should definitely weigh in on this.  Eliminating the existing
-> model of using dvb_attach() for tuners is something that needs to be
-> considered carefully, and this course of action should be agreed on by
-> the subsystem maintainers before we start converting drivers.  This
-> could be particularly relevant for hybrid tuners where the driver
-> instance is instantiated via tuner-core using dvb_attach() for the
-> analog side.
->
-> In the meantime, this change makes this driver work differently than
-> every other tuner in the tree.
+Indeed! Thanks for the catch.
 
-Heh, it is quite stupid to do things otherwise than rest of the kernel 
-and also I think it is against i2c documentation. For more we refuse to 
-use kernel standard practices the more there will be problems in a long ran.
-
-There is things that are build top of these standard models and if you 
-are using some proprietary method, then you are without these services. 
-I think it was regmap which I was looking once, but dropped it as it 
-requires i2c client.
-
-Also, I already implemented one tuner driver using standard I2C model. 
-If there will be problems then those are surely fixable.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+~Maarten
