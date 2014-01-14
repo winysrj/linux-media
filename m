@@ -1,428 +1,386 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:18052 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751624AbaAMRX7 (ORCPT
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:58207 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751458AbaANSLt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 12:23:59 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZC00GFSOBX5N70@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Jan 2014 12:23:58 -0500 (EST)
-Date: Mon, 13 Jan 2014 15:23:50 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 3/6] DocBook media: partial rewrite of
- "Opening and Closing Devices"
-Message-id: <20140113152350.1ab23491@samsung.com>
-In-reply-to: <52D4112C.5040902@xs4all.nl>
-References: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
- <1389100017-42855-4-git-send-email-hverkuil@xs4all.nl>
- <20140113132013.06f558a0@samsung.com> <52D4112C.5040902@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Tue, 14 Jan 2014 13:11:49 -0500
+Received: by mail-ea0-f173.google.com with SMTP id o10so4149180eaj.4
+        for <linux-media@vger.kernel.org>; Tue, 14 Jan 2014 10:11:47 -0800 (PST)
+Message-ID: <52D57E2C.2070407@googlemail.com>
+Date: Tue, 14 Jan 2014 19:13:00 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 3/7] em28xx: Only deallocate struct em28xx after finishing
+ all extensions
+References: <1389567649-26838-1-git-send-email-m.chehab@samsung.com> <1389567649-26838-4-git-send-email-m.chehab@samsung.com> <52D4383B.6030304@googlemail.com> <20140113172334.191862a7@samsung.com> <52D460D8.1000807@googlemail.com> <20140114111054.58ede4a3@samsung.com>
+In-Reply-To: <20140114111054.58ede4a3@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 13 Jan 2014 17:15:40 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 14.01.2014 14:10, Mauro Carvalho Chehab wrote:
+> Em Mon, 13 Jan 2014 22:55:36 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Am 13.01.2014 20:23, schrieb Mauro Carvalho Chehab:
+>>> Em Mon, 13 Jan 2014 20:02:19 +0100
+>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>
+>>>> On 13.01.2014 00:00, Mauro Carvalho Chehab wrote:
+>>>>> We can't free struct em28xx while one of the extensions is still
+>>>>> using it.
+>>>>>
+>>>>> So, add a kref() to control it, freeing it only after the
+>>>>> extensions fini calls.
+>>>>>
+>>>>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>>>>> ---
+>>>>>    drivers/media/usb/em28xx/em28xx-audio.c |  5 ++++-
+>>>>>    drivers/media/usb/em28xx/em28xx-cards.c | 34 ++++++++++++++++-----------------
+>>>>>    drivers/media/usb/em28xx/em28xx-dvb.c   |  5 ++++-
+>>>>>    drivers/media/usb/em28xx/em28xx-input.c |  8 +++++++-
+>>>>>    drivers/media/usb/em28xx/em28xx-video.c | 11 +++++------
+>>>>>    drivers/media/usb/em28xx/em28xx.h       |  9 +++++++--
+>>>>>    6 files changed, 44 insertions(+), 28 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+>>>>> index 97d9105e6830..8e959dae8358 100644
+>>>>> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+>>>>> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+>>>>> @@ -878,6 +878,8 @@ static int em28xx_audio_init(struct em28xx *dev)
+>>>>>    
+>>>>>    	em28xx_info("Binding audio extension\n");
+>>>>>    
+>>>>> +	kref_get(&dev->ref);
+>>>>> +
+>>>>>    	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
+>>>>>    			 "Rechberger\n");
+>>>>>    	printk(KERN_INFO
+>>>>> @@ -949,7 +951,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+>>>>>    	if (dev == NULL)
+>>>>>    		return 0;
+>>>>>    
+>>>>> -	if (dev->has_alsa_audio != 1) {
+>>>>> +	if (!dev->has_alsa_audio) {
+>>>>>    		/* This device does not support the extension (in this case
+>>>>>    		   the device is expecting the snd-usb-audio module or
+>>>>>    		   doesn't have analog audio support at all) */
+>>>>> @@ -963,6 +965,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+>>>>>    		dev->adev.sndcard = NULL;
+>>>>>    	}
+>>>>>    
+>>>>> +	kref_put(&dev->ref, em28xx_free_device);
+>>>>>    	return 0;
+>>>>>    }
+>>>>>    
+>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+>>>>> index 3b332d527ccb..df92f417634a 100644
+>>>>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+>>>>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+>>>>> @@ -2867,16 +2867,18 @@ static void flush_request_modules(struct em28xx *dev)
+>>>>>    	flush_work(&dev->request_module_wk);
+>>>>>    }
+>>>>>    
+>>>>> -/*
+>>>>> - * em28xx_release_resources()
+>>>>> - * unregisters the v4l2,i2c and usb devices
+>>>>> - * called when the device gets disconnected or at module unload
+>>>>> -*/
+>>>>> -void em28xx_release_resources(struct em28xx *dev)
+>>>>> +/**
+>>>>> + * em28xx_release_resources() -  unregisters the v4l2,i2c and usb devices
+>>>>> + *
+>>>>> + * @ref: struct kref for em28xx device
+>>>>> + *
+>>>>> + * This is called when all extensions and em28xx core unregisters a device
+>>>>> + */
+>>>>> +void em28xx_free_device(struct kref *ref)
+>>>>>    {
+>>>>> -	/*FIXME: I2C IR should be disconnected */
+>>>>> +	struct em28xx *dev = kref_to_dev(ref);
+>>>>>    
+>>>>> -	mutex_lock(&dev->lock);
+>>>>> +	em28xx_info("Freeing device\n");
+>>>>>    
+>>>>>    	if (dev->def_i2c_bus)
+>>>>>    		em28xx_i2c_unregister(dev, 1);
+>>>>> @@ -2887,9 +2889,10 @@ void em28xx_release_resources(struct em28xx *dev)
+>>>>>    	/* Mark device as unused */
+>>>>>    	clear_bit(dev->devno, &em28xx_devused);
+>>>>>    
+>>>>> -	mutex_unlock(&dev->lock);
+>>>>> -};
+>>>>> -EXPORT_SYMBOL_GPL(em28xx_release_resources);
+>>>>> +	kfree(dev->alt_max_pkt_size_isoc);
+>>>>> +	kfree(dev);
+>>>>> +}
+>>>>> +EXPORT_SYMBOL_GPL(em28xx_free_device);
+>>>>>    
+>>>>>    /*
+>>>>>     * em28xx_init_dev()
+>>>>> @@ -3342,6 +3345,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+>>>>>    			    dev->dvb_xfer_bulk ? "bulk" : "isoc");
+>>>>>    	}
+>>>>>    
+>>>>> +	kref_init(&dev->ref);
+>>>>> +
+>>>>>    	request_modules(dev);
+>>>>>    
+>>>>>    	/* Should be the last thing to do, to avoid newer udev's to
+>>>>> @@ -3390,12 +3395,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+>>>>>    
+>>>>>    	em28xx_close_extension(dev);
+>>>>>    
+>>>>> -	em28xx_release_resources(dev);
+>>>>> -
+>>>>> -	if (!dev->users) {
+>>>>> -		kfree(dev->alt_max_pkt_size_isoc);
+>>>>> -		kfree(dev);
+>>>>> -	}
+>>>>> +	kref_put(&dev->ref, em28xx_free_device);
+>>>>>    }
+>>>>>    
+>>>>>    static struct usb_driver em28xx_usb_driver = {
+>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+>>>>> index 5ea563e3f0e4..8674ae5fce06 100644
+>>>>> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+>>>>> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+>>>>> @@ -1010,11 +1010,11 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>>>>>    	em28xx_info("Binding DVB extension\n");
+>>>>>    
+>>>>>    	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
+>>>>> -
+>>>>>    	if (dvb == NULL) {
+>>>>>    		em28xx_info("em28xx_dvb: memory allocation failed\n");
+>>>>>    		return -ENOMEM;
+>>>>>    	}
+>>>>> +	kref_get(&dev->ref);
+>>>>>    	dev->dvb = dvb;
+>>>>>    	dvb->fe[0] = dvb->fe[1] = NULL;
+>>>>>    
+>>>>> @@ -1442,6 +1442,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>>>>>    	dvb->adapter.mfe_shared = mfe_shared;
+>>>>>    
+>>>>>    	em28xx_info("DVB extension successfully initialized\n");
+>>>>> +
+>>>>>    ret:
+>>>>>    	em28xx_set_mode(dev, EM28XX_SUSPEND);
+>>>>>    	mutex_unlock(&dev->lock);
+>>>>> @@ -1492,6 +1493,8 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+>>>>>    		dev->dvb = NULL;
+>>>>>    	}
+>>>>>    
+>>>>> +	kref_put(&dev->ref, em28xx_free_device);
+>>>>> +
+>>>>>    	return 0;
+>>>>>    }
+>>>>>    
+>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+>>>>> index 61c061f3a476..33388b5922a0 100644
+>>>>> --- a/drivers/media/usb/em28xx/em28xx-input.c
+>>>>> +++ b/drivers/media/usb/em28xx/em28xx-input.c
+>>>>> @@ -676,6 +676,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+>>>>>    		return 0;
+>>>>>    	}
+>>>>>    
+>>>>> +	kref_get(&dev->ref);
+>>>>> +
+>>>>>    	if (dev->board.buttons)
+>>>>>    		em28xx_init_buttons(dev);
+>>>>>    
+>>>>> @@ -814,7 +816,7 @@ static int em28xx_ir_fini(struct em28xx *dev)
+>>>>>    
+>>>>>    	/* skip detach on non attached boards */
+>>>>>    	if (!ir)
+>>>>> -		return 0;
+>>>>> +		goto ref_put;
+>>>>>    
+>>>>>    	if (ir->rc)
+>>>>>    		rc_unregister_device(ir->rc);
+>>>>> @@ -822,6 +824,10 @@ static int em28xx_ir_fini(struct em28xx *dev)
+>>>>>    	/* done */
+>>>>>    	kfree(ir);
+>>>>>    	dev->ir = NULL;
+>>>>> +
+>>>>> +ref_put:
+>>>>> +	kref_put(&dev->ref, em28xx_free_device);
+>>>>> +
+>>>>>    	return 0;
+>>>>>    }
+>>>>>    
+>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+>>>>> index 587ff3fe9402..dc10cec772ba 100644
+>>>>> --- a/drivers/media/usb/em28xx/em28xx-video.c
+>>>>> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+>>>>> @@ -1922,8 +1922,7 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+>>>>>    	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+>>>>>    	v4l2_device_unregister(&dev->v4l2_dev);
+>>>>>    
+>>>>> -	if (dev->users)
+>>>>> -		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
+>>>>> +	kref_put(&dev->ref, em28xx_free_device);
+>>>>>    
+>>>>>    	return 0;
+>>>>>    }
+>>>>> @@ -1945,11 +1944,9 @@ static int em28xx_v4l2_close(struct file *filp)
+>>>>>    	mutex_lock(&dev->lock);
+>>>>>    
+>>>>>    	if (dev->users == 1) {
+>>>>> -		/* free the remaining resources if device is disconnected */
+>>>>> -		if (dev->disconnected) {
+>>>>> -			kfree(dev->alt_max_pkt_size_isoc);
+>>>>> +		/* No sense to try to write to the device */
+>>>>> +		if (dev->disconnected)
+>>>>>    			goto exit;
+>>>>> -		}
+>>>>>    
+>>>>>    		/* Save some power by putting tuner to sleep */
+>>>>>    		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+>>>>> @@ -2201,6 +2198,8 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+>>>>>    
+>>>>>    	em28xx_info("Registering V4L2 extension\n");
+>>>>>    
+>>>>> +	kref_get(&dev->ref);
+>>>>> +
+>>>>>    	mutex_lock(&dev->lock);
+>>>>>    
+>>>>>    	ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
+>>>>> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+>>>>> index 5d5d1b6f0294..d38c08e4da60 100644
+>>>>> --- a/drivers/media/usb/em28xx/em28xx.h
+>>>>> +++ b/drivers/media/usb/em28xx/em28xx.h
+>>>>> @@ -32,6 +32,7 @@
+>>>>>    #include <linux/workqueue.h>
+>>>>>    #include <linux/i2c.h>
+>>>>>    #include <linux/mutex.h>
+>>>>> +#include <linux/kref.h>
+>>>>>    #include <linux/videodev2.h>
+>>>>>    
+>>>>>    #include <media/videobuf2-vmalloc.h>
+>>>>> @@ -531,9 +532,11 @@ struct em28xx_i2c_bus {
+>>>>>    	enum em28xx_i2c_algo_type algo_type;
+>>>>>    };
+>>>>>    
+>>>>> -
+>>>>>    /* main device struct */
+>>>>>    struct em28xx {
+>>>>> +	struct kref ref;
+>>>>> +
+>>>>> +
+>>>>>    	/* generic device properties */
+>>>>>    	char name[30];		/* name (including minor) of the device */
+>>>>>    	int model;		/* index in the device_data struct */
+>>>>> @@ -706,6 +709,8 @@ struct em28xx {
+>>>>>    	struct em28xx_dvb *dvb;
+>>>>>    };
+>>>>>    
+>>>>> +#define kref_to_dev(d) container_of(d, struct em28xx, ref)
+>>>>> +
+>>>>>    struct em28xx_ops {
+>>>>>    	struct list_head next;
+>>>>>    	char *name;
+>>>>> @@ -763,7 +768,7 @@ extern struct em28xx_board em28xx_boards[];
+>>>>>    extern struct usb_device_id em28xx_id_table[];
+>>>>>    int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
+>>>>>    void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl);
+>>>>> -void em28xx_release_resources(struct em28xx *dev);
+>>>>> +void em28xx_free_device(struct kref *ref);
+>>>>>    
+>>>>>    /* Provided by em28xx-camera.c */
+>>>>>    int em28xx_detect_sensor(struct em28xx *dev);
+>>>> I welcome this patch and the general approach looks good.
+>>>> I had started working on the same issue, but it's not that trivial.
+>>>>
+>>>> At first glance there seem to be several issues, but I will need to
+>>>> review this patch in more detail and also make some tests.
+>>>> Unfortunately, I don't have much time this evening, So could you please
+>>>> hold it back another day ?
+>>>> I hope I can review the other remaining patch of this series (patch 5/7)
+>>>> later this evening.
+>>> We're running out of time for 3.14. I think we should merge this patch
+>>> series, and your patch series for 3.14, to be together with the em28xx-v4l
+>>> split.
+>>>
+>>> My plan is to merge the remaining patches for 3.14 today or, in the worse
+>>> case, tomorrow.
+>>>
+>>> If we slip on some bug, we'll still have the 3.14-rc cycle to fix, if the
+>>> series gets merged, but, if we miss the bus, I'm afraid that we'll end
+>>> by having more problems that will be hard to fix with trivial patches, due
+>>> to em28xx-v4l split changes that also affected the driver removal and device
+>>> close code.
+>>>
+>>> FYI, I tested this code and also Antti with our devices, randomly removing
+>>> the devices while streaming, and this is now finally working.
+>>>
+>>> I won't doubt that there are some cases that require fixes (and
+>>> it seems that em28xx-rc has one of such corner cases), but they'll likely
+>>> can be solved with somewhat short and trivial patches.
+>>>
+>>> Cheers,
+>>> Mauro
+>> This is a very critical patch and exactly the kind of change that should
+>> _never_ be hurried !
+>> FAICS it has some severe issues and it's not clear how easy it will be
+>> to fix it within the the 3.14-rc cycle.
+>> As long as it's not ready, don't merge it for 3.14.
+> What issues? So far, you didn't point any.
+I already stated that I didn't have the time yet to review and test it 
+in detail, but I'm going to do that as soon as possible.
+If you can't wait, there's nothing I can do, sorry.
 
-> On 01/13/2014 04:20 PM, Mauro Carvalho Chehab wrote:
-> > Em Tue,  7 Jan 2014 14:06:54 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> This section was horribly out of date. A lot of references to old and
-> >> obsolete behavior have been dropped.
-
-Forgot to mention, put patches 1 and 2 are ok. I'll review the patches 4-6
-later this week.
-
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>  Documentation/DocBook/media/v4l/common.xml | 188 ++++++++++-------------------
-> >>  1 file changed, 67 insertions(+), 121 deletions(-)
-> >>
-> >> diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-> >> index 1ddf354..da08df9 100644
-> >> --- a/Documentation/DocBook/media/v4l/common.xml
-> >> +++ b/Documentation/DocBook/media/v4l/common.xml
-> >> @@ -38,70 +38,41 @@ the basic concepts applicable to all devices.</para>
-> >>  
-> >>        <para>V4L2 drivers are implemented as kernel modules, loaded
-> >>  manually by the system administrator or automatically when a device is
-> >> -first opened. The driver modules plug into the "videodev" kernel
-> >> +first discovered. The driver modules plug into the "videodev" kernel
-> >>  module. It provides helper functions and a common application
-> >>  interface specified in this document.</para>
-> >>  
-> >>        <para>Each driver thus loaded registers one or more device nodes
-> >> -with major number 81 and a minor number between 0 and 255. Assigning
-> >> -minor numbers to V4L2 devices is entirely up to the system administrator,
-> >> -this is primarily intended to solve conflicts between devices.<footnote>
-> >> -	  <para>Access permissions are associated with character
-> >> -device special files, hence we must ensure device numbers cannot
-> >> -change with the module load order. To this end minor numbers are no
-> >> -longer automatically assigned by the "videodev" module as in V4L but
-> >> -requested by the driver. The defaults will suffice for most people
-> >> -unless two drivers compete for the same minor numbers.</para>
-> >> -	</footnote> The module options to select minor numbers are named
-> >> -after the device special file with a "_nr" suffix. For example "video_nr"
-> >> -for <filename>/dev/video</filename> video capture devices. The number is
-> >> -an offset to the base minor number associated with the device type.
-> >> -<footnote>
-> >> -	  <para>In earlier versions of the V4L2 API the module options
-> >> -where named after the device special file with a "unit_" prefix, expressing
-> >> -the minor number itself, not an offset. Rationale for this change is unknown.
-> >> -Lastly the naming and semantics are just a convention among driver writers,
-> >> -the point to note is that minor numbers are not supposed to be hardcoded
-> >> -into drivers.</para>
-> >> -	</footnote> When the driver supports multiple devices of the same
-> >> -type more than one minor number can be assigned, separated by commas:
-> >> -<informalexample>
-> >> +with major number 81 and a minor number between 0 and 255. Minor numbers
-> >> +are allocated dynamically unless the kernel is compiled with the kernel
-> >> +option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers are
-> >> +allocated in ranges depending on the device node type (video, radio, etc.).</para>
-> >> +
-> >> +      <para>Many drivers support "video_nr", "radio_nr" or "vbi_nr"
-> >> +module options to select specific video/radio/vbi node numbers. This allows
-> >> +the user to request that the device node is named e.g. /dev/video5 instead
-> >> +of leaving it to chance. When the driver supports multiple devices of the same
-> >> +type more than one device node number can be assigned, separated by commas:
-> >> +	<informalexample>
-> >>  	  <screen>
-> >> -&gt; insmod mydriver.o video_nr=0,1 radio_nr=0,1</screen>
-> >> +&gt; modprobe mydriver video_nr=0,1 radio_nr=0,1</screen>
-> >>  	</informalexample></para>
-> >>  
-> >>        <para>In <filename>/etc/modules.conf</filename> this may be
-> >>  written as: <informalexample>
-> >>  	  <screen>
-> >> -alias char-major-81-0 mydriver
-> >> -alias char-major-81-1 mydriver
-> >> -alias char-major-81-64 mydriver              <co id="alias" />
-> >> -options mydriver video_nr=0,1 radio_nr=0,1   <co id="options" />
-> >> +options mydriver video_nr=0,1 radio_nr=0,1
-> >>  	  </screen>
-> >> -	  <calloutlist>
-> >> -	    <callout arearefs="alias">
-> >> -	      <para>When an application attempts to open a device
-> >> -special file with major number 81 and minor number 0, 1, or 64, load
-> >> -"mydriver" (and the "videodev" module it depends upon).</para>
-> >> -	    </callout>
-> >> -	    <callout arearefs="options">
-> >> -	      <para>Register the first two video capture devices with
-> >> -minor number 0 and 1 (base number is 0), the first two radio device
-> >> -with minor number 64 and 65 (base 64).</para>
-> >> -	    </callout>
-> >> -	  </calloutlist>
-> >> -	</informalexample> When no minor number is given as module
-> >> -option the driver supplies a default. <xref linkend="devices" />
-> >> -recommends the base minor numbers to be used for the various device
-> >> -types. Obviously minor numbers must be unique. When the number is
-> >> -already in use the <emphasis>offending device</emphasis> will not be
-> >> -registered. <!-- Blessed by Linus Torvalds on
-> >> -linux-kernel@vger.kernel.org, 2002-11-20. --></para>
-> >> -
-> >> -      <para>By convention system administrators create various
-> >> -character device special files with these major and minor numbers in
-> >> -the <filename>/dev</filename> directory. The names recommended for the
-> >> -different V4L2 device types are listed in <xref linkend="devices" />.
-> >> +	</informalexample> When no device node number is given as module
-> >> +option the driver supplies a default.</para>
-> >> +
-> >> +      <para>Normally udev will create the device nodes in /dev automatically
-> >> +for you. If udev is not installed, then you need to enable the
-> >> +CONFIG_VIDEO_FIXED_MINOR_RANGES kernel option in order to be able to correctly
-> >> +relate a minor number to a device node number. I.e., you need to be certain
-> >> +that minor number 5 maps to device node name video5. With this kernel option
-> >> +different device types have different minor number ranges. These ranges are
-> >> +listed in <xref linkend="devices" />.
-> >>  </para>
-> >>  
-> >>        <para>The creation of character special files (with
-> >> @@ -110,63 +81,40 @@ devices cannot be opened by major and minor number. That means
-> >>  applications cannot <emphasis>reliable</emphasis> scan for loaded or
-> >>  installed drivers. The user must enter a device name, or the
-> >>  application can try the conventional device names.</para>
-> >> -
-> >> -      <para>Under the device filesystem (devfs) the minor number
-> >> -options are ignored. V4L2 drivers (or by proxy the "videodev" module)
-> >> -automatically create the required device files in the
-> >> -<filename>/dev/v4l</filename> directory using the conventional device
-> >> -names above.</para>
-> >>      </section>
-> >>  
-> >>      <section id="related">
-> >>        <title>Related Devices</title>
-> >>  
-> >> -      <para>Devices can support several related functions. For example
-> >> -video capturing, video overlay and VBI capturing are related because
-> >> -these functions share, amongst other, the same video input and tuner
-> >> -frequency. V4L and earlier versions of V4L2 used the same device name
-> >> -and minor number for video capturing and overlay, but different ones
-> >> -for VBI. Experience showed this approach has several problems<footnote>
-> >> -	  <para>Given a device file name one cannot reliable find
-> >> -related devices. For once names are arbitrary and in a system with
-> >> -multiple devices, where only some support VBI capturing, a
-> >> -<filename>/dev/video2</filename> is not necessarily related to
-> >> -<filename>/dev/vbi2</filename>. The V4L
-> >> -<constant>VIDIOCGUNIT</constant> ioctl would require a search for a
-> >> -device file with a particular major and minor number.</para>
-> >> -	</footnote>, and to make things worse the V4L videodev module
-> >> -used to prohibit multiple opens of a device.</para>
-> >> -
-> >> -      <para>As a remedy the present version of the V4L2 API relaxed the
-> >> -concept of device types with specific names and minor numbers. For
-> >> -compatibility with old applications drivers must still register different
-> >> -minor numbers to assign a default function to the device. But if related
-> >> -functions are supported by the driver they must be available under all
-> >> -registered minor numbers. The desired function can be selected after
-> >> -opening the device as described in <xref linkend="devices" />.</para>
-> >> -
-> >> -      <para>Imagine a driver supporting video capturing, video
-> >> -overlay, raw VBI capturing, and FM radio reception. It registers three
-> >> -devices with minor number 0, 64 and 224 (this numbering scheme is
-> >> -inherited from the V4L API). Regardless if
-> >> -<filename>/dev/video</filename> (81, 0) or
-> >> -<filename>/dev/vbi</filename> (81, 224) is opened the application can
-> >> -select any one of the video capturing, overlay or VBI capturing
-> >> -functions. Without programming (e.&nbsp;g. reading from the device
-> >> -with <application>dd</application> or <application>cat</application>)
-> >> -<filename>/dev/video</filename> captures video images, while
-> >> -<filename>/dev/vbi</filename> captures raw VBI data.
-> >> -<filename>/dev/radio</filename> (81, 64) is invariable a radio device,
-> >> -unrelated to the video functions. Being unrelated does not imply the
-> >> -devices can be used at the same time, however. The &func-open;
-> >> -function may very well return an &EBUSY;.</para>
-> >> +      <para>Devices can support several functions. For example
-> >> +video capturing, VBI capturing and radio support.</para>
-> > 
-> > "function" seems to be a poor choice of word here. Ok, it comes from the
-> > original text, but it is still not clear.
-> > 
-> > I would use another word, like "broadcast type", in order to refer to
-> > radio, software defined radio, VBI and video.
-> 
-> I agree that it is not the best word, but neither is (IMHO) "broadcast type".
-> This would be something for a follow-up patch.
-
-I think we should use the right word here on this fix. Other suggestions:
-	"stream type", "media type".
-
-In any case, we should enumerate all those types here, maybe even putting
-them into a table, in order to define precisely to what we're referring to.
-
-> >> +
-> >> +      <para>The V4L2 API creates different nodes for each of these functions.
-> >> +One exception to this rule is the overlay function: this is shared
-> >> +with the video capture node (or video output node for output overlays).</para>
-> > 
-> > The mention to overlay here is completely out of context, and proofs
-> > my point that "function" is a very bad choice: overlay is not a
-> > broadcast type. It is just one of the ways to output the data. The same
-> > device node can support multiple "delivery types":
-> > 	- overlay;
-> > 	- dma-buf;
-> > 	- mmap;
-> > 	- read or write.
-> > 
-> > Let's not mix those two concepts in the new text.
-> > 
-> > Also, the delivery type has nothing to do with "Opening and closing devices".
-> 
-> I like the word "delivery type" in this context and I agree with you here.
-> I'll see if I can improve this text.
-
-Thanks!
- 
-> > 
-> >> +
-> >> +      <para>The V4L2 API was designed with the idea that one device node could support
-> >> +all functions. However, in practice this never worked: this 'feature'
-> >> +was never used by applications and many drivers did not support it and if
-> >> +they did it was certainly never tested. In addition, switching a device
-> >> +node between different functions only works when using the streaming I/O
-> >> +API, not with the read()/write() API.</para>
-> >> +
-> >> +      <para>Today each device node supports just one function, with the
-> >> +exception of overlay support.</para>
-> >>  
-> >>        <para>Besides video input or output the hardware may also
-> >>  support audio sampling or playback. If so, these functions are
-> >> -implemented as OSS or ALSA PCM devices and eventually OSS or ALSA
-> >> -audio mixer. The V4L2 API makes no provisions yet to find these
-> >> -related devices. If you have an idea please write to the linux-media
-> >> -mailing list: &v4l-ml;.</para>
-> >> +implemented as ALSA PCM devices with optional ALSA audio mixer
-> >> +devices.</para>
-> >> +
-> >> +      <para>One problem with all these devices is that the V4L2 API
-> >> +makes no provisions to find these related devices. Some really
-> >> +complex devices use the Media Controller (see <xref linkend="media_controller" />)
-> >> +which can be used for this purpose. But most drivers do not use it,
-> >> +and while some code exists that uses sysfs to discover related devices,
-> >> +there is no standard library yet. If you want to work on this please write
-> >> +to the linux-media mailing list: &v4l-ml;.</para>
-> > 
-> > Not true. It is there at v4l-utils. Ok, patches are always welcome.
-> 
-> Well, sort of. That library only handles sysfs, not the mc.
-
-Yes, but that covers almost all devices, as the ones that use mc (except for
-uvc) have more serious issues, as libv4l still don't work with them. So, they
-demand dedicated applications anyway.
-
-> I know Laurent
-> has been working on a better replacement, but that's been stalled for ages.
-> In other words, someone needs to spend time on this and create a proper
-> library for this.
-
-True, but, again, media controller based devices also need the libv4l
-pieces that Sakari is working (also stalled).
-
-Let's not mix things: associating media devices via sysfs has already
-a library. If you want to mention about that, please point to it.
-
-A more generic work that will make libv4l and that library to also work
-with media controllers is a work to be done/finished.
-
-> 
-> > 
-> >>      </section>
-> >>  
-> >>      <section>
-> >> @@ -176,19 +124,22 @@ mailing list: &v4l-ml;.</para>
-> >>  When this is supported by the driver, users can for example start a
-> >>  "panel" application to change controls like brightness or audio
-> >>  volume, while another application captures video and audio. In other words, panel
-> >> -applications are comparable to an OSS or ALSA audio mixer application.
-> >> -When a device supports multiple functions like capturing and overlay
-> >> -<emphasis>simultaneously</emphasis>, multiple opens allow concurrent
-> >> -use of the device by forked processes or specialized applications.</para>
-> >> -
-> >> -      <para>Multiple opens are optional, although drivers should
-> >> -permit at least concurrent accesses without data exchange, &ie; panel
-> >> -applications. This implies &func-open; can return an &EBUSY; when the
-> >> -device is already in use, as well as &func-ioctl; functions initiating
-> >> -data exchange (namely the &VIDIOC-S-FMT; ioctl), and the &func-read;
-> >> -and &func-write; functions.</para>
-> >> -
-> >> -      <para>Mere opening a V4L2 device does not grant exclusive
-> >> +applications are comparable to an ALSA audio mixer application.
-> >> +Just opening a V4L2 device should not change the state of the device.
-> >> +Unfortunately, opening a radio device often switches the state of the
-> >> +device to radio mode in many drivers.</para>
-> > 
-> > This is an API spec document. It should say what is the expected behavior,
-> > and not mention non-compliant stuff.
-> 
-> How about putting this in a footnote? I do agree with you, but the fact is
-> that most if not all drivers that support both radio and video behave this
-> way. So one could argue that it is the spec that is non-compliant :-)
-
-If so, let's then fix the API to reflect that opening a radio device will
-change the behavior.
-> 
-> That said, at some point this should be fixed.
-
-Yes. one way or the other.
-
-> > 
-> >> +
-> >> +      <para>Almost all drivers allow multiple opens although there are
-> >> +still some old drivers that have not been updated to allow this.
-> >> +This implies &func-open; can return an &EBUSY; when the
-> >> +device is already in use.</para>
-> > 
-> > What drivers? We should fix the driver, not the API doc.
-> 
-> vino.c (I do have fixes for this in an old branch), timblogiw.c, fsl-viu.c.
-> There are probably a few more. Generally such drivers are old and/or obscure.
-
-Maybe in this specific case, a footnote could be added, although the better
-would be to simply fix or remove/move to staging those drivers.
-
-> Since I am still working (slowly) on converting drivers to the modern frameworks
-> I'll come across these eventually.
-> 
-> > Also, we need more discussions. It could make sense to return EBUSY
-> > even on new drivers, for example, if they're already in usage by some
-> > other broadcast type?
-> 
-> You are not using it until you actually start streaming (or allocating buffers,
-> or whatever). There is no reason within the current framework to return EBUSY
-> for just opening a device node.
-> 
-> Not being able to open a device node a second time makes it impossible to
-> create e.g. monitoring applications that do something when an event happens.
-
-Agreed.
-
-> > 
-> >> +
-> >> +      <para>It is never possible to start streaming when
-> >> +streaming is already in progress. So &func-ioctl; functions initiating
-> >> +data exchange (e.g. the &VIDIOC-STREAMON; ioctl), and the &func-read;
-> >> +and &func-write; functions can return an &EBUSY;.</para>
-> > 
-> > Here, the Overlay is a somewhat an exception, not in the sense that 
-> > they'll call streamon latter, but in the sense that overlay ioctls
-> > can happen after streaming.
-> 
-> I'll make a note of that.
-> 
-> > I don't remember well how DMA buf works,
-> > but I think you can also start to use a mmaped copy of the dma buffers
-> > after start streaming.
-> 
-> Possibly, but that has nothing to do with this paragraph. Once a file
-> handle calls STREAMON, then no other file handle of the same device node
-> can call STREAMON, unless the owner stops streaming and releases all
-> resources (REQBUFS(0)).
-
-Well, then the paragraph text is not quite right, as it mentions 
-"initiating data exchange".
-
-If one mmaps memory latter to use it on an already started DMA buffer,
-it is initiating the "memory copy" data exchange with the mmap.
-
-STREAMON is just one of the ways to initiate a data exchange.
-
-> > 
-> >> +
-> >> +      <para>Merely opening a V4L2 device does not grant exclusive
-> >>  access.<footnote>
-> >>  	  <para>Drivers could recognize the
-> >>  <constant>O_EXCL</constant> open flag. Presently this is not required,
-> >> @@ -206,12 +157,7 @@ additional access privileges using the priority mechanism described in
-> >>        <para>V4L2 drivers should not support multiple applications
-> >>  reading or writing the same data stream on a device by copying
-> >>  buffers, time multiplexing or similar means. This is better handled by
-> >> -a proxy application in user space. When the driver supports stream
-> >> -sharing anyway it must be implemented transparently. The V4L2 API does
-> >> -not specify how conflicts are solved. <!-- For example O_EXCL when the
-> >> -application does not want to be preempted, PROT_READ mmapped buffers
-> >> -which can be mapped twice, what happens when image formats do not
-> >> -match etc.--></para>
-> >> +a proxy application in user space.</para>
-> >>      </section>
-> >>  
-> >>      <section>
-> > 
-> > 
-> 
-> Thanks!
-> 
-> 	Hans
+At first glance it seems there are at least 2 issues:
+1.) use after freeing in v4l-extension (happens when the device is 
+closed after the usb disconnect)
+2.) error paths in the init() functions ?
 
 
--- 
+> On both my tests and Antti's one,
+> with this series, there were significant improvements on removing existing
+> bugs with device removal.
+I'm talking about this specific patch here, not the whole series.
+I have no objections against the rest of the series (well, with the 
+exception of patch 5 at the moment).
 
-Cheers,
-Mauro
+>
+>> em28xx resources releasing is broken since ... well... at least 2 years.
+>> 3.14 will already be much better and nobody will care if this remaining
+>> issue is addressed a kernel release later.
+> Although I think that we're properly releasing resources, I'm a way less
+> concerned about keeping some leaked memory while releasing them than I am
+> concerned that a device removal that would cause an OOPS, or a deadly
+> crash at the USB or ALSA stack that prevents other devices to be probed.
+>
+> Due to em28xx-v4l calling em28xx_release_resources(), now both the
+> USB and ALSA stacks crashes if you remove a device while ALSA is streaming.
+>
+> That happens because em28xx, I2C, etc will be freed by em28xx-v4l, but
+> those resources are still needed by em28xx-alsa. That makes that the
+> .fini code there to cause crash at ALSA stack, and, sometimes, at the
+> USB stack.
+
+That's not true anymore, em28xx_release_resources() is now only called 
+by the usb disconnect handler in the core _after_ all fini() functions 
+have been called.
+Maybe you tested that without my patch series ? See patch 7/8.
+
+> As nowadays lots of components depend on pulseaudio, the ALSA crash
+> causes pulse to stop work, likely keeping it into some dead lock status.
+> This makes the entire machine to become really slow, when it doesn't
+> crash.
+>
+> This is a serious regression that should be fixed.
+>
+> This patch series for sure fixes it. As I said, there are two independent
+> series of tests verifying that (both using several different em28xx
+> devices).
+>
+>> Be warned !
+>>
+>>
+>
+
