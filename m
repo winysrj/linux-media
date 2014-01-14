@@ -1,129 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:11687 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751634AbaANVUW convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:57495 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751889AbaANXi7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jan 2014 16:20:22 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZE002RTTXX5F80@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Jan 2014 16:20:21 -0500 (EST)
-Date: Tue, 14 Jan 2014 19:20:13 -0200
+	Tue, 14 Jan 2014 18:38:59 -0500
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 3/7] em28xx: Only deallocate struct em28xx after finishing
- all extensions
-Message-id: <20140114192013.578b6b2f@samsung.com>
-In-reply-to: <52D5A290.8040605@googlemail.com>
-References: <1389567649-26838-1-git-send-email-m.chehab@samsung.com>
- <1389567649-26838-4-git-send-email-m.chehab@samsung.com>
- <52D4383B.6030304@googlemail.com> <20140113172334.191862a7@samsung.com>
- <52D460D8.1000807@googlemail.com> <20140114111054.58ede4a3@samsung.com>
- <52D57E2C.2070407@googlemail.com> <20140114165512.2d14af95@samsung.com>
- <52D5A290.8040605@googlemail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Subject: [PATCH] em28xx-cards: properly initialize the device bitmap
+Date: Tue, 14 Jan 2014 18:35:15 -0200
+Message-Id: <1389731715-28006-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Jan 2014 21:48:16 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Instead of just creating a long int, use DECLARE_BITMAP().
 
-> Am 14.01.2014 19:55, schrieb Mauro Carvalho Chehab:
-> > Em Tue, 14 Jan 2014 19:13:00 +0100
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-...
-> >> At first glance it seems there are at least 2 issues:
-> >> 1.) use after freeing in v4l-extension (happens when the device is 
-> >> closed after the usb disconnect)
-> > That's basically what this patch fixes. Both V4L2 and ALSA handles it
-> > well, if you warn the subsystem that a device will be removed.
-> >
-> > If are there still any issues, we may add a kref_get() at device open,
-> > an a kref_put() at device close on the affected sub-driver.
-> Ok, I've tested it and I was right here.
-> This is what happens when closing a disconnected device:
-> 
-> [  144.045691] usb 1-8: USB disconnect, device number 7
-> [  144.047387] em2765 #0: disconnecting em2765 #0 video
-> [  144.047403] em2765 #0: V4L2 device video1 deregistered
-> [  144.050197] em2765 #0: Deregistering snapshot button
-> [  144.058336] em2765 #0: Freeing device
-> [  147.525267] : em28xx_v4l2_close() called
-> [  147.525287] : em28xx_videodevice_release() called
-> 
-> 
-> I will make some tests tomorrow, but here is a first suggestion how to
-> fix this:
-> 
-> Remove the kref_put() call from em28xx_v4l2_fini().
-> Instead, add the following lines to em28xx_videodevice_release():
-> 
-> if (dev->users == 0) {
->         dev->users--; /* avoid multiple kref_put() calls when the
-> devices are unregistered and no device is open */
->         kref_put(&dev->ref, em28xx_free_device);
-> }
-> 
-> That should fix it.
+No functional changes.
 
-What I actually did on version 2 (already submitted) is that it is calling 
-kref_get() at open, and kref_put() at close.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-> Interestingly no oops happens. I will have to take a closer look at this
-> tomorrow, but I suspect that the dev we obtain from struct file filp is
-> an outdated copy of the original device struct.
-
-Likely.
-
-> If that would be true and no bad things can happen in the close()
-> function we actually wouldn't need kref for the v4l extension at all.
-
-Still, it will be writing on a deallocated buffer, and this can be
-making some memory used by some other part of the Kernel dirty.
-
-> Of course, the ideal solution would be, if we could just clear the
-> device struct at the end of the usb disconnect handler, because we can
-> be sure that the fini() functions have already made sure that dev isn't
-> used anymore.
->
-> Btw, what happens in em28xx-audio ?
-> Does the ALSA core also allow to call the close() function when the
-> device is already gone ?
-
-I suspect so. This is what happens when I remove HVR-950 while both
-audio and video are still streaming:
-
-[ 4313.540907] usb 3-4: USB disconnect, device number 7
-[ 4313.541280] em2882/3 #0: Disconnecting em2882/3 #0
-[ 4313.541313] em2882/3 #0: Closing video extension
-[ 4313.541352] em2882/3 #0: V4L2 device vbi0 deregistered
-[ 4313.541635] em2882/3 #0: V4L2 device video0 deregistered
-[ 4313.542188] em2882/3 #0: Closing audio extension
-
-(I waited for ~5 secs before removing the driver)
-
-[ 4317.470747] em2882/3 #0: couldn't setup AC97 register 2
-[ 4317.470772] em2882/3 #0: couldn't setup AC97 register 4
-[ 4317.470785] em2882/3 #0: couldn't setup AC97 register 6
-[ 4317.470797] em2882/3 #0: couldn't setup AC97 register 54
-[ 4317.470810] em2882/3 #0: couldn't setup AC97 register 56
-[ 4317.470950] em2882/3 #0: Closing DVB extension
-[ 4317.471890] xc2028 19-0061: destroying instance
-[ 4317.471913] em2882/3 #0: Closing input extension
-[ 4317.489374] em2882/3 #0: Freeing device
-
-As the code now have a kref for open/close on both audio and video
-extensions, that means that em28xx close was called after device
-removal, as otherwise, we won't see the "Freeing device" print.
-
-
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 8fc0a437054e..cd0d01b53c73 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -66,7 +66,7 @@ MODULE_PARM_DESC(usb_xfer_mode,
+ 
+ 
+ /* Bitmask marking allocated devices from 0 to EM28XX_MAXBOARDS - 1 */
+-static unsigned long em28xx_devused;
++DECLARE_BITMAP(em28xx_devused, EM28XX_MAXBOARDS);
+ 
+ struct em28xx_hash_table {
+ 	unsigned long hash;
+@@ -2887,7 +2887,7 @@ void em28xx_free_device(struct kref *ref)
+ 	usb_put_dev(dev->udev);
+ 
+ 	/* Mark device as unused */
+-	clear_bit(dev->devno, &em28xx_devused);
++	clear_bit(dev->devno, em28xx_devused);
+ 
+ 	kfree(dev->alt_max_pkt_size_isoc);
+ 	kfree(dev);
+@@ -3097,7 +3097,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 
+ 	/* Check to see next free device and mark as used */
+ 	do {
+-		nr = find_first_zero_bit(&em28xx_devused, EM28XX_MAXBOARDS);
++		nr = find_first_zero_bit(em28xx_devused, EM28XX_MAXBOARDS);
+ 		if (nr >= EM28XX_MAXBOARDS) {
+ 			/* No free device slots */
+ 			printk(DRIVER_NAME ": Supports only %i em28xx boards.\n",
+@@ -3105,7 +3105,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 			retval = -ENOMEM;
+ 			goto err_no_slot;
+ 		}
+-	} while (test_and_set_bit(nr, &em28xx_devused));
++	} while (test_and_set_bit(nr, em28xx_devused));
+ 
+ 	/* Don't register audio interfaces */
+ 	if (interface->altsetting[0].desc.bInterfaceClass == USB_CLASS_AUDIO) {
+@@ -3360,7 +3360,7 @@ err_free:
+ 	kfree(dev);
+ 
+ err:
+-	clear_bit(nr, &em28xx_devused);
++	clear_bit(nr, em28xx_devused);
+ 
+ err_no_slot:
+ 	usb_put_dev(udev);
 -- 
+1.8.3.1
 
-Cheers,
-Mauro
