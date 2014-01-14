@@ -1,51 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:65060 "EHLO mout.gmx.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:40695 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753194AbaA0DUs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jan 2014 22:20:48 -0500
-Received: from minime.bse ([77.20.120.199]) by mail.gmx.com (mrgmx001) with
- ESMTPSA (Nemesis) id 0MMkDH-1WDOiH0j9z-008X9u for
- <linux-media@vger.kernel.org>; Mon, 27 Jan 2014 04:20:46 +0100
-Date: Mon, 27 Jan 2014 04:20:44 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Robert Longbottom <rongblor@googlemail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
-Message-ID: <20140127032044.GA27541@minime.bse>
-References: <20140122115334.GA14710@minime.bse>
- <52DFC300.8010508@googlemail.com>
- <20140122135036.GA14871@minime.bse>
- <52E00AD0.2020402@googlemail.com>
- <20140123132741.GA15756@minime.bse>
- <52E1273F.90207@googlemail.com>
- <20140125152339.GA18168@minime.bse>
- <52E4EFBB.7070504@googlemail.com>
- <20140126125552.GA26918@minime.bse>
- <52E5366A.807@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <52E5366A.807@googlemail.com>
+	id S1752457AbaANBU6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jan 2014 20:20:58 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v7 08/12] v4l: do not allow modulator ioctls for non-radio devices
+Date: Tue, 14 Jan 2014 03:20:26 +0200
+Message-Id: <1389662430-32699-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1389662430-32699-1-git-send-email-crope@iki.fi>
+References: <1389662430-32699-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 26, 2014 at 04:23:06PM +0000, Robert Longbottom wrote:
-> 000 000000D7 DSTATUS
-> 114 32734000 RISC_STRT_ADD
-> 120 32734000 RISC_COUNT
+From: Hans Verkuil <hverkuil@xs4all.nl>
 
-Video is present and locked but the RISC counter is stuck at the start
-address. My best guess is that the CPLD is not forwarding the REQ signal
-to the PCI bridge, so the BT878A can't fetch the RISC instructions.
-But then there is also this persistent ADC overflow...
+Modulator ioctls could be enabled mistakenly for non-radio devices.
+Currently those ioctls are only valid for radio. Fix it.
 
-As for the CPLD, there is not much we can do. I count 23 GPIOs going
-to that chip. And we don't know if some of these are outputs of the
-CPLD, making it a bit risky to just randomly drive values on those
-pins.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-If we had the original software, we could analyze what it is doing.
-There is someone on ebay.com selling two of those cards and a cd
-labled "Rescue Disk Version 1.14 for Linux DVR".
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 6308a19..9adde0f 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -553,6 +553,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	const struct v4l2_ioctl_ops *ops = vdev->ioctl_ops;
+ 	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
++	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
+ 	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
+@@ -726,8 +727,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
+ 		SET_VALID_IOCTL(ops, VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap);
+ 	}
+-	if (is_tx) {
+-		/* transmitter only ioctls */
++	if (is_tx && (is_radio || is_sdr)) {
++		/* radio transmitter only ioctls */
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_MODULATOR, vidioc_g_modulator);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_MODULATOR, vidioc_s_modulator);
+ 	}
+-- 
+1.8.4.2
 
-  Daniel
