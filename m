@@ -1,61 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56053 "EHLO mail.kapsi.fi"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:39641 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752559AbaAYRLJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:09 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 45/52] rtl2832_sdr: remove FMT buffer type checks
-Date: Sat, 25 Jan 2014 19:10:39 +0200
-Message-Id: <1390669846-8131-46-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+	id S1751287AbaANMq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jan 2014 07:46:58 -0500
+Message-ID: <52D52F8D.4020806@schinagl.nl>
+Date: Tue, 14 Jan 2014 13:37:33 +0100
+From: Olliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Philip Yarra <philip.yarra@gmail.com>, linux-media@vger.kernel.org
+CC: oliver@schinagl.nl
+Subject: Re: Initial scan table for au-Melbourne-Selby
+References: <52CBA1C3.3000105@gmail.com>
+In-Reply-To: <52CBA1C3.3000105@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove unneeded buffer type checks from FMT IOTCL handlers. Checks
-are already done by V4L core.
+Hi Philip,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 9 ---------
- 1 file changed, 9 deletions(-)
+On 07-01-14 07:42, Philip Yarra wrote:
+> Hi, please find attached a scan table for au-Melbourne-Selby. This file
+> is very similar to the scan table file for au-Melbourne-Upwey (which I
+> was able to use until quite recently). However the fec_hi value of "2/3"
+> for SBS no longer works for me, and I need to use "AUTO" instead. I
+> don't know if this change also affects the Upwey repeater.
+>
+> Details on the geographic locations of these repeaters can be found here:
+> Upwey: http://www20.sbs.com.au/transmissions/index.php?pid=2&id=795
+> Selby: http://www20.sbs.com.au/transmissions/index.php?pid=2&id=792
+>
+> Note that the Selby repeater actually covers the parts of Upwey which
+> are not able to get signal from the Upwey repeater, due to hilly
+> terrain. Although they use identical frequencies, the polarisation is
+> different.
+I think that makes sense to have the two transmitters seperated then.
+>
+> I assume AUTO allows the DVB tuner to choose one of the FEC types
+> dynamically, though I don't know if this is supported by all tuners. If
+> there's a way I can find out which actual fec_hi is in use, please let
+> me know and I will supply it.
+>
+> I have provided a brief write-up at
+> http://pyarra.blogspot.com.au/2014/01/mythtv-and-sbs-in-dandenong-ranges.html
+> - please let me know if there is further information I can provide.
+Next time use git send-mail ;)
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 0bc417d..d101409 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -1191,9 +1191,6 @@ static int rtl2832_sdr_g_fmt_sdr_cap(struct file *file, void *priv,
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
--	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
--		return -EINVAL;
--
- 	f->fmt.sdr.pixelformat = s->pixelformat;
- 
- 	return 0;
-@@ -1208,9 +1205,6 @@ static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
- 			(char *)&f->fmt.sdr.pixelformat);
- 
--	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
--		return -EINVAL;
--
- 	if (vb2_is_busy(q))
- 		return -EBUSY;
- 
-@@ -1235,9 +1229,6 @@ static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
- 			(char *)&f->fmt.sdr.pixelformat);
- 
--	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
--		return -EINVAL;
--
- 	for (i = 0; i < NUM_FORMATS; i++) {
- 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
- 			return 0;
--- 
-1.8.5.3
-
+>
+> Regards,
+> Philip.
+Thanks, I've pushed it now.
+Oliver
