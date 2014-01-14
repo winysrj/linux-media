@@ -1,111 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3770 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750940AbaALDdo (ORCPT
+Received: from dd6204.kasserver.com ([85.13.131.2]:50073 "EHLO
+	dd6204.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751295AbaANKy2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jan 2014 22:33:44 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0C3Xev1011745
-	for <linux-media@vger.kernel.org>; Sun, 12 Jan 2014 04:33:42 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id BB23B2A009C
-	for <linux-media@vger.kernel.org>; Sun, 12 Jan 2014 04:33:28 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Tue, 14 Jan 2014 05:54:28 -0500
+Received: from [192.168.178.28] (p4FD556A4.dip0.t-ipconnect.de [79.213.86.164])
+	by dd6204.kasserver.com (Postfix) with ESMTPSA id C93CBD20173
+	for <linux-media@vger.kernel.org>; Tue, 14 Jan 2014 11:49:15 +0100 (CET)
+Message-ID: <52D51570.9000908@datenparkplatz.de>
+Date: Tue, 14 Jan 2014 11:46:08 +0100
+From: Ulrich Lukas <stellplatz-nr.13a@datenparkplatz.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140112033328.BB23B2A009C@tschai.lan>
-Date: Sun, 12 Jan 2014 04:33:28 +0100 (CET)
+Subject: DVBSky-cards - M88DS3103 / M88TS2020
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Since we got support for Montage M88DS3103 DVB-S/S2 demodulator driver
+with commit 395d00d1ca8947887fd0fbdec4fff90c4da21877:
 
-Results of the daily build of media_tree:
+There is a number of popular DVB S/S2 cards from company DVBSky based on
 
-date:		Sun Jan 12 04:00:16 CET 2014
-git branch:	test
-git hash:	d20e4ed6d30c6ecee315eea0efb3449c3591d09e
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+RF: Montage M88TS2020
+Demodulator: 2nd generation Montage M88DS3103
+PCIe Bridge: Conexant CX23885
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+(http://linuxtv.org/wiki/index.php/DVBSky)
 
-Detailed results are available here:
+There also is a previously existing manufacturer-supplied patch against
+mainline kernel 3.12 with different implementation of m88ds3103 driver
+files, but with PCI IDs etc. that add support for these cards:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+http://www.dvbsky.net/download/linux/kernel-3.12.5-dvbsky.patch.tar.gz
+(Via: http://www.dvbsky.net/Support.html)
 
-Full logs are available here:
+Are there any major tasks left with regard to support/inclusion for
+these cards in mainline/linux-media?
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards,
+Ulrich
