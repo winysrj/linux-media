@@ -1,188 +1,324 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:48384 "EHLO multi.imgtec.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752663AbaAQOAS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 09:00:18 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH v2 12/15] media: rc: img-ir: add JVC decoder module
-Date: Fri, 17 Jan 2014 13:58:57 +0000
-Message-ID: <1389967140-20704-13-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
-References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:56904 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751811AbaANUk6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jan 2014 15:40:58 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2] em28xx: Only deallocate struct em28xx after finishing all extensions
+Date: Tue, 14 Jan 2014 15:36:53 -0200
+Message-Id: <1389721013-20231-1-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1389567649-26838-4-git-send-email-m.chehab@samsung.com>
+References: <1389567649-26838-4-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an img-ir module for decoding the JVC infrared protocol.
+We can't free struct em28xx while one of the extensions is still
+using it.
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
+So, add a kref() to control it, freeing it only after the
+extensions fini calls.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
+
 v2:
-- Update to new scancode interface (32-bit NEC).
-- Update to new filtering interface (generic struct rc_scancode_filter).
-- Remove modularity and dynamic registration/unregistration, adding JVC
-  directly to the list of decoders in img-ir-hw.c.
----
- drivers/media/rc/img-ir/Kconfig      |  7 +++
- drivers/media/rc/img-ir/Makefile     |  1 +
- drivers/media/rc/img-ir/img-ir-hw.c  |  4 ++
- drivers/media/rc/img-ir/img-ir-jvc.c | 92 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 104 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-jvc.c
+	- patch was rebased;
+	- as em28xx-audio close uses struct em28xx dev, add a kref in order
+	  to track audio open/close.
 
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-index 28498a2..96006fbf 100644
---- a/drivers/media/rc/img-ir/Kconfig
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -31,3 +31,10 @@ config IR_IMG_NEC
- 	help
- 	   Say Y here to enable support for the NEC, extended NEC, and 32-bit
- 	   NEC protocols in the ImgTec infrared decoder block.
+ drivers/media/usb/em28xx/em28xx-audio.c |  8 +++++++-
+ drivers/media/usb/em28xx/em28xx-cards.c | 34 ++++++++++++++++-----------------
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  5 ++++-
+ drivers/media/usb/em28xx/em28xx-input.c |  8 +++++++-
+ drivers/media/usb/em28xx/em28xx-video.c | 14 ++++++++------
+ drivers/media/usb/em28xx/em28xx.h       |  9 +++++++--
+ 6 files changed, 50 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 45bea1adc11c..73eeeaf6551f 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -265,6 +265,8 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+ 
+ 	dprintk("opening device and trying to acquire exclusive lock\n");
+ 
++	kref_get(&dev->ref);
 +
-+config IR_IMG_JVC
-+	bool "JVC protocol support"
-+	depends on IR_IMG_HW
-+	help
-+	   Say Y here to enable support for the JVC protocol in the ImgTec
-+	   infrared decoder block.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-index c409197..c5f8f06 100644
---- a/drivers/media/rc/img-ir/Makefile
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -2,6 +2,7 @@ img-ir-y			:= img-ir-core.o
- img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
- img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
- img-ir-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
-+img-ir-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
- img-ir-objs			:= $(img-ir-y)
+ 	runtime->hw = snd_em28xx_hw_capture;
+ 	if ((dev->alt == 0 || dev->audio_ifnum) && dev->adev.users == 0) {
+ 		int nonblock = !!(substream->f_flags & O_NONBLOCK);
+@@ -330,6 +332,7 @@ static int snd_em28xx_pcm_close(struct snd_pcm_substream *substream)
+ 		substream->runtime->dma_area = NULL;
+ 	}
+ 	mutex_unlock(&dev->lock);
++	kref_put(&dev->ref, em28xx_free_device);
  
- obj-$(CONFIG_IR_IMG)		+= img-ir.o
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index 79ec495..fc8a58b 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -21,12 +21,16 @@
- static DEFINE_SPINLOCK(img_ir_decoders_lock);
+ 	return 0;
+ }
+@@ -886,6 +889,8 @@ static int em28xx_audio_init(struct em28xx *dev)
  
- extern struct img_ir_decoder img_ir_nec;
-+extern struct img_ir_decoder img_ir_jvc;
+ 	em28xx_info("Binding audio extension\n");
  
- static bool img_ir_decoders_preprocessed;
- static struct img_ir_decoder *img_ir_decoders[] = {
- #ifdef CONFIG_IR_IMG_NEC
- 	&img_ir_nec,
- #endif
-+#ifdef CONFIG_IR_IMG_JVC
-+	&img_ir_jvc,
-+#endif
- 	NULL
++	kref_get(&dev->ref);
++
+ 	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
+ 			 "Rechberger\n");
+ 	printk(KERN_INFO
+@@ -958,7 +963,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+ 	if (dev == NULL)
+ 		return 0;
+ 
+-	if (dev->has_alsa_audio != 1) {
++	if (!dev->has_alsa_audio) {
+ 		/* This device does not support the extension (in this case
+ 		   the device is expecting the snd-usb-audio module or
+ 		   doesn't have analog audio support at all) */
+@@ -977,6 +982,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+ 		dev->adev.sndcard = NULL;
+ 	}
+ 
++	kref_put(&dev->ref, em28xx_free_device);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index e08d65b2e352..8fc0a437054e 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2867,16 +2867,18 @@ static void flush_request_modules(struct em28xx *dev)
+ 	flush_work(&dev->request_module_wk);
+ }
+ 
+-/*
+- * em28xx_release_resources()
+- * unregisters the v4l2,i2c and usb devices
+- * called when the device gets disconnected or at module unload
+-*/
+-void em28xx_release_resources(struct em28xx *dev)
++/**
++ * em28xx_release_resources() -  unregisters the v4l2,i2c and usb devices
++ *
++ * @ref: struct kref for em28xx device
++ *
++ * This is called when all extensions and em28xx core unregisters a device
++ */
++void em28xx_free_device(struct kref *ref)
+ {
+-	/*FIXME: I2C IR should be disconnected */
++	struct em28xx *dev = kref_to_dev(ref);
+ 
+-	mutex_lock(&dev->lock);
++	em28xx_info("Freeing device\n");
+ 
+ 	if (dev->def_i2c_bus)
+ 		em28xx_i2c_unregister(dev, 1);
+@@ -2887,9 +2889,10 @@ void em28xx_release_resources(struct em28xx *dev)
+ 	/* Mark device as unused */
+ 	clear_bit(dev->devno, &em28xx_devused);
+ 
+-	mutex_unlock(&dev->lock);
+-};
+-EXPORT_SYMBOL_GPL(em28xx_release_resources);
++	kfree(dev->alt_max_pkt_size_isoc);
++	kfree(dev);
++}
++EXPORT_SYMBOL_GPL(em28xx_free_device);
+ 
+ /*
+  * em28xx_init_dev()
+@@ -3342,6 +3345,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 			    dev->dvb_xfer_bulk ? "bulk" : "isoc");
+ 	}
+ 
++	kref_init(&dev->ref);
++
+ 	request_modules(dev);
+ 
+ 	/* Should be the last thing to do, to avoid newer udev's to
+@@ -3385,12 +3390,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 
+ 	em28xx_close_extension(dev);
+ 
+-	em28xx_release_resources(dev);
+-
+-	if (!dev->users) {
+-		kfree(dev->alt_max_pkt_size_isoc);
+-		kfree(dev);
+-	}
++	kref_put(&dev->ref, em28xx_free_device);
+ }
+ 
+ static struct usb_driver em28xx_usb_driver = {
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 881a813836eb..7df21e33a923 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1005,11 +1005,11 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 	em28xx_info("Binding DVB extension\n");
+ 
+ 	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
+-
+ 	if (dvb == NULL) {
+ 		em28xx_info("em28xx_dvb: memory allocation failed\n");
+ 		return -ENOMEM;
+ 	}
++	kref_get(&dev->ref);
+ 	dev->dvb = dvb;
+ 	dvb->fe[0] = dvb->fe[1] = NULL;
+ 
+@@ -1437,6 +1437,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 	dvb->adapter.mfe_shared = mfe_shared;
+ 
+ 	em28xx_info("DVB extension successfully initialized\n");
++
+ ret:
+ 	em28xx_set_mode(dev, EM28XX_SUSPEND);
+ 	mutex_unlock(&dev->lock);
+@@ -1489,6 +1490,8 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 		dev->dvb = NULL;
+ 	}
+ 
++	kref_put(&dev->ref, em28xx_free_device);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 3d54c04e5230..c98d784a2772 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -675,6 +675,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
++	kref_get(&dev->ref);
++
+ 	if (dev->board.buttons)
+ 		em28xx_init_buttons(dev);
+ 
+@@ -817,7 +819,7 @@ static int em28xx_ir_fini(struct em28xx *dev)
+ 
+ 	/* skip detach on non attached boards */
+ 	if (!ir)
+-		return 0;
++		goto ref_put;
+ 
+ 	if (ir->rc)
+ 		rc_unregister_device(ir->rc);
+@@ -825,6 +827,10 @@ static int em28xx_ir_fini(struct em28xx *dev)
+ 	/* done */
+ 	kfree(ir);
+ 	dev->ir = NULL;
++
++ref_put:
++	kref_put(&dev->ref, em28xx_free_device);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index aabcafbdab46..f801af8d3f61 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1837,6 +1837,7 @@ static int em28xx_v4l2_open(struct file *filp)
+ 			video_device_node_name(vdev), v4l2_type_names[fh_type],
+ 			dev->users);
+ 
++	kref_get(&dev->ref);
+ 
+ 	if (mutex_lock_interruptible(&dev->lock))
+ 		return -ERESTARTSYS;
+@@ -1926,9 +1927,8 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 
+-	if (dev->users)
+-		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
+ 	mutex_unlock(&dev->lock);
++	kref_put(&dev->ref, em28xx_free_device);
+ 
+ 	return 0;
+ }
+@@ -1950,11 +1950,9 @@ static int em28xx_v4l2_close(struct file *filp)
+ 	mutex_lock(&dev->lock);
+ 
+ 	if (dev->users == 1) {
+-		/* free the remaining resources if device is disconnected */
+-		if (dev->disconnected) {
+-			kfree(dev->alt_max_pkt_size_isoc);
++		/* No sense to try to write to the device */
++		if (dev->disconnected)
+ 			goto exit;
+-		}
+ 
+ 		/* Save some power by putting tuner to sleep */
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+@@ -1975,6 +1973,8 @@ static int em28xx_v4l2_close(struct file *filp)
+ exit:
+ 	dev->users--;
+ 	mutex_unlock(&dev->lock);
++	kref_put(&dev->ref, em28xx_free_device);
++
+ 	return 0;
+ }
+ 
+@@ -2206,6 +2206,8 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 
+ 	em28xx_info("Registering V4L2 extension\n");
+ 
++	kref_get(&dev->ref);
++
+ 	mutex_lock(&dev->lock);
+ 
+ 	ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 10b817245f7e..8b3438891bb3 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -32,6 +32,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/i2c.h>
+ #include <linux/mutex.h>
++#include <linux/kref.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/videobuf2-vmalloc.h>
+@@ -533,9 +534,11 @@ struct em28xx_i2c_bus {
+ 	enum em28xx_i2c_algo_type algo_type;
  };
  
-diff --git a/drivers/media/rc/img-ir/img-ir-jvc.c b/drivers/media/rc/img-ir/img-ir-jvc.c
-new file mode 100644
-index 0000000..ae55867
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-jvc.c
-@@ -0,0 +1,92 @@
-+/*
-+ * ImgTec IR Decoder setup for JVC protocol.
-+ *
-+ * Copyright 2012-2014 Imagination Technologies Ltd.
-+ */
+-
+ /* main device struct */
+ struct em28xx {
++	struct kref ref;
 +
-+#include "img-ir-hw.h"
 +
-+/* Convert JVC data to a scancode */
-+static int img_ir_jvc_scancode(int len, u64 raw, int *scancode, u64 protocols)
-+{
-+	unsigned int cust, data;
+ 	/* generic device properties */
+ 	char name[30];		/* name (including minor) of the device */
+ 	int model;		/* index in the device_data struct */
+@@ -708,6 +711,8 @@ struct em28xx {
+ 	struct em28xx_dvb *dvb;
+ };
+ 
++#define kref_to_dev(d) container_of(d, struct em28xx, ref)
 +
-+	if (len != 16)
-+		return -EINVAL;
-+
-+	cust = (raw >> 0) & 0xff;
-+	data = (raw >> 8) & 0xff;
-+
-+	*scancode = cust << 8 | data;
-+	return IMG_IR_SCANCODE;
-+}
-+
-+/* Convert JVC scancode to JVC data filter */
-+static int img_ir_jvc_filter(const struct rc_scancode_filter *in,
-+			     struct img_ir_filter *out, u64 protocols)
-+{
-+	unsigned int cust, data;
-+	unsigned int cust_m, data_m;
-+
-+	cust   = (in->data >> 8) & 0xff;
-+	cust_m = (in->mask >> 8) & 0xff;
-+	data   = (in->data >> 0) & 0xff;
-+	data_m = (in->mask >> 0) & 0xff;
-+
-+	out->data = cust   | data << 8;
-+	out->mask = cust_m | data_m << 8;
-+
-+	return 0;
-+}
-+
-+/*
-+ * JVC decoder
-+ * See also http://www.sbprojects.com/knowledge/ir/jvc.php
-+ *          http://support.jvc.com/consumer/support/documents/RemoteCodes.pdf
-+ */
-+struct img_ir_decoder img_ir_jvc = {
-+	.type = RC_BIT_JVC,
-+	.control = {
-+		.decoden = 1,
-+		.code_type = IMG_IR_CODETYPE_PULSEDIST,
-+		.decodend2 = 1,
-+	},
-+	/* main timings */
-+	.unit = 527500, /* 527.5 us */
-+	.timings = {
-+		/* leader symbol */
-+		.ldr = {
-+			.pulse = { 16	/* 8.44 ms */ },
-+			.space = { 8	/* 4.22 ms */ },
-+		},
-+		/* 0 symbol */
-+		.s00 = {
-+			.pulse = { 1	/* 527.5 us +-60 us */ },
-+			.space = { 1	/* 527.5 us */ },
-+		},
-+		/* 1 symbol */
-+		.s01 = {
-+			.pulse = { 1	/* 527.5 us +-60 us */ },
-+			.space = { 3	/* 1.5825 ms +-40 us */ },
-+		},
-+		/* 0 symbol (no leader) */
-+		.s00 = {
-+			.pulse = { 1	/* 527.5 us +-60 us */ },
-+			.space = { 1	/* 527.5 us */ },
-+		},
-+		/* 1 symbol (no leader) */
-+		.s01 = {
-+			.pulse = { 1	/* 527.5 us +-60 us */ },
-+			.space = { 3	/* 1.5825 ms +-40 us */ },
-+		},
-+		/* free time */
-+		.ft = {
-+			.minlen = 16,
-+			.maxlen = 16,
-+			.ft_min = 10,	/* 5.275 ms */
-+		},
-+	},
-+	/* scancode logic */
-+	.scancode = img_ir_jvc_scancode,
-+	.filter = img_ir_jvc_filter,
-+};
+ struct em28xx_ops {
+ 	struct list_head next;
+ 	char *name;
+@@ -765,7 +770,7 @@ extern struct em28xx_board em28xx_boards[];
+ extern struct usb_device_id em28xx_id_table[];
+ int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
+ void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl);
+-void em28xx_release_resources(struct em28xx *dev);
++void em28xx_free_device(struct kref *ref);
+ 
+ /* Provided by em28xx-camera.c */
+ int em28xx_detect_sensor(struct em28xx *dev);
 -- 
-1.8.3.2
-
+1.8.3.1
 
