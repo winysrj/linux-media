@@ -1,73 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:38911 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751785AbaAMWBK (ORCPT
+Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:34506 "EHLO
+	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751503AbaANLKM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 17:01:10 -0500
-Received: by mail-ea0-f177.google.com with SMTP id n15so3619007ead.8
-        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 14:01:09 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 2/2] em28xx: fix check for audio only usb interfaces when changing the usb alternate setting
-Date: Mon, 13 Jan 2014 23:02:07 +0100
-Message-Id: <1389650527-3962-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1389650527-3962-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1389650527-3962-1-git-send-email-fschaefer.oss@googlemail.com>
+	Tue, 14 Jan 2014 06:10:12 -0500
+From: <srinivas.kandagatla@st.com>
+To: <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-kernel@vger.kernel.org>,
+	Srinivas Kandagatla <srinivas.kandagatla@st.com>
+Subject: [PATCH v1] media: st-rc: Add reset support
+Date: Tue, 14 Jan 2014 11:04:21 +0000
+Message-ID: <1389697461-21001-1-git-send-email-srinivas.kandagatla@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously, we've been assuming that the video endpoints are always at usb
-interface 0. Hence, if vendor audio endpoints are provided at a separate
-interface, they were supposed to be at interface number > 0.
-Instead of checking for (interface number > 0) to determine if an interface is a
-pure audio interface, dev->is_audio_only should be checked.
+From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Some of the SOCs hold the IRB IP in softreset state by default.
+For this IP to work driver needs to bring it out of softreset.
+This patch adds support to reset the IP via reset framework.
+
+Without this patch the driver can not work with SoCs which holds the IP
+in softreset.
+
+Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 ---
- drivers/media/usb/em28xx/em28xx-audio.c |   15 +++++++++++++--
- 1 Datei geändert, 13 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+ drivers/media/rc/st_rc.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index f80c3533..5bdf86c 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -266,7 +266,7 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
- 	dprintk("opening device and trying to acquire exclusive lock\n");
+diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+index 65120c2..8f0cddb 100644
+--- a/drivers/media/rc/st_rc.c
++++ b/drivers/media/rc/st_rc.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
++#include <linux/reset.h>
+ #include <media/rc-core.h>
+ #include <linux/pinctrl/consumer.h>
  
- 	runtime->hw = snd_em28xx_hw_capture;
--	if ((dev->alt == 0 || dev->ifnum) && dev->adev.users == 0) {
-+	if ((dev->alt == 0 || dev->is_audio_only) && dev->adev.users == 0) {
- 		int nonblock = !!(substream->f_flags & O_NONBLOCK);
+@@ -28,6 +29,7 @@ struct st_rc_device {
+ 	int				sample_mult;
+ 	int				sample_div;
+ 	bool				rxuhfmode;
++	struct	reset_control		*rstc;
+ };
  
- 		if (nonblock) {
-@@ -274,10 +274,21 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
- 				return -EAGAIN;
- 		} else
- 			mutex_lock(&dev->lock);
--		if (dev->ifnum)
-+		if (dev->is_audio_only)
-+			/* vendor audio is on a separate interface */
- 			dev->alt = 1;
- 		else
-+			/* vendor audio is on the same interface as video */
- 			dev->alt = 7;
-+			/*
-+			 * FIXME: The intention seems to be to select the alt
-+			 * setting with the largest wMaxPacketSize for the video
-+			 * endpoint.
-+			 * At least dev->alt should be used instead, but we
-+			 * should probably not touch it at all if it is
-+			 * already >0, because wMaxPacketSize of the audio
-+			 * endpoints seems to be the same for all.
-+			 */
+ /* Registers */
+@@ -161,6 +163,10 @@ static void st_rc_hardware_init(struct st_rc_device *dev)
+ 	unsigned int rx_max_symbol_per = MAX_SYMB_TIME;
+ 	unsigned int rx_sampling_freq_div;
  
- 		dprintk("changing alternate number on interface %d to %d\n",
- 			dev->ifnum, dev->alt);
++	/* Enable the IP */
++	if (dev->rstc)
++		reset_control_deassert(dev->rstc);
++
+ 	clk_prepare_enable(dev->sys_clock);
+ 	baseclock = clk_get_rate(dev->sys_clock);
+ 
+@@ -271,6 +277,11 @@ static int st_rc_probe(struct platform_device *pdev)
+ 	else
+ 		rc_dev->rx_base = rc_dev->base;
+ 
++
++	rc_dev->rstc = reset_control_get(dev, NULL);
++	if (IS_ERR(rc_dev->rstc))
++		rc_dev->rstc = NULL;
++
+ 	rc_dev->dev = dev;
+ 	platform_set_drvdata(pdev, rc_dev);
+ 	st_rc_hardware_init(rc_dev);
+@@ -338,6 +349,8 @@ static int st_rc_suspend(struct device *dev)
+ 		writel(0x00, rc_dev->rx_base + IRB_RX_EN);
+ 		writel(0x00, rc_dev->rx_base + IRB_RX_INT_EN);
+ 		clk_disable_unprepare(rc_dev->sys_clock);
++		if (rc_dev->rstc)
++			reset_control_assert(rc_dev->rstc);
+ 	}
+ 
+ 	return 0;
 -- 
-1.7.10.4
+1.7.6.5
 
