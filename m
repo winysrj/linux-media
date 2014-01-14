@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:61253 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752210AbaATTj6 (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:46379 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600AbaANMBa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 14:39:58 -0500
-Received: by mail-la0-f48.google.com with SMTP id er20so5812902lab.21
-        for <linux-media@vger.kernel.org>; Mon, 20 Jan 2014 11:39:56 -0800 (PST)
-From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Subject: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
-Date: Mon, 20 Jan 2014 21:39:43 +0200
-Message-Id: <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
-In-Reply-To: <20140115173559.7e53239a@samsung.com>
-References: <20140115173559.7e53239a@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 14 Jan 2014 07:01:30 -0500
+From: Monam Agarwal <monamagarwal123@gmail.com>
+To: m.chehab@samsung.com, gregkh@linuxfoundation.org,
+	monamagarwal123@gmail.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] Staging: media: Fix quoted string split across line in as102_fe.c
+Date: Tue, 14 Jan 2014 17:31:14 +0530
+Message-Id: <1389700875-7582-1-git-send-email-monamagarwal123@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series introduces a simple sysfs file interface for reading
-and writing wakeup scancodes to rc drivers.
+This patch fixes the following checkpatch.pl issues in
+as102/as102_fe.c
+WARNING: quoted string split across lines 
 
-This is an improved version of my previous patch for nuvoton-cir which
-did the same thing via module parameters. This is a more generic
-approach allowing other drivers to utilize the interface as well.
+Signed-off-by: Monam Agarwal <monamagarwal123@gmail.com>
+---
+ drivers/staging/media/as102/as102_fe.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-I did not port winbond-cir to this method of wakeup scancode setting yet
-because I don't have the hardware to test it and I wanted first to get
-some comments about how the patch series looks. I did however write a
-simple support to read and write scancodes to rc-loopback module.
+diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
+index 9ce8c9d..dc367d1 100644
+--- a/drivers/staging/media/as102/as102_fe.c
++++ b/drivers/staging/media/as102/as102_fe.c
+@@ -151,8 +151,8 @@ static int as102_fe_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 		if (as10x_cmd_get_demod_stats(&dev->bus_adap,
+ 			(struct as10x_demod_stats *) &dev->demod_stats) < 0) {
+ 			memset(&dev->demod_stats, 0, sizeof(dev->demod_stats));
+-			dprintk(debug, "as10x_cmd_get_demod_stats failed "
+-				"(probably not tuned)\n");
++			dprintk(debug,
++				"as10x_cmd_get_demod_stats failed (probably not tuned)\n");
+ 		} else {
+ 			dprintk(debug,
+ 				"demod status: fc: 0x%08x, bad fc: 0x%08x, "
+@@ -581,8 +581,8 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
+ 			   as102_fe_get_code_rate(params->code_rate_LP);
+ 		}
 
-Antti Seppälä (4):
-  rc-core: Add defintions needed for sysfs callback
-  rc-core: Add support for reading/writing wakeup scancodes via sysfs
-  rc-loopback: Add support for reading/writing wakeup scancodes via
-    sysfs
-  nuvoton-cir: Add support for reading/writing wakeup scancodes via
-    sysfs
-
- drivers/media/rc/nuvoton-cir.c |  81 ++++++++++++++++++++++++++
- drivers/media/rc/nuvoton-cir.h |   2 +
- drivers/media/rc/rc-loopback.c |  31 ++++++++++
- drivers/media/rc/rc-main.c     | 129 +++++++++++++++++++++++++++++++++++++++++
- include/media/rc-core.h        |  13 +++++
- 5 files changed, 256 insertions(+)
-
+-		dprintk(debug, "\thierarchy: 0x%02x  "
+-				"selected: %s  code_rate_%s: 0x%02x\n",
++		dprintk(debug,
++			"\thierarchy: 0x%02x  selected: %s  code_rate_%s: 0x%02x\n",
+ 			tune_args->hierarchy,
+ 			tune_args->hier_select == HIER_HIGH_PRIORITY ?
+ 			"HP" : "LP",
 -- 
-1.8.3.2
+1.7.9.5
 
