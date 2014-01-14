@@ -1,68 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:29164 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752862AbaAGRXv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 12:23:51 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ100KPAKBPNC50@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 Jan 2014 12:23:50 -0500 (EST)
-Date: Tue, 07 Jan 2014 15:23:45 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 11/18] libdvbv5: cleanup coding style
-Message-id: <20140107152345.1fe8e170@samsung.com>
-In-reply-to: <1388407731-24369-11-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
- <1388407731-24369-11-git-send-email-neolynx@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:48192 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752315AbaANBU5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jan 2014 20:20:57 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC v7 04/12] v4l: add stream format for SDR receiver
+Date: Tue, 14 Jan 2014 03:20:22 +0200
+Message-Id: <1389662430-32699-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1389662430-32699-1-git-send-email-crope@iki.fi>
+References: <1389662430-32699-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Dec 2013 13:48:44 +0100
-André Roth <neolynx@gmail.com> escreveu:
+Add new V4L2 stream format definition, V4L2_BUF_TYPE_SDR_CAPTURE,
+for SDR receiver.
 
-> Signed-off-by: André Roth <neolynx@gmail.com>
-> ---
->  lib/libdvbv5/descriptors.c          | 2 +-
->  lib/libdvbv5/descriptors/mpeg_pes.c | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-> index 226349e..f46aa4a 100644
-> --- a/lib/libdvbv5/descriptors.c
-> +++ b/lib/libdvbv5/descriptors.c
-> @@ -1359,6 +1359,6 @@ void hexdump(struct dvb_v5_fe_parms *parms, const char *prefix, const unsigned c
->  		for (i = strlen(hex); i < 49; i++)
->  			strncat(spaces, " ", sizeof(spaces));
->  		ascii[j] = '\0';
-> -		dvb_log("%s %s %s %s", prefix, hex, spaces, ascii);
-> +		dvb_log("%s%s %s %s", prefix, hex, spaces, ascii);
->  	}
->  }
-> diff --git a/lib/libdvbv5/descriptors/mpeg_pes.c b/lib/libdvbv5/descriptors/mpeg_pes.c
-> index 1b518a3..98364a3 100644
-> --- a/lib/libdvbv5/descriptors/mpeg_pes.c
-> +++ b/lib/libdvbv5/descriptors/mpeg_pes.c
-> @@ -33,7 +33,7 @@ void dvb_mpeg_pes_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_
->  	bswap32(pes->bitfield);
->  	bswap16(pes->length);
->  
-> -	if (pes->sync != 0x000001 ) {
-> +	if (pes->sync != 0x000001) {
->  		dvb_logerr("mpeg pes invalid");
->  		return;
->  	}
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
+ include/trace/events/v4l2.h          |  1 +
+ include/uapi/linux/videodev2.h       | 11 +++++++++++
+ 3 files changed, 13 insertions(+)
 
-Please merge this one with the patches that introduced the changes,
-if they weren't merged yet. The second hunk doesn't apply, as I
-requested changes on the patch that added the PES parser.
-
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 15ab349..9a2acaf 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -152,6 +152,7 @@ const char *v4l2_type_names[] = {
+ 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY] = "vid-out-overlay",
+ 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
+ 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
++	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
+ };
+ EXPORT_SYMBOL(v4l2_type_names);
+ 
+diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+index ef94eca..b9bb1f2 100644
+--- a/include/trace/events/v4l2.h
++++ b/include/trace/events/v4l2.h
+@@ -18,6 +18,7 @@
+ 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY, "VIDEO_OUTPUT_OVERLAY" },\
+ 		{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" },\
+ 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" }, \
++		{ V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" },         \
+ 		{ V4L2_BUF_TYPE_PRIVATE,	      "PRIVATE" })
+ 
+ #define show_field(field)						\
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1cf2076..27bed7c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -139,6 +139,7 @@ enum v4l2_buf_type {
+ #endif
+ 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
+ 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
++	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+ 	/* Deprecated, do not use */
+ 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+ };
+@@ -1695,6 +1696,15 @@ struct v4l2_pix_format_mplane {
+ } __attribute__ ((packed));
+ 
+ /**
++ * struct v4l2_format_sdr - SDR format definition
++ * @pixelformat:	little endian four character code (fourcc)
++ */
++struct v4l2_format_sdr {
++	__u32				pixelformat;
++	__u8				reserved[28];
++} __attribute__ ((packed));
++
++/**
+  * struct v4l2_format - stream data format
+  * @type:	enum v4l2_buf_type; type of the data stream
+  * @pix:	definition of an image format
+@@ -1712,6 +1722,7 @@ struct v4l2_format {
+ 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+ 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+ 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
++		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+ 		__u8	raw_data[200];                   /* user-defined */
+ 	} fmt;
+ };
 -- 
+1.8.4.2
 
-Cheers,
-Mauro
