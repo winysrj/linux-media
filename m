@@ -1,103 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:36290 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484AbaAMKPX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 05:15:23 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZC00EY64HM0160@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Jan 2014 10:15:22 +0000 (GMT)
-Content-transfer-encoding: 8BIT
-Message-id: <52D3BCB7.1060309@samsung.com>
-Date: Mon, 13 Jan 2014 11:15:19 +0100
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: randy <lxr1234@hotmail.com>, linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>, kyungmin.park@samsung.com
-Subject: Re: using MFC memory to memery encoder,
- start stream and queue order problem
-References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl>
- <02c701cf07b6$565cd340$031679c0$%debski@samsung.com>
- <BLU0-SMTP266BE9BC66B254061740251ADCB0@phx.gbl>
- <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com>
- <BLU0-SMTP150C8C0DB0E9A3A9F4104F8ADCA0@phx.gbl>
- <04b601cf0c7f$d9e531d0$8daf9570$%debski@samsung.com>
- <52CD725E.5060903@hotmail.com> <BLU0-SMTP6650E76A95FA2BB39C6325ADB30@phx.gbl>
- <52CFD5DF.6050801@samsung.com> <BLU0-SMTP37B0A51F0A2D2F1E79A730ADB30@phx.gbl>
-In-reply-to: <BLU0-SMTP37B0A51F0A2D2F1E79A730ADB30@phx.gbl>
+Received: from mga09.intel.com ([134.134.136.24]:39156 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752498AbaAOVus (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jan 2014 16:50:48 -0500
+Date: Thu, 16 Jan 2014 05:50:26 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:master 498/499]
+ drivers/media/usb/em28xx/em28xx-cards.c:69:1: sparse: symbol
+ 'em28xx_devused' was not declared. Should it be static?
+Message-ID: <52d702a2.3xNe6Vk+dVOUjrR9%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="=_52d702a2.W1/cTnI+DgpmO1guwC1+aHEuUQ9pLWVxTEBqFEKNUtLu1Y58"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/2014 04:23 PM, randy wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> 于 2014年01月10日 19:13, Andrzej Hajda 写道:
->> Hi Randy,
->>
->> On 01/10/2014 10:15 AM, randy wrote:
->>
->> <snip>
->>
->>>> It won't work, if I do that, after step 7, neither OUPUT nor 
->>>> CAPTURE will poll return in my program. but ./mfc-encode -m 
->>>> /dev/video1 -c h264,header_mode=1 work normally,
->>> I am sorry, I didn't well test it, if I use ./mfc-encode -m 
->>> /dev/video1 -c h264,header_mode=1 -d 1 then the size of demo.out
->>> is zero, but ./mfc-encode -d 1 -m /dev/video1 -c h264 will out a
->>> 158 bytes files. When duration is 2, with header_mode=1, the
->>> output file size is 228 bytes.Without it, the size is 228 too. I
->>> wonder whether it is the driver's problem, as I see this in
->>> dmesg [    0.210000] Failed to declare coherent memory for MFC
->>> device (0 bytes at 0x43000000) As the driver is not ready to use
->>> in 3.13-rc6 as I reported before, I still use the 3.5 from
->>> manufacturer.
->>
->> I am the author of mfc-encode application, it was written for the 
->> mainline kernel 3.8 and later, it should be mentioned in the
->> README.txt - I will update it.
-> Sadness, I have tested 3.10.26, in this version, neither decoder nor
-> encoder can be work(can't init according to clock problem).
-> In 3.8, it doesn't have dts support fully and lack many drivers.
-> I think I shall wait the the mfc done for 3.13.
->> App will not work correctly with earlier kernels, mainly (but not
->> only) due to lack of end of stream handling in MFC encoder driver. 
->> If you use vendor kernel I suggest to look at the vendor's capture 
->> apps/libs to check how it uses MFC driver.
->>
-> Sadness, they doesn't offer any of them, even not any information
-> about it.
-> And I can't compile the openmax from samsung. I will report it later
-> in sourceforge.
->> Regards Andrzej
+This is a multi-part message in MIME format.
 
-You can then try to backport EOS handling patch:
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/52748
+--=_52d702a2.W1/cTnI+DgpmO1guwC1+aHEuUQ9pLWVxTEBqFEKNUtLu1Y58
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Regards
-Andrzej
+tree:   git://linuxtv.org/media_tree.git master
+head:   587d1b06e07b4a079453c74ba9edf17d21931049
+commit: c3aed262186841bf01feb9603885671ea567ebd9 [498/499] [media] em28xx-cards: properly initialize the device bitmap
+reproduce: make C=1 CF=-D__CHECK_ENDIAN__
 
->>
->>
->>
->>
-> 
-> Thank you
-> ayaka
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.12 (GNU/Linux)
-> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-> 
-> iQEcBAEBAgAGBQJS0BCEAAoJEPb4VsMIzTziYJQH/RFX6oSL6JWb4ah/+SOlXT9m
-> V+qoPGy2h+KB82+vC7l4UNpYUrDO+U13y8G9IerZp3F3i83qBrpIBNb4jr6M1b/u
-> nm/g3U8RvJoTJkiL9iFFKNBuXZAtYYXFV1RgMtJJ/iXZavte3jOBIOeCpRZndh80
-> b+ZmihGVPP9d66f/mMFJreFKUwP4UTOR/TuYgv1i106GRLmD2XAWFWTYBXygUeLE
-> GCRst2D+t4lpTH8Ttz+ZdzXEINZaCgO5Jf1UvK3+nLXfQbJREH9BWmODDhR6M269
-> hn2lcU0D1HwGnVzdEN/Gx/8gneixg3oWP2nZVJ61w5WlABYpWKKyNbZqsfwzGXM=
-> =57or
-> -----END PGP SIGNATURE-----
-> 
 
+sparse warnings: (new ones prefixed by >>)
+
+>> drivers/media/usb/em28xx/em28xx-cards.c:69:1: sparse: symbol 'em28xx_devused' was not declared. Should it be static?
+   drivers/media/usb/em28xx/em28xx-cards.c:2163:36: sparse: cannot size expression
+
+Please consider folding the attached diff :-)
+
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+
+--=_52d702a2.W1/cTnI+DgpmO1guwC1+aHEuUQ9pLWVxTEBqFEKNUtLu1Y58
+Content-Type: text/x-diff;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="make-it-static-c3aed262186841bf01feb9603885671ea567ebd9.diff"
+
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: [PATCH linuxtv-media] em28xx-cards: em28xx_devused can be static
+TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org
+CC: linux-media@vger.kernel.org 
+CC: linux-kernel@vger.kernel.org 
+
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+---
+ em28xx-cards.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 4d97a76..eb39903 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -66,7 +66,7 @@ MODULE_PARM_DESC(usb_xfer_mode,
+ 
+ 
+ /* Bitmask marking allocated devices from 0 to EM28XX_MAXBOARDS - 1 */
+-DECLARE_BITMAP(em28xx_devused, EM28XX_MAXBOARDS);
++static DECLARE_BITMAP(em28xx_devused, EM28XX_MAXBOARDS);
+ 
+ struct em28xx_hash_table {
+ 	unsigned long hash;
+
+--=_52d702a2.W1/cTnI+DgpmO1guwC1+aHEuUQ9pLWVxTEBqFEKNUtLu1Y58--
