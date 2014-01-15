@@ -1,83 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49869 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751502AbaAORZb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 12:25:31 -0500
-Message-ID: <52D6C488.5090207@iki.fi>
-Date: Wed, 15 Jan 2014 19:25:28 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v6 07/12] v4l: add device capability flag for SDR
- receiver
-References: <1388289844-2766-1-git-send-email-crope@iki.fi> <1388289844-2766-8-git-send-email-crope@iki.fi> <52C94C51.2010005@xs4all.nl> <52D49691.4000405@iki.fi>
-In-Reply-To: <52D49691.4000405@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:42082 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752008AbaAOSAP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jan 2014 13:00:15 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZG00IN3FCDGL90@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Jan 2014 13:00:14 -0500 (EST)
+Date: Wed, 15 Jan 2014 15:59:23 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: Martin Kittel <linux@martin-kittel.de>,
+	linux-media@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>
+Subject: Re: Patch mceusb: fix invalid urb interval
+Message-id: <20140115155923.0b8978da.m.chehab@samsung.com>
+In-reply-to: <20140115165245.GA23620@pequod.mess.org>
+References: <loom.20131110T113621-661@post.gmane.org>
+ <20131211131751.GA434@pequod.mess.org> <l8ai94$cbr$1@ger.gmane.org>
+ <20140115134917.1450f87c@samsung.com> <20140115165245.GA23620@pequod.mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14.01.2014 03:44, Antti Palosaari wrote:
-> On 05.01.2014 14:13, Hans Verkuil wrote:
->> On 12/29/2013 05:03 AM, Antti Palosaari wrote:
->>> VIDIOC_QUERYCAP IOCTL is used to query device capabilities. Add new
->>> capability flag to inform given device supports SDR capture.
->>>
->>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
->>> ---
->>>   include/uapi/linux/videodev2.h | 2 ++
->>>   1 file changed, 2 insertions(+)
->>>
->>> diff --git a/include/uapi/linux/videodev2.h
->>> b/include/uapi/linux/videodev2.h
->>> index c50e449..f596b7b 100644
->>> --- a/include/uapi/linux/videodev2.h
->>> +++ b/include/uapi/linux/videodev2.h
->>> @@ -267,6 +267,8 @@ struct v4l2_capability {
->>>   #define V4L2_CAP_RADIO            0x00040000  /* is a radio device */
->>>   #define V4L2_CAP_MODULATOR        0x00080000  /* has a modulator */
->>>
->>> +#define V4L2_CAP_SDR_CAPTURE        0x00100000  /* Is a SDR capture
->>> device */
->>> +
->>>   #define V4L2_CAP_READWRITE              0x01000000  /* read/write
->>> systemcalls */
->>>   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
->>>   #define V4L2_CAP_STREAMING              0x04000000  /* streaming
->>> I/O ioctls */
->>>
->>
->> This new capability needs to be documented in DocBook as well
->> (vidioc-querycap.xml).
->
-> It is already.
+Em Wed, 15 Jan 2014 16:52:45 +0000
+Sean Young <sean@mess.org> escreveu:
 
-There is following related flags:
+> On Wed, Jan 15, 2014 at 01:49:17PM -0200, Mauro Carvalho Chehab wrote:
+> > Hi Martin,
+> > 
+> > Em Wed, 11 Dec 2013 21:34:55 +0100
+> > Martin Kittel <linux@martin-kittel.de> escreveu:
+> > 
+> > > Hi Mauro, hi Sean,
+> > > 
+> > > thanks for considering the patch. I have added an updated version at the
+> > > end of this mail.
+> > > 
+> > > Regarding the info Sean was requesting, it is indeed an xhci hub. I also
+> > > added the details of the remote itself.
+> > > 
+> > > Please let me know if there is anything missing.
+> > > 
+> > > Best wishes,
+> > > 
+> > > Martin.
+> > > 
+> > > 
+> > > lsusb -vvv
+> > > ------
+> > > Bus 001 Device 002: ID 2304:0225 Pinnacle Systems, Inc. Remote Kit
+> > > Infrared Transceiver
+> > > Device Descriptor:
+> > >   bLength		 18
+> > >   bDescriptorType	  1
+> > >   bcdUSB	       2.00
+> > >   bDeviceClass		  0 (Defined at Interface level)
+> > >   bDeviceSubClass	  0
+> > >   bDeviceProtocol	  0
+> > >   bMaxPacketSize0	  8
+> > >   idVendor	     0x2304 Pinnacle Systems, Inc.
+> > >   idProduct	     0x0225 Remote Kit Infrared Transceiver
+> > >   bcdDevice	       0.01
+> > >   iManufacturer		  1 Pinnacle Systems
+> > >   iProduct		  2 PCTV Remote USB
+> > >   iSerial		  5 7FFFFFFFFFFFFFFF
+> > >   bNumConfigurations	  1
+> > >   Configuration Descriptor:
+> > >     bLength		    9
+> > >     bDescriptorType	    2
+> > >     wTotalLength	   32
+> > >     bNumInterfaces	    1
+> > >     bConfigurationValue	    1
+> > >     iConfiguration	    3 StandardConfiguration
+> > >     bmAttributes	 0xa0
+> > >       (Bus Powered)
+> > >       Remote Wakeup
+> > >     MaxPower		  100mA
+> > >     Interface Descriptor:
+> > >       bLength		      9
+> > >       bDescriptorType	      4
+> > >       bInterfaceNumber	      0
+> > >       bAlternateSetting	      0
+> > >       bNumEndpoints	      2
+> > >       bInterfaceClass	    255 Vendor Specific Class
+> > >       bInterfaceSubClass      0
+> > >       bInterfaceProtocol      0
+> > >       iInterface	      4 StandardInterface
+> > >       Endpoint Descriptor:
+> > > 	bLength			7
+> > > 	bDescriptorType		5
+> > > 	bEndpointAddress     0x81  EP 1 IN
+> > > 	bmAttributes		2
+> > > 	  Transfer Type		   Bulk
+> > > 	  Synch Type		   None
+> > > 	  Usage Type		   Data
+> > > 	wMaxPacketSize	   0x0040  1x 64 bytes
+> > > 	bInterval	       10
+> > 
+> > Hmm... interval is equal to 10, e. g. 125us * 2^(10 - 1) = 64 ms.
+> > 
+> > I'm wandering why mceusb is just forcing the interval to 1 (125ms). That
+> > sounds wrong, except, of course, if the endpoint descriptor is wrong.
+> 
+> Note that the endpoint descriptor describes it as a bulk endpoint, but
+> it is used as a interrupt endpoint by the driver. For bulk endpoints,
+> the interval should not be used (?).
+> 
+> Maybe the correct solution would be to use the endpoints as bulk endpoints
+> if that is what the endpoint says? mceusb devices come in interrupt and 
+> bulk flavours.
 
-V4L2_CAP_TUNER
-V4L2_CAP_RADIO
-V4L2_CAP_MODULATOR
-V4L2_CAP_SDR_CAPTURE
+Yes, this could be a possible fix.
 
-V4L2_CAP_TUNER flag is overlapping with all these and is redundant at 
-least currently. Lets take a example as a radio device. There is 
-V4L2_CAP_RADIO flag to say it is radio and then there is flag 
-V4L2_CAP_TUNER which means signal is coming from antenna? So there could 
-be radio device without V4L2_CAP_TUNER flag, for example radio over IP, 
-right?
+> 
+> > On my eyes, though, 64ms seems to be a good enough interval to get
+> > those events.
+> 
+> Each packet will be 64 bytes, and at 64 ms you should be able to 960 
+> bytes per second. That's more than enough.
+> 
+> > Jarod/Sean,
+> > 
+> > Are there any good reason for the mceusb driver to do this?
+> > 	ep_in->bInterval = 1;
+> > 	ep_out->bInterval = 1;
+> 
+> I don't know.
+>  
+> > At least on my tests here with audio with xHCI and EHCI with audio on
+> > em28xx, it seems that EHCI just uses the USB endpoint interval, when
+> > urb->interval == 1, while xHCI uses whatever value stored there.
+> 
+> The xhci driver is not happy about the interval being changed. With
+> CONFIG_USB_DEBUG you get:
+> 
+> usb 3-12: Driver uses different interval (8 microframes) than xHCI (1 microframe)
 
-Due to that I started thinking relation of V4L2_CAP_SDR_CAPTURE and 
-V4L2_CAP_TUNER and V4L2_CAP_RADIO flags. ADC is pretty much mandatory
-element of SDR receiver (and DAC SDR transmitter). Whilst ADC is 
-mandatory, RF tuner is not. So should I map V4L2_CAP_TUNER to indicate 
-there is RF tuner?
+Maybe then changing the interval to 3 could also fix it, if the device
+is using high speed (480 kHz), and 1 otherwise.
 
-regards
-Antti
+E. g. changing the logic to something like:
 
--- 
-http://palosaari.fi/
+if (dev->speed == USB_SPEED_HIGH || dev->speed == USB_SPEED_SUPER) {
+	if (ep_in)
+		ep_in->bInterval = 3;
+	if (ep_out)
+	 	ep_out->bInterval = 3;
+} else {
+	if (ep_in)
+		ep_in->bInterval = 1;
+	if (ep_out)
+	 	ep_out->bInterval = 1;
+}
+
+At the device probing logic.
+
+I think that using a bulk transfer, if it works, is a better solution,
+though.
+
+Regards,
+Mauro
