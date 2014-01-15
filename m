@@ -1,189 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4838 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754006AbaAaJ5P (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:55502 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751948AbaAOXLm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:57:15 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 21/32] DocBook media: update control section.
-Date: Fri, 31 Jan 2014 10:56:19 +0100
-Message-Id: <1391162190-8620-22-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 15 Jan 2014 18:11:42 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZG00ESUTRHFC40@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Jan 2014 18:11:41 -0500 (EST)
+Date: Wed, 15 Jan 2014 21:11:37 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFT PATCH] em28xx-audio: don't overwrite the usb alt setting made
+ by the video part
+Message-id: <20140115211137.2dc33033@samsung.com>
+In-reply-to: <52D6FF59.6010407@googlemail.com>
+References: <1389821502-11346-1-git-send-email-fschaefer.oss@googlemail.com>
+ <52D6FF59.6010407@googlemail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Wed, 15 Jan 2014 22:36:25 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Document the support for complex types in controls.
+> Am 15.01.2014 22:31, schrieb Frank Schäfer:
+> > em28xx-audio currently switches to usb alternate setting #7 in case of a mixed
+> > interface. This may overwrite the setting made by the video part and break video
+> > streaming.
+> > As far as we know, there is no difference between the alt settings with regards
+> > to the audio endpoint if the interface is a mixed interface, the audio part only
+> > has to make sure that alt is > 0, which is fortunately only the case when video
+> > streaming is off.
+> >
+> > Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> > ---
+> >  drivers/media/usb/em28xx/em28xx-audio.c |   41 ++++++++++++-------------------
+> >  1 Datei geändert, 16 Zeilen hinzugefügt(+), 25 Zeilen entfernt(-)
+> >
+> > diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+> > index 05e9bd1..2e7a3ad 100644
+> > --- a/drivers/media/usb/em28xx/em28xx-audio.c
+> > +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+> > @@ -266,33 +266,30 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+> >  	dprintk("opening device and trying to acquire exclusive lock\n");
+> >  
+> >  	runtime->hw = snd_em28xx_hw_capture;
+> > -	if ((dev->alt == 0 || dev->is_audio_only) && dev->adev.users == 0) {
+> > -		int nonblock = !!(substream->f_flags & O_NONBLOCK);
+> >  
+> > +	if (dev->adev.users == 0) {
+> > +		int nonblock = !!(substream->f_flags & O_NONBLOCK);
+> >  		if (nonblock) {
+> >  			if (!mutex_trylock(&dev->lock))
+> >  				return -EAGAIN;
+> >  		} else
+> >  			mutex_lock(&dev->lock);
+> > -		if (dev->is_audio_only)
+> > -			/* vendor audio is on a separate interface */
+> > +
+> > +		/* Select initial alternate setting (if necessary) */
+> > +		if (dev->alt == 0) {
+> >  			dev->alt = 1;
+> > -		else
+> > -			/* vendor audio is on the same interface as video */
+> > -			dev->alt = 7;
+> >  			/*
+> > -			 * FIXME: The intention seems to be to select the alt
+> > -			 * setting with the largest wMaxPacketSize for the video
+> > -			 * endpoint.
+> > -			 * At least dev->alt should be used instead, but we
+> > -			 * should probably not touch it at all if it is
+> > -			 * already >0, because wMaxPacketSize of the audio
+> > -			 * endpoints seems to be the same for all.
+> > +			 * NOTE: in case of a mixed (audio+video) interface, we
+> > +			 * don't want to touch the alt setting made by the video
+> > +			 * part. There is no difference between the alt settings
+> > +			 * with regards to the audio endpoint.
+> > +			 * TODO: in case of a pure audio interface, this could
+> > +			 * be improved. The alt settings are different here.
+> >  			 */
+> > -
+> > -		dprintk("changing alternate number on interface %d to %d\n",
+> > -			dev->ifnum, dev->alt);
+> > -		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+> > +			dprintk("changing alternate number on interface %d to %d\n",
+> > +				dev->ifnum, dev->alt);
+> > +			usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+> > +		}
+> >  
+> >  		/* Sets volume, mute, etc */
+> >  		dev->mute = 0;
+> > @@ -740,15 +737,9 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
+> >  	struct usb_endpoint_descriptor *e, *ep = NULL;
+> >  	int                 i, ep_size, interval, num_urb, npackets;
+> >  	int		    urb_size, bytes_per_transfer;
+> > -	u8 alt;
+> > -
+> > -	if (dev->ifnum)
+> > -		alt = 1;
+> > -	else
+> > -		alt = 7;
+> > +	u8 alt = 1;
+> >  
+> >  	intf = usb_ifnum_to_if(dev->udev, dev->ifnum);
+> > -
+> >  	if (intf->num_altsetting <= alt) {
+> >  		em28xx_errdev("alt %d doesn't exist on interface %d\n",
+> >  			      dev->ifnum, alt);
+> 
+> Please note that this is actually just a minor fix.
+> What's really evil with the current alternate setting code is that the
+> video part may switch the alt setting while audio streaming is in progress.
+> I'm not sure how to fix this. Maybe we shouldn't start audio streaming
+> before video streaming.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml | 104 ++++++++++++++++++++-------
- 1 file changed, 78 insertions(+), 26 deletions(-)
+This patch will very likely break em28xx audio. The change to use alt=7
+was added there because em28xx can only deliver a certain number of URBs
+per a given period of time. In other words, if the video-only calculated
+alternate is used, when audio starts, the em28xx DMA engine half-fills
+some video URBs.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index ef55c3e..85d78d4 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -13,6 +13,19 @@ correctly with any device.</para>
-     <para>All controls are accessed using an ID value. V4L2 defines
- several IDs for specific purposes. Drivers can also implement their
- own custom controls using <constant>V4L2_CID_PRIVATE_BASE</constant>
-+<footnote><para>The use of <constant>V4L2_CID_PRIVATE_BASE</constant>
-+is problematic because different drivers may use the same
-+<constant>V4L2_CID_PRIVATE_BASE</constant> ID for different controls.
-+This makes it hard to programatically set such controls since the meaning
-+of the control with that ID is driver dependent. In order to resolve this
-+drivers use unique IDs and the <constant>V4L2_CID_PRIVATE_BASE</constant>
-+IDs are mapped to those unique IDs by the kernel. Consider these
-+<constant>V4L2_CID_PRIVATE_BASE</constant> IDs as aliases to the real
-+IDs.</para>
-+<para>Many applications today still use the <constant>V4L2_CID_PRIVATE_BASE</constant>
-+IDs instead of using &VIDIOC-QUERYCTRL; with the <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>
-+flag to enumerate all IDs, so support for <constant>V4L2_CID_PRIVATE_BASE</constant>
-+is still around.</para></footnote>
- and higher values. The pre-defined control IDs have the prefix
- <constant>V4L2_CID_</constant>, and are listed in <xref
- linkend="control-id" />. The ID is used when querying the attributes of
-@@ -31,25 +44,22 @@ the current video input or output, tuner or modulator, or audio input
- or output. Different in the sense of other bounds, another default and
- current value, step size or other menu items. A control with a certain
- <emphasis>custom</emphasis> ID can also change name and
--type.<footnote>
--	<para>It will be more convenient for applications if drivers
--make use of the <constant>V4L2_CTRL_FLAG_DISABLED</constant> flag, but
--that was never required.</para>
--      </footnote> Control values are stored globally, they do not
-+type.</para>
-+
-+    <para>If a control is not applicable to the current configuration
-+of the device (for example, it doesn't apply to the current video input)
-+drivers set the <constant>V4L2_CTRL_FLAG_INACTIVE</constant> flag.</para>
-+
-+    <para>Control values are stored globally, they do not
- change when switching except to stay within the reported bounds. They
- also do not change &eg; when the device is opened or closed, when the
- tuner radio frequency is changed or generally never without
--application request. Since V4L2 specifies no event mechanism, panel
--applications intended to cooperate with other panel applications (be
--they built into a larger application, as a TV viewer) may need to
--regularly poll control values to update their user
--interface.<footnote>
--	<para>Applications could call an ioctl to request events.
--After another process called &VIDIOC-S-CTRL; or another ioctl changing
--shared properties the &func-select; function would indicate
--readability until any ioctl (querying the properties) is
--called.</para>
--      </footnote></para>
-+application request.</para>
-+
-+    <para>V4L2 specifies an event mechanism to notify applications
-+when controls change value (see &VIDIOC-SUBSCRIBE-EVENT;, event
-+<constant>V4L2_EVENT_CTRL</constant>), panel applications might want to make
-+use of that in order to always reflect the correct control value.</para>
- 
-     <para>
-       All controls use machine endianness.
-@@ -434,8 +444,8 @@ Drivers must implement <constant>VIDIOC_QUERYCTRL</constant>,
- controls, <constant>VIDIOC_QUERYMENU</constant> when it has one or
- more menu type controls.</para>
- 
--    <example>
--      <title>Enumerating all controls</title>
-+    <example id="enum_all_controls">
-+      <title>Enumerating all user controls</title>
- 
-       <programlisting>
- &v4l2-queryctrl; queryctrl;
-@@ -501,6 +511,32 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
-     </example>
- 
-     <example>
-+      <title>Enumerating all user controls (alternative)</title>
-+	<programlisting>
-+memset(&amp;queryctrl, 0, sizeof(queryctrl));
-+
-+queryctrl.id = V4L2_CTRL_CLASS_USER | V4L2_CTRL_FLAG_NEXT_CTRL;
-+while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
-+	if (V4L2_CTRL_ID2CLASS(queryctrl.id) != V4L2_CTRL_CLASS_USER)
-+		break;
-+	if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
-+		continue;
-+
-+	printf("Control %s\n", queryctrl.name);
-+
-+	if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
-+		enumerate_menu();
-+
-+	queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
-+}
-+if (errno != EINVAL) {
-+	perror("VIDIOC_QUERYCTRL");
-+	exit(EXIT_FAILURE);
-+}
-+</programlisting>
-+    </example>
-+
-+    <example>
-       <title>Changing controls</title>
- 
-       <programlisting>
-@@ -624,16 +660,32 @@ supported.</para>
- &v4l2-control;, except for the fact that it also allows for 64-bit
- values and pointers to be passed.</para>
- 
-+      <para>Since the &v4l2-ext-control; supports pointers it is now
-+also possible to have controls with complex types such as arrays/matrices
-+and/or structures. All such complex controls will have the
-+<constant>V4L2_CTRL_FLAG_HIDDEN</constant> set since such controls cannot
-+be displayed in control panel applications. Nor can they be used in the
-+user class (for backwards compatibility reasons), and you need to specify
-+the <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> when enumerating controls
-+to actually be able to see such hidden controls. In other words, these
-+controls with complex types should only be used programmatically.</para>
-+
-+      <para>Since such complex controls need to expose more information
-+about themselves than is possible with &VIDIOC-QUERYCTRL; the
-+&VIDIOC-QUERY-EXT-CTRL; ioctl was added. In particular, this ioctl gives
-+the size of the matrix if this control consists of more than
-+one element.</para>
-+
-       <para>It is important to realize that due to the flexibility of
- controls it is necessary to check whether the control you want to set
- actually is supported in the driver and what the valid range of values
--is. So use the &VIDIOC-QUERYCTRL; and &VIDIOC-QUERYMENU; ioctls to
--check this. Also note that it is possible that some of the menu
--indices in a control of type <constant>V4L2_CTRL_TYPE_MENU</constant>
--may not be supported (<constant>VIDIOC_QUERYMENU</constant> will
--return an error). A good example is the list of supported MPEG audio
--bitrates. Some drivers only support one or two bitrates, others
--support a wider range.</para>
-+is. So use the &VIDIOC-QUERYCTRL; (or &VIDIOC-QUERY-EXT-CTRL;) and
-+&VIDIOC-QUERYMENU; ioctls to check this. Also note that it is possible
-+that some of the menu indices in a control of type
-+<constant>V4L2_CTRL_TYPE_MENU</constant> may not be supported
-+(<constant>VIDIOC_QUERYMENU</constant> will return an error). A good
-+example is the list of supported MPEG audio bitrates. Some drivers only
-+support one or two bitrates, others support a wider range.</para>
- 
-       <para>
- 	All controls use machine endianness.
-@@ -699,7 +751,7 @@ ID based on a control ID.</para>
- <constant>VIDIOC_QUERYCTRL</constant> will fail when used in
- combination with <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>. In
- that case the old method of enumerating control should be used (see
--1.8). But if it is supported, then it is guaranteed to enumerate over
-+<xref linkend="enum_all_controls" />). But if it is supported, then it is guaranteed to enumerate over
- all controls, including driver-private controls.</para>
-     </section>
- 
--- 
-1.8.5.2
+As I said, the right fix here is to have a bandwidth estimator that will
+take both traffics into account (when both are activated), and select
+the right alternate.
 
+Such patch should be tested with more than one device type, as I think
+that em284x are somewhat different than em286x and em288x with this
+regards.
+
+Regards,
+Mauro
