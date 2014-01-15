@@ -1,148 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:56033 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752677AbaATTkO (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1752 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750754AbaAOJnh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 14:40:14 -0500
-Received: by mail-la0-f41.google.com with SMTP id mc6so5997238lab.28
-        for <linux-media@vger.kernel.org>; Mon, 20 Jan 2014 11:40:13 -0800 (PST)
-From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Subject: [RFC PATCH 4/4] nuvoton-cir: Add support for reading/writing wakeup scancodes via sysfs
-Date: Mon, 20 Jan 2014 21:39:47 +0200
-Message-Id: <1390246787-15616-5-git-send-email-a.seppala@gmail.com>
-In-Reply-To: <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
-References: <20140115173559.7e53239a@samsung.com>
- <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
+	Wed, 15 Jan 2014 04:43:37 -0500
+Message-ID: <52D6579F.9080302@xs4all.nl>
+Date: Wed, 15 Jan 2014 10:40:47 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Jianle Wang <victure86@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: how can I get compat_ioctl support for v4l2_subdev_fops
+References: <CACDDY7429te6a7cUQ0Z=sX6TELjn48FQHiuW=YtBsyOkzrCqZA@mail.gmail.com> <52D63B23.5000505@xs4all.nl> <CACDDY76oeFxv7P_yBQeVosae4sRrMCyveRzUHUXewB2Xn3d-jw@mail.gmail.com>
+In-Reply-To: <CACDDY76oeFxv7P_yBQeVosae4sRrMCyveRzUHUXewB2Xn3d-jw@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for reading/writing wakeup scancodes via sysfs
-to nuvoton-cir hardware.
+On 01/15/14 09:02, Jianle Wang wrote:
+> Hi Hans:
+>     Thanks for your patch.
+> How do we handle the private ioctl defined in struct v4l2_subdev_core.ioctl?
+> These ioctls are also not supported for compat_ioctl.
 
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 81 ++++++++++++++++++++++++++++++++++++++++++
- drivers/media/rc/nuvoton-cir.h |  2 ++
- 2 files changed, 83 insertions(+)
+There is currently no support for that, but try the patch below. That should
+allow you to add compat_ioctl32 support for your custom ioctls.
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 21ee0dc..c1b0cf2 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -531,6 +531,86 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32 carrier)
- 	return 0;
+Regards,
+
+	Hans
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 996c248..60d2550 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -368,6 +368,17 @@ static long subdev_ioctl(struct file *file, unsigned int cmd,
+ 	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
  }
  
-+static int nvt_wakeup_scancodes(struct rc_dev *dev,
-+				struct list_head *scancode_list, int write)
++#ifdef CONFIG_COMPAT
++static long subdev_compat_ioctl32(struct file *file, unsigned int cmd,
++	unsigned long arg)
 +{
-+	int i = 0;
-+	u8 cnt, reg, reg_learn_mode;
-+	unsigned long flags;
-+	struct rc_wakeup_scancode *scancode;
-+	struct nvt_dev *nvt = dev->priv;
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
 +
-+	if (write) {
-+		nvt_dbg_wake("%s firing, write", __func__);
-+
-+		reg = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
-+		reg_learn_mode = reg & ~CIR_WAKE_IRCON_MODE0;
-+		reg_learn_mode |= CIR_WAKE_IRCON_MODE1;
-+
-+		/* Lock the learn area to prevent racing with wake-isr */
-+		spin_lock_irqsave(&nvt->nvt_lock, flags);
-+
-+		/* Enable fifo writes */
-+		nvt_cir_wake_reg_write(nvt, reg_learn_mode, CIR_WAKE_IRCON);
-+
-+		/* Clear cir wake rx fifo */
-+		nvt_clear_cir_wake_fifo(nvt);
-+
-+		/* Write wake samples to fifo */
-+		list_for_each_entry_reverse(scancode, scancode_list,
-+					    list_item) {
-+			/* Prevent writing too many codes */
-+			if (++i > WAKE_FIFO_LEN)
-+				break;
-+			nvt_cir_wake_reg_write(nvt, scancode->value,
-+					       CIR_WAKE_WR_FIFO_DATA);
-+		}
-+
-+		/* Switch cir to wakeup mode and disable fifo writing */
-+		nvt_cir_wake_reg_write(nvt, reg, CIR_WAKE_IRCON);
-+
-+		/* Set number of bytes needed for wake */
-+		nvt_cir_wake_reg_write(nvt, i ? i :
-+				       CIR_WAKE_FIFO_CMP_BYTES,
-+				       CIR_WAKE_FIFO_CMP_DEEP);
-+
-+		spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-+
-+		if (i > WAKE_FIFO_LEN)
-+			return -EINVAL;
-+	} else {
-+		nvt_dbg_wake("%s firing, read", __func__);
-+
-+		/* Scroll to index 0 */
-+		while (nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY_IDX)) {
-+			nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
-+
-+			/* Stuck index guardian */
-+			if (++i > 255) {
-+				nvt_dbg_wake("Idx reg is stuck!");
-+				break;
-+			}
-+		}
-+
-+		/* Get size of wake fifo and allocate memory for the bytes */
-+		cnt = nvt_cir_wake_reg_read(nvt, CIR_WAKE_FIFO_COUNT);
-+
-+		for (i = 0; i < cnt; i++) {
-+			scancode = kmalloc(sizeof(struct rc_wakeup_scancode),
-+					   GFP_KERNEL | GFP_ATOMIC);
-+			if (!scancode)
-+				return -ENOMEM;
-+			scancode->value =
-+				nvt_cir_wake_reg_read(nvt,
-+						      CIR_WAKE_RD_FIFO_ONLY);
-+			list_add(&scancode->list_item, scancode_list);
-+		}
-+
-+		return cnt;
-+	}
-+
-+	return 0;
++	return v4l2_subdev_call(sd, core, compat_ioctl32, cmd, arg);
 +}
- /*
-  * nvt_tx_ir
-  *
-@@ -1047,6 +1127,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 	rdev->close = nvt_close;
- 	rdev->tx_ir = nvt_tx_ir;
- 	rdev->s_tx_carrier = nvt_set_tx_carrier;
-+	rdev->s_wakeup_scancodes = nvt_wakeup_scancodes;
- 	rdev->input_name = "Nuvoton w836x7hg Infrared Remote Transceiver";
- 	rdev->input_phys = "nuvoton/cir0";
- 	rdev->input_id.bustype = BUS_HOST;
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index 07e8310..24ff630 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -64,6 +64,8 @@ static int debug;
- #define TX_BUF_LEN 256
- #define RX_BUF_LEN 32
- 
-+#define WAKE_FIFO_LEN 67
++#endif
 +
- struct nvt_dev {
- 	struct pnp_dev *pdev;
- 	struct rc_dev *rdev;
--- 
-1.8.3.2
+ static unsigned int subdev_poll(struct file *file, poll_table *wait)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+@@ -389,6 +400,9 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = subdev_open,
+ 	.unlocked_ioctl = subdev_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl32 = subdev_compat_ioctl32,
++#endif
+ 	.release = subdev_close,
+ 	.poll = subdev_poll,
+ };
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d67210a..3fd91a5 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -162,6 +162,9 @@ struct v4l2_subdev_core_ops {
+ 	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
+ 	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
+ 	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
++#ifdef CONFIG_COMPAT
++	long (*compat_ioctl32)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
++#endif
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
+ 	int (*s_register)(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg);
 
