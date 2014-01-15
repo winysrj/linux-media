@@ -1,148 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4912 "EHLO
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3067 "EHLO
 	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754011AbaAaJ5P (ORCPT
+	with ESMTP id S1752120AbaAOSSi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:57:15 -0500
+	Wed, 15 Jan 2014 13:18:38 -0500
+Message-ID: <52D6D0E9.4050605@xs4all.nl>
+Date: Wed, 15 Jan 2014 19:18:17 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 23/32] v4l2-ctrls/videodev2.h: add u8 and u16 types.
-Date: Fri, 31 Jan 2014 10:56:21 +0100
-Message-Id: <1391162190-8620-24-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC v6 07/12] v4l: add device capability flag for SDR
+ receiver
+References: <1388289844-2766-1-git-send-email-crope@iki.fi> <1388289844-2766-8-git-send-email-crope@iki.fi> <52C94C51.2010005@xs4all.nl> <52D49691.4000405@iki.fi> <52D6C488.5090207@iki.fi>
+In-Reply-To: <52D6C488.5090207@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 01/15/2014 06:25 PM, Antti Palosaari wrote:
+> On 14.01.2014 03:44, Antti Palosaari wrote:
+>> On 05.01.2014 14:13, Hans Verkuil wrote:
+>>> On 12/29/2013 05:03 AM, Antti Palosaari wrote:
+>>>> VIDIOC_QUERYCAP IOCTL is used to query device capabilities. Add new
+>>>> capability flag to inform given device supports SDR capture.
+>>>>
+>>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>>> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+>>>> ---
+>>>>   include/uapi/linux/videodev2.h | 2 ++
+>>>>   1 file changed, 2 insertions(+)
+>>>>
+>>>> diff --git a/include/uapi/linux/videodev2.h
+>>>> b/include/uapi/linux/videodev2.h
+>>>> index c50e449..f596b7b 100644
+>>>> --- a/include/uapi/linux/videodev2.h
+>>>> +++ b/include/uapi/linux/videodev2.h
+>>>> @@ -267,6 +267,8 @@ struct v4l2_capability {
+>>>>   #define V4L2_CAP_RADIO            0x00040000  /* is a radio device */
+>>>>   #define V4L2_CAP_MODULATOR        0x00080000  /* has a modulator */
+>>>>
+>>>> +#define V4L2_CAP_SDR_CAPTURE        0x00100000  /* Is a SDR capture
+>>>> device */
+>>>> +
+>>>>   #define V4L2_CAP_READWRITE              0x01000000  /* read/write
+>>>> systemcalls */
+>>>>   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+>>>>   #define V4L2_CAP_STREAMING              0x04000000  /* streaming
+>>>> I/O ioctls */
+>>>>
+>>>
+>>> This new capability needs to be documented in DocBook as well
+>>> (vidioc-querycap.xml).
+>>
+>> It is already.
+> 
+> There is following related flags:
+> 
+> V4L2_CAP_TUNER
+> V4L2_CAP_RADIO
+> V4L2_CAP_MODULATOR
+> V4L2_CAP_SDR_CAPTURE
+> 
+> V4L2_CAP_TUNER flag is overlapping with all these and is redundant at 
+> least currently. Lets take a example as a radio device. There is 
+> V4L2_CAP_RADIO flag to say it is radio and then there is flag 
+> V4L2_CAP_TUNER which means signal is coming from antenna? So there could 
+> be radio device without V4L2_CAP_TUNER flag, for example radio over IP, 
+> right?
 
-These are needed by the upcoming patches for the motion detection
-matrices.
+The tuner cap is important to tell the difference between a radio tuner
+and a radio modulator. In addition you need this capability tell userspace
+that the video capture device has a tuner. Video capture without a tuner
+is quite common.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 24 ++++++++++++++++++++++++
- include/media/v4l2-ctrls.h           |  4 ++++
- include/uapi/linux/videodev2.h       |  4 ++++
- 3 files changed, 32 insertions(+)
+> Due to that I started thinking relation of V4L2_CAP_SDR_CAPTURE and 
+> V4L2_CAP_TUNER and V4L2_CAP_RADIO flags. ADC is pretty much mandatory
+> element of SDR receiver (and DAC SDR transmitter). Whilst ADC is 
+> mandatory, RF tuner is not. So should I map V4L2_CAP_TUNER to indicate 
+> there is RF tuner?
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 160e4c7..4e3b70d 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1145,6 +1145,10 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
- 		return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
- 	case V4L2_CTRL_TYPE_INTEGER64:
- 		return ptr1.p_s64[idx] == ptr2.p_s64[idx];
-+	case V4L2_CTRL_TYPE_U8:
-+		return ptr1.p_u8[idx] == ptr2.p_u8[idx];
-+	case V4L2_CTRL_TYPE_U16:
-+		return ptr1.p_u16[idx] == ptr2.p_u16[idx];
- 	default:
- 		if (ctrl->is_int)
- 			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
-@@ -1172,6 +1176,12 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 	case V4L2_CTRL_TYPE_BOOLEAN:
- 		ptr.p_s32[idx] = ctrl->default_value;
- 		break;
-+	case V4L2_CTRL_TYPE_U8:
-+		ptr.p_u8[idx] = ctrl->default_value;
-+		break;
-+	case V4L2_CTRL_TYPE_U16:
-+		ptr.p_u16[idx] = ctrl->default_value;
-+		break;
- 	default:
- 		idx *= ctrl->elem_size;
- 		memset(ptr.p + idx, 0, ctrl->elem_size);
-@@ -1208,6 +1218,12 @@ static void std_log(const struct v4l2_ctrl *ctrl)
- 	case V4L2_CTRL_TYPE_STRING:
- 		pr_cont("%s", ptr.p_char);
- 		break;
-+	case V4L2_CTRL_TYPE_U8:
-+		pr_cont("%u", (unsigned)*ptr.p_u8);
-+		break;
-+	case V4L2_CTRL_TYPE_U16:
-+		pr_cont("%u", (unsigned)*ptr.p_u16);
-+		break;
- 	default:
- 		pr_cont("unknown type %d", ctrl->type);
- 		break;
-@@ -1238,6 +1254,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 		return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
- 	case V4L2_CTRL_TYPE_INTEGER64:
- 		return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
-+	case V4L2_CTRL_TYPE_U8:
-+		return ROUND_TO_RANGE(ptr.p_u8[idx], u8, ctrl);
-+	case V4L2_CTRL_TYPE_U16:
-+		return ROUND_TO_RANGE(ptr.p_u16[idx], u16, ctrl);
- 
- 	case V4L2_CTRL_TYPE_BOOLEAN:
- 		ptr.p_s32[idx] = !!ptr.p_s32[idx];
-@@ -1468,6 +1488,8 @@ static int check_range(enum v4l2_ctrl_type type,
- 		if (step != 1 || max > 1 || min < 0)
- 			return -ERANGE;
- 		/* fall through */
-+	case V4L2_CTRL_TYPE_U8:
-+	case V4L2_CTRL_TYPE_U16:
- 	case V4L2_CTRL_TYPE_INTEGER:
- 	case V4L2_CTRL_TYPE_INTEGER64:
- 		if (step == 0 || min > max || def < min || def > max)
-@@ -3118,6 +3140,8 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
-+	case V4L2_CTRL_TYPE_U8:
-+	case V4L2_CTRL_TYPE_U16:
- 		if (ctrl->is_matrix)
- 			return -EINVAL;
- 		ret = check_range(ctrl->type, min, max, step, def);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 7d72328..2ccad5f 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -39,12 +39,16 @@ struct poll_table_struct;
- /** union v4l2_ctrl_ptr - A pointer to a control value.
-  * @p_s32:	Pointer to a 32-bit signed value.
-  * @p_s64:	Pointer to a 64-bit signed value.
-+ * @p_u8:	Pointer to a 8-bit unsigned value.
-+ * @p_u16:	Pointer to a 16-bit unsigned value.
-  * @p_char:	Pointer to a string.
-  * @p:		Pointer to a complex value.
-  */
- union v4l2_ctrl_ptr {
- 	s32 *p_s32;
- 	s64 *p_s64;
-+	u8 *p_u8;
-+	u16 *p_u16;
- 	char *p_char;
- 	void *p;
- };
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 858a6f3..8b70f51 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1228,6 +1228,8 @@ struct v4l2_ext_control {
- 		__s32 value;
- 		__s64 value64;
- 		char *string;
-+		__u8 *p_u8;
-+		__u16 *p_u16;
- 		void *p;
- 	};
- } __attribute__ ((packed));
-@@ -1257,6 +1259,8 @@ enum v4l2_ctrl_type {
- 
- 	/* Complex types are >= 0x0100 */
- 	V4L2_CTRL_COMPLEX_TYPES	     = 0x0100,
-+	V4L2_CTRL_TYPE_U8	     = 0x0100,
-+	V4L2_CTRL_TYPE_U16	     = 0x0101,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
--- 
-1.8.5.2
+I don't think so. The capabilities really tell userspace what APIs are
+supported by the driver. Even though the ADC is perhaps not a 'real' tuner,
+the tuner API is still used to program it.
+
+Regards,
+
+	Hans
 
