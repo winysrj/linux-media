@@ -1,62 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4192 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932236AbaAaRVe (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:35940 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751037AbaAOTgP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 12:21:34 -0500
-Message-ID: <52EBDB8B.80202@xs4all.nl>
-Date: Fri, 31 Jan 2014 18:21:15 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, k.debski@samsung.com
-Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use
- it
-References: <201308281419.52009.hverkuil@xs4all.nl> <344618801.kmLM0jZvMY@avalon> <52A9ADF6.2090900@xs4all.nl> <18082456.iNCn4Qe0lB@avalon> <52EBC534.8080903@xs4all.nl> <20140131164233.GB15383@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20140131164233.GB15383@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 15 Jan 2014 14:36:15 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZG00DZ4JSE3410@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 Jan 2014 14:36:14 -0500 (EST)
+Date: Wed, 15 Jan 2014 17:35:59 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti =?UTF-8?B?U2VwcMOkbMOk?= <a.seppala@gmail.com>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH] nuvoton-cir: Add support for user configurable wake-up
+ codes
+Message-id: <20140115173559.7e53239a@samsung.com>
+In-reply-to: <1388758723-21653-1-git-send-email-a.seppala@gmail.com>
+References: <1388758723-21653-1-git-send-email-a.seppala@gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em Fri,  3 Jan 2014 16:18:43 +0200
+Antti Seppälä <a.seppala@gmail.com> escreveu:
 
-On 01/31/2014 05:42 PM, Sakari Ailus wrote:
-> Hi Hans and Laurent,
+> This patch introduces module parameters for setting wake-up codes to be
+> programmed into the hardware FIFO. This allows users to provide custom
+> IR sample sequences to trigger system wake-up from sleep states.
 > 
-> On Fri, Jan 31, 2014 at 04:45:56PM +0100, Hans Verkuil wrote:
->> How about defining a capability for use with ENUMINPUT/OUTPUT? I agree that this
->> won't change between buffers, but it is a property of a specific input or output.
+> Usage:
+>    modprobe nuvoton-cir wake_samples=0x90,0x11,0xa1... (up to 67 bytes)
 > 
-> Over 80 characters per line. :-P
-
-Stupid thunderbird doesn't show the column, and I can't enable
-automatic word-wrap because that plays hell with patches. Solutions
-welcome!
-
+> Here is a summary of module parameters introduced by this patch:
+>  * wake_samples: FIFO values to compare against received IR codes when
+>    in sleep state.
 > 
->> There are more than enough bits available in v4l2_input/output to add one for
->> SOF timestamps.
+>  * cmp_deep: Number of bytes the hardware will compare against. This is
+>    currently autodetected by the driver.
 > 
-> In complex devices with a non-linear media graph inputs and outputs are not
-> very relevant, and for that reason many drivers do not even implement them.
-> I'd rather not bind video buffer queues to inputs or outputs.
+>  * cmp_tolerance: The maximum allowed value difference between a single
+>    wake-up byte and a sample read from IR to be still considered a match.
+>    Default is 5.
 
-Then we end up again with buffer flags. It's a property of the selected input
-or output, so if you can't/don't want to use that, then it's buffer flags.
+Instead of adding it as a modprobe parameter, the better is to create
+an special sysfs node for devices that support wake up.
 
-Which I like as well, but it's probably useful that the documentation states
-that it can only change if the input or output changes as well.
-
-> My personal favourite is still to use controls for the purpose but the
-> buffer flags come close, too, especially now that we're using them for
-> timestamp sources.
-
-Laurent, can we please end this discussion? It makes perfect sense to store
-this information as a BUF_FLAG IMHO. You can just do a QUERYBUF once after
-you called REQBUFS and you know what you have to deal with.
+Btw, there's another device driver also requiring a similar feature.
 
 Regards,
+Mauro
 
-	Hans
+> 
+> Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+> ---
+>  drivers/media/rc/nuvoton-cir.c | 65 +++++++++++++++++++++++++++++++-----------
+>  drivers/media/rc/nuvoton-cir.h |  6 ++--
+>  2 files changed, 51 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+> index 21ee0dc..b11ee43 100644
+> --- a/drivers/media/rc/nuvoton-cir.c
+> +++ b/drivers/media/rc/nuvoton-cir.c
+> @@ -39,6 +39,15 @@
+>  
+>  #include "nuvoton-cir.h"
+>  
+> +/* debugging module parameter */
+> +static int debug;
+> +
+> +/* Wake up configuration parameters */
+> +static unsigned char wake_samples[WAKE_FIFO_LEN];
+> +static unsigned int num_wake_samples;
+> +static unsigned char cmp_deep;
+> +static unsigned char cmp_tolerance = CIR_WAKE_CMP_TOLERANCE;
+> +
+>  /* write val to config reg */
+>  static inline void nvt_cr_write(struct nvt_dev *nvt, u8 val, u8 reg)
+>  {
+> @@ -418,13 +427,38 @@ static void nvt_cir_regs_init(struct nvt_dev *nvt)
+>  
+>  static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
+>  {
+> +	int i;
+> +	u8 cmp_reg = CIR_WAKE_FIFO_CMP_BYTES;
+> +	u8 ircon_reg = CIR_WAKE_IRCON_RXEN | CIR_WAKE_IRCON_R |
+> +		       CIR_WAKE_IRCON_RXINV | CIR_WAKE_IRCON_SAMPLE_PERIOD_SEL;
+> +	/*
+> +	 * Enable TX and RX, specific carrier on = low, off = high, and set
+> +	 * sample period (currently 50us)
+> +	 */
+> +	nvt_cir_wake_reg_write(nvt, ircon_reg | CIR_WAKE_IRCON_MODE1,
+> +			       CIR_WAKE_IRCON);
+> +
+> +	/* clear cir wake rx fifo */
+> +	nvt_clear_cir_wake_fifo(nvt);
+> +
+> +	/* Write samples from module parameter to fifo */
+> +	for (i = 0; i < num_wake_samples; i++)
+> +		nvt_cir_wake_reg_write(nvt, wake_samples[i],
+> +				       CIR_WAKE_WR_FIFO_DATA);
+> +
+> +	/* Switch cir to wakeup mode and disable fifo writing */
+> +	nvt_cir_wake_reg_write(nvt, ircon_reg | CIR_WAKE_IRCON_MODE0,
+> +			       CIR_WAKE_IRCON);
+> +
+>  	/* set number of bytes needed for wake from s3 (default 65) */
+> -	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFO_CMP_BYTES,
+> -			       CIR_WAKE_FIFO_CMP_DEEP);
+> +	if (cmp_deep)
+> +		cmp_reg = cmp_deep;
+> +	else if (num_wake_samples)
+> +		cmp_reg = num_wake_samples;
+> +	nvt_cir_wake_reg_write(nvt, cmp_reg, CIR_WAKE_FIFO_CMP_DEEP);
+>  
+>  	/* set tolerance/variance allowed per byte during wake compare */
+> -	nvt_cir_wake_reg_write(nvt, CIR_WAKE_CMP_TOLERANCE,
+> -			       CIR_WAKE_FIFO_CMP_TOL);
+> +	nvt_cir_wake_reg_write(nvt, cmp_tolerance, CIR_WAKE_FIFO_CMP_TOL);
+>  
+>  	/* set sample limit count (PE interrupt raised when reached) */
+>  	nvt_cir_wake_reg_write(nvt, CIR_RX_LIMIT_COUNT >> 8, CIR_WAKE_SLCH);
+> @@ -434,18 +468,6 @@ static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
+>  	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFOCON_RX_TRIGGER_LEV,
+>  			       CIR_WAKE_FIFOCON);
+>  
+> -	/*
+> -	 * Enable TX and RX, specific carrier on = low, off = high, and set
+> -	 * sample period (currently 50us)
+> -	 */
+> -	nvt_cir_wake_reg_write(nvt, CIR_WAKE_IRCON_MODE0 | CIR_WAKE_IRCON_RXEN |
+> -			       CIR_WAKE_IRCON_R | CIR_WAKE_IRCON_RXINV |
+> -			       CIR_WAKE_IRCON_SAMPLE_PERIOD_SEL,
+> -			       CIR_WAKE_IRCON);
+> -
+> -	/* clear cir wake rx fifo */
+> -	nvt_clear_cir_wake_fifo(nvt);
+> -
+>  	/* clear any and all stray interrupts */
+>  	nvt_cir_wake_reg_write(nvt, 0xff, CIR_WAKE_IRSTS);
+>  }
+> @@ -1232,6 +1254,17 @@ static void nvt_exit(void)
+>  module_param(debug, int, S_IRUGO | S_IWUSR);
+>  MODULE_PARM_DESC(debug, "Enable debugging output");
+>  
+> +module_param_array(wake_samples, byte, &num_wake_samples, S_IRUGO | S_IWUSR);
+> +MODULE_PARM_DESC(wake_samples, "FIFO sample bytes triggering wake");
+> +
+> +module_param(cmp_deep, byte, S_IRUGO | S_IWUSR);
+> +MODULE_PARM_DESC(cmp_deep, "How many bytes need to compare\n"
+> +			   "\t\t(0 = auto (default))");
+> +
+> +module_param(cmp_tolerance, byte, S_IRUGO | S_IWUSR);
+> +MODULE_PARM_DESC(cmp_tolerance, "Data tolerance to each wake sample byte\n"
+> +				"\t\t(default = 5)");
+> +
+>  MODULE_DEVICE_TABLE(pnp, nvt_ids);
+>  MODULE_DESCRIPTION("Nuvoton W83667HG-A & W83677HG-I CIR driver");
+>  
+> diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+> index 07e8310..8209f84 100644
+> --- a/drivers/media/rc/nuvoton-cir.h
+> +++ b/drivers/media/rc/nuvoton-cir.h
+> @@ -31,10 +31,6 @@
+>  /* platform driver name to register */
+>  #define NVT_DRIVER_NAME "nuvoton-cir"
+>  
+> -/* debugging module parameter */
+> -static int debug;
+> -
+> -
+>  #define nvt_pr(level, text, ...) \
+>  	printk(level KBUILD_MODNAME ": " text, ## __VA_ARGS__)
+>  
+> @@ -64,6 +60,8 @@ static int debug;
+>  #define TX_BUF_LEN 256
+>  #define RX_BUF_LEN 32
+>  
+> +#define WAKE_FIFO_LEN 67
+> +
+>  struct nvt_dev {
+>  	struct pnp_dev *pdev;
+>  	struct rc_dev *rdev;
+
+
+-- 
+
+Cheers,
+Mauro
