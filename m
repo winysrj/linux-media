@@ -1,143 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39957 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752385AbaAYRLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:03 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 18/52] msi3101: move format 252 conversion to libv4lconvert
-Date: Sat, 25 Jan 2014 19:10:12 +0200
-Message-Id: <1390669846-8131-19-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:35661 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258AbaAOVfN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jan 2014 16:35:13 -0500
+Received: by mail-ee0-f49.google.com with SMTP id d17so1149405eek.8
+        for <linux-media@vger.kernel.org>; Wed, 15 Jan 2014 13:35:12 -0800 (PST)
+Message-ID: <52D6FF59.6010407@googlemail.com>
+Date: Wed, 15 Jan 2014 22:36:25 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: m.chehab@samsung.com
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFT PATCH] em28xx-audio: don't overwrite the usb alt setting
+ made by the video part
+References: <1389821502-11346-1-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1389821502-11346-1-git-send-email-fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move format 252 conversion to libv4lconvert as a fourcc "DS14".
-It is 14-bit sample pairs packed to 4 bytes.
+Am 15.01.2014 22:31, schrieb Frank Schäfer:
+> em28xx-audio currently switches to usb alternate setting #7 in case of a mixed
+> interface. This may overwrite the setting made by the video part and break video
+> streaming.
+> As far as we know, there is no difference between the alt settings with regards
+> to the audio endpoint if the interface is a mixed interface, the audio part only
+> has to make sure that alt is > 0, which is fortunately only the case when video
+> streaming is off.
+>
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-audio.c |   41 ++++++++++++-------------------
+>  1 Datei geändert, 16 Zeilen hinzugefügt(+), 25 Zeilen entfernt(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+> index 05e9bd1..2e7a3ad 100644
+> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+> @@ -266,33 +266,30 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+>  	dprintk("opening device and trying to acquire exclusive lock\n");
+>  
+>  	runtime->hw = snd_em28xx_hw_capture;
+> -	if ((dev->alt == 0 || dev->is_audio_only) && dev->adev.users == 0) {
+> -		int nonblock = !!(substream->f_flags & O_NONBLOCK);
+>  
+> +	if (dev->adev.users == 0) {
+> +		int nonblock = !!(substream->f_flags & O_NONBLOCK);
+>  		if (nonblock) {
+>  			if (!mutex_trylock(&dev->lock))
+>  				return -EAGAIN;
+>  		} else
+>  			mutex_lock(&dev->lock);
+> -		if (dev->is_audio_only)
+> -			/* vendor audio is on a separate interface */
+> +
+> +		/* Select initial alternate setting (if necessary) */
+> +		if (dev->alt == 0) {
+>  			dev->alt = 1;
+> -		else
+> -			/* vendor audio is on the same interface as video */
+> -			dev->alt = 7;
+>  			/*
+> -			 * FIXME: The intention seems to be to select the alt
+> -			 * setting with the largest wMaxPacketSize for the video
+> -			 * endpoint.
+> -			 * At least dev->alt should be used instead, but we
+> -			 * should probably not touch it at all if it is
+> -			 * already >0, because wMaxPacketSize of the audio
+> -			 * endpoints seems to be the same for all.
+> +			 * NOTE: in case of a mixed (audio+video) interface, we
+> +			 * don't want to touch the alt setting made by the video
+> +			 * part. There is no difference between the alt settings
+> +			 * with regards to the audio endpoint.
+> +			 * TODO: in case of a pure audio interface, this could
+> +			 * be improved. The alt settings are different here.
+>  			 */
+> -
+> -		dprintk("changing alternate number on interface %d to %d\n",
+> -			dev->ifnum, dev->alt);
+> -		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+> +			dprintk("changing alternate number on interface %d to %d\n",
+> +				dev->ifnum, dev->alt);
+> +			usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+> +		}
+>  
+>  		/* Sets volume, mute, etc */
+>  		dev->mute = 0;
+> @@ -740,15 +737,9 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
+>  	struct usb_endpoint_descriptor *e, *ep = NULL;
+>  	int                 i, ep_size, interval, num_urb, npackets;
+>  	int		    urb_size, bytes_per_transfer;
+> -	u8 alt;
+> -
+> -	if (dev->ifnum)
+> -		alt = 1;
+> -	else
+> -		alt = 7;
+> +	u8 alt = 1;
+>  
+>  	intf = usb_ifnum_to_if(dev->udev, dev->ifnum);
+> -
+>  	if (intf->num_altsetting <= alt) {
+>  		em28xx_errdev("alt %d doesn't exist on interface %d\n",
+>  			      dev->ifnum, alt);
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 65 +++++++++++------------------
- 1 file changed, 24 insertions(+), 41 deletions(-)
+Please note that this is actually just a minor fix.
+What's really evil with the current alternate setting code is that the
+video part may switch the alt setting while audio streaming is in progress.
+I'm not sure how to fix this. Maybe we shouldn't start audio streaming
+before video streaming.
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 7c1dc43..16ce417 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -387,6 +387,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
- 
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
- #define V4L2_PIX_FMT_SDR_S12     v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
-+#define V4L2_PIX_FMT_SDR_S14     v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
- #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
- 
- /* stream formats */
-@@ -406,6 +407,9 @@ static struct msi3101_format formats[] = {
- 	}, {
- 		.name		= "I/Q 12-bit signed",
- 		.pixelformat	= V4L2_PIX_FMT_SDR_S12,
-+	}, {
-+		.name		= "I/Q 14-bit signed",
-+		.pixelformat	= V4L2_PIX_FMT_SDR_S14,
- 	},
- };
- 
-@@ -439,7 +443,7 @@ struct msi3101_state {
- 	unsigned int vb_full; /* vb is full and packets dropped */
- 
- 	struct urb *urbs[MAX_ISO_BUFS];
--	int (*convert_stream) (struct msi3101_state *s, u32 *dst, u8 *src,
-+	int (*convert_stream) (struct msi3101_state *s, u8 *dst, u8 *src,
- 			unsigned int src_len);
- 
- 	/* Controls */
-@@ -709,40 +713,21 @@ static int msi3101_convert_stream_336(struct msi3101_state *s, u8 *dst,
- }
- 
- /*
-- * Converts signed 14-bit integer into 32-bit IEEE floating point
-- * representation.
-+ * +===========================================================================
-+ * |   00-1023 | USB packet type '252'
-+ * +===========================================================================
-+ * |   00-  03 | sequence number of first sample in that USB packet
-+ * +---------------------------------------------------------------------------
-+ * |   04-  15 | garbage
-+ * +---------------------------------------------------------------------------
-+ * |   16-1023 | samples
-+ * +---------------------------------------------------------------------------
-+ * signed 14-bit sample
-  */
--static u32 msi3101_convert_sample_252(struct msi3101_state *s, u16 x)
--{
--	u32 msb, exponent, fraction, sign;
--
--	/* Zero is special */
--	if (!x)
--		return 0;
--
--	/* Negative / positive value */
--	if (x & (1 << 13)) {
--		x = -x;
--		x &= 0x1fff; /* result is 13 bit ... + sign */
--		sign = 1 << 31;
--	} else {
--		sign = 0 << 31;
--	}
--
--	/* Get location of the most significant bit */
--	msb = __fls(x);
--
--	fraction = ror32(x, (msb - I2F_FRAC_BITS) & 0x1f) & I2F_MASK;
--	exponent = (127 + msb) << I2F_FRAC_BITS;
--
--	return (fraction + exponent) | sign;
--}
--
--static int msi3101_convert_stream_252(struct msi3101_state *s, u32 *dst,
-+static int msi3101_convert_stream_252(struct msi3101_state *s, u8 *dst,
- 		u8 *src, unsigned int src_len)
- {
--	int i, j, i_max, dst_len = 0;
--	u16 sample[2];
-+	int i, i_max, dst_len = 0;
- 	u32 sample_num[3];
- 
- 	/* There could be 1-3 1024 bytes URB frames */
-@@ -763,17 +748,12 @@ static int msi3101_convert_stream_252(struct msi3101_state *s, u32 *dst,
- 		 */
- 		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
- 
-+		/* 252 x I+Q samples */
- 		src += 16;
--		for (j = 0; j < 1008; j += 4) {
--			sample[0] = src[j + 0] >> 0 | src[j + 1] << 8;
--			sample[1] = src[j + 2] >> 0 | src[j + 3] << 8;
--
--			*dst++ = msi3101_convert_sample_252(s, sample[0]);
--			*dst++ = msi3101_convert_sample_252(s, sample[1]);
--		}
--		/* 252 x I+Q 32bit float samples */
--		dst_len += 252 * 2 * 4;
-+		memcpy(dst, src, 1008);
- 		src += 1008;
-+		dst += 1008;
-+		dst_len += 1008;
- 	}
- 
- 	/* calculate samping rate and output it in 10 seconds intervals */
-@@ -1169,6 +1149,9 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
- 	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S12) {
- 		s->convert_stream = msi3101_convert_stream_336;
- 		reg7 = 0x00008507;
-+	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S14) {
-+		s->convert_stream = msi3101_convert_stream_252;
-+		reg7 = 0x00009407;
- 	}
- 
- 	/*
--- 
-1.8.5.3
 
