@@ -1,93 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:18881 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745AbaAGNk0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 08:40:26 -0500
-Date: Tue, 07 Jan 2014 11:40:19 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Ding Tianhong <dingtianhong@huawei.com>
-Cc: linux-media@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 10/21] media: dvb_core: slight optimization of addr compare
-Message-id: <20140107114019.2f8eb534@samsung.com>
-In-reply-to: <52B7C5CB.5000709@huawei.com>
-References: <52B7C5CB.5000709@huawei.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:49869 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751502AbaAORZb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jan 2014 12:25:31 -0500
+Message-ID: <52D6C488.5090207@iki.fi>
+Date: Wed, 15 Jan 2014 19:25:28 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH RFC v6 07/12] v4l: add device capability flag for SDR
+ receiver
+References: <1388289844-2766-1-git-send-email-crope@iki.fi> <1388289844-2766-8-git-send-email-crope@iki.fi> <52C94C51.2010005@xs4all.nl> <52D49691.4000405@iki.fi>
+In-Reply-To: <52D49691.4000405@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Dec 2013 13:10:35 +0800
-Ding Tianhong <dingtianhong@huawei.com> escreveu:
+On 14.01.2014 03:44, Antti Palosaari wrote:
+> On 05.01.2014 14:13, Hans Verkuil wrote:
+>> On 12/29/2013 05:03 AM, Antti Palosaari wrote:
+>>> VIDIOC_QUERYCAP IOCTL is used to query device capabilities. Add new
+>>> capability flag to inform given device supports SDR capture.
+>>>
+>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+>>> ---
+>>>   include/uapi/linux/videodev2.h | 2 ++
+>>>   1 file changed, 2 insertions(+)
+>>>
+>>> diff --git a/include/uapi/linux/videodev2.h
+>>> b/include/uapi/linux/videodev2.h
+>>> index c50e449..f596b7b 100644
+>>> --- a/include/uapi/linux/videodev2.h
+>>> +++ b/include/uapi/linux/videodev2.h
+>>> @@ -267,6 +267,8 @@ struct v4l2_capability {
+>>>   #define V4L2_CAP_RADIO            0x00040000  /* is a radio device */
+>>>   #define V4L2_CAP_MODULATOR        0x00080000  /* has a modulator */
+>>>
+>>> +#define V4L2_CAP_SDR_CAPTURE        0x00100000  /* Is a SDR capture
+>>> device */
+>>> +
+>>>   #define V4L2_CAP_READWRITE              0x01000000  /* read/write
+>>> systemcalls */
+>>>   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+>>>   #define V4L2_CAP_STREAMING              0x04000000  /* streaming
+>>> I/O ioctls */
+>>>
+>>
+>> This new capability needs to be documented in DocBook as well
+>> (vidioc-querycap.xml).
+>
+> It is already.
 
-> Use the recently added and possibly more efficient
-> ether_addr_equal_unaligned to instead of memcmp.
+There is following related flags:
 
-I'm ok with this change, but I prefer if you could merge it together with the
-other patches, as I don't have the patch that added 
-ether_addr_equal_unaligned() on my tree yet.
-> 
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+V4L2_CAP_TUNER
+V4L2_CAP_RADIO
+V4L2_CAP_MODULATOR
+V4L2_CAP_SDR_CAPTURE
 
-Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+V4L2_CAP_TUNER flag is overlapping with all these and is redundant at 
+least currently. Lets take a example as a radio device. There is 
+V4L2_CAP_RADIO flag to say it is radio and then there is flag 
+V4L2_CAP_TUNER which means signal is coming from antenna? So there could 
+be radio device without V4L2_CAP_TUNER flag, for example radio over IP, 
+right?
 
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
-> Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
-> ---
->  drivers/media/dvb-core/dvb_net.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-> index f91c80c..ff00f97 100644
-> --- a/drivers/media/dvb-core/dvb_net.c
-> +++ b/drivers/media/dvb-core/dvb_net.c
-> @@ -179,7 +179,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
->  	eth = eth_hdr(skb);
->  
->  	if (*eth->h_dest & 1) {
-> -		if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
-> +		if(ether_addr_equal_unaligned(eth->h_dest, dev->broadcast))
->  			skb->pkt_type=PACKET_BROADCAST;
->  		else
->  			skb->pkt_type=PACKET_MULTICAST;
-> @@ -674,11 +674,11 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
->  					if (priv->rx_mode != RX_MODE_PROMISC) {
->  						if (priv->ule_skb->data[0] & 0x01) {
->  							/* multicast or broadcast */
-> -							if (memcmp(priv->ule_skb->data, bc_addr, ETH_ALEN)) {
-> +							if (!ether_addr_equal_unaligned(priv->ule_skb->data, bc_addr)) {
->  								/* multicast */
->  								if (priv->rx_mode == RX_MODE_MULTI) {
->  									int i;
-> -									for(i = 0; i < priv->multi_num && memcmp(priv->ule_skb->data, priv->multi_macs[i], ETH_ALEN); i++)
-> +									for(i = 0; i < priv->multi_num && !ether_addr_equal_unaligned(priv->ule_skb->data, priv->multi_macs[i]); i++)
->  										;
->  									if (i == priv->multi_num)
->  										drop = 1;
-> @@ -688,7 +688,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
->  							}
->  							/* else: broadcast */
->  						}
-> -						else if (memcmp(priv->ule_skb->data, dev->dev_addr, ETH_ALEN))
-> +						else if (!ether_addr_equal_unaligned(priv->ule_skb->data, dev->dev_addr))
->  							drop = 1;
->  						/* else: destination address matches the MAC address of our receiver device */
->  					}
-> @@ -837,7 +837,7 @@ static void dvb_net_sec(struct net_device *dev,
->  	}
->  	if (pkt[5] & 0x02) {
->  		/* handle LLC/SNAP, see rfc-1042 */
-> -		if (pkt_len < 24 || memcmp(&pkt[12], "\xaa\xaa\x03\0\0\0", 6)) {
-> +		if (pkt_len < 24 || !ether_addr_equal_unaligned(&pkt[12], "\xaa\xaa\x03\0\0\0")) {
->  			stats->rx_dropped++;
->  			return;
->  		}
+Due to that I started thinking relation of V4L2_CAP_SDR_CAPTURE and 
+V4L2_CAP_TUNER and V4L2_CAP_RADIO flags. ADC is pretty much mandatory
+element of SDR receiver (and DAC SDR transmitter). Whilst ADC is 
+mandatory, RF tuner is not. So should I map V4L2_CAP_TUNER to indicate 
+there is RF tuner?
 
+regards
+Antti
 
 -- 
-
-Cheers,
-Mauro
+http://palosaari.fi/
