@@ -1,101 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58887 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750932AbaAYNBt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 08:01:49 -0500
-Message-ID: <52E3B5BA.5010808@iki.fi>
-Date: Sat, 25 Jan 2014 15:01:46 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2984 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbaAOHjZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jan 2014 02:39:25 -0500
+Message-ID: <52D63B23.5000505@xs4all.nl>
+Date: Wed, 15 Jan 2014 08:39:15 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 10/13] DocBook: Software Defined Radio Interface
-References: <1390511333-25837-1-git-send-email-crope@iki.fi> <1390511333-25837-11-git-send-email-crope@iki.fi> <52E37533.6010607@xs4all.nl>
-In-Reply-To: <52E37533.6010607@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Jianle Wang <victure86@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: how can I get compat_ioctl support for v4l2_subdev_fops
+References: <CACDDY7429te6a7cUQ0Z=sX6TELjn48FQHiuW=YtBsyOkzrCqZA@mail.gmail.com>
+In-Reply-To: <CACDDY7429te6a7cUQ0Z=sX6TELjn48FQHiuW=YtBsyOkzrCqZA@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25.01.2014 10:26, Hans Verkuil wrote:
-> A few comments below...
->
-> On 01/23/2014 10:08 PM, Antti Palosaari wrote:
->> Document V4L2 SDR interface.
->>
->> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
+Hi Jianle,
 
->> +    <section>
->> +      <title>V4L2 in Linux 3.14</title>
->
-> This should be 3.15.
+On 01/15/2014 07:28 AM, Jianle Wang wrote:
+> Hi all, :
+> I use the media-ctl from http://git.ideasonboard.org/media-ctl.git
+> It is compiled into a 32 bit application. Run on a 64 bit CPU. The
+> version of kernel is 3.10.
+> 
+> When call ioctl(, VIDIOC_SUBDEV_S_SELECTION,), meet the below warning:
+> [   97.186338] c0 707 (drv_test) compat_ioctl32: unknown ioctl 'V',
+> dir=3, #62 (0xc040563e)
+> [   97.203252] c0 707 (drv_test) WARNING: no compat_ioctl for v4l-subdev1
+> 
+> VIDIOC_SUBDEV_S_SELECTION is not supported for compat_iocl. And I list
+> others subdev’s ioctl, which are also not included
+> 
+> in v4l2_compat_iocl32().
+> How can I get these compat_ioctl?
+> Have they been added in v4l2_compat_iocl32() or We have added a
+> compat_ioctl32 in v4l2_subdev_fops?
 
-OK. The goal was that 3.14 but fixing that documentation has taken over 
-month.
+It's a bug, I'm afraid. A lot of the SUBDEV ioctls are missing in v4l2_compat_ioctl32.
+Try the patch below, that should fix it.
 
+Regards,
 
->> +
->> +    <para>
->> +The SDR capture device uses the <link linkend="format">format</link> ioctls to
->> +select the capture format. Both the sampling resolution and the data streaming
->
-> I understand why the data streaming format is bound to the format, but why is
-> the sampling resolution bound by it as well?
+	Hans
 
-How can I explain that... it is not always bind to format nor it could 
-be known 100% from sure from format. But resolution has some deep 
-relation to format. Data is usually packed to smallest reasonable size 
-in order to minimize needed transmission bandwidth. If you change 
-sampling resolution then format likely changes too, as greater 
-resolution needs more bits per sample and format carries samples. Lets 
-take a some simple example:
+> 
+> VIDIOC_SUBDEV_G_FMT
+> VIDIOC_SUBDEV_S_FMT
+> VIDIOC_SUBDEV_G_CROP
+> VIDIOC_SUBDEV_S_CROP
+> VIDIOC_SUBDEV_ENUM_MBUS_CODE
+> VIDIOC_SUBDEV_ENUM_FRAME_SIZE
+> VIDIOC_SUBDEV_G_FRAME_INTERVAL
+> VIDIOC_SUBDEV_S_FRAME_INTERVAL
+> VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL
+> VIDIOC_SUBDEV_G_SELECTION
+> VIDIOC_SUBDEV_S_SELECTION
+> default
+> v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Lets take an examples:
-A is 8-bit sample, number from range 0-255.
-B is 16-bit sample, number from range 0-65536.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Then your formats are defined, lets say V4L_FMT_SDR_U8 and V4L_FMT_SDR_U16.
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 8f7a6a4..15d3586 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -1007,6 +1007,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 		return ret;
+ 
+ 	switch (cmd) {
++	/* V4L2 ioctls */
+ 	case VIDIOC_QUERYCAP:
+ 	case VIDIOC_RESERVED:
+ 	case VIDIOC_ENUM_FMT:
+@@ -1087,8 +1088,21 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_QUERY_DV_TIMINGS:
+ 	case VIDIOC_DV_TIMINGS_CAP:
+ 	case VIDIOC_ENUM_FREQ_BANDS:
++
++	/* V4L2 subdev ioctls */
+ 	case VIDIOC_SUBDEV_G_EDID32:
+ 	case VIDIOC_SUBDEV_S_EDID32:
++	case VIDIOC_SUBDEV_G_FMT:
++	case VIDIOC_SUBDEV_S_FMT:
++	case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
++	case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
++	case VIDIOC_SUBDEV_ENUM_MBUS_CODE:
++	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE:
++	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL:
++	case VIDIOC_SUBDEV_G_CROP:
++	case VIDIOC_SUBDEV_S_CROP:
++	case VIDIOC_SUBDEV_G_SELECTION:
++	case VIDIOC_SUBDEV_S_SELECTION:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
+ 
 
-Streams are sequence of those samples, use 10 samples here as example:
-A0A1A2A3A4A5A6A7A8A9 = 80bits, 10 bytes
-B0B1B2B3B4B5B6B7B8B9 = 160bits, 20 bytes
-
-But you still don't know surely what is sampling resolution, only how it 
-is represented. It is always more or less than that nominal value, die 
-to many reasons. ADC datasheets usually define ENOB (effective number of 
-bits) value. It is fairly common having 12bit resolution but ENOB is 
-only around 10bit.
-
-Here is example from Mirics, which shows different formats and resolutions:
-
-format,resolution,sample rate (~max)
-252    14         8613281
-336    12        11484375
-384    10+2      13125000 (packed, 2 bits dropped using some formula)
-504    8         17226562
-
-All in all, the idea was to tell user that the sampling resolution is 
-selected according to dataformat he uses.
-
-
->> --- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
->> +++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
->> @@ -172,6 +172,13 @@ capture and output devices.</entry>
->>   	  </row>
->>   	  <row>
->>   	    <entry></entry>
->> +	    <entry>&v4l2-format-sdr;</entry>
->> +	    <entry><structfield>sdr</structfield></entry>
->> +	    <entry>Definition of an data format, see
->
-> s/an data/a data/
-
-OK
-
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
