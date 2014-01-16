@@ -1,81 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50868 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751136AbaABMIG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jan 2014 07:08:06 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH, RFC 07/30] [media] radio-cadet: avoid interruptible_sleep_on race
-Date: Thu,  2 Jan 2014 13:07:31 +0100
-Message-Id: <1388664474-1710039-8-git-send-email-arnd@arndb.de>
-In-Reply-To: <1388664474-1710039-1-git-send-email-arnd@arndb.de>
-References: <1388664474-1710039-1-git-send-email-arnd@arndb.de>
+Received: from blu0-omc2-s31.blu0.hotmail.com ([65.55.111.106]:20260 "EHLO
+	blu0-omc2-s31.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751450AbaAPUKj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jan 2014 15:10:39 -0500
+Message-ID: <BLU0-SMTP1088EA2459775CE15B7545BADB90@phx.gbl>
+Date: Fri, 17 Jan 2014 04:10:31 +0800
+From: randy <lxr1234@hotmail.com>
+MIME-Version: 1.0
+To: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org
+Subject: Re: using MFC memory to memery encoder, start stream and queue order
+ problem
+References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl> <02c701cf07b6$565cd340$031679c0$%debski@samsung.com> <BLU0-SMTP266BE9BC66B254061740251ADCB0@phx.gbl> <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com> <BLU0-SMTP150C8C0DB0E9A3A9F4104F8ADCA0@phx.gbl> <04b601cf0c7f$d9e531d0$8daf9570$%debski@samsung.com> <52CD725E.5060903@hotmail.com> <BLU0-SMTP6650E76A95FA2BB39C6325ADB30@phx.gbl> <52CFD5DF.6050801@samsung.com> <BLU0-SMTP37B0A51F0A2D2F1E79A730ADB30@phx.gbl> <52D3BCB7.1060309@samsung.com> <52D3CB84.6090406@samsung.com> <BLU0-SMTP3546CDA7E88F73435A3A876ADBC0@phx.gbl> <001701cf107b$0927aa50$1b76fef0$%debski@samsung.com> <BLU0-SMTP183F0EEECCB365900DE2315ADBF0@phx.gbl> <52D51179.8030102@samsung.com> <BLU0-SMTP1645A2349311998A104ACB8ADBF0@phx.gbl> <52D63405.9080604@samsung.com> <BLU0-SMTP184B0B9737C458456530152ADBE0@phx.gbl> <52D7D284.1080700@samsung.com>
+In-Reply-To: <52D7D284.1080700@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-interruptible_sleep_on is racy and going away. This replaces
-one use in the radio-cadet driver with an open-coded
-wait loop that lets us check the condition under the mutex
-but sleep without it.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/radio/radio-cadet.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+>> [  100.645000] s5p_mfc_alloc_codec_buffers_v5:177: Failed to 
+>> allocate Bank1 temporary buffer [  107.065000] 
+>> s5p_mfc_alloc_priv_buf:43: Allocating private buffer failed [ 
+>> 107.065000] s5p_mfc_alloc_codec_buffers_v5:177: Failed to 
+>> allocate Bank1 temporary buffer
+> Try to increase CMA size in kernel config - CONFIG_CMA_SIZE_MBYTES,
+> by default it is set to 16MB, try for example 64MB.
+I am very sorry, I don't test it carefully, the mfc-encode can't work
+on 3.13-rc8, with or without header_mode=1 it will got
+v4l_dev.c:v4l_req_bufs:111: error: Failed to request 4 buffers for
+device 3:1)
+and
+[ 1706.540000] s5p_mfc_alloc_codec_buffers_v5:177: Failed to allocate
+Bank1 temporary buffer
 
-diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
-index 545c04c..67b5bbf 100644
---- a/drivers/media/radio/radio-cadet.c
-+++ b/drivers/media/radio/radio-cadet.c
-@@ -39,6 +39,7 @@
- #include <linux/pnp.h>
- #include <linux/sched.h>
- #include <linux/io.h>		/* outb, outb_p			*/
-+#include <linux/wait.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
-@@ -323,25 +324,32 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
- 	struct cadet *dev = video_drvdata(file);
- 	unsigned char readbuf[RDS_BUFFER];
- 	int i = 0;
-+	DEFINE_WAIT(wait);
- 
- 	mutex_lock(&dev->lock);
- 	if (dev->rdsstat == 0)
- 		cadet_start_rds(dev);
--	if (dev->rdsin == dev->rdsout) {
-+	while (1) {
-+		prepare_to_wait(&dev->read_queue, &wait, TASK_INTERRUPTIBLE);
-+		if (dev->rdsin != dev->rdsout)
-+			break;
-+
- 		if (file->f_flags & O_NONBLOCK) {
- 			i = -EWOULDBLOCK;
- 			goto unlock;
- 		}
- 		mutex_unlock(&dev->lock);
--		interruptible_sleep_on(&dev->read_queue);
-+		schedule();
- 		mutex_lock(&dev->lock);
- 	}
-+
- 	while (i < count && dev->rdsin != dev->rdsout)
- 		readbuf[i++] = dev->rdsbuf[dev->rdsout++];
- 
- 	if (i && copy_to_user(data, readbuf, i))
- 		i = -EFAULT;
- unlock:
-+	finish_wait(&dev->read_queue, &wait);
- 	mutex_unlock(&dev->lock);
- 	return i;
- }
--- 
-1.8.3.2
+In the old 3.5 kernel, it has this kind of problem too,
+[    0.210000] Failed to declare coherent memory for MFC device (0
+bytes at 0x43000000)
 
+I wonder is there some problem of the board or core board. But it
+seems that result of 3.5 is better(but without the I-frame, the
+encoded data is useless as I know)
+
+Thank you
+ayaka
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQEcBAEBAgAGBQJS2Dy3AAoJEPb4VsMIzTziYooH/3GxuPn2bt74QQF0fy8yZH+T
+kE4K9F9JUValDfdQc0GBnFDRBb4CIbL4ncWoRhj4mjH3Iu3OOxWjRgEl/aZ+TzZg
+3BJSTI9Wnaxt4sFCVJKHtYY9Ei7nv2548/hC2UzkrzmtPYIiUBmEarbI4rcrX3/Y
+II1Oe8GoCvyyD7/BJ37ENKX1Y3O1ZvwZJvKaTRamAJQmJKpR5/wFvrRBqp1kLG5l
+1LHJOM2qfWAB7HWlALDXpgYS8UhovHWPqWZj7tLKzLEibvRKqqD6+ZRY29nJTkED
+KcvNY6pGv5vdoQoP6cHAWARg8WwGCR3brOXiPaNCp3GtsFfATEDHLhOIIc12vOg=
+=fa3t
+-----END PGP SIGNATURE-----
