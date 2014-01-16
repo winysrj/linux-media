@@ -1,243 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:42188 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727AbaAMVva (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:59228 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066AbaAPL0n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 16:51:30 -0500
-Received: by mail-ea0-f170.google.com with SMTP id k10so3570991eaj.15
-        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 13:51:29 -0800 (PST)
-Message-ID: <52D46028.7090602@googlemail.com>
-Date: Mon, 13 Jan 2014 22:52:40 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] em28xx: fix usb alternate setting for analog and
- digital video endpoints > 0
-References: <1389447750-2642-1-git-send-email-fschaefer.oss@googlemail.com> <20140112153502.5cedd0ed@samsung.com> <52D430A7.9060801@googlemail.com> <20140113171347.0657e822@samsung.com>
-In-Reply-To: <20140113171347.0657e822@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 16 Jan 2014 06:26:43 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZH00AQKRSIHK00@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Jan 2014 20:26:42 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 1/2] s5p-jpeg: Fix broken indentation in jpeg-regs.h
+Date: Thu, 16 Jan 2014 12:26:32 +0100
+Message-id: <1389871593-10973-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 13.01.2014 20:13, schrieb Mauro Carvalho Chehab:
-> Em Mon, 13 Jan 2014 19:29:59 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> On 12.01.2014 18:35, Mauro Carvalho Chehab wrote:
->>> Em Sat, 11 Jan 2014 14:42:29 +0100
->>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>>
->>>> The current code assumes that the analog + digital video endpoints are always at
->>>> interface number 0 when changing the alternate setting.
->>>> This seems to work fine for most existing devices.
->>>> However, at least the SpeedLink VAD Laplace webcam has the video endpoint on
->>>> interface number 3 (which fortunately doesn't cause any trouble because ist uses
->>>> bulk transfers only).
->>>> We already consider the actual the interface number for audio endpoints, so
->>>> rename the the audio_ifnum variable and use it for all device types.
->>>> Also get get rid of a pointless (ifnum < 0) in em28xx-audio.
->>>>
->>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->>>> ---
->>>>   drivers/media/usb/em28xx/em28xx-audio.c |   10 +++++-----
->>>>   drivers/media/usb/em28xx/em28xx-cards.c |    2 +-
->>>>   drivers/media/usb/em28xx/em28xx-dvb.c   |    2 +-
->>>>   drivers/media/usb/em28xx/em28xx-video.c |    2 +-
->>>>   drivers/media/usb/em28xx/em28xx.h       |    3 +--
->>>>   5 Dateien geändert, 9 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
->>>>
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
->>>> index 30ee389..b2ae954 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-audio.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
->>>> @@ -243,15 +243,15 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
->>>>   	}
->>>>   
->>>>   	runtime->hw = snd_em28xx_hw_capture;
->>>> -	if ((dev->alt == 0 || dev->audio_ifnum) && dev->adev.users == 0) {
->>>> -		if (dev->audio_ifnum)
->>>> +	if ((dev->alt == 0 || dev->ifnum) && dev->adev.users == 0) {
->>> Lets keep it named as "audio_ifnum". Ok, this is equal to the video_ifnum
->>> for several devices, but on em2861 (and other em2xx1 devices), the audio
->>> interface is different.
->> Uhm, that doesn't make sense.
->> Why do you want to call it audio_ifnum although it is used for 
->> audio/video/dvb ???
-> em28xx-audio only cares about the interface used by audio, and if it is
-> different than the one used by video, in order to switch the alternate at
-> the right interface.
->
-> So, you'll likely need to add a video_ifnum and an audio_ifnum, in
-> order to track both (eventually, we may need a dvb_ifnum in the future,
-> if they decide to provide a separate interface for it too).
->
->>> Also, as we're trying to get rid of hardcoded values, it also makes sense
->>> to store the alternate used for the audio endpoint.
->> We already to that: dev->alt.
-> See below: dev->alt = 1 or dev->alt = 7.
->
->> I think there is some general misunderstanding here.
->> There is always only a single interface number and current alternate 
->> setting per driver instance.
->> If all endpoints are on the same interface, there's only a sibgle driver 
->> instance.
->> If the audio endpoints are on a separate interface, there will be two 
->> driver instances (each of them using their own device struct etc.).
->>
->>> Btw, I'm thinking on rework on this entire code, adding a logic that would
->>> handle properly the interface used by both audio and video (when this is
->>> the case) to not just select alt = 7, but to dynamically allocate the proper
->>> value for it, by taking into account the number of allocated audio URBs.
->> alt=7 is actually bug that needs to be fixed.
-> Huh? alt = 7 is a "works everytime" kind of alternate, as it has the biggest
-> window size. You can say that this is not optimized, making em28xx to spend
-> more bandwidth than needed, but this is not a bug.
->
->> It messes up the alt settings made by the video part.
-> Yes, because it doesn't recalculate the bandwidth.
->
->> This just didn't show up so far, because the video stream is almost 
->> always started after the audio stream.
-> You can't assume that. 
->
-> Actually, it is/was common for people to start the video streaming
-> using some non-alsa compatible application, and then use a separate
-> process for audio.
->
-> See, for example (at ALSA audio with other applications):
-> 	http://www.linuxtv.org/wiki/index.php/Saa7134-alsa
->
-> I actually use this way when I want to do some tests with alsa,
-> stopping/restarting its stream without touching on the video one.
->
->> Do you know any devices with audio endpoints 0x83 on the same interface 
->> as video/dvb ?
-> Yes. HVR-950 (and HVR-900).
->
->> If yes, can you check their alt settings ? I'm pretty sure the audio 
->> endpoint uses the same wMaxPacketSize and bInterval values at all alt 
->> settings.
-> Yes.
->
->> Otherwise things would become very complicated...
-> The problem is basically the same: when a audio or video stream starts,
-> it will need to call some routine to determinate the alternate. Such
-> routine should track if both streams are active, or if just one is
-> active, and provide the lowest alternate that works for both (or,
-> in doubt, the alternate with the highest packet size, e. g. alt = 7
-> when audio and video are at the same interface, or alt = 1 otherwise).
->
->>> For now, could you please rebase this patch, keeping the interface named
->>> as "audio_ifnum"?
->>>
->>> Thanks!
->>> Mauro
->>>
->>>> +		if (dev->ifnum)
->>>>   			dev->alt = 1;
->>>>   		else
->>>>   			dev->alt = 7;
->>>>   
->>>>   		dprintk("changing alternate number on interface %d to %d\n",
->>>> -			dev->audio_ifnum, dev->alt);
->>>> -		usb_set_interface(dev->udev, dev->audio_ifnum, dev->alt);
->>>> +			dev->ifnum, dev->alt);
->>>> +		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
->>>>   
->>>>   		/* Sets volume, mute, etc */
->>>>   		dev->mute = 0;
->>>> @@ -625,7 +625,7 @@ static int em28xx_audio_init(struct em28xx *dev)
->>>>   	const int sb_size = EM28XX_NUM_AUDIO_PACKETS *
->>>>   			    EM28XX_AUDIO_MAX_PACKET_SIZE;
->>>>   
->>>> -	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
->>>> +	if (!dev->has_alsa_audio) {
->>>>   		/* This device does not support the extension (in this case
->>>>   		   the device is expecting the snd-usb-audio module or
->>>>   		   doesn't have analog audio support at all) */
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
->>>> index 39cf49c..b2cfd5d 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
->>>> @@ -3224,7 +3224,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->>>>   	dev->has_alsa_audio = has_audio;
->>>>   	dev->audio_mode.has_audio = has_audio;
->>>>   	dev->has_video = has_video;
->>>> -	dev->audio_ifnum = ifnum;
->>>> +	dev->ifnum = ifnum;
->>>>   
->>>>   	/* Checks if audio is provided by some interface */
->>>>   	for (i = 0; i < udev->config->desc.bNumInterfaces; i++) {
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
->>>> index 5c6be66..9d0fcc8 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
->>>> @@ -203,7 +203,7 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
->>>>   		dvb_alt = dev->dvb_alt_isoc;
->>>>   	}
->>>>   
->>>> -	usb_set_interface(dev->udev, 0, dvb_alt);
->>>> +	usb_set_interface(dev->udev, dev->ifnum, dvb_alt);
->>> In this case, it should be dev->video_ifnum, as otherwise this patch
->>> will break support for devices with em2861.
->> No. Audio and video are on the same interface.
->> If they are on separate interfaces, there will be be two driver 
->> instances running, each of them handling their own interface settings 
->> (interface number and used alt setting).
-> Hmm... you may be right on that. 
->
-> The endpoint descriptors allow to see both interfaces. I'm not
-> sure how the current binding is doing, as there were several
-> changes with regards to it.
->
-> I'll need to double check it with the current version, and do some
-> tests.
-No need to hurry. We currently don't know any broken devices.
-The whole audio stuff is damn fu..ing complicated and confusing.
-Thinking about it twice is usually isn't enough. :/
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
->
->>>>   	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
->>>>   	if (rc < 0)
->>>>   		return rc;
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
->>>> index 9c44628..b65d13a 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-video.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-video.c
->>>> @@ -382,7 +382,7 @@ set_alt:
->>>>   	}
->>>>   	em28xx_videodbg("setting alternate %d with wMaxPacketSize=%u\n",
->>>>   		       dev->alt, dev->max_pkt_size);
->>>> -	errCode = usb_set_interface(dev->udev, 0, dev->alt);
->>>> +	errCode = usb_set_interface(dev->udev, dev->ifnum, dev->alt);
->>> Same here.
->> Same here, it's correct.
->>
->>>>   	if (errCode < 0) {
->>>>   		em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
->>>>   			      dev->alt, errCode);
->>>> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
->>>> index efdf386..8d38d00 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx.h
->>>> +++ b/drivers/media/usb/em28xx/em28xx.h
->>>> @@ -549,8 +549,6 @@ struct em28xx {
->>>>   	unsigned int has_alsa_audio:1;
->>>>   	unsigned int is_audio_only:1;
->>>>   
->>>> -	int audio_ifnum;
->>>> -
->>>>   	struct v4l2_device v4l2_dev;
->>>>   	struct v4l2_ctrl_handler ctrl_handler;
->>>>   	struct v4l2_clk *clk;
->>>> @@ -664,6 +662,7 @@ struct em28xx {
->>>>   
->>>>   	/* usb transfer */
->>>>   	struct usb_device *udev;	/* the usb device */
->>>> +	u8 ifnum;		/* number of the assigned usb interface */
->>>>   	u8 analog_ep_isoc;	/* address of isoc endpoint for analog */
->>>>   	u8 analog_ep_bulk;	/* address of bulk endpoint for analog */
->>>>   	u8 dvb_ep_isoc;		/* address of isoc endpoint for DVB */
->
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-regs.h b/drivers/media/platform/s5p-jpeg/jpeg-regs.h
+index 33f2c73..57fb05b 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-regs.h
++++ b/drivers/media/platform/s5p-jpeg/jpeg-regs.h
+@@ -210,19 +210,19 @@
+ 
+ /* JPEG CNTL Register bit */
+ #define EXYNOS4_ENC_DEC_MODE_MASK	(0xfffffffc << 0)
+-#define EXYNOS4_DEC_MODE			(1 << 0)
+-#define EXYNOS4_ENC_MODE			(1 << 1)
++#define EXYNOS4_DEC_MODE		(1 << 0)
++#define EXYNOS4_ENC_MODE		(1 << 1)
+ #define EXYNOS4_AUTO_RST_MARKER		(1 << 2)
+ #define EXYNOS4_RST_INTERVAL_SHIFT	3
+ #define EXYNOS4_RST_INTERVAL(x)		(((x) & 0xffff) \
+ 						<< EXYNOS4_RST_INTERVAL_SHIFT)
+ #define EXYNOS4_HUF_TBL_EN		(1 << 19)
+ #define EXYNOS4_HOR_SCALING_SHIFT	20
+-#define EXYNOS4_HOR_SCALING_MASK		(3 << EXYNOS4_HOR_SCALING_SHIFT)
++#define EXYNOS4_HOR_SCALING_MASK	(3 << EXYNOS4_HOR_SCALING_SHIFT)
+ #define EXYNOS4_HOR_SCALING(x)		(((x) & 0x3) \
+ 						<< EXYNOS4_HOR_SCALING_SHIFT)
+ #define EXYNOS4_VER_SCALING_SHIFT	22
+-#define EXYNOS4_VER_SCALING_MASK		(3 << EXYNOS4_VER_SCALING_SHIFT)
++#define EXYNOS4_VER_SCALING_MASK	(3 << EXYNOS4_VER_SCALING_SHIFT)
+ #define EXYNOS4_VER_SCALING(x)		(((x) & 0x3) \
+ 						<< EXYNOS4_VER_SCALING_SHIFT)
+ #define EXYNOS4_PADDING			(1 << 27)
+@@ -238,8 +238,8 @@
+ #define EXYNOS4_FRAME_ERR_EN		(1 << 4)
+ #define EXYNOS4_INT_EN_ALL		(0x1f << 0)
+ 
+-#define EXYNOS4_MOD_REG_PROC_ENC		(0 << 3)
+-#define EXYNOS4_MOD_REG_PROC_DEC		(1 << 3)
++#define EXYNOS4_MOD_REG_PROC_ENC	(0 << 3)
++#define EXYNOS4_MOD_REG_PROC_DEC	(1 << 3)
+ 
+ #define EXYNOS4_MOD_REG_SUBSAMPLE_444	(0 << 0)
+ #define EXYNOS4_MOD_REG_SUBSAMPLE_422	(1 << 0)
+@@ -270,7 +270,7 @@
+ #define EXYNOS4_DEC_YUV_420_IMG		(4 << 0)
+ 
+ #define EXYNOS4_GRAY_IMG_IP_SHIFT	3
+-#define EXYNOS4_GRAY_IMG_IP_MASK		(7 << EXYNOS4_GRAY_IMG_IP_SHIFT)
++#define EXYNOS4_GRAY_IMG_IP_MASK	(7 << EXYNOS4_GRAY_IMG_IP_SHIFT)
+ #define EXYNOS4_GRAY_IMG_IP		(4 << EXYNOS4_GRAY_IMG_IP_SHIFT)
+ 
+ #define EXYNOS4_RGB_IP_SHIFT		6
+@@ -278,18 +278,18 @@
+ #define EXYNOS4_RGB_IP_RGB_16BIT_IMG	(4 << EXYNOS4_RGB_IP_SHIFT)
+ #define EXYNOS4_RGB_IP_RGB_32BIT_IMG	(5 << EXYNOS4_RGB_IP_SHIFT)
+ 
+-#define EXYNOS4_YUV_444_IP_SHIFT			9
++#define EXYNOS4_YUV_444_IP_SHIFT		9
+ #define EXYNOS4_YUV_444_IP_MASK			(7 << EXYNOS4_YUV_444_IP_SHIFT)
+ #define EXYNOS4_YUV_444_IP_YUV_444_2P_IMG	(4 << EXYNOS4_YUV_444_IP_SHIFT)
+ #define EXYNOS4_YUV_444_IP_YUV_444_3P_IMG	(5 << EXYNOS4_YUV_444_IP_SHIFT)
+ 
+-#define EXYNOS4_YUV_422_IP_SHIFT			12
++#define EXYNOS4_YUV_422_IP_SHIFT		12
+ #define EXYNOS4_YUV_422_IP_MASK			(7 << EXYNOS4_YUV_422_IP_SHIFT)
+ #define EXYNOS4_YUV_422_IP_YUV_422_1P_IMG	(4 << EXYNOS4_YUV_422_IP_SHIFT)
+ #define EXYNOS4_YUV_422_IP_YUV_422_2P_IMG	(5 << EXYNOS4_YUV_422_IP_SHIFT)
+ #define EXYNOS4_YUV_422_IP_YUV_422_3P_IMG	(6 << EXYNOS4_YUV_422_IP_SHIFT)
+ 
+-#define EXYNOS4_YUV_420_IP_SHIFT			15
++#define EXYNOS4_YUV_420_IP_SHIFT		15
+ #define EXYNOS4_YUV_420_IP_MASK			(7 << EXYNOS4_YUV_420_IP_SHIFT)
+ #define EXYNOS4_YUV_420_IP_YUV_420_2P_IMG	(4 << EXYNOS4_YUV_420_IP_SHIFT)
+ #define EXYNOS4_YUV_420_IP_YUV_420_3P_IMG	(5 << EXYNOS4_YUV_420_IP_SHIFT)
+@@ -303,8 +303,8 @@
+ 
+ #define EXYNOS4_JPEG_DECODED_IMG_FMT_MASK	0x03
+ 
+-#define EXYNOS4_SWAP_CHROMA_CRCB			(1 << 26)
+-#define EXYNOS4_SWAP_CHROMA_CBCR			(0 << 26)
++#define EXYNOS4_SWAP_CHROMA_CRCB		(1 << 26)
++#define EXYNOS4_SWAP_CHROMA_CBCR		(0 << 26)
+ 
+ /* JPEG HUFF count Register bit */
+ #define EXYNOS4_HUFF_COUNT_MASK			0xffff
+-- 
+1.7.9.5
 
