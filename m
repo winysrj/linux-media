@@ -1,95 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2562 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753500AbaA0Oet (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 09:34:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 03/22] v4l2-ctrls: use pr_info/cont instead of printk.
-Date: Mon, 27 Jan 2014 15:34:05 +0100
-Message-Id: <1390833264-8503-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:22018 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750744AbaATR5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 12:57:36 -0500
+Date: Wed, 15 Jan 2014 21:55:59 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Martin Kittel <linux@martin-kittel.de>,
+	linux-media@vger.kernel.org
+Subject: Re: Patch mceusb: fix invalid urb interval
+Message-ID: <20140116025559.GD58709@redhat.com>
+References: <loom.20131110T113621-661@post.gmane.org>
+ <20131211131751.GA434@pequod.mess.org>
+ <l8ai94$cbr$1@ger.gmane.org>
+ <20140115134917.1450f87c@samsung.com>
+ <20140115165245.GA23620@pequod.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140115165245.GA23620@pequod.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jan 15, 2014 at 04:52:45PM +0000, Sean Young wrote:
+> On Wed, Jan 15, 2014 at 01:49:17PM -0200, Mauro Carvalho Chehab wrote:
+> > Hi Martin,
+> > 
+> > Em Wed, 11 Dec 2013 21:34:55 +0100
+> > Martin Kittel <linux@martin-kittel.de> escreveu:
+> > 
+> > > Hi Mauro, hi Sean,
+> > > 
+> > > thanks for considering the patch. I have added an updated version at the
+> > > end of this mail.
+> > > 
+> > > Regarding the info Sean was requesting, it is indeed an xhci hub. I also
+> > > added the details of the remote itself.
+> > > 
+> > > Please let me know if there is anything missing.
+> > > 
+> > > Best wishes,
+> > > 
+> > > Martin.
+> > > 
+> > > 
+> > > lsusb -vvv
+> > > ------
+> > > Bus 001 Device 002: ID 2304:0225 Pinnacle Systems, Inc. Remote Kit
+> > > Infrared Transceiver
+> > > Device Descriptor:
+> > >   bLength		 18
+> > >   bDescriptorType	  1
+> > >   bcdUSB	       2.00
+> > >   bDeviceClass		  0 (Defined at Interface level)
+> > >   bDeviceSubClass	  0
+> > >   bDeviceProtocol	  0
+> > >   bMaxPacketSize0	  8
+> > >   idVendor	     0x2304 Pinnacle Systems, Inc.
+> > >   idProduct	     0x0225 Remote Kit Infrared Transceiver
+> > >   bcdDevice	       0.01
+> > >   iManufacturer		  1 Pinnacle Systems
+> > >   iProduct		  2 PCTV Remote USB
+> > >   iSerial		  5 7FFFFFFFFFFFFFFF
+> > >   bNumConfigurations	  1
+> > >   Configuration Descriptor:
+> > >     bLength		    9
+> > >     bDescriptorType	    2
+> > >     wTotalLength	   32
+> > >     bNumInterfaces	    1
+> > >     bConfigurationValue	    1
+> > >     iConfiguration	    3 StandardConfiguration
+> > >     bmAttributes	 0xa0
+> > >       (Bus Powered)
+> > >       Remote Wakeup
+> > >     MaxPower		  100mA
+> > >     Interface Descriptor:
+> > >       bLength		      9
+> > >       bDescriptorType	      4
+> > >       bInterfaceNumber	      0
+> > >       bAlternateSetting	      0
+> > >       bNumEndpoints	      2
+> > >       bInterfaceClass	    255 Vendor Specific Class
+> > >       bInterfaceSubClass      0
+> > >       bInterfaceProtocol      0
+> > >       iInterface	      4 StandardInterface
+> > >       Endpoint Descriptor:
+> > > 	bLength			7
+> > > 	bDescriptorType		5
+> > > 	bEndpointAddress     0x81  EP 1 IN
+> > > 	bmAttributes		2
+> > > 	  Transfer Type		   Bulk
+> > > 	  Synch Type		   None
+> > > 	  Usage Type		   Data
+> > > 	wMaxPacketSize	   0x0040  1x 64 bytes
+> > > 	bInterval	       10
+> > 
+> > Hmm... interval is equal to 10, e. g. 125us * 2^(10 - 1) = 64 ms.
+> > 
+> > I'm wandering why mceusb is just forcing the interval to 1 (125ms). That
+> > sounds wrong, except, of course, if the endpoint descriptor is wrong.
+> 
+> Note that the endpoint descriptor describes it as a bulk endpoint, but
+> it is used as a interrupt endpoint by the driver. For bulk endpoints,
+> the interval should not be used (?).
+> 
+> Maybe the correct solution would be to use the endpoints as bulk endpoints
+> if that is what the endpoint says? mceusb devices come in interrupt and 
+> bulk flavours.
 
-Codingstyle fix.
+Yeah, I just went through a number of my devices here. I have the same
+pinnacle one with bulk and 10, a topseed with bulk and 1, a topseed with
+interrupt and 0, a philips with bulk and 0... There's a pretty nasty mix
+of them. The interrupt and 0 one actually winds up with a default
+bInterval of 32 from the usb subsystem, but the bulk/0 one sticks with a
+default of 0.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+Something to properly handle bulk vs. interrupt might be useful, but at
+least at first glance here, simply saying
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 72ffe76..df8ed0a 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2045,45 +2045,45 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 	if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
- 		return;
- 
--	printk(KERN_INFO "%s%s%s: ", prefix, colon, ctrl->name);
-+	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		printk(KERN_CONT "%d", ctrl->cur.val);
-+		pr_cont("%d", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_BOOLEAN:
--		printk(KERN_CONT "%s", ctrl->cur.val ? "true" : "false");
-+		pr_cont("%s", ctrl->cur.val ? "true" : "false");
- 		break;
- 	case V4L2_CTRL_TYPE_MENU:
--		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
-+		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
-+		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
- 		break;
- 	case V4L2_CTRL_TYPE_BITMASK:
--		printk(KERN_CONT "0x%08x", ctrl->cur.val);
-+		pr_cont("0x%08x", ctrl->cur.val);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		printk(KERN_CONT "%lld", ctrl->cur.val64);
-+		pr_cont("%lld", ctrl->cur.val64);
- 		break;
- 	case V4L2_CTRL_TYPE_STRING:
--		printk(KERN_CONT "%s", ctrl->cur.string);
-+		pr_cont("%s", ctrl->cur.string);
- 		break;
- 	default:
--		printk(KERN_CONT "unknown type %d", ctrl->type);
-+		pr_cont("unknown type %d", ctrl->type);
- 		break;
- 	}
- 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
- 			   V4L2_CTRL_FLAG_GRABBED |
- 			   V4L2_CTRL_FLAG_VOLATILE)) {
- 		if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
--			printk(KERN_CONT " inactive");
-+			pr_cont(" inactive");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_GRABBED)
--			printk(KERN_CONT " grabbed");
-+			pr_cont(" grabbed");
- 		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
--			printk(KERN_CONT " volatile");
-+			pr_cont(" volatile");
- 	}
--	printk(KERN_CONT "\n");
-+	pr_cont("\n");
- }
- 
- /* Log all controls owned by the handler */
+if (ep_{in,out}->bInterval == 0)
+	ep_{in,out}->bInterval = 8;
+
+seems to work just fine here with the stack of mceusb devices I've tried
+so far (all hooked to usb 1.1 and/or usb 2.0 ports).
+
+> > On my eyes, though, 64ms seems to be a good enough interval to get
+> > those events.
+> 
+> Each packet will be 64 bytes, and at 64 ms you should be able to 960 
+> bytes per second. That's more than enough.
+> 
+> > Jarod/Sean,
+> > 
+> > Are there any good reason for the mceusb driver to do this?
+> > 	ep_in->bInterval = 1;
+> > 	ep_out->bInterval = 1;
+> 
+> I don't know.
+
+It was basically a cover for the bulk/bInterval=0 case.
+
+> The xhci driver is not happy about the interval being changed. With
+> CONFIG_USB_DEBUG you get:
+> 
+> usb 3-12: Driver uses different interval (8 microframes) than xHCI (1 microframe)
+
+I suppose I need to get a machine with usb3 up and running to poke at...
+
 -- 
-1.8.5.2
+Jarod Wilson
+jarod@redhat.com
 
