@@ -1,152 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:47365 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752066AbaAQRHC (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:58791 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066AbaAPMh2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 12:07:02 -0500
-Received: by mail-ee0-f45.google.com with SMTP id b15so2183953eek.4
-        for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 09:07:01 -0800 (PST)
-Message-ID: <52D9637E.20607@googlemail.com>
-Date: Fri, 17 Jan 2014 18:08:14 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFT PATCH] em28xx-audio: don't overwrite the usb alt setting
- made by the video part
-References: <1389821502-11346-1-git-send-email-fschaefer.oss@googlemail.com> <52D6FF59.6010407@googlemail.com> <20140115211137.2dc33033@samsung.com>
-In-Reply-To: <20140115211137.2dc33033@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Thu, 16 Jan 2014 07:37:28 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZH004QFV2E8L90@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Jan 2014 12:37:26 +0000 (GMT)
+Message-id: <52D7D284.1080700@samsung.com>
+Date: Thu, 16 Jan 2014 13:37:24 +0100
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: randy <lxr1234@hotmail.com>, Kamil Debski <k.debski@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com
+Subject: Re: using MFC memory to memery encoder,
+ start stream and queue order problem
+References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl>
+ <02c701cf07b6$565cd340$031679c0$%debski@samsung.com>
+ <BLU0-SMTP266BE9BC66B254061740251ADCB0@phx.gbl>
+ <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com>
+ <BLU0-SMTP150C8C0DB0E9A3A9F4104F8ADCA0@phx.gbl>
+ <04b601cf0c7f$d9e531d0$8daf9570$%debski@samsung.com>
+ <52CD725E.5060903@hotmail.com> <BLU0-SMTP6650E76A95FA2BB39C6325ADB30@phx.gbl>
+ <52CFD5DF.6050801@samsung.com> <BLU0-SMTP37B0A51F0A2D2F1E79A730ADB30@phx.gbl>
+ <52D3BCB7.1060309@samsung.com> <52D3CB84.6090406@samsung.com>
+ <BLU0-SMTP3546CDA7E88F73435A3A876ADBC0@phx.gbl>
+ <001701cf107b$0927aa50$1b76fef0$%debski@samsung.com>
+ <BLU0-SMTP183F0EEECCB365900DE2315ADBF0@phx.gbl> <52D51179.8030102@samsung.com>
+ <BLU0-SMTP1645A2349311998A104ACB8ADBF0@phx.gbl> <52D63405.9080604@samsung.com>
+ <BLU0-SMTP184B0B9737C458456530152ADBE0@phx.gbl>
+In-reply-to: <BLU0-SMTP184B0B9737C458456530152ADBE0@phx.gbl>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 16.01.2014 00:11, schrieb Mauro Carvalho Chehab:
-> Em Wed, 15 Jan 2014 22:36:25 +0100
-> Frank Schäfer<fschaefer.oss@googlemail.com>  escreveu:
+On 01/15/2014 04:50 PM, randy wrote:
 >
->> Am 15.01.2014 22:31, schrieb Frank Schäfer:
->>> em28xx-audio currently switches to usb alternate setting #7 in case of a mixed
->>> interface. This may overwrite the setting made by the video part and break video
->>> streaming.
->>> As far as we know, there is no difference between the alt settings with regards
->>> to the audio endpoint if the interface is a mixed interface, the audio part only
->>> has to make sure that alt is > 0, which is fortunately only the case when video
->>> streaming is off.
->>>
->>> Signed-off-by: Frank Schäfer<fschaefer.oss@googlemail.com>
->>> ---
->>>   drivers/media/usb/em28xx/em28xx-audio.c |   41 ++++++++++++-------------------
->>>   1 Datei geändert, 16 Zeilen hinzugefügt(+), 25 Zeilen entfernt(-)
->>>
->>> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
->>> index 05e9bd1..2e7a3ad 100644
->>> --- a/drivers/media/usb/em28xx/em28xx-audio.c
->>> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
->>> @@ -266,33 +266,30 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
->>>   	dprintk("opening device and trying to acquire exclusive lock\n");
->>>   
->>>   	runtime->hw = snd_em28xx_hw_capture;
->>> -	if ((dev->alt == 0 || dev->is_audio_only) && dev->adev.users == 0) {
->>> -		int nonblock = !!(substream->f_flags & O_NONBLOCK);
->>>   
->>> +	if (dev->adev.users == 0) {
->>> +		int nonblock = !!(substream->f_flags & O_NONBLOCK);
->>>   		if (nonblock) {
->>>   			if (!mutex_trylock(&dev->lock))
->>>   				return -EAGAIN;
->>>   		} else
->>>   			mutex_lock(&dev->lock);
->>> -		if (dev->is_audio_only)
->>> -			/* vendor audio is on a separate interface */
->>> +
->>> +		/* Select initial alternate setting (if necessary) */
->>> +		if (dev->alt == 0) {
->>>   			dev->alt = 1;
->>> -		else
->>> -			/* vendor audio is on the same interface as video */
->>> -			dev->alt = 7;
->>>   			/*
->>> -			 * FIXME: The intention seems to be to select the alt
->>> -			 * setting with the largest wMaxPacketSize for the video
->>> -			 * endpoint.
->>> -			 * At least dev->alt should be used instead, but we
->>> -			 * should probably not touch it at all if it is
->>> -			 * already >0, because wMaxPacketSize of the audio
->>> -			 * endpoints seems to be the same for all.
->>> +			 * NOTE: in case of a mixed (audio+video) interface, we
->>> +			 * don't want to touch the alt setting made by the video
->>> +			 * part. There is no difference between the alt settings
->>> +			 * with regards to the audio endpoint.
->>> +			 * TODO: in case of a pure audio interface, this could
->>> +			 * be improved. The alt settings are different here.
->>>   			 */
->>> -
->>> -		dprintk("changing alternate number on interface %d to %d\n",
->>> -			dev->ifnum, dev->alt);
->>> -		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
->>> +			dprintk("changing alternate number on interface %d to %d\n",
->>> +				dev->ifnum, dev->alt);
->>> +			usb_set_interface(dev->udev, dev->ifnum, dev->alt);
->>> +		}
->>>   
->>>   		/* Sets volume, mute, etc */
->>>   		dev->mute = 0;
->>> @@ -740,15 +737,9 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
->>>   	struct usb_endpoint_descriptor *e, *ep = NULL;
->>>   	int                 i, ep_size, interval, num_urb, npackets;
->>>   	int		    urb_size, bytes_per_transfer;
->>> -	u8 alt;
->>> -
->>> -	if (dev->ifnum)
->>> -		alt = 1;
->>> -	else
->>> -		alt = 7;
->>> +	u8 alt = 1;
->>>   
->>>   	intf = usb_ifnum_to_if(dev->udev, dev->ifnum);
->>> -
->>>   	if (intf->num_altsetting <= alt) {
->>>   		em28xx_errdev("alt %d doesn't exist on interface %d\n",
->>>   			      dev->ifnum, alt);
->> Please note that this is actually just a minor fix.
->> What's really evil with the current alternate setting code is that the
->> video part may switch the alt setting while audio streaming is in progress.
->> I'm not sure how to fix this. Maybe we shouldn't start audio streaming
->> before video streaming.
-> This patch will very likely break em28xx audio. The change to use alt=7
-> was added there because em28xx can only deliver a certain number of URBs
-> per a given period of time. In other words, if the video-only calculated
-> alternate is used, when audio starts, the em28xx DMA engine half-fills
-> some video URBs.
-In case of a mixed (audio+video) interface:
-If the audio part changes the alt setting and starts streaming before 
-the video part, it doesn't matter which alt setting is selected as long 
-as it is > 0.
-If the video part changes the alt setting and starts streaming before 
-the audio part, it doesn care about audio at all and overwrites alt=7 
-with it's own calculated value.
+> Sorry, I forget to switch to new kernel,
+> but in new kernel it doesn't work too.
+> root@kagami:~/v4l2-mfc-encoder# ./mfc-encode -m /dev/video1 -c
+> h264,header_mode=1 -d 1
+> mfc codec encoding example application
+> Andrzej Hajda <a.hajda@samsung.com>
+> Copyright 2012 Samsung Electronics Co., Ltd.
+>
+> 106.984340799:args.c:parse_args:190: codec: H264
+> 106.984870424:args.c:parse_args:187: opt header_mode=1
+> 106.999434841:mfc.c:mfc_create:87: MFC device /dev/video1 opened with fd=3
+> 107.15356632:v4l_dev.c:v4l_req_bufs:116: Succesfully requested 16
+> buffers for device 3:0
+> 107.15534549:func_dev.c:func_req_bufs:42: Succesfully requested 16
+> buffers for device -1:1
+> 107.15708424:func_dev.c:func_enq_buf:113: Enqueued buffer 0/16 to -1:1
+> 107.15862049:func_dev.c:func_enq_buf:113: Enqueued buffer 1/16 to -1:1
+> 107.16004132:func_dev.c:func_enq_buf:113: Enqueued buffer 2/16 to -1:1
+> 107.16146841:func_dev.c:func_enq_buf:113: Enqueued buffer 3/16 to -1:1
+> 107.16284799:func_dev.c:func_enq_buf:113: Enqueued buffer 4/16 to -1:1
+> 107.16429049:func_dev.c:func_enq_buf:113: Enqueued buffer 5/16 to -1:1
+> 107.16569382:func_dev.c:func_enq_buf:113: Enqueued buffer 6/16 to -1:1
+> 107.16715257:func_dev.c:func_enq_buf:113: Enqueued buffer 7/16 to -1:1
+> 107.16859924:func_dev.c:func_enq_buf:113: Enqueued buffer 8/16 to -1:1
+> 107.17006674:func_dev.c:func_enq_buf:113: Enqueued buffer 9/16 to -1:1
+> 107.17158466:func_dev.c:func_enq_buf:113: Enqueued buffer 10/16 to -1:1
+> 107.17307132:func_dev.c:func_enq_buf:113: Enqueued buffer 11/16 to -1:1
+> 107.17455632:func_dev.c:func_enq_buf:113: Enqueued buffer 12/16 to -1:1
+> 107.17599216:func_dev.c:func_enq_buf:113: Enqueued buffer 13/16 to -1:1
+> 107.17748299:func_dev.c:func_enq_buf:113: Enqueued buffer 14/16 to -1:1
+> 107.17897341:func_dev.c:func_enq_buf:113: Enqueued buffer 15/16 to -1:1
+> v4l_dev.c:v4l_req_bufs:111: error: Failed to request 4 buffers for
+> device 3:1)
+> root@kagami:~/v4l2-mfc-encoder# ls -l demo.out
+> -rw-r--r-- 1 root root 0 Jan 15 15:49 demo.out
+> root@kagami:~/v4l2-mfc-encoder# uname -a
+> Linux kagami 3.13.0-rc8-00018-g8f39393-dirty #17 SMP PREEMPT Wed Jan 15
+> 18:40:53 CST 2014 armv7l GNU/Linux
+> root@kagami:~/v4l2-mfc-encoder# dmesg|grep mfc
+> [    1.295000] s5p-mfc 13400000.codec: decoder registered as /dev/video0
+> [    1.295000] s5p-mfc 13400000.codec: encoder registered as /dev/video1
+> [  100.645000] s5p_mfc_alloc_priv_buf:43: Allocating private buffer failed
+> [  100.645000] s5p_mfc_alloc_codec_buffers_v5:177: Failed to allocate
+> Bank1 temporary buffer
+> [  107.065000] s5p_mfc_alloc_priv_buf:43: Allocating private buffer failed
+> [  107.065000] s5p_mfc_alloc_codec_buffers_v5:177: Failed to allocate
+> Bank1 temporary buffer
+Try to increase CMA size in kernel config - CONFIG_CMA_SIZE_MBYTES,
+by default it is set to 16MB, try for example 64MB.
 
-> As I said, the right fix here is to have a bandwidth estimator that will
-> take both traffics into account (when both are activated), and select
-> the right alternate.
-More than that: both parts (audio and video) need to consider that the 
-other one is already streaming at the current alt setting.
-
-> Such patch should be tested with more than one device type, as I think
-> that em284x are somewhat different than em286x and em288x with this
-> regards.
-Indeed, that's why I marked it as RFT. :-)
-Anyway, I've misread the code. The current code of course already makes 
-sure that the audio part doesn't touch the alt setting for mixed 
-interfaces as long as it is > 0.
-The only thing it really changes is that alt=1 is selected for both 
-interface types but that's probably not worth beeing fixed. Most devices 
-seem to provide 7 alt settings.
-
-So please disregard this patch.
-
-> Regards,
-> Mauro
-
+Regards
+Andrzej
 
