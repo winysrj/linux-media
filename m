@@ -1,48 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:41571 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752742AbaAXVSd (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:11354 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751768AbaAPL0q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 16:18:33 -0500
-Received: by mail-ob0-f174.google.com with SMTP id uy5so4153108obc.5
-        for <linux-media@vger.kernel.org>; Fri, 24 Jan 2014 13:18:32 -0800 (PST)
-From: Thomas Pugliese <thomas.pugliese@gmail.com>
+	Thu, 16 Jan 2014 06:26:46 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZH00L7ERSL7LC0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Jan 2014 20:26:45 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Thomas Pugliese <thomas.pugliese@gmail.com>
-Subject: [PATCH] uvc: update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS devices
-Date: Fri, 24 Jan 2014 15:17:28 -0600
-Message-Id: <1390598248-343-1-git-send-email-thomas.pugliese@gmail.com>
+Cc: s.nawrocki@samsung.com,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 2/2] s5p-jpeg: Fix wrong NV12 format parameters
+Date: Thu, 16 Jan 2014 12:26:33 +0100
+Message-id: <1389871593-10973-2-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1389871593-10973-1-git-send-email-j.anaszewski@samsung.com>
+References: <1389871593-10973-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Isochronous endpoints on devices with speed == USB_SPEED_WIRELESS can 
-have a max packet size ranging from 1-3584 bytes.  Add a case to 
-uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS.  Otherwise endpoints 
-for those devices will fall to the default case which masks off any 
-values > 2047.  This causes uvc_init_video to underestimate the 
-bandwidth available and fail to find a suitable alt setting for high 
-bandwidth video streams.
+NV12 format entries in the sjpeg_formats array had wrong
+colplanes, depth and v_align values.
 
-Signed-off-by: Thomas Pugliese <thomas.pugliese@gmail.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/uvc/uvc_video.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 898c208..103cd4e 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1453,6 +1453,9 @@ static unsigned int uvc_endpoint_max_bpi(struct usb_device *dev,
- 	case USB_SPEED_HIGH:
- 		psize = usb_endpoint_maxp(&ep->desc);
- 		return (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
-+	case USB_SPEED_WIRELESS:
-+		psize = usb_endpoint_maxp(&ep->desc);
-+		return psize;
- 	default:
- 		psize = usb_endpoint_maxp(&ep->desc);
- 		return psize & 0x07ff;
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index a009bd9..6db4d5e 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -175,7 +175,7 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
+ 	{
+ 		.name		= "YUV 4:2:0 planar, Y/CbCr",
+ 		.fourcc		= V4L2_PIX_FMT_NV12,
+-		.depth		= 16,
++		.depth		= 12,
+ 		.colplanes	= 2,
+ 		.h_align	= 1,
+ 		.v_align	= 1,
+@@ -188,10 +188,10 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
+ 	{
+ 		.name		= "YUV 4:2:0 planar, Y/CbCr",
+ 		.fourcc		= V4L2_PIX_FMT_NV12,
+-		.depth		= 16,
+-		.colplanes	= 4,
++		.depth		= 12,
++		.colplanes	= 2,
+ 		.h_align	= 4,
+-		.v_align	= 1,
++		.v_align	= 4,
+ 		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
+ 				  SJPEG_FMT_FLAG_DEC_CAPTURE |
+ 				  SJPEG_FMT_FLAG_S5P |
 -- 
-1.8.3.2
+1.7.9.5
 
