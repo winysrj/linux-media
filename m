@@ -1,60 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51773 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751987AbaAXKf4 (ORCPT
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:60699 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751296AbaAPV6s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 05:35:56 -0500
-Date: Fri, 24 Jan 2014 12:35:19 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 02/21] v4l2-ctrls: add unit string.
-Message-ID: <20140124103519.GA13820@valkosipuli.retiisi.org.uk>
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
- <1390221974-28194-3-git-send-email-hverkuil@xs4all.nl>
+	Thu, 16 Jan 2014 16:58:48 -0500
+Received: by mail-ee0-f43.google.com with SMTP id c41so1778960eek.30
+        for <linux-media@vger.kernel.org>; Thu, 16 Jan 2014 13:58:47 -0800 (PST)
+Received: from [192.168.0.13] (89-76-41-4.dynamic.chello.pl. [89.76.41.4])
+        by mx.google.com with ESMTPSA id 46sm5228158ees.4.2014.01.16.13.58.45
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Thu, 16 Jan 2014 13:58:45 -0800 (PST)
+Message-ID: <52D85614.2080101@gmail.com>
+Date: Thu, 16 Jan 2014 22:58:44 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1390221974-28194-3-git-send-email-hverkuil@xs4all.nl>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] v4l2 driver fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
 
-Thanks for the patchset!
+   [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
 
-On Mon, Jan 20, 2014 at 01:45:55PM +0100, Hans Verkuil wrote:
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 0b347e8..3998049 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -85,6 +85,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
->    * @ops:	The control ops.
->    * @id:	The control ID.
->    * @name:	The control name.
-> +  * @unit:	The control's unit. May be NULL.
->    * @type:	The control type.
->    * @minimum:	The control's minimum value.
->    * @maximum:	The control's maximum value.
-> @@ -130,6 +131,7 @@ struct v4l2_ctrl {
->  	const struct v4l2_ctrl_ops *ops;
->  	u32 id;
->  	const char *name;
-> +	const char *unit;
+are available in the git repository at:
+   git://linuxtv.org/snawrocki/samsung.git v3.14-fixes-1
 
-What would you think of using a numeric value (with the standardised units
-#defined)? I think using a string begs for unmanaged unit usage. Code that
-deals with units might work with one driver but not with another since it
-uses a slightly different string for unit x.
+Andrzej Hajda (1):
+       s5k5baf: allow to handle arbitrary long i2c sequences
 
-A prefix could be potentially nice, too, so ms and µs would still have the
-same unit but a different prefix.
+Jacek Anaszewski (1):
+       s5p-jpeg: Fix wrong NV12 format parameters
 
--- 
-Kind regards,
+Sylwester Nawrocki (3):
+       exynos4-is: Fix error paths in probe() for !pm_runtime_enabled()
+       exynos4-is: Compile in fimc runtime PM callbacks conditionally
+       exynos4-is: Compile in fimc-lite runtime PM callbacks conditionally
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+  drivers/media/i2c/s5k5baf.c                   |   30 
++++++++++++++++---------
+  drivers/media/platform/exynos4-is/fimc-core.c |    5 +++-
+  drivers/media/platform/exynos4-is/fimc-lite.c |    7 ++++-
+  drivers/media/platform/s5p-jpeg/jpeg-core.c   |    8 +++---
+  4 files changed, 32 insertions(+), 18 deletions(-)
