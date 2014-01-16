@@ -1,67 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48086 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751916AbaASUEx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jan 2014 15:04:53 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: i2c: mt9v032: Check return value of clk_prepare_enable/clk_set_rate
-Date: Sun, 19 Jan 2014 21:05:34 +0100
-Message-ID: <2157121.3izth3cqlo@avalon>
-In-Reply-To: <1389950567-32577-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1389950567-32577-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:40827 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752027AbaAPMJZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jan 2014 07:09:25 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC] af9035: add ID [2040:f900] Hauppauge WinTV-MiniStick 2
+Date: Thu, 16 Jan 2014 14:08:05 +0200
+Message-Id: <1389874085-3538-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Few weeks ago someone reported there is Hauppauge WinTV-MiniStick 2
+with USB ID 2040:f900 and it is build upon IT9135 chipset.
+Unfortunately he wasn't able to test and eventually disappeared.
+So here is the patch, which very likely works, waiting for someone
+to test.
 
-Thank you for the patch.
+Please test and report, after that I could submit it to upstream.
 
-On Friday 17 January 2014 14:52:47 Prabhakar Lad wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> clk_set_rate(), clk_prepare_enable() functions can fail, so check the return
-> values to avoid surprises.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Here is the tree (or just apply that single patch)
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_hauppauge
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-I've applied the patch to my tree and will send a pull request.
-
-> ---
->  drivers/media/i2c/mt9v032.c |   10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index 36c504b..40172b8 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -317,8 +317,14 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
->  	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
->  	int ret;
-> 
-> -	clk_set_rate(mt9v032->clk, mt9v032->sysclk);
-> -	clk_prepare_enable(mt9v032->clk);
-> +	ret = clk_set_rate(mt9v032->clk, mt9v032->sysclk);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = clk_prepare_enable(mt9v032->clk);
-> +	if (ret)
-> +		return ret;
-> +
->  	udelay(1);
-> 
->  	/* Reset the chip and stop data read out */
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 8f9b2cea..8ede8ea 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1539,6 +1539,8 @@ static const struct usb_device_id af9035_id_table[] = {
+ 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_LEADTEK, 0x6a05,
+ 		&af9035_props, "Leadtek WinFast DTV Dongle Dual", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_HAUPPAUGE, 0xf900,
++		&af9035_props, "Hauppauge WinTV-MiniStick 2", NULL) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, af9035_id_table);
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.4.2
 
