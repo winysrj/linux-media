@@ -1,59 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f45.google.com ([209.85.214.45]:62885 "EHLO
-	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543AbaAITj7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 14:39:59 -0500
-Received: by mail-bk0-f45.google.com with SMTP id mx13so1279338bkb.18
-        for <linux-media@vger.kernel.org>; Thu, 09 Jan 2014 11:39:58 -0800 (PST)
-Message-ID: <52CEFB09.3070307@googlemail.com>
-Date: Thu, 09 Jan 2014 20:39:53 +0100
-From: Gregor Jasny <gjasny@googlemail.com>
+Received: from mx.hs-offenburg.de ([141.79.128.11]:42364 "EHLO
+	mx.hs-offenburg.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714AbaAPSF4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jan 2014 13:05:56 -0500
+Received: from [141.79.65.136] (asa2.rz.hs-offenburg.de [141.79.10.2])
+	by mx.hs-offenburg.de (8.13.6/8.13.6/SuSE Linux 0.8) with ESMTP id s0GHYw3m014993
+	for <linux-media@vger.kernel.org>; Thu, 16 Jan 2014 18:34:58 +0100
+Message-ID: <52D81841.7080703@hs-offenburg.de>
+Date: Thu, 16 Jan 2014 18:34:57 +0100
+From: Andreas Weber <andreas.weber@hs-offenburg.de>
 MIME-Version: 1.0
-To: =?UTF-8?B?QW5kcsOpIFJvdGg=?= <neolynx@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] libdvbv5: implement MGT table parser
-References: <1389180208-3458-1-git-send-email-neolynx@gmail.com> <1389180208-3458-2-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1389180208-3458-2-git-send-email-neolynx@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Subject: patch for display of readbuffers in v4l2-ctl-misc.cpp
+Content-Type: multipart/mixed;
+ boundary="------------070009090901090800020709"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello André,
+This is a multi-part message in MIME format.
+--------------070009090901090800020709
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-On 08/01/14 12:23, André Roth wrote:
-> ...
-> +	union {
-> +		uint16_t bitfield;
-> +		struct {
-> +			uint16_t pid:13;
-> +			uint16_t one:3;
-> +		} __attribute__((packed));
-> +	} __attribute__((packed));
-> +        uint8_t type_version:5;
-> +        uint8_t one2:3;
-> +        uint32_t size;
+Dear maintainers,
+I think there is a bug in utils/v4l2-ctl/v4l2-ctl-misc.cpp:394
+  printf("\tRead buffers     : %d\n", parm.parm.output.writebuffers);
+Please consider the attached patch.
 
-Are you sure that this code handles the endianess correctly? Looking at 
-netinet/in.h I'm under the impression that the order of the bitfield 
-entries have to be swapped, too:
+-- Andy
 
-struct ip
-   {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-     unsigned int ip_hl:4;               /* header length */
-     unsigned int ip_v:4;                /* version */
-#endif
-#if __BYTE_ORDER == __BIG_ENDIAN
-     unsigned int ip_v:4;                /* version */
-     unsigned int ip_hl:4;               /* header length */
-#endif
+--------------070009090901090800020709
+Content-Type: text/x-diff;
+ name="fix_display_number_of_readbuffers.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="fix_display_number_of_readbuffers.patch"
 
-I also remember that you can also easily get the byte swapping wrongif 
-entries cross byte borders (like a :13 one).
+>From c3b6188d385dce46bed3e8803f661cf0e501522e Mon Sep 17 00:00:00 2001
+From: Andreas Weber <andreas.weber@hs-offenburg.de>
+Date: Thu, 16 Jan 2014 18:27:14 +0100
+Subject: [PATCH] v4l2-ctl-misc.cpp: bugfix display #of readbuffers
 
-Maybe you could write some unit tests for your functions. The Debian 
-build farm then will catch any errors.
+---
+ utils/v4l2-ctl/v4l2-ctl-misc.cpp |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Cheers,
-Gregor
+diff --git a/utils/v4l2-ctl/v4l2-ctl-misc.cpp b/utils/v4l2-ctl/v4l2-ctl-misc.cpp
+index 6857fff..4d11ec8 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-misc.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-misc.cpp
+@@ -391,7 +391,7 @@ void misc_get(int fd)
+ 				printf("\tFrames per second: %.3f (%d/%d)\n",
+ 						(1.0 * tf.denominator) / tf.numerator,
+ 						tf.denominator, tf.numerator);
+-			printf("\tRead buffers     : %d\n", parm.parm.output.writebuffers);
++			printf("\tRead buffers     : %d\n", parm.parm.capture.readbuffers);
+ 		}
+ 	}
+ 
+-- 
+1.7.10.4
+
+
+--------------070009090901090800020709--
