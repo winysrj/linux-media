@@ -1,114 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40263 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326AbaAJLhQ (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:55931 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751810AbaAPXED (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jan 2014 06:37:16 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 3/3] [media] em28xx: add timeout debug information if i2c_debug enabled
-Date: Fri, 10 Jan 2014 06:33:40 -0200
-Message-Id: <1389342820-12605-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389342820-12605-1-git-send-email-m.chehab@samsung.com>
-References: <1389342820-12605-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 16 Jan 2014 18:04:03 -0500
+Date: Fri, 17 Jan 2014 00:04:00 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Bryan Wu <cooloney@gmail.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	linux-tegra <linux-tegra@vger.kernel.org>
+Subject: Re: A question about DT support for soc_camera
+In-Reply-To: <CAK5ve-LbvQACmaZC4gFBf=Ca_nwp7KvvT+dLBhbipxRdLFYonw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1401162337210.11956@axis700.grange>
+References: <CAK5ve-LbvQACmaZC4gFBf=Ca_nwp7KvvT+dLBhbipxRdLFYonw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If i2c_debug is enabled, we splicitly want to know when a
-device fails with timeout.
+Hi Bryan,
 
-If i2c_debug==2, this is already provided, for each I2C transfer
-that fails.
+On Wed, 15 Jan 2014, Bryan Wu wrote:
 
-However, most of the time, we don't need to go that far. We just
-want to know that I2C transfers fail.
+> Hi Guennadi,
+> 
+> I'm working on upstream our Tegra soc_camera host driver. But found
+> the soc_camera framework is not fully supporting Device Tree probing,
+> am I wrong about that?
 
-So, add such errors for normal (ret == 0x10) I2C aborted timeouts.
+Mostly correct, yes, currently soc-camera doesn't support device-tree 
+probing.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> While in upstream Tegra kernel, we only support
+> DT probing and there is no board files.
+> 
+> Current soc_camera framework needs to put soc_camera_link information
+> in a board file and build up soc-camera-pdrv platform_device, then
+> finally register this soc-camera-pdrv platform_device.
+> 
+> For the host driver, we can do DT probing but for i2c soc_camera
+> sensor driver I failed to find any DT probing in upstream kernel. So
+> how to do that without an board file but use DT for this whole thing?
+> 
+> Can we use DT like this?
+> DTB file will pass those I2C, clock, regulator, GPIO information to
+> host driver. During host driver DT probing, we dynamically create
+> soc-camera-pdrv platform_device and soc_camera_link then register
+> them. Then the rest of the thing should be the same as None-DT
+> probing.
+
+I've worked on soc-camera DT in the past, this might be the last published 
+version
+
+http://marc.info/?l=linux-sh&m=134875489304837&w=1
+
+As you see, it's quite old. Since then a few things happened. Device tree 
+support has been added to V4L2 (see 
+Documentation/devicetree/bindings/media/video-interfaces.txt and other 
+files in that directory for examples), it is based on asynchronous 
+probing, which is also supported by the soc-camera core and some its 
+host drivers (e.g.
+
+commit 4dbfd040757b8bf22f4ac17e80b39c068061a16c
+Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date:   Tue Jul 30 02:59:49 2013 -0300
+
+    [media] V4L2: mx3_camera: add support for asynchronous subdevice registration
+
+). So, what you should do, is add asynchronous probing support to your 
+driver, add DT support to the soc-camera core, add it to your drivers. 
+Also see drivers/media/v4l2-core/v4l2-of.c for helper functions, you 
+should be using.
+
+Thanks
+Guennadi
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c | 27 ++++++++++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index e8eb83160d36..7e1724076ac4 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -80,6 +80,9 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x80 + len - 1)
- 			return len;
- 		if (ret == 0x94 + len - 1) {
-+			if (i2c_debug == 1)
-+				em28xx_warn("R05 returned 0x%02x: I2C timeout",
-+					    ret);
- 			return -ENXIO;
- 		}
- 		if (ret < 0) {
-@@ -124,6 +127,9 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x84 + len - 1)
- 			break;
- 		if (ret == 0x94 + len - 1) {
-+			if (i2c_debug == 1)
-+				em28xx_warn("R05 returned 0x%02x: I2C timeout",
-+					    ret);
- 			return -ENXIO;
- 		}
- 		if (ret < 0) {
-@@ -203,6 +209,9 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		if (ret == 0) /* success */
- 			return len;
- 		if (ret == 0x10) {
-+			if (i2c_debug == 1)
-+				em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
-+					    addr);
- 			return -ENXIO;
- 		}
- 		if (ret < 0) {
-@@ -263,8 +272,12 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 			    ret);
- 		return ret;
- 	}
--	if (ret == 0x10)
-+	if (ret == 0x10) {
-+		if (i2c_debug == 1)
-+			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
-+				    addr);
- 		return -ENXIO;
-+	}
- 
- 	em28xx_warn("unknown i2c error (status=%i)\n", ret);
- 	return -ETIMEDOUT;
-@@ -322,8 +335,12 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	 */
- 	if (!ret)
- 		return len;
--	else if (ret > 0)
-+	else if (ret > 0) {
-+		if (i2c_debug == 1)
-+			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
-+				    ret);
- 		return -ENXIO;
-+	}
- 
- 	return ret;
- 	/*
-@@ -373,8 +390,12 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	 */
- 	if (!ret)
- 		return len;
--	else if (ret > 0)
-+	else if (ret > 0) {
-+		if (i2c_debug == 1)
-+			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
-+				    ret);
- 		return -ENXIO;
-+	}
- 
- 	return ret;
- 	/*
--- 
-1.8.3.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
