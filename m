@@ -1,165 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:47113 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbaAEPbR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 10:31:17 -0500
-Date: Sun, 5 Jan 2014 13:31:10 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v4 07/22] [media] em28xx: improve extension information
- messages
-Message-ID: <20140105133110.4b9464db@infradead.org>
-In-Reply-To: <20140105110822.73fdbcb4@samsung.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-	<1388832951-11195-8-git-send-email-m.chehab@samsung.com>
-	<52C93A26.1070607@googlemail.com>
-	<20140105110822.73fdbcb4@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from multi.imgtec.com ([194.200.65.239]:48371 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752663AbaAQOAI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jan 2014 09:00:08 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: James Hogan <james.hogan@imgtec.com>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH v2 05/15] media: rc: change 32bit NEC scancode format
+Date: Fri, 17 Jan 2014 13:58:50 +0000
+Message-ID: <1389967140-20704-6-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 05 Jan 2014 11:08:22 -0200
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+Change 32bit NEC scancode format (used by Apple and TiVo remotes) to
+encode the data with the correct bit order. Previously the raw bits were
+used without being bit reversed, now each 16bit half is bit reversed
+compared to before.
 
-> Em Sun, 05 Jan 2014 11:55:34 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> 
-> > Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
-> > > Add a message with consistent prints before and after each
-> > > extension initialization, and provide a better text for module
-> > > load.
-> > >
-> > > While here, add a missing sanity check for extension finish
-> > > code at em28xx-v4l extension.
-> > >
-> > > Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > > ---
-> > >  drivers/media/usb/em28xx/em28xx-audio.c |  4 +++-
-> > >  drivers/media/usb/em28xx/em28xx-core.c  |  2 +-
-> > >  drivers/media/usb/em28xx/em28xx-dvb.c   |  7 ++++---
-> > >  drivers/media/usb/em28xx/em28xx-input.c |  4 ++++
-> > >  drivers/media/usb/em28xx/em28xx-video.c | 10 ++++++++--
-> > >  5 files changed, 20 insertions(+), 7 deletions(-)
-> > >
-> > > diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-> > > index 2fdb66ee44ab..263886adcf26 100644
-> > > --- a/drivers/media/usb/em28xx/em28xx-audio.c
-> > > +++ b/drivers/media/usb/em28xx/em28xx-audio.c
-> > > @@ -649,7 +649,8 @@ static int em28xx_audio_init(struct em28xx *dev)
-> > >  		return 0;
-> > >  	}
-> > >  
-> > > -	printk(KERN_INFO "em28xx-audio.c: probing for em28xx Audio Vendor Class\n");
-> > > +	em28xx_info("Binding audio extension\n");
-> > > +
-> > >  	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
-> > >  			 "Rechberger\n");
-> > >  	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab\n");
-> > > @@ -702,6 +703,7 @@ static int em28xx_audio_init(struct em28xx *dev)
-> > >  	adev->sndcard = card;
-> > >  	adev->udev = dev->udev;
-> > >  
-> > > +	em28xx_info("Audio extension successfully initialized\n");
-> > >  	return 0;
-> > >  }
-> > >  
-> > > diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> > > index 1113d4e107d8..33cf26e106b5 100644
-> > > --- a/drivers/media/usb/em28xx/em28xx-core.c
-> > > +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> > > @@ -1069,7 +1069,7 @@ int em28xx_register_extension(struct em28xx_ops *ops)
-> > >  		ops->init(dev);
-> > >  	}
-> > >  	mutex_unlock(&em28xx_devlist_mutex);
-> > > -	printk(KERN_INFO "Em28xx: Initialized (%s) extension\n", ops->name);
-> > > +	printk(KERN_INFO "em28xx: Registered (%s) extension\n", ops->name);
-> > >  	return 0;
-> > >  }
-> > >  EXPORT_SYMBOL(em28xx_register_extension);
-> > > diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> > > index ddc0e609065d..f72663a9b5c5 100644
-> > > --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> > > +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> > > @@ -274,7 +274,7 @@ static int em28xx_stop_feed(struct dvb_demux_feed *feed)
-> > >  static int em28xx_dvb_bus_ctrl(struct dvb_frontend *fe, int acquire)
-> > >  {
-> > >  	struct em28xx_i2c_bus *i2c_bus = fe->dvb->priv;
-> > > -        struct em28xx *dev = i2c_bus->dev;
-> > > +	struct em28xx *dev = i2c_bus->dev;
-> > >  
-> > >  	if (acquire)
-> > >  		return em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
-> > > @@ -992,10 +992,11 @@ static int em28xx_dvb_init(struct em28xx *dev)
-> > >  
-> > >  	if (!dev->board.has_dvb) {
-> > >  		/* This device does not support the extension */
-> > > -		printk(KERN_INFO "em28xx_dvb: This device does not support the extension\n");
-> > >  		return 0;
-> > >  	}
-> > >  
-> > > +	em28xx_info("Binding DVB extension\n");
-> > > +
-> > >  	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
-> > >  
-> > >  	if (dvb == NULL) {
-> > > @@ -1407,7 +1408,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
-> > >  	/* MFE lock */
-> > >  	dvb->adapter.mfe_shared = mfe_shared;
-> > >  
-> > > -	em28xx_info("Successfully loaded em28xx-dvb\n");
-> > > +	em28xx_info("DVB extension successfully initialized\n");
-> > >  ret:
-> > >  	em28xx_set_mode(dev, EM28XX_SUSPEND);
-> > >  	mutex_unlock(&dev->lock);
-> > > diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> > > index 93a7d02b9cb4..eed7dd79f734 100644
-> > > --- a/drivers/media/usb/em28xx/em28xx-input.c
-> > > +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> > > @@ -692,6 +692,8 @@ static int em28xx_ir_init(struct em28xx *dev)
-> > >  		return 0;
-> > >  	}
-> > >  
-> > > +	em28xx_info("Registering input extension\n");
-> > > +
-> > >  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
-> > >  	rc = rc_allocate_device();
-> > >  	if (!ir || !rc)
-> > > @@ -785,6 +787,8 @@ static int em28xx_ir_init(struct em28xx *dev)
-> > >  	if (err)
-> > >  		goto error;
-> > >  
-> > > +	em28xx_info("Input extension successfully initalized\n");
-> > > +
-> > >  	return 0;
-> > >  
-> > >  error:
-> > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> > > index 56d1b46164a0..b767262c642b 100644
-> > > --- a/drivers/media/usb/em28xx/em28xx-video.c
-> > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> > > @@ -1884,6 +1884,11 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
-> > >  
-> > >  	/*FIXME: I2C IR should be disconnected */
-> > >  
-> > > +	if (!dev->has_video) {
-> > > +		/* This device does not support the v4l2 extension */
-> > > +		return 0;
-> > > +	}
-> > > +
-> > That's a separate change and AFAICS it's not needed.
-> 
-> It is needed. If you plug a device with video first and then a DVB-only device,
-> as em28xx-v4l will be loaded, it will initialize the extension, if this code got
-> removed.
-> 
-> I can move it to a separate patch adding the proper description.
+So for the raw NEC data:
+  (LSB/First) 0xAAaaCCcc (MSB/Last)
+(where traditionally AA=address, aa=~address, CC=command, cc=~command)
 
-Better to add it together with patch 4/22:
-	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/de93f52d20ba317d8a41614fbf439e956ec2c7d6
+We now generate the scancodes:
+  (MSB) 0x0000AACC (LSB) (normal NEC)
+  (MSB) 0x00AAaaCC (LSB) (extended NEC, address check wrong)
+  (MSB) 0xaaAAccCC (LSB) (32-bit NEC, command check wrong)
 
-Regards,
-Mauro
+Note that the address byte order in 32-bit NEC scancodes is different to
+that of the extended NEC scancodes. I chose this way as it maintains the
+order of the bits in the address/command fields, and CC is clearly
+intended to be the LSB of the command if the TiVo codes are anything to
+go by so it makes sense for AA to also be the LSB.
+
+The TiVo keymap is updated accordingly.
+
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org
+---
+v2:
+- New patch.
+---
+ drivers/media/rc/ir-nec-decoder.c  |  5 ++-
+ drivers/media/rc/keymaps/rc-tivo.c | 86 +++++++++++++++++++-------------------
+ 2 files changed, 47 insertions(+), 44 deletions(-)
+
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 9a90094..1bab7ea 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -172,7 +172,10 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		if (send_32bits) {
+ 			/* NEC transport, but modified protocol, used by at
+ 			 * least Apple and TiVo remotes */
+-			scancode = data->bits;
++			scancode = not_address << 24 |
++				   address     << 16 |
++				   not_command <<  8 |
++				   command;
+ 			IR_dprintk(1, "NEC (modified) scancode 0x%08x\n", scancode);
+ 		} else if ((address ^ not_address) != 0xff) {
+ 			/* Extended NEC */
+diff --git a/drivers/media/rc/keymaps/rc-tivo.c b/drivers/media/rc/keymaps/rc-tivo.c
+index 454e062..5cc1b45 100644
+--- a/drivers/media/rc/keymaps/rc-tivo.c
++++ b/drivers/media/rc/keymaps/rc-tivo.c
+@@ -15,62 +15,62 @@
+  * Initial mapping is for the TiVo remote included in the Nero LiquidTV bundle,
+  * which also ships with a TiVo-branded IR transceiver, supported by the mceusb
+  * driver. Note that the remote uses an NEC-ish protocol, but instead of having
+- * a command/not_command pair, it has a vendor ID of 0xa10c, but some keys, the
++ * a command/not_command pair, it has a vendor ID of 0x3085, but some keys, the
+  * NEC extended checksums do pass, so the table presently has the intended
+  * values and the checksum-passed versions for those keys.
+  */
+ static struct rc_map_table tivo[] = {
+-	{ 0xa10c900f, KEY_MEDIA },	/* TiVo Button */
+-	{ 0xa10c0807, KEY_POWER2 },	/* TV Power */
+-	{ 0xa10c8807, KEY_TV },		/* Live TV/Swap */
+-	{ 0xa10c2c03, KEY_VIDEO_NEXT },	/* TV Input */
+-	{ 0xa10cc807, KEY_INFO },
+-	{ 0xa10cfa05, KEY_CYCLEWINDOWS }, /* Window */
++	{ 0x3085f009, KEY_MEDIA },	/* TiVo Button */
++	{ 0x3085e010, KEY_POWER2 },	/* TV Power */
++	{ 0x3085e011, KEY_TV },		/* Live TV/Swap */
++	{ 0x3085c034, KEY_VIDEO_NEXT },	/* TV Input */
++	{ 0x3085e013, KEY_INFO },
++	{ 0x3085a05f, KEY_CYCLEWINDOWS }, /* Window */
+ 	{ 0x0085305f, KEY_CYCLEWINDOWS },
+-	{ 0xa10c6c03, KEY_EPG },	/* Guide */
++	{ 0x3085c036, KEY_EPG },	/* Guide */
+ 
+-	{ 0xa10c2807, KEY_UP },
+-	{ 0xa10c6807, KEY_DOWN },
+-	{ 0xa10ce807, KEY_LEFT },
+-	{ 0xa10ca807, KEY_RIGHT },
++	{ 0x3085e014, KEY_UP },
++	{ 0x3085e016, KEY_DOWN },
++	{ 0x3085e017, KEY_LEFT },
++	{ 0x3085e015, KEY_RIGHT },
+ 
+-	{ 0xa10c1807, KEY_SCROLLDOWN },	/* Red Thumbs Down */
+-	{ 0xa10c9807, KEY_SELECT },
+-	{ 0xa10c5807, KEY_SCROLLUP },	/* Green Thumbs Up */
++	{ 0x3085e018, KEY_SCROLLDOWN },	/* Red Thumbs Down */
++	{ 0x3085e019, KEY_SELECT },
++	{ 0x3085e01a, KEY_SCROLLUP },	/* Green Thumbs Up */
+ 
+-	{ 0xa10c3807, KEY_VOLUMEUP },
+-	{ 0xa10cb807, KEY_VOLUMEDOWN },
+-	{ 0xa10cd807, KEY_MUTE },
+-	{ 0xa10c040b, KEY_RECORD },
+-	{ 0xa10c7807, KEY_CHANNELUP },
+-	{ 0xa10cf807, KEY_CHANNELDOWN },
++	{ 0x3085e01c, KEY_VOLUMEUP },
++	{ 0x3085e01d, KEY_VOLUMEDOWN },
++	{ 0x3085e01b, KEY_MUTE },
++	{ 0x3085d020, KEY_RECORD },
++	{ 0x3085e01e, KEY_CHANNELUP },
++	{ 0x3085e01f, KEY_CHANNELDOWN },
+ 	{ 0x0085301f, KEY_CHANNELDOWN },
+ 
+-	{ 0xa10c840b, KEY_PLAY },
+-	{ 0xa10cc40b, KEY_PAUSE },
+-	{ 0xa10ca40b, KEY_SLOW },
+-	{ 0xa10c440b, KEY_REWIND },
+-	{ 0xa10c240b, KEY_FASTFORWARD },
+-	{ 0xa10c640b, KEY_PREVIOUS },
+-	{ 0xa10ce40b, KEY_NEXT },	/* ->| */
++	{ 0x3085d021, KEY_PLAY },
++	{ 0x3085d023, KEY_PAUSE },
++	{ 0x3085d025, KEY_SLOW },
++	{ 0x3085d022, KEY_REWIND },
++	{ 0x3085d024, KEY_FASTFORWARD },
++	{ 0x3085d026, KEY_PREVIOUS },
++	{ 0x3085d027, KEY_NEXT },	/* ->| */
+ 
+-	{ 0xa10c220d, KEY_ZOOM },	/* Aspect */
+-	{ 0xa10c120d, KEY_STOP },
+-	{ 0xa10c520d, KEY_DVD },	/* DVD Menu */
++	{ 0x3085b044, KEY_ZOOM },	/* Aspect */
++	{ 0x3085b048, KEY_STOP },
++	{ 0x3085b04a, KEY_DVD },	/* DVD Menu */
+ 
+-	{ 0xa10c140b, KEY_NUMERIC_1 },
+-	{ 0xa10c940b, KEY_NUMERIC_2 },
+-	{ 0xa10c540b, KEY_NUMERIC_3 },
+-	{ 0xa10cd40b, KEY_NUMERIC_4 },
+-	{ 0xa10c340b, KEY_NUMERIC_5 },
+-	{ 0xa10cb40b, KEY_NUMERIC_6 },
+-	{ 0xa10c740b, KEY_NUMERIC_7 },
+-	{ 0xa10cf40b, KEY_NUMERIC_8 },
++	{ 0x3085d028, KEY_NUMERIC_1 },
++	{ 0x3085d029, KEY_NUMERIC_2 },
++	{ 0x3085d02a, KEY_NUMERIC_3 },
++	{ 0x3085d02b, KEY_NUMERIC_4 },
++	{ 0x3085d02c, KEY_NUMERIC_5 },
++	{ 0x3085d02d, KEY_NUMERIC_6 },
++	{ 0x3085d02e, KEY_NUMERIC_7 },
++	{ 0x3085d02f, KEY_NUMERIC_8 },
+ 	{ 0x0085302f, KEY_NUMERIC_8 },
+-	{ 0xa10c0c03, KEY_NUMERIC_9 },
+-	{ 0xa10c8c03, KEY_NUMERIC_0 },
+-	{ 0xa10ccc03, KEY_ENTER },
+-	{ 0xa10c4c03, KEY_CLEAR },
++	{ 0x3085c030, KEY_NUMERIC_9 },
++	{ 0x3085c031, KEY_NUMERIC_0 },
++	{ 0x3085c033, KEY_ENTER },
++	{ 0x3085c032, KEY_CLEAR },
+ };
+ 
+ static struct rc_map_list tivo_map = {
+-- 
+1.8.3.2
+
+
