@@ -1,119 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2971 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087AbaA3OwH (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2936 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181AbaAQDdw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jan 2014 09:52:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 16 Jan 2014 22:33:52 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0H3XmcH036110
+	for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 04:33:50 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id E4EAE2A00A0
+	for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 04:33:42 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 7/9] vb2: add reinit_streaming op.
-Date: Thu, 30 Jan 2014 15:51:29 +0100
-Message-Id: <1391093491-23077-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391093491-23077-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391093491-23077-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140117033342.E4EAE2A00A0@tschai.lan>
+Date: Fri, 17 Jan 2014 04:33:42 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This new op is called after stop_streaming() or after a failed call to
-start_streaming(). The driver needs to dequeue any pending active buffers
-it got from the buf_queue() callback.
+Results of the daily build of media_tree:
 
-The reason this op was added is that stop_streaming() traditionally dequeued
-any pending active buffers after stopping the DMA engine. However,
-stop_streaming() is never called if start_streaming() fails, even though any
-prequeued buffers have been passed on to the driver. In that case those
-pending active buffers may still be in the driver's active buffer list,
-which can cause all sorts of problems if they are not removed.
+date:		Fri Jan 17 04:00:22 CET 2014
+git branch:	test
+git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-By splitting stop_streaming into stop_streaming (i.e. stop the DMA engine)
-and reinit_streaming (i.e. reinitialize the buffer lists) this problem is
-solved. After calling reinit_streaming() the vb2 core will also call
-vb2_buffer_done() for any remaining active buffers.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 13 +++++++++++--
- include/media/videobuf2-core.h           |  9 +++++++--
- 2 files changed, 18 insertions(+), 4 deletions(-)
+Detailed results are available here:
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index a3b4b4c..3030ef6 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -395,9 +395,9 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 		if (unbalanced || debug) {
- 			pr_info("vb2: counters for queue %p:%s\n", q,
- 				unbalanced ? " UNBALANCED!" : "");
--			pr_info("vb2:     setup: %u start_streaming: %u stop_streaming: %u\n",
-+			pr_info("vb2:     setup: %u start_streaming: %u stop_streaming: %u reinit_streaming: %u\n",
- 				q->cnt_queue_setup, q->cnt_start_streaming,
--				q->cnt_stop_streaming);
-+				q->cnt_stop_streaming, q->cnt_reinit_streaming);
- 			pr_info("vb2:     wait_prepare: %u wait_finish: %u\n",
- 				q->cnt_wait_prepare, q->cnt_wait_finish);
- 		}
-@@ -406,6 +406,7 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 		q->cnt_wait_finish = 0;
- 		q->cnt_start_streaming = 0;
- 		q->cnt_stop_streaming = 0;
-+		q->cnt_reinit_streaming = 0;
- 	}
- 	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
- 		struct vb2_buffer *vb = q->bufs[buffer];
-@@ -1900,7 +1901,15 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	 */
- 	if (q->streaming)
- 		call_qop(q, stop_streaming, q);
-+
- 	q->streaming = 0;
-+	if (atomic_read(&q->queued_count)) {
-+		call_qop(q, reinit_streaming, q);
-+
-+		for (i = 0; i < q->num_buffers; ++i)
-+			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-+				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ERROR);
-+	}
- 
- 	/*
- 	 * Remove all buffers from videobuf's list...
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 82b7f0f..b40dfbc 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -294,8 +294,11 @@ struct vb2_buffer {
-  *			buffer is queued.
-  * @stop_streaming:	called when 'streaming' state must be disabled; driver
-  *			should stop any DMA transactions or wait until they
-- *			finish and give back all buffers it got from buf_queue()
-- *			callback; may use vb2_wait_for_all_buffers() function
-+ *			finish; may use vb2_wait_for_all_buffers() function.
-+ * @reinit_streaming:	called after stop_streaming() or after a failed call to
-+ *			start_streaming(). The driver needs to dequeue any
-+ *			pending active buffers it got from the buf_queue()
-+ *			callback.
-  * @buf_queue:		passes buffer vb to the driver; driver may start
-  *			hardware operation on this buffer; driver should give
-  *			the buffer back by calling vb2_buffer_done() function;
-@@ -318,6 +321,7 @@ struct vb2_ops {
- 
- 	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
- 	int (*stop_streaming)(struct vb2_queue *q);
-+	void (*reinit_streaming)(struct vb2_queue *q);
- 
- 	void (*buf_queue)(struct vb2_buffer *vb);
- };
-@@ -408,6 +412,7 @@ struct vb2_queue {
- 	u32				cnt_wait_finish;
- 	u32				cnt_start_streaming;
- 	u32				cnt_stop_streaming;
-+	u32				cnt_reinit_streaming;
- #endif
- };
- 
--- 
-1.8.5.2
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
