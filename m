@@ -1,155 +1,404 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57342 "EHLO mail.kapsi.fi"
+Received: from multi.imgtec.com ([194.200.65.239]:48381 "EHLO multi.imgtec.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751813AbaAMRcF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 12:32:05 -0500
-Message-ID: <52D42312.5020506@iki.fi>
-Date: Mon, 13 Jan 2014 19:32:02 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1751971AbaAQOAP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jan 2014 09:00:15 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: James Hogan <james.hogan@imgtec.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>, <devicetree@vger.kernel.org>
+Subject: [PATCH v2 07/15] media: rc: img-ir: add base driver
+Date: Fri, 17 Jan 2014 13:58:52 +0000
+Message-ID: <1389967140-20704-8-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] em28xx: push mutex down to extensions on .fini callback
-References: <1389593524-1676-1-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389593524-1676-1-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tested-by: Antti Palosaari <crope@iki.fi>
+Add base driver for the ImgTec Infrared decoder block. The driver is
+split into separate components for raw (software) decode and hardware
+decoder which are in following commits.
 
-regards
-Antti
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: devicetree@vger.kernel.org
+---
+v2:
+- Use new DT binding, with a different compatibility string and get core
+  clock by name.
+- Remove next pointer from struct img_ir_priv. This is related to the
+  removal of dynamic registration/unregistration of protocol decode
+  timings from later patches.
+- Add io.h include to img-ir.h.
+---
+ drivers/media/rc/img-ir/img-ir-core.c | 176 ++++++++++++++++++++++++++++++++++
+ drivers/media/rc/img-ir/img-ir.h      | 166 ++++++++++++++++++++++++++++++++
+ 2 files changed, 342 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/img-ir-core.c
+ create mode 100644 drivers/media/rc/img-ir/img-ir.h
 
-On 13.01.2014 08:12, Mauro Carvalho Chehab wrote:
-> Avoid circular mutex lock by pushing the dev->lock to the .fini
-> callback on each extension.
->
-> As em28xx-dvb, em28xx-alsa and em28xx-rc have their own data
-> structures, and don't touch at the common structure during .fini,
-> only em28xx-v4l needs to be locked.
->
-> [   90.994317] ======================================================
-> [   90.994356] [ INFO: possible circular locking dependency detected ]
-> [   90.994395] 3.13.0-rc1+ #24 Not tainted
-> [   90.994427] -------------------------------------------------------
-> [   90.994458] khubd/54 is trying to acquire lock:
-> [   90.994490]  (&card->controls_rwsem){++++.+}, at: [<ffffffffa0177b08>] snd_ctl_dev_free+0x28/0x60 [snd]
-> [   90.994656]
-> [   90.994656] but task is already holding lock:
-> [   90.994688]  (&dev->lock){+.+.+.}, at: [<ffffffffa040db81>] em28xx_close_extension+0x31/0x90 [em28xx]
-> [   90.994843]
-> [   90.994843] which lock already depends on the new lock.
-> [   90.994843]
-> [   90.994874]
-> [   90.994874] the existing dependency chain (in reverse order) is:
-> [   90.994905]
-> -> #1 (&dev->lock){+.+.+.}:
-> [   90.995057]        [<ffffffff810b8fa3>] __lock_acquire+0xb43/0x1330
-> [   90.995121]        [<ffffffff810b9f82>] lock_acquire+0xa2/0x120
-> [   90.995182]        [<ffffffff816a5b6c>] mutex_lock_nested+0x5c/0x3c0
-> [   90.995245]        [<ffffffffa0422cca>] em28xx_vol_put_mute+0x1ba/0x1d0 [em28xx_alsa]
-> [   90.995309]        [<ffffffffa017813d>] snd_ctl_elem_write+0xfd/0x140 [snd]
-> [   90.995376]        [<ffffffffa01791c2>] snd_ctl_ioctl+0xe2/0x810 [snd]
-> [   90.995442]        [<ffffffff811db8b0>] do_vfs_ioctl+0x300/0x520
-> [   90.995504]        [<ffffffff811dbb51>] SyS_ioctl+0x81/0xa0
-> [   90.995568]        [<ffffffff816b1929>] system_call_fastpath+0x16/0x1b
-> [   90.995630]
-> -> #0 (&card->controls_rwsem){++++.+}:
-> [   90.995780]        [<ffffffff810b7a47>] check_prevs_add+0x947/0x950
-> [   90.995841]        [<ffffffff810b8fa3>] __lock_acquire+0xb43/0x1330
-> [   90.995901]        [<ffffffff810b9f82>] lock_acquire+0xa2/0x120
-> [   90.995962]        [<ffffffff816a762b>] down_write+0x3b/0xa0
-> [   90.996022]        [<ffffffffa0177b08>] snd_ctl_dev_free+0x28/0x60 [snd]
-> [   90.996088]        [<ffffffffa017a255>] snd_device_free+0x65/0x140 [snd]
-> [   90.996154]        [<ffffffffa017a751>] snd_device_free_all+0x61/0xa0 [snd]
-> [   90.996219]        [<ffffffffa0173af4>] snd_card_do_free+0x14/0x130 [snd]
-> [   90.996283]        [<ffffffffa0173f14>] snd_card_free+0x84/0x90 [snd]
-> [   90.996349]        [<ffffffffa0423397>] em28xx_audio_fini+0x97/0xb0 [em28xx_alsa]
-> [   90.996411]        [<ffffffffa040dba6>] em28xx_close_extension+0x56/0x90 [em28xx]
-> [   90.996475]        [<ffffffffa040f639>] em28xx_usb_disconnect+0x79/0x90 [em28xx]
-> [   90.996539]        [<ffffffff814a06e7>] usb_unbind_interface+0x67/0x1d0
-> [   90.996620]        [<ffffffff8142920f>] __device_release_driver+0x7f/0xf0
-> [   90.996682]        [<ffffffff814292a5>] device_release_driver+0x25/0x40
-> [   90.996742]        [<ffffffff81428b0c>] bus_remove_device+0x11c/0x1a0
-> [   90.996801]        [<ffffffff81425536>] device_del+0x136/0x1d0
-> [   90.996863]        [<ffffffff8149e0c0>] usb_disable_device+0xb0/0x290
-> [   90.996923]        [<ffffffff814930c5>] usb_disconnect+0xb5/0x1d0
-> [   90.996984]        [<ffffffff81495ab6>] hub_port_connect_change+0xd6/0xad0
-> [   90.997044]        [<ffffffff814967c3>] hub_events+0x313/0x9b0
-> [   90.997105]        [<ffffffff81496e95>] hub_thread+0x35/0x170
-> [   90.997165]        [<ffffffff8108ea2f>] kthread+0xff/0x120
-> [   90.997226]        [<ffffffff816b187c>] ret_from_fork+0x7c/0xb0
-> [   90.997287]
-> [   90.997287] other info that might help us debug this:
-> [   90.997287]
-> [   90.997318]  Possible unsafe locking scenario:
-> [   90.997318]
-> [   90.997348]        CPU0                    CPU1
-> [   90.997378]        ----                    ----
-> [   90.997408]   lock(&dev->lock);
-> [   90.997497]                                lock(&card->controls_rwsem);
-> [   90.997607]                                lock(&dev->lock);
-> [   90.997697]   lock(&card->controls_rwsem);
-> [   90.997786]
-> [   90.997786]  *** DEADLOCK ***
-> [   90.997786]
-> [   90.997817] 5 locks held by khubd/54:
-> [   90.997847]  #0:  (&__lockdep_no_validate__){......}, at: [<ffffffff81496564>] hub_events+0xb4/0x9b0
-> [   90.998025]  #1:  (&__lockdep_no_validate__){......}, at: [<ffffffff81493076>] usb_disconnect+0x66/0x1d0
-> [   90.998204]  #2:  (&__lockdep_no_validate__){......}, at: [<ffffffff8142929d>] device_release_driver+0x1d/0x40
-> [   90.998383]  #3:  (em28xx_devlist_mutex){+.+.+.}, at: [<ffffffffa040db77>] em28xx_close_extension+0x27/0x90 [em28xx]
-> [   90.998567]  #4:  (&dev->lock){+.+.+.}, at: [<ffffffffa040db81>] em28xx_close_extension+0x31/0x90 [em28xx]
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->   drivers/media/usb/em28xx/em28xx-core.c  | 2 --
->   drivers/media/usb/em28xx/em28xx-video.c | 4 ++++
->   2 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index b6dc3327c51c..898fb9bd88a2 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -1099,12 +1099,10 @@ void em28xx_close_extension(struct em28xx *dev)
->   	const struct em28xx_ops *ops = NULL;
->
->   	mutex_lock(&em28xx_devlist_mutex);
-> -	mutex_lock(&dev->lock);
->   	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
->   		if (ops->fini)
->   			ops->fini(dev);
->   	}
-> -	mutex_unlock(&dev->lock);
->   	list_del(&dev->devlist);
->   	mutex_unlock(&em28xx_devlist_mutex);
->   }
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index 004fe12ceec7..258628877951 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -1896,6 +1896,8 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
->
->   	em28xx_info("Disconnecting video extension");
->
-> +	mutex_lock(&dev->lock);
-> +
->   	v4l2_device_disconnect(&dev->v4l2_dev);
->
->   	em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
-> @@ -1924,6 +1926,8 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
->   	v4l2_ctrl_handler_free(&dev->ctrl_handler);
->   	v4l2_device_unregister(&dev->v4l2_dev);
->
-> +	mutex_unlock(&dev->lock);
-> +
->   	kref_put(&dev->ref, em28xx_free_device);
->
->   	return 0;
->
-
-
+diff --git a/drivers/media/rc/img-ir/img-ir-core.c b/drivers/media/rc/img-ir/img-ir-core.c
+new file mode 100644
+index 0000000..d510213
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-core.c
+@@ -0,0 +1,176 @@
++/*
++ * ImgTec IR Decoder found in PowerDown Controller.
++ *
++ * Copyright 2010-2014 Imagination Technologies Ltd.
++ *
++ * This contains core img-ir code for setting up the driver. The two interfaces
++ * (raw and hardware decode) are handled separately.
++ */
++
++#include <linux/clk.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/spinlock.h>
++#include "img-ir.h"
++
++static irqreturn_t img_ir_isr(int irq, void *dev_id)
++{
++	struct img_ir_priv *priv = dev_id;
++	u32 irq_status;
++
++	spin_lock(&priv->lock);
++	/* we have to clear irqs before reading */
++	irq_status = img_ir_read(priv, IMG_IR_IRQ_STATUS);
++	img_ir_write(priv, IMG_IR_IRQ_CLEAR, irq_status);
++
++	/* don't handle valid data irqs if we're only interested in matches */
++	irq_status &= img_ir_read(priv, IMG_IR_IRQ_ENABLE);
++
++	/* hand off edge interrupts to raw decode handler */
++	if (irq_status & IMG_IR_IRQ_EDGE && img_ir_raw_enabled(&priv->raw))
++		img_ir_isr_raw(priv, irq_status);
++
++	/* hand off hardware match interrupts to hardware decode handler */
++	if (irq_status & (IMG_IR_IRQ_DATA_MATCH |
++			  IMG_IR_IRQ_DATA_VALID |
++			  IMG_IR_IRQ_DATA2_VALID) &&
++	    img_ir_hw_enabled(&priv->hw))
++		img_ir_isr_hw(priv, irq_status);
++
++	spin_unlock(&priv->lock);
++	return IRQ_HANDLED;
++}
++
++static void img_ir_setup(struct img_ir_priv *priv)
++{
++	/* start off with interrupts disabled */
++	img_ir_write(priv, IMG_IR_IRQ_ENABLE, 0);
++
++	img_ir_setup_raw(priv);
++	img_ir_setup_hw(priv);
++
++	if (!IS_ERR(priv->clk))
++		clk_prepare_enable(priv->clk);
++}
++
++static void img_ir_ident(struct img_ir_priv *priv)
++{
++	u32 core_rev = img_ir_read(priv, IMG_IR_CORE_REV);
++
++	dev_info(priv->dev,
++		 "IMG IR Decoder (%d.%d.%d.%d) probed successfully\n",
++		 (core_rev & IMG_IR_DESIGNER) >> IMG_IR_DESIGNER_SHIFT,
++		 (core_rev & IMG_IR_MAJOR_REV) >> IMG_IR_MAJOR_REV_SHIFT,
++		 (core_rev & IMG_IR_MINOR_REV) >> IMG_IR_MINOR_REV_SHIFT,
++		 (core_rev & IMG_IR_MAINT_REV) >> IMG_IR_MAINT_REV_SHIFT);
++	dev_info(priv->dev, "Modes:%s%s\n",
++		 img_ir_hw_enabled(&priv->hw) ? " hardware" : "",
++		 img_ir_raw_enabled(&priv->raw) ? " raw" : "");
++}
++
++static int img_ir_probe(struct platform_device *pdev)
++{
++	struct img_ir_priv *priv;
++	struct resource *res_regs;
++	int irq, error, error2;
++
++	/* Get resources from platform device */
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		dev_err(&pdev->dev, "cannot find IRQ resource\n");
++		return irq;
++	}
++
++	/* Private driver data */
++	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv) {
++		dev_err(&pdev->dev, "cannot allocate device data\n");
++		return -ENOMEM;
++	}
++	platform_set_drvdata(pdev, priv);
++	priv->dev = &pdev->dev;
++	spin_lock_init(&priv->lock);
++
++	/* Ioremap the registers */
++	res_regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	priv->reg_base = devm_ioremap_resource(&pdev->dev, res_regs);
++	if (IS_ERR(priv->reg_base))
++		return PTR_ERR(priv->reg_base);
++
++	/* Get core clock */
++	priv->clk = devm_clk_get(&pdev->dev, "core");
++	if (IS_ERR(priv->clk))
++		dev_warn(&pdev->dev, "cannot get core clock resource\n");
++	/*
++	 * The driver doesn't need to know about the system ("sys") or power
++	 * modulation ("mod") clocks yet
++	 */
++
++	/* Set up raw & hw decoder */
++	error = img_ir_probe_raw(priv);
++	error2 = img_ir_probe_hw(priv);
++	if (error && error2)
++		return (error == -ENODEV) ? error2 : error;
++
++	/* Get the IRQ */
++	priv->irq = irq;
++	error = request_irq(priv->irq, img_ir_isr, 0, "img-ir", priv);
++	if (error) {
++		dev_err(&pdev->dev, "cannot register IRQ %u\n",
++			priv->irq);
++		error = -EIO;
++		goto err_irq;
++	}
++
++	img_ir_ident(priv);
++	img_ir_setup(priv);
++
++	return 0;
++
++err_irq:
++	img_ir_remove_hw(priv);
++	img_ir_remove_raw(priv);
++	return error;
++}
++
++static int img_ir_remove(struct platform_device *pdev)
++{
++	struct img_ir_priv *priv = platform_get_drvdata(pdev);
++
++	free_irq(priv->irq, img_ir_isr);
++	img_ir_remove_hw(priv);
++	img_ir_remove_raw(priv);
++
++	if (!IS_ERR(priv->clk))
++		clk_disable_unprepare(priv->clk);
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(img_ir_pmops, img_ir_suspend, img_ir_resume);
++
++static const struct of_device_id img_ir_match[] = {
++	{ .compatible = "img,ir1" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, img_ir_match);
++
++static struct platform_driver img_ir_driver = {
++	.driver = {
++		.name = "img-ir",
++		.owner	= THIS_MODULE,
++		.of_match_table	= img_ir_match,
++		.pm = &img_ir_pmops,
++	},
++	.probe = img_ir_probe,
++	.remove = img_ir_remove,
++};
++
++module_platform_driver(img_ir_driver);
++
++MODULE_AUTHOR("Imagination Technologies Ltd.");
++MODULE_DESCRIPTION("ImgTec IR");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/rc/img-ir/img-ir.h b/drivers/media/rc/img-ir/img-ir.h
+new file mode 100644
+index 0000000..afb1893
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir.h
+@@ -0,0 +1,166 @@
++/*
++ * ImgTec IR Decoder found in PowerDown Controller.
++ *
++ * Copyright 2010-2014 Imagination Technologies Ltd.
++ */
++
++#ifndef _IMG_IR_H_
++#define _IMG_IR_H_
++
++#include <linux/io.h>
++#include <linux/spinlock.h>
++
++#include "img-ir-raw.h"
++#include "img-ir-hw.h"
++
++/* registers */
++
++/* relative to the start of the IR block of registers */
++#define IMG_IR_CONTROL		0x00
++#define IMG_IR_STATUS		0x04
++#define IMG_IR_DATA_LW		0x08
++#define IMG_IR_DATA_UP		0x0c
++#define IMG_IR_LEAD_SYMB_TIMING	0x10
++#define IMG_IR_S00_SYMB_TIMING	0x14
++#define IMG_IR_S01_SYMB_TIMING	0x18
++#define IMG_IR_S10_SYMB_TIMING	0x1c
++#define IMG_IR_S11_SYMB_TIMING	0x20
++#define IMG_IR_FREE_SYMB_TIMING	0x24
++#define IMG_IR_POW_MOD_PARAMS	0x28
++#define IMG_IR_POW_MOD_ENABLE	0x2c
++#define IMG_IR_IRQ_MSG_DATA_LW	0x30
++#define IMG_IR_IRQ_MSG_DATA_UP	0x34
++#define IMG_IR_IRQ_MSG_MASK_LW	0x38
++#define IMG_IR_IRQ_MSG_MASK_UP	0x3c
++#define IMG_IR_IRQ_ENABLE	0x40
++#define IMG_IR_IRQ_STATUS	0x44
++#define IMG_IR_IRQ_CLEAR	0x48
++#define IMG_IR_IRCORE_ID	0xf0
++#define IMG_IR_CORE_REV		0xf4
++#define IMG_IR_CORE_DES1	0xf8
++#define IMG_IR_CORE_DES2	0xfc
++
++
++/* field masks */
++
++/* IMG_IR_CONTROL */
++#define IMG_IR_DECODEN		0x40000000
++#define IMG_IR_CODETYPE		0x30000000
++#define IMG_IR_CODETYPE_SHIFT		28
++#define IMG_IR_HDRTOG		0x08000000
++#define IMG_IR_LDRDEC		0x04000000
++#define IMG_IR_DECODINPOL	0x02000000	/* active high */
++#define IMG_IR_BITORIEN		0x01000000	/* MSB first */
++#define IMG_IR_D1VALIDSEL	0x00008000
++#define IMG_IR_BITINV		0x00000040	/* don't invert */
++#define IMG_IR_DECODEND2	0x00000010
++#define IMG_IR_BITORIEND2	0x00000002	/* MSB first */
++#define IMG_IR_BITINVD2		0x00000001	/* don't invert */
++
++/* IMG_IR_STATUS */
++#define IMG_IR_RXDVALD2		0x00001000
++#define IMG_IR_IRRXD		0x00000400
++#define IMG_IR_TOGSTATE		0x00000200
++#define IMG_IR_RXDVAL		0x00000040
++#define IMG_IR_RXDLEN		0x0000003f
++#define IMG_IR_RXDLEN_SHIFT		0
++
++/* IMG_IR_LEAD_SYMB_TIMING, IMG_IR_Sxx_SYMB_TIMING */
++#define IMG_IR_PD_MAX		0xff000000
++#define IMG_IR_PD_MAX_SHIFT		24
++#define IMG_IR_PD_MIN		0x00ff0000
++#define IMG_IR_PD_MIN_SHIFT		16
++#define IMG_IR_W_MAX		0x0000ff00
++#define IMG_IR_W_MAX_SHIFT		8
++#define IMG_IR_W_MIN		0x000000ff
++#define IMG_IR_W_MIN_SHIFT		0
++
++/* IMG_IR_FREE_SYMB_TIMING */
++#define IMG_IR_MAXLEN		0x0007e000
++#define IMG_IR_MAXLEN_SHIFT		13
++#define IMG_IR_MINLEN		0x00001f00
++#define IMG_IR_MINLEN_SHIFT		8
++#define IMG_IR_FT_MIN		0x000000ff
++#define IMG_IR_FT_MIN_SHIFT		0
++
++/* IMG_IR_POW_MOD_PARAMS */
++#define IMG_IR_PERIOD_LEN	0x3f000000
++#define IMG_IR_PERIOD_LEN_SHIFT		24
++#define IMG_IR_PERIOD_DUTY	0x003f0000
++#define IMG_IR_PERIOD_DUTY_SHIFT	16
++#define IMG_IR_STABLE_STOP	0x00003f00
++#define IMG_IR_STABLE_STOP_SHIFT	8
++#define IMG_IR_STABLE_START	0x0000003f
++#define IMG_IR_STABLE_START_SHIFT	0
++
++/* IMG_IR_POW_MOD_ENABLE */
++#define IMG_IR_POWER_OUT_EN	0x00000002
++#define IMG_IR_POWER_MOD_EN	0x00000001
++
++/* IMG_IR_IRQ_ENABLE, IMG_IR_IRQ_STATUS, IMG_IR_IRQ_CLEAR */
++#define IMG_IR_IRQ_DEC2_ERR	0x00000080
++#define IMG_IR_IRQ_DEC_ERR	0x00000040
++#define IMG_IR_IRQ_ACT_LEVEL	0x00000020
++#define IMG_IR_IRQ_FALL_EDGE	0x00000010
++#define IMG_IR_IRQ_RISE_EDGE	0x00000008
++#define IMG_IR_IRQ_DATA_MATCH	0x00000004
++#define IMG_IR_IRQ_DATA2_VALID	0x00000002
++#define IMG_IR_IRQ_DATA_VALID	0x00000001
++#define IMG_IR_IRQ_ALL		0x000000ff
++#define IMG_IR_IRQ_EDGE		(IMG_IR_IRQ_FALL_EDGE | IMG_IR_IRQ_RISE_EDGE)
++
++/* IMG_IR_CORE_ID */
++#define IMG_IR_CORE_ID		0x00ff0000
++#define IMG_IR_CORE_ID_SHIFT		16
++#define IMG_IR_CORE_CONFIG	0x0000ffff
++#define IMG_IR_CORE_CONFIG_SHIFT	0
++
++/* IMG_IR_CORE_REV */
++#define IMG_IR_DESIGNER		0xff000000
++#define IMG_IR_DESIGNER_SHIFT		24
++#define IMG_IR_MAJOR_REV	0x00ff0000
++#define IMG_IR_MAJOR_REV_SHIFT		16
++#define IMG_IR_MINOR_REV	0x0000ff00
++#define IMG_IR_MINOR_REV_SHIFT		8
++#define IMG_IR_MAINT_REV	0x000000ff
++#define IMG_IR_MAINT_REV_SHIFT		0
++
++struct device;
++struct clk;
++
++/**
++ * struct img_ir_priv - Private driver data.
++ * @dev:		Platform device.
++ * @irq:		IRQ number.
++ * @clk:		Input clock.
++ * @reg_base:		Iomem base address of IR register block.
++ * @lock:		Protects IR registers and variables in this struct.
++ * @raw:		Driver data for raw decoder.
++ * @hw:			Driver data for hardware decoder.
++ */
++struct img_ir_priv {
++	struct device		*dev;
++	int			irq;
++	struct clk		*clk;
++	void __iomem		*reg_base;
++	spinlock_t		lock;
++
++	struct img_ir_priv_raw	raw;
++	struct img_ir_priv_hw	hw;
++};
++
++/* Hardware access */
++
++static inline void img_ir_write(struct img_ir_priv *priv,
++				unsigned int reg_offs, unsigned int data)
++{
++	iowrite32(data, priv->reg_base + reg_offs);
++}
++
++static inline unsigned int img_ir_read(struct img_ir_priv *priv,
++				       unsigned int reg_offs)
++{
++	return ioread32(priv->reg_base + reg_offs);
++}
++
++#endif /* _IMG_IR_H_ */
 -- 
-http://palosaari.fi/
+1.8.3.2
+
+
