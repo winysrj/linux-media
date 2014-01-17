@@ -1,272 +1,299 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:46123 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395AbaAEUxu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 15:53:50 -0500
-Received: by mail-ea0-f180.google.com with SMTP id f15so7620581eak.39
-        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 12:53:49 -0800 (PST)
-Message-ID: <52C9C6A0.30502@googlemail.com>
-Date: Sun, 05 Jan 2014 21:54:56 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from multi.imgtec.com ([194.200.65.239]:48368 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752656AbaAQOAG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jan 2014 09:00:06 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH v2 03/15] media: rc: add raw decoder for Sharp protocol
+Date: Fri, 17 Jan 2014 13:58:48 +0000
+Message-ID: <1389967140-20704-4-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 19/22] [media] em28xx: cleanup I2C debug messages
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-20-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-20-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
-> The I2C output messages is too polluted. Clean it a little
-> bit, by:
-> 	- use the proper core support for memory dumps;
-> 	- hide most stuff under the i2c_debug umbrella;
-> 	- add the missing KERN_CONT where needed;
-> 	- use 2 levels or verbosity. Only the second one
-> 	  will show the I2C transfer data.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-i2c.c | 94 +++++++++++++++++++----------------
->  1 file changed, 50 insertions(+), 44 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> index c3ba8ace5c94..e030e0b7d645 100644
-> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> @@ -41,7 +41,7 @@ MODULE_PARM_DESC(i2c_scan, "scan i2c bus at insmod time");
->  
->  static unsigned int i2c_debug;
->  module_param(i2c_debug, int, 0644);
-> -MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
-> +MODULE_PARM_DESC(i2c_debug, "i2c debug message level (1: normal debug, 2: show I2C transfers)");
->  
->  /*
->   * em2800_i2c_send_bytes()
-> @@ -80,7 +80,9 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->  		if (ret == 0x80 + len - 1)
->  			return len;
->  		if (ret == 0x94 + len - 1) {
-> -			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
-> +			if (i2c_debug)
-> +				em28xx_warn("R05 returned 0x%02x: I2C timeout",
-> +					    ret);
->  			return -EREMOTEIO;
->  		}
->  		if (ret < 0) {
-> @@ -90,7 +92,8 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->  		}
->  		msleep(5);
->  	}
-> -	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
-> +	if (i2c_debug)
-> +		em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
->  	return -EREMOTEIO;
->  }
->  
-> @@ -124,7 +127,9 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->  		if (ret == 0x84 + len - 1)
->  			break;
->  		if (ret == 0x94 + len - 1) {
-> -			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
-> +			if (i2c_debug)
-> +				em28xx_warn("R05 returned 0x%02x: I2C timeout",
-> +					    ret);
->  			return -EREMOTEIO;
->  		}
->  		if (ret < 0) {
-> @@ -134,8 +139,11 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->  		}
->  		msleep(5);
->  	}
-> -	if (ret != 0x84 + len - 1)
-> -		em28xx_warn("read from i2c device at 0x%x timed out\n", addr);
-> +	if (ret != 0x84 + len - 1) {
-> +		if (i2c_debug)
-> +			em28xx_warn("read from i2c device at 0x%x timed out\n",
-> +				    addr);
-> +	}
->  
->  	/* get the received message */
->  	ret = dev->em28xx_read_reg_req_len(dev, 0x00, 4-len, buf2, len);
-> @@ -218,7 +226,8 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
->  		 */
->  	}
->  
-> -	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
-> +	if (i2c_debug)
-> +		em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
->  	return -EREMOTEIO;
->  }
->  
-> @@ -263,7 +272,9 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
->  		return ret;
->  	}
->  	if (ret == 0x10) {
-> -		em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
-> +		if (i2c_debug)
-> +			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
-> +				    addr);
->  		return -EREMOTEIO;
->  	}
->  
-> @@ -324,7 +335,9 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
->  	if (!ret)
->  		return len;
->  	else if (ret > 0) {
-> -		em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
-> +		if (i2c_debug)
-> +			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
-> +				    ret);
->  		return -EREMOTEIO;
->  	}
->  
-> @@ -375,7 +388,9 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
->  	if (!ret)
->  		return len;
->  	else if (ret > 0) {
-> -		em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
-> +		if (i2c_debug)
-> +			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
-> +				    ret);
->  		return -EREMOTEIO;
->  	}
->  
-> @@ -418,10 +433,6 @@ static inline int i2c_check_for_device(struct em28xx_i2c_bus *i2c_bus, u16 addr)
->  		rc = em2800_i2c_check_for_device(dev, addr);
->  	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)
->  		rc = em25xx_bus_B_check_for_device(dev, addr);
-> -	if (rc < 0) {
-> -		if (i2c_debug)
-> -			printk(" no device\n");
-> -	}
->  	return rc;
->  }
->  
-> @@ -430,7 +441,7 @@ static inline int i2c_recv_bytes(struct em28xx_i2c_bus *i2c_bus,
->  {
->  	struct em28xx *dev = i2c_bus->dev;
->  	u16 addr = msg.addr << 1;
-> -	int byte, rc = -EOPNOTSUPP;
-> +	int rc = -EOPNOTSUPP;
->  
->  	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX)
->  		rc = em28xx_i2c_recv_bytes(dev, addr, msg.buf, msg.len);
-> @@ -438,10 +449,6 @@ static inline int i2c_recv_bytes(struct em28xx_i2c_bus *i2c_bus,
->  		rc = em2800_i2c_recv_bytes(dev, addr, msg.buf, msg.len);
->  	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)
->  		rc = em25xx_bus_B_recv_bytes(dev, addr, msg.buf, msg.len);
-> -	if (i2c_debug) {
-> -		for (byte = 0; byte < msg.len; byte++)
-> -			printk(" %02x", msg.buf[byte]);
-> -	}
->  	return rc;
->  }
->  
-> @@ -450,12 +457,8 @@ static inline int i2c_send_bytes(struct em28xx_i2c_bus *i2c_bus,
->  {
->  	struct em28xx *dev = i2c_bus->dev;
->  	u16 addr = msg.addr << 1;
-> -	int byte, rc = -EOPNOTSUPP;
-> +	int rc = -EOPNOTSUPP;
->  
-> -	if (i2c_debug) {
-> -		for (byte = 0; byte < msg.len; byte++)
-> -			printk(" %02x", msg.buf[byte]);
-> -	}
->  	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX)
->  		rc = em28xx_i2c_send_bytes(dev, addr, msg.buf, msg.len, stop);
->  	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800)
-> @@ -500,7 +503,7 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
->  	}
->  	for (i = 0; i < num; i++) {
->  		addr = msgs[i].addr << 1;
-> -		if (i2c_debug)
-> +		if (i2c_debug > 1)
->  			printk(KERN_DEBUG "%s at %s: %s %s addr=%02x len=%d:",
->  			       dev->name, __func__ ,
->  			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
-> @@ -509,24 +512,33 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
->  		if (!msgs[i].len) { /* no len: check only for device presence */
->  			rc = i2c_check_for_device(i2c_bus, addr);
->  			if (rc < 0) {
-> +				if (i2c_debug > 1)
-> +					printk(KERN_CONT " no device\n");
->  				rt_mutex_unlock(&dev->i2c_bus_lock);
->  				return rc;
->  			}
->  		} else if (msgs[i].flags & I2C_M_RD) {
->  			/* read bytes */
->  			rc = i2c_recv_bytes(i2c_bus, msgs[i]);
-> +
-> +			if (i2c_debug > 1 && rc >= 0)
-> +				printk(KERN_CONT " %*ph",
-> +				       msgs[i].len, msgs[i].buf);
->  		} else {
-> +			if (i2c_debug > 1)
-> +				printk(KERN_CONT " %*ph",
-> +				       msgs[i].len, msgs[i].buf);
-> +
->  			/* write bytes */
->  			rc = i2c_send_bytes(i2c_bus, msgs[i], i == num - 1);
->  		}
->  		if (rc < 0) {
-> -			if (i2c_debug)
-> -				printk(" ERROR: %i\n", rc);
-> +			if (i2c_debug > 1)
-> +				printk(KERN_CONT " ERROR: %i\n", rc);
->  			rt_mutex_unlock(&dev->i2c_bus_lock);
->  			return rc;
-> -		}
-> -		if (i2c_debug)
-> -			printk("\n");
-> +		} else if (i2c_debug > 1)
-> +			printk(KERN_CONT "\n");
->  	}
->  
->  	rt_mutex_unlock(&dev->i2c_bus_lock);
-> @@ -609,7 +621,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
->  	 * calculation and returned device dataset. Simplifies the code a lot,
->  	 * but we might have to deal with multiple sizes in the future !
->  	 */
-> -	int i, err;
-> +	int err;
->  	struct em28xx_eeprom *dev_config;
->  	u8 buf, *data;
->  
-> @@ -640,20 +652,14 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
->  		goto error;
->  	}
->  
-> -	/* Display eeprom content */
-> -	for (i = 0; i < len; i++) {
-> -		if (0 == (i % 16)) {
-> -			if (dev->eeprom_addrwidth_16bit)
-> -				em28xx_info("i2c eeprom %04x:", i);
-> -			else
-> -				em28xx_info("i2c eeprom %02x:", i);
-> -		}
-> -		printk(" %02x", data[i]);
-> -		if (15 == (i % 16))
-> -			printk("\n");
-> +	if (i2c_debug) {
-> +		/* Display eeprom content */
-> +		print_hex_dump(KERN_INFO, "eeprom ", DUMP_PREFIX_OFFSET,
-> +			       16, 1, data, len, true);
-> +
-> +		if (dev->eeprom_addrwidth_16bit)
-> +			em28xx_info("eeprom %06x: ... (skipped)\n", 256);
->  	}
-> -	if (dev->eeprom_addrwidth_16bit)
-> -		em28xx_info("i2c eeprom %04x: ... (skipped)\n", i);
->  
->  	if (dev->eeprom_addrwidth_16bit &&
->  	    data[0] == 0x26 && data[3] == 0x00) {
+Add a raw decoder for the Sharp protocol. It uses a pulse distance
+modulation with a pulse of 320us and a bit period of 2ms for a logical 1
+and 1ms for a logical 0. The first part of the message consists of a
+5-bit address, an 8-bit command, and two other bits, followed by a 40ms
+gap before the echo message which is an inverted version of the main
+message except for the address bits.
 
-Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+v2:
+- new patch (suggested by Mauro).
+---
+ drivers/media/rc/Kconfig            |   9 ++
+ drivers/media/rc/Makefile           |   1 +
+ drivers/media/rc/ir-sharp-decoder.c | 200 ++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/rc-core-priv.h     |   6 ++
+ 4 files changed, 216 insertions(+)
+ create mode 100644 drivers/media/rc/ir-sharp-decoder.c
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 904f113..3b25887 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -106,6 +106,15 @@ config IR_SANYO_DECODER
+ 	   uses the Sanyo protocol (Sanyo, Aiwa, Chinon remotes),
+ 	   and you need software decoding support.
+ 
++config IR_SHARP_DECODER
++	tristate "Enable IR raw decoder for the Sharp protocol"
++	depends on RC_CORE
++	default y
++
++	---help---
++	   Enable this option if you have an infrared remote control which
++	   uses the Sharp protocol, and you need software decoding support.
++
+ config IR_MCE_KBD_DECODER
+ 	tristate "Enable IR raw decoder for the MCE keyboard/mouse protocol"
+ 	depends on RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index f4eb32c..36dafed 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -11,6 +11,7 @@ obj-$(CONFIG_IR_JVC_DECODER) += ir-jvc-decoder.o
+ obj-$(CONFIG_IR_SONY_DECODER) += ir-sony-decoder.o
+ obj-$(CONFIG_IR_RC5_SZ_DECODER) += ir-rc5-sz-decoder.o
+ obj-$(CONFIG_IR_SANYO_DECODER) += ir-sanyo-decoder.o
++obj-$(CONFIG_IR_SHARP_DECODER) += ir-sharp-decoder.o
+ obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
+ obj-$(CONFIG_IR_LIRC_CODEC) += ir-lirc-codec.o
+ 
+diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
+new file mode 100644
+index 0000000..4c17be5
+--- /dev/null
++++ b/drivers/media/rc/ir-sharp-decoder.c
+@@ -0,0 +1,200 @@
++/* ir-sharp-decoder.c - handle Sharp IR Pulse/Space protocol
++ *
++ * Copyright (C) 2013-2014 Imagination Technologies Ltd.
++ *
++ * Based on NEC decoder:
++ * Copyright (C) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ */
++
++#include <linux/bitrev.h>
++#include <linux/module.h>
++#include "rc-core-priv.h"
++
++#define SHARP_NBITS		15
++#define SHARP_UNIT		40000  /* ns */
++#define SHARP_BIT_PULSE		(8    * SHARP_UNIT) /* 320us */
++#define SHARP_BIT_0_PERIOD	(25   * SHARP_UNIT) /* 1ms (680us space) */
++#define SHARP_BIT_1_PERIOD	(50   * SHARP_UNIT) /* 2ms (1680ms space) */
++#define SHARP_ECHO_SPACE	(1000 * SHARP_UNIT) /* 40 ms */
++#define SHARP_TRAILER_SPACE	(125  * SHARP_UNIT) /* 5 ms (even longer) */
++
++enum sharp_state {
++	STATE_INACTIVE,
++	STATE_BIT_PULSE,
++	STATE_BIT_SPACE,
++	STATE_TRAILER_PULSE,
++	STATE_ECHO_SPACE,
++	STATE_TRAILER_SPACE,
++};
++
++/**
++ * ir_sharp_decode() - Decode one Sharp pulse or space
++ * @dev:	the struct rc_dev descriptor of the device
++ * @duration:	the struct ir_raw_event descriptor of the pulse/space
++ *
++ * This function returns -EINVAL if the pulse violates the state machine
++ */
++static int ir_sharp_decode(struct rc_dev *dev, struct ir_raw_event ev)
++{
++	struct sharp_dec *data = &dev->raw->sharp;
++	u32 msg, echo, address, command, scancode;
++
++	if (!(dev->enabled_protocols & RC_BIT_SHARP))
++		return 0;
++
++	if (!is_timing_event(ev)) {
++		if (ev.reset)
++			data->state = STATE_INACTIVE;
++		return 0;
++	}
++
++	IR_dprintk(2, "Sharp decode started at state %d (%uus %s)\n",
++		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
++
++	switch (data->state) {
++
++	case STATE_INACTIVE:
++		if (!ev.pulse)
++			break;
++
++		if (!eq_margin(ev.duration, SHARP_BIT_PULSE,
++			       SHARP_BIT_PULSE / 2))
++			break;
++
++		data->count = 0;
++		data->pulse_len = ev.duration;
++		data->state = STATE_BIT_SPACE;
++		return 0;
++
++	case STATE_BIT_PULSE:
++		if (!ev.pulse)
++			break;
++
++		if (!eq_margin(ev.duration, SHARP_BIT_PULSE,
++			       SHARP_BIT_PULSE / 2))
++			break;
++
++		data->pulse_len = ev.duration;
++		data->state = STATE_BIT_SPACE;
++		return 0;
++
++	case STATE_BIT_SPACE:
++		if (ev.pulse)
++			break;
++
++		data->bits <<= 1;
++		if (eq_margin(data->pulse_len + ev.duration, SHARP_BIT_1_PERIOD,
++			      SHARP_BIT_PULSE * 2))
++			data->bits |= 1;
++		else if (!eq_margin(data->pulse_len + ev.duration,
++				    SHARP_BIT_0_PERIOD, SHARP_BIT_PULSE * 2))
++			break;
++		data->count++;
++
++		if (data->count == SHARP_NBITS ||
++		    data->count == SHARP_NBITS * 2)
++			data->state = STATE_TRAILER_PULSE;
++		else
++			data->state = STATE_BIT_PULSE;
++
++		return 0;
++
++	case STATE_TRAILER_PULSE:
++		if (!ev.pulse)
++			break;
++
++		if (!eq_margin(ev.duration, SHARP_BIT_PULSE,
++			       SHARP_BIT_PULSE / 2))
++			break;
++
++		if (data->count == SHARP_NBITS) {
++			/* exp,chk bits should be 1,0 */
++			if ((data->bits & 0x3) != 0x2)
++				break;
++			data->state = STATE_ECHO_SPACE;
++		} else {
++			data->state = STATE_TRAILER_SPACE;
++		}
++		return 0;
++
++	case STATE_ECHO_SPACE:
++		if (ev.pulse)
++			break;
++
++		if (!eq_margin(ev.duration, SHARP_ECHO_SPACE,
++			       SHARP_ECHO_SPACE / 4))
++			break;
++
++		data->state = STATE_BIT_PULSE;
++
++		return 0;
++
++	case STATE_TRAILER_SPACE:
++		if (ev.pulse)
++			break;
++
++		if (!geq_margin(ev.duration, SHARP_TRAILER_SPACE,
++				SHARP_BIT_PULSE / 2))
++			break;
++
++		/* Validate - command, ext, chk should be inverted in 2nd */
++		msg = (data->bits >> 15) & 0x7fff;
++		echo = data->bits & 0x7fff;
++		if ((msg ^ echo) != 0x3ff) {
++			IR_dprintk(1,
++				   "Sharp checksum error: received 0x%04x, 0x%04x\n",
++				   msg, echo);
++			break;
++		}
++
++		address = bitrev8((msg >> 7) & 0xf8);
++		command = bitrev8((msg >> 2) & 0xff);
++
++		scancode = address << 8 | command;
++		IR_dprintk(1, "Sharp scancode 0x%04x\n", scancode);
++
++		rc_keydown(dev, scancode, 0);
++		data->state = STATE_INACTIVE;
++		return 0;
++	}
++
++	IR_dprintk(1, "Sharp decode failed at count %d state %d (%uus %s)\n",
++		   data->count, data->state, TO_US(ev.duration),
++		   TO_STR(ev.pulse));
++	data->state = STATE_INACTIVE;
++	return -EINVAL;
++}
++
++static struct ir_raw_handler sharp_handler = {
++	.protocols	= RC_BIT_SHARP,
++	.decode		= ir_sharp_decode,
++};
++
++static int __init ir_sharp_decode_init(void)
++{
++	ir_raw_handler_register(&sharp_handler);
++
++	pr_info("IR Sharp protocol handler initialized\n");
++	return 0;
++}
++
++static void __exit ir_sharp_decode_exit(void)
++{
++	ir_raw_handler_unregister(&sharp_handler);
++}
++
++module_init(ir_sharp_decode_init);
++module_exit(ir_sharp_decode_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("James Hogan <james.hogan@imgtec.com>");
++MODULE_DESCRIPTION("Sharp IR protocol decoder");
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 70a180b..c40d666 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -88,6 +88,12 @@ struct ir_raw_event_ctrl {
+ 		unsigned count;
+ 		u64 bits;
+ 	} sanyo;
++	struct sharp_dec {
++		int state;
++		unsigned count;
++		u32 bits;
++		unsigned int pulse_len;
++	} sharp;
+ 	struct mce_kbd_dec {
+ 		struct input_dev *idev;
+ 		struct timer_list rx_timeout;
+-- 
+1.8.3.2
 
 
