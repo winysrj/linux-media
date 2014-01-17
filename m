@@ -1,76 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:53077 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754028AbaAIJU2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 04:20:28 -0500
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-To: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	s.nawrocki@samsung.com, posciak@google.com, hverkuil@xs4all.nl,
-	m.chehab@samsung.com
-Subject: Re: [PATCH v5 4/4] [media] exynos-scaler: Add DT bindings for SCALER
- driver
-Date: Thu, 09 Jan 2014 10:20:07 +0100
-Message-id: <2542868.mVreZlxTcT@amdc1032>
-In-reply-to: <1389238094-19386-5-git-send-email-shaik.ameer@samsung.com>
-References: <1389238094-19386-1-git-send-email-shaik.ameer@samsung.com>
- <1389238094-19386-5-git-send-email-shaik.ameer@samsung.com>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset=ISO-8859-1
+Received: from plane.gmane.org ([80.91.229.3]:41314 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751951AbaAQQTq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jan 2014 11:19:46 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1W4C93-0001HD-1Z
+	for linux-media@vger.kernel.org; Fri, 17 Jan 2014 17:19:45 +0100
+Received: from dslb-188-106-243-224.pools.arcor-ip.net ([188.106.243.224])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 17:19:45 +0100
+Received: from Bassai_Dai by dslb-188-106-243-224.pools.arcor-ip.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 17:19:45 +0100
+To: linux-media@vger.kernel.org
+From: Tom <Bassai_Dai@gmx.net>
+Subject: Re: ov3640 sensor -> CCDC won't become idle!
+Date: Fri, 17 Jan 2014 16:19:22 +0000 (UTC)
+Message-ID: <loom.20140117T171549-107@post.gmane.org>
+References: <loom.20130909T145536-271@post.gmane.org> <alpine.DEB.2.01.1401171507560.20274@pmeerw.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Peter Meerwald <pmeerw <at> pmeerw.net> writes:
 
-Hi,
+Hello Peter,
 
-On Thursday, January 09, 2014 08:58:14 AM Shaik Ameer Basha wrote:
-> This patch adds the DT binding documentation for the
-> Exynos5420/5410 based SCALER device driver.
-> 
-> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  .../devicetree/bindings/media/exynos5-scaler.txt   |   22 ++++++++++++++++++++
->  1 file changed, 22 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/exynos5-scaler.txt b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
-> new file mode 100644
-> index 0000000..9328e7d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
-> @@ -0,0 +1,22 @@
-> +* Samsung Exynos5 SCALER device
-> +
-> +SCALER is used for scaling, blending, color fill and color space
-> +conversion on EXYNOS[5420/5410] SoCs.
-> +
-> +Required properties:
-> +- compatible: should be "samsung,exynos5420-scaler" or
-> +			"samsung,exynos5410-scaler"
-> +- reg: should contain SCALER physical address location and length
-> +- interrupts: should contain SCALER interrupt number
-> +- clocks: should contain the SCALER clock specifier, from the
-> +			common clock bindings
-> +- clock-names: should be "scaler"
-> +
-> +Example:
-> +	scaler_0: scaler@12800000 {
-> +		compatible = "samsung,exynos5420-scaler";
-> +		reg = <0x12800000 0x1000>;
-> +		interrupts = <0 220 0>;
-> +		clocks = <&clock 381>;
-> +		clock-names = "scaler";
-> +	};
+Many thanks for posting your solution. Your idea sounds great and I'll give 
+it a try on next monday.
 
-Your patchset adds support for EXYNOS5 SCALER but doesn't add any real
-users of it yet.  Could you please explain why?
+Thanks again.
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Best Regards, Tom
+
+
 
