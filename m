@@ -1,92 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:49658 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752498AbaAOWKn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 17:10:43 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZG004X0QXUWD30@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Jan 2014 17:10:42 -0500 (EST)
-Date: Wed, 15 Jan 2014 20:10:36 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Alexander Lochmann <alexander.lochmann@tu-dortmund.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Patch for TechnoTrend S2-4600
-Message-id: <20140115201036.35fea3cf@samsung.com>
-In-reply-to: <52D703E2.7000103@tu-dortmund.de>
-References: <52C9975A.2060900@tu-dortmund.de>
- <20140115144238.07f7261f@samsung.com> <52D703E2.7000103@tu-dortmund.de>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from multi.imgtec.com ([194.200.65.239]:48381 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752693AbaAQOAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jan 2014 09:00:17 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH v2 10/15] media: rc: img-ir: add to build
+Date: Fri, 17 Jan 2014 13:58:55 +0000
+Message-ID: <1389967140-20704-11-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 15 Jan 2014 22:55:46 +0100
-Alexander Lochmann <alexander.lochmann@tu-dortmund.de> escreveu:
+Add ImgTec IR decoder driver to the build system.
 
-> Hi Mauro,
-> 
-> thanks for you reply.
-> 
-> Sorry, i was not aware of the fact that i have to ask the author. :-( 
-> They published it at bitbucket. Thus i thought it is okay to propose a 
-> patch.
-> In which kernel tree was it merged? The mainline one at kernel.org?
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/rc/Kconfig         |  2 ++
+ drivers/media/rc/Makefile        |  1 +
+ drivers/media/rc/img-ir/Kconfig  | 26 ++++++++++++++++++++++++++
+ drivers/media/rc/img-ir/Makefile |  6 ++++++
+ 4 files changed, 35 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/Kconfig
+ create mode 100644 drivers/media/rc/img-ir/Makefile
 
-The patch is already at the media tree, at git.linuxtv.org. It should be
-sent upstream likely next week, when the merge window for Kernel 3.14 opens.
-
-Regards,
-Mauro
-
-> 
-> Regards,
-> Alex
-> 
-> On 01/15/2014 05:42 PM, Mauro Carvalho Chehab wrote:
-> > Em Sun, 05 Jan 2014 18:33:14 +0100
-> > Alexander Lochmann <alexander.lochmann@tu-dortmund.de> escreveu:
-> >
-> >> Hi guys,
-> >>
-> >> i'm sending you a patch that adds support for the TechnoTrend S2-4600
-> >> DVB-S2 device to a 3.12 (5e01dc7b26d9f24f39abace5da98ccbd6a5ceb52)
-> >> mainline kernel.
-> >> I just extracted the drivers for the two frontends (ds3103 and ts2202)
-> >> from [1] and added them to a mainline kernel. Furthermore, i modified
-> >> the dw2102 driver to support the new frontends (= copied the necessary
-> >> lines of code from the origin dw2102) . In addition, i attached a
-> >> firmware for the dw2102 extracted from [3].
-> >> I appreciate, if you review my patch and may integrate it into the
-> >> mainline tree.
-> > Hi Alexander,
-> >
-> > You can't simply extract those patches from some other tree and send, without
-> > the driver's author ack.
-> >
-> > Also, recently a driver for ts2202 and ds3103 was merged in the Kernel. It
-> > may not have the IDs for your device, but it shouldn't likely be hard to
-> > add support for it, if you have some programming skills.
-> >
-> > Regards,
-> > Mauro
-> >
-> >> Thank you!
-> >> Greetings
-> >> Alex
-> >>
-> >> [1]
-> >> https://bitbucket.org/liplianin/s2-liplianin-v37/get/67ce08afdbe7.tar.bz2
-> >> [2] http://www.tt-downloads.de/Linux/s2-TT4600-linux-20120815.tgz
-> >> [3] http://www.tt-downloads.de/Linux/linux_tt-connect_s2-4600.pdf
-> >
-> 
-
-
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 3b25887..8fbd377 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -309,6 +309,8 @@ config IR_RX51
+ 	   The driver uses omap DM timers for generating the carrier
+ 	   wave and pulses.
+ 
++source "drivers/media/rc/img-ir/Kconfig"
++
+ config RC_LOOPBACK
+ 	tristate "Remote Control Loopback Driver"
+ 	depends on RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 36dafed..f8b54ff 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -32,3 +32,4 @@ obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
+ obj-$(CONFIG_IR_IGUANA) += iguanair.o
+ obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
+ obj-$(CONFIG_RC_ST) += st_rc.o
++obj-$(CONFIG_IR_IMG) += img-ir/
+diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
+new file mode 100644
+index 0000000..60eaba6
+--- /dev/null
++++ b/drivers/media/rc/img-ir/Kconfig
+@@ -0,0 +1,26 @@
++config IR_IMG
++	tristate "ImgTec IR Decoder"
++	depends on RC_CORE
++	select IR_IMG_HW if !IR_IMG_RAW
++	help
++	   Say Y or M here if you want to use the ImgTec infrared decoder
++	   functionality found in SoCs such as TZ1090.
++
++config IR_IMG_RAW
++	bool "Raw decoder"
++	depends on IR_IMG
++	help
++	   Say Y here to enable the raw mode driver which passes raw IR signal
++	   changes to the IR raw decoders for software decoding. This is much
++	   less reliable (due to lack of timestamps) and consumes more
++	   processing power than using hardware decode, but can be useful for
++	   testing, debug, and to make more protocols available.
++
++config IR_IMG_HW
++	bool "Hardware decoder"
++	depends on IR_IMG
++	help
++	   Say Y here to enable the hardware decode driver which decodes the IR
++	   signals in hardware. This is more reliable, consumes less processing
++	   power since only a single interrupt is received for each scancode,
++	   and allows an IR scancode to be used as a wake event.
+diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
+new file mode 100644
+index 0000000..4ef86ed
+--- /dev/null
++++ b/drivers/media/rc/img-ir/Makefile
+@@ -0,0 +1,6 @@
++img-ir-y			:= img-ir-core.o
++img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
++img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
++img-ir-objs			:= $(img-ir-y)
++
++obj-$(CONFIG_IR_IMG)		+= img-ir.o
 -- 
+1.8.3.2
 
-Cheers,
-Mauro
+
