@@ -1,44 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dd6204.kasserver.com ([85.13.131.2]:50068 "EHLO
-	dd6204.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbaANKyV (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:62877 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752816AbaAQRo2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jan 2014 05:54:21 -0500
-Received: from [192.168.178.28] (p4FD556A4.dip0.t-ipconnect.de [79.213.86.164])
-	by dd6204.kasserver.com (Postfix) with ESMTPSA id 6AE3AD200EE
-	for <linux-media@vger.kernel.org>; Tue, 14 Jan 2014 11:54:20 +0100 (CET)
-Message-ID: <52D516A0.4040500@datenparkplatz.de>
-Date: Tue, 14 Jan 2014 11:51:12 +0100
-From: Ulrich Lukas <stellplatz-nr.13a@datenparkplatz.de>
+	Fri, 17 Jan 2014 12:44:28 -0500
+Received: by mail-ea0-f174.google.com with SMTP id b10so1898300eae.33
+        for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 09:44:27 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/3] em28xx-video: do not unregister the v4l2 dummy clock before v4l2_device_unregister() has been called
+Date: Fri, 17 Jan 2014 18:45:30 +0100
+Message-Id: <1389980732-8375-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: DVBSky-cards - M88DS3103 / M88TS2020
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since we got support for Montage M88DS3103 DVB-S/S2 demodulator driver
-with commit 395d00d1ca8947887fd0fbdec4fff90c4da21877:
+Otherwiese the core refuses to unregister the clock and the following warning
+appears in the system log:
 
-There is a number of popular DVB S/S2 cards from company DVBSky based on
+"WARNING: ... at drivers/media/v4l2-core/v4l2-clk.c:231 v4l2_clk_unregister+0x8a/0x90 [videodev]()
+ v4l2_clk_unregister(): Refusing to unregister ref-counted 11-0030:mclk clock!"
 
-RF: Montage M88TS2020
-Demodulator: 2nd generation Montage M88DS3103
-PCIe Bridge: Conexant CX23885
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |    6 +++---
+ 1 Datei geändert, 3 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
 
-(http://linuxtv.org/wiki/index.php/DVBSky)
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index c3c9289..09e18da 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1918,14 +1918,14 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 		video_unregister_device(dev->vdev);
+ 	}
+ 
++	v4l2_ctrl_handler_free(&dev->ctrl_handler);
++	v4l2_device_unregister(&dev->v4l2_dev);
++
+ 	if (dev->clk) {
+ 		v4l2_clk_unregister_fixed(dev->clk);
+ 		dev->clk = NULL;
+ 	}
+ 
+-	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+-	v4l2_device_unregister(&dev->v4l2_dev);
+-
+ 	if (dev->users)
+ 		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
+ 	mutex_unlock(&dev->lock);
+-- 
+1.7.10.4
 
-There also is a previously existing manufacturer-supplied patch against
-mainline kernel 3.12 with different implementation of m88ds3103 driver
-files, but with correct PCI IDs etc. that add support for these cards:
-
-http://www.dvbsky.net/download/linux/kernel-3.12.5-dvbsky.patch.tar.gz
-(Via: http://www.dvbsky.net/Support.html)
-
-Are there any major tasks left with regard to support/inclusion for
-these cards in mainline/linux-media?
-
-
-Regards,
-Ulrich
