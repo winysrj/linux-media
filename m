@@ -1,134 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:57328 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945AbaALP2R (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54261 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751092AbaAQHN4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jan 2014 10:28:17 -0500
-Received: by mail-ee0-f45.google.com with SMTP id d49so2660926eek.18
-        for <linux-media@vger.kernel.org>; Sun, 12 Jan 2014 07:28:15 -0800 (PST)
-Message-ID: <52D2B4D6.2020806@googlemail.com>
-Date: Sun, 12 Jan 2014 16:29:26 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+	Fri, 17 Jan 2014 02:13:56 -0500
+Message-ID: <52D8D889.2030604@iki.fi>
+Date: Fri, 17 Jan 2014 09:15:21 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2 3/3] [media] em28xx: add timeout debug information
- if i2c_debug enabled
-References: <1389342820-12605-1-git-send-email-m.chehab@samsung.com> <1389342820-12605-4-git-send-email-m.chehab@samsung.com> <52D143BE.3090607@googlemail.com> <20140111182737.4cf40c81@samsung.com>
-In-Reply-To: <20140111182737.4cf40c81@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	florian.vaussard@epfl.ch
+CC: linux-media@vger.kernel.org
+Subject: Re: Regression inside omap3isp/resizer
+References: <52B02A7A.4010901@epfl.ch> <5578156.0MrbcJaUWJ@avalon> <52CEE5EC.3050704@epfl.ch> <1530474.IjFu1Njy3V@avalon>
+In-Reply-To: <1530474.IjFu1Njy3V@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.01.2014 21:27, Mauro Carvalho Chehab wrote:
-> Em Sat, 11 Jan 2014 14:14:38 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 10.01.2014 09:33, schrieb Mauro Carvalho Chehab:
->>> If i2c_debug is enabled, we splicitly want to know when a
->>> device fails with timeout.
->>>
->>> If i2c_debug==2, this is already provided, for each I2C transfer
->>> that fails.
->>>
->>> However, most of the time, we don't need to go that far. We just
->>> want to know that I2C transfers fail.
->>>
->>> So, add such errors for normal (ret == 0x10) I2C aborted timeouts.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
->>> ---
->>>   drivers/media/usb/em28xx/em28xx-i2c.c | 27 ++++++++++++++++++++++++---
->>>   1 file changed, 24 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
->>> index e8eb83160d36..7e1724076ac4 100644
->>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
->>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
->>> @@ -80,6 +80,9 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->>>   		if (ret == 0x80 + len - 1)
->>>   			return len;
->>>   		if (ret == 0x94 + len - 1) {
->>> +			if (i2c_debug == 1)
->>> +				em28xx_warn("R05 returned 0x%02x: I2C timeout",
->>> +					    ret);
->>>   			return -ENXIO;
->>>   		}
->>>   		if (ret < 0) {
->>> @@ -124,6 +127,9 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->>>   		if (ret == 0x84 + len - 1)
->>>   			break;
->>>   		if (ret == 0x94 + len - 1) {
->>> +			if (i2c_debug == 1)
->>> +				em28xx_warn("R05 returned 0x%02x: I2C timeout",
->>> +					    ret);
->>>   			return -ENXIO;
->>>   		}
->>>   		if (ret < 0) {
->>> @@ -203,6 +209,9 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
->>>   		if (ret == 0) /* success */
->>>   			return len;
->>>   		if (ret == 0x10) {
->>> +			if (i2c_debug == 1)
->>> +				em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
->>> +					    addr);
->>>   			return -ENXIO;
->>>   		}
->>>   		if (ret < 0) {
->>> @@ -263,8 +272,12 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
->>>   			    ret);
->>>   		return ret;
->>>   	}
->>> -	if (ret == 0x10)
->>> +	if (ret == 0x10) {
->>> +		if (i2c_debug == 1)
->>> +			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
->>> +				    addr);
->>>   		return -ENXIO;
->>> +	}
->>>   
->>>   	em28xx_warn("unknown i2c error (status=%i)\n", ret);
->>>   	return -ETIMEDOUT;
->>> @@ -322,8 +335,12 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
->>>   	 */
->>>   	if (!ret)
->>>   		return len;
->>> -	else if (ret > 0)
->>> +	else if (ret > 0) {
->>> +		if (i2c_debug == 1)
->>> +			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
->>> +				    ret);
->>>   		return -ENXIO;
->>> +	}
->>>   
->>>   	return ret;
->>>   	/*
->>> @@ -373,8 +390,12 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
->>>   	 */
->>>   	if (!ret)
->>>   		return len;
->>> -	else if (ret > 0)
->>> +	else if (ret > 0) {
->>> +		if (i2c_debug == 1)
->>> +			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
->>> +				    ret);
->>>   		return -ENXIO;
->>> +	}
->>>   
->>>   	return ret;
->>>   	/*
->> The error description should be "I2C ACK error".
-> Ok.
->
->> You are using (i2c_debug == 1) checks here, which should either be
->> changed to (i2c_debug > 0) in case of 3 debug levels.
-> Actually, no. If you use i2c_debug = 2, you can't print anything on those
-> routines, as otherwise it will be printed on a line that it would supposed
-> to be a KERNEL_CONT message.
-Hmm ok, so this is to avoid output format issues.
-I remember that this is a bit tricky...
-That's why I was using some ordinary printks without \n linebreaks.
+Hi Laurent and Florian,
 
+Laurent Pinchart wrote:
+> Hi Florian,
+> 
+> On Thursday 09 January 2014 19:09:48 Florian Vaussard wrote:
+>> On 12/31/2013 09:51 AM, Laurent Pinchart wrote:
+>>> Hi Florian,
+>>>
+>>> Sorry for the late reply.
+>>
+>> Now it is my turn to be late.
+>>
+>>> On Monday 23 December 2013 22:47:45 Florian Vaussard wrote:
+>>>> On 12/17/2013 11:42 AM, Florian Vaussard wrote:
+>>>>> Hello Laurent,
+>>>>>
+>>>>> I was working on having a functional IOMMU/ISP for 3.14, and had an
+>>>>> issue with an image completely distorted. Comparing with another kernel,
+>>>>> I saw that PRV_HORZ_INFO and PRV_VERT_INFO differed. On the newer
+>>>>> kernel, sph, eph, svl, and slv were all off-by 2, causing my final image
+>>>>> to miss 4 pixels on each line, thus distorting the result.
+>>>>>
+>>>>> Your commit 3fdfedaaa7f243f3347084231c64f6c1be0ba131 '[media] omap3isp:
+>>>>> preview: Lower the crop margins' indeed changes PRV_HORZ_INFO and
+>>>>> PRV_VERT_INFO by removing the if() condition. Reverting it made my image
+>>>>> to be valid again.
+>>>>>
+>>>>> FYI, my pipeline is:
+>>>>>
+>>>>> MT9V032 (SGRBG10 752x480) -> CCDC -> PREVIEW (UYVY 752x480) -> RESIZER
+>>>>> -> out
+>>>>
+>>>> Just an XMAS ping on this :-) Do you have any idea how to solve this
+>>>> without reverting the patch?
+>>>
+>>> The patch indeed changed the preview engine margins, but the change is
+>>> supposed to be handled by applications. As a base for this discussion
+>>> could you please provide the media-ctl -p output before and after applying
+>>> the patch ? You can strip the unrelated media entities out of the output.
+>>
+>> Ok, so I understand the rationale behind this patch, but I am a bit
+>> concerned. If this patch requires a change in userspace, this is somehow
+>> breaking the userspace, isn't? For example in my case, I will have to
+>> change my initialization scripts in order to pass the correct resolution
+>> to the pipeline. Most people have probably hard-coded the resolution
+>> into their script / application.
+> 
+> But they shouldn't have. This has never been considered as an ABI. Userspace 
+> needs to computes and propagates resolutions through the pipeline dynamically, 
+> no hardcode them.
+> 
+> If your initialization script read the kernel version and aborted for any 
+> version other than v3.6, an upgrade to a newer kernel would break the system 
+> but you wouldn't call it a kernel regression :-)
+> 
+> Problems with pipeline configuration shouldn't result in distorted images 
+> though. The driver is supposed to refuse to start streaming when the pipeline 
+> is misconfigured by making sure that resolutions on connected source and sink 
+> pads are identical. A valid pipeline should not distort the image.
+> 
+> After a quick look at the code the problem we're dealing with seems to be 
+> different and shouldn't affect userspace scripts if solved properly. I haven't 
+> touched the preview engine crop configuration code for some time now, so I'll 
+> need to refresh my memory, but it seems that the removal of
+> 
+> -       if (format->code != V4L2_MBUS_FMT_Y8_1X8 &&
+> -           format->code != V4L2_MBUS_FMT_Y10_1X10) {
+> -               sph -= 2;
+> -               eph += 2;
+> -               slv -= 2;
+> -               elv += 2;
+> -       }
+> 
+> was wrong. The change to the margins and to preview_try_crop() seem correct, 
+> but the preview_config_input_size() function should probably have been kept 
+> unmodified. Could you please test reverting that part of the patch only ?
+> 
+> Sakari, if you have time, could you please have a look at the code and give me 
+> your opinion ?
 
+I reviewed the code mostly raw bayer -> yuv in mind; that appeared
+correct to me. Now, reading the code again, I agree with you --- the
+four above variables are how much additional cropping is performed on
+hardware, and if the CFA is enabled, the cropping is implicit rather
+than explicit.
+
+It might have been cleaner to add cropping when pixels or lines need to
+be dropped rather than the other way around, but just adding the above
+lines back is probably the best way forward right now.
+
+The patch itself (excluding the bug) seems fine. Cropping extra pixels
+when it wasn't needed for a reason was worth fixing IMO.
+
+-- 
+Kind regards,
+
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
