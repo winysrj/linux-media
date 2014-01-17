@@ -1,166 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2112 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753860AbaAaJ5G (ORCPT
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:47365 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066AbaAQRHC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:57:06 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 11/32] v4l2-ctrls: prepare for matrix support: add cols & rows fields.
-Date: Fri, 31 Jan 2014 10:56:09 +0100
-Message-Id: <1391162190-8620-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 17 Jan 2014 12:07:02 -0500
+Received: by mail-ee0-f45.google.com with SMTP id b15so2183953eek.4
+        for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 09:07:01 -0800 (PST)
+Message-ID: <52D9637E.20607@googlemail.com>
+Date: Fri, 17 Jan 2014 18:08:14 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFT PATCH] em28xx-audio: don't overwrite the usb alt setting
+ made by the video part
+References: <1389821502-11346-1-git-send-email-fschaefer.oss@googlemail.com> <52D6FF59.6010407@googlemail.com> <20140115211137.2dc33033@samsung.com>
+In-Reply-To: <20140115211137.2dc33033@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Am 16.01.2014 00:11, schrieb Mauro Carvalho Chehab:
+> Em Wed, 15 Jan 2014 22:36:25 +0100
+> Frank Schäfer<fschaefer.oss@googlemail.com>  escreveu:
+>
+>> Am 15.01.2014 22:31, schrieb Frank Schäfer:
+>>> em28xx-audio currently switches to usb alternate setting #7 in case of a mixed
+>>> interface. This may overwrite the setting made by the video part and break video
+>>> streaming.
+>>> As far as we know, there is no difference between the alt settings with regards
+>>> to the audio endpoint if the interface is a mixed interface, the audio part only
+>>> has to make sure that alt is > 0, which is fortunately only the case when video
+>>> streaming is off.
+>>>
+>>> Signed-off-by: Frank Schäfer<fschaefer.oss@googlemail.com>
+>>> ---
+>>>   drivers/media/usb/em28xx/em28xx-audio.c |   41 ++++++++++++-------------------
+>>>   1 Datei geändert, 16 Zeilen hinzugefügt(+), 25 Zeilen entfernt(-)
+>>>
+>>> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+>>> index 05e9bd1..2e7a3ad 100644
+>>> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+>>> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+>>> @@ -266,33 +266,30 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+>>>   	dprintk("opening device and trying to acquire exclusive lock\n");
+>>>   
+>>>   	runtime->hw = snd_em28xx_hw_capture;
+>>> -	if ((dev->alt == 0 || dev->is_audio_only) && dev->adev.users == 0) {
+>>> -		int nonblock = !!(substream->f_flags & O_NONBLOCK);
+>>>   
+>>> +	if (dev->adev.users == 0) {
+>>> +		int nonblock = !!(substream->f_flags & O_NONBLOCK);
+>>>   		if (nonblock) {
+>>>   			if (!mutex_trylock(&dev->lock))
+>>>   				return -EAGAIN;
+>>>   		} else
+>>>   			mutex_lock(&dev->lock);
+>>> -		if (dev->is_audio_only)
+>>> -			/* vendor audio is on a separate interface */
+>>> +
+>>> +		/* Select initial alternate setting (if necessary) */
+>>> +		if (dev->alt == 0) {
+>>>   			dev->alt = 1;
+>>> -		else
+>>> -			/* vendor audio is on the same interface as video */
+>>> -			dev->alt = 7;
+>>>   			/*
+>>> -			 * FIXME: The intention seems to be to select the alt
+>>> -			 * setting with the largest wMaxPacketSize for the video
+>>> -			 * endpoint.
+>>> -			 * At least dev->alt should be used instead, but we
+>>> -			 * should probably not touch it at all if it is
+>>> -			 * already >0, because wMaxPacketSize of the audio
+>>> -			 * endpoints seems to be the same for all.
+>>> +			 * NOTE: in case of a mixed (audio+video) interface, we
+>>> +			 * don't want to touch the alt setting made by the video
+>>> +			 * part. There is no difference between the alt settings
+>>> +			 * with regards to the audio endpoint.
+>>> +			 * TODO: in case of a pure audio interface, this could
+>>> +			 * be improved. The alt settings are different here.
+>>>   			 */
+>>> -
+>>> -		dprintk("changing alternate number on interface %d to %d\n",
+>>> -			dev->ifnum, dev->alt);
+>>> -		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+>>> +			dprintk("changing alternate number on interface %d to %d\n",
+>>> +				dev->ifnum, dev->alt);
+>>> +			usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+>>> +		}
+>>>   
+>>>   		/* Sets volume, mute, etc */
+>>>   		dev->mute = 0;
+>>> @@ -740,15 +737,9 @@ static int em28xx_audio_urb_init(struct em28xx *dev)
+>>>   	struct usb_endpoint_descriptor *e, *ep = NULL;
+>>>   	int                 i, ep_size, interval, num_urb, npackets;
+>>>   	int		    urb_size, bytes_per_transfer;
+>>> -	u8 alt;
+>>> -
+>>> -	if (dev->ifnum)
+>>> -		alt = 1;
+>>> -	else
+>>> -		alt = 7;
+>>> +	u8 alt = 1;
+>>>   
+>>>   	intf = usb_ifnum_to_if(dev->udev, dev->ifnum);
+>>> -
+>>>   	if (intf->num_altsetting <= alt) {
+>>>   		em28xx_errdev("alt %d doesn't exist on interface %d\n",
+>>>   			      dev->ifnum, alt);
+>> Please note that this is actually just a minor fix.
+>> What's really evil with the current alternate setting code is that the
+>> video part may switch the alt setting while audio streaming is in progress.
+>> I'm not sure how to fix this. Maybe we shouldn't start audio streaming
+>> before video streaming.
+> This patch will very likely break em28xx audio. The change to use alt=7
+> was added there because em28xx can only deliver a certain number of URBs
+> per a given period of time. In other words, if the video-only calculated
+> alternate is used, when audio starts, the em28xx DMA engine half-fills
+> some video URBs.
+In case of a mixed (audio+video) interface:
+If the audio part changes the alt setting and starts streaming before 
+the video part, it doesn't matter which alt setting is selected as long 
+as it is > 0.
+If the video part changes the alt setting and starts streaming before 
+the audio part, it doesn care about audio at all and overwrites alt=7 
+with it's own calculated value.
 
-Add cols and rows fields to the core control structures in preparation
-for matrix support.
+> As I said, the right fix here is to have a bandwidth estimator that will
+> take both traffics into account (when both are activated), and select
+> the right alternate.
+More than that: both parts (audio and video) need to consider that the 
+other one is already streaming at the current alt setting.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++++++---------
- include/media/v4l2-ctrls.h           |  6 ++++++
- 2 files changed, 23 insertions(+), 9 deletions(-)
+> Such patch should be tested with more than one device type, as I think
+> that em284x are somewhat different than em286x and em288x with this
+> regards.
+Indeed, that's why I marked it as RFT. :-)
+Anyway, I've misread the code. The current code of course already makes 
+sure that the audio part doesn't touch the alt setting for mixed 
+interfaces as long as it is > 0.
+The only thing it really changes is that alt=1 is selected for both 
+interface types but that's probably not worth beeing fixed. Most devices 
+seem to provide 7 alt settings.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 87f9a4e..7dcccbf 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1731,7 +1731,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			u32 id, const char *name, const char *unit,
- 			enum v4l2_ctrl_type type,
- 			s64 min, s64 max, u64 step, s64 def,
--			u32 elem_size,
-+			u32 cols, u32 rows, u32 elem_size,
- 			u32 flags, const char * const *qmenu,
- 			const s64 *qmenu_int, void *priv)
- {
-@@ -1744,6 +1744,11 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	if (hdl->error)
- 		return NULL;
- 
-+	if (cols == 0)
-+		cols = 1;
-+	if (rows == 0)
-+		rows = 1;
-+
- 	if (type == V4L2_CTRL_TYPE_INTEGER64)
- 		elem_size = sizeof(s64);
- 	else if (type == V4L2_CTRL_TYPE_STRING)
-@@ -1812,6 +1817,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->is_string = type == V4L2_CTRL_TYPE_STRING;
- 	ctrl->is_ptr = type >= V4L2_CTRL_COMPLEX_TYPES || ctrl->is_string;
- 	ctrl->is_int = !ctrl->is_ptr && type != V4L2_CTRL_TYPE_INTEGER64;
-+	ctrl->cols = cols;
-+	ctrl->rows = rows;
- 	ctrl->elem_size = elem_size;
- 	if (type == V4L2_CTRL_TYPE_MENU)
- 		ctrl->qmenu = qmenu;
-@@ -1877,8 +1884,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 
- 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
- 			type, min, max,
--			is_menu ? cfg->menu_skip_mask : step,
--			def, cfg->elem_size,
-+			is_menu ? cfg->menu_skip_mask : step, def,
-+			cfg->cols, cfg->rows, cfg->elem_size,
- 			flags, qmenu, qmenu_int, priv);
- 	if (ctrl)
- 		ctrl->is_private = cfg->is_private;
-@@ -1904,7 +1911,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
--			     min, max, step, def, 0,
-+			     min, max, step, def, 0, 0, 0,
- 			     flags, NULL, NULL, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std);
-@@ -1938,7 +1945,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
--			     0, max, mask, def, 0,
-+			     0, max, mask, def, 0, 0, 0,
- 			     flags, qmenu, qmenu_int, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
-@@ -1971,8 +1978,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
--			     0, max, mask, def,
--			     0, flags, qmenu, NULL, NULL);
-+			     0, max, mask, def, 0, 0, 0,
-+			     flags, qmenu, NULL, NULL);
- 
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu_items);
-@@ -1997,7 +2004,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
--			     0, max, 0, def, 0,
-+			     0, max, 0, def, 0, 0, 0,
- 			     flags, NULL, qmenu_int, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
-@@ -2343,7 +2350,8 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
- 	qc->min.val = ctrl->minimum;
- 	qc->max.val = ctrl->maximum;
- 	qc->def.val = ctrl->default_value;
--	qc->cols = qc->rows = 1;
-+	qc->cols = ctrl->cols;
-+	qc->rows = ctrl->rows;
- 	if (ctrl->type == V4L2_CTRL_TYPE_MENU
- 	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
- 		qc->step.val = 1;
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 5a39877..9eeb9d9 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -129,6 +129,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   * @minimum:	The control's minimum value.
-   * @maximum:	The control's maximum value.
-   * @default_value: The control's default value.
-+  * @rows:	The number of rows in the matrix.
-+  * @cols:	The number of columns in the matrix.
-   * @step:	The control's step value for non-menu controls.
-   * @elem_size:	The size in bytes of the control.
-   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
-@@ -178,6 +180,7 @@ struct v4l2_ctrl {
- 	const char *unit;
- 	enum v4l2_ctrl_type type;
- 	s64 minimum, maximum, default_value;
-+	u32 rows, cols;
- 	u32 elem_size;
- 	union {
- 		u64 step;
-@@ -265,6 +268,8 @@ struct v4l2_ctrl_handler {
-   * @max:	The control's maximum value.
-   * @step:	The control's step value for non-menu controls.
-   * @def: 	The control's default value.
-+  * @rows:	The number of rows in the matrix.
-+  * @cols:	The number of columns in the matrix.
-   * @elem_size:	The size in bytes of the control.
-   * @flags:	The control's flags.
-   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
-@@ -291,6 +296,7 @@ struct v4l2_ctrl_config {
- 	s64 max;
- 	u64 step;
- 	s64 def;
-+	u32 rows, cols;
- 	u32 elem_size;
- 	u32 flags;
- 	u64 menu_skip_mask;
--- 
-1.8.5.2
+So please disregard this patch.
+
+> Regards,
+> Mauro
+
 
