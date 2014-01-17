@@ -1,63 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33241 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752225AbaANBU5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 20:20:57 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v7 00/12] SDR API with documentation
-Date: Tue, 14 Jan 2014 03:20:18 +0200
-Message-Id: <1389662430-32699-1-git-send-email-crope@iki.fi>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:46204 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752144AbaAQQiK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jan 2014 11:38:10 -0500
+From: Masanari Iida <standby24x7@gmail.com>
+To: m.chehab@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, hverkuil@xs4all.nl
+Cc: Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH] [media] hdpvr: Fix memory leak in debug
+Date: Sat, 18 Jan 2014 01:38:00 +0900
+Message-Id: <1389976680-21269-1-git-send-email-standby24x7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes	done according to Hans comments.
+cppcheck reported memory leak in device_authorizatio()
+within hdpvr-core.c.
+When the debug option is specified and the code jump to
+"unlock:" label, print_buf was not freed.
+Confirm the module succesfully compiled without error.
 
-I also added patch which marks that API as a experimental as it it indeed experimental.
-I think that this whole patch serie is ready for staging!
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-core.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-regards
-Antti
-
-Antti Palosaari (11):
-  v4l: add device type for Software Defined Radio
-  v4l: add new tuner types for SDR
-  v4l: 1 Hz resolution flag for tuners
-  v4l: add stream format for SDR receiver
-  v4l: define own IOCTL ops for SDR FMT
-  v4l: enable some IOCTLs for SDR receiver
-  v4l: add device capability flag for SDR receiver
-  DocBook: document 1 Hz flag
-  DocBook: Software Defined Radio Interface
-  DocBook: mark SDR API as Experimental
-  v4l2-framework.txt: add SDR device type
-
-Hans Verkuil (1):
-  v4l: do not allow modulator ioctls for non-radio devices
-
- Documentation/DocBook/media/v4l/compat.xml         |  13 +++
- Documentation/DocBook/media/v4l/dev-sdr.xml        | 110 +++++++++++++++++++++
- Documentation/DocBook/media/v4l/io.xml             |   6 ++
- Documentation/DocBook/media/v4l/pixfmt.xml         |   8 ++
- Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
- .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |   8 +-
- Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   7 ++
- .../DocBook/media/v4l/vidioc-g-frequency.xml       |   5 +-
- .../DocBook/media/v4l/vidioc-g-modulator.xml       |   6 +-
- Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |  15 ++-
- .../DocBook/media/v4l/vidioc-querycap.xml          |   6 ++
- .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   8 +-
- Documentation/video4linux/v4l2-framework.txt       |   1 +
- drivers/media/v4l2-core/v4l2-dev.c                 |  30 +++++-
- drivers/media/v4l2-core/v4l2-ioctl.c               |  75 +++++++++++---
- include/media/v4l2-dev.h                           |   3 +-
- include/media/v4l2-ioctl.h                         |   8 ++
- include/trace/events/v4l2.h                        |   1 +
- include/uapi/linux/videodev2.h                     |  16 +++
- 19 files changed, 299 insertions(+), 28 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
-
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index 2f0c89c..c563896 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -198,7 +198,6 @@ static int device_authorization(struct hdpvr_device *dev)
+ 	hex_dump_to_buffer(response, 8, 16, 1, print_buf, 5*buf_size+1, 0);
+ 	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev, " response: %s\n",
+ 		 print_buf);
+-	kfree(print_buf);
+ #endif
+ 
+ 	msleep(100);
+@@ -214,6 +213,9 @@ static int device_authorization(struct hdpvr_device *dev)
+ 	retval = ret != 8;
+ unlock:
+ 	mutex_unlock(&dev->usbc_mutex);
++#ifdef HDPVR_DEBUG
++	kfree(print_buf);
++#endif
+ 	return retval;
+ }
+ 
 -- 
-1.8.4.2
+1.8.5.2.309.ga25014b
 
