@@ -1,266 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44200 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754596AbaADR0O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 12:26:14 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v4 19/22] [media] em28xx: cleanup I2C debug messages
-Date: Sat,  4 Jan 2014 08:55:48 -0200
-Message-Id: <1388832951-11195-20-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from multi.imgtec.com ([194.200.65.239]:48381 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752684AbaAQOAN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jan 2014 09:00:13 -0500
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+CC: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH v2 08/15] media: rc: img-ir: add raw driver
+Date: Fri, 17 Jan 2014 13:58:53 +0000
+Message-ID: <1389967140-20704-9-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The I2C output messages is too polluted. Clean it a little
-bit, by:
-	- use the proper core support for memory dumps;
-	- hide most stuff under the i2c_debug umbrella;
-	- add the missing KERN_CONT where needed;
-	- use 2 levels or verbosity. Only the second one
-	  will show the I2C transfer data.
+Add raw IR remote control input driver for the ImgTec Infrared decoder
+block's raw edge interrupts. Generic software protocol decoders are used
+to allow multiple protocols to be supported at a time, including those
+not supported by the hardware decoder.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c | 94 +++++++++++++++++++----------------
- 1 file changed, 50 insertions(+), 44 deletions(-)
+v2:
+- Echo the last sample after 150ms if no edges have been detected. This
+  allows the soft decoder state machines to recognise the final space
+  when no repeat code is received.
+- Use spin_lock_irq() instead of spin_lock_irqsave() in various bits of
+  code that aren't accessible from hard interrupt context.
+- Avoid removal race by checking for RC device in ISR.
+---
+ drivers/media/rc/img-ir/img-ir-raw.c | 151 +++++++++++++++++++++++++++++++++++
+ drivers/media/rc/img-ir/img-ir-raw.h |  60 ++++++++++++++
+ 2 files changed, 211 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/img-ir-raw.c
+ create mode 100644 drivers/media/rc/img-ir/img-ir-raw.h
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index c3ba8ace5c94..e030e0b7d645 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -41,7 +41,7 @@ MODULE_PARM_DESC(i2c_scan, "scan i2c bus at insmod time");
- 
- static unsigned int i2c_debug;
- module_param(i2c_debug, int, 0644);
--MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
-+MODULE_PARM_DESC(i2c_debug, "i2c debug message level (1: normal debug, 2: show I2C transfers)");
- 
- /*
-  * em2800_i2c_send_bytes()
-@@ -80,7 +80,9 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x80 + len - 1)
- 			return len;
- 		if (ret == 0x94 + len - 1) {
--			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
-+			if (i2c_debug)
-+				em28xx_warn("R05 returned 0x%02x: I2C timeout",
-+					    ret);
- 			return -EREMOTEIO;
- 		}
- 		if (ret < 0) {
-@@ -90,7 +92,8 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		}
- 		msleep(5);
- 	}
--	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
-+	if (i2c_debug)
-+		em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
- 	return -EREMOTEIO;
- }
- 
-@@ -124,7 +127,9 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x84 + len - 1)
- 			break;
- 		if (ret == 0x94 + len - 1) {
--			em28xx_warn("R05 returned 0x%02x: I2C timeout", ret);
-+			if (i2c_debug)
-+				em28xx_warn("R05 returned 0x%02x: I2C timeout",
-+					    ret);
- 			return -EREMOTEIO;
- 		}
- 		if (ret < 0) {
-@@ -134,8 +139,11 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		}
- 		msleep(5);
- 	}
--	if (ret != 0x84 + len - 1)
--		em28xx_warn("read from i2c device at 0x%x timed out\n", addr);
-+	if (ret != 0x84 + len - 1) {
-+		if (i2c_debug)
-+			em28xx_warn("read from i2c device at 0x%x timed out\n",
-+				    addr);
+diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
+new file mode 100644
+index 0000000..cfb01d9
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-raw.c
+@@ -0,0 +1,151 @@
++/*
++ * ImgTec IR Raw Decoder found in PowerDown Controller.
++ *
++ * Copyright 2010-2014 Imagination Technologies Ltd.
++ *
++ * This ties into the input subsystem using the RC-core in raw mode. Raw IR
++ * signal edges are reported and decoded by generic software decoders.
++ */
++
++#include <linux/spinlock.h>
++#include <media/rc-core.h>
++#include "img-ir.h"
++
++#define ECHO_TIMEOUT_MS 150	/* ms between echos */
++
++/* must be called with priv->lock held */
++static void img_ir_refresh_raw(struct img_ir_priv *priv, u32 irq_status)
++{
++	struct img_ir_priv_raw *raw = &priv->raw;
++	struct rc_dev *rc_dev = priv->raw.rdev;
++	int multiple;
++	u32 ir_status;
++
++	/* find whether both rise and fall was detected */
++	multiple = ((irq_status & IMG_IR_IRQ_EDGE) == IMG_IR_IRQ_EDGE);
++	/*
++	 * If so, we need to see if the level has actually changed.
++	 * If it's just noise that we didn't have time to process,
++	 * there's no point reporting it.
++	 */
++	ir_status = img_ir_read(priv, IMG_IR_STATUS) & IMG_IR_IRRXD;
++	if (multiple && ir_status == raw->last_status)
++		return;
++	raw->last_status = ir_status;
++
++	/* report the edge to the IR raw decoders */
++	if (ir_status) /* low */
++		ir_raw_event_store_edge(rc_dev, IR_SPACE);
++	else /* high */
++		ir_raw_event_store_edge(rc_dev, IR_PULSE);
++	ir_raw_event_handle(rc_dev);
++}
++
++/* called with priv->lock held */
++void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status)
++{
++	struct img_ir_priv_raw *raw = &priv->raw;
++
++	/* check not removing */
++	if (!raw->rdev)
++		return;
++
++	img_ir_refresh_raw(priv, irq_status);
++
++	/* start / push back the echo timer */
++	mod_timer(&raw->timer, jiffies + msecs_to_jiffies(ECHO_TIMEOUT_MS));
++}
++
++/*
++ * Echo timer callback function.
++ * The raw decoders expect to get a final sample even if there are no edges, in
++ * order to be assured of the final space. If there are no edges for a certain
++ * time we use this timer to emit a final sample to satisfy them.
++ */
++static void img_ir_echo_timer(unsigned long arg)
++{
++	struct img_ir_priv *priv = (struct img_ir_priv *)arg;
++
++	spin_lock_irq(&priv->lock);
++
++	/* check not removing */
++	if (priv->raw.rdev)
++		/*
++		 * It's safe to pass irq_status=0 since it's only used to check
++		 * for double edges.
++		 */
++		img_ir_refresh_raw(priv, 0);
++
++	spin_unlock_irq(&priv->lock);
++}
++
++void img_ir_setup_raw(struct img_ir_priv *priv)
++{
++	u32 irq_en;
++
++	if (!priv->raw.rdev)
++		return;
++
++	/* clear and enable edge interrupts */
++	spin_lock_irq(&priv->lock);
++	irq_en = img_ir_read(priv, IMG_IR_IRQ_ENABLE);
++	irq_en |= IMG_IR_IRQ_EDGE;
++	img_ir_write(priv, IMG_IR_IRQ_CLEAR, IMG_IR_IRQ_EDGE);
++	img_ir_write(priv, IMG_IR_IRQ_ENABLE, irq_en);
++	spin_unlock_irq(&priv->lock);
++}
++
++int img_ir_probe_raw(struct img_ir_priv *priv)
++{
++	struct img_ir_priv_raw *raw = &priv->raw;
++	struct rc_dev *rdev;
++	int error;
++
++	/* Set up the echo timer */
++	setup_timer(&raw->timer, img_ir_echo_timer, (unsigned long)priv);
++
++	/* Allocate raw decoder */
++	raw->rdev = rdev = rc_allocate_device();
++	if (!rdev) {
++		dev_err(priv->dev, "cannot allocate raw input device\n");
++		return -ENOMEM;
 +	}
- 
- 	/* get the received message */
- 	ret = dev->em28xx_read_reg_req_len(dev, 0x00, 4-len, buf2, len);
-@@ -218,7 +226,8 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		 */
- 	}
- 
--	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
-+	if (i2c_debug)
-+		em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
- 	return -EREMOTEIO;
- }
- 
-@@ -263,7 +272,9 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 		return ret;
- 	}
- 	if (ret == 0x10) {
--		em28xx_warn("I2C transfer timeout on read from addr 0x%02x", addr);
-+		if (i2c_debug)
-+			em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
-+				    addr);
- 		return -EREMOTEIO;
- 	}
- 
-@@ -324,7 +335,9 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	if (!ret)
- 		return len;
- 	else if (ret > 0) {
--		em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
-+		if (i2c_debug)
-+			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
-+				    ret);
- 		return -EREMOTEIO;
- 	}
- 
-@@ -375,7 +388,9 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	if (!ret)
- 		return len;
- 	else if (ret > 0) {
--		em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout", ret);
-+		if (i2c_debug)
-+			em28xx_warn("Bus B R08 returned 0x%02x: I2C timeout",
-+				    ret);
- 		return -EREMOTEIO;
- 	}
- 
-@@ -418,10 +433,6 @@ static inline int i2c_check_for_device(struct em28xx_i2c_bus *i2c_bus, u16 addr)
- 		rc = em2800_i2c_check_for_device(dev, addr);
- 	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)
- 		rc = em25xx_bus_B_check_for_device(dev, addr);
--	if (rc < 0) {
--		if (i2c_debug)
--			printk(" no device\n");
--	}
- 	return rc;
- }
- 
-@@ -430,7 +441,7 @@ static inline int i2c_recv_bytes(struct em28xx_i2c_bus *i2c_bus,
- {
- 	struct em28xx *dev = i2c_bus->dev;
- 	u16 addr = msg.addr << 1;
--	int byte, rc = -EOPNOTSUPP;
-+	int rc = -EOPNOTSUPP;
- 
- 	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX)
- 		rc = em28xx_i2c_recv_bytes(dev, addr, msg.buf, msg.len);
-@@ -438,10 +449,6 @@ static inline int i2c_recv_bytes(struct em28xx_i2c_bus *i2c_bus,
- 		rc = em2800_i2c_recv_bytes(dev, addr, msg.buf, msg.len);
- 	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)
- 		rc = em25xx_bus_B_recv_bytes(dev, addr, msg.buf, msg.len);
--	if (i2c_debug) {
--		for (byte = 0; byte < msg.len; byte++)
--			printk(" %02x", msg.buf[byte]);
--	}
- 	return rc;
- }
- 
-@@ -450,12 +457,8 @@ static inline int i2c_send_bytes(struct em28xx_i2c_bus *i2c_bus,
- {
- 	struct em28xx *dev = i2c_bus->dev;
- 	u16 addr = msg.addr << 1;
--	int byte, rc = -EOPNOTSUPP;
-+	int rc = -EOPNOTSUPP;
- 
--	if (i2c_debug) {
--		for (byte = 0; byte < msg.len; byte++)
--			printk(" %02x", msg.buf[byte]);
--	}
- 	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX)
- 		rc = em28xx_i2c_send_bytes(dev, addr, msg.buf, msg.len, stop);
- 	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800)
-@@ -500,7 +503,7 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 	}
- 	for (i = 0; i < num; i++) {
- 		addr = msgs[i].addr << 1;
--		if (i2c_debug)
-+		if (i2c_debug > 1)
- 			printk(KERN_DEBUG "%s at %s: %s %s addr=%02x len=%d:",
- 			       dev->name, __func__ ,
- 			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
-@@ -509,24 +512,33 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 		if (!msgs[i].len) { /* no len: check only for device presence */
- 			rc = i2c_check_for_device(i2c_bus, addr);
- 			if (rc < 0) {
-+				if (i2c_debug > 1)
-+					printk(KERN_CONT " no device\n");
- 				rt_mutex_unlock(&dev->i2c_bus_lock);
- 				return rc;
- 			}
- 		} else if (msgs[i].flags & I2C_M_RD) {
- 			/* read bytes */
- 			rc = i2c_recv_bytes(i2c_bus, msgs[i]);
++	rdev->priv = priv;
++	rdev->map_name = RC_MAP_EMPTY;
++	rdev->input_name = "IMG Infrared Decoder Raw";
++	rdev->driver_type = RC_DRIVER_IR_RAW;
 +
-+			if (i2c_debug > 1 && rc >= 0)
-+				printk(KERN_CONT " %*ph",
-+				       msgs[i].len, msgs[i].buf);
- 		} else {
-+			if (i2c_debug > 1)
-+				printk(KERN_CONT " %*ph",
-+				       msgs[i].len, msgs[i].buf);
++	/* Register raw decoder */
++	error = rc_register_device(rdev);
++	if (error) {
++		dev_err(priv->dev, "failed to register raw IR input device\n");
++		rc_free_device(rdev);
++		raw->rdev = NULL;
++		return error;
++	}
 +
- 			/* write bytes */
- 			rc = i2c_send_bytes(i2c_bus, msgs[i], i == num - 1);
- 		}
- 		if (rc < 0) {
--			if (i2c_debug)
--				printk(" ERROR: %i\n", rc);
-+			if (i2c_debug > 1)
-+				printk(KERN_CONT " ERROR: %i\n", rc);
- 			rt_mutex_unlock(&dev->i2c_bus_lock);
- 			return rc;
--		}
--		if (i2c_debug)
--			printk("\n");
-+		} else if (i2c_debug > 1)
-+			printk(KERN_CONT "\n");
- 	}
- 
- 	rt_mutex_unlock(&dev->i2c_bus_lock);
-@@ -609,7 +621,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
- 	 * calculation and returned device dataset. Simplifies the code a lot,
- 	 * but we might have to deal with multiple sizes in the future !
- 	 */
--	int i, err;
-+	int err;
- 	struct em28xx_eeprom *dev_config;
- 	u8 buf, *data;
- 
-@@ -640,20 +652,14 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
- 		goto error;
- 	}
- 
--	/* Display eeprom content */
--	for (i = 0; i < len; i++) {
--		if (0 == (i % 16)) {
--			if (dev->eeprom_addrwidth_16bit)
--				em28xx_info("i2c eeprom %04x:", i);
--			else
--				em28xx_info("i2c eeprom %02x:", i);
--		}
--		printk(" %02x", data[i]);
--		if (15 == (i % 16))
--			printk("\n");
-+	if (i2c_debug) {
-+		/* Display eeprom content */
-+		print_hex_dump(KERN_INFO, "eeprom ", DUMP_PREFIX_OFFSET,
-+			       16, 1, data, len, true);
++	return 0;
++}
 +
-+		if (dev->eeprom_addrwidth_16bit)
-+			em28xx_info("eeprom %06x: ... (skipped)\n", 256);
- 	}
--	if (dev->eeprom_addrwidth_16bit)
--		em28xx_info("i2c eeprom %04x: ... (skipped)\n", i);
- 
- 	if (dev->eeprom_addrwidth_16bit &&
- 	    data[0] == 0x26 && data[3] == 0x00) {
++void img_ir_remove_raw(struct img_ir_priv *priv)
++{
++	struct img_ir_priv_raw *raw = &priv->raw;
++	struct rc_dev *rdev = raw->rdev;
++	u32 irq_en;
++
++	if (!rdev)
++		return;
++
++	/* switch off and disable raw (edge) interrupts */
++	spin_lock_irq(&priv->lock);
++	raw->rdev = NULL;
++	irq_en = img_ir_read(priv, IMG_IR_IRQ_ENABLE);
++	irq_en &= ~IMG_IR_IRQ_EDGE;
++	img_ir_write(priv, IMG_IR_IRQ_ENABLE, irq_en);
++	img_ir_write(priv, IMG_IR_IRQ_CLEAR, IMG_IR_IRQ_EDGE);
++	spin_unlock_irq(&priv->lock);
++
++	rc_unregister_device(rdev);
++
++	del_timer_sync(&raw->timer);
++}
+diff --git a/drivers/media/rc/img-ir/img-ir-raw.h b/drivers/media/rc/img-ir/img-ir-raw.h
+new file mode 100644
+index 0000000..9802ffd
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-raw.h
+@@ -0,0 +1,60 @@
++/*
++ * ImgTec IR Raw Decoder found in PowerDown Controller.
++ *
++ * Copyright 2010-2014 Imagination Technologies Ltd.
++ */
++
++#ifndef _IMG_IR_RAW_H_
++#define _IMG_IR_RAW_H_
++
++struct img_ir_priv;
++
++#ifdef CONFIG_IR_IMG_RAW
++
++/**
++ * struct img_ir_priv_raw - Private driver data for raw decoder.
++ * @rdev:		Raw remote control device
++ * @timer:		Timer to echo samples to keep soft decoders happy.
++ * @last_status:	Last raw status bits.
++ */
++struct img_ir_priv_raw {
++	struct rc_dev		*rdev;
++	struct timer_list	timer;
++	u32			last_status;
++};
++
++static inline bool img_ir_raw_enabled(struct img_ir_priv_raw *raw)
++{
++	return raw->rdev;
++};
++
++void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status);
++void img_ir_setup_raw(struct img_ir_priv *priv);
++int img_ir_probe_raw(struct img_ir_priv *priv);
++void img_ir_remove_raw(struct img_ir_priv *priv);
++
++#else
++
++struct img_ir_priv_raw {
++};
++static inline bool img_ir_raw_enabled(struct img_ir_priv_raw *raw)
++{
++	return false;
++};
++static inline void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status)
++{
++}
++static inline void img_ir_setup_raw(struct img_ir_priv *priv)
++{
++}
++static inline int img_ir_probe_raw(struct img_ir_priv *priv)
++{
++	return -ENODEV;
++}
++static inline void img_ir_remove_raw(struct img_ir_priv *priv)
++{
++}
++
++#endif /* CONFIG_IR_IMG_RAW */
++
++#endif /* _IMG_IR_RAW_H_ */
 -- 
-1.8.3.1
+1.8.3.2
+
 
