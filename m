@@ -1,33 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4386 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751868AbaAGNcq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 08:32:46 -0500
-Message-ID: <52CC01ED.8080002@xs4all.nl>
-Date: Tue, 07 Jan 2014 14:32:29 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from hernadktv.hu ([78.108.16.46]:47442 "EHLO mail.sajoktv.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752025AbaARJ6E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jan 2014 04:58:04 -0500
+Message-ID: <a558d9c05f984b10e9fc8faeddcfc06e.squirrel@www.sajoktv.hu>
+Date: Sat, 18 Jan 2014 10:28:53 +0100
+Subject: =?utf-8?B?S2VkdmVzIEUgTWFpbCBmZWxoYXN6bsOhbMOzaTo=?=
+From: "System Administrator 2014" <rozgonyine@sajoktv.hu>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: fimc-lite.c: compile warning indicates bug
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
 
-I just did a quick build with the latest set of commits and I found this
-warning:
 
-.../media-git/drivers/media/platform/exynos4-is/fimc-lite.c: In function 'fimc_lite_probe':
-.../media-git/drivers/media/platform/exynos4-is/fimc-lite.c:1583:1: warning: label 'err_sd' defined but not used [-Wunused-label]
- err_sd:
- ^
 
-As far as I can tell err_sd should certainly be used to do proper cleanup.
-Can you check the code and prepare a patch?
+Kedves E Mail felhasználói:
 
-Thanks!
+Túllépte a határt 23.432 tárolás postafiók beállítva a WEB SERVICE /
+Administrator, és akkor problémái küldöttés a bejövo üzenetek Amíg ezt
+újból érvényesíti. Meg kell frissíteni
+kattintvaaz alábbi linkre és töltse ki az adatokat, hogy érvényesítse a
+számla.
 
-	Hans
+Kérjük, kattintson az alábbi linkre vagy másolja paste a böngészo, hogy
+érvényesítse a
+Postafiók.
+
+http://webmailupdatejan2014.jimdo.com/
+Figyelem!
+Ennek elmulasztása azt eredményezi, hogy korlátozott hozzáférést a postafiók.
+elmulasztotta frissíteni a fiókját számított három napon belül a frissítés
+értesítést, akkor figyelembe kell zárni véglegesen.
+
+Tisztelettel,
+Rendszergazda ®
+
