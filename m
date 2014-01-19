@@ -1,114 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33369 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752275AbaAYRLC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:02 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 09/52] rtl28xxu: constify demod config structs
-Date: Sat, 25 Jan 2014 19:10:03 +0200
-Message-Id: <1390669846-8131-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:64436 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055AbaASVrk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jan 2014 16:47:40 -0500
+Received: by mail-ee0-f50.google.com with SMTP id d17so3071791eek.23
+        for <linux-media@vger.kernel.org>; Sun, 19 Jan 2014 13:47:39 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 0/4] em28xx: resolve the remaining issues with the i2c code
+Date: Sun, 19 Jan 2014 22:48:33 +0100
+Message-Id: <1390168117-2925-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Optimize a little bit from data to text.
+This small patch series resolves the remaing issues with the em82xx i2c code
+which have been introduced with the recent changes.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index ec6ab0f..c0e651a 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -514,7 +514,7 @@ err:
- 	return ret;
- }
- 
--static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
-+static const struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.ts_mode = 0,
-@@ -525,7 +525,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
- 
- };
- 
--static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
-+static const struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.ts_mode = 0,
-@@ -535,7 +535,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
- 	.agc_targ_val = 0x2d,
- };
- 
--static struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
-+static const struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.ts_mode = 0,
-@@ -549,7 +549,7 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
- {
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	struct rtl2830_config *rtl2830_config;
-+	const struct rtl2830_config *rtl2830_config;
- 	int ret;
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-@@ -584,33 +584,33 @@ err:
- 	return ret;
- }
- 
--static struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.if_dvbt = 0,
- 	.tuner = TUNER_RTL2832_FC0012
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.if_dvbt = 0,
- 	.tuner = TUNER_RTL2832_FC0013
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_TUA9001,
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_E4000,
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
- 	.i2c_addr = 0x10,
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_R820T,
-@@ -734,7 +734,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	int ret;
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	struct rtl2832_config *rtl2832_config;
-+	const struct rtl2832_config *rtl2832_config;
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
+Frank Schäfer (4):
+  em28xx-i2c: fix the i2c error description strings for -ENXIO
+  em28xx-i2c: fix the error code for unknown errors
+  em28xx-i2c: do not map -ENXIO errors to -ENODEV for empty i2c
+    transfers
+  em28xx-i2c: remove duplicate error printing code from
+    em28xx_i2c_xfer()
+
+ drivers/media/usb/em28xx/em28xx-i2c.c |   53 ++++++++++++++++++++-------------
+ 1 Datei geändert, 32 Zeilen hinzugefügt(+), 21 Zeilen entfernt(-)
+
 -- 
-1.8.5.3
+1.7.10.4
 
