@@ -1,62 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:36712 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751556AbaAIIRQ (ORCPT
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:50052 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752185AbaASVrr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jan 2014 03:17:16 -0500
-Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 95D2620B62
-	for <linux-media@vger.kernel.org>; Thu,  9 Jan 2014 03:17:15 -0500 (EST)
-Message-ID: <52CE5B09.6070203@ladisch.de>
-Date: Thu, 09 Jan 2014 09:17:13 +0100
-From: Clemens Ladisch <clemens@ladisch.de>
+	Sun, 19 Jan 2014 16:47:47 -0500
+Received: by mail-ee0-f45.google.com with SMTP id b15so3019431eek.4
+        for <linux-media@vger.kernel.org>; Sun, 19 Jan 2014 13:47:46 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 4/4] em28xx-i2c: remove duplicate error printing code from em28xx_i2c_xfer()
+Date: Sun, 19 Jan 2014 22:48:37 +0100
+Message-Id: <1390168117-2925-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1390168117-2925-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1390168117-2925-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>
-CC: Takashi Iwai <tiwai@suse.de>, alsa-devel@alsa-project.org,
-	linux-usb@vger.kernel.org, LMML <linux-media@vger.kernel.org>
-Subject: Re: [alsa-devel] Fw: Isochronous transfer error on USB3
-References: <20140108164800.70ea4169@samsung.com>
-In-Reply-To: <20140108164800.70ea4169@samsung.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> I'm getting an weird behavior with em28xx, especially when the device
-> is connected into an audio port.
->
-> 	http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/em28xx-v4l2-v6:/drivers/media/usb/em28xx/em28xx-audio.c
->
-> What happens is that, when I require xawtv3 to use any latency lower
-> than 65 ms, the audio doesn't work, as it gets lots of underruns per
-> second.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c |   11 +++--------
+ 1 Datei geändert, 3 Zeilen hinzugefügt(+), 8 Zeilen entfernt(-)
 
-The driver uses five URBs with 64 frames each, so of course it
-will not be able to properly handle periods smaller than that.
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index a26d7d4..1a514ca 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -535,14 +535,9 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			 * This code is only called during device probe.
+ 			 */
+ 			rc = i2c_check_for_device(i2c_bus, addr);
+-			if (rc < 0) {
+-				if (rc == -ENXIO) {
+-					if (i2c_debug > 1)
+-						printk(KERN_CONT " no device\n");
+-				} else {
+-					if (i2c_debug > 1)
+-						printk(KERN_CONT " ERROR: %i\n", rc);
+-				}
++			if (rc == -ENXIO) {
++				if (i2c_debug > 1)
++					printk(KERN_CONT " no device\n");
+ 				rt_mutex_unlock(&dev->i2c_bus_lock);
+ 				return rc;
+ 			}
+-- 
+1.7.10.4
 
-> FYI, em28xx works at a 48000 KHz sampling rate, and its PM capture Hw
-> is described as:
->
-> static struct snd_pcm_hardware snd_em28xx_hw_capture = {
-> 	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
-> 		SNDRV_PCM_INFO_MMAP           |
-> 		SNDRV_PCM_INFO_INTERLEAVED    |
-> 		SNDRV_PCM_INFO_BATCH	      |
-> 		SNDRV_PCM_INFO_MMAP_VALID,
->
-> 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
->
-> 	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_KNOT,
-
-This should be just SNDRV_PCM_RATE_48000.
-
-> 	.period_bytes_min = 64,		/* 12544/2, */
-
-This is wrong (if the driver doesn't install other constraints on the
-period length, like the USB audio class driver does).
-
-
-Regards,
-Clemens
