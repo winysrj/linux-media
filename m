@@ -1,164 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43701 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753680AbaADN7T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:19 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v4 07/22] [media] em28xx: improve extension information messages
-Date: Sat,  4 Jan 2014 08:55:36 -0200
-Message-Id: <1388832951-11195-8-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.171]:50047 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752037AbaASVFW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jan 2014 16:05:22 -0500
+Message-ID: <52DC3E0B.6010202@martin-kittel.de>
+Date: Sun, 19 Jan 2014 22:05:15 +0100
+From: Martin Kittel <linux@martin-kittel.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sean Young <sean@mess.org>
+CC: linux-media@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>
+Subject: Re: Patch mceusb: fix invalid urb interval
+References: <loom.20131110T113621-661@post.gmane.org> <20131211131751.GA434@pequod.mess.org> <l8ai94$cbr$1@ger.gmane.org> <20140115134917.1450f87c@samsung.com> <20140115165245.GA23620@pequod.mess.org> <20140115155923.0b8978da.m.chehab@samsung.com>
+In-Reply-To: <20140115155923.0b8978da.m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a message with consistent prints before and after each
-extension initialization, and provide a better text for module
-load.
+Hi Mauro, hi Sean,
 
-While here, add a missing sanity check for extension finish
-code at em28xx-v4l extension.
+On 01/15/2014 06:59 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 15 Jan 2014 16:52:45 +0000
+> Sean Young <sean@mess.org> escreveu:
+> 
+>> On Wed, Jan 15, 2014 at 01:49:17PM -0200, Mauro Carvalho Chehab wrote:
+>>> Hi Martin,
+>>>
+>>> Em Wed, 11 Dec 2013 21:34:55 +0100
+>>> Martin Kittel <linux@martin-kittel.de> escreveu:
+>>>
+>>>> Hi Mauro, hi Sean,
+>>>>
+>>>> thanks for considering the patch. I have added an updated version at the
+>>>> end of this mail.
+>>>>
+>>>> Regarding the info Sean was requesting, it is indeed an xhci hub. I also
+>>>> added the details of the remote itself.
+>>>>
+>>>> Please let me know if there is anything missing.
+>>>>
+>>>> Best wishes,
+>>>>
+>>>> Martin.
+>>>>
+>>>>
+>>>> lsusb -vvv
+>>>> ------
+>>>> Bus 001 Device 002: ID 2304:0225 Pinnacle Systems, Inc. Remote Kit
+>>>> Infrared Transceiver
+>>>> Device Descriptor:
+>>>>   bLength		 18
+>>>>   bDescriptorType	  1
+>>>>   bcdUSB	       2.00
+>>>>   bDeviceClass		  0 (Defined at Interface level)
+>>>>   bDeviceSubClass	  0
+>>>>   bDeviceProtocol	  0
+>>>>   bMaxPacketSize0	  8
+>>>>   idVendor	     0x2304 Pinnacle Systems, Inc.
+>>>>   idProduct	     0x0225 Remote Kit Infrared Transceiver
+>>>>   bcdDevice	       0.01
+>>>>   iManufacturer		  1 Pinnacle Systems
+>>>>   iProduct		  2 PCTV Remote USB
+>>>>   iSerial		  5 7FFFFFFFFFFFFFFF
+>>>>   bNumConfigurations	  1
+>>>>   Configuration Descriptor:
+>>>>     bLength		    9
+>>>>     bDescriptorType	    2
+>>>>     wTotalLength	   32
+>>>>     bNumInterfaces	    1
+>>>>     bConfigurationValue	    1
+>>>>     iConfiguration	    3 StandardConfiguration
+>>>>     bmAttributes	 0xa0
+>>>>       (Bus Powered)
+>>>>       Remote Wakeup
+>>>>     MaxPower		  100mA
+>>>>     Interface Descriptor:
+>>>>       bLength		      9
+>>>>       bDescriptorType	      4
+>>>>       bInterfaceNumber	      0
+>>>>       bAlternateSetting	      0
+>>>>       bNumEndpoints	      2
+>>>>       bInterfaceClass	    255 Vendor Specific Class
+>>>>       bInterfaceSubClass      0
+>>>>       bInterfaceProtocol      0
+>>>>       iInterface	      4 StandardInterface
+>>>>       Endpoint Descriptor:
+>>>> 	bLength			7
+>>>> 	bDescriptorType		5
+>>>> 	bEndpointAddress     0x81  EP 1 IN
+>>>> 	bmAttributes		2
+>>>> 	  Transfer Type		   Bulk
+>>>> 	  Synch Type		   None
+>>>> 	  Usage Type		   Data
+>>>> 	wMaxPacketSize	   0x0040  1x 64 bytes
+>>>> 	bInterval	       10
+>>>
+>>> Hmm... interval is equal to 10, e. g. 125us * 2^(10 - 1) = 64 ms.
+>>>
+>>> I'm wandering why mceusb is just forcing the interval to 1 (125ms). That
+>>> sounds wrong, except, of course, if the endpoint descriptor is wrong.
+>>
+>> Note that the endpoint descriptor describes it as a bulk endpoint, but
+>> it is used as a interrupt endpoint by the driver. For bulk endpoints,
+>> the interval should not be used (?).
+>>
+>> Maybe the correct solution would be to use the endpoints as bulk endpoints
+>> if that is what the endpoint says? mceusb devices come in interrupt and 
+>> bulk flavours.
+> 
+> Yes, this could be a possible fix.
+> 
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+I have tried this and the driver is working fine without my initial fix.
+I haven't been running with the bulk setting for long, but so far I
+haven't seen the spurious 'xhci_queue_intr_tx: <number> callbacks
+suppressed' messages like I have before.
+
+The current version of the patch against 3.13-rc8 is below.
+
+Please let me know if there is anything else I should check or further
+rework is needed.
+
+Thanks for your help and best wishes,
+
+Martin.
+
+-----------
+
+>From a71676dad29adef9cafb08598e693ec308ba2e95 Mon Sep 17 00:00:00 2001
+From: Martin Kittel <linux@martin-kittel.de>
+Date: Sun, 19 Jan 2014 21:24:55 +0100
+Subject: [PATCH] mceusb: use endpoint xfer mode as advertised
+
+mceusb always sets endpoints to interrupt transfer mode no matter
+what the device itself is advertising. This causes trouble on xhci
+hubs. This patch changes the behavior to honor the device endpoint
+settings.
+
+Signed-off-by: Martin Kittel <linux@martin-kittel.de>
 ---
- drivers/media/usb/em28xx/em28xx-audio.c |  4 +++-
- drivers/media/usb/em28xx/em28xx-core.c  |  2 +-
- drivers/media/usb/em28xx/em28xx-dvb.c   |  7 ++++---
- drivers/media/usb/em28xx/em28xx-input.c |  4 ++++
- drivers/media/usb/em28xx/em28xx-video.c | 10 ++++++++--
- 5 files changed, 20 insertions(+), 7 deletions(-)
+ drivers/media/rc/mceusb.c | 51
+++++++++++++++++++++++++++---------------------
+ 1 file changed, 28 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 2fdb66ee44ab..263886adcf26 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -649,7 +649,8 @@ static int em28xx_audio_init(struct em28xx *dev)
- 		return 0;
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index a25bb15..67df9a6 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -1277,32 +1277,37 @@ static int mceusb_dev_probe(struct usb_interface
+*intf,
+
+ 		if ((ep_in == NULL)
+ 			&& ((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
+-			    == USB_DIR_IN)
+-			&& (((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+-			    == USB_ENDPOINT_XFER_BULK)
+-			|| ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+-			    == USB_ENDPOINT_XFER_INT))) {
+-
+-			ep_in = ep;
+-			ep_in->bmAttributes = USB_ENDPOINT_XFER_INT;
+-			ep_in->bInterval = 1;
+-			mce_dbg(&intf->dev, "acceptable inbound endpoint "
+-				"found\n");
++			    == USB_DIR_IN)) {
++			if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++			    == USB_ENDPOINT_XFER_BULK) {
++				ep_in = ep;
++				mce_dbg(&intf->dev, "acceptable bulk inbound endpoint "
++					"found\n");
++			}
++			if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++			    == USB_ENDPOINT_XFER_INT) {
++				ep_in = ep;
++				ep_in->bInterval = 1;
++				mce_dbg(&intf->dev, "acceptable interrupt inbound endpoint "
++					"found\n");
++			}
+ 		}
+-
+ 		if ((ep_out == NULL)
+ 			&& ((ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
+-			    == USB_DIR_OUT)
+-			&& (((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+-			    == USB_ENDPOINT_XFER_BULK)
+-			|| ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
+-			    == USB_ENDPOINT_XFER_INT))) {
+-
+-			ep_out = ep;
+-			ep_out->bmAttributes = USB_ENDPOINT_XFER_INT;
+-			ep_out->bInterval = 1;
+-			mce_dbg(&intf->dev, "acceptable outbound endpoint "
+-				"found\n");
++			    == USB_DIR_OUT)) {
++			if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++			    == USB_ENDPOINT_XFER_BULK) {
++				ep_out = ep;
++				mce_dbg(&intf->dev, "acceptable bulk outbound endpoint "
++					"found\n");
++			}
++			if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
++			    == USB_ENDPOINT_XFER_INT) {
++				ep_out = ep;
++				ep_out->bInterval = 1;
++				mce_dbg(&intf->dev, "acceptable interrupt outbound endpoint "
++					"found\n");
++			}
+ 		}
  	}
- 
--	printk(KERN_INFO "em28xx-audio.c: probing for em28xx Audio Vendor Class\n");
-+	em28xx_info("Binding audio extension\n");
-+
- 	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
- 			 "Rechberger\n");
- 	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab\n");
-@@ -702,6 +703,7 @@ static int em28xx_audio_init(struct em28xx *dev)
- 	adev->sndcard = card;
- 	adev->udev = dev->udev;
- 
-+	em28xx_info("Audio extension successfully initialized\n");
- 	return 0;
- }
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 1113d4e107d8..33cf26e106b5 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -1069,7 +1069,7 @@ int em28xx_register_extension(struct em28xx_ops *ops)
- 		ops->init(dev);
- 	}
- 	mutex_unlock(&em28xx_devlist_mutex);
--	printk(KERN_INFO "Em28xx: Initialized (%s) extension\n", ops->name);
-+	printk(KERN_INFO "em28xx: Registered (%s) extension\n", ops->name);
- 	return 0;
- }
- EXPORT_SYMBOL(em28xx_register_extension);
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index ddc0e609065d..f72663a9b5c5 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -274,7 +274,7 @@ static int em28xx_stop_feed(struct dvb_demux_feed *feed)
- static int em28xx_dvb_bus_ctrl(struct dvb_frontend *fe, int acquire)
- {
- 	struct em28xx_i2c_bus *i2c_bus = fe->dvb->priv;
--        struct em28xx *dev = i2c_bus->dev;
-+	struct em28xx *dev = i2c_bus->dev;
- 
- 	if (acquire)
- 		return em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
-@@ -992,10 +992,11 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 
- 	if (!dev->board.has_dvb) {
- 		/* This device does not support the extension */
--		printk(KERN_INFO "em28xx_dvb: This device does not support the extension\n");
- 		return 0;
- 	}
- 
-+	em28xx_info("Binding DVB extension\n");
-+
- 	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
- 
- 	if (dvb == NULL) {
-@@ -1407,7 +1408,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 	/* MFE lock */
- 	dvb->adapter.mfe_shared = mfe_shared;
- 
--	em28xx_info("Successfully loaded em28xx-dvb\n");
-+	em28xx_info("DVB extension successfully initialized\n");
- ret:
- 	em28xx_set_mode(dev, EM28XX_SUSPEND);
- 	mutex_unlock(&dev->lock);
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index 93a7d02b9cb4..eed7dd79f734 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -692,6 +692,8 @@ static int em28xx_ir_init(struct em28xx *dev)
- 		return 0;
- 	}
- 
-+	em28xx_info("Registering input extension\n");
-+
- 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
- 	rc = rc_allocate_device();
- 	if (!ir || !rc)
-@@ -785,6 +787,8 @@ static int em28xx_ir_init(struct em28xx *dev)
- 	if (err)
- 		goto error;
- 
-+	em28xx_info("Input extension successfully initalized\n");
-+
- 	return 0;
- 
- error:
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 56d1b46164a0..b767262c642b 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1884,6 +1884,11 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
- 
- 	/*FIXME: I2C IR should be disconnected */
- 
-+	if (!dev->has_video) {
-+		/* This device does not support the v4l2 extension */
-+		return 0;
-+	}
-+
- 	if (dev->radio_dev) {
- 		if (video_is_registered(dev->radio_dev))
- 			video_unregister_device(dev->radio_dev);
-@@ -2215,8 +2220,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 		return 0;
- 	}
- 
--	printk(KERN_INFO "%s: v4l2 driver version %s\n",
--		dev->name, EM28XX_VERSION);
-+	em28xx_info("Registering V4L2 extension\n");
- 
- 	mutex_lock(&dev->lock);
- 
-@@ -2498,6 +2502,8 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 	/* initialize videobuf2 stuff */
- 	em28xx_vb2_setup(dev);
- 
-+	em28xx_info("V4L2 extension successfully initialized\n");
-+
- err:
- 	mutex_unlock(&dev->lock);
- 	return ret;
+ 	if (ep_in == NULL) {
 -- 
-1.8.3.1
+1.8.4.rc3
+
 
