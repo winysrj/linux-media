@@ -1,69 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24857 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751303AbaAJPCu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jan 2014 10:02:50 -0500
-Message-ID: <52D00B51.7090009@redhat.com>
-Date: Fri, 10 Jan 2014 16:01:37 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:48220 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166AbaATD7g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jan 2014 22:59:36 -0500
+Received: by mail-vc0-f175.google.com with SMTP id ij19so2498010vcb.6
+        for <linux-media@vger.kernel.org>; Sun, 19 Jan 2014 19:59:35 -0800 (PST)
 MIME-Version: 1.0
-To: Hans Verkuil <hansverk@cisco.com>,
-	Ethan Zhao <ethan.kernel@gmail.com>
-CC: hans.verkuil@cisco.com, m.chehab@samsung.com,
-	gregkh@linuxfoundation.org,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: gspaca: check pointer against NULL before using
- it in create_urbs()
-References: <1389088562-463-1-git-send-email-ethan.kernel@gmail.com> <52CFF094.5080408@cisco.com>
-In-Reply-To: <52CFF094.5080408@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20140119153224.122ce0d4@samsung.com>
+References: <20140119022328.55f6a741@samsung.com>
+	<20140119113926.60e0f586@samsung.com>
+	<CAGoCfiwp0WPMceeyQUHU-GJkSkiQzpF-YoJ+ueiFNqNOEQNK4A@mail.gmail.com>
+	<20140119153224.122ce0d4@samsung.com>
+Date: Sun, 19 Jan 2014 22:59:33 -0500
+Message-ID: <CAGoCfixnHRgHFkHtn3+M2Nn3NiPcLLXZozZP7fHXqCTsB9RyvA@mail.gmail.com>
+Subject: Re: [ANNOUNCE EXPERIMENTAL] PCTV 80e driver
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-Thanks for the patch, but the return value is already checked earlier on when
-building the ep_tb table, so it can never return NULL here.
-
-Regards,
-
-Hans
-
-On 01/10/2014 02:07 PM, Hans Verkuil wrote:
-> Cc to linux-media and Hans de Goede (gspca maintainer).
+On Sun, Jan 19, 2014 at 12:32 PM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+> Em Sun, 19 Jan 2014 11:50:55 -0500
+> Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 >
-> Regards,
+>> On Sun, Jan 19, 2014 at 8:39 AM, Mauro Carvalho Chehab
+>> <m.chehab@samsung.com> wrote:
+>> > It seems that subsequent tuning makes the device worse, reducing the
+>> > maximum effective packet bandwidth. Btw, this happens with both xHCI
+>> > and EHCI drivers, so, it is not related to any USB 3.0 issue.
+>>
+>> I'm pretty sure I saw this and had a patch.  I don't recall the exact
+>> circumstances under which it happened, but I believe it had to do with
+>> stopping and then restarting the streaming on the em28xx too quickly.
+>> The state machine inside the em28xx gets confused and you end up
+>> getting a misaligned stream (which is why you see hundreds of
+>> different PIDs in output from tools such as dvbtraffic).
 >
-> 	Hans
+> Do you still has your old tree? I'm not seeing it anymore at kernellabs.
+
+Yeah, I still have the tree.  It's not the HG tree that you saw a
+couple of years ago - it's on one of my private git trees because it
+was part of a commercial project.  I'll have to dig around and see if
+I can find it.
+
+>>
+>> > Enabling some demux logs, it is possible to see that there are too many
+>> > FEC errors:
+>> >
+>> > [73514.186880] dvb_dmx_swfilter_packet: 4546 callbacks suppressed
+>> > [73514.186933] TEI detected. PID=0x17f data1=0xc1
+>> > [73514.186965] TEI detected. PID=0x1c68 data1=0xbc
+>> > [73514.186993] TEI detected. PID=0x17f data1=0xc1
+>> > [73514.187022] TEI detected. PID=0x1c68 data1=0xbc
+>> > [73514.187049] TEI detected. PID=0x17f data1=0xc1
+>> > [73514.187080] TEI detected. PID=0x1c68 data1=0xbc
+>> > [73514.187105] TEI detected. PID=0x17f data1=0xc1
+>> > [73514.194878] TEI detected. PID=0x1c68 data1=0xbc
+>> > [73514.194906] TEI detected. PID=0x17f data1=0xc1
+>> > [73514.194927] TEI detected. PID=0x1c68 data1=0xbc
+>> > [73521.569205] TS speed 402 Kbits/sec
+>>
+>> Are these actually valid PIDs you're expecting data on?  If not, then
+>> it could just be the issue I described above.  Does the TEI check
+>> occur after it has found the SYNC byte?
 >
-> On 01/07/14 10:56, Ethan Zhao wrote:
->> function alt_xfer() may return NULL, should check its return value passed into
->> create_urbs() as parameter.
->>
->> gspca_init_transfer()
->> {
->> ... ...
->> ret = create_urbs(gspca_dev,alt_xfer(&intf->altsetting[alt], xfer));
->> ... ...
->> }
->>
->> Signed-off-by: Ethan Zhao <ethan.kernel@gmail.com>
->> ---
->>   drivers/media/usb/gspca/gspca.c | 2 ++
->>   1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
->> index 048507b..eb45bc0 100644
->> --- a/drivers/media/usb/gspca/gspca.c
->> +++ b/drivers/media/usb/gspca/gspca.c
->> @@ -761,6 +761,8 @@ static int create_urbs(struct gspca_dev *gspca_dev,
->>   	struct urb *urb;
->>   	int n, nurbs, i, psize, npkt, bsize;
->>
->> +	if (!ep)
->> +		return -EINVAL;
->>   	/* calculate the packet size and the number of packets */
->>   	psize = le16_to_cpu(ep->desc.wMaxPacketSize);
->>
->>
+> Yes. it keeps repeating several times, even after finding the SYNC.
+>
+> This patch makes the behavior stable:
+>         http://git.linuxtv.org/mchehab/experimental.git/commitdiff/88c9318cbea60d189a9b10cbc4c5a73f8b002336
+>
+> Even so, the bitstream of my test signal is 19Mbps, while the measured
+> speed with the valid packets is being about 3Mbps.
+
+Something is seriously wrong then - I had it delivering all 19 Mbps.
+
+>> Probably worth mentioning that while I got signal lock on ATSC, I
+>> didn't any significant analysis into the quality of the SNR. It's
+>> possible that additional optimization of the frontend is required in
+>> order to achieve optimal performance.
+>
+> It is unlikely to be due to some optimization, as I'm not injecting
+> any errors via the RF generator.
+
+Sorry, I wasn't clear.  I didn't intend to suggest any RF optimization
+is causing the issue you're seeing.  I was just saying that I didn't
+do any optimization of the RF path so while it works under ideal
+signal conditions it may not work as well under more adverse signal
+conditions.  In other words, I did what most of the other LinuxTV
+developers do - I got a successful signal lock and said "good enough".
+ ;-)
+
+On that note, it's probably worth mentioning that particular design
+has an LNA controlled by one of the GPIOs on the DRX-J.  So if you're
+consistently having poor RF performance (especially with a generator),
+try sticking an attenuator in-line, and/or make sure that the LNA is
+actually being properly disabled.
+
+> Btw, I noticed that there are two "extra" firmwares, that aren't currently
+> used, defined, on your driver, at drxj_mc_vsb.h and drxj_mc_vsbqam.h.
+>
+> Do you remember when those should be used? Or are them just two variants
+> of the main firmware, with support for just VSB and just ClearQAM?
+
+I would have to look at the source again to be sure, but if I recall
+it was just so you could reduce the size of the firmware if you didn't
+care about the other modulation scheme.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
