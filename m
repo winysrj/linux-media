@@ -1,111 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3573 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809AbaAYDdn (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2156 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752699AbaATMqr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 22:33:43 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0P3XeVg078654
-	for <linux-media@vger.kernel.org>; Sat, 25 Jan 2014 04:33:42 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E56F12A00A2
-	for <linux-media@vger.kernel.org>; Sat, 25 Jan 2014 04:33:36 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 20 Jan 2014 07:46:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140125033336.E56F12A00A2@tschai.lan>
-Date: Sat, 25 Jan 2014 04:33:36 +0100 (CET)
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 05/21] videodev2.h: add struct v4l2_query_ext_ctrl and VIDIOC_QUERY_EXT_CTRL.
+Date: Mon, 20 Jan 2014 13:45:58 +0100
+Message-Id: <1390221974-28194-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Add a new struct and ioctl to extend the amount of information you can
+get for a control.
 
-date:		Sat Jan 25 04:00:30 CET 2014
-git branch:	test
-git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+It gives back a unit string, the range is now a s64 type, and the matrix
+and element size can be reported through cols/rows/elem_size.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-Detailed results are available here:
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 4d7782a..9e5b7d4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1272,6 +1272,34 @@ struct v4l2_queryctrl {
+ 	__u32		     reserved[2];
+ };
+ 
++/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
++struct v4l2_query_ext_ctrl {
++	__u32		     id;
++	__u32		     type;
++	char		     name[32];
++	char		     unit[32];
++	union {
++		__s64 val;
++		__u32 reserved[4];
++	} min;
++	union {
++		__s64 val;
++		__u32 reserved[4];
++	} max;
++	union {
++		__u64 val;
++		__u32 reserved[4];
++	} step;
++	union {
++		__s64 val;
++		__u32 reserved[4];
++	} def;
++	__u32                flags;
++	__u32                cols, rows;
++	__u32                elem_size;
++	__u32		     reserved[17];
++};
++
+ /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
+ struct v4l2_querymenu {
+ 	__u32		id;
+@@ -1965,6 +1993,8 @@ struct v4l2_create_buffers {
+    Never use these in applications! */
+ #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+ 
++#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+-- 
+1.8.5.2
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
