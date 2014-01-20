@@ -1,134 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49122 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752494AbaAYRLH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:07 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1824 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751627AbaATMqi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 07:46:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 37/52] msi3101: add u8 sample format
-Date: Sat, 25 Jan 2014 19:10:31 +0200
-Message-Id: <1390669846-8131-38-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com
+Subject: [RFCv2 PATCH 00/21] Add support for complex controls
+Date: Mon, 20 Jan 2014 13:45:53 +0100
+Message-Id: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add unsigned 8-bit sample format. Format is got directly from
-hardware, but it is converted from signed to unsigned. It is worst
-known sampling resolution hardware offer.
+This patch series adds support for complex controls (aka 'Properties') to
+the control framework. It is the first part of a larger patch series that
+adds support for configuration stores, motion detection matrix controls and
+support for 'Multiple Selections'.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 67 ++++++++++++++++++++++++++++-
- 1 file changed, 66 insertions(+), 1 deletion(-)
+This patch series is based on this RFC:
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 502d35d..c50402d 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -385,6 +385,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
- #define MSI3101_CID_TUNER_IF              ((V4L2_CID_USER_BASE | 0xf000) + 12)
- #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
- 
-+#define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
- #define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
- #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
-@@ -428,6 +429,9 @@ struct msi3101_format {
- /* format descriptions for capture and preview */
- static struct msi3101_format formats[] = {
- 	{
-+		.name		= "I/Q 8-bit unsigned",
-+		.pixelformat	= V4L2_PIX_FMT_SDR_U8,
-+	}, {
- 		.name		= "I/Q 8-bit signed",
- 		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
- 	}, {
-@@ -487,6 +491,7 @@ struct msi3101_state {
- 	u32 next_sample; /* for track lost packets */
- 	u32 sample; /* for sample rate calc */
- 	unsigned long jiffies;
-+	unsigned long jiffies_next;
- 	unsigned int sample_ctrl_bit[4];
- };
- 
-@@ -572,6 +577,63 @@ static int msi3101_convert_stream_504(struct msi3101_state *s, u8 *dst,
- 	return dst_len;
- }
- 
-+static int msi3101_convert_stream_504_u8(struct msi3101_state *s, u8 *dst,
-+		u8 *src, unsigned int src_len)
-+{
-+	int i, j, i_max, dst_len = 0;
-+	u32 sample_num[3];
-+	s8 *s8src;
-+	u8 *u8dst;
-+
-+	/* There could be 1-3 1024 bytes URB frames */
-+	i_max = src_len / 1024;
-+	u8dst = (u8 *) dst;
-+
-+	for (i = 0; i < i_max; i++) {
-+		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
-+		if (i == 0 && s->next_sample != sample_num[0]) {
-+			dev_dbg_ratelimited(&s->udev->dev,
-+					"%d samples lost, %d %08x:%08x\n",
-+					sample_num[0] - s->next_sample,
-+					src_len, s->next_sample, sample_num[0]);
-+		}
-+
-+		/*
-+		 * Dump all unknown 'garbage' data - maybe we will discover
-+		 * someday if there is something rational...
-+		 */
-+		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
-+
-+		/* 504 x I+Q samples */
-+		src += 16;
-+
-+		s8src = (s8 *) src;
-+		for (j = 0; j < 1008; j++)
-+			*u8dst++ = *s8src++ + 128;
-+
-+		src += 1008;
-+		dst += 1008;
-+		dst_len += 1008;
-+	}
-+
-+	/* calculate samping rate and output it in 10 seconds intervals */
-+	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
-+#define MSECS 10000UL
-+		unsigned int samples = sample_num[i_max - 1] - s->sample;
-+		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
-+		s->sample = sample_num[i_max - 1];
-+		dev_dbg(&s->udev->dev,
-+				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
-+				src_len, samples, MSECS,
-+				samples * 1000UL / MSECS);
-+	}
-+
-+	/* next sample (sample = sample + i * 504) */
-+	s->next_sample = sample_num[i_max - 1] + 504;
-+
-+	return dst_len;
-+}
-+
- /*
-  * +===========================================================================
-  * |   00-1023 | USB packet type '384'
-@@ -1159,7 +1221,10 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
- 		reg7 = 0x000c9407;
- 	}
- 
--	if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
-+	if (s->pixelformat == V4L2_PIX_FMT_SDR_U8) {
-+		s->convert_stream = msi3101_convert_stream_504_u8;
-+		reg7 = 0x000c9407;
-+	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
- 		s->convert_stream = msi3101_convert_stream_504;
- 		reg7 = 0x000c9407;
- 	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_MSI2500_384) {
--- 
-1.8.5.3
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/71822
+
+A more complete patch series (including configuration store support and the
+motion detection work) can be found here:
+
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/propapi-doc
+
+This patch series is a revision of this series:
+
+http://www.spinics.net/lists/linux-media/msg71281.html
+
+Changes since RFCv1 are:
+
+- dropped configuration store support for now (there is no driver at the moment
+  that needs it).
+- dropped the term 'property', instead call it a 'control with a complex type'
+  or 'complex control' for short.
+- added DocBook documentation.
+
+The API changes required to support complex controls are minimal:
+
+- A new V4L2_CTRL_FLAG_HIDDEN has been added: any control with this flag (and
+  complex controls will always have this flag) will never be shown by control
+  panel GUIs. The only way to discover them is to pass the new _FLAG_NEXT_HIDDEN
+  flag to QUERYCTRL.
+
+- A new VIDIOC_QUERY_EXT_CTRL ioctl has been added: needed to get the number of elements
+  stored in the control (rows by columns) and the size in byte of each element.
+  As a bonus feature a unit string has also been added as this has been requested
+  in the past. In addition min/max/step/def values are now 64-bit.
+
+- A new 'p' field is added to struct v4l2_ext_control to set/get complex values.
+
+- A helper flag V4L2_CTRL_FLAG_IS_PTR has been added to tell apps whether the
+  'value' or 'value64' fields of the v4l2_ext_control struct can be used (bit
+  is cleared) or if the 'p' pointer can be used (bit it set).
+
+There is one open item: if a complex control is a matrix, then it is possible
+to set only the first N elements of that matrix (starting at the first row).
+Currently the API will initialize the remaining elements to their default
+value. The idea was that if you have an array of, say, selection
+rectangles, then if you just set the first one the others will be automatically
+zeroed (i.e. set to unused). Without that you would be forced to set the whole
+array unless you are certain that they are already zeroed.
+
+It also has the advantage that when you set a control you know that all elements
+are set, even if you don't specify them all.
+
+Should I support the ability to set only the first N elements of a matrix at all?
+
+I see three options:
+
+1) allow getting/setting only the first N elements and (when setting) initialize
+   the remaining elements to their default value.
+2) allow getting/setting only the first N elements and leave the remaining
+   elements to their old value.
+3) always set the full matrix.
+
+I am actually leaning towards 3 as that is the only unambiguous option. If there
+is a good use case in the future support for 1 or 2 can always be added later.
+
+Once everyone agrees with this API extension I will make a third version of this
+patch series that adds the Motion Detection support for the solo6x10 and go7007
+drivers that can now use the new matrix controls. That way actual drivers will
+start using this (and it will allow me to move those drivers out of staging).
+
+Regards,
+
+	Hans
 
