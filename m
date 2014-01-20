@@ -1,58 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:36381 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751069AbaAHK3X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 05:29:23 -0500
-Received: by mail-ob0-f174.google.com with SMTP id wn1so1486247obc.33
-        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 02:29:22 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20140108090942.GA28296@elgon.mountain>
-References: <20140108090942.GA28296@elgon.mountain>
-Date: Wed, 8 Jan 2014 15:59:22 +0530
-Message-ID: <CAK9yfHwvwjEpm6EhVcqNAO=a1R59+TzXOMgaEQ9N_vEpAAcOfg@mail.gmail.com>
-Subject: Re: [media] Add driver for Samsung S5K5BAF camera sensor
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from pequod.mess.org ([80.229.237.210]:42524 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751824AbaATWKm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 17:10:42 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 2/4] [media] iguanair: simplify tx loop
+Date: Mon, 20 Jan 2014 22:10:39 +0000
+Message-Id: <1390255840-21786-2-git-send-email-sean@mess.org>
+In-Reply-To: <1390255840-21786-1-git-send-email-sean@mess.org>
+References: <1390255840-21786-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/iguanair.c | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-On 8 January 2014 14:39, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> Hello Andrzej Hajda,
->
-> This is a semi-automatic email about new static checker warnings.
->
-> The patch 7d459937dc09: "[media] Add driver for Samsung S5K5BAF
-> camera sensor" from Dec 5, 2013, leads to the following Smatch
-> complaint:
->
-> drivers/media/i2c/s5k5baf.c:554 s5k5baf_fw_get_seq()
->          warn: variable dereferenced before check 'fw' (see line 551)
->
-> drivers/media/i2c/s5k5baf.c
->    550          struct s5k5baf_fw *fw = state->fw;
->    551          u16 *data = fw->data + 2 * fw->count;
->                                            ^^^^^^^^^
-> Dereference.
->
->    552          int i;
->    553
->    554          if (fw == NULL)
->                     ^^^^^^^^^^
-> Check.
->
->    555                  return NULL;
->    556
->
-
-A patch [1] to fix this has already been queued up by Mauro.
-
-[1] https://linuxtv.org/patch/21292/
-
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index 99a3a5a..a83519a 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -364,20 +364,14 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 			rc = -EINVAL;
+ 			goto out;
+ 		}
+-		while (periods > 127) {
+-			ir->packet->payload[size++] = 127 | space;
+-			periods -= 127;
++		while (periods) {
++			unsigned p = min(periods, 127u);
++			ir->packet->payload[size++] = p | space;
++			periods -= p;
+ 		}
+-
+-		ir->packet->payload[size++] = periods | space;
+ 		space ^= 0x80;
+ 	}
+ 
+-	if (count == 0) {
+-		rc = -EINVAL;
+-		goto out;
+-	}
+-
+ 	ir->packet->header.start = 0;
+ 	ir->packet->header.direction = DIR_OUT;
+ 	ir->packet->header.cmd = CMD_SEND;
 -- 
-With warm regards,
-Sachin
+1.8.4.2
+
