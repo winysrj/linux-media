@@ -1,78 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4925 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753137AbaA3OwI (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4007 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751891AbaATMqy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jan 2014 09:52:08 -0500
+	Mon, 20 Jan 2014 07:46:54 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 8/9] vivi: add support for reinit_streaming
-Date: Thu, 30 Jan 2014 15:51:30 +0100
-Message-Id: <1391093491-23077-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391093491-23077-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391093491-23077-1-git-send-email-hverkuil@xs4all.nl>
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 19/21] DocBook media: update VIDIOC_G/S/TRY_EXT_CTRLS.
+Date: Mon, 20 Jan 2014 13:46:12 +0100
+Message-Id: <1390221974-28194-20-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This ensures that the driver's buffer list is always initialized, also
-if start_streaming returns an error.
-
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vivi.c | 22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 43 ++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index 2d4e73b..c9bf8d3 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -793,20 +793,6 @@ static void vivi_stop_generating(struct vivi_dev *dev)
- 		kthread_stop(dma_q->kthread);
- 		dma_q->kthread = NULL;
- 	}
--
--	/*
--	 * Typical driver might need to wait here until dma engine stops.
--	 * In this case we can abort imiedetly, so it's just a noop.
--	 */
--
--	/* Release all active buffers */
--	while (!list_empty(&dma_q->active)) {
--		struct vivi_buffer *buf;
--		buf = list_entry(dma_q->active.next, struct vivi_buffer, list);
--		list_del(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
--		dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
--	}
- }
- /* ------------------------------------------------------------------
- 	Videobuf operations
-@@ -914,6 +900,13 @@ static int stop_streaming(struct vb2_queue *vq)
- 	return 0;
- }
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index b3bb957..bb383b9 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -72,23 +72,30 @@ initialize the <structfield>id</structfield>,
+ <structfield>size</structfield> and <structfield>reserved2</structfield> fields
+ of each &v4l2-ext-control; and call the
+ <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
+-must also set the <structfield>string</structfield> field.</para>
++must also set the <structfield>string</structfield> field. Controls
++of complex types (<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set)
++must set the <structfield>p</structfield> field.</para>
  
-+static void reinit_streaming(struct vb2_queue *vq)
-+{
-+	struct vivi_dev *dev = vb2_get_drv_priv(vq);
+     <para>If the <structfield>size</structfield> is too small to
+ receive the control result (only relevant for pointer-type controls
+ like strings), then the driver will set <structfield>size</structfield>
+ to a valid value and return an &ENOSPC;. You should re-allocate the
+-string memory to this new size and try again. It is possible that the
+-same issue occurs again if the string has grown in the meantime. It is
++memory to this new size and try again. For the string type it is possible that
++the same issue occurs again if the string has grown in the meantime. It is
+ recommended to call &VIDIOC-QUERYCTRL; first and use
+ <structfield>maximum</structfield>+1 as the new <structfield>size</structfield>
+ value. It is guaranteed that that is sufficient memory.
+ </para>
+ 
++    <para>For matrices it is possible to only get the first <constant>X</constant>
++elements by setting size to <constant>X * elem_size</constant>, where
++<structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
++Matrix elements are returned row-by-row.</para>
 +
-+	INIT_LIST_HEAD(&dev->vidq.active);
-+}
+     <para>To change the value of a set of controls applications
+ initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+ <structfield>reserved2</structfield> and
+-<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
++<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+ call the <constant>VIDIOC_S_EXT_CTRLS</constant> ioctl. The controls
+ will only be set if <emphasis>all</emphasis> control values are
+ valid.</para>
+@@ -96,11 +103,17 @@ valid.</para>
+     <para>To check if a set of controls have correct values applications
+ initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+ <structfield>reserved2</structfield> and
+-<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
++<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+ call the <constant>VIDIOC_TRY_EXT_CTRLS</constant> ioctl. It is up to
+ the driver whether wrong values are automatically adjusted to a valid
+ value or if an error is returned.</para>
+ 
++    <para>For matrices it is possible to only set or check only the first
++<constant>X</constant> elements by setting size to <constant>X * elem_size</constant>,
++where <structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
++Matrix elements are set row-by-row. Matrix elements that are not explicitly
++set will be initialized to their default value.</para>
 +
- static void vivi_lock(struct vb2_queue *vq)
- {
- 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
-@@ -933,6 +926,7 @@ static const struct vb2_ops vivi_video_qops = {
- 	.buf_queue		= buffer_queue,
- 	.start_streaming	= start_streaming,
- 	.stop_streaming		= stop_streaming,
-+	.reinit_streaming	= reinit_streaming,
- 	.wait_prepare		= vivi_unlock,
- 	.wait_finish		= vivi_lock,
- };
+     <para>When the <structfield>id</structfield> or
+ <structfield>ctrl_class</structfield> is invalid drivers return an
+ &EINVAL;. When the value is out of bounds drivers can choose to take
+@@ -158,19 +171,33 @@ applications must set the array to zero.</entry>
+ 	    <entry></entry>
+ 	    <entry>__s32</entry>
+ 	    <entry><structfield>value</structfield></entry>
+-	    <entry>New value or current value.</entry>
++	    <entry>New value or current value. Valid if this control is not of
++type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
++<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>__s64</entry>
+ 	    <entry><structfield>value64</structfield></entry>
+-	    <entry>New value or current value.</entry>
++	    <entry>New value or current value. Valid if this control is of
++type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
++<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>char *</entry>
+ 	    <entry><structfield>string</structfield></entry>
+-	    <entry>A pointer to a string.</entry>
++	    <entry>A pointer to a string. Valid if this control is of
++type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>void *</entry>
++	    <entry><structfield>p</structfield></entry>
++	    <entry>A pointer to a complex type which can be a matrix and/or a
++complex type (the control's type is >= <constant>V4L2_CTRL_COMPLEX_TYPES</constant>).
++Valid if <constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set for this control.
++</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
 -- 
 1.8.5.2
 
