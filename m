@@ -1,90 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s21.blu0.hotmail.com ([65.55.111.96]:16934 "EHLO
-	blu0-omc2-s21.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751042AbaANFRl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jan 2014 00:17:41 -0500
-Message-ID: <BLU0-SMTP183F0EEECCB365900DE2315ADBF0@phx.gbl>
-Date: Tue, 14 Jan 2014 13:17:45 +0800
-From: randy <lxr1234@hotmail.com>
+Received: from mail-la0-f51.google.com ([209.85.215.51]:60355 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752678AbaATTkM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 14:40:12 -0500
+Received: by mail-la0-f51.google.com with SMTP id c6so5799945lan.24
+        for <linux-media@vger.kernel.org>; Mon, 20 Jan 2014 11:40:10 -0800 (PST)
+From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Subject: [RFC PATCH 3/4] rc-loopback: Add support for reading/writing wakeup scancodes via sysfs
+Date: Mon, 20 Jan 2014 21:39:46 +0200
+Message-Id: <1390246787-15616-4-git-send-email-a.seppala@gmail.com>
+In-Reply-To: <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
+References: <20140115173559.7e53239a@samsung.com>
+ <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
 MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	Andrzej Hajda <a.hajda@samsung.com>
-CC: kyungmin.park@samsung.com
-Subject: Re: using MFC memory to memery encoder, start stream and queue order
- problem
-References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl> <02c701cf07b6$565cd340$031679c0$%debski@samsung.com> <BLU0-SMTP266BE9BC66B254061740251ADCB0@phx.gbl> <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com> <BLU0-SMTP150C8C0DB0E9A3A9F4104F8ADCA0@phx.gbl> <04b601cf0c7f$d9e531d0$8daf9570$%debski@samsung.com> <52CD725E.5060903@hotmail.com> <BLU0-SMTP6650E76A95FA2BB39C6325ADB30@phx.gbl> <52CFD5DF.6050801@samsung.com> <BLU0-SMTP37B0A51F0A2D2F1E79A730ADB30@phx.gbl> <52D3BCB7.1060309@samsung.com> <52D3CB84.6090406@samsung.com> <BLU0-SMTP3546CDA7E88F73435A3A876ADBC0@phx.gbl> <001701cf107b$0927aa50$1b76fef0$%debski@samsung.com>
-In-Reply-To: <001701cf107b$0927aa50$1b76fef0$%debski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-于 2014年01月14日 00:18, Kamil Debski 写道:
-> Hi,
-> 
->> From: randy [mailto:lxr1234@hotmail.com]
->> Sent: Monday, January 13, 2014 4:45 PM
->>
->> -----BEGIN PGP SIGNED MESSAGE-----
->> Hash: SHA1
->>
->>  20140113 19:18, Andrzej Hajda wrote:
->>
->>>>>>>>> It won't work, if I do that, after step 7, neither OUPUT nor
->>>>>>>>> CAPTURE will poll return in my program. but ./mfc-encode -m
->>>>>>>>> /dev/video1 -c h264,header_mode=1 work normally,
->>>>>>>> I am sorry, I didn't well test it, if I use ./mfc-encode -m
->>>>>>>> /dev/video1 -c h264,header_mode=1 -d 1 then the size of demo.out
->>>>>>>> is zero, but ./mfc-encode -d 1 -m /dev/video1 -c h264 will out a
->>>>>>>> 158 bytes files. When duration is 2, with header_mode=1, the
->>>>>>>> output file size is 228 bytes.Without it, the size is 228 too. I
->>>>>>>> wonder whether it is the driver's problem, as I see this in
->> dmesg
->>>>>>>> [ 0.210000] Failed to declare coherent memory for MFC device (0
->>>>>>>> bytes at 0x43000000) As the driver is not ready to use in
->>>>>>>> 3.13-rc6 as I reported before, I still use the
->>>>>>>> 3.5 from manufacturer.
->>>>>>>
->>>>>>> I am the author of mfc-encode application, it was written for the
->>>>>>> mainline kernel 3.8 and later, it should be mentioned in the
->>>>>>> README.txt - I will update it.
->> So it seems that the design my program is correct, just the driver's
->> problem?
->>
->>>>>>>
->>> Sadness, they doesn't offer any of them, even not any information
->>> about it. And I can't compile the openmax from samsung. I will report
->>> it later in sourceforge.
->>>>>
->>>
->>>> I believe it is the best solution if you are interesting in fixing
->>>> only MFC encoding. If your goal is wider I suggest to try linux-next
->>>> kernel. There is basic(!) DT support for this board applied about
->>>> month ago: https://lkml.org/lkml/2013/12/18/285
->>>
->> I will try it, I wish the driver in -next is done, as I can never open
->> the mfc encoder in 3.12.
-> 
-> Randy, 
-> 
-> Please apply these two patches:
-> [PATCH] media: s5p_mfc: remove s5p_mfc_get_node_type() function
-> [PATCH] media: v4l2-dev: fix video device index assignment
-> 
-> And try again with kernel 3.12. There was a problem with opening MFC
-> that was introduced by other patches.
-> 
-Yes, it make encoder work. But sadness ./mfc-encode -m /dev/video1 -c
-h264,header_mode=1 -d 1 will still output a zero demo.out without
-header-mode or set it to zero will works.
-What is the problem?
->> I have another problem with the data transporting way in v4l2-mfc-
->> encoder, it use m.userptr, I think it is not need, as it has been mmap
->> to bufs->addr before, just fill the bufs->addr is enough, and for mfc,
->> the buffer type V4L2_MEMORY_MMAP,  I think that it had better use
->> m.mem_offset from v4l2 document, why it use userptr?
->>
-> 
-> Best wishes,
+This patch adds sample support for reading/writing the wakeup scancodes
+to rc-loopback device driver.
+
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+---
+ drivers/media/rc/rc-loopback.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index 53d0282..12bd1c5 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -26,12 +26,14 @@
+ #include <linux/device.h>
+ #include <linux/module.h>
+ #include <linux/sched.h>
++#include <linux/slab.h>
+ #include <media/rc-core.h>
+ 
+ #define DRIVER_NAME	"rc-loopback"
+ #define dprintk(x...)	if (debug) printk(KERN_INFO DRIVER_NAME ": " x)
+ #define RXMASK_REGULAR	0x1
+ #define RXMASK_LEARNING	0x2
++#define WAKE_CODE_LEN	0xF
+ 
+ static bool debug;
+ 
+@@ -45,6 +47,7 @@ struct loopback_dev {
+ 	bool carrierreport;
+ 	u32 rxcarriermin;
+ 	u32 rxcarriermax;
++	u8 wake_codes[WAKE_CODE_LEN];
+ };
+ 
+ static struct loopback_dev loopdev;
+@@ -176,6 +179,33 @@ static int loop_set_carrier_report(struct rc_dev *dev, int enable)
+ 	return 0;
+ }
+ 
++static int loop_wakeup_scancodes(struct rc_dev *dev,
++				 struct list_head *scancode_list, int write)
++{
++	int i = 0;
++	struct rc_wakeup_scancode *scancode;
++	struct loopback_dev *lodev = dev->priv;
++
++	dprintk("%sing wakeup scancodes\n", write ? "writ" : "read");
++
++	if (write) {
++		list_for_each_entry_reverse(scancode, scancode_list,
++					    list_item) {
++			lodev->wake_codes[i] = scancode->value;
++			if (++i > WAKE_CODE_LEN)
++				return -EINVAL;
++		}
++	} else {
++		for (i = 0; i < WAKE_CODE_LEN; i++) {
++			scancode = kmalloc(sizeof(struct rc_wakeup_scancode),
++					   GFP_KERNEL);
++			scancode->value = lodev->wake_codes[i];
++			list_add(&scancode->list_item, scancode_list);
++		}
++	}
++	return 0;
++}
++
+ static int __init loop_init(void)
+ {
+ 	struct rc_dev *rc;
+@@ -209,6 +239,7 @@ static int __init loop_init(void)
+ 	rc->s_idle		= loop_set_idle;
+ 	rc->s_learning_mode	= loop_set_learning_mode;
+ 	rc->s_carrier_report	= loop_set_carrier_report;
++	rc->s_wakeup_scancodes	= loop_wakeup_scancodes;
+ 
+ 	loopdev.txmask		= RXMASK_REGULAR;
+ 	loopdev.txcarrier	= 36000;
+-- 
+1.8.3.2
 
