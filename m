@@ -1,100 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58178 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753157AbaA0EUp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jan 2014 23:20:45 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/2] r820t: add manual gain controls
-Date: Mon, 27 Jan 2014 06:20:18 +0200
-Message-Id: <1390796419-7633-1-git-send-email-crope@iki.fi>
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:35443 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740AbaATOek (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 09:34:40 -0500
+MIME-Version: 1.0
+In-Reply-To: <2542868.mVreZlxTcT@amdc1032>
+References: <1389238094-19386-1-git-send-email-shaik.ameer@samsung.com>
+	<1389238094-19386-5-git-send-email-shaik.ameer@samsung.com>
+	<2542868.mVreZlxTcT@amdc1032>
+Date: Mon, 20 Jan 2014 23:34:39 +0900
+Message-ID: <CAOD6ATofW_M+z5vb7doOnjf=wsbZ7vcdjf9qMJpN0o9oz4_8fg@mail.gmail.com>
+Subject: Re: [PATCH v5 4/4] [media] exynos-scaler: Add DT bindings for SCALER driver
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Pawel Osciak <posciak@google.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add gain control for LNA, Mixer and IF. Expose controls via DVB
-frontend .set_config callback.
+Hi Bartlomiej,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/r820t.c | 38 ++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/r820t.h |  7 +++++++
- 2 files changed, 45 insertions(+)
+Thanks for the review.
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index d9ee43f..5a926a3 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -1251,6 +1251,43 @@ static int r820t_set_gain_mode(struct r820t_priv *priv,
- }
- #endif
- 
-+static int r820t_set_config(struct dvb_frontend *fe, void *priv_cfg)
-+{
-+	struct r820t_priv *priv = fe->tuner_priv;
-+	struct r820t_ctrl *ctrl = priv_cfg;
-+	int rc;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	if (ctrl->lna_gain == INT_MIN)
-+		rc = r820t_write_reg_mask(priv, 0x05, 0x00, 0x10);
-+	else
-+		rc = r820t_write_reg_mask(priv, 0x05,
-+				0x10 | ctrl->lna_gain, 0x1f);
-+	if (rc < 0)
-+		goto err;
-+
-+	if (ctrl->mixer_gain == INT_MIN)
-+		rc = r820t_write_reg_mask(priv, 0x07, 0x10, 0x10);
-+	else
-+		rc = r820t_write_reg_mask(priv, 0x07,
-+				0x00 | ctrl->mixer_gain, 0x1f);
-+	if (rc < 0)
-+		goto err;
-+
-+	if (ctrl->if_gain == INT_MIN)
-+		rc = r820t_write_reg_mask(priv, 0x0c, 0x10, 0x10);
-+	else
-+		rc = r820t_write_reg_mask(priv, 0x0c,
-+				0x00 | ctrl->if_gain, 0x1f);
-+err:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	return rc;
-+}
-+
- static int generic_set_freq(struct dvb_frontend *fe,
- 			    u32 freq /* in HZ */,
- 			    unsigned bw,
-@@ -2275,6 +2312,7 @@ static const struct dvb_tuner_ops r820t_tuner_ops = {
- 	.release = r820t_release,
- 	.sleep = r820t_sleep,
- 	.set_params = r820t_set_params,
-+	.set_config = r820t_set_config,
- 	.set_analog_params = r820t_set_analog_freq,
- 	.get_if_frequency = r820t_get_if_frequency,
- 	.get_rf_strength = r820t_signal,
-diff --git a/drivers/media/tuners/r820t.h b/drivers/media/tuners/r820t.h
-index 48af354..42c0d8e 100644
---- a/drivers/media/tuners/r820t.h
-+++ b/drivers/media/tuners/r820t.h
-@@ -42,6 +42,13 @@ struct r820t_config {
- 	bool use_predetect;
- };
- 
-+/* set INT_MIN for automode */
-+struct r820t_ctrl {
-+	int lna_gain;
-+	int mixer_gain;
-+	int if_gain;
-+};
-+
- #if IS_ENABLED(CONFIG_MEDIA_TUNER_R820T)
- struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
- 				  struct i2c_adapter *i2c,
--- 
-1.8.5.3
+Yes you are right. I didn't add the users for this driver.
+Once the driver gets merged, I will send more patches with the users.
+Already this driver merge is pending on DT maintainers ack and  I
+don't want to complex it more by adding DT patches :)
 
+Definitely, I will send the users patches once the driver gets merged.
+And I will address all your comments in next version of patch series.
+
+
+Regards,
+Shaik Ameer Basha
+
+On Thu, Jan 9, 2014 at 6:20 PM, Bartlomiej Zolnierkiewicz
+<b.zolnierkie@samsung.com> wrote:
+>
+> Hi,
+>
+> On Thursday, January 09, 2014 08:58:14 AM Shaik Ameer Basha wrote:
+>> This patch adds the DT binding documentation for the
+>> Exynos5420/5410 based SCALER device driver.
+>>
+>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>  .../devicetree/bindings/media/exynos5-scaler.txt   |   22 ++++++++++++++++++++
+>>  1 file changed, 22 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/exynos5-scaler.txt b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
+>> new file mode 100644
+>> index 0000000..9328e7d
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
+>> @@ -0,0 +1,22 @@
+>> +* Samsung Exynos5 SCALER device
+>> +
+>> +SCALER is used for scaling, blending, color fill and color space
+>> +conversion on EXYNOS[5420/5410] SoCs.
+>> +
+>> +Required properties:
+>> +- compatible: should be "samsung,exynos5420-scaler" or
+>> +                     "samsung,exynos5410-scaler"
+>> +- reg: should contain SCALER physical address location and length
+>> +- interrupts: should contain SCALER interrupt number
+>> +- clocks: should contain the SCALER clock specifier, from the
+>> +                     common clock bindings
+>> +- clock-names: should be "scaler"
+>> +
+>> +Example:
+>> +     scaler_0: scaler@12800000 {
+>> +             compatible = "samsung,exynos5420-scaler";
+>> +             reg = <0x12800000 0x1000>;
+>> +             interrupts = <0 220 0>;
+>> +             clocks = <&clock 381>;
+>> +             clock-names = "scaler";
+>> +     };
+>
+> Your patchset adds support for EXYNOS5 SCALER but doesn't add any real
+> users of it yet.  Could you please explain why?
+>
+> Best regards,
+> --
+> Bartlomiej Zolnierkiewicz
+> Samsung R&D Institute Poland
+> Samsung Electronics
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
