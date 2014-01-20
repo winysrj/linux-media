@@ -1,485 +1,517 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3706 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753976AbaAaJ5M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:57:12 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 08/32] v4l2-ctrls: create type_ops.
-Date: Fri, 31 Jan 2014 10:56:06 +0100
-Message-Id: <1391162190-8620-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+Received: from pequod.mess.org ([80.229.237.210]:38728 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752916AbaATWKr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 17:10:47 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 4/4] [media] mceusb: improve error logging
+Date: Mon, 20 Jan 2014 22:10:44 +0000
+Message-Id: <1390255844-21826-2-git-send-email-sean@mess.org>
+In-Reply-To: <1390255844-21826-1-git-send-email-sean@mess.org>
+References: <1390255844-21826-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+A number of recent bug reports involve usb_submit_urb() failing which was
+only reported with debug parameter on. In addition, remove custom debug
+function.
 
-Since complex controls can have non-standard types we need to be able to do
-type-specific checks etc. In order to make that easy type operations are added.
-There are four operations:
-
-- equal: check if two values are equal
-- init: initialize a value
-- log: log the value
-- validate: validate a new value
-
-This patch uses the v4l2_ctrl_ptr union for the first time.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 267 ++++++++++++++++++++++-------------
- include/media/v4l2-ctrls.h           |  21 +++
- 2 files changed, 190 insertions(+), 98 deletions(-)
+ drivers/media/rc/mceusb.c | 180 ++++++++++++++++++++++------------------------
+ 1 file changed, 84 insertions(+), 96 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 67e5d1e..988a2bd8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1132,6 +1132,149 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
- 			v4l2_event_queue_fh(sev->fh, &ev);
- }
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 3a4f95f..2df5ac0 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -84,7 +84,7 @@
+ #define MCE_PORT_IR		0x4	/* (0x4 << 5) | MCE_CMD = 0x9f */
+ #define MCE_PORT_SYS		0x7	/* (0x7 << 5) | MCE_CMD = 0xff */
+ #define MCE_PORT_SER		0x6	/* 0xc0 thru 0xdf flush & 0x1f bytes */
+-#define MCE_PORT_MASK	0xe0	/* Mask out command bits */
++#define MCE_PORT_MASK		0xe0	/* Mask out command bits */
  
-+static bool std_equal(const struct v4l2_ctrl *ctrl,
-+		      union v4l2_ctrl_ptr ptr1,
-+		      union v4l2_ctrl_ptr ptr2)
-+{
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_BUTTON:
-+		return false;
-+	case V4L2_CTRL_TYPE_STRING:
-+		/* strings are always 0-terminated */
-+		return !strcmp(ptr1.p_char, ptr2.p_char);
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		return *ptr1.p_s64 == *ptr2.p_s64;
-+	default:
-+		if (ctrl->is_ptr)
-+			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
-+		return *ptr1.p_s32 == *ptr2.p_s32;
-+	}
-+}
-+
-+static void std_init(const struct v4l2_ctrl *ctrl,
-+		     union v4l2_ctrl_ptr ptr)
-+{
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_STRING:
-+		memset(ptr.p_char, ' ', ctrl->minimum);
-+		ptr.p_char[ctrl->minimum] = '\0';
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		*ptr.p_s64 = ctrl->default_value;
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_BITMASK:
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		*ptr.p_s32 = ctrl->default_value;
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+static void std_log(const struct v4l2_ctrl *ctrl)
-+{
-+	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
-+
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_INTEGER:
-+		pr_cont("%d", *ptr.p_s32);
-+		break;
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		pr_cont("%s", *ptr.p_s32 ? "true" : "false");
-+		break;
-+	case V4L2_CTRL_TYPE_MENU:
-+		pr_cont("%s", ctrl->qmenu[*ptr.p_s32]);
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		pr_cont("%lld", ctrl->qmenu_int[*ptr.p_s32]);
-+		break;
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		pr_cont("0x%08x", *ptr.p_s32);
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		pr_cont("%lld", *ptr.p_s64);
-+		break;
-+	case V4L2_CTRL_TYPE_STRING:
-+		pr_cont("%s", ptr.p_char);
-+		break;
-+	default:
-+		pr_cont("unknown type %d", ctrl->type);
-+		break;
-+	}
-+}
-+
-+/* Round towards the closest legal value */
-+#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
-+({								\
-+	offset_type offset;					\
-+	val += (ctrl)->step / 2;				\
-+	val = clamp_t(typeof(val), val,				\
-+		      (ctrl)->minimum, (ctrl)->maximum);	\
-+	offset = (val) - (ctrl)->minimum;			\
-+	offset = (ctrl)->step * (offset / (ctrl)->step);	\
-+	val = (ctrl)->minimum + offset;				\
-+	0;							\
-+})
-+
-+/* Validate a new control */
-+static int std_validate(const struct v4l2_ctrl *ctrl,
-+			union v4l2_ctrl_ptr ptr)
-+{
-+	size_t len;
-+
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_INTEGER:
-+		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
-+
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		*ptr.p_s32 = !!*ptr.p_s32;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
-+			return -ERANGE;
-+		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
-+			return -EINVAL;
-+		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
-+		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
-+			return -EINVAL;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		*ptr.p_s32 &= ctrl->maximum;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_BUTTON:
-+	case V4L2_CTRL_TYPE_CTRL_CLASS:
-+		*ptr.p_s32 = 0;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_STRING:
-+		len = strlen(ptr.p_char);
-+		if (len < ctrl->minimum)
-+			return -ERANGE;
-+		if ((len - ctrl->minimum) % ctrl->step)
-+			return -ERANGE;
-+		return 0;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static const struct v4l2_ctrl_type_ops std_type_ops = {
-+	.equal = std_equal,
-+	.init = std_init,
-+	.log = std_log,
-+	.validate = std_validate,
-+};
-+
- /* Helper function: copy the current control value back to the caller */
- static int cur_to_user(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
-@@ -1315,21 +1458,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ /* Command port headers */
+ #define MCE_CMD_PORT_IR		0x9f	/* IR-related cmd/rsp */
+@@ -153,19 +153,6 @@
+ #define MCE_COMMAND_IRDATA	0x80
+ #define MCE_PACKET_LENGTH_MASK	0x1f /* Packet length mask */
  
- 		if (ctrl == NULL)
- 			continue;
--		switch (ctrl->type) {
--		case V4L2_CTRL_TYPE_BUTTON:
--			/* Button controls are always 'different' */
--			return 1;
--		case V4L2_CTRL_TYPE_STRING:
--			/* strings are always 0-terminated */
--			diff = strcmp(ctrl->string, ctrl->cur.string);
--			break;
--		case V4L2_CTRL_TYPE_INTEGER64:
--			diff = ctrl->val64 != ctrl->cur.val64;
--			break;
--		default:
--			diff = ctrl->val != ctrl->cur.val;
--			break;
--		}
-+		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
- 	}
- 	return diff;
- }
-@@ -1370,65 +1499,30 @@ static int check_range(enum v4l2_ctrl_type type,
- 	}
- }
- 
--/* Round towards the closest legal value */
--#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
--({								\
--	offset_type offset;					\
--	val += (ctrl)->step / 2;				\
--	val = clamp_t(typeof(val), val,				\
--		      (ctrl)->minimum, (ctrl)->maximum);	\
--	offset = (val) - (ctrl)->minimum;			\
--	offset = (ctrl)->step * (offset / (ctrl)->step);	\
--	val = (ctrl)->minimum + offset;				\
--	0;							\
--})
+-/* module parameters */
+-#ifdef CONFIG_USB_DEBUG
+-static bool debug = 1;
+-#else
+-static bool debug;
+-#endif
 -
- /* Validate a new control */
- static int validate_new(const struct v4l2_ctrl *ctrl,
- 			struct v4l2_ext_control *c)
+-#define mce_dbg(dev, fmt, ...)					\
+-	do {							\
+-		if (debug)					\
+-			dev_info(dev, fmt, ## __VA_ARGS__);	\
+-	} while (0)
+-
+ #define VENDOR_PHILIPS		0x0471
+ #define VENDOR_SMK		0x0609
+ #define VENDOR_TATUNG		0x1460
+@@ -531,16 +518,13 @@ static int mceusb_cmd_datasize(u8 cmd, u8 subcmd)
+ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
+ 				 int offset, int len, bool out)
  {
--	size_t len;
-+	union v4l2_ctrl_ptr ptr;
+-	char codes[USB_BUFLEN * 3 + 1];
+-	char inout[9];
++#if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
++	char *inout;
+ 	u8 cmd, subcmd, data1, data2, data3, data4;
+ 	struct device *dev = ir->dev;
+-	int i, start, skip = 0;
++	int start, skip = 0;
+ 	u32 carrier, period;
  
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		return ROUND_TO_RANGE(*(s32 *)&c->value, u32, ctrl);
--	case V4L2_CTRL_TYPE_INTEGER64:
--		return ROUND_TO_RANGE(*(s64 *)&c->value64, u64, ctrl);
+-	if (!debug)
+-		return;
 -
--	case V4L2_CTRL_TYPE_BOOLEAN:
--		c->value = !!c->value;
--		return 0;
--
--	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
--			return -ERANGE;
--		if (ctrl->menu_skip_mask & (1 << c->value))
--			return -EINVAL;
--		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
--		    ctrl->qmenu[c->value][0] == '\0')
--			return -EINVAL;
--		return 0;
--
-+	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
--		c->value &= ctrl->maximum;
--		return 0;
--
-+	case V4L2_CTRL_TYPE_BOOLEAN:
- 	case V4L2_CTRL_TYPE_BUTTON:
- 	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		c->value = 0;
--		return 0;
-+		ptr.p_s32 = &c->value;
-+		return ctrl->type_ops->validate(ctrl, ptr);
+ 	/* skip meaningless 0xb1 0x60 header bytes on orig receiver */
+ 	if (ir->flags.microsoft_gen1 && !out && !offset)
+ 		skip = 2;
+@@ -548,16 +532,10 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
+ 	if (len <= skip)
+ 		return;
  
--	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(c->string);
--		if (len < ctrl->minimum)
--			return -ERANGE;
--		if ((len - ctrl->minimum) % ctrl->step)
--			return -ERANGE;
--		return 0;
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		ptr.p_s64 = &c->value64;
-+		return ctrl->type_ops->validate(ctrl, ptr);
+-	for (i = 0; i < len && i < USB_BUFLEN; i++)
+-		snprintf(codes + i * 3, 4, "%02x ", buf[i + offset] & 0xff);
+-
+-	dev_info(dev, "%sx data: %s(length=%d)\n",
+-		 (out ? "t" : "r"), codes, len);
++	dev_dbg(dev, "%cx data: %*ph (length=%d)",
++		(out ? 't' : 'r'), min(len, USB_BUFLEN), buf, len);
  
+-	if (out)
+-		strcpy(inout, "Request\0");
+-	else
+-		strcpy(inout, "Got\0");
++	inout = out ? "Request" : "Got";
+ 
+ 	start  = offset + skip;
+ 	cmd    = buf[start] & 0xff;
+@@ -573,50 +551,50 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
+ 			break;
+ 		if ((subcmd == MCE_CMD_PORT_SYS) &&
+ 		    (data1 == MCE_CMD_RESUME))
+-			dev_info(dev, "Device resume requested\n");
++			dev_dbg(dev, "Device resume requested");
+ 		else
+-			dev_info(dev, "Unknown command 0x%02x 0x%02x\n",
++			dev_dbg(dev, "Unknown command 0x%02x 0x%02x",
+ 				 cmd, subcmd);
+ 		break;
+ 	case MCE_CMD_PORT_SYS:
+ 		switch (subcmd) {
+ 		case MCE_RSP_EQEMVER:
+ 			if (!out)
+-				dev_info(dev, "Emulator interface version %x\n",
++				dev_dbg(dev, "Emulator interface version %x",
+ 					 data1);
+ 			break;
+ 		case MCE_CMD_G_REVISION:
+ 			if (len == 2)
+-				dev_info(dev, "Get hw/sw rev?\n");
++				dev_dbg(dev, "Get hw/sw rev?");
+ 			else
+-				dev_info(dev, "hw/sw rev 0x%02x 0x%02x "
+-					 "0x%02x 0x%02x\n", data1, data2,
++				dev_dbg(dev, "hw/sw rev 0x%02x 0x%02x 0x%02x 0x%02x",
++					 data1, data2,
+ 					 buf[start + 4], buf[start + 5]);
+ 			break;
+ 		case MCE_CMD_RESUME:
+-			dev_info(dev, "Device resume requested\n");
++			dev_dbg(dev, "Device resume requested");
+ 			break;
+ 		case MCE_RSP_CMD_ILLEGAL:
+-			dev_info(dev, "Illegal PORT_SYS command\n");
++			dev_dbg(dev, "Illegal PORT_SYS command");
+ 			break;
+ 		case MCE_RSP_EQWAKEVERSION:
+ 			if (!out)
+-				dev_info(dev, "Wake version, proto: 0x%02x, "
++				dev_dbg(dev, "Wake version, proto: 0x%02x, "
+ 					 "payload: 0x%02x, address: 0x%02x, "
+-					 "version: 0x%02x\n",
++					 "version: 0x%02x",
+ 					 data1, data2, data3, data4);
+ 			break;
+ 		case MCE_RSP_GETPORTSTATUS:
+ 			if (!out)
+ 				/* We use data1 + 1 here, to match hw labels */
+-				dev_info(dev, "TX port %d: blaster is%s connected\n",
++				dev_dbg(dev, "TX port %d: blaster is%s connected",
+ 					 data1 + 1, data4 ? " not" : "");
+ 			break;
+ 		case MCE_CMD_FLASHLED:
+-			dev_info(dev, "Attempting to flash LED\n");
++			dev_dbg(dev, "Attempting to flash LED");
+ 			break;
+ 		default:
+-			dev_info(dev, "Unknown command 0x%02x 0x%02x\n",
++			dev_dbg(dev, "Unknown command 0x%02x 0x%02x",
+ 				 cmd, subcmd);
+ 			break;
+ 		}
+@@ -624,13 +602,13 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
+ 	case MCE_CMD_PORT_IR:
+ 		switch (subcmd) {
+ 		case MCE_CMD_SIG_END:
+-			dev_info(dev, "End of signal\n");
++			dev_dbg(dev, "End of signal");
+ 			break;
+ 		case MCE_CMD_PING:
+-			dev_info(dev, "Ping\n");
++			dev_dbg(dev, "Ping");
+ 			break;
+ 		case MCE_CMD_UNKNOWN:
+-			dev_info(dev, "Resp to 9f 05 of 0x%02x 0x%02x\n",
++			dev_dbg(dev, "Resp to 9f 05 of 0x%02x 0x%02x",
+ 				 data1, data2);
+ 			break;
+ 		case MCE_RSP_EQIRCFS:
+@@ -639,51 +617,51 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
+ 			if (!period)
+ 				break;
+ 			carrier = (1000 * 1000) / period;
+-			dev_info(dev, "%s carrier of %u Hz (period %uus)\n",
++			dev_dbg(dev, "%s carrier of %u Hz (period %uus)",
+ 				 inout, carrier, period);
+ 			break;
+ 		case MCE_CMD_GETIRCFS:
+-			dev_info(dev, "Get carrier mode and freq\n");
++			dev_dbg(dev, "Get carrier mode and freq");
+ 			break;
+ 		case MCE_RSP_EQIRTXPORTS:
+-			dev_info(dev, "%s transmit blaster mask of 0x%02x\n",
++			dev_dbg(dev, "%s transmit blaster mask of 0x%02x",
+ 				 inout, data1);
+ 			break;
+ 		case MCE_RSP_EQIRTIMEOUT:
+ 			/* value is in units of 50us, so x*50/1000 ms */
+ 			period = ((data1 << 8) | data2) * MCE_TIME_UNIT / 1000;
+-			dev_info(dev, "%s receive timeout of %d ms\n",
++			dev_dbg(dev, "%s receive timeout of %d ms",
+ 				 inout, period);
+ 			break;
+ 		case MCE_CMD_GETIRTIMEOUT:
+-			dev_info(dev, "Get receive timeout\n");
++			dev_dbg(dev, "Get receive timeout");
+ 			break;
+ 		case MCE_CMD_GETIRTXPORTS:
+-			dev_info(dev, "Get transmit blaster mask\n");
++			dev_dbg(dev, "Get transmit blaster mask");
+ 			break;
+ 		case MCE_RSP_EQIRRXPORTEN:
+-			dev_info(dev, "%s %s-range receive sensor in use\n",
++			dev_dbg(dev, "%s %s-range receive sensor in use",
+ 				 inout, data1 == 0x02 ? "short" : "long");
+ 			break;
+ 		case MCE_CMD_GETIRRXPORTEN:
+ 		/* aka MCE_RSP_EQIRRXCFCNT */
+ 			if (out)
+-				dev_info(dev, "Get receive sensor\n");
++				dev_dbg(dev, "Get receive sensor");
+ 			else if (ir->learning_enabled)
+-				dev_info(dev, "RX pulse count: %d\n",
++				dev_dbg(dev, "RX pulse count: %d",
+ 					 ((data1 << 8) | data2));
+ 			break;
+ 		case MCE_RSP_EQIRNUMPORTS:
+ 			if (out)
+ 				break;
+-			dev_info(dev, "Num TX ports: %x, num RX ports: %x\n",
++			dev_dbg(dev, "Num TX ports: %x, num RX ports: %x",
+ 				 data1, data2);
+ 			break;
+ 		case MCE_RSP_CMD_ILLEGAL:
+-			dev_info(dev, "Illegal PORT_IR command\n");
++			dev_dbg(dev, "Illegal PORT_IR command");
+ 			break;
+ 		default:
+-			dev_info(dev, "Unknown command 0x%02x 0x%02x\n",
++			dev_dbg(dev, "Unknown command 0x%02x 0x%02x",
+ 				 cmd, subcmd);
+ 			break;
+ 		}
+@@ -693,10 +671,11 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
+ 	}
+ 
+ 	if (cmd == MCE_IRDATA_TRAILER)
+-		dev_info(dev, "End of raw IR data\n");
++		dev_dbg(dev, "End of raw IR data");
+ 	else if ((cmd != MCE_CMD_PORT_IR) &&
+ 		 ((cmd & MCE_PORT_MASK) == MCE_COMMAND_IRDATA))
+-		dev_info(dev, "Raw IR data, %d pulse/space samples\n", ir->rem);
++		dev_dbg(dev, "Raw IR data, %d pulse/space samples", ir->rem);
++#endif
+ }
+ 
+ static void mce_async_callback(struct urb *urb)
+@@ -708,10 +687,25 @@ static void mce_async_callback(struct urb *urb)
+ 		return;
+ 
+ 	ir = urb->context;
+-	if (ir) {
++
++	switch (urb->status) {
++	/* success */
++	case 0:
+ 		len = urb->actual_length;
+ 
+ 		mceusb_dev_printdata(ir, urb->transfer_buffer, 0, len, true);
++		break;
++
++	case -ECONNRESET:
++	case -ENOENT:
++	case -EILSEQ:
++	case -ESHUTDOWN:
++		break;
++
++	case -EPIPE:
++	default:
++		dev_err(ir->dev, "Error: request urb status = %d", urb->status);
++		break;
+ 	}
+ 
+ 	/* the transfer buffer and urb were allocated in mce_request_packet */
+@@ -744,17 +738,17 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
+ 			mce_async_callback, ir, ir->usb_ep_out->bInterval);
+ 	memcpy(async_buf, data, size);
+ 
+-	mce_dbg(dev, "receive request called (size=%#x)\n", size);
++	dev_dbg(dev, "receive request called (size=%#x)", size);
+ 
+ 	async_urb->transfer_buffer_length = size;
+ 	async_urb->dev = ir->usbdev;
+ 
+ 	res = usb_submit_urb(async_urb, GFP_ATOMIC);
+ 	if (res) {
+-		mce_dbg(dev, "receive request FAILED! (res=%d)\n", res);
++		dev_err(dev, "receive request FAILED! (res=%d)", res);
+ 		return;
+ 	}
+-	mce_dbg(dev, "receive request complete (res=%d)\n", res);
++	dev_dbg(dev, "receive request complete (res=%d)", res);
+ }
+ 
+ static void mce_async_out(struct mceusb_dev *ir, unsigned char *data, int size)
+@@ -864,8 +858,7 @@ static int mceusb_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+ 			ir->carrier = carrier;
+ 			cmdbuf[2] = MCE_CMD_SIG_END;
+ 			cmdbuf[3] = MCE_IRDATA_TRAILER;
+-			mce_dbg(ir->dev, "%s: disabling carrier "
+-				"modulation\n", __func__);
++			dev_dbg(ir->dev, "disabling carrier modulation");
+ 			mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
+ 			return carrier;
+ 		}
+@@ -876,8 +869,8 @@ static int mceusb_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+ 				ir->carrier = carrier;
+ 				cmdbuf[2] = prescaler;
+ 				cmdbuf[3] = divisor;
+-				mce_dbg(ir->dev, "%s: requesting %u HZ "
+-					"carrier\n", __func__, carrier);
++				dev_dbg(ir->dev, "requesting %u HZ carrier",
++								carrier);
+ 
+ 				/* Transmit new carrier to mce device */
+ 				mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
+@@ -967,7 +960,7 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 			rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK)
+ 					 * US_TO_NS(MCE_TIME_UNIT);
+ 
+-			mce_dbg(ir->dev, "Storing %s with duration %d\n",
++			dev_dbg(ir->dev, "Storing %s with duration %d",
+ 				rawir.pulse ? "pulse" : "space",
+ 				rawir.duration);
+ 
+@@ -1001,7 +994,7 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ 			ir->parser_state = CMD_HEADER;
+ 	}
+ 	if (event) {
+-		mce_dbg(ir->dev, "processed IR data, calling ir_raw_event_handle\n");
++		dev_dbg(ir->dev, "processed IR data");
+ 		ir_raw_event_handle(ir->rc);
+ 	}
+ }
+@@ -1027,13 +1020,14 @@ static void mceusb_dev_recv(struct urb *urb)
+ 
+ 	case -ECONNRESET:
+ 	case -ENOENT:
++	case -EILSEQ:
+ 	case -ESHUTDOWN:
+ 		usb_unlink_urb(urb);
+ 		return;
+ 
+ 	case -EPIPE:
  	default:
--		return -EINVAL;
-+		ptr.p = c->p;
-+		return ctrl->type_ops->validate(ctrl, ptr);
+-		mce_dbg(ir->dev, "Error: urb status = %d\n", urb->status);
++		dev_err(ir->dev, "Error: urb status = %d", urb->status);
+ 		break;
  	}
+ 
+@@ -1055,7 +1049,7 @@ static void mceusb_gen1_init(struct mceusb_dev *ir)
+ 
+ 	data = kzalloc(USB_CTRL_MSG_SZ, GFP_KERNEL);
+ 	if (!data) {
+-		dev_err(dev, "%s: memory allocation failed!\n", __func__);
++		dev_err(dev, "%s: memory allocation failed!", __func__);
+ 		return;
+ 	}
+ 
+@@ -1066,28 +1060,28 @@ static void mceusb_gen1_init(struct mceusb_dev *ir)
+ 	ret = usb_control_msg(ir->usbdev, usb_rcvctrlpipe(ir->usbdev, 0),
+ 			      USB_REQ_SET_ADDRESS, USB_TYPE_VENDOR, 0, 0,
+ 			      data, USB_CTRL_MSG_SZ, HZ * 3);
+-	mce_dbg(dev, "%s - ret = %d\n", __func__, ret);
+-	mce_dbg(dev, "%s - data[0] = %d, data[1] = %d\n",
+-		__func__, data[0], data[1]);
++	dev_dbg(dev, "set address - ret = %d", ret);
++	dev_dbg(dev, "set address - data[0] = %d, data[1] = %d",
++						data[0], data[1]);
+ 
+ 	/* set feature: bit rate 38400 bps */
+ 	ret = usb_control_msg(ir->usbdev, usb_sndctrlpipe(ir->usbdev, 0),
+ 			      USB_REQ_SET_FEATURE, USB_TYPE_VENDOR,
+ 			      0xc04e, 0x0000, NULL, 0, HZ * 3);
+ 
+-	mce_dbg(dev, "%s - ret = %d\n", __func__, ret);
++	dev_dbg(dev, "set feature - ret = %d", ret);
+ 
+ 	/* bRequest 4: set char length to 8 bits */
+ 	ret = usb_control_msg(ir->usbdev, usb_sndctrlpipe(ir->usbdev, 0),
+ 			      4, USB_TYPE_VENDOR,
+ 			      0x0808, 0x0000, NULL, 0, HZ * 3);
+-	mce_dbg(dev, "%s - retB = %d\n", __func__, ret);
++	dev_dbg(dev, "set char length - retB = %d", ret);
+ 
+ 	/* bRequest 2: set handshaking to use DTR/DSR */
+ 	ret = usb_control_msg(ir->usbdev, usb_sndctrlpipe(ir->usbdev, 0),
+ 			      2, USB_TYPE_VENDOR,
+ 			      0x0000, 0x0100, NULL, 0, HZ * 3);
+-	mce_dbg(dev, "%s - retC = %d\n", __func__, ret);
++	dev_dbg(dev, "set handshake  - retC = %d", ret);
+ 
+ 	/* device resume */
+ 	mce_async_out(ir, DEVICE_RESUME, sizeof(DEVICE_RESUME));
+@@ -1158,7 +1152,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ 
+ 	rc = rc_allocate_device();
+ 	if (!rc) {
+-		dev_err(dev, "remote dev allocation failed\n");
++		dev_err(dev, "remote dev allocation failed");
+ 		goto out;
+ 	}
+ 
+@@ -1190,7 +1184,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ 
+ 	ret = rc_register_device(rc);
+ 	if (ret < 0) {
+-		dev_err(dev, "remote dev registration failed\n");
++		dev_err(dev, "remote dev registration failed");
+ 		goto out;
+ 	}
+ 
+@@ -1218,7 +1212,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 	bool tx_mask_normal;
+ 	int ir_intfnum;
+ 
+-	mce_dbg(&intf->dev, "%s called\n", __func__);
++	dev_dbg(&intf->dev, "%s called", __func__);
+ 
+ 	idesc  = intf->cur_altsetting;
+ 
+@@ -1246,8 +1240,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 			ep_in = ep;
+ 			ep_in->bmAttributes = USB_ENDPOINT_XFER_INT;
+ 			ep_in->bInterval = 1;
+-			mce_dbg(&intf->dev, "acceptable inbound endpoint "
+-				"found\n");
++			dev_dbg(&intf->dev, "acceptable inbound endpoint found");
+ 		}
+ 
+ 		if ((ep_out == NULL)
+@@ -1261,12 +1254,11 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 			ep_out = ep;
+ 			ep_out->bmAttributes = USB_ENDPOINT_XFER_INT;
+ 			ep_out->bInterval = 1;
+-			mce_dbg(&intf->dev, "acceptable outbound endpoint "
+-				"found\n");
++			dev_dbg(&intf->dev, "acceptable outbound endpoint found");
+ 		}
+ 	}
+ 	if (ep_in == NULL) {
+-		mce_dbg(&intf->dev, "inbound and/or endpoint not found\n");
++		dev_dbg(&intf->dev, "inbound and/or endpoint not found");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -1314,7 +1306,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 
+ 	res = usb_submit_urb(ir->urb_in, GFP_KERNEL);
+ 	if (res) {
+-		dev_err(&intf->dev, "failed to submit urb: %d\n", res);
++		dev_err(&intf->dev, "failed to submit urb: %d", res);
+ 		goto usb_submit_fail;
+ 	}
+ 
+@@ -1344,10 +1336,9 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 	device_set_wakeup_capable(ir->dev, true);
+ 	device_set_wakeup_enable(ir->dev, true);
+ 
+-	dev_info(&intf->dev, "Registered %s with mce emulator interface "
+-		 "version %x\n", name, ir->emver);
+-	dev_info(&intf->dev, "%x tx ports (0x%x cabled) and "
+-		 "%x rx sensors (0x%x active)\n",
++	dev_info(&intf->dev, "Registered %s with mce emulator interface version %x",
++		name, ir->emver);
++	dev_info(&intf->dev, "%x tx ports (0x%x cabled) and %x rx sensors (0x%x active)",
+ 		 ir->num_txports, ir->txports_cabled,
+ 		 ir->num_rxports, ir->rxports_active);
+ 
+@@ -1363,7 +1354,7 @@ urb_in_alloc_fail:
+ buf_in_alloc_fail:
+ 	kfree(ir);
+ mem_alloc_fail:
+-	dev_err(&intf->dev, "%s: device setup failed!\n", __func__);
++	dev_err(&intf->dev, "%s: device setup failed!", __func__);
+ 
+ 	return -ENOMEM;
  }
- 
-@@ -1645,6 +1739,7 @@ unlock:
- /* Add a new control */
- static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
-+			const struct v4l2_ctrl_type_ops *type_ops,
- 			u32 id, const char *name, const char *unit,
- 			enum v4l2_ctrl_type type,
- 			s64 min, s64 max, u64 step, s64 def,
-@@ -1656,6 +1751,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	unsigned sz_extra;
- 	void *data;
- 	int err;
-+	int s;
- 
- 	if (hdl->error)
- 		return NULL;
-@@ -1715,6 +1811,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	INIT_LIST_HEAD(&ctrl->ev_subs);
- 	ctrl->handler = hdl;
- 	ctrl->ops = ops;
-+	ctrl->type_ops = type_ops ? type_ops : &std_type_ops;
- 	ctrl->id = id;
- 	ctrl->name = name;
- 	ctrl->unit = unit;
-@@ -1736,19 +1833,16 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->cur.val = ctrl->val = def;
- 	data = &ctrl->stores[1];
- 
--	if (ctrl->is_string) {
--		ctrl->string = ctrl->new.p_char = data;
--		ctrl->stores[0].p_char = data + elem_size;
+@@ -1391,7 +1382,7 @@ static void mceusb_dev_disconnect(struct usb_interface *intf)
+ static int mceusb_dev_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+ 	struct mceusb_dev *ir = usb_get_intfdata(intf);
+-	dev_info(ir->dev, "suspend\n");
++	dev_info(ir->dev, "suspend");
+ 	usb_kill_urb(ir->urb_in);
+ 	return 0;
+ }
+@@ -1399,7 +1390,7 @@ static int mceusb_dev_suspend(struct usb_interface *intf, pm_message_t message)
+ static int mceusb_dev_resume(struct usb_interface *intf)
+ {
+ 	struct mceusb_dev *ir = usb_get_intfdata(intf);
+-	dev_info(ir->dev, "resume\n");
++	dev_info(ir->dev, "resume");
+ 	if (usb_submit_urb(ir->urb_in, GFP_ATOMIC))
+ 		return -EIO;
+ 	return 0;
+@@ -1421,6 +1412,3 @@ MODULE_DESCRIPTION(DRIVER_DESC);
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_LICENSE("GPL");
+ MODULE_DEVICE_TABLE(usb, mceusb_dev_table);
 -
--		if (ctrl->minimum)
--			memset(ctrl->cur.string, ' ', ctrl->minimum);
--	} else if (ctrl->is_ptr) {
-+	if (ctrl->is_ptr) {
- 		ctrl->p = ctrl->new.p = data;
- 		ctrl->stores[0].p = data + elem_size;
- 	} else {
- 		ctrl->new.p = &ctrl->val;
- 		ctrl->stores[0].p = &ctrl->cur.val;
- 	}
-+	for (s = -1; s <= 0; s++)
-+		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
-+
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
- 		return NULL;
-@@ -1793,7 +1887,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 
--	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
-+	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
- 			type, min, max,
- 			is_menu ? cfg->menu_skip_mask : step,
- 			def, cfg->elem_size,
-@@ -1821,7 +1915,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
- 			     min, max, step, def, 0,
- 			     flags, NULL, NULL, NULL);
- }
-@@ -1855,7 +1949,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
- 			     0, max, mask, def, 0,
- 			     flags, qmenu, qmenu_int, NULL);
- }
-@@ -1888,7 +1982,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
-+			     0, max, mask, def,
- 			     0, flags, qmenu, NULL, NULL);
- 
- }
-@@ -1913,7 +2008,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
- 			     0, max, 0, def, 0,
- 			     flags, NULL, qmenu_int, NULL);
- }
-@@ -2096,32 +2191,8 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 
- 	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
- 
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_INTEGER:
--		pr_cont("%d", ctrl->cur.val);
--		break;
--	case V4L2_CTRL_TYPE_BOOLEAN:
--		pr_cont("%s", ctrl->cur.val ? "true" : "false");
--		break;
--	case V4L2_CTRL_TYPE_MENU:
--		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
--		break;
--	case V4L2_CTRL_TYPE_BITMASK:
--		pr_cont("0x%08x", ctrl->cur.val);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		pr_cont("%lld", ctrl->cur.val64);
--		break;
--	case V4L2_CTRL_TYPE_STRING:
--		pr_cont("%s", ctrl->cur.string);
--		break;
--	default:
--		pr_cont("unknown type %d", ctrl->type);
--		break;
--	}
-+	ctrl->type_ops->log(ctrl);
-+
- 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
- 			   V4L2_CTRL_FLAG_GRABBED |
- 			   V4L2_CTRL_FLAG_VOLATILE)) {
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 515c1ba..aaf7333 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -67,6 +67,23 @@ struct v4l2_ctrl_ops {
- 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
- };
- 
-+/** struct v4l2_ctrl_type_ops - The control type operations that the driver has to provide.
-+  * @equal: return true if both values are equal.
-+  * @init: initialize the value.
-+  * @log: log the value.
-+  * @validate: validate the value. Return 0 on success and a negative value otherwise.
-+  */
-+struct v4l2_ctrl_type_ops {
-+	bool (*equal)(const struct v4l2_ctrl *ctrl,
-+		      union v4l2_ctrl_ptr ptr1,
-+		      union v4l2_ctrl_ptr ptr2);
-+	void (*init)(const struct v4l2_ctrl *ctrl,
-+		     union v4l2_ctrl_ptr ptr);
-+	void (*log)(const struct v4l2_ctrl *ctrl);
-+	int (*validate)(const struct v4l2_ctrl *ctrl,
-+			union v4l2_ctrl_ptr ptr);
-+};
-+
- typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
- 
- /** struct v4l2_ctrl - The control structure.
-@@ -102,6 +119,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   *		value, then the whole cluster is in manual mode. Drivers should
-   *		never set this flag directly.
-   * @ops:	The control ops.
-+  * @type_ops:	The control type ops.
-   * @id:	The control ID.
-   * @name:	The control name.
-   * @unit:	The control's unit. May be NULL.
-@@ -151,6 +169,7 @@ struct v4l2_ctrl {
- 	unsigned int manual_mode_value:8;
- 
- 	const struct v4l2_ctrl_ops *ops;
-+	const struct v4l2_ctrl_type_ops *type_ops;
- 	u32 id;
- 	const char *name;
- 	const char *unit;
-@@ -234,6 +253,7 @@ struct v4l2_ctrl_handler {
- 
- /** struct v4l2_ctrl_config - Control configuration structure.
-   * @ops:	The control ops.
-+  * @type_ops:	The control type ops. Only needed for complex controls.
-   * @id:	The control ID.
-   * @name:	The control name.
-   * @unit:	The control's unit.
-@@ -259,6 +279,7 @@ struct v4l2_ctrl_handler {
-   */
- struct v4l2_ctrl_config {
- 	const struct v4l2_ctrl_ops *ops;
-+	const struct v4l2_ctrl_type_ops *type_ops;
- 	u32 id;
- 	const char *name;
- 	const char *unit;
+-module_param(debug, bool, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(debug, "Debug enabled or not");
 -- 
-1.8.5.2
+1.8.4.2
 
