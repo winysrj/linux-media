@@ -1,51 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51342 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751739AbaANDqY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 22:46:24 -0500
-Message-ID: <52D4B30A.1020800@iki.fi>
-Date: Tue, 14 Jan 2014 05:46:18 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:47658 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750942AbaATIL3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 03:11:29 -0500
+Received: by mail-wi0-f175.google.com with SMTP id hr1so2859033wib.8
+        for <linux-media@vger.kernel.org>; Mon, 20 Jan 2014 00:11:28 -0800 (PST)
 MIME-Version: 1.0
-To: device@lanana.org
-CC: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: video4linux device name request for Software Defined Radio
-References: <52AF4257.9030000@iki.fi>
-In-Reply-To: <52AF4257.9030000@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Mon, 20 Jan 2014 09:11:28 +0100
+Message-ID: <CAENiEt-OA==jH_tA4HBP68RW3vGga99dpuFE+Zx7=QNYBqeC5A@mail.gmail.com>
+Subject: [PATCH] Added bayer 8-bit patterns to uvcvideo
+From: Edgar Thier <info@edgarthier.net>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi device manager,
+Add bayer 8-bit GUIDs to uvcvideo and
+associate them with the corresponding V4L2 pixel formats.
 
-On 16.12.2013 20:11, Antti Palosaari wrote:
-> Hello,
->
-> We need new video4linux device name for Software Defined Radio devices.
-> Device numbers are allocated dynamically. Desired device name was
-> /dev/sdr, but as it seems to be already reserved, it was made decision
-> to apply /dev/swradio instead.
->
->
-> 81 char    video4linux
-> /dev/swradio0    Software Defined Radio device
+Signed-off-by: Edgar Thier <info@edgarthier.net>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 22 +++++++++++++++++++++-
+ drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
+ 2 files changed, 33 insertions(+), 1 deletion(-)
 
-  81 char	video4linux
-		  0 = /dev/swradio0	Software Defined Radio device
-		  1 = /dev/swradio1	Software Defined Radio device
-		    ...
-
-
-Resending device name request. Should I expect it is OK to add that 
-device name even without a ack from manager?
-
-
-regards
-Antti
-
+diff --git a/drivers/media/usb/uvc/uvc_driver.c
+b/drivers/media/usb/uvc/uvc_driver.c
+index c3bb250..84da426 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -108,11 +108,31 @@ static struct uvc_format_desc uvc_fmts[] = {
+         .fcc        = V4L2_PIX_FMT_Y16,
+     },
+     {
+-        .name        = "RGB Bayer",
++        .name        = "RGB Bayer (bggr)",
+         .guid        = UVC_GUID_FORMAT_BY8,
+         .fcc        = V4L2_PIX_FMT_SBGGR8,
+     },
+     {
++        .name        = "RGB Bayer (bggr)",
++        .guid        = UVC_GUID_FORMAT_BY8_BA81,
++        .fcc        = V4L2_PIX_FMT_SBGGR8,
++    },
++    {
++        .name        = "RGB Bayer (grbg)",
++        .guid        = UVC_GUID_FORMAT_BY8_GRBG,
++        .fcc        = V4L2_PIX_FMT_SGRBG8,
++    },
++    {
++        .name        = "RGB Bayer (gbrg)",
++        .guid        = UVC_GUID_FORMAT_BY8_GBRG,
++        .fcc        = V4L2_PIX_FMT_SGBRG8,
++    },
++    {
++        .name        = "RGB Bayer (rggb)",
++        .guid        = UVC_GUID_FORMAT_BY8_RGGB,
++        .fcc        = V4L2_PIX_FMT_SRGGB8,
++    },
++    {
+         .name        = "RGB565",
+         .guid        = UVC_GUID_FORMAT_RGBP,
+         .fcc        = V4L2_PIX_FMT_RGB565,
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 9e35982..57357d9 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -94,6 +94,18 @@
+ #define UVC_GUID_FORMAT_BY8 \
+     { 'B',  'Y',  '8',  ' ', 0x00, 0x00, 0x10, 0x00, \
+      0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_BY8_BA81 \
++    { 'B',  'A',  '8',  '1', 0x00, 0x00, 0x10, 0x00, \
++     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_BY8_GRBG \
++    { 'G',  'R',  'B',  'G', 0x00, 0x00, 0x10, 0x00, \
++     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_BY8_GBRG \
++    { 'G',  'B',  'R',  'G', 0x00, 0x00, 0x10, 0x00, \
++     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_BY8_RGGB \
++    { 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
++     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+ #define UVC_GUID_FORMAT_RGBP \
+     { 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
+      0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
 -- 
-http://palosaari.fi/
+1.8.5.3
