@@ -1,42 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:40622 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbaAMMsY (ORCPT
+Received: from avasout05.plus.net ([84.93.230.250]:54718 "EHLO
+	avasout05.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751994AbaATSyq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 07:48:24 -0500
-Received: by mail-ie0-f181.google.com with SMTP id at1so191249iec.40
-        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 04:48:24 -0800 (PST)
+	Mon, 20 Jan 2014 13:54:46 -0500
+Message-ID: <52DD70F3.8000908@fnxweb.com>
+Date: Mon, 20 Jan 2014 18:54:43 +0000
+From: Neil Bird <gnome@fnxweb.com>
 MIME-Version: 1.0
-In-Reply-To: <20140113090208.0437013b@samsung.com>
-References: <CAGfcS_=jvT5ExkkXiXjzmwR4DgXogM59rwrLhRMLeHe=LRAYjA@mail.gmail.com>
-	<20140113090208.0437013b@samsung.com>
-Date: Mon, 13 Jan 2014 07:48:24 -0500
-Message-ID: <CAGfcS_kXyFgoFgpLx8d3_PFKc4mxYFvQhycTQ=18scTsXbyokg@mail.gmail.com>
-Subject: Re: Issue with 3.12.5/7 and CX23880/1/2/3 DVB Card
-From: Rich Freeman <rich0@gentoo.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Steven Toth <stoth@kernellabs.com>
+CC: Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: Problem getting sensible video out of Hauppauge HVR-1100 composite
+References: <52DC04E8.8020406@fnxweb.com>	<CALzAhNWjweoydgDHpU+nJRQYYTRGkreE2v0ZYBgNS3a-yGYY8A@mail.gmail.com>	<52DD6A48.8000003@fnxweb.com>	<CALzAhNVY9SSB_7c57RuN5ZSo6hqfMiq1tBVLzBmvznY9h7dd6g@mail.gmail.com>	<52DD6D2E.2040900@fnxweb.com> <CALzAhNUD-30=yoZh3rUUMka2KX83_8K4c+StYicHUoHh5019gw@mail.gmail.com>
+In-Reply-To: <CALzAhNUD-30=yoZh3rUUMka2KX83_8K4c+StYicHUoHh5019gw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 13, 2014 at 6:02 AM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> Em Sun, 12 Jan 2014 16:26:41 -0500
-> Rich Freeman <rich0@gentoo.org> escreveu:
->
->> I noticed that you authored commit
->> 19496d61f3962fd6470b106b779eddcdbe823c9b, which replaced a dynamic
->> buffer with a static one when sending data to the card.
->
-> Can you please try the following patch?
->
-> nxt200x: increase write buffer size
+Around about 20/01/14 18:46, Steven Toth scribbled ...
+> I'd backport the HVR2200 driver into 2.6.32 (it may already exist with
+> analog features in .32 btw) and go with a 2200.
 
-After applying your patch to 3.12.7 (from the git tag) the firmware
-loads without any warnings, and the card operates normally.  I think
-that did the trick.
+   Hah, not my first choice :)
 
-Thanks for the prompt response!
-
-Rich
+-- 
+[phoenix@fnx ~]# rm -f .signature
+[phoenix@fnx ~]# ls -l .signature
+ls: .signature: No such file or directory
+[phoenix@fnx ~]# exit
