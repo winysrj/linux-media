@@ -1,77 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:27547 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115AbaAENZ6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 08:25:58 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MYX0030JJZ9M050@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Sun, 05 Jan 2014 08:25:57 -0500 (EST)
-Date: Sun, 05 Jan 2014 11:25:52 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 06/22] [media] em28xx: add warn messages for timeout
-Message-id: <20140105112552.29d73485@samsung.com>
-In-reply-to: <52C93940.5060402@googlemail.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
- <1388832951-11195-7-git-send-email-m.chehab@samsung.com>
- <52C93940.5060402@googlemail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2744 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753020AbaATMqt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 07:46:49 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 10/21] v4l2-ctrls: compare values only once.
+Date: Mon, 20 Jan 2014 13:46:03 +0100
+Message-Id: <1390221974-28194-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 05 Jan 2014 11:51:44 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
-> > changeset 45f04e82d035 added a logic to check if em28xx got
-> > a timeout on an I2C transfer.
-> >
-> > That patch started to produce a series of errors that is present
-> > with HVR-950, like:
-> >
-> > [ 4032.218656] xc2028 19-0061: Error on line 1299: -19
-> >
-> > However, as there are several places where -ENODEV is produced,
-> > there's no way to know what's happening.
-> >
-> > So, let's add a printk to report what error condition was reached:
-> >
-> > [ 4032.218652] em2882/3 #0: I2C transfer timeout on writing to addr 0xc2
-> > [ 4032.218656] xc2028 19-0061: Error on line 1299: -19
-> >
-> > Interesting enough, when connected to an USB3 port, the number of
-> > errors increase:
-> >
-> > [ 4249.941375] em2882/3 #0: I2C transfer timeout on writing to addr 0xb8
-> > [ 4249.941378] tvp5150 19-005c: i2c i/o error: rc == -19 (should be 2)
-> > [ 4250.023854] em2882/3 #0: I2C transfer timeout on writing to addr 0xc2
-> > [ 4250.023857] xc2028 19-0061: Error on line 1299: -19
-> >
-> > Due to that, I suspect that the logic in the driver is wrong: instead
-> > of just returning an error if 0x10 is returned, it should be waiting for
-> > a while and read the I2C status register again.
-> >
-> > However, more tests are needed.
-> The patch description isn't up-to-date.
-> It turned out that the bug is in the xc2028 driver.
-> 
-> See
-> http://www.spinics.net/lists/linux-media/msg71107.html
+When setting a control the control's new value is compared to the current
+value twice: once by new_to_cur(), once by cluster_changed(). Not a big
+deal when dealing with simple values, but it can be a problem when dealing
+with compound types or matrices. So fix this: cluster_changed() sets the
+has_changed flag, which is used by new_to_cur() instead of having to do
+another compare.
 
-In time, I'll update the description.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 17 +++++++++++------
+ include/media/v4l2-ctrls.h           |  3 +++
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
-I'll work on the xc2028 driver to fix it. It seems better than applying
-a hack there. I prefer to not remove the code that puts it in power down
-mode, as some em28xx devices are known to have power heat problems.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c0507ed..2eb5b65 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1386,8 +1386,11 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
+ 
+ 	if (ctrl == NULL)
+ 		return;
+-	changed = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
+-	ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
++
++	/* has_changed is set by cluster_changed */
++	changed = ctrl->has_changed;
++	if (changed)
++		ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
+ 
+ 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
+ 		/* Note: CH_FLAGS is only set for auto clusters. */
+@@ -1424,17 +1427,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
+    value that differs from the current value. */
+ static int cluster_changed(struct v4l2_ctrl *master)
+ {
+-	int diff = 0;
++	bool changed = false;
+ 	int i;
+ 
+-	for (i = 0; !diff && i < master->ncontrols; i++) {
++	for (i = 0; i < master->ncontrols; i++) {
+ 		struct v4l2_ctrl *ctrl = master->cluster[i];
+ 
+ 		if (ctrl == NULL)
+ 			continue;
+-		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
++		ctrl->has_changed = !ctrl->type_ops->equal(ctrl,
++						ctrl->stores[0], ctrl->new);
++		changed |= ctrl->has_changed;
+ 	}
+-	return diff;
++	return changed;
+ }
+ 
+ /* Control range checking */
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 8e7fd44..fb3aaf9 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -96,6 +96,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   * @is_new:	Set when the user specified a new value for this control. It
+   *		is also set when called from v4l2_ctrl_handler_setup. Drivers
+   *		should never set this flag.
++  * @has_changed: Set when the current value differs from the new value. Drivers
++  *		should never use this flag.
+   * @is_private: If set, then this control is private to its handler and it
+   *		will not be added to any other handlers. Drivers can set
+   *		this flag.
+@@ -159,6 +161,7 @@ struct v4l2_ctrl {
+ 	unsigned int done:1;
+ 
+ 	unsigned int is_new:1;
++	unsigned int has_changed:1;
+ 	unsigned int is_private:1;
+ 	unsigned int is_auto:1;
+ 	unsigned int is_int:1;
+-- 
+1.8.5.2
 
-So, keeping xc3028 energized can reduce a lot its lifetime on such
-devices.
-
-Regards,
-Mauro
