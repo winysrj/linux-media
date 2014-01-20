@@ -1,76 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:40854 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751099AbaAFNAK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 08:00:10 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:60810 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669AbaATTIt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 14:08:49 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MYZ00BY4DG9FU40@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 06 Jan 2014 08:00:09 -0500 (EST)
-Date: Mon, 06 Jan 2014 11:00:04 -0200
+ 17 2011)) with ESMTP id <0MZP00MGXRUN7T80@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Jan 2014 14:08:47 -0500 (EST)
+Date: Mon, 20 Jan 2014 17:08:42 -0200
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] xc2028: disable device power-down because power state
- handling is broken
-Message-id: <20140106110004.041e4fe6@samsung.com>
-In-reply-to: <1388410678-12641-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1388410678-12641-1-git-send-email-fschaefer.oss@googlemail.com>
+To: "=?UTF-8?B?Sm/Do28=?= M. S. Silva" <joao.m.santos.silva@gmail.com>
+Cc: v4l2-library@linuxtv.org, LMML <linux-media@vger.kernel.org>
+Subject: Re: [V4l2-library] Valgrind error
+Message-id: <20140120170842.3ee39cce@samsung.com>
+In-reply-to: <CAAv-bCyHxjKvbhBRoALOiLis4OGvqPaxuwWqgavbTA+ofj6wmA@mail.gmail.com>
+References: <CAAv-bCyHxjKvbhBRoALOiLis4OGvqPaxuwWqgavbTA+ofj6wmA@mail.gmail.com>
 MIME-version: 1.0
 Content-type: text/plain; charset=UTF-8
 Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Dec 2013 14:37:58 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Hi João,
 
-> xc2028 power state handling is broken.
-> I2C read/write operations fail when the device is powered down at that moment,
-> which causes the get_rf_strength and get_rf_strength callbacks (and probably
-> others, too) to fail.
-> I don't know how to fix this properly, so disable the device power-down until
-> anyone comes up with a better solution.
+Better to report it to linux-media@vger.kernel.org, as I suspect that almost
+nobody is using v4l2-library anymore.
+
+Regards,
+Mauro
+
+Em Mon, 20 Jan 2014 16:24:36 +0000
+João M. S. Silva <joao.m.santos.silva@gmail.com> escreveu:
+
+> Hi,
 > 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/tuners/tuner-xc2028.c |    4 +++-
->  1 Datei geändert, 3 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+> I faced the Valgrind error described in
+> https://bugs.launchpad.net/ubuntu/+source/libv4l/+bug/432477 and
+> reported it: https://bugs.kde.org/show_bug.cgi?id=330180
 > 
-> diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-> index 4be5cf8..cb3dc5e 100644
-> --- a/drivers/media/tuners/tuner-xc2028.c
-> +++ b/drivers/media/tuners/tuner-xc2028.c
-> @@ -1291,16 +1291,18 @@ static int xc2028_sleep(struct dvb_frontend *fe)
->  		dump_stack();
->  	}
->  
-> +	/* FIXME: device power-up/-down handling is broken */
-> +/*
->  	mutex_lock(&priv->lock);
->  
->  	if (priv->firm_version < 0x0202)
->  		rc = send_seq(priv, {0x00, XREG_POWER_DOWN, 0x00, 0x00});
->  	else
->  		rc = send_seq(priv, {0x80, XREG_POWER_DOWN, 0x00, 0x00});
-> -
->  	priv->state = XC2028_SLEEP;
->  
->  	mutex_unlock(&priv->lock);
-> +*/
+> But then I also tried v4l version 1.0.1 and it seems to me that the
+> above mentioned error was corrected, but another exists:
+> 
+> ==15368== Syscall param ioctl(generic) points to uninitialised byte(s)
+> ==15368==    at 0x439EFB7: syscall (syscall.S:30)
+> ==15368==    by 0x4488F52: dev_ioctl (libv4lconvert.c:43)
+> ==15368==    by 0x44A0BF1: v4lcontrol_create (libv4lcontrol.c:591)
+> ==15368==    by 0x44897FF: v4lconvert_create_with_dev_ops (libv4lconvert.c:217)
+> ==15368==    by 0x4037BDF: v4l2_fd_open (libv4l2.c:666)
+> ==15368==    by 0x42CB904: (below main) (libc-start.c:260)
+> ==15368==  Address 0xbe8c5bc4 is on thread 1's stack
+> ==15368==  Uninitialised value was created by a stack allocation
+> ==15368==    at 0x44A0161: v4lcontrol_create (libv4lcontrol.c:566)
+> ==15368==
+> ==15368== Syscall param ioctl(generic) points to uninitialised byte(s)
+> ==15368==    at 0x439EFB7: syscall (syscall.S:30)
+> ==15368==    by 0x4488F52: dev_ioctl (libv4lconvert.c:43)
+> ==15368==    by 0x44A02D9: v4lcontrol_create (libv4lcontrol.c:630)
+> ==15368==    by 0x44897FF: v4lconvert_create_with_dev_ops (libv4lconvert.c:217)
+> ==15368==    by 0x4037BDF: v4l2_fd_open (libv4l2.c:666)
+> ==15368==    by 0x42CB904: (below main) (libc-start.c:260)
+> ==15368==  Address 0xbe8c6018 is on thread 1's stack
+> ==15368==  Uninitialised value was created by a stack allocation
+> ==15368==    at 0x44A0161: v4lcontrol_create (libv4lcontrol.c:566)
+> 
+> Is this correct?
+> 
+> Thanks.
+> 
 
-This patch is completely broken.
 
-First of all, there are both modprobe and config parameters that disables
-the poweroff mode.
-
-Second, it doesn't fix the bug, just hides it.
-
-Third, it keeps the xc3028 energized, with spends power and heats the
-device, with reduces its lifetime.
-
-I'm working on a proper fix for it.
+-- 
 
 Cheers,
 Mauro
