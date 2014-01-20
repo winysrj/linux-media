@@ -1,84 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51592 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752307AbaAYRLC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:02 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2196 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753304AbaATMqw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jan 2014 07:46:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/52] rtl2832: remove unused if_dvbt config parameter
-Date: Sat, 25 Jan 2014 19:10:04 +0200
-Message-Id: <1390669846-8131-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 21/21] v4l2-controls.txt: update to the new way of accessing controls.
+Date: Mon, 20 Jan 2014 13:46:14 +0100
+Message-Id: <1390221974-28194-22-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All used tuners has get_if_frequency() callback and that parameter
-is not needed and will not needed as all upcoming tuner drivers
-should implement get_if_frequency().
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The way current and new values are accessed has changed. Update the
+document to bring it up to date with the code.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/rtl2832.c   | 6 ------
- drivers/media/dvb-frontends/rtl2832.h   | 7 -------
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 --
- 3 files changed, 15 deletions(-)
+ Documentation/video4linux/v4l2-controls.txt | 46 +++++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index ff73da9..61d4ecb 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -514,12 +514,6 @@ static int rtl2832_init(struct dvb_frontend *fe)
- 			goto err;
- 	}
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 1c353c2..f94dcfd 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -77,9 +77,9 @@ Basic usage for V4L2 and sub-device drivers
  
--	if (!fe->ops.tuner_ops.get_if_frequency) {
--		ret = rtl2832_set_if(fe, priv->cfg.if_dvbt);
--		if (ret)
--			goto err;
--	}
--
- 	/*
- 	 * r820t NIM code does a software reset here at the demod -
- 	 * may not be needed, as there's already a software reset at set_params()
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index 2cfbb6a..e543081 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -38,13 +38,6 @@ struct rtl2832_config {
- 	u32 xtal;
+   Where foo->v4l2_dev is of type struct v4l2_device.
  
- 	/*
--	 * IFs for all used modes.
--	 * Hz
--	 * 4570000, 4571429, 36000000, 36125000, 36166667, 44000000
--	 */
--	u32 if_dvbt;
--
--	/*
- 	 * tuner
- 	 * XXX: This must be keep sync with dvb_usb_rtl28xxu demod driver.
- 	 */
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index c0e651a..6a5eb0f 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -587,14 +587,12 @@ err:
- static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
--	.if_dvbt = 0,
- 	.tuner = TUNER_RTL2832_FC0012
- };
+-  Finally, remove all control functions from your v4l2_ioctl_ops:
+-  vidioc_queryctrl, vidioc_querymenu, vidioc_g_ctrl, vidioc_s_ctrl,
+-  vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
++  Finally, remove all control functions from your v4l2_ioctl_ops (if any):
++  vidioc_queryctrl, vidioc_query_ext_ctrl, vidioc_querymenu, vidioc_g_ctrl,
++  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
+   Those are now no longer needed.
  
- static const struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
--	.if_dvbt = 0,
- 	.tuner = TUNER_RTL2832_FC0013
- };
+ 1.3.2) For sub-device drivers do this:
+@@ -258,8 +258,8 @@ The new control value has already been validated, so all you need to do is
+ to actually update the hardware registers.
  
+ You're done! And this is sufficient for most of the drivers we have. No need
+-to do any validation of control values, or implement QUERYCTRL/QUERYMENU. And
+-G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
++to do any validation of control values, or implement QUERYCTRL, QUERY_EXT_CTRL
++and QUERYMENU. And G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
+ 
+ 
+ ==============================================================================
+@@ -288,24 +288,40 @@ of v4l2_device.
+ Accessing Control Values
+ ========================
+ 
+-The v4l2_ctrl struct contains these two unions:
++The following union is used inside the control framework to access control
++values:
+ 
+-	/* The current control value. */
+-	union {
+-		s32 val;
+-		s64 val64;
+-		char *string;
+-	} cur;
++union v4l2_ctrl_ptr {
++	s32 *p_s32;
++	s64 *p_s64;
++	char *p_char;
++	void *p;
++};
++
++The v4l2_ctrl struct contains these fields that can be used to access both
++current and new values:
+ 
+-	/* The new control value. */
+ 	union {
+ 		s32 val;
+ 		s64 val64;
+-		char *string;
+ 	};
++	union v4l2_ctrl_ptr new;
++	union v4l2_ctrl_ptr cur;
++
++If the control has a simple s32 type or s64 type, then:
++
++	&ctrl->val == ctrl->new.p_s32
++
++or:
++
++	&ctrl->val64 == ctrl->new.p_s64
++
++For all other types use ctrl->new.p<something> instead of ctrl->val/val64.
++Basically the val and val64 fields can be considered aliases since these
++are used so often.
+ 
+ Within the control ops you can freely use these. The val and val64 speak for
+-themselves. The string pointers point to character buffers of length
++themselves. The p_char pointers point to character buffers of length
+ ctrl->maximum + 1, and are always 0-terminated.
+ 
+ In most cases 'cur' contains the current cached control value. When you create
 -- 
-1.8.5.3
+1.8.5.2
 
