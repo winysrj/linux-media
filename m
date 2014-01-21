@@ -1,108 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:40189 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932523AbaAHWNJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 17:13:09 -0500
-Received: by mail-ea0-f177.google.com with SMTP id n15so1090067ead.8
-        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 14:13:08 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 1/2] libdvbv5: fix reading multisection tables
-Date: Wed,  8 Jan 2014 23:12:46 +0100
-Message-Id: <1389219167-23293-1-git-send-email-neolynx@gmail.com>
+Received: from pequod.mess.org ([80.229.237.210]:54638 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754448AbaAUM22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jan 2014 07:28:28 -0500
+Date: Tue, 21 Jan 2014 12:28:26 +0000
+From: Sean Young <sean@mess.org>
+To: Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
+Message-ID: <20140121122826.GA25490@pequod.mess.org>
+References: <20140115173559.7e53239a@samsung.com>
+ <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Unfortunately the section ids are not granted to be incremented by one.
-This means the last section id is not necessarily equal to the total
-number of sections. The only way to know if everything has been parsed, is
-to stop when a repeating section id has been found.
+On Mon, Jan 20, 2014 at 09:39:43PM +0200, Antti Sepp‰l‰ wrote:
+> This patch series introduces a simple sysfs file interface for reading
+> and writing wakeup scancodes to rc drivers.
+> 
+> This is an improved version of my previous patch for nuvoton-cir which
+> did the same thing via module parameters. This is a more generic
+> approach allowing other drivers to utilize the interface as well.
+> 
+> I did not port winbond-cir to this method of wakeup scancode setting yet
+> because I don't have the hardware to test it and I wanted first to get
+> some comments about how the patch series looks. I did however write a
+> simple support to read and write scancodes to rc-loopback module.
 
-The sections do not need to contain the same table id. In EIT for example,
-the id designates the corresponding service.
-Thus, allow the table id to differ.
+Doesn't the nuvoton-cir driver need to know the IR protocol for wakeup?
 
-Signed-off-by: Andr√© Roth <neolynx@gmail.com>
----
- lib/libdvbv5/dvb-scan.c | 29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+This is needed for winbond-cir; I guess this should be another sysfs
+file, something like "wakeup_protocol". Even if the nuvoton can only
+handle one IR protocol, maybe it should be exported (readonly) via
+sysfs?
 
-diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
-index e69d852..95219fa 100644
---- a/lib/libdvbv5/dvb-scan.c
-+++ b/lib/libdvbv5/dvb-scan.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2011-2012 - Mauro Carvalho Chehab <mchehab@redhat.com>
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -97,9 +98,12 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
- 	uint8_t *buf = NULL;
- 	uint8_t *tbl = NULL;
- 	ssize_t table_length = 0;
-+
-+	/* variables for section handling */
-+	int start_id = -1;
-+	int start_section = -1;
- 	int first_section = -1;
- 	int last_section = -1;
--	int table_id = -1;
- 	int sections = 0;
- 	struct dmx_sct_filter_params f;
- 	struct dvb_table_header *h;
-@@ -186,24 +190,25 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
- 
- 		h = (struct dvb_table_header *)buf;
- 		dvb_table_header_init(h);
-+
-+		if (start_id == h->id && start_section == h->section_id) {
-+			dvb_logdbg( "dvb_read_section: section repeated, reading done" );
-+			break;
-+		}
-+		if (start_id == -1) start_id = h->id;
-+		if (start_section == -1) start_section = h->section_id;
-+
- 		if (id != -1 && h->id != id) { /* search for a specific table id */
- 			continue;
--		} else {
--			if (table_id == -1)
--				table_id = h->id;
--			else if (h->id != table_id) {
--				dvb_logwarn("dvb_read_section: table ID mismatch reading multi section table: %d != %d", h->id, table_id);
--				continue;
--			}
- 		}
- 
- 		/* handle the sections */
- 		if (first_section == -1)
- 			first_section = h->section_id;
--		else if (h->section_id == first_section)
-+		else if (start_id == h->id && h->section_id == first_section)
- 			break;
- 
--		if (last_section == -1)
-+		if (last_section == -1 || h->last_section > last_section)
- 			last_section = h->last_section;
- 
- 		if (!tbl) {
-@@ -229,8 +234,10 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
- 		else
- 			dvb_logerr("dvb_read_section: no initializer for table %d", tid);
- 
--		if (++sections == last_section + 1)
-+		if (id != -1 && ++sections == last_section + 1) {
-+			dvb_logerr("dvb_read_section: read more sections than last section id: %d / %d", sections, last_section);
- 			break;
-+		}
- 	}
- 	free(buf);
- 
--- 
-1.8.3.2
+I'm happy to help with a winbond-cir implementation; I have the hardware.
 
+
+Sean
