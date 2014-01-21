@@ -1,111 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1709 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752698AbaAVDfq (ORCPT
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:42585 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751859AbaAUCnQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jan 2014 22:35:46 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0M3ZhGt053267
-	for <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 04:35:45 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 863252A00A2
-	for <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 04:35:31 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 20 Jan 2014 21:43:16 -0500
+Received: by mail-pb0-f52.google.com with SMTP id jt11so5691560pbb.39
+        for <linux-media@vger.kernel.org>; Mon, 20 Jan 2014 18:43:15 -0800 (PST)
+Message-ID: <52DDDEBF.1090603@gmail.com>
+Date: Tue, 21 Jan 2014 10:43:11 +0800
+From: KS Ng - dmbth <hk.dmbth@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140122033531.863252A00A2@tschai.lan>
-Date: Wed, 22 Jan 2014 04:35:31 +0100 (CET)
+Subject: Patch for max2165.c to correct invalid max frequency
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Dear Maintainers,
 
-Results of the daily build of media_tree:
+I would like to request for a patch as captioned below to correct the 
+invalid max. frequency as currently set in max2165.c. It's resulting in 
+a new TV channel using frequency 802MHz not receivable. I've tested it 
+OK for my dvb adapter.
 
-date:		Wed Jan 22 04:02:12 CET 2014
-git branch:	test
-git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Thanks,
+K.S. Ng
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+diff -r -u a/linux/drivers/media/tuners/max2165.c 
+b/linux/drivers/media/tuners/max2165.c
+--- a/linux/drivers/media/tuners/max2165.c    2014-01-17 
+08:46:25.000000000 +0800
++++ b/linux/drivers/media/tuners/max2165.c    2014-01-17 
+08:47:06.000000000 +0800
+@@ -385,7 +385,7 @@
+      .info = {
+          .name           = "Maxim MAX2165",
+          .frequency_min  = 470000000,
+-        .frequency_max  = 780000000,
++        .frequency_max  = 868000000,
+          .frequency_step =     50000,
+      },
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
