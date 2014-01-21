@@ -1,71 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:58228 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbaANIfr (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:54376 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923AbaAUFVL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jan 2014 03:35:47 -0500
-Message-ID: <52D4F6BA.9010802@canonical.com>
-Date: Tue, 14 Jan 2014 09:35:06 +0100
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Colin Cross <ccross@google.com>
-CC: lkml <linux-kernel@vger.kernel.org>,
-	"open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	robdclark@gmail.com,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	daniel@ffwll.ch, Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/7] sched: allow try_to_wake_up to be used internally
- outside of core.c
-References: <20140113122818.20574.34710.stgit@patser>	<20140113123126.20574.74329.stgit@patser> <CAMbhsRTBSzAsBke0H4cwJMUe4449KbD6cvyLuNV4ijx0L+czFw@mail.gmail.com>
-In-Reply-To: <CAMbhsRTBSzAsBke0H4cwJMUe4449KbD6cvyLuNV4ijx0L+czFw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Tue, 21 Jan 2014 00:21:11 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2] media: i2c: mt9p031: Check return value of clk_prepare_enable/clk_set_rate
+Date: Tue, 21 Jan 2014 10:50:57 +0530
+Message-Id: <1390281657-7185-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-op 13-01-14 19:50, Colin Cross schreef:
-> On Mon, Jan 13, 2014 at 4:31 AM, Maarten Lankhorst
-> <maarten.lankhorst@canonical.com> wrote:
->> The kernel fence implementation doesn't use event queues, but needs
->> to perform the same wake up. The symbol is not exported, since the
->> fence implementation is not built as a module.
->>
->> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
->> ---
->>  include/linux/wait.h |    1 +
->>  kernel/sched/core.c  |    2 +-
->>  2 files changed, 2 insertions(+), 1 deletion(-)
->>
->> diff --git a/include/linux/wait.h b/include/linux/wait.h
->> index eaa00b10abaa..c54e3ef50134 100644
->> --- a/include/linux/wait.h
->> +++ b/include/linux/wait.h
->> @@ -12,6 +12,7 @@
->>  typedef struct __wait_queue wait_queue_t;
->>  typedef int (*wait_queue_func_t)(wait_queue_t *wait, unsigned mode, int flags, void *key);
->>  int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key);
->> +int try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags);
->>
->>  struct __wait_queue {
->>         unsigned int            flags;
->> diff --git a/kernel/sched/core.c b/kernel/sched/core.c
->> index a88f4a485c5e..f41d317042dd 100644
->> --- a/kernel/sched/core.c
->> +++ b/kernel/sched/core.c
->> @@ -1578,7 +1578,7 @@ static void ttwu_queue(struct task_struct *p, int cpu)
->>   * Return: %true if @p was woken up, %false if it was already running.
->>   * or @state didn't match @p's state.
->>   */
->> -static int
->> +int
->>  try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
->>  {
->>         unsigned long flags;
->>
-> wake_up_state is already available in linux/sched.h, can you use that?
->
-Indeed! Thanks for the catch.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-~Maarten
+clk_set_rate(), clk_prepare_enable() functions can fail, so check the return
+values to avoid surprises.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ Changes for v2:
+ 1: Called regulator_bulk_disable() in the error path
+ 
+ drivers/media/i2c/mt9p031.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index e5ddf47..05278f5 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -222,12 +222,15 @@ static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
+ 
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+ 	struct mt9p031_platform_data *pdata = mt9p031->pdata;
++	int ret;
+ 
+ 	mt9p031->clk = devm_clk_get(&client->dev, NULL);
+ 	if (IS_ERR(mt9p031->clk))
+ 		return PTR_ERR(mt9p031->clk);
+ 
+-	clk_set_rate(mt9p031->clk, pdata->ext_freq);
++	ret = clk_set_rate(mt9p031->clk, pdata->ext_freq);
++	if (ret < 0)
++		return ret;
+ 
+ 	mt9p031->pll.ext_clock = pdata->ext_freq;
+ 	mt9p031->pll.pix_clock = pdata->target_freq;
+@@ -286,8 +289,14 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
+ 		return ret;
+ 
+ 	/* Emable clock */
+-	if (mt9p031->clk)
+-		clk_prepare_enable(mt9p031->clk);
++	if (mt9p031->clk) {
++		ret = clk_prepare_enable(mt9p031->clk);
++		if (ret) {
++			regulator_bulk_disable(ARRAY_SIZE(mt9p031->regulators),
++					       mt9p031->regulators);
++			return ret;
++		}
++	}
+ 
+ 	/* Now RESET_BAR must be high */
+ 	if (gpio_is_valid(mt9p031->reset)) {
+-- 
+1.7.9.5
+
