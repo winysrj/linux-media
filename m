@@ -1,91 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57780 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750778AbaAWVJL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 16:09:11 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [REVIEW PATCH 04/13] v4l: add stream format for SDR receiver
-Date: Thu, 23 Jan 2014 23:08:44 +0200
-Message-Id: <1390511333-25837-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1390511333-25837-1-git-send-email-crope@iki.fi>
-References: <1390511333-25837-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60477 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754099AbaAULSN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jan 2014 06:18:13 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2] media: i2c: mt9p031: Check return value of clk_prepare_enable/clk_set_rate
+Date: Tue, 21 Jan 2014 12:18:58 +0100
+Message-ID: <4346570.zM53heUM7x@avalon>
+In-Reply-To: <1390281657-7185-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1390281657-7185-1-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new V4L2 stream format definition, V4L2_BUF_TYPE_SDR_CAPTURE,
-for SDR receiver.
+Hi Prabhakar,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
- include/trace/events/v4l2.h          |  1 +
- include/uapi/linux/videodev2.h       | 11 +++++++++++
- 3 files changed, 13 insertions(+)
+Thank you for the patch.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 15ab349..9a2acaf 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -152,6 +152,7 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY] = "vid-out-overlay",
- 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
-+	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
- };
- EXPORT_SYMBOL(v4l2_type_names);
- 
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-index ef94eca..b9bb1f2 100644
---- a/include/trace/events/v4l2.h
-+++ b/include/trace/events/v4l2.h
-@@ -18,6 +18,7 @@
- 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY, "VIDEO_OUTPUT_OVERLAY" },\
- 		{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" },\
- 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" }, \
-+		{ V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" },         \
- 		{ V4L2_BUF_TYPE_PRIVATE,	      "PRIVATE" })
- 
- #define show_field(field)						\
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1cf2076..27bed7c 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -139,6 +139,7 @@ enum v4l2_buf_type {
- #endif
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
-+	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -1695,6 +1696,15 @@ struct v4l2_pix_format_mplane {
- } __attribute__ ((packed));
- 
- /**
-+ * struct v4l2_format_sdr - SDR format definition
-+ * @pixelformat:	little endian four character code (fourcc)
-+ */
-+struct v4l2_format_sdr {
-+	__u32				pixelformat;
-+	__u8				reserved[28];
-+} __attribute__ ((packed));
-+
-+/**
-  * struct v4l2_format - stream data format
-  * @type:	enum v4l2_buf_type; type of the data stream
-  * @pix:	definition of an image format
-@@ -1712,6 +1722,7 @@ struct v4l2_format {
- 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
- 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
- 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-+		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
- 		__u8	raw_data[200];                   /* user-defined */
- 	} fmt;
- };
+On Tuesday 21 January 2014 10:50:57 Prabhakar Lad wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> clk_set_rate(), clk_prepare_enable() functions can fail, so check the return
+> values to avoid surprises.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree.
+
+> ---
+>  Changes for v2:
+>  1: Called regulator_bulk_disable() in the error path
+> 
+>  drivers/media/i2c/mt9p031.c |   15 ++++++++++++---
+>  1 file changed, 12 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+> index e5ddf47..05278f5 100644
+> --- a/drivers/media/i2c/mt9p031.c
+> +++ b/drivers/media/i2c/mt9p031.c
+> @@ -222,12 +222,15 @@ static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
+> 
+>  	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+>  	struct mt9p031_platform_data *pdata = mt9p031->pdata;
+> +	int ret;
+> 
+>  	mt9p031->clk = devm_clk_get(&client->dev, NULL);
+>  	if (IS_ERR(mt9p031->clk))
+>  		return PTR_ERR(mt9p031->clk);
+> 
+> -	clk_set_rate(mt9p031->clk, pdata->ext_freq);
+> +	ret = clk_set_rate(mt9p031->clk, pdata->ext_freq);
+> +	if (ret < 0)
+> +		return ret;
+> 
+>  	mt9p031->pll.ext_clock = pdata->ext_freq;
+>  	mt9p031->pll.pix_clock = pdata->target_freq;
+> @@ -286,8 +289,14 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
+>  		return ret;
+> 
+>  	/* Emable clock */
+> -	if (mt9p031->clk)
+> -		clk_prepare_enable(mt9p031->clk);
+> +	if (mt9p031->clk) {
+> +		ret = clk_prepare_enable(mt9p031->clk);
+> +		if (ret) {
+> +			regulator_bulk_disable(ARRAY_SIZE(mt9p031->regulators),
+> +					       mt9p031->regulators);
+> +			return ret;
+> +		}
+> +	}
+> 
+>  	/* Now RESET_BAR must be high */
+>  	if (gpio_is_valid(mt9p031->reset)) {
+
 -- 
-1.8.5.3
+Regards,
+
+Laurent Pinchart
 
