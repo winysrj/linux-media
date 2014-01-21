@@ -1,122 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.unixsol.org ([193.110.159.2]:60857 "EHLO ns.unixsol.org"
+Received: from mout.gmx.net ([212.227.17.22]:63923 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752531AbaAPPHN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jan 2014 10:07:13 -0500
-Message-ID: <52D7F59F.5050503@unixsol.org>
-Date: Thu, 16 Jan 2014 17:07:11 +0200
-From: Georgi Chorbadzhiyski <gf@unixsol.org>
+	id S1754457AbaAUKTy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jan 2014 05:19:54 -0500
+Received: from minime.bse ([77.20.120.199]) by mail.gmx.com (mrgmx103) with
+ ESMTPSA (Nemesis) id 0MNZVG-1VyPpl3vkg-007G5X for
+ <linux-media@vger.kernel.org>; Tue, 21 Jan 2014 11:19:52 +0100
+Date: Tue, 21 Jan 2014 11:19:50 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Robert Longbottom <rongblor@googlemail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
+Message-ID: <20140121101950.GA13818@minime.bse>
+References: <52DD977E.3000907@googlemail.com>
+ <1c25db0a-f11f-4bc0-b544-692140799b2a@email.android.com>
+ <7D00B0B1-8873-4CB2-903F-8B98749C75FF@googlemail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: FE_READ_SNR and FE_READ_SIGNAL_STRENGTH docs
-References: <52D554BA.3070906@unixsol.org> <20140114133044.1d5276f4@samsung.com> <52D55DE7.4050309@unixsol.org> <20140114140715.5ed126ac@samsung.com>
-In-Reply-To: <20140114140715.5ed126ac@samsung.com>
-Content-Type: multipart/mixed;
- boundary="------------090403090002080107050904"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7D00B0B1-8873-4CB2-903F-8B98749C75FF@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090403090002080107050904
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Tue, Jan 21, 2014 at 09:27:38AM +0000, Robert Longbottom wrote:
+> On 20 Jan 2014, at 10:55 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > Robert Longbottom <rongblor@googlemail.com> wrote:
+> >> Chips on card:
 
-Around 01/14/2014 06:07 PM, Mauro Carvalho Chehab scribbled:
-> Em Tue, 14 Jan 2014 17:55:19 +0200
-> Georgi Chorbadzhiyski <gf@unixsol.org> escreveu:
->> Around 01/14/2014 05:30 PM, Mauro Carvalho Chehab scribbled:
->>> Em Tue, 14 Jan 2014 17:16:10 +0200
->>> Georgi Chorbadzhiyski <gf@unixsol.org> escreveu:
->>>
->>>> Hi guys, I'm confused the documentation on:
->>>>
->>>> http://linuxtv.org/downloads/v4l-dvb-apis/frontend_fcalls.html#FE_READ_SNR
->>>> http://linuxtv.org/downloads/v4l-dvb-apis/frontend_fcalls.html#FE_READ_SIGNAL_STRENGTH
->>>>
->>>> states that these ioctls return int16_t values but frontend.h states:
->>>>
->>>> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/dvb/frontend.h
->>>>
->>>> #define FE_READ_SIGNAL_STRENGTH  _IOR('o', 71, __u16)
->>>> #define FE_READ_SNR              _IOR('o', 72, __u16)
->>>>
->>>> So which one is true?
->>>
->>> Documentation is wrong. The returned values are unsigned. Would you mind send
->>> us a patch fixing it?
->>
->> I would be happy to, but I can't find the repo that holds the documentation.
-> 
-> It is in the Kernel tree, under Documentation/DocBook/media/dvb.
+> >> 1x SMD IC with no markings at all
+> >> Couple of 74HCTnnn chips
+> >> 1x Atmel 520
 
-The attached file contains the discussed documentation fixes.
+Can you upload high resolution pictures of both sides of the card
+somewhere? Something where we can follow the tracks to these chips.
+Scanning the card with 300dpi should be enough.
 
--- 
-Georgi Chorbadzhiyski | http://georgi.unixsol.org/ | http://github.com/gfto/
+> >> 1x 35.46895M Crystal
 
---------------090403090002080107050904
-Content-Type: text/plain; charset=UTF-8;
- name="0001-doc-Fix-FE_READ_SNR-and-FE_READ_SIGNAL_STRENGTH-para.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename*0="0001-doc-Fix-FE_READ_SNR-and-FE_READ_SIGNAL_STRENGTH-para.pa";
- filename*1="tch"
+Few cards use an 8x PAL Fsc crystal. Most have an NTSC crystal
+(28.6363 MHz) and rely on the PLL for PAL. Maybe this helps to rule
+out some card numbers.
 
->From 2a633a125e616e8a9e701c34f088d7a4cc020ff8 Mon Sep 17 00:00:00 2001
-From: Georgi Chorbadzhiyski <gf@unixsol.org>
-Date: Thu, 16 Jan 2014 17:04:55 +0200
-Subject: [PATCH] doc: Fix FE_READ_SNR and FE_READ_SIGNAL_STRENGTH parameter
- types.
-
-The proper types returned from FE_READ_SNR and FE_READ_SIGNAL_STRENGTH
-are uint16_t not int16_t.
----
- Documentation/DocBook/media/dvb/frontend.xml | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 0d6e81b..8a6a6ff 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -744,7 +744,7 @@ typedef enum fe_hierarchy {
- </para>
- <informaltable><tgroup cols="1"><tbody><row><entry
-  align="char">
--<para>int ioctl(int fd, int request = <link linkend="FE_READ_SNR">FE_READ_SNR</link>, int16_t
-+<para>int ioctl(int fd, int request = <link linkend="FE_READ_SNR">FE_READ_SNR</link>, uint16_t
-  &#x22C6;snr);</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
-@@ -766,7 +766,7 @@ typedef enum fe_hierarchy {
- </entry>
-  </row><row><entry
-  align="char">
--<para>int16_t *snr</para>
-+<para>uint16_t *snr</para>
- </entry><entry
-  align="char">
- <para>The signal-to-noise ratio is stored into *snr.</para>
-@@ -791,7 +791,7 @@ typedef enum fe_hierarchy {
- <informaltable><tgroup cols="1"><tbody><row><entry
-  align="char">
- <para>int ioctl( int fd, int request =
-- <link linkend="FE_READ_SIGNAL_STRENGTH">FE_READ_SIGNAL_STRENGTH</link>, int16_t &#x22C6;strength);</para>
-+ <link linkend="FE_READ_SIGNAL_STRENGTH">FE_READ_SIGNAL_STRENGTH</link>, uint16_t &#x22C6;strength);</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
- 
-@@ -814,7 +814,7 @@ typedef enum fe_hierarchy {
- </entry>
-  </row><row><entry
-  align="char">
--<para>int16_t *strength</para>
-+<para>uint16_t *strength</para>
- </entry><entry
-  align="char">
- <para>The signal strength value is stored into *strength.</para>
--- 
-1.8.4
-
-
---------------090403090002080107050904--
+  Daniel
