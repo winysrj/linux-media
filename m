@@ -1,188 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2931 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964AbaACLLg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jan 2014 06:11:36 -0500
-Message-ID: <52C69AB9.7040901@xs4all.nl>
-Date: Fri, 03 Jan 2014 12:10:49 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.15]:55269 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755168AbaAVLxi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jan 2014 06:53:38 -0500
+Received: from minime.bse ([77.20.120.199]) by mail.gmx.com (mrgmx102) with
+ ESMTPSA (Nemesis) id 0MbJTE-1VnJal3xQa-00In1z for
+ <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 12:53:36 +0100
+Date: Wed, 22 Jan 2014 12:53:34 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Robert Longbottom <rongblor@googlemail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
+Message-ID: <20140122115334.GA14710@minime.bse>
+References: <52DD977E.3000907@googlemail.com>
+ <1c25db0a-f11f-4bc0-b544-692140799b2a@email.android.com>
+ <7D00B0B1-8873-4CB2-903F-8B98749C75FF@googlemail.com>
+ <20140121101950.GA13818@minime.bse>
+ <52DECF44.1070609@googlemail.com>
+ <52DEDFCB.6010802@googlemail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Al Viro <viro@ZenIV.linux.org.uk>,
-	Pete Eberlein <pete@sensoray.com>
-Subject: [REVIEW PATCH] Revert "[media] videobuf_vm_{open,close} race fixes"
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <52DEDFCB.6010802@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit a242f426108c284049a69710f871cc9f11b13e61.
+On Tue, Jan 21, 2014 at 08:59:55PM +0000, Robert Longbottom wrote:
+> On 21/01/2014 19:49, Robert Longbottom wrote:
+> >Here are some high-res pictures of both sides of the card.  Scanned at
+> >600dpi (300dpi the tracks were very close).  Good idea to scan it by the
+> >way, I like that, much better result than with a digital camera.
+> >
+> >http://www.flickr.com/photos/astrofraggle/12073752546/sizes/l/
+> >http://www.flickr.com/photos/astrofraggle/12073651306/sizes/l/
 
-That commit actually caused deadlocks, rather then fixing them.
 
-If ext_lock is set to NULL (otherwise videobuf_queue_lock doesn't do
-anything), then you get this deadlock:
+ok:
+ - The Atmel chip is an AT24C02 EEPROM. Does one of the 878As have a PCI
+   subsystem ID?
 
-The driver's mmap function calls videobuf_mmap_mapper which calls
-videobuf_queue_lock on q. videobuf_mmap_mapper calls  __videobuf_mmap_mapper,
-__videobuf_mmap_mapper calls videobuf_vm_open and videobuf_vm_open
-calls videobuf_queue_lock on q (introduced by above patch): deadlocked.
+ - The 74HCT04 is used to drive the clock from the oscillator to the
+   878As.
 
-This affects drivers using dma-contig and dma-vmalloc. Only dma-sg is
-not affected since it doesn't call videobuf_vm_open from __videobuf_mmap_mapper.
+ - The 74HCT245 is a bus driver for four pins of the connector CN3.
 
-Most drivers these days have a non-NULL ext_lock. Those that still use
-NULL there are all fairly obscure drivers, which is why this hasn't been
-seen earlier.
+ - The unlabled chip is probably a CPLD/FGPA. It filters the PCI REQ#
+   lines from the 878As and has access to the GNT# and INT# lines,
+   as well as to the GPIOs you mentioned. The bypass caps have a layout
+   that fits to the Lattice ispMACH 4A.
 
-Since everything worked perfectly fine for many years I prefer to just
-revert this patch rather than trying to fix it. videobuf is quite fragile
-and I rather not touch it too much. Work is (slowly) progressing to move
-everything over to vb2 or at the very least use non-NULL ext_lock in
-videobuf.
+ - There is no mux or gate between the BNC connectors and the 878As.
+   The BNCs are on MUX0. MUX1 is connected to the two unpopulated 2x5
+   Headers.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: <stable@vger.kernel.org>      # for v3.11 and up
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Reported-by: Pete Eberlein <pete@sensoray.com>
----
- drivers/media/v4l2-core/videobuf-dma-contig.c | 12 +++++-------
- drivers/media/v4l2-core/videobuf-dma-sg.c     | 10 ++++------
- drivers/media/v4l2-core/videobuf-vmalloc.c    | 10 ++++------
- 3 files changed, 13 insertions(+), 19 deletions(-)
+So the UNKNOWN/GENERIC card entry should have the BNC connectors on its
+first V4L input.
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
-index 65411ad..7e6b209 100644
---- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-@@ -66,14 +66,11 @@ static void __videobuf_dc_free(struct device *dev,
- static void videobuf_vm_open(struct vm_area_struct *vma)
- {
- 	struct videobuf_mapping *map = vma->vm_private_data;
--	struct videobuf_queue *q = map->q;
- 
--	dev_dbg(q->dev, "vm_open %p [count=%u,vma=%08lx-%08lx]\n",
-+	dev_dbg(map->q->dev, "vm_open %p [count=%u,vma=%08lx-%08lx]\n",
- 		map, map->count, vma->vm_start, vma->vm_end);
- 
--	videobuf_queue_lock(q);
- 	map->count++;
--	videobuf_queue_unlock(q);
- }
- 
- static void videobuf_vm_close(struct vm_area_struct *vma)
-@@ -85,11 +82,12 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 	dev_dbg(q->dev, "vm_close %p [count=%u,vma=%08lx-%08lx]\n",
- 		map, map->count, vma->vm_start, vma->vm_end);
- 
--	videobuf_queue_lock(q);
--	if (!--map->count) {
-+	map->count--;
-+	if (0 == map->count) {
- 		struct videobuf_dma_contig_memory *mem;
- 
- 		dev_dbg(q->dev, "munmap %p q=%p\n", map, q);
-+		videobuf_queue_lock(q);
- 
- 		/* We need first to cancel streams, before unmapping */
- 		if (q->streaming)
-@@ -128,8 +126,8 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 
- 		kfree(map);
- 
-+		videobuf_queue_unlock(q);
- 	}
--	videobuf_queue_unlock(q);
- }
- 
- static const struct vm_operations_struct videobuf_vm_ops = {
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index 9db674c..828e7c1 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -338,14 +338,11 @@ EXPORT_SYMBOL_GPL(videobuf_dma_free);
- static void videobuf_vm_open(struct vm_area_struct *vma)
- {
- 	struct videobuf_mapping *map = vma->vm_private_data;
--	struct videobuf_queue *q = map->q;
- 
- 	dprintk(2, "vm_open %p [count=%d,vma=%08lx-%08lx]\n", map,
- 		map->count, vma->vm_start, vma->vm_end);
- 
--	videobuf_queue_lock(q);
- 	map->count++;
--	videobuf_queue_unlock(q);
- }
- 
- static void videobuf_vm_close(struct vm_area_struct *vma)
-@@ -358,9 +355,10 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 	dprintk(2, "vm_close %p [count=%d,vma=%08lx-%08lx]\n", map,
- 		map->count, vma->vm_start, vma->vm_end);
- 
--	videobuf_queue_lock(q);
--	if (!--map->count) {
-+	map->count--;
-+	if (0 == map->count) {
- 		dprintk(1, "munmap %p q=%p\n", map, q);
-+		videobuf_queue_lock(q);
- 		for (i = 0; i < VIDEO_MAX_FRAME; i++) {
- 			if (NULL == q->bufs[i])
- 				continue;
-@@ -376,9 +374,9 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 			q->bufs[i]->baddr = 0;
- 			q->ops->buf_release(q, q->bufs[i]);
- 		}
-+		videobuf_queue_unlock(q);
- 		kfree(map);
- 	}
--	videobuf_queue_unlock(q);
- 	return;
- }
- 
-diff --git a/drivers/media/v4l2-core/videobuf-vmalloc.c b/drivers/media/v4l2-core/videobuf-vmalloc.c
-index 1365c65..2ff7fcc 100644
---- a/drivers/media/v4l2-core/videobuf-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf-vmalloc.c
-@@ -54,14 +54,11 @@ MODULE_LICENSE("GPL");
- static void videobuf_vm_open(struct vm_area_struct *vma)
- {
- 	struct videobuf_mapping *map = vma->vm_private_data;
--	struct videobuf_queue *q = map->q;
- 
- 	dprintk(2, "vm_open %p [count=%u,vma=%08lx-%08lx]\n", map,
- 		map->count, vma->vm_start, vma->vm_end);
- 
--	videobuf_queue_lock(q);
- 	map->count++;
--	videobuf_queue_unlock(q);
- }
- 
- static void videobuf_vm_close(struct vm_area_struct *vma)
-@@ -73,11 +70,12 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 	dprintk(2, "vm_close %p [count=%u,vma=%08lx-%08lx]\n", map,
- 		map->count, vma->vm_start, vma->vm_end);
- 
--	videobuf_queue_lock(q);
--	if (!--map->count) {
-+	map->count--;
-+	if (0 == map->count) {
- 		struct videobuf_vmalloc_memory *mem;
- 
- 		dprintk(1, "munmap %p q=%p\n", map, q);
-+		videobuf_queue_lock(q);
- 
- 		/* We need first to cancel streams, before unmapping */
- 		if (q->streaming)
-@@ -116,8 +114,8 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 
- 		kfree(map);
- 
-+		videobuf_queue_unlock(q);
- 	}
--	videobuf_queue_unlock(q);
- 
- 	return;
- }
--- 
-1.8.4.3
+Have you tried passing pll=35,35,35,35 as module parameter?
 
+  Daniel
