@@ -1,294 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43708 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753892AbaADN7T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:19 -0500
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:27116 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751649AbaAVWBt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jan 2014 17:01:49 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZT00ECSP6ZU090@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Jan 2014 17:01:47 -0500 (EST)
+Date: Wed, 22 Jan 2014 20:01:42 -0200
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v4 03/22] [media] em28xx: move analog-specific init to em28xx-video
-Date: Sat,  4 Jan 2014 08:55:32 -0200
-Message-Id: <1388832951-11195-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Sean Young <sean@mess.org>
+Cc: Antti =?UTF-8?B?U2VwcMOkbMOk?= <a.seppala@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
+Message-id: <20140122200142.002a39c2@samsung.com>
+In-reply-to: <20140122210024.GA3223@pequod.mess.org>
+References: <20140115173559.7e53239a@samsung.com>
+ <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
+ <20140121122826.GA25490@pequod.mess.org>
+ <CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com>
+ <20140122162953.GA1665@pequod.mess.org>
+ <CAKv9HNbVQwAcG98S3_Mj4A6zo8Ae2fLT6vn4LOYW1UMrwQku7Q@mail.gmail.com>
+ <20140122210024.GA3223@pequod.mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several init code inside em28xx-cards that are actually
-part of analog initialization. Move the code to em28x-video, in
-order to remove part of the mess.
+Em Wed, 22 Jan 2014 21:00:24 +0000
+Sean Young <sean@mess.org> escreveu:
 
-In thesis, no functional changes so far.
+> On Wed, Jan 22, 2014 at 09:10:58PM +0200, Antti Seppälä wrote:
+> > On 22 January 2014 18:29, Sean Young <sean@mess.org> wrote:
+> > > On Wed, Jan 22, 2014 at 05:46:28PM +0200, Antti Seppälä wrote:
+> > >> On 21 January 2014 14:28, Sean Young <sean@mess.org> wrote:
+> > >> > On Mon, Jan 20, 2014 at 09:39:43PM +0200, Antti Seppälä wrote:
+> > >> >> This patch series introduces a simple sysfs file interface for reading
+> > >> >> and writing wakeup scancodes to rc drivers.
+> > >> >>
+> > >> >> This is an improved version of my previous patch for nuvoton-cir which
+> > >> >> did the same thing via module parameters. This is a more generic
+> > >> >> approach allowing other drivers to utilize the interface as well.
+> > >> >>
+> > >> >> I did not port winbond-cir to this method of wakeup scancode setting yet
+> > >> >> because I don't have the hardware to test it and I wanted first to get
+> > >> >> some comments about how the patch series looks. I did however write a
+> > >> >> simple support to read and write scancodes to rc-loopback module.
+> > >> >
+> > >> > Doesn't the nuvoton-cir driver need to know the IR protocol for wakeup?
+> > >> >
+> > >> > This is needed for winbond-cir; I guess this should be another sysfs
+> > >> > file, something like "wakeup_protocol". Even if the nuvoton can only
+> > >> > handle one IR protocol, maybe it should be exported (readonly) via
+> > >> > sysfs?
+> > >> >
+> > >> > I'm happy to help with a winbond-cir implementation; I have the hardware.
+> > >> >
+> > >> >
+> > >> > Sean
+> > >>
+> > >> Nuvoton-cir doesn't care about the IR protocol because the hardware
+> > >> compares raw IR pulse lengths and wakes the system if received pulse
+> > >> is within certain tolerance of the one pre-programmed to the HW. This
+> > >> approach is agnostic to the used IR protocol.
+> > >
+> > > Your patch talks about scancodes which is something entirely different.
+> > > This should be renamed to something better.
+> > >
+> > 
+> > I agree that for the nuvoton my choice of wording (scancode) was a
+> > poor one. Perhaps wakeup_code would suit both drivers?
+> > 
+> > > So with the nuvoton you program a set of pulses and spaces; with the
+> > > winbond you set the protocol and the scancode. I don't think there is
+> > > any shared code here. Maybe it's better to implement the wakeup
+> > > sysfs files in the drivers themselves rather than in rcdev, I guess that
+> > > depends on whether there are other devices that implement similar
+> > > functionality.
+> > >
+> > 
+> > The code to be shared is the logic of creating, parsing and formatting
+> > the sysfs file. In the end the drivers are only interested in getting
+> > a bunch of values to write to the hardware.
+> > 
+> > I was thinking about adding another file (wakeup_protocol sounds good)
+> > which would tell what semantics are used to interpret the contents of
+> > wakeup_code file (rc6, rc5, nec or raw). Would this be a decent
+> > solution?
+> 
+> Good idea. I like it.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 71 -------------------------
- drivers/media/usb/em28xx/em28xx-video.c | 91 ++++++++++++++++++++++++++++++---
- 2 files changed, 84 insertions(+), 78 deletions(-)
+Not sure if you saw it, but there's already another patchset proposing
+that, that got submitted before this changeset:
+	https://patchwork.linuxtv.org/patch/21625/
+	
+> 
+> Sean
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 551cbc294190..175cd776e0a1 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2907,7 +2907,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 			   struct usb_interface *interface,
- 			   int minor)
- {
--	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
- 	int retval;
- 	static const char *default_chip_name = "em28xx";
- 	const char *chip_name = default_chip_name;
-@@ -3034,15 +3033,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		}
- 	}
- 
--	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
--	if (retval < 0) {
--		em28xx_errdev("Call to v4l2_device_register() failed!\n");
--		return retval;
--	}
--
--	v4l2_ctrl_handler_init(hdl, 8);
--	dev->v4l2_dev.ctrl_handler = hdl;
--
- 	rt_mutex_init(&dev->i2c_bus_lock);
- 
- 	/* register i2c bus 0 */
-@@ -3071,72 +3061,14 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		}
- 	}
- 
--	/*
--	 * Default format, used for tvp5150 or saa711x output formats
--	 */
--	dev->vinmode = 0x10;
--	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
--		       EM28XX_VINCTRL_CCIR656_ENABLE;
--
- 	/* Do board specific init and eeprom reading */
- 	em28xx_card_setup(dev);
- 
--	/* Configure audio */
--	retval = em28xx_audio_setup(dev);
--	if (retval < 0) {
--		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
--			__func__, retval);
--		goto fail;
--	}
--	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
--		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
--			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
--		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
--			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
--	} else {
--		/* install the em28xx notify callback */
--		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
--				em28xx_ctrl_notify, dev);
--		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
--				em28xx_ctrl_notify, dev);
--	}
--
--	/* wake i2c devices */
--	em28xx_wake_i2c(dev);
--
--	/* init video dma queues */
--	INIT_LIST_HEAD(&dev->vidq.active);
--	INIT_LIST_HEAD(&dev->vbiq.active);
--
--	if (dev->board.has_msp34xx) {
--		/* Send a reset to other chips via gpio */
--		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
--		if (retval < 0) {
--			em28xx_errdev("%s: em28xx_write_reg - "
--				      "msp34xx(1) failed! error [%d]\n",
--				      __func__, retval);
--			goto fail;
--		}
--		msleep(3);
--
--		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
--		if (retval < 0) {
--			em28xx_errdev("%s: em28xx_write_reg - "
--				      "msp34xx(2) failed! error [%d]\n",
--				      __func__, retval);
--			goto fail;
--		}
--		msleep(3);
--	}
--
- 	retval = em28xx_register_analog_devices(dev);
- 	if (retval < 0) {
- 		goto fail;
- 	}
- 
--	/* Save some power by putting tuner to sleep */
--	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
--
- 	return 0;
- 
- fail:
-@@ -3388,9 +3320,6 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	/* save our data pointer in this interface device */
- 	usb_set_intfdata(interface, dev);
- 
--	/* initialize videobuf2 stuff */
--	em28xx_vb2_setup(dev);
--
- 	/* allocate device struct */
- 	mutex_init(&dev->lock);
- 	mutex_lock(&dev->lock);
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 8b8a4eb96875..85284626dbd6 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -2186,10 +2186,78 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 	u8 val;
- 	int ret;
- 	unsigned int maxw;
-+	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
-+
-+	if (!dev->is_audio_only) {
-+		/* This device does not support the v4l2 extension */
-+		return 0;
-+	}
- 
- 	printk(KERN_INFO "%s: v4l2 driver version %s\n",
- 		dev->name, EM28XX_VERSION);
- 
-+	ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
-+	if (ret < 0) {
-+		em28xx_errdev("Call to v4l2_device_register() failed!\n");
-+		goto err;
-+	}
-+
-+	v4l2_ctrl_handler_init(hdl, 8);
-+	dev->v4l2_dev.ctrl_handler = hdl;
-+
-+	/*
-+	 * Default format, used for tvp5150 or saa711x output formats
-+	 */
-+	dev->vinmode = 0x10;
-+	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
-+		       EM28XX_VINCTRL_CCIR656_ENABLE;
-+
-+	/* Configure audio */
-+	ret = em28xx_audio_setup(dev);
-+	if (ret < 0) {
-+		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
-+			__func__, ret);
-+		goto err;
-+	}
-+	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
-+	} else {
-+		/* install the em28xx notify callback */
-+		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
-+				em28xx_ctrl_notify, dev);
-+		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
-+				em28xx_ctrl_notify, dev);
-+	}
-+
-+	/* wake i2c devices */
-+	em28xx_wake_i2c(dev);
-+
-+	/* init video dma queues */
-+	INIT_LIST_HEAD(&dev->vidq.active);
-+	INIT_LIST_HEAD(&dev->vbiq.active);
-+
-+	if (dev->board.has_msp34xx) {
-+		/* Send a reset to other chips via gpio */
-+		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
-+		if (ret < 0) {
-+			em28xx_errdev("%s: em28xx_write_reg - msp34xx(1) failed! error [%d]\n",
-+				      __func__, ret);
-+			goto err;
-+		}
-+		msleep(3);
-+
-+		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
-+		if (ret < 0) {
-+			em28xx_errdev("%s: em28xx_write_reg - msp34xx(2) failed! error [%d]\n",
-+				      __func__, ret);
-+			goto err;
-+		}
-+		msleep(3);
-+	}
-+
- 	/* set default norm */
- 	dev->norm = V4L2_STD_PAL;
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
-@@ -2252,14 +2320,16 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 	/* Reset image controls */
- 	em28xx_colorlevels_set_default(dev);
- 	v4l2_ctrl_handler_setup(&dev->ctrl_handler);
--	if (dev->ctrl_handler.error)
--		return dev->ctrl_handler.error;
-+	ret = dev->ctrl_handler.error;
-+	if (ret)
-+		goto err;
- 
- 	/* allocate and fill video video_device struct */
- 	dev->vdev = em28xx_vdev_init(dev, &em28xx_video_template, "video");
- 	if (!dev->vdev) {
- 		em28xx_errdev("cannot allocate video_device.\n");
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err;
- 	}
- 	dev->vdev->queue = &dev->vb_vidq;
- 	dev->vdev->queue->lock = &dev->vb_queue_lock;
-@@ -2289,7 +2359,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 	if (ret) {
- 		em28xx_errdev("unable to register video device (error=%i).\n",
- 			      ret);
--		return ret;
-+		goto err;
- 	}
- 
- 	/* Allocate and fill vbi video_device struct */
-@@ -2318,7 +2388,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 					    vbi_nr[dev->devno]);
- 		if (ret < 0) {
- 			em28xx_errdev("unable to register vbi device\n");
--			return ret;
-+			goto err;
- 		}
- 	}
- 
-@@ -2327,13 +2397,14 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 						  "radio");
- 		if (!dev->radio_dev) {
- 			em28xx_errdev("cannot allocate video_device.\n");
--			return -ENODEV;
-+			ret = -ENODEV;
-+			goto err;
- 		}
- 		ret = video_register_device(dev->radio_dev, VFL_TYPE_RADIO,
- 					    radio_nr[dev->devno]);
- 		if (ret < 0) {
- 			em28xx_errdev("can't register radio device\n");
--			return ret;
-+			goto err;
- 		}
- 		em28xx_info("Registered radio device as %s\n",
- 			    video_device_node_name(dev->radio_dev));
-@@ -2346,5 +2417,11 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		em28xx_info("V4L2 VBI device registered as %s\n",
- 			    video_device_node_name(dev->vbi_dev));
- 
-+	/* Save some power by putting tuner to sleep */
-+	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-+
-+	/* initialize videobuf2 stuff */
-+	em28xx_vb2_setup(dev);
-+err:
- 	return 0;
- }
+
 -- 
-1.8.3.1
 
+Cheers,
+Mauro
