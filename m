@@ -1,83 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:59794 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366AbaASQu4 (ORCPT
+Received: from mailsafe.webbplatsen.se ([94.247.172.109]:20610 "EHLO
+	mailsafe.webbplatsen.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752358AbaAVTVM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jan 2014 11:50:56 -0500
-Received: by mail-wi0-f181.google.com with SMTP id hi8so2395114wib.2
-        for <linux-media@vger.kernel.org>; Sun, 19 Jan 2014 08:50:55 -0800 (PST)
+	Wed, 22 Jan 2014 14:21:12 -0500
+Received: from skinbark.wpsintrax.se (unknown [83.145.49.220])
+	by mailsafe.webbplatsen.se (Halon Mail Gateway) with ESMTP
+	for <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 20:04:01 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by skinbark.wpsintrax.se (Postfix) with ESMTP id E340F77C0C6
+	for <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 20:04:09 +0100 (CET)
+Received: from skinbark.wpsintrax.se ([127.0.0.1])
+	by localhost (skinbark.wpsintrax.se [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id hX06S-s9maMn for <linux-media@vger.kernel.org>;
+	Wed, 22 Jan 2014 20:04:09 +0100 (CET)
+Received: from tor.valhalla.alchemy.lu (vodsl-4669.vo.lu [80.90.56.61])
+	by skinbark.wpsintrax.se (Postfix) with ESMTPA id 933AD77C0AD
+	for <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 20:04:09 +0100 (CET)
+Date: Wed, 22 Jan 2014 20:04:08 +0100
+From: Joakim Hernberg <jbh@alchemy.lu>
+To: linux-media@vger.kernel.org
+Subject: patch to fix a tuning regression for TeVii S471
+Message-ID: <20140122200408.3d0fc1cf@tor.valhalla.alchemy.lu>
 MIME-Version: 1.0
-In-Reply-To: <20140119113926.60e0f586@samsung.com>
-References: <20140119022328.55f6a741@samsung.com>
-	<20140119113926.60e0f586@samsung.com>
-Date: Sun, 19 Jan 2014 11:50:55 -0500
-Message-ID: <CAGoCfiwp0WPMceeyQUHU-GJkSkiQzpF-YoJ+ueiFNqNOEQNK4A@mail.gmail.com>
-Subject: Re: [ANNOUNCE EXPERIMENTAL] PCTV 80e driver
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed; boundary="MP_/RTyNbk=oiW68NPSSGouXgee"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 19, 2014 at 8:39 AM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> It seems that subsequent tuning makes the device worse, reducing the
-> maximum effective packet bandwidth. Btw, this happens with both xHCI
-> and EHCI drivers, so, it is not related to any USB 3.0 issue.
+--MP_/RTyNbk=oiW68NPSSGouXgee
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I'm pretty sure I saw this and had a patch.  I don't recall the exact
-circumstances under which it happened, but I believe it had to do with
-stopping and then restarting the streaming on the em28xx too quickly.
-The state machine inside the em28xx gets confused and you end up
-getting a misaligned stream (which is why you see hundreds of
-different PIDs in output from tools such as dvbtraffic).
+Hello,
 
-> Enabling some demux logs, it is possible to see that there are too many
-> FEC errors:
->
-> [73514.186880] dvb_dmx_swfilter_packet: 4546 callbacks suppressed
-> [73514.186933] TEI detected. PID=0x17f data1=0xc1
-> [73514.186965] TEI detected. PID=0x1c68 data1=0xbc
-> [73514.186993] TEI detected. PID=0x17f data1=0xc1
-> [73514.187022] TEI detected. PID=0x1c68 data1=0xbc
-> [73514.187049] TEI detected. PID=0x17f data1=0xc1
-> [73514.187080] TEI detected. PID=0x1c68 data1=0xbc
-> [73514.187105] TEI detected. PID=0x17f data1=0xc1
-> [73514.194878] TEI detected. PID=0x1c68 data1=0xbc
-> [73514.194906] TEI detected. PID=0x17f data1=0xc1
-> [73514.194927] TEI detected. PID=0x1c68 data1=0xbc
-> [73521.569205] TS speed 402 Kbits/sec
+I recently discovered a regression in the S471 driver.  When trying to
+tune to 10818V on Astra 28E2, the system would tune to 11343V instead.
+After browsing the code it appears that a divider was changed when the
+tuning code was moved from ds3000.c to ts2020.c.
 
-Are these actually valid PIDs you're expecting data on?  If not, then
-it could just be the issue I described above.  Does the TEI check
-occur after it has found the SYNC byte?
+The attached patch fixes this regression, but testing turns up
+more anomalies.  For instance I don't seem to be able to tune to 11344H
+on 28E2 either.  The diseqc switches and lnbs are most likely in
+working order as my Vu+ STB has no problem to tune to this frequency.
 
-> I'm starting to suspect that this could be a hardware issue.
->
-> It would be good to see if others can use it and tune to several
-> channels.
->
->> Ah, I didn't work at the remote controller yet. I'll handle it after
->> doing more tests with the DVB functionality.
->
-> Remote controller support was added.
-
-Should be trivial - I added the support for the em2874's RC using that
-device - the RC support went upstream years ago but not the actual
-board profile.
-
-Probably worth mentioning that while I got signal lock on ATSC, I
-didn't any significant analysis into the quality of the SNR. It's
-possible that additional optimization of the frontend is required in
-order to achieve optimal performance.  Also, I didn't do the ClearQAM
-support yet, although that should be a fairly straightforward exercise
-(should just be another block in the set_frontend() call which sets
-the modulation appropriately).
-
-Devin
+Can someone with either a S471 or another card using the ts2020 tuner
+please verify that it's not a local problem?
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+   Joakim
+
+--MP_/RTyNbk=oiW68NPSSGouXgee
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename=0001-Fix-a-TeVii-S471-regression-introduced-when-the-tuni.patch
+
+>From 2b546f8e961b3cc1d990eabd3e9ca955b14782b5 Mon Sep 17 00:00:00 2001
+From: makepkg <makepkg@archlinux.com>
+Date: Wed, 22 Jan 2014 19:44:49 +0100
+Subject: [PATCH] Fix a TeVii S471 regression introduced when the tuning code
+ was moved from ds3000,c to ts2020.c. Trying to tune to 10818V, tunes to
+ 11343V instead.
+
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 0549205..4be01b3 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -473,6 +473,7 @@ static struct ds3000_config tevii_ds3000_config = {
+ static struct ts2020_config tevii_ts2020_config  = {
+ 	.tuner_address = 0x60,
+ 	.clk_out_div = 1,
++	.frequency_div = 1146000,
+ };
+ 
+ static struct cx24116_config dvbworld_cx24116_config = {
+-- 
+1.8.5.3
+
+
+--MP_/RTyNbk=oiW68NPSSGouXgee--
