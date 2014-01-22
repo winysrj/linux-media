@@ -1,49 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53140 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbaAMVgU (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2719 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862AbaAVXNK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 16:36:20 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/7] [media] radio-usb-si4713: make si4713_register_i2c_adapter static
-Date: Mon, 13 Jan 2014 16:32:33 -0200
-Message-Id: <1389637958-3884-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389637958-3884-1-git-send-email-m.chehab@samsung.com>
-References: <1389637958-3884-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 22 Jan 2014 18:13:10 -0500
+Message-ID: <52E0507D.1060103@xs4all.nl>
+Date: Thu, 23 Jan 2014 00:13:01 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Detlev Casanova <detlev.casanova@gmail.com>,
+	linux-media@vger.kernel.org, hyun.kwon@xilinx.com
+Subject: Re: qv4l2 and media controller support
+References: <2270106.dN7Lhra68Q@avalon>
+In-Reply-To: <2270106.dN7Lhra68Q@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function isn't used nowhere outside the same .c file.
-Fixes this warning:
+Hi Laurent,
 
-drivers/media/radio/si4713/radio-usb-si4713.c:418:5: warning: no previous prototype for 'si4713_register_i2c_adapter' [-Wmissing-prototypes]
- int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
-     ^
+First, regarding the inheritance of subdev controls: I found it annoying as
+well that there is no way to do this. If you have a simple video pipeline,
+then having to create subdev nodes just to set a few controls is unnecessary
+complex. I've been thinking of adding a flag to the control handler that, when
+set, will 'import' the private controls. The bridge driver is the one that sets
+this as that is the only one that knows whether or not it is in fact a simple
+pipeline.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/radio/si4713/radio-usb-si4713.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Secondly, I'd love to add MC support to qv4l2. But I'm waiting for you to merge
+the MC library into v4l-utils.git. It's basically the reason why I haven't looked
+at this at all.
 
-diff --git a/drivers/media/radio/si4713/radio-usb-si4713.c b/drivers/media/radio/si4713/radio-usb-si4713.c
-index d97884494d04..f1e640d71188 100644
---- a/drivers/media/radio/si4713/radio-usb-si4713.c
-+++ b/drivers/media/radio/si4713/radio-usb-si4713.c
-@@ -415,7 +415,7 @@ static struct i2c_adapter si4713_i2c_adapter_template = {
- 	.algo   = &si4713_algo,
- };
- 
--int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
-+static int si4713_register_i2c_adapter(struct si4713_usb_device *radio)
- {
- 	radio->i2c_adapter = si4713_i2c_adapter_template;
- 	/* set up sysfs linkage to our parent device */
--- 
-1.8.3.1
+Regards,
+
+	Hans
+
+On 01/22/2014 11:55 PM, Laurent Pinchart wrote:
+> Hi Hans and Detlev,
+> 
+> While reviewed driver code that models the hardware using the media 
+> controller, I noticed a patch that enabled subdev controls inheritance for the 
+> video nodes. While this is useful for fixed devices, the complexity, 
+> genericity and flexibility of the hardware at hand makes this undesirable, 
+> given that we can't guarantee that a control won't be instantiated more than 
+> once in the pipeline.
+> 
+> I've thus asked what triggered the need for controls inheritance, and found 
+> out that the developers wanted to use qv4l2 as a demo application 
+> (congratulations to Hans for such a useful application :-)). As qv4l2 doesn't 
+> support subdevices, accessing controls required inheriting them on video 
+> nodes.
+> 
+> There's an existing GUI test application for media controller-based devices 
+> called mci (https://gitorious.org/mci) but it hasn't been maintained for quite 
+> some time, and isn't as feature-complete as qv4l2. I was thus wondering 
+> whether it would make sense to add explicit media controller support to qv4l2, 
+> or whether the two applications should remain separate (in the later case some 
+> code could probably still be shared).
+> 
+> Any opinion and/or desire to work on this ?
+> 
 
