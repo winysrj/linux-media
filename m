@@ -1,57 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.218]:33803 "EHLO smtp0.epfl.ch"
+Received: from mail.kapsi.fi ([217.30.184.167]:56207 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752899AbaAQThy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 14:37:54 -0500
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH] [media] omap3isp: preview: Fix the crop margins
-Date: Fri, 17 Jan 2014 20:37:38 +0100
-Message-Id: <1389987458-7174-1-git-send-email-florian.vaussard@epfl.ch>
+	id S1752310AbaAVSl5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jan 2014 13:41:57 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v3] devices.txt: add video4linux device for Software Defined Radio
+Date: Wed, 22 Jan 2014 20:41:39 +0200
+Message-Id: <1390416099-4597-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 3fdfedaaa "[media] omap3isp: preview: Lower the crop margins"
-accidentally changed the previewer's cropping, causing the previewer
-to miss four pixels on each line, thus corrupting the final image.
-Restored the removed setting.
+Add new video4linux device named /dev/swradio for Software Defined
+Radio use. V4L device minor numbers are allocated dynamically
+nowadays, but there is still configuration option for old fixed style.
+Add note to mention that configuration option too.
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/omap3isp/isppreview.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ Documentation/devices.txt | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
-index cd8831a..e2e4610 100644
---- a/drivers/media/platform/omap3isp/isppreview.c
-+++ b/drivers/media/platform/omap3isp/isppreview.c
-@@ -1079,6 +1079,7 @@ static void preview_config_input_format(struct isp_prev_device *prev,
-  */
- static void preview_config_input_size(struct isp_prev_device *prev, u32 active)
- {
-+	const struct v4l2_mbus_framefmt *format = &prev->formats[PREV_PAD_SINK];
- 	struct isp_device *isp = to_isp_device(prev);
- 	unsigned int sph = prev->crop.left;
- 	unsigned int eph = prev->crop.left + prev->crop.width - 1;
-@@ -1086,6 +1087,14 @@ static void preview_config_input_size(struct isp_prev_device *prev, u32 active)
- 	unsigned int elv = prev->crop.top + prev->crop.height - 1;
- 	u32 features;
+diff --git a/Documentation/devices.txt b/Documentation/devices.txt
+index 80b7241..e852855 100644
+--- a/Documentation/devices.txt
++++ b/Documentation/devices.txt
+@@ -1490,10 +1490,17 @@ Your cooperation is appreciated.
+ 		 64 = /dev/radio0	Radio device
+ 		    ...
+ 		127 = /dev/radio63	Radio device
++		128 = /dev/swradio0	Software Defined Radio device
++		    ...
++		191 = /dev/swradio63	Software Defined Radio device
+ 		224 = /dev/vbi0		Vertical blank interrupt
+ 		    ...
+ 		255 = /dev/vbi31	Vertical blank interrupt
  
-+	if (format->code != V4L2_MBUS_FMT_Y8_1X8 &&
-+	    format->code != V4L2_MBUS_FMT_Y10_1X10) {
-+		sph -= 2;
-+		eph += 2;
-+		slv -= 2;
-+		elv += 2;
-+	}
++		Minor numbers are allocated dynamically unless
++		CONFIG_VIDEO_FIXED_MINOR_RANGES (default n)
++		configuration option is set.
 +
- 	features = (prev->params.params[0].features & active)
- 		 | (prev->params.params[1].features & ~active);
- 
+  81 block	I2O hard disk
+ 		  0 = /dev/i2o/hdq	17th I2O hard disk, whole disk
+ 		 16 = /dev/i2o/hdr	18th I2O hard disk, whole disk
 -- 
-1.8.1.2
+1.8.4.2
 
