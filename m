@@ -1,53 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:51751 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753153AbaAWKVJ (ORCPT
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:61810 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751527AbaAVXCI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 05:21:09 -0500
-Message-id: <52E0ED10.2020901@samsung.com>
-Date: Thu, 23 Jan 2014 11:21:04 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: 'Amit Grover' <amit.grover@samsung.com>, m.chehab@samsung.com,
-	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, rob@landley.net,
-	kyungmin.park@samsung.com, jtp.park@samsung.com
-Cc: Kamil Debski <k.debski@samsung.com>, hans.verkuil@cisco.com,
-	andrew.smirnov@gmail.com, arun.kk@samsung.com,
-	anatol.pomozov@gmail.com, jmccrohan@gmail.com,
-	austin.lobo@samsung.com, 'Swami Nathan' <swaminath.p@samsung.com>
-Subject: Re: [PATCH] [media] s5p-mfc: Add Horizontal and Vertical search range
- for Video Macro Blocks
-References: <1388400186-22045-1-git-send-email-amit.grover@samsung.com>
- <019f01cf1823$7e020fa0$7a062ee0$%debski@samsung.com>
-In-reply-to: <019f01cf1823$7e020fa0$7a062ee0$%debski@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 22 Jan 2014 18:02:08 -0500
+Received: by mail-ee0-f50.google.com with SMTP id d17so72890eek.23
+        for <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 15:02:06 -0800 (PST)
+Message-ID: <52E04DEB.2000800@gmail.com>
+Date: Thu, 23 Jan 2014 00:02:03 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 05/21] videodev2.h: add struct v4l2_query_ext_ctrl
+ and VIDIOC_QUERY_EXT_CTRL.
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl> <1390221974-28194-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390221974-28194-6-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 23/01/14 11:11, Kamil Debski wrote:
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->> > b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->> > index 4ff3b6c..a02e7b8 100644
->> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->> > @@ -208,6 +208,24 @@ static struct mfc_control controls[] = {
->> >  		.default_value = 0,
->> >  	},
->> >  	{
->> > +		.id = V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE,
->> > +		.type = V4L2_CTRL_TYPE_INTEGER,
->> > +		.name = "horizontal search range of video macro block",
+On 01/20/2014 01:45 PM, Hans Verkuil wrote:
+> From: Hans Verkuil<hans.verkuil@cisco.com>
 >
-> This too should be property capitalised. Please mention the motion vectors
-> too. 
+> Add a new struct and ioctl to extend the amount of information you can
+> get for a control.
+>
+> It gives back a unit string, the range is now a s64 type, and the matrix
+> and element size can be reported through cols/rows/elem_size.
+>
+> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> ---
+>   include/uapi/linux/videodev2.h | 30 ++++++++++++++++++++++++++++++
+>   1 file changed, 30 insertions(+)
+>
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 4d7782a..9e5b7d4 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1272,6 +1272,34 @@ struct v4l2_queryctrl {
+>   	__u32		     reserved[2];
+>   };
+>
+> +/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
+> +struct v4l2_query_ext_ctrl {
+> +	__u32		     id;
+> +	__u32		     type;
+> +	char		     name[32];
+> +	char		     unit[32];
 
-And additionally length of the name string should not exceed 31 characters.
+> +	union {
+> +		__s64 val;
+> +		__u32 reserved[4];
+> +	} min;
+> +	union {
+> +		__s64 val;
+> +		__u32 reserved[4];
+> +	} max;
+> +	union {
+> +		__u64 val;
+> +		__u32 reserved[4];
+> +	} step;
+> +	union {
+> +		__s64 val;
+> +		__u32 reserved[4];
+> +	} def;
+
+Are these reserved[] arrays of any use ?
+
+> +	__u32                flags;
+> +	__u32                cols, rows;
+
+nit: I would put them on separate lines and use full words.
+
+> +	__u32                elem_size;
+> +	__u32		     reserved[17];
+> +};
+> +
+>   /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
+>   struct v4l2_querymenu {
+>   	__u32		id;
+> @@ -1965,6 +1993,8 @@ struct v4l2_create_buffers {
+>      Never use these in applications! */
+>   #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+>
+> +#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
+> +
+>   /* Reminder: when adding new ioctls please add support for them to
+>      drivers/media/video/v4l2-compat-ioctl32.c as well! */
 
 --
-Thanks,
+Regards,
 Sylwester
