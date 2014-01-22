@@ -1,38 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60071 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752418AbaAWNqt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 08:46:49 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZU00ML9WY0YV10@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Jan 2014 13:46:48 +0000 (GMT)
-Message-id: <52E11D45.4050900@samsung.com>
-Date: Thu, 23 Jan 2014 14:46:45 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 17/21] v4l2-ctrls.c: return elem_size instead of
- strlen
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
- <1390221974-28194-18-git-send-email-hverkuil@xs4all.nl>
-In-reply-to: <1390221974-28194-18-git-send-email-hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mimiobchod.cz ([212.96.183.86]:37577 "EHLO mail.mimiobchod.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751979AbaAVJQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jan 2014 04:16:53 -0500
+Received: from [192.168.1.2] (49-67-80-78.tmcz.cz [78.80.67.49])
+	by mail.mimiobchod.cz (Postfix) with ESMTP id CB95AA58055
+	for <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 10:59:15 +0100 (CET)
+From: "Jahn" <jana1972@centrum.cz>
+To: linux-media@vger.kernel.org
+Date: Wed, 22 Jan 2014 10:16:58 +0100
+MIME-Version: 1.0
+Subject: Developers blogs
+Reply-to: jana1972@centrum.cz
+Message-ID: <52DF9A9A.14029.1F9A8A4A@jana1972.centrum.cz>
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7BIT
+Content-description: Mail message body
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20/01/14 13:46, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> When getting a string and the size given by the application is too
-> short return the max length the string can have (elem_size) instead
-> of the string length + 1. That makes more sense.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+ Hi everyone,
+I am a newbie in V4L fields so I
+  search for various info about V4L to study available details
+ I am happy I found few blogs that provides
+ interesting  information
+ e.g.
+ http://blog.palosaari.fi/
+ http://www.kernellabs.com/blog/?page_id=2066
+ 
+ but if I found even more ....
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+I think it would be a good idea  if anyone
+ in the vger.kernel.org list could provide his blog's ( website) address
+ so that we can share knowledge   together.
+ What do you think?
+ 
+ 
+ 
+
+
