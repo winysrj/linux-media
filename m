@@ -1,92 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:57950 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750992AbaAELhA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 06:37:00 -0500
-Received: by mail-ea0-f180.google.com with SMTP id f15so7337269eak.25
-        for <linux-media@vger.kernel.org>; Sun, 05 Jan 2014 03:36:59 -0800 (PST)
-Message-ID: <52C9441F.8080600@googlemail.com>
-Date: Sun, 05 Jan 2014 12:38:07 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44192 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752711AbaAVW46 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jan 2014 17:56:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Sebastian Reichel <sre@debian.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>
+Subject: Re: [RFCv2] Device Tree bindings for OMAP3 Camera System
+Date: Wed, 22 Jan 2014 23:57:45 +0100
+Message-ID: <2960230.3bGpm3THhQ@avalon>
+In-Reply-To: <52E045DE.10706@gmail.com>
+References: <20131103220315.GA11659@earth.universe> <20140120232719.GA30894@earth.universe> <52E045DE.10706@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 15/22] [media] em28xx: Fix em28xx deplock
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-16-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-16-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
-> When em28xx extensions are loaded/removed, there are two locks:
->
-> a single static em28xx_devlist_mutex that registers each extension
-> and the struct em28xx dev->lock.
->
-> When extensions are registered, em28xx_devlist_mutex is taken first,
-> and then dev->lock.
->
-> Be sure that, when extensions are being removed, the same order
-> will be used.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-cards.c | 5 +++--
->  drivers/media/usb/em28xx/em28xx-core.c  | 2 ++
->  2 files changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index 4fe742429f2c..36aec50e5c3b 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -3334,9 +3334,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
->  	dev->disconnected = 1;
->  
->  	if (dev->is_audio_only) {
-> -		mutex_lock(&dev->lock);
->  		em28xx_close_extension(dev);
-> -		mutex_unlock(&dev->lock);
->  		return;
->  	}
->  
-> @@ -3355,10 +3353,13 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
->  		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
->  		em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
->  	}
-> +	mutex_unlock(&dev->lock);
->  
->  	em28xx_close_extension(dev);
-> +
->  	/* NOTE: must be called BEFORE the resources are released */
->  
-> +	mutex_lock(&dev->lock);
->  	if (!dev->users)
->  		em28xx_release_resources(dev);
->  
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index 2ad84ff1fc4f..97cc83c3c287 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -1097,10 +1097,12 @@ void em28xx_close_extension(struct em28xx *dev)
->  	const struct em28xx_ops *ops = NULL;
->  
->  	mutex_lock(&em28xx_devlist_mutex);
-> +	mutex_lock(&dev->lock);
->  	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
->  		if (ops->fini)
->  			ops->fini(dev);
->  	}
-> +	mutex_unlock(&dev->lock);
->  	list_del(&dev->devlist);
->  	mutex_unlock(&em28xx_devlist_mutex);
->  }
+Hi,
 
-Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+On Wednesday 22 January 2014 23:27:42 Sylwester Nawrocki wrote:
+> On 01/21/2014 12:27 AM, Sebastian Reichel wrote:
+> > On Mon, Jan 20, 2014 at 11:16:43PM +0100, Sylwester Nawrocki wrote:
+> >> On 01/20/2014 05:19 AM, Sakari Ailus wrote:
 
-Thank you for fixing this issue.
+[snip]
 
-I will review the remaining patches this evening.
+> >>>> camera-switch {
+> >>>> 
+> >>>>      /*
+> >>>>       * TODO:
+> >>>>       *  - check if the switching code is generic enough to use a
+> >>>>       *    more generic name like "gpio-camera-switch".
+
+I think you can use a more generic name. You could probably get some 
+inspiration from the i2c-mux-gpio DT bindings.
+
+> >>>>       *  - document the camera-switch binding
+> >>>>       */
+> >>>>      
+> >>>>      compatible = "nokia,n900-camera-switch";
+> >>> 
+> >>> Indeed. I don't think the hardware engineers realised what kind of a
+> >>> long standing issue they created for us when they chose that solution.
+> >>> ;)
+> >>> 
+> >>> Writing a small driver for this that exports a sub-device would probably
+> >>> be the best option as this is hardly very generic. Should this be shown
+> >>> to the user space or not? Probably it'd be nice to avoid showing the
+> >>> related sub-device if there would be one.
+> >> 
+> >> Probably we should avoid exposing such a hardware detail to user space.
+> >> OTOH it would be easy to handle as a media entity through the media
+> >> controller API.
+> > 
+> > If this is exposed to the userspace, then a userspace application
+> > "knows", that it cannot use both cameras at the same time. Otherwise
+> > it can just react to error messages when it tries to use the second
+> > camera.
+> 
+> Indeed, that's a good argument, I forgot about it for a while.
+> 
+> >>> I'm still trying to get N9 support working first, the drivers are in a
+> >>> better shape and there are no such hardware hacks.
+> >>> 
+> >>>>      gpios =<&gpio4 1>; /* 97 */
+> >> 
+> >> I think the binding should be defining how state of the GPIO corresponds
+> >> to state of the mux.
+> > 
+> > Obviously it should be mentioned in the n900-camera-switch binding
+> > Documentation. This document was just the proposal for the omap3isp
+> > node :)
+> 
+> Huh, I wasn't reading carefully enough! Then since it is just about the
+> OMAP3 ISP it might be a good idea to drop the switch from the example,
+> it seems unrelated.
+> 
+> >>>>      port@0 {
+> >>>>          switch_in: endpoint {
+> >>>>              remote-endpoint =<&csi1_ep>;
+> >>>>          };
+> >>>>          switch_out1: endpoint {
+> >>>>              remote-endpoint =<&et8ek8>;
+> >>>>          };
+> >>>>          switch_out2: endpoint {
+> >>>>              remote-endpoint =<&smiapp_dfl>;
+> >>>>          };
+> >>>>      };
+> >> 
+> >> This won't work, since names of the nodes are identical they will be
+> >> combined by the dtc into a single 'endpoint' node with single
+> >> 'remote-endpoint' property
+> >> - might not be exactly something that you want.
+> > 
+> >> So it could be rewritten like:
+> > right.
+> > 
+> >> [...]
+> >> However, simplifying a bit, the 'endpoint' nodes are supposed to describe
+> >> the configuration of a bus interface (port) for a specific remote device.
+> >> 
+> >> Then what you need might be something like:
+> >>   camera-switch {
+> >> 	
+> >> 	compatible = "nokia,n900-camera-switch";
+> >> 	
+> >> 	#address-cells =<1>;
+> >> 	#size-cells =<0>;
+> >> 	
+> >> 	switch_in: port@0 {
+> >> 		reg =<0>;
+> >> 		endpoint {
+> >> 			remote-endpoint =<&csi1_ep>;
+> >> 		};
+> >> 	};
+> >>          switch_out1: port@1 {
+> >> 		reg =<1>;
+> >> 		endpoint {
+> >> 			remote-endpoint =<&et8ek8>;
+> >> 		};
+> >> 	};
+> >> 	switch_out2: port@2 {
+> >> 		endpoint {
+> >> 			reg =<2>;
+> >> 			remote-endpoint =<&smiapp_dfl>;
+> >> 		};
+> >> 	};
+> >>   };
+> > 
+> > sounds fine to me.
+> > 
+> >> I'm just wondering if we need to be describing this in DT in such
+> >> detail.
+> > 
+> > Do you have an alternative suggestion for the N900's bus switch
+> > hack?
+> 
+> No, not really anything better at the moment.
+
+-- 
+Regards,
+
+Laurent Pinchart
 
