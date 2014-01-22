@@ -1,110 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2914 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460AbaAFDdM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 22:33:12 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s063X8nt011218
-	for <linux-media@vger.kernel.org>; Mon, 6 Jan 2014 04:33:10 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E5B652A0098
-	for <linux-media@vger.kernel.org>; Mon,  6 Jan 2014 04:33:04 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:33750 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750781AbaAVEP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jan 2014 23:15:57 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140106033304.E5B652A0098@tschai.lan>
-Date: Mon,  6 Jan 2014 04:33:04 +0100 (CET)
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] devices.txt: add video4linux device for Software Defined Radio
+Date: Wed, 22 Jan 2014 06:15:30 +0200
+Message-Id: <1390364130-8909-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add new	video4linux device named /dev/swradio for Software Defined
+Radio use. V4L device minor numbers are allocated dynamically
+nowadays.
 
-Results of the daily build of media_tree:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/devices.txt | 3 +++
+ 1 file changed, 3 insertions(+)
 
-date:		Mon Jan  6 04:00:26 CET 2014
-git branch:	test
-git hash:	f7d40eea8e3e531f1517ab7eded552e8837ef5da
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+diff --git a/Documentation/devices.txt b/Documentation/devices.txt
+index 80b7241..6bd551a 100644
+--- a/Documentation/devices.txt
++++ b/Documentation/devices.txt
+@@ -1493,6 +1493,9 @@ Your cooperation is appreciated.
+ 		224 = /dev/vbi0		Vertical blank interrupt
+ 		    ...
+ 		255 = /dev/vbi31	Vertical blank interrupt
++		0   = /dev/swradio0	Software Defined Radio device
++		1   = /dev/swradio1	Software Defined Radio device
++		    ...
+ 
+  81 block	I2O hard disk
+ 		  0 = /dev/i2o/hdq	17th I2O hard disk, whole disk
+-- 
+1.8.4.2
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
