@@ -1,243 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48027 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899AbaALRbL (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1759 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932104AbaAWOQb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jan 2014 12:31:11 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/2] em28xx-audio: split URB initialization code
-Date: Sun, 12 Jan 2014 11:52:34 -0200
-Message-Id: <1389534755-19462-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 23 Jan 2014 09:16:31 -0500
+Message-ID: <52E1242D.7040508@xs4all.nl>
+Date: Thu, 23 Jan 2014 15:16:13 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 19/21] DocBook media: update VIDIOC_G/S/TRY_EXT_CTRLS.
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl> <1390221974-28194-20-git-send-email-hverkuil@xs4all.nl> <52E11D34.4050300@samsung.com>
+In-Reply-To: <52E11D34.4050300@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The URB calculus code may eventually be moved to some other
-place, like at pcm open, if it ends by needing more setups, like
-working with different bit rates, or different audio latency.
+On 01/23/2014 02:46 PM, Sylwester Nawrocki wrote:
+> On 20/01/14 13:46, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 43 ++++++++++++++++++----
+>>  1 file changed, 35 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>> index b3bb957..bb383b9 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>> @@ -72,23 +72,30 @@ initialize the <structfield>id</structfield>,
+>>  <structfield>size</structfield> and <structfield>reserved2</structfield> fields
+>>  of each &v4l2-ext-control; and call the
+>>  <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
+>> -must also set the <structfield>string</structfield> field.</para>
+>> +must also set the <structfield>string</structfield> field. Controls
+>> +of complex types (<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set)
+>> +must set the <structfield>p</structfield> field.</para>
+>>  
+>>      <para>If the <structfield>size</structfield> is too small to
+>>  receive the control result (only relevant for pointer-type controls
+>>  like strings), then the driver will set <structfield>size</structfield>
+>>  to a valid value and return an &ENOSPC;. You should re-allocate the
+>> -string memory to this new size and try again. It is possible that the
+>> -same issue occurs again if the string has grown in the meantime. It is
+>> +memory to this new size and try again. For the string type it is possible that
+>> +the same issue occurs again if the string has grown in the meantime. It is
+>>  recommended to call &VIDIOC-QUERYCTRL; first and use
+>>  <structfield>maximum</structfield>+1 as the new <structfield>size</structfield>
+>>  value. It is guaranteed that that is sufficient memory.
+>>  </para>
+>>  
+>> +    <para>For matrices it is possible to only get the first <constant>X</constant>
+>> +elements by setting size to <constant>X * elem_size</constant>, where
+>> +<structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
+>> +Matrix elements are returned row-by-row.</para>
+>> +
+>>      <para>To change the value of a set of controls applications
+>>  initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+>>  <structfield>reserved2</structfield> and
+>> -<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
+>> +<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+>>  call the <constant>VIDIOC_S_EXT_CTRLS</constant> ioctl. The controls
+>>  will only be set if <emphasis>all</emphasis> control values are
+>>  valid.</para>
+>> @@ -96,11 +103,17 @@ valid.</para>
+>>      <para>To check if a set of controls have correct values applications
+>>  initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+>>  <structfield>reserved2</structfield> and
+>> -<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
+>> +<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+>>  call the <constant>VIDIOC_TRY_EXT_CTRLS</constant> ioctl. It is up to
+>>  the driver whether wrong values are automatically adjusted to a valid
+>>  value or if an error is returned.</para>
+>>  
+>> +    <para>For matrices it is possible to only set or check only the first
+>> +<constant>X</constant> elements by setting size to <constant>X * elem_size</constant>,
+>> +where <structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
+>> +Matrix elements are set row-by-row. Matrix elements that are not explicitly
+>> +set will be initialized to their default value.</para>
+> 
+> Presumably this could be more problematic than leaving the remaining part
+> of the matrix unchanged. I assume this paragraph is going to be removed ?
 
-So, move it into a separate routine. That also makes the code
-more readable.
+Yes, that's going away.
 
-No functional changes.
+Regards,
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-audio.c | 145 +++++++++++++++++---------------
- 1 file changed, 76 insertions(+), 69 deletions(-)
+	Hans
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index f004680219e7..13ba631130cd 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -681,75 +681,14 @@ static int em28xx_audio_ep_packet_size(struct usb_device *udev,
- 	return size & 0x7ff;
- }
- 
--static int em28xx_audio_init(struct em28xx *dev)
-+static int em28xx_audio_urb_init(struct em28xx *dev)
- {
--	struct em28xx_audio *adev = &dev->adev;
--	struct snd_pcm      *pcm;
--	struct snd_card     *card;
- 	struct usb_interface *intf;
- 	struct usb_endpoint_descriptor *e, *ep = NULL;
--	static int          devnr;
--	int                 err, i, ep_size, interval, num_urb, npackets;
-+	int                 i, ep_size, interval, num_urb, npackets;
- 	int		    urb_size, bytes_per_transfer;
- 	u8 alt;
- 
--	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
--		/* This device does not support the extension (in this case
--		   the device is expecting the snd-usb-audio module or
--		   doesn't have analog audio support at all) */
--		return 0;
--	}
--
--	em28xx_info("Binding audio extension\n");
--
--	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
--			 "Rechberger\n");
--	printk(KERN_INFO
--	       "em28xx-audio.c: Copyright (C) 2007-2014 Mauro Carvalho Chehab\n");
--
--	err = snd_card_create(index[devnr], "Em28xx Audio", THIS_MODULE, 0,
--			      &card);
--	if (err < 0)
--		return err;
--
--	spin_lock_init(&adev->slock);
--	adev->sndcard = card;
--	adev->udev = dev->udev;
--
--	err = snd_pcm_new(card, "Em28xx Audio", 0, 0, 1, &pcm);
--	if (err < 0) {
--		snd_card_free(card);
--		return err;
--	}
--
--	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &snd_em28xx_pcm_capture);
--	pcm->info_flags = 0;
--	pcm->private_data = dev;
--	strcpy(pcm->name, "Empia 28xx Capture");
--
--	snd_card_set_dev(card, &dev->udev->dev);
--	strcpy(card->driver, "Em28xx-Audio");
--	strcpy(card->shortname, "Em28xx Audio");
--	strcpy(card->longname, "Empia Em28xx Audio");
--
--	INIT_WORK(&dev->wq_trigger, audio_trigger);
--
--	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
--		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO);
--		em28xx_cvol_new(card, dev, "Line In", AC97_LINE);
--		em28xx_cvol_new(card, dev, "Phone", AC97_PHONE);
--		em28xx_cvol_new(card, dev, "Microphone", AC97_MIC);
--		em28xx_cvol_new(card, dev, "CD", AC97_CD);
--		em28xx_cvol_new(card, dev, "AUX", AC97_AUX);
--		em28xx_cvol_new(card, dev, "PCM", AC97_PCM);
--
--		em28xx_cvol_new(card, dev, "Master", AC97_MASTER);
--		em28xx_cvol_new(card, dev, "Line", AC97_HEADPHONE);
--		em28xx_cvol_new(card, dev, "Mono", AC97_MASTER_MONO);
--		em28xx_cvol_new(card, dev, "LFE", AC97_CENTER_LFE_MASTER);
--		em28xx_cvol_new(card, dev, "Surround", AC97_SURROUND_MASTER);
--	}
--
- 	if (dev->audio_ifnum)
- 		alt = 1;
- 	else
-@@ -760,7 +699,6 @@ static int em28xx_audio_init(struct em28xx *dev)
- 	if (intf->num_altsetting <= alt) {
- 		em28xx_errdev("alt %d doesn't exist on interface %d\n",
- 			      dev->audio_ifnum, alt);
--		snd_card_free(card);
- 		return -ENODEV;
- 	}
- 
-@@ -776,7 +714,6 @@ static int em28xx_audio_init(struct em28xx *dev)
- 
- 	if (!ep) {
- 		em28xx_errdev("Couldn't find an audio endpoint");
--		snd_card_free(card);
- 		return -ENODEV;
- 	}
- 
-@@ -833,13 +770,11 @@ static int em28xx_audio_init(struct em28xx *dev)
- 					    sizeof(*dev->adev.transfer_buffer),
- 					    GFP_ATOMIC);
- 	if (!dev->adev.transfer_buffer) {
--		snd_card_free(card);
- 		return -ENOMEM;
- 	}
- 
- 	dev->adev.urb = kcalloc(num_urb, sizeof(*dev->adev.urb), GFP_ATOMIC);
- 	if (!dev->adev.urb) {
--		snd_card_free(card);
- 		kfree(dev->adev.transfer_buffer);
- 		return -ENOMEM;
- 	}
-@@ -855,7 +790,6 @@ static int em28xx_audio_init(struct em28xx *dev)
- 		if (!urb) {
- 			em28xx_errdev("usb_alloc_urb failed!\n");
- 			em28xx_audio_free_urb(dev);
--			snd_card_free(card);
- 			return -ENOMEM;
- 		}
- 		dev->adev.urb[i] = urb;
-@@ -865,7 +799,6 @@ static int em28xx_audio_init(struct em28xx *dev)
- 		if (!buf) {
- 			em28xx_errdev("usb_alloc_coherent failed!\n");
- 			em28xx_audio_free_urb(dev);
--			snd_card_free(card);
- 			return -ENOMEM;
- 		}
- 		dev->adev.transfer_buffer[i] = buf;
-@@ -886,6 +819,80 @@ static int em28xx_audio_init(struct em28xx *dev)
- 		}
- 	}
- 
-+	return 0;
-+}
-+
-+static int em28xx_audio_init(struct em28xx *dev)
-+{
-+	struct em28xx_audio *adev = &dev->adev;
-+	struct snd_pcm      *pcm;
-+	struct snd_card     *card;
-+	static int          devnr;
-+	int		    err;
-+
-+	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
-+		/* This device does not support the extension (in this case
-+		   the device is expecting the snd-usb-audio module or
-+		   doesn't have analog audio support at all) */
-+		return 0;
-+	}
-+
-+	em28xx_info("Binding audio extension\n");
-+
-+	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
-+			 "Rechberger\n");
-+	printk(KERN_INFO
-+	       "em28xx-audio.c: Copyright (C) 2007-2014 Mauro Carvalho Chehab\n");
-+
-+	err = snd_card_create(index[devnr], "Em28xx Audio", THIS_MODULE, 0,
-+			      &card);
-+	if (err < 0)
-+		return err;
-+
-+	spin_lock_init(&adev->slock);
-+	adev->sndcard = card;
-+	adev->udev = dev->udev;
-+
-+	err = snd_pcm_new(card, "Em28xx Audio", 0, 0, 1, &pcm);
-+	if (err < 0) {
-+		snd_card_free(card);
-+		return err;
-+	}
-+
-+	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &snd_em28xx_pcm_capture);
-+	pcm->info_flags = 0;
-+	pcm->private_data = dev;
-+	strcpy(pcm->name, "Empia 28xx Capture");
-+
-+	snd_card_set_dev(card, &dev->udev->dev);
-+	strcpy(card->driver, "Em28xx-Audio");
-+	strcpy(card->shortname, "Em28xx Audio");
-+	strcpy(card->longname, "Empia Em28xx Audio");
-+
-+	INIT_WORK(&dev->wq_trigger, audio_trigger);
-+
-+	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO);
-+		em28xx_cvol_new(card, dev, "Line In", AC97_LINE);
-+		em28xx_cvol_new(card, dev, "Phone", AC97_PHONE);
-+		em28xx_cvol_new(card, dev, "Microphone", AC97_MIC);
-+		em28xx_cvol_new(card, dev, "CD", AC97_CD);
-+		em28xx_cvol_new(card, dev, "AUX", AC97_AUX);
-+		em28xx_cvol_new(card, dev, "PCM", AC97_PCM);
-+
-+		em28xx_cvol_new(card, dev, "Master", AC97_MASTER);
-+		em28xx_cvol_new(card, dev, "Line", AC97_HEADPHONE);
-+		em28xx_cvol_new(card, dev, "Mono", AC97_MASTER_MONO);
-+		em28xx_cvol_new(card, dev, "LFE", AC97_CENTER_LFE_MASTER);
-+		em28xx_cvol_new(card, dev, "Surround", AC97_SURROUND_MASTER);
-+	}
-+
-+	err = em28xx_audio_urb_init(dev);
-+	if (err) {
-+		snd_card_free(card);
-+		return -ENODEV;
-+	}
-+
- 	err = snd_card_register(card);
- 	if (err < 0) {
- 		em28xx_audio_free_urb(dev);
--- 
-1.8.3.1
+> 
+>>      <para>When the <structfield>id</structfield> or
+>>  <structfield>ctrl_class</structfield> is invalid drivers return an
+>>  &EINVAL;. When the value is out of bounds drivers can choose to take
+>> @@ -158,19 +171,33 @@ applications must set the array to zero.</entry>
+>>  	    <entry></entry>
+>>  	    <entry>__s32</entry>
+>>  	    <entry><structfield>value</structfield></entry>
+>> -	    <entry>New value or current value.</entry>
+>> +	    <entry>New value or current value. Valid if this control is not of
+>> +type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
+>> +<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry></entry>
+>>  	    <entry>__s64</entry>
+>>  	    <entry><structfield>value64</structfield></entry>
+>> -	    <entry>New value or current value.</entry>
+>> +	    <entry>New value or current value. Valid if this control is of
+>> +type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
+>> +<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry></entry>
+>>  	    <entry>char *</entry>
+>>  	    <entry><structfield>string</structfield></entry>
+>> -	    <entry>A pointer to a string.</entry>
+>> +	    <entry>A pointer to a string. Valid if this control is of
+>> +type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry></entry>
+>> +	    <entry>void *</entry>
+>> +	    <entry><structfield>p</structfield></entry>
+>> +	    <entry>A pointer to a complex type which can be a matrix and/or a
+>> +complex type (the control's type is >= <constant>V4L2_CTRL_COMPLEX_TYPES</constant>).
+>> +Valid if <constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set for this control.
+>> +</entry>
+>>  	  </row>
+>>  	</tbody>
+>>        </tgroup>
+> 
+> --
+> Regards,
+> Sylwester
+> 
 
