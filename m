@@ -1,484 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1260 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753516AbaA0Oey (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:48371 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752596AbaAWKLg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 09:34:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 08/22] v4l2-ctrls: create type_ops.
-Date: Mon, 27 Jan 2014 15:34:10 +0100
-Message-Id: <1390833264-8503-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 23 Jan 2014 05:11:36 -0500
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Amit Grover' <amit.grover@samsung.com>, m.chehab@samsung.com,
+	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, rob@landley.net,
+	kyungmin.park@samsung.com, jtp.park@samsung.com
+Cc: hans.verkuil@cisco.com, andrew.smirnov@gmail.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	arun.kk@samsung.com, anatol.pomozov@gmail.com, jmccrohan@gmail.com,
+	austin.lobo@samsung.com, 'Swami Nathan' <swaminath.p@samsung.com>
+References: <1388400186-22045-1-git-send-email-amit.grover@samsung.com>
+In-reply-to: <1388400186-22045-1-git-send-email-amit.grover@samsung.com>
+Subject: RE: [PATCH] [media] s5p-mfc: Add Horizontal and Vertical search range
+ for Video Macro Blocks
+Date: Thu, 23 Jan 2014 11:11:31 +0100
+Message-id: <019f01cf1823$7e020fa0$7a062ee0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Amit,
 
-Since complex controls can have non-standard types we need to be able to do
-type-specific checks etc. In order to make that easy type operations are added.
-There are four operations:
+> From: Amit Grover [mailto:amit.grover@samsung.com]
+> Sent: Monday, December 30, 2013 11:43 AM
+> 
+> This patch adds Controls to set Horizontal and Vertical search range
+> for Motion Estimation block for Samsung MFC video Encoders.
+> 
+> Signed-off-by: Swami Nathan <swaminath.p@samsung.com>
+> Signed-off-by: Amit Grover <amit.grover@samsung.com>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml    |   14 +++++++++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   24
+> +++++++++++++++++++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 ++------
+>  drivers/media/v4l2-core/v4l2-ctrls.c            |   14 +++++++++++++
+>  include/uapi/linux/v4l2-controls.h              |    2 ++
+>  6 files changed, 58 insertions(+), 6 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> b/Documentation/DocBook/media/v4l/controls.xml
+> index 7a3b49b..70a0f6f 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -2258,6 +2258,20 @@ Applicable to the MPEG1, MPEG2, MPEG4
+> encoders.</entry>
+>  VBV buffer control.</entry>
+>  	      </row>
+> 
+> +		  <row><entry></entry></row>
+> +	      <row id="v4l2-mpeg-video-horz-search-range">
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE</constant
 
-- equal: check if two values are equal
-- init: initialize a value
-- log: log the value
-- validate: validate a new value
+HORZ is nowhere used. HOR is more commonly used in control names.
+V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE seems better.
 
-This patch uses the v4l2_ctrl_ptr union for the first time.
+> >&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Sets the Horizontal
+> search range for Video Macro blocks.</entry>
+> +	      </row>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 267 ++++++++++++++++++++++-------------
- include/media/v4l2-ctrls.h           |  21 +++
- 2 files changed, 190 insertions(+), 98 deletions(-)
+It's expressed in pixels? If so then it should be mentioned here. Also I
+think this lacks the mention that it is used for motion estimation.
+Please add a more detailed description.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 67e5d1e..988a2bd8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1132,6 +1132,149 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
- 			v4l2_event_queue_fh(sev->fh, &ev);
- }
- 
-+static bool std_equal(const struct v4l2_ctrl *ctrl,
-+		      union v4l2_ctrl_ptr ptr1,
-+		      union v4l2_ctrl_ptr ptr2)
-+{
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_BUTTON:
-+		return false;
-+	case V4L2_CTRL_TYPE_STRING:
-+		/* strings are always 0-terminated */
-+		return !strcmp(ptr1.p_char, ptr2.p_char);
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		return *ptr1.p_s64 == *ptr2.p_s64;
-+	default:
-+		if (ctrl->is_ptr)
-+			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
-+		return *ptr1.p_s32 == *ptr2.p_s32;
-+	}
-+}
-+
-+static void std_init(const struct v4l2_ctrl *ctrl,
-+		     union v4l2_ctrl_ptr ptr)
-+{
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_STRING:
-+		memset(ptr.p_char, ' ', ctrl->minimum);
-+		ptr.p_char[ctrl->minimum] = '\0';
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		*ptr.p_s64 = ctrl->default_value;
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_BITMASK:
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		*ptr.p_s32 = ctrl->default_value;
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+static void std_log(const struct v4l2_ctrl *ctrl)
-+{
-+	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
-+
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_INTEGER:
-+		pr_cont("%d", *ptr.p_s32);
-+		break;
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		pr_cont("%s", *ptr.p_s32 ? "true" : "false");
-+		break;
-+	case V4L2_CTRL_TYPE_MENU:
-+		pr_cont("%s", ctrl->qmenu[*ptr.p_s32]);
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		pr_cont("%lld", ctrl->qmenu_int[*ptr.p_s32]);
-+		break;
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		pr_cont("0x%08x", *ptr.p_s32);
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		pr_cont("%lld", *ptr.p_s64);
-+		break;
-+	case V4L2_CTRL_TYPE_STRING:
-+		pr_cont("%s", ptr.p_char);
-+		break;
-+	default:
-+		pr_cont("unknown type %d", ctrl->type);
-+		break;
-+	}
-+}
-+
-+/* Round towards the closest legal value */
-+#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
-+({								\
-+	offset_type offset;					\
-+	val += (ctrl)->step / 2;				\
-+	val = clamp_t(typeof(val), val,				\
-+		      (ctrl)->minimum, (ctrl)->maximum);	\
-+	offset = (val) - (ctrl)->minimum;			\
-+	offset = (ctrl)->step * (offset / (ctrl)->step);	\
-+	val = (ctrl)->minimum + offset;				\
-+	0;							\
-+})
-+
-+/* Validate a new control */
-+static int std_validate(const struct v4l2_ctrl *ctrl,
-+			union v4l2_ctrl_ptr ptr)
-+{
-+	size_t len;
-+
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_INTEGER:
-+		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
-+
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		*ptr.p_s32 = !!*ptr.p_s32;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
-+			return -ERANGE;
-+		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
-+			return -EINVAL;
-+		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
-+		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
-+			return -EINVAL;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		*ptr.p_s32 &= ctrl->maximum;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_BUTTON:
-+	case V4L2_CTRL_TYPE_CTRL_CLASS:
-+		*ptr.p_s32 = 0;
-+		return 0;
-+
-+	case V4L2_CTRL_TYPE_STRING:
-+		len = strlen(ptr.p_char);
-+		if (len < ctrl->minimum)
-+			return -ERANGE;
-+		if ((len - ctrl->minimum) % ctrl->step)
-+			return -ERANGE;
-+		return 0;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static const struct v4l2_ctrl_type_ops std_type_ops = {
-+	.equal = std_equal,
-+	.init = std_init,
-+	.log = std_log,
-+	.validate = std_validate,
-+};
-+
- /* Helper function: copy the current control value back to the caller */
- static int cur_to_user(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
-@@ -1315,21 +1458,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
- 
- 		if (ctrl == NULL)
- 			continue;
--		switch (ctrl->type) {
--		case V4L2_CTRL_TYPE_BUTTON:
--			/* Button controls are always 'different' */
--			return 1;
--		case V4L2_CTRL_TYPE_STRING:
--			/* strings are always 0-terminated */
--			diff = strcmp(ctrl->string, ctrl->cur.string);
--			break;
--		case V4L2_CTRL_TYPE_INTEGER64:
--			diff = ctrl->val64 != ctrl->cur.val64;
--			break;
--		default:
--			diff = ctrl->val != ctrl->cur.val;
--			break;
--		}
-+		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
- 	}
- 	return diff;
- }
-@@ -1370,65 +1499,30 @@ static int check_range(enum v4l2_ctrl_type type,
- 	}
- }
- 
--/* Round towards the closest legal value */
--#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
--({								\
--	offset_type offset;					\
--	val += (ctrl)->step / 2;				\
--	val = clamp_t(typeof(val), val,				\
--		      (ctrl)->minimum, (ctrl)->maximum);	\
--	offset = (val) - (ctrl)->minimum;			\
--	offset = (ctrl)->step * (offset / (ctrl)->step);	\
--	val = (ctrl)->minimum + offset;				\
--	0;							\
--})
--
- /* Validate a new control */
- static int validate_new(const struct v4l2_ctrl *ctrl,
- 			struct v4l2_ext_control *c)
- {
--	size_t len;
-+	union v4l2_ctrl_ptr ptr;
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		return ROUND_TO_RANGE(*(s32 *)&c->value, u32, ctrl);
--	case V4L2_CTRL_TYPE_INTEGER64:
--		return ROUND_TO_RANGE(*(s64 *)&c->value64, u64, ctrl);
--
--	case V4L2_CTRL_TYPE_BOOLEAN:
--		c->value = !!c->value;
--		return 0;
--
--	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
--			return -ERANGE;
--		if (ctrl->menu_skip_mask & (1 << c->value))
--			return -EINVAL;
--		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
--		    ctrl->qmenu[c->value][0] == '\0')
--			return -EINVAL;
--		return 0;
--
-+	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
--		c->value &= ctrl->maximum;
--		return 0;
--
-+	case V4L2_CTRL_TYPE_BOOLEAN:
- 	case V4L2_CTRL_TYPE_BUTTON:
- 	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		c->value = 0;
--		return 0;
-+		ptr.p_s32 = &c->value;
-+		return ctrl->type_ops->validate(ctrl, ptr);
- 
--	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(c->string);
--		if (len < ctrl->minimum)
--			return -ERANGE;
--		if ((len - ctrl->minimum) % ctrl->step)
--			return -ERANGE;
--		return 0;
-+	case V4L2_CTRL_TYPE_INTEGER64:
-+		ptr.p_s64 = &c->value64;
-+		return ctrl->type_ops->validate(ctrl, ptr);
- 
- 	default:
--		return -EINVAL;
-+		ptr.p = c->p;
-+		return ctrl->type_ops->validate(ctrl, ptr);
- 	}
- }
- 
-@@ -1645,6 +1739,7 @@ unlock:
- /* Add a new control */
- static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
-+			const struct v4l2_ctrl_type_ops *type_ops,
- 			u32 id, const char *name, const char *unit,
- 			enum v4l2_ctrl_type type,
- 			s64 min, s64 max, u64 step, s64 def,
-@@ -1656,6 +1751,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	unsigned sz_extra;
- 	void *data;
- 	int err;
-+	int s;
- 
- 	if (hdl->error)
- 		return NULL;
-@@ -1715,6 +1811,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	INIT_LIST_HEAD(&ctrl->ev_subs);
- 	ctrl->handler = hdl;
- 	ctrl->ops = ops;
-+	ctrl->type_ops = type_ops ? type_ops : &std_type_ops;
- 	ctrl->id = id;
- 	ctrl->name = name;
- 	ctrl->unit = unit;
-@@ -1736,19 +1833,16 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->cur.val = ctrl->val = def;
- 	data = &ctrl->stores[1];
- 
--	if (ctrl->is_string) {
--		ctrl->string = ctrl->new.p_char = data;
--		ctrl->stores[0].p_char = data + elem_size;
--
--		if (ctrl->minimum)
--			memset(ctrl->cur.string, ' ', ctrl->minimum);
--	} else if (ctrl->is_ptr) {
-+	if (ctrl->is_ptr) {
- 		ctrl->p = ctrl->new.p = data;
- 		ctrl->stores[0].p = data + elem_size;
- 	} else {
- 		ctrl->new.p = &ctrl->val;
- 		ctrl->stores[0].p = &ctrl->cur.val;
- 	}
-+	for (s = -1; s <= 0; s++)
-+		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
-+
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
- 		return NULL;
-@@ -1793,7 +1887,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 
--	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
-+	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
- 			type, min, max,
- 			is_menu ? cfg->menu_skip_mask : step,
- 			def, cfg->elem_size,
-@@ -1821,7 +1915,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
- 			     min, max, step, def, 0,
- 			     flags, NULL, NULL, NULL);
- }
-@@ -1855,7 +1949,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
- 			     0, max, mask, def, 0,
- 			     flags, qmenu, qmenu_int, NULL);
- }
-@@ -1888,7 +1982,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
-+			     0, max, mask, def,
- 			     0, flags, qmenu, NULL, NULL);
- 
- }
-@@ -1913,7 +2008,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
-+	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
- 			     0, max, 0, def, 0,
- 			     flags, NULL, qmenu_int, NULL);
- }
-@@ -2096,32 +2191,8 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 
- 	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
- 
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_INTEGER:
--		pr_cont("%d", ctrl->cur.val);
--		break;
--	case V4L2_CTRL_TYPE_BOOLEAN:
--		pr_cont("%s", ctrl->cur.val ? "true" : "false");
--		break;
--	case V4L2_CTRL_TYPE_MENU:
--		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
--		break;
--	case V4L2_CTRL_TYPE_BITMASK:
--		pr_cont("0x%08x", ctrl->cur.val);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		pr_cont("%lld", ctrl->cur.val64);
--		break;
--	case V4L2_CTRL_TYPE_STRING:
--		pr_cont("%s", ctrl->cur.string);
--		break;
--	default:
--		pr_cont("unknown type %d", ctrl->type);
--		break;
--	}
-+	ctrl->type_ops->log(ctrl);
-+
- 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
- 			   V4L2_CTRL_FLAG_GRABBED |
- 			   V4L2_CTRL_FLAG_VOLATILE)) {
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 515c1ba..aaf7333 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -67,6 +67,23 @@ struct v4l2_ctrl_ops {
- 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
- };
- 
-+/** struct v4l2_ctrl_type_ops - The control type operations that the driver has to provide.
-+  * @equal: return true if both values are equal.
-+  * @init: initialize the value.
-+  * @log: log the value.
-+  * @validate: validate the value. Return 0 on success and a negative value otherwise.
-+  */
-+struct v4l2_ctrl_type_ops {
-+	bool (*equal)(const struct v4l2_ctrl *ctrl,
-+		      union v4l2_ctrl_ptr ptr1,
-+		      union v4l2_ctrl_ptr ptr2);
-+	void (*init)(const struct v4l2_ctrl *ctrl,
-+		     union v4l2_ctrl_ptr ptr);
-+	void (*log)(const struct v4l2_ctrl *ctrl);
-+	int (*validate)(const struct v4l2_ctrl *ctrl,
-+			union v4l2_ctrl_ptr ptr);
-+};
-+
- typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
- 
- /** struct v4l2_ctrl - The control structure.
-@@ -102,6 +119,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   *		value, then the whole cluster is in manual mode. Drivers should
-   *		never set this flag directly.
-   * @ops:	The control ops.
-+  * @type_ops:	The control type ops.
-   * @id:	The control ID.
-   * @name:	The control name.
-   * @unit:	The control's unit. May be NULL.
-@@ -151,6 +169,7 @@ struct v4l2_ctrl {
- 	unsigned int manual_mode_value:8;
- 
- 	const struct v4l2_ctrl_ops *ops;
-+	const struct v4l2_ctrl_type_ops *type_ops;
- 	u32 id;
- 	const char *name;
- 	const char *unit;
-@@ -234,6 +253,7 @@ struct v4l2_ctrl_handler {
- 
- /** struct v4l2_ctrl_config - Control configuration structure.
-   * @ops:	The control ops.
-+  * @type_ops:	The control type ops. Only needed for complex controls.
-   * @id:	The control ID.
-   * @name:	The control name.
-   * @unit:	The control's unit.
-@@ -259,6 +279,7 @@ struct v4l2_ctrl_handler {
-   */
- struct v4l2_ctrl_config {
- 	const struct v4l2_ctrl_ops *ops;
-+	const struct v4l2_ctrl_type_ops *type_ops;
- 	u32 id;
- 	const char *name;
- 	const char *unit;
+> +
+> +		 <row><entry></entry></row>
+> +	      <row id="v4l2-mpeg-video-vert-search-range">
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE</constant
+> >&nbsp;</entry>
+
+V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE seems better.
+
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Sets the Vertical search
+> range for Video Macro blocks.</entry>
+> +	      </row>
+> +
+
+This description is too vague as well.
+
+>  	      <row><entry></entry></row>
+>  	      <row>
+>  		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nb
+> sp;</entry>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> index 6920b54..f2c13c3 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> @@ -430,6 +430,8 @@ struct s5p_mfc_vp8_enc_params {
+>  struct s5p_mfc_enc_params {
+>  	u16 width;
+>  	u16 height;
+> +	u32 horz_range;
+> +	u32 vert_range;
+
+mv_h_range ?
+mv_v_range ?
+
+> 
+>  	u16 gop_size;
+>  	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> index 4ff3b6c..a02e7b8 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> @@ -208,6 +208,24 @@ static struct mfc_control controls[] = {
+>  		.default_value = 0,
+>  	},
+>  	{
+> +		.id = V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE,
+> +		.type = V4L2_CTRL_TYPE_INTEGER,
+> +		.name = "horizontal search range of video macro block",
+
+This too should be property capitalised. Please mention the motion vectors
+too.
+
+> +		.minimum = 16,
+> +		.maximum = 128,
+> +		.step = 16,
+> +		.default_value = 32,
+> +	},
+> +	{
+> +		.id = V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE,
+> +		.type = V4L2_CTRL_TYPE_INTEGER,
+> +		.name = "vertical search range of video macro block",
+
+This too should be property capitalised. Please mention the motion vectors
+too.
+
+> +		.minimum = 16,
+> +		.maximum = 128,
+> +		.step = 16,
+> +		.default_value = 32,
+> +	},
+> +	{
+>  		.id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
+>  		.type = V4L2_CTRL_TYPE_INTEGER,
+>  		.minimum = 0,
+> @@ -1377,6 +1395,12 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl
+> *ctrl)
+>  	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
+>  		p->vbv_size = ctrl->val;
+>  		break;
+> +	case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:
+> +		p->horz_range = ctrl->val;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:
+> +		p->vert_range = ctrl->val;
+> +		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
+>  		p->codec.h264.cpb_size = ctrl->val;
+>  		break;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> index 461358c..47e1807 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> @@ -727,14 +727,10 @@ static int s5p_mfc_set_enc_params(struct
+> s5p_mfc_ctx *ctx)
+>  	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
+> 
+>  	/* setting for MV range [16, 256] */
+> -	reg = 0;
+> -	reg &= ~(0x3FFF);
+> -	reg = 256;
+> +	reg = (p->horz_range & 0x3fff);	/* conditional check in app */
+>  	WRITEL(reg, S5P_FIMV_E_MV_HOR_RANGE_V6);
+
+Please add a S5P_FIMV_E_MV_HOR_RANGE_V6_MASK or something instead of this
+magic number.
+> 
+> -	reg = 0;
+> -	reg &= ~(0x3FFF);
+> -	reg = 256;
+> +	reg = (p->vert_range & 0x3fff);	/* conditional check in app */
+
+Please add a S5P_FIMV_E_MV_VER_RANGE_V6_MASK or something instead of this
+magic number.
+
+>  	WRITEL(reg, S5P_FIMV_E_MV_VER_RANGE_V6);
+> 
+>  	WRITEL(0x0, S5P_FIMV_E_FRAME_INSERTION_V6);
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-
+> core/v4l2-ctrls.c
+> index fb46790..7cf23d5 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -735,6 +735,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_MPEG_VIDEO_DEC_PTS:			return
+"Video
+> Decoder PTS";
+>  	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:			return
+"Video
+> Decoder Frame Count";
+>  	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return
+"Initial
+> Delay for VBV Control";
+> +	case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:		return "hor
+> search range of video MB";
+
+This should be property capitalised. Please mention the motion vectors too.
+
+> +	case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:		return "vert
+> search range of video MB";
+
+This too should be property capitalised. Please mention the motion vectors
+too.
+
+>  	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return
+> "Repeat Sequence Header";
+> 
+>  	/* VPX controls */
+> @@ -905,6 +907,18 @@ void v4l2_ctrl_fill(u32 id, const char **name,
+> enum v4l2_ctrl_type *type,
+>  		*min = 0;
+>  		*max = *step = 1;
+>  		break;
+> +	case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:
+> +		*type = V4L2_CTRL_TYPE_INTEGER;
+> +		*min = 16;
+> +		*max = 128;
+> +		*step = 16;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:
+> +		*type = V4L2_CTRL_TYPE_INTEGER;
+> +		*min = 16;
+> +		*max = 128;
+> +		*step = 16;
+> +		break;
+>  	case V4L2_CID_PAN_RESET:
+>  	case V4L2_CID_TILT_RESET:
+>  	case V4L2_CID_FLASH_STROBE:
+> diff --git a/include/uapi/linux/v4l2-controls.h
+> b/include/uapi/linux/v4l2-controls.h
+> index 1666aab..bcce536 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -372,6 +372,8 @@ enum v4l2_mpeg_video_multi_slice_mode {
+>  #define V4L2_CID_MPEG_VIDEO_DEC_FRAME
+> 	(V4L2_CID_MPEG_BASE+224)
+>  #define V4L2_CID_MPEG_VIDEO_VBV_DELAY
+> 	(V4L2_CID_MPEG_BASE+225)
+>  #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER
+> 	(V4L2_CID_MPEG_BASE+226)
+> +#define V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE
+> 	(V4L2_CID_MPEG_BASE+227)
+> +#define V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE
+> 	(V4L2_CID_MPEG_BASE+228)
+> 
+>  #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP
+> 	(V4L2_CID_MPEG_BASE+300)
+>  #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP
+> 	(V4L2_CID_MPEG_BASE+301)
+> --
+> 1.7.9.5
+
+Best wishes,
 -- 
-1.8.5.2
+Kamil Debski
+Samsung R&D Institute Poland
+
 
