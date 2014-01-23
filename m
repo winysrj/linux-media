@@ -1,80 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47936 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727AbaASThI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jan 2014 14:37:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: i2c: mt9p031: Check return value of clk_prepare_enable/clk_set_rate
-Date: Sun, 19 Jan 2014 20:37:49 +0100
-Message-ID: <2163823.ZEyLsU58On@avalon>
-In-Reply-To: <1389950253-31251-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1389950253-31251-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:39083 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752572AbaAWVJO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jan 2014 16:09:14 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 08/13] v4l: do not allow modulator ioctls for non-radio devices
+Date: Thu, 23 Jan 2014 23:08:48 +0200
+Message-Id: <1390511333-25837-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1390511333-25837-1-git-send-email-crope@iki.fi>
+References: <1390511333-25837-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Hans Verkuil <hverkuil@xs4all.nl>
 
-Thank you for the patch.
+Modulator ioctls could be enabled mistakenly for non-radio devices.
+Currently those ioctls are only valid for radio. Fix it.
 
-On Friday 17 January 2014 14:47:33 Prabhakar Lad wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> clk_set_rate(), clk_prepare_enable() functions can fail, so check the return
-> values to avoid surprises.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/i2c/mt9p031.c |   12 +++++++++---
->  1 file changed, 9 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index e5ddf47..dbe34d7 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -222,12 +222,15 @@ static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
-> 
->  	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
->  	struct mt9p031_platform_data *pdata = mt9p031->pdata;
-> +	int ret;
-> 
->  	mt9p031->clk = devm_clk_get(&client->dev, NULL);
->  	if (IS_ERR(mt9p031->clk))
->  		return PTR_ERR(mt9p031->clk);
-> 
-> -	clk_set_rate(mt9p031->clk, pdata->ext_freq);
-> +	ret = clk_set_rate(mt9p031->clk, pdata->ext_freq);
-> +	if (ret < 0)
-> +		return ret;
-> 
->  	mt9p031->pll.ext_clock = pdata->ext_freq;
->  	mt9p031->pll.pix_clock = pdata->target_freq;
-> @@ -286,8 +289,11 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
->  		return ret;
-> 
->  	/* Emable clock */
-> -	if (mt9p031->clk)
-> -		clk_prepare_enable(mt9p031->clk);
-> +	if (mt9p031->clk) {
-> +		ret = clk_prepare_enable(mt9p031->clk);
-> +		if (ret)
-> +			return ret;
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-You should call regulator_bulk_disable() in the error path to cancel the 
-previous regulator_bulk_enable() call.
-
-> +	}
-> 
->  	/* Now RESET_BAR must be high */
->  	if (gpio_is_valid(mt9p031->reset)) {
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 6308a19..9adde0f 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -553,6 +553,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	const struct v4l2_ioctl_ops *ops = vdev->ioctl_ops;
+ 	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
++	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
+ 	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
+@@ -726,8 +727,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
+ 		SET_VALID_IOCTL(ops, VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap);
+ 	}
+-	if (is_tx) {
+-		/* transmitter only ioctls */
++	if (is_tx && (is_radio || is_sdr)) {
++		/* radio transmitter only ioctls */
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_MODULATOR, vidioc_g_modulator);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_MODULATOR, vidioc_s_modulator);
+ 	}
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.3
 
