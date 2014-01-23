@@ -1,67 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:50449 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756136AbaAHMVR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 07:21:17 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ300LVK0ZGG260@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 08 Jan 2014 07:21:16 -0500 (EST)
-Date: Wed, 08 Jan 2014 10:21:10 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: kbuild test robot <fengguang.wu@intel.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>, kbuild-all@01.org,
-	linux-media@vger.kernel.org
-Subject: Re: [kbuild-all] [linuxtv-media:master 499/499]
- drivers/media/i2c/s5k5baf.c:362:3: warning: format '%d' expects argument of
- type 'int', but argument 3 has type 'size_t'
-Message-id: <20140108102110.1a79579a@samsung.com>
-In-reply-to: <20140108083736.GA27840@mwanda>
-References: <52b94458.53lWHr3FG9kOLNn4%fengguang.wu@intel.com>
- <20140108083736.GA27840@mwanda>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:64822 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752473AbaAWTLK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jan 2014 14:11:10 -0500
+Received: by mail-oa0-f41.google.com with SMTP id j17so2669192oag.28
+        for <linux-media@vger.kernel.org>; Thu, 23 Jan 2014 11:11:09 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20140122200142.002a39c2@samsung.com>
+References: <20140115173559.7e53239a@samsung.com>
+	<1390246787-15616-1-git-send-email-a.seppala@gmail.com>
+	<20140121122826.GA25490@pequod.mess.org>
+	<CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com>
+	<20140122162953.GA1665@pequod.mess.org>
+	<CAKv9HNbVQwAcG98S3_Mj4A6zo8Ae2fLT6vn4LOYW1UMrwQku7Q@mail.gmail.com>
+	<20140122210024.GA3223@pequod.mess.org>
+	<20140122200142.002a39c2@samsung.com>
+Date: Thu, 23 Jan 2014 21:11:09 +0200
+Message-ID: <CAKv9HNY7==4H2ZDrmaX+1BcarRAJd7zUE491oQ2ZJZXezpwOAw@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
+From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 8 Jan 2014 11:37:37 +0300
-Dan Carpenter <dan.carpenter@oracle.com> escreveu:
+On 23 January 2014 00:01, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
+> Not sure if you saw it, but there's already another patchset proposing
+> that, that got submitted before this changeset:
+>         https://patchwork.linuxtv.org/patch/21625/
 
-> The other thing that concerned me with this was the sparse warning:
-> 
-> drivers/media/i2c/s5k5baf.c:481:26: error: bad constant expression
+I actually didn't notice that until now. Seems quite a similar kind of
+approach with even more advanced features than what I had in mind
+(namely the scancode filtering and masking).
 
-Hmm...
-	static void s5k5baf_write_arr_seq(struct s5k5baf *state, u16 addr,
-	                                  u16 count, const u16 *seq)
-	{
-	        struct i2c_client *c = v4l2_get_subdevdata(&state->sd);
-	        __be16 buf[count + 1];
-	        int ret, n;
+However it looks like that patchset has the same drawback about not
+knowing which protocol to use for the wakeup scancode as was pointed
+from my patch.
 
-Yeah, allocating data like that at stack is not nice.
+I think I'll try to come up with a new patch addressing the comments
+I've seen so far.
 
-I would simply replace the static allocation here by a dynamic one.
- 
-> It was hard to verify that this couldn't go over 512.  I guess 512 is
-> what we would consider an error in this context.  This seems like it
-> could be determined by the firmware?
-> 
-> regards,
-> dan carpenter
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-
-Cheers,
-Mauro
+-Antti
