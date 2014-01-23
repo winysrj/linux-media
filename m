@@ -1,64 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:54010 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966AbaAGNJ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 08:09:26 -0500
-Received: by mail-oa0-f41.google.com with SMTP id j17so123014oag.14
-        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 05:09:26 -0800 (PST)
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:53964 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979AbaAWK76 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jan 2014 05:59:58 -0500
+Message-ID: <52E0F57B.7080000@cisco.com>
+Date: Thu, 23 Jan 2014 11:56:59 +0100
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 7 Jan 2014 14:09:05 +0100
-Message-ID: <CAPybu_0fyzj45rhia71Qq+5QOps0EeuRNqcXDDo+D0HW7Exwdw@mail.gmail.com>
-Subject: Question about videobuf2 with 0 buffers
-To: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
+To: Martin Bugge <marbugge@cisco.com>
+CC: linux-media@vger.kernel.org, Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] [media] v4l2-dv-timings: fix GTF calculation
+References: <1390470000-9072-1-git-send-email-marbugge@cisco.com>
+In-Reply-To: <1390470000-9072-1-git-send-email-marbugge@cisco.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-  White testing a driver I have stepped into some strange behaviour
-and I want to know if it is a feature or a bug.
+Regards,
 
-   I am using yavta to test the system and I run this command:
+	Hans
 
-yavta /dev/video0 -c -n 0
-
-to start a capture with 0 buffers (Even if I dont know where this can be useful)
-
-And I have found out that:
-
-1) If the user does a streamon() and then  close() the descriptor,
-streamoff is not called, this is because he has never been set as
-owner of the queue. (on vb2_fop_release, queue_release is only called
-if the owns the queue)
-
-Is this expected? Shouldn't we leave the stream stopped?
-
-I propose to set vdev->queue->owner to the current vdev on streamon if
-it does not have an owner.
-
-Or in vb2_fop_release set check for :
-if (!vdev->queue->owner || file->private_data == vdev->queue->owner)
-instead of
-if (file->private_data == vdev->queue->owner)
-
-Shall I post a patch?
-
-2) the queue_setup handler of the driver is not called, this could be
-expected, since it is commented on the code.
-/*
-* In case of REQBUFS(0) return immediately without calling
-* driver's queue_setup() callback and allocating resources.
-*/
-But I find it strange, the driver could be doing some initialization there...
-
-
-Thanks!
-
-
-
--- 
-Ricardo Ribalda
+On 01/23/14 10:40, Martin Bugge wrote:
+> Round off image width to nearest 8 (GTF_CELL_GRAN)
+> 
+> A source sending a GTF (Generalized Timing Formula) format have no means of
+> signalling image width. The assumed aspect ratio may result in an odd image
+> width but according to the standard image width should be in multiple of 8.
+> 
+> Cc: Mats Randgaard <matrandg@cisco.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Martin Bugge <marbugge@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-dv-timings.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> index ee52b9f4..f7902fe 100644
+> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
+> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> @@ -515,6 +515,7 @@ bool v4l2_detect_gtf(unsigned frame_height,
+>  		aspect.denominator = 9;
+>  	}
+>  	image_width = ((image_height * aspect.numerator) / aspect.denominator);
+> +	image_width = (image_width + GTF_CELL_GRAN/2) & ~(GTF_CELL_GRAN - 1);
+>  
+>  	/* Horizontal */
+>  	if (default_gtf)
+> 
