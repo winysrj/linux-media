@@ -1,83 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:44253 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755433AbaAIIbq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 03:31:46 -0500
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-To: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	s.nawrocki@samsung.com, posciak@google.com, hverkuil@xs4all.nl,
-	m.chehab@samsung.com
-Subject: Re: [PATCH v5 3/4] [media] exynos-scaler: Add m2m functionality for
- the SCALER driver
-Date: Thu, 09 Jan 2014 09:31:25 +0100
-Message-id: <2693737.HeuDsQMSy5@amdc1032>
-In-reply-to: <1389238094-19386-4-git-send-email-shaik.ameer@samsung.com>
-References: <1389238094-19386-1-git-send-email-shaik.ameer@samsung.com>
- <1389238094-19386-4-git-send-email-shaik.ameer@samsung.com>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:54574 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750778AbaAWVJK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jan 2014 16:09:10 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 00/13] SDR API
+Date: Thu, 23 Jan 2014 23:08:40 +0200
+Message-Id: <1390511333-25837-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+I think it is ready enough. PULL request will follow in next days...
 
-Hi,
 
-On Thursday, January 09, 2014 08:58:13 AM Shaik Ameer Basha wrote:
-> This patch adds the Makefile and memory to memory (m2m) interface
-> functionality for the SCALER driver.
-> 
-> [arun.kk@samsung.com: fix compilation issues]
-> 
-> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  drivers/media/platform/Kconfig                    |    8 +
->  drivers/media/platform/Makefile                   |    1 +
->  drivers/media/platform/exynos-scaler/Makefile     |    3 +
->  drivers/media/platform/exynos-scaler/scaler-m2m.c |  788 +++++++++++++++++++++
+The next step I	am going to add SDR API is tuner gain controls.
 
-It would be cleaner to add Kconfig + Makefiles in the same patch
-that adds core functionality (patch #2) and then switch the order of
-patch #2 and patch #3.
+Modern silicon RF tuners used nowadays has many controllable gains
+on signal path. Usually there is at least 3 amplifiers:
+1) LNA gain. That is first amplifier just after antenna input pins.
+2) Mixer gain. Quite middle of the signal path, where RF signal is
+down-converted to IF/BB.
+3) IF gain. That is last gain in order to adjust output signal
+level to optimal level of demodulator.
 
->  4 files changed, 800 insertions(+)
->  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
->  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index b2a4403..aec5b80 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -196,6 +196,14 @@ config VIDEO_SAMSUNG_EXYNOS_GSC
->  	help
->  	  This is a v4l2 driver for Samsung EXYNOS5 SoC G-Scaler.
->  
-> +config VIDEO_SAMSUNG_EXYNOS_SCALER
-> +	tristate "Samsung Exynos SCALER driver"
-> +	depends on OF && VIDEO_DEV && VIDEO_V4L2 && ARCH_EXYNOS5
+Each gain controls could be often manual or automatic mode (AGC).
+Total gain is something like sum of all gains. My plan is to implement
+these 3 gains with manual/auto switch and group all those to one
+master/total gain.
 
-Please check for EXYNOS5410 and EXYNOS5420 explicitly instead
-of checking just for ARCH_EXYNOS5.
+Antti
 
-Also this config option doesn't need to depend on OF since
-the whole EXYNOS support is OF only now.
+Antti Palosaari (12):
+  v4l: add device type for Software Defined Radio
+  v4l: add new tuner types for SDR
+  v4l: 1 Hz resolution flag for tuners
+  v4l: add stream format for SDR receiver
+  v4l: define own IOCTL ops for SDR FMT
+  v4l: enable some IOCTLs for SDR receiver
+  v4l: add device capability flag for SDR receiver
+  DocBook: document 1 Hz flag
+  DocBook: Software Defined Radio Interface
+  DocBook: mark SDR API as Experimental
+  v4l2-framework.txt: add SDR device type
+  devices.txt: add video4linux device for Software Defined Radio
 
-> +	select VIDEOBUF2_DMA_CONTIG
-> +	select V4L2_MEM2MEM_DEV
-> +	help
-> +	  This is a v4l2 driver for Samsung EXYNOS5410/5420 SoC SCALER.
-> +
->  config VIDEO_SH_VEU
->  	tristate "SuperH VEU mem2mem video processing driver"
->  	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+Hans Verkuil (1):
+  v4l: do not allow modulator ioctls for non-radio devices
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+ Documentation/DocBook/media/v4l/compat.xml         |  13 +++
+ Documentation/DocBook/media/v4l/dev-sdr.xml        | 110 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/io.xml             |   6 ++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |   8 ++
+ Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
+ .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |   8 +-
+ Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   7 ++
+ .../DocBook/media/v4l/vidioc-g-frequency.xml       |   5 +-
+ .../DocBook/media/v4l/vidioc-g-modulator.xml       |   6 +-
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |  15 ++-
+ .../DocBook/media/v4l/vidioc-querycap.xml          |   6 ++
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   8 +-
+ Documentation/devices.txt                          |   7 ++
+ Documentation/video4linux/v4l2-framework.txt       |   1 +
+ drivers/media/v4l2-core/v4l2-dev.c                 |  30 +++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  75 +++++++++++---
+ include/media/v4l2-dev.h                           |   3 +-
+ include/media/v4l2-ioctl.h                         |   8 ++
+ include/trace/events/v4l2.h                        |   1 +
+ include/uapi/linux/videodev2.h                     |  16 +++
+ 20 files changed, 306 insertions(+), 28 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
+
+-- 
+1.8.5.3
 
