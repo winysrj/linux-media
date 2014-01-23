@@ -1,42 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45966 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752365AbaAYRLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:03 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 14/52] msi3101: add signed 8-bit pixel format for SDR
-Date: Sat, 25 Jan 2014 19:10:08 +0200
-Message-Id: <1390669846-8131-15-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:64339 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752418AbaAWNqm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jan 2014 08:46:42 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZU002S6WXSVJ10@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Jan 2014 13:46:40 +0000 (GMT)
+Message-id: <52E11D3E.4000304@samsung.com>
+Date: Thu, 23 Jan 2014 14:46:38 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 11/21] v4l2-ctrls: prepare for matrix support: add
+ cols & rows fields.
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+ <1390221974-28194-12-git-send-email-hverkuil@xs4all.nl>
+In-reply-to: <1390221974-28194-12-git-send-email-hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is 8-bit unsigned data, byte after byte. Used for streaming SDR
-I/Q data from ADC.
+On 20/01/14 13:46, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Add cols and rows fields to the core control structures in preparation
+> for matrix support.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-V4L2_PIX_FMT_SDR_S8, v4l fourcc "DS08".
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 4c3bf77..e208b57 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -385,6 +385,8 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
- #define MSI3101_CID_TUNER_IF              ((V4L2_CID_USER_BASE | 0xf000) + 12)
- #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
- 
-+#define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
-+
- /* intermediate buffers with raw data from the USB device */
- struct msi3101_frame_buf {
- 	struct vb2_buffer vb;   /* common v4l buffer stuff -- must be first */
--- 
-1.8.5.3
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
