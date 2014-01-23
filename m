@@ -1,77 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:7575 "EHLO mga02.intel.com"
+Received: from ring0.de ([91.143.88.219]:52592 "EHLO smtp.ring0.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753685AbaAOWnA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 17:43:00 -0500
-Date: Thu, 16 Jan 2014 06:42:57 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linuxtv-media:master 499/499] drivers/media/rc/rc-main.c:27:1:
- sparse: symbol 'ir_core_dev_number' was not declared. Should it be static?
-Message-ID: <52d70ef1./3C2AzKcF1I5bc+f%fengguang.wu@intel.com>
+	id S1752824AbaAWALb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jan 2014 19:11:31 -0500
+Date: Thu, 23 Jan 2014 01:11:29 +0100
+From: Sebastian Reichel <sre@debian.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>
+Subject: Re: [RFCv2] Device Tree bindings for OMAP3 Camera System
+Message-ID: <20140123001128.GA12425@earth.universe>
+References: <20131103220315.GA11659@earth.universe>
+ <20140120232719.GA30894@earth.universe>
+ <52E045DE.10706@gmail.com>
+ <2960230.3bGpm3THhQ@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="=_52d70ef1.isB3MDpG7394T4xCfNF6Uk6yaHyyYcScdDX7z6IZ/41pLniP"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="k1lZvvs/B4yU6o8G"
+Content-Disposition: inline
+In-Reply-To: <2960230.3bGpm3THhQ@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
 
---=_52d70ef1.isB3MDpG7394T4xCfNF6Uk6yaHyyYcScdDX7z6IZ/41pLniP
+--k1lZvvs/B4yU6o8G
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   587d1b06e07b4a079453c74ba9edf17d21931049
-commit: 587d1b06e07b4a079453c74ba9edf17d21931049 [499/499] [media] rc-core: reuse device numbers
-reproduce: make C=1 CF=-D__CHECK_ENDIAN__
+Hi,
 
+On Wed, Jan 22, 2014 at 11:57:45PM +0100, Laurent Pinchart wrote:
+> [...]
+>> camera-switch {
+>>      /*
+>>       * TODO:
+>>       *  - check if the switching code is generic enough to use a
+>>       *    more generic name like "gpio-camera-switch".
+>=20
+> I think you can use a more generic name. You could probably get some=20
+> inspiration from the i2c-mux-gpio DT bindings.
 
-sparse warnings: (new ones prefixed by >>)
+My main concern is, that the gpio used for switching is also
+connected to the reset pin of one of the cameras. Maybe that
+fact can just be neglected, though?
 
->> drivers/media/rc/rc-main.c:27:1: sparse: symbol 'ir_core_dev_number' was not declared. Should it be static?
+> [...]
 
-Please consider folding the attached diff :-)
+-- Sebastian
 
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+--k1lZvvs/B4yU6o8G
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
---=_52d70ef1.isB3MDpG7394T4xCfNF6Uk6yaHyyYcScdDX7z6IZ/41pLniP
-Content-Type: text/x-diff;
- charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="make-it-static-587d1b06e07b4a079453c74ba9edf17d21931049.diff"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: [PATCH linuxtv-media] rc-core: ir_core_dev_number can be static
-TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-CC: linux-media@vger.kernel.org 
-CC: linux-kernel@vger.kernel.org 
+iQIcBAEBCAAGBQJS4F4wAAoJENju1/PIO/qaa6kP/31H7aF2nUkXaI/y5r6DYhx4
+Uc7nKcLVgcF4wd8/VLbNEhg1Gw9PUdCkF42qZIm2WC+hj5OukG38Gw1aZanGBHNB
+yx1x0o9tflVhikcpVz1QJfPqgDnMLgbpyIxPTtYVNRsY+sMpDpR+2+k/kRLYPtLv
+RY5m2w6lRPvcmiV8LLzj7WEwlotJz/mdQLwvvLsmcfoHMnK9K4s/6rQdNOmycj0a
+kztUp/qiyQqU2vAHcfmdAfyBQ30m3pUCo0g7s4ctJ461i0lxb220tB+NqbO/wFgJ
+2wKBY9TDJJqwzwOcxrbbCXi/uEs/Syafe/KYvbtmOYbnn+SiK3e3HrHQRPlnR8+Q
+NJyZ1IkvV/5wZ15lpH+vqoZjRa6iUyFwQ93kIi4YAnBk64hGW0Q31szqbCn4XnJs
+2HGaDygf38SwJH5e77NR40H2PyaJ3tCjKeZdGAHQ1CUURGkRhVcQZkz60A7kjP56
+LAqcxP/5HYKSAqs82Ud2etp03IzxXRWEBPOq4I7b4bbjNgdZyrWfY5okVdWgiguZ
+7nNJw+2Y4SSHLOLf2x1IHmV6JaqvzebfHefBRoN+v6f4oa5q9TRQuWqBB+5dXeA+
+KsNeywP9OOLQGp3AE1f4+AML8/oDU0ADna3AWrUIVWC4CJY4S+BPEetPoEqVjRmt
+j/H5J2VBvy0I9wX/B/E9
+=vxpY
+-----END PGP SIGNATURE-----
 
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
----
- rc-main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 02e2f38..399eef4 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -24,7 +24,7 @@
- 
- /* Bitmap to store allocated device numbers from 0 to IRRCV_NUM_DEVICES - 1 */
- #define IRRCV_NUM_DEVICES      256
--DECLARE_BITMAP(ir_core_dev_number, IRRCV_NUM_DEVICES);
-+static DECLARE_BITMAP(ir_core_dev_number, IRRCV_NUM_DEVICES);
- 
- /* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
- #define IR_TAB_MIN_SIZE	256
-
---=_52d70ef1.isB3MDpG7394T4xCfNF6Uk6yaHyyYcScdDX7z6IZ/41pLniP--
+--k1lZvvs/B4yU6o8G--
