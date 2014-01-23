@@ -1,214 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:54147 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932525AbaAHWNK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 17:13:10 -0500
-Received: by mail-ea0-f173.google.com with SMTP id o10so1078683eaj.32
-        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 14:13:09 -0800 (PST)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 2/2] libdvbv5: service location descriptor support
-Date: Wed,  8 Jan 2014 23:12:47 +0100
-Message-Id: <1389219167-23293-2-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1389219167-23293-1-git-send-email-neolynx@gmail.com>
-References: <1389219167-23293-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.samsung.com ([203.254.224.24]:24136 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751245AbaAWFTW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jan 2014 00:19:22 -0500
+Message-id: <DA6097ED98694425932A6AF93513371A@sisodomain.com>
+From: swaminathan <swaminath.p@samsung.com>
+To: Amit Grover <amit.grover@samsung.com>, linux-media@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, rob@landley.net,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com
+Cc: hans.verkuil@cisco.com, andrew.smirnov@gmail.com,
+	s.nawrocki@samsung.com, arun.kk@samsung.com,
+	anatol.pomozov@gmail.com, jmccrohan@gmail.com,
+	austin.lobo@samsung.com, hverkuil@xs4all.nl
+References: <1388400186-22045-1-git-send-email-amit.grover@samsung.com>
+In-reply-to: <1388400186-22045-1-git-send-email-amit.grover@samsung.com>
+Subject: Re: [PATCH] [media] s5p-mfc: Add Horizontal and Vertical search range
+ for Video Macro Blocks
+Date: Thu, 23 Jan 2014 10:49:03 +0530
+MIME-version: 1.0
+Content-type: text/plain; format=flowed; charset=iso-8859-1; reply-type=original
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- implement the service location descriptor (0xa1)
-- small cleanups
+Hi All,
+Is there any review Comments for the patch "[PATCH] [media] s5p-mfc: Add 
+Horizontal and Vertical search range for Video Macro Blocks"
+posted on 30-Dec-2013 ?
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/include/descriptors.h                        |  4 +-
- lib/include/descriptors/desc_service_location.h  | 68 ++++++++++++++++++++
- lib/libdvbv5/descriptors/desc_service_location.c | 79 ++++++++++++++++++++++++
- 3 files changed, 150 insertions(+), 1 deletion(-)
- create mode 100644 lib/include/descriptors/desc_service_location.h
- create mode 100644 lib/libdvbv5/descriptors/desc_service_location.c
 
-diff --git a/lib/include/descriptors.h b/lib/include/descriptors.h
-index 35eab1c..6f89aeb 100644
---- a/lib/include/descriptors.h
-+++ b/lib/include/descriptors.h
-@@ -1,4 +1,4 @@
--  /*
-+/*
-  * Copyright (c) 2011-2012 - Mauro Carvalho Chehab <mchehab@redhat.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -222,6 +222,8 @@ enum descriptors {
- 	/* SCTE 35 2004 */
- 	CUE_identifier_descriptor			= 0x8a,
- 
-+	extended_channel_name				= 0xa0,
-+	service_location				= 0xa1,
- 	/* From http://www.etherguidesystems.com/Help/SDOs/ATSC/Semantics/Descriptors/Default.aspx */
- 	component_name_descriptor			= 0xa3,
- 
-diff --git a/lib/include/descriptors/desc_service_location.h b/lib/include/descriptors/desc_service_location.h
-new file mode 100644
-index 0000000..78490bd
---- /dev/null
-+++ b/lib/include/descriptors/desc_service_location.h
-@@ -0,0 +1,68 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
-+
-+#ifndef _SERVICE_LOCATION_H
-+#define _SERVICE_LOCATION_H
-+
-+#include <stdint.h>
-+
-+struct dvb_desc_service_location_element {
-+	uint8_t stream_type;
-+	union {
-+		uint16_t bitfield;
-+		struct {
-+			uint16_t elementary_pid:13;
-+			uint16_t reserved:3;
-+		} __attribute__((packed));
-+	} __attribute__((packed));
-+	uint8_t language[4];
-+} __attribute__((packed));
-+
-+struct dvb_desc_service_location {
-+	uint8_t type;
-+	uint8_t length;
-+	struct dvb_desc *next;
-+
-+	union {
-+		uint16_t bitfield;
-+		struct {
-+			uint16_t pcr_pid:13;
-+			uint16_t reserved:3;
-+		} __attribute__((packed));
-+	} __attribute__((packed));
-+	uint8_t elements;
-+	struct dvb_desc_service_location_element *element;
-+} __attribute__((packed));
-+
-+struct dvb_v5_fe_parms;
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+void dvb_desc_service_location_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc);
-+void dvb_desc_service_location_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc);
-+void dvb_desc_service_location_free (struct dvb_desc *desc);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git a/lib/libdvbv5/descriptors/desc_service_location.c b/lib/libdvbv5/descriptors/desc_service_location.c
-new file mode 100644
-index 0000000..187a8ac
---- /dev/null
-+++ b/lib/libdvbv5/descriptors/desc_service_location.c
-@@ -0,0 +1,79 @@
-+/*
-+ * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation version 2
-+ * of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-+ * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-+ *
-+ */
-+
-+#include "descriptors/desc_service_location.h"
-+#include "dvb-fe.h"
-+
-+void dvb_desc_service_location_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
-+{
-+	struct dvb_desc_service_location *service_location = (struct dvb_desc_service_location *) desc;
-+	uint8_t *endbuf = buf + desc->length;
-+	ssize_t size = sizeof(struct dvb_desc_service_location) - sizeof(struct dvb_desc);
-+	struct dvb_desc_service_location_element *element;
-+	int i;
-+
-+	if (buf + size > endbuf) {
-+		dvb_logerr("%s: short read %d/%zd bytes", __FUNCTION__, endbuf - buf, size);
-+		return;
-+	}
-+
-+	memcpy(desc->data, buf, size);
-+	bswap16(service_location->bitfield);
-+	buf += size;
-+
-+	if (service_location->elements == 0)
-+		return;
-+
-+	size = service_location->elements * sizeof(struct dvb_desc_service_location_element);
-+	if (buf + size > endbuf) {
-+		dvb_logerr("%s: short read %d/%zd bytes", __FUNCTION__, endbuf - buf, size);
-+		return;
-+	}
-+	service_location->element = malloc(size);
-+	element = service_location->element;
-+	for (i = 0; i < service_location->elements; i++) {
-+		memcpy(element, buf, sizeof(struct dvb_desc_service_location_element) - 1); /* no \0 in lang */
-+		buf += sizeof(struct dvb_desc_service_location_element) - 1;
-+		element->language[3] = '\0';
-+		bswap16(element->bitfield);
-+		element++;
-+	}
-+}
-+
-+void dvb_desc_service_location_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
-+{
-+	const struct dvb_desc_service_location *service_location = (const struct dvb_desc_service_location *) desc;
-+	struct dvb_desc_service_location_element *element = service_location->element;
-+	int i;
-+
-+	dvb_log("|    pcr pid      %d", service_location->pcr_pid);
-+	dvb_log("|    streams:");
-+	for (i = 0; i < service_location->elements; i++)
-+		dvb_log("|      pid %d, type %d: %s", element[i].elementary_pid, element[i].stream_type, element[i].language);
-+	dvb_log("| 	%d elements", service_location->elements);
-+}
-+
-+void dvb_desc_service_location_free(struct dvb_desc *desc)
-+{
-+	const struct dvb_desc_service_location *service_location = (const struct dvb_desc_service_location *) desc;
-+
-+	free(service_location->element);
-+}
-+
--- 
-1.8.3.2
+Regards,
+Swaminathan
 
+
+
+
+--------------------------------------------------
+From: "Amit Grover" <amit.grover@samsung.com>
+Sent: Monday, December 30, 2013 4:13 PM
+To: <m.chehab@samsung.com>; <linux-media@vger.kernel.org>; 
+<linux-doc@vger.kernel.org>; <linux-kernel@vger.kernel.org>; 
+<linux-arm-kernel@lists.infradead.org>; <linux-samsung-soc@vger.kernel.org>; 
+<rob@landley.net>; <kyungmin.park@samsung.com>; <k.debski@samsung.com>; 
+<jtp.park@samsung.com>
+Cc: <hans.verkuil@cisco.com>; <andrew.smirnov@gmail.com>; 
+<s.nawrocki@samsung.com>; <arun.kk@samsung.com>; <anatol.pomozov@gmail.com>; 
+<jmccrohan@gmail.com>; <austin.lobo@samsung.com>; "Swami Nathan" 
+<swaminath.p@samsung.com>
+Subject: [PATCH] [media] s5p-mfc: Add Horizontal and Vertical search range 
+for Video Macro Blocks
+
+> This patch adds Controls to set Horizontal and Vertical search range
+> for Motion Estimation block for Samsung MFC video Encoders.
+>
+> Signed-off-by: Swami Nathan <swaminath.p@samsung.com>
+> Signed-off-by: Amit Grover <amit.grover@samsung.com>
+> ---
+> Documentation/DocBook/media/v4l/controls.xml    |   14 +++++++++++++
+> drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
+> drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   24 
+> +++++++++++++++++++++++
+> drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 ++------
+> drivers/media/v4l2-core/v4l2-ctrls.c            |   14 +++++++++++++
+> include/uapi/linux/v4l2-controls.h              |    2 ++
+> 6 files changed, 58 insertions(+), 6 deletions(-)
+>
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml 
+> b/Documentation/DocBook/media/v4l/controls.xml
+> index 7a3b49b..70a0f6f 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -2258,6 +2258,20 @@ Applicable to the MPEG1, MPEG2, MPEG4 
+> encoders.</entry>
+> VBV buffer control.</entry>
+>        </row>
+>
+> +   <row><entry></entry></row>
+> +       <row id="v4l2-mpeg-video-horz-search-range">
+> + <entry 
+> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE</constant>&nbsp;</entry>
+> + <entry>integer</entry>
+> +       </row><row><entry spanname="descr">Sets the Horizontal search 
+> range for Video Macro blocks.</entry>
+> +       </row>
+> +
+> + <row><entry></entry></row>
+> +       <row id="v4l2-mpeg-video-vert-search-range">
+> + <entry 
+> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE</constant>&nbsp;</entry>
+> + <entry>integer</entry>
+> +       </row><row><entry spanname="descr">Sets the Vertical search range 
+> for Video Macro blocks.</entry>
+> +       </row>
+> +
+>        <row><entry></entry></row>
+>        <row>
+>  <entry 
+> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h 
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> index 6920b54..f2c13c3 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> @@ -430,6 +430,8 @@ struct s5p_mfc_vp8_enc_params {
+> struct s5p_mfc_enc_params {
+>  u16 width;
+>  u16 height;
+> + u32 horz_range;
+> + u32 vert_range;
+>
+>  u16 gop_size;
+>  enum v4l2_mpeg_video_multi_slice_mode slice_mode;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c 
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> index 4ff3b6c..a02e7b8 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> @@ -208,6 +208,24 @@ static struct mfc_control controls[] = {
+>  .default_value = 0,
+>  },
+>  {
+> + .id = V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE,
+> + .type = V4L2_CTRL_TYPE_INTEGER,
+> + .name = "horizontal search range of video macro block",
+> + .minimum = 16,
+> + .maximum = 128,
+> + .step = 16,
+> + .default_value = 32,
+> + },
+> + {
+> + .id = V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE,
+> + .type = V4L2_CTRL_TYPE_INTEGER,
+> + .name = "vertical search range of video macro block",
+> + .minimum = 16,
+> + .maximum = 128,
+> + .step = 16,
+> + .default_value = 32,
+> + },
+> + {
+>  .id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
+>  .type = V4L2_CTRL_TYPE_INTEGER,
+>  .minimum = 0,
+> @@ -1377,6 +1395,12 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl 
+> *ctrl)
+>  case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
+>  p->vbv_size = ctrl->val;
+>  break;
+> + case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:
+> + p->horz_range = ctrl->val;
+> + break;
+> + case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:
+> + p->vert_range = ctrl->val;
+> + break;
+>  case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
+>  p->codec.h264.cpb_size = ctrl->val;
+>  break;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c 
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> index 461358c..47e1807 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> @@ -727,14 +727,10 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx 
+> *ctx)
+>  WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
+>
+>  /* setting for MV range [16, 256] */
+> - reg = 0;
+> - reg &= ~(0x3FFF);
+> - reg = 256;
+> + reg = (p->horz_range & 0x3fff); /* conditional check in app */
+>  WRITEL(reg, S5P_FIMV_E_MV_HOR_RANGE_V6);
+>
+> - reg = 0;
+> - reg &= ~(0x3FFF);
+> - reg = 256;
+> + reg = (p->vert_range & 0x3fff); /* conditional check in app */
+>  WRITEL(reg, S5P_FIMV_E_MV_VER_RANGE_V6);
+>
+>  WRITEL(0x0, S5P_FIMV_E_FRAME_INSERTION_V6);
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c 
+> b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index fb46790..7cf23d5 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -735,6 +735,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  case V4L2_CID_MPEG_VIDEO_DEC_PTS: return "Video Decoder PTS";
+>  case V4L2_CID_MPEG_VIDEO_DEC_FRAME: return "Video Decoder Frame Count";
+>  case V4L2_CID_MPEG_VIDEO_VBV_DELAY: return "Initial Delay for VBV 
+> Control";
+> + case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE: return "hor search range of 
+> video MB";
+> + case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE: return "vert search range of 
+> video MB";
+>  case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER: return "Repeat Sequence 
+> Header";
+>
+>  /* VPX controls */
+> @@ -905,6 +907,18 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum 
+> v4l2_ctrl_type *type,
+>  *min = 0;
+>  *max = *step = 1;
+>  break;
+> + case V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE:
+> + *type = V4L2_CTRL_TYPE_INTEGER;
+> + *min = 16;
+> + *max = 128;
+> + *step = 16;
+> + break;
+> + case V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE:
+> + *type = V4L2_CTRL_TYPE_INTEGER;
+> + *min = 16;
+> + *max = 128;
+> + *step = 16;
+> + break;
+>  case V4L2_CID_PAN_RESET:
+>  case V4L2_CID_TILT_RESET:
+>  case V4L2_CID_FLASH_STROBE:
+> diff --git a/include/uapi/linux/v4l2-controls.h 
+> b/include/uapi/linux/v4l2-controls.h
+> index 1666aab..bcce536 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -372,6 +372,8 @@ enum v4l2_mpeg_video_multi_slice_mode {
+> #define V4L2_CID_MPEG_VIDEO_DEC_FRAME (V4L2_CID_MPEG_BASE+224)
+> #define V4L2_CID_MPEG_VIDEO_VBV_DELAY (V4L2_CID_MPEG_BASE+225)
+> #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER (V4L2_CID_MPEG_BASE+226)
+> +#define V4L2_CID_MPEG_VIDEO_HORZ_SEARCH_RANGE (V4L2_CID_MPEG_BASE+227)
+> +#define V4L2_CID_MPEG_VIDEO_VERT_SEARCH_RANGE (V4L2_CID_MPEG_BASE+228)
+>
+> #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP (V4L2_CID_MPEG_BASE+300)
+> #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP (V4L2_CID_MPEG_BASE+301)
+> -- 
+> 1.7.9.5
+> 
