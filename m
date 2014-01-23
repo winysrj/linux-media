@@ -1,79 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ks4004239.ip-142-4-213.net ([142.4.213.193]:50693 "EHLO
-	mon.libertas-tech.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752814AbaANAs6 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4029 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754149AbaAWOX7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 19:48:58 -0500
-To: =?UTF-8?Q?Frank_Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: Re: Support for Empia 2980 video/audio capture chip set
+	Thu, 23 Jan 2014 09:23:59 -0500
+Message-ID: <52E125ED.90504@xs4all.nl>
+Date: Thu, 23 Jan 2014 15:23:41 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Mon, 13 Jan 2014 19:48:42 -0500
-From: Keith Lawson <keith.lawson@libertas-tech.com>
-Cc: linux-media@vger.kernel.org, linux-media-owner@vger.kernel.org
-Reply-To: keith.lawson@libertas-tech.com
-In-Reply-To: <52D2C929.9080109@googlemail.com>
-References: <1ed89f5b0a32bf26e17cee890a26b012@www.nowhere.ca>
- <52D2C929.9080109@googlemail.com>
-Message-ID: <de907f83197624a31fc6690a43a21929@www.nowhere.ca>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 05/21] videodev2.h: add struct v4l2_query_ext_ctrl
+ and VIDIOC_QUERY_EXT_CTRL.
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl> <1390221974-28194-6-git-send-email-hverkuil@xs4all.nl> <52E04DEB.2000800@gmail.com>
+In-Reply-To: <52E04DEB.2000800@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2014-01-12 11:56, Frank Schäfer wrote:
+On 01/23/2014 12:02 AM, Sylwester Nawrocki wrote:
+> On 01/20/2014 01:45 PM, Hans Verkuil wrote:
+>> From: Hans Verkuil<hans.verkuil@cisco.com>
+>>
+>> Add a new struct and ioctl to extend the amount of information you can
+>> get for a control.
+>>
+>> It gives back a unit string, the range is now a s64 type, and the matrix
+>> and element size can be reported through cols/rows/elem_size.
+>>
+>> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+>> ---
+>>   include/uapi/linux/videodev2.h | 30 ++++++++++++++++++++++++++++++
+>>   1 file changed, 30 insertions(+)
+>>
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 4d7782a..9e5b7d4 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -1272,6 +1272,34 @@ struct v4l2_queryctrl {
+>>   	__u32		     reserved[2];
+>>   };
+>>
+>> +/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
+>> +struct v4l2_query_ext_ctrl {
+>> +	__u32		     id;
+>> +	__u32		     type;
+>> +	char		     name[32];
+>> +	char		     unit[32];
+> 
+>> +	union {
+>> +		__s64 val;
+>> +		__u32 reserved[4];
+>> +	} min;
+>> +	union {
+>> +		__s64 val;
+>> +		__u32 reserved[4];
+>> +	} max;
+>> +	union {
+>> +		__u64 val;
+>> +		__u32 reserved[4];
+>> +	} step;
+>> +	union {
+>> +		__s64 val;
+>> +		__u32 reserved[4];
+>> +	} def;
+> 
+> Are these reserved[] arrays of any use ?
 
-> On 09.01.2014 02:02, Keith Lawson wrote:
-> 
->> Hello, I sent the following message to the linux-usb mailing list and 
->> they suggested I try here. I'm trying to get a "Dazzle Video Capture 
->> USB V1.0" video capture card working on a Linux device but it doesn't
->> look like the chip set is supported yet. I believe this card is the 
->> next version of the Pinnacle VC100 capture card that worked with the 
->> em28xx kernel module. The hardware vendor that sold the card says that
->> this device has an Empia 2980 chip set in it so I'm inquiring about 
->> support for that chip set. I'm just wondering about the best approach 
->> for getting the new chip supported in the kernel. Is this something 
->> the
->> em28xx maintainers would naturally address in time or can I assist in 
->> getting this into the kernel? Here's dmesg from the Debian box I'm 
->> working on: [ 3198.920619] usb 3-1: new high-speed USB device number 5
->> usingxhci_hcd [ 3198.939394] usb 3-1: New USB device found, 
->> idVendor=1b80,idProduct=e60a [ 3198.939399] usb 3-1: New USB device 
->> strings: Mfr=0, Product=1,SerialNumber=2 [ 3198.939403] usb 3-1: 
->> Product: Dazzle
->> Video Capture USB Audio Device [ 3198.939405] usb 3-1: SerialNumber: 0 
->> l440:~$ uname -a Linux l440 3.10-3-amd64 #1 SMP Debian 3.10.11-1 
->> (2013-09-10) x86_64 GNU/Linux If this isn't the appropriate list to 
->> ask
->> this question please point me in the right direction. Thanks, Keith
-> 
-> 
-> The em28xx is indeed the dedicated driver for this device, but it's 
-> hard
-> to say how much work would be necessary to add support for it.
-> We currently don't support any em29xx chip yet, but in theory it is 
-> just
-> an extended em28xx device.
-> Whatever that means when it comes to the low level stuff... ;)
-> 
+Excellent question. I'd like to know as well :-)
 
-What's the best route to get support for this chip added then? Should I 
-start working on a patch myself or will this just happen during the 
-course of development of the em28xx module? I'm a developer but haven't 
-done any kernel hacking so this would likely be a steep learning curve 
-for me.
+The idea is that if the type of the control is complex, then for certain types
+it might still make sense to have a range. E.g. say that the type is v4l2_rect,
+then you can define min/max/step/def v4l2_rect entries in the unions. Ditto
+for a v4l2_fract (it would be nice to be able to specify the min/max allowed
+scaling factors, for example).
 
-> Regards,
-> Frank
+The question is, am I over-engineering or is this the best idea since sliced
+bread? Without the 'reserved' part this idea will be impossible to implement,
+and I don't think it hurts to have it in.
+
+> 
+>> +	__u32                flags;
+>> +	__u32                cols, rows;
+> 
+> nit: I would put them on separate lines and use full words.
+
+Separate lines: no problem, but do I really have to write 'columns' in full? :-(
+
+Regards,
+
+	Hans
+
+> 
+>> +	__u32                elem_size;
+>> +	__u32		     reserved[17];
+>> +};
+>> +
+>>   /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
+>>   struct v4l2_querymenu {
+>>   	__u32		id;
+>> @@ -1965,6 +1993,8 @@ struct v4l2_create_buffers {
+>>      Never use these in applications! */
+>>   #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+>>
+>> +#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
+>> +
+>>   /* Reminder: when adding new ioctls please add support for them to
+>>      drivers/media/video/v4l2-compat-ioctl32.c as well! */
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" 
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html [1]
+> Regards,
+> Sylwester
+> 
 
-
-
-Links:
-------
-[1] http://vger.kernel.org/majordomo-info.html
