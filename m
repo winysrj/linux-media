@@ -1,69 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3238 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540AbaAQKwF (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48233 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750797AbaAWLoF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 05:52:05 -0500
-Message-ID: <52D90B42.90206@xs4all.nl>
-Date: Fri, 17 Jan 2014 11:51:46 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 23 Jan 2014 06:44:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Rob Herring <rob.herring@calxeda.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>
+Subject: Re: [RFCv2] Device Tree bindings for OMAP3 Camera System
+Date: Thu, 23 Jan 2014 12:44:46 +0100
+Message-ID: <1550284.gaVFBYq9I9@avalon>
+In-Reply-To: <20140123001128.GA12425@earth.universe>
+References: <20131103220315.GA11659@earth.universe> <2960230.3bGpm3THhQ@avalon> <20140123001128.GA12425@earth.universe>
 MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH, RFC 08/30] [media] arv: fix sleep_on race
-References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <1388664474-1710039-9-git-send-email-arnd@arndb.de>
-In-Reply-To: <1388664474-1710039-9-git-send-email-arnd@arndb.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="nextPart5288855.0Skuhf1585"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/02/2014 01:07 PM, Arnd Bergmann wrote:
-> interruptible_sleep_on is racy and going away. In the arv driver that
-> race has probably never caused problems since it would require a whole
-> video frame to be captured before the read function has a chance to
-> go to sleep, but using wait_event_interruptible lets us kill off the
-> old interface. In order to do this, we have to slightly adapt the
-> meaning of the ar->start_capture field to distinguish between not having
-> started a frame and having completed it.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: linux-media@vger.kernel.org
-> ---
->  drivers/media/platform/arv.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/arv.c b/drivers/media/platform/arv.c
-> index e346d32d..32f6d70 100644
-> --- a/drivers/media/platform/arv.c
-> +++ b/drivers/media/platform/arv.c
-> @@ -307,11 +307,11 @@ static ssize_t ar_read(struct file *file, char *buf, size_t count, loff_t *ppos)
->  	/*
->  	 * Okay, kick AR LSI to invoke an interrupt
->  	 */
-> -	ar->start_capture = 0;
-> +	ar->start_capture = -1;
 
-start_capture is defined as an unsigned. Can you make a new patch that changes
-the type of start_capture to int?
+--nextPart5288855.0Skuhf1585
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
-Otherwise it looks fine.
+Hi Sebastian,
 
+On Thursday 23 January 2014 01:11:29 Sebastian Reichel wrote:
+> On Wed, Jan 22, 2014 at 11:57:45PM +0100, Laurent Pinchart wrote:
+> > [...]
+> >=20
+> >> camera-switch {
+> >>=20
+> >>      /*
+> >>     =20
+> >>       * TODO:
+> >>       *  - check if the switching code is generic enough to use a
+> >>       *    more generic name like "gpio-camera-switch".
+> >=20
+> > I think you can use a more generic name. You could probably get som=
+e
+> > inspiration from the i2c-mux-gpio DT bindings.
+>=20
+> My main concern is, that the gpio used for switching is also connecte=
+d to
+> the reset pin of one of the cameras. Maybe that fact can just be negl=
+ected,
+> though?
+
+I'm not the only one to wish we could change that, but alas! we'll have=
+ to=20
+live with that stupid hardware design decision :-)
+
+What we want to ensure here is that the two sensors won't be accessed a=
+t the=20
+same time, as that would lead to errors. This was previously handled by=
+=20
+callback function to board code, but board code is now going away. The=20=
+
+challenge is to find a way to express the constraints in DT. I'm not su=
+re=20
+whether that's doable in a generic way, and this might be one of the ra=
+re=20
+cases where board code is still needed.
+
+Sakari, have you given this a thought ?
+
+=2D-=20
 Regards,
 
-	Hans
+Laurent Pinchart
 
->  	ar_outl(arvcr1 | ARVCR1_HIEN, ARVCR1);
->  	local_irq_restore(flags);
->  	/* .... AR interrupts .... */
-> -	interruptible_sleep_on(&ar->wait);
-> +	wait_event_interruptible(ar->wait, ar->start_capture == 0);
->  	if (signal_pending(current)) {
->  		printk(KERN_ERR "arv: interrupted while get frame data.\n");
->  		ret = -EINTR;
-> 
+--nextPart5288855.0Skuhf1585
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQEcBAABAgAGBQJS4QCzAAoJEIkPb2GL7hl14bEH/RwwE2ajQ0m4lQtqzD68sgOL
+R1gfj9S851zEl2Axb+7sICL64xxb9yzuwlSEue6KdXKtVNyB0bUpYujfj1Z912Oc
+QT9gPjRDebVo+jnS8XqfyvDzisUGuaYtWl0RVhmvDvtyiLEcic0rBpMwsJeedVYm
+kFs5jmI4sHYAZnbRsFt4AiGY9sWbJeMuBMmnJH9Q72X9h+O71qay/4f9WppdS9Le
+NJQFCnbiC4voBoCbBLFvxaREDxCF+X/ims12njZS2v9pdFwXP6CInDRgAgA9/GRY
+gNM9mwvlufDFNs5BWmPf5TvUy/T6ltykqXisan6/8n7wVGp4/saR+nf0bk6Dj9k=
+=5V4U
+-----END PGP SIGNATURE-----
+
+--nextPart5288855.0Skuhf1585--
 
