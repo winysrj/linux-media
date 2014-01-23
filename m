@@ -1,107 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53381 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750826AbaAXPyj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 10:54:39 -0500
-Date: Fri, 24 Jan 2014 17:54:33 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 02/21] v4l2-ctrls: add unit string.
-Message-ID: <20140124155432.GF13820@valkosipuli.retiisi.org.uk>
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
- <1390221974-28194-3-git-send-email-hverkuil@xs4all.nl>
- <20140124103519.GA13820@valkosipuli.retiisi.org.uk>
- <52E24C42.6020103@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <52E24C42.6020103@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:50515 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752862AbaAWVJO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jan 2014 16:09:14 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 11/13] DocBook: mark SDR API as Experimental
+Date: Thu, 23 Jan 2014 23:08:51 +0200
+Message-Id: <1390511333-25837-12-git-send-email-crope@iki.fi>
+In-Reply-To: <1390511333-25837-1-git-send-email-crope@iki.fi>
+References: <1390511333-25837-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Let it be experimental still as all SDR drivers are in staging.
 
-On Fri, Jan 24, 2014 at 12:19:30PM +0100, Hans Verkuil wrote:
-> On 01/24/2014 11:35 AM, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > Thanks for the patchset!
-> > 
-> > On Mon, Jan 20, 2014 at 01:45:55PM +0100, Hans Verkuil wrote:
-> >> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> >> index 0b347e8..3998049 100644
-> >> --- a/include/media/v4l2-ctrls.h
-> >> +++ b/include/media/v4l2-ctrls.h
-> >> @@ -85,6 +85,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-> >>    * @ops:	The control ops.
-> >>    * @id:	The control ID.
-> >>    * @name:	The control name.
-> >> +  * @unit:	The control's unit. May be NULL.
-> >>    * @type:	The control type.
-> >>    * @minimum:	The control's minimum value.
-> >>    * @maximum:	The control's maximum value.
-> >> @@ -130,6 +131,7 @@ struct v4l2_ctrl {
-> >>  	const struct v4l2_ctrl_ops *ops;
-> >>  	u32 id;
-> >>  	const char *name;
-> >> +	const char *unit;
-> > 
-> > What would you think of using a numeric value (with the standardised units
-> > #defined)? I think using a string begs for unmanaged unit usage. Code that
-> > deals with units might work with one driver but not with another since it
-> > uses a slightly different string for unit x.
-> 
-> First of all, you always need a string. You don't want GUIs like qv4l2 to have
-> to switch on a unit in order to generate the unit strings. That's impossible to
-> keep up to date.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml  | 3 +++
+ Documentation/DocBook/media/v4l/dev-sdr.xml | 6 ++++++
+ 2 files changed, 9 insertions(+)
 
-That's true when when you want to show that to the user, yes. But when you
-have an application which tries to figure out which value to put to the
-control, a numeric value is more convenient.
-
-Kernel interfaces seldom use strings and that's for a good reason.
-
-> In addition, private controls can have really strange custom units, so you want
-> to have a string there as well.
-
-Good point as well.
-
-> Standard controls can have their unit string set in v4l2-ctrls.c, just as their
-> name is set there these days, thus ensuring consistency.
-> 
-> What I had in mind is that videodev2.h defines a list of standardized unit strings,
-> e.g.:
-> 
-> #define V4L2_CTRL_UNIT_USECS "usecs"
-> #define V4L2_CTRL_UNIT_MSECS "msecs"
-
-That's possible as well, but requires the user to e.g. use if (strcmp())
-... instead of just plain switch (unit) { ... }.
-
-I'd also very much prefer to stick to SI units and prefixes where applicable
-if we end up using strings. Combining the unit and prefix could make sense.
-
-> and apps can do strcmp(qc->unit, V4L2_CTRL_UNIT_USECS) to see what the unit is.
-> If a driver doesn't use one of those standardized unit strings, then it is a
-> driver bug.
-> 
-> > A prefix could be potentially nice, too, so ms and µs would still have the
-> > same unit but a different prefix.
-> 
-> Can you give an example of a prefix? I don't really follow what you want to
-> achieve.
-
-You use them in your own example above. :-)
-
-<URL:http://en.wikipedia.org/wiki/SI_prefix>
-
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 83f64ce..2fb2b8d 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2661,6 +2661,9 @@ ioctls.</para>
+         <listitem>
+ 	  <para>Exporting DMABUF files using &VIDIOC-EXPBUF; ioctl.</para>
+         </listitem>
++        <listitem>
++	  <para>Software Defined Radio (SDR) Interface, <xref linkend="sdr" />.</para>
++        </listitem>
+       </itemizedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index 332b87f..ac9f1af 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -1,5 +1,11 @@
+   <title>Software Defined Radio Interface (SDR)</title>
+ 
++  <note>
++    <title>Experimental</title>
++    <para>This is an <link linkend="experimental"> experimental </link>
++    interface and may change in the future.</para>
++  </note>
++
+   <para>
+ SDR is an abbreviation of Software Defined Radio, the radio device
+ which uses application software for modulation or demodulation. This interface
 -- 
-Kind regards,
+1.8.5.3
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
