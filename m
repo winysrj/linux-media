@@ -1,228 +1,352 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f171.google.com ([209.85.215.171]:55923 "EHLO
-	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753643AbaAGVXi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 16:23:38 -0500
-Message-ID: <52CC7055.70503@gmail.com>
-Date: Tue, 07 Jan 2014 22:23:33 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH v3 4/6] exynos4-is: Add clock provider for the external
- clocks
-References: <1382033211-32329-1-git-send-email-s.nawrocki@samsung.com> <1382033211-32329-5-git-send-email-s.nawrocki@samsung.com> <20140102175856.36f57ffb@samsung.com>
-In-Reply-To: <20140102175856.36f57ffb@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:62291 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752763AbaAWRYF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jan 2014 12:24:05 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MZV001OE7009Z50@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 23 Jan 2014 17:24:00 +0000 (GMT)
+Message-id: <52E15030.70002@samsung.com>
+Date: Thu, 23 Jan 2014 18:24:00 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 18/21] DocBook media: document VIDIOC_QUERY_EXT_CTRL.
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+ <1390221974-28194-19-git-send-email-hverkuil@xs4all.nl>
+In-reply-to: <1390221974-28194-19-git-send-email-hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/02/2014 08:58 PM, Mauro Carvalho Chehab wrote:
-> Em Thu, 17 Oct 2013 20:06:49 +0200
-> Sylwester Nawrocki<s.nawrocki@samsung.com>  escreveu:
->
->> This patch adds clock provider to expose the sclk_cam0/1 clocks
->> for external image sensor devices.
->>
->> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->> ---
->> Changes since v2:
->>   - use 'camera' DT node drirectly as clock provider node, rather than
->>    creating additional clock-controller child node.
->> ---
->>   .../devicetree/bindings/media/samsung-fimc.txt     |   15 ++-
->>   drivers/media/platform/exynos4-is/media-dev.c      |  108 ++++++++++++++++++++
->>   drivers/media/platform/exynos4-is/media-dev.h      |   18 +++-
->>   3 files changed, 137 insertions(+), 4 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> index 96312f6..968e065 100644
->> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> @@ -32,6 +32,15 @@ way around.
->>
->>   The 'camera' node must include at least one 'fimc' child node.
->>
->> +Optional properties:
->> +
->> +- #clock-cells: from the common clock bindings (../clock/clock-bindings.txt),
->> +  must be 1. A clock provider is associated with the camera node and it should
->> +  be referenced by external sensors that use clocks provided by the SoC on
->> +  CAM_*_CLKOUT pins. The second cell of the clock specifier is a clock's index.
->> +  The indexes are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively.
->> +
->> +
->>   'fimc' device nodes
->>   -------------------
->>
->> @@ -114,7 +123,7 @@ Example:
->>   			vddio-supply =<...>;
->>
->>   			clock-frequency =<24000000>;
->> -			clocks =<...>;
->> +			clocks =<&camera 1>;
->>   			clock-names = "mclk";
->>
->>   			port {
->> @@ -135,7 +144,7 @@ Example:
->>   			vddio-supply =<...>;
->>
->>   			clock-frequency =<24000000>;
->> -			clocks =<...>;
->> +			clocks =<&camera 0>;
->>   			clock-names = "mclk";
->>
->>   			port {
->> @@ -151,8 +160,8 @@ Example:
->>   		compatible = "samsung,fimc", "simple-bus";
->>   		#address-cells =<1>;
->>   		#size-cells =<1>;
->> +		#clock-cells =<1>;
->>   		status = "okay";
->> -
->>   		pinctrl-names = "default";
->>   		pinctrl-0 =<&cam_port_a_clk_active>;
->
-> I didn't see the above on the patch series you sent me on your git pull
-> request. Where is it?
+On 20/01/14 13:46, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../DocBook/media/v4l/vidioc-queryctrl.xml         | 223 +++++++++++++++++----
+>  1 file changed, 189 insertions(+), 34 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+> index e6645b9..5e93c30 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+> @@ -1,11 +1,12 @@
+>  <refentry id="vidioc-queryctrl">
+>    <refmeta>
+> -    <refentrytitle>ioctl VIDIOC_QUERYCTRL, VIDIOC_QUERYMENU</refentrytitle>
+> +    <refentrytitle>ioctl VIDIOC_QUERYCTRL, VIDIOC_QUERY_EXT_CTRL, VIDIOC_QUERYMENU</refentrytitle>
+>      &manvol;
+>    </refmeta>
+>  
+>    <refnamediv>
+>      <refname>VIDIOC_QUERYCTRL</refname>
+> +    <refname>VIDIOC_QUERY_EXT_CTRL</refname>
+>      <refname>VIDIOC_QUERYMENU</refname>
+>      <refpurpose>Enumerate controls and menu control items</refpurpose>
+>    </refnamediv>
+> @@ -24,6 +25,14 @@
+>  	<funcdef>int <function>ioctl</function></funcdef>
+>  	<paramdef>int <parameter>fd</parameter></paramdef>
+>  	<paramdef>int <parameter>request</parameter></paramdef>
+> +	<paramdef>struct v4l2_query_ext_ctrl *<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +	<funcdef>int <function>ioctl</function></funcdef>
+> +	<paramdef>int <parameter>fd</parameter></paramdef>
+> +	<paramdef>int <parameter>request</parameter></paramdef>
+>  	<paramdef>struct v4l2_querymenu *<parameter>argp</parameter></paramdef>
+>        </funcprototype>
+>      </funcsynopsis>
+> @@ -42,7 +51,7 @@
+>        <varlistentry>
+>  	<term><parameter>request</parameter></term>
+>  	<listitem>
+> -	  <para>VIDIOC_QUERYCTRL, VIDIOC_QUERYMENU</para>
+> +	  <para>VIDIOC_QUERYCTRL, VIDIOC_QUERY_EXT_CTRL, VIDIOC_QUERYMENU</para>
+>  	</listitem>
+>        </varlistentry>
+>        <varlistentry>
+> @@ -91,7 +100,26 @@ prematurely end the enumeration).</para></footnote></para>
+>  <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> the driver returns the
+>  next supported control, or <errorcode>EINVAL</errorcode> if there is
+>  none. Drivers which do not support this flag yet always return
+> -<errorcode>EINVAL</errorcode>.</para>
+> +<errorcode>EINVAL</errorcode>. Hidden controls (i.e. controls
+> +with the <constant>V4L2_CTRL_FLAG_HIDDEN</constant> flag set) are
+> +skipped when using the <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>
+> +flag. Use the <constant>VIDIOC_QUERY_EXT_CTRL</constant> for that.</para>
+> +
+> +    <para>The <constant>VIDIOC_QUERY_EXT_CTRL</constant> ioctl was
+> +introduced in order to better support controls that can use complex
+> +types, and to expose addition control information that cannot be
 
-Mauro, I've moved it into a separate patch, since it is more appropriate
-as that's a change in the DT binding [1].
+s/addition/additional ?
 
-My plan was to send it through the devicetree tree with your Ack, but
-I forgot to resend the whole series. Sorry about that.
+> +returned in &v4l2-queryctrl; since that structure is full.</para>
+> +
+> +    <para><constant>VIDIOC_QUERY_EXT_CTRL</constant> is used in the
+> +same way as <constant>VIDIOC_QUERYCTRL</constant>, except that the
+> +<structfield>reserved</structfield> array must be zeroed as well.
+> +In addition, the <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> flag
+> +can be specified to enumerate all hidden controls (i.e. controls
+> +with the <constant>V4L2_CTRL_FLAG_HIDDEN</constant> flag set which
 
-Moreover I did this split because you are requiring an explicit ACK
-from a DT maintainer for anything that is related to devicetree.
-I believe it is physically impossible to have every single patch
-acked by a DT maintainer. Subsystem maintainers should handle minor
-stuff, otherwise we won't be able to have _anything_ merged upstream.
+s/"set which"/"set, which" ?
 
-Pinging the DT maintainers for every single patch seems a bit silly and
-I'm already fed up with it. I find this whole process frustrating and very
-long times to get things merged really discourage to develop anything in
-mainline.
+> +includes all controls with complex types). Specify both
+> +<constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
+> +<constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> in order to enumerate
+> +all controls, hidden or not.</para>
+>  
+>      <para>Additional information is required for menu controls: the
+>  names of the menu items. To query them applications set the
+> @@ -142,38 +170,23 @@ string. This information is intended for the user.</entry>
+>  	    <entry>__s32</entry>
+>  	    <entry><structfield>minimum</structfield></entry>
+>  	    <entry>Minimum value, inclusive. This field gives a lower
+> -bound for <constant>V4L2_CTRL_TYPE_INTEGER</constant> controls and the
+> -lowest valid index for <constant>V4L2_CTRL_TYPE_MENU</constant> controls.
+> -For <constant>V4L2_CTRL_TYPE_STRING</constant> controls the minimum value
+> -gives the minimum length of the string. This length <emphasis>does not include the terminating
+> -zero</emphasis>. It may not be valid for any other type of control, including
+> -<constant>V4L2_CTRL_TYPE_INTEGER64</constant> controls. Note that this is a
+> -signed value.</entry>
+> +bound for the control. See &v4l2-ctrl-type; how the minimum value is to
+> +be used for each possible control type. Note that this a signed 32-bit value.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__s32</entry>
+>  	    <entry><structfield>maximum</structfield></entry>
+>  	    <entry>Maximum value, inclusive. This field gives an upper
+> -bound for <constant>V4L2_CTRL_TYPE_INTEGER</constant> controls and the
+> -highest valid index for <constant>V4L2_CTRL_TYPE_MENU</constant>
+> -controls. For <constant>V4L2_CTRL_TYPE_BITMASK</constant> controls it is the
+> -set of usable bits.
+> -For <constant>V4L2_CTRL_TYPE_STRING</constant> controls the maximum value
+> -gives the maximum length of the string. This length <emphasis>does not include the terminating
+> -zero</emphasis>. It may not be valid for any other type of control, including
+> -<constant>V4L2_CTRL_TYPE_INTEGER64</constant> controls. Note that this is a
+> -signed value.</entry>
+> +bound for the control. See &v4l2-ctrl-type; how the maximum value is to
+> +be used for each possible control type. Note that this a signed 32-bit value.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__s32</entry>
+>  	    <entry><structfield>step</structfield></entry>
+> -	    <entry><para>This field gives a step size for
+> -<constant>V4L2_CTRL_TYPE_INTEGER</constant> controls. For
+> -<constant>V4L2_CTRL_TYPE_STRING</constant> controls this field refers to
+> -the string length that has to be a multiple of this step size.
+> -It may not be valid for any other type of control, including
+> -<constant>V4L2_CTRL_TYPE_INTEGER64</constant>
+> -controls.</para><para>Generally drivers should not scale hardware
+> +	    <entry><para>This field gives a step size for the control.
+> +See &v4l2-ctrl-type; how the step value is to be used for each possible
+> +control type. Note that this an unsigned 32-bit value.
+> +</para><para>Generally drivers should not scale hardware
+>  control values. It may be necessary for example when the
+>  <structfield>name</structfield> or <structfield>id</structfield> imply
+>  a particular unit and the hardware actually accepts only multiples of
+> @@ -192,10 +205,11 @@ be always positive.</para></entry>
+>  	    <entry><structfield>default_value</structfield></entry>
+>  	    <entry>The default value of a
+>  <constant>V4L2_CTRL_TYPE_INTEGER</constant>,
+> -<constant>_BOOLEAN</constant> or <constant>_MENU</constant> control.
+> -Not valid for other types of controls. Drivers reset controls only
+> -when the driver is loaded, not later, in particular not when the
+> -func-open; is called.</entry>
+> +<constant>_BOOLEAN</constant>, <constant>_BITMASK</constant>,
+> +<constant>_MENU</constant> or <constant>_INTEGER_MENU</constant> control.
+> +Not valid for other types of controls.
+> +Note that drivers reset controls to their default value only when the
+> +driver is first loaded, never afterwards.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__u32</entry>
+> @@ -213,6 +227,129 @@ the array to zero.</entry>
+>        </tgroup>
+>      </table>
+>  
+> +    <table pgwide="1" frame="none" id="v4l2-query-ext-ctrl">
+> +      <title>struct <structname>v4l2_query_ext_ctrl</structname></title>
+> +      <tgroup cols="3">
+> +	&cs-str;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>id</structfield></entry>
+> +	    <entry>Identifies the control, set by the application. See
+> +<xref linkend="control-id" /> for predefined IDs. When the ID is ORed
+> +with <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> the driver clears the
+> +flag and returns the first non-hidden control with a higher ID. When the
+> +ID is ORed with <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> the driver
+> +clears the flag and returns the first hidden control with a higher ID.
+> +Set both to get the first control (hidden or not) with a higher ID.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>type</structfield></entry>
+> +	    <entry>Type of control, see <xref
+> +		linkend="v4l2-ctrl-type" />.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>char</entry>
+> +	    <entry><structfield>name</structfield>[32]</entry>
+> +	    <entry>Name of the control, a NUL-terminated ASCII
+> +string. This information is intended for the user.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>char</entry>
+> +	    <entry><structfield>unit</structfield>[32]</entry>
+> +	    <entry>The name of the unit of the control's value, a NUL-terminated ASCII
+> +string. This information is intended for the user. This may be an empty string if no
+> +unit is known or if it is not applicable to this particular control.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__s64</entry>
+> +	    <entry><structfield>minimum</structfield></entry>
+> +	    <entry>Minimum value, inclusive. This field gives a lower
+> +bound for the control. See &v4l2-ctrl-type; how the minimum value is to
+> +be used for each possible control type. Note that this a signed 64-bit value.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__s64</entry>
+> +	    <entry><structfield>maximum</structfield></entry>
+> +	    <entry>Maximum value, inclusive. This field gives an upper
+> +bound for the control. See &v4l2-ctrl-type; how the maximum value is to
+> +be used for each possible control type. Note that this a signed 64-bit value.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u64</entry>
+> +	    <entry><structfield>step</structfield></entry>
+> +	    <entry><para>This field gives a step size for the control.
+> +See &v4l2-ctrl-type; how the step value is to be used for each possible
+> +control type. Note that this an unsigned 64-bit value.
+> +</para><para>Generally drivers should not scale hardware
+> +control values. It may be necessary for example when the
+> +<structfield>name</structfield> or <structfield>id</structfield> imply
+> +a particular unit and the hardware actually accepts only multiples of
+> +said unit. If so, drivers must take care values are properly rounded
+> +when scaling, such that errors will not accumulate on repeated
+> +read-write cycles.</para><para>This field gives the smallest change of
+> +an integer control actually affecting hardware. Often the information
+> +is needed when the user can change controls by keyboard or GUI
+> +buttons, rather than a slider. When for example a hardware register
+> +accepts values 0-511 and the driver reports 0-65535, step should be
+> +128.</para></entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__s64</entry>
+> +	    <entry><structfield>default_value</structfield></entry>
+> +	    <entry>The default value of a
+> +<constant>V4L2_CTRL_TYPE_INTEGER</constant>, <constant>_INTEGER64</constant>,
+> +<constant>_BOOLEAN</constant>, <constant>_BITMASK</constant>,
+> +<constant>_MENU</constant> or <constant>_INTEGER_MENU</constant> control.
+> +Not valid for other types of controls.
+> +Note that drivers reset controls to their default value only when the
+> +driver is first loaded, never afterwards.
+> +</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>flags</structfield></entry>
+> +	    <entry>Control flags, see <xref
+> +		linkend="control-flags" />.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>cols</structfield></entry>
+> +	    <entry>The number of columns in the matrix. If this control
+> +is not a matrix, then both <structfield>cols</structfield> and
+> +<structfield>rows</structfield> are 1. <structfield>cols</structfield>
+> +can never be 0.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>rows</structfield></entry>
+> +	    <entry>The number of rows in the matrix. If this control
+> +is not a matrix, then both <structfield>cols</structfield> and
+> +<structfield>rows</structfield> are 1. <structfield>rows</structfield>
+> +can never be 0.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>elem_size</structfield></entry>
+> +	    <entry>The size in bytes of a single element of the matrix.
+> +Given a char pointer <constant>p</constant> to the matrix you can find the
+> +position of cell <constant>(y, x)</constant> as follows:
+> +<constant>p + (y * cols + x) * elem_size</constant>. <structfield>elem_size</structfield>
+> +is always valid, also when the control isn't a matrix. For string controls
+> +<structfield>elem_size</structfield> is equal to <structfield>maximum + 1</structfield>.
+> +</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>reserved</structfield>[17]</entry>
+> +	    <entry>Reserved for future extensions. Applications and drivers
+> +must set the array to zero.</entry>
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +
+>      <table pgwide="1" frame="none" id="v4l2-querymenu">
+>        <title>struct <structname>v4l2_querymenu</structname></title>
+>        <tgroup cols="4">
+> @@ -347,11 +484,14 @@ Drivers must ignore the value passed with
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_CTRL_TYPE_INTEGER64</constant></entry>
+> -	    <entry>n/a</entry>
+> -	    <entry>n/a</entry>
+> -	    <entry>n/a</entry>
+> +	    <entry>any</entry>
+> +	    <entry>any</entry>
+> +	    <entry>any</entry>
+>  	    <entry>A 64-bit integer valued control. Minimum, maximum
+> -and step size cannot be queried.</entry>
+> +and step size cannot be queried using <constant>VIDIOC_QUERYCTRL</constant>.
+> +Only <constant>VIDIOC_QUERY_EXT_CTRL</constant> can retrieve the 64-bit
+> +min/max/step values, they should be interpreted as n/a when using
+> +<constant>VIDIOC_QUERYCTRL</constant>.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_CTRL_TYPE_STRING</constant></entry>
+> @@ -450,6 +590,21 @@ is in auto-gain mode. In such a case the hardware calculates the gain value base
+>  the lighting conditions which can change over time. Note that setting a new value for
+>  a volatile control will have no effect. The new value will just be ignored.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_CTRL_FLAG_HIDDEN</constant></entry>
+> +	    <entry>0x0100</entry>
+> +	    <entry>This control is hidden and should not be shown in a GUI application.
+> +Hidden controls are skipped when enumerating them using <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>,
+> +and they can only be enumerated by using the <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant>
+> +flag. All controls that have a complex type have this flag set.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_CTRL_FLAG_IS_PTR</constant></entry>
+> +	    <entry>0x0200</entry>
+> +	    <entry>This control has a pointer type, so its value has to be accessed
+> +using one of the pointer fields of &v4l2-ext-control;. This flag is set for controls
+> +that are a matrix, string, or have a complex type.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> 
 
-[...]
->> +static const char *cam_clk_p_names[] = { "sclk_cam0", "sclk_cam1" };
->> +
->> +static void fimc_md_unregister_clk_provider(struct fimc_md *fmd)
->> +{
->> +	struct cam_clk_provider *cp =&fmd->clk_provider;
->> +	unsigned int i;
->> +
->> +	if (cp->of_node)
->> +		of_clk_del_provider(cp->of_node);
->> +
->> +	for (i = 0; i<  ARRAY_SIZE(cp->clks); i++)
->> +		if (!IS_ERR(cp->clks[i]))
->> +			clk_unregister(cp->clks[i]);
->
-> Huh? Why to initialize an array with an error code??? Does it make sense to
-> have one of the clocks with an error and the others ok, and to store the
-> error code? The code below doesn't seem to allow that.
-
-If fimc_md_unregister_clk_provider() fails at any point
-fimc_md_register_clk_provider() can be called to undo what has been
-registered successfully. That's the point of storing the error codes.
-The error paths in probe() are already complex enough.
-
-> Just initialize cp->clks with zero and test it with:
->
-> 	if (cp->clks[i])
-> 		clk_unregister(cp->clks[i]);
-
-I'm afraid this is incorrect, clock pointers should be treated as
-opaque cookies and tested only with IS_ERR(). Clk users should not
-assume NULL clk pointer indicate an invalid clock.
-
-> That makes it easier to understand and review.
-
-Maybe it is easier to understand but it is a wrong API usage. And
-I believe it should never be suggested in reviews.
-
->> +}
->> +
->> +static int fimc_md_register_clk_provider(struct fimc_md *fmd)
->> +{
->> +	struct cam_clk_provider *cp =&fmd->clk_provider;
->> +	struct device *dev =&fmd->pdev->dev;
->> +	int i, ret;
->> +
->> +	for (i = 0; i<  ARRAY_SIZE(cp->clks); i++)
->> +		cp->clks[i] = ERR_PTR(-EINVAL);
->
-> That looks weird for me, due to several reasons:
->
-> 1) ARRAY_SIZE(cp->clks) is equal to FIMC_MAX_CAMCLKS. Why are you using
-> different syntaxes on the first loop and on the next one? Just to loose
-> more time from reviewers to double check what number is bigger?
-
-The loop limit argument is valid, I can correct that so the code is
-easier to follow.
-
-> 2) Why don't you just do:
->
-> 	memset(cp->clks, ARRAY_SIZE(cp->clks), 0).
->
-> or initialize struct fimc_md with kzalloc()?
-
-Because it isn't correct. struct fimc_md is already allocated with
-kzalloc(), I would certainly consider the above simpler code if it
-were valid.
-
->> +
->> +	for (i = 0; i<  FIMC_MAX_CAMCLKS; i++) {
->> +		struct cam_clk *camclk =&cp->camclk[i];
->> +		struct clk_init_data init;
->> +		char clk_name[16];
->> +		struct clk *clk;
->> +
->> +		snprintf(clk_name, sizeof(clk_name), "cam_clkout%d", i);
->> +
->> +		init.name = clk_name;
->> +		init.ops =&cam_clk_ops;
->> +		init.flags = CLK_SET_RATE_PARENT;
->> +		init.parent_names =&cam_clk_p_names[i];
->> +		init.num_parents = 1;
->> +		camclk->hw.init =&init;
->> +		camclk->fmd = fmd;
->> +
->> +		clk = clk_register(dev,&camclk->hw);
->> +		if (IS_ERR(clk)) {
->> +			dev_err(dev, "failed to register clock: %s (%ld)\n",
->> +						clk_name, PTR_ERR(clk));
->> +			ret = PTR_ERR(clk);
->> +			goto err;
->> +		}
->> +		cp->clks[i] = clk;
->> +	}
->> +
->> +	cp->clk_data.clks = cp->clks;
->> +	cp->clk_data.clk_num = i;
->> +	cp->of_node = dev->of_node;
->> +
->> +	ret = of_clk_add_provider(dev->of_node, of_clk_src_onecell_get,
->> +				&cp->clk_data);
->> +	if (!ret)
->> +		return 0;
->> +err:
->> +	fimc_md_unregister_clk_provider(fmd);
->> +	return ret;
->> +}
->> +#else
->> +#define fimc_md_register_clk_provider(fmd) (0)
->> +#define fimc_md_unregister_clk_provider(fmd) (0)
->> +#endif
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
 --
 Regards,
 Sylwester
-
-[1] 
-http://git.linuxtv.org/snawrocki/samsung.git/shortlog/refs/heads/v3.14-exynos4-is-dt
