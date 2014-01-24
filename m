@@ -1,63 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:11354 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768AbaAPL0q (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53261 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752728AbaAXPog (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jan 2014 06:26:46 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZH00L7ERSL7LC0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Jan 2014 20:26:45 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 2/2] s5p-jpeg: Fix wrong NV12 format parameters
-Date: Thu, 16 Jan 2014 12:26:33 +0100
-Message-id: <1389871593-10973-2-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1389871593-10973-1-git-send-email-j.anaszewski@samsung.com>
-References: <1389871593-10973-1-git-send-email-j.anaszewski@samsung.com>
+	Fri, 24 Jan 2014 10:44:36 -0500
+Date: Fri, 24 Jan 2014 17:44:31 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 06/21] v4l2-ctrls: add support for complex types.
+Message-ID: <20140124154431.GD13820@valkosipuli.retiisi.org.uk>
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+ <1390221974-28194-7-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1390221974-28194-7-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-NV12 format entries in the sjpeg_formats array had wrong
-colplanes, depth and v_align values.
+Hi Hans,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+On Mon, Jan 20, 2014 at 01:45:59PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This patch implements initial support for complex types.
+> 
+> For the most part the changes are fairly obvious (basic support for is_ptr
+> types, the type_is_int function is replaced by a is_int bitfield, and
+> v4l2_query_ext_ctrl is added), but one change needs more explanation:
+> 
+> The v4l2_ctrl struct adds a 'new' field and a 'stores' array at the end
+> of the struct. This is in preparation for future patches where each control
+> can have multiple configuration stores. The idea is that stores[0] is the current
+> control value, stores[1] etc. are the control values for each configuration store
+> and the 'new' value can be accessed through 'stores[-1]', i.e. the 'new' field.
+> However, for now only stores[-1] and stores[0] is used.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index a009bd9..6db4d5e 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -175,7 +175,7 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 	{
- 		.name		= "YUV 4:2:0 planar, Y/CbCr",
- 		.fourcc		= V4L2_PIX_FMT_NV12,
--		.depth		= 16,
-+		.depth		= 12,
- 		.colplanes	= 2,
- 		.h_align	= 1,
- 		.v_align	= 1,
-@@ -188,10 +188,10 @@ static struct s5p_jpeg_fmt sjpeg_formats[] = {
- 	{
- 		.name		= "YUV 4:2:0 planar, Y/CbCr",
- 		.fourcc		= V4L2_PIX_FMT_NV12,
--		.depth		= 16,
--		.colplanes	= 4,
-+		.depth		= 12,
-+		.colplanes	= 2,
- 		.h_align	= 4,
--		.v_align	= 1,
-+		.v_align	= 4,
- 		.flags		= SJPEG_FMT_FLAG_ENC_OUTPUT |
- 				  SJPEG_FMT_FLAG_DEC_CAPTURE |
- 				  SJPEG_FMT_FLAG_S5P |
+Could we use zero or positive indices only, e.g. the new being zero and
+current 1, or the other way? Or make the "new" value special, i.e. using a
+different field name.
+
+I think accessing the previous struct member by index -1 looks a little bit
+hackish.
+
+> These new fields use the v4l2_ctrl_ptr union, which is a pointer to a control
+> value.
+> 
+> Note that these two new fields are not yet actually used.
+
+Should they be then added yet in the first place? :-)
+
 -- 
-1.7.9.5
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
