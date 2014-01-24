@@ -1,139 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4038 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750996AbaA3Hbq (ORCPT
+Received: from mailsafe.webbplatsen.se ([94.247.172.109]:59839 "EHLO
+	mailsafe.webbplatsen.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752500AbaAXPnQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jan 2014 02:31:46 -0500
-Message-ID: <52E9FFCB.7030403@xs4all.nl>
-Date: Thu, 30 Jan 2014 08:31:23 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 24 Jan 2014 10:43:16 -0500
+Received: from skinbark.wpsintrax.se (unknown [83.145.49.220])
+	by mailsafe.webbplatsen.se (Halon Mail Gateway) with ESMTP
+	for <linux-media@vger.kernel.org>; Fri, 24 Jan 2014 16:43:00 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by skinbark.wpsintrax.se (Postfix) with ESMTP id 18D7D77D594
+	for <linux-media@vger.kernel.org>; Fri, 24 Jan 2014 16:43:11 +0100 (CET)
+Received: from skinbark.wpsintrax.se ([127.0.0.1])
+	by localhost (skinbark.wpsintrax.se [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Unqu9clboV+M for <linux-media@vger.kernel.org>;
+	Fri, 24 Jan 2014 16:43:11 +0100 (CET)
+Received: from tor.valhalla.alchemy.lu (vodsl-4669.vo.lu [80.90.56.61])
+	by skinbark.wpsintrax.se (Postfix) with ESMTPA id B33EA77D55E
+	for <linux-media@vger.kernel.org>; Fri, 24 Jan 2014 16:43:10 +0100 (CET)
+Date: Fri, 24 Jan 2014 16:43:09 +0100
+From: Joakim Hernberg <jbh@alchemy.lu>
+To: linux-media@vger.kernel.org
+Subject: Re: patch to fix a tuning regression for TeVii S471
+Message-ID: <20140124164309.778dcfbd@tor.valhalla.alchemy.lu>
+In-Reply-To: <20140122200408.3d0fc1cf@tor.valhalla.alchemy.lu>
+References: <20140122200408.3d0fc1cf@tor.valhalla.alchemy.lu>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] DocBook: document RF tuner gain controls
-References: <1391050966-19666-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1391050966-19666-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/30/2014 04:02 AM, Antti Palosaari wrote:
-> Add documentation for LNA, mixer and IF gain controls. These
-> controls are RF tuner specific.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+On Wed, 22 Jan 2014 20:04:08 +0100
+Joakim Hernberg <jbh@alchemy.lu> wrote:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> I recently discovered a regression in the S471 driver.  When trying to
+> tune to 10818V on Astra 28E2, the system would tune to 11343V instead.
+> After browsing the code it appears that a divider was changed when the
+> tuning code was moved from ds3000.c to ts2020.c.    
 
-Regards,
+I decided to test this a bit more thoroughly.  I scanned 28E2 with
+w_scan, compared the listings for 28E2 on King Of Sat with the
+resulting channels.conf, and came up with the following anomalies. I've
+also verified the non/existence of the transponders with my VU+ STB.
 
-	Hans
+Some anomalies are common to all tests:
+No channels found on 11307H (11307V is OK)
+No channels found on 11344H (11344V is OK)
+No channels found on 11390V (11389H is OK)
+Finds 2 channels on 11097V that aren't in KOS nor found on the STB
+Transponder on 12000H duplicate of 11992H
 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml | 91 ++++++++++++++++++++++++++++
->  1 file changed, 91 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index a5a3188..0145341 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4971,4 +4971,95 @@ defines possible values for de-emphasis. Here they are:</entry>
->        </table>
->  
->        </section>
-> +
-> +    <section id="rf-tuner-controls">
-> +      <title>RF Tuner Control Reference</title>
-> +
-> +      <para>The RF Tuner (RF_TUNER) class includes controls for common features
-> +of devices having RF tuner.</para>
-> +
-> +      <table pgwide="1" frame="none" id="rf-tuner-control-id">
-> +        <title>RF_TUNER Control IDs</title>
-> +
-> +        <tgroup cols="4">
-> +          <colspec colname="c1" colwidth="1*" />
-> +          <colspec colname="c2" colwidth="6*" />
-> +          <colspec colname="c3" colwidth="2*" />
-> +          <colspec colname="c4" colwidth="6*" />
-> +          <spanspec namest="c1" nameend="c2" spanname="id" />
-> +          <spanspec namest="c2" nameend="c4" spanname="descr" />
-> +          <thead>
-> +            <row>
-> +              <entry spanname="id" align="left">ID</entry>
-> +              <entry align="left">Type</entry>
-> +            </row>
-> +            <row rowsep="1">
-> +              <entry spanname="descr" align="left">Description</entry>
-> +            </row>
-> +          </thead>
-> +          <tbody valign="top">
-> +            <row><entry></entry></row>
-> +            <row>
-> +              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_CLASS</constant>&nbsp;</entry>
-> +              <entry>class</entry>
-> +            </row><row><entry spanname="descr">The RF_TUNER class
-> +descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-> +description of this control class.</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="id"><constant>V4L2_CID_LNA_GAIN_AUTO</constant>&nbsp;</entry>
-> +              <entry>boolean</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="descr">Enables/disables LNA automatic gain control (AGC)</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="id"><constant>V4L2_CID_MIXER_GAIN_AUTO</constant>&nbsp;</entry>
-> +              <entry>boolean</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="descr">Enables/disables mixer automatic gain control (AGC)</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="id"><constant>V4L2_CID_IF_GAIN_AUTO</constant>&nbsp;</entry>
-> +              <entry>boolean</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="id"><constant>V4L2_CID_LNA_GAIN</constant>&nbsp;</entry>
-> +              <entry>integer</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="descr">LNA (low noise amplifier) gain is first
-> +gain stage on the RF tuner signal path. It is located very close to tuner
-> +antenna input. Used when <constant>V4L2_CID_LNA_GAIN_AUTO</constant> is not set.
-> +The range and step are driver-specific.</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="id"><constant>V4L2_CID_MIXER_GAIN</constant>&nbsp;</entry>
-> +              <entry>integer</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="descr">Mixer gain is second gain stage on the RF
-> +tuner signal path. It is located inside mixer block, where RF signal is
-> +down-converted by the mixer. Used when <constant>V4L2_CID_MIXER_GAIN_AUTO</constant>
-> +is not set. The range and step are driver-specific.</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="id"><constant>V4L2_CID_IF_GAIN</constant>&nbsp;</entry>
-> +              <entry>integer</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="descr">IF gain is last gain stage on the RF tuner
-> +signal path. It is located on output of RF tuner. It controls signal level of
-> +intermediate frequency output or baseband output. Used when
-> +<constant>V4L2_CID_IF_GAIN_AUTO</constant> is not set. The range and step are
-> +driver-specific.</entry>
-> +            </row>
-> +          </tbody>
-> +        </tgroup>
-> +      </table>
-> +    </section>
->  </section>
-> 
 
+With linux v3.8.1 (old tuning code in ds3000.c):
+
+No channels found on 11224V (11222H is OK)
+
+
+With linux v3.13.0 (new tuning code in ts2020.c):
+
+Shows the channels from 11344V as found on 10818V
+No channels found on 11224V (11222H is OK)
+
+Transponder on 12560H duplicate of 12545H
+Transponder on 12607H duplicate of 12603H
+Transponder on 12643H duplicate of 12633H
+
+
+With linux 3.13.0 (+ my proposed patch):
+
+Shows the channels from 11222H as found on 11224V
+No channels found on 11224V
+
+Transponder on 12524V duplicate of 12522V
+Transponder on 12560H duplicate of 12545H
+Transponder on 12607H duplicate of 12603H
+Transponder on 12643H duplicate of 12633H
+
+
+Unless some one can directly spot what is wrong in the ts2020.c code, I
+guess the next step will be to sprinkle printk statements in the tuning
+code and try to tune to the problematic channels.  Then try to see if I
+can figure out how the code that programs the pll oscilliator functions
+and if I can come up with better dividers for it.
+
+It would be very much appreciated if someone with a TeVii card using
+the ts2020 can confirm some of my findings, it would even be
+interesting to know if it's a problem common to many cards using the
+ts2020...
+
+Finally I am quite sure that my tests above are ok, but I suppose it's
+possible I've made a mistake or two, since it's was a long, boring and
+manual process to match the transponders scanned to the web listings. I
+also suppose that there could be bugs in w_scan affecting the results,
+but guess further testing will rule this out.  Also note that there
+might be more frequencies that are problematic, as I've only scanned
+28E2 for the moment...
+
+-- 
+
+   Joakim
