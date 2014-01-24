@@ -1,111 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1514 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715AbaAADef (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:41571 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752742AbaAXVSd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Dec 2013 22:34:35 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s013YVd0043186
-	for <linux-media@vger.kernel.org>; Wed, 1 Jan 2014 04:34:33 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id BAB5F2A222A
-	for <linux-media@vger.kernel.org>; Wed,  1 Jan 2014 04:33:56 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 24 Jan 2014 16:18:33 -0500
+Received: by mail-ob0-f174.google.com with SMTP id uy5so4153108obc.5
+        for <linux-media@vger.kernel.org>; Fri, 24 Jan 2014 13:18:32 -0800 (PST)
+From: Thomas Pugliese <thomas.pugliese@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140101033356.BAB5F2A222A@tschai.lan>
-Date: Wed,  1 Jan 2014 04:33:56 +0100 (CET)
+Cc: laurent.pinchart@ideasonboard.com,
+	Thomas Pugliese <thomas.pugliese@gmail.com>
+Subject: [PATCH] uvc: update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS devices
+Date: Fri, 24 Jan 2014 15:17:28 -0600
+Message-Id: <1390598248-343-1-git-send-email-thomas.pugliese@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Isochronous endpoints on devices with speed == USB_SPEED_WIRELESS can 
+have a max packet size ranging from 1-3584 bytes.  Add a case to 
+uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS.  Otherwise endpoints 
+for those devices will fall to the default case which masks off any 
+values > 2047.  This causes uvc_init_video to underestimate the 
+bandwidth available and fail to find a suitable alt setting for high 
+bandwidth video streams.
 
-Results of the daily build of media_tree:
+Signed-off-by: Thomas Pugliese <thomas.pugliese@gmail.com>
+---
+ drivers/media/usb/uvc/uvc_video.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-date:		Wed Jan  1 04:00:21 CET 2014
-git branch:	test
-git hash:	7d459937dc09bb8e448d9985ec4623779427d8a5
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-0.slh.2-amd64
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 898c208..103cd4e 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1453,6 +1453,9 @@ static unsigned int uvc_endpoint_max_bpi(struct usb_device *dev,
+ 	case USB_SPEED_HIGH:
+ 		psize = usb_endpoint_maxp(&ep->desc);
+ 		return (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
++	case USB_SPEED_WIRELESS:
++		psize = usb_endpoint_maxp(&ep->desc);
++		return psize;
+ 	default:
+ 		psize = usb_endpoint_maxp(&ep->desc);
+ 		return psize & 0x07ff;
+-- 
+1.8.3.2
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
