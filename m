@@ -1,77 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:44249 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbaALQXu (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:41020 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752634AbaAXORd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jan 2014 11:23:50 -0500
-Received: by mail-ea0-f174.google.com with SMTP id b10so2881909eae.33
-        for <linux-media@vger.kernel.org>; Sun, 12 Jan 2014 08:23:49 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [RFT/RFC PATCH 6/8] em28xx: move v4l2 dummy clock deregistration from the core to the v4l extension
-Date: Sun, 12 Jan 2014 17:24:23 +0100
-Message-Id: <1389543865-2534-7-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1389543865-2534-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1389543865-2534-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 24 Jan 2014 09:17:33 -0500
+From: Martin Bugge <marbugge@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Bugge <marbugge@cisco.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/4] [media] adv7842: adjust gain and offset for DVI-D signals
+Date: Fri, 24 Jan 2014 14:50:03 +0100
+Message-Id: <1390571406-11215-2-git-send-email-marbugge@cisco.com>
+In-Reply-To: <1390571406-11215-1-git-send-email-marbugge@cisco.com>
+References: <1390571406-11215-1-git-send-email-marbugge@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |    3 ---
- drivers/media/usb/em28xx/em28xx-video.c |    6 ++++++
- 2 Dateien geändert, 6 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
+If the input signal is DVI-D and quantization range is RGB full range,
+gain and offset must be adjusted to get the right range on the output.
+Copied and adopted from adv7604.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 34ff918b..cc7677a 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -36,7 +36,6 @@
- #include <media/tvaudio.h>
- #include <media/i2c-addr.h>
- #include <media/tveeprom.h>
--#include <media/v4l2-clk.h>
- #include <media/v4l2-common.h>
+Cc: Mats Randgaard <matrandg@cisco.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 109 ++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 99 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 1effc21..f7a4d79 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -546,6 +546,14 @@ static void main_reset(struct v4l2_subdev *sd)
  
- #include "em28xx.h"
-@@ -2831,8 +2830,6 @@ void em28xx_release_resources(struct em28xx *dev)
- 	if (dev->def_i2c_bus)
- 		em28xx_i2c_unregister(dev, 1);
- 	em28xx_i2c_unregister(dev, 0);
--	if (dev->clk)
--		v4l2_clk_unregister_fixed(dev->clk);
+ /* ----------------------------------------------------------------------- */
  
- 	usb_put_dev(dev->udev);
++static inline bool is_analog_input(struct v4l2_subdev *sd)
++{
++	struct adv7842_state *state = to_state(sd);
++
++	return ((state->mode == ADV7842_MODE_RGB) ||
++		(state->mode == ADV7842_MODE_COMP));
++}
++
+ static inline bool is_digital_input(struct v4l2_subdev *sd)
+ {
+ 	struct adv7842_state *state = to_state(sd);
+@@ -1027,12 +1035,72 @@ static void configure_custom_video_timings(struct v4l2_subdev *sd,
+ 	cp_write(sd, 0xac, (height & 0x0f) << 4);
+ }
  
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 3ac8700..f209f95 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -42,6 +42,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-event.h>
-+#include <media/v4l2-clk.h>
- #include <media/msp3400.h>
- #include <media/tuner.h>
- 
-@@ -1926,6 +1927,11 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
- 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
-+	if (dev->clk) {
-+		v4l2_clk_unregister_fixed(dev->clk);
-+		dev->clk = NULL;
++static void adv7842_set_offset(struct v4l2_subdev *sd, bool auto_offset, u16 offset_a, u16 offset_b, u16 offset_c)
++{
++	struct adv7842_state *state = to_state(sd);
++	u8 offset_buf[4];
++
++	if (auto_offset) {
++		offset_a = 0x3ff;
++		offset_b = 0x3ff;
++		offset_c = 0x3ff;
 +	}
 +
- 	if (dev->users)
- 		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
++	v4l2_dbg(2, debug, sd, "%s: %s offset: a = 0x%x, b = 0x%x, c = 0x%x\n",
++		 __func__, auto_offset ? "Auto" : "Manual",
++		 offset_a, offset_b, offset_c);
++
++	offset_buf[0]= (cp_read(sd, 0x77) & 0xc0) | ((offset_a & 0x3f0) >> 4);
++	offset_buf[1] = ((offset_a & 0x00f) << 4) | ((offset_b & 0x3c0) >> 6);
++	offset_buf[2] = ((offset_b & 0x03f) << 2) | ((offset_c & 0x300) >> 8);
++	offset_buf[3] = offset_c & 0x0ff;
++
++	/* Registers must be written in this order with no i2c access in between */
++	if (adv_smbus_write_i2c_block_data(state->i2c_cp, 0x77, 4, offset_buf))
++		v4l2_err(sd, "%s: i2c error writing to CP reg 0x77, 0x78, 0x79, 0x7a\n", __func__);
++}
++
++static void adv7842_set_gain(struct v4l2_subdev *sd, bool auto_gain, u16 gain_a, u16 gain_b, u16 gain_c)
++{
++	struct adv7842_state *state = to_state(sd);
++	u8 gain_buf[4];
++	u8 gain_man = 1;
++	u8 agc_mode_man = 1;
++
++	if (auto_gain) {
++		gain_man = 0;
++		agc_mode_man = 0;
++		gain_a = 0x100;
++		gain_b = 0x100;
++		gain_c = 0x100;
++	}
++
++	v4l2_dbg(2, debug, sd, "%s: %s gain: a = 0x%x, b = 0x%x, c = 0x%x\n",
++		 __func__, auto_gain ? "Auto" : "Manual",
++		 gain_a, gain_b, gain_c);
++
++	gain_buf[0] = ((gain_man << 7) | (agc_mode_man << 6) | ((gain_a & 0x3f0) >> 4));
++	gain_buf[1] = (((gain_a & 0x00f) << 4) | ((gain_b & 0x3c0) >> 6));
++	gain_buf[2] = (((gain_b & 0x03f) << 2) | ((gain_c & 0x300) >> 8));
++	gain_buf[3] = ((gain_c & 0x0ff));
++
++	/* Registers must be written in this order with no i2c access in between */
++	if (adv_smbus_write_i2c_block_data(state->i2c_cp, 0x73, 4, gain_buf))
++		v4l2_err(sd, "%s: i2c error writing to CP reg 0x73, 0x74, 0x75, 0x76\n", __func__);
++}
++
+ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ {
+ 	struct adv7842_state *state = to_state(sd);
++	bool rgb_output = io_read(sd, 0x02) & 0x02;
++	bool hdmi_signal = hdmi_read(sd, 0x05) & 0x80;
++
++	v4l2_dbg(2, debug, sd, "%s: RGB quantization range: %d, RGB out: %d, HDMI: %d\n",
++			__func__, state->rgb_quantization_range,
++			rgb_output, hdmi_signal);
+ 
+-	v4l2_dbg(2, debug, sd, "%s: rgb_quantization_range = %d\n",
+-		       __func__, state->rgb_quantization_range);
++	adv7842_set_gain(sd, true, 0x0, 0x0, 0x0);
++	adv7842_set_offset(sd, true, 0x0, 0x0, 0x0);
+ 
+ 	switch (state->rgb_quantization_range) {
+ 	case V4L2_DV_RGB_RANGE_AUTO:
+@@ -1050,7 +1118,7 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 			break;
+ 		}
+ 
+-		if (hdmi_read(sd, 0x05) & 0x80) {
++		if (hdmi_signal) {
+ 			/* Receiving HDMI signal
+ 			 * Set automode */
+ 			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
+@@ -1066,24 +1134,45 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 		} else {
+ 			/* RGB full range (0-255) */
+ 			io_write_and_or(sd, 0x02, 0x0f, 0x10);
++
++			if (is_digital_input(sd) && rgb_output) {
++				adv7842_set_offset(sd, false, 0x40, 0x40, 0x40);
++			} else {
++				adv7842_set_gain(sd, false, 0xe0, 0xe0, 0xe0);
++				adv7842_set_offset(sd, false, 0x70, 0x70, 0x70);
++			}
+ 		}
+ 		break;
+ 	case V4L2_DV_RGB_RANGE_LIMITED:
+ 		if (state->mode == ADV7842_MODE_COMP) {
+ 			/* YCrCb limited range (16-235) */
+ 			io_write_and_or(sd, 0x02, 0x0f, 0x20);
+-		} else {
+-			/* RGB limited range (16-235) */
+-			io_write_and_or(sd, 0x02, 0x0f, 0x00);
++			break;
+ 		}
++
++		/* RGB limited range (16-235) */
++		io_write_and_or(sd, 0x02, 0x0f, 0x00);
++
+ 		break;
+ 	case V4L2_DV_RGB_RANGE_FULL:
+ 		if (state->mode == ADV7842_MODE_COMP) {
+ 			/* YCrCb full range (0-255) */
+ 			io_write_and_or(sd, 0x02, 0x0f, 0x60);
++			break;
++		}
++
++		/* RGB full range (0-255) */
++		io_write_and_or(sd, 0x02, 0x0f, 0x10);
++
++		if (is_analog_input(sd) || hdmi_signal)
++			break;
++
++		/* Adjust gain/offset for DVI-D signals only */
++		if (rgb_output) {
++			adv7842_set_offset(sd, false, 0x40, 0x40, 0x40);
+ 		} else {
+-			/* RGB full range (0-255) */
+-			io_write_and_or(sd, 0x02, 0x0f, 0x10);
++			adv7842_set_gain(sd, false, 0xe0, 0xe0, 0xe0);
++			adv7842_set_offset(sd, false, 0x70, 0x70, 0x70);
+ 		}
+ 		break;
+ 	}
+@@ -1717,8 +1806,8 @@ static void select_input(struct v4l2_subdev *sd,
+ 		 * (rev. 2.5, June 2010)" p. 17. */
+ 		afe_write(sd, 0x12, 0xfb); /* ADC noise shaping filter controls */
+ 		afe_write(sd, 0x0c, 0x0d); /* CP core gain controls */
+-		cp_write(sd, 0x3e, 0x80); /* CP core pre-gain control,
+-					     enable color control */
++		cp_write(sd, 0x3e, 0x00); /* CP core pre-gain control */
++
+ 		/* CP coast control */
+ 		cp_write(sd, 0xc3, 0x33); /* Component mode */
  
 -- 
-1.7.10.4
+1.8.1.4
 
