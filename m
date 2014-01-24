@@ -1,67 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51343 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755426AbaAFQI2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 11:08:28 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 3/6] [media] em28xx: use a better value for I2C timeouts
-Date: Mon,  6 Jan 2014 11:04:57 -0200
-Message-Id: <1389013500-3110-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389013500-3110-1-git-send-email-m.chehab@samsung.com>
-References: <1389013500-3110-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51858 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752018AbaAXL22 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jan 2014 06:28:28 -0500
+Date: Fri, 24 Jan 2014 13:28:24 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 05/21] videodev2.h: add struct v4l2_query_ext_ctrl
+ and VIDIOC_QUERY_EXT_CTRL.
+Message-ID: <20140124112823.GB13820@valkosipuli.retiisi.org.uk>
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+ <1390221974-28194-6-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1390221974-28194-6-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the lack of a better spec, let's assume the timeout
-values compatible with SMBus spec:
-	http://smbus.org/specs/smbus110.pdf
+Hi Hans,
 
-at chapter 8 - Electrical Characteristics of SMBus devices
+On Mon, Jan 20, 2014 at 01:45:58PM +0100, Hans Verkuil wrote:
+> +	union {
+> +		__u64 val;
+> +		__u32 reserved[4];
+> +	} step;
 
-Ok, SMBus is a subset of I2C, and not all devices will be
-following it, but the timeout value before this patch was not
-even following the spec.
+While I do not question that step is obviously always a positive value (or
+zero), using a different type from the value (and min and max) does add
+slight complications every time it is being used. I don't think there's a
+use case for using values over 2^62 for step either.
 
-So, while we don't have a better guess for it, use 35 + 1
-ms as the timeout.
+Speaking of which --- do you think we should continue to have step in the
+interface? This has been proven to be slightly painful when the step is not
+an integer. Using a step of one in that case has been the only feasible
+solution. Step could be naturally be used as a hint but enforcing it often
+forces setting it to one.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx.h | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 7ae05ebc13c1..949372e11887 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -182,8 +182,21 @@
- 
- #define EM28XX_INTERLACED_DEFAULT 1
- 
--/* time in msecs to wait for i2c writes to finish */
--#define EM2800_I2C_XFER_TIMEOUT		20
-+/*
-+ * Time in msecs to wait for i2c xfers to finish.
-+ * 35ms is the maximum time a SMBUS device could wait when
-+ * clock stretching is used. As the transfer itself will take
-+ * some time to happen, set it to 35 ms.
-+ *
-+ * Ok, I2C doesn't specify any limit. So, eventually, we may need
-+ * to increase this timeout.
-+ *
-+ * FIXME: this assumes that an I2C message is not longer than 1ms.
-+ * This is actually dependent on the I2C bus speed, although most
-+ * devices use a 100kHz clock. So, this assumtion is true most of
-+ * the time.
-+ */
-+#define EM28XX_I2C_XFER_TIMEOUT		36
- 
- /* max. number of button state polling addresses */
- #define EM28XX_NUM_BUTTON_ADDRESSES_MAX		5
 -- 
-1.8.3.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
