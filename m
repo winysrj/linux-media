@@ -1,136 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:17007 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756010AbaAHLwP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 06:52:15 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ200BIBZN1D4A0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 08 Jan 2014 11:52:13 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Mauro Carvalho Chehab' <m.chehab@samsung.com>,
-	shaik.ameer@samsung.com
-Cc: linux-media@vger.kernel.org, Tomasz Figa <t.figa@samsung.com>
-References: <014501cf008e$364ee590$a2ecb0b0$%debski@samsung.com>
- <20140102184937.0837e4a0@samsung.com>
-In-reply-to: <20140102184937.0837e4a0@samsung.com>
-Subject: RE: [GIT PULL for v3.14] mem2mem patches
-Date: Wed, 08 Jan 2014 12:52:12 +0100
-Message-id: <049b01cf0c68$11daae70$35900b50$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51950 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752167AbaAXMbx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jan 2014 07:31:53 -0500
+Date: Fri, 24 Jan 2014 14:31:18 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 09/21] v4l2-ctrls: rewrite copy routines to operate
+ on union v4l2_ctrl_ptr.
+Message-ID: <20140124123118.GC13820@valkosipuli.retiisi.org.uk>
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+ <1390221974-28194-10-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1390221974-28194-10-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, Shaik,
+Hi Hans,
 
-I had consulted our local DT expert, Tomasz Figa, about this.
+On Mon, Jan 20, 2014 at 01:46:02PM +0100, Hans Verkuil wrote:
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 9f97af4..c0507ed 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1266,48 +1266,64 @@ static const struct v4l2_ctrl_type_ops std_type_ops = {
+>  	.validate = std_validate,
+>  };
+>  
+> -/* Helper function: copy the current control value back to the caller */
+> -static int cur_to_user(struct v4l2_ext_control *c,
+> -		       struct v4l2_ctrl *ctrl)
+> +/* Helper function: copy the given control value back to the caller */
+> +static int ptr_to_user(struct v4l2_ext_control *c,
+> +		       struct v4l2_ctrl *ctrl,
+> +		       union v4l2_ctrl_ptr ptr)
+>  {
+>  	u32 len;
+>  
+>  	if (ctrl->is_ptr && !ctrl->is_string)
+> -		return copy_to_user(c->p, ctrl->cur.p, ctrl->elem_size);
+> +		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
 
-His interpretation is in line with my opinion that this is 
-a trivial DT binding. It uses only existing properties and does
-not introduce new things.
+Not a fault of this patch, but this is wrong: copy_to_user() returns the
+bytes not copied. That should probably be fixed separately before this
+patch. I can submit one.
 
-If you insist on having an ack from a DT maintainer then I will
-sent you a new pull request without Shaiks' patches.
-
-Shaik could you try to get an ack from a DT maintainer for this
-patch?
-
-Best wishes,
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+Kind regards,
 
-
-> -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:m.chehab@samsung.com]
-> Sent: Thursday, January 02, 2014 9:50 PM
-> To: Kamil Debski
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: [GIT PULL for v3.14] mem2mem patches
-> 
-> Em Tue, 24 Dec 2013 10:55:00 +0100
-> Kamil Debski <k.debski@samsung.com> escreveu:
-> 
-> > The following changes since commit
-> 7d459937dc09bb8e448d9985ec4623779427d8a5:
-> >
-> >   [media] Add driver for Samsung S5K5BAF camera sensor (2013-12-21
-> > 07:01:36
-> > -0200)
-> >
-> > are available in the git repository at:
-> >
-> >   git://linuxtv.org/kdebski/media.git master
-> >
-> > for you to fetch changes up to
-> 0f6616ebb7a04219ad7aa84dd9ff9c7ac9323529:
-> >
-> >   s5p-mfc: Add controls to set vp8 enc profile (2013-12-24 10:37:27
-> > +0100)
-> >
-> > ----------------------------------------------------------------
-> > Arun Kumar K (1):
-> >       s5p-mfc: Add QP setting support for vp8 encoder
-> >
-> > Kiran AVND (1):
-> >       s5p-mfc: Add controls to set vp8 enc profile
-> >
-> > Marek Szyprowski (1):
-> >       media: s5p_mfc: remove s5p_mfc_get_node_type() function
-> >
-> > Shaik Ameer Basha (4):
-> >       exynos-scaler: Add new driver for Exynos5 SCALER
-> >       exynos-scaler: Add core functionality for the SCALER driver
-> >       exynos-scaler: Add m2m functionality for the SCALER driver
-> 
-> >       exynos-scaler: Add DT bindings for SCALER driver
-> 
-> This one is missing DT maintainer's ack.
-> 
-> >
-> >  Documentation/DocBook/media/v4l/controls.xml       |   41 +
-> >  .../devicetree/bindings/media/exynos5-scaler.txt   |   22 +
-> >  drivers/media/platform/Kconfig                     |    8 +
-> >  drivers/media/platform/Makefile                    |    1 +
-> >  drivers/media/platform/exynos-scaler/Makefile      |    3 +
-> >  drivers/media/platform/exynos-scaler/scaler-m2m.c  |  787
-> > +++++++++++++  drivers/media/platform/exynos-scaler/scaler-regs.c |
-> > 336 ++++++  drivers/media/platform/exynos-scaler/scaler-regs.h |  331
-> ++++++
-> >  drivers/media/platform/exynos-scaler/scaler.c      | 1238
-> > ++++++++++++++++++++
-> >  drivers/media/platform/exynos-scaler/scaler.h      |  375 ++++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc.c           |   28 +-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   14 +-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   55 +
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   26 +-
-> >  drivers/media/v4l2-core/v4l2-ctrls.c               |    5 +
-> >  include/uapi/linux/v4l2-controls.h                 |    5 +
-> >  16 files changed, 3241 insertions(+), 34 deletions(-)  create mode
-> > 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
-> >  create mode 100644 drivers/media/platform/exynos-scaler/Makefile
-> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
-> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler-
-> regs.c
-> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler-
-> regs.h
-> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
-> >  create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> media"
-> > in the body of a message to majordomo@vger.kernel.org More majordomo
-> > info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> --
-> 
-> Cheers,
-> Mauro
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
