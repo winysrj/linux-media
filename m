@@ -1,207 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([80.229.237.210]:36120 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752661AbaATWKq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 17:10:46 -0500
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Jarod Wilson <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 3/4] [media] mceusb: remove redundant function and defines
-Date: Mon, 20 Jan 2014 22:10:43 +0000
-Message-Id: <1390255844-21826-1-git-send-email-sean@mess.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53297 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752974AbaAXPqx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jan 2014 10:46:53 -0500
+Date: Fri, 24 Jan 2014 17:46:19 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 08/21] v4l2-ctrls: create type_ops.
+Message-ID: <20140124154619.GE13820@valkosipuli.retiisi.org.uk>
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+ <1390221974-28194-9-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1390221974-28194-9-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/mceusb.c | 92 +++++++++++++++--------------------------------
- 1 file changed, 28 insertions(+), 64 deletions(-)
+Hi Hans,
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index a25bb15..3a4f95f 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -166,15 +166,6 @@ static bool debug;
- 			dev_info(dev, fmt, ## __VA_ARGS__);	\
- 	} while (0)
- 
--/* general constants */
--#define SEND_FLAG_IN_PROGRESS	1
--#define SEND_FLAG_COMPLETE	2
--#define RECV_FLAG_IN_PROGRESS	3
--#define RECV_FLAG_COMPLETE	4
--
--#define MCEUSB_RX		1
--#define MCEUSB_TX		2
--
- #define VENDOR_PHILIPS		0x0471
- #define VENDOR_SMK		0x0609
- #define VENDOR_TATUNG		0x1460
-@@ -452,7 +443,6 @@ struct mceusb_dev {
- 	} flags;
- 
- 	/* transmit support */
--	int send_flags;
- 	u32 carrier;
- 	unsigned char tx_mask;
- 
-@@ -731,45 +721,29 @@ static void mce_async_callback(struct urb *urb)
- 
- /* request incoming or send outgoing usb packet - used to initialize remote */
- static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
--			       int size, int urb_type)
-+			       int size)
- {
- 	int res, pipe;
- 	struct urb *async_urb;
- 	struct device *dev = ir->dev;
- 	unsigned char *async_buf;
- 
--	if (urb_type == MCEUSB_TX) {
--		async_urb = usb_alloc_urb(0, GFP_KERNEL);
--		if (unlikely(!async_urb)) {
--			dev_err(dev, "Error, couldn't allocate urb!\n");
--			return;
--		}
--
--		async_buf = kzalloc(size, GFP_KERNEL);
--		if (!async_buf) {
--			dev_err(dev, "Error, couldn't allocate buf!\n");
--			usb_free_urb(async_urb);
--			return;
--		}
-+	async_urb = usb_alloc_urb(0, GFP_KERNEL);
-+	if (unlikely(!async_urb))
-+		return;
- 
--		/* outbound data */
--		pipe = usb_sndintpipe(ir->usbdev,
--				      ir->usb_ep_out->bEndpointAddress);
--		usb_fill_int_urb(async_urb, ir->usbdev, pipe,
--			async_buf, size, mce_async_callback,
--			ir, ir->usb_ep_out->bInterval);
--		memcpy(async_buf, data, size);
--
--	} else if (urb_type == MCEUSB_RX) {
--		/* standard request */
--		async_urb = ir->urb_in;
--		ir->send_flags = RECV_FLAG_IN_PROGRESS;
--
--	} else {
--		dev_err(dev, "Error! Unknown urb type %d\n", urb_type);
-+	async_buf = kmalloc(size, GFP_KERNEL);
-+	if (!async_buf) {
-+		usb_free_urb(async_urb);
- 		return;
- 	}
- 
-+	/* outbound data */
-+	pipe = usb_sndintpipe(ir->usbdev, ir->usb_ep_out->bEndpointAddress);
-+	usb_fill_int_urb(async_urb, ir->usbdev, pipe, async_buf, size,
-+			mce_async_callback, ir, ir->usb_ep_out->bInterval);
-+	memcpy(async_buf, data, size);
-+
- 	mce_dbg(dev, "receive request called (size=%#x)\n", size);
- 
- 	async_urb->transfer_buffer_length = size;
-@@ -789,19 +763,14 @@ static void mce_async_out(struct mceusb_dev *ir, unsigned char *data, int size)
- 
- 	if (ir->need_reset) {
- 		ir->need_reset = false;
--		mce_request_packet(ir, DEVICE_RESUME, rsize, MCEUSB_TX);
-+		mce_request_packet(ir, DEVICE_RESUME, rsize);
- 		msleep(10);
- 	}
- 
--	mce_request_packet(ir, data, size, MCEUSB_TX);
-+	mce_request_packet(ir, data, size);
- 	msleep(10);
- }
- 
--static void mce_flush_rx_buffer(struct mceusb_dev *ir, int size)
--{
--	mce_request_packet(ir, NULL, size, MCEUSB_RX);
--}
--
- /* Send data out the IR blaster port(s) */
- static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- {
-@@ -1040,7 +1009,6 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- static void mceusb_dev_recv(struct urb *urb)
- {
- 	struct mceusb_dev *ir;
--	int buf_len;
- 
- 	if (!urb)
- 		return;
-@@ -1051,18 +1019,10 @@ static void mceusb_dev_recv(struct urb *urb)
- 		return;
- 	}
- 
--	buf_len = urb->actual_length;
--
--	if (ir->send_flags == RECV_FLAG_IN_PROGRESS) {
--		ir->send_flags = SEND_FLAG_COMPLETE;
--		mce_dbg(ir->dev, "setup answer received %d bytes\n",
--			buf_len);
--	}
--
- 	switch (urb->status) {
- 	/* success */
- 	case 0:
--		mceusb_process_ir_data(ir, buf_len);
-+		mceusb_process_ir_data(ir, urb->actual_length);
- 		break;
- 
- 	case -ECONNRESET:
-@@ -1250,7 +1210,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 	struct usb_endpoint_descriptor *ep_in = NULL;
- 	struct usb_endpoint_descriptor *ep_out = NULL;
- 	struct mceusb_dev *ir = NULL;
--	int pipe, maxp, i;
-+	int pipe, maxp, i, res;
- 	char buf[63], name[128] = "";
- 	enum mceusb_model_type model = id->driver_info;
- 	bool is_gen3;
-@@ -1346,19 +1306,21 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 		snprintf(name + strlen(name), sizeof(name) - strlen(name),
- 			 " %s", buf);
- 
--	ir->rc = mceusb_init_rc_dev(ir);
--	if (!ir->rc)
--		goto rc_dev_fail;
--
- 	/* wire up inbound data handler */
- 	usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
- 				mceusb_dev_recv, ir, ep_in->bInterval);
- 	ir->urb_in->transfer_dma = ir->dma_in;
- 	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
- 
--	/* flush buffers on the device */
--	mce_dbg(&intf->dev, "Flushing receive buffers\n");
--	mce_flush_rx_buffer(ir, maxp);
-+	res = usb_submit_urb(ir->urb_in, GFP_KERNEL);
-+	if (res) {
-+		dev_err(&intf->dev, "failed to submit urb: %d\n", res);
-+		goto usb_submit_fail;
-+	}
-+
-+	ir->rc = mceusb_init_rc_dev(ir);
-+	if (!ir->rc)
-+		goto rc_dev_fail;
- 
- 	/* figure out which firmware/emulator version this hardware has */
- 	mceusb_get_emulator_version(ir);
-@@ -1393,6 +1355,8 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 
- 	/* Error-handling path */
- rc_dev_fail:
-+	usb_kill_urb(ir->urb_in);
-+usb_submit_fail:
- 	usb_free_urb(ir->urb_in);
- urb_in_alloc_fail:
- 	usb_free_coherent(dev, maxp, ir->buf_in, ir->dma_in);
+On Mon, Jan 20, 2014 at 01:46:01PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Since complex controls can have non-standard types we need to be able to do
+> type-specific checks etc. In order to make that easy type operations are added.
+> There are four operations:
+> 
+> - equal: check if two values are equal
+> - init: initialize a value
+> - log: log the value
+> - validate: validate a new value
+> 
+> This patch uses the v4l2_ctrl_ptr union for the first time.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 267 ++++++++++++++++++++++-------------
+>  include/media/v4l2-ctrls.h           |  21 +++
+>  2 files changed, 190 insertions(+), 98 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 98e940f..9f97af4 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1123,6 +1123,149 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+>  			v4l2_event_queue_fh(sev->fh, &ev);
+>  }
+>  
+> +static bool std_equal(const struct v4l2_ctrl *ctrl,
+> +		      union v4l2_ctrl_ptr ptr1,
+> +		      union v4l2_ctrl_ptr ptr2)
+> +{
+> +	switch (ctrl->type) {
+> +	case V4L2_CTRL_TYPE_BUTTON:
+> +		return false;
+> +	case V4L2_CTRL_TYPE_STRING:
+> +		/* strings are always 0-terminated */
+> +		return !strcmp(ptr1.p_char, ptr2.p_char);
+> +	case V4L2_CTRL_TYPE_INTEGER64:
+> +		return *ptr1.p_s64 == *ptr2.p_s64;
+
+The above two lines seem redundant to me.
+
+> +	default:
+> +		if (ctrl->is_ptr)
+> +			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
+> +		return *ptr1.p_s32 == *ptr2.p_s32;
+> +	}
+> +}
+> +
+> +static void std_init(const struct v4l2_ctrl *ctrl,
+> +		     union v4l2_ctrl_ptr ptr)
+> +{
+> +	switch (ctrl->type) {
+> +	case V4L2_CTRL_TYPE_STRING:
+> +		memset(ptr.p_char, ' ', ctrl->minimum);
+> +		ptr.p_char[ctrl->minimum] = '\0';
+> +		break;
+> +	case V4L2_CTRL_TYPE_INTEGER64:
+> +		*ptr.p_s64 = ctrl->default_value;
+> +		break;
+> +	case V4L2_CTRL_TYPE_INTEGER:
+> +	case V4L2_CTRL_TYPE_INTEGER_MENU:
+> +	case V4L2_CTRL_TYPE_MENU:
+> +	case V4L2_CTRL_TYPE_BITMASK:
+> +	case V4L2_CTRL_TYPE_BOOLEAN:
+> +		*ptr.p_s32 = ctrl->default_value;
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +}
+> +
+> +static void std_log(const struct v4l2_ctrl *ctrl)
+> +{
+> +	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
+> +
+> +	switch (ctrl->type) {
+> +	case V4L2_CTRL_TYPE_INTEGER:
+> +		pr_cont("%d", *ptr.p_s32);
+> +		break;
+> +	case V4L2_CTRL_TYPE_BOOLEAN:
+> +		pr_cont("%s", *ptr.p_s32 ? "true" : "false");
+> +		break;
+> +	case V4L2_CTRL_TYPE_MENU:
+> +		pr_cont("%s", ctrl->qmenu[*ptr.p_s32]);
+> +		break;
+> +	case V4L2_CTRL_TYPE_INTEGER_MENU:
+> +		pr_cont("%lld", ctrl->qmenu_int[*ptr.p_s32]);
+> +		break;
+> +	case V4L2_CTRL_TYPE_BITMASK:
+> +		pr_cont("0x%08x", *ptr.p_s32);
+> +		break;
+> +	case V4L2_CTRL_TYPE_INTEGER64:
+> +		pr_cont("%lld", *ptr.p_s64);
+> +		break;
+> +	case V4L2_CTRL_TYPE_STRING:
+> +		pr_cont("%s", ptr.p_char);
+> +		break;
+> +	default:
+> +		pr_cont("unknown type %d", ctrl->type);
+> +		break;
+> +	}
+> +}
+> +
+> +/* Round towards the closest legal value */
+> +#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
+> +({								\
+> +	offset_type offset;					\
+> +	val += (ctrl)->step / 2;				\
+> +	val = clamp_t(typeof(val), val,				\
+> +		      (ctrl)->minimum, (ctrl)->maximum);	\
+> +	offset = (val) - (ctrl)->minimum;			\
+> +	offset = (ctrl)->step * (offset / (ctrl)->step);	\
+> +	val = (ctrl)->minimum + offset;				\
+> +	0;							\
+> +})
+
+Could you use an inline function instead? This doesn't really need to be a
+macro, albeit I admit that it's always cool to express one's ability to
+write GCC-only macros. :-D
+
+(I just noticed that this patch just moves the macro to a different place,
+but I think it was added by an earlier patch in the set.)
+
 -- 
-1.8.4.2
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
