@@ -1,75 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:41427 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750831AbaAXQKL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53381 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750826AbaAXPyj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 11:10:11 -0500
-Message-id: <52E29051.3070906@samsung.com>
-Date: Fri, 24 Jan 2014 17:09:53 +0100
-From: Tomasz Figa <t.figa@samsung.com>
-MIME-version: 1.0
-To: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: s.nawrocki@samsung.com, posciak@google.com, hverkuil@xs4all.nl,
-	m.chehab@samsung.com
-Subject: Re: [PATCH v5 4/4] [media] exynos-scaler: Add DT bindings for SCALER
- driver
-References: <1389238094-19386-1-git-send-email-shaik.ameer@samsung.com>
- <1389238094-19386-5-git-send-email-shaik.ameer@samsung.com>
-In-reply-to: <1389238094-19386-5-git-send-email-shaik.ameer@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Fri, 24 Jan 2014 10:54:39 -0500
+Date: Fri, 24 Jan 2014 17:54:33 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 02/21] v4l2-ctrls: add unit string.
+Message-ID: <20140124155432.GF13820@valkosipuli.retiisi.org.uk>
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+ <1390221974-28194-3-git-send-email-hverkuil@xs4all.nl>
+ <20140124103519.GA13820@valkosipuli.retiisi.org.uk>
+ <52E24C42.6020103@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <52E24C42.6020103@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shaik,
+Hi Hans,
 
-On 09.01.2014 04:28, Shaik Ameer Basha wrote:
-> This patch adds the DT binding documentation for the
-> Exynos5420/5410 based SCALER device driver.
->
-> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->   .../devicetree/bindings/media/exynos5-scaler.txt   |   22 ++++++++++++++++++++
->   1 file changed, 22 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
->
-> diff --git a/Documentation/devicetree/bindings/media/exynos5-scaler.txt b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
-> new file mode 100644
-> index 0000000..9328e7d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
-> @@ -0,0 +1,22 @@
-> +* Samsung Exynos5 SCALER device
-> +
-> +SCALER is used for scaling, blending, color fill and color space
-> +conversion on EXYNOS[5420/5410] SoCs.
-> +
-> +Required properties:
-> +- compatible: should be "samsung,exynos5420-scaler" or
-> +			"samsung,exynos5410-scaler"
-> +- reg: should contain SCALER physical address location and length
-> +- interrupts: should contain SCALER interrupt number
+On Fri, Jan 24, 2014 at 12:19:30PM +0100, Hans Verkuil wrote:
+> On 01/24/2014 11:35 AM, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > Thanks for the patchset!
+> > 
+> > On Mon, Jan 20, 2014 at 01:45:55PM +0100, Hans Verkuil wrote:
+> >> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> >> index 0b347e8..3998049 100644
+> >> --- a/include/media/v4l2-ctrls.h
+> >> +++ b/include/media/v4l2-ctrls.h
+> >> @@ -85,6 +85,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+> >>    * @ops:	The control ops.
+> >>    * @id:	The control ID.
+> >>    * @name:	The control name.
+> >> +  * @unit:	The control's unit. May be NULL.
+> >>    * @type:	The control type.
+> >>    * @minimum:	The control's minimum value.
+> >>    * @maximum:	The control's maximum value.
+> >> @@ -130,6 +131,7 @@ struct v4l2_ctrl {
+> >>  	const struct v4l2_ctrl_ops *ops;
+> >>  	u32 id;
+> >>  	const char *name;
+> >> +	const char *unit;
+> > 
+> > What would you think of using a numeric value (with the standardised units
+> > #defined)? I think using a string begs for unmanaged unit usage. Code that
+> > deals with units might work with one driver but not with another since it
+> > uses a slightly different string for unit x.
+> 
+> First of all, you always need a string. You don't want GUIs like qv4l2 to have
+> to switch on a unit in order to generate the unit strings. That's impossible to
+> keep up to date.
 
-s/number/specifier/
+That's true when when you want to show that to the user, yes. But when you
+have an application which tries to figure out which value to put to the
+control, a numeric value is more convenient.
 
-> +- clocks: should contain the SCALER clock specifier, from the
-> +			common clock bindings
+Kernel interfaces seldom use strings and that's for a good reason.
 
-s/specifier/phandle and specifier pair for each clock listed in 
-clock-names property/
+> In addition, private controls can have really strange custom units, so you want
+> to have a string there as well.
 
-s/from/according to/
+Good point as well.
 
-> +- clock-names: should be "scaler"
+> Standard controls can have their unit string set in v4l2-ctrls.c, just as their
+> name is set there these days, thus ensuring consistency.
+> 
+> What I had in mind is that videodev2.h defines a list of standardized unit strings,
+> e.g.:
+> 
+> #define V4L2_CTRL_UNIT_USECS "usecs"
+> #define V4L2_CTRL_UNIT_MSECS "msecs"
 
-should contain exactly one entry:
-  - "scaler" - IP bus clock.
+That's possible as well, but requires the user to e.g. use if (strcmp())
+... instead of just plain switch (unit) { ... }.
 
-Also this patch should be first in the series to let the driver added in 
-further patches use already present bindings.
+I'd also very much prefer to stick to SI units and prefixes where applicable
+if we end up using strings. Combining the unit and prefix could make sense.
 
-Best regards,
-Tomasz
+> and apps can do strcmp(qc->unit, V4L2_CTRL_UNIT_USECS) to see what the unit is.
+> If a driver doesn't use one of those standardized unit strings, then it is a
+> driver bug.
+> 
+> > A prefix could be potentially nice, too, so ms and µs would still have the
+> > same unit but a different prefix.
+> 
+> Can you give an example of a prefix? I don't really follow what you want to
+> achieve.
+
+You use them in your own example above. :-)
+
+<URL:http://en.wikipedia.org/wiki/SI_prefix>
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
