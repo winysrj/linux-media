@@ -1,181 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51342 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755425AbaAFQI1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 11:08:27 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 4/6] em28xx-i2c: Fix error code for I2C error transfers
-Date: Mon,  6 Jan 2014 11:04:58 -0200
-Message-Id: <1389013500-3110-5-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389013500-3110-1-git-send-email-m.chehab@samsung.com>
-References: <1389013500-3110-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:58887 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750932AbaAYNBt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 08:01:49 -0500
+Message-ID: <52E3B5BA.5010808@iki.fi>
+Date: Sat, 25 Jan 2014 15:01:46 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 10/13] DocBook: Software Defined Radio Interface
+References: <1390511333-25837-1-git-send-email-crope@iki.fi> <1390511333-25837-11-git-send-email-crope@iki.fi> <52E37533.6010607@xs4all.nl>
+In-Reply-To: <52E37533.6010607@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Follow the error codes for I2C as described at Documentation/i2c/fault-codes.
+On 25.01.2014 10:26, Hans Verkuil wrote:
+> A few comments below...
+>
+> On 01/23/2014 10:08 PM, Antti Palosaari wrote:
+>> Document V4L2 SDR interface.
+>>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
 
-In the case of the I2C status register (0x05), this is mapped into:
+>> +    <section>
+>> +      <title>V4L2 in Linux 3.14</title>
+>
+> This should be 3.15.
 
-	- ETIMEDOUT - when reg 05 returns 0x10
-	- ENXIO - when the device is not temporarily not responding
-		  (e. g. reg 05 returning something not 0x10 or 0x00)
-	- EIO - for generic I/O errors that don't fit into the above.
+OK. The goal was that 3.14 but fixing that documentation has taken over 
+month.
 
-In the specific case of 0-byte reads, used only during I2C device
-probing, it keeps returning -ENODEV.
 
-TODO: return EBUSY when reg 05 returns 0x20 on em2874 and upper.
+>> +
+>> +    <para>
+>> +The SDR capture device uses the <link linkend="format">format</link> ioctls to
+>> +select the capture format. Both the sampling resolution and the data streaming
+>
+> I understand why the data streaming format is bound to the format, but why is
+> the sampling resolution bound by it as well?
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c | 41 +++++++++++++++++++----------------
- 1 file changed, 22 insertions(+), 19 deletions(-)
+How can I explain that... it is not always bind to format nor it could 
+be known 100% from sure from format. But resolution has some deep 
+relation to format. Data is usually packed to smallest reasonable size 
+in order to minimize needed transmission bandwidth. If you change 
+sampling resolution then format likely changes too, as greater 
+resolution needs more bits per sample and format carries samples. Lets 
+take a some simple example:
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 4e9915a24488..8d14be06f088 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -80,7 +80,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x80 + len - 1)
- 			return len;
- 		if (ret == 0x94 + len - 1) {
--			return -ENODEV;
-+			return -ETIMEDOUT;
- 		}
- 		if (ret < 0) {
- 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-@@ -90,7 +90,7 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		msleep(5);
- 	}
- 	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
--	return -EIO;
-+	return -ETIMEDOUT;
- }
- 
- /*
-@@ -123,7 +123,7 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		if (ret == 0x84 + len - 1)
- 			break;
- 		if (ret == 0x94 + len - 1) {
--			return -ENODEV;
-+			return -ETIMEDOUT;
- 		}
- 		if (ret < 0) {
- 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-@@ -199,7 +199,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		if (ret == 0) /* success */
- 			return len;
- 		if (ret == 0x10) {
--			return -ENODEV;
-+			return -ETIMEDOUT;
- 		}
- 		if (ret < 0) {
- 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
-@@ -213,9 +213,8 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		 * (even with high payload) ...
- 		 */
- 	}
--
--	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
--	return -EIO;
-+	em28xx_warn("write to i2c device at 0x%x timed out (status=%i)\n", addr, ret);
-+	return -ENXIO;
- }
- 
- /*
-@@ -245,7 +244,7 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 	 * bytes if we are on bus B AND there was no write attempt to the
- 	 * specified slave address before AND no device is present at the
- 	 * requested slave address.
--	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
-+	 * Anyway, the next check will fail with -ETIMEDOUT in this case, so avoid
- 	 * spamming the system log on device probing and do nothing here.
- 	 */
- 
-@@ -259,10 +258,10 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 		return ret;
- 	}
- 	if (ret == 0x10)
--		return -ENODEV;
-+		return -ETIMEDOUT;
- 
- 	em28xx_warn("unknown i2c error (status=%i)\n", ret);
--	return -EIO;
-+	return -ENXIO;
- }
- 
- /*
-@@ -306,7 +305,7 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		} else {
- 			em28xx_warn("%i bytes write to i2c device at 0x%x requested, but %i bytes written\n",
- 				    len, addr, ret);
--			return -EIO;
-+			return -ENXIO;
- 		}
- 	}
- 	/* Check success */
-@@ -318,7 +317,7 @@ static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	if (!ret)
- 		return len;
- 	else if (ret > 0)
--		return -ENODEV;
-+		return -ETIMEDOUT;
- 
- 	return ret;
- 	/*
-@@ -356,7 +355,7 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	 * bytes if we are on bus B AND there was no write attempt to the
- 	 * specified slave address before AND no device is present at the
- 	 * requested slave address.
--	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
-+	 * Anyway, the next check will fail with -ETIMEDOUT in this case, so avoid
- 	 * spamming the system log on device probing and do nothing here.
- 	 */
- 
-@@ -369,7 +368,7 @@ static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	if (!ret)
- 		return len;
- 	else if (ret > 0)
--		return -ENODEV;
-+		return -ETIMEDOUT;
- 
- 	return ret;
- 	/*
-@@ -410,9 +409,9 @@ static inline int i2c_check_for_device(struct em28xx_i2c_bus *i2c_bus, u16 addr)
- 		rc = em2800_i2c_check_for_device(dev, addr);
- 	else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)
- 		rc = em25xx_bus_B_check_for_device(dev, addr);
--	if (rc == -ENODEV) {
-+	if (rc == -ETIMEDOUT) {
- 		if (i2c_debug)
--			printk(" no device\n");
-+			printk(" timeout\n");
- 	}
- 	return rc;
- }
-@@ -498,11 +497,15 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
- 			       i == num - 1 ? "stop" : "nonstop",
- 			       addr, msgs[i].len);
--		if (!msgs[i].len) { /* no len: check only for device presence */
-+		if (!msgs[i].len) {
-+			/*
-+			 * no len: check only for device presence
-+			 * This code is only called during device probe.
-+			 */
- 			rc = i2c_check_for_device(i2c_bus, addr);
--			if (rc == -ENODEV) {
-+			if (rc == -ETIMEDOUT) {
- 				rt_mutex_unlock(&dev->i2c_bus_lock);
--				return rc;
-+				return -ENODEV;
- 			}
- 		} else if (msgs[i].flags & I2C_M_RD) {
- 			/* read bytes */
+Lets take an examples:
+A is 8-bit sample, number from range 0-255.
+B is 16-bit sample, number from range 0-65536.
+
+Then your formats are defined, lets say V4L_FMT_SDR_U8 and V4L_FMT_SDR_U16.
+
+Streams are sequence of those samples, use 10 samples here as example:
+A0A1A2A3A4A5A6A7A8A9 = 80bits, 10 bytes
+B0B1B2B3B4B5B6B7B8B9 = 160bits, 20 bytes
+
+But you still don't know surely what is sampling resolution, only how it 
+is represented. It is always more or less than that nominal value, die 
+to many reasons. ADC datasheets usually define ENOB (effective number of 
+bits) value. It is fairly common having 12bit resolution but ENOB is 
+only around 10bit.
+
+Here is example from Mirics, which shows different formats and resolutions:
+
+format,resolution,sample rate (~max)
+252    14         8613281
+336    12        11484375
+384    10+2      13125000 (packed, 2 bits dropped using some formula)
+504    8         17226562
+
+All in all, the idea was to tell user that the sampling resolution is 
+selected according to dataformat he uses.
+
+
+>> --- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+>> @@ -172,6 +172,13 @@ capture and output devices.</entry>
+>>   	  </row>
+>>   	  <row>
+>>   	    <entry></entry>
+>> +	    <entry>&v4l2-format-sdr;</entry>
+>> +	    <entry><structfield>sdr</structfield></entry>
+>> +	    <entry>Definition of an data format, see
+>
+> s/an data/a data/
+
+OK
+
+
+regards
+Antti
+
 -- 
-1.8.3.1
-
+http://palosaari.fi/
