@@ -1,71 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:54376 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923AbaAUFVL (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3573 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750809AbaAYDdn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jan 2014 00:21:11 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2] media: i2c: mt9p031: Check return value of clk_prepare_enable/clk_set_rate
-Date: Tue, 21 Jan 2014 10:50:57 +0530
-Message-Id: <1390281657-7185-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 24 Jan 2014 22:33:43 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0P3XeVg078654
+	for <linux-media@vger.kernel.org>; Sat, 25 Jan 2014 04:33:42 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id E56F12A00A2
+	for <linux-media@vger.kernel.org>; Sat, 25 Jan 2014 04:33:36 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140125033336.E56F12A00A2@tschai.lan>
+Date: Sat, 25 Jan 2014 04:33:36 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-clk_set_rate(), clk_prepare_enable() functions can fail, so check the return
-values to avoid surprises.
+Results of the daily build of media_tree:
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- Changes for v2:
- 1: Called regulator_bulk_disable() in the error path
- 
- drivers/media/i2c/mt9p031.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+date:		Sat Jan 25 04:00:30 CET 2014
+git branch:	test
+git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index e5ddf47..05278f5 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -222,12 +222,15 @@ static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
- 
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
- 	struct mt9p031_platform_data *pdata = mt9p031->pdata;
-+	int ret;
- 
- 	mt9p031->clk = devm_clk_get(&client->dev, NULL);
- 	if (IS_ERR(mt9p031->clk))
- 		return PTR_ERR(mt9p031->clk);
- 
--	clk_set_rate(mt9p031->clk, pdata->ext_freq);
-+	ret = clk_set_rate(mt9p031->clk, pdata->ext_freq);
-+	if (ret < 0)
-+		return ret;
- 
- 	mt9p031->pll.ext_clock = pdata->ext_freq;
- 	mt9p031->pll.pix_clock = pdata->target_freq;
-@@ -286,8 +289,14 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
- 		return ret;
- 
- 	/* Emable clock */
--	if (mt9p031->clk)
--		clk_prepare_enable(mt9p031->clk);
-+	if (mt9p031->clk) {
-+		ret = clk_prepare_enable(mt9p031->clk);
-+		if (ret) {
-+			regulator_bulk_disable(ARRAY_SIZE(mt9p031->regulators),
-+					       mt9p031->regulators);
-+			return ret;
-+		}
-+	}
- 
- 	/* Now RESET_BAR must be high */
- 	if (gpio_is_valid(mt9p031->reset)) {
--- 
-1.7.9.5
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
