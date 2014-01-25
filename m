@@ -1,75 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:43687 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbaACLae (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jan 2014 06:30:34 -0500
-Received: by mail-ob0-f169.google.com with SMTP id wm4so15690069obc.0
-        for <linux-media@vger.kernel.org>; Fri, 03 Jan 2014 03:30:33 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>
-References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>
-	<52A1A76A.6070301@epfl.ch>
-	<CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>
-	<52B04D70.8060201@epfl.ch>
-	<CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com>
-Date: Fri, 3 Jan 2014 12:30:33 +0100
-Message-ID: <CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
-Subject: Re: omap3isp device tree support
-From: Enrico <ebutera@users.berlios.de>
-To: florian.vaussard@epfl.ch
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:54726 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752473AbaAYRLG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:06 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 29/52] v4l: do not allow modulator ioctls for non-radio devices
+Date: Sat, 25 Jan 2014 19:10:23 +0200
+Message-Id: <1390669846-8131-30-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 18, 2013 at 11:09 AM, Enrico <ebutera@users.berlios.de> wrote:
-> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard
-> <florian.vaussard@epfl.ch> wrote:
->> So I converted the iommu to DT (patches just sent), used pdata quirks
->> for the isp / mtv9032 data, added a few patches from other people
->> (mainly clk to fix a crash when deferring the omap3isp probe), and a few
->> small hacks. I get a 3.13-rc3 (+ board-removal part from Tony Lindgren)
->> to boot on DT with a working MT9V032 camera. The missing part is the DT
->> binding for the omap3isp, but I guess that we will have to wait a bit
->> more for this.
->>
->> If you want to test, I have a development tree here [1]. Any feedback is
->> welcome.
->>
->> Cheers,
->>
->> Florian
->>
->> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
->
-> Thanks Florian,
->
-> i will report what i get with my setup.
+From: Hans Verkuil <hverkuil@xs4all.nl>
 
-And here i am.
+Modulator ioctls could be enabled mistakenly for non-radio devices.
+Currently those ioctls are only valid for radio. Fix it.
 
-I can confirm it works, video source is tvp5150 (with platform data in
-pdata-quirks.c) in bt656 mode.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Laurent, i used the two bt656 patches from your omap3isp/bt656 tree so
-if you want to push it you can add a Tested-by me.
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 6308a19..9adde0f 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -553,6 +553,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	const struct v4l2_ioctl_ops *ops = vdev->ioctl_ops;
+ 	bool is_vid = vdev->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_vbi = vdev->vfl_type == VFL_TYPE_VBI;
++	bool is_radio = vdev->vfl_type == VFL_TYPE_RADIO;
+ 	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
+@@ -726,8 +727,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
+ 		SET_VALID_IOCTL(ops, VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap);
+ 	}
+-	if (is_tx) {
+-		/* transmitter only ioctls */
++	if (is_tx && (is_radio || is_sdr)) {
++		/* radio transmitter only ioctls */
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_MODULATOR, vidioc_g_modulator);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_MODULATOR, vidioc_s_modulator);
+ 	}
+-- 
+1.8.5.3
 
-There is only one problem, but it's unrelated to your DT work.
-
-It's an old problem (see for example [1] and [2]), seen by other
-people too and it seems it's still there.
-Basically if i capture with yavta while the system is idle then it
-just waits without getting any frame.
-If i add some cpu load (usually i do a "cat /dev/zero" in a ssh
-terminal) it starts capturing correctly.
-
-The strange thing is that i do get isp interrupts in the idle case, so
-i don't know why they don't "propagate" to yavta.
-
-Any hints on how to debug this?
-
-Enrico
-
-[1]: https://linuxtv.org/patch/7836/
-[2]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg44923.html
