@@ -1,95 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s11.blu0.hotmail.com ([65.55.111.86]:28507 "EHLO
-	blu0-omc2-s11.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751216AbaAMPol (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3773 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751269AbaAYJAz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 10:44:41 -0500
-Message-ID: <BLU0-SMTP3546CDA7E88F73435A3A876ADBC0@phx.gbl>
-Date: Mon, 13 Jan 2014 23:44:41 +0800
-From: randy <lxr1234@hotmail.com>
+	Sat, 25 Jan 2014 04:00:55 -0500
+Message-ID: <52E37D2D.1030400@xs4all.nl>
+Date: Sat, 25 Jan 2014 10:00:29 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>
-CC: Kamil Debski <k.debski@samsung.com>, kyungmin.park@samsung.com
-Subject: Re: using MFC memory to memery encoder, start stream and queue order
- problem
-References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl> <02c701cf07b6$565cd340$031679c0$%debski@samsung.com> <BLU0-SMTP266BE9BC66B254061740251ADCB0@phx.gbl> <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com> <BLU0-SMTP150C8C0DB0E9A3A9F4104F8ADCA0@phx.gbl> <04b601cf0c7f$d9e531d0$8daf9570$%debski@samsung.com> <52CD725E.5060903@hotmail.com> <BLU0-SMTP6650E76A95FA2BB39C6325ADB30@phx.gbl> <52CFD5DF.6050801@samsung.com> <BLU0-SMTP37B0A51F0A2D2F1E79A730ADB30@phx.gbl> <52D3BCB7.1060309@samsung.com> <52D3CB84.6090406@samsung.com>
-In-Reply-To: <52D3CB84.6090406@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
+	m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 02/21] v4l2-ctrls: add unit string.
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl> <1390221974-28194-3-git-send-email-hverkuil@xs4all.nl> <20140124103519.GA13820@valkosipuli.retiisi.org.uk> <52E24C42.6020103@cisco.com> <20140124155432.GF13820@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20140124155432.GF13820@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Sakari,
 
- 20140113 19:18, Andrzej Hajda wrote:
+On 01/24/2014 04:54 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Fri, Jan 24, 2014 at 12:19:30PM +0100, Hans Verkuil wrote:
+>> On 01/24/2014 11:35 AM, Sakari Ailus wrote:
+>>> Hi Hans,
+>>>
+>>> Thanks for the patchset!
+>>>
+>>> On Mon, Jan 20, 2014 at 01:45:55PM +0100, Hans Verkuil wrote:
+>>>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+>>>> index 0b347e8..3998049 100644
+>>>> --- a/include/media/v4l2-ctrls.h
+>>>> +++ b/include/media/v4l2-ctrls.h
+>>>> @@ -85,6 +85,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+>>>>    * @ops:	The control ops.
+>>>>    * @id:	The control ID.
+>>>>    * @name:	The control name.
+>>>> +  * @unit:	The control's unit. May be NULL.
+>>>>    * @type:	The control type.
+>>>>    * @minimum:	The control's minimum value.
+>>>>    * @maximum:	The control's maximum value.
+>>>> @@ -130,6 +131,7 @@ struct v4l2_ctrl {
+>>>>  	const struct v4l2_ctrl_ops *ops;
+>>>>  	u32 id;
+>>>>  	const char *name;
+>>>> +	const char *unit;
+>>>
+>>> What would you think of using a numeric value (with the standardised units
+>>> #defined)? I think using a string begs for unmanaged unit usage. Code that
+>>> deals with units might work with one driver but not with another since it
+>>> uses a slightly different string for unit x.
+>>
+>> First of all, you always need a string. You don't want GUIs like qv4l2 to have
+>> to switch on a unit in order to generate the unit strings. That's impossible to
+>> keep up to date.
+> 
+> That's true when when you want to show that to the user, yes. But when you
+> have an application which tries to figure out which value to put to the
+> control, a numeric value is more convenient.
+> 
+> Kernel interfaces seldom use strings and that's for a good reason.
 
->>>>>>> It won't work, if I do that, after step 7, neither
->>>>>>> OUPUT nor CAPTURE will poll return in my program. but
->>>>>>> ./mfc-encode -m /dev/video1 -c h264,header_mode=1 work
->>>>>>> normally,
->>>>>> I am sorry, I didn't well test it, if I use ./mfc-encode
->>>>>> -m /dev/video1 -c h264,header_mode=1 -d 1 then the size
->>>>>> of demo.out is zero, but ./mfc-encode -d 1 -m /dev/video1
->>>>>> -c h264 will out a 158 bytes files. When duration is 2,
->>>>>> with header_mode=1, the output file size is 228
->>>>>> bytes.Without it, the size is 228 too. I wonder whether
->>>>>> it is the driver's problem, as I see this in dmesg [
->>>>>> 0.210000] Failed to declare coherent memory for MFC 
->>>>>> device (0 bytes at 0x43000000) As the driver is not ready
->>>>>> to use in 3.13-rc6 as I reported before, I still use the
->>>>>> 3.5 from manufacturer.
->>>>> 
->>>>> I am the author of mfc-encode application, it was written
->>>>> for the mainline kernel 3.8 and later, it should be
->>>>> mentioned in the README.txt - I will update it.
-So it seems that the design my program is correct, just the driver's
-problem?
+Well, actually, the kernel is in many places moving away from IDs to strings.
+Headers full of IDs are surprisingly hard to maintain.
 
->>>>> 
-> Sadness, they doesn't offer any of them, even not any information 
-> about it. And I can't compile the openmax from samsung. I will
-> report it later in sourceforge.
->>> 
 > 
->> I believe it is the best solution if you are interesting in
->> fixing only MFC encoding. If your goal is wider I suggest to try
->> linux-next kernel. There is basic(!) DT support for this board
->> applied about month ago: https://lkml.org/lkml/2013/12/18/285
+>> In addition, private controls can have really strange custom units, so you want
+>> to have a string there as well.
 > 
-I will try it, I wish the driver in -next is done, as I can never open
-the mfc encoder in 3.12.
-I have another problem with the data transporting way in
-v4l2-mfc-encoder, it use m.userptr, I think it is not need, as it has
-been mmap  to bufs->addr before, just fill the bufs->addr is enough,
-and for mfc,
-the buffer type V4L2_MEMORY_MMAP,  I think that it had better use
-m.mem_offset from v4l2 document, why it use userptr?
+> Good point as well.
+> 
+>> Standard controls can have their unit string set in v4l2-ctrls.c, just as their
+>> name is set there these days, thus ensuring consistency.
+>>
+>> What I had in mind is that videodev2.h defines a list of standardized unit strings,
+>> e.g.:
+>>
+>> #define V4L2_CTRL_UNIT_USECS "usecs"
+>> #define V4L2_CTRL_UNIT_MSECS "msecs"
+> 
+> That's possible as well, but requires the user to e.g. use if (strcmp())
+> ... instead of just plain switch (unit) { ... }.
+> 
+> I'd also very much prefer to stick to SI units and prefixes where applicable
+> if we end up using strings. Combining the unit and prefix could make sense.
+> 
+>> and apps can do strcmp(qc->unit, V4L2_CTRL_UNIT_USECS) to see what the unit is.
+>> If a driver doesn't use one of those standardized unit strings, then it is a
+>> driver bug.
+>>
+>>> A prefix could be potentially nice, too, so ms and µs would still have the
+>>> same unit but a different prefix.
+>>
+>> Can you give an example of a prefix? I don't really follow what you want to
+>> achieve.
+> 
+> You use them in your own example above. :-)
+> 
+> <URL:http://en.wikipedia.org/wiki/SI_prefix>
+> 
 
->> Regards Andrzej
-> 
->>>>> 
->>>>> 
->>>>> 
->>>>> 
-> 
-> Thank you ayaka
->>> 
->> 
-> 
-> 
-> 
-Thank you
-ayaka
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+Ah, that sort of prefix.
 
-iQEcBAEBAgAGBQJS1AnoAAoJEPb4VsMIzTzi5aUH/j2MT0YlzhMYtBrzkCGL1niM
-iMJ7CprSTFZq8WLxb2OKN4/+WTwsbfEy3CAFmFtCXdhB7JeGeHLpj48vs5L7dtJt
-CTc1QPHuAVpWNaL6/mP1gXEWOWZDXjIr70f2rG0lGhiS+t0PVri8+mukyu81Oc+w
-AFFoWsuCAJgTKTT3qpWJEhHdEszHrrzfkOJoUa2PdITKZezhQHw4OBbsr1mVdfeJ
-UcdYiHHKF40bsglXVfj8BgQ5oM3/Dx3IWowR8kymGJDPB+E18+fk/wogxOdILOYY
-WQIC54t5dCdWV8rUVsEaWlHECm/BgHozPdLY6j6n0ou+VqFhlyDMwidcTZXGvKI=
-=/COC
------END PGP SIGNATURE-----
+I don't think the prefix makes sense, for a number of reasons: first I think it
+makes life even harder for applications, since they now have to factor in a SI
+prefix as well. Secondly, what to do with units like km/s? There are two prefixes
+there (e.g. mm/usecs is also a valid speed representation).
+
+I think that for the initial version we just add the unit string as that is needed
+anyway. There are more than enough reserved fields available to add a unit_id field
+later, but frankly, I'd like to see some real-life use-cases first.
+
+Regards,
+
+	Hans
