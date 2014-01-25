@@ -1,208 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51497 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753891AbaAaPi3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 10:38:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	k.debski@samsung.com
-Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
-Date: Fri, 31 Jan 2014 16:39:22 +0100
-Message-ID: <18082456.iNCn4Qe0lB@avalon>
-In-Reply-To: <52A9ADF6.2090900@xs4all.nl>
-References: <201308281419.52009.hverkuil@xs4all.nl> <344618801.kmLM0jZvMY@avalon> <52A9ADF6.2090900@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:40193 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752369AbaAYRLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:03 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 16/52] msi3101: move format 384 conversion to libv4lconvert
+Date: Sat, 25 Jan 2014 19:10:10 +0200
+Message-Id: <1390669846-8131-17-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Move format 384 conversion to libv4lconvert as a fourcc "M384".
 
-On Thursday 12 December 2013 13:37:10 Hans Verkuil wrote:
-> Sakari asked me to reply to this old thread...
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/msi3101/sdr-msi3101.c | 163 ++++++++++------------------
+ 1 file changed, 57 insertions(+), 106 deletions(-)
 
-He asked me to reply as well :-)
-
-> On 09/06/13 13:05, Laurent Pinchart wrote:
-> > On Thursday 05 September 2013 19:31:30 Sakari Ailus wrote:
-> >> On Sat, Aug 31, 2013 at 11:43:18PM +0200, Laurent Pinchart wrote:
-> >>> On Friday 30 August 2013 19:08:48 Sakari Ailus wrote:
-> >>>> On Fri, Aug 30, 2013 at 01:31:44PM +0200, Laurent Pinchart wrote:
-> >>>>> On Thursday 29 August 2013 14:33:39 Sakari Ailus wrote:
-> >>>>>> On Thu, Aug 29, 2013 at 01:25:05AM +0200, Laurent Pinchart wrote:
-> >>>>>>> On Wednesday 28 August 2013 19:39:19 Sakari Ailus wrote:
-> >>>>>>>> On Wed, Aug 28, 2013 at 06:14:44PM +0200, Laurent Pinchart
-> >>>>>>>> wrote:
-> >>>>>>>> ...
-> >>>>>>>> 
-> >>>>>>>>>>> UVC devices timestamp frames when the frame is captured,
-> >>>>>>>>>>> not when the first pixel is transmitted.
-> >>>>>>>>>> 
-> >>>>>>>>>> I.e. we shouldn't set the SOF flag? "When the frame is
-> >>>>>>>>>> captured" doesn't say much, or almost anything in terms of
-> >>>>>>>>>> *when*. The frames have exposure time and rolling shutter
-> >>>>>>>>>> makes a difference, too.
-> >>>>>>>>> 
-> >>>>>>>>> The UVC 1.1 specification defines the timestamp as
-> >>>>>>>>> 
-> >>>>>>>>> "The source clock time in native deviceclock units when the
-> >>>>>>>>> raw frame capture begins."
-> >>>>>>>>> 
-> >>>>>>>>> What devices do in practice may differ :-)
-> >>>>>>>> 
-> >>>>>>>> I think that this should mean start-of-frame - exposure time.
-> >>>>>>>> I'd really wonder if any practical implementation does that
-> >>>>>>>> however.
-> >>>>>>> 
-> >>>>>>> It's start-of-frame - exposure time - internal delays (UVC webcams
-> >>>>>>> are supposed to report their internal delay value as well).
-> >>>>>> 
-> >>>>>> Do they report it? How about the exposure time?
-> >>>>> 
-> >>>>> It's supposed to be configurable.
-> >>>> 
-> >>>> Is the exposure reported with the frame so it could be used to
-> >>>> construct
-> >>>> the per-frame SOF timestamp?
-> >>> 
-> >>> Not when auto-exposure is turned on I'm afraid :-S
-> >>> 
-> >>> I believe that the capture timestamp makes more sense than the SOF
-> >>> timestamp for applications. SOF/EOF are more of a poor man's timestamp
-> >>> in case nothing else is available, but when you want to synchronize
-> >>> multiple audio and/or video streams the capture timestamp is what you're
-> >>> interested in. I don't think converting a capture timestamp to an SOF
-> >>> would be a good idea.
-> >> 
-> >> I'm not quite sure of that --- I think the SOF/EOF will be more stable
-> >> than the exposure start which depends on the exposure time. If you're
-> >> recording a video you may want to keep the time between the frames
-> >> constant.
-> > 
-> > I can see two main use cases for timestamps. The first one is multi-stream
-> > synchronization (audio and video, stereo video, ...), the second one is
-> > playback rate control.
-> > 
-> > To synchronize media streams you need to timestamp samples with a common
-> > clock. Timestamps must be correlated to the time at which the sound and/or
-> > image events occur. If we consider the speed of sound and speed of light
-> > as negligible (the former could be compensated for if needed, but that's
-> > out of scope), the time at which the sound or image is produced can be
-> > considered as equal to the time at which they're captured. Given that we
-> > only need to synchronize streams here, an offset wouldn't matter, so any
-> > clock that is synchronized to the capture clock with a fixed offset would
-> > do. The SOF event, in particular, will do if the capture time and device
-> > processing time is constant, and if interrupt latencies are kept small
-> > enough.. So will the EOF event if the transmission time is also constant.
-> > 
-> > Granted, frames are not captured at a precise point of time, as the sensor
-> > needs to be exposed for a certain duration. There is thus no such thing as
-> > a capture time, we instead have a capture interval. However, that's
-> > irrelevant for multi-video synchronization purposes. It could matter for
-> > audio+video synchronization though.
-> > 
-> > Regarding playback rate control, the goal is to render frames at the same
-> > rate they are captured. If the frame rate isn't constant (for instance
-> > because of a variable exposure time), then a time stamp is required for
-> > every frame. Here we care about the difference between timestamps for two
-> > consecutive frames, and the start of capture timestamp is what will give
-> > best results.
-> > 
-> > Let's consider three frames, A, B and C, captured as follows.
-> > 
-> > 
-> > 00000000001111111111222222222233333333334444444444555555555566666666667777
-> > 01234567890123456789012345678901234567890123456789012345678901234567890123
-> > 
-> > | --------- A ------------ |      | ----- B ----- |      | ----- C ----- |
-> > 
-> > On the playback side, we want to display A for a duration of 34. If we
-> > timestamp the frames with the start of capture time, we will have the
-> > following timestamps.
-> > 
-> > A  0
-> > B  34
-> > C  57
-> > 
-> > B-A = 34, which is the time during which A needs to be displayed.
-> > 
-> > If we use the end of capture time, we will get
-> > 
-> > A  27
-> > B  50
-> > C  73
-> > 
-> > B-A = 23, which is too short.
-> > 
-> >> Nevertheless --- if we don't get such a timestamp from the device this
-> >> will only remain speculation. Applications might be best using e.g. half
-> >> the frame period to get a guesstimate of the differences between the two
-> >> timestamps.
-> > 
-> > Obviously if the device can't provide the start of capture timestamp we
-> > will need to use any source of timestamps, but I believe we should aim
-> > for start of capture as a first class citizen.
-> > 
-> >>>>>> If you know them all you can calculate the SOF timestamp. The fewer
-> >>>>>> timestamps are available for user programs the better.
-> >>>>>> 
-> >>>>>> It's another matter then if there are webcams that report these
-> >>>>>> values wrong.
-> >>>>> 
-> >>>>> There most probably are :-)
-> >>>>> 
-> >>>>>> Then you could get timestamps that are complete garbage. But I guess
-> >>>>>> you could compare them to the current monotonic timestamp and detect
-> >>>>>> such cases.
-> >>>>>> 
-> >>>>>>>> What's your suggestion; should we use the SOF flag for this or
-> >>>>>>>> do you prefer the end-of-frame timestamp instead? I think it'd
-> >>>>>>>> be quite nice for drivers to know which one is which without
-> >>>>>>>> having to guess, and based on the above start-of-frame comes as
-> >>>>>>>> close to that definition as is meaningful.
-> >>>>>>> 
-> >>>>>>> SOF is better than EOF. Do we need a start-of-capture flag, or
-> >>>>>>> could we document SOF as meaning start-of-capture or start-of-
-> >>>>>>> reception depending on what the device can do ?
-> >>>>>> 
-> >>>>>> One possibility is to dedicate a few flags for this; by using three
-> >>>>>> bits we'd get eight different timestamps already. But I have to say
-> >>>>>> that fewer is better. :-)
-> >>>>> 
-> >>>>> Does it really need to be a per-buffer flag ? This seems to be a
-> >>>>> driver-wide (or at least device-wide) behaviour to me.
-> >>>> 
-> >>>> Same goes for timestamp clock sources. It was concluded to use buffer
-> >>>> flags for those as well.
-> >>> 
-> >>> Yes, and I don't think I was convinced, so I'm not convinced here either
-> >>> 
-> >>> :-)
-> >>>
-> >>>> Using a control for the purpose would however require quite non-zero
-> >>>> amount of initialisation code from each driver so that would probably
-> >>>> need to be sorted out first.
-> >>> 
-> >>> We could also use a capabilities flag.
-> >> 
-> >> Interesting idea. I'm fine that as well. Hans?
-> 
-> That would work for uvc, but not in the general case. Depending on the video
-> routing you might have either SOF or EOF timestamps. Unlikely, I admit, but
-> I feel keeping this flag in v4l2_buffers is the most generic solution.
-
-My main concern about this (beside using an extra buffer flags bit, which is a 
-scarce resource - but OK, that's not really a big concern) is complexity for 
-userspace. Correctly handling buffer timestamps when the timestamp type can 
-vary per buffer isn't easy, and I most applications will likely implement it 
-wrong. I expect most applications to look at the timestamp type of the first 
-buffer and use that information for all subsequent buffers. This would defeat 
-the point of having per-buffer timestamp types.
-
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index ba68ea9..37fea45 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -386,6 +386,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
+ #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
+ 
+ #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
++#define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
+ 
+ /* stream formats */
+ struct msi3101_format {
+@@ -399,6 +400,10 @@ static struct msi3101_format formats[] = {
+ 		.name		= "I/Q 8-bit signed",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
+ 	},
++	{
++		.name		= "I/Q 10+2-bit signed",
++		.pixelformat	= V4L2_PIX_FMT_SDR_MSI2500_384,
++	},
+ };
+ 
+ static const int NUM_FORMATS = sizeof(formats) / sizeof(struct msi3101_format);
+@@ -465,50 +470,6 @@ leave:
+ 	spin_unlock_irqrestore(&s->queued_bufs_lock, flags);
+ 	return buf;
+ }
+-/*
+- * +===========================================================================
+- * |   00-1023 | USB packet type '384'
+- * +===========================================================================
+- * |   00-  03 | sequence number of first sample in that USB packet
+- * +---------------------------------------------------------------------------
+- * |   04-  15 | garbage
+- * +---------------------------------------------------------------------------
+- * |   16- 175 | samples
+- * +---------------------------------------------------------------------------
+- * |  176- 179 | control bits for previous samples
+- * +---------------------------------------------------------------------------
+- * |  180- 339 | samples
+- * +---------------------------------------------------------------------------
+- * |  340- 343 | control bits for previous samples
+- * +---------------------------------------------------------------------------
+- * |  344- 503 | samples
+- * +---------------------------------------------------------------------------
+- * |  504- 507 | control bits for previous samples
+- * +---------------------------------------------------------------------------
+- * |  508- 667 | samples
+- * +---------------------------------------------------------------------------
+- * |  668- 671 | control bits for previous samples
+- * +---------------------------------------------------------------------------
+- * |  672- 831 | samples
+- * +---------------------------------------------------------------------------
+- * |  832- 835 | control bits for previous samples
+- * +---------------------------------------------------------------------------
+- * |  836- 995 | samples
+- * +---------------------------------------------------------------------------
+- * |  996- 999 | control bits for previous samples
+- * +---------------------------------------------------------------------------
+- * | 1000-1023 | garbage
+- * +---------------------------------------------------------------------------
+- *
+- * Bytes 4 - 7 could have some meaning?
+- *
+- * Control bits for previous samples is 32-bit field, containing 16 x 2-bit
+- * numbers. This results one 2-bit number for 8 samples. It is likely used for
+- * for bit shifting sample by given bits, increasing actual sampling resolution.
+- * Number 2 (0b10) was never seen.
+- *
+- * 6 * 16 * 2 * 4 = 768 samples. 768 * 4 = 3072 bytes
+- */
+ 
+ /*
+  * Integer to 32-bit IEEE floating point representation routine is taken
+@@ -585,48 +546,53 @@ static int msi3101_convert_stream_504(struct msi3101_state *s, u8 *dst,
+ }
+ 
+ /*
+- * Converts signed ~10+2-bit integer into 32-bit IEEE floating point
+- * representation.
++ * +===========================================================================
++ * |   00-1023 | USB packet type '384'
++ * +===========================================================================
++ * |   00-  03 | sequence number of first sample in that USB packet
++ * +---------------------------------------------------------------------------
++ * |   04-  15 | garbage
++ * +---------------------------------------------------------------------------
++ * |   16- 175 | samples
++ * +---------------------------------------------------------------------------
++ * |  176- 179 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  180- 339 | samples
++ * +---------------------------------------------------------------------------
++ * |  340- 343 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  344- 503 | samples
++ * +---------------------------------------------------------------------------
++ * |  504- 507 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  508- 667 | samples
++ * +---------------------------------------------------------------------------
++ * |  668- 671 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  672- 831 | samples
++ * +---------------------------------------------------------------------------
++ * |  832- 835 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * |  836- 995 | samples
++ * +---------------------------------------------------------------------------
++ * |  996- 999 | control bits for previous samples
++ * +---------------------------------------------------------------------------
++ * | 1000-1023 | garbage
++ * +---------------------------------------------------------------------------
++ *
++ * Bytes 4 - 7 could have some meaning?
++ *
++ * Control bits for previous samples is 32-bit field, containing 16 x 2-bit
++ * numbers. This results one 2-bit number for 8 samples. It is likely used for
++ * for bit shifting sample by given bits, increasing actual sampling resolution.
++ * Number 2 (0b10) was never seen.
++ *
++ * 6 * 16 * 2 * 4 = 768 samples. 768 * 4 = 3072 bytes
+  */
+-static u32 msi3101_convert_sample_384(struct msi3101_state *s, u16 x, int shift)
+-{
+-	u32 msb, exponent, fraction, sign;
+-	s->sample_ctrl_bit[shift]++;
+-
+-	/* Zero is special */
+-	if (!x)
+-		return 0;
+-
+-	if (shift == 3)
+-		shift =	2;
+-
+-	/* Convert 10-bit two's complement to 12-bit */
+-	if (x & (1 << 9)) {
+-		x |= ~0U << 10; /* set all the rest bits to one */
+-		x <<= shift;
+-		x = -x;
+-		x &= 0x7ff; /* result is 11 bit ... + sign */
+-		sign = 1 << 31;
+-	} else {
+-		x <<= shift;
+-		sign = 0 << 31;
+-	}
+-
+-	/* Get location of the most significant bit */
+-	msb = __fls(x);
+-
+-	fraction = ror32(x, (msb - I2F_FRAC_BITS) & 0x1f) & I2F_MASK;
+-	exponent = (127 + msb) << I2F_FRAC_BITS;
+-
+-	return (fraction + exponent) | sign;
+-}
+-
+-static int msi3101_convert_stream_384(struct msi3101_state *s, u32 *dst,
++static int msi3101_convert_stream_384(struct msi3101_state *s, u8 *dst,
+ 		u8 *src, unsigned int src_len)
+ {
+-	int i, j, k, l, i_max, dst_len = 0;
+-	u16 sample[4];
+-	u32 bits;
++	int i, i_max, dst_len = 0;
+ 	u32 sample_num[3];
+ 
+ 	/* There could be 1-3 1024 bytes URB frames */
+@@ -647,30 +613,12 @@ static int msi3101_convert_stream_384(struct msi3101_state *s, u32 *dst,
+ 		dev_dbg_ratelimited(&s->udev->dev,
+ 				"%*ph  %*ph\n", 12, &src[4], 24, &src[1000]);
+ 
++		/* 384 x I+Q samples */
+ 		src += 16;
+-		for (j = 0; j < 6; j++) {
+-			bits = src[160 + 3] << 24 | src[160 + 2] << 16 | src[160 + 1] << 8 | src[160 + 0] << 0;
+-			for (k = 0; k < 16; k++) {
+-				for (l = 0; l < 10; l += 5) {
+-					sample[0] = (src[l + 0] & 0xff) >> 0 | (src[l + 1] & 0x03) << 8;
+-					sample[1] = (src[l + 1] & 0xfc) >> 2 | (src[l + 2] & 0x0f) << 6;
+-					sample[2] = (src[l + 2] & 0xf0) >> 4 | (src[l + 3] & 0x3f) << 4;
+-					sample[3] = (src[l + 3] & 0xc0) >> 6 | (src[l + 4] & 0xff) << 2;
+-
+-					*dst++ = msi3101_convert_sample_384(s, sample[0], (bits >> (2 * k)) & 0x3);
+-					*dst++ = msi3101_convert_sample_384(s, sample[1], (bits >> (2 * k)) & 0x3);
+-					*dst++ = msi3101_convert_sample_384(s, sample[2], (bits >> (2 * k)) & 0x3);
+-					*dst++ = msi3101_convert_sample_384(s, sample[3], (bits >> (2 * k)) & 0x3);
+-				}
+-				src += 10;
+-			}
+-			dev_dbg_ratelimited(&s->udev->dev,
+-					"sample control bits %08x\n", bits);
+-			src += 4;
+-		}
+-		/* 384 x I+Q 32bit float samples */
+-		dst_len += 384 * 2 * 4;
+-		src += 24;
++		memcpy(dst, src, 984);
++		src += 984 + 24;
++		dst += 984;
++		dst_len += 984;
+ 	}
+ 
+ 	/* calculate samping rate and output it in 10 seconds intervals */
+@@ -1236,6 +1184,9 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 	if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
+ 		s->convert_stream = msi3101_convert_stream_504;
+ 		reg7 = 0x000c9407;
++	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_MSI2500_384) {
++		s->convert_stream = msi3101_convert_stream_384;
++		reg7 = 0x0000a507;
+ 	}
+ 
+ 	/*
 -- 
-Regards,
+1.8.5.3
 
-Laurent Pinchart
