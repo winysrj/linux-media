@@ -1,720 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:23829 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbaAGQri convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 11:47:38 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ100CNSINDJA50@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 Jan 2014 11:47:37 -0500 (EST)
-Date: Tue, 07 Jan 2014 14:47:31 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 04/18] libdvbv5: mpeg elementary stream parsers
-Message-id: <20140107144731.154e06e1@samsung.com>
-In-reply-to: <1388407731-24369-4-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
- <1388407731-24369-4-git-send-email-neolynx@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:36122 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752104AbaAYRLB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:01 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/52] rtl2832_sdr: use config struct from rtl2832 module
+Date: Sat, 25 Jan 2014 19:09:57 +0200
+Message-Id: <1390669846-8131-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Dec 2013 13:48:37 +0100
-André Roth <neolynx@gmail.com> escreveu:
+There is absolutely no need to define own configuration struct as
+same params are used demod main module. So use existing config.
 
-> Implement parsers for mpeg TS, PES and ES
-> 
-> Signed-off-by: André Roth <neolynx@gmail.com>
-> ---
->  lib/include/descriptors/mpeg_es.h   | 109 ++++++++++++++++++++++++++++++
->  lib/include/descriptors/mpeg_pes.h  | 111 ++++++++++++++++++++++++++++++
->  lib/include/descriptors/mpeg_ts.h   |  78 +++++++++++++++++++++
->  lib/libdvbv5/Makefile.am            |   5 +-
->  lib/libdvbv5/descriptors/mpeg_es.c  |  76 +++++++++++++++++++++
->  lib/libdvbv5/descriptors/mpeg_pes.c | 131 ++++++++++++++++++++++++++++++++++++
->  lib/libdvbv5/descriptors/mpeg_ts.c  |  77 +++++++++++++++++++++
->  7 files changed, 586 insertions(+), 1 deletion(-)
->  create mode 100644 lib/include/descriptors/mpeg_es.h
->  create mode 100644 lib/include/descriptors/mpeg_pes.h
->  create mode 100644 lib/include/descriptors/mpeg_ts.h
->  create mode 100644 lib/libdvbv5/descriptors/mpeg_es.c
->  create mode 100644 lib/libdvbv5/descriptors/mpeg_pes.c
->  create mode 100644 lib/libdvbv5/descriptors/mpeg_ts.c
-> 
-> diff --git a/lib/include/descriptors/mpeg_es.h b/lib/include/descriptors/mpeg_es.h
-> new file mode 100644
-> index 0000000..4c6a862
-> --- /dev/null
-> +++ b/lib/include/descriptors/mpeg_es.h
-> @@ -0,0 +1,109 @@
-> +/*
-> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation version 2
-> + * of the License.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-> + *
-> + */
-> +
-> +#ifndef _MPEG_ES_H
-> +#define _MPEG_ES_H
-> +
-> +#include <stdint.h>
-> +#include <unistd.h> /* ssize_t */
-> +
-> +#define DVB_MPEG_ES_PIC_START  0x00
-> +#define DVB_MPEG_ES_USER_DATA  0xb2
-> +#define DVB_MPEG_ES_SEQ_START  0xb3
-> +#define DVB_MPEG_ES_SEQ_EXT    0xb5
-> +#define DVB_MPEG_ES_GOP        0xb8
-> +#define DVB_MPEG_ES_SLICES     0x01 ... 0xaf
-> +
-> +struct dvb_mpeg_es_seq_start {
-> +	union {
-> +		uint32_t bitfield;
-> +		struct {
-> +			uint32_t  type:8;
-> +			uint32_t  sync:24;
-> +		} __attribute__((packed));
-> +	} __attribute__((packed));
-> +	union {
-> +		uint32_t bitfield2;
-> +		struct {
-> +			uint32_t framerate:4;
-> +			uint32_t aspect:4;
-> +			uint32_t height:12;
-> +			uint32_t width:12;
-> +		} __attribute__((packed));
-> +	};
-> +	union {
-> +		uint32_t bitfield3;
-> +		struct {
-> +			uint32_t qm_nonintra:1;
-> +			uint32_t qm_intra:1;
-> +			uint32_t constrained:1;
-> +			uint32_t vbv:10; // Size of video buffer verifier = 16*1024*vbv buf size
-> +			uint32_t one:1;
-> +			uint32_t bitrate:18;
-> +		} __attribute__((packed));
-> +	};
-> +} __attribute__((packed));
-> +
-> +struct dvb_mpeg_es_pic_start {
-> +	union {
-> +		uint32_t bitfield;
-> +		struct {
-> +			uint32_t  type:8;
-> +			uint32_t  sync:24;
-> +		} __attribute__((packed));
-> +	} __attribute__((packed));
-> +	union {
-> +		uint32_t bitfield2;
-> +		struct {
-> +			uint32_t dummy:3;
-> +			uint32_t vbv_delay:16;
-> +			uint32_t coding_type:3;
-> +			uint32_t temporal_ref:10;
-> +		} __attribute__((packed));
-> +	};
-> +} __attribute__((packed));
-> +
-> +enum dvb_mpeg_es_frame_t
-> +{
-> +	DVB_MPEG_ES_FRAME_UNKNOWN,
-> +	DVB_MPEG_ES_FRAME_I,
-> +	DVB_MPEG_ES_FRAME_P,
-> +	DVB_MPEG_ES_FRAME_B,
-> +	DVB_MPEG_ES_FRAME_D
-> +};
-> +extern const char *dvb_mpeg_es_frame_names[5];
-> +
-> +struct dvb_v5_fe_parms;
-> +
-> +#ifdef __cplusplus
-> +extern "C" {
-> +#endif
-> +
-> +int  dvb_mpeg_es_seq_start_init (const uint8_t *buf, ssize_t buflen, struct dvb_mpeg_es_seq_start *seq_start);
-> +void dvb_mpeg_es_seq_start_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_es_seq_start *seq_start);
-> +
-> +int  dvb_mpeg_es_pic_start_init (const uint8_t *buf, ssize_t buflen, struct dvb_mpeg_es_pic_start *pic_start);
-> +void dvb_mpeg_es_pic_start_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_es_pic_start *pic_start);
-> +
-> +#ifdef __cplusplus
-> +}
-> +#endif
-> +
-> +#endif
-> diff --git a/lib/include/descriptors/mpeg_pes.h b/lib/include/descriptors/mpeg_pes.h
-> new file mode 100644
-> index 0000000..3a3f8e4
-> --- /dev/null
-> +++ b/lib/include/descriptors/mpeg_pes.h
-> @@ -0,0 +1,111 @@
-> +/*
-> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation version 2
-> + * of the License.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-> + *
-> + */
-> +
-> +#ifndef _MPEG_PES_H
-> +#define _MPEG_PES_H
-> +
-> +#include <stdint.h>
-> +#include <unistd.h> /* ssize_t */
-> +
-> +#define DVB_MPEG_PES  0x00001
-> +#define DVB_MPEG_PES_VIDEO  0xe0 ... 0xef
-> +
-> +#define DVB_MPEG_STREAM_MAP       0xBC
-> +#define DVB_MPEG_STREAM_PADDING   0xBE
-> +#define DVB_MPEG_STREAM_PRIVATE_2 0x5F
-> +#define DVB_MPEG_STREAM_ECM       0x70
-> +#define DVB_MPEG_STREAM_EMM       0x71
-> +#define DVB_MPEG_STREAM_DIRECTORY 0xFF
-> +#define DVB_MPEG_STREAM_DSMCC     0x7A
-> +#define DVB_MPEG_STREAM_H222E     0xF8
-> +
-> +struct ts_t {
-> +	uint8_t  one:1;
-> +	uint8_t  bits30:3;
-> +	uint8_t  tag:4;
-> +
-> +	union {
-> +		uint16_t bitfield;
-> +		struct {
-> +			uint16_t  one1:1;
-> +			uint16_t  bits15:15;
-> +		} __attribute__((packed));
-> +	} __attribute__((packed));
-> +
-> +	union {
-> +		uint16_t bitfield2;
-> +		struct {
-> +			uint16_t  one2:1;
-> +			uint16_t  bits00:15;
-> +		} __attribute__((packed));
-> +	} __attribute__((packed));
-> +} __attribute__((packed));
-> +
-> +struct dvb_mpeg_pes_optional {
-> +	union {
-> +		uint16_t bitfield;
-> +		struct {
-> +			uint16_t PES_extension:1;
-> +			uint16_t PES_CRC:1;
-> +			uint16_t additional_copy_info:1;
-> +			uint16_t DSM_trick_mode:1;
-> +			uint16_t ES_rate:1;
-> +			uint16_t ESCR:1;
-> +			uint16_t PTS_DTS:2;
-> +			uint16_t original_or_copy:1;
-> +			uint16_t copyright:1;
-> +			uint16_t data_alignment_indicator:1;
-> +			uint16_t PES_priority:1;
-> +			uint16_t PES_scrambling_control:2;
-> +			uint16_t two:2;
-> +		} __attribute__((packed));
-> +	} __attribute__((packed));
-> +	uint8_t length;
-> +	uint64_t pts;
-> +	uint64_t dts;
-> +} __attribute__((packed));
-> +
-> +struct dvb_mpeg_pes {
-> +	union {
-> +		uint32_t bitfield;
-> +		struct {
-> +			uint32_t  stream_id:8;
-> +			uint32_t  sync:24;
-> +		} __attribute__((packed));
-> +	} __attribute__((packed));
-> +	uint16_t length;
-> +	struct dvb_mpeg_pes_optional optional[];
-> +} __attribute__((packed));
-> +
-> +struct dvb_v5_fe_parms;
-> +
-> +#ifdef __cplusplus
-> +extern "C" {
-> +#endif
-> +
-> +void dvb_mpeg_pes_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
-> +void dvb_mpeg_pes_free(struct dvb_mpeg_pes *ts);
-> +void dvb_mpeg_pes_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_pes *ts);
-> +
-> +#ifdef __cplusplus
-> +}
-> +#endif
-> +
-> +#endif
-> diff --git a/lib/include/descriptors/mpeg_ts.h b/lib/include/descriptors/mpeg_ts.h
-> new file mode 100644
-> index 0000000..54fee69
-> --- /dev/null
-> +++ b/lib/include/descriptors/mpeg_ts.h
-> @@ -0,0 +1,78 @@
-> +/*
-> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation version 2
-> + * of the License.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-> + *
-> + */
-> +
-> +#ifndef _MPEG_TS_H
-> +#define _MPEG_TS_H
-> +
-> +#include <stdint.h>
-> +#include <unistd.h> /* ssize_t */
-> +
-> +#define DVB_MPEG_TS  0x47
-> +
-> +struct dvb_mpeg_ts_adaption {
-> +	uint8_t length;
-> +	struct {
-> +		uint8_t extension:1;
-> +		uint8_t private_data:1;
-> +		uint8_t splicing_point:1;
-> +		uint8_t OPCR:1;
-> +		uint8_t PCR:1;
-> +		uint8_t priority:1;
-> +		uint8_t random_access:1;
-> +		uint8_t discontinued:1;
-> +	} __attribute__((packed));
-> +
-> +} __attribute__((packed));
-> +
-> +struct dvb_mpeg_ts {
-> +	uint8_t sync_byte; // DVB_MPEG_TS
-> +	union {
-> +		uint16_t bitfield;
-> +		struct {
-> +			uint16_t pid:13;
-> +			uint16_t priority:1;
-> +			uint16_t payload_start:1;
-> +			uint16_t tei:1;
-> +		} __attribute__((packed));
-> +	};
-> +	struct {
-> +		uint8_t continuity_counter:4;
-> +		uint8_t adaptation_field:2;
-> +		uint8_t scrambling:2;
-> +	} __attribute__((packed));
-> +	struct dvb_mpeg_ts_adaption adaption[];
-> +
-> +} __attribute__((packed));
-> +
-> +struct dvb_v5_fe_parms;
-> +
-> +#ifdef __cplusplus
-> +extern "C" {
-> +#endif
-> +
-> +void dvb_mpeg_ts_init (struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length);
-> +void dvb_mpeg_ts_free(struct dvb_mpeg_ts *ts);
-> +void dvb_mpeg_ts_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_ts *ts);
-> +
-> +#ifdef __cplusplus
-> +}
-> +#endif
-> +
-> +#endif
-> diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-> index 80e8adb..33693cc 100644
-> --- a/lib/libdvbv5/Makefile.am
-> +++ b/lib/libdvbv5/Makefile.am
-> @@ -49,7 +49,10 @@ libdvbv5_la_SOURCES = \
->    descriptors/sdt.c  ../include/descriptors/sdt.h \
->    descriptors/vct.c  ../include/descriptors/vct.h \
->    descriptors/eit.c  ../include/descriptors/eit.h \
-> -  descriptors/desc_service_location.c  ../include/descriptors/desc_service_location.h
-> +  descriptors/desc_service_location.c  ../include/descriptors/desc_service_location.h \
-> +  descriptors/mpeg_ts.c  ../include/descriptors/mpeg_ts.h \
-> +  descriptors/mpeg_pes.c  ../include/descriptors/mpeg_pes.h \
-> +  descriptors/mpeg_es.c  ../include/descriptors/mpeg_es.h
->  
->  libdvbv5_la_CPPFLAGS = $(ENFORCE_LIBDVBV5_STATIC)
->  libdvbv5_la_LDFLAGS = $(LIBDVBV5_VERSION) $(ENFORCE_LIBDVBV5_STATIC) -lm
-> diff --git a/lib/libdvbv5/descriptors/mpeg_es.c b/lib/libdvbv5/descriptors/mpeg_es.c
-> new file mode 100644
-> index 0000000..9fcb5ca
-> --- /dev/null
-> +++ b/lib/libdvbv5/descriptors/mpeg_es.c
-> @@ -0,0 +1,76 @@
-> +/*
-> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation version 2
-> + * of the License.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-> + *
-> + */
-> +
-> +#include "descriptors/mpeg_es.h"
-> +#include "descriptors.h"
-> +#include "dvb-fe.h"
-> +
-> +int dvb_mpeg_es_seq_start_init(const uint8_t *buf, ssize_t buflen, struct dvb_mpeg_es_seq_start *seq_start)
-> +{
-> +	if(buflen < sizeof(struct dvb_mpeg_es_seq_start))
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c          | 5 +----
+ drivers/staging/media/rtl2832u_sdr/Makefile      | 1 +
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 4 ++--
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h | 9 ++++-----
+ 4 files changed, 8 insertions(+), 11 deletions(-)
 
-space after "if".
-
-> +		return -1;
-> +	memcpy(seq_start, buf, sizeof(struct dvb_mpeg_es_seq_start));
-> +	bswap32(seq_start->bitfield);
-> +	bswap32(seq_start->bitfield2);
-> +	bswap32(seq_start->bitfield3);
-> +	return 0;
-> +}
-> +
-> +void dvb_mpeg_es_seq_start_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_es_seq_start *seq_start)
-> +{
-> +	dvb_log("MPEG ES SEQ START");
-> +        dvb_log(" - width       %d", seq_start->width);
-> +        dvb_log(" - height      %d", seq_start->height);
-> +        dvb_log(" - aspect      %d", seq_start->aspect);
-> +        dvb_log(" - framerate   %d", seq_start->framerate);
-> +        dvb_log(" - bitrate     %d", seq_start->bitrate);
-> +        dvb_log(" - one         %d", seq_start->one);
-> +        dvb_log(" - vbv         %d", seq_start->vbv);
-> +        dvb_log(" - constrained %d", seq_start->constrained);
-> +        dvb_log(" - qm_intra    %d", seq_start->qm_intra);
-> +        dvb_log(" - qm_nonintra %d", seq_start->qm_nonintra);
-> +}
-> +
-> +const char *dvb_mpeg_es_frame_names[5] = {
-> +	"?",
-> +	"I",
-> +	"P",
-> +	"B",
-> +	"D"
-> +};
-> +
-> +int dvb_mpeg_es_pic_start_init(const uint8_t *buf, ssize_t buflen, struct dvb_mpeg_es_pic_start *pic_start)
-> +{
-> +	if(buflen < sizeof(struct dvb_mpeg_es_pic_start))
-
-space after 'if'.
-
-> +		return -1;
-> +	memcpy(pic_start, buf, sizeof(struct dvb_mpeg_es_pic_start));
-> +	bswap32(pic_start->bitfield);
-> +	bswap32(pic_start->bitfield2);
-> +	return 0;
-> +}
-> +
-> +void dvb_mpeg_es_pic_start_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_es_pic_start *pic_start)
-> +{
-> +	dvb_log("MPEG ES PIC START");
-> +        dvb_log(" - temporal_ref %d", pic_start->temporal_ref);
-> +        dvb_log(" - coding_type  %d (%s-frame)", pic_start->coding_type, dvb_mpeg_es_frame_names[pic_start->coding_type]);
-> +        dvb_log(" - vbv_delay    %d", pic_start->vbv_delay);
-> +}
-> +
-> diff --git a/lib/libdvbv5/descriptors/mpeg_pes.c b/lib/libdvbv5/descriptors/mpeg_pes.c
-> new file mode 100644
-> index 0000000..1b518a3
-> --- /dev/null
-> +++ b/lib/libdvbv5/descriptors/mpeg_pes.c
-> @@ -0,0 +1,131 @@
-> +/*
-> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation version 2
-> + * of the License.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-> + *
-> + */
-> +
-> +#include "descriptors/mpeg_pes.h"
-> +#include "descriptors.h"
-> +#include "dvb-fe.h"
-> +
-> +void dvb_mpeg_pes_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
-> +{
-> +	struct dvb_mpeg_pes *pes = (struct dvb_mpeg_pes *) (table + *table_length);
-> +	const uint8_t *p = buf;
-
-blank line.
-
-> +	memcpy(table + *table_length, p, sizeof(struct dvb_mpeg_pes));
-
-Please check size before copy.
-
-> +	p += sizeof(struct dvb_mpeg_pes);
-> +	*table_length += sizeof(struct dvb_mpeg_pes);
-> +
-> +	bswap32(pes->bitfield);
-> +	bswap16(pes->length);
-> +
-> +	if (pes->sync != 0x000001 ) {
-> +		dvb_logerr("mpeg pes invalid");
-> +		return;
-> +	}
-> +
-> +	if (pes->stream_id == DVB_MPEG_STREAM_PADDING) {
-> +		dvb_logwarn("mpeg pes padding stream ignored");
-> +	} else if (pes->stream_id == DVB_MPEG_STREAM_MAP ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_PRIVATE_2 ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_ECM ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_EMM ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_DIRECTORY ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_DSMCC ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_H222E ) {
-> +		dvb_logerr("mpeg pes: unsupported stream type %#04x", pes->stream_id);
-> +	} else {
-> +		memcpy(pes->optional, p, sizeof(struct dvb_mpeg_pes_optional) -
-> +					 sizeof(pes->optional->pts) -
-> +					 sizeof(pes->optional->dts));
-> +		p += sizeof(struct dvb_mpeg_pes_optional) -
-> +		     sizeof(pes->optional->pts) -
-> +		     sizeof(pes->optional->dts);
-
-Use offsetof() and check before copy.
-
-> +		bswap16(pes->optional->bitfield);
-> +		pes->optional->pts = 0;
-> +		pes->optional->dts = 0;
-> +		if (pes->optional->PTS_DTS & 2) {
-> +			struct ts_t pts;
-
-blank line.
-
-> +			memcpy(&pts, p, sizeof(pts));
-> +			p += sizeof(pts);
-
-Please check before copy.
-
-> +			bswap16(pts.bitfield);
-> +			bswap16(pts.bitfield2);
-> +			if (pts.one != 1 || pts.one1 != 1 || pts.one2 != 1)
-> +				dvb_logwarn("mpeg pes: invalid pts");
-> +			else {
-> +				pes->optional->pts |= (uint64_t) pts.bits00;
-> +				pes->optional->pts |= (uint64_t) pts.bits15 << 15;
-> +				pes->optional->pts |= (uint64_t) pts.bits30 << 30;
-> +			}
-> +		}
-> +		if (pes->optional->PTS_DTS & 1) {
-> +			struct ts_t dts;
-> +			memcpy(&dts, p, sizeof(dts));
-> +			p += sizeof(dts);
-> +			bswap16(dts.bitfield);
-> +			bswap16(dts.bitfield2);
-> +			pes->optional->dts |= (uint64_t) dts.bits00;
-> +			pes->optional->dts |= (uint64_t) dts.bits15 << 15;
-> +			pes->optional->dts |= (uint64_t) dts.bits30 << 30;
-> +		}
-> +		*table_length += sizeof(struct dvb_mpeg_pes_optional);
-> +	}
-> +}
-> +
-> +void dvb_mpeg_pes_free(struct dvb_mpeg_pes *ts)
-> +{
-> +	free(ts);
-> +}
-> +
-> +void dvb_mpeg_pes_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_pes *pes)
-> +{
-> +	dvb_log("MPEG PES");
-> +	dvb_log(" - sync      %#08x", pes->sync);
-> +	dvb_log(" - stream_id %#04x", pes->stream_id);
-> +	dvb_log(" - length    %d", pes->length);
-> +	if (pes->stream_id == DVB_MPEG_STREAM_PADDING) {
-
-Missing statement. It seems better to use a switch here.
-
-> +	} else if (pes->stream_id == DVB_MPEG_STREAM_MAP ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_PRIVATE_2 ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_ECM ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_EMM ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_DIRECTORY ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_DSMCC ||
-> +		   pes->stream_id == DVB_MPEG_STREAM_H222E ) {
-> +		dvb_log("  mpeg pes unsupported stream type %#04x", pes->stream_id);
-> +	} else {
-> +		dvb_log("  mpeg pes optional");
-> +		dvb_log("   - two                      %d", pes->optional->two);
-> +		dvb_log("   - PES_scrambling_control   %d", pes->optional->PES_scrambling_control);
-> +		dvb_log("   - PES_priority             %d", pes->optional->PES_priority);
-> +		dvb_log("   - data_alignment_indicator %d", pes->optional->data_alignment_indicator);
-> +		dvb_log("   - copyright                %d", pes->optional->copyright);
-> +		dvb_log("   - original_or_copy         %d", pes->optional->original_or_copy);
-> +		dvb_log("   - PTS_DTS                  %d", pes->optional->PTS_DTS);
-> +		dvb_log("   - ESCR                     %d", pes->optional->ESCR);
-> +		dvb_log("   - ES_rate                  %d", pes->optional->ES_rate);
-> +		dvb_log("   - DSM_trick_mode           %d", pes->optional->DSM_trick_mode);
-> +		dvb_log("   - additional_copy_info     %d", pes->optional->additional_copy_info);
-> +		dvb_log("   - PES_CRC                  %d", pes->optional->PES_CRC);
-> +		dvb_log("   - PES_extension            %d", pes->optional->PES_extension);
-> +		dvb_log("   - length                   %d", pes->optional->length);
-> +		if (pes->optional->PTS_DTS & 2)
-> +			dvb_log("   - pts                      %lx (%fs)", pes->optional->pts, (float) pes->optional->pts / 90000.0);
-> +		if (pes->optional->PTS_DTS & 1)
-> +			dvb_log("   - dts                      %lx (%fs)", pes->optional->dts, (float) pes->optional->dts/ 90000.0);
-> +	}
-> +}
-> +
-> diff --git a/lib/libdvbv5/descriptors/mpeg_ts.c b/lib/libdvbv5/descriptors/mpeg_ts.c
-> new file mode 100644
-> index 0000000..d7ec2c4
-> --- /dev/null
-> +++ b/lib/libdvbv5/descriptors/mpeg_ts.c
-> @@ -0,0 +1,77 @@
-> +/*
-> + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation version 2
-> + * of the License.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-> + * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-> + *
-> + */
-> +
-> +#include "descriptors/mpeg_ts.h"
-> +#include "descriptors.h"
-> +#include "dvb-fe.h"
-> +
-> +void dvb_mpeg_ts_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize_t buflen, uint8_t *table, ssize_t *table_length)
-> +{
-> +	if (buf[0] != DVB_MPEG_TS) {
-> +		dvb_logerr("mpeg ts invalid marker %#02x, sould be %#02x", buf[0], DVB_MPEG_TS);
-> +		*table_length = 0;
-> +		return;
-> +	}
-> +	struct dvb_mpeg_ts *ts = (struct dvb_mpeg_ts *) table;
-> +	const uint8_t *p = buf;
-
-Please reorder: data declarations should come before the if.
-
-> +	memcpy(table, p, sizeof(struct dvb_mpeg_ts));
-
-Please check before copy.
-
-> +	p += sizeof(struct dvb_mpeg_ts);
-> +	*table_length = sizeof(struct dvb_mpeg_ts);
-> +
-> +	bswap16(ts->bitfield);
-> +
-> +	if (ts->adaptation_field & 0x2) {
-> +		memcpy(table + *table_length, p, sizeof(struct dvb_mpeg_ts_adaption));
-
-Please check before copy.
-
-> +		p += sizeof(struct dvb_mpeg_ts);
-> +		*table_length += ts->adaption->length + 1;
-> +	}
-> +	/*hexdump(parms, "TS: ", buf, buflen);*/
-> +}
-> +
-> +void dvb_mpeg_ts_free(struct dvb_mpeg_ts *ts)
-> +{
-> +	free(ts);
-> +}
-> +
-> +void dvb_mpeg_ts_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_ts *ts)
-> +{
-> +	dvb_log("MPEG TS");
-> +	dvb_log(" - sync byte          %#02x", ts->sync_byte);
-> +	dvb_log(" - tei                %d", ts->tei);
-> +	dvb_log(" - payload_start      %d", ts->payload_start);
-> +	dvb_log(" - priority           %d", ts->priority);
-> +	dvb_log(" - pid                %d", ts->pid);
-> +	dvb_log(" - scrambling         %d", ts->scrambling);
-> +	dvb_log(" - adaptation_field   %d", ts->adaptation_field);
-> +	dvb_log(" - continuity_counter %d", ts->continuity_counter);
-> +	if (ts->adaptation_field & 0x2) {
-> +		dvb_log(" Adaption Field");
-> +                dvb_log("   - length         %d", ts->adaption->length);
-> +                dvb_log("   - discontinued   %d", ts->adaption->discontinued);
-> +                dvb_log("   - random_access  %d", ts->adaption->random_access);
-> +                dvb_log("   - priority       %d", ts->adaption->priority);
-> +                dvb_log("   - PCR            %d", ts->adaption->PCR);
-> +                dvb_log("   - OPCR           %d", ts->adaption->OPCR);
-> +                dvb_log("   - splicing_point %d", ts->adaption->splicing_point);
-> +                dvb_log("   - private_data   %d", ts->adaption->private_data);
-> +                dvb_log("   - extension      %d", ts->adaption->extension);
-> +	}
-> +}
-> +
-
-
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index b398ebf..ec6ab0f 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -735,9 +735,6 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+ 	struct rtl2832_config *rtl2832_config;
+-	static const struct rtl2832_sdr_config rtl2832_sdr_config = {
+-		.i2c_addr = 0x10,
+-	};
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+@@ -781,7 +778,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 
+ 	/* attach SDR */
+ 	dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
+-			&rtl2832_sdr_config);
++			rtl2832_config);
+ 
+ 	return 0;
+ err:
+diff --git a/drivers/staging/media/rtl2832u_sdr/Makefile b/drivers/staging/media/rtl2832u_sdr/Makefile
+index 684546776..1009276 100644
+--- a/drivers/staging/media/rtl2832u_sdr/Makefile
++++ b/drivers/staging/media/rtl2832u_sdr/Makefile
+@@ -1,4 +1,5 @@
+ obj-$(CONFIG_DVB_RTL2832_SDR) += rtl2832_sdr.o
+ 
+ ccflags-y += -Idrivers/media/dvb-core
++ccflags-y += -Idrivers/media/dvb-frontends
+ ccflags-y += -Idrivers/media/usb/dvb-usb-v2
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 0b110a3..208520e 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -61,7 +61,7 @@ struct rtl2832_sdr_state {
+ #define URB_BUF            (1 << 2)
+ 	unsigned long flags;
+ 
+-	const struct rtl2832_sdr_config *cfg;
++	const struct rtl2832_config *cfg;
+ 	struct dvb_frontend *fe;
+ 	struct dvb_usb_device *d;
+ 	struct i2c_adapter *i2c;
+@@ -1004,7 +1004,7 @@ static void rtl2832_sdr_video_release(struct v4l2_device *v)
+ }
+ 
+ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+-		struct i2c_adapter *i2c, const struct rtl2832_sdr_config *cfg)
++		struct i2c_adapter *i2c, const struct rtl2832_config *cfg)
+ {
+ 	int ret;
+ 	struct rtl2832_sdr_state *s;
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
+index 69d97c1..0803e45 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
+@@ -33,16 +33,15 @@
+ 
+ #include <linux/kconfig.h>
+ 
+-struct rtl2832_sdr_config {
+-	u8 i2c_addr;
+-};
++/* for config struct */
++#include "rtl2832.h"
+ 
+ #if IS_ENABLED(CONFIG_DVB_RTL2832_SDR)
+ extern struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+-	struct i2c_adapter *i2c, const struct rtl2832_sdr_config *cfg);
++	struct i2c_adapter *i2c, const struct rtl2832_config *cfg);
+ #else
+ static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+-	struct i2c_adapter *i2c, const struct rtl2832_sdr_config *cfg)
++	struct i2c_adapter *i2c, const struct rtl2832_config *cfg)
+ {
+ 	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
 -- 
+1.8.5.3
 
-Cheers,
-Mauro
