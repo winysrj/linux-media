@@ -1,74 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:40481 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755110AbaAHCyN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 21:54:13 -0500
-Message-ID: <52CCBDCE.8030503@huawei.com>
-Date: Wed, 8 Jan 2014 10:54:06 +0800
-From: Ding Tianhong <dingtianhong@huawei.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Netdev <netdev@vger.kernel.org>
-Subject: [PATCH v3.6 13/19] media: dvb_core: slight optimization of addr compare
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:51592 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752307AbaAYRLC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:02 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 10/52] rtl2832: remove unused if_dvbt config parameter
+Date: Sat, 25 Jan 2014 19:10:04 +0200
+Message-Id: <1390669846-8131-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use possibly more efficient ether_addr_equal
-instead of memcmp.
+All used tuners has get_if_frequency() callback and that parameter
+is not needed and will not needed as all upcoming tuner drivers
+should implement get_if_frequency().
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
-Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
-Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-core/dvb_net.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/media/dvb-frontends/rtl2832.c   | 6 ------
+ drivers/media/dvb-frontends/rtl2832.h   | 7 -------
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 --
+ 3 files changed, 15 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index f91c80c..8a86b30 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -179,7 +179,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
- 	eth = eth_hdr(skb);
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index ff73da9..61d4ecb 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -514,12 +514,6 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
  
- 	if (*eth->h_dest & 1) {
--		if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
-+		if (ether_addr_equal(eth->h_dest,dev->broadcast))
- 			skb->pkt_type=PACKET_BROADCAST;
- 		else
- 			skb->pkt_type=PACKET_MULTICAST;
-@@ -674,11 +674,13 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 					if (priv->rx_mode != RX_MODE_PROMISC) {
- 						if (priv->ule_skb->data[0] & 0x01) {
- 							/* multicast or broadcast */
--							if (memcmp(priv->ule_skb->data, bc_addr, ETH_ALEN)) {
-+							if (!ether_addr_equal(priv->ule_skb->data, bc_addr)) {
- 								/* multicast */
- 								if (priv->rx_mode == RX_MODE_MULTI) {
- 									int i;
--									for(i = 0; i < priv->multi_num && memcmp(priv->ule_skb->data, priv->multi_macs[i], ETH_ALEN); i++)
-+									for (i = 0; i < priv->multi_num &&
-+									    !ether_addr_equal(priv->ule_skb->data,
-+											      priv->multi_macs[i]); i++)
- 										;
- 									if (i == priv->multi_num)
- 										drop = 1;
-@@ -688,7 +690,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 							}
- 							/* else: broadcast */
- 						}
--						else if (memcmp(priv->ule_skb->data, dev->dev_addr, ETH_ALEN))
-+						else if (!ether_addr_equal(priv->ule_skb->data, dev->dev_addr))
- 							drop = 1;
- 						/* else: destination address matches the MAC address of our receiver device */
- 					}
+-	if (!fe->ops.tuner_ops.get_if_frequency) {
+-		ret = rtl2832_set_if(fe, priv->cfg.if_dvbt);
+-		if (ret)
+-			goto err;
+-	}
+-
+ 	/*
+ 	 * r820t NIM code does a software reset here at the demod -
+ 	 * may not be needed, as there's already a software reset at set_params()
+diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
+index 2cfbb6a..e543081 100644
+--- a/drivers/media/dvb-frontends/rtl2832.h
++++ b/drivers/media/dvb-frontends/rtl2832.h
+@@ -38,13 +38,6 @@ struct rtl2832_config {
+ 	u32 xtal;
+ 
+ 	/*
+-	 * IFs for all used modes.
+-	 * Hz
+-	 * 4570000, 4571429, 36000000, 36125000, 36166667, 44000000
+-	 */
+-	u32 if_dvbt;
+-
+-	/*
+ 	 * tuner
+ 	 * XXX: This must be keep sync with dvb_usb_rtl28xxu demod driver.
+ 	 */
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index c0e651a..6a5eb0f 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -587,14 +587,12 @@ err:
+ static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+-	.if_dvbt = 0,
+ 	.tuner = TUNER_RTL2832_FC0012
+ };
+ 
+ static const struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+-	.if_dvbt = 0,
+ 	.tuner = TUNER_RTL2832_FC0013
+ };
+ 
 -- 
-1.8.0
-
+1.8.5.3
 
