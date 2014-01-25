@@ -1,60 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s31.blu0.hotmail.com ([65.55.111.106]:20260 "EHLO
-	blu0-omc2-s31.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751450AbaAPUKj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jan 2014 15:10:39 -0500
-Message-ID: <BLU0-SMTP1088EA2459775CE15B7545BADB90@phx.gbl>
-Date: Fri, 17 Jan 2014 04:10:31 +0800
-From: randy <lxr1234@hotmail.com>
-MIME-Version: 1.0
-To: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org
-Subject: Re: using MFC memory to memery encoder, start stream and queue order
- problem
-References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl> <02c701cf07b6$565cd340$031679c0$%debski@samsung.com> <BLU0-SMTP266BE9BC66B254061740251ADCB0@phx.gbl> <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com> <BLU0-SMTP150C8C0DB0E9A3A9F4104F8ADCA0@phx.gbl> <04b601cf0c7f$d9e531d0$8daf9570$%debski@samsung.com> <52CD725E.5060903@hotmail.com> <BLU0-SMTP6650E76A95FA2BB39C6325ADB30@phx.gbl> <52CFD5DF.6050801@samsung.com> <BLU0-SMTP37B0A51F0A2D2F1E79A730ADB30@phx.gbl> <52D3BCB7.1060309@samsung.com> <52D3CB84.6090406@samsung.com> <BLU0-SMTP3546CDA7E88F73435A3A876ADBC0@phx.gbl> <001701cf107b$0927aa50$1b76fef0$%debski@samsung.com> <BLU0-SMTP183F0EEECCB365900DE2315ADBF0@phx.gbl> <52D51179.8030102@samsung.com> <BLU0-SMTP1645A2349311998A104ACB8ADBF0@phx.gbl> <52D63405.9080604@samsung.com> <BLU0-SMTP184B0B9737C458456530152ADBE0@phx.gbl> <52D7D284.1080700@samsung.com>
-In-Reply-To: <52D7D284.1080700@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:41430 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752455AbaAYRLF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:05 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 25/52] v4l: add stream format for SDR receiver
+Date: Sat, 25 Jan 2014 19:10:19 +0200
+Message-Id: <1390669846-8131-26-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Add new V4L2 stream format definition, V4L2_BUF_TYPE_SDR_CAPTURE,
+for SDR receiver.
 
->> [  100.645000] s5p_mfc_alloc_codec_buffers_v5:177: Failed to 
->> allocate Bank1 temporary buffer [  107.065000] 
->> s5p_mfc_alloc_priv_buf:43: Allocating private buffer failed [ 
->> 107.065000] s5p_mfc_alloc_codec_buffers_v5:177: Failed to 
->> allocate Bank1 temporary buffer
-> Try to increase CMA size in kernel config - CONFIG_CMA_SIZE_MBYTES,
-> by default it is set to 16MB, try for example 64MB.
-I am very sorry, I don't test it carefully, the mfc-encode can't work
-on 3.13-rc8, with or without header_mode=1 it will got
-v4l_dev.c:v4l_req_bufs:111: error: Failed to request 4 buffers for
-device 3:1)
-and
-[ 1706.540000] s5p_mfc_alloc_codec_buffers_v5:177: Failed to allocate
-Bank1 temporary buffer
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
+ include/trace/events/v4l2.h          |  1 +
+ include/uapi/linux/videodev2.h       | 11 +++++++++++
+ 3 files changed, 13 insertions(+)
 
-In the old 3.5 kernel, it has this kind of problem too,
-[    0.210000] Failed to declare coherent memory for MFC device (0
-bytes at 0x43000000)
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 15ab349..9a2acaf 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -152,6 +152,7 @@ const char *v4l2_type_names[] = {
+ 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY] = "vid-out-overlay",
+ 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
+ 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
++	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
+ };
+ EXPORT_SYMBOL(v4l2_type_names);
+ 
+diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+index ef94eca..b9bb1f2 100644
+--- a/include/trace/events/v4l2.h
++++ b/include/trace/events/v4l2.h
+@@ -18,6 +18,7 @@
+ 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY, "VIDEO_OUTPUT_OVERLAY" },\
+ 		{ V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" },\
+ 		{ V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" }, \
++		{ V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" },         \
+ 		{ V4L2_BUF_TYPE_PRIVATE,	      "PRIVATE" })
+ 
+ #define show_field(field)						\
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1cf2076..27bed7c 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -139,6 +139,7 @@ enum v4l2_buf_type {
+ #endif
+ 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
+ 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
++	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+ 	/* Deprecated, do not use */
+ 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+ };
+@@ -1695,6 +1696,15 @@ struct v4l2_pix_format_mplane {
+ } __attribute__ ((packed));
+ 
+ /**
++ * struct v4l2_format_sdr - SDR format definition
++ * @pixelformat:	little endian four character code (fourcc)
++ */
++struct v4l2_format_sdr {
++	__u32				pixelformat;
++	__u8				reserved[28];
++} __attribute__ ((packed));
++
++/**
+  * struct v4l2_format - stream data format
+  * @type:	enum v4l2_buf_type; type of the data stream
+  * @pix:	definition of an image format
+@@ -1712,6 +1722,7 @@ struct v4l2_format {
+ 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+ 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+ 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
++		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+ 		__u8	raw_data[200];                   /* user-defined */
+ 	} fmt;
+ };
+-- 
+1.8.5.3
 
-I wonder is there some problem of the board or core board. But it
-seems that result of 3.5 is better(but without the I-frame, the
-encoded data is useless as I know)
-
-Thank you
-ayaka
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iQEcBAEBAgAGBQJS2Dy3AAoJEPb4VsMIzTziYooH/3GxuPn2bt74QQF0fy8yZH+T
-kE4K9F9JUValDfdQc0GBnFDRBb4CIbL4ncWoRhj4mjH3Iu3OOxWjRgEl/aZ+TzZg
-3BJSTI9Wnaxt4sFCVJKHtYY9Ei7nv2548/hC2UzkrzmtPYIiUBmEarbI4rcrX3/Y
-II1Oe8GoCvyyD7/BJ37ENKX1Y3O1ZvwZJvKaTRamAJQmJKpR5/wFvrRBqp1kLG5l
-1LHJOM2qfWAB7HWlALDXpgYS8UhovHWPqWZj7tLKzLEibvRKqqD6+ZRY29nJTkED
-KcvNY6pGv5vdoQoP6cHAWARg8WwGCR3brOXiPaNCp3GtsFfATEDHLhOIIc12vOg=
-=fa3t
------END PGP SIGNATURE-----
