@@ -1,110 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2989 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142AbaAIDdw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 22:33:52 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s093XnI4001663
-	for <linux-media@vger.kernel.org>; Thu, 9 Jan 2014 04:33:51 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 845002A009C
-	for <linux-media@vger.kernel.org>; Thu,  9 Jan 2014 04:33:41 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140109033341.845002A009C@tschai.lan>
-Date: Thu,  9 Jan 2014 04:33:41 +0100 (CET)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1663 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751269AbaAYIum (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 03:50:42 -0500
+Message-ID: <52E37ACA.1050802@xs4all.nl>
+Date: Sat, 25 Jan 2014 09:50:18 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 06/21] v4l2-ctrls: add support for complex types.
+References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl> <1390221974-28194-7-git-send-email-hverkuil@xs4all.nl> <20140124154431.GD13820@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20140124154431.GD13820@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
 
-Results of the daily build of media_tree:
+On 01/24/2014 04:44 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Mon, Jan 20, 2014 at 01:45:59PM +0100, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> This patch implements initial support for complex types.
+>>
+>> For the most part the changes are fairly obvious (basic support for is_ptr
+>> types, the type_is_int function is replaced by a is_int bitfield, and
+>> v4l2_query_ext_ctrl is added), but one change needs more explanation:
+>>
+>> The v4l2_ctrl struct adds a 'new' field and a 'stores' array at the end
+>> of the struct. This is in preparation for future patches where each control
+>> can have multiple configuration stores. The idea is that stores[0] is the current
+>> control value, stores[1] etc. are the control values for each configuration store
+>> and the 'new' value can be accessed through 'stores[-1]', i.e. the 'new' field.
+>> However, for now only stores[-1] and stores[0] is used.
+> 
+> Could we use zero or positive indices only, e.g. the new being zero and
+> current 1, or the other way? Or make the "new" value special, i.e. using a
+> different field name.
+> 
+> I think accessing the previous struct member by index -1 looks a little bit
+> hackish.
 
-date:		Thu Jan  9 04:00:24 CET 2014
-git branch:	test
-git hash:	dad4c41827c71a84c8455e19431278e8c1edf118
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+I should document this better. Drivers are not expected to use the stores array,
+it is for internal use in the control framework only as it allows me to refer to
+either the new or the current value by just an array index and later also
+configuration stores which will start at index 1 and up, which is where this really
+becomes important.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+I am not yet adding configuration stores to the control framework as there is not
+yet a driver that needs it, and it is for the most part a separate issue anyway.
+But this generalization of how values can be accessed makes it much easier to
+later add support for configuration stores.
 
-Detailed results are available here:
+>> These new fields use the v4l2_ctrl_ptr union, which is a pointer to a control
+>> value.
+>>
+>> Note that these two new fields are not yet actually used.
+> 
+> Should they be then added yet in the first place? :-)
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Well, they are used a few patches later, but I will see if it makes sense to only
+introduce them when they are actually needed.
 
-Full logs are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
