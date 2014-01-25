@@ -1,55 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:60003 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751121AbaA0MAz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 07:00:55 -0500
-Received: by mail-pb0-f45.google.com with SMTP id un15so5795580pbc.4
-        for <linux-media@vger.kernel.org>; Mon, 27 Jan 2014 04:00:55 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:43515 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752587AbaAYRLJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:09 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 1/1] [media] radio-keene: Use module_usb_driver
-Date: Mon, 27 Jan 2014 17:26:02 +0530
-Message-Id: <1390823762-14296-1-git-send-email-sachin.kamat@linaro.org>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 49/52] msi3101: improve ADC config stream format selection
+Date: Sat, 25 Jan 2014 19:10:43 +0200
+Message-Id: <1390669846-8131-50-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-module_usb_driver eliminates the boilerplate and makes the code simpler.
+Improve ADC config stream format selection. No functional changes.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/radio/radio-keene.c |   19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 37 +++++++++++++----------------
+ 1 file changed, 17 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
-index fa3964022b96..3d127825eceb 100644
---- a/drivers/media/radio/radio-keene.c
-+++ b/drivers/media/radio/radio-keene.c
-@@ -416,22 +416,5 @@ static struct usb_driver usb_keene_driver = {
- 	.reset_resume		= usb_keene_resume,
- };
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 6b9f0da..ba37fce 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -1247,38 +1247,35 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 	f_sr = s->f_adc;
  
--static int __init keene_init(void)
--{
--	int retval = usb_register(&usb_keene_driver);
+ 	/* select stream format */
+-	if (f_sr < 6000000) {
+-		s->convert_stream = msi3101_convert_stream_252;
+-		reg7 = 0x00009407;
+-	} else if (f_sr < 8000000) {
+-		s->convert_stream = msi3101_convert_stream_336;
+-		reg7 = 0x00008507;
+-	} else if (f_sr < 9000000) {
+-		s->convert_stream = msi3101_convert_stream_384;
+-		reg7 = 0x0000a507;
+-	} else {
+-		s->convert_stream = msi3101_convert_stream_504;
+-		reg7 = 0x000c9407;
+-	}
 -
--	if (retval)
--		pr_err(KBUILD_MODNAME
--			": usb_register failed. Error number %d\n", retval);
--
--	return retval;
--}
--
--static void __exit keene_exit(void)
--{
--	usb_deregister(&usb_keene_driver);
--}
--
--module_init(keene_init);
--module_exit(keene_exit);
-+module_usb_driver(usb_keene_driver);
+-	if (s->pixelformat == V4L2_PIX_FMT_SDR_U8) {
++	switch (s->pixelformat) {
++	case V4L2_PIX_FMT_SDR_U8:
+ 		s->convert_stream = msi3101_convert_stream_504_u8;
+ 		reg7 = 0x000c9407;
+-	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_U16LE) {
++		break;
++	case V4L2_PIX_FMT_SDR_U16LE:
+ 		s->convert_stream = msi3101_convert_stream_252_u16;
+ 		reg7 = 0x00009407;
+-	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
++		break;
++	case V4L2_PIX_FMT_SDR_S8:
+ 		s->convert_stream = msi3101_convert_stream_504;
+ 		reg7 = 0x000c9407;
+-	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_MSI2500_384) {
++		break;
++	case V4L2_PIX_FMT_SDR_MSI2500_384:
+ 		s->convert_stream = msi3101_convert_stream_384;
+ 		reg7 = 0x0000a507;
+-	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S12) {
++		break;
++	case V4L2_PIX_FMT_SDR_S12:
+ 		s->convert_stream = msi3101_convert_stream_336;
+ 		reg7 = 0x00008507;
+-	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S14) {
++		break;
++	case V4L2_PIX_FMT_SDR_S14:
+ 		s->convert_stream = msi3101_convert_stream_252;
+ 		reg7 = 0x00009407;
++		break;
++	default:
++		s->convert_stream = msi3101_convert_stream_504_u8;
++		reg7 = 0x000c9407;
++		break;
+ 	}
  
+ 	/*
 -- 
-1.7.9.5
+1.8.5.3
 
