@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3563 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006AbaAaJ44 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:56:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:48114 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752532AbaAYRLI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:08 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>
-Subject: [REVIEW PATCH 00/32] Add support for complex controls, use in solo/go7007
-Date: Fri, 31 Jan 2014 10:55:58 +0100
-Message-Id: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 42/52] rtl2832_sdr: calculate bandwidth if not set by user
+Date: Sat, 25 Jan 2014 19:10:36 +0200
+Message-Id: <1390669846-8131-43-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for complex controls (aka 'Properties') to
-the control framework and uses them in the go7007 and solo6x10 drivers.
-It is the first part of a larger patch series that adds support for configuration
-stores and support for 'Multiple Selections'.
+Calculate bandwidth from sampling rate if it is not set by user.
 
-This patch series is based on this RFCv3:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-http://lwn.net/Articles/582694/
-
-Changes since RFCv3 are:
-
-- added patches 23-32 that add the Detection Control Class and implement motion
-  detection in the go7007 and solo6x10 staging drivers. Once this is in these
-  drivers can be moved to drivers/media.
-
-These Detection patches are essentially identical to the original patches:
-http://lwn.net/Articles/564835/
-
-The only change is that I am using the new matrix controls instead of introducing
-new matrix ioctls.
-
-If there are no more objections, then I am going to make a pull request for this
-in two weeks time.
-
-Regards,
-
-	Hans
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 1cc7bf7..2c9b703 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -881,6 +881,10 @@ static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
+ 	if (fe->ops.tuner_ops.init)
+ 		fe->ops.tuner_ops.init(fe);
+ 
++	/* user has not requested bandwidth so calculate automatically */
++	if (bandwidth == 0)
++		bandwidth = s->f_adc;
++
+ 	c->bandwidth_hz = bandwidth;
+ 	c->frequency = f_rf;
+ 
+@@ -1254,9 +1258,9 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 		.id     = RTL2832_SDR_CID_TUNER_BW,
+ 		.type   = V4L2_CTRL_TYPE_INTEGER,
+ 		.name   = "Tuner BW",
+-		.min    =  200000,
+-		.max    = 8000000,
+-		.def    =  600000,
++		.min    = 0,
++		.max    = INT_MAX,
++		.def    = 0,
+ 		.step   = 1,
+ 	};
+ 	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
+-- 
+1.8.5.3
 
