@@ -1,61 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2267 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314AbaAQK0u (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3482 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963AbaAYI1n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 05:26:50 -0500
-Message-ID: <52D90559.1020707@xs4all.nl>
-Date: Fri, 17 Jan 2014 11:26:33 +0100
+	Sat, 25 Jan 2014 03:27:43 -0500
+Message-ID: <52E37573.8020400@xs4all.nl>
+Date: Sat, 25 Jan 2014 09:27:31 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH, RFC 06/30] [media] usbvision: remove bogus sleep_on_timeout
-References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <1388664474-1710039-7-git-send-email-arnd@arndb.de>
-In-Reply-To: <1388664474-1710039-7-git-send-email-arnd@arndb.de>
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 13/13] devices.txt: add video4linux device for
+ Software Defined Radio
+References: <1390511333-25837-1-git-send-email-crope@iki.fi> <1390511333-25837-14-git-send-email-crope@iki.fi>
+In-Reply-To: <1390511333-25837-14-git-send-email-crope@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/02/2014 01:07 PM, Arnd Bergmann wrote:
-> There is no reason to use sleep_on_timeout here, and we want to get
-> rid of that interface. Use the simpler msleep_interruptible instead.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Since this define is unused anyway, lets just remove it completely.
-
-I'll post a patch for this.
-
-Regards,
-
-	Hans
-
+On 01/23/2014 10:08 PM, Antti Palosaari wrote:
+> Add new video4linux device named /dev/swradio for Software Defined
+> Radio use. V4L device minor numbers are allocated dynamically
+> nowadays, but there is still configuration option for old fixed style.
+> Add note to mention that configuration option too.
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 > ---
->  drivers/media/usb/usbvision/usbvision.h | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+>  Documentation/devices.txt | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> diff --git a/drivers/media/usb/usbvision/usbvision.h b/drivers/media/usb/usbvision/usbvision.h
-> index 8a25876..eb6dc8a 100644
-> --- a/drivers/media/usb/usbvision/usbvision.h
-> +++ b/drivers/media/usb/usbvision/usbvision.h
-> @@ -205,10 +205,8 @@ enum {
+> diff --git a/Documentation/devices.txt b/Documentation/devices.txt
+> index 80b7241..e852855 100644
+> --- a/Documentation/devices.txt
+> +++ b/Documentation/devices.txt
+> @@ -1490,10 +1490,17 @@ Your cooperation is appreciated.
+>  		 64 = /dev/radio0	Radio device
+>  		    ...
+>  		127 = /dev/radio63	Radio device
+> +		128 = /dev/swradio0	Software Defined Radio device
+> +		    ...
+> +		191 = /dev/swradio63	Software Defined Radio device
+>  		224 = /dev/vbi0		Vertical blank interrupt
+>  		    ...
+>  		255 = /dev/vbi31	Vertical blank interrupt
 >  
->  /* Debugging aid */
->  #define USBVISION_SAY_AND_WAIT(what) { \
-> -	wait_queue_head_t wq; \
-> -	init_waitqueue_head(&wq); \
->  	printk(KERN_INFO "Say: %s\n", what); \
-> -	interruptible_sleep_on_timeout(&wq, HZ * 3); \
-> +	msleep_interruptible(3000); \
->  }
->  
->  /*
+> +		Minor numbers are allocated dynamically unless
+> +		CONFIG_VIDEO_FIXED_MINOR_RANGES (default n)
+> +		configuration option is set.
+> +
+>   81 block	I2O hard disk
+>  		  0 = /dev/i2o/hdq	17th I2O hard disk, whole disk
+>  		 16 = /dev/i2o/hdr	18th I2O hard disk, whole disk
 > 
-
