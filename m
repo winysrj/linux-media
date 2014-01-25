@@ -1,126 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35866 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:35253 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750871AbaA3DDN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jan 2014 22:03:13 -0500
+	id S1750809AbaAYDHT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jan 2014 22:07:19 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] DocBook: document RF tuner gain controls
-Date: Thu, 30 Jan 2014 05:02:46 +0200
-Message-Id: <1391050966-19666-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFCv1] v4l: add RF tuner gain controls
+Date: Sat, 25 Jan 2014 05:06:57 +0200
+Message-Id: <1390619217-2272-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1390619217-2272-1-git-send-email-crope@iki.fi>
+References: <1390619217-2272-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for LNA, mixer and IF gain controls. These
-controls are RF tuner specific.
+Modern silicon RF tuners used nowadays has many controllable gain
+stages on signal path. Usually, but not always, there is at least
+3 gain stages. Also on some cases there could be multiple gain
+stages within the ones specified here. However, I think that having
+these three controllable gain stages offers enough fine-tuning for
+real use cases.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
+1) LNA gain. That is first gain just after antenna input.
+2) Mixer gain. It is located quite middle of the signal path, where
+RF signal is down-converted to IF/BB.
+3) IF gain. That is last gain in order to adjust output signal level
+to optimal level for receiving party (usually demodulator ADC).
+
+Each gain stage could be set rather often both manual or automatic
+(AGC) mode. Due to that add separate controls for controlling
+operation mode.
+
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/DocBook/media/v4l/controls.xml | 91 ++++++++++++++++++++++++++++
- 1 file changed, 91 insertions(+)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 15 +++++++++++++++
+ include/uapi/linux/v4l2-controls.h   | 11 +++++++++++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index a5a3188..0145341 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4971,4 +4971,95 @@ defines possible values for de-emphasis. Here they are:</entry>
-       </table>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 6ff002b..d201f61 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -857,6 +857,14 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
+ 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+ 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
++
++	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
++	case V4L2_CID_LNA_GAIN_AUTO:		return "LNA Gain, Auto";
++	case V4L2_CID_LNA_GAIN:			return "LNA Gain";
++	case V4L2_CID_MIXER_GAIN_AUTO:		return "Mixer Gain, Auto";
++	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
++	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
++	case V4L2_CID_IF_GAIN:			return "IF Gain";
+ 	default:
+ 		return NULL;
+ 	}
+@@ -906,6 +914,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
+ 	case V4L2_CID_RDS_RECEPTION:
++	case V4L2_CID_LNA_GAIN_AUTO:
++	case V4L2_CID_MIXER_GAIN_AUTO:
++	case V4L2_CID_IF_GAIN_AUTO:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -991,6 +1002,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_IMAGE_PROC_CLASS:
+ 	case V4L2_CID_DV_CLASS:
+ 	case V4L2_CID_FM_RX_CLASS:
++	case V4L2_CID_RF_TUNER_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+@@ -1063,6 +1075,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_PILOT_TONE_FREQUENCY:
+ 	case V4L2_CID_TUNE_POWER_LEVEL:
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
++	case V4L2_CID_LNA_GAIN:
++	case V4L2_CID_MIXER_GAIN:
++	case V4L2_CID_IF_GAIN:
+ 		*flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2cbe605..076fa34 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -60,6 +60,7 @@
+ #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
+ #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
+ #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
++#define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
  
-       </section>
+ /* User-class control IDs */
+ 
+@@ -895,4 +896,14 @@ enum v4l2_deemphasis {
+ 
+ #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
+ 
++#define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
++#define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
 +
-+    <section id="rf-tuner-controls">
-+      <title>RF Tuner Control Reference</title>
++#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
++#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
++#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
++#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
++#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
++#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
 +
-+      <para>The RF Tuner (RF_TUNER) class includes controls for common features
-+of devices having RF tuner.</para>
-+
-+      <table pgwide="1" frame="none" id="rf-tuner-control-id">
-+        <title>RF_TUNER Control IDs</title>
-+
-+        <tgroup cols="4">
-+          <colspec colname="c1" colwidth="1*" />
-+          <colspec colname="c2" colwidth="6*" />
-+          <colspec colname="c3" colwidth="2*" />
-+          <colspec colname="c4" colwidth="6*" />
-+          <spanspec namest="c1" nameend="c2" spanname="id" />
-+          <spanspec namest="c2" nameend="c4" spanname="descr" />
-+          <thead>
-+            <row>
-+              <entry spanname="id" align="left">ID</entry>
-+              <entry align="left">Type</entry>
-+            </row>
-+            <row rowsep="1">
-+              <entry spanname="descr" align="left">Description</entry>
-+            </row>
-+          </thead>
-+          <tbody valign="top">
-+            <row><entry></entry></row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_CLASS</constant>&nbsp;</entry>
-+              <entry>class</entry>
-+            </row><row><entry spanname="descr">The RF_TUNER class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_LNA_GAIN_AUTO</constant>&nbsp;</entry>
-+              <entry>boolean</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">Enables/disables LNA automatic gain control (AGC)</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_MIXER_GAIN_AUTO</constant>&nbsp;</entry>
-+              <entry>boolean</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">Enables/disables mixer automatic gain control (AGC)</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_IF_GAIN_AUTO</constant>&nbsp;</entry>
-+              <entry>boolean</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_LNA_GAIN</constant>&nbsp;</entry>
-+              <entry>integer</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">LNA (low noise amplifier) gain is first
-+gain stage on the RF tuner signal path. It is located very close to tuner
-+antenna input. Used when <constant>V4L2_CID_LNA_GAIN_AUTO</constant> is not set.
-+The range and step are driver-specific.</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_MIXER_GAIN</constant>&nbsp;</entry>
-+              <entry>integer</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">Mixer gain is second gain stage on the RF
-+tuner signal path. It is located inside mixer block, where RF signal is
-+down-converted by the mixer. Used when <constant>V4L2_CID_MIXER_GAIN_AUTO</constant>
-+is not set. The range and step are driver-specific.</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_IF_GAIN</constant>&nbsp;</entry>
-+              <entry>integer</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">IF gain is last gain stage on the RF tuner
-+signal path. It is located on output of RF tuner. It controls signal level of
-+intermediate frequency output or baseband output. Used when
-+<constant>V4L2_CID_IF_GAIN_AUTO</constant> is not set. The range and step are
-+driver-specific.</entry>
-+            </row>
-+          </tbody>
-+        </tgroup>
-+      </table>
-+    </section>
- </section>
+ #endif
 -- 
 1.8.5.3
 
