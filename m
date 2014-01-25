@@ -1,96 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1689 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753510AbaA0Oey (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 09:34:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:33369 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752275AbaAYRLC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:02 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 13/22] v4l2-ctrls: use 'new' to access pointer controls
-Date: Mon, 27 Jan 2014 15:34:15 +0100
-Message-Id: <1390833264-8503-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 09/52] rtl28xxu: constify demod config structs
+Date: Sat, 25 Jan 2014 19:10:03 +0200
+Message-Id: <1390669846-8131-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Optimize a little bit from data to text.
 
-Require that 'new' string and pointer values are accessed through the 'new'
-field instead of through the union. This reduces the union to just val and
-val64.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/radio/si4713/si4713.c                | 4 ++--
- drivers/media/v4l2-core/v4l2-ctrls.c               | 4 ++--
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 2 +-
- include/media/v4l2-ctrls.h                         | 2 --
- 4 files changed, 5 insertions(+), 7 deletions(-)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index 07d5153..718e10d 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -1098,11 +1098,11 @@ static int si4713_s_ctrl(struct v4l2_ctrl *ctrl)
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index ec6ab0f..c0e651a 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -514,7 +514,7 @@ err:
+ 	return ret;
+ }
  
- 		switch (ctrl->id) {
- 		case V4L2_CID_RDS_TX_PS_NAME:
--			ret = si4713_set_rds_ps_name(sdev, ctrl->string);
-+			ret = si4713_set_rds_ps_name(sdev, ctrl->new.p_char);
- 			break;
+-static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
++static const struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.ts_mode = 0,
+@@ -525,7 +525,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
  
- 		case V4L2_CID_RDS_TX_RADIO_TEXT:
--			ret = si4713_set_rds_radio_text(sdev, ctrl->string);
-+			ret = si4713_set_rds_radio_text(sdev, ctrl->new.p_char);
- 			break;
+ };
  
- 		case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 9f8af88..86a27af 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1829,8 +1829,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	data = &ctrl->stores[1];
+-static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
++static const struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.ts_mode = 0,
+@@ -535,7 +535,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
+ 	.agc_targ_val = 0x2d,
+ };
  
- 	if (ctrl->is_ptr) {
--		ctrl->p = ctrl->new.p = data;
--		ctrl->stores[0].p = data + elem_size;
-+		for (s = -1; s <= 0; s++)
-+			ctrl->stores[s].p = data + (s + 1) * elem_size;
- 	} else {
- 		ctrl->new.p = &ctrl->val;
- 		ctrl->stores[0].p = data;
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index ce9e5aa..d19743b 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -1127,7 +1127,7 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- 		solo_motion_toggle(solo_enc, ctrl->val);
- 		return 0;
- 	case V4L2_CID_OSD_TEXT:
--		strcpy(solo_enc->osd_text, ctrl->string);
-+		strcpy(solo_enc->osd_text, ctrl->new.p_char);
- 		err = solo_osd_print(solo_enc);
- 		return err;
- 	default:
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 4f66393..1b06930 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -195,8 +195,6 @@ struct v4l2_ctrl {
- 	union {
- 		s32 val;
- 		s64 val64;
--		char *string;
--		void *p;
- 	};
- 	union v4l2_ctrl_ptr *stores;
- 	union v4l2_ctrl_ptr new;
+-static struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
++static const struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.ts_mode = 0,
+@@ -549,7 +549,7 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+-	struct rtl2830_config *rtl2830_config;
++	const struct rtl2830_config *rtl2830_config;
+ 	int ret;
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+@@ -584,33 +584,33 @@ err:
+ 	return ret;
+ }
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.if_dvbt = 0,
+ 	.tuner = TUNER_RTL2832_FC0012
+ };
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.if_dvbt = 0,
+ 	.tuner = TUNER_RTL2832_FC0013
+ };
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.tuner = TUNER_RTL2832_TUA9001,
+ };
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.tuner = TUNER_RTL2832_E4000,
+ };
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
+ 	.i2c_addr = 0x10,
+ 	.xtal = 28800000,
+ 	.tuner = TUNER_RTL2832_R820T,
+@@ -734,7 +734,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	int ret;
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+-	struct rtl2832_config *rtl2832_config;
++	const struct rtl2832_config *rtl2832_config;
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
 -- 
-1.8.5.2
+1.8.5.3
 
