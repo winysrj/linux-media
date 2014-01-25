@@ -1,79 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:28098 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201AbaAILkP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jan 2014 06:40:15 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ400IS2TR20O10@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Jan 2014 06:40:14 -0500 (EST)
-Received: from localhost.localdomain ([105.144.34.9])
- by ussync3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MZ400GIXTQZ4X30@ussync3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Jan 2014 06:40:14 -0500 (EST)
-Date: Thu, 09 Jan 2014 09:40:10 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [RFC PATCHv1] Fix audio with USB 3.0
-Message-id: <20140109094010.0d8559b5@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:33488 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752156AbaAYRLB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:01 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 04/52] rtl2832_sdr: initial support for R820T tuner
+Date: Sat, 25 Jan 2014 19:09:58 +0200
+Message-Id: <1390669846-8131-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The PCM audio hardware is not properly described. This causes the driver
-to use a period shorter than it should be, causing problems with USB 3.0.
+Use tuner via internal DVB API.
 
-This is a first attempt to fix it.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 84 +++++++++++++++---------
+ 1 file changed, 53 insertions(+), 31 deletions(-)
 
-PS.: 
-
-1) This patch is not to be applied. It contains an ugly debug added for
-testing purposes, and uses a C99 comment;
-
-2) em28xx can accept other sample rates. It would be good to add support
-for those other rates, as some audio playback hardware may not support
-48KHz (I have one such hardware here). 
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 30ee389a07f0..1de4fac3db97 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -87,6 +87,14 @@ static void em28xx_audio_isocirq(struct urb *urb)
- 	struct snd_pcm_substream *substream;
- 	struct snd_pcm_runtime   *runtime;
- 
-+size_t size = 0;
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 208520e..513da22 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -646,8 +646,16 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 	ret = rtl2832_sdr_wr_regs(s, 0x115, "\x00", 1);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x116, "\x00\x00", 2);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x118, "\x00", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x119, "\x00\x00", 2);
+-	ret = rtl2832_sdr_wr_regs(s, 0x11b, "\x00", 1);
 +
-+if (!urb->status)
-+for (i = 0; i < urb->number_of_packets; i++)
-+	size =+ urb->iso_frame_desc[i].actual_length;
++	if (s->cfg->tuner == RTL2832_TUNER_R820T) {
++		ret = rtl2832_sdr_wr_regs(s, 0x119, "\x38\x11", 2);
++		ret = rtl2832_sdr_wr_regs(s, 0x11b, "\x12", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x115, "\x01", 1);
++	} else {
++		ret = rtl2832_sdr_wr_regs(s, 0x119, "\x00\x00", 2);
++		ret = rtl2832_sdr_wr_regs(s, 0x11b, "\x00", 1);
++	}
 +
-+printk("%s, status %d, %d packets (size %d)\n", __func__, urb->status, urb->number_of_packets, size);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x19f, "\x03\x84", 2);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x1a1, "\x00\x00", 2);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x11c, "\xca", 1);
+@@ -686,11 +694,21 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 	ret = rtl2832_sdr_wr_regs(s, 0x006, "\x80", 1);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x112, "\x5a", 1);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x102, "\x40", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x30", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x104, "\xd0", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x18", 1);
 +
- 	switch (urb->status) {
- 	case 0:             /* success */
- 	case -ETIMEDOUT:    /* NAK */
-@@ -215,14 +223,15 @@ static struct snd_pcm_hardware snd_em28xx_hw_capture = {
++	if (s->cfg->tuner == RTL2832_TUNER_R820T) {
++		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x80", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x24", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x14", 1);
++	} else {
++		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x30", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xd0", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x18", 1);
++	}
++
+ 	ret = rtl2832_sdr_wr_regs(s, 0x106, "\x35", 1);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x1c9, "\x21", 1);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x1ca, "\x21", 1);
+@@ -704,30 +722,34 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 	ret = rtl2832_sdr_wr_regs(s, 0x10b, "\x7f", 1);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x00e, "\xfc", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x011, "\xd4", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1d9, "\x00", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1db, "\x00", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1dd, "\x14", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1de, "\xec", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1d8, "\x0c", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1e6, "\x02", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1d7, "\x09", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x83", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x010, "\x49", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x87", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x85", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x013, "\x02", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x008, "\xcd", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x1b1, "\x01", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x101, "\x14", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x101, "\x10", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x019, "\x21", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x10c, "\x00", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x101, "\x14", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x101, "\x10", 1);
+-	ret = rtl2832_sdr_wr_regs(s, 0x116, "\x00\xe3", 2);
+-	ret = rtl2832_sdr_wr_regs(s, 0x118, "\x8e", 1);
++
++	if (s->cfg->tuner == RTL2832_TUNER_R820T) {
++		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xf4", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x14", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x10", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x019, "\x21", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x116, "\x00\x00", 2);
++		ret = rtl2832_sdr_wr_regs(s, 0x118, "\x00", 1);
++	} else {
++		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xd4", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1d9, "\x00", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1db, "\x00", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1dd, "\x14", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1de, "\xec", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1d8, "\x0c", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1e6, "\x02", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1d7, "\x09", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x83", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x010, "\x49", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x87", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x00d, "\x85", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x013, "\x02", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x008, "\xcd", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x10c, "\x00", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x14", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x10", 1);
++	}
  
- 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
- 
--	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_KNOT,
-+//	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_KNOT,
-+	.rates = SNDRV_PCM_RATE_48000,
- 
- 	.rate_min = 48000,
- 	.rate_max = 48000,
- 	.channels_min = 2,
- 	.channels_max = 2,
- 	.buffer_bytes_max = 62720 * 8,	/* just about the value in usbaudio.c */
--	.period_bytes_min = 64,		/* 12544/2, */
-+	.period_bytes_min = 188,
- 	.period_bytes_max = 12544,
- 	.periods_min = 2,
- 	.periods_max = 98,		/* 12544, */
+ 	return ret;
+ };
+-- 
+1.8.5.3
+
