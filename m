@@ -1,65 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2719 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752862AbaAVXNK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jan 2014 18:13:10 -0500
-Message-ID: <52E0507D.1060103@xs4all.nl>
-Date: Thu, 23 Jan 2014 00:13:01 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:59636 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751914AbaAYRR2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:17:28 -0500
+Message-ID: <52E3F1A5.5060403@iki.fi>
+Date: Sat, 25 Jan 2014 19:17:25 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Detlev Casanova <detlev.casanova@gmail.com>,
-	linux-media@vger.kernel.org, hyun.kwon@xilinx.com
-Subject: Re: qv4l2 and media controller support
-References: <2270106.dN7Lhra68Q@avalon>
-In-Reply-To: <2270106.dN7Lhra68Q@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+To: LMML <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [GIT PULL] SDR API
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
 
-First, regarding the inheritance of subdev controls: I found it annoying as
-well that there is no way to do this. If you have a simple video pipeline,
-then having to create subdev nodes just to set a few controls is unnecessary
-complex. I've been thinking of adding a flag to the control handler that, when
-set, will 'import' the private controls. The bridge driver is the one that sets
-this as that is the only one that knows whether or not it is in fact a simple
-pipeline.
+   [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
 
-Secondly, I'd love to add MC support to qv4l2. But I'm waiting for you to merge
-the MC library into v4l-utils.git. It's basically the reason why I haven't looked
-at this at all.
+are available in the git repository at:
 
-Regards,
+   git://linuxtv.org/anttip/media_tree.git sdr_api
 
-	Hans
+for you to fetch changes up to 3a95ad55cfa4c2b88a3f09509c6903a55dc9cce9:
 
-On 01/22/2014 11:55 PM, Laurent Pinchart wrote:
-> Hi Hans and Detlev,
-> 
-> While reviewed driver code that models the hardware using the media 
-> controller, I noticed a patch that enabled subdev controls inheritance for the 
-> video nodes. While this is useful for fixed devices, the complexity, 
-> genericity and flexibility of the hardware at hand makes this undesirable, 
-> given that we can't guarantee that a control won't be instantiated more than 
-> once in the pipeline.
-> 
-> I've thus asked what triggered the need for controls inheritance, and found 
-> out that the developers wanted to use qv4l2 as a demo application 
-> (congratulations to Hans for such a useful application :-)). As qv4l2 doesn't 
-> support subdevices, accessing controls required inheriting them on video 
-> nodes.
-> 
-> There's an existing GUI test application for media controller-based devices 
-> called mci (https://gitorious.org/mci) but it hasn't been maintained for quite 
-> some time, and isn't as feature-complete as qv4l2. I was thus wondering 
-> whether it would make sense to add explicit media controller support to qv4l2, 
-> or whether the two applications should remain separate (in the later case some 
-> code could probably still be shared).
-> 
-> Any opinion and/or desire to work on this ?
-> 
+   devices.txt: add video4linux device for Software Defined Radio 
+(2014-01-25 19:02:06 +0200)
 
+----------------------------------------------------------------
+Antti Palosaari (12):
+       v4l: add device type for Software Defined Radio
+       v4l: add new tuner types for SDR
+       v4l: 1 Hz resolution flag for tuners
+       v4l: add stream format for SDR receiver
+       v4l: define own IOCTL ops for SDR FMT
+       v4l: enable some IOCTLs for SDR receiver
+       v4l: add device capability flag for SDR receiver
+       DocBook: document 1 Hz flag
+       DocBook: Software Defined Radio Interface
+       DocBook: mark SDR API as Experimental
+       v4l2-framework.txt: add SDR device type
+       devices.txt: add video4linux device for Software Defined Radio
+
+Hans Verkuil (1):
+       v4l: do not allow modulator ioctls for non-radio devices
+
+  Documentation/DocBook/media/v4l/compat.xml                 |  13 
++++++++++++++
+  Documentation/DocBook/media/v4l/dev-sdr.xml                | 110 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  Documentation/DocBook/media/v4l/io.xml                     |   6 ++++++
+  Documentation/DocBook/media/v4l/pixfmt.xml                 |   8 ++++++++
+  Documentation/DocBook/media/v4l/v4l2.xml                   |   1 +
+  Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml |   8 +++++---
+  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml           |   7 +++++++
+  Documentation/DocBook/media/v4l/vidioc-g-frequency.xml     |   5 +++--
+  Documentation/DocBook/media/v4l/vidioc-g-modulator.xml     |   6 ++++--
+  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml         |  15 
+++++++++++++---
+  Documentation/DocBook/media/v4l/vidioc-querycap.xml        |   6 ++++++
+  Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml  |   8 ++++++--
+  Documentation/devices.txt                                  |   7 +++++++
+  Documentation/video4linux/v4l2-framework.txt               |   1 +
+  drivers/media/v4l2-core/v4l2-dev.c                         |  30 
+++++++++++++++++++++++++++----
+  drivers/media/v4l2-core/v4l2-ioctl.c                       |  75 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------
+  include/media/v4l2-dev.h                                   |   3 ++-
+  include/media/v4l2-ioctl.h                                 |   8 ++++++++
+  include/trace/events/v4l2.h                                |   1 +
+  include/uapi/linux/videodev2.h                             |  16 
+++++++++++++++++
+  20 files changed, 306 insertions(+), 28 deletions(-)
+  create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
+
+
+
+-- 
+http://palosaari.fi/
