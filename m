@@ -1,168 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2931 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbaAaKCl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 05:02:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:37737 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752546AbaAYRLI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jan 2014 12:11:08 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 31/32] solo6x10: implement the motion detection event.
-Date: Fri, 31 Jan 2014 10:56:29 +0100
-Message-Id: <1391162190-8620-32-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 43/52] rtl2832_sdr: clamp ADC frequency to valid range always
+Date: Sat, 25 Jan 2014 19:10:37 +0200
+Message-Id: <1390669846-8131-44-git-send-email-crope@iki.fi>
+In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+V4L2 tuner API says incorrect value should be round to nearest
+legal value. Implement it for ADC frequency setting.
 
-Use the new motion detection event.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 68 ++++++++++++++++++----
- drivers/staging/media/solo6x10/solo6x10.h          |  7 +--
- 2 files changed, 60 insertions(+), 15 deletions(-)
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index db909a7..bb7716c 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -243,6 +243,8 @@ static int solo_enc_on(struct solo_enc_dev *solo_enc)
- 	if (solo_enc->bw_weight > solo_dev->enc_bw_remain)
- 		return -EBUSY;
- 	solo_enc->sequence = 0;
-+	solo_enc->motion_last_state = false;
-+	solo_enc->frames_since_last_motion = 0;
- 	solo_dev->enc_bw_remain -= solo_enc->bw_weight;
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 2c9b703..ddacfd2 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -666,7 +666,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 	u64 u64tmp;
+ 	u32 u32tmp;
  
- 	if (solo_enc->type == SOLO_ENC_TYPE_EXT)
-@@ -544,15 +546,6 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
- 	const vop_header *vh = enc_buf->vh;
- 	int ret;
+-	dev_dbg(&s->udev->dev, "%s:\n", __func__);
++	dev_dbg(&s->udev->dev, "%s: f_adc=%u\n", __func__, s->f_adc);
  
--	/* Check for motion flags */
--	vb->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_MOTION_ON |
--				V4L2_BUF_FLAG_MOTION_DETECTED);
--	if (solo_is_motion_on(solo_enc)) {
--		vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_ON;
--		if (enc_buf->motion)
--			vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_DETECTED;
--	}
--
- 	switch (solo_enc->fmt) {
- 	case V4L2_PIX_FMT_MPEG4:
- 	case V4L2_PIX_FMT_H264:
-@@ -564,9 +557,49 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
- 	}
+ 	if (!test_bit(POWER_ON, &s->flags))
+ 		return 0;
+@@ -1064,12 +1064,26 @@ static int rtl2832_sdr_s_frequency(struct file *file, void *priv,
+ 		const struct v4l2_frequency *f)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
+-	int ret;
++	int ret, band;
+ 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
+ 			__func__, f->tuner, f->type, f->frequency);
  
- 	if (!ret) {
-+		bool send_event = false;
+-	if (f->tuner == 0) {
+-		s->f_adc = f->frequency;
++	/* ADC band midpoints */
++	#define BAND_ADC_0 ((bands_adc[0].rangehigh + bands_adc[1].rangelow) / 2)
++	#define BAND_ADC_1 ((bands_adc[1].rangehigh + bands_adc[2].rangelow) / 2)
 +
- 		vb->v4l2_buf.sequence = solo_enc->sequence++;
- 		vb->v4l2_buf.timestamp.tv_sec = vop_sec(vh);
- 		vb->v4l2_buf.timestamp.tv_usec = vop_usec(vh);
++	if (f->tuner == 0 && f->type == V4L2_TUNER_ADC) {
++		if (f->frequency < BAND_ADC_0)
++			band = 0;
++		else if (f->frequency < BAND_ADC_1)
++			band = 1;
++		else
++			band = 2;
 +
-+		/* Check for motion flags */
-+		if (solo_is_motion_on(solo_enc)) {
-+			/* It takes a few frames for the hardware to detect
-+			 * motion. Once it does it clears the motion detection
-+			 * register and it takes again a few frames before
-+			 * motion is seen. This means in practice that when the
-+			 * motion field is 1, it will go back to 0 for the next
-+			 * frame. This leads to motion detection event being
-+			 * sent all the time, which is not what we want.
-+			 * Instead wait a few frames before deciding that the
-+			 * motion has halted. After some experimentation it
-+			 * turns out that waiting for 5 frames works well.
-+			 */
-+			if (enc_buf->motion == 0 &&
-+			    solo_enc->motion_last_state &&
-+			    solo_enc->frames_since_last_motion++ > 5)
-+				send_event = true;
-+			else if (enc_buf->motion) {
-+				solo_enc->frames_since_last_motion = 0;
-+				send_event = !solo_enc->motion_last_state;
-+			}
-+		}
++		s->f_adc = clamp_t(unsigned int, f->frequency,
++				bands_adc[band].rangelow,
++				bands_adc[band].rangehigh);
 +
-+		if (send_event) {
-+			struct v4l2_event ev = {
-+				.type = V4L2_EVENT_MOTION_DET,
-+				.u.motion_det = {
-+					.flags = V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ,
-+					.frame_sequence = vb->v4l2_buf.sequence,
-+					.region_mask = enc_buf->motion ? 1 : 0,
-+				},
-+			};
-+
-+			solo_enc->motion_last_state = enc_buf->motion;
-+			solo_enc->frames_since_last_motion = 0;
-+			v4l2_event_queue(solo_enc->vfd, &ev);
-+		}
- 	}
+ 		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
+ 				__func__, s->f_adc);
+ 		ret = rtl2832_sdr_set_adc(s);
+@@ -1287,6 +1301,8 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	s->udev = d->udev;
+ 	s->i2c = i2c;
+ 	s->cfg = cfg;
++	s->f_adc = bands_adc[0].rangelow;
++	s->pixelformat = V4L2_PIX_FMT_SDR_U8;
  
- 	vb2_buffer_done(vb, ret ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-@@ -1118,6 +1151,21 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return 0;
- }
- 
-+static int solo_subscribe_event(struct v4l2_fh *fh,
-+				const struct v4l2_event_subscription *sub)
-+{
-+
-+	switch (sub->type) {
-+	case V4L2_EVENT_CTRL:
-+		return v4l2_ctrl_subscribe_event(fh, sub);
-+	case V4L2_EVENT_MOTION_DET:
-+		/* Allow for up to 30 events (1 second for NTSC) to be
-+		 * stored. */
-+		return v4l2_event_subscribe(fh, sub, 30, NULL);
-+	}
-+	return -EINVAL;
-+}
-+
- static const struct v4l2_file_operations solo_enc_fops = {
- 	.owner			= THIS_MODULE,
- 	.open			= v4l2_fh_open,
-@@ -1156,7 +1204,7 @@ static const struct v4l2_ioctl_ops solo_enc_ioctl_ops = {
- 	.vidioc_g_parm			= solo_g_parm,
- 	/* Logging and events */
- 	.vidioc_log_status		= v4l2_ctrl_log_status,
--	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_subscribe_event		= solo_subscribe_event,
- 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- };
- 
-diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
-index 19cb56b..35f9486 100644
---- a/drivers/staging/media/solo6x10/solo6x10.h
-+++ b/drivers/staging/media/solo6x10/solo6x10.h
-@@ -96,11 +96,6 @@
- 
- #define SOLO_DEFAULT_QP			3
- 
--#ifndef V4L2_BUF_FLAG_MOTION_ON
--#define V4L2_BUF_FLAG_MOTION_ON		0x10000
--#define V4L2_BUF_FLAG_MOTION_DETECTED	0x20000
--#endif
--
- #define SOLO_CID_CUSTOM_BASE		(V4L2_CID_USER_BASE | 0xf000)
- #define V4L2_CID_MOTION_TRACE		(SOLO_CID_CUSTOM_BASE+2)
- #define V4L2_CID_OSD_TEXT		(SOLO_CID_CUSTOM_BASE+3)
-@@ -168,6 +163,8 @@ struct solo_enc_dev {
- 	u16			motion_thresh;
- 	bool			motion_global;
- 	bool			motion_enabled;
-+	bool			motion_last_state;
-+	u8			frames_since_last_motion;
- 	u16			width;
- 	u16			height;
- 
+ 	mutex_init(&s->v4l2_lock);
+ 	mutex_init(&s->vb_queue_lock);
 -- 
-1.8.5.2
+1.8.5.3
 
