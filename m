@@ -1,283 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3920 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751064AbaAQJ0h (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:60333 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752396AbaAZLVg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 04:26:37 -0500
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0H9QYcU032338
-	for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 10:26:36 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 264482A00A0
-	for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 10:26:28 +0100 (CET)
-Message-ID: <52D8F743.5080003@xs4all.nl>
-Date: Fri, 17 Jan 2014 10:26:27 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 26 Jan 2014 06:21:36 -0500
+Received: by mail-wg0-f54.google.com with SMTP id x13so4643614wgg.9
+        for <linux-media@vger.kernel.org>; Sun, 26 Jan 2014 03:21:34 -0800 (PST)
+Received: from [192.168.0.104] (host86-170-10-210.range86-170.btcentralplus.com. [86.170.10.210])
+        by mx.google.com with ESMTPSA id ju6sm16607257wjc.1.2014.01.26.03.21.32
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Sun, 26 Jan 2014 03:21:33 -0800 (PST)
+Message-ID: <52E4EFBB.7070504@googlemail.com>
+Date: Sun, 26 Jan 2014 11:21:31 +0000
+From: Robert Longbottom <rongblor@googlemail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [RFCv2 PATCH 3/6] DocBook media: partial rewrite of "Opening and
- Closing Devices"
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
+References: <7D00B0B1-8873-4CB2-903F-8B98749C75FF@googlemail.com> <20140121101950.GA13818@minime.bse> <52DECF44.1070609@googlemail.com> <52DEDFCB.6010802@googlemail.com> <20140122115334.GA14710@minime.bse> <52DFC300.8010508@googlemail.com> <20140122135036.GA14871@minime.bse> <52E00AD0.2020402@googlemail.com> <20140123132741.GA15756@minime.bse> <52E1273F.90207@googlemail.com> <20140125152339.GA18168@minime.bse>
+In-Reply-To: <20140125152339.GA18168@minime.bse>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This section was horribly out of date. A lot of references to old and
-obsolete behavior have been dropped.
+On 25/01/14 15:23, Daniel Glöckner wrote:
+> On Thu, Jan 23, 2014 at 02:29:19PM +0000, Robert Longbottom wrote:
+>> Jan 23 14:24:48 quad kernel: [154562.493224] bits: FMTCHG* VSYNC
+>> HSYNC OFLOW FBUS   NUML => 625
+>> Jan 23 14:24:49 quad kernel: [154562.994015] bttv: 0: timeout:
+>> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
+>> Jan 23 14:24:49 quad kernel: [154563.496010] bttv: 0: timeout:
+>> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
+>> Jan 23 14:24:50 quad kernel: [154563.997020] bttv: 0: timeout:
+>> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
+>> Jan 23 14:24:50 quad kernel: [154564.498018] bttv: 0: timeout:
+>> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
+>> Jan 23 14:24:51 quad kernel: [154564.999023] bttv: 0: timeout:
+>> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
+>> Jan 23 14:24:51 quad kernel: [154565.500024] bttv: 0: timeout:
+>> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
+>> Jan 23 14:24:52 quad kernel: [154566.001014] bttv: 0: timeout:
+>> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
+>> Jan 23 14:24:52 quad kernel: [154566.502016] bttv: 0: timeout:
+>> drop=0 irq=1868/1868, risc=146da000, bits: VSYNC HSYNC OFLOW
+>
+> The chip didn't lock to the input signal.
+> What kind of input are you feeding into the card?
 
-Updated as per Mauro's suggestions (well, most of them anyway :-) ).
+Ah, for most of the testing I've done during the week I haven't had 
+anything plugged in.  Though (obviously) I have tried with some cameras 
+plugged in.  I have 3 "bullet" cams and one mini security camera.  All 
+just standard wired video outputs, PAL, colour.  They work fine on the 
+IVC capture card I have.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/common.xml | 192 +++++++++++------------------
- 1 file changed, 70 insertions(+), 122 deletions(-)
+I've rerun the test with irq_debug=1 and the /var/log/messages output is 
+here: http://pastebin.com/AJSLBhtY  I don't think it looks any better 
+(/different).
 
-diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-index 1ddf354..07dad76 100644
---- a/Documentation/DocBook/media/v4l/common.xml
-+++ b/Documentation/DocBook/media/v4l/common.xml
-@@ -38,70 +38,41 @@ the basic concepts applicable to all devices.</para>
- 
-       <para>V4L2 drivers are implemented as kernel modules, loaded
- manually by the system administrator or automatically when a device is
--first opened. The driver modules plug into the "videodev" kernel
-+first discovered. The driver modules plug into the "videodev" kernel
- module. It provides helper functions and a common application
- interface specified in this document.</para>
- 
-       <para>Each driver thus loaded registers one or more device nodes
--with major number 81 and a minor number between 0 and 255. Assigning
--minor numbers to V4L2 devices is entirely up to the system administrator,
--this is primarily intended to solve conflicts between devices.<footnote>
--	  <para>Access permissions are associated with character
--device special files, hence we must ensure device numbers cannot
--change with the module load order. To this end minor numbers are no
--longer automatically assigned by the "videodev" module as in V4L but
--requested by the driver. The defaults will suffice for most people
--unless two drivers compete for the same minor numbers.</para>
--	</footnote> The module options to select minor numbers are named
--after the device special file with a "_nr" suffix. For example "video_nr"
--for <filename>/dev/video</filename> video capture devices. The number is
--an offset to the base minor number associated with the device type.
--<footnote>
--	  <para>In earlier versions of the V4L2 API the module options
--where named after the device special file with a "unit_" prefix, expressing
--the minor number itself, not an offset. Rationale for this change is unknown.
--Lastly the naming and semantics are just a convention among driver writers,
--the point to note is that minor numbers are not supposed to be hardcoded
--into drivers.</para>
--	</footnote> When the driver supports multiple devices of the same
--type more than one minor number can be assigned, separated by commas:
--<informalexample>
-+with major number 81 and a minor number between 0 and 255. Minor numbers
-+are allocated dynamically unless the kernel is compiled with the kernel
-+option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers are
-+allocated in ranges depending on the device node type (video, radio, etc.).</para>
-+
-+      <para>Many drivers support "video_nr", "radio_nr" or "vbi_nr"
-+module options to select specific video/radio/vbi node numbers. This allows
-+the user to request that the device node is named e.g. /dev/video5 instead
-+of leaving it to chance. When the driver supports multiple devices of the same
-+type more than one device node number can be assigned, separated by commas:
-+	<informalexample>
- 	  <screen>
--&gt; insmod mydriver.o video_nr=0,1 radio_nr=0,1</screen>
-+&gt; modprobe mydriver video_nr=0,1 radio_nr=0,1</screen>
- 	</informalexample></para>
- 
-       <para>In <filename>/etc/modules.conf</filename> this may be
- written as: <informalexample>
- 	  <screen>
--alias char-major-81-0 mydriver
--alias char-major-81-1 mydriver
--alias char-major-81-64 mydriver              <co id="alias" />
--options mydriver video_nr=0,1 radio_nr=0,1   <co id="options" />
-+options mydriver video_nr=0,1 radio_nr=0,1
- 	  </screen>
--	  <calloutlist>
--	    <callout arearefs="alias">
--	      <para>When an application attempts to open a device
--special file with major number 81 and minor number 0, 1, or 64, load
--"mydriver" (and the "videodev" module it depends upon).</para>
--	    </callout>
--	    <callout arearefs="options">
--	      <para>Register the first two video capture devices with
--minor number 0 and 1 (base number is 0), the first two radio device
--with minor number 64 and 65 (base 64).</para>
--	    </callout>
--	  </calloutlist>
--	</informalexample> When no minor number is given as module
--option the driver supplies a default. <xref linkend="devices" />
--recommends the base minor numbers to be used for the various device
--types. Obviously minor numbers must be unique. When the number is
--already in use the <emphasis>offending device</emphasis> will not be
--registered. <!-- Blessed by Linus Torvalds on
--linux-kernel@vger.kernel.org, 2002-11-20. --></para>
--
--      <para>By convention system administrators create various
--character device special files with these major and minor numbers in
--the <filename>/dev</filename> directory. The names recommended for the
--different V4L2 device types are listed in <xref linkend="devices" />.
-+	</informalexample> When no device node number is given as module
-+option the driver supplies a default.</para>
-+
-+      <para>Normally udev will create the device nodes in /dev automatically
-+for you. If udev is not installed, then you need to enable the
-+CONFIG_VIDEO_FIXED_MINOR_RANGES kernel option in order to be able to correctly
-+relate a minor number to a device node number. I.e., you need to be certain
-+that minor number 5 maps to device node name video5. With this kernel option
-+different device types have different minor number ranges. These ranges are
-+listed in <xref linkend="devices" />.
- </para>
- 
-       <para>The creation of character special files (with
-@@ -110,85 +81,67 @@ devices cannot be opened by major and minor number. That means
- applications cannot <emphasis>reliable</emphasis> scan for loaded or
- installed drivers. The user must enter a device name, or the
- application can try the conventional device names.</para>
--
--      <para>Under the device filesystem (devfs) the minor number
--options are ignored. V4L2 drivers (or by proxy the "videodev" module)
--automatically create the required device files in the
--<filename>/dev/v4l</filename> directory using the conventional device
--names above.</para>
-     </section>
- 
-     <section id="related">
-       <title>Related Devices</title>
- 
--      <para>Devices can support several related functions. For example
--video capturing, video overlay and VBI capturing are related because
--these functions share, amongst other, the same video input and tuner
--frequency. V4L and earlier versions of V4L2 used the same device name
--and minor number for video capturing and overlay, but different ones
--for VBI. Experience showed this approach has several problems<footnote>
--	  <para>Given a device file name one cannot reliable find
--related devices. For once names are arbitrary and in a system with
--multiple devices, where only some support VBI capturing, a
--<filename>/dev/video2</filename> is not necessarily related to
--<filename>/dev/vbi2</filename>. The V4L
--<constant>VIDIOCGUNIT</constant> ioctl would require a search for a
--device file with a particular major and minor number.</para>
--	</footnote>, and to make things worse the V4L videodev module
--used to prohibit multiple opens of a device.</para>
--
--      <para>As a remedy the present version of the V4L2 API relaxed the
--concept of device types with specific names and minor numbers. For
--compatibility with old applications drivers must still register different
--minor numbers to assign a default function to the device. But if related
--functions are supported by the driver they must be available under all
--registered minor numbers. The desired function can be selected after
--opening the device as described in <xref linkend="devices" />.</para>
--
--      <para>Imagine a driver supporting video capturing, video
--overlay, raw VBI capturing, and FM radio reception. It registers three
--devices with minor number 0, 64 and 224 (this numbering scheme is
--inherited from the V4L API). Regardless if
--<filename>/dev/video</filename> (81, 0) or
--<filename>/dev/vbi</filename> (81, 224) is opened the application can
--select any one of the video capturing, overlay or VBI capturing
--functions. Without programming (e.&nbsp;g. reading from the device
--with <application>dd</application> or <application>cat</application>)
--<filename>/dev/video</filename> captures video images, while
--<filename>/dev/vbi</filename> captures raw VBI data.
--<filename>/dev/radio</filename> (81, 64) is invariable a radio device,
--unrelated to the video functions. Being unrelated does not imply the
--devices can be used at the same time, however. The &func-open;
--function may very well return an &EBUSY;.</para>
-+      <para>Devices can support several functions. For example
-+video capturing, VBI capturing and radio support.</para>
-+
-+      <para>The V4L2 API creates different nodes for each of these functions.</para>
-+
-+      <para>The V4L2 API was designed with the idea that one device node could support
-+all functions. However, in practice this never worked: this 'feature'
-+was never used by applications and many drivers did not support it and if
-+they did it was certainly never tested. In addition, switching a device
-+node between different functions only works when using the streaming I/O
-+API, not with the read()/write() API.</para>
-+
-+      <para>Today each device node supports just one function, with the
-+exception of overlay support.</para>
- 
-       <para>Besides video input or output the hardware may also
- support audio sampling or playback. If so, these functions are
--implemented as OSS or ALSA PCM devices and eventually OSS or ALSA
--audio mixer. The V4L2 API makes no provisions yet to find these
--related devices. If you have an idea please write to the linux-media
--mailing list: &v4l-ml;.</para>
-+implemented as ALSA PCM devices with optional ALSA audio mixer
-+devices.</para>
-+
-+      <para>One problem with all these devices is that the V4L2 API
-+makes no provisions to find these related devices. Some really
-+complex devices use the Media Controller (see <xref linkend="media_controller" />)
-+which can be used for this purpose. But most drivers do not use it,
-+and while some code exists that uses sysfs to discover related devices
-+(see libmedia_dev in the <ulink url="http://git.linuxtv.org/v4l-utils/">v4l-utils</ulink>
-+git repository), there is no library yet that can provide a single API towards
-+both Media Controller-based devices and devices that do not use the Media Controller.
-+If you want to work on this please write to the linux-media mailing list: &v4l-ml;.</para>
-     </section>
- 
-     <section>
-       <title>Multiple Opens</title>
- 
--      <para>In general, V4L2 devices can be opened more than once.
-+      <para>V4L2 devices can be opened more than once.<footnote><para>
-+There are still some old and obscure drivers that have not been updated to
-+allow for multiple opens. This implies that for such drivers &func-open; can
-+return an &EBUSY; when the device is already in use.</para></footnote>
- When this is supported by the driver, users can for example start a
- "panel" application to change controls like brightness or audio
- volume, while another application captures video and audio. In other words, panel
--applications are comparable to an OSS or ALSA audio mixer application.
--When a device supports multiple functions like capturing and overlay
--<emphasis>simultaneously</emphasis>, multiple opens allow concurrent
--use of the device by forked processes or specialized applications.</para>
--
--      <para>Multiple opens are optional, although drivers should
--permit at least concurrent accesses without data exchange, &ie; panel
--applications. This implies &func-open; can return an &EBUSY; when the
--device is already in use, as well as &func-ioctl; functions initiating
--data exchange (namely the &VIDIOC-S-FMT; ioctl), and the &func-read;
--and &func-write; functions.</para>
--
--      <para>Mere opening a V4L2 device does not grant exclusive
-+applications are comparable to an ALSA audio mixer application.
-+Just opening a V4L2 device should not change the state of the device.<footnote>
-+<para>Unfortunately, opening a radio device often switches the state of the
-+device to radio mode in many drivers. This behavior should be fixed eventually
-+as it violates the V4L2 specification.</para></footnote></para>
-+
-+      <para>Once an application has allocated the memory buffers needed for
-+streaming data (by calling the &VIDIOC-REQBUFS; or &VIDIOC-CREATE-BUFS; ioctls,
-+or implicitly by calling the &func-read; or &func-write; functions) that
-+application (filehandle) becomes the owner of the device. It is no longer
-+allowed to make changes that would affect the buffer sizes (e.g. by calling
-+the &VIDIOC-S-FMT; ioctl) and other applications are no longer allowed to allocate
-+buffers or start or stop streaming. The &EBUSY; will be returned instead.</para>
-+
-+      <para>Merely opening a V4L2 device does not grant exclusive
- access.<footnote>
- 	  <para>Drivers could recognize the
- <constant>O_EXCL</constant> open flag. Presently this is not required,
-@@ -206,12 +159,7 @@ additional access privileges using the priority mechanism described in
-       <para>V4L2 drivers should not support multiple applications
- reading or writing the same data stream on a device by copying
- buffers, time multiplexing or similar means. This is better handled by
--a proxy application in user space. When the driver supports stream
--sharing anyway it must be implemented transparently. The V4L2 API does
--not specify how conflicts are solved. <!-- For example O_EXCL when the
--application does not want to be preempted, PROT_READ mmapped buffers
--which can be mapped twice, what happens when image formats do not
--match etc.--></para>
-+a proxy application in user space.</para>
-     </section>
- 
-     <section>
--- 
-1.8.5.2
+> Can you run the attached program while xawtv is running?
+> It will dump most of the registers of the bt8xx video function.
+
+Sure, output below.  It didn't print out anything until I ran it as root 
+(failed on fd = open(path, O_RDWR|O_SYNC);).  The output remains pretty 
+much the same over multiple runs except these two values:
+
+0E8 FCAP flips between a few values
+100 INT_STAT changes from 0A00000C to 0B00000C and back.
+
+Full output with xawtv running, bttv module loaded with no params.
+
+sudo ./dumpbt8xx /dev/video0
+
+000 00000092 DSTATUS
+004 00000053 IFORM
+008 00000000 TDEC
+00C 000000D2 E_CROP
+010 000000FE E_VDELAY_LO
+014 000000E0 E_VACTIVE_LO
+018 00000078 E_HDELAY_LO
+01C 00000080 E_HACTIVE_LO
+020 00000002 E_HSCALE_HI
+024 000000AC E_HSCALE_LO
+028 00000000 BRIGHT
+02C 00000022 E_CONTROL
+030 000000D8 CONTRAST_LO
+034 00000000 SAT_U_LO
+038 000000B5 SAT_V_LO
+03C 00000000 HUE
+040 00000000 E_SCLOOP
+044 000000CF WC_UP
+048 00000006 OFORM
+04C 00000020 E_VSCALE_HI
+050 00000000 E_VSCALE_LO
+054 00000001 TEST
+058 00000000 ARESET
+060 0000007F ADELAY
+064 00000072 BDELAY
+068 00000081 ADC
+06C 00000000 E_VTC
+078 0000007F WC_DOWN
+080 0000007F TGLB
+084 00000008 TGCTRL
+08C 000000D2 O_CROP
+090 000000FE O_VDELAY_LO
+094 000000E0 O_VACTIVE_LO
+098 00000078 O_HDELAY_LO
+09C 00000080 O_HACTIVE_LO
+0A0 00000002 O_HSCALE_HI
+0A4 000000AC O_HSCALE_LO
+0AC 00000022 O_CONTROL
+0B0 00000000 VTOTAL_LO
+0B4 00000000 VTOTAL_HI
+0C0 00000000 O_SCLOOP
+0CC 00000020 O_VSCALE_HI
+0D0 00000000 O_VSCALE_LO
+0D4 00000000 COLOR_FMT
+0D8 00000010 COLOR_CTL
+0DC 00000003 CAP_CTL
+0E0 000000FF VBI_PACK_SIZE
+0E4 00000001 VBI_PACK_DEL
+0E8 00000011 FCAP
+0EC 00000000 O_VTC
+0F0 000000F9 PLL_F_LO
+0F4 000000DC PLL_F_HI
+0F8 0000008E PLL_XCI
+0FC 00000000 DVSIF
+100 0A00000C INT_STAT
+104 000C0B13 INT_MASK
+10C 0000C0AF GPIO_DMA_CTL
+110 00000003 I2C
+114 30B35000 RISC_STRT_ADD
+118 00000000 GPIO_OUT_EN
+11C 00000000 GPIO_REG_INP
+120 30B35000 RISC_COUNT
+200 000FFFFF GPIO_DATA
+
+Thanks,
+Rob.
 
