@@ -1,91 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2698 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955AbaAMJ6Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 04:58:16 -0500
-Message-ID: <52D3B8B4.3000507@xs4all.nl>
-Date: Mon, 13 Jan 2014 10:58:12 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.20]:53695 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751130AbaAZMz4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jan 2014 07:55:56 -0500
+Received: from minime.bse ([77.20.120.199]) by mail.gmx.com (mrgmx102) with
+ ESMTPSA (Nemesis) id 0Mc8Pz-1Vp31Q1rQl-00JbNU for
+ <linux-media@vger.kernel.org>; Sun, 26 Jan 2014 13:55:55 +0100
+Date: Sun, 26 Jan 2014 13:55:53 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Robert Longbottom <rongblor@googlemail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
+Message-ID: <20140126125552.GA26918@minime.bse>
+References: <52DECF44.1070609@googlemail.com>
+ <52DEDFCB.6010802@googlemail.com>
+ <20140122115334.GA14710@minime.bse>
+ <52DFC300.8010508@googlemail.com>
+ <20140122135036.GA14871@minime.bse>
+ <52E00AD0.2020402@googlemail.com>
+ <20140123132741.GA15756@minime.bse>
+ <52E1273F.90207@googlemail.com>
+ <20140125152339.GA18168@minime.bse>
+ <52E4EFBB.7070504@googlemail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: tomdev@freenet.de
-Subject: [PATCH] solo6x10: fix broken PAL support.
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <52E4EFBB.7070504@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video_type was never set correctly for PAL: it's not a bool, instead
-it is a register value.
+On Sun, Jan 26, 2014 at 11:21:31AM +0000, Robert Longbottom wrote:
+> 0F0 000000F9 PLL_F_LO
+> 0F4 000000DC PLL_F_HI
+> 0F8 0000008E PLL_XCI
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: tomdev@freenet.de
----
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 2 +-
- drivers/staging/media/solo6x10/solo6x10-v4l2.c     | 7 ++++---
- drivers/staging/media/solo6x10/solo6x10.h          | 2 +-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+The PLL is enabled and configured for a 28.63636MHz input clock.
+With the default board config these registers are not touched
+at all, so this must be a remnant of testing with another board
+number. Please repeat with pll=35,35,35,35 .
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index e86c96a..bb59750 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -966,7 +966,7 @@ static int solo_enc_s_std(struct file *file, void *priv, v4l2_std_id std)
- {
- 	struct solo_enc_dev *solo_enc = video_drvdata(file);
- 
--	return solo_set_video_type(solo_enc->solo_dev, std & V4L2_STD_PAL);
-+	return solo_set_video_type(solo_enc->solo_dev, std & V4L2_STD_625_50);
- }
- 
- static int solo_enum_framesizes(struct file *file, void *priv,
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2.c b/drivers/staging/media/solo6x10/solo6x10-v4l2.c
-index 7b26de3..47e72da 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2.c
-@@ -527,7 +527,7 @@ static int solo_g_std(struct file *file, void *priv, v4l2_std_id *i)
- 	return 0;
- }
- 
--int solo_set_video_type(struct solo_dev *solo_dev, bool type)
-+int solo_set_video_type(struct solo_dev *solo_dev, bool is_50hz)
- {
- 	int i;
- 
-@@ -537,7 +537,8 @@ int solo_set_video_type(struct solo_dev *solo_dev, bool type)
- 	for (i = 0; i < solo_dev->nr_chans; i++)
- 		if (vb2_is_busy(&solo_dev->v4l2_enc[i]->vidq))
- 			return -EBUSY;
--	solo_dev->video_type = type;
-+	solo_dev->video_type = is_50hz ? SOLO_VO_FMT_TYPE_PAL :
-+					 SOLO_VO_FMT_TYPE_NTSC;
- 	/* Reconfigure for the new standard */
- 	solo_disp_init(solo_dev);
- 	solo_enc_init(solo_dev);
-@@ -551,7 +552,7 @@ static int solo_s_std(struct file *file, void *priv, v4l2_std_id std)
- {
- 	struct solo_dev *solo_dev = video_drvdata(file);
- 
--	return solo_set_video_type(solo_dev, std & V4L2_STD_PAL);
-+	return solo_set_video_type(solo_dev, std & V4L2_STD_625_50);
- }
- 
- static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
-diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
-index f1bbb8c..8964f8b 100644
---- a/drivers/staging/media/solo6x10/solo6x10.h
-+++ b/drivers/staging/media/solo6x10/solo6x10.h
-@@ -398,7 +398,7 @@ int solo_p2m_dma_desc(struct solo_dev *solo_dev,
- 		      int desc_cnt);
- 
- /* Global s_std ioctl */
--int solo_set_video_type(struct solo_dev *solo_dev, bool type);
-+int solo_set_video_type(struct solo_dev *solo_dev, bool is_50hz);
- void solo_update_mode(struct solo_enc_dev *solo_enc);
- 
- /* Set the threshold for motion detection */
--- 
-1.8.5.1
-
+  Daniel
