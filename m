@@ -1,58 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:49468 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757552AbaAHVTF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jan 2014 16:19:05 -0500
-Received: by mail-ee0-f42.google.com with SMTP id e53so928460eek.29
-        for <linux-media@vger.kernel.org>; Wed, 08 Jan 2014 13:19:04 -0800 (PST)
-Message-ID: <52CDC0C5.6010109@gmail.com>
-Date: Wed, 08 Jan 2014 22:19:01 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: m silverstri <michael.j.silverstri@gmail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: How can I find out what is the driver for device node '/dev/video11'
-References: <CABMudhTFmbv-PrNiGcW2yoGPiXuJ13fCmoqDFFBJfEjLk=gSgw@mail.gmail.com> <CAGoCfizK7ZFgHTcLgaJRaP-Bvjriv7+fu+=yw+btMEC+GvoU7w@mail.gmail.com> <CABMudhQ16ZhvFcwoTdHnU4B9cjVScV4Ohh81izoQDstWsV8X_A@mail.gmail.com> <CAGoCfiws5YdmiY8wYkE4_=yKSc3WxABMyUZiT22rTafs-g4SnA@mail.gmail.com> <CABMudhTjgXpitX83K2x6_Lyse=Rts0h+t-9LZpUNCAV8yacOJw@mail.gmail.com>
-In-Reply-To: <CABMudhTjgXpitX83K2x6_Lyse=Rts0h+t-9LZpUNCAV8yacOJw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1955 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753138AbaA0Oer (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jan 2014 09:34:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, s.nawrocki@samsung.com
+Subject: [RFCv3 PATCH 00/22] Add support for complex controls
+Date: Mon, 27 Jan 2014 15:34:02 +0100
+Message-Id: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/08/2014 08:15 PM, m silverstri wrote:
-> Thanks.
->
-> I am studying android source code.
->  From here,  it has code which open("/dev/video11", O_RDWR, 0) as
-> decoding device.
->
-> http://androidxref.com/4.4.2_r1/xref/hardware/samsung_slsi/exynos5/libhwjpeg/ExynosJpegBase.cpp
+This patch series adds support for complex controls (aka 'Properties') to
+the control framework. It is the first part of a larger patch series that
+adds support for configuration stores, motion detection matrix controls and
+support for 'Multiple Selections'.
 
-What you're looking for might be this proprietary Samsung JPEG codec driver
-used in Android.
+This patch series is based on this RFC:
 
-https://android.googlesource.com/kernel/exynos/+/android-exynos-3.4/drivers/media/video/exynos/jpeg/
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/71822
 
-If you intend to use mainline kernel you need to consider the s5p-jpeg 
-driver,
-which exposes to user space standard interface without any proprietary 
-additions
-incompatible with the V4L2 spec.
+A more complete patch series (including configuration store support and the
+motion detection work) can be found here:
 
-> I want to find out which is the corresponding driver code for device
-> '/dev/video11'.
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/propapi-doc
 
-I suspect these numbers are fixed in the Android kernel (they are hard
-coded in the user space library as you're pointing out above), which is
-a pretty bad practice.
+This patch series is a revision of RFCv2:
 
-It's better to use VIDIOC_QUERYCAP ioctl to find a video device with
-specific name, as Devin suggested. You can also find a video device
-exposed by a specific driver through sysfs, as is done in
-exynos_v4l2_open_devname() function in this a bit less hacky code:
+http://www.spinics.net/lists/linux-media/msg71828.html
 
-https://android.googlesource.com/platform/hardware/samsung_slsi/exynos5/+/jb-mr1-release/libv4l2/exynos_v4l2.c
+Changes since RFCv2 are:
 
-Thanks,
-Sylwester
+- incorporated Sylwester's comments
+- split up patch [20/21] into two: one for the codingstyle fixes in the example
+  code, one for the actual DocBook additions.
+- fixed a bug in patch 6 that broke the old-style VIDIOC_QUERYCTRL. Also made
+  the code in v4l2_query_ext_ctrl() that sets the mask/match variables more
+  readable. If I had to think about my own code, then what are the chances others
+  will understand it? :-)
+- dropped the support for setting/getting partial matrices. That's too ambiguous
+  at the moment, and we can always add that later if necessary.
+
+The API changes required to support complex controls are minimal:
+
+- A new V4L2_CTRL_FLAG_HIDDEN has been added: any control with this flag (and
+  complex controls will always have this flag) will never be shown by control
+  panel GUIs. The only way to discover them is to pass the new _FLAG_NEXT_HIDDEN
+  flag to QUERYCTRL.
+
+- A new VIDIOC_QUERY_EXT_CTRL ioctl has been added: needed to get the number of elements
+  stored in the control (rows by columns) and the size in byte of each element.
+  As a bonus feature a unit string has also been added as this has been requested
+  in the past. In addition min/max/step/def values are now 64-bit.
+
+- A new 'p' field is added to struct v4l2_ext_control to set/get complex values.
+
+- A helper flag V4L2_CTRL_FLAG_IS_PTR has been added to tell apps whether the
+  'value' or 'value64' fields of the v4l2_ext_control struct can be used (bit
+  is cleared) or if the 'p' pointer can be used (bit it set).
+
+Once everyone agrees with this API extension I will make a next version of this
+patch series that adds the Motion Detection support for the solo6x10 and go7007
+drivers that can now use the new matrix controls. That way actual drivers will
+start using this (and it will allow me to move those drivers out of staging).
+
+Regards,
+
+        Hans
+
+
