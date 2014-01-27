@@ -1,111 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4359 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751813AbaASDeZ (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1252 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753539AbaA0OfB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jan 2014 22:34:25 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0J3YLIl001685
-	for <linux-media@vger.kernel.org>; Sun, 19 Jan 2014 04:34:23 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E11652A00A0
-	for <linux-media@vger.kernel.org>; Sun, 19 Jan 2014 04:34:13 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 27 Jan 2014 09:35:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140119033413.E11652A00A0@tschai.lan>
-Date: Sun, 19 Jan 2014 04:34:13 +0100 (CET)
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 21/22] DocBook media: update control section.
+Date: Mon, 27 Jan 2014 15:34:23 +0100
+Message-Id: <1390833264-8503-22-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Document the support for complex types in controls.
 
-date:		Sun Jan 19 04:00:23 CET 2014
-git branch:	test
-git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 104 ++++++++++++++++++++-------
+ 1 file changed, 78 insertions(+), 26 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index ef55c3e..85d78d4 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -13,6 +13,19 @@ correctly with any device.</para>
+     <para>All controls are accessed using an ID value. V4L2 defines
+ several IDs for specific purposes. Drivers can also implement their
+ own custom controls using <constant>V4L2_CID_PRIVATE_BASE</constant>
++<footnote><para>The use of <constant>V4L2_CID_PRIVATE_BASE</constant>
++is problematic because different drivers may use the same
++<constant>V4L2_CID_PRIVATE_BASE</constant> ID for different controls.
++This makes it hard to programatically set such controls since the meaning
++of the control with that ID is driver dependent. In order to resolve this
++drivers use unique IDs and the <constant>V4L2_CID_PRIVATE_BASE</constant>
++IDs are mapped to those unique IDs by the kernel. Consider these
++<constant>V4L2_CID_PRIVATE_BASE</constant> IDs as aliases to the real
++IDs.</para>
++<para>Many applications today still use the <constant>V4L2_CID_PRIVATE_BASE</constant>
++IDs instead of using &VIDIOC-QUERYCTRL; with the <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>
++flag to enumerate all IDs, so support for <constant>V4L2_CID_PRIVATE_BASE</constant>
++is still around.</para></footnote>
+ and higher values. The pre-defined control IDs have the prefix
+ <constant>V4L2_CID_</constant>, and are listed in <xref
+ linkend="control-id" />. The ID is used when querying the attributes of
+@@ -31,25 +44,22 @@ the current video input or output, tuner or modulator, or audio input
+ or output. Different in the sense of other bounds, another default and
+ current value, step size or other menu items. A control with a certain
+ <emphasis>custom</emphasis> ID can also change name and
+-type.<footnote>
+-	<para>It will be more convenient for applications if drivers
+-make use of the <constant>V4L2_CTRL_FLAG_DISABLED</constant> flag, but
+-that was never required.</para>
+-      </footnote> Control values are stored globally, they do not
++type.</para>
++
++    <para>If a control is not applicable to the current configuration
++of the device (for example, it doesn't apply to the current video input)
++drivers set the <constant>V4L2_CTRL_FLAG_INACTIVE</constant> flag.</para>
++
++    <para>Control values are stored globally, they do not
+ change when switching except to stay within the reported bounds. They
+ also do not change &eg; when the device is opened or closed, when the
+ tuner radio frequency is changed or generally never without
+-application request. Since V4L2 specifies no event mechanism, panel
+-applications intended to cooperate with other panel applications (be
+-they built into a larger application, as a TV viewer) may need to
+-regularly poll control values to update their user
+-interface.<footnote>
+-	<para>Applications could call an ioctl to request events.
+-After another process called &VIDIOC-S-CTRL; or another ioctl changing
+-shared properties the &func-select; function would indicate
+-readability until any ioctl (querying the properties) is
+-called.</para>
+-      </footnote></para>
++application request.</para>
++
++    <para>V4L2 specifies an event mechanism to notify applications
++when controls change value (see &VIDIOC-SUBSCRIBE-EVENT;, event
++<constant>V4L2_EVENT_CTRL</constant>), panel applications might want to make
++use of that in order to always reflect the correct control value.</para>
+ 
+     <para>
+       All controls use machine endianness.
+@@ -434,8 +444,8 @@ Drivers must implement <constant>VIDIOC_QUERYCTRL</constant>,
+ controls, <constant>VIDIOC_QUERYMENU</constant> when it has one or
+ more menu type controls.</para>
+ 
+-    <example>
+-      <title>Enumerating all controls</title>
++    <example id="enum_all_controls">
++      <title>Enumerating all user controls</title>
+ 
+       <programlisting>
+ &v4l2-queryctrl; queryctrl;
+@@ -501,6 +511,32 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+     </example>
+ 
+     <example>
++      <title>Enumerating all user controls (alternative)</title>
++	<programlisting>
++memset(&amp;queryctrl, 0, sizeof(queryctrl));
++
++queryctrl.id = V4L2_CTRL_CLASS_USER | V4L2_CTRL_FLAG_NEXT_CTRL;
++while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++	if (V4L2_CTRL_ID2CLASS(queryctrl.id) != V4L2_CTRL_CLASS_USER)
++		break;
++	if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
++		continue;
++
++	printf("Control %s\n", queryctrl.name);
++
++	if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
++		enumerate_menu();
++
++	queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
++}
++if (errno != EINVAL) {
++	perror("VIDIOC_QUERYCTRL");
++	exit(EXIT_FAILURE);
++}
++</programlisting>
++    </example>
++
++    <example>
+       <title>Changing controls</title>
+ 
+       <programlisting>
+@@ -624,16 +660,32 @@ supported.</para>
+ &v4l2-control;, except for the fact that it also allows for 64-bit
+ values and pointers to be passed.</para>
+ 
++      <para>Since the &v4l2-ext-control; supports pointers it is now
++also possible to have controls with complex types such as arrays/matrices
++and/or structures. All such complex controls will have the
++<constant>V4L2_CTRL_FLAG_HIDDEN</constant> set since such controls cannot
++be displayed in control panel applications. Nor can they be used in the
++user class (for backwards compatibility reasons), and you need to specify
++the <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> when enumerating controls
++to actually be able to see such hidden controls. In other words, these
++controls with complex types should only be used programmatically.</para>
++
++      <para>Since such complex controls need to expose more information
++about themselves than is possible with &VIDIOC-QUERYCTRL; the
++&VIDIOC-QUERY-EXT-CTRL; ioctl was added. In particular, this ioctl gives
++the size of the matrix if this control consists of more than
++one element.</para>
++
+       <para>It is important to realize that due to the flexibility of
+ controls it is necessary to check whether the control you want to set
+ actually is supported in the driver and what the valid range of values
+-is. So use the &VIDIOC-QUERYCTRL; and &VIDIOC-QUERYMENU; ioctls to
+-check this. Also note that it is possible that some of the menu
+-indices in a control of type <constant>V4L2_CTRL_TYPE_MENU</constant>
+-may not be supported (<constant>VIDIOC_QUERYMENU</constant> will
+-return an error). A good example is the list of supported MPEG audio
+-bitrates. Some drivers only support one or two bitrates, others
+-support a wider range.</para>
++is. So use the &VIDIOC-QUERYCTRL; (or &VIDIOC-QUERY-EXT-CTRL;) and
++&VIDIOC-QUERYMENU; ioctls to check this. Also note that it is possible
++that some of the menu indices in a control of type
++<constant>V4L2_CTRL_TYPE_MENU</constant> may not be supported
++(<constant>VIDIOC_QUERYMENU</constant> will return an error). A good
++example is the list of supported MPEG audio bitrates. Some drivers only
++support one or two bitrates, others support a wider range.</para>
+ 
+       <para>
+ 	All controls use machine endianness.
+@@ -699,7 +751,7 @@ ID based on a control ID.</para>
+ <constant>VIDIOC_QUERYCTRL</constant> will fail when used in
+ combination with <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>. In
+ that case the old method of enumerating control should be used (see
+-1.8). But if it is supported, then it is guaranteed to enumerate over
++<xref linkend="enum_all_controls" />). But if it is supported, then it is guaranteed to enumerate over
+ all controls, including driver-private controls.</para>
+     </section>
+ 
+-- 
+1.8.5.2
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
