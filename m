@@ -1,56 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53139 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727AbaAMVgT (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3791 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753138AbaA0Oeq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 16:36:19 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/7] Multiple arch trivial fixups
-Date: Mon, 13 Jan 2014 16:32:31 -0200
-Message-Id: <1389637958-3884-1-git-send-email-m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 27 Jan 2014 09:34:46 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 04/22] videodev2.h: add initial support for complex controls.
+Date: Mon, 27 Jan 2014 15:34:06 +0100
+Message-Id: <1390833264-8503-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a series of trivial fixups, solving a bunch of bugs reported
-when compiling the media tree with allmodconfig/allyesconfig with
-several architectures (47 archs).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-There is one patch fixing up a compilation bug with ARCH=c6x:
+Complex controls are controls that can be used for compound and array
+types. This allows for more complex data structures to be used with the
+control framework.
 
-	 lirc_parallel: avoid name conflict on mn10300 arch
+Such controls always have the V4L2_CTRL_FLAG_HIDDEN flag set. Note that
+'simple' controls can also set that flag.
 
-The remaining patches are warning fixups. Two of them fixes
-real bugs:
-	dib8000: Properly represent long long integers
-	go7007-usb: only use go->dev after allocated
+The existing V4L2_CTRL_FLAG_NEXT_CTRL flag will only enumerate controls
+that do not have the HIDDEN flag, so a new V4L2_CTRL_FLAG_NEXT_HIDDEN flag
+is added to enumerate hidden controls. Set both flags to enumerate any
+controls (hidden or not).
 
-The others just make the compiler shut up.
+Complex control types will start at V4L2_CTRL_COMPLEX_TYPES. In addition, any
+control that uses the new 'p' field or the existing 'string' field will have
+flag V4L2_CTRL_FLAG_IS_PTR set.
 
-Mauro Carvalho Chehab (7):
-  [media] sh_vou: comment unused vars
-  [media] radio-usb-si4713: make si4713_register_i2c_adapter static
-  [media] dib8000: Properly represent long long integers
-  [media] dib8000: Fix a few warnings when compiled for avr32
-  [media] go7007-usb: only use go->dev after allocated
-  [media] lirc_parallel: avoid name conflict on mn10300 arch
-  [media] tea575x: Fix build with ARCH=c6x
+While not strictly necessary, adding that flag makes life for applications
+a lot simpler. If the flag is not set, then the control value is set
+through the value or value64 fields of struct v4l2_ext_control, otherwise
+a pointer points to the value.
 
- drivers/media/dvb-frontends/dib8000.c         | 10 +++++-----
- drivers/media/platform/sh_vou.c               |  9 ++++-----
- drivers/media/radio/si4713/radio-usb-si4713.c |  2 +-
- drivers/media/radio/tea575x.c                 |  2 +-
- drivers/staging/media/go7007/go7007-usb.c     | 14 +++++++++-----
- drivers/staging/media/lirc/lirc_parallel.c    |  4 ++--
- drivers/staging/media/lirc/lirc_serial.c      |  4 ++--
- 7 files changed, 24 insertions(+), 21 deletions(-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ include/uapi/linux/videodev2.h | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 6ae7bbe..4d7782a 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1228,6 +1228,7 @@ struct v4l2_ext_control {
+ 		__s32 value;
+ 		__s64 value64;
+ 		char *string;
++		void *p;
+ 	};
+ } __attribute__ ((packed));
+ 
+@@ -1252,7 +1253,10 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
+ 	V4L2_CTRL_TYPE_STRING        = 7,
+ 	V4L2_CTRL_TYPE_BITMASK       = 8,
+-	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
++	V4L2_CTRL_TYPE_INTEGER_MENU  = 9,
++
++	/* Complex types are >= 0x0100 */
++	V4L2_CTRL_COMPLEX_TYPES	     = 0x0100,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+@@ -1288,9 +1292,12 @@ struct v4l2_querymenu {
+ #define V4L2_CTRL_FLAG_SLIDER 		0x0020
+ #define V4L2_CTRL_FLAG_WRITE_ONLY 	0x0040
+ #define V4L2_CTRL_FLAG_VOLATILE		0x0080
++#define V4L2_CTRL_FLAG_HIDDEN		0x0100
++#define V4L2_CTRL_FLAG_IS_PTR		0x0200
+ 
+-/*  Query flag, to be ORed with the control ID */
++/*  Query flags, to be ORed with the control ID */
+ #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
++#define V4L2_CTRL_FLAG_NEXT_HIDDEN	0x40000000
+ 
+ /*  User-class control IDs defined by V4L2 */
+ #define V4L2_CID_MAX_CTRLS		1024
 -- 
-1.8.3.1
+1.8.5.2
 
