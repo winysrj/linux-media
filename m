@@ -1,178 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:25673 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752349AbaAGR3k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 12:29:40 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZ100CEQKLFJA60@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 Jan 2014 12:29:39 -0500 (EST)
-Date: Tue, 07 Jan 2014 15:29:34 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 15/18] libdvbv5: remove c99 comments
-Message-id: <20140107152934.3e39af3d@samsung.com>
-In-reply-to: <1388407731-24369-15-git-send-email-neolynx@gmail.com>
-References: <1388407731-24369-1-git-send-email-neolynx@gmail.com>
- <1388407731-24369-15-git-send-email-neolynx@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:58178 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753157AbaA0EUp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jan 2014 23:20:45 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] r820t: add manual gain controls
+Date: Mon, 27 Jan 2014 06:20:18 +0200
+Message-Id: <1390796419-7633-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Dec 2013 13:48:48 +0100
-André Roth <neolynx@gmail.com> escreveu:
+Add gain control for LNA, Mixer and IF. Expose controls via DVB
+frontend .set_config callback.
 
-> Signed-off-by: André Roth <neolynx@gmail.com>
-> ---
->  lib/libdvbv5/descriptors/atsc_eit.c              |  2 +-
->  lib/libdvbv5/descriptors/desc_service_list.c     |  4 +++-
->  lib/libdvbv5/descriptors/desc_service_location.c |  2 +-
->  lib/libdvbv5/dvb-file.c                          | 21 +++++++++++----------
->  lib/libdvbv5/dvb-log.c                           |  2 +-
->  lib/libdvbv5/dvb-sat.c                           |  2 --
->  lib/libdvbv5/dvb-scan.c                          |  4 ++--
->  7 files changed, 19 insertions(+), 18 deletions(-)
-> 
-> diff --git a/lib/libdvbv5/descriptors/atsc_eit.c b/lib/libdvbv5/descriptors/atsc_eit.c
-> index 4ee38ae..8d3791d 100644
-> --- a/lib/libdvbv5/descriptors/atsc_eit.c
-> +++ b/lib/libdvbv5/descriptors/atsc_eit.c
-> @@ -68,7 +68,7 @@ void atsc_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
->                  atsc_time(event->start_time, &event->start);
->  		event->source_id = eit->header.id;
->  
-> -                //FIXME: title
-> +                /* FIXME: title */
->                  p += event->title_length - 1;
->  
->  		if(!*head)
-> diff --git a/lib/libdvbv5/descriptors/desc_service_list.c b/lib/libdvbv5/descriptors/desc_service_list.c
-> index ab91622..18aa313 100644
-> --- a/lib/libdvbv5/descriptors/desc_service_list.c
-> +++ b/lib/libdvbv5/descriptors/desc_service_list.c
-> @@ -23,6 +23,8 @@
->  #include "descriptors.h"
->  #include "dvb-fe.h"
->  
-> +/* FIXME: implement */
-> +
->  void dvb_desc_service_list_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
->  {
->  	/*struct dvb_desc_service_list *slist = (struct dvb_desc_service_list *) desc;*/
-> @@ -38,7 +40,7 @@ void dvb_desc_service_list_init(struct dvb_v5_fe_parms *parms, const uint8_t *bu
->  	/*}*/
->  
->  	/*return sizeof(struct dvb_desc_service_list) + slist->length + sizeof(struct dvb_desc_service_list_table);*/
-> -	//FIXME: make linked list
-> +	/* FIXME: make linked list */
->  }
->  
->  void dvb_desc_service_list_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
-> diff --git a/lib/libdvbv5/descriptors/desc_service_location.c b/lib/libdvbv5/descriptors/desc_service_location.c
-> index 3759665..b205428 100644
-> --- a/lib/libdvbv5/descriptors/desc_service_location.c
-> +++ b/lib/libdvbv5/descriptors/desc_service_location.c
-> @@ -36,7 +36,7 @@ void dvb_desc_service_location_init(struct dvb_v5_fe_parms *parms, const uint8_t
->  
->  	bswap16(service_location->bitfield);
->  
-> -	// FIXME: handle elements == 0
-> +	 /* FIXME: handle elements == 0 */
->  	service_location->element = malloc(service_location->elements * sizeof(struct dvb_desc_service_location_element));
->  	int i;
->  	struct dvb_desc_service_location_element *element = service_location->element;
-> diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
-> index 1e41fbb..de19dc5 100644
-> --- a/lib/libdvbv5/dvb-file.c
-> +++ b/lib/libdvbv5/dvb-file.c
-> @@ -784,20 +784,21 @@ static char *dvb_vchannel(struct dvb_table_nit *nit, uint16_t service_id)
->  	if (!nit)
->  		return NULL;
->  
-> -for( struct dvb_desc_logical_channel *desc = (struct dvb_desc_logical_channel *) nit->descriptor; desc; desc = (struct dvb_desc_logical_channel *) desc->next ) \
-> +	/* FIXME: use dvb_desc_find(struct dvb_desc_logical_channel, desc, nit, logical_channel_number_descriptor) { */
-> +	for( struct dvb_desc_logical_channel *desc = (struct dvb_desc_logical_channel *) nit->descriptor; desc; desc = (struct dvb_desc_logical_channel *) desc->next ) {
->  		if(desc->type == logical_channel_number_descriptor) {
-> -//	dvb_desc_find(struct dvb_desc_logical_channel, desc, nit, logical_channel_number_descriptor) {
-> -		struct dvb_desc_logical_channel *d = (void *)desc;
-> +			struct dvb_desc_logical_channel *d = (void *)desc;
->  
-> -		size_t len;
-> +			size_t len;
->  
-> -		len = d->length / sizeof(d->lcn);
-> +			len = d->length / sizeof(d->lcn);
->  
-> -		for (i = 0; i < len; i++) {
-> -			if (service_id == d->lcn[i].service_id) {
-> -				asprintf(&buf, "%d.%d",
-> -					d->lcn[i].logical_channel_number, i);
-> -				return buf;
-> +			for (i = 0; i < len; i++) {
-> +				if (service_id == d->lcn[i].service_id) {
-> +					asprintf(&buf, "%d.%d",
-> +						d->lcn[i].logical_channel_number, i);
-> +					return buf;
-> +				}
->  			}
->  		}
->  	}
-> diff --git a/lib/libdvbv5/dvb-log.c b/lib/libdvbv5/dvb-log.c
-> index 7fa811f..2be056a 100644
-> --- a/lib/libdvbv5/dvb-log.c
-> +++ b/lib/libdvbv5/dvb-log.c
-> @@ -44,7 +44,7 @@ static const struct loglevel {
->  
->  void dvb_default_log(int level, const char *fmt, ...)
->  {
-> -	if(level > sizeof(loglevels) / sizeof(struct loglevel) - 2) // ignore LOG_COLOROFF as well
-> +	if(level > sizeof(loglevels) / sizeof(struct loglevel) - 2) /* ignore LOG_COLOROFF as well */
->  		level = LOG_INFO;
->  	va_list ap;
->  	va_start(ap, fmt);
-> diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
-> index 09eb4d1..ea3e2c1 100644
-> --- a/lib/libdvbv5/dvb-sat.c
-> +++ b/lib/libdvbv5/dvb-sat.c
-> @@ -214,8 +214,6 @@ static void dvbsat_diseqc_prep_frame_addr(struct diseqc_cmd *cmd,
->  	cmd->address = diseqc_addr[type];
->  }
->  
-> -//struct dvb_v5_fe_parms *parms; // legacy code, used for parms->fd, FIXME anyway
-> -
->  /* Inputs are numbered from 1 to 16, according with the spec */
->  static int dvbsat_diseqc_write_to_port_group(struct dvb_v5_fe_parms *parms, struct diseqc_cmd *cmd,
->  					     int high_band,
-> diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
-> index d0f0b39..5f8596e 100644
-> --- a/lib/libdvbv5/dvb-scan.c
-> +++ b/lib/libdvbv5/dvb-scan.c
-> @@ -98,7 +98,7 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
->  	uint8_t *tbl = NULL;
->  	ssize_t table_length = 0;
->  
-> -	// handle sections
-> +	/* handle sections */
->  	int start_id = -1;
->  	int start_section = -1;
->  	int first_section = -1;
-> @@ -112,7 +112,7 @@ int dvb_read_section_with_id(struct dvb_v5_fe_parms *parms, int dmx_fd,
->  		return -4;
->  	*table = NULL;
->  
-> -	// FIXME: verify known table
-> +	 /* FIXME: verify known table */
->  	memset(&f, 0, sizeof(f));
->  	f.pid = pid;
->  	f.filter.filter[0] = tid;
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/r820t.c | 38 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/r820t.h |  7 +++++++
+ 2 files changed, 45 insertions(+)
 
-Only partially applies (as some patches introducing those comments weren't applied).
-
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index d9ee43f..5a926a3 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -1251,6 +1251,43 @@ static int r820t_set_gain_mode(struct r820t_priv *priv,
+ }
+ #endif
+ 
++static int r820t_set_config(struct dvb_frontend *fe, void *priv_cfg)
++{
++	struct r820t_priv *priv = fe->tuner_priv;
++	struct r820t_ctrl *ctrl = priv_cfg;
++	int rc;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	if (ctrl->lna_gain == INT_MIN)
++		rc = r820t_write_reg_mask(priv, 0x05, 0x00, 0x10);
++	else
++		rc = r820t_write_reg_mask(priv, 0x05,
++				0x10 | ctrl->lna_gain, 0x1f);
++	if (rc < 0)
++		goto err;
++
++	if (ctrl->mixer_gain == INT_MIN)
++		rc = r820t_write_reg_mask(priv, 0x07, 0x10, 0x10);
++	else
++		rc = r820t_write_reg_mask(priv, 0x07,
++				0x00 | ctrl->mixer_gain, 0x1f);
++	if (rc < 0)
++		goto err;
++
++	if (ctrl->if_gain == INT_MIN)
++		rc = r820t_write_reg_mask(priv, 0x0c, 0x10, 0x10);
++	else
++		rc = r820t_write_reg_mask(priv, 0x0c,
++				0x00 | ctrl->if_gain, 0x1f);
++err:
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	return rc;
++}
++
+ static int generic_set_freq(struct dvb_frontend *fe,
+ 			    u32 freq /* in HZ */,
+ 			    unsigned bw,
+@@ -2275,6 +2312,7 @@ static const struct dvb_tuner_ops r820t_tuner_ops = {
+ 	.release = r820t_release,
+ 	.sleep = r820t_sleep,
+ 	.set_params = r820t_set_params,
++	.set_config = r820t_set_config,
+ 	.set_analog_params = r820t_set_analog_freq,
+ 	.get_if_frequency = r820t_get_if_frequency,
+ 	.get_rf_strength = r820t_signal,
+diff --git a/drivers/media/tuners/r820t.h b/drivers/media/tuners/r820t.h
+index 48af354..42c0d8e 100644
+--- a/drivers/media/tuners/r820t.h
++++ b/drivers/media/tuners/r820t.h
+@@ -42,6 +42,13 @@ struct r820t_config {
+ 	bool use_predetect;
+ };
+ 
++/* set INT_MIN for automode */
++struct r820t_ctrl {
++	int lna_gain;
++	int mixer_gain;
++	int if_gain;
++};
++
+ #if IS_ENABLED(CONFIG_MEDIA_TUNER_R820T)
+ struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
+ 				  struct i2c_adapter *i2c,
 -- 
+1.8.5.3
 
-Cheers,
-Mauro
