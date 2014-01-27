@@ -1,35 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:56114 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752428AbaAVWpu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jan 2014 17:45:50 -0500
-Received: by mail-ea0-f177.google.com with SMTP id n15so70080ead.36
-        for <linux-media@vger.kernel.org>; Wed, 22 Jan 2014 14:45:49 -0800 (PST)
-Message-ID: <52E04A1A.2030000@gmail.com>
-Date: Wed, 22 Jan 2014 23:45:46 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mout.gmx.net ([212.227.15.19]:65060 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753194AbaA0DUs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jan 2014 22:20:48 -0500
+Received: from minime.bse ([77.20.120.199]) by mail.gmx.com (mrgmx001) with
+ ESMTPSA (Nemesis) id 0MMkDH-1WDOiH0j9z-008X9u for
+ <linux-media@vger.kernel.org>; Mon, 27 Jan 2014 04:20:46 +0100
+Date: Mon, 27 Jan 2014 04:20:44 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Robert Longbottom <rongblor@googlemail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
+Message-ID: <20140127032044.GA27541@minime.bse>
+References: <20140122115334.GA14710@minime.bse>
+ <52DFC300.8010508@googlemail.com>
+ <20140122135036.GA14871@minime.bse>
+ <52E00AD0.2020402@googlemail.com>
+ <20140123132741.GA15756@minime.bse>
+ <52E1273F.90207@googlemail.com>
+ <20140125152339.GA18168@minime.bse>
+ <52E4EFBB.7070504@googlemail.com>
+ <20140126125552.GA26918@minime.bse>
+ <52E5366A.807@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 01/21] v4l2-ctrls: increase internal min/max/step/def
- to 64 bit
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl> <1390221974-28194-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390221974-28194-2-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <52E5366A.807@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/20/2014 01:45 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
->
-> While VIDIOC_QUERYCTRL is limited to 32 bit min/max/step/def values
-> for controls, the upcoming VIDIOC_QUERY_EXT_CTRL isn't. So increase
-> the internal representation to 64 bits in preparation.
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+On Sun, Jan 26, 2014 at 04:23:06PM +0000, Robert Longbottom wrote:
+> 000 000000D7 DSTATUS
+> 114 32734000 RISC_STRT_ADD
+> 120 32734000 RISC_COUNT
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Video is present and locked but the RISC counter is stuck at the start
+address. My best guess is that the CPLD is not forwarding the REQ signal
+to the PCI bridge, so the BT878A can't fetch the RISC instructions.
+But then there is also this persistent ADC overflow...
+
+As for the CPLD, there is not much we can do. I count 23 GPIOs going
+to that chip. And we don't know if some of these are outputs of the
+CPLD, making it a bit risky to just randomly drive values on those
+pins.
+
+If we had the original software, we could analyze what it is doing.
+There is someone on ebay.com selling two of those cards and a cd
+labled "Rescue Disk Version 1.14 for Linux DVR".
+
+  Daniel
