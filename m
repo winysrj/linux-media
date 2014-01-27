@@ -1,84 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:59271 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753516AbaA0Rpw (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3191 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753195AbaA0Ddu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 12:45:52 -0500
-Received: by mail-pb0-f50.google.com with SMTP id rq2so6172169pbb.37
-        for <linux-media@vger.kernel.org>; Mon, 27 Jan 2014 09:45:51 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <52E5AAAD.5050906@iki.fi>
-References: <1390781812-20226-1-git-send-email-crope@iki.fi>
-	<CAGoCfiyQ6-SA-5PYMgAv3Oq3gzcR-ReYCpL8Ak-KRVw0XHNd4Q@mail.gmail.com>
-	<52E5AAAD.5050906@iki.fi>
-Date: Mon, 27 Jan 2014 12:45:51 -0500
-Message-ID: <CAOcJUbzN9dM-KnMEU3GooS183GPOSmoGyF5CGiX36ZBm7PqYZA@mail.gmail.com>
-Subject: Re: [PATCH 1/3] e4000: convert DVB tuner to I2C driver model
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 26 Jan 2014 22:33:50 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0R3XkfG068738
+	for <linux-media@vger.kernel.org>; Mon, 27 Jan 2014 04:33:48 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 039662A00A3
+	for <linux-media@vger.kernel.org>; Mon, 27 Jan 2014 04:33:41 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140127033341.039662A00A3@tschai.lan>
+Date: Mon, 27 Jan 2014 04:33:41 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 26, 2014 at 7:39 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 27.01.2014 02:28, Devin Heitmueller wrote:
->>
->> On Sun, Jan 26, 2014 at 7:16 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>
->>> Driver conversion from proprietary DVB tuner model to more
->>> general I2C driver model.
->>
->>
->> Mike should definitely weigh in on this.  Eliminating the existing
->> model of using dvb_attach() for tuners is something that needs to be
->> considered carefully, and this course of action should be agreed on by
->> the subsystem maintainers before we start converting drivers.  This
->> could be particularly relevant for hybrid tuners where the driver
->> instance is instantiated via tuner-core using dvb_attach() for the
->> analog side.
->>
->> In the meantime, this change makes this driver work differently than
->> every other tuner in the tree.
->
->
-> Heh, it is quite stupid to do things otherwise than rest of the kernel and
-> also I think it is against i2c documentation. For more we refuse to use
-> kernel standard practices the more there will be problems in a long ran.
->
-> There is things that are build top of these standard models and if you are
-> using some proprietary method, then you are without these services. I think
-> it was regmap which I was looking once, but dropped it as it requires i2c
-> client.
->
-> Also, I already implemented one tuner driver using standard I2C model. If
-> there will be problems then those are surely fixable.
->
-> regards
-> Antti
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Devin is right-  I should have been cc'd on this.  Please remember to
-cc me on any DVB or tuner (both analog and digital) subsystem-level
-changes.
+Results of the daily build of media_tree:
 
-What Devin probably doesn't realize, however, is that I have basically
-already agreed on this change -- this, overall, will be a very
-positive move for the media subsystem.  We just need to do it
-correctly, subsystem-wide.
+date:		Mon Jan 27 04:00:35 CET 2014
+git branch:	test
+git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-But just because this is a good idea, its no reason to call the
-current mechanism 'quite stupid' .. We're all working together here,
-let's not belittle the work that others have done in the past.  I'd
-rather just look forward and build a better codebase for the future
-:-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-Antti submitted similar patches a few months ago - I have to review
-his newer series and see if anything has changed.  My goal would be to
-commit these patches into a new branch and work on converting the
-entire tuner tree to the newer method, only merging to master once all
-is done and tested.
+Detailed results are available here:
 
--Mike
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
