@@ -1,41 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48568 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750962AbaALTsf (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3466 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753728AbaA0OfB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jan 2014 14:48:35 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] em28xx-audio: fix return code on device disconnect
-Date: Sun, 12 Jan 2014 14:44:52 -0200
-Message-Id: <1389545092-19665-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 27 Jan 2014 09:35:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 20/22] DocBook media: fix coding style in the control example code
+Date: Mon, 27 Jan 2014 15:34:22 +0100
+Message-Id: <1390833264-8503-21-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alsa has an special non-negative return code to indicate device removal
-at snd_em28xx_capture_pointer(). Use it, instead of an error code.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Use the proper kernel coding style in these examples.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-audio.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/media/v4l/controls.xml | 81 ++++++++++++++--------------
+ 1 file changed, 40 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index f3e320098f79..47766b796acb 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -434,7 +434,7 @@ static snd_pcm_uframes_t snd_em28xx_capture_pointer(struct snd_pcm_substream
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a5a3188..ef55c3e 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -441,61 +441,60 @@ more menu type controls.</para>
+ &v4l2-queryctrl; queryctrl;
+ &v4l2-querymenu; querymenu;
  
- 	dev = snd_pcm_substream_chip(substream);
- 	if (dev->disconnected)
--		return -ENODEV;
-+		return SNDRV_PCM_POS_XRUN;
+-static void
+-enumerate_menu (void)
++static void enumerate_menu(void)
+ {
+-	printf ("  Menu items:\n");
++	printf("  Menu items:\n");
  
- 	spin_lock_irqsave(&dev->adev.slock, flags);
- 	hwptr_done = dev->adev.hwptr_done_capture;
+-	memset (&amp;querymenu, 0, sizeof (querymenu));
++	memset(&amp;querymenu, 0, sizeof(querymenu));
+ 	querymenu.id = queryctrl.id;
+ 
+ 	for (querymenu.index = queryctrl.minimum;
+ 	     querymenu.index &lt;= queryctrl.maximum;
+-	      querymenu.index++) {
+-		if (0 == ioctl (fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
+-			printf ("  %s\n", querymenu.name);
++	     querymenu.index++) {
++		if (0 == ioctl(fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
++			printf("  %s\n", querymenu.name);
+ 		}
+ 	}
+ }
+ 
+-memset (&amp;queryctrl, 0, sizeof (queryctrl));
++memset(&amp;queryctrl, 0, sizeof(queryctrl));
+ 
+ for (queryctrl.id = V4L2_CID_BASE;
+      queryctrl.id &lt; V4L2_CID_LASTP1;
+      queryctrl.id++) {
+-	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+ 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
+ 			continue;
+ 
+-		printf ("Control %s\n", queryctrl.name);
++		printf("Control %s\n", queryctrl.name);
+ 
+ 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+-			enumerate_menu ();
++			enumerate_menu();
+ 	} else {
+ 		if (errno == EINVAL)
+ 			continue;
+ 
+-		perror ("VIDIOC_QUERYCTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_QUERYCTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ }
+ 
+ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+      queryctrl.id++) {
+-	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+ 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
+ 			continue;
+ 
+-		printf ("Control %s\n", queryctrl.name);
++		printf("Control %s\n", queryctrl.name);
+ 
+ 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+-			enumerate_menu ();
++			enumerate_menu();
+ 	} else {
+ 		if (errno == EINVAL)
+ 			break;
+ 
+-		perror ("VIDIOC_QUERYCTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_QUERYCTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ }
+ </programlisting>
+@@ -508,53 +507,53 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+ &v4l2-queryctrl; queryctrl;
+ &v4l2-control; control;
+ 
+-memset (&amp;queryctrl, 0, sizeof (queryctrl));
++memset(&amp;queryctrl, 0, sizeof(queryctrl));
+ queryctrl.id = V4L2_CID_BRIGHTNESS;
+ 
+-if (-1 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++if (-1 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+ 	if (errno != EINVAL) {
+-		perror ("VIDIOC_QUERYCTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_QUERYCTRL");
++		exit(EXIT_FAILURE);
+ 	} else {
+-		printf ("V4L2_CID_BRIGHTNESS is not supported\n");
++		printf("V4L2_CID_BRIGHTNESS is not supported\n");
+ 	}
+ } else if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED) {
+-	printf ("V4L2_CID_BRIGHTNESS is not supported\n");
++	printf("V4L2_CID_BRIGHTNESS is not supported\n");
+ } else {
+-	memset (&amp;control, 0, sizeof (control));
++	memset(&amp;control, 0, sizeof (control));
+ 	control.id = V4L2_CID_BRIGHTNESS;
+ 	control.value = queryctrl.default_value;
+ 
+-	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)) {
+-		perror ("VIDIOC_S_CTRL");
+-		exit (EXIT_FAILURE);
++	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)) {
++		perror("VIDIOC_S_CTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ }
+ 
+-memset (&amp;control, 0, sizeof (control));
++memset(&amp;control, 0, sizeof(control));
+ control.id = V4L2_CID_CONTRAST;
+ 
+-if (0 == ioctl (fd, &VIDIOC-G-CTRL;, &amp;control)) {
++if (0 == ioctl(fd, &VIDIOC-G-CTRL;, &amp;control)) {
+ 	control.value += 1;
+ 
+ 	/* The driver may clamp the value or return ERANGE, ignored here */
+ 
+-	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)
++	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)
+ 	    &amp;&amp; errno != ERANGE) {
+-		perror ("VIDIOC_S_CTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_S_CTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ /* Ignore if V4L2_CID_CONTRAST is unsupported */
+ } else if (errno != EINVAL) {
+-	perror ("VIDIOC_G_CTRL");
+-	exit (EXIT_FAILURE);
++	perror("VIDIOC_G_CTRL");
++	exit(EXIT_FAILURE);
+ }
+ 
+ control.id = V4L2_CID_AUDIO_MUTE;
+-control.value = TRUE; /* silence */
++control.value = 1; /* silence */
+ 
+ /* Errors ignored */
+-ioctl (fd, VIDIOC_S_CTRL, &amp;control);
++ioctl(fd, VIDIOC_S_CTRL, &amp;control);
+ </programlisting>
+     </example>
+   </section>
+@@ -675,12 +674,12 @@ control class is found:</para>
+       <informalexample>
+ 	<programlisting>
+ qctrl.id = V4L2_CTRL_CLASS_MPEG | V4L2_CTRL_FLAG_NEXT_CTRL;
+-while (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
+-	if (V4L2_CTRL_ID2CLASS (qctrl.id) != V4L2_CTRL_CLASS_MPEG)
++while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
++	if (V4L2_CTRL_ID2CLASS(qctrl.id) != V4L2_CTRL_CLASS_MPEG)
+ 		break;
+ 		/* ... */
+-		qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+-	}
++	qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
++}
+ </programlisting>
+       </informalexample>
+ 
 -- 
-1.8.3.1
+1.8.5.2
 
