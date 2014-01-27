@@ -1,116 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35253 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750809AbaAYDHT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 22:07:19 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2562 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753500AbaA0Oet (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jan 2014 09:34:49 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFCv1] v4l: add RF tuner gain controls
-Date: Sat, 25 Jan 2014 05:06:57 +0200
-Message-Id: <1390619217-2272-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1390619217-2272-1-git-send-email-crope@iki.fi>
-References: <1390619217-2272-1-git-send-email-crope@iki.fi>
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 03/22] v4l2-ctrls: use pr_info/cont instead of printk.
+Date: Mon, 27 Jan 2014 15:34:05 +0100
+Message-Id: <1390833264-8503-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modern silicon RF tuners used nowadays has many controllable gain
-stages on signal path. Usually, but not always, there is at least
-3 gain stages. Also on some cases there could be multiple gain
-stages within the ones specified here. However, I think that having
-these three controllable gain stages offers enough fine-tuning for
-real use cases.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-1) LNA gain. That is first gain just after antenna input.
-2) Mixer gain. It is located quite middle of the signal path, where
-RF signal is down-converted to IF/BB.
-3) IF gain. That is last gain in order to adjust output signal level
-to optimal level for receiving party (usually demodulator ADC).
+Codingstyle fix.
 
-Each gain stage could be set rather often both manual or automatic
-(AGC) mode. Due to that add separate controls for controlling
-operation mode.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 15 +++++++++++++++
- include/uapi/linux/v4l2-controls.h   | 11 +++++++++++
- 2 files changed, 26 insertions(+)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 6ff002b..d201f61 100644
+index 72ffe76..df8ed0a 100644
 --- a/drivers/media/v4l2-core/v4l2-ctrls.c
 +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -857,6 +857,14 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
- 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
-+
-+	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
-+	case V4L2_CID_LNA_GAIN_AUTO:		return "LNA Gain, Auto";
-+	case V4L2_CID_LNA_GAIN:			return "LNA Gain";
-+	case V4L2_CID_MIXER_GAIN_AUTO:		return "Mixer Gain, Auto";
-+	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
-+	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
-+	case V4L2_CID_IF_GAIN:			return "IF Gain";
- 	default:
- 		return NULL;
- 	}
-@@ -906,6 +914,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
- 	case V4L2_CID_RDS_RECEPTION:
-+	case V4L2_CID_LNA_GAIN_AUTO:
-+	case V4L2_CID_MIXER_GAIN_AUTO:
-+	case V4L2_CID_IF_GAIN_AUTO:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -991,6 +1002,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_IMAGE_PROC_CLASS:
- 	case V4L2_CID_DV_CLASS:
- 	case V4L2_CID_FM_RX_CLASS:
-+	case V4L2_CID_RF_TUNER_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -1063,6 +1075,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_FREQUENCY:
- 	case V4L2_CID_TUNE_POWER_LEVEL:
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+	case V4L2_CID_LNA_GAIN:
-+	case V4L2_CID_MIXER_GAIN:
-+	case V4L2_CID_IF_GAIN:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
+@@ -2045,45 +2045,45 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
+ 	if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
+ 		return;
+ 
+-	printk(KERN_INFO "%s%s%s: ", prefix, colon, ctrl->name);
++	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+-		printk(KERN_CONT "%d", ctrl->cur.val);
++		pr_cont("%d", ctrl->cur.val);
  		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2cbe605..076fa34 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -60,6 +60,7 @@
- #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
- #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
-+#define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		printk(KERN_CONT "%s", ctrl->cur.val ? "true" : "false");
++		pr_cont("%s", ctrl->cur.val ? "true" : "false");
+ 		break;
+ 	case V4L2_CTRL_TYPE_MENU:
+-		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
++		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
++		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
+ 		break;
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		printk(KERN_CONT "0x%08x", ctrl->cur.val);
++		pr_cont("0x%08x", ctrl->cur.val);
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		printk(KERN_CONT "%lld", ctrl->cur.val64);
++		pr_cont("%lld", ctrl->cur.val64);
+ 		break;
+ 	case V4L2_CTRL_TYPE_STRING:
+-		printk(KERN_CONT "%s", ctrl->cur.string);
++		pr_cont("%s", ctrl->cur.string);
+ 		break;
+ 	default:
+-		printk(KERN_CONT "unknown type %d", ctrl->type);
++		pr_cont("unknown type %d", ctrl->type);
+ 		break;
+ 	}
+ 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
+ 			   V4L2_CTRL_FLAG_GRABBED |
+ 			   V4L2_CTRL_FLAG_VOLATILE)) {
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
+-			printk(KERN_CONT " inactive");
++			pr_cont(" inactive");
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_GRABBED)
+-			printk(KERN_CONT " grabbed");
++			pr_cont(" grabbed");
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
+-			printk(KERN_CONT " volatile");
++			pr_cont(" volatile");
+ 	}
+-	printk(KERN_CONT "\n");
++	pr_cont("\n");
+ }
  
- /* User-class control IDs */
- 
-@@ -895,4 +896,14 @@ enum v4l2_deemphasis {
- 
- #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
- 
-+#define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
-+#define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
-+
-+#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
-+#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
-+#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
-+#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
-+#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
-+#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
-+
- #endif
+ /* Log all controls owned by the handler */
 -- 
-1.8.5.3
+1.8.5.2
 
