@@ -1,49 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:21359 "EHLO
-	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374AbaAQKyj (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4775 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753773AbaA0OfF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 05:54:39 -0500
-Received: from [10.61.88.211] (ams3-vpn-dhcp6356.cisco.com [10.61.88.211])
-	(authenticated bits=0)
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id s0HAsa5H029468
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 17 Jan 2014 10:54:37 GMT
-Message-ID: <52D90BE6.1010501@cisco.com>
-Date: Fri, 17 Jan 2014 11:54:30 +0100
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.14/3.15] usbtv: add audio support
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 27 Jan 2014 09:35:05 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 19/22] DocBook media: update VIDIOC_G/S/TRY_EXT_CTRLS.
+Date: Mon, 27 Jan 2014 15:34:21 +0100
+Message-Id: <1390833264-8503-20-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-  [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
+Document the support for the new complex type controls.
 
-are available in the git repository at:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 43 ++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 8 deletions(-)
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.14d
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index b3bb957..d946d6b 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -72,23 +72,30 @@ initialize the <structfield>id</structfield>,
+ <structfield>size</structfield> and <structfield>reserved2</structfield> fields
+ of each &v4l2-ext-control; and call the
+ <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
+-must also set the <structfield>string</structfield> field.</para>
++must also set the <structfield>string</structfield> field. Controls
++of complex types (<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set)
++must set the <structfield>p</structfield> field.</para>
+ 
+     <para>If the <structfield>size</structfield> is too small to
+ receive the control result (only relevant for pointer-type controls
+ like strings), then the driver will set <structfield>size</structfield>
+ to a valid value and return an &ENOSPC;. You should re-allocate the
+-string memory to this new size and try again. It is possible that the
+-same issue occurs again if the string has grown in the meantime. It is
++memory to this new size and try again. For the string type it is possible that
++the same issue occurs again if the string has grown in the meantime. It is
+ recommended to call &VIDIOC-QUERYCTRL; first and use
+ <structfield>maximum</structfield>+1 as the new <structfield>size</structfield>
+ value. It is guaranteed that that is sufficient memory.
+ </para>
+ 
++    <para>Matrices are set and retrieved row-by-row. You cannot set a partial
++matrix, all elements have to be set or retrieved. The total size is calculated
++as <structfield>rows</structfield> * <structfield>cols</structfield> * <structfield>elem_size</structfield>.
++These values can be obtained by calling &VIDIOC-QUERY-EXT-CTRL;.</para>
++
+     <para>To change the value of a set of controls applications
+ initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+ <structfield>reserved2</structfield> and
+-<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
++<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+ call the <constant>VIDIOC_S_EXT_CTRLS</constant> ioctl. The controls
+ will only be set if <emphasis>all</emphasis> control values are
+ valid.</para>
+@@ -96,11 +103,17 @@ valid.</para>
+     <para>To check if a set of controls have correct values applications
+ initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+ <structfield>reserved2</structfield> and
+-<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
++<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+ call the <constant>VIDIOC_TRY_EXT_CTRLS</constant> ioctl. It is up to
+ the driver whether wrong values are automatically adjusted to a valid
+ value or if an error is returned.</para>
+ 
++    <para>For matrices it is possible to only set or check only the first
++<constant>X</constant> elements by setting size to <constant>X * elem_size</constant>,
++where <structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
++Matrix elements are set row-by-row. Matrix elements that are not explicitly
++set will be initialized to their default value.</para>
++
+     <para>When the <structfield>id</structfield> or
+ <structfield>ctrl_class</structfield> is invalid drivers return an
+ &EINVAL;. When the value is out of bounds drivers can choose to take
+@@ -158,19 +171,33 @@ applications must set the array to zero.</entry>
+ 	    <entry></entry>
+ 	    <entry>__s32</entry>
+ 	    <entry><structfield>value</structfield></entry>
+-	    <entry>New value or current value.</entry>
++	    <entry>New value or current value. Valid if this control is not of
++type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
++<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>__s64</entry>
+ 	    <entry><structfield>value64</structfield></entry>
+-	    <entry>New value or current value.</entry>
++	    <entry>New value or current value. Valid if this control is of
++type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
++<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>char *</entry>
+ 	    <entry><structfield>string</structfield></entry>
+-	    <entry>A pointer to a string.</entry>
++	    <entry>A pointer to a string. Valid if this control is of
++type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>void *</entry>
++	    <entry><structfield>p</structfield></entry>
++	    <entry>A pointer to a complex type which can be a matrix and/or a
++complex type (the control's type is >= <constant>V4L2_CTRL_COMPLEX_TYPES</constant>).
++Valid if <constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set for this control.
++</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+-- 
+1.8.5.2
 
-for you to fetch changes up to 6e44e5938e3e964748e0d4b76f476c3215e32aab:
-
-  usbtv: add audio support (2014-01-17 10:55:39 +0100)
-
-----------------------------------------------------------------
-Federico Simoncelli (2):
-      usbtv: split core and video implementation
-      usbtv: add audio support
-
- drivers/media/usb/usbtv/Makefile                   |   4 +
- drivers/media/usb/usbtv/usbtv-audio.c              | 384 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/usb/usbtv/usbtv-core.c               | 144 ++++++++++++++++++++++++++++
- drivers/media/usb/usbtv/{usbtv.c => usbtv-video.c} | 172 +++------------------------------
- drivers/media/usb/usbtv/usbtv.h                    | 117 ++++++++++++++++++++++
- 5 files changed, 663 insertions(+), 158 deletions(-)
- create mode 100644 drivers/media/usb/usbtv/usbtv-audio.c
- create mode 100644 drivers/media/usb/usbtv/usbtv-core.c
- rename drivers/media/usb/usbtv/{usbtv.c => usbtv-video.c} (82%)
- create mode 100644 drivers/media/usb/usbtv/usbtv.h
