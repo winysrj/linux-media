@@ -1,54 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48114 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752532AbaAYRLI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:11:08 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 42/52] rtl2832_sdr: calculate bandwidth if not set by user
-Date: Sat, 25 Jan 2014 19:10:36 +0200
-Message-Id: <1390669846-8131-43-git-send-email-crope@iki.fi>
-In-Reply-To: <1390669846-8131-1-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+Received: from mx.prawo.uni.wroc.pl ([156.17.122.2]:59281 "EHLO
+	mx.prawo.uni.wroc.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754513AbaA1Lld convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jan 2014 06:41:33 -0500
+Message-ID: <4e23ac4db5c67f736eaf2d412a2219e9.squirrel@prawo.uni.wroc.pl>
+Date: Tue, 28 Jan 2014 12:08:09 +0100 (CET)
+Subject: I HAVE A PROPOSAL FOR YOU!
+From: "Yung kim" <pawel.dobrzanski@prawo.uni.wroc.pl>
+Reply-To: yung.kim@qq.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Calculate bandwidth from sampling rate if it is not set by user.
+Hello,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+The Project is about the exportation of 100,000 barrels of Light Crude
+Oil daily out from Iraq to Turkey through my client's company in Iraq
+at the rate of $92.00 a barrel. This amount to $9,200,000 daily. I ask
+for your support as a foreigner to handle this business project with my
+client and you are not expected to invest in Iraq
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 1cc7bf7..2c9b703 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -881,6 +881,10 @@ static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
- 	if (fe->ops.tuner_ops.init)
- 		fe->ops.tuner_ops.init(fe);
- 
-+	/* user has not requested bandwidth so calculate automatically */
-+	if (bandwidth == 0)
-+		bandwidth = s->f_adc;
-+
- 	c->bandwidth_hz = bandwidth;
- 	c->frequency = f_rf;
- 
-@@ -1254,9 +1258,9 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 		.id     = RTL2832_SDR_CID_TUNER_BW,
- 		.type   = V4L2_CTRL_TYPE_INTEGER,
- 		.name   = "Tuner BW",
--		.min    =  200000,
--		.max    = 8000000,
--		.def    =  600000,
-+		.min    = 0,
-+		.max    = INT_MAX,
-+		.def    = 0,
- 		.step   = 1,
- 	};
- 	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
--- 
-1.8.5.3
+If yes, let me know and we will discuss this project proper.
+
+yung kim.
+
+yung.kim@qq.com
 
