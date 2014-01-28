@@ -1,179 +1,574 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48278 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752353AbaANBU6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 20:20:58 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v7 09/12] DocBook: document 1 Hz flag
-Date: Tue, 14 Jan 2014 03:20:27 +0200
-Message-Id: <1389662430-32699-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1389662430-32699-1-git-send-email-crope@iki.fi>
-References: <1389662430-32699-1-git-send-email-crope@iki.fi>
+Received: from mail-ie0-f173.google.com ([209.85.223.173]:55510 "EHLO
+	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750911AbaA1G4P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jan 2014 01:56:15 -0500
+From: Daniel Jeong <gshark.jeong@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Jeong <gshark.jeong@gmail.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: [RFCv2,2/2] i2c: add new dual Flash driver,LM3646
+Date: Tue, 28 Jan 2014 15:55:58 +0900
+Message-Id: <1390892158-5646-2-git-send-email-gshark.jeong@gmail.com>
+In-Reply-To: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
+References: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update documentation to reflect 1 Hz frequency step flag.
+Add new dual flash driver. 
+LM3646 is a dual Flash LED Driver, LED1 and LED2, following the datasheet.
+But there is no registers to contorl LED2 brightness.
+LED2 brightness can be controlled by limiting max brightness.
+LED2 brightness  = Total brightness - LED1 brightness
+LED2 will be off if LED2 brightness is set equal to or bigger than Total brightness.
+And the brightness step is very small, 1.46mA for Torch, 11.71mA for Flash.
+If the step is changed to mA, maximum brightness cannot be reachable.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
 ---
- .../DocBook/media/v4l/vidioc-enum-freq-bands.xml          |  8 +++++---
- Documentation/DocBook/media/v4l/vidioc-g-frequency.xml    |  5 +++--
- Documentation/DocBook/media/v4l/vidioc-g-modulator.xml    |  6 ++++--
- Documentation/DocBook/media/v4l/vidioc-g-tuner.xml        | 15 ++++++++++++---
- Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml |  8 ++++++--
- 5 files changed, 30 insertions(+), 12 deletions(-)
+ drivers/media/i2c/Kconfig  |    9 +
+ drivers/media/i2c/Makefile |    1 +
+ drivers/media/i2c/lm3646.c |  400 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/lm3646.h     |   87 ++++++++++
+ 4 files changed, 497 insertions(+)
+ create mode 100644 drivers/media/i2c/lm3646.c
+ create mode 100644 include/media/lm3646.h
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-index 6541ba0..4e8ea65 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-@@ -100,7 +100,7 @@ See <xref linkend="v4l2-tuner-type" /></entry>
- 	    <entry><structfield>capability</structfield></entry>
- 	    <entry spanname="hspan">The tuner/modulator capability flags for
- this frequency band, see <xref linkend="tuner-capability" />. The <constant>V4L2_TUNER_CAP_LOW</constant>
--capability must be the same for all frequency bands of the selected tuner/modulator.
-+or <constant>V4L2_TUNER_CAP_1HZ</constant> capability must be the same for all frequency bands of the selected tuner/modulator.
- So either all bands have that capability set, or none of them have that capability.</entry>
- 	  </row>
- 	  <row>
-@@ -109,7 +109,8 @@ So either all bands have that capability set, or none of them have that capabili
- 	    <entry spanname="hspan">The lowest tunable frequency in
- units of 62.5 kHz, or if the <structfield>capability</structfield>
- flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz, for this frequency band.</entry>
-+Hz, for this frequency band. A 1 Hz unit is used when the <structfield>capability</structfield> flag
-+<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -117,7 +118,8 @@ Hz, for this frequency band.</entry>
- 	    <entry spanname="hspan">The highest tunable frequency in
- units of 62.5 kHz, or if the <structfield>capability</structfield>
- flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz, for this frequency band.</entry>
-+Hz, for this frequency band. A 1 Hz unit is used when the <structfield>capability</structfield> flag
-+<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-index c7a1c46..d1034fb 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-@@ -109,9 +109,10 @@ See <xref linkend="v4l2-tuner-type" /></entry>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>frequency</structfield></entry>
- 	    <entry>Tuning frequency in units of 62.5 kHz, or if the
--&v4l2-tuner; or &v4l2-modulator; <structfield>capabilities</structfield> flag
-+&v4l2-tuner; or &v4l2-modulator; <structfield>capability</structfield> flag
- <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz.</entry>
-+Hz. A 1 Hz unit is used when the <structfield>capability</structfield> flag
-+<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-index 7f4ac7e..7068b59 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-@@ -113,7 +113,8 @@ change for example with the current video standard.</entry>
- 	    <entry>The lowest tunable frequency in units of 62.5
- KHz, or if the <structfield>capability</structfield> flag
- <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz.</entry>
-+Hz, or if the <structfield>capability</structfield> flag
-+<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -121,7 +122,8 @@ Hz.</entry>
- 	    <entry>The highest tunable frequency in units of 62.5
- KHz, or if the <structfield>capability</structfield> flag
- <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz.</entry>
-+Hz, or if the <structfield>capability</structfield> flag
-+<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-index 6cc8201..b0d8659 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-@@ -134,7 +134,9 @@ the structure refers to a radio tuner the
- 	    <entry spanname="hspan">The lowest tunable frequency in
- units of 62.5 kHz, or if the <structfield>capability</structfield>
- flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz. If multiple frequency bands are supported, then
-+Hz, or if the <structfield>capability</structfield> flag
-+<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.
-+If multiple frequency bands are supported, then
- <structfield>rangelow</structfield> is the lowest frequency
- of all the frequency bands.</entry>
- 	  </row>
-@@ -144,7 +146,9 @@ of all the frequency bands.</entry>
- 	    <entry spanname="hspan">The highest tunable frequency in
- units of 62.5 kHz, or if the <structfield>capability</structfield>
- flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
--Hz. If multiple frequency bands are supported, then
-+Hz, or if the <structfield>capability</structfield> flag
-+<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.
-+If multiple frequency bands are supported, then
- <structfield>rangehigh</structfield> is the highest frequency
- of all the frequency bands.</entry>
- 	  </row>
-@@ -270,7 +274,7 @@ applications must set the array to zero.</entry>
- 	    <entry><constant>V4L2_TUNER_CAP_LOW</constant></entry>
- 	    <entry>0x0001</entry>
- 	    <entry>When set, tuning frequencies are expressed in units of
--62.5&nbsp;Hz, otherwise in units of 62.5&nbsp;kHz.</entry>
-+62.5 Hz instead of 62.5 kHz.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_TUNER_CAP_NORM</constant></entry>
-@@ -360,6 +364,11 @@ radio tuners.</entry>
- 	<entry>The range to search when using the hardware seek functionality
- 	is programmable, see &VIDIOC-S-HW-FREQ-SEEK; for details.</entry>
- 	  </row>
-+	  <row>
-+	<entry><constant>V4L2_TUNER_CAP_1HZ</constant></entry>
-+	<entry>0x1000</entry>
-+	<entry>When set, tuning frequencies are expressed in units of 1 Hz instead of 62.5 kHz.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-index 5b379e7..a5fc4c4 100644
---- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-@@ -121,7 +121,9 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
- 	    <entry>If non-zero, the lowest tunable frequency of the band to
- search in units of 62.5 kHz, or if the &v4l2-tuner;
- <structfield>capability</structfield> field has the
--<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
-+<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
-+<structfield>capability</structfield> field has the
-+<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in units of 1 Hz.
- If <structfield>rangelow</structfield> is zero a reasonable default value
- is used.</entry>
- 	  </row>
-@@ -131,7 +133,9 @@ is used.</entry>
- 	    <entry>If non-zero, the highest tunable frequency of the band to
- search in units of 62.5 kHz, or if the &v4l2-tuner;
- <structfield>capability</structfield> field has the
--<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
-+<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
-+<structfield>capability</structfield> field has the
-+<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in units of 1 Hz.
- If <structfield>rangehigh</structfield> is zero a reasonable default value
- is used.</entry>
- 	  </row>
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 842654d..654df46 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -630,6 +630,15 @@ config VIDEO_LM3560
+ 	  This is a driver for the lm3560 dual flash controllers. It controls
+ 	  flash, torch LEDs.
+ 
++config VIDEO_LM3646
++	tristate "LM3646 dual flash driver support"
++	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
++	depends on MEDIA_CAMERA_SUPPORT
++	select REGMAP_I2C
++	---help---
++	  This is a driver for the lm3646 dual flash controllers. It controls
++	  flash, torch LEDs.
++
+ comment "Video improvement chips"
+ 
+ config VIDEO_UPD64031A
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index e03f177..a52cda6 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -71,6 +71,7 @@ obj-$(CONFIG_VIDEO_S5C73M3)	+= s5c73m3/
+ obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
+ obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
+ obj-$(CONFIG_VIDEO_LM3560)	+= lm3560.o
++obj-$(CONFIG_VIDEO_LM3646)	+= lm3646.o
+ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+ obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+diff --git a/drivers/media/i2c/lm3646.c b/drivers/media/i2c/lm3646.c
+new file mode 100644
+index 0000000..4b025f2
+--- /dev/null
++++ b/drivers/media/i2c/lm3646.c
+@@ -0,0 +1,400 @@
++/*
++ * drivers/media/i2c/lm3646.c
++ * General device driver for TI lm3646, Dual FLASH LED Driver
++ *
++ * Copyright (C) 2014 Texas Instruments
++ *
++ * Contact: Daniel Jeong <gshark.jeong@gmail.com>
++ *			Ldd-Mlp <ldd-mlp@list.ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ */
++
++#include <linux/delay.h>
++#include <linux/module.h>
++#include <linux/i2c.h>
++#include <linux/slab.h>
++#include <linux/regmap.h>
++#include <linux/videodev2.h>
++#include <media/lm3646.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++
++/* registers definitions */
++#define REG_ENABLE		0x01
++#define REG_TORCH_BR	0x05
++#define REG_FLASH_BR	0x05
++#define REG_FLASH_TOUT	0x04
++#define REG_FLAG		0x08
++#define REG_STROBE_SRC	0x06
++#define REG_LED1_FLASH_BR 0x06
++#define REG_LED1_TORCH_BR 0x07
++
++#define MASK_ENABLE		0x03
++#define MASK_TORCH_BR	0x70
++#define MASK_FLASH_BR	0x0F
++#define MASK_FLASH_TOUT	0x07
++#define MASK_FLAG		0xFF
++#define MASK_STROBE_SRC	0x80
++
++/* Fault Mask */
++#define FAULT_TIMEOUT	(1<<0)
++#define FAULT_SHORT_CIRCUIT	(1<<1)
++#define FAULT_UVLO		(1<<2)
++#define FAULT_IVFM		(1<<3)
++#define FAULT_OCP		(1<<4)
++#define FAULT_OVERTEMP	(1<<5)
++#define FAULT_NTC_TRIP	(1<<6)
++#define FAULT_OVP		(1<<7)
++
++enum led_mode {
++	MODE_SHDN = 0x0,
++	MODE_TORCH = 0x2,
++	MODE_FLASH = 0x3,
++};
++
++/*
++ * struct lm3646_flash
++ *
++ * @pdata: platform data
++ * @regmap: reg. map for i2c
++ * @lock: muxtex for serial access.
++ * @led_mode: V4L2 LED mode
++ * @ctrls_led: V4L2 contols
++ * @subdev_led: V4L2 subdev
++ */
++struct lm3646_flash {
++	struct device *dev;
++	struct lm3646_platform_data *pdata;
++	struct regmap *regmap;
++
++	enum v4l2_flash_led_mode led_mode;
++	struct v4l2_ctrl_handler ctrls_led;
++	struct v4l2_subdev subdev_led;
++};
++
++#define to_lm3646_flash(_ctrl)	\
++	container_of(_ctrl->handler, struct lm3646_flash, ctrls_led)
++
++/* enable mode control */
++static int lm3646_mode_ctrl(struct lm3646_flash *flash)
++{
++	int rval = -EINVAL;
++
++	switch (flash->led_mode) {
++	case V4L2_FLASH_LED_MODE_NONE:
++		rval = regmap_update_bits(flash->regmap,
++					  REG_ENABLE, MASK_ENABLE, MODE_SHDN);
++		break;
++	case V4L2_FLASH_LED_MODE_TORCH:
++		rval = regmap_update_bits(flash->regmap,
++					  REG_ENABLE, MASK_ENABLE, MODE_TORCH);
++		break;
++	case V4L2_FLASH_LED_MODE_FLASH:
++		rval = regmap_update_bits(flash->regmap,
++					  REG_ENABLE, MASK_ENABLE, MODE_FLASH);
++		break;
++	}
++	return rval;
++}
++
++/* V4L2 controls  */
++static int lm3646_get_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct lm3646_flash *flash = to_lm3646_flash(ctrl);
++	int rval = -EINVAL;
++
++	if (ctrl->id == V4L2_CID_FLASH_FAULT) {
++		s32 fault = 0;
++		unsigned int reg_val;
++		rval = regmap_read(flash->regmap, REG_FLAG, &reg_val);
++		if (rval < 0)
++			return rval;
++
++		if (reg_val & FAULT_TIMEOUT)
++			fault |= V4L2_FLASH_FAULT_TIMEOUT;
++		if (reg_val & FAULT_SHORT_CIRCUIT)
++			fault |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
++		if (reg_val & FAULT_UVLO)
++			fault |= V4L2_FLASH_FAULT_UVLO;
++		if (reg_val & FAULT_IVFM)
++			fault |= V4L2_FLASH_FAULT_IVFM;
++		if (reg_val & FAULT_OCP)
++			fault |= V4L2_FLASH_FAULT_OVER_CURRENT;
++		if (reg_val & FAULT_OVERTEMP)
++			fault |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
++		if (reg_val & FAULT_NTC_TRIP)
++			fault |= V4L2_FLASH_FAULT_NTC_TRIP;
++		if (reg_val & FAULT_OVP)
++			fault |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
++
++		ctrl->cur.val = fault;
++	}
++
++	return rval;
++}
++
++static int lm3646_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct lm3646_flash *flash = to_lm3646_flash(ctrl);
++	u8 bval;
++	int rval = -EINVAL;
++
++	switch (ctrl->id) {
++	case V4L2_CID_FLASH_LED_MODE:
++		flash->led_mode = ctrl->val;
++		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
++			rval = lm3646_mode_ctrl(flash);
++		break;
++
++	case V4L2_CID_FLASH_STROBE_SOURCE:
++		rval = regmap_update_bits(flash->regmap,
++					  REG_STROBE_SRC, MASK_STROBE_SRC,
++					  (ctrl->val) << 7);
++		break;
++
++	case V4L2_CID_FLASH_STROBE:
++		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
++			return rval;
++		rval = lm3646_mode_ctrl(flash);
++		break;
++
++	case V4L2_CID_FLASH_STROBE_STOP:
++		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
++			return rval;
++		flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
++		rval = lm3646_mode_ctrl(flash);
++		break;
++
++	case V4L2_CID_FLASH_TIMEOUT:
++		bval = LM3646_FLASH_TOUT_ms_TO_REG(ctrl->val);
++		rval = regmap_update_bits(flash->regmap,
++					  REG_FLASH_TOUT, MASK_FLASH_TOUT,
++					  bval);
++		break;
++
++	case V4L2_CID_FLASH_INTENSITY:
++		bval = LM3646_TOTAL_FLASH_BRT_uA_TO_REG(ctrl->val);
++		rval = regmap_update_bits(flash->regmap,
++					  REG_FLASH_BR, MASK_FLASH_BR, bval);
++		break;
++
++	case V4L2_CID_FLASH_TORCH_INTENSITY:
++		bval = LM3646_TOTAL_TORCH_BRT_uA_TO_REG(ctrl->val);
++		rval = regmap_update_bits(flash->regmap,
++					  REG_TORCH_BR, MASK_TORCH_BR,
++					  bval << 4);
++		break;
++	}
++
++	return rval;
++}
++
++static const struct v4l2_ctrl_ops lm3646_led_ctrl_ops = {
++	.g_volatile_ctrl = lm3646_get_ctrl,
++	.s_ctrl = lm3646_set_ctrl,
++};
++
++static int lm3646_init_controls(struct lm3646_flash *flash)
++{
++	struct v4l2_ctrl *fault;
++	struct v4l2_ctrl_handler *hdl = &flash->ctrls_led;
++	const struct v4l2_ctrl_ops *ops = &lm3646_led_ctrl_ops;
++
++	v4l2_ctrl_handler_init(hdl, 8);
++	/* flash mode */
++	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_FLASH_LED_MODE,
++			       V4L2_FLASH_LED_MODE_TORCH, ~0x7,
++			       V4L2_FLASH_LED_MODE_NONE);
++	flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
++
++	/* flash source */
++	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_FLASH_STROBE_SOURCE,
++			       0x1, ~0x3, V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
++
++	/* flash strobe */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_STROBE, 0, 0, 0, 0);
++	/* flash strobe stop */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_STROBE_STOP, 0, 0, 0, 0);
++
++	/* flash strobe timeout */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_TIMEOUT,
++			  LM3646_FLASH_TOUT_MIN,
++			  LM3646_FLASH_TOUT_MAX,
++			  LM3646_FLASH_TOUT_STEP, flash->pdata->flash_timeout);
++
++	/* max flash current */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_INTENSITY,
++			  LM3646_TOTAL_FLASH_BRT_MIN,
++			  LM3646_TOTAL_FLASH_BRT_MAX,
++			  LM3646_TOTAL_FLASH_BRT_STEP,
++			  LM3646_TOTAL_FLASH_BRT_MAX);
++
++	/* max torch current */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_TORCH_INTENSITY,
++			  LM3646_TOTAL_TORCH_BRT_MIN,
++			  LM3646_TOTAL_TORCH_BRT_MAX,
++			  LM3646_TOTAL_TORCH_BRT_STEP,
++			  LM3646_TOTAL_TORCH_BRT_MAX);
++
++	/* fault */
++	fault = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_FAULT, 0,
++				  V4L2_FLASH_FAULT_OVER_VOLTAGE
++				  | V4L2_FLASH_FAULT_OVER_TEMPERATURE
++				  | V4L2_FLASH_FAULT_SHORT_CIRCUIT
++				  | V4L2_FLASH_FAULT_TIMEOUT, 0, 0);
++	if (fault != NULL)
++		fault->flags |= V4L2_CTRL_FLAG_VOLATILE;
++
++	if (hdl->error)
++		return hdl->error;
++
++	flash->subdev_led.ctrl_handler = hdl;
++	return 0;
++}
++
++/* initialize device */
++static const struct v4l2_subdev_ops lm3646_ops = {
++	.core = NULL,
++};
++
++static const struct regmap_config lm3646_regmap = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = 0xFF,
++};
++
++static int lm3646_subdev_init(struct lm3646_flash *flash)
++{
++	struct i2c_client *client = to_i2c_client(flash->dev);
++	int rval;
++
++	v4l2_i2c_subdev_init(&flash->subdev_led, client, &lm3646_ops);
++	flash->subdev_led.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	strcpy(flash->subdev_led.name, LM3646_NAME);
++	rval = lm3646_init_controls(flash);
++	if (rval)
++		goto err_out;
++	rval = media_entity_init(&flash->subdev_led.entity, 0, NULL, 0);
++	if (rval < 0)
++		goto err_out;
++	flash->subdev_led.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
++	return rval;
++
++err_out:
++	v4l2_ctrl_handler_free(&flash->ctrls_led);
++	return rval;
++}
++
++static int lm3646_init_device(struct lm3646_flash *flash)
++{
++	unsigned int reg_val;
++	int rval;
++
++	/* output disable */
++	flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
++	rval = lm3646_mode_ctrl(flash);
++	if (rval < 0)
++		return rval;
++	/*
++	 * LED1 flash current setting
++	 * LED2 flash current = Total(Max) flash current - LED1 flash current
++	 */
++	rval = regmap_update_bits(flash->regmap, REG_LED1_FLASH_BR, 0x7F,
++				  LM3646_LED1_FLASH_BRT_uA_TO_REG(flash->pdata->
++							  led1_flash_brt));
++	if (rval < 0)
++		return rval;
++
++	/*
++	 * LED1 torch current setting
++	 * LED2 torch current = Total(Max) torch current - LED1 torch current
++	 */
++	rval = regmap_update_bits(flash->regmap, REG_LED1_TORCH_BR, 0x7F,
++				  LM3646_LED1_TORCH_BRT_uA_TO_REG(flash->pdata->
++							  led1_torch_brt));
++	if (rval < 0)
++		return rval;
++
++	/* Reset flag register */
++	rval = regmap_read(flash->regmap, REG_FLAG, &reg_val);
++	return rval;
++}
++
++static int lm3646_probe(struct i2c_client *client,
++			const struct i2c_device_id *devid)
++{
++	struct lm3646_flash *flash;
++	struct lm3646_platform_data *pdata = dev_get_platdata(&client->dev);
++	int rval;
++
++	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
++	if (flash == NULL)
++		return -ENOMEM;
++
++	flash->regmap = devm_regmap_init_i2c(client, &lm3646_regmap);
++	if (IS_ERR(flash->regmap))
++		return PTR_ERR(flash->regmap);
++
++	/* if there is no platform data, use default values */
++	if (pdata == NULL) {
++		pdata = devm_kzalloc(&client->dev,
++				     sizeof(struct lm3646_platform_data),
++				     GFP_KERNEL);
++		if (pdata == NULL)
++			return -ENODEV;
++		pdata->flash_timeout = LM3646_FLASH_TOUT_MAX;
++		pdata->led1_torch_brt = LM3646_LED1_TORCH_BRT_MAX;
++		pdata->led1_flash_brt = LM3646_LED1_FLASH_BRT_MAX;
++	}
++	flash->pdata = pdata;
++	flash->dev = &client->dev;
++
++	rval = lm3646_subdev_init(flash);
++	if (rval < 0)
++		return rval;
++
++	rval = lm3646_init_device(flash);
++	if (rval < 0)
++		return rval;
++
++	i2c_set_clientdata(client, flash);
++
++	return 0;
++}
++
++static int lm3646_remove(struct i2c_client *client)
++{
++	struct lm3646_flash *flash = i2c_get_clientdata(client);
++
++	v4l2_device_unregister_subdev(&flash->subdev_led);
++	v4l2_ctrl_handler_free(&flash->ctrls_led);
++	media_entity_cleanup(&flash->subdev_led.entity);
++
++	return 0;
++}
++
++static const struct i2c_device_id lm3646_id_table[] = {
++	{LM3646_NAME, 0},
++	{}
++};
++
++MODULE_DEVICE_TABLE(i2c, lm3646_id_table);
++
++static struct i2c_driver lm3646_i2c_driver = {
++	.driver = {
++		   .name = LM3646_NAME,
++		   },
++	.probe = lm3646_probe,
++	.remove = lm3646_remove,
++	.id_table = lm3646_id_table,
++};
++
++module_i2c_driver(lm3646_i2c_driver);
++
++MODULE_AUTHOR("Daniel Jeong <gshark.jeong@gmail.com>");
++MODULE_AUTHOR("Ldd Mlp <ldd-mlp@list.ti.com>");
++MODULE_DESCRIPTION("Texas Instruments LM3646 Dual Flash LED driver");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/lm3646.h b/include/media/lm3646.h
+new file mode 100644
+index 0000000..c6acf5a
+--- /dev/null
++++ b/include/media/lm3646.h
+@@ -0,0 +1,87 @@
++/*
++ * include/media/lm3646.h
++ *
++ * Copyright (C) 2014 Texas Instruments
++ *
++ * Contact: Daniel Jeong <gshark.jeong@gmail.com>
++ *			Ldd-Mlp <ldd-mlp@list.ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ */
++
++#ifndef __LM3646_H__
++#define __LM3646_H__
++
++#include <media/v4l2-subdev.h>
++
++#define LM3646_NAME	"lm3646"
++#define LM3646_I2C_ADDR_REV1	(0x67)
++#define LM3646_I2C_ADDR_REV0	(0x63)
++
++/*  TOTAL FLASH Brightness Max
++ *	min 93350uA, step 93750uA, max 1499600uA
++ */
++#define LM3646_TOTAL_FLASH_BRT_MIN 93350
++#define LM3646_TOTAL_FLASH_BRT_STEP 93750
++#define LM3646_TOTAL_FLASH_BRT_MAX 1499600
++#define LM3646_TOTAL_FLASH_BRT_uA_TO_REG(a)	\
++	((a) < LM3646_TOTAL_FLASH_BRT_MIN ? 0 :	\
++	 ((((a) - LM3646_TOTAL_FLASH_BRT_MIN) / LM3646_TOTAL_FLASH_BRT_STEP)))
++
++/*  TOTAL TORCH Brightness Max
++ *	min 23040uA, step 23430uA, max 187100uA
++ */
++#define LM3646_TOTAL_TORCH_BRT_MIN 23040
++#define LM3646_TOTAL_TORCH_BRT_STEP 23430
++#define LM3646_TOTAL_TORCH_BRT_MAX 187100
++#define LM3646_TOTAL_TORCH_BRT_uA_TO_REG(a)	\
++	((a) < LM3646_TOTAL_TORCH_BRT_MIN ? 0 :	\
++	 ((((a) - LM3646_TOTAL_TORCH_BRT_MIN) / LM3646_TOTAL_TORCH_BRT_STEP)))
++
++/*  LED1 FLASH Brightness
++ *	min 23040uA, step 11718uA, max 1499600uA
++ */
++#define LM3646_LED1_FLASH_BRT_MIN 23040
++#define LM3646_LED1_FLASH_BRT_STEP 11718
++#define LM3646_LED1_FLASH_BRT_MAX 1499600
++#define LM3646_LED1_FLASH_BRT_uA_TO_REG(a)	\
++	((a) <= LM3646_LED1_FLASH_BRT_MIN ? 0 :	\
++	 ((((a) - LM3646_LED1_FLASH_BRT_MIN) / LM3646_LED1_FLASH_BRT_STEP))+1)
++
++/*  LED1 TORCH Brightness
++ *	min 2530uA, step 1460uA, max 187100uA
++ */
++#define LM3646_LED1_TORCH_BRT_MIN 2530
++#define LM3646_LED1_TORCH_BRT_STEP 1460
++#define LM3646_LED1_TORCH_BRT_MAX 187100
++#define LM3646_LED1_TORCH_BRT_uA_TO_REG(a)	\
++	((a) <= LM3646_LED1_TORCH_BRT_MIN ? 0 :	\
++	 ((((a) - LM3646_LED1_TORCH_BRT_MIN) / LM3646_LED1_TORCH_BRT_STEP))+1)
++
++/*  FLASH TIMEOUT DURATION
++ *	min 50ms, step 50ms, max 400ms
++ */
++#define LM3646_FLASH_TOUT_MIN 50
++#define LM3646_FLASH_TOUT_STEP 50
++#define LM3646_FLASH_TOUT_MAX 400
++#define LM3646_FLASH_TOUT_ms_TO_REG(a)	\
++	((a) <= LM3646_FLASH_TOUT_MIN ? 0 :	\
++	 (((a) - LM3646_FLASH_TOUT_MIN) / LM3646_FLASH_TOUT_STEP))
++
++/* struct lm3646_platform_data
++ *
++ * @flash_timeout: flash timeout
++ * @led1_flash_brt: led1 flash mode brightness, uA
++ * @led1_torch_brt: led1 torch mode brightness, uA
++ */
++struct lm3646_platform_data {
++
++	u32 flash_timeout;
++
++	u32 led1_flash_brt;
++	u32 led1_torch_brt;
++};
++
++#endif /* __LM3646_H__ */
 -- 
-1.8.4.2
+1.7.9.5
 
