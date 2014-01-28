@@ -1,81 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:52957 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752061AbaAXLTd (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36722 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750855AbaA1JJQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 06:19:33 -0500
-Message-ID: <52E24C42.6020103@cisco.com>
-Date: Fri, 24 Jan 2014 12:19:30 +0100
-From: Hans Verkuil <hansverk@cisco.com>
+	Tue, 28 Jan 2014 04:09:16 -0500
+Date: Tue, 28 Jan 2014 11:08:41 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Daniel Jeong <gshark.jeong@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFCv2,1/2] v4l2-controls.h: add addtional Flash fault bits
+Message-ID: <20140128090841.GG13820@valkosipuli.retiisi.org.uk>
+References: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 02/21] v4l2-ctrls: add unit string.
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl> <1390221974-28194-3-git-send-email-hverkuil@xs4all.nl> <20140124103519.GA13820@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20140124103519.GA13820@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/24/2014 11:35 AM, Sakari Ailus wrote:
-> Hi Hans,
+Hi Daniel,
+
+On Tue, Jan 28, 2014 at 03:55:57PM +0900, Daniel Jeong wrote:
+> Add additional FLASH Fault bits to dectect faults from chip.
+> Some Flash drivers support UVLO, IVFM, NTC Trip faults.
+> UVLO : 	Under Voltage Lock Out Threshold crossed
+> IVFM : 	IVFM block reported and/or adjusted LED current Input Voltage Flash Monitor trip threshold
+> NTC  : 	NTC Threshold crossed. Many Flash drivers have a pin and the fault bit to 
+> serves as a threshold detector for negative temperature coefficient (NTC) thermistors.
 > 
-> Thanks for the patchset!
+> Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+> ---
+>  include/uapi/linux/v4l2-controls.h |    3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> On Mon, Jan 20, 2014 at 01:45:55PM +0100, Hans Verkuil wrote:
->> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
->> index 0b347e8..3998049 100644
->> --- a/include/media/v4l2-ctrls.h
->> +++ b/include/media/v4l2-ctrls.h
->> @@ -85,6 +85,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
->>    * @ops:	The control ops.
->>    * @id:	The control ID.
->>    * @name:	The control name.
->> +  * @unit:	The control's unit. May be NULL.
->>    * @type:	The control type.
->>    * @minimum:	The control's minimum value.
->>    * @maximum:	The control's maximum value.
->> @@ -130,6 +131,7 @@ struct v4l2_ctrl {
->>  	const struct v4l2_ctrl_ops *ops;
->>  	u32 id;
->>  	const char *name;
->> +	const char *unit;
-> 
-> What would you think of using a numeric value (with the standardised units
-> #defined)? I think using a string begs for unmanaged unit usage. Code that
-> deals with units might work with one driver but not with another since it
-> uses a slightly different string for unit x.
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 1666aab..01d730c 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -803,6 +803,9 @@ enum v4l2_flash_strobe_source {
+>  #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
+>  #define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
+>  #define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
+> +#define V4L2_FLASH_FAULT_UVLO			(1 << 6)
+> +#define V4L2_FLASH_FAULT_IVFM			(1 << 7)
+> +#define V4L2_FLASH_FAULT_NTC_TRIP		(1 << 8)
 
-First of all, you always need a string. You don't want GUIs like qv4l2 to have
-to switch on a unit in order to generate the unit strings. That's impossible to
-keep up to date.
+I object adding a new fault which is essentially the same as an existing
+fault, V4L2_FLASH_FAULT_OVER_TEMPERATURE.
 
-In addition, private controls can have really strange custom units, so you want
-to have a string there as well.
+As the practice has been to use human-readable names for the faults, I'd
+also suggest using V4L2_FLASH_FAULT_UNDER_VOLTAGE instead of
+V4L2_FLASH_FAULT_UVLO.
 
-Standard controls can have their unit string set in v4l2-ctrls.c, just as their
-name is set there these days, thus ensuring consistency.
+What's the IVFM block and what does it do?
 
-What I had in mind is that videodev2.h defines a list of standardized unit strings,
-e.g.:
+>  #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+>  #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
 
-#define V4L2_CTRL_UNIT_USECS "usecs"
-#define V4L2_CTRL_UNIT_MSECS "msecs"
+-- 
+Kind regards,
 
-and apps can do strcmp(qc->unit, V4L2_CTRL_UNIT_USECS) to see what the unit is.
-If a driver doesn't use one of those standardized unit strings, then it is a
-driver bug.
-
-> A prefix could be potentially nice, too, so ms and µs would still have the
-> same unit but a different prefix.
-
-Can you give an example of a prefix? I don't really follow what you want to
-achieve.
-
-Regards,
-
-	Hans
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
