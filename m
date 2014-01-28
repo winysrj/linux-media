@@ -1,263 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1912 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754117AbaAFOVi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 09:21:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 02/27] v4l2-ctrls: add unit string.
-Date: Mon,  6 Jan 2014 15:21:01 +0100
-Message-Id: <1389018086-15903-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
-References: <1389018086-15903-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:55672 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755157AbaA1RSo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jan 2014 12:18:44 -0500
+Received: by mail-oa0-f45.google.com with SMTP id i11so744237oag.18
+        for <linux-media@vger.kernel.org>; Tue, 28 Jan 2014 09:18:44 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 28 Jan 2014 18:18:23 +0100
+Message-ID: <CAPybu_2TbWi6Vpo=hY2A=u3rfkUYazWf3za2CvwHaqZqu_wHuQ@mail.gmail.com>
+Subject: Re: [RFCv3 PATCH 00/22] Add support for complex controls
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello Hans
 
-The upcoming VIDIOC_QUERY_EXT_CTRL adds support for a unit string. This
-allows userspace to show the unit belonging to a particular control.
+Congratulations for the set, I think it is a step in the right direction.
 
-This patch adds support for the unit string to the control framework.
+I have some questions. I hope I havent entered the discussion too late.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-common.c |  3 ++-
- drivers/media/v4l2-core/v4l2-ctrls.c  | 36 +++++++++++++++++++++--------------
- include/media/v4l2-ctrls.h            | 13 +++++++++----
- 3 files changed, 33 insertions(+), 19 deletions(-)
+1) One problem that I am facing now is how to give userland a list of
+"dead pixels". Could we also add a v4l2_prop_type_matrix_pixel? I
+believe it could be useful for more people. Or do we have another
+standard way to do it now?
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index ccaa38f..ee8ea66 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -114,12 +114,13 @@ EXPORT_SYMBOL(v4l2_ctrl_check);
- int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 _min, s32 _max, s32 _step, s32 _def)
- {
- 	const char *name;
-+	const char *unit = NULL;
- 	s64 min = _min;
- 	s64 max = _max;
- 	u64 step = _step;
- 	s64 def = _def;
- 
--	v4l2_ctrl_fill(qctrl->id, &name, &qctrl->type,
-+	v4l2_ctrl_fill(qctrl->id, &name, &unit, &qctrl->type,
- 		       &min, &max, &step, &def, &qctrl->flags);
- 
- 	if (name == NULL)
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d36d7f5..bb63d2a 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -858,8 +858,9 @@ const char *v4l2_ctrl_get_name(u32 id)
- }
- EXPORT_SYMBOL(v4l2_ctrl_get_name);
- 
--void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
--		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags)
-+void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
-+		    enum v4l2_ctrl_type *type, s64 *min, s64 *max,
-+		    u64 *step, s64 *def, u32 *flags)
- {
- 	*name = v4l2_ctrl_get_name(id);
- 	*flags = 0;
-@@ -1622,7 +1623,8 @@ unlock:
- /* Add a new control */
- static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
--			u32 id, const char *name, enum v4l2_ctrl_type type,
-+			u32 id, const char *name, const char *unit,
-+			enum v4l2_ctrl_type type,
- 			s64 min, s64 max, u64 step, s64 def,
- 			u32 flags, const char * const *qmenu,
- 			const s64 *qmenu_int, void *priv)
-@@ -1670,6 +1672,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->ops = ops;
- 	ctrl->id = id;
- 	ctrl->name = name;
-+	ctrl->unit = unit;
- 	ctrl->type = type;
- 	ctrl->flags = flags;
- 	ctrl->minimum = min;
-@@ -1704,6 +1707,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	bool is_menu;
- 	struct v4l2_ctrl *ctrl;
- 	const char *name = cfg->name;
-+	const char *unit = cfg->unit;
- 	const char * const *qmenu = cfg->qmenu;
- 	const s64 *qmenu_int = cfg->qmenu_int;
- 	enum v4l2_ctrl_type type = cfg->type;
-@@ -1714,8 +1718,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	s64 def = cfg->def;
- 
- 	if (name == NULL)
--		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
--								&def, &flags);
-+		v4l2_ctrl_fill(cfg->id, &name, &unit, &type,
-+			       &min, &max, &step, &def, &flags);
- 
- 	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU ||
- 		   cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU);
-@@ -1731,7 +1735,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 
--	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name,
-+	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
- 			type, min, max,
- 			is_menu ? cfg->menu_skip_mask : step,
- 			def, flags, qmenu, qmenu_int, priv);
-@@ -1747,16 +1751,17 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 			u32 id, s64 min, s64 max, u64 step, s64 def)
- {
- 	const char *name;
-+	const char *unit = NULL;
- 	enum v4l2_ctrl_type type;
- 	u32 flags;
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
- 	if (type == V4L2_CTRL_TYPE_MENU
- 	    || type == V4L2_CTRL_TYPE_INTEGER_MENU) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, type,
-+	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
- 			     min, max, step, def, flags, NULL, NULL, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std);
-@@ -1770,6 +1775,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 	const s64 *qmenu_int = NULL;
- 	unsigned int qmenu_int_len = 0;
- 	const char *name;
-+	const char *unit = NULL;
- 	enum v4l2_ctrl_type type;
- 	s64 min;
- 	s64 max = _max;
-@@ -1777,7 +1783,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 	u64 step;
- 	u32 flags;
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
- 
- 	if (type == V4L2_CTRL_TYPE_MENU)
- 		qmenu = v4l2_ctrl_get_menu(id);
-@@ -1788,7 +1794,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, type,
-+	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
- 			     0, max, mask, def, flags, qmenu, qmenu_int, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
-@@ -1800,6 +1806,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
- {
- 	enum v4l2_ctrl_type type;
- 	const char *name;
-+	const char *unit = NULL;
- 	u32 flags;
- 	u64 step;
- 	s64 min;
-@@ -1814,12 +1821,12 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
- 	if (type != V4L2_CTRL_TYPE_MENU || qmenu == NULL) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, type, 0, max, mask, def,
-+	return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
- 			     flags, qmenu, NULL, NULL);
- 
- }
-@@ -1831,6 +1838,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 			u32 id, u8 _max, u8 _def, const s64 *qmenu_int)
- {
- 	const char *name;
-+	const char *unit = NULL;
- 	enum v4l2_ctrl_type type;
- 	s64 min;
- 	u64 step;
-@@ -1838,12 +1846,12 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 	s64 def = _def;
- 	u32 flags;
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
- 	if (type != V4L2_CTRL_TYPE_INTEGER_MENU) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, type,
-+	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
- 			     0, max, 0, def, flags, NULL, qmenu_int, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 0b347e8..3998049 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -85,6 +85,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   * @ops:	The control ops.
-   * @id:	The control ID.
-   * @name:	The control name.
-+  * @unit:	The control's unit. May be NULL.
-   * @type:	The control type.
-   * @minimum:	The control's minimum value.
-   * @maximum:	The control's maximum value.
-@@ -130,6 +131,7 @@ struct v4l2_ctrl {
- 	const struct v4l2_ctrl_ops *ops;
- 	u32 id;
- 	const char *name;
-+	const char *unit;
- 	enum v4l2_ctrl_type type;
- 	s64 minimum, maximum, default_value;
- 	union {
-@@ -207,6 +209,7 @@ struct v4l2_ctrl_handler {
-   * @ops:	The control ops.
-   * @id:	The control ID.
-   * @name:	The control name.
-+  * @unit:	The control's unit.
-   * @type:	The control type.
-   * @min:	The control's minimum value.
-   * @max:	The control's maximum value.
-@@ -230,6 +233,7 @@ struct v4l2_ctrl_config {
- 	const struct v4l2_ctrl_ops *ops;
- 	u32 id;
- 	const char *name;
-+	const char *unit;
- 	enum v4l2_ctrl_type type;
- 	s64 min;
- 	s64 max;
-@@ -249,15 +253,16 @@ struct v4l2_ctrl_config {
-   * and @name will be NULL.
-   *
-   * This function will overwrite the contents of @name, @type and @flags.
--  * The contents of @min, @max, @step and @def may be modified depending on
--  * the type.
-+  * The contents of @unit, @min, @max, @step and @def may be modified depending
-+  * on the type.
-   *
-   * Do not use in drivers! It is used internally for backwards compatibility
-   * control handling only. Once all drivers are converted to use the new
-   * control framework this function will no longer be exported.
-   */
--void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
--		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags);
-+void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
-+		    enum v4l2_ctrl_type *type, s64 *min, s64 *max,
-+		    u64 *step, s64 *def, u32 *flags);
- 
- 
- /** v4l2_ctrl_handler_init_class() - Initialize the control handler.
+
+2)  Assuming selection is a property. id will tell if we are setting
+CAPTURE_CROP, CAPTURE_COMPOSE, OUTPUT_CROP or OUTPUT_COMPOSE and type
+will tell if it is an array or a single element?
+
+something like:
+type=V4L2_PROP_TYPE_MATRIX | V4L2_PROP_TYPE_SELECTION ?
+type= V4L2_PROP_TYPE_SELECTION ;
+
+On the patchset there is nothing about selections. Or I am missing something?
+
+
+
+Thanks!
+
+On Mon, Jan 27, 2014 at 3:34 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> This patch series adds support for complex controls (aka 'Properties') to
+> the control framework. It is the first part of a larger patch series that
+> adds support for configuration stores, motion detection matrix controls and
+> support for 'Multiple Selections'.
+>
+> This patch series is based on this RFC:
+>
+> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/71822
+>
+> A more complete patch series (including configuration store support and the
+> motion detection work) can be found here:
+>
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/propapi-doc
+>
+> This patch series is a revision of RFCv2:
+>
+> http://www.spinics.net/lists/linux-media/msg71828.html
+>
+> Changes since RFCv2 are:
+>
+> - incorporated Sylwester's comments
+> - split up patch [20/21] into two: one for the codingstyle fixes in the example
+>   code, one for the actual DocBook additions.
+> - fixed a bug in patch 6 that broke the old-style VIDIOC_QUERYCTRL. Also made
+>   the code in v4l2_query_ext_ctrl() that sets the mask/match variables more
+>   readable. If I had to think about my own code, then what are the chances others
+>   will understand it? :-)
+> - dropped the support for setting/getting partial matrices. That's too ambiguous
+>   at the moment, and we can always add that later if necessary.
+>
+> The API changes required to support complex controls are minimal:
+>
+> - A new V4L2_CTRL_FLAG_HIDDEN has been added: any control with this flag (and
+>   complex controls will always have this flag) will never be shown by control
+>   panel GUIs. The only way to discover them is to pass the new _FLAG_NEXT_HIDDEN
+>   flag to QUERYCTRL.
+>
+> - A new VIDIOC_QUERY_EXT_CTRL ioctl has been added: needed to get the number of elements
+>   stored in the control (rows by columns) and the size in byte of each element.
+>   As a bonus feature a unit string has also been added as this has been requested
+>   in the past. In addition min/max/step/def values are now 64-bit.
+>
+> - A new 'p' field is added to struct v4l2_ext_control to set/get complex values.
+>
+> - A helper flag V4L2_CTRL_FLAG_IS_PTR has been added to tell apps whether the
+>   'value' or 'value64' fields of the v4l2_ext_control struct can be used (bit
+>   is cleared) or if the 'p' pointer can be used (bit it set).
+>
+> Once everyone agrees with this API extension I will make a next version of this
+> patch series that adds the Motion Detection support for the solo6x10 and go7007
+> drivers that can now use the new matrix controls. That way actual drivers will
+> start using this (and it will allow me to move those drivers out of staging).
+>
+> Regards,
+>
+>         Hans
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
 -- 
-1.8.5.2
-
+Ricardo Ribalda
