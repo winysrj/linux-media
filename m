@@ -1,1261 +1,1146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:58397 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756062AbaAFVen (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 16:34:43 -0500
-Received: by mail-ee0-f42.google.com with SMTP id e53so8157184eek.1
-        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 13:34:42 -0800 (PST)
-Message-ID: <52CB21B5.2090701@googlemail.com>
-Date: Mon, 06 Jan 2014 22:35:49 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from gateway13.websitewelcome.com ([69.93.154.15]:52009 "EHLO
+	gateway13.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932266AbaA1X4f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jan 2014 18:56:35 -0500
+Received: from gator3086.hostgator.com (ns6171.hostgator.com [50.87.144.121])
+	by gateway13.websitewelcome.com (Postfix) with ESMTP id C850F60591FC1
+	for <linux-media@vger.kernel.org>; Tue, 28 Jan 2014 17:31:35 -0600 (CST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v4 04/22] [media] em28xx: make em28xx-video to be a separate
- module
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>	<1388832951-11195-5-git-send-email-m.chehab@samsung.com>	<52C93824.1000206@googlemail.com>	<20140105105633.12cd6e4b@samsung.com> <20140105131852.21bd3056@infradead.org>
-In-Reply-To: <20140105131852.21bd3056@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Tue, 28 Jan 2014 17:31:34 -0600
+From: dean@sensoray.com
+To: <linux-media@vger.kernel.org>
+Cc: <hverkuil@xs4all.nl>, <linux-dev@sensoray.com>
+Subject: [PATCH]: s2255drv: checkpatch fix: coding style fix
+Message-ID: <aaaf620bc50c7b8a8c725266fa82e1a4@sensoray.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.01.2014 16:18, schrieb Mauro Carvalho Chehab:
-> Em Sun, 05 Jan 2014 10:56:33 -0200
-> Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
->
->> Em Sun, 05 Jan 2014 11:47:00 +0100
->> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>
->>> Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
->>>> Now that all analog-specific code are at em28xx-video, convert
->>>> it into an em28xx extension and load it as a separate module.
->>>>
->>>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
->>>> ---
->>>>  drivers/media/usb/em28xx/Kconfig         |  6 ++-
->>>>  drivers/media/usb/em28xx/Makefile        |  5 ++-
->>>>  drivers/media/usb/em28xx/em28xx-camera.c |  1 +
->>>>  drivers/media/usb/em28xx/em28xx-cards.c  | 45 ++++---------------
->>>>  drivers/media/usb/em28xx/em28xx-core.c   | 12 ++++++
->>>>  drivers/media/usb/em28xx/em28xx-v4l.h    | 20 +++++++++
->>>>  drivers/media/usb/em28xx/em28xx-vbi.c    |  1 +
->>>>  drivers/media/usb/em28xx/em28xx-video.c  | 74 +++++++++++++++++++++++---------
->>>>  drivers/media/usb/em28xx/em28xx.h        | 23 ++--------
->>>>  9 files changed, 107 insertions(+), 80 deletions(-)
->>>>  create mode 100644 drivers/media/usb/em28xx/em28xx-v4l.h
->>>>
->>>> diff --git a/drivers/media/usb/em28xx/Kconfig b/drivers/media/usb/em28xx/Kconfig
->>>> index d6ba514d31eb..838fc9dbb747 100644
->>>> --- a/drivers/media/usb/em28xx/Kconfig
->>>> +++ b/drivers/media/usb/em28xx/Kconfig
->>>> @@ -1,8 +1,12 @@
->>>>  config VIDEO_EM28XX
->>>> -	tristate "Empia EM28xx USB video capture support"
->>>> +	tristate "Empia EM28xx USB devices support"
->>>>  	depends on VIDEO_DEV && I2C
->>>>  	select VIDEO_TUNER
->>>>  	select VIDEO_TVEEPROM
->>>> +
->>>> +config VIDEO_EM28XX_V4L2
->>>> +	tristate "Empia EM28xx analog TV, video capture and/or webcam support"
->>>> +	depends on VIDEO_EM28XX && I2C
->>> VIDEO_EM28XX already depends on I2C.
->>>
->>>>  	select VIDEOBUF2_VMALLOC
->>>>  	select VIDEO_SAA711X if MEDIA_SUBDRV_AUTOSELECT
->>>>  	select VIDEO_TVP5150 if MEDIA_SUBDRV_AUTOSELECT
->>>> diff --git a/drivers/media/usb/em28xx/Makefile b/drivers/media/usb/em28xx/Makefile
->>>> index ad6d48557940..3f850d5063d0 100644
->>>> --- a/drivers/media/usb/em28xx/Makefile
->>>> +++ b/drivers/media/usb/em28xx/Makefile
->>>> @@ -1,10 +1,11 @@
->>>> -em28xx-y +=	em28xx-video.o em28xx-i2c.o em28xx-cards.o
->>>> -em28xx-y +=	em28xx-core.o  em28xx-vbi.o em28xx-camera.o
->>>> +em28xx-y +=	em28xx-core.o em28xx-i2c.o em28xx-cards.o em28xx-camera.o
->>>>  
->>>> +em28xx-v4l-objs := em28xx-video.o em28xx-vbi.o
->>>>  em28xx-alsa-objs := em28xx-audio.o
->>>>  em28xx-rc-objs := em28xx-input.o
->>>>  
->>>>  obj-$(CONFIG_VIDEO_EM28XX) += em28xx.o
->>>> +obj-$(CONFIG_VIDEO_EM28XX_V4L2) += em28xx-v4l.o
->>>>  obj-$(CONFIG_VIDEO_EM28XX_ALSA) += em28xx-alsa.o
->>>>  obj-$(CONFIG_VIDEO_EM28XX_DVB) += em28xx-dvb.o
->>>>  obj-$(CONFIG_VIDEO_EM28XX_RC) += em28xx-rc.o
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
->>>> index d666741797d4..c29f5c4e7b40 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-camera.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-camera.c
->>>> @@ -454,3 +454,4 @@ int em28xx_init_camera(struct em28xx *dev)
->>>>  
->>>>  	return ret;
->>>>  }
->>>> +EXPORT_SYMBOL_GPL(em28xx_init_camera);
->>> em28xx-camera should also be part of the em28xx-v4l module.
->> I tried that. Moving em28xx-camera to em28xx-v4l would cause a recursive
->> dependency, due to the camera probing logic, that should be called by
->> em28xx-cards.c.
->>
->> Moving that probing part to em28xx-v4l is too complex, due to the code
->> that detects the board.
->>
->> One solution would be to break em28xx-camera into two parts: the detection
->> code, to be merged with the core, and the sensor part, to be merged with
->> em28xx-v4l, but that sounds ugly.
->>
->> Other solution would be to use something like the dvb_attach() macro,
->> to avoid the recursive dependency, but that would be a dirty solution.
->>
->> As the code there is not big, the amount of overhead of having everything
->> at em28xx-core is not high. So, I opted to keep the simplest path here,
->> avoiding the risk of breaking something with a complex changeset.
->>
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
->>>> index 175cd776e0a1..938daaabd8e0 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
->>>> @@ -2159,6 +2159,8 @@ struct em28xx_board em28xx_boards[] = {
->>>>  		.ir_codes      = RC_MAP_PINNACLE_PCTV_HD,
->>>>  	},
->>>>  };
->>>> +EXPORT_SYMBOL_GPL(em28xx_boards);
->>>> +
->>>>  const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
->>>>  
->>>>  /* table of devices that work with this driver */
->>>> @@ -2827,10 +2829,6 @@ static void em28xx_card_setup(struct em28xx *dev)
->>>>  				"tuner", dev->tuner_addr, NULL);
->>>>  		}
->>>>  	}
->>>> -
->>>> -	em28xx_tuner_setup(dev);
->>>> -
->>>> -	em28xx_init_camera(dev);
->>>>  }
->>> Here you are fixing half of the em28xx_card_setup() oopses which you've
->>> introduced with patch 3/22.
->>> This needs to be done together with patch 5/22 before patch 3/22.
->> Ok.
->>
->>>> @@ -2848,11 +2846,12 @@ static void request_module_async(struct work_struct *work)
->>>>  	em28xx_init_extension(dev);
->>>>  
->>>>  #if defined(CONFIG_MODULES) && defined(MODULE)
->>>> +	if (dev->has_video)
->>>> +		request_module("em28xx-v4l");
->>>>  	if (dev->has_audio_class)
->>>>  		request_module("snd-usb-audio");
->>>>  	else if (dev->has_alsa_audio)
->>>>  		request_module("em28xx-alsa");
->>>> -
->>>>  	if (dev->board.has_dvb)
->>>>  		request_module("em28xx-dvb");
->>>>  	if (dev->board.buttons ||
->>>> @@ -2881,18 +2880,12 @@ void em28xx_release_resources(struct em28xx *dev)
->>>>  {
->>>>  	/*FIXME: I2C IR should be disconnected */
->>>>  
->>>> -	em28xx_release_analog_resources(dev);
->>>> -
->>>>  	if (dev->def_i2c_bus)
->>>>  		em28xx_i2c_unregister(dev, 1);
->>>>  	em28xx_i2c_unregister(dev, 0);
->>>>  	if (dev->clk)
->>>>  		v4l2_clk_unregister_fixed(dev->clk);
->>>>  
->>>> -	v4l2_ctrl_handler_free(&dev->ctrl_handler);
->>>> -
->>>> -	v4l2_device_unregister(&dev->v4l2_dev);
->>>> -
->>>>  	usb_put_dev(dev->udev);
->>>>  
->>>>  	/* Mark device as unused */
->>>> @@ -3043,7 +3036,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->>>>  	if (retval < 0) {
->>>>  		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
->>>>  			__func__, retval);
->>>> -		goto unregister_dev;
->>>> +		return retval;
->>>>  	}
->>>>  
->>>>  	/* register i2c bus 1 */
->>>> @@ -3057,30 +3050,14 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->>>>  		if (retval < 0) {
->>>>  			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
->>>>  				__func__, retval);
->>>> -			goto unregister_dev;
->>>> +			return retval;
->>>>  		}
->>>>  	}
->>> Hmm... if registering of bus 1 fails, we need to unregister bus 0.
->>> But that's an old bug which we can fix later...
->> Good point. Yes, this should be on a separate patch.
-> Patch sent.
->
->>>>  	/* Do board specific init and eeprom reading */
->>>>  	em28xx_card_setup(dev);
->>>>  
->>>> -	retval = em28xx_register_analog_devices(dev);
->>>> -	if (retval < 0) {
->>>> -		goto fail;
->>>> -	}
->>>> -
->>>>  	return 0;
->>>> -
->>>> -fail:
->>>> -	if (dev->def_i2c_bus)
->>>> -		em28xx_i2c_unregister(dev, 1);
->>>> -	em28xx_i2c_unregister(dev, 0);
->>>> -	v4l2_ctrl_handler_free(&dev->ctrl_handler);
->>>> -
->>>> -unregister_dev:
->>>> -	v4l2_device_unregister(&dev->v4l2_dev);
->>>> -
->>>> -	return retval;
->>>>  }
->>>>  
->>>>  /* high bandwidth multiplier, as encoded in highspeed endpoint descriptors */
->>>> @@ -3283,6 +3260,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->>>>  	dev->alt   = -1;
->>>>  	dev->is_audio_only = has_audio && !(has_video || has_dvb);
->>>>  	dev->has_alsa_audio = has_audio;
->>>> +	dev->has_video = has_video;
->>>>  	dev->audio_ifnum = ifnum;
->>>>  
->>>>  	/* Checks if audio is provided by some interface */
->>>> @@ -3322,10 +3300,9 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->>>>  
->>>>  	/* allocate device struct */
->>>>  	mutex_init(&dev->lock);
->>>> -	mutex_lock(&dev->lock);
->>>>  	retval = em28xx_init_dev(dev, udev, interface, nr);
->>>>  	if (retval) {
->>>> -		goto unlock_and_free;
->>>> +		goto err_free;
->>>>  	}
->>>>  
->>>>  	if (usb_xfer_mode < 0) {
->>>> @@ -3368,7 +3345,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->>>>  		if (retval) {
->>>>  			printk(DRIVER_NAME
->>>>  			       ": Failed to pre-allocate USB transfer buffers for DVB.\n");
->>>> -			goto unlock_and_free;
->>>> +			goto err_free;
->>>>  		}
->>>>  	}
->>>>  
->>>> @@ -3377,13 +3354,9 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->>>>  	/* Should be the last thing to do, to avoid newer udev's to
->>>>  	   open the device before fully initializing it
->>>>  	 */
->>>> -	mutex_unlock(&dev->lock);
->>>>  
->>>>  	return 0;
->>>>  
->>>> -unlock_and_free:
->>>> -	mutex_unlock(&dev->lock);
->>>> -
->>>>  err_free:
->>>>  	kfree(dev->alt_max_pkt_size_isoc);
->>>>  	kfree(dev);
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
->>>> index 3012912d2997..1113d4e107d8 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-core.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-core.c
->>>> @@ -33,6 +33,18 @@
->>>>  
->>>>  #include "em28xx.h"
->>>>  
->>>> +#define DRIVER_AUTHOR "Ludovico Cavedon <cavedon@sssup.it>, " \
->>>> +		      "Markus Rechberger <mrechberger@gmail.com>, " \
->>>> +		      "Mauro Carvalho Chehab <mchehab@infradead.org>, " \
->>>> +		      "Sascha Sommer <saschasommer@freenet.de>"
->>>> +
->>>> +#define DRIVER_DESC         "Empia em28xx based USB core driver"
->>>> +
->>>> +MODULE_AUTHOR(DRIVER_AUTHOR);
->>>> +MODULE_DESCRIPTION(DRIVER_DESC);
->>>> +MODULE_LICENSE("GPL");
->>>> +MODULE_VERSION(EM28XX_VERSION);
->>>> +
->>>>  /* #define ENABLE_DEBUG_ISOC_FRAMES */
->>>>  
->>>>  static unsigned int core_debug;
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-v4l.h b/drivers/media/usb/em28xx/em28xx-v4l.h
->>>> new file mode 100644
->>>> index 000000000000..bce438691e0e
->>>> --- /dev/null
->>>> +++ b/drivers/media/usb/em28xx/em28xx-v4l.h
->>>> @@ -0,0 +1,20 @@
->>>> +/*
->>>> +   em28xx-video.c - driver for Empia EM2800/EM2820/2840 USB
->>>> +		    video capture devices
->>> The information about supported chips is outdated everywhere in the driver,
->>> but if you introduce a new header file it should really be up to date.
->>> Just talk about EM27xx/EM28xx.
->> We need to do a cleanup on all those headers: they don't follow Kernel
->> CodingStyle and the old headers use my previous email.
->>
->> For the sake of keeping a coherency, I deliberately opted to just use the
->> same way as the other headers.
->>
->> My plan is to write a patch series fixing this and other CodingStyle
->> issues on em28xx after merging this changeset.
->>
->>>> +
->>>> +   Copyright (C) 2013-2014 Mauro Carvalho Chehab <m.chehab@samsung.com>
->>>> +
->>>> +   This program is free software; you can redistribute it and/or modify
->>>> +   it under the terms of the GNU General Public License as published by
->>>> +   the Free Software Foundation version 2 of the License.
->>>> +
->>>> +   This program is distributed in the hope that it will be useful,
->>>> +   but WITHOUT ANY WARRANTY; without even the implied warranty of
->>>> +   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>>> +   GNU General Public License for more details.
->>>> + */
->>>> +
->>>> +
->>>> +int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count);
->>>> +int em28xx_stop_vbi_streaming(struct vb2_queue *vq);
->>>> +extern struct vb2_ops em28xx_vbi_qops;
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-vbi.c b/drivers/media/usb/em28xx/em28xx-vbi.c
->>>> index 39f39c527c13..db3d655600df 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-vbi.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-vbi.c
->>>> @@ -27,6 +27,7 @@
->>>>  #include <linux/init.h>
->>>>  
->>>>  #include "em28xx.h"
->>>> +#include "em28xx-v4l.h"
->>>>  
->>>>  static unsigned int vbibufs = 5;
->>>>  module_param(vbibufs, int, 0644);
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
->>>> index 85284626dbd6..d615bff8ac09 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-video.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-video.c
->>>> @@ -38,6 +38,7 @@
->>>>  #include <linux/slab.h>
->>>>  
->>>>  #include "em28xx.h"
->>>> +#include "em28xx-v4l.h"
->>>>  #include <media/v4l2-common.h>
->>>>  #include <media/v4l2-ioctl.h>
->>>>  #include <media/v4l2-event.h>
->>>> @@ -141,11 +142,13 @@ static struct em28xx_fmt format[] = {
->>>>  	},
->>>>  };
->>>>  
->>>> +static int em28xx_vbi_supported(struct em28xx *dev);
->>>> +
->>> Or move em28xx_vbi_supported() before em28xx_set_outfmt() and
->>> em28xx_resolution_set() again.
->>> If you had not changed the functions order in patch 1/22, this wouldn't
->>> be necessary.
->> True. I'll put an extra cleanup patch to remove this reference on the
->> CodingStyle cleanup patchset I'm planning to do.
-> Ok, I changed the order on patch 1/22, so this line was removed.
->
->>>>  /*
->>>>   * em28xx_wake_i2c()
->>>>   * configure i2c attached devices
->>>>   */
->>>> -void em28xx_wake_i2c(struct em28xx *dev)
->>>> +static void em28xx_wake_i2c(struct em28xx *dev)
->>>>  {
->>>>  	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  reset, 0);
->>>>  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
->>>> @@ -153,7 +156,7 @@ void em28xx_wake_i2c(struct em28xx *dev)
->>>>  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
->>>>  }
->>>>  
->>>> -int em28xx_colorlevels_set_default(struct em28xx *dev)
->>>> +static int em28xx_colorlevels_set_default(struct em28xx *dev)
->>>>  {
->>>>  	em28xx_write_reg(dev, EM28XX_R20_YGAIN, CONTRAST_DEFAULT);
->>>>  	em28xx_write_reg(dev, EM28XX_R21_YOFFSET, BRIGHTNESS_DEFAULT);
->>>> @@ -171,7 +174,7 @@ int em28xx_colorlevels_set_default(struct em28xx *dev)
->>>>  	return em28xx_write_reg(dev, EM28XX_R1A_BOFFSET, 0x00);
->>>>  }
->>>>  
->>>> -int em28xx_set_outfmt(struct em28xx *dev)
->>>> +static int em28xx_set_outfmt(struct em28xx *dev)
->>>>  {
->>>>  	int ret;
->>>>  	u8 fmt, vinctrl;
->>>> @@ -278,7 +281,7 @@ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
->>>>  }
->>>>  
->>>>  /* FIXME: this only function read values from dev */
->>>> -int em28xx_resolution_set(struct em28xx *dev)
->>>> +static int em28xx_resolution_set(struct em28xx *dev)
->>>>  {
->>>>  	int width, height;
->>>>  	width = norm_maxw(dev);
->>>> @@ -310,7 +313,7 @@ int em28xx_resolution_set(struct em28xx *dev)
->>>>  	return em28xx_scaler_set(dev, dev->hscale, dev->vscale);
->>>>  }
->>>>  
->>>> -int em28xx_vbi_supported(struct em28xx *dev)
->>>> +static int em28xx_vbi_supported(struct em28xx *dev)
->>>>  {
->>>>  	/* Modprobe option to manually disable */
->>>>  	if (disable_vbi == 1)
->>>> @@ -330,7 +333,7 @@ int em28xx_vbi_supported(struct em28xx *dev)
->>>>  }
->>>>  
->>>>  /* Set USB alternate setting for analog video */
->>>> -int em28xx_set_alternate(struct em28xx *dev)
->>>> +static int em28xx_set_alternate(struct em28xx *dev)
->>>>  {
->>>>  	int errCode;
->>>>  	int i;
->>>> @@ -1020,7 +1023,7 @@ static struct vb2_ops em28xx_video_qops = {
->>>>  	.wait_finish    = vb2_ops_wait_finish,
->>>>  };
->>>>  
->>>> -int em28xx_vb2_setup(struct em28xx *dev)
->>>> +static int em28xx_vb2_setup(struct em28xx *dev)
->>>>  {
->>>>  	int rc;
->>>>  	struct vb2_queue *q;
->>>> @@ -1088,7 +1091,7 @@ static void video_mux(struct em28xx *dev, int index)
->>>>  	em28xx_audio_analog_set(dev);
->>>>  }
->>>>  
->>>> -void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv)
->>>> +static void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv)
->>>>  {
->>>>  	struct em28xx *dev = priv;
->>>>  
->>>> @@ -1625,7 +1628,7 @@ static int vidioc_g_register(struct file *file, void *priv,
->>>>  		reg->val = ret;
->>>>  	} else {
->>>>  		__le16 val = 0;
->>>> -		ret = em28xx_read_reg_req_len(dev, USB_REQ_GET_STATUS,
->>>> +		ret = dev->em28xx_read_reg_req_len(dev, USB_REQ_GET_STATUS,
->>>>  						   reg->reg, (char *)&val, 2);
->>> Urgh... is it really necessary to start using these pointers again ?
->>> Ok... keep it as is, I'll send a patch to clean this up later.
->> This is one of the few places where we weren't using those pointers:
->>
->> $ git grep em28xx_read_reg_req_len drivers/media/usb/em28xx/
->> drivers/media/usb/em28xx/em28xx-cards.c:  dev->em28xx_read_reg_req_len = em28xx_read_reg_req_len;
->> drivers/media/usb/em28xx/em28xx-core.c:int em28xx_read_reg_req_len(struct em28xx *dev, u8 req, u16 reg,
->> drivers/media/usb/em28xx/em28xx-core.c:   ret = em28xx_read_reg_req_len(dev, req, reg, &val, 1);
->> drivers/media/usb/em28xx/em28xx-core.c:   ret = dev->em28xx_read_reg_req_len(dev, 0, EM28XX_R40_AC97LSB,
->> drivers/media/usb/em28xx/em28xx-i2c.c:    ret = dev->em28xx_read_reg_req_len(dev, 0x00, 4-len, buf2, len);
->> drivers/media/usb/em28xx/em28xx-i2c.c:            ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
->> drivers/media/usb/em28xx/em28xx-i2c.c:    ret = dev->em28xx_read_reg_req_len(dev, 0x06, addr, buf, len);
->> drivers/media/usb/em28xx/em28xx-input.c:  rc = dev->em28xx_read_reg_req_len(dev, 0, EM28XX_R45_IR,
->> drivers/media/usb/em28xx/em28xx-input.c:  rc = dev->em28xx_read_reg_req_len(dev, 0, EM2874_R51_IR,
->> drivers/media/usb/em28xx/em28xx-video.c:          ret = dev->em28xx_read_reg_req_len(dev, USB_REQ_GET_STATUS,
->> drivers/media/usb/em28xx/em28xx.h:        int (*em28xx_read_reg_req_len) (struct em28xx *dev, u8 req, u16 reg,
->> drivers/media/usb/em28xx/em28xx.h:int em28xx_read_reg_req_len(struct em28xx *dev, u8 req, u16 reg,
->>
->> For the sake of coherency, we should either use one or the other way.
->>
->>>>  		if (ret < 0)
->>>>  			return ret;
->>>> @@ -1872,11 +1875,11 @@ static int em28xx_v4l2_open(struct file *filp)
->>>>  }
->>>>  
->>>>  /*
->>>> - * em28xx_realease_resources()
->>>> + * em28xx_v4l2_fini()
->>>>   * unregisters the v4l2,i2c and usb devices
->>>>   * called when the device gets disconected or at module unload
->>>>  */
->>>> -void em28xx_release_analog_resources(struct em28xx *dev)
->>>> +static int em28xx_v4l2_fini(struct em28xx *dev)
->>>>  {
->>>>  
->>>>  	/*FIXME: I2C IR should be disconnected */
->>>> @@ -1906,6 +1909,8 @@ void em28xx_release_analog_resources(struct em28xx *dev)
->>>>  			video_device_release(dev->vdev);
->>>>  		dev->vdev = NULL;
->>>>  	}
->>>> +
->>>> +	return 0;
->>>>  }
->>>>  
->>>>  /*
->>>> @@ -1927,12 +1932,12 @@ static int em28xx_v4l2_close(struct file *filp)
->>>>  	if (dev->users == 1) {
->>>>  		/* the device is already disconnect,
->>>>  		   free the remaining resources */
->>>> +
->>>>  		if (dev->disconnected) {
->>>> -			em28xx_release_resources(dev);
->>> Who releases the resources now ?
->> This is tricky.
->>
->> The hole idea is that em28xx-v4l release the resources allocated for V4L
->> only, and not all resources, the same way as the other em28xx modules
->> do.
->>
->> If you take a look at the original em28xx_release_resources(), what it does
->> is to call this function, and then to de-allocate and unregister v4l2:
->>
->> 			v4l2_ctrl_handler_free(&dev->ctrl_handler);
->> 			v4l2_device_unregister(&dev->v4l2_dev);
->>
->> after that, it deallocates the rest of allocated data.
->>
->> Now, em28xx_release_resources() is only called when em28xx is removed
->> from memory or when the device is removed.
->>
->> The code there first calls em28xx_close_extension(dev). So, at device
->> removal, em28xx-v4l will release the V4L2 specific resources, and
->> em28xx_release_resources() will drop the common dev struct.
->>
->> I suspect that it might still be a bug there, but, if so, this bug is 
->> also present on em28xx-dvb, em28xx-alsa and em28xx-rc: what happens if 
->> the device is removed while the file descriptors is still opened?
->>
->> Maybe the driver core already prevent such things, but I'm not sure.
->>
->> If there's a bug out there, the proper fix seems to use kref for 
->> struct em28xx, increasing refcount for every em28xx extension and/or 
->> file open, decreasing it at either extension fini call, or at file close.
->>
->> This way, em28xx_release_resources() would be called only after refcount
->> reaching zero, e. g. after being sure that nobody is using it.
->>
->> My plan is to take a look on it after having this changeset merged,
->> as such change, if needed, will be complex and would require lots of
->> testing. Also, it is independent on those changes.
->>
->>>> +			v4l2_ctrl_handler_free(&dev->ctrl_handler);
->>>> +			v4l2_device_unregister(&dev->v4l2_dev);
->>>>  			kfree(dev->alt_max_pkt_size_isoc);
->>>> -			mutex_unlock(&dev->lock);
->>>> -			kfree(dev);
->>>> -			return 0;
->>>> +			goto exit;
->>>>  		}
->>>>  
->>>>  		/* Save some power by putting tuner to sleep */
->>>> @@ -1951,6 +1956,7 @@ static int em28xx_v4l2_close(struct file *filp)
->>>>  		}
->>>>  	}
->>>>  
->>>> +exit:
->>>>  	dev->users--;
->>> Nice bugfix.
->>>
->>>>  	mutex_unlock(&dev->lock);
->>>>  	return 0;
->>>> @@ -2047,8 +2053,6 @@ static struct video_device em28xx_radio_template = {
->>>>  
->>>>  /******************************** usb interface ******************************/
->>>>  
->>>> -
->>>> -
->>>>  static struct video_device *em28xx_vdev_init(struct em28xx *dev,
->>>>  					const struct video_device *template,
->>>>  					const char *type_name)
->>>> @@ -2122,7 +2126,7 @@ static void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl)
->>>>  	}
->>>>  }
->>>>  
->>>> -void em28xx_tuner_setup(struct em28xx *dev)
->>>> +static void em28xx_tuner_setup(struct em28xx *dev)
->>>>  {
->>>>  	struct tuner_setup           tun_setup;
->>>>  	struct v4l2_frequency        f;
->>>> @@ -2181,14 +2185,14 @@ void em28xx_tuner_setup(struct em28xx *dev)
->>>>  	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
->>>>  }
->>>>  
->>>> -int em28xx_register_analog_devices(struct em28xx *dev)
->>>> +static int em28xx_v4l2_init(struct em28xx *dev)
->>>>  {
->>>>  	u8 val;
->>>>  	int ret;
->>>>  	unsigned int maxw;
->>>>  	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
->>>>  
->>>> -	if (!dev->is_audio_only) {
->>>> +	if (!dev->has_video) {
->>>>  		/* This device does not support the v4l2 extension */
->>>>  		return 0;
->>>>  	}
->>>> @@ -2196,6 +2200,8 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->>>>  	printk(KERN_INFO "%s: v4l2 driver version %s\n",
->>>>  		dev->name, EM28XX_VERSION);
->>>>  
->>>> +	mutex_lock(&dev->lock);
->>>> +
->>>>  	ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
->>>>  	if (ret < 0) {
->>>>  		em28xx_errdev("Call to v4l2_device_register() failed!\n");
->>>> @@ -2212,6 +2218,10 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->>>>  	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
->>>>  		       EM28XX_VINCTRL_CCIR656_ENABLE;
->>>>  
->>>> +	/* Initialize tuner and camera */
->>>> +	em28xx_tuner_setup(dev);
->>>> +	em28xx_init_camera(dev);
->>>> +
->>>>  	/* Configure audio */
->>>>  	ret = em28xx_audio_setup(dev);
->>>>  	if (ret < 0) {
->>>> @@ -2422,6 +2432,28 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->>>>  
->>>>  	/* initialize videobuf2 stuff */
->>>>  	em28xx_vb2_setup(dev);
->>>> +
->>>>  err:
->>>> -	return 0;
->>>> +	mutex_unlock(&dev->lock);
->>>> +	return ret;
->>>> +}
->>>> +
->>>> +static struct em28xx_ops v4l2_ops = {
->>>> +	.id   = EM28XX_V4L2,
->>>> +	.name = "Em28xx v4l2 Extension",
->>>> +	.init = em28xx_v4l2_init,
->>>> +	.fini = em28xx_v4l2_fini,
->>>> +};
->>>> +
->>>> +static int __init em28xx_video_register(void)
->>>> +{
->>>> +	return em28xx_register_extension(&v4l2_ops);
->>>>  }
->>>> +
->>>> +static void __exit em28xx_video_unregister(void)
->>>> +{
->>>> +	em28xx_unregister_extension(&v4l2_ops);
->>>> +}
->>>> +
->>>> +module_init(em28xx_video_register);
->>>> +module_exit(em28xx_video_unregister);
->>>> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
->>>> index 7ae05ebc13c1..9d6f43e4681f 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx.h
->>>> +++ b/drivers/media/usb/em28xx/em28xx.h
->>>> @@ -26,7 +26,7 @@
->>>>  #ifndef _EM28XX_H
->>>>  #define _EM28XX_H
->>>>  
->>>> -#define EM28XX_VERSION "0.2.0"
->>>> +#define EM28XX_VERSION "0.2.1"
->>>>  
->>>>  #include <linux/workqueue.h>
->>>>  #include <linux/i2c.h>
->>>> @@ -474,6 +474,7 @@ struct em28xx_eeprom {
->>>>  #define EM28XX_AUDIO   0x10
->>>>  #define EM28XX_DVB     0x20
->>>>  #define EM28XX_RC      0x30
->>>> +#define EM28XX_V4L2    0x40
->>>>  
->>>>  /* em28xx resource types (used for res_get/res_lock etc */
->>>>  #define EM28XX_RESOURCE_VIDEO 0x01
->>>> @@ -527,6 +528,7 @@ struct em28xx {
->>>>  
->>>>  	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
->>>>  	unsigned char disconnected:1;	/* device has been diconnected */
->>>> +	unsigned int has_video:1;
->>>>  	unsigned int has_audio_class:1;
->>>>  	unsigned int has_alsa_audio:1;
->>>>  	unsigned int is_audio_only:1;
->>>> @@ -723,14 +725,9 @@ int em28xx_write_ac97(struct em28xx *dev, u8 reg, u16 val);
->>>>  int em28xx_audio_analog_set(struct em28xx *dev);
->>>>  int em28xx_audio_setup(struct em28xx *dev);
->>>>  
->>>> -int em28xx_colorlevels_set_default(struct em28xx *dev);
->>>>  const struct em28xx_led *em28xx_find_led(struct em28xx *dev,
->>>>  					 enum em28xx_led_role role);
->>>>  int em28xx_capture_start(struct em28xx *dev, int start);
->>>> -int em28xx_vbi_supported(struct em28xx *dev);
->>>> -int em28xx_set_outfmt(struct em28xx *dev);
->>>> -int em28xx_resolution_set(struct em28xx *dev);
->>>> -int em28xx_set_alternate(struct em28xx *dev);
->>>>  int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
->>>>  		      int num_bufs, int max_pkt_size, int packet_multiplier);
->>>>  int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
->>>> @@ -742,31 +739,17 @@ void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode);
->>>>  void em28xx_stop_urbs(struct em28xx *dev);
->>>>  int em28xx_set_mode(struct em28xx *dev, enum em28xx_mode set_mode);
->>>>  int em28xx_gpio_set(struct em28xx *dev, struct em28xx_reg_seq *gpio);
->>>> -void em28xx_wake_i2c(struct em28xx *dev);
->>>>  int em28xx_register_extension(struct em28xx_ops *dev);
->>>>  void em28xx_unregister_extension(struct em28xx_ops *dev);
->>>>  void em28xx_init_extension(struct em28xx *dev);
->>>>  void em28xx_close_extension(struct em28xx *dev);
->>>>  
->>>> -/* Provided by em28xx-video.c */
->>>> -void em28xx_tuner_setup(struct em28xx *dev);
->>>> -int em28xx_vb2_setup(struct em28xx *dev);
->>>> -int em28xx_register_analog_devices(struct em28xx *dev);
->>>> -void em28xx_release_analog_resources(struct em28xx *dev);
->>>> -void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv);
->>>> -int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count);
->>>> -int em28xx_stop_vbi_streaming(struct vb2_queue *vq);
->>>> -extern const struct v4l2_ctrl_ops em28xx_ctrl_ops;
->>>> -
->>>>  /* Provided by em28xx-cards.c */
->>>>  extern struct em28xx_board em28xx_boards[];
->>>>  extern struct usb_device_id em28xx_id_table[];
->>>>  int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
->>>>  void em28xx_release_resources(struct em28xx *dev);
->>>>  
->>>> -/* Provided by em28xx-vbi.c */
->>>> -extern struct vb2_ops em28xx_vbi_qops;
->>>> -
->>>>  /* Provided by em28xx-camera.c */
->>>>  int em28xx_detect_sensor(struct em28xx *dev);
->>>>  int em28xx_init_camera(struct em28xx *dev);
->>> Nice clean-up ! :)
->> Thanks!
->>
-> Ok, this is the new version of the patch. It is basically a rebase of the
-> previous one. Btw, I'm adding those patches on this tree:
->
-> 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/em28xx-v4l2-v5
->
-> -
->
-> [media] em28xx: make em28xx-video to be a separate module
->
-> Now that all analog-specific code are at em28xx-video, convert
-> it into an em28xx extension and load it as a separate module.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
->
-> diff --git a/drivers/media/usb/em28xx/Kconfig b/drivers/media/usb/em28xx/Kconfig
-> index d6ba514d31eb..838fc9dbb747 100644
-> --- a/drivers/media/usb/em28xx/Kconfig
-> +++ b/drivers/media/usb/em28xx/Kconfig
-> @@ -1,8 +1,12 @@
->  config VIDEO_EM28XX
-> -	tristate "Empia EM28xx USB video capture support"
-> +	tristate "Empia EM28xx USB devices support"
->  	depends on VIDEO_DEV && I2C
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
-> +
-> +config VIDEO_EM28XX_V4L2
-> +	tristate "Empia EM28xx analog TV, video capture and/or webcam support"
-> +	depends on VIDEO_EM28XX
->  	select VIDEOBUF2_VMALLOC
->  	select VIDEO_SAA711X if MEDIA_SUBDRV_AUTOSELECT
->  	select VIDEO_TVP5150 if MEDIA_SUBDRV_AUTOSELECT
-> diff --git a/drivers/media/usb/em28xx/Makefile b/drivers/media/usb/em28xx/Makefile
-> index ad6d48557940..3f850d5063d0 100644
-> --- a/drivers/media/usb/em28xx/Makefile
-> +++ b/drivers/media/usb/em28xx/Makefile
-> @@ -1,10 +1,11 @@
-> -em28xx-y +=	em28xx-video.o em28xx-i2c.o em28xx-cards.o
-> -em28xx-y +=	em28xx-core.o  em28xx-vbi.o em28xx-camera.o
-> +em28xx-y +=	em28xx-core.o em28xx-i2c.o em28xx-cards.o em28xx-camera.o
->  
-> +em28xx-v4l-objs := em28xx-video.o em28xx-vbi.o
->  em28xx-alsa-objs := em28xx-audio.o
->  em28xx-rc-objs := em28xx-input.o
->  
->  obj-$(CONFIG_VIDEO_EM28XX) += em28xx.o
-> +obj-$(CONFIG_VIDEO_EM28XX_V4L2) += em28xx-v4l.o
->  obj-$(CONFIG_VIDEO_EM28XX_ALSA) += em28xx-alsa.o
->  obj-$(CONFIG_VIDEO_EM28XX_DVB) += em28xx-dvb.o
->  obj-$(CONFIG_VIDEO_EM28XX_RC) += em28xx-rc.o
-> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-> index d666741797d4..c29f5c4e7b40 100644
-> --- a/drivers/media/usb/em28xx/em28xx-camera.c
-> +++ b/drivers/media/usb/em28xx/em28xx-camera.c
-> @@ -454,3 +454,4 @@ int em28xx_init_camera(struct em28xx *dev)
->  
->  	return ret;
->  }
-> +EXPORT_SYMBOL_GPL(em28xx_init_camera);
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index dbce4dc421f9..b25869331284 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -2159,6 +2159,8 @@ struct em28xx_board em28xx_boards[] = {
->  		.ir_codes      = RC_MAP_PINNACLE_PCTV_HD,
->  	},
->  };
-> +EXPORT_SYMBOL_GPL(em28xx_boards);
-> +
->  const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
->  
->  /* table of devices that work with this driver */
-> @@ -2780,11 +2782,12 @@ static void request_module_async(struct work_struct *work)
->  	em28xx_init_extension(dev);
->  
->  #if defined(CONFIG_MODULES) && defined(MODULE)
-> +	if (dev->has_video)
-> +		request_module("em28xx-v4l");
->  	if (dev->has_audio_class)
->  		request_module("snd-usb-audio");
->  	else if (dev->has_alsa_audio)
->  		request_module("em28xx-alsa");
-> -
->  	if (dev->board.has_dvb)
->  		request_module("em28xx-dvb");
->  	if (dev->board.buttons ||
-> @@ -2813,18 +2816,12 @@ void em28xx_release_resources(struct em28xx *dev)
->  {
->  	/*FIXME: I2C IR should be disconnected */
->  
-> -	em28xx_release_analog_resources(dev);
-> -
->  	if (dev->def_i2c_bus)
->  		em28xx_i2c_unregister(dev, 1);
->  	em28xx_i2c_unregister(dev, 0);
->  	if (dev->clk)
->  		v4l2_clk_unregister_fixed(dev->clk);
->  
-> -	v4l2_ctrl_handler_free(&dev->ctrl_handler);
-> -
-> -	v4l2_device_unregister(&dev->v4l2_dev);
-> -
->  	usb_put_dev(dev->udev);
->  
->  	/* Mark device as unused */
-> @@ -2999,18 +2996,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  	/* Do board specific init and eeprom reading */
->  	em28xx_card_setup(dev);
->  
-> -	retval = em28xx_register_analog_devices(dev);
-> -	if (retval < 0)
-> -		goto fail;
-> -
->  	return 0;
-> -
-> -fail:
-> -	if (dev->def_i2c_bus)
-> -		em28xx_i2c_unregister(dev, 1);
-> -	em28xx_i2c_unregister(dev, 0);
-> -
-> -	return retval;
->  }
->  
->  /* high bandwidth multiplier, as encoded in highspeed endpoint descriptors */
-> @@ -3213,6 +3199,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->  	dev->alt   = -1;
->  	dev->is_audio_only = has_audio && !(has_video || has_dvb);
->  	dev->has_alsa_audio = has_audio;
-> +	dev->has_video = has_video;
->  	dev->audio_ifnum = ifnum;
->  
->  	/* Checks if audio is provided by some interface */
-> @@ -3252,10 +3239,9 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->  
->  	/* allocate device struct */
->  	mutex_init(&dev->lock);
-> -	mutex_lock(&dev->lock);
->  	retval = em28xx_init_dev(dev, udev, interface, nr);
->  	if (retval) {
-> -		goto unlock_and_free;
-> +		goto err_free;
->  	}
->  
->  	if (usb_xfer_mode < 0) {
-> @@ -3298,7 +3284,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->  		if (retval) {
->  			printk(DRIVER_NAME
->  			       ": Failed to pre-allocate USB transfer buffers for DVB.\n");
-> -			goto unlock_and_free;
-> +			goto err_free;
->  		}
->  	}
->  
-> @@ -3307,13 +3293,9 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->  	/* Should be the last thing to do, to avoid newer udev's to
->  	   open the device before fully initializing it
->  	 */
-> -	mutex_unlock(&dev->lock);
->  
->  	return 0;
->  
-> -unlock_and_free:
-> -	mutex_unlock(&dev->lock);
-> -
->  err_free:
->  	kfree(dev->alt_max_pkt_size_isoc);
->  	kfree(dev);
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index f77301773aee..c416dd33af3f 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -33,6 +33,18 @@
->  
->  #include "em28xx.h"
->  
-> +#define DRIVER_AUTHOR "Ludovico Cavedon <cavedon@sssup.it>, " \
-> +		      "Markus Rechberger <mrechberger@gmail.com>, " \
-> +		      "Mauro Carvalho Chehab <mchehab@infradead.org>, " \
-> +		      "Sascha Sommer <saschasommer@freenet.de>"
-> +
-> +#define DRIVER_DESC         "Empia em28xx based USB core driver"
-> +
-> +MODULE_AUTHOR(DRIVER_AUTHOR);
-> +MODULE_DESCRIPTION(DRIVER_DESC);
-> +MODULE_LICENSE("GPL");
-> +MODULE_VERSION(EM28XX_VERSION);
-> +
->  /* #define ENABLE_DEBUG_ISOC_FRAMES */
->  
->  static unsigned int core_debug;
-> diff --git a/drivers/media/usb/em28xx/em28xx-v4l.h b/drivers/media/usb/em28xx/em28xx-v4l.h
-> new file mode 100644
-> index 000000000000..bce438691e0e
-> --- /dev/null
-> +++ b/drivers/media/usb/em28xx/em28xx-v4l.h
-> @@ -0,0 +1,20 @@
-> +/*
-> +   em28xx-video.c - driver for Empia EM2800/EM2820/2840 USB
-> +		    video capture devices
-> +
-> +   Copyright (C) 2013-2014 Mauro Carvalho Chehab <m.chehab@samsung.com>
-> +
-> +   This program is free software; you can redistribute it and/or modify
-> +   it under the terms of the GNU General Public License as published by
-> +   the Free Software Foundation version 2 of the License.
-> +
-> +   This program is distributed in the hope that it will be useful,
-> +   but WITHOUT ANY WARRANTY; without even the implied warranty of
-> +   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> +   GNU General Public License for more details.
-> + */
-> +
-> +
-> +int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count);
-> +int em28xx_stop_vbi_streaming(struct vb2_queue *vq);
-> +extern struct vb2_ops em28xx_vbi_qops;
-> diff --git a/drivers/media/usb/em28xx/em28xx-vbi.c b/drivers/media/usb/em28xx/em28xx-vbi.c
-> index 39f39c527c13..db3d655600df 100644
-> --- a/drivers/media/usb/em28xx/em28xx-vbi.c
-> +++ b/drivers/media/usb/em28xx/em28xx-vbi.c
-> @@ -27,6 +27,7 @@
->  #include <linux/init.h>
->  
->  #include "em28xx.h"
-> +#include "em28xx-v4l.h"
->  
->  static unsigned int vbibufs = 5;
->  module_param(vbibufs, int, 0644);
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index 3726af134f39..78a1bfb97c3d 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -38,6 +38,7 @@
->  #include <linux/slab.h>
->  
->  #include "em28xx.h"
-> +#include "em28xx-v4l.h"
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-ioctl.h>
->  #include <media/v4l2-event.h>
-> @@ -141,7 +142,7 @@ static struct em28xx_fmt format[] = {
->  	},
->  };
->  
-> -int em28xx_vbi_supported(struct em28xx *dev)
-> +static int em28xx_vbi_supported(struct em28xx *dev)
->  {
->  	/* Modprobe option to manually disable */
->  	if (disable_vbi == 1)
-> @@ -164,7 +165,7 @@ int em28xx_vbi_supported(struct em28xx *dev)
->   * em28xx_wake_i2c()
->   * configure i2c attached devices
->   */
-> -void em28xx_wake_i2c(struct em28xx *dev)
-> +static void em28xx_wake_i2c(struct em28xx *dev)
->  {
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, core,  reset, 0);
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
-> @@ -172,7 +173,7 @@ void em28xx_wake_i2c(struct em28xx *dev)
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
->  }
->  
-> -int em28xx_colorlevels_set_default(struct em28xx *dev)
-> +static int em28xx_colorlevels_set_default(struct em28xx *dev)
->  {
->  	em28xx_write_reg(dev, EM28XX_R20_YGAIN, CONTRAST_DEFAULT);
->  	em28xx_write_reg(dev, EM28XX_R21_YOFFSET, BRIGHTNESS_DEFAULT);
-> @@ -190,7 +191,7 @@ int em28xx_colorlevels_set_default(struct em28xx *dev)
->  	return em28xx_write_reg(dev, EM28XX_R1A_BOFFSET, 0x00);
->  }
->  
-> -int em28xx_set_outfmt(struct em28xx *dev)
-> +static int em28xx_set_outfmt(struct em28xx *dev)
->  {
->  	int ret;
->  	u8 fmt, vinctrl;
-> @@ -297,7 +298,7 @@ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
->  }
->  
->  /* FIXME: this only function read values from dev */
-> -int em28xx_resolution_set(struct em28xx *dev)
-> +static int em28xx_resolution_set(struct em28xx *dev)
->  {
->  	int width, height;
->  	width = norm_maxw(dev);
-> @@ -330,7 +331,7 @@ int em28xx_resolution_set(struct em28xx *dev)
->  }
->  
->  /* Set USB alternate setting for analog video */
-> -int em28xx_set_alternate(struct em28xx *dev)
-> +static int em28xx_set_alternate(struct em28xx *dev)
->  {
->  	int errCode;
->  	int i;
-> @@ -1020,7 +1021,7 @@ static struct vb2_ops em28xx_video_qops = {
->  	.wait_finish    = vb2_ops_wait_finish,
->  };
->  
-> -int em28xx_vb2_setup(struct em28xx *dev)
-> +static int em28xx_vb2_setup(struct em28xx *dev)
->  {
->  	int rc;
->  	struct vb2_queue *q;
-> @@ -1088,7 +1089,7 @@ static void video_mux(struct em28xx *dev, int index)
->  	em28xx_audio_analog_set(dev);
->  }
->  
-> -void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv)
-> +static void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv)
->  {
->  	struct em28xx *dev = priv;
->  
-> @@ -1625,7 +1626,7 @@ static int vidioc_g_register(struct file *file, void *priv,
->  		reg->val = ret;
->  	} else {
->  		__le16 val = 0;
-> -		ret = em28xx_read_reg_req_len(dev, USB_REQ_GET_STATUS,
-> +		ret = dev->em28xx_read_reg_req_len(dev, USB_REQ_GET_STATUS,
->  						   reg->reg, (char *)&val, 2);
->  		if (ret < 0)
->  			return ret;
-> @@ -1872,15 +1873,12 @@ static int em28xx_v4l2_open(struct file *filp)
->  }
->  
->  /*
-> - * em28xx_realease_resources()
-> + * em28xx_v4l2_fini()
->   * unregisters the v4l2,i2c and usb devices
->   * called when the device gets disconected or at module unload
->  */
-> -void em28xx_release_analog_resources(struct em28xx *dev)
-> +static int em28xx_v4l2_fini(struct em28xx *dev)
->  {
-> -
-> -	/*FIXME: I2C IR should be disconnected */
-> -
->  	if (dev->radio_dev) {
->  		if (video_is_registered(dev->radio_dev))
->  			video_unregister_device(dev->radio_dev);
-> @@ -1906,6 +1904,8 @@ void em28xx_release_analog_resources(struct em28xx *dev)
->  			video_device_release(dev->vdev);
->  		dev->vdev = NULL;
->  	}
-> +
-> +	return 0;
->  }
->  
->  /*
-> @@ -1927,12 +1927,12 @@ static int em28xx_v4l2_close(struct file *filp)
->  	if (dev->users == 1) {
->  		/* the device is already disconnect,
->  		   free the remaining resources */
-> +
->  		if (dev->disconnected) {
-> -			em28xx_release_resources(dev);
-Ok, this is the last remaining issue with this patch.
+Fixes all style warnings from scripts/checkpatch -f
 
-I've tested it without removing this call and the core/v4l2 split
-doesn't cause any trouble.
-I've also verified that em28xx_v4l2_close() is still called although the
-extensions are already unregistered at that time.
+Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
+---
+  drivers/media/usb/s2255/s2255drv.c |  328 
+++++++++++++++++--------------------
+  1 file changed, 147 insertions(+), 181 deletions(-)
 
-As discussed in the previous mail this evening, keeping it here is still
-better than never releasing the resources.
-We can fix the whole extensions+resources releasing later.
+diff --git a/drivers/media/usb/s2255/s2255drv.c 
+b/drivers/media/usb/s2255/s2255drv.c
+index 6bc9b8e..c938b02 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -259,7 +259,7 @@ struct s2255_channel {
+
+  struct s2255_dev {
+  	struct s2255_channel    channel[MAX_CHANNELS];
+-	struct v4l2_device 	v4l2_dev;
++	struct v4l2_device      v4l2_dev;
+  	atomic_t                num_channels;
+  	int			frames;
+  	struct mutex		lock;	/* channels[].vdev.lock */
+@@ -352,7 +352,6 @@ struct s2255_fh {
+  static unsigned long G_chnmap[MAX_CHANNELS] = {3, 2, 1, 0};
+
+  static int debug;
+-static int *s2255_debug = &debug;
+
+  static int s2255_start_readpipe(struct s2255_dev *dev);
+  static void s2255_stop_readpipe(struct s2255_dev *dev);
+@@ -373,13 +372,8 @@ static long s2255_vendor_req(struct s2255_dev 
+*dev, unsigned char req,
+  #define s2255_dev_err(dev, fmt, arg...)					\
+  		dev_err(dev, S2255_DRIVER_NAME " - " fmt, ##arg)
+
+-#define dprintk(level, fmt, arg...)					\
+-	do {								\
+-		if (*s2255_debug >= (level)) {				\
+-			printk(KERN_DEBUG S2255_DRIVER_NAME		\
+-				": " fmt, ##arg);			\
+-		}							\
+-	} while (0)
++#define dprintk(dev, level, fmt, arg...) \
++	v4l2_dbg(level, debug, &dev->v4l2_dev, fmt, ## arg)
+
+  static struct usb_driver s2255_driver;
+
+@@ -498,7 +492,7 @@ static void planar422p_to_yuv_packed(const unsigned 
+char *in,
+  static void s2255_reset_dsppower(struct s2255_dev *dev)
+  {
+  	s2255_vendor_req(dev, 0x40, 0x0000, 0x0001, NULL, 0, 1);
+-	msleep(10);
++	msleep(20);
+  	s2255_vendor_req(dev, 0x50, 0x0000, 0x0000, NULL, 0, 1);
+  	msleep(600);
+  	s2255_vendor_req(dev, 0x10, 0x0000, 0x0000, NULL, 0, 1);
+@@ -510,9 +504,8 @@ static void s2255_reset_dsppower(struct s2255_dev 
+*dev)
+  static void s2255_timer(unsigned long user_data)
+  {
+  	struct s2255_fw *data = (struct s2255_fw *)user_data;
+-	dprintk(100, "%s\n", __func__);
+  	if (usb_submit_urb(data->fw_urb, GFP_ATOMIC) < 0) {
+-		printk(KERN_ERR "s2255: can't submit urb\n");
++		pr_err("s2255: can't submit urb\n");
+  		atomic_set(&data->fw_state, S2255_FW_FAILED);
+  		/* wake up anything waiting for the firmware */
+  		wake_up(&data->wait_fw);
+@@ -532,7 +525,6 @@ static void s2255_fwchunk_complete(struct urb *urb)
+  	struct s2255_fw *data = urb->context;
+  	struct usb_device *udev = urb->dev;
+  	int len;
+-	dprintk(100, "%s: udev %p urb %p", __func__, udev, urb);
+  	if (urb->status) {
+  		dev_err(&udev->dev, "URB failed with status %d\n", urb->status);
+  		atomic_set(&data->fw_state, S2255_FW_FAILED);
+@@ -559,9 +551,6 @@ static void s2255_fwchunk_complete(struct urb *urb)
+  		if (len < CHUNK_SIZE)
+  			memset(data->pfw_data, 0, CHUNK_SIZE);
+
+-		dprintk(100, "completed len %d, loaded %d \n", len,
+-			data->fw_loaded);
+-
+  		memcpy(data->pfw_data,
+  		       (char *) data->fw->data + data->fw_loaded, len);
+
+@@ -576,10 +565,8 @@ static void s2255_fwchunk_complete(struct urb 
+*urb)
+  			return;
+  		}
+  		data->fw_loaded += len;
+-	} else {
++	} else
+  		atomic_set(&data->fw_state, S2255_FW_LOADED_DSPWAIT);
+-		dprintk(100, "%s: firmware upload complete\n", __func__);
+-	}
+  	return;
+
+  }
+@@ -593,7 +580,7 @@ static int s2255_got_frame(struct s2255_channel 
+*channel, int jpgsize)
+  	int rc = 0;
+  	spin_lock_irqsave(&dev->slock, flags);
+  	if (list_empty(&dma_q->active)) {
+-		dprintk(1, "No active queue to serve\n");
++		dprintk(dev, 1, "No active queue to serve\n");
+  		rc = -1;
+  		goto unlock;
+  	}
+@@ -603,7 +590,7 @@ static int s2255_got_frame(struct s2255_channel 
+*channel, int jpgsize)
+  	v4l2_get_timestamp(&buf->vb.ts);
+  	s2255_fillbuff(channel, buf, jpgsize);
+  	wake_up(&buf->vb.done);
+-	dprintk(2, "%s: [buf/i] [%p/%d]\n", __func__, buf, buf->vb.i);
++	dprintk(dev, 2, "%s: [buf/i] [%p/%d]\n", __func__, buf, buf->vb.i);
+  unlock:
+  	spin_unlock_irqrestore(&dev->slock, flags);
+  	return rc;
+@@ -615,9 +602,9 @@ static const struct s2255_fmt *format_by_fourcc(int 
+fourcc)
+  	for (i = 0; i < ARRAY_SIZE(formats); i++) {
+  		if (-1 == formats[i].fourcc)
+  			continue;
+-	if (!jpeg_enable && ((formats[i].fourcc == V4L2_PIX_FMT_JPEG) ||
+-			     (formats[i].fourcc == V4L2_PIX_FMT_MJPEG)))
+-	    continue;
++		if (!jpeg_enable && ((formats[i].fourcc == V4L2_PIX_FMT_JPEG) ||
++				     (formats[i].fourcc == V4L2_PIX_FMT_MJPEG)))
++			continue;
+  		if (formats[i].fourcc == fourcc)
+  			return formats + i;
+  	}
+@@ -667,18 +654,17 @@ static void s2255_fillbuff(struct s2255_channel 
+*channel,
+  			       buf->vb.width * buf->vb.height * 2);
+  			break;
+  		default:
+-			printk(KERN_DEBUG "s2255: unknown format?\n");
++			pr_info("s2255: unknown format?\n");
+  		}
+  		channel->last_frame = -1;
+  	} else {
+-		printk(KERN_ERR "s2255: =======no frame\n");
++		pr_err("s2255: =======no frame\n");
+  		return;
+-
+  	}
+-	dprintk(2, "s2255fill at : Buffer 0x%08lx size= %d\n",
+-		(unsigned long)vbuf, pos);
++	if (debug >= 2)
++		pr_debug("s2255fill at : Buffer 0x%08lx size= %d\n",
++		       (unsigned long)vbuf, pos);
+  	/* tell v4l buffer was filled */
+-
+  	buf->vb.field_count = channel->frame_count * 2;
+  	v4l2_get_timestamp(&buf->vb.ts);
+  	buf->vb.state = VIDEOBUF_DONE;
+@@ -707,8 +693,6 @@ static int buffer_setup(struct videobuf_queue *vq, 
+unsigned int *count,
+
+  static void free_buffer(struct videobuf_queue *vq, struct s2255_buffer 
+*buf)
+  {
+-	dprintk(4, "%s\n", __func__);
+-
+  	videobuf_vmalloc_free(&buf->vb);
+  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+  }
+@@ -722,7 +706,7 @@ static int buffer_prepare(struct videobuf_queue 
+*vq, struct videobuf_buffer *vb,
+  	int rc;
+  	int w = channel->width;
+  	int h = channel->height;
+-	dprintk(4, "%s, field=%d\n", __func__, field);
++	dprintk(fh->dev, 4, "%s, field=%d\n", __func__, field);
+  	if (channel->fmt == NULL)
+  		return -EINVAL;
+
+@@ -730,12 +714,12 @@ static int buffer_prepare(struct videobuf_queue 
+*vq, struct videobuf_buffer *vb,
+  	    (w > norm_maxw(channel)) ||
+  	    (h < norm_minh(channel)) ||
+  	    (h > norm_maxh(channel))) {
+-		dprintk(4, "invalid buffer prepare\n");
++		dprintk(fh->dev, 4, "invalid buffer prepare\n");
+  		return -EINVAL;
+  	}
+  	buf->vb.size = w * h * (channel->fmt->depth >> 3);
+  	if (0 != buf->vb.baddr && buf->vb.bsize < buf->vb.size) {
+-		dprintk(4, "invalid buffer prepare\n");
++		dprintk(fh->dev, 4, "invalid buffer prepare\n");
+  		return -EINVAL;
+  	}
+
+@@ -763,7 +747,7 @@ static void buffer_queue(struct videobuf_queue *vq, 
+struct videobuf_buffer *vb)
+  	struct s2255_fh *fh = vq->priv_data;
+  	struct s2255_channel *channel = fh->channel;
+  	struct s2255_dmaqueue *vidq = &channel->vidq;
+-	dprintk(1, "%s\n", __func__);
++	dprintk(fh->dev, 1, "%s\n", __func__);
+  	buf->vb.state = VIDEOBUF_QUEUED;
+  	list_add_tail(&buf->vb.queue, &vidq->active);
+  }
+@@ -773,7 +757,7 @@ static void buffer_release(struct videobuf_queue 
+*vq,
+  {
+  	struct s2255_buffer *buf = container_of(vb, struct s2255_buffer, vb);
+  	struct s2255_fh *fh = vq->priv_data;
+-	dprintk(4, "%s %d\n", __func__, fh->channel->idx);
++	dprintk(fh->dev, 4, "%s %d\n", __func__, fh->channel->idx);
+  	free_buffer(vq, buf);
+  }
+
+@@ -794,7 +778,7 @@ static int res_get(struct s2255_fh *fh)
+  	/* it's free, grab it */
+  	channel->resources = 1;
+  	fh->resources = 1;
+-	dprintk(1, "s2255: res: get\n");
++	dprintk(fh->dev, 1, "s2255: res: get\n");
+  	return 1;
+  }
+
+@@ -814,7 +798,6 @@ static void res_free(struct s2255_fh *fh)
+  	struct s2255_channel *channel = fh->channel;
+  	channel->resources = 0;
+  	fh->resources = 0;
+-	dprintk(1, "res: put\n");
+  }
+
+  static int vidioc_querycap(struct file *file, void *priv,
+@@ -841,7 +824,6 @@ static int vidioc_enum_fmt_vid_cap(struct file 
+*file, void *priv,
+  	if (!jpeg_enable && ((formats[index].fourcc == V4L2_PIX_FMT_JPEG) ||
+  			(formats[index].fourcc == V4L2_PIX_FMT_MJPEG)))
+  		return -EINVAL;
+-	dprintk(4, "name %s\n", formats[index].name);
+  	strlcpy(f->description, formats[index].name, sizeof(f->description));
+  	f->pixelformat = formats[index].fourcc;
+  	return 0;
+@@ -885,7 +867,7 @@ static int vidioc_try_fmt_vid_cap(struct file 
+*file, void *priv,
+
+  	field = f->fmt.pix.field;
+
+-	dprintk(50, "%s NTSC: %d suggested width: %d, height: %d\n",
++	dprintk(fh->dev, 50, "%s NTSC: %d suggested width: %d, height: %d\n",
+  		__func__, is_ntsc, f->fmt.pix.width, f->fmt.pix.height);
+  	if (is_ntsc) {
+  		/* NTSC */
+@@ -927,7 +909,7 @@ static int vidioc_try_fmt_vid_cap(struct file 
+*file, void *priv,
+  	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
+  	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+  	f->fmt.pix.priv = 0;
+-	dprintk(50, "%s: set width %d height %d field %d\n", __func__,
++	dprintk(fh->dev, 50, "%s: set width %d height %d field %d\n", 
+__func__,
+  		f->fmt.pix.width, f->fmt.pix.height, f->fmt.pix.field);
+  	return 0;
+  }
+@@ -955,13 +937,13 @@ static int vidioc_s_fmt_vid_cap(struct file 
+*file, void *priv,
+  	mutex_lock(&q->vb_lock);
+
+  	if (videobuf_queue_is_busy(&fh->vb_vidq)) {
+-		dprintk(1, "queue busy\n");
++		dprintk(fh->dev, 1, "queue busy\n");
+  		ret = -EBUSY;
+  		goto out_s_fmt;
+  	}
+
+  	if (res_locked(fh)) {
+-		dprintk(1, "%s: channel busy\n", __func__);
++		dprintk(fh->dev, 1, "%s: channel busy\n", __func__);
+  		ret = -EBUSY;
+  		goto out_s_fmt;
+  	}
+@@ -1160,7 +1142,7 @@ static int s2255_set_mode(struct s2255_channel 
+*channel,
+  	int i;
+
+  	chn_rev = G_chnmap[channel->idx];
+-	dprintk(3, "%s channel: %d\n", __func__, channel->idx);
++	dprintk(dev, 3, "%s channel: %d\n", __func__, channel->idx);
+  	/* if JPEG, set the quality */
+  	if ((mode->color & MASK_COLOR) == COLOR_JPG) {
+  		mode->color &= ~MASK_COLOR;
+@@ -1171,7 +1153,7 @@ static int s2255_set_mode(struct s2255_channel 
+*channel,
+  	/* save the mode */
+  	channel->mode = *mode;
+  	channel->req_image_size = get_transfer_size(mode);
+-	dprintk(1, "%s: reqsize %ld\n", __func__, channel->req_image_size);
++	dprintk(dev, 1, "%s: reqsize %ld\n", __func__, 
+channel->req_image_size);
+  	buffer = kzalloc(512, GFP_KERNEL);
+  	if (buffer == NULL) {
+  		dev_err(&dev->udev->dev, "out of mem\n");
+@@ -1194,13 +1176,13 @@ static int s2255_set_mode(struct s2255_channel 
+*channel,
+  				   (channel->setmode_ready != 0),
+  				   msecs_to_jiffies(S2255_SETMODE_TIMEOUT));
+  		if (channel->setmode_ready != 1) {
+-			printk(KERN_DEBUG "s2255: no set mode response\n");
++			dprintk(dev, 0, "s2255: no set mode response\n");
+  			res = -EFAULT;
+  		}
+  	}
+  	/* clear the restart flag */
+  	channel->mode.restart = 0;
+-	dprintk(1, "%s chn %d, result: %d\n", __func__, channel->idx, res);
++	dprintk(dev, 1, "%s chn %d, result: %d\n", __func__, channel->idx, 
+res);
+  	return res;
+  }
+
+@@ -1211,7 +1193,7 @@ static int s2255_cmd_status(struct s2255_channel 
+*channel, u32 *pstatus)
+  	u32 chn_rev;
+  	struct s2255_dev *dev = to_s2255_dev(channel->vdev.v4l2_dev);
+  	chn_rev = G_chnmap[channel->idx];
+-	dprintk(4, "%s chan %d\n", __func__, channel->idx);
++	dprintk(dev, 4, "%s chan %d\n", __func__, channel->idx);
+  	buffer = kzalloc(512, GFP_KERNEL);
+  	if (buffer == NULL) {
+  		dev_err(&dev->udev->dev, "out of mem\n");
+@@ -1229,11 +1211,11 @@ static int s2255_cmd_status(struct 
+s2255_channel *channel, u32 *pstatus)
+  			   (channel->vidstatus_ready != 0),
+  			   msecs_to_jiffies(S2255_VIDSTATUS_TIMEOUT));
+  	if (channel->vidstatus_ready != 1) {
+-		printk(KERN_DEBUG "s2255: no vidstatus response\n");
++		dprintk(dev, 0, "s2255: no vidstatus response\n");
+  		res = -EFAULT;
+  	}
+  	*pstatus = channel->vidstatus;
+-	dprintk(4, "%s, vid status %d\n", __func__, *pstatus);
++	dprintk(dev, 4, "%s, vid status %d\n", __func__, *pstatus);
+  	return res;
+  }
+
+@@ -1244,7 +1226,7 @@ static int vidioc_streamon(struct file *file, 
+void *priv, enum v4l2_buf_type i)
+  	struct s2255_dev *dev = fh->dev;
+  	struct s2255_channel *channel = fh->channel;
+  	int j;
+-	dprintk(4, "%s\n", __func__);
++	dprintk(dev, 4, "%s\n", __func__);
+  	if (fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+  		dev_err(&dev->udev->dev, "invalid fh type0\n");
+  		return -EINVAL;
+@@ -1279,15 +1261,13 @@ static int vidioc_streamon(struct file *file, 
+void *priv, enum v4l2_buf_type i)
+  static int vidioc_streamoff(struct file *file, void *priv, enum 
+v4l2_buf_type i)
+  {
+  	struct s2255_fh *fh = priv;
+-	dprintk(4, "%s\n, channel: %d", __func__, fh->channel->idx);
++	dprintk(fh->dev, 4, "%s\n, channel: %d", __func__, fh->channel->idx);
+  	if (fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		printk(KERN_ERR "invalid fh type0\n");
++		dprintk(fh->dev, 1, "invalid fh type0\n");
+  		return -EINVAL;
+  	}
+-	if (i != fh->type) {
+-		printk(KERN_ERR "invalid type i\n");
++	if (i != fh->type)
+  		return -EINVAL;
+-	}
+  	s2255_stop_acquire(fh->channel);
+  	videobuf_streamoff(&fh->vb_vidq);
+  	res_free(fh);
+@@ -1304,13 +1284,13 @@ static int vidioc_s_std(struct file *file, void 
+*priv, v4l2_std_id i)
+
+  	mutex_lock(&q->vb_lock);
+  	if (res_locked(fh)) {
+-		dprintk(1, "can't change standard after started\n");
++		dprintk(fh->dev, 1, "can't change standard after started\n");
+  		ret = -EBUSY;
+  		goto out_s_std;
+  	}
+  	mode = fh->channel->mode;
+  	if (i & V4L2_STD_525_60) {
+-		dprintk(4, "%s 60 Hz\n", __func__);
++		dprintk(fh->dev, 4, "%s 60 Hz\n", __func__);
+  		/* if changing format, reset frame decimation/intervals */
+  		if (mode.format != FORMAT_NTSC) {
+  			mode.restart = 1;
+@@ -1320,7 +1300,7 @@ static int vidioc_s_std(struct file *file, void 
+*priv, v4l2_std_id i)
+  			channel->height = NUM_LINES_4CIFS_NTSC * 2;
+  		}
+  	} else if (i & V4L2_STD_625_50) {
+-		dprintk(4, "%s 50 Hz\n", __func__);
++		dprintk(fh->dev, 4, "%s 50 Hz\n", __func__);
+  		if (mode.format != FORMAT_PAL) {
+  			mode.restart = 1;
+  			mode.format = FORMAT_PAL;
+@@ -1370,7 +1350,8 @@ static int vidioc_enum_input(struct file *file, 
+void *priv,
+  	if (dev->dsp_fw_ver >= S2255_MIN_DSP_STATUS) {
+  		int rc;
+  		rc = s2255_cmd_status(fh->channel, &status);
+-		dprintk(4, "s2255_cmd_status rc: %d status %x\n", rc, status);
++		dprintk(dev, 4, "s2255_cmd_status rc: %d status %x\n",
++			rc, status);
+  		if (rc == 0)
+  			inp->status =  (status & 0x01) ? 0
+  				: V4L2_IN_ST_NO_SIGNAL;
+@@ -1405,10 +1386,7 @@ static int s2255_s_ctrl(struct v4l2_ctrl *ctrl)
+  	struct s2255_channel *channel =
+  		container_of(ctrl->handler, struct s2255_channel, hdl);
+  	struct s2255_mode mode;
+-
+  	mode = channel->mode;
+-	dprintk(4, "%s\n", __func__);
+-
+  	/* update the mode to the corresponding value */
+  	switch (ctrl->id) {
+  	case V4L2_CID_BRIGHTNESS:
+@@ -1450,7 +1428,7 @@ static int vidioc_g_jpegcomp(struct file *file, 
+void *priv,
+
+  	memset(jc, 0, sizeof(*jc));
+  	jc->quality = channel->jpegqual;
+-	dprintk(2, "%s: quality %d\n", __func__, jc->quality);
++	dprintk(fh->dev, 2, "%s: quality %d\n", __func__, jc->quality);
+  	return 0;
+  }
+
+@@ -1462,7 +1440,7 @@ static int vidioc_s_jpegcomp(struct file *file, 
+void *priv,
+  	if (jc->quality < 0 || jc->quality > 100)
+  		return -EINVAL;
+  	v4l2_ctrl_s_ctrl(channel->jpegqual_ctrl, jc->quality);
+-	dprintk(2, "%s: quality %d\n", __func__, jc->quality);
++	dprintk(fh->dev, 2, "%s: quality %d\n", __func__, jc->quality);
+  	return 0;
+  }
+
+@@ -1494,7 +1472,8 @@ static int vidioc_g_parm(struct file *file, void 
+*priv,
+  		sp->parm.capture.timeperframe.numerator = def_num * 5;
+  		break;
+  	}
+-	dprintk(4, "%s capture mode, %d timeperframe %d/%d\n", __func__,
++	dprintk(fh->dev, 4, "%s capture mode, %d timeperframe %d/%d\n",
++		__func__,
+  		sp->parm.capture.capturemode,
+  		sp->parm.capture.timeperframe.numerator,
+  		sp->parm.capture.timeperframe.denominator);
+@@ -1535,7 +1514,7 @@ static int vidioc_s_parm(struct file *file, void 
+*priv,
+  	mode.fdec = fdec;
+  	sp->parm.capture.timeperframe.denominator = def_dem;
+  	s2255_set_mode(channel, &mode);
+-	dprintk(4, "%s capture mode, %d timeperframe %d/%d, fdec %d\n",
++	dprintk(fh->dev, 4, "%s capture mode, %d timeperframe %d/%d, fdec 
+%d\n",
+  		__func__,
+  		sp->parm.capture.capturemode,
+  		sp->parm.capture.timeperframe.numerator,
+@@ -1604,7 +1583,8 @@ static int vidioc_enum_frameintervals(struct file 
+*file, void *priv,
+  	fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+  	fe->discrete.denominator = is_ntsc ? 30000 : 25000;
+  	fe->discrete.numerator = (is_ntsc ? 1001 : 1000) * 
+frm_dec[fe->index];
+-	dprintk(4, "%s discrete %d/%d\n", __func__, fe->discrete.numerator,
++	dprintk(fh->dev, 4, "%s discrete %d/%d\n", __func__,
++		fe->discrete.numerator,
+  		fe->discrete.denominator);
+  	return 0;
+  }
+@@ -1617,7 +1597,7 @@ static int __s2255_open(struct file *file)
+  	struct s2255_fh *fh;
+  	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  	int state;
+-	dprintk(1, "s2255: open called (dev=%s)\n",
++	dprintk(dev, 1, "s2255: open called (dev=%s)\n",
+  		video_device_node_name(vdev));
+  	state = atomic_read(&dev->fw_data->fw_state);
+  	switch (state) {
+@@ -1640,7 +1620,7 @@ static int __s2255_open(struct file *file)
+  	case S2255_FW_LOADED_DSPWAIT:
+  		/* give S2255_LOAD_TIMEOUT time for firmware to load in case
+  		   driver loaded and then device immediately opened */
+-		printk(KERN_INFO "%s waiting for firmware load\n", __func__);
++		pr_info("%s waiting for firmware load\n", __func__);
+  		wait_event_timeout(dev->fw_data->wait_fw,
+  				   ((atomic_read(&dev->fw_data->fw_state)
+  				     == S2255_FW_SUCCESS) ||
+@@ -1659,16 +1639,15 @@ static int __s2255_open(struct file *file)
+  	case S2255_FW_SUCCESS:
+  		break;
+  	case S2255_FW_FAILED:
+-		printk(KERN_INFO "2255 firmware load failed.\n");
++		pr_info("2255 firmware load failed.\n");
+  		return -ENODEV;
+  	case S2255_FW_DISCONNECTING:
+-		printk(KERN_INFO "%s: disconnecting\n", __func__);
++		pr_info("%s: disconnecting\n", __func__);
+  		return -ENODEV;
+  	case S2255_FW_LOADED_DSPWAIT:
+  	case S2255_FW_NOTLOADED:
+-		printk(KERN_INFO "%s: firmware not loaded yet"
+-		       "please try again later\n",
+-		       __func__);
++		pr_info("%s: firmware not loaded, please retry\n",
++			__func__);
+  		/*
+  		 * Timeout on firmware load means device unusable.
+  		 * Set firmware failure state.
+@@ -1678,7 +1657,7 @@ static int __s2255_open(struct file *file)
+  			   S2255_FW_FAILED);
+  		return -EAGAIN;
+  	default:
+-		printk(KERN_INFO "%s: unknown state\n", __func__);
++		pr_info("%s: unknown state\n", __func__);
+  		return -EFAULT;
+  	}
+  	/* allocate + initialize per filehandle data */
+@@ -1697,12 +1676,12 @@ static int __s2255_open(struct file *file)
+  		s2255_set_mode(channel, &channel->mode);
+  		channel->configured = 1;
+  	}
+-	dprintk(1, "%s: dev=%s type=%s\n", __func__,
++	dprintk(dev, 1, "%s: dev=%s type=%s\n", __func__,
+  		video_device_node_name(vdev), v4l2_type_names[type]);
+-	dprintk(2, "%s: fh=0x%08lx, dev=0x%08lx, vidq=0x%08lx\n", __func__,
++	dprintk(dev, 2, "%s: fh=0x%08lx, dev=0x%08lx, vidq=0x%08lx\n", 
+__func__,
+  		(unsigned long)fh, (unsigned long)dev,
+  		(unsigned long)&channel->vidq);
+-	dprintk(4, "%s: list_empty active=%d\n", __func__,
++	dprintk(dev, 4, "%s: list_empty active=%d\n", __func__,
+  		list_empty(&channel->vidq.active));
+  	videobuf_queue_vmalloc_init(&fh->vb_vidq, &s2255_video_qops,
+  				    NULL, &dev->slock,
+@@ -1732,7 +1711,7 @@ static unsigned int s2255_poll(struct file *file,
+  	struct s2255_dev *dev = fh->dev;
+  	int rc = v4l2_ctrl_poll(file, wait);
+
+-	dprintk(100, "%s\n", __func__);
++	dprintk(dev, 100, "%s\n", __func__);
+  	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != fh->type)
+  		return POLLERR;
+  	mutex_lock(&dev->lock);
+@@ -1743,6 +1722,7 @@ static unsigned int s2255_poll(struct file *file,
+
+  static void s2255_destroy(struct s2255_dev *dev)
+  {
++	dprintk(dev, 1, "%s", __func__);
+  	/* board shutdown stops the read pipe if it is running */
+  	s2255_board_shutdown(dev);
+  	/* make sure firmware still not trying to load */
+@@ -1760,7 +1740,6 @@ static void s2255_destroy(struct s2255_dev *dev)
+  	mutex_destroy(&dev->lock);
+  	usb_put_dev(dev->udev);
+  	v4l2_device_unregister(&dev->v4l2_dev);
+-	dprintk(1, "%s", __func__);
+  	kfree(dev);
+  }
+
+@@ -1782,7 +1761,7 @@ static int s2255_release(struct file *file)
+  	}
+  	videobuf_mmap_free(&fh->vb_vidq);
+  	mutex_unlock(&dev->lock);
+-	dprintk(1, "%s (dev=%s)\n", __func__, video_device_node_name(vdev));
++	dprintk(dev, 1, "%s[%s]\n", __func__, video_device_node_name(vdev));
+  	v4l2_fh_del(&fh->fh);
+  	v4l2_fh_exit(&fh->fh);
+  	kfree(fh);
+@@ -1794,16 +1773,15 @@ static int s2255_mmap_v4l(struct file *file, 
+struct vm_area_struct *vma)
+  	struct s2255_fh *fh = file->private_data;
+  	struct s2255_dev *dev;
+  	int ret;
+-
+  	if (!fh)
+  		return -ENODEV;
+  	dev = fh->dev;
+-	dprintk(4, "%s, vma=0x%08lx\n", __func__, (unsigned long)vma);
++	dprintk(dev, 4, "%s, vma=0x%08lx\n", __func__, (unsigned long)vma);
+  	if (mutex_lock_interruptible(&dev->lock))
+  		return -ERESTARTSYS;
+  	ret = videobuf_mmap_mapper(&fh->vb_vidq, vma);
+  	mutex_unlock(&dev->lock);
+-	dprintk(4, "%s vma start=0x%08lx, size=%ld, ret=%d\n", __func__,
++	dprintk(dev, 4, "%s vma start=0x%08lx, size=%ld, ret=%d\n", __func__,
+  		(unsigned long)vma->vm_start,
+  		(unsigned long)vma->vm_end - (unsigned long)vma->vm_start, ret);
+  	return ret;
+@@ -1852,10 +1830,11 @@ static void s2255_video_device_release(struct 
+video_device *vdev)
+  	struct s2255_channel *channel =
+  		container_of(vdev, struct s2255_channel, vdev);
+
+-	v4l2_ctrl_handler_free(&channel->hdl);
+-	dprintk(4, "%s, chnls: %d\n", __func__,
++	dprintk(dev, 4, "%s, chnls: %d\n", __func__,
+  		atomic_read(&dev->num_channels));
+
++	v4l2_ctrl_handler_free(&channel->hdl);
++
+  	if (atomic_dec_and_test(&dev->num_channels))
+  		s2255_destroy(dev);
+  	return;
+@@ -1913,7 +1892,8 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
+  				0, 100, 1, S2255_DEF_JPEG_QUAL);
+  		if (dev->dsp_fw_ver >= S2255_MIN_DSP_COLORFILTER &&
+  		    (dev->pid != 0x2257 || channel->idx <= 1))
+-			v4l2_ctrl_new_custom(&channel->hdl, &color_filter_ctrl, NULL);
++			v4l2_ctrl_new_custom(&channel->hdl, &color_filter_ctrl,
++					     NULL);
+  		if (channel->hdl.error) {
+  			ret = channel->hdl.error;
+  			v4l2_ctrl_handler_free(&channel->hdl);
+@@ -1947,15 +1927,15 @@ static int s2255_probe_v4l(struct s2255_dev 
+*dev)
+  			  video_device_node_name(&channel->vdev));
+
+  	}
+-	printk(KERN_INFO "Sensoray 2255 V4L driver Revision: %s\n",
+-	       S2255_VERSION);
++	pr_info("Sensoray 2255 V4L driver Revision: %s\n",
++		S2255_VERSION);
+  	/* if no channels registered, return error and probe will fail*/
+  	if (atomic_read(&dev->num_channels) == 0) {
+  		v4l2_device_unregister(&dev->v4l2_dev);
+  		return ret;
+  	}
+  	if (atomic_read(&dev->num_channels) != MAX_CHANNELS)
+-		printk(KERN_WARNING "s2255: Not all channels available.\n");
++		pr_warn("s2255: Not all channels available.\n");
+  	return 0;
+  }
+
+@@ -1981,11 +1961,11 @@ static int save_frame(struct s2255_dev *dev, 
+struct s2255_pipeinfo *pipe_info)
+  	s32 idx = -1;
+  	struct s2255_framei *frm;
+  	unsigned char *pdata;
+-	struct s2255_channel *channel;
+-	dprintk(100, "buffer to user\n");
+-	channel = &dev->channel[dev->cc];
+-	idx = channel->cur_frame;
+-	frm = &channel->buffer.frame[idx];
++	struct s2255_channel *ch;
++	dprintk(dev, 100, "buffer to user\n");
++	ch = &dev->channel[dev->cc];
++	idx = ch->cur_frame;
++	frm = &ch->buffer.frame[idx];
+  	if (frm->ulState == S2255_READ_IDLE) {
+  		int jj;
+  		unsigned int cc;
+@@ -1997,28 +1977,27 @@ static int save_frame(struct s2255_dev *dev, 
+struct s2255_pipeinfo *pipe_info)
+  		for (jj = 0; jj < (pipe_info->cur_transfer_size - 12); jj++) {
+  			switch (*pdword) {
+  			case S2255_MARKER_FRAME:
+-				dprintk(4, "found frame marker at offset:"
+-					" %d [%x %x]\n", jj, pdata[0],
+-					pdata[1]);
++				dprintk(dev, 4, "marker @ offset: %d [%x %x]\n",
++					jj, pdata[0], pdata[1]);
+  				offset = jj + PREFIX_SIZE;
+  				bframe = 1;
+  				cc = le32_to_cpu(pdword[1]);
+  				if (cc >= MAX_CHANNELS) {
+-					printk(KERN_ERR
+-					       "bad channel\n");
++					dprintk(dev, 0,
++						"bad channel\n");
+  					return -EINVAL;
+  				}
+  				/* reverse it */
+  				dev->cc = G_chnmap[cc];
+-				channel = &dev->channel[dev->cc];
++				ch = &dev->channel[dev->cc];
+  				payload =  le32_to_cpu(pdword[3]);
+-				if (payload > channel->req_image_size) {
+-					channel->bad_payload++;
++				if (payload > ch->req_image_size) {
++					ch->bad_payload++;
+  					/* discard the bad frame */
+  					return -EINVAL;
+  				}
+-				channel->pkt_size = payload;
+-				channel->jpg_size = le32_to_cpu(pdword[4]);
++				ch->pkt_size = payload;
++				ch->jpg_size = le32_to_cpu(pdword[4]);
+  				break;
+  			case S2255_MARKER_RESPONSE:
+
+@@ -2029,34 +2008,34 @@ static int save_frame(struct s2255_dev *dev, 
+struct s2255_pipeinfo *pipe_info)
+  				cc = G_chnmap[le32_to_cpu(pdword[1])];
+  				if (cc >= MAX_CHANNELS)
+  					break;
+-				channel = &dev->channel[cc];
++				ch = &dev->channel[cc];
+  				switch (pdword[2]) {
+  				case S2255_RESPONSE_SETMODE:
+  					/* check if channel valid */
+  					/* set mode ready */
+-					channel->setmode_ready = 1;
+-					wake_up(&channel->wait_setmode);
+-					dprintk(5, "setmode ready %d\n", cc);
++					ch->setmode_ready = 1;
++					wake_up(&ch->wait_setmode);
++					dprintk(dev, 5, "setmode rdy %d\n", cc);
+  					break;
+  				case S2255_RESPONSE_FW:
+  					dev->chn_ready |= (1 << cc);
+  					if ((dev->chn_ready & 0x0f) != 0x0f)
+  						break;
+  					/* all channels ready */
+-					printk(KERN_INFO "s2255: fw loaded\n");
++					pr_info("s2255: fw loaded\n");
+  					atomic_set(&dev->fw_data->fw_state,
+  						   S2255_FW_SUCCESS);
+  					wake_up(&dev->fw_data->wait_fw);
+  					break;
+  				case S2255_RESPONSE_STATUS:
+-					channel->vidstatus = le32_to_cpu(pdword[3]);
+-					channel->vidstatus_ready = 1;
+-					wake_up(&channel->wait_vidstatus);
+-					dprintk(5, "got vidstatus %x chan %d\n",
++					ch->vidstatus = le32_to_cpu(pdword[3]);
++					ch->vidstatus_ready = 1;
++					wake_up(&ch->wait_vidstatus);
++					dprintk(dev, 5, "vstat %x chan %d\n",
+  						le32_to_cpu(pdword[3]), cc);
+  					break;
+  				default:
+-					printk(KERN_INFO "s2255 unknown resp\n");
++					pr_info("s2255 unknown resp\n");
+  				}
+  			default:
+  				pdata++;
+@@ -2068,11 +2047,11 @@ static int save_frame(struct s2255_dev *dev, 
+struct s2255_pipeinfo *pipe_info)
+  		if (!bframe)
+  			return -EINVAL;
+  	}
+-	channel = &dev->channel[dev->cc];
+-	idx = channel->cur_frame;
+-	frm = &channel->buffer.frame[idx];
++	ch = &dev->channel[dev->cc];
++	idx = ch->cur_frame;
++	frm = &ch->buffer.frame[idx];
+  	/* search done.  now find out if should be acquiring on this channel 
+*/
+-	if (!channel->b_acquire) {
++	if (!ch->b_acquire) {
+  		/* we found a frame, but this channel is turned off */
+  		frm->ulState = S2255_READ_IDLE;
+  		return -EINVAL;
+@@ -2088,7 +2067,7 @@ static int save_frame(struct s2255_dev *dev, 
+struct s2255_pipeinfo *pipe_info)
 
 
-With this change:
-Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Tested-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+  	if (frm->lpvbits == NULL) {
+-		dprintk(1, "s2255 frame buffer == NULL.%p %p %d %d",
++		dprintk(dev, 1, "s2255 frame buffer == NULL.%p %p %d %d",
+  			frm, dev, dev->cc, idx);
+  		return -ENOMEM;
+  	}
+@@ -2097,28 +2076,28 @@ static int save_frame(struct s2255_dev *dev, 
+struct s2255_pipeinfo *pipe_info)
 
+  	copy_size = (pipe_info->cur_transfer_size - offset);
 
-> +			v4l2_ctrl_handler_free(&dev->ctrl_handler);
-> +			v4l2_device_unregister(&dev->v4l2_dev);
->  			kfree(dev->alt_max_pkt_size_isoc);
-> -			mutex_unlock(&dev->lock);
-> -			kfree(dev);
-> -			return 0;
-> +			goto exit;
->  		}
->  
->  		/* Save some power by putting tuner to sleep */
-> @@ -1951,6 +1951,7 @@ static int em28xx_v4l2_close(struct file *filp)
->  		}
->  	}
->  
-> +exit:
->  	dev->users--;
->  	mutex_unlock(&dev->lock);
->  	return 0;
-> @@ -2065,8 +2066,6 @@ static unsigned short msp3400_addrs[] = {
->  
->  /******************************** usb interface ******************************/
->  
-> -
-> -
->  static struct video_device *em28xx_vdev_init(struct em28xx *dev,
->  					const struct video_device *template,
->  					const char *type_name)
-> @@ -2140,7 +2139,7 @@ static void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl)
->  	}
->  }
->  
-> -void em28xx_tuner_setup(struct em28xx *dev)
-> +static void em28xx_tuner_setup(struct em28xx *dev)
->  {
->  	struct tuner_setup           tun_setup;
->  	struct v4l2_frequency        f;
-> @@ -2199,14 +2198,14 @@ void em28xx_tuner_setup(struct em28xx *dev)
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
->  }
->  
-> -int em28xx_register_analog_devices(struct em28xx *dev)
-> +static int em28xx_v4l2_init(struct em28xx *dev)
->  {
->  	u8 val;
->  	int ret;
->  	unsigned int maxw;
->  	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
->  
-> -	if (dev->is_audio_only) {
-> +	if (!dev->has_video) {
->  		/* This device does not support the v4l2 extension */
->  		return 0;
->  	}
-> @@ -2214,6 +2213,8 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  	printk(KERN_INFO "%s: v4l2 driver version %s\n",
->  		dev->name, EM28XX_VERSION);
->  
-> +	mutex_lock(&dev->lock);
-> +
->  	ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
->  	if (ret < 0) {
->  		em28xx_errdev("Call to v4l2_device_register() failed!\n");
-> @@ -2492,11 +2493,33 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  	/* initialize videobuf2 stuff */
->  	em28xx_vb2_setup(dev);
->  
-> +	mutex_unlock(&dev->lock);
->  	return 0;
->  
->  unregister_dev:
->  	v4l2_ctrl_handler_free(&dev->ctrl_handler);
->  	v4l2_device_unregister(&dev->v4l2_dev);
->  err:
-> +	mutex_unlock(&dev->lock);
->  	return ret;
->  }
-> +
-> +static struct em28xx_ops v4l2_ops = {
-> +	.id   = EM28XX_V4L2,
-> +	.name = "Em28xx v4l2 Extension",
-> +	.init = em28xx_v4l2_init,
-> +	.fini = em28xx_v4l2_fini,
-> +};
-> +
-> +static int __init em28xx_video_register(void)
-> +{
-> +	return em28xx_register_extension(&v4l2_ops);
-> +}
-> +
-> +static void __exit em28xx_video_unregister(void)
-> +{
-> +	em28xx_unregister_extension(&v4l2_ops);
-> +}
-> +
-> +module_init(em28xx_video_register);
-> +module_exit(em28xx_video_unregister);
-> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-> index 7ae05ebc13c1..9d6f43e4681f 100644
-> --- a/drivers/media/usb/em28xx/em28xx.h
-> +++ b/drivers/media/usb/em28xx/em28xx.h
-> @@ -26,7 +26,7 @@
->  #ifndef _EM28XX_H
->  #define _EM28XX_H
->  
-> -#define EM28XX_VERSION "0.2.0"
-> +#define EM28XX_VERSION "0.2.1"
->  
->  #include <linux/workqueue.h>
->  #include <linux/i2c.h>
-> @@ -474,6 +474,7 @@ struct em28xx_eeprom {
->  #define EM28XX_AUDIO   0x10
->  #define EM28XX_DVB     0x20
->  #define EM28XX_RC      0x30
-> +#define EM28XX_V4L2    0x40
->  
->  /* em28xx resource types (used for res_get/res_lock etc */
->  #define EM28XX_RESOURCE_VIDEO 0x01
-> @@ -527,6 +528,7 @@ struct em28xx {
->  
->  	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
->  	unsigned char disconnected:1;	/* device has been diconnected */
-> +	unsigned int has_video:1;
->  	unsigned int has_audio_class:1;
->  	unsigned int has_alsa_audio:1;
->  	unsigned int is_audio_only:1;
-> @@ -723,14 +725,9 @@ int em28xx_write_ac97(struct em28xx *dev, u8 reg, u16 val);
->  int em28xx_audio_analog_set(struct em28xx *dev);
->  int em28xx_audio_setup(struct em28xx *dev);
->  
-> -int em28xx_colorlevels_set_default(struct em28xx *dev);
->  const struct em28xx_led *em28xx_find_led(struct em28xx *dev,
->  					 enum em28xx_led_role role);
->  int em28xx_capture_start(struct em28xx *dev, int start);
-> -int em28xx_vbi_supported(struct em28xx *dev);
-> -int em28xx_set_outfmt(struct em28xx *dev);
-> -int em28xx_resolution_set(struct em28xx *dev);
-> -int em28xx_set_alternate(struct em28xx *dev);
->  int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
->  		      int num_bufs, int max_pkt_size, int packet_multiplier);
->  int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
-> @@ -742,31 +739,17 @@ void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode);
->  void em28xx_stop_urbs(struct em28xx *dev);
->  int em28xx_set_mode(struct em28xx *dev, enum em28xx_mode set_mode);
->  int em28xx_gpio_set(struct em28xx *dev, struct em28xx_reg_seq *gpio);
-> -void em28xx_wake_i2c(struct em28xx *dev);
->  int em28xx_register_extension(struct em28xx_ops *dev);
->  void em28xx_unregister_extension(struct em28xx_ops *dev);
->  void em28xx_init_extension(struct em28xx *dev);
->  void em28xx_close_extension(struct em28xx *dev);
->  
-> -/* Provided by em28xx-video.c */
-> -void em28xx_tuner_setup(struct em28xx *dev);
-> -int em28xx_vb2_setup(struct em28xx *dev);
-> -int em28xx_register_analog_devices(struct em28xx *dev);
-> -void em28xx_release_analog_resources(struct em28xx *dev);
-> -void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv);
-> -int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count);
-> -int em28xx_stop_vbi_streaming(struct vb2_queue *vq);
-> -extern const struct v4l2_ctrl_ops em28xx_ctrl_ops;
-> -
->  /* Provided by em28xx-cards.c */
->  extern struct em28xx_board em28xx_boards[];
->  extern struct usb_device_id em28xx_id_table[];
->  int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
->  void em28xx_release_resources(struct em28xx *dev);
->  
-> -/* Provided by em28xx-vbi.c */
-> -extern struct vb2_ops em28xx_vbi_qops;
-> -
->  /* Provided by em28xx-camera.c */
->  int em28xx_detect_sensor(struct em28xx *dev);
->  int em28xx_init_camera(struct em28xx *dev);
->
+-	size = channel->pkt_size - PREFIX_SIZE;
++	size = ch->pkt_size - PREFIX_SIZE;
+
+  	/* sanity check on pdest */
+-	if ((copy_size + frm->cur_size) < channel->req_image_size)
++	if ((copy_size + frm->cur_size) < ch->req_image_size)
+  		memcpy(pdest, psrc, copy_size);
+
+  	frm->cur_size += copy_size;
+-	dprintk(4, "cur_size size %lu size %lu \n", frm->cur_size, size);
++	dprintk(dev, 4, "cur_size: %lu, size: %lu\n", frm->cur_size, size);
+
+  	if (frm->cur_size >= size) {
+-		dprintk(2, "****************[%d]Buffer[%d]full*************\n",
++		dprintk(dev, 2, "******[%d]Buffer[%d]full*******\n",
+  			dev->cc, idx);
+-		channel->last_frame = channel->cur_frame;
+-		channel->cur_frame++;
++		ch->last_frame = ch->cur_frame;
++		ch->cur_frame++;
+  		/* end of system frame ring buffer, start at zero */
+-		if ((channel->cur_frame == SYS_FRAMES) ||
+-		    (channel->cur_frame == channel->buffer.dwFrames))
+-			channel->cur_frame = 0;
++		if ((ch->cur_frame == SYS_FRAMES) ||
++		    (ch->cur_frame == ch->buffer.dwFrames))
++			ch->cur_frame = 0;
+  		/* frame ready */
+-		if (channel->b_acquire)
+-			s2255_got_frame(channel, channel->jpg_size);
+-		channel->frame_count++;
++		if (ch->b_acquire)
++			s2255_got_frame(ch, ch->jpg_size);
++		ch->frame_count++;
+  		frm->ulState = S2255_READ_IDLE;
+  		frm->cur_size = 0;
+
+@@ -2131,7 +2110,7 @@ static void s2255_read_video_callback(struct 
+s2255_dev *dev,
+  				      struct s2255_pipeinfo *pipe_info)
+  {
+  	int res;
+-	dprintk(50, "callback read video \n");
++	dprintk(dev, 50, "callback read video\n");
+
+  	if (dev->cc >= MAX_CHANNELS) {
+  		dev->cc = 0;
+@@ -2141,9 +2120,9 @@ static void s2255_read_video_callback(struct 
+s2255_dev *dev,
+  	/* otherwise copy to the system buffers */
+  	res = save_frame(dev, pipe_info);
+  	if (res != 0)
+-		dprintk(4, "s2255: read callback failed\n");
++		dprintk(dev, 4, "s2255: read callback failed\n");
+
+-	dprintk(50, "callback read video done\n");
++	dprintk(dev, 50, "callback read video done\n");
+  	return;
+  }
+
+@@ -2181,9 +2160,9 @@ static int s2255_get_fx2fw(struct s2255_dev *dev)
+  	ret = s2255_vendor_req(dev, S2255_VR_FW, 0, 0, transBuffer, 2,
+  			       S2255_VR_IN);
+  	if (ret < 0)
+-		dprintk(2, "get fw error: %x\n", ret);
++		dprintk(dev, 2, "get fw error: %x\n", ret);
+  	fw = transBuffer[0] + (transBuffer[1] << 8);
+-	dprintk(2, "Get FW %x %x\n", transBuffer[0], transBuffer[1]);
++	dprintk(dev, 2, "Get FW %x %x\n", transBuffer[0], transBuffer[1]);
+  	return fw;
+  }
+
+@@ -2195,7 +2174,6 @@ static int s2255_create_sys_buffers(struct 
+s2255_channel *channel)
+  {
+  	unsigned long i;
+  	unsigned long reqsize;
+-	dprintk(1, "create sys buffers\n");
+  	channel->buffer.dwFrames = SYS_FRAMES;
+  	/* always allocate maximum size(PAL) for system buffers */
+  	reqsize = SYS_FRAMES_MAXSIZE;
+@@ -2206,12 +2184,9 @@ static int s2255_create_sys_buffers(struct 
+s2255_channel *channel)
+  	for (i = 0; i < SYS_FRAMES; i++) {
+  		/* allocate the frames */
+  		channel->buffer.frame[i].lpvbits = vmalloc(reqsize);
+-		dprintk(1, "valloc %p chan %d, idx %lu, pdata %p\n",
+-			&channel->buffer.frame[i], channel->idx, i,
+-			channel->buffer.frame[i].lpvbits);
+  		channel->buffer.frame[i].size = reqsize;
+  		if (channel->buffer.frame[i].lpvbits == NULL) {
+-			printk(KERN_INFO "out of memory.  using less frames\n");
++			pr_info("out of memory.  using less frames\n");
+  			channel->buffer.dwFrames = i;
+  			break;
+  		}
+@@ -2231,13 +2206,9 @@ static int s2255_create_sys_buffers(struct 
+s2255_channel *channel)
+  static int s2255_release_sys_buffers(struct s2255_channel *channel)
+  {
+  	unsigned long i;
+-	dprintk(1, "release sys buffers\n");
+  	for (i = 0; i < SYS_FRAMES; i++) {
+-		if (channel->buffer.frame[i].lpvbits) {
+-			dprintk(1, "vfree %p\n",
+-				channel->buffer.frame[i].lpvbits);
++		if (channel->buffer.frame[i].lpvbits)
+  			vfree(channel->buffer.frame[i].lpvbits);
+-		}
+  		channel->buffer.frame[i].lpvbits = NULL;
+  	}
+  	return 0;
+@@ -2249,7 +2220,7 @@ static int s2255_board_init(struct s2255_dev 
+*dev)
+  	int fw_ver;
+  	int j;
+  	struct s2255_pipeinfo *pipe = &dev->pipe;
+-	dprintk(4, "board init: %p", dev);
++	dprintk(dev, 4, "board init: %p", dev);
+  	memset(pipe, 0, sizeof(*pipe));
+  	pipe->dev = dev;
+  	pipe->cur_transfer_size = S2255_USB_XFER_SIZE;
+@@ -2258,18 +2229,18 @@ static int s2255_board_init(struct s2255_dev 
+*dev)
+  	pipe->transfer_buffer = kzalloc(pipe->max_transfer_size,
+  					GFP_KERNEL);
+  	if (pipe->transfer_buffer == NULL) {
+-		dprintk(1, "out of memory!\n");
++		dprintk(dev, 1, "out of memory!\n");
+  		return -ENOMEM;
+  	}
+  	/* query the firmware */
+  	fw_ver = s2255_get_fx2fw(dev);
+
+-	printk(KERN_INFO "s2255: usb firmware version %d.%d\n",
+-	       (fw_ver >> 8) & 0xff,
+-	       fw_ver & 0xff);
++	pr_info("s2255: usb firmware version %d.%d\n",
++		(fw_ver >> 8) & 0xff,
++		fw_ver & 0xff);
+
+  	if (fw_ver < S2255_CUR_USB_FWVER)
+-		printk(KERN_INFO "s2255: newer USB firmware available\n");
++		pr_info("s2255: newer USB firmware available\n");
+
+  	for (j = 0; j < MAX_CHANNELS; j++) {
+  		struct s2255_channel *channel = &dev->channel[j];
+@@ -2290,14 +2261,14 @@ static int s2255_board_init(struct s2255_dev 
+*dev)
+  	}
+  	/* start read pipe */
+  	s2255_start_readpipe(dev);
+-	dprintk(1, "%s: success\n", __func__);
++	dprintk(dev, 1, "%s: success\n", __func__);
+  	return 0;
+  }
+
+  static int s2255_board_shutdown(struct s2255_dev *dev)
+  {
+  	u32 i;
+-	dprintk(1, "%s: dev: %p", __func__,  dev);
++	dprintk(dev, 1, "%s: dev: %p", __func__,  dev);
+
+  	for (i = 0; i < MAX_CHANNELS; i++) {
+  		if (dev->channel[i].b_acquire)
+@@ -2318,13 +2289,10 @@ static void read_pipe_completion(struct urb 
+*purb)
+  	int status;
+  	int pipe;
+  	pipe_info = purb->context;
+-	dprintk(100, "%s: urb:%p, status %d\n", __func__, purb,
+-		purb->status);
+  	if (pipe_info == NULL) {
+  		dev_err(&purb->dev->dev, "no context!\n");
+  		return;
+  	}
+-
+  	dev = pipe_info->dev;
+  	if (dev == NULL) {
+  		dev_err(&purb->dev->dev, "no context!\n");
+@@ -2333,13 +2301,13 @@ static void read_pipe_completion(struct urb 
+*purb)
+  	status = purb->status;
+  	/* if shutting down, do not resubmit, exit immediately */
+  	if (status == -ESHUTDOWN) {
+-		dprintk(2, "%s: err shutdown\n", __func__);
++		dprintk(dev, 2, "%s: err shutdown\n", __func__);
+  		pipe_info->err_count++;
+  		return;
+  	}
+
+  	if (pipe_info->state == 0) {
+-		dprintk(2, "%s: exiting USB pipe", __func__);
++		dprintk(dev, 2, "%s: exiting USB pipe", __func__);
+  		return;
+  	}
+
+@@ -2347,7 +2315,7 @@ static void read_pipe_completion(struct urb 
+*purb)
+  		s2255_read_video_callback(dev, pipe_info);
+  	else {
+  		pipe_info->err_count++;
+-		dprintk(1, "%s: failed URB %d\n", __func__, status);
++		dprintk(dev, 1, "%s: failed URB %d\n", __func__, status);
+  	}
+
+  	pipe = usb_rcvbulkpipe(dev->udev, dev->read_endpoint);
+@@ -2359,11 +2327,10 @@ static void read_pipe_completion(struct urb 
+*purb)
+  			  read_pipe_completion, pipe_info);
+
+  	if (pipe_info->state != 0) {
+-		if (usb_submit_urb(pipe_info->stream_urb, GFP_ATOMIC)) {
++		if (usb_submit_urb(pipe_info->stream_urb, GFP_ATOMIC))
+  			dev_err(&dev->udev->dev, "error submitting urb\n");
+-		}
+  	} else {
+-		dprintk(2, "%s :complete state 0\n", __func__);
++		dprintk(dev, 2, "%s :complete state 0\n", __func__);
+  	}
+  	return;
+  }
+@@ -2374,7 +2341,7 @@ static int s2255_start_readpipe(struct s2255_dev 
+*dev)
+  	int retval;
+  	struct s2255_pipeinfo *pipe_info = &dev->pipe;
+  	pipe = usb_rcvbulkpipe(dev->udev, dev->read_endpoint);
+-	dprintk(2, "%s: IN %d\n", __func__, dev->read_endpoint);
++	dprintk(dev, 2, "%s: IN %d\n", __func__, dev->read_endpoint);
+  	pipe_info->state = 1;
+  	pipe_info->err_count = 0;
+  	pipe_info->stream_urb = usb_alloc_urb(0, GFP_KERNEL);
+@@ -2391,7 +2358,7 @@ static int s2255_start_readpipe(struct s2255_dev 
+*dev)
+  			  read_pipe_completion, pipe_info);
+  	retval = usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL);
+  	if (retval) {
+-		printk(KERN_ERR "s2255: start read pipe failed\n");
++		pr_err("s2255: start read pipe failed\n");
+  		return retval;
+  	}
+  	return 0;
+@@ -2428,7 +2395,7 @@ static int s2255_start_acquire(struct 
+s2255_channel *channel)
+  	if (res != 0)
+  		dev_err(&dev->udev->dev, "CMD_START error\n");
+
+-	dprintk(2, "start acquire exit[%d] %d \n", channel->idx, res);
++	dprintk(dev, 2, "start acquire exit[%d] %d\n", channel->idx, res);
+  	kfree(buffer);
+  	return 0;
+  }
+@@ -2454,7 +2421,7 @@ static int s2255_stop_acquire(struct 
+s2255_channel *channel)
+  		dev_err(&dev->udev->dev, "CMD_STOP error\n");
+  	kfree(buffer);
+  	channel->b_acquire = 0;
+-	dprintk(4, "%s: chn %d, res %d\n", __func__, channel->idx, res);
++	dprintk(dev, 4, "%s: chn %d, res %d\n", __func__, channel->idx, res);
+  	return res;
+  }
+
+@@ -2469,7 +2436,7 @@ static void s2255_stop_readpipe(struct s2255_dev 
+*dev)
+  		usb_free_urb(pipe->stream_urb);
+  		pipe->stream_urb = NULL;
+  	}
+-	dprintk(4, "%s", __func__);
++	dprintk(dev, 4, "%s", __func__);
+  	return;
+  }
+
+@@ -2501,7 +2468,6 @@ static int s2255_probe(struct usb_interface 
+*interface,
+  	int retval = -ENOMEM;
+  	__le32 *pdata;
+  	int fw_size;
+-	dprintk(2, "%s\n", __func__);
+  	/* allocate memory for our device state and initialize it to zero */
+  	dev = kzalloc(sizeof(struct s2255_dev), GFP_KERNEL);
+  	if (dev == NULL) {
+@@ -2521,12 +2487,12 @@ static int s2255_probe(struct usb_interface 
+*interface,
+  		retval = -ENODEV;
+  		goto errorUDEV;
+  	}
+-	dprintk(1, "dev: %p, udev %p interface %p\n", dev,
++	dprintk(dev, 1, "dev: %p, udev %p interface %p\n", dev,
+  		dev->udev, interface);
+  	dev->interface = interface;
+  	/* set up the endpoint information  */
+  	iface_desc = interface->cur_altsetting;
+-	dprintk(1, "num endpoints %d\n", iface_desc->desc.bNumEndpoints);
++	dprintk(dev, 1, "num endpoints %d\n", 
+iface_desc->desc.bNumEndpoints);
+  	for (i = 0; i < iface_desc->desc.bNumEndpoints; ++i) {
+  		endpoint = &iface_desc->endpoint[i].desc;
+  		if (!dev->read_endpoint && usb_endpoint_is_bulk_in(endpoint)) {
+@@ -2564,7 +2530,7 @@ static int s2255_probe(struct usb_interface 
+*interface,
+  	/* load the first chunk */
+  	if (request_firmware(&dev->fw_data->fw,
+  			     FIRMWARE_FILE_NAME, &dev->udev->dev)) {
+-		printk(KERN_ERR "sensoray 2255 failed to get firmware\n");
++		dev_err(&interface->dev, "sensoray 2255 failed to get firmware\n");
+  		goto errorREQFW;
+  	}
+  	/* check the firmware is valid */
+@@ -2572,21 +2538,21 @@ static int s2255_probe(struct usb_interface 
+*interface,
+  	pdata = (__le32 *) &dev->fw_data->fw->data[fw_size - 8];
+
+  	if (*pdata != S2255_FW_MARKER) {
+-		printk(KERN_INFO "Firmware invalid.\n");
++		dev_err(&interface->dev, "Firmware invalid.\n");
+  		retval = -ENODEV;
+  		goto errorFWMARKER;
+  	} else {
+  		/* make sure firmware is the latest */
+  		__le32 *pRel;
+  		pRel = (__le32 *) &dev->fw_data->fw->data[fw_size - 4];
+-		printk(KERN_INFO "s2255 dsp fw version %x\n", le32_to_cpu(*pRel));
++		pr_info("s2255 dsp fw version %x\n", le32_to_cpu(*pRel));
+  		dev->dsp_fw_ver = le32_to_cpu(*pRel);
+  		if (dev->dsp_fw_ver < S2255_CUR_DSP_FWVER)
+-			printk(KERN_INFO "s2255: f2255usb.bin out of date.\n");
++			pr_info("s2255: f2255usb.bin out of date.\n");
+  		if (dev->pid == 0x2257 &&
+  				dev->dsp_fw_ver < S2255_MIN_DSP_COLORFILTER)
+-			printk(KERN_WARNING "s2255: 2257 requires firmware %d"
+-			       " or above.\n", S2255_MIN_DSP_COLORFILTER);
++			pr_warn("2257 needs firmware %d or above.\n",
++				S2255_MIN_DSP_COLORFILTER);
+  	}
+  	usb_reset_device(dev->udev);
+  	/* load 2255 board specific */
+@@ -2618,7 +2584,7 @@ errorUDEV:
+  	mutex_destroy(&dev->lock);
+  errorFWDATA1:
+  	kfree(dev);
+-	printk(KERN_WARNING "Sensoray 2255 driver load failed: 0x%x\n", 
+retval);
++	pr_warn("Sensoray 2255 driver load failed: 0x%x\n", retval);
+  	return retval;
+  }
 
