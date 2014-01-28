@@ -1,83 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1752 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750754AbaAOJnh (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2757 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750816AbaA1HEo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 04:43:37 -0500
-Message-ID: <52D6579F.9080302@xs4all.nl>
-Date: Wed, 15 Jan 2014 10:40:47 +0100
+	Tue, 28 Jan 2014 02:04:44 -0500
+Message-ID: <52E75663.1080604@xs4all.nl>
+Date: Tue, 28 Jan 2014 08:04:03 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Jianle Wang <victure86@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: how can I get compat_ioctl support for v4l2_subdev_fops
-References: <CACDDY7429te6a7cUQ0Z=sX6TELjn48FQHiuW=YtBsyOkzrCqZA@mail.gmail.com> <52D63B23.5000505@xs4all.nl> <CACDDY76oeFxv7P_yBQeVosae4sRrMCyveRzUHUXewB2Xn3d-jw@mail.gmail.com>
-In-Reply-To: <CACDDY76oeFxv7P_yBQeVosae4sRrMCyveRzUHUXewB2Xn3d-jw@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
+To: Daniel Jeong <gshark.jeong@gmail.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFCv2,1/2] v4l2-controls.h: add addtional Flash fault bits
+References: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
+In-Reply-To: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/15/14 09:02, Jianle Wang wrote:
-> Hi Hans:
->     Thanks for your patch.
-> How do we handle the private ioctl defined in struct v4l2_subdev_core.ioctl?
-> These ioctls are also not supported for compat_ioctl.
+On 01/28/2014 07:55 AM, Daniel Jeong wrote:
+> Add additional FLASH Fault bits to dectect faults from chip.
+> Some Flash drivers support UVLO, IVFM, NTC Trip faults.
+> UVLO : 	Under Voltage Lock Out Threshold crossed
+> IVFM : 	IVFM block reported and/or adjusted LED current Input Voltage Flash Monitor trip threshold
+> NTC  : 	NTC Threshold crossed. Many Flash drivers have a pin and the fault bit to 
+> serves as a threshold detector for negative temperature coefficient (NTC) thermistors.
 
-There is currently no support for that, but try the patch below. That should
-allow you to add compat_ioctl32 support for your custom ioctls.
+Please document these new flags as well in Documentation/DocBook/media/v4l/controls.xml.
 
 Regards,
 
 	Hans
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 996c248..60d2550 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -368,6 +368,17 @@ static long subdev_ioctl(struct file *file, unsigned int cmd,
- 	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
- }
- 
-+#ifdef CONFIG_COMPAT
-+static long subdev_compat_ioctl32(struct file *file, unsigned int cmd,
-+	unsigned long arg)
-+{
-+	struct video_device *vdev = video_devdata(file);
-+	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+
-+	return v4l2_subdev_call(sd, core, compat_ioctl32, cmd, arg);
-+}
-+#endif
-+
- static unsigned int subdev_poll(struct file *file, poll_table *wait)
- {
- 	struct video_device *vdev = video_devdata(file);
-@@ -389,6 +400,9 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
- 	.owner = THIS_MODULE,
- 	.open = subdev_open,
- 	.unlocked_ioctl = subdev_ioctl,
-+#ifdef CONFIG_COMPAT
-+	.compat_ioctl32 = subdev_compat_ioctl32,
-+#endif
- 	.release = subdev_close,
- 	.poll = subdev_poll,
- };
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index d67210a..3fd91a5 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -162,6 +162,9 @@ struct v4l2_subdev_core_ops {
- 	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
- 	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
- 	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
-+#ifdef CONFIG_COMPAT
-+	long (*compat_ioctl32)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
-+#endif
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
- 	int (*s_register)(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg);
+> 
+> Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+> ---
+>  include/uapi/linux/v4l2-controls.h |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 1666aab..01d730c 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -803,6 +803,9 @@ enum v4l2_flash_strobe_source {
+>  #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
+>  #define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
+>  #define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
+> +#define V4L2_FLASH_FAULT_UVLO			(1 << 6)
+> +#define V4L2_FLASH_FAULT_IVFM			(1 << 7)
+> +#define V4L2_FLASH_FAULT_NTC_TRIP		(1 << 8)
+>  
+>  #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+>  #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
+> 
 
