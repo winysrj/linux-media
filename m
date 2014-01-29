@@ -1,249 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3072 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753178AbaATMqu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40613 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750936AbaA2PTd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jan 2014 07:46:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 14/21] v4l2-ctrls: prepare for matrix support.
-Date: Mon, 20 Jan 2014 13:46:07 +0100
-Message-Id: <1390221974-28194-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 29 Jan 2014 10:19:33 -0500
+Date: Wed, 29 Jan 2014 17:18:57 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Daniel Jeong <gshark.jeong@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFCv2,2/2] i2c: add new dual Flash driver,LM3646
+Message-ID: <20140129151856.GC14729@valkosipuli.retiisi.org.uk>
+References: <1390892158-5646-1-git-send-email-gshark.jeong@gmail.com>
+ <1390892158-5646-2-git-send-email-gshark.jeong@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1390892158-5646-2-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Daniel,
 
-Add core support for matrices.
+Thanks for the update. The driver is very nicely written in general btw. One
+comment below.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 54 +++++++++++++++++++++++-------------
- include/media/v4l2-ctrls.h           |  8 ++++--
- 2 files changed, 39 insertions(+), 23 deletions(-)
+On Tue, Jan 28, 2014 at 03:55:58PM +0900, Daniel Jeong wrote:
+...
+> +/*
+> + * struct lm3646_flash
+> + *
+> + * @pdata: platform data
+> + * @regmap: reg. map for i2c
+> + * @lock: muxtex for serial access.
+> + * @led_mode: V4L2 LED mode
+> + * @ctrls_led: V4L2 contols
+> + * @subdev_led: V4L2 subdev
+> + */
+> +struct lm3646_flash {
+> +	struct device *dev;
+> +	struct lm3646_platform_data *pdata;
+> +	struct regmap *regmap;
+> +
+> +	enum v4l2_flash_led_mode led_mode;
+> +	struct v4l2_ctrl_handler ctrls_led;
+> +	struct v4l2_subdev subdev_led;
+> +};
+> +
+> +#define to_lm3646_flash(_ctrl)	\
+> +	container_of(_ctrl->handler, struct lm3646_flash, ctrls_led)
+> +
+> +/* enable mode control */
+> +static int lm3646_mode_ctrl(struct lm3646_flash *flash)
+> +{
+> +	int rval = -EINVAL;
+> +
+> +	switch (flash->led_mode) {
+> +	case V4L2_FLASH_LED_MODE_NONE:
+> +		rval = regmap_update_bits(flash->regmap,
+> +					  REG_ENABLE, MASK_ENABLE, MODE_SHDN);
+> +		break;
+> +	case V4L2_FLASH_LED_MODE_TORCH:
+> +		rval = regmap_update_bits(flash->regmap,
+> +					  REG_ENABLE, MASK_ENABLE, MODE_TORCH);
+> +		break;
+> +	case V4L2_FLASH_LED_MODE_FLASH:
+> +		rval = regmap_update_bits(flash->regmap,
+> +					  REG_ENABLE, MASK_ENABLE, MODE_FLASH);
+> +		break;
+> +	}
+> +	return rval;
+> +}
+> +
+> +/* V4L2 controls  */
+> +static int lm3646_get_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct lm3646_flash *flash = to_lm3646_flash(ctrl);
+> +	int rval = -EINVAL;
+> +
+> +	if (ctrl->id == V4L2_CID_FLASH_FAULT) {
+> +		s32 fault = 0;
+> +		unsigned int reg_val;
+> +		rval = regmap_read(flash->regmap, REG_FLAG, &reg_val);
+> +		if (rval < 0)
+> +			return rval;
+> +
+> +		if (reg_val & FAULT_TIMEOUT)
+> +			fault |= V4L2_FLASH_FAULT_TIMEOUT;
+> +		if (reg_val & FAULT_SHORT_CIRCUIT)
+> +			fault |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
+> +		if (reg_val & FAULT_UVLO)
+> +			fault |= V4L2_FLASH_FAULT_UVLO;
+> +		if (reg_val & FAULT_IVFM)
+> +			fault |= V4L2_FLASH_FAULT_IVFM;
+> +		if (reg_val & FAULT_OCP)
+> +			fault |= V4L2_FLASH_FAULT_OVER_CURRENT;
+> +		if (reg_val & FAULT_OVERTEMP)
+> +			fault |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
+> +		if (reg_val & FAULT_NTC_TRIP)
+> +			fault |= V4L2_FLASH_FAULT_NTC_TRIP;
+> +		if (reg_val & FAULT_OVP)
+> +			fault |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
+> +
+> +		ctrl->cur.val = fault;
+> +	}
+> +
+> +	return rval;
+> +}
+> +
+> +static int lm3646_set_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct lm3646_flash *flash = to_lm3646_flash(ctrl);
+> +	u8 bval;
+> +	int rval = -EINVAL;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_FLASH_LED_MODE:
+> +		flash->led_mode = ctrl->val;
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d15a7dd..4968eff 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1123,7 +1123,7 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
- 			v4l2_event_queue_fh(sev->fh, &ev);
- }
- 
--static bool std_equal(const struct v4l2_ctrl *ctrl,
-+static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
- 		      union v4l2_ctrl_ptr ptr1,
- 		      union v4l2_ctrl_ptr ptr2)
- {
-@@ -1142,7 +1142,7 @@ static bool std_equal(const struct v4l2_ctrl *ctrl,
- 	}
- }
- 
--static void std_init(const struct v4l2_ctrl *ctrl,
-+static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 		     union v4l2_ctrl_ptr ptr)
- {
- 	switch (ctrl->type) {
-@@ -1169,6 +1169,9 @@ static void std_log(const struct v4l2_ctrl *ctrl)
- {
- 	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
- 
-+	if (ctrl->is_matrix)
-+		pr_cont("[%u][%u] ", ctrl->rows, ctrl->cols);
-+
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
- 		pr_cont("%d", *ptr.p_s32);
-@@ -1211,7 +1214,7 @@ static void std_log(const struct v4l2_ctrl *ctrl)
- })
- 
- /* Validate a new control */
--static int std_validate(const struct v4l2_ctrl *ctrl,
-+static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 			union v4l2_ctrl_ptr ptr)
- {
- 	size_t len;
-@@ -1435,7 +1438,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
- 
- 		if (ctrl == NULL)
- 			continue;
--		ctrl->has_changed = !ctrl->type_ops->equal(ctrl,
-+		ctrl->has_changed = !ctrl->type_ops->equal(ctrl, 0,
- 						ctrl->stores[0], ctrl->new);
- 		changed |= ctrl->has_changed;
- 	}
-@@ -1493,15 +1496,15 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_BUTTON:
- 	case V4L2_CTRL_TYPE_CTRL_CLASS:
- 		ptr.p_s32 = &c->value;
--		return ctrl->type_ops->validate(ctrl, ptr);
-+		return ctrl->type_ops->validate(ctrl, 0, ptr);
- 
- 	case V4L2_CTRL_TYPE_INTEGER64:
- 		ptr.p_s64 = &c->value64;
--		return ctrl->type_ops->validate(ctrl, ptr);
-+		return ctrl->type_ops->validate(ctrl, 0, ptr);
- 
- 	default:
- 		ptr.p = c->p;
--		return ctrl->type_ops->validate(ctrl, ptr);
-+		return ctrl->type_ops->validate(ctrl, 0, ptr);
- 	}
- }
- 
-@@ -1727,7 +1730,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const s64 *qmenu_int, void *priv)
- {
- 	struct v4l2_ctrl *ctrl;
--	unsigned sz_extra;
-+	bool is_matrix;
-+	unsigned sz_extra, tot_ctrl_size;
- 	void *data;
- 	int err;
- 	int s;
-@@ -1739,6 +1743,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		cols = 1;
- 	if (rows == 0)
- 		rows = 1;
-+	is_matrix = cols > 1 || rows > 1;
- 
- 	if (type == V4L2_CTRL_TYPE_INTEGER64)
- 		elem_size = sizeof(s64);
-@@ -1746,17 +1751,18 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		elem_size = max + 1;
- 	else if (type < V4L2_CTRL_COMPLEX_TYPES)
- 		elem_size = sizeof(s32);
-+	tot_ctrl_size = elem_size * cols * rows;
- 
- 	/* Sanity checks */
--	if (id == 0 || name == NULL || id >= V4L2_CID_PRIVATE_BASE ||
--	    elem_size == 0 ||
-+	if (id == 0 || name == NULL || !elem_size ||
-+	    id >= V4L2_CID_PRIVATE_BASE ||
- 	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL) ||
- 	    (type == V4L2_CTRL_TYPE_INTEGER_MENU && qmenu_int == NULL)) {
- 		handler_set_err(hdl, -ERANGE);
- 		return NULL;
- 	}
- 	/* Complex controls are always hidden */
--	if (type >= V4L2_CTRL_COMPLEX_TYPES)
-+	if (is_matrix || type >= V4L2_CTRL_COMPLEX_TYPES)
- 		flags |= V4L2_CTRL_FLAG_HIDDEN;
- 	/*
- 	 * No hidden controls are allowed in the USER class
-@@ -1776,14 +1782,21 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -ERANGE);
- 		return NULL;
- 	}
-+	if (is_matrix &&
-+	    (type == V4L2_CTRL_TYPE_BUTTON ||
-+	     type == V4L2_CTRL_TYPE_CTRL_CLASS)) {
-+		handler_set_err(hdl, -EINVAL);
-+		return NULL;
-+	}
- 
--	sz_extra = elem_size;
-+	sz_extra = tot_ctrl_size;
- 	if (type == V4L2_CTRL_TYPE_BUTTON)
- 		flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
- 	else if (type == V4L2_CTRL_TYPE_CTRL_CLASS)
- 		flags |= V4L2_CTRL_FLAG_READ_ONLY;
--	else if (type == V4L2_CTRL_TYPE_STRING || type >= V4L2_CTRL_COMPLEX_TYPES)
--		sz_extra += elem_size;
-+	else if (type == V4L2_CTRL_TYPE_STRING ||
-+		 type >= V4L2_CTRL_COMPLEX_TYPES || is_matrix)
-+		sz_extra += tot_ctrl_size;
- 
- 	ctrl = kzalloc(sizeof(*ctrl) + sz_extra, GFP_KERNEL);
- 	if (ctrl == NULL) {
-@@ -1805,9 +1818,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->maximum = max;
- 	ctrl->step = step;
- 	ctrl->default_value = def;
--	ctrl->is_string = type == V4L2_CTRL_TYPE_STRING;
--	ctrl->is_ptr = type >= V4L2_CTRL_COMPLEX_TYPES || ctrl->is_string;
-+	ctrl->is_string = !is_matrix && type == V4L2_CTRL_TYPE_STRING;
-+	ctrl->is_ptr = is_matrix || type >= V4L2_CTRL_COMPLEX_TYPES || ctrl->is_string;
- 	ctrl->is_int = !ctrl->is_ptr && type != V4L2_CTRL_TYPE_INTEGER64;
-+	ctrl->is_matrix = is_matrix;
- 	ctrl->cols = cols;
- 	ctrl->rows = rows;
- 	ctrl->elem_size = elem_size;
-@@ -1821,13 +1835,13 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 
- 	if (ctrl->is_ptr) {
- 		for (s = -1; s <= 0; s++)
--			ctrl->stores[s].p = data + (s + 1) * elem_size;
-+			ctrl->stores[s].p = data + (s + 1) * tot_ctrl_size;
- 	} else {
- 		ctrl->new.p = &ctrl->val;
- 		ctrl->stores[0].p = data;
- 	}
- 	for (s = -1; s <= 0; s++)
--		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
-+		ctrl->type_ops->init(ctrl, 0, ctrl->stores[s]);
- 
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
-@@ -2724,7 +2738,7 @@ s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl)
- 	struct v4l2_ext_control c;
- 
- 	/* It's a driver bug if this happens. */
--	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
-+	WARN_ON(ctrl->is_ptr || ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
- 	c.value = 0;
- 	get_ctrl(ctrl, &c);
- 	return c.value;
-@@ -3034,7 +3048,7 @@ int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
- 	struct v4l2_ext_control c;
- 
- 	/* It's a driver bug if this happens. */
--	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
-+	WARN_ON(ctrl->is_ptr || ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
- 	c.value64 = val;
- 	return set_ctrl_lock(NULL, ctrl, &c);
- }
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 885a261..8756e47 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -74,13 +74,13 @@ struct v4l2_ctrl_ops {
-   * @validate: validate the value. Return 0 on success and a negative value otherwise.
-   */
- struct v4l2_ctrl_type_ops {
--	bool (*equal)(const struct v4l2_ctrl *ctrl,
-+	bool (*equal)(const struct v4l2_ctrl *ctrl, u32 idx,
- 		      union v4l2_ctrl_ptr ptr1,
- 		      union v4l2_ctrl_ptr ptr2);
--	void (*init)(const struct v4l2_ctrl *ctrl,
-+	void (*init)(const struct v4l2_ctrl *ctrl, u32 idx,
- 		     union v4l2_ctrl_ptr ptr);
- 	void (*log)(const struct v4l2_ctrl *ctrl);
--	int (*validate)(const struct v4l2_ctrl *ctrl,
-+	int (*validate)(const struct v4l2_ctrl *ctrl, u32 idx,
- 			union v4l2_ctrl_ptr ptr);
- };
- 
-@@ -111,6 +111,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   * @is_ptr:	If set, then this control is a matrix and/or has type >= V4L2_CTRL_COMPLEX_TYPES
-   *		and/or has type V4L2_CTRL_TYPE_STRING. In other words, struct
-   *		v4l2_ext_control uses field p to point to the data.
-+  * @is_matrix: If set, then this control contains a matrix.
-   * @has_volatiles: If set, then one or more members of the cluster are volatile.
-   *		Drivers should never touch this flag.
-   * @call_notify: If set, then call the handler's notify function whenever the
-@@ -169,6 +170,7 @@ struct v4l2_ctrl {
- 	unsigned int is_int:1;
- 	unsigned int is_string:1;
- 	unsigned int is_ptr:1;
-+	unsigned int is_matrix:1;
- 	unsigned int has_volatiles:1;
- 	unsigned int call_notify:1;
- 	unsigned int manual_mode_value:8;
+Do you need to keep led_mode in struct lm3646_flash? Could you access the
+value in struct v4l2_ctrl directly? (See smiapp-core.c for an example.)
+
+> +		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+> +			rval = lm3646_mode_ctrl(flash);
+> +		break;
+> +
+> +	case V4L2_CID_FLASH_STROBE_SOURCE:
+> +		rval = regmap_update_bits(flash->regmap,
+> +					  REG_STROBE_SRC, MASK_STROBE_SRC,
+> +					  (ctrl->val) << 7);
+> +		break;
+> +
+> +	case V4L2_CID_FLASH_STROBE:
+> +		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+> +			return rval;
+> +		rval = lm3646_mode_ctrl(flash);
+> +		break;
+> +
+> +	case V4L2_CID_FLASH_STROBE_STOP:
+> +		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
+> +			return rval;
+> +		flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
+> +		rval = lm3646_mode_ctrl(flash);
+> +		break;
+> +
+> +	case V4L2_CID_FLASH_TIMEOUT:
+> +		bval = LM3646_FLASH_TOUT_ms_TO_REG(ctrl->val);
+> +		rval = regmap_update_bits(flash->regmap,
+> +					  REG_FLASH_TOUT, MASK_FLASH_TOUT,
+> +					  bval);
+> +		break;
+> +
+> +	case V4L2_CID_FLASH_INTENSITY:
+> +		bval = LM3646_TOTAL_FLASH_BRT_uA_TO_REG(ctrl->val);
+> +		rval = regmap_update_bits(flash->regmap,
+> +					  REG_FLASH_BR, MASK_FLASH_BR, bval);
+> +		break;
+> +
+> +	case V4L2_CID_FLASH_TORCH_INTENSITY:
+> +		bval = LM3646_TOTAL_TORCH_BRT_uA_TO_REG(ctrl->val);
+> +		rval = regmap_update_bits(flash->regmap,
+> +					  REG_TORCH_BR, MASK_TORCH_BR,
+> +					  bval << 4);
+> +		break;
+> +	}
+> +
+> +	return rval;
+> +}
+
 -- 
-1.8.5.2
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
