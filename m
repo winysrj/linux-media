@@ -1,205 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2706 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753988AbaAaJ5N (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60581 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752854AbaA2QN7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 04:57:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 29 Jan 2014 11:13:59 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 20/32] DocBook media: fix coding style in the control example code
-Date: Fri, 31 Jan 2014 10:56:18 +0100
-Message-Id: <1391162190-8620-21-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] uvcvideo: Enable VIDIOC_CREATE_BUFS
+Date: Wed, 29 Jan 2014 17:13:52 +0100
+Message-Id: <1391012032-19600-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch enables the ioctl to create additional buffers
+on the videobuf2 capture queue.
 
-Use the proper kernel coding style in these examples.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- Documentation/DocBook/media/v4l/controls.xml | 81 ++++++++++++++--------------
- 1 file changed, 40 insertions(+), 41 deletions(-)
+ drivers/media/usb/uvc/uvc_queue.c | 11 +++++++++++
+ drivers/media/usb/uvc/uvc_v4l2.c  | 10 ++++++++++
+ drivers/media/usb/uvc/uvcvideo.h  |  2 ++
+ 3 files changed, 23 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index a5a3188..ef55c3e 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -441,61 +441,60 @@ more menu type controls.</para>
- &v4l2-queryctrl; queryctrl;
- &v4l2-querymenu; querymenu;
- 
--static void
--enumerate_menu (void)
-+static void enumerate_menu(void)
- {
--	printf ("  Menu items:\n");
-+	printf("  Menu items:\n");
- 
--	memset (&amp;querymenu, 0, sizeof (querymenu));
-+	memset(&amp;querymenu, 0, sizeof(querymenu));
- 	querymenu.id = queryctrl.id;
- 
- 	for (querymenu.index = queryctrl.minimum;
- 	     querymenu.index &lt;= queryctrl.maximum;
--	      querymenu.index++) {
--		if (0 == ioctl (fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
--			printf ("  %s\n", querymenu.name);
-+	     querymenu.index++) {
-+		if (0 == ioctl(fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
-+			printf("  %s\n", querymenu.name);
- 		}
- 	}
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index cd962be..7efb157 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -196,6 +196,17 @@ int uvc_query_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
+ 	return ret;
  }
  
--memset (&amp;queryctrl, 0, sizeof (queryctrl));
-+memset(&amp;queryctrl, 0, sizeof(queryctrl));
- 
- for (queryctrl.id = V4L2_CID_BASE;
-      queryctrl.id &lt; V4L2_CID_LASTP1;
-      queryctrl.id++) {
--	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
-+	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
- 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
- 			continue;
- 
--		printf ("Control %s\n", queryctrl.name);
-+		printf("Control %s\n", queryctrl.name);
- 
- 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
--			enumerate_menu ();
-+			enumerate_menu();
- 	} else {
- 		if (errno == EINVAL)
- 			continue;
- 
--		perror ("VIDIOC_QUERYCTRL");
--		exit (EXIT_FAILURE);
-+		perror("VIDIOC_QUERYCTRL");
-+		exit(EXIT_FAILURE);
- 	}
- }
- 
- for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
-      queryctrl.id++) {
--	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
-+	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
- 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
- 			continue;
- 
--		printf ("Control %s\n", queryctrl.name);
-+		printf("Control %s\n", queryctrl.name);
- 
- 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
--			enumerate_menu ();
-+			enumerate_menu();
- 	} else {
- 		if (errno == EINVAL)
- 			break;
- 
--		perror ("VIDIOC_QUERYCTRL");
--		exit (EXIT_FAILURE);
-+		perror("VIDIOC_QUERYCTRL");
-+		exit(EXIT_FAILURE);
- 	}
- }
- </programlisting>
-@@ -508,53 +507,53 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
- &v4l2-queryctrl; queryctrl;
- &v4l2-control; control;
- 
--memset (&amp;queryctrl, 0, sizeof (queryctrl));
-+memset(&amp;queryctrl, 0, sizeof(queryctrl));
- queryctrl.id = V4L2_CID_BRIGHTNESS;
- 
--if (-1 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
-+if (-1 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
- 	if (errno != EINVAL) {
--		perror ("VIDIOC_QUERYCTRL");
--		exit (EXIT_FAILURE);
-+		perror("VIDIOC_QUERYCTRL");
-+		exit(EXIT_FAILURE);
- 	} else {
--		printf ("V4L2_CID_BRIGHTNESS is not supported\n");
-+		printf("V4L2_CID_BRIGHTNESS is not supported\n");
- 	}
- } else if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED) {
--	printf ("V4L2_CID_BRIGHTNESS is not supported\n");
-+	printf("V4L2_CID_BRIGHTNESS is not supported\n");
- } else {
--	memset (&amp;control, 0, sizeof (control));
-+	memset(&amp;control, 0, sizeof (control));
- 	control.id = V4L2_CID_BRIGHTNESS;
- 	control.value = queryctrl.default_value;
- 
--	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)) {
--		perror ("VIDIOC_S_CTRL");
--		exit (EXIT_FAILURE);
-+	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)) {
-+		perror("VIDIOC_S_CTRL");
-+		exit(EXIT_FAILURE);
- 	}
- }
- 
--memset (&amp;control, 0, sizeof (control));
-+memset(&amp;control, 0, sizeof(control));
- control.id = V4L2_CID_CONTRAST;
- 
--if (0 == ioctl (fd, &VIDIOC-G-CTRL;, &amp;control)) {
-+if (0 == ioctl(fd, &VIDIOC-G-CTRL;, &amp;control)) {
- 	control.value += 1;
- 
- 	/* The driver may clamp the value or return ERANGE, ignored here */
- 
--	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)
-+	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)
- 	    &amp;&amp; errno != ERANGE) {
--		perror ("VIDIOC_S_CTRL");
--		exit (EXIT_FAILURE);
-+		perror("VIDIOC_S_CTRL");
-+		exit(EXIT_FAILURE);
- 	}
- /* Ignore if V4L2_CID_CONTRAST is unsupported */
- } else if (errno != EINVAL) {
--	perror ("VIDIOC_G_CTRL");
--	exit (EXIT_FAILURE);
-+	perror("VIDIOC_G_CTRL");
-+	exit(EXIT_FAILURE);
- }
- 
- control.id = V4L2_CID_AUDIO_MUTE;
--control.value = TRUE; /* silence */
-+control.value = 1; /* silence */
- 
- /* Errors ignored */
--ioctl (fd, VIDIOC_S_CTRL, &amp;control);
-+ioctl(fd, VIDIOC_S_CTRL, &amp;control);
- </programlisting>
-     </example>
-   </section>
-@@ -675,12 +674,12 @@ control class is found:</para>
-       <informalexample>
- 	<programlisting>
- qctrl.id = V4L2_CTRL_CLASS_MPEG | V4L2_CTRL_FLAG_NEXT_CTRL;
--while (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
--	if (V4L2_CTRL_ID2CLASS (qctrl.id) != V4L2_CTRL_CLASS_MPEG)
-+while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
-+	if (V4L2_CTRL_ID2CLASS(qctrl.id) != V4L2_CTRL_CLASS_MPEG)
- 		break;
- 		/* ... */
--		qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
--	}
-+	qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
++int uvc_create_buffers(struct uvc_video_queue *queue, struct v4l2_create_buffers *cb)
++{
++	int ret;
++
++	mutex_lock(&queue->mutex);
++	ret = vb2_create_bufs(&queue->queue, cb);
++	mutex_unlock(&queue->mutex);
++
++	return ret;
 +}
- </programlisting>
-       </informalexample>
++
+ int uvc_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
+ {
+ 	int ret;
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 3afff92..fa58131 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -1000,6 +1000,16 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return uvc_query_buffer(&stream->queue, buf);
+ 	}
  
++	case VIDIOC_CREATE_BUFS:
++	{
++		struct v4l2_create_buffers *cb = arg;
++
++		if (!uvc_has_privileges(handle))
++			return -EBUSY;
++
++		return uvc_create_buffers(&stream->queue, cb);
++	}
++
+ 	case VIDIOC_QBUF:
+ 		if (!uvc_has_privileges(handle))
+ 			return -EBUSY;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 9e35982..a28da0f 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -616,6 +616,8 @@ extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
+ extern void uvc_free_buffers(struct uvc_video_queue *queue);
+ extern int uvc_query_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf);
++extern int uvc_create_buffers(struct uvc_video_queue *queue,
++		struct v4l2_create_buffers *v4l2_cb);
+ extern int uvc_queue_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf);
+ extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
 -- 
-1.8.5.2
+1.8.5.3
 
