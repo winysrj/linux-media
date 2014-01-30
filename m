@@ -1,102 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f170.google.com ([209.85.128.170]:40643 "EHLO
-	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313AbaADR6u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 12:58:50 -0500
-MIME-Version: 1.0
-In-Reply-To: <1388833760-23260-1-git-send-email-m.chehab@samsung.com>
-References: <1388833760-23260-1-git-send-email-m.chehab@samsung.com>
-Date: Sat, 4 Jan 2014 18:58:49 +0100
-Message-ID: <CA+O4pC+w7PCrMN-MHexfER79ovR+6hHGppLy0929UjjckUUCmQ@mail.gmail.com>
-Subject: Re: [PATCH v4 RFC 1/2] [media] em28xx: retry I2C write ops if failed
- by timeout
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	USB list <linux-usb@vger.kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.samsung.com ([203.254.224.34]:18451 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752725AbaA3Fky (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jan 2014 00:40:54 -0500
+From: Amit Grover <amit.grover@samsung.com>
+To: linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	prabhakar.csengg@gmail.com, s.nawrocki@samsung.com,
+	hans.verkuil@cisco.com, hverkuil@xs4all.nl, swaminath.p@samsung.com
+Cc: jtp.park@samsung.com, Rrob@landley.net, andrew.smirnov@gmail.com,
+	anatol.pomozov@gmail.com, jmccrohan@gmail.com, joe@perches.com,
+	awalls@md.metrocast.net, arun.kk@samsung.com,
+	amit.grover@samsung.com, austin.lobo@samsung.com
+Subject: [PATCH v2 2/2] drivers/media: s5p-mfc: Add Horizontal and Vertical MV
+ Search Range
+Date: Thu, 30 Jan 2014 11:12:43 +0530
+Message-id: <1391060563-27015-3-git-send-email-amit.grover@samsung.com>
+In-reply-to: <1391060563-27015-1-git-send-email-amit.grover@samsung.com>
+References: <52E0ED10.2020901@samsung.com>
+ <1391060563-27015-1-git-send-email-amit.grover@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Did you trace the i2c messages on the bus? This seems like papering
-the actual bug.
+This patch adds Controls to set Horizontal and Vertical search range
+for Motion Estimation block for Samsung MFC video Encoders.
 
-USB 3.0 is a disaster with Linux, maybe your hardware or your
-controller driver is not okay?
-There are other bugreports out there which are USB 3.0 related, some
-of our customers reported that since 3.6.0 is okay while 3.7.10 give
-them a complete system lock up also with the driver in question here.
+Signed-off-by: Swami Nathan <swaminath.p@samsung.com>
+Signed-off-by: Amit Grover <amit.grover@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   24 +++++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 ++------
+ 4 files changed, 29 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index 2398cdf..8d0b686 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -229,6 +229,7 @@
+ #define S5P_FIMV_E_PADDING_CTRL_V6		0xf7a4
+ #define S5P_FIMV_E_MV_HOR_RANGE_V6		0xf7ac
+ #define S5P_FIMV_E_MV_VER_RANGE_V6		0xf7b0
++#define S5P_FIMV_E_MV_RANGE_V6_MASK		0x3fff
+ 
+ #define S5P_FIMV_E_VBV_BUFFER_SIZE_V6		0xf84c
+ #define S5P_FIMV_E_VBV_INIT_DELAY_V6		0xf850
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 6920b54..b90ee34 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -430,6 +430,8 @@ struct s5p_mfc_vp8_enc_params {
+ struct s5p_mfc_enc_params {
+ 	u16 width;
+ 	u16 height;
++	u32 mv_h_range;
++	u32 mv_v_range;
+ 
+ 	u16 gop_size;
+ 	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 4ff3b6c..704f30c1 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -208,6 +208,24 @@ static struct mfc_control controls[] = {
+ 		.default_value = 0,
+ 	},
+ 	{
++		.id = V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "Horizontal MV Search Range",
++		.minimum = 16,
++		.maximum = 128,
++		.step = 16,
++		.default_value = 32,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "Vertical MV Search Range",
++		.minimum = 16,
++		.maximum = 128,
++		.step = 16,
++		.default_value = 32,
++	},
++	{
+ 		.id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+ 		.minimum = 0,
+@@ -1377,6 +1395,12 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
+ 		p->vbv_size = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:
++		p->mv_h_range = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
++		p->mv_v_range = ctrl->val;
++		break;
+ 	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
+ 		p->codec.h264.cpb_size = ctrl->val;
+ 		break;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 461358c..3c10188 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -727,14 +727,10 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
+ 	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
+ 
+ 	/* setting for MV range [16, 256] */
+-	reg = 0;
+-	reg &= ~(0x3FFF);
+-	reg = 256;
++	reg = (p->mv_h_range & S5P_FIMV_E_MV_RANGE_V6_MASK);
+ 	WRITEL(reg, S5P_FIMV_E_MV_HOR_RANGE_V6);
+ 
+-	reg = 0;
+-	reg &= ~(0x3FFF);
+-	reg = 256;
++	reg = (p->mv_v_range & S5P_FIMV_E_MV_RANGE_V6_MASK);
+ 	WRITEL(reg, S5P_FIMV_E_MV_VER_RANGE_V6);
+ 
+ 	WRITEL(0x0, S5P_FIMV_E_FRAME_INSERTION_V6);
+-- 
+1.7.9.5
 
-On Sat, Jan 4, 2014 at 12:09 PM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> At least on HVR-950, sometimes an I2C operation fails.
->
-> This seems to be more frequent when the device is connected
-> into an USB 3.0 port.
->
-> Instead of report an error, try to repeat it, for up to
-> 20 ms. That makes the code more reliable.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-i2c.c | 23 +++++++++++------------
->  1 file changed, 11 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> index 6cd3d909bb3a..35d6808aa9ff 100644
-> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> @@ -189,6 +189,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
->          * Zero length reads always succeed, even if no device is connected
->          */
->
-> +retry:
->         /* Write to i2c device */
->         ret = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
->         if (ret != len) {
-> @@ -208,26 +209,24 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
->                 ret = dev->em28xx_read_reg(dev, 0x05);
->                 if (ret == 0) /* success */
->                         return len;
-> -               if (ret == 0x10) {
-> -                       em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
-> -                                   addr);
-> -                       return -EREMOTEIO;
-> -               }
-> +               if (ret == 0x10)
-> +                       goto retry;
->                 if (ret < 0) {
->                         em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
->                                     ret);
->                         return ret;
->                 }
->                 msleep(5);
-> -               /*
-> -                * NOTE: do we really have to wait for success ?
-> -                * Never seen anything else than 0x00 or 0x10
-> -                * (even with high payload) ...
-> -                */
->         }
->
-> -       if (i2c_debug)
-> -               em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
-> +       if (ret == 0x10) {
-> +               if (i2c_debug)
-> +                       em28xx_warn("I2C transfer timeout on writing to addr 0x%02x",
-> +                                   addr);
-> +       } else {
-> +               em28xx_warn("write to i2c device at 0x%x timed out (ret=0x%02x)\n",
-> +                           addr, ret);
-> +       }
->         return -EREMOTEIO;
->  }
->
-> --
-> 1.8.3.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
