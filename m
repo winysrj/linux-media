@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:53695 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751130AbaAZMz4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jan 2014 07:55:56 -0500
-Received: from minime.bse ([77.20.120.199]) by mail.gmx.com (mrgmx102) with
- ESMTPSA (Nemesis) id 0Mc8Pz-1Vp31Q1rQl-00JbNU for
- <linux-media@vger.kernel.org>; Sun, 26 Jan 2014 13:55:55 +0100
-Date: Sun, 26 Jan 2014 13:55:53 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Robert Longbottom <rongblor@googlemail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
-Message-ID: <20140126125552.GA26918@minime.bse>
-References: <52DECF44.1070609@googlemail.com>
- <52DEDFCB.6010802@googlemail.com>
- <20140122115334.GA14710@minime.bse>
- <52DFC300.8010508@googlemail.com>
- <20140122135036.GA14871@minime.bse>
- <52E00AD0.2020402@googlemail.com>
- <20140123132741.GA15756@minime.bse>
- <52E1273F.90207@googlemail.com>
- <20140125152339.GA18168@minime.bse>
- <52E4EFBB.7070504@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <52E4EFBB.7070504@googlemail.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:41502 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017AbaA3Fkf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jan 2014 00:40:35 -0500
+From: Amit Grover <amit.grover@samsung.com>
+To: linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	prabhakar.csengg@gmail.com, s.nawrocki@samsung.com,
+	hans.verkuil@cisco.com, hverkuil@xs4all.nl, swaminath.p@samsung.com
+Cc: jtp.park@samsung.com, Rrob@landley.net, andrew.smirnov@gmail.com,
+	anatol.pomozov@gmail.com, jmccrohan@gmail.com, joe@perches.com,
+	awalls@md.metrocast.net, arun.kk@samsung.com,
+	amit.grover@samsung.com, austin.lobo@samsung.com
+Subject: [PATCH v2 0/2] drivers/media: Add controls for Horizontal and Vertical
+ MV Search Range
+Date: Thu, 30 Jan 2014 11:12:41 +0530
+Message-id: <1391060563-27015-1-git-send-email-amit.grover@samsung.com>
+In-reply-to: <52E0ED10.2020901@samsung.com>
+References: <52E0ED10.2020901@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 26, 2014 at 11:21:31AM +0000, Robert Longbottom wrote:
-> 0F0 000000F9 PLL_F_LO
-> 0F4 000000DC PLL_F_HI
-> 0F8 0000008E PLL_XCI
+Based on 'master' branch of Linux-next.
+This is v2 version for the patch:
+s5p-mfc: Add Horizontal and Vertical search range for Video Macro Blocks
+(https://lkml.org/lkml/2013/12/30/83)
 
-The PLL is enabled and configured for a 28.63636MHz input clock.
-With the default board config these registers are not touched
-at all, so this must be a remnant of testing with another board
-number. Please repeat with pll=35,35,35,35 .
+Changes from v1:
+1) Splitted the patch into v4l2 and mfc driver patches.
+2) Incorporated review comments of v1
 
-  Daniel
+Amit Grover (2):
+  drivers/media: v4l2: Add settings for Horizontal and Vertical MV
+    Search Range
+  drivers/media: s5p-mfc: Add Horizontal and Vertical MV Search Range
+
+ Documentation/DocBook/media/v4l/controls.xml    |   20 +++++++++++++++++++
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   24 +++++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 ++------
+ drivers/media/v4l2-core/v4l2-ctrls.c            |   14 +++++++++++++
+ include/uapi/linux/v4l2-controls.h              |    2 ++
+ 7 files changed, 65 insertions(+), 6 deletions(-)
+
+-- 
+1.7.9.5
+
