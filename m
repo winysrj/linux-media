@@ -1,50 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56207 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752310AbaAVSl5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jan 2014 13:41:57 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v3] devices.txt: add video4linux device for Software Defined Radio
-Date: Wed, 22 Jan 2014 20:41:39 +0200
-Message-Id: <1390416099-4597-1-git-send-email-crope@iki.fi>
+Received: from mail-qa0-f50.google.com ([209.85.216.50]:64431 "EHLO
+	mail-qa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751541AbaA3CWN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jan 2014 21:22:13 -0500
+Date: Wed, 29 Jan 2014 21:22:07 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: [GIT PULL] update Michael Krufky's email address
+Message-ID: <20140129212207.0988c874@vujade>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new video4linux device named /dev/swradio for Software Defined
-Radio use. V4L device minor numbers are allocated dynamically
-nowadays, but there is still configuration option for old fixed style.
-Add note to mention that configuration option too.
+Mauro,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/devices.txt | 7 +++++++
- 1 file changed, 7 insertions(+)
+My mailer seems to have mangled my patch. :-/ Please just pull my email
+address update patch from my tree.
 
-diff --git a/Documentation/devices.txt b/Documentation/devices.txt
-index 80b7241..e852855 100644
---- a/Documentation/devices.txt
-+++ b/Documentation/devices.txt
-@@ -1490,10 +1490,17 @@ Your cooperation is appreciated.
- 		 64 = /dev/radio0	Radio device
- 		    ...
- 		127 = /dev/radio63	Radio device
-+		128 = /dev/swradio0	Software Defined Radio device
-+		    ...
-+		191 = /dev/swradio63	Software Defined Radio device
- 		224 = /dev/vbi0		Vertical blank interrupt
- 		    ...
- 		255 = /dev/vbi31	Vertical blank interrupt
- 
-+		Minor numbers are allocated dynamically unless
-+		CONFIG_VIDEO_FIXED_MINOR_RANGES (default n)
-+		configuration option is set.
-+
-  81 block	I2O hard disk
- 		  0 = /dev/i2o/hdq	17th I2O hard disk, whole disk
- 		 16 = /dev/i2o/hdr	18th I2O hard disk, whole disk
--- 
-1.8.4.2
+I am no longer available at the kernellabs.com or m1k.net email
+addresses.  Update each instance of my email to my linuxtv.org account.
 
+The following changes since commit
+0e47c969c65e213421450c31043353ebe3c67e0c:
+
+  Merge tag 'for-linus-20140127' of git://git.infradead.org/linux-mtd
+  (2014-01-28 18:56:37 -0800)
+
+are available in the git repository at:
+
+
+  git://linuxtv.org/mkrufky/dvb krufky
+
+for you to fetch changes up to cb0ceb4bc7a297246dd26e55c3fb7a5fc42561f6:
+
+  update Michael Krufky's email address (2014-01-29 21:10:11 -0500)
+
+----------------------------------------------------------------
+Michael Krufky (1):
+      update Michael Krufky's email address
+
+ Documentation/dvb/contributors.txt            | 2 +-
+ drivers/media/dvb-frontends/nxt200x.c         | 2 +-
+ drivers/media/pci/bt8xx/bttv-cards.c          | 2 +-
+ drivers/media/pci/saa7134/saa7134-cards.c     | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c | 4 ++--
+ drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-gpio.c  | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-gpio.h  | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.h   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-phy.c   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-phy.h   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-reg.h   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c | 4 ++--
+ drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c       | 4 ++--
+ drivers/media/usb/dvb-usb-v2/mxl111sf.h       | 2 +-
+ 17 files changed, 20 insertions(+), 20 deletions(-)
