@@ -1,267 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1157 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753447AbaA0Oes (ORCPT
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:62126 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750879AbaA3CQH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 09:34:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 02/22] v4l2-ctrls: add unit string.
-Date: Mon, 27 Jan 2014 15:34:04 +0100
-Message-Id: <1390833264-8503-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
-References: <1390833264-8503-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 29 Jan 2014 21:16:07 -0500
+Received: by mail-pd0-f177.google.com with SMTP id x10so2424942pdj.8
+        for <linux-media@vger.kernel.org>; Wed, 29 Jan 2014 18:16:06 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20140129205751.2471d638@vujade>
+References: <20140129205751.2471d638@vujade>
+Date: Wed, 29 Jan 2014 21:16:06 -0500
+Message-ID: <CAOcJUbzmc4kX5qN7ov4h42ZO2Y4FtT3QCTq5aF_v83D-vk19mA@mail.gmail.com>
+Subject: Re: [PATCH] update Michael Krufky's email address
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Mauro,
 
-The upcoming VIDIOC_QUERY_EXT_CTRL adds support for a unit string. This
-allows userspace to show the unit belonging to a particular control.
+On Wed, Jan 29, 2014 at 8:57 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+[snip]
 
-This patch adds support for the unit string to the control framework.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/v4l2-core/v4l2-common.c |  3 ++-
- drivers/media/v4l2-core/v4l2-ctrls.c  | 36 +++++++++++++++++++++--------------
- include/media/v4l2-ctrls.h            | 13 +++++++++----
- 3 files changed, 33 insertions(+), 19 deletions(-)
+My mailer seems to have mangled my patch. :-/ Please just pull my
+email address update patch from my tree:
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index ccaa38f..ee8ea66 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -114,12 +114,13 @@ EXPORT_SYMBOL(v4l2_ctrl_check);
- int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 _min, s32 _max, s32 _step, s32 _def)
- {
- 	const char *name;
-+	const char *unit = NULL;
- 	s64 min = _min;
- 	s64 max = _max;
- 	u64 step = _step;
- 	s64 def = _def;
- 
--	v4l2_ctrl_fill(qctrl->id, &name, &qctrl->type,
-+	v4l2_ctrl_fill(qctrl->id, &name, &unit, &qctrl->type,
- 		       &min, &max, &step, &def, &qctrl->flags);
- 
- 	if (name == NULL)
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index cac2713..72ffe76 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -863,8 +863,9 @@ const char *v4l2_ctrl_get_name(u32 id)
- }
- EXPORT_SYMBOL(v4l2_ctrl_get_name);
- 
--void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
--		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags)
-+void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
-+		    enum v4l2_ctrl_type *type, s64 *min, s64 *max,
-+		    u64 *step, s64 *def, u32 *flags)
- {
- 	*name = v4l2_ctrl_get_name(id);
- 	*flags = 0;
-@@ -1636,7 +1637,8 @@ unlock:
- /* Add a new control */
- static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
--			u32 id, const char *name, enum v4l2_ctrl_type type,
-+			u32 id, const char *name, const char *unit,
-+			enum v4l2_ctrl_type type,
- 			s64 min, s64 max, u64 step, s64 def,
- 			u32 flags, const char * const *qmenu,
- 			const s64 *qmenu_int, void *priv)
-@@ -1684,6 +1686,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->ops = ops;
- 	ctrl->id = id;
- 	ctrl->name = name;
-+	ctrl->unit = unit;
- 	ctrl->type = type;
- 	ctrl->flags = flags;
- 	ctrl->minimum = min;
-@@ -1718,6 +1721,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	bool is_menu;
- 	struct v4l2_ctrl *ctrl;
- 	const char *name = cfg->name;
-+	const char *unit = cfg->unit;
- 	const char * const *qmenu = cfg->qmenu;
- 	const s64 *qmenu_int = cfg->qmenu_int;
- 	enum v4l2_ctrl_type type = cfg->type;
-@@ -1728,8 +1732,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	s64 def = cfg->def;
- 
- 	if (name == NULL)
--		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
--								&def, &flags);
-+		v4l2_ctrl_fill(cfg->id, &name, &unit, &type,
-+			       &min, &max, &step, &def, &flags);
- 
- 	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU ||
- 		   cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU);
-@@ -1745,7 +1749,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 
--	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name,
-+	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
- 			type, min, max,
- 			is_menu ? cfg->menu_skip_mask : step,
- 			def, flags, qmenu, qmenu_int, priv);
-@@ -1761,16 +1765,17 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 			u32 id, s64 min, s64 max, u64 step, s64 def)
- {
- 	const char *name;
-+	const char *unit = NULL;
- 	enum v4l2_ctrl_type type;
- 	u32 flags;
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
- 	if (type == V4L2_CTRL_TYPE_MENU
- 	    || type == V4L2_CTRL_TYPE_INTEGER_MENU) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, type,
-+	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
- 			     min, max, step, def, flags, NULL, NULL, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std);
-@@ -1784,6 +1789,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 	const s64 *qmenu_int = NULL;
- 	unsigned int qmenu_int_len = 0;
- 	const char *name;
-+	const char *unit = NULL;
- 	enum v4l2_ctrl_type type;
- 	s64 min;
- 	s64 max = _max;
-@@ -1791,7 +1797,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 	u64 step;
- 	u32 flags;
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
- 
- 	if (type == V4L2_CTRL_TYPE_MENU)
- 		qmenu = v4l2_ctrl_get_menu(id);
-@@ -1802,7 +1808,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, type,
-+	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
- 			     0, max, mask, def, flags, qmenu, qmenu_int, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
-@@ -1814,6 +1820,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
- {
- 	enum v4l2_ctrl_type type;
- 	const char *name;
-+	const char *unit = NULL;
- 	u32 flags;
- 	u64 step;
- 	s64 min;
-@@ -1828,12 +1835,12 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
- 	if (type != V4L2_CTRL_TYPE_MENU || qmenu == NULL) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, type, 0, max, mask, def,
-+	return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
- 			     flags, qmenu, NULL, NULL);
- 
- }
-@@ -1845,6 +1852,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 			u32 id, u8 _max, u8 _def, const s64 *qmenu_int)
- {
- 	const char *name;
-+	const char *unit = NULL;
- 	enum v4l2_ctrl_type type;
- 	s64 min;
- 	u64 step;
-@@ -1852,12 +1860,12 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 	s64 def = _def;
- 	u32 flags;
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &unit, &type, &min, &max, &step, &def, &flags);
- 	if (type != V4L2_CTRL_TYPE_INTEGER_MENU) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
--	return v4l2_ctrl_new(hdl, ops, id, name, type,
-+	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
- 			     0, max, 0, def, flags, NULL, qmenu_int, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 0b347e8..3998049 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -85,6 +85,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   * @ops:	The control ops.
-   * @id:	The control ID.
-   * @name:	The control name.
-+  * @unit:	The control's unit. May be NULL.
-   * @type:	The control type.
-   * @minimum:	The control's minimum value.
-   * @maximum:	The control's maximum value.
-@@ -130,6 +131,7 @@ struct v4l2_ctrl {
- 	const struct v4l2_ctrl_ops *ops;
- 	u32 id;
- 	const char *name;
-+	const char *unit;
- 	enum v4l2_ctrl_type type;
- 	s64 minimum, maximum, default_value;
- 	union {
-@@ -207,6 +209,7 @@ struct v4l2_ctrl_handler {
-   * @ops:	The control ops.
-   * @id:	The control ID.
-   * @name:	The control name.
-+  * @unit:	The control's unit.
-   * @type:	The control type.
-   * @min:	The control's minimum value.
-   * @max:	The control's maximum value.
-@@ -230,6 +233,7 @@ struct v4l2_ctrl_config {
- 	const struct v4l2_ctrl_ops *ops;
- 	u32 id;
- 	const char *name;
-+	const char *unit;
- 	enum v4l2_ctrl_type type;
- 	s64 min;
- 	s64 max;
-@@ -249,15 +253,16 @@ struct v4l2_ctrl_config {
-   * and @name will be NULL.
-   *
-   * This function will overwrite the contents of @name, @type and @flags.
--  * The contents of @min, @max, @step and @def may be modified depending on
--  * the type.
-+  * The contents of @unit, @min, @max, @step and @def may be modified depending
-+  * on the type.
-   *
-   * Do not use in drivers! It is used internally for backwards compatibility
-   * control handling only. Once all drivers are converted to use the new
-   * control framework this function will no longer be exported.
-   */
--void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
--		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags);
-+void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
-+		    enum v4l2_ctrl_type *type, s64 *min, s64 *max,
-+		    u64 *step, s64 *def, u32 *flags);
- 
- 
- /** v4l2_ctrl_handler_init_class() - Initialize the control handler.
--- 
-1.8.5.2
+The following changes since commit 0e47c969c65e213421450c31043353ebe3c67e0c:
 
+  Merge tag 'for-linus-20140127' of git://git.infradead.org/linux-mtd
+(2014-01-28 18:56:37 -0800)
+
+are available in the git repository at:
+
+
+  git://linuxtv.org/mkrufky/dvb krufky
+
+for you to fetch changes up to cb0ceb4bc7a297246dd26e55c3fb7a5fc42561f6:
+
+  update Michael Krufky's email address (2014-01-29 21:10:11 -0500)
+
+----------------------------------------------------------------
+Michael Krufky (1):
+      update Michael Krufky's email address
+
+ Documentation/dvb/contributors.txt            | 2 +-
+ drivers/media/dvb-frontends/nxt200x.c         | 2 +-
+ drivers/media/pci/bt8xx/bttv-cards.c          | 2 +-
+ drivers/media/pci/saa7134/saa7134-cards.c     | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c | 4 ++--
+ drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-gpio.c  | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-gpio.h  | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.h   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-phy.c   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-phy.h   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-reg.h   | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c | 4 ++--
+ drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h | 2 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c       | 4 ++--
+ drivers/media/usb/dvb-usb-v2/mxl111sf.h       | 2 +-
+ 17 files changed, 20 insertions(+), 20 deletions(-)
+
+Cheers,
+
+Mike
