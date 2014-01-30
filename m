@@ -1,126 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56146 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752599AbaAXNH0 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4925 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137AbaA3OwI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 08:07:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Thu, 30 Jan 2014 09:52:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, sakari.ailus@iki.fi
-Subject: [PATCH/RFC 3/4] Expose default devices
-Date: Fri, 24 Jan 2014 14:08:08 +0100
-Message-Id: <1390568889-1508-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1390568889-1508-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1390568889-1508-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 8/9] vivi: add support for reinit_streaming
+Date: Thu, 30 Jan 2014 15:51:30 +0100
+Message-Id: <1391093491-23077-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391093491-23077-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391093491-23077-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- src/mediactl-priv.h |  7 +++++++
- src/mediactl.c      | 32 ++++++++++++++++++++++++++++++++
- src/mediactl.h      | 19 +++++++++++++++++++
- 3 files changed, 58 insertions(+)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/src/mediactl-priv.h b/src/mediactl-priv.h
-index 844acc7..bb9828d 100644
---- a/src/mediactl-priv.h
-+++ b/src/mediactl-priv.h
-@@ -37,6 +37,13 @@ struct media_device {
- 
- 	void (*debug_handler)(void *, ...);
- 	void *debug_priv;
-+
-+	struct {
-+		struct media_entity *v4l;
-+		struct media_entity *fb;
-+		struct media_entity *alsa;
-+		struct media_entity *dvb;
-+	} def;
- };
- 
- #define media_dbg(media, ...) \
-diff --git a/src/mediactl.c b/src/mediactl.c
-index 2ba0ab8..5e83ad1 100644
---- a/src/mediactl.c
-+++ b/src/mediactl.c
-@@ -116,6 +116,21 @@ struct media_entity *media_get_entities(struct media_device *media)
- 	return media->entities;
+This ensures that the driver's buffer list is always initialized, also
+if start_streaming returns an error.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivi.c | 22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 2d4e73b..c9bf8d3 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -793,20 +793,6 @@ static void vivi_stop_generating(struct vivi_dev *dev)
+ 		kthread_stop(dma_q->kthread);
+ 		dma_q->kthread = NULL;
+ 	}
+-
+-	/*
+-	 * Typical driver might need to wait here until dma engine stops.
+-	 * In this case we can abort imiedetly, so it's just a noop.
+-	 */
+-
+-	/* Release all active buffers */
+-	while (!list_empty(&dma_q->active)) {
+-		struct vivi_buffer *buf;
+-		buf = list_entry(dma_q->active.next, struct vivi_buffer, list);
+-		list_del(&buf->list);
+-		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+-		dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
+-	}
+ }
+ /* ------------------------------------------------------------------
+ 	Videobuf operations
+@@ -914,6 +900,13 @@ static int stop_streaming(struct vb2_queue *vq)
+ 	return 0;
  }
  
-+struct media_entity *media_get_default_entity(struct media_device *media,
-+					      unsigned int type)
++static void reinit_streaming(struct vb2_queue *vq)
 +{
-+	switch (type) {
-+	case MEDIA_ENT_T_DEVNODE_V4L:
-+		return media->def.v4l;
-+	case MEDIA_ENT_T_DEVNODE_FB:
-+		return media->def.fb;
-+	case MEDIA_ENT_T_DEVNODE_ALSA:
-+		return media->def.alsa;
-+	case MEDIA_ENT_T_DEVNODE_DVB:
-+		return media->def.dvb;
-+	}
++	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++
++	INIT_LIST_HEAD(&dev->vidq.active);
 +}
 +
- const struct media_device_info *media_get_info(struct media_device *media)
+ static void vivi_lock(struct vb2_queue *vq)
  {
- 	return &media->info;
-@@ -484,6 +499,23 @@ static int media_enum_entities(struct media_device *media)
- 
- 		media->entities_count++;
- 
-+		if (entity->info.flags & MEDIA_ENT_FL_DEFAULT) {
-+			switch (entity->info.type) {
-+			case MEDIA_ENT_T_DEVNODE_V4L:
-+				media->def.v4l = entity;
-+				break;
-+			case MEDIA_ENT_T_DEVNODE_FB:
-+				media->def.fb = entity;
-+				break;
-+			case MEDIA_ENT_T_DEVNODE_ALSA:
-+				media->def.alsa = entity;
-+				break;
-+			case MEDIA_ENT_T_DEVNODE_DVB:
-+				media->def.dvb = entity;
-+				break;
-+			}
-+		}
-+
- 		/* Find the corresponding device name. */
- 		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE &&
- 		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-diff --git a/src/mediactl.h b/src/mediactl.h
-index ce5c05a..52612db 100644
---- a/src/mediactl.h
-+++ b/src/mediactl.h
-@@ -194,6 +194,25 @@ unsigned int media_get_entities_count(struct media_device *media);
- struct media_entity *media_get_entities(struct media_device *media);
- 
- /**
-+ * @brief Get the default entity for a given type
-+ * @param media - media device.
-+ * @param type - entity type.
-+ *
-+ * This function returns the default entity of the requested type. @a type must
-+ * be one of
-+ *
-+ *	MEDIA_ENT_T_DEVNODE_V4L
-+ *	MEDIA_ENT_T_DEVNODE_FB
-+ *	MEDIA_ENT_T_DEVNODE_ALSA
-+ *	MEDIA_ENT_T_DEVNODE_DVB
-+ *
-+ * @return A pointer to the default entity for the type if it exists, or NULL
-+ * otherwise.
-+ */
-+struct media_entity *media_get_default_entity(struct media_device *media,
-+					      unsigned int type);
-+
-+/**
-  * @brief Get the media device information
-  * @param media - media device.
-  *
+ 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
+@@ -933,6 +926,7 @@ static const struct vb2_ops vivi_video_qops = {
+ 	.buf_queue		= buffer_queue,
+ 	.start_streaming	= start_streaming,
+ 	.stop_streaming		= stop_streaming,
++	.reinit_streaming	= reinit_streaming,
+ 	.wait_prepare		= vivi_unlock,
+ 	.wait_finish		= vivi_lock,
+ };
 -- 
-1.8.3.2
+1.8.5.2
 
