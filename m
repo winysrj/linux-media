@@ -1,78 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:56803 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753545AbaA0PzA (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2753 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154AbaA3HkE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 10:55:00 -0500
-Received: by mail-oa0-f41.google.com with SMTP id j17so6888412oag.14
-        for <linux-media@vger.kernel.org>; Mon, 27 Jan 2014 07:55:00 -0800 (PST)
-Date: Mon, 27 Jan 2014 09:54:58 -0600 (CST)
-From: Thomas Pugliese <thomas.pugliese@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Thomas Pugliese <thomas.pugliese@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] uvc: update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS
- devices
-In-Reply-To: <8041079.da1zLPkO88@avalon>
-Message-ID: <alpine.DEB.2.10.1401270927410.16196@mint32-virtualbox>
-References: <1390598248-343-1-git-send-email-thomas.pugliese@gmail.com> <8041079.da1zLPkO88@avalon>
+	Thu, 30 Jan 2014 02:40:04 -0500
+Message-ID: <52EA01AC.3000706@xs4all.nl>
+Date: Thu, 30 Jan 2014 08:39:24 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Amit Grover <amit.grover@samsung.com>
+CC: linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	prabhakar.csengg@gmail.com, s.nawrocki@samsung.com,
+	hans.verkuil@cisco.com, swaminath.p@samsung.com,
+	jtp.park@samsung.com, Rrob@landley.net, andrew.smirnov@gmail.com,
+	anatol.pomozov@gmail.com, jmccrohan@gmail.com, joe@perches.com,
+	awalls@md.metrocast.net, arun.kk@samsung.com,
+	austin.lobo@samsung.com
+Subject: Re: [PATCH v2 2/2] drivers/media: s5p-mfc: Add Horizontal and Vertical
+ MV Search Range
+References: <52E0ED10.2020901@samsung.com> <1391060563-27015-1-git-send-email-amit.grover@samsung.com> <1391060563-27015-3-git-send-email-amit.grover@samsung.com>
+In-Reply-To: <1391060563-27015-3-git-send-email-amit.grover@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01/30/2014 06:42 AM, Amit Grover wrote:
+> This patch adds Controls to set Horizontal and Vertical search range
+> for Motion Estimation block for Samsung MFC video Encoders.
+> 
+> Signed-off-by: Swami Nathan <swaminath.p@samsung.com>
+> Signed-off-by: Amit Grover <amit.grover@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   24 +++++++++++++++++++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 ++------
+>  4 files changed, 29 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+> index 2398cdf..8d0b686 100644
+> --- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+> +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+> @@ -229,6 +229,7 @@
+>  #define S5P_FIMV_E_PADDING_CTRL_V6		0xf7a4
+>  #define S5P_FIMV_E_MV_HOR_RANGE_V6		0xf7ac
+>  #define S5P_FIMV_E_MV_VER_RANGE_V6		0xf7b0
+> +#define S5P_FIMV_E_MV_RANGE_V6_MASK		0x3fff
+>  
+>  #define S5P_FIMV_E_VBV_BUFFER_SIZE_V6		0xf84c
+>  #define S5P_FIMV_E_VBV_INIT_DELAY_V6		0xf850
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> index 6920b54..b90ee34 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> @@ -430,6 +430,8 @@ struct s5p_mfc_vp8_enc_params {
+>  struct s5p_mfc_enc_params {
+>  	u16 width;
+>  	u16 height;
+> +	u32 mv_h_range;
+> +	u32 mv_v_range;
+>  
+>  	u16 gop_size;
+>  	enum v4l2_mpeg_video_multi_slice_mode slice_mode;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> index 4ff3b6c..704f30c1 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> @@ -208,6 +208,24 @@ static struct mfc_control controls[] = {
+>  		.default_value = 0,
+>  	},
+>  	{
+> +		.id = V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE,
+> +		.type = V4L2_CTRL_TYPE_INTEGER,
+> +		.name = "Horizontal MV Search Range",
 
+Don't set the name here if the control is also defined in v4l2-ctrls.
+That way the string from v4l2-ctrls is the leading definition.
 
-On Mon, 27 Jan 2014, Laurent Pinchart wrote:
+Regards,
 
-> Hi Thomas,
-> 
-> Thank you for the patch.
-> 
-> On Friday 24 January 2014 15:17:28 Thomas Pugliese wrote:
-> > Isochronous endpoints on devices with speed == USB_SPEED_WIRELESS can
-> > have a max packet size ranging from 1-3584 bytes.  Add a case to
-> > uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS.  Otherwise endpoints
-> > for those devices will fall to the default case which masks off any
-> > values > 2047.  This causes uvc_init_video to underestimate the
-> > bandwidth available and fail to find a suitable alt setting for high
-> > bandwidth video streams.
-> 
-> I'm not too familiar with wireless USB, but shouldn't the value be multiplied 
-> by bMaxBurst from the endpoint companion descriptor ? Superspeed devices 
-> provide the multiplied value in their endpoint companion descriptor's 
-> wBytesPerInterval field, but there's no such field for wireless devices.
+	Hans
+
+> +		.minimum = 16,
+> +		.maximum = 128,
+> +		.step = 16,
+> +		.default_value = 32,
+> +	},
+> +	{
+> +		.id = V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE,
+> +		.type = V4L2_CTRL_TYPE_INTEGER,
+> +		.name = "Vertical MV Search Range",
+> +		.minimum = 16,
+> +		.maximum = 128,
+> +		.step = 16,
+> +		.default_value = 32,
+> +	},
+> +	{
+>  		.id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
+>  		.type = V4L2_CTRL_TYPE_INTEGER,
+>  		.minimum = 0,
+> @@ -1377,6 +1395,12 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+>  	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
+>  		p->vbv_size = ctrl->val;
+>  		break;
+> +	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:
+> +		p->mv_h_range = ctrl->val;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
+> +		p->mv_v_range = ctrl->val;
+> +		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
+>  		p->codec.h264.cpb_size = ctrl->val;
+>  		break;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> index 461358c..3c10188 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> @@ -727,14 +727,10 @@ static int s5p_mfc_set_enc_params(struct s5p_mfc_ctx *ctx)
+>  	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
+>  
+>  	/* setting for MV range [16, 256] */
+> -	reg = 0;
+> -	reg &= ~(0x3FFF);
+> -	reg = 256;
+> +	reg = (p->mv_h_range & S5P_FIMV_E_MV_RANGE_V6_MASK);
+>  	WRITEL(reg, S5P_FIMV_E_MV_HOR_RANGE_V6);
+>  
+> -	reg = 0;
+> -	reg &= ~(0x3FFF);
+> -	reg = 256;
+> +	reg = (p->mv_v_range & S5P_FIMV_E_MV_RANGE_V6_MASK);
+>  	WRITEL(reg, S5P_FIMV_E_MV_VER_RANGE_V6);
+>  
+>  	WRITEL(0x0, S5P_FIMV_E_FRAME_INSERTION_V6);
 > 
 
-For wireless USB isochronous endpoints, the values in the endpoint 
-descriptor are the logical interval and max packet size that the endpoint 
-can support.  They are provided for backwards compatibility for just this 
-type of situation.  You are correct that the actual endpoint 
-characteristics are the bMaxBurst, wOverTheAirPacketSize, and 
-bOverTheAirInterval values from the WUSB endpoint companion descriptor but 
-only the host controller really needs to know about those details.  In 
-fact, the values from the endpoint companion descriptor might actually 
-over-estimate the bandwidth available since the device can set bMaxBurst 
-to a higher value than necessary to allow for retries.
-
-> Out of curiosity, which device have you tested this with ?
-
-The device is a standard wired UVC webcam: Quanta CQEC2B (VID: 0x0408, 
-PID: 0x9005).  It is connected to an Alereon Wireless USB bridge dev kit 
-which allows it to operate as a WUSB device.
-
-Thomas
-
-> 
-> > Signed-off-by: Thomas Pugliese <thomas.pugliese@gmail.com>
-> > ---
-> >  drivers/media/usb/uvc/uvc_video.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> > 
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
