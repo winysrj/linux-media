@@ -1,63 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:53494 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750797AbaAWLoJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jan 2014 06:44:09 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZU00L2LR9JXGA0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 23 Jan 2014 11:44:07 +0000 (GMT)
-Message-id: <52E10085.7060906@samsung.com>
-Date: Thu, 23 Jan 2014 12:44:05 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 06/21] v4l2-ctrls: add support for complex types.
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
- <1390221974-28194-7-git-send-email-hverkuil@xs4all.nl>
-In-reply-to: <1390221974-28194-7-git-send-email-hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:49858 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753668AbaAaDhG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jan 2014 22:37:06 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 2/2] DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
+Date: Fri, 31 Jan 2014 05:36:49 +0200
+Message-Id: <1391139409-11737-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1391139409-11737-1-git-send-email-crope@iki.fi>
+References: <1391139409-11737-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20/01/14 13:45, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch implements initial support for complex types.
-> 
-> For the most part the changes are fairly obvious (basic support for is_ptr
-> types, the type_is_int function is replaced by a is_int bitfield, and
-> v4l2_query_ext_ctrl is added), but one change needs more explanation:
-> 
-> The v4l2_ctrl struct adds a 'new' field and a 'stores' array at the end
-> of the struct. This is in preparation for future patches where each control
-> can have multiple configuration stores. The idea is that stores[0] is the current
-> control value, stores[1] etc. are the control values for each configuration store
-> and the 'new' value can be accessed through 'stores[-1]', i.e. the 'new' field.
-> However, for now only stores[-1] and stores[0] is used.
+Document V4L2_SDR_FMT_CU16LE format.
+It is complex unsigned 16-bit little endian IQ sample. Used by
+software defined radio devices.
 
-I guess it implies an assumption that (maximum) number of configuration stores
-is known before creating the control ?
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        | 46 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
+ 2 files changed, 47 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
 
-Regarding the negative array indexes, I guess I would just stick with using 
-the 'new' field :-)
-
-> These new fields use the v4l2_ctrl_ptr union, which is a pointer to a control
-> value.
-> 
-> Note that these two new fields are not yet actually used.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
---
-Regards,
-Sylwester
-
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+new file mode 100644
+index 0000000..26288ff
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+@@ -0,0 +1,46 @@
++<refentry id="V4L2-SDR-FMT-CU16LE">
++  <refmeta>
++    <refentrytitle>V4L2_SDR_FMT_CU16LE ('CU16')</refentrytitle>
++    &manvol;
++  </refmeta>
++    <refnamediv>
++      <refname>
++        <constant>V4L2_SDR_FMT_CU16LE</constant>
++      </refname>
++      <refpurpose>Complex unsigned 16-bit little endian IQ sample</refpurpose>
++    </refnamediv>
++    <refsect1>
++      <title>Description</title>
++      <para>
++This format contains sequence of complex number samples. Each complex number
++consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
++represented as a 16 bit unsigned little endian number. I value comes first
++and Q value after that.
++      </para>
++    <example>
++      <title><constant>V4L2_SDR_FMT_CU16LE</constant> 1 sample</title>
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="3" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>I'<subscript>0[7:0]</subscript></entry>
++                  <entry>I'<subscript>0[15:8]</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;2:</entry>
++                  <entry>Q'<subscript>0[7:0]</subscript></entry>
++                  <entry>Q'<subscript>0[15:8]</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 40adcb8..f535d9b 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -818,6 +818,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+ interface only.</para>
+ 
+     &sub-sdr-cu08;
++    &sub-sdr-cu16le;
+ 
+   </section>
+ 
+-- 
+1.8.5.3
 
