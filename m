@@ -1,498 +1,485 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:60225 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751150AbaASRUu convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3706 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753976AbaAaJ5M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jan 2014 12:20:50 -0500
-Received: by mail-ea0-f176.google.com with SMTP id h14so2592773eaj.21
-        for <linux-media@vger.kernel.org>; Sun, 19 Jan 2014 09:20:48 -0800 (PST)
-Received: from [127.0.0.1] (abue54.neoplus.adsl.tpnet.pl. [83.8.176.54])
-        by mx.google.com with ESMTPSA id j46sm45264143eew.18.2014.01.19.09.20.47
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sun, 19 Jan 2014 09:20:48 -0800 (PST)
-Message-ID: <52DC096E.2000208@gmail.com>
-Date: Sun, 19 Jan 2014 18:20:46 +0100
-From: Marcin Rudzki <m.k.rudzki@gmail.com>
-MIME-Version: 1.0
+	Fri, 31 Jan 2014 04:57:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: dvb-usb-dib0700-1.20.fw Issues.
-References: <CAC5ubeBq5TSO6UMubE=La8BLktOzy1_1rzR1EothtQ3A14GNbA@mail.gmail.com> <CAC5ubeDhqXYd_c3k30pOSR=Qewp-UJ_Qft9NVkWs-ZWVg6HNMw@mail.gmail.com>
-In-Reply-To: <CAC5ubeDhqXYd_c3k30pOSR=Qewp-UJ_Qft9NVkWs-ZWVg6HNMw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 08/32] v4l2-ctrls: create type_ops.
+Date: Fri, 31 Jan 2014 10:56:06 +0100
+Message-Id: <1391162190-8620-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I confirm that there is an issue with dvb_usb_dib0700.ko.
+Since complex controls can have non-standard types we need to be able to do
+type-specific checks etc. In order to make that easy type operations are added.
+There are four operations:
 
-I have Terratec Cinergy DT XS Diversity stick.
+- equal: check if two values are equal
+- init: initialize a value
+- log: log the value
+- validate: validate a new value
 
-So far I've been using modules from kernel coming from Ubuntu (11.04 LTS 
-previously, now 12.04 LTS with kernel 3.2.0-58-generic-pae) without 
-issues. I'm using MythTV for watching and recording  TV shows.
-Few days ago I've bought DVBSky S952 which has drivers based in v4l 
-tree. After compiling modules for DVBSky my Terratec DVB-T stick become 
-unusable, mostly it can not change channel (no lock) when using MythTV 
-0.25+fixes.
+This patch uses the v4l2_ctrl_ptr union for the first time.
 
-Just to be sure that this isuue is related to v4l tree, not only to 
-DVBSky version, I've pulled v4l from git and compiled. Below you can 
-find the output:
-kamikac@MediaServer:~$ dmesg|grep -i dvb
-[   10.803975] dvb-usb: found a 'Terratec Cinergy DT XS Diversity' in 
-cold state, will try to load a firmware
-[   11.425645] dvb-usb: downloading firmware from file 
-'dvb-usb-dib0700-1.20.fw'
-[   12.288157] dvb-usb: found a 'Terratec Cinergy DT XS Diversity' in 
-warm state.
-[   12.288430] dvb-usb: will pass the complete MPEG2 transport stream to 
-the software demuxer.
-[   12.288523] DVB: registering new adapter (Terratec Cinergy DT XS 
-Diversity)
-[   12.514515] usb 1-1: DVB: registering adapter 4 frontend 0 (DiBcom 
-7000PC)...
-[   12.678135] dvb-usb: will pass the complete MPEG2 transport stream to 
-the software demuxer.
-[   12.678266] DVB: registering new adapter (Terratec Cinergy DT XS 
-Diversity)
-[   12.825514] usb 1-1: DVB: registering adapter 5 frontend 0 (DiBcom 
-7000PC)...
-[   13.012272] input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1d.7/usb1/1-1/rc/rc0/input2
-[   13.012386] rc0: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1d.7/usb1/1-1/rc/rc0
-[   13.013494] dvb-usb: schedule remote query interval to 50 msecs.
-[   13.013503] dvb-usb: Terratec Cinergy DT XS Diversity successfully 
-initialized and connected.
-[   13.013735] usbcore: registered new interface driver dvb_usb_dib0700
-
-First scan output:
-kamikac@MediaServer:~$ scan -x 0 -a 4 -t 1 /usr/share/dvb/dvb-t/pl-Poznan
-scanning /usr/share/dvb/dvb-t/pl-Poznan
-using '/dev/dvb/adapter4/frontend0' and '/dev/dvb/adapter4/demux0'
-initial transponder 490000000 0 9 9 3 1 4 0
-initial transponder 522000000 0 9 9 3 1 4 0
-initial transponder 618000000 0 9 9 3 1 4 0
- >>> tune to: 
-490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
-0x0000 0x0003: pmt_pid 0x0065 EmiTel -- Polsat (running)
-0x0000 0x0004: pmt_pid 0x00c9 EmiTel -- TVN (running)
-0x0000 0x0005: pmt_pid 0x012d EmiTel -- TV4 (running)
-0x0000 0x0006: pmt_pid 0x0191 EmiTel -- TV Puls (running)
-0x0000 0x0017: pmt_pid 0x01f5 EmiTel -- TVN Siedem (running)
-0x0000 0x0018: pmt_pid 0x0259 EmiTel -- PULS 2 (running)
-0x0000 0x0019: pmt_pid 0x02bd EmiTel -- TV6 (running)
-0x0000 0x001a: pmt_pid 0x0321 EmiTel -- Polsat Sport News (running)
-Network Name 'EmiTel'
- >>> tune to: 
-522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
-0x0000 0x0001: pmt_pid 0x0065 EmiTel -- TVP1 HD (running)
-0x0000 0x001b: pmt_pid 0x012d EmiTel -- ESKA TV (running)
-0x0000 0x001c: pmt_pid 0x0191 EmiTel -- TTV (running)
-0x0000 0x001d: pmt_pid 0x01f5 EmiTel -- POLO TV (running)
-0x0000 0x001e: pmt_pid 0x0259 EmiTel -- ATM Rozrywka (running)
-0x0000 0x002d: pmt_pid 0x00c9 EmiTel -- TVP2 (running)
-0x0000 0x0023: pmt_pid 0x0dad EmiTel -- TVP Info (running)
-Network Name 'Emitel'
- >>> tune to: 
-618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
-0x0000 0x002c: pmt_pid 0x0065 EmiTel -- TVP1 (running)
-0x0000 0x0002: pmt_pid 0x00c9 EmiTel -- TVP2 HD (running)
-0x0000 0x0012: pmt_pid 0x0709 EmiTel -- TVP Poznan (running)
-0x0000 0x001f: pmt_pid 0x0c1d EmiTel -- TVP Kultura (running)
-0x0000 0x0021: pmt_pid 0x0ce5 EmiTel -- TVP Polonia (running)
-0x0000 0x0022: pmt_pid 0x0d49 EmiTel -- TVP Rozrywka (running)
-0x0000 0x0020: pmt_pid 0x0c81 EmiTel -- TVP Historia (running)
-Network Name 'NW 04 WIE'
- >>> tune to: 
-690000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
- >>> tune to: 
-690000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-(tuning failed)
-WARNING: >>> tuning failed!!!
-retrying with f=818000000
- >>> tune to: 
-818000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-(tuning failed)
-WARNING: >>> tuning failed!!!
- >>> tune to: 
-818000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-(tuning failed)
-WARNING: >>> tuning failed!!!
-retrying with f=794000000
- >>> tune to: 
-794000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-(tuning failed)
-WARNING: >>> tuning failed!!!
- >>> tune to: 
-794000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-(tuning failed)
-WARNING: >>> tuning failed!!!
-retrying with f=770000000
- >>> tune to: 
-770000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-(tuning failed)
-^CERROR: interrupted by SIGINT, dumping partial result...
-dumping lists (22 services)
-Polsat:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:102:103:3
-TVN:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:202:203:4
-TV4:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:302:303:5
-TV 
-Puls:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:402:403:6
-TVN 
-Siedem:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:502:503:23
-PULS 
-2:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:602:603:24
-TV6:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:702:703:25
-Polsat Sport 
-News:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:802:803:26
-TVP1 
-HD:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:102:103:1
-ESKA 
-TV:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:302:303:27
-TTV:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:402:403:28
-POLO 
-TV:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:502:503:29
-ATM 
-Rozrywka:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:602:603:30
-TVP 
-Info:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:3502:3503:35
-TVP2:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:202:203:45
-TVP1:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:102:103:44
-TVP2 
-HD:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:202:203:2
-TVP 
-Poznan:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:1802:1803:18
-TVP 
-Kultura:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:402:403:31
-TVP 
-Polonia:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:602:603:33
-TVP 
-Rozrywka:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:3402:3403:34
-TVP 
-Historia:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:502:503:32
-Done.
-
-Second scan output:
-kamikac@MediaServer:~$ scan -x 0 -a 4 -t 1 /usr/share/dvb/dvb-t/pl-Poznan
-scanning /usr/share/dvb/dvb-t/pl-Poznan
-using '/dev/dvb/adapter4/frontend0' and '/dev/dvb/adapter4/demux0'
-initial transponder 490000000 0 9 9 3 1 4 0
-initial transponder 522000000 0 9 9 3 1 4 0
-initial transponder 618000000 0 9 9 3 1 4 0
- >>> tune to: 
-490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
-0x0000 0x0001: pmt_pid 0x0065 EmiTel -- TVP1 HD (running)
-0x0000 0x001b: pmt_pid 0x012d EmiTel -- ESKA TV (running)
-0x0000 0x001c: pmt_pid 0x0191 EmiTel -- TTV (running)
-0x0000 0x001d: pmt_pid 0x01f5 EmiTel -- POLO TV (running)
-0x0000 0x001e: pmt_pid 0x0259 EmiTel -- ATM Rozrywka (running)
-0x0000 0x002d: pmt_pid 0x00c9 EmiTel -- TVP2 (running)
-0x0000 0x0023: pmt_pid 0x0dad EmiTel -- TVP Info (running)
-Network Name 'Emitel'
- >>> tune to: 
-522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
-0x0000 0x0001: pmt_pid 0x0000 EmiTel -- TVP1 HD (running)
-0x0000 0x001b: pmt_pid 0x0000 EmiTel -- ESKA TV (running)
-0x0000 0x001c: pmt_pid 0x0000 EmiTel -- TTV (running)
-0x0000 0x001d: pmt_pid 0x0000 EmiTel -- POLO TV (running)
-0x0000 0x001e: pmt_pid 0x0000 EmiTel -- ATM Rozrywka (running)
-0x0000 0x002d: pmt_pid 0x0000 EmiTel -- TVP2 (running)
-0x0000 0x0023: pmt_pid 0x0000 EmiTel -- TVP Info (running)
-Network Name 'Emitel'
- >>> tune to: 
-618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
-0x0000 0x002c: pmt_pid 0x0065 EmiTel -- TVP1 (running)
-0x0000 0x0002: pmt_pid 0x00c9 EmiTel -- TVP2 HD (running)
-0x0000 0x0012: pmt_pid 0x0709 EmiTel -- TVP Poznan (running)
-0x0000 0x001f: pmt_pid 0x0c1d EmiTel -- TVP Kultura (running)
-0x0000 0x0021: pmt_pid 0x0ce5 EmiTel -- TVP Polonia (running)
-0x0000 0x0022: pmt_pid 0x0d49 EmiTel -- TVP Rozrywka (running)
-0x0000 0x0020: pmt_pid 0x0c81 EmiTel -- TVP Historia (running)
-Network Name 'NW 04 WIE'
- >>> tune to: 
-746000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
- >>> tune to: 
-746000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-(tuning failed)
-WARNING: >>> tuning failed!!!
-retrying with f=690000000
- >>> tune to: 
-690000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-(tuning failed)
-WARNING: >>> tuning failed!!!
- >>> tune to: 
-690000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_5_6:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-(tuning failed)
-^CERROR: interrupted by SIGINT, dumping partial result...
-dumping lists (21 services)
-TVP1 
-HD:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:102:103:1
-ESKA 
-TV:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:302:303:27
-TTV:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:402:403:28
-POLO 
-TV:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:502:503:29
-ATM 
-Rozrywka:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:602:603:30
-TVP 
-Info:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:3502:3503:35
-TVP2:490000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:202:203:45
-TVP1 
-HD:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:102:103:1
-ESKA 
-TV:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:302:303:27
-TTV:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:402:403:28
-POLO 
-TV:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:502:503:29
-ATM 
-Rozrywka:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:602:603:30
-TVP2:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:202:203:45
-TVP 
-Info:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_5_6:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:3502:3503:35
-TVP1:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:102:103:44
-TVP2 
-HD:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:202:203:2
-TVP 
-Poznan:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:1802:1803:18
-TVP 
-Kultura:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:402:403:31
-TVP 
-Polonia:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:602:603:33
-TVP 
-Rozrywka:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:3402:3403:34
-TVP 
-Historia:618000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:502:503:32
-Done.
-
-First output is correct. Second has incorrect scan of second transponder 
-(doubled first transponder).
-Tuning test (using correct channels.conf):
-kamikac@MediaServer:~$ tzap -a 4 -c ./channels.conf "TVP1 HD"
-using '/dev/dvb/adapter4/frontend0' and '/dev/dvb/adapter4/demux0'
-reading channels from file './channels.conf'
-tuning to 490000000 Hz
-video pid 0x0066, audio pid 0x0067
-status 1f | signal 5573 | snr 00c7 | ber 001fffff | unc 00000016 | 
-FE_HAS_LOCK
-status 1f | signal 5576 | snr 00ff | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 558b | snr 010e | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 5583 | snr 00ef | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 54ff | snr 00f9 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 554b | snr 0103 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 558b | snr 00f5 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status 1f | signal 556f | snr 00f6 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-
-When using MythTV first tuning is most of the time successfull, when 
-trying to change channel I got this output on the "lock information": 
-_L__ and after few second information that card couldn't lock.
-No errors in dmesg during scan or tuning.
-
-I've also tried to apply this patch 
-https://patchwork.linuxtv.org/patch/13563/ as mentioned here 
-http://code.mythtv.org/trac/ticket/10830. But without success.
-
-I think you are making great job developing drivers for TV cards, 
-unfortunately something went wrong and looks like dvb_usb_dib0700 module 
-has been broken.
-
-Maybe I should patch and recompile kernel too?
-
-Best regards
-Marcin
-
-> I have tried this now on Debian 32 and 64 bit versions with no joy.
-> The sticks are fine as they work on Windows 7 perfectly. Any advice?
->
-> On 15 January 2014 20:02, Ray Image <imagemagic99@gmail.com> wrote:
->> I have tried a couple of USB sticks which use the
->> dvb-usb-dib0700-1.20.fw firmware in a number of machines running
->> different linux distros (CentOS, Debian and Raspbian) and I simply
->> can't get them to work. I have put dvb-usb-dib0700-1.20.fw in
->> /lib/firmware. Both USB sticks are recognised and loaded (see dmesg
->> below) but won't tune. I have a PCTV 290e which works perfectly.
->>
->> Can anyone please help?
->>
->> Dmesg for Nova-T (this device fails):
->> [  850.170729] usb 1-2: Product: Nova-T Stick
->> [  850.170730] usb 1-2: Manufacturer: Hauppauge
->> [  850.170731] usb 1-2: SerialNumber: 4027796501
->> [  850.181622] dvb-usb: found a 'Hauppauge Nova-T Stick' in cold
->> state, will try to load a firmware
->> [  850.185487] usb 1-2: firmware: agent loaded dvb-usb-dib0700-1.20.fw
->> into memory
->> [  853.291628] dib0700: firmware started successfully.
->> [  853.794138] dvb-usb: found a 'Hauppauge Nova-T Stick' in warm state.
->> [  853.794255] dvb-usb: will pass the complete MPEG2 transport stream
->> to the software demuxer.
->> [  853.795277] DVB: registering new adapter (Hauppauge Nova-T Stick)
->> [  854.350077] DVB: registering adapter 1 frontend 0 (DiBcom 7000PC)...
->> [  854.359052] MT2060: successfully identified (IF1 = 1220)
->> [  854.999066] dvb-usb: Hauppauge Nova-T Stick successfully
->> initialized and connected.
->>
->> Dmesg for MyTV.t (this device fails):
->> [  505.753256] usb 1-1: Product: myTV.t
->> [  505.753257] usb 1-1: Manufacturer: Eskape Labs
->> [  505.753258] usb 1-1: SerialNumber: 4030928317
->> [  505.861413] dib0700: loaded with support for 21 different device-types
->> [  510.853328] dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in cold
->> state, will try to load a firmware
->> [  510.924679] usb 1-1: firmware: agent loaded dvb-usb-dib0700-1.20.fw
->> into memory
->> [  514.327591] dib0700: firmware started successfully.
->> [  514.830712] dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in warm state.
->> [  514.830796] dvb-usb: will pass the complete MPEG2 transport stream
->> to the software demuxer.
->> [  514.832785] DVB: registering new adapter (Hauppauge Nova-T MyTV.t)
->> [  515.335819] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
->> [  515.789061] DiB0070: successfully identified
->> [  515.789065] dvb-usb: Hauppauge Nova-T MyTV.t successfully
->> initialized and connected.
->> [  515.790175] usbcore: registered new interface driver dvb_usb_dib0700
->>
->> Dmesg for PCTV290e (this device works):
->> [  314.918928] em28xx: New device PCTV Systems PCTV 290e @ 480 Mbps
->> (2013:024f, interface 0, class 0)
->> [  314.920018] em28xx #0: chip ID is em28174
->> [  315.251613] em28xx #0: Identified as PCTV nanoStick T2 290e (card=78)
->> [  315.331134] Registered IR keymap rc-pinnacle-pctv-hd
->> [  315.331262] input: em28xx IR (em28xx #0) as
->> /devices/pci0000:00/0000:00:11.0/0000:02:03.0/usb1/1-1/rc/rc0/input6
->> [  315.331726] rc0: em28xx IR (em28xx #0) as
->> /devices/pci0000:00/0000:00:11.0/0000:02:03.0/usb1/1-1/rc/rc0
->> [  315.338297] em28xx #0: v4l2 driver version 0.1.3
->> [  315.408548] em28xx #0: V4L2 video device registered as video0
->> [  315.408572] usbcore: registered new interface driver em28xx
->> [  315.408573] em28xx driver loaded
->> [  315.510762] tda18271 0-0060: creating new instance
->> [  315.540382] TDA18271HD/C2 detected @ 0-0060
->> [  316.283833] tda18271 0-0060: attaching existing instance
->> [  316.283836] DVB: registering new adapter (em28xx #0)
->> [  316.283838] DVB: registering adapter 0 frontend 0 (Sony CXD2820R
->> (DVB-T/T2))...
->> [  316.284044] DVB: registering adapter 0 frontend 1 (Sony CXD2820R (DVB-C))...
->> [  316.284947] em28xx #0: Successfully loaded em28xx-dvb
->> [  316.284950] Em28xx: Initialized (Em28xx dvb Extension) extension
->>
->> Output of scan for Nova-T and MyTV.t:
->> scanning /usr/share/dvb/dvb-t/uk-Hannington
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> initial transponder 706000000 0 3 9 1 0 0 0
->> initial transponder 650167000 0 2 9 3 0 0 0
->> initial transponder 626167000 0 2 9 3 0 0 0
->> initial transponder 674167000 0 3 9 1 0 0 0
->> initial transponder 658167000 0 3 9 1 0 0 0
->> initial transponder 634167000 0 3 9 1 0 0 0
->>>>> tune to: 706000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 706000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 650167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 650167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 626167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 626167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 658167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 658167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 634167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 634167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->> ERROR: initial tuning failed
->> dumping lists (0 services)
->>
->>
->> Output of scan for PCTV290e:
->> root@debian:/dev/dvb# /usr/bin/scan /usr/share/dvb/dvb-t/uk-Hannington
->>> /home/pookerj/channels.conf
->> scanning /usr/share/dvb/dvb-t/uk-Hannington
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> initial transponder 706000000 0 3 9 1 0 0 0
->> initial transponder 650167000 0 2 9 3 0 0 0
->> initial transponder 626167000 0 2 9 3 0 0 0
->> initial transponder 674167000 0 3 9 1 0 0 0
->> initial transponder 658167000 0 3 9 1 0 0 0
->> initial transponder 634167000 0 3 9 1 0 0 0
->>>>> tune to: 706000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 706000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 650167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 650167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 626167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 626167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 674167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 658167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> 0x0000 0x5740: pmt_pid 0x02c1 (null) -- E4+1 (running)
->> 8<---- SNIP! ---->8
->> 0x0000 0x5b00: pmt_pid 0x02e0 (null) -- Proud Dating (running)
->> Network Name 'Berks & North Hants'
->>>>> tune to: 634167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> 0x0000 0x3340: pmt_pid 0x0000 (null) -- QVC (running)
->> 8<---- SNIP! ---->8
->> 0x0000 0x3e90: pmt_pid 0x0000 (null) -- ITV3+1 (running)
->> Network Name 'Berks & North Hants'
->>>>> tune to: 658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> 0x5040 0x5740: pmt_pid 0x02c1 (null) -- E4+1 (running)
->> 8<---- SNIP! ---->8
->> 0x5040 0x5b00: pmt_pid 0x02e0 (null) -- Proud Dating (running)
->> Network Name 'Berks & North Hants'
->>>>> tune to: 682000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> Network Name 'Berks & North Hants'
->> 0x6040 0x6440: pmt_pid 0x03e9 (null) -- 4Music (running)
->> 8<---- SNIP! ---->8
->> 0x6040 0x6f40: pmt_pid 0x0418 (null) -- Sonlife (running)
->>>>> tune to: 666000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> 0x1043 0x1043: pmt_pid 0x0064 (null) -- BBC ONE South (running)
->> 8<---- SNIP! ---->8
->> 0x1043 0x1c40: pmt_pid 0x0b54 (null) -- 302 (running)
->> Network Name 'Berks & North Hants'
->>>>> tune to: 642000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> 0x200f 0x204f: pmt_pid 0x06a4 (null) -- ITV (running)
->> 8<---- SNIP! ---->8
->> 0x200f 0x20c1: pmt_pid 0x05dc (null) -- Film4 (running)
->> Network Name 'Berks & North Hants'
->>>>> tune to: 634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> Network Name 'Berks & North Hants'
->> 0x3006 0x3340: pmt_pid 0x010b (null) -- QVC (running)
->> 8<---- SNIP! ---->8
->> 0x3006 0x3e90: pmt_pid 0x01ad (null) -- ITV3+1 (running)
->> dumping lists (170 services)
->> Done.
->>
-
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
-Ta wiadomość e-mail jest wolna od wirusów i złośliwego oprogramowania, ponieważ ochrona avast! Antivirus jest aktywna.
-http://www.avast.com
+ drivers/media/v4l2-core/v4l2-ctrls.c | 267 ++++++++++++++++++++++-------------
+ include/media/v4l2-ctrls.h           |  21 +++
+ 2 files changed, 190 insertions(+), 98 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 67e5d1e..988a2bd8 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1132,6 +1132,149 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+ 			v4l2_event_queue_fh(sev->fh, &ev);
+ }
+ 
++static bool std_equal(const struct v4l2_ctrl *ctrl,
++		      union v4l2_ctrl_ptr ptr1,
++		      union v4l2_ctrl_ptr ptr2)
++{
++	switch (ctrl->type) {
++	case V4L2_CTRL_TYPE_BUTTON:
++		return false;
++	case V4L2_CTRL_TYPE_STRING:
++		/* strings are always 0-terminated */
++		return !strcmp(ptr1.p_char, ptr2.p_char);
++	case V4L2_CTRL_TYPE_INTEGER64:
++		return *ptr1.p_s64 == *ptr2.p_s64;
++	default:
++		if (ctrl->is_ptr)
++			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
++		return *ptr1.p_s32 == *ptr2.p_s32;
++	}
++}
++
++static void std_init(const struct v4l2_ctrl *ctrl,
++		     union v4l2_ctrl_ptr ptr)
++{
++	switch (ctrl->type) {
++	case V4L2_CTRL_TYPE_STRING:
++		memset(ptr.p_char, ' ', ctrl->minimum);
++		ptr.p_char[ctrl->minimum] = '\0';
++		break;
++	case V4L2_CTRL_TYPE_INTEGER64:
++		*ptr.p_s64 = ctrl->default_value;
++		break;
++	case V4L2_CTRL_TYPE_INTEGER:
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
++	case V4L2_CTRL_TYPE_MENU:
++	case V4L2_CTRL_TYPE_BITMASK:
++	case V4L2_CTRL_TYPE_BOOLEAN:
++		*ptr.p_s32 = ctrl->default_value;
++		break;
++	default:
++		break;
++	}
++}
++
++static void std_log(const struct v4l2_ctrl *ctrl)
++{
++	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
++
++	switch (ctrl->type) {
++	case V4L2_CTRL_TYPE_INTEGER:
++		pr_cont("%d", *ptr.p_s32);
++		break;
++	case V4L2_CTRL_TYPE_BOOLEAN:
++		pr_cont("%s", *ptr.p_s32 ? "true" : "false");
++		break;
++	case V4L2_CTRL_TYPE_MENU:
++		pr_cont("%s", ctrl->qmenu[*ptr.p_s32]);
++		break;
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
++		pr_cont("%lld", ctrl->qmenu_int[*ptr.p_s32]);
++		break;
++	case V4L2_CTRL_TYPE_BITMASK:
++		pr_cont("0x%08x", *ptr.p_s32);
++		break;
++	case V4L2_CTRL_TYPE_INTEGER64:
++		pr_cont("%lld", *ptr.p_s64);
++		break;
++	case V4L2_CTRL_TYPE_STRING:
++		pr_cont("%s", ptr.p_char);
++		break;
++	default:
++		pr_cont("unknown type %d", ctrl->type);
++		break;
++	}
++}
++
++/* Round towards the closest legal value */
++#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
++({								\
++	offset_type offset;					\
++	val += (ctrl)->step / 2;				\
++	val = clamp_t(typeof(val), val,				\
++		      (ctrl)->minimum, (ctrl)->maximum);	\
++	offset = (val) - (ctrl)->minimum;			\
++	offset = (ctrl)->step * (offset / (ctrl)->step);	\
++	val = (ctrl)->minimum + offset;				\
++	0;							\
++})
++
++/* Validate a new control */
++static int std_validate(const struct v4l2_ctrl *ctrl,
++			union v4l2_ctrl_ptr ptr)
++{
++	size_t len;
++
++	switch (ctrl->type) {
++	case V4L2_CTRL_TYPE_INTEGER:
++		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
++	case V4L2_CTRL_TYPE_INTEGER64:
++		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
++
++	case V4L2_CTRL_TYPE_BOOLEAN:
++		*ptr.p_s32 = !!*ptr.p_s32;
++		return 0;
++
++	case V4L2_CTRL_TYPE_MENU:
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
++		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
++			return -ERANGE;
++		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
++			return -EINVAL;
++		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
++		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
++			return -EINVAL;
++		return 0;
++
++	case V4L2_CTRL_TYPE_BITMASK:
++		*ptr.p_s32 &= ctrl->maximum;
++		return 0;
++
++	case V4L2_CTRL_TYPE_BUTTON:
++	case V4L2_CTRL_TYPE_CTRL_CLASS:
++		*ptr.p_s32 = 0;
++		return 0;
++
++	case V4L2_CTRL_TYPE_STRING:
++		len = strlen(ptr.p_char);
++		if (len < ctrl->minimum)
++			return -ERANGE;
++		if ((len - ctrl->minimum) % ctrl->step)
++			return -ERANGE;
++		return 0;
++
++	default:
++		return -EINVAL;
++	}
++}
++
++static const struct v4l2_ctrl_type_ops std_type_ops = {
++	.equal = std_equal,
++	.init = std_init,
++	.log = std_log,
++	.validate = std_validate,
++};
++
+ /* Helper function: copy the current control value back to the caller */
+ static int cur_to_user(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+@@ -1315,21 +1458,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ 
+ 		if (ctrl == NULL)
+ 			continue;
+-		switch (ctrl->type) {
+-		case V4L2_CTRL_TYPE_BUTTON:
+-			/* Button controls are always 'different' */
+-			return 1;
+-		case V4L2_CTRL_TYPE_STRING:
+-			/* strings are always 0-terminated */
+-			diff = strcmp(ctrl->string, ctrl->cur.string);
+-			break;
+-		case V4L2_CTRL_TYPE_INTEGER64:
+-			diff = ctrl->val64 != ctrl->cur.val64;
+-			break;
+-		default:
+-			diff = ctrl->val != ctrl->cur.val;
+-			break;
+-		}
++		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
+ 	}
+ 	return diff;
+ }
+@@ -1370,65 +1499,30 @@ static int check_range(enum v4l2_ctrl_type type,
+ 	}
+ }
+ 
+-/* Round towards the closest legal value */
+-#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
+-({								\
+-	offset_type offset;					\
+-	val += (ctrl)->step / 2;				\
+-	val = clamp_t(typeof(val), val,				\
+-		      (ctrl)->minimum, (ctrl)->maximum);	\
+-	offset = (val) - (ctrl)->minimum;			\
+-	offset = (ctrl)->step * (offset / (ctrl)->step);	\
+-	val = (ctrl)->minimum + offset;				\
+-	0;							\
+-})
+-
+ /* Validate a new control */
+ static int validate_new(const struct v4l2_ctrl *ctrl,
+ 			struct v4l2_ext_control *c)
+ {
+-	size_t len;
++	union v4l2_ctrl_ptr ptr;
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+-		return ROUND_TO_RANGE(*(s32 *)&c->value, u32, ctrl);
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		return ROUND_TO_RANGE(*(s64 *)&c->value64, u64, ctrl);
+-
+-	case V4L2_CTRL_TYPE_BOOLEAN:
+-		c->value = !!c->value;
+-		return 0;
+-
+-	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
+-			return -ERANGE;
+-		if (ctrl->menu_skip_mask & (1 << c->value))
+-			return -EINVAL;
+-		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+-		    ctrl->qmenu[c->value][0] == '\0')
+-			return -EINVAL;
+-		return 0;
+-
++	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		c->value &= ctrl->maximum;
+-		return 0;
+-
++	case V4L2_CTRL_TYPE_BOOLEAN:
+ 	case V4L2_CTRL_TYPE_BUTTON:
+ 	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		c->value = 0;
+-		return 0;
++		ptr.p_s32 = &c->value;
++		return ctrl->type_ops->validate(ctrl, ptr);
+ 
+-	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(c->string);
+-		if (len < ctrl->minimum)
+-			return -ERANGE;
+-		if ((len - ctrl->minimum) % ctrl->step)
+-			return -ERANGE;
+-		return 0;
++	case V4L2_CTRL_TYPE_INTEGER64:
++		ptr.p_s64 = &c->value64;
++		return ctrl->type_ops->validate(ctrl, ptr);
+ 
+ 	default:
+-		return -EINVAL;
++		ptr.p = c->p;
++		return ctrl->type_ops->validate(ctrl, ptr);
+ 	}
+ }
+ 
+@@ -1645,6 +1739,7 @@ unlock:
+ /* Add a new control */
+ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
++			const struct v4l2_ctrl_type_ops *type_ops,
+ 			u32 id, const char *name, const char *unit,
+ 			enum v4l2_ctrl_type type,
+ 			s64 min, s64 max, u64 step, s64 def,
+@@ -1656,6 +1751,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	unsigned sz_extra;
+ 	void *data;
+ 	int err;
++	int s;
+ 
+ 	if (hdl->error)
+ 		return NULL;
+@@ -1715,6 +1811,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	INIT_LIST_HEAD(&ctrl->ev_subs);
+ 	ctrl->handler = hdl;
+ 	ctrl->ops = ops;
++	ctrl->type_ops = type_ops ? type_ops : &std_type_ops;
+ 	ctrl->id = id;
+ 	ctrl->name = name;
+ 	ctrl->unit = unit;
+@@ -1736,19 +1833,16 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->cur.val = ctrl->val = def;
+ 	data = &ctrl->stores[1];
+ 
+-	if (ctrl->is_string) {
+-		ctrl->string = ctrl->new.p_char = data;
+-		ctrl->stores[0].p_char = data + elem_size;
+-
+-		if (ctrl->minimum)
+-			memset(ctrl->cur.string, ' ', ctrl->minimum);
+-	} else if (ctrl->is_ptr) {
++	if (ctrl->is_ptr) {
+ 		ctrl->p = ctrl->new.p = data;
+ 		ctrl->stores[0].p = data + elem_size;
+ 	} else {
+ 		ctrl->new.p = &ctrl->val;
+ 		ctrl->stores[0].p = &ctrl->cur.val;
+ 	}
++	for (s = -1; s <= 0; s++)
++		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
++
+ 	if (handler_new_ref(hdl, ctrl)) {
+ 		kfree(ctrl);
+ 		return NULL;
+@@ -1793,7 +1887,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 
+-	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
++	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
+ 			type, min, max,
+ 			is_menu ? cfg->menu_skip_mask : step,
+ 			def, cfg->elem_size,
+@@ -1821,7 +1915,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
++	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+ 			     min, max, step, def, 0,
+ 			     flags, NULL, NULL, NULL);
+ }
+@@ -1855,7 +1949,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
++	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+ 			     0, max, mask, def, 0,
+ 			     flags, qmenu, qmenu_int, NULL);
+ }
+@@ -1888,7 +1982,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
++	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
++			     0, max, mask, def,
+ 			     0, flags, qmenu, NULL, NULL);
+ 
+ }
+@@ -1913,7 +2008,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
++	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+ 			     0, max, 0, def, 0,
+ 			     flags, NULL, qmenu_int, NULL);
+ }
+@@ -2096,32 +2191,8 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
+ 
+ 	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
+ 
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_INTEGER:
+-		pr_cont("%d", ctrl->cur.val);
+-		break;
+-	case V4L2_CTRL_TYPE_BOOLEAN:
+-		pr_cont("%s", ctrl->cur.val ? "true" : "false");
+-		break;
+-	case V4L2_CTRL_TYPE_MENU:
+-		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
+-		break;
+-	case V4L2_CTRL_TYPE_BITMASK:
+-		pr_cont("0x%08x", ctrl->cur.val);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		pr_cont("%lld", ctrl->cur.val64);
+-		break;
+-	case V4L2_CTRL_TYPE_STRING:
+-		pr_cont("%s", ctrl->cur.string);
+-		break;
+-	default:
+-		pr_cont("unknown type %d", ctrl->type);
+-		break;
+-	}
++	ctrl->type_ops->log(ctrl);
++
+ 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
+ 			   V4L2_CTRL_FLAG_GRABBED |
+ 			   V4L2_CTRL_FLAG_VOLATILE)) {
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 515c1ba..aaf7333 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -67,6 +67,23 @@ struct v4l2_ctrl_ops {
+ 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
+ };
+ 
++/** struct v4l2_ctrl_type_ops - The control type operations that the driver has to provide.
++  * @equal: return true if both values are equal.
++  * @init: initialize the value.
++  * @log: log the value.
++  * @validate: validate the value. Return 0 on success and a negative value otherwise.
++  */
++struct v4l2_ctrl_type_ops {
++	bool (*equal)(const struct v4l2_ctrl *ctrl,
++		      union v4l2_ctrl_ptr ptr1,
++		      union v4l2_ctrl_ptr ptr2);
++	void (*init)(const struct v4l2_ctrl *ctrl,
++		     union v4l2_ctrl_ptr ptr);
++	void (*log)(const struct v4l2_ctrl *ctrl);
++	int (*validate)(const struct v4l2_ctrl *ctrl,
++			union v4l2_ctrl_ptr ptr);
++};
++
+ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+ 
+ /** struct v4l2_ctrl - The control structure.
+@@ -102,6 +119,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   *		value, then the whole cluster is in manual mode. Drivers should
+   *		never set this flag directly.
+   * @ops:	The control ops.
++  * @type_ops:	The control type ops.
+   * @id:	The control ID.
+   * @name:	The control name.
+   * @unit:	The control's unit. May be NULL.
+@@ -151,6 +169,7 @@ struct v4l2_ctrl {
+ 	unsigned int manual_mode_value:8;
+ 
+ 	const struct v4l2_ctrl_ops *ops;
++	const struct v4l2_ctrl_type_ops *type_ops;
+ 	u32 id;
+ 	const char *name;
+ 	const char *unit;
+@@ -234,6 +253,7 @@ struct v4l2_ctrl_handler {
+ 
+ /** struct v4l2_ctrl_config - Control configuration structure.
+   * @ops:	The control ops.
++  * @type_ops:	The control type ops. Only needed for complex controls.
+   * @id:	The control ID.
+   * @name:	The control name.
+   * @unit:	The control's unit.
+@@ -259,6 +279,7 @@ struct v4l2_ctrl_handler {
+   */
+ struct v4l2_ctrl_config {
+ 	const struct v4l2_ctrl_ops *ops;
++	const struct v4l2_ctrl_type_ops *type_ops;
+ 	u32 id;
+ 	const char *name;
+ 	const char *unit;
+-- 
+1.8.5.2
 
