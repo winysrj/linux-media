@@ -1,99 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42046 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751868AbaAGQ6X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jan 2014 11:58:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enrico <ebutera@users.berlios.de>
-Cc: florian.vaussard@epfl.ch,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: omap3isp device tree support
-Date: Tue, 07 Jan 2014 17:59:01 +0100
-Message-ID: <5728278.SyrhtX3J9t@avalon>
-In-Reply-To: <CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
-References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com> <CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com> <CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1043 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754016AbaAaJ5R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 04:57:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 16/32] v4l2-ctrls: add matrix support.
+Date: Fri, 31 Jan 2014 10:56:14 +0100
+Message-Id: <1391162190-8620-17-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enrico,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Friday 03 January 2014 12:30:33 Enrico wrote:
-> On Wed, Dec 18, 2013 at 11:09 AM, Enrico wrote:
-> > On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard wrote:
-> >> So I converted the iommu to DT (patches just sent),
+Finish the userspace-facing matrix support.
 
-Florian, I've used your patches as a base for OMAP3 ISP DT work and they seem 
-pretty good (although patch 1/7 will need to be reworked, but that's not a 
-blocker). I've just had to fix a problem with the OMAP3 IOMMU, please see
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 108 ++++++++++++++++++++---------------
+ 1 file changed, 63 insertions(+), 45 deletions(-)
 
-http://git.linuxtv.org/pinchartl/media.git/commit/d3abafde0277f168df0b2912b5d84550590d80b2
-
-I'd appreciate your comments on that. I can post the patch already if you 
-think that would be helpful.
-
-You can find my work-in-progress branch at
-
-http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp/dt
-
-(the last three patches are definitely not complete yet).
-
-> >> used pdata quirks for the isp / mtv9032 data, added a few patches from
-> >> other people (mainly clk to fix a crash when deferring the omap3isp
-> >> probe), and a few small hacks. I get a 3.13-rc3 (+ board-removal part
-> >> from Tony Lindgren) to boot on DT with a working MT9V032 camera. The
-> >> missing part is the DT binding for the omap3isp, but I guess that we will
-> >> have to wait a bit more for this.
-> >> 
-> >> If you want to test, I have a development tree here [1]. Any feedback is
-> >> welcome.
-> >> 
-> >> Cheers,
-> >> 
-> >> Florian
-> >> 
-> >> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
-> > 
-> > Thanks Florian,
-> > 
-> > i will report what i get with my setup.
-> 
-> And here i am.
-> 
-> I can confirm it works, video source is tvp5150 (with platform data in
-> pdata-quirks.c) in bt656 mode.
-> 
-> Laurent, i used the two bt656 patches from your omap3isp/bt656 tree so
-> if you want to push it you can add a Tested-by me.
-
-The second patch is not clean enough in my opinion. I need to find time to 
-work on it. I had set some time aside for OMAP3 ISP development last week but 
-I've ended up working on DT support (not done yet, I've worked with Sakari and 
-he might finish the job in the upcoming weeks) instead of BT.656. I'm afraid 
-this will have to wait for around three weeks.
-
-> There is only one problem, but it's unrelated to your DT work.
-> 
-> It's an old problem (see for example [1] and [2]), seen by other
-> people too and it seems it's still there.
-> Basically if i capture with yavta while the system is idle then it
-> just waits without getting any frame.
-> If i add some cpu load (usually i do a "cat /dev/zero" in a ssh
-> terminal) it starts capturing correctly.
-> 
-> The strange thing is that i do get isp interrupts in the idle case, so
-> i don't know why they don't "propagate" to yavta.
-> 
-> Any hints on how to debug this?
-> 
-> Enrico
-> 
-> [1]: https://linuxtv.org/patch/7836/
-> [2]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg44923.html
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index a61e602..b4a9ada 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1173,6 +1173,8 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		ptr.p_s32[idx] = ctrl->default_value;
+ 		break;
+ 	default:
++		idx *= ctrl->elem_size;
++		memset(ptr.p + idx, 0, ctrl->elem_size);
+ 		break;
+ 	}
+ }
+@@ -1290,7 +1292,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
+ 	u32 len;
+ 
+ 	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
++		return copy_to_user(c->p, ptr.p, c->size);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+@@ -1334,8 +1336,17 @@ static int user_to_ptr(struct v4l2_ext_control *c,
+ 	u32 size;
+ 
+ 	ctrl->is_new = 1;
+-	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_from_user(ptr.p, c->p, ctrl->elem_size);
++	if (ctrl->is_ptr && !ctrl->is_string) {
++		unsigned idx;
++
++		ret = copy_from_user(ptr.p, c->p, c->size);
++		if (ret || !ctrl->is_matrix)
++			return ret;
++		for (idx = c->size / ctrl->elem_size;
++		     idx < ctrl->rows * ctrl->cols; idx++)
++			ctrl->type_ops->init(ctrl, idx, ptr);
++		return 0;
++	}
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+@@ -1378,21 +1389,7 @@ static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
+ {
+ 	if (ctrl == NULL)
+ 		return;
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_STRING:
+-		/* strings are always 0-terminated */
+-		strcpy(to.p_char, from.p_char);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		*to.p_s64 = *from.p_s64;
+-		break;
+-	default:
+-		if (ctrl->is_ptr)
+-			memcpy(to.p, from.p, ctrl->elem_size);
+-		else
+-			*to.p_s32 = *from.p_s32;
+-		break;
+-	}
++	memcpy(to.p, from.p, ctrl->rows * ctrl->cols * ctrl->elem_size);
+ }
+ 
+ /* Copy the new value to the current value. */
+@@ -1444,15 +1441,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
+ static int cluster_changed(struct v4l2_ctrl *master)
+ {
+ 	bool changed = false;
++	unsigned idx;
+ 	int i;
+ 
+ 	for (i = 0; i < master->ncontrols; i++) {
+ 		struct v4l2_ctrl *ctrl = master->cluster[i];
++		bool ctrl_changed = false;
+ 
+ 		if (ctrl == NULL)
+ 			continue;
+-		ctrl->has_changed = !ctrl->type_ops->equal(ctrl, 0,
++		for (idx = 0; idx < ctrl->rows * ctrl->cols; idx++)
++			ctrl_changed |= !ctrl->type_ops->equal(ctrl, idx,
+ 						ctrl->stores[0], ctrl->new);
++		ctrl->has_changed = ctrl_changed;
+ 		changed |= ctrl->has_changed;
+ 	}
+ 	return changed;
+@@ -1499,26 +1500,32 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
+ 			struct v4l2_ext_control *c)
+ {
+ 	union v4l2_ctrl_ptr ptr;
+-
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_INTEGER:
+-	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-	case V4L2_CTRL_TYPE_MENU:
+-	case V4L2_CTRL_TYPE_BITMASK:
+-	case V4L2_CTRL_TYPE_BOOLEAN:
+-	case V4L2_CTRL_TYPE_BUTTON:
+-	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		ptr.p_s32 = &c->value;
+-		return ctrl->type_ops->validate(ctrl, 0, ptr);
+-
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		ptr.p_s64 = &c->value64;
+-		return ctrl->type_ops->validate(ctrl, 0, ptr);
+-
+-	default:
+-		ptr.p = c->p;
+-		return ctrl->type_ops->validate(ctrl, 0, ptr);
++	unsigned idx;
++	int err = 0;
++
++	if (!ctrl->is_ptr) {
++		switch (ctrl->type) {
++		case V4L2_CTRL_TYPE_INTEGER:
++		case V4L2_CTRL_TYPE_INTEGER_MENU:
++		case V4L2_CTRL_TYPE_MENU:
++		case V4L2_CTRL_TYPE_BITMASK:
++		case V4L2_CTRL_TYPE_BOOLEAN:
++		case V4L2_CTRL_TYPE_BUTTON:
++		case V4L2_CTRL_TYPE_CTRL_CLASS:
++			ptr.p_s32 = &c->value;
++			return ctrl->type_ops->validate(ctrl, 0, ptr);
++
++		case V4L2_CTRL_TYPE_INTEGER64:
++			ptr.p_s64 = &c->value64;
++			return ctrl->type_ops->validate(ctrl, 0, ptr);
++		default:
++			break;
++		}
+ 	}
++	ptr.p = c->p;
++	for (idx = 0; !err && idx < c->size / ctrl->elem_size; idx++)
++		err = ctrl->type_ops->validate(ctrl, idx, ptr);
++	return err;
+ }
+ 
+ static inline u32 node2id(struct list_head *node)
+@@ -1745,6 +1752,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	struct v4l2_ctrl *ctrl;
+ 	bool is_matrix;
+ 	unsigned sz_extra, tot_ctrl_size;
++	unsigned idx;
+ 	void *data;
+ 	int err;
+ 	int s;
+@@ -1854,7 +1862,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		ctrl->stores[0].p = data;
+ 	}
+ 	for (s = -1; s <= 0; s++)
+-		ctrl->type_ops->init(ctrl, 0, ctrl->stores[s]);
++		for (idx = 0; idx < rows * cols; idx++)
++			ctrl->type_ops->init(ctrl, idx, ctrl->stores[s]);
+ 
+ 	if (handler_new_ref(hdl, ctrl)) {
+ 		kfree(ctrl);
+@@ -2548,12 +2557,18 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 			have_clusters = true;
+ 		if (ctrl->cluster[0] != ctrl)
+ 			ref = find_ref_lock(hdl, ctrl->cluster[0]->id);
+-		if (ctrl->is_ptr && !ctrl->is_string && c->size < ctrl->elem_size) {
+-			if (get) {
+-				c->size = ctrl->elem_size;
+-				return -ENOSPC;
++		if (ctrl->is_ptr && !ctrl->is_string) {
++			unsigned tot_size = ctrl->rows * ctrl->cols *
++					    ctrl->elem_size;
++
++			if (c->size < tot_size) {
++				if (get) {
++					c->size = tot_size;
++					return -ENOSPC;
++				}
++				return -EFAULT;
+ 			}
+-			return -EFAULT;
++			c->size = tot_size;
+ 		}
+ 		/* Store the ref to the master control of the cluster */
+ 		h->mref = ref;
+@@ -3093,7 +3108,7 @@ EXPORT_SYMBOL(v4l2_ctrl_notify);
+ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 			s64 min, s64 max, u64 step, s64 def)
+ {
+-	int ret = check_range(ctrl->type, min, max, step, def);
++	int ret;
+ 	struct v4l2_ext_control c;
+ 
+ 	switch (ctrl->type) {
+@@ -3103,6 +3118,9 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
++		if (ctrl->is_matrix)
++			return -EINVAL;
++		ret = check_range(ctrl->type, min, max, step, def);
+ 		if (ret)
+ 			return ret;
+ 		break;
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.2
 
