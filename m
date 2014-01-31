@@ -1,111 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2851 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201AbaAWDdt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jan 2014 22:33:49 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0N3XjcN068194
-	for <linux-media@vger.kernel.org>; Thu, 23 Jan 2014 04:33:47 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 4BF0A2A00A2
-	for <linux-media@vger.kernel.org>; Thu, 23 Jan 2014 04:33:45 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140123033345.4BF0A2A00A2@tschai.lan>
-Date: Thu, 23 Jan 2014 04:33:45 +0100 (CET)
+Received: from mga09.intel.com ([134.134.136.24]:54905 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932082AbaAaQHC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 11:07:02 -0500
+Message-ID: <52EBC9EA.1000809@linux.intel.com>
+Date: Fri, 31 Jan 2014 18:06:02 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: subdev: Allow 32-bit compat IOCTLs
+References: <1391182129-5234-1-git-send-email-sakari.ailus@linux.intel.com> <52EBC33C.6050902@xs4all.nl> <52EBC693.6040709@linux.intel.com>
+In-Reply-To: <52EBC693.6040709@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Sakari Ailus wrote:
+> Hi Hans,
+>
+> Thanks for the comments.
+>
+> Hans Verkuil wrote:
+>> Hi Sakari,
+>>
+>> Sorry, this isn't right.
+>>
+>> It should go through v4l2_compat_ioctl32, otherwise ioctls for e.g.
+>> extended controls
+>> won't be converted correctly.
+>
+> Now that you mention it, indeed the state back when I thought this was
+> already implemented, the IOCTLs were exactly the same. Now that struct
+> v4l2_subdev_edid is used on VIDIOC_SUBDEV_G_EDID and
+> VIDIOC_SUBDEV_S_EDID32, this no longer holds.
 
-Results of the daily build of media_tree:
+Well, indeed, with the patch, the compat_ioctl32 handler wrongly would 
+handle the non-compat IOCTL as well.
 
-date:		Thu Jan 23 04:00:26 CET 2014
-git branch:	test
-git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+To fix this properly, the sub-device IOCTL numbers that require no 
+conversion should be added to v4l2_compat_ioctl32() list of IOCTLs. 
+Currently they're not there. Is this what you meant?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+-- 
+Regards,
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Sakari Ailus
+sakari.ailus@linux.intel.com
