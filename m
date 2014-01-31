@@ -1,78 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([80.229.237.210]:60366 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751527AbaAQKTc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 05:19:32 -0500
-Date: Fri, 17 Jan 2014 10:19:29 +0000
-From: Sean Young <sean@mess.org>
-To: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: rc: only turn on LED if keypress generated
-Message-ID: <20140117101929.GA2531@pequod.mess.org>
-References: <1389912982-25956-1-git-send-email-james.hogan@imgtec.com>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3837 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932082AbaAaQF4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 11:05:56 -0500
+Message-ID: <52EBC9DC.20105@xs4all.nl>
+Date: Fri, 31 Jan 2014 17:05:48 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1389912982-25956-1-git-send-email-james.hogan@imgtec.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: subdev: Allow 32-bit compat IOCTLs
+References: <1391182129-5234-1-git-send-email-sakari.ailus@linux.intel.com> <52EBC33C.6050902@xs4all.nl> <52EBC693.6040709@linux.intel.com>
+In-Reply-To: <52EBC693.6040709@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 16, 2014 at 10:56:22PM +0000, James Hogan wrote:
-> Since v3.12, specifically 153a60bb0fac ([media] rc: add feedback led
-> trigger for rc keypresses), an LED trigger is activated on IR keydown
-> whether or not a keypress is generated (i.e. even if there's no matching
-> keycode). However the repeat and keyup logic isn't used unless there is
-> a keypress, which results in non-keypress keydown events turning on the
-> LED and not turning it off again.
-
-Yes, this is a bug. I have a similar patch waiting to be submitted but
-you beat me to it. 
-
-Acked-by: Sean Young <sean@mess.org>
-
+On 01/31/2014 04:51 PM, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> On the assumption that the intent was for the LED only to light up on
-> valid key presses (you probably don't want it lighting up for the wrong
-> remote control for example), move the led_trigger_event() call inside
-> the keycode check.
+> Thanks for the comments.
 > 
-> Signed-off-by: James Hogan <james.hogan@imgtec.com>
-> Cc: Sean Young <sean@mess.org>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: linux-media@vger.kernel.org
-> ---
-> Was that the original intent? If not it could be tweaked to set
-> dev->keypressed in either case instead, so that they LED trigger works
-> for unmapped scancodes too.
+> Hans Verkuil wrote:
+>> Hi Sakari,
+>>
+>> Sorry, this isn't right.
+>>
+>> It should go through v4l2_compat_ioctl32, otherwise ioctls for e.g. extended controls
+>> won't be converted correctly.
+> 
+> Now that you mention it, indeed the state back when I thought this was already implemented, the IOCTLs were exactly the same. Now that struct v4l2_subdev_edid is used on VIDIOC_SUBDEV_G_EDID and VIDIOC_SUBDEV_S_EDID32, this no longer holds.
+> 
+> The two IOCTLs are already handled by v4l2_compat_ioctl32 explicitly. Perhaps that's what you remember? :-)
+> 
 
-I'd say that the feedback led should only be activated if a valid key is
-pressed; doing this for for unmapped scancodes is jus going to cause confusion.
+No, someone recently mentioned similar problems with compat32 and subdev nodes.
+I did some work on it then, but I've no idea where it is :-(
 
-> ---
->  drivers/media/rc/rc-main.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 46da365..cff9d53 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -649,9 +649,10 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
->  			   "key 0x%04x, scancode 0x%04x\n",
->  			   dev->input_name, keycode, scancode);
->  		input_report_key(dev->input_dev, keycode, 1);
-> +
-> +		led_trigger_event(led_feedback, LED_FULL);
->  	}
->  
-> -	led_trigger_event(led_feedback, LED_FULL);
->  	input_sync(dev->input_dev);
->  }
->  
-> -- 
-> 1.8.3.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I did add support for subdev ioctl32 tests to v4l-utils.git recently, so I know
+I worked on it...
+
+It could be on one other test server that I can't access from here, I'll check on
+Tuesday.
+
+Regards,
+
+	Hans
