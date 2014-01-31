@@ -1,54 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:40364 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395AbaAGEpL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 23:45:11 -0500
-Received: by mail-wg0-f47.google.com with SMTP id n12so16681750wgh.14
-        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 20:45:05 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1389068966-14594-3-git-send-email-tmester@ieee.org>
-References: <1389068966-14594-1-git-send-email-tmester@ieee.org>
-	<1389068966-14594-3-git-send-email-tmester@ieee.org>
-Date: Mon, 6 Jan 2014 23:45:05 -0500
-Message-ID: <CAGoCfix3GRETd+YXNSimpDY8StVPzc0sEMpzhdnuLf1eA4g+vw@mail.gmail.com>
-Subject: Re: [PATCH 3/3] au8522, au0828: Added demodulator reset
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Tim Mester <ttmesterr@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Tim Mester <tmester@ieee.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3206 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932170AbaAaLMV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 06:12:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: detlev.casanova@gmail.com, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/2] v4l2-device: add inherit_private_ctrls field
+Date: Fri, 31 Jan 2014 12:12:06 +0100
+Message-Id: <1391166726-27026-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391166726-27026-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391166726-27026-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 6, 2014 at 11:29 PM, Tim Mester <ttmesterr@gmail.com> wrote:
-> The demodulator can get in a state in ATSC mode where just
-> restarting the feed alone does not correct the corrupted stream.  The
-> demodulator reset in addition to the feed restart seems to correct
-> the condition.
->
-> The au8522 driver has been modified so that when set_frontend() is
-> called with the same frequency and modulation mode, the demodulator
-> will be reset.  The au0282 drives uses this feature when it attempts
-> to restart the feed.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-What is the actual "corruption" that you are seeing?  Can you describe
-it in greater detail?  The original fix was specifically related to
-the internal FIFO on the au0828 where it can get shifted by one or
-more bits (i.e. the leading byte is no longer 0x47 but 0x47 << X).
-Hence it's an issue unrelated to the actual au8522.
+Some drivers that implement a simple video pipeline may want to inherit
+private controls from their subdevs and expose them through the video node.
+That way there is no need to create v4l-subdev nodes to access the private
+controls of the sub-devices.
 
-I suspect this is actually a different problem which out of dumb luck
-gets "fixed" by resetting the chip.  Without more details on the
-specific behavior you are seeing though I cannot really advise on what
-the correct change is.
+Without this drivers are force to either hack the subdev driver to remove
+the is_private setting, or manually add those controls to the bridge driver.
 
-This patch should not be accepted upstream without more discussion.
+It's the bridge driver that determines whether or not the v4l-subdev nodes
+are created, so the bridge driver should also be able to control this.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-device.c |  2 +-
+ include/media/v4l2-device.h           | 10 +++++++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 7045cb2..bf1b047 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -170,7 +170,7 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 
+ 	/* This just returns 0 if either of the two args is NULL */
+ 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler,
+-				    false, NULL);
++				    v4l2_dev->inherit_private_ctrls, NULL);
+ 	if (err)
+ 		goto error_unregister;
+ 
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index c9b1593..8350ce5 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -56,6 +56,11 @@ struct v4l2_device {
+ 			unsigned int notification, void *arg);
+ 	/* The control handler. May be NULL. */
+ 	struct v4l2_ctrl_handler *ctrl_handler;
++	/*
++	 * If true, then when adding controls from a sub-device also
++	 * add the private controls. Used in v4l2_device_register_subdev().
++	 */
++	bool inherit_private_ctrls;
+ 	/* Device's priority state */
+ 	struct v4l2_prio_state prio;
+ 	/* BKL replacement mutex. Temporary solution only. */
+@@ -107,7 +112,10 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev);
+ 
+ /* Register a subdev with a v4l2 device. While registered the subdev module
+    is marked as in-use. An error is returned if the module is no longer
+-   loaded when you attempt to register it. */
++   loaded when you attempt to register it. The controls of the subdev are
++   automatically added to the control handler defined in v4l2_dev. Depending
++   on the inherit_private_ctrls field of v4l2_dev the private controls of
++   the subdev may also be added. */
+ int __must_check v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 						struct v4l2_subdev *sd);
+ /* Unregister a subdev with a v4l2 device. Can also be called if the subdev
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.8.5.2
+
