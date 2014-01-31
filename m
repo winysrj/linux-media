@@ -1,81 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3206 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932170AbaAaLMV (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2030 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754028AbaAaJ5U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 06:12:21 -0500
+	Fri, 31 Jan 2014 04:57:20 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: detlev.casanova@gmail.com, laurent.pinchart@ideasonboard.com,
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 2/2] v4l2-device: add inherit_private_ctrls field
-Date: Fri, 31 Jan 2014 12:12:06 +0100
-Message-Id: <1391166726-27026-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391166726-27026-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391166726-27026-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 24/32] DocBook media: document new u8 and u16 control types.
+Date: Fri, 31 Jan 2014 10:56:22 +0100
+Message-Id: <1391162190-8620-25-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Some drivers that implement a simple video pipeline may want to inherit
-private controls from their subdevs and expose them through the video node.
-That way there is no need to create v4l-subdev nodes to access the private
-controls of the sub-devices.
-
-Without this drivers are force to either hack the subdev driver to remove
-the is_private setting, or manually add those controls to the bridge driver.
-
-It's the bridge driver that determines whether or not the v4l-subdev nodes
-are created, so the bridge driver should also be able to control this.
+These types are needed for the upcoming Motion Detection matrix
+controls, so document them.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-device.c |  2 +-
- include/media/v4l2-device.h           | 10 +++++++++-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 14 +++++++++++++
+ .../DocBook/media/v4l/vidioc-queryctrl.xml         | 23 +++++++++++++++++++++-
+ 2 files changed, 36 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 7045cb2..bf1b047 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -170,7 +170,7 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 
- 	/* This just returns 0 if either of the two args is NULL */
- 	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler,
--				    false, NULL);
-+				    v4l2_dev->inherit_private_ctrls, NULL);
- 	if (err)
- 		goto error_unregister;
- 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index c9b1593..8350ce5 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -56,6 +56,11 @@ struct v4l2_device {
- 			unsigned int notification, void *arg);
- 	/* The control handler. May be NULL. */
- 	struct v4l2_ctrl_handler *ctrl_handler;
-+	/*
-+	 * If true, then when adding controls from a sub-device also
-+	 * add the private controls. Used in v4l2_device_register_subdev().
-+	 */
-+	bool inherit_private_ctrls;
- 	/* Device's priority state */
- 	struct v4l2_prio_state prio;
- 	/* BKL replacement mutex. Temporary solution only. */
-@@ -107,7 +112,10 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev);
- 
- /* Register a subdev with a v4l2 device. While registered the subdev module
-    is marked as in-use. An error is returned if the module is no longer
--   loaded when you attempt to register it. */
-+   loaded when you attempt to register it. The controls of the subdev are
-+   automatically added to the control handler defined in v4l2_dev. Depending
-+   on the inherit_private_ctrls field of v4l2_dev the private controls of
-+   the subdev may also be added. */
- int __must_check v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 						struct v4l2_subdev *sd);
- /* Unregister a subdev with a v4l2 device. Can also be called if the subdev
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index d946d6b..2dcc284 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -192,6 +192,20 @@ type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
++	    <entry>__u8 *</entry>
++	    <entry><structfield>p_u8</structfield></entry>
++	    <entry>A pointer to a matrix control of unsigned 8-bit values.
++Valid if this control is of type <constant>V4L2_CTRL_TYPE_U8</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__u16 *</entry>
++	    <entry><structfield>p_u16</structfield></entry>
++	    <entry>A pointer to a matrix control of unsigned 16-bit values.
++Valid if this control is of type <constant>V4L2_CTRL_TYPE_U16</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>void *</entry>
+ 	    <entry><structfield>p</structfield></entry>
+ 	    <entry>A pointer to a complex type which can be a matrix and/or a
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index da0e534..93c350b 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -301,7 +301,8 @@ accepts values 0-511 and the driver reports 0-65535, step should be
+ 	    <entry>The default value of a
+ <constant>V4L2_CTRL_TYPE_INTEGER</constant>, <constant>_INTEGER64</constant>,
+ <constant>_BOOLEAN</constant>, <constant>_BITMASK</constant>,
+-<constant>_MENU</constant> or <constant>_INTEGER_MENU</constant> control.
++<constant>_MENU</constant>, <constant>_INTEGER_MENU</constant>,
++<constant>_U8</constant> or <constant>_U16</constant> control.
+ Not valid for other types of controls.
+ Note that drivers reset controls to their default value only when the
+ driver is first loaded, never afterwards.
+@@ -519,6 +520,26 @@ ioctl returns the name of the control class and this control type.
+ Older drivers which do not support this feature return an
+ &EINVAL;.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_U8</constant></entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>An unsigned 8-bit valued control ranging from minimum to
++maximum inclusive. The step value indicates the increment between
++values which are actually different on the hardware. This type is only used
++in matrix controls.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_U16</constant></entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>An unsigned 16-bit valued control ranging from minimum to
++maximum inclusive. The step value indicates the increment between
++values which are actually different on the hardware. This type is only used
++in matrix controls.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
 -- 
 1.8.5.2
 
