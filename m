@@ -1,61 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:35206 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754747AbaAAWVf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jan 2014 17:21:35 -0500
-Received: by mail-wi0-f181.google.com with SMTP id hq4so13438434wib.8
-        for <linux-media@vger.kernel.org>; Wed, 01 Jan 2014 14:21:34 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1388614684.2023.8.camel@palomino.walls.org>
-References: <CAJghqepkKXth6_jqj5jU-HghAHxBBkaphCpR5MqfuRGXHXA4Sg@mail.gmail.com>
-	<CAJghqeopSEER-ExtW8LhXYkCNH99Mwj5W7JCZAEf65CTpBu94Q@mail.gmail.com>
-	<CAJghqerGcLUZCAT9LGP+5LzFLVCmHS1JUqNDTP1_Mj7b24fKhQ@mail.gmail.com>
-	<1388254550.2129.83.camel@palomino.walls.org>
-	<CAJghqeptMtc2OTUuCY8MUY14kj-d6KPpUAUCxjw8Nod6TNOMaA@mail.gmail.com>
-	<1388586278.1879.21.camel@palomino.walls.org>
-	<CAJghqerAVmCd_xcW9x2y=gKd4uq9-3P0CTmW_UpAjA42WQNNTw@mail.gmail.com>
-	<CAGoCfixgun79tR_Nr+Qp9NdPPwYaUaX_HwqXj85rnOEXbEEH0w@mail.gmail.com>
-	<1388614684.2023.8.camel@palomino.walls.org>
-Date: Wed, 1 Jan 2014 17:21:33 -0500
-Message-ID: <CAGoCfiz1+7M4P7At7BrVZtVGM_4ntMZR6z4hTurhVzLNnG=Pcg@mail.gmail.com>
-Subject: Re: Fwd: v4l2: The device does not support the streaming I/O method.
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Andy <dssnosher@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1576 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006AbaAaJ5T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 04:57:19 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 19/32] DocBook media: update VIDIOC_G/S/TRY_EXT_CTRLS.
+Date: Fri, 31 Jan 2014 10:56:17 +0100
+Message-Id: <1391162190-8620-20-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 1, 2014 at 5:18 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> uncompressed video is available from /dev/video32 in an odd Conexant
-> macroblock format that is called 'HM12' under linux.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I should have been more clear - last I checked it only supported raw
-video in streaming mode (mmap).  So even though the driver has this
-capability it won't really help.
+Document the support for the new complex type controls.
 
-> raw PCM audio samples are available from /dev/video24
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 43 ++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 8 deletions(-)
 
-Same basic issue, I think it will only acquire audio via ALSA.
-
-> Note that /dev/video0 is always MPEG-2 compressed video.
->
-> I assume ffmpeg and mencoder can transcode from MPEG-2 PS to H.264 on
-> the fly, however, they will consume more CPU to do the decompression of
-> the MPEG-2 PS.  The advantage of working with the MPEG-2 PS as the
-> source is that one avoids the audio & video synchronization problem one
-> might encounter working with the separate uncompressed audio & video
-> streams.
-
-Agreed that transcoding is more CPU expensive, but I suspect if he's
-willing to transcode he can actually get something working today
-without any modifications to the sources of either the driver or
-ffmpeg.  And as you suggested, it does help avoid the A/V sync
-problems associated with raw capture.
-
-Devin
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index b3bb957..d946d6b 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -72,23 +72,30 @@ initialize the <structfield>id</structfield>,
+ <structfield>size</structfield> and <structfield>reserved2</structfield> fields
+ of each &v4l2-ext-control; and call the
+ <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
+-must also set the <structfield>string</structfield> field.</para>
++must also set the <structfield>string</structfield> field. Controls
++of complex types (<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set)
++must set the <structfield>p</structfield> field.</para>
+ 
+     <para>If the <structfield>size</structfield> is too small to
+ receive the control result (only relevant for pointer-type controls
+ like strings), then the driver will set <structfield>size</structfield>
+ to a valid value and return an &ENOSPC;. You should re-allocate the
+-string memory to this new size and try again. It is possible that the
+-same issue occurs again if the string has grown in the meantime. It is
++memory to this new size and try again. For the string type it is possible that
++the same issue occurs again if the string has grown in the meantime. It is
+ recommended to call &VIDIOC-QUERYCTRL; first and use
+ <structfield>maximum</structfield>+1 as the new <structfield>size</structfield>
+ value. It is guaranteed that that is sufficient memory.
+ </para>
+ 
++    <para>Matrices are set and retrieved row-by-row. You cannot set a partial
++matrix, all elements have to be set or retrieved. The total size is calculated
++as <structfield>rows</structfield> * <structfield>cols</structfield> * <structfield>elem_size</structfield>.
++These values can be obtained by calling &VIDIOC-QUERY-EXT-CTRL;.</para>
++
+     <para>To change the value of a set of controls applications
+ initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+ <structfield>reserved2</structfield> and
+-<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
++<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+ call the <constant>VIDIOC_S_EXT_CTRLS</constant> ioctl. The controls
+ will only be set if <emphasis>all</emphasis> control values are
+ valid.</para>
+@@ -96,11 +103,17 @@ valid.</para>
+     <para>To check if a set of controls have correct values applications
+ initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+ <structfield>reserved2</structfield> and
+-<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
++<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+ call the <constant>VIDIOC_TRY_EXT_CTRLS</constant> ioctl. It is up to
+ the driver whether wrong values are automatically adjusted to a valid
+ value or if an error is returned.</para>
+ 
++    <para>For matrices it is possible to only set or check only the first
++<constant>X</constant> elements by setting size to <constant>X * elem_size</constant>,
++where <structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
++Matrix elements are set row-by-row. Matrix elements that are not explicitly
++set will be initialized to their default value.</para>
++
+     <para>When the <structfield>id</structfield> or
+ <structfield>ctrl_class</structfield> is invalid drivers return an
+ &EINVAL;. When the value is out of bounds drivers can choose to take
+@@ -158,19 +171,33 @@ applications must set the array to zero.</entry>
+ 	    <entry></entry>
+ 	    <entry>__s32</entry>
+ 	    <entry><structfield>value</structfield></entry>
+-	    <entry>New value or current value.</entry>
++	    <entry>New value or current value. Valid if this control is not of
++type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
++<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>__s64</entry>
+ 	    <entry><structfield>value64</structfield></entry>
+-	    <entry>New value or current value.</entry>
++	    <entry>New value or current value. Valid if this control is of
++type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
++<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+ 	    <entry>char *</entry>
+ 	    <entry><structfield>string</structfield></entry>
+-	    <entry>A pointer to a string.</entry>
++	    <entry>A pointer to a string. Valid if this control is of
++type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>void *</entry>
++	    <entry><structfield>p</structfield></entry>
++	    <entry>A pointer to a complex type which can be a matrix and/or a
++complex type (the control's type is >= <constant>V4L2_CTRL_COMPLEX_TYPES</constant>).
++Valid if <constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set for this control.
++</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.8.5.2
+
