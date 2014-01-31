@@ -1,69 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:59478 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754007AbaA1CCp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 21:02:45 -0500
-Received: from minime.bse ([77.20.120.199]) by mail.gmx.com (mrgmx103) with
- ESMTPSA (Nemesis) id 0LgI0W-1VTSCm152i-00niTn for
- <linux-media@vger.kernel.org>; Tue, 28 Jan 2014 03:02:44 +0100
-Date: Tue, 28 Jan 2014 03:02:42 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Robert Longbottom <rongblor@googlemail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
-Message-ID: <20140128020242.GA31019@minime.bse>
-References: <20140122135036.GA14871@minime.bse>
- <52E00AD0.2020402@googlemail.com>
- <20140123132741.GA15756@minime.bse>
- <52E1273F.90207@googlemail.com>
- <20140125152339.GA18168@minime.bse>
- <52E4EFBB.7070504@googlemail.com>
- <20140126125552.GA26918@minime.bse>
- <52E5366A.807@googlemail.com>
- <20140127032044.GA27541@minime.bse>
- <52E6C7A4.8050708@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <52E6C7A4.8050708@googlemail.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2328 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753504AbaAaJ5Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 04:57:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 29/32] DocBook: document new v4l motion detection event.
+Date: Fri, 31 Jan 2014 10:56:27 +0100
+Message-Id: <1391162190-8620-30-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 27, 2014 at 08:55:00PM +0000, Robert Longbottom wrote:
-> >As for the CPLD, there is not much we can do. I count 23 GPIOs going
-> >to that chip. And we don't know if some of these are outputs of the
-> >CPLD, making it a bit risky to just randomly drive values on those
-> >pins.
-> 
-> Is that because it might do some damage to the card, or to the host
-> computer, or both?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-If there is damage, it will most likely be restricted to the card.
+Document the new motion detection event.
 
-> Or is it just too hard to make random guesses at
-> what it should be doing?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 44 ++++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  8 ++++
+ 2 files changed, 52 insertions(+)
 
-When we cycle through all combinations in one minute, there are about
-a hundred PCI cycles per combination left for the chip to be granted
-access to the bus. I expect most of the pins to provide a priority
-or weighting value for each BT878A, so there should be many combinations
-that do something.
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index 89891ad..ffa1fac 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -94,6 +94,12 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
++	    <entry>&v4l2-event-motion-det;</entry>
++            <entry><structfield>motion_det</structfield></entry>
++	    <entry>Event data for event V4L2_EVENT_MOTION_DET.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>__u8</entry>
+             <entry><structfield>data</structfield>[64]</entry>
+ 	    <entry>Event data. Defined by the event type. The union
+@@ -242,6 +248,44 @@
+       </tgroup>
+     </table>
+ 
++    <table frame="none" pgwide="1" id="v4l2-event-motion-det">
++      <title>struct <structname>v4l2_event_motion_det</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>flags</structfield></entry>
++	    <entry>
++	      Currently only one flag is available: if <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant>
++	      is set, then the <structfield>frame_sequence</structfield> field is valid,
++	      otherwise that field should be ignored.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>frame_sequence</structfield></entry>
++	    <entry>
++	      The sequence number of the frame being received. Only valid if the
++	      <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant> flag was set.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>region_mask</structfield></entry>
++	    <entry>
++	      The bitmask of the regions that reported motion. There is at least one
++	      region. If this field is 0, then no motion was detected at all.
++	      If there is no <constant>V4L2_CID_DETECT_MD_REGION_GRID</constant> control
++	      (see <xref linkend="detect-controls" />) to assign a different region
++	      to each cell in the motion detection grid, then that all cells
++	      are automatically assigned to the default region 0.
++	    </entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
+     <table pgwide="1" frame="none" id="changes-flags">
+       <title>Changes</title>
+       <tgroup cols="3">
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index 5c70b61..9e68976 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -155,6 +155,14 @@
+ 	    </entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_EVENT_MOTION_DET</constant></entry>
++	    <entry>5</entry>
++	    <entry>
++	      <para>Triggered whenever the motion detection state for one or more of the regions
++	      changes. This event has a &v4l2-event-motion-det; associated with it.</para>
++	    </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+ 	    <entry>0x08000000</entry>
+ 	    <entry>Base event number for driver-private events.</entry>
+-- 
+1.8.5.2
 
-> >If we had the original software, we could analyze what it is doing.
-> >There is someone on ebay.com selling two of those cards and a cd
-> >labled "Rescue Disk Version 1.14 for Linux DVR".
-> 
-> Ah yes, I've just found that, it seems a little pricey!
-
-Maybe the seller is nice person and provides the contents of the CD for
-free.
-
-> There is
-> also a listing for an "Avermedia 4 Eyes Pro Capture Card PCI 8604"
-> which looks pretty much the same, but it doesn't have any software
-> with it and searching around for any more information on that hasn't
-> got me anywhere.
-
-It's the same card but it is not the Avermedia 4 Eyes Pro.
-
-  Daniel
