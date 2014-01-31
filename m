@@ -1,177 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51339 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755170AbaAFQI0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 11:08:26 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/6] [media] em28xx: convert i2c wait completion logic to use jiffies
-Date: Mon,  6 Jan 2014 11:04:55 -0200
-Message-Id: <1389013500-3110-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389013500-3110-1-git-send-email-m.chehab@samsung.com>
-References: <1389013500-3110-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2706 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753988AbaAaJ5N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 04:57:13 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 20/32] DocBook media: fix coding style in the control example code
+Date: Fri, 31 Jan 2014 10:56:18 +0100
+Message-Id: <1391162190-8620-21-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The I2C wait completion/timeout logic currently assumes that
-msleep(5) will wait exaclty 5 ms. This is not true at all,
-as it depends on CONFIG_HZ.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Convert it to use jiffies, in order to not wait for more time
-than needed.
+Use the proper kernel coding style in these examples.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c | 61 ++++++++++++++++++-----------------
- 1 file changed, 31 insertions(+), 30 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml | 81 ++++++++++++++--------------
+ 1 file changed, 40 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index c4ff9739a7ae..91f9f0a3f05e 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -26,6 +26,7 @@
- #include <linux/kernel.h>
- #include <linux/usb.h>
- #include <linux/i2c.h>
-+#include <linux/jiffies.h>
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a5a3188..ef55c3e 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -441,61 +441,60 @@ more menu type controls.</para>
+ &v4l2-queryctrl; queryctrl;
+ &v4l2-querymenu; querymenu;
  
- #include "em28xx.h"
- #include "tuner-xc2028.h"
-@@ -48,8 +49,8 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
-  */
- static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+-static void
+-enumerate_menu (void)
++static void enumerate_menu(void)
  {
-+	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
- 	int ret;
--	int write_timeout;
- 	u8 b2[6];
+-	printf ("  Menu items:\n");
++	printf("  Menu items:\n");
  
- 	if (len < 1 || len > 4)
-@@ -74,14 +75,14 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 		return (ret < 0) ? ret : -EIO;
+-	memset (&amp;querymenu, 0, sizeof (querymenu));
++	memset(&amp;querymenu, 0, sizeof(querymenu));
+ 	querymenu.id = queryctrl.id;
+ 
+ 	for (querymenu.index = queryctrl.minimum;
+ 	     querymenu.index &lt;= queryctrl.maximum;
+-	      querymenu.index++) {
+-		if (0 == ioctl (fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
+-			printf ("  %s\n", querymenu.name);
++	     querymenu.index++) {
++		if (0 == ioctl(fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
++			printf("  %s\n", querymenu.name);
+ 		}
  	}
- 	/* wait for completion */
--	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
--	     write_timeout -= 5) {
-+	while (time_is_after_jiffies(timeout)) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
--		if (ret == 0x80 + len - 1) {
-+		if (ret == 0x80 + len - 1)
- 			return len;
--		} else if (ret == 0x94 + len - 1) {
-+		if (ret == 0x94 + len - 1) {
- 			return -ENODEV;
--		} else if (ret < 0) {
-+		}
-+		if (ret < 0) {
- 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
- 				    ret);
- 			return ret;
-@@ -98,9 +99,9 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
-  */
- static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- {
-+	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
- 	u8 buf2[4];
- 	int ret;
--	int read_timeout;
- 	int i;
+ }
  
- 	if (len < 1 || len > 4)
-@@ -117,14 +118,14 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+-memset (&amp;queryctrl, 0, sizeof (queryctrl));
++memset(&amp;queryctrl, 0, sizeof(queryctrl));
+ 
+ for (queryctrl.id = V4L2_CID_BASE;
+      queryctrl.id &lt; V4L2_CID_LASTP1;
+      queryctrl.id++) {
+-	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+ 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
+ 			continue;
+ 
+-		printf ("Control %s\n", queryctrl.name);
++		printf("Control %s\n", queryctrl.name);
+ 
+ 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+-			enumerate_menu ();
++			enumerate_menu();
+ 	} else {
+ 		if (errno == EINVAL)
+ 			continue;
+ 
+-		perror ("VIDIOC_QUERYCTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_QUERYCTRL");
++		exit(EXIT_FAILURE);
  	}
+ }
  
- 	/* wait for completion */
--	for (read_timeout = EM2800_I2C_XFER_TIMEOUT; read_timeout > 0;
--	     read_timeout -= 5) {
-+	while (time_is_after_jiffies(timeout)) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
--		if (ret == 0x84 + len - 1) {
-+		if (ret == 0x84 + len - 1)
+ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+      queryctrl.id++) {
+-	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+ 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
+ 			continue;
+ 
+-		printf ("Control %s\n", queryctrl.name);
++		printf("Control %s\n", queryctrl.name);
+ 
+ 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+-			enumerate_menu ();
++			enumerate_menu();
+ 	} else {
+ 		if (errno == EINVAL)
  			break;
--		} else if (ret == 0x94 + len - 1) {
-+		if (ret == 0x94 + len - 1) {
- 			return -ENODEV;
--		} else if (ret < 0) {
-+		}
-+		if (ret < 0) {
- 			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
- 				    ret);
- 			return ret;
-@@ -168,7 +169,8 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
- static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 				 u16 len, int stop)
- {
--	int write_timeout, ret;
-+	unsigned long timeout = jiffies + msecs_to_jiffies(EM2800_I2C_XFER_TIMEOUT);
-+	int ret;
  
- 	if (len < 1 || len > 64)
- 		return -EOPNOTSUPP;
-@@ -191,16 +193,16 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		}
+-		perror ("VIDIOC_QUERYCTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_QUERYCTRL");
++		exit(EXIT_FAILURE);
  	}
- 
--	/* Check success of the i2c operation */
--	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
--	     write_timeout -= 5) {
-+	/* wait for completion */
-+	while (time_is_after_jiffies(timeout)) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
--		if (ret == 0) { /* success */
-+		if (ret == 0) /* success */
- 			return len;
--		} else if (ret == 0x10) {
-+		if (ret == 0x10) {
- 			return -ENODEV;
--		} else if (ret < 0) {
--			em28xx_warn("failed to read i2c transfer status from bridge (error=%i)\n",
-+		}
-+		if (ret < 0) {
-+			em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
- 				    ret);
- 			return ret;
- 		}
-@@ -211,6 +213,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 		 * (even with high payload) ...
- 		 */
- 	}
-+
- 	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
- 	return -EIO;
  }
-@@ -248,20 +251,18 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ </programlisting>
+@@ -508,53 +507,53 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+ &v4l2-queryctrl; queryctrl;
+ &v4l2-control; control;
  
- 	/* Check success of the i2c operation */
- 	ret = dev->em28xx_read_reg(dev, 0x05);
-+	if (ret == 0) /* success */
-+		return len;
- 	if (ret < 0) {
--		em28xx_warn("failed to read i2c transfer status from bridge (error=%i)\n",
-+		em28xx_warn("failed to get i2c transfer status from bridge register (error=%i)\n",
- 			    ret);
- 		return ret;
+-memset (&amp;queryctrl, 0, sizeof (queryctrl));
++memset(&amp;queryctrl, 0, sizeof(queryctrl));
+ queryctrl.id = V4L2_CID_BRIGHTNESS;
+ 
+-if (-1 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++if (-1 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+ 	if (errno != EINVAL) {
+-		perror ("VIDIOC_QUERYCTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_QUERYCTRL");
++		exit(EXIT_FAILURE);
+ 	} else {
+-		printf ("V4L2_CID_BRIGHTNESS is not supported\n");
++		printf("V4L2_CID_BRIGHTNESS is not supported\n");
  	}
--	if (ret > 0) {
--		if (ret == 0x10) {
--			return -ENODEV;
--		} else {
--			em28xx_warn("unknown i2c error (status=%i)\n", ret);
--			return -EIO;
--		}
+ } else if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED) {
+-	printf ("V4L2_CID_BRIGHTNESS is not supported\n");
++	printf("V4L2_CID_BRIGHTNESS is not supported\n");
+ } else {
+-	memset (&amp;control, 0, sizeof (control));
++	memset(&amp;control, 0, sizeof (control));
+ 	control.id = V4L2_CID_BRIGHTNESS;
+ 	control.value = queryctrl.default_value;
+ 
+-	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)) {
+-		perror ("VIDIOC_S_CTRL");
+-		exit (EXIT_FAILURE);
++	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)) {
++		perror("VIDIOC_S_CTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ }
+ 
+-memset (&amp;control, 0, sizeof (control));
++memset(&amp;control, 0, sizeof(control));
+ control.id = V4L2_CID_CONTRAST;
+ 
+-if (0 == ioctl (fd, &VIDIOC-G-CTRL;, &amp;control)) {
++if (0 == ioctl(fd, &VIDIOC-G-CTRL;, &amp;control)) {
+ 	control.value += 1;
+ 
+ 	/* The driver may clamp the value or return ERANGE, ignored here */
+ 
+-	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)
++	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)
+ 	    &amp;&amp; errno != ERANGE) {
+-		perror ("VIDIOC_S_CTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_S_CTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ /* Ignore if V4L2_CID_CONTRAST is unsupported */
+ } else if (errno != EINVAL) {
+-	perror ("VIDIOC_G_CTRL");
+-	exit (EXIT_FAILURE);
++	perror("VIDIOC_G_CTRL");
++	exit(EXIT_FAILURE);
+ }
+ 
+ control.id = V4L2_CID_AUDIO_MUTE;
+-control.value = TRUE; /* silence */
++control.value = 1; /* silence */
+ 
+ /* Errors ignored */
+-ioctl (fd, VIDIOC_S_CTRL, &amp;control);
++ioctl(fd, VIDIOC_S_CTRL, &amp;control);
+ </programlisting>
+     </example>
+   </section>
+@@ -675,12 +674,12 @@ control class is found:</para>
+       <informalexample>
+ 	<programlisting>
+ qctrl.id = V4L2_CTRL_CLASS_MPEG | V4L2_CTRL_FLAG_NEXT_CTRL;
+-while (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
+-	if (V4L2_CTRL_ID2CLASS (qctrl.id) != V4L2_CTRL_CLASS_MPEG)
++while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
++	if (V4L2_CTRL_ID2CLASS(qctrl.id) != V4L2_CTRL_CLASS_MPEG)
+ 		break;
+ 		/* ... */
+-		qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
 -	}
--	return len;
-+	if (ret == 0x10)
-+		return -ENODEV;
-+
-+	em28xx_warn("unknown i2c error (status=%i)\n", ret);
-+	return -EIO;
- }
++	qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
++}
+ </programlisting>
+       </informalexample>
  
- /*
 -- 
-1.8.3.1
+1.8.5.2
 
