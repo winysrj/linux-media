@@ -1,210 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1477 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750881AbaAEMFS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jan 2014 07:05:18 -0500
-Message-ID: <52C94A64.2050300@xs4all.nl>
-Date: Sun, 05 Jan 2014 13:04:52 +0100
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1808 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753919AbaAaJ5H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 04:57:07 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH RFC v6 10/12] DocBook: document 1 Hz flag
-References: <1388289844-2766-1-git-send-email-crope@iki.fi> <1388289844-2766-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1388289844-2766-11-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 09/32] v4l2-ctrls: rewrite copy routines to operate on union v4l2_ctrl_ptr.
+Date: Fri, 31 Jan 2014 10:56:07 +0100
+Message-Id: <1391162190-8620-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-More small fixes:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 12/29/2013 05:04 AM, Antti Palosaari wrote:
-> Update documention to reflect 1 Hz frequency step flag.
+In order to implement matrix support and (for the future) configuration stores
+we need to have more generic copy routines. The v4l2_ctrl_ptr union was designed
+for this.
 
-documention -> documentation
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 129 +++++++++++++++--------------------
+ 1 file changed, 56 insertions(+), 73 deletions(-)
 
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  .../DocBook/media/v4l/vidioc-enum-freq-bands.xml          |  8 +++++---
->  Documentation/DocBook/media/v4l/vidioc-g-frequency.xml    |  5 +++--
->  Documentation/DocBook/media/v4l/vidioc-g-modulator.xml    |  6 ++++--
->  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml        | 15 ++++++++++++---
->  Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml |  8 ++++++--
->  5 files changed, 30 insertions(+), 12 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-> index 6541ba0..60ad9ea 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-> @@ -100,7 +100,7 @@ See <xref linkend="v4l2-tuner-type" /></entry>
->  	    <entry><structfield>capability</structfield></entry>
->  	    <entry spanname="hspan">The tuner/modulator capability flags for
->  this frequency band, see <xref linkend="tuner-capability" />. The <constant>V4L2_TUNER_CAP_LOW</constant>
-> -capability must be the same for all frequency bands of the selected tuner/modulator.
-> +or <constant>V4L2_TUNER_CAP_1HZ</constant> capability must be the same for all frequency bands of the selected tuner/modulator.
->  So either all bands have that capability set, or none of them have that capability.</entry>
->  	  </row>
->  	  <row>
-> @@ -109,7 +109,8 @@ So either all bands have that capability set, or none of them have that capabili
->  	    <entry spanname="hspan">The lowest tunable frequency in
->  units of 62.5 kHz, or if the <structfield>capability</structfield>
->  flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-> -Hz, for this frequency band.</entry>
-> +Hz, for this frequency band. 1 Hz unit is used when <structfield>capability</structfield> flag
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 988a2bd8..b945008 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1275,48 +1275,64 @@ static const struct v4l2_ctrl_type_ops std_type_ops = {
+ 	.validate = std_validate,
+ };
+ 
+-/* Helper function: copy the current control value back to the caller */
+-static int cur_to_user(struct v4l2_ext_control *c,
+-		       struct v4l2_ctrl *ctrl)
++/* Helper function: copy the given control value back to the caller */
++static int ptr_to_user(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl *ctrl,
++		       union v4l2_ctrl_ptr ptr)
+ {
+ 	u32 len;
+ 
+ 	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_to_user(c->p, ctrl->cur.p, ctrl->elem_size);
++		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(ctrl->cur.string);
++		len = strlen(ptr.p_char);
+ 		if (c->size < len + 1) {
+ 			c->size = len + 1;
+ 			return -ENOSPC;
+ 		}
+-		return copy_to_user(c->string, ctrl->cur.string,
+-						len + 1) ? -EFAULT : 0;
++		return copy_to_user(c->string, ptr.p_char, len + 1) ?
++								-EFAULT : 0;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		c->value64 = ctrl->cur.val64;
++		c->value64 = *ptr.p_s64;
+ 		break;
+ 	default:
+-		c->value = ctrl->cur.val;
++		c->value = *ptr.p_s32;
+ 		break;
+ 	}
+ 	return 0;
+ }
+ 
+-/* Helper function: copy the caller-provider value as the new control value */
+-static int user_to_new(struct v4l2_ext_control *c,
++/* Helper function: copy the current control value back to the caller */
++static int cur_to_user(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+ {
++	return ptr_to_user(c, ctrl, ctrl->stores[0]);
++}
++
++/* Helper function: copy the new control value back to the caller */
++static int new_to_user(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl *ctrl)
++{
++	return ptr_to_user(c, ctrl, ctrl->new);
++}
++
++/* Helper function: copy the caller-provider value to the given control value */
++static int user_to_ptr(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl *ctrl,
++		       union v4l2_ctrl_ptr ptr)
++{
+ 	int ret;
+ 	u32 size;
+ 
+ 	ctrl->is_new = 1;
+ 	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_from_user(ctrl->p, c->p, ctrl->elem_size);
++		return copy_from_user(ptr.p, c->p, ctrl->elem_size);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		ctrl->val64 = c->value64;
++		*ptr.p_s64 = c->value64;
+ 		break;
+ 	case V4L2_CTRL_TYPE_STRING:
+ 		size = c->size;
+@@ -1324,83 +1340,64 @@ static int user_to_new(struct v4l2_ext_control *c,
+ 			return -ERANGE;
+ 		if (size > ctrl->maximum + 1)
+ 			size = ctrl->maximum + 1;
+-		ret = copy_from_user(ctrl->string, c->string, size);
++		ret = copy_from_user(ptr.p_char, c->string, size);
+ 		if (!ret) {
+-			char last = ctrl->string[size - 1];
++			char last = ptr.p_char[size - 1];
+ 
+-			ctrl->string[size - 1] = 0;
++			ptr.p_char[size - 1] = 0;
+ 			/* If the string was longer than ctrl->maximum,
+ 			   then return an error. */
+-			if (strlen(ctrl->string) == ctrl->maximum && last)
++			if (strlen(ptr.p_char) == ctrl->maximum && last)
+ 				return -ERANGE;
+ 		}
+ 		return ret ? -EFAULT : 0;
+ 	default:
+-		ctrl->val = c->value;
++		*ptr.p_s32 = c->value;
+ 		break;
+ 	}
+ 	return 0;
+ }
+ 
+-/* Helper function: copy the new control value back to the caller */
+-static int new_to_user(struct v4l2_ext_control *c,
++/* Helper function: copy the caller-provider value as the new control value */
++static int user_to_new(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+ {
+-	u32 len;
+-
+-	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_to_user(c->p, ctrl->p, ctrl->elem_size);
++	return user_to_ptr(c, ctrl, ctrl->new);
++}
+ 
++/* Copy the one value to another. */
++static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
++		       union v4l2_ctrl_ptr from, union v4l2_ctrl_ptr to)
++{
++	if (ctrl == NULL)
++		return;
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(ctrl->string);
+-		if (c->size < len + 1) {
+-			c->size = ctrl->maximum + 1;
+-			return -ENOSPC;
+-		}
+-		return copy_to_user(c->string, ctrl->string,
+-						len + 1) ? -EFAULT : 0;
++		/* strings are always 0-terminated */
++		strcpy(to.p_char, from.p_char);
++		break;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		c->value64 = ctrl->val64;
++		*to.p_s64 = *from.p_s64;
+ 		break;
+ 	default:
+-		c->value = ctrl->val;
++		if (ctrl->is_ptr)
++			memcpy(to.p, from.p, ctrl->elem_size);
++		else
++			*to.p_s32 = *from.p_s32;
+ 		break;
+ 	}
+-	return 0;
+ }
+ 
+ /* Copy the new value to the current value. */
+ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
+ {
+-	bool changed = false;
++	bool changed;
+ 
+ 	if (ctrl == NULL)
+ 		return;
++	changed = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
++	ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
+ 
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_BUTTON:
+-		changed = true;
+-		break;
+-	case V4L2_CTRL_TYPE_STRING:
+-		/* strings are always 0-terminated */
+-		changed = strcmp(ctrl->string, ctrl->cur.string);
+-		strcpy(ctrl->cur.string, ctrl->string);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		changed = ctrl->val64 != ctrl->cur.val64;
+-		ctrl->cur.val64 = ctrl->val64;
+-		break;
+-	default:
+-		if (ctrl->is_ptr) {
+-			changed = memcmp(ctrl->p, ctrl->cur.p, ctrl->elem_size);
+-			memcpy(ctrl->cur.p, ctrl->p, ctrl->elem_size);
+-		} else {
+-			changed = ctrl->val != ctrl->cur.val;
+-			ctrl->cur.val = ctrl->val;
+-		}
+-		break;
+-	}
+ 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
+ 		/* Note: CH_FLAGS is only set for auto clusters. */
+ 		ctrl->flags &=
+@@ -1429,21 +1426,7 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
+ {
+ 	if (ctrl == NULL)
+ 		return;
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_STRING:
+-		/* strings are always 0-terminated */
+-		strcpy(ctrl->string, ctrl->cur.string);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		ctrl->val64 = ctrl->cur.val64;
+-		break;
+-	default:
+-		if (ctrl->is_ptr)
+-			memcpy(ctrl->p, ctrl->cur.p, ctrl->elem_size);
+-		else
+-			ctrl->val = ctrl->cur.val;
+-		break;
+-	}
++	ptr_to_ptr(ctrl, ctrl->stores[0], ctrl->new);
+ }
+ 
+ /* Return non-zero if one or more of the controls in the cluster has a new
+-- 
+1.8.5.2
 
-Change to:
-
-"Hz, for this frequency band. A 1 Hz unit is used when the <structfield>capability</structfield> flag"
-
-
-> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -117,7 +118,8 @@ Hz, for this frequency band.</entry>
->  	    <entry spanname="hspan">The highest tunable frequency in
->  units of 62.5 kHz, or if the <structfield>capability</structfield>
->  flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-> -Hz, for this frequency band.</entry>
-> +Hz, for this frequency band. 1 Hz unit is used when <structfield>capability</structfield> flag
-
-Change to:
-
-"Hz, for this frequency band. A 1 Hz unit is used when the <structfield>capability</structfield> flag"
-
-> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-> index c7a1c46..01870c4 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-> @@ -109,9 +109,10 @@ See <xref linkend="v4l2-tuner-type" /></entry>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>frequency</structfield></entry>
->  	    <entry>Tuning frequency in units of 62.5 kHz, or if the
-> -&v4l2-tuner; or &v4l2-modulator; <structfield>capabilities</structfield> flag
-> +&v4l2-tuner; or &v4l2-modulator; <structfield>capability</structfield> flag
->  <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-> -Hz.</entry>
-> +Hz. 1 Hz unit is used when <structfield>capability</structfield> flag
-
-Change to:
-
-"Hz. A 1 Hz unit is used when the <structfield>capability</structfield> flag"
-
-> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-> index 7f4ac7e..7068b59 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-> @@ -113,7 +113,8 @@ change for example with the current video standard.</entry>
->  	    <entry>The lowest tunable frequency in units of 62.5
->  KHz, or if the <structfield>capability</structfield> flag
->  <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-> -Hz.</entry>
-> +Hz, or if the <structfield>capability</structfield> flag
-> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -121,7 +122,8 @@ Hz.</entry>
->  	    <entry>The highest tunable frequency in units of 62.5
->  KHz, or if the <structfield>capability</structfield> flag
->  <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-> -Hz.</entry>
-> +Hz, or if the <structfield>capability</structfield> flag
-> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> index 6cc8201..b0d8659 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> @@ -134,7 +134,9 @@ the structure refers to a radio tuner the
->  	    <entry spanname="hspan">The lowest tunable frequency in
->  units of 62.5 kHz, or if the <structfield>capability</structfield>
->  flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-> -Hz. If multiple frequency bands are supported, then
-> +Hz, or if the <structfield>capability</structfield> flag
-> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.
-> +If multiple frequency bands are supported, then
->  <structfield>rangelow</structfield> is the lowest frequency
->  of all the frequency bands.</entry>
->  	  </row>
-> @@ -144,7 +146,9 @@ of all the frequency bands.</entry>
->  	    <entry spanname="hspan">The highest tunable frequency in
->  units of 62.5 kHz, or if the <structfield>capability</structfield>
->  flag <constant>V4L2_TUNER_CAP_LOW</constant> is set, in units of 62.5
-> -Hz. If multiple frequency bands are supported, then
-> +Hz, or if the <structfield>capability</structfield> flag
-> +<constant>V4L2_TUNER_CAP_1HZ</constant> is set, in units of 1 Hz.
-> +If multiple frequency bands are supported, then
->  <structfield>rangehigh</structfield> is the highest frequency
->  of all the frequency bands.</entry>
->  	  </row>
-> @@ -270,7 +274,7 @@ applications must set the array to zero.</entry>
->  	    <entry><constant>V4L2_TUNER_CAP_LOW</constant></entry>
->  	    <entry>0x0001</entry>
->  	    <entry>When set, tuning frequencies are expressed in units of
-> -62.5&nbsp;Hz, otherwise in units of 62.5&nbsp;kHz.</entry>
-> +62.5 Hz instead of 62.5 kHz.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_TUNER_CAP_NORM</constant></entry>
-> @@ -360,6 +364,11 @@ radio tuners.</entry>
->  	<entry>The range to search when using the hardware seek functionality
->  	is programmable, see &VIDIOC-S-HW-FREQ-SEEK; for details.</entry>
->  	  </row>
-> +	  <row>
-> +	<entry><constant>V4L2_TUNER_CAP_1HZ</constant></entry>
-> +	<entry>0x1000</entry>
-> +	<entry>When set, tuning frequencies are expressed in units of 1 Hz instead of 62.5 kHz.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> index 5b379e7..a5fc4c4 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> @@ -121,7 +121,9 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
->  	    <entry>If non-zero, the lowest tunable frequency of the band to
->  search in units of 62.5 kHz, or if the &v4l2-tuner;
->  <structfield>capability</structfield> field has the
-> -<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
-> +<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
-> +<structfield>capability</structfield> field has the
-> +<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in units of 1 Hz.
->  If <structfield>rangelow</structfield> is zero a reasonable default value
->  is used.</entry>
->  	  </row>
-> @@ -131,7 +133,9 @@ is used.</entry>
->  	    <entry>If non-zero, the highest tunable frequency of the band to
->  search in units of 62.5 kHz, or if the &v4l2-tuner;
->  <structfield>capability</structfield> field has the
-> -<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz.
-> +<constant>V4L2_TUNER_CAP_LOW</constant> flag set, in units of 62.5 Hz or if the &v4l2-tuner;
-> +<structfield>capability</structfield> field has the
-> +<constant>V4L2_TUNER_CAP_1HZ</constant> flag set, in units of 1 Hz.
->  If <structfield>rangehigh</structfield> is zero a reasonable default value
->  is used.</entry>
->  	  </row>
-> 
-
-After making these minor changes you can add my:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
