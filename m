@@ -1,248 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53129 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752361AbaANBU6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 20:20:58 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v7 10/12] DocBook: Software Defined Radio Interface
-Date: Tue, 14 Jan 2014 03:20:28 +0200
-Message-Id: <1389662430-32699-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1389662430-32699-1-git-send-email-crope@iki.fi>
-References: <1389662430-32699-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3865 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753976AbaAaPqR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 10:46:17 -0500
+Message-ID: <52EBC534.8080903@xs4all.nl>
+Date: Fri, 31 Jan 2014 16:45:56 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use
+ it
+References: <201308281419.52009.hverkuil@xs4all.nl> <344618801.kmLM0jZvMY@avalon> <52A9ADF6.2090900@xs4all.nl> <18082456.iNCn4Qe0lB@avalon>
+In-Reply-To: <18082456.iNCn4Qe0lB@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document V4L2 SDR interface.
+Hi Laurent,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml         |  10 ++
- Documentation/DocBook/media/v4l/dev-sdr.xml        | 104 +++++++++++++++++++++
- Documentation/DocBook/media/v4l/io.xml             |   6 ++
- Documentation/DocBook/media/v4l/pixfmt.xml         |   8 ++
- Documentation/DocBook/media/v4l/v4l2.xml           |   1 +
- Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   7 ++
- .../DocBook/media/v4l/vidioc-querycap.xml          |   6 ++
- 7 files changed, 142 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
+On 01/31/2014 04:39 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Thursday 12 December 2013 13:37:10 Hans Verkuil wrote:
+>> Sakari asked me to reply to this old thread...
+> 
+> He asked me to reply as well :-)
+> 
+>> On 09/06/13 13:05, Laurent Pinchart wrote:
+>>> On Thursday 05 September 2013 19:31:30 Sakari Ailus wrote:
+>>>> On Sat, Aug 31, 2013 at 11:43:18PM +0200, Laurent Pinchart wrote:
+>>>>> On Friday 30 August 2013 19:08:48 Sakari Ailus wrote:
+>>>>>> On Fri, Aug 30, 2013 at 01:31:44PM +0200, Laurent Pinchart wrote:
+>>>>>>> On Thursday 29 August 2013 14:33:39 Sakari Ailus wrote:
+>>>>>>>> On Thu, Aug 29, 2013 at 01:25:05AM +0200, Laurent Pinchart wrote:
+>>>>>>>>> On Wednesday 28 August 2013 19:39:19 Sakari Ailus wrote:
+>>>>>>>>>> On Wed, Aug 28, 2013 at 06:14:44PM +0200, Laurent Pinchart
+>>>>>>>>>> wrote:
+>>>>>>>>>> ...
+>>>>>>>>>>
+>>>>>>>>>>>>> UVC devices timestamp frames when the frame is captured,
+>>>>>>>>>>>>> not when the first pixel is transmitted.
+>>>>>>>>>>>>
+>>>>>>>>>>>> I.e. we shouldn't set the SOF flag? "When the frame is
+>>>>>>>>>>>> captured" doesn't say much, or almost anything in terms of
+>>>>>>>>>>>> *when*. The frames have exposure time and rolling shutter
+>>>>>>>>>>>> makes a difference, too.
+>>>>>>>>>>>
+>>>>>>>>>>> The UVC 1.1 specification defines the timestamp as
+>>>>>>>>>>>
+>>>>>>>>>>> "The source clock time in native deviceclock units when the
+>>>>>>>>>>> raw frame capture begins."
+>>>>>>>>>>>
+>>>>>>>>>>> What devices do in practice may differ :-)
+>>>>>>>>>>
+>>>>>>>>>> I think that this should mean start-of-frame - exposure time.
+>>>>>>>>>> I'd really wonder if any practical implementation does that
+>>>>>>>>>> however.
+>>>>>>>>>
+>>>>>>>>> It's start-of-frame - exposure time - internal delays (UVC webcams
+>>>>>>>>> are supposed to report their internal delay value as well).
+>>>>>>>>
+>>>>>>>> Do they report it? How about the exposure time?
+>>>>>>>
+>>>>>>> It's supposed to be configurable.
+>>>>>>
+>>>>>> Is the exposure reported with the frame so it could be used to
+>>>>>> construct
+>>>>>> the per-frame SOF timestamp?
+>>>>>
+>>>>> Not when auto-exposure is turned on I'm afraid :-S
+>>>>>
+>>>>> I believe that the capture timestamp makes more sense than the SOF
+>>>>> timestamp for applications. SOF/EOF are more of a poor man's timestamp
+>>>>> in case nothing else is available, but when you want to synchronize
+>>>>> multiple audio and/or video streams the capture timestamp is what you're
+>>>>> interested in. I don't think converting a capture timestamp to an SOF
+>>>>> would be a good idea.
+>>>>
+>>>> I'm not quite sure of that --- I think the SOF/EOF will be more stable
+>>>> than the exposure start which depends on the exposure time. If you're
+>>>> recording a video you may want to keep the time between the frames
+>>>> constant.
+>>>
+>>> I can see two main use cases for timestamps. The first one is multi-stream
+>>> synchronization (audio and video, stereo video, ...), the second one is
+>>> playback rate control.
+>>>
+>>> To synchronize media streams you need to timestamp samples with a common
+>>> clock. Timestamps must be correlated to the time at which the sound and/or
+>>> image events occur. If we consider the speed of sound and speed of light
+>>> as negligible (the former could be compensated for if needed, but that's
+>>> out of scope), the time at which the sound or image is produced can be
+>>> considered as equal to the time at which they're captured. Given that we
+>>> only need to synchronize streams here, an offset wouldn't matter, so any
+>>> clock that is synchronized to the capture clock with a fixed offset would
+>>> do. The SOF event, in particular, will do if the capture time and device
+>>> processing time is constant, and if interrupt latencies are kept small
+>>> enough.. So will the EOF event if the transmission time is also constant.
+>>>
+>>> Granted, frames are not captured at a precise point of time, as the sensor
+>>> needs to be exposed for a certain duration. There is thus no such thing as
+>>> a capture time, we instead have a capture interval. However, that's
+>>> irrelevant for multi-video synchronization purposes. It could matter for
+>>> audio+video synchronization though.
+>>>
+>>> Regarding playback rate control, the goal is to render frames at the same
+>>> rate they are captured. If the frame rate isn't constant (for instance
+>>> because of a variable exposure time), then a time stamp is required for
+>>> every frame. Here we care about the difference between timestamps for two
+>>> consecutive frames, and the start of capture timestamp is what will give
+>>> best results.
+>>>
+>>> Let's consider three frames, A, B and C, captured as follows.
+>>>
+>>>
+>>> 00000000001111111111222222222233333333334444444444555555555566666666667777
+>>> 01234567890123456789012345678901234567890123456789012345678901234567890123
+>>>
+>>> | --------- A ------------ |      | ----- B ----- |      | ----- C ----- |
+>>>
+>>> On the playback side, we want to display A for a duration of 34. If we
+>>> timestamp the frames with the start of capture time, we will have the
+>>> following timestamps.
+>>>
+>>> A  0
+>>> B  34
+>>> C  57
+>>>
+>>> B-A = 34, which is the time during which A needs to be displayed.
+>>>
+>>> If we use the end of capture time, we will get
+>>>
+>>> A  27
+>>> B  50
+>>> C  73
+>>>
+>>> B-A = 23, which is too short.
+>>>
+>>>> Nevertheless --- if we don't get such a timestamp from the device this
+>>>> will only remain speculation. Applications might be best using e.g. half
+>>>> the frame period to get a guesstimate of the differences between the two
+>>>> timestamps.
+>>>
+>>> Obviously if the device can't provide the start of capture timestamp we
+>>> will need to use any source of timestamps, but I believe we should aim
+>>> for start of capture as a first class citizen.
+>>>
+>>>>>>>> If you know them all you can calculate the SOF timestamp. The fewer
+>>>>>>>> timestamps are available for user programs the better.
+>>>>>>>>
+>>>>>>>> It's another matter then if there are webcams that report these
+>>>>>>>> values wrong.
+>>>>>>>
+>>>>>>> There most probably are :-)
+>>>>>>>
+>>>>>>>> Then you could get timestamps that are complete garbage. But I guess
+>>>>>>>> you could compare them to the current monotonic timestamp and detect
+>>>>>>>> such cases.
+>>>>>>>>
+>>>>>>>>>> What's your suggestion; should we use the SOF flag for this or
+>>>>>>>>>> do you prefer the end-of-frame timestamp instead? I think it'd
+>>>>>>>>>> be quite nice for drivers to know which one is which without
+>>>>>>>>>> having to guess, and based on the above start-of-frame comes as
+>>>>>>>>>> close to that definition as is meaningful.
+>>>>>>>>>
+>>>>>>>>> SOF is better than EOF. Do we need a start-of-capture flag, or
+>>>>>>>>> could we document SOF as meaning start-of-capture or start-of-
+>>>>>>>>> reception depending on what the device can do ?
+>>>>>>>>
+>>>>>>>> One possibility is to dedicate a few flags for this; by using three
+>>>>>>>> bits we'd get eight different timestamps already. But I have to say
+>>>>>>>> that fewer is better. :-)
+>>>>>>>
+>>>>>>> Does it really need to be a per-buffer flag ? This seems to be a
+>>>>>>> driver-wide (or at least device-wide) behaviour to me.
+>>>>>>
+>>>>>> Same goes for timestamp clock sources. It was concluded to use buffer
+>>>>>> flags for those as well.
+>>>>>
+>>>>> Yes, and I don't think I was convinced, so I'm not convinced here either
+>>>>>
+>>>>> :-)
+>>>>>
+>>>>>> Using a control for the purpose would however require quite non-zero
+>>>>>> amount of initialisation code from each driver so that would probably
+>>>>>> need to be sorted out first.
+>>>>>
+>>>>> We could also use a capabilities flag.
+>>>>
+>>>> Interesting idea. I'm fine that as well. Hans?
+>>
+>> That would work for uvc, but not in the general case. Depending on the video
+>> routing you might have either SOF or EOF timestamps. Unlikely, I admit, but
+>> I feel keeping this flag in v4l2_buffers is the most generic solution.
+> 
+> My main concern about this (beside using an extra buffer flags bit, which is a 
+> scarce resource - but OK, that's not really a big concern) is complexity for 
+> userspace. Correctly handling buffer timestamps when the timestamp type can 
+> vary per buffer isn't easy, and I most applications will likely implement it 
+> wrong. I expect most applications to look at the timestamp type of the first 
+> buffer and use that information for all subsequent buffers. This would defeat 
+> the point of having per-buffer timestamp types.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index c4cac6d..83f64ce 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2535,6 +2535,16 @@ fields changed from _s32 to _u32.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.14</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added Software Defined Radio (SDR) Interface.
-+	  </para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-new file mode 100644
-index 0000000..332b87f
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -0,0 +1,104 @@
-+  <title>Software Defined Radio Interface (SDR)</title>
-+
-+  <para>
-+SDR is an abbreviation of Software Defined Radio, the radio device
-+which uses application software for modulation or demodulation. This interface
-+is intended for controlling and data streaming of such devices.
-+  </para>
-+
-+  <para>
-+SDR devices are accessed through character device special files named
-+<filename>/dev/swradio0</filename> to <filename>/dev/swradio255</filename>
-+with major number 81 and dynamically allocated minor numbers 0 to 255.
-+  </para>
-+
-+  <section>
-+    <title>Querying Capabilities</title>
-+
-+    <para>
-+Devices supporting the SDR receiver interface set the
-+<constant>V4L2_CAP_SDR_CAPTURE</constant> and
-+<constant>V4L2_CAP_TUNER</constant> flag in the
-+<structfield>capabilities</structfield> field of &v4l2-capability;
-+returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device has an
-+Analog to Digital Converter (ADC), which is a mandatory element for the SDR receiver.
-+At least one of the read/write, streaming or asynchronous I/O methods must
-+be supported.
-+    </para>
-+  </section>
-+
-+  <section>
-+    <title>Supplemental Functions</title>
-+
-+    <para>
-+SDR devices can support <link linkend="control">controls</link>, and must
-+support the <link linkend="tuner">tuner</link> ioctls. Tuner ioctls are used
-+for setting the ADC sampling rate (sampling frequency) and the possible RF tuner
-+frequency.
-+    </para>
-+
-+    <para>
-+The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
-+the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
-+tuner index of the RF tuner (if any) must always follow the ADC tuner index.
-+Normally the ADC tuner is #0 and the RF tuner is #1.
-+    </para>
-+
-+    <para>
-+The &VIDIOC-S-HW-FREQ-SEEK; ioctl is not supported.
-+    </para>
-+  </section>
-+
-+  <section>
-+    <title>Data Format Negotiation</title>
-+
-+    <para>
-+The SDR capture device uses the <link linkend="format">format</link> ioctls to
-+select the capture format. Both the sampling resolution and the data streaming
-+format are bound to that selectable format. In addition to the basic
-+<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
-+must be supported as well.
-+    </para>
-+
-+    <para>
-+To use the <link linkend="format">format</link> ioctls applications set the
-+<structfield>type</structfield> field of a &v4l2-format; to
-+<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-format-sdr;
-+<structfield>sdr</structfield> member of the <structfield>fmt</structfield>
-+union as needed per the desired operation.
-+Currently only the <structfield>pixelformat</structfield> field of
-+&v4l2-format-sdr; is used. The content of that field is the V4L2 fourcc code
-+of the data format.
-+    </para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-format-sdr">
-+      <title>struct <structname>v4l2_format_sdr</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+        <tbody valign="top">
-+          <row>
-+            <entry>__u32</entry>
-+            <entry><structfield>pixelformat</structfield></entry>
-+            <entry>
-+The data format or type of compression, set by the application. This is a
-+little endian <link linkend="v4l2-fourcc">four character code</link>.
-+V4L2 defines SDR formats in <xref linkend="sdr-formats" />.
-+           </entry>
-+          </row>
-+          <row>
-+            <entry>__u8</entry>
-+            <entry><structfield>reserved[28]</structfield></entry>
-+            <entry>This array is reserved for future extensions.
-+Drivers and applications must set it to zero.</entry>
-+          </row>
-+        </tbody>
-+      </tgroup>
-+    </table>
-+
-+    <para>
-+An SDR device may support <link linkend="rw">read/write</link>
-+and/or streaming (<link linkend="mmap">memory mapping</link>
-+or <link linkend="userp">user pointer</link>) I/O.
-+    </para>
-+
-+  </section>
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 2c4c068..1fb11e8 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1005,6 +1005,12 @@ should set this to 0.</entry>
- 	    <entry>Buffer for video output overlay (OSD), see <xref
- 		linkend="osd" />.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant></entry>
-+	    <entry>11</entry>
-+	    <entry>Buffer for Software Defined Radio (SDR), see <xref
-+		linkend="sdr" />.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 72d72bd..f586d34 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -811,6 +811,14 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
-     </table>
-   </section>
- 
-+  <section id="sdr-formats">
-+    <title>SDR Formats</title>
-+
-+    <para>These formats are used for <link linkend="sdr">SDR Capture</link>
-+interface only.</para>
-+
-+  </section>
-+
-   <section id="pixfmt-reserved">
-     <title>Reserved Format Identifiers</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 74b7f27..6dd899c 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -537,6 +537,7 @@ and discussions on the V4L mailing list.</revremark>
-     <section id="ttx"> &sub-dev-teletext; </section>
-     <section id="radio"> &sub-dev-radio; </section>
-     <section id="rds"> &sub-dev-rds; </section>
-+    <section id="sdr"> &sub-dev-sdr; </section>
-     <section id="event"> &sub-dev-event; </section>
-     <section id="subdev"> &sub-dev-subdev; </section>
-   </chapter>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-index ee8f56e..ffed137 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-@@ -172,6 +172,13 @@ capture and output devices.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>&v4l2-format-sdr;</entry>
-+	    <entry><structfield>sdr</structfield></entry>
-+	    <entry>Definition of an data format, see
-+<xref linkend="pixfmt" />, used by SDR capture devices.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
- 	    <entry><structfield>raw_data</structfield>[200]</entry>
- 	    <entry>Place holder for future extensions.</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-index d5a3c97..370d49d 100644
---- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-@@ -296,6 +296,12 @@ modulator programming see
- <xref linkend="tuner" />.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CAP_SDR_CAPTURE</constant></entry>
-+	    <entry>0x00100000</entry>
-+	    <entry>The device supports the
-+<link linkend="sdr">SDR Capture</link> interface.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CAP_READWRITE</constant></entry>
- 	    <entry>0x01000000</entry>
- 	    <entry>The device supports the <link
--- 
-1.8.4.2
+How about defining a capability for use with ENUMINPUT/OUTPUT? I agree that this
+won't change between buffers, but it is a property of a specific input or output.
 
+There are more than enough bits available in v4l2_input/output to add one for
+SOF timestamps.
+
+Regards,
+
+	Hans
