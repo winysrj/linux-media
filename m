@@ -1,80 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:48366 "EHLO multi.imgtec.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752107AbaAQOAE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jan 2014 09:00:04 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>,
-	Rob Landley <rob@landley.net>, <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 01/15] media: rc: document rc class sysfs API
-Date: Fri, 17 Jan 2014 13:58:46 +0000
-Message-ID: <1389967140-20704-2-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
-References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+Received: from mail-yk0-f178.google.com ([209.85.160.178]:62885 "EHLO
+	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751327AbaAaGrd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 01:47:33 -0500
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <52E29051.3070906@samsung.com>
+References: <1389238094-19386-1-git-send-email-shaik.ameer@samsung.com>
+	<1389238094-19386-5-git-send-email-shaik.ameer@samsung.com>
+	<52E29051.3070906@samsung.com>
+Date: Fri, 31 Jan 2014 15:47:33 +0900
+Message-ID: <CAOD6ATq1U1o4MVxM9g6rqfO7k2eebb_BzPO4JOtU3y4H=YHh9w@mail.gmail.com>
+Subject: Re: [PATCH v5 4/4] [media] exynos-scaler: Add DT bindings for SCALER driver
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Tomasz Figa <t.figa@samsung.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Pawel Osciak <posciak@google.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Briefly document /sys/class/rc/ API for remote controller devices in
-Documentation/ABI/teting.
+Hi Tomasz,
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Cc: Rob Landley <rob@landley.net>
-Cc: linux-doc@vger.kernel.org
----
-v2:
-- New patch.
----
- Documentation/ABI/testing/sysfs-class-rc | 34 ++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-class-rc
+Thanks for the review.
+Will consider all your comments in the next version of patch series.
 
-diff --git a/Documentation/ABI/testing/sysfs-class-rc b/Documentation/ABI/testing/sysfs-class-rc
-new file mode 100644
-index 0000000..52bc057
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-class-rc
-@@ -0,0 +1,34 @@
-+What:		/sys/class/rc/
-+Date:		Apr 2010
-+KernelVersion:	2.6.35
-+Contact:	Mauro Carvalho Chehab <m.chehab@samsung.com>
-+Description:
-+		The rc/ class sub-directory belongs to the Remote Controller
-+		core and provides a sysfs interface for configuring infrared
-+		remote controller receivers.
-+
-+What:		/sys/class/rc/rcN/
-+Date:		Apr 2010
-+KernelVersion:	2.6.35
-+Contact:	Mauro Carvalho Chehab <m.chehab@samsung.com>
-+Description:
-+		A /sys/class/rc/rcN directory is created for each remote
-+		control receiver device where N is the number of the receiver.
-+
-+What:		/sys/class/rc/rcN/protocols
-+Date:		Jun 2010
-+KernelVersion:	2.6.36
-+Contact:	Mauro Carvalho Chehab <m.chehab@samsung.com>
-+Description:
-+		Reading this file returns a list of available protocols,
-+		something like:
-+		    "rc5 [rc6] nec jvc [sony]"
-+		Enabled protocols are shown in [] brackets.
-+		Writing "+proto" will add a protocol to the list of enabled
-+		protocols.
-+		Writing "-proto" will remove a protocol from the list of enabled
-+		protocols.
-+		Writing "proto" will enable only "proto".
-+		Writing "none" will disable all protocols.
-+		Write fails with EINVAL if an invalid protocol combination or
-+		unknown protocol name is used.
--- 
-1.8.3.2
+Regards,
+Shaik Ameer Basha
 
-
+On Sat, Jan 25, 2014 at 1:09 AM, Tomasz Figa <t.figa@samsung.com> wrote:
+> Hi Shaik,
+>
+>
+> On 09.01.2014 04:28, Shaik Ameer Basha wrote:
+>>
+>> This patch adds the DT binding documentation for the
+>> Exynos5420/5410 based SCALER device driver.
+>>
+>> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>   .../devicetree/bindings/media/exynos5-scaler.txt   |   22
+>> ++++++++++++++++++++
+>>   1 file changed, 22 insertions(+)
+>>   create mode 100644
+>> Documentation/devicetree/bindings/media/exynos5-scaler.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/exynos5-scaler.txt
+>> b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
+>> new file mode 100644
+>> index 0000000..9328e7d
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/exynos5-scaler.txt
+>> @@ -0,0 +1,22 @@
+>> +* Samsung Exynos5 SCALER device
+>> +
+>> +SCALER is used for scaling, blending, color fill and color space
+>> +conversion on EXYNOS[5420/5410] SoCs.
+>> +
+>> +Required properties:
+>> +- compatible: should be "samsung,exynos5420-scaler" or
+>> +                       "samsung,exynos5410-scaler"
+>> +- reg: should contain SCALER physical address location and length
+>> +- interrupts: should contain SCALER interrupt number
+>
+>
+> s/number/specifier/
+>
+>
+>> +- clocks: should contain the SCALER clock specifier, from the
+>> +                       common clock bindings
+>
+>
+> s/specifier/phandle and specifier pair for each clock listed in clock-names
+> property/
+>
+> s/from/according to/
+>
+>
+>> +- clock-names: should be "scaler"
+>
+>
+> should contain exactly one entry:
+>  - "scaler" - IP bus clock.
+>
+> Also this patch should be first in the series to let the driver added in
+> further patches use already present bindings.
+>
+> Best regards,
+> Tomasz
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc"
+> in
+>
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
