@@ -1,26 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.standardelectronics.com ([74.92.67.124]:7971 "EHLO
-	mail.standardelectronics.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753628AbaAZXjl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jan 2014 18:39:41 -0500
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2478 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754033AbaAaQHd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 11:07:33 -0500
+Message-ID: <52EBCA3D.2040106@xs4all.nl>
+Date: Fri, 31 Jan 2014 17:07:25 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Kind Regards
-To: Recipients <nasser500@justin.ddo.jp>
-From: Abdul Nasser <nasser500@justin.ddo.jp>
-Date: Sun, 26 Jan 2014 21:30:38 +0000
-Reply-To: s.abdulnasser@yahoo.com.hk
-Message-ID: <SECEXCHANGE0c0QOoln00003886@mail.standardelectronics.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: subdev: Allow 32-bit compat IOCTLs
+References: <1391182129-5234-1-git-send-email-sakari.ailus@linux.intel.com> <52EBC33C.6050902@xs4all.nl> <52EBC693.6040709@linux.intel.com> <52EBC9EA.1000809@linux.intel.com>
+In-Reply-To: <52EBC9EA.1000809@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings,
-My name is Abdul Nasser Sokariah and I am writing you from Syria, I choose to contact you directly as I need a reliable person to trust who can help me handle my huge deposit  with a vault company in EUROPE, and based on my present situation in Syria, I need you urgently to take possession of everything and further modalities/directives will follow.Please reply to my private  Email: nasserabdul190@yahoo.com
 
-I wait for your response.
 
-Yours truly,
-Abdul Nasser Sokariah
+On 01/31/2014 05:06 PM, Sakari Ailus wrote:
+> Sakari Ailus wrote:
+>> Hi Hans,
+>>
+>> Thanks for the comments.
+>>
+>> Hans Verkuil wrote:
+>>> Hi Sakari,
+>>>
+>>> Sorry, this isn't right.
+>>>
+>>> It should go through v4l2_compat_ioctl32, otherwise ioctls for e.g.
+>>> extended controls
+>>> won't be converted correctly.
+>>
+>> Now that you mention it, indeed the state back when I thought this was
+>> already implemented, the IOCTLs were exactly the same. Now that struct
+>> v4l2_subdev_edid is used on VIDIOC_SUBDEV_G_EDID and
+>> VIDIOC_SUBDEV_S_EDID32, this no longer holds.
+> 
+> Well, indeed, with the patch, the compat_ioctl32 handler wrongly would handle the non-compat IOCTL as well.
+> 
+> To fix this properly, the sub-device IOCTL numbers that require no conversion should be added to v4l2_compat_ioctl32() list of IOCTLs. Currently they're not there. Is this what you meant?
+> 
+
+Yes.
+
+	Hans
