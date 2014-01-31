@@ -1,192 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:35940 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037AbaAOTgP convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4565 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753962AbaAaJ5J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 14:36:15 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZG00DZ4JSE3410@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Jan 2014 14:36:14 -0500 (EST)
-Date: Wed, 15 Jan 2014 17:35:59 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti =?UTF-8?B?U2VwcMOkbMOk?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH] nuvoton-cir: Add support for user configurable wake-up
- codes
-Message-id: <20140115173559.7e53239a@samsung.com>
-In-reply-to: <1388758723-21653-1-git-send-email-a.seppala@gmail.com>
-References: <1388758723-21653-1-git-send-email-a.seppala@gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+	Fri, 31 Jan 2014 04:57:09 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 05/32] videodev2.h: add struct v4l2_query_ext_ctrl and VIDIOC_QUERY_EXT_CTRL.
+Date: Fri, 31 Jan 2014 10:56:03 +0100
+Message-Id: <1391162190-8620-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri,  3 Jan 2014 16:18:43 +0200
-Antti Seppälä <a.seppala@gmail.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> This patch introduces module parameters for setting wake-up codes to be
-> programmed into the hardware FIFO. This allows users to provide custom
-> IR sample sequences to trigger system wake-up from sleep states.
-> 
-> Usage:
->    modprobe nuvoton-cir wake_samples=0x90,0x11,0xa1... (up to 67 bytes)
-> 
-> Here is a summary of module parameters introduced by this patch:
->  * wake_samples: FIFO values to compare against received IR codes when
->    in sleep state.
-> 
->  * cmp_deep: Number of bytes the hardware will compare against. This is
->    currently autodetected by the driver.
-> 
->  * cmp_tolerance: The maximum allowed value difference between a single
->    wake-up byte and a sample read from IR to be still considered a match.
->    Default is 5.
+Add a new struct and ioctl to extend the amount of information you can
+get for a control.
 
-Instead of adding it as a modprobe parameter, the better is to create
-an special sysfs node for devices that support wake up.
+It gives back a unit string, the range is now a s64 type, and the matrix
+and element size can be reported through cols/rows/elem_size.
 
-Btw, there's another device driver also requiring a similar feature.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-Regards,
-Mauro
-
-> 
-> Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-> ---
->  drivers/media/rc/nuvoton-cir.c | 65 +++++++++++++++++++++++++++++++-----------
->  drivers/media/rc/nuvoton-cir.h |  6 ++--
->  2 files changed, 51 insertions(+), 20 deletions(-)
-> 
-> diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-> index 21ee0dc..b11ee43 100644
-> --- a/drivers/media/rc/nuvoton-cir.c
-> +++ b/drivers/media/rc/nuvoton-cir.c
-> @@ -39,6 +39,15 @@
->  
->  #include "nuvoton-cir.h"
->  
-> +/* debugging module parameter */
-> +static int debug;
-> +
-> +/* Wake up configuration parameters */
-> +static unsigned char wake_samples[WAKE_FIFO_LEN];
-> +static unsigned int num_wake_samples;
-> +static unsigned char cmp_deep;
-> +static unsigned char cmp_tolerance = CIR_WAKE_CMP_TOLERANCE;
-> +
->  /* write val to config reg */
->  static inline void nvt_cr_write(struct nvt_dev *nvt, u8 val, u8 reg)
->  {
-> @@ -418,13 +427,38 @@ static void nvt_cir_regs_init(struct nvt_dev *nvt)
->  
->  static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
->  {
-> +	int i;
-> +	u8 cmp_reg = CIR_WAKE_FIFO_CMP_BYTES;
-> +	u8 ircon_reg = CIR_WAKE_IRCON_RXEN | CIR_WAKE_IRCON_R |
-> +		       CIR_WAKE_IRCON_RXINV | CIR_WAKE_IRCON_SAMPLE_PERIOD_SEL;
-> +	/*
-> +	 * Enable TX and RX, specific carrier on = low, off = high, and set
-> +	 * sample period (currently 50us)
-> +	 */
-> +	nvt_cir_wake_reg_write(nvt, ircon_reg | CIR_WAKE_IRCON_MODE1,
-> +			       CIR_WAKE_IRCON);
-> +
-> +	/* clear cir wake rx fifo */
-> +	nvt_clear_cir_wake_fifo(nvt);
-> +
-> +	/* Write samples from module parameter to fifo */
-> +	for (i = 0; i < num_wake_samples; i++)
-> +		nvt_cir_wake_reg_write(nvt, wake_samples[i],
-> +				       CIR_WAKE_WR_FIFO_DATA);
-> +
-> +	/* Switch cir to wakeup mode and disable fifo writing */
-> +	nvt_cir_wake_reg_write(nvt, ircon_reg | CIR_WAKE_IRCON_MODE0,
-> +			       CIR_WAKE_IRCON);
-> +
->  	/* set number of bytes needed for wake from s3 (default 65) */
-> -	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFO_CMP_BYTES,
-> -			       CIR_WAKE_FIFO_CMP_DEEP);
-> +	if (cmp_deep)
-> +		cmp_reg = cmp_deep;
-> +	else if (num_wake_samples)
-> +		cmp_reg = num_wake_samples;
-> +	nvt_cir_wake_reg_write(nvt, cmp_reg, CIR_WAKE_FIFO_CMP_DEEP);
->  
->  	/* set tolerance/variance allowed per byte during wake compare */
-> -	nvt_cir_wake_reg_write(nvt, CIR_WAKE_CMP_TOLERANCE,
-> -			       CIR_WAKE_FIFO_CMP_TOL);
-> +	nvt_cir_wake_reg_write(nvt, cmp_tolerance, CIR_WAKE_FIFO_CMP_TOL);
->  
->  	/* set sample limit count (PE interrupt raised when reached) */
->  	nvt_cir_wake_reg_write(nvt, CIR_RX_LIMIT_COUNT >> 8, CIR_WAKE_SLCH);
-> @@ -434,18 +468,6 @@ static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
->  	nvt_cir_wake_reg_write(nvt, CIR_WAKE_FIFOCON_RX_TRIGGER_LEV,
->  			       CIR_WAKE_FIFOCON);
->  
-> -	/*
-> -	 * Enable TX and RX, specific carrier on = low, off = high, and set
-> -	 * sample period (currently 50us)
-> -	 */
-> -	nvt_cir_wake_reg_write(nvt, CIR_WAKE_IRCON_MODE0 | CIR_WAKE_IRCON_RXEN |
-> -			       CIR_WAKE_IRCON_R | CIR_WAKE_IRCON_RXINV |
-> -			       CIR_WAKE_IRCON_SAMPLE_PERIOD_SEL,
-> -			       CIR_WAKE_IRCON);
-> -
-> -	/* clear cir wake rx fifo */
-> -	nvt_clear_cir_wake_fifo(nvt);
-> -
->  	/* clear any and all stray interrupts */
->  	nvt_cir_wake_reg_write(nvt, 0xff, CIR_WAKE_IRSTS);
->  }
-> @@ -1232,6 +1254,17 @@ static void nvt_exit(void)
->  module_param(debug, int, S_IRUGO | S_IWUSR);
->  MODULE_PARM_DESC(debug, "Enable debugging output");
->  
-> +module_param_array(wake_samples, byte, &num_wake_samples, S_IRUGO | S_IWUSR);
-> +MODULE_PARM_DESC(wake_samples, "FIFO sample bytes triggering wake");
-> +
-> +module_param(cmp_deep, byte, S_IRUGO | S_IWUSR);
-> +MODULE_PARM_DESC(cmp_deep, "How many bytes need to compare\n"
-> +			   "\t\t(0 = auto (default))");
-> +
-> +module_param(cmp_tolerance, byte, S_IRUGO | S_IWUSR);
-> +MODULE_PARM_DESC(cmp_tolerance, "Data tolerance to each wake sample byte\n"
-> +				"\t\t(default = 5)");
-> +
->  MODULE_DEVICE_TABLE(pnp, nvt_ids);
->  MODULE_DESCRIPTION("Nuvoton W83667HG-A & W83677HG-I CIR driver");
->  
-> diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-> index 07e8310..8209f84 100644
-> --- a/drivers/media/rc/nuvoton-cir.h
-> +++ b/drivers/media/rc/nuvoton-cir.h
-> @@ -31,10 +31,6 @@
->  /* platform driver name to register */
->  #define NVT_DRIVER_NAME "nuvoton-cir"
->  
-> -/* debugging module parameter */
-> -static int debug;
-> -
-> -
->  #define nvt_pr(level, text, ...) \
->  	printk(level KBUILD_MODNAME ": " text, ## __VA_ARGS__)
->  
-> @@ -64,6 +60,8 @@ static int debug;
->  #define TX_BUF_LEN 256
->  #define RX_BUF_LEN 32
->  
-> +#define WAKE_FIFO_LEN 67
-> +
->  struct nvt_dev {
->  	struct pnp_dev *pdev;
->  	struct rc_dev *rdev;
-
-
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 4d7782a..858a6f3 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1272,6 +1272,35 @@ struct v4l2_queryctrl {
+ 	__u32		     reserved[2];
+ };
+ 
++/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
++struct v4l2_query_ext_ctrl {
++	__u32		     id;
++	__u32		     type;
++	char		     name[32];
++	char		     unit[32];
++	union {
++		__s64 val;
++		__u32 reserved[4];
++	} min;
++	union {
++		__s64 val;
++		__u32 reserved[4];
++	} max;
++	union {
++		__u64 val;
++		__u32 reserved[4];
++	} step;
++	union {
++		__s64 val;
++		__u32 reserved[4];
++	} def;
++	__u32                flags;
++	__u32                cols;
++	__u32                rows;
++	__u32                elem_size;
++	__u32		     reserved[17];
++};
++
+ /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
+ struct v4l2_querymenu {
+ 	__u32		id;
+@@ -1965,6 +1994,8 @@ struct v4l2_create_buffers {
+    Never use these in applications! */
+ #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+ 
++#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
 -- 
+1.8.5.2
 
-Cheers,
-Mauro
