@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42869 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751852AbaAMShX (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47379 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932281AbaAaQmh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jan 2014 13:37:23 -0500
-Received: by mail-ee0-f46.google.com with SMTP id d49so3348881eek.33
-        for <linux-media@vger.kernel.org>; Mon, 13 Jan 2014 10:37:22 -0800 (PST)
-Message-ID: <52D432A8.5070206@googlemail.com>
-Date: Mon, 13 Jan 2014 19:38:32 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+	Fri, 31 Jan 2014 11:42:37 -0500
+Date: Fri, 31 Jan 2014 18:42:34 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, k.debski@samsung.com
+Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
+Message-ID: <20140131164233.GB15383@valkosipuli.retiisi.org.uk>
+References: <201308281419.52009.hverkuil@xs4all.nl>
+ <344618801.kmLM0jZvMY@avalon>
+ <52A9ADF6.2090900@xs4all.nl>
+ <18082456.iNCn4Qe0lB@avalon>
+ <52EBC534.8080903@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/7] em28xx-audio: fix return code on device disconnect
-References: <1389567649-26838-1-git-send-email-m.chehab@samsung.com> <1389567649-26838-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1389567649-26838-2-git-send-email-m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <52EBC534.8080903@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.01.2014 00:00, Mauro Carvalho Chehab wrote:
-> Alsa has an special non-negative return code to indicate device removal
-> at snd_em28xx_capture_pointer(). Use it, instead of an error code.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> ---
->   drivers/media/usb/em28xx/em28xx-audio.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-> index f3e320098f79..47766b796acb 100644
-> --- a/drivers/media/usb/em28xx/em28xx-audio.c
-> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
-> @@ -434,7 +434,7 @@ static snd_pcm_uframes_t snd_em28xx_capture_pointer(struct snd_pcm_substream
->   
->   	dev = snd_pcm_substream_chip(substream);
->   	if (dev->disconnected)
-> -		return -ENODEV;
-> +		return SNDRV_PCM_POS_XRUN;
->   
->   	spin_lock_irqsave(&dev->adev.slock, flags);
->   	hwptr_done = dev->adev.hwptr_done_capture;
+Hi Hans and Laurent,
 
-Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+On Fri, Jan 31, 2014 at 04:45:56PM +0100, Hans Verkuil wrote:
+> How about defining a capability for use with ENUMINPUT/OUTPUT? I agree that this
+> won't change between buffers, but it is a property of a specific input or output.
+
+Over 80 characters per line. :-P
+
+> There are more than enough bits available in v4l2_input/output to add one for
+> SOF timestamps.
+
+In complex devices with a non-linear media graph inputs and outputs are not
+very relevant, and for that reason many drivers do not even implement them.
+I'd rather not bind video buffer queues to inputs or outputs.
+
+My personal favourite is still to use controls for the purpose but the
+buffer flags come close, too, especially now that we're using them for
+timestamp sources.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
