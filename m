@@ -1,228 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43695 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753367AbaADN7S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jan 2014 08:59:18 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH v4 21/22] [media] em28xx-audio: allocate URBs at device driver init
-Date: Sat,  4 Jan 2014 08:55:50 -0200
-Message-Id: <1388832951-11195-22-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3862 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932170AbaAaPhk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 10:37:40 -0500
+Message-ID: <52EBC33C.6050902@xs4all.nl>
+Date: Fri, 31 Jan 2014 16:37:32 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: subdev: Allow 32-bit compat IOCTLs
+References: <1391182129-5234-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1391182129-5234-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Hi Sakari,
 
-Instead of allocating/deallocating URBs and transfer buffers
-every time stream is started/stopped, just do it once.
+Sorry, this isn't right.
 
-That reduces the memory allocation pressure and makes the
-code that start/stop streaming a way simpler.
+It should go through v4l2_compat_ioctl32, otherwise ioctls for e.g. extended controls
+won't be converted correctly.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-audio.c | 128 ++++++++++++++++++--------------
- 1 file changed, 73 insertions(+), 55 deletions(-)
+In addition, v4l2_compat_ioctl32 needs to list all the subdev-specific ioctls.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index e5120430ec80..30ee389a07f0 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -3,7 +3,7 @@
-  *
-  *  Copyright (C) 2006 Markus Rechberger <mrechberger@gmail.com>
-  *
-- *  Copyright (C) 2007-2011 Mauro Carvalho Chehab <mchehab@redhat.com>
-+ *  Copyright (C) 2007-2014 Mauro Carvalho Chehab
-  *	- Port to work with the in-kernel driver
-  *	- Cleanups, fixes, alsa-controls, etc.
-  *
-@@ -70,16 +70,6 @@ static int em28xx_deinit_isoc_audio(struct em28xx *dev)
- 			usb_kill_urb(urb);
- 		else
- 			usb_unlink_urb(urb);
--
--		usb_free_coherent(dev->udev,
--				  urb->transfer_buffer_length,
--				  dev->adev.transfer_buffer[i],
--				  urb->transfer_dma);
--
--		dev->adev.transfer_buffer[i] = NULL;
--
--		usb_free_urb(urb);
--		dev->adev.urb[i] = NULL;
- 	}
- 
- 	return 0;
-@@ -174,53 +164,14 @@ static void em28xx_audio_isocirq(struct urb *urb)
- static int em28xx_init_audio_isoc(struct em28xx *dev)
- {
- 	int       i, errCode;
--	const int sb_size = EM28XX_NUM_AUDIO_PACKETS *
--			    EM28XX_AUDIO_MAX_PACKET_SIZE;
- 
- 	dprintk("Starting isoc transfers\n");
- 
-+	/* Start streaming */
- 	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
--		struct urb *urb;
--		int j, k;
--		void *buf;
--
--		urb = usb_alloc_urb(EM28XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
--		if (!urb) {
--			em28xx_errdev("usb_alloc_urb failed!\n");
--			for (j = 0; j < i; j++) {
--				usb_free_urb(dev->adev.urb[j]);
--				kfree(dev->adev.transfer_buffer[j]);
--			}
--			return -ENOMEM;
--		}
--
--		buf = usb_alloc_coherent(dev->udev, sb_size, GFP_ATOMIC,
--					 &urb->transfer_dma);
--		if (!buf)
--			return -ENOMEM;
--		dev->adev.transfer_buffer[i] = buf;
--		memset(buf, 0x80, sb_size);
--
--		urb->dev = dev->udev;
--		urb->context = dev;
--		urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
--		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
--		urb->transfer_buffer = dev->adev.transfer_buffer[i];
--		urb->interval = 1;
--		urb->complete = em28xx_audio_isocirq;
--		urb->number_of_packets = EM28XX_NUM_AUDIO_PACKETS;
--		urb->transfer_buffer_length = sb_size;
--
--		for (j = k = 0; j < EM28XX_NUM_AUDIO_PACKETS;
--			     j++, k += EM28XX_AUDIO_MAX_PACKET_SIZE) {
--			urb->iso_frame_desc[j].offset = k;
--			urb->iso_frame_desc[j].length =
--			    EM28XX_AUDIO_MAX_PACKET_SIZE;
--		}
--		dev->adev.urb[i] = urb;
--	}
-+		memset(dev->adev.transfer_buffer[i], 0x80,
-+		       dev->adev.urb[i]->transfer_buffer_length);
- 
--	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
- 		errCode = usb_submit_urb(dev->adev.urb[i], GFP_ATOMIC);
- 		if (errCode) {
- 			em28xx_errdev("submit of audio urb failed\n");
-@@ -643,13 +594,36 @@ static struct snd_pcm_ops snd_em28xx_pcm_capture = {
- 	.page      = snd_pcm_get_vmalloc_page,
- };
- 
-+static void em28xx_audio_free_urb(struct em28xx *dev)
-+{
-+	int i;
-+
-+	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
-+		struct urb *urb = dev->adev.urb[i];
-+
-+		if (!dev->adev.urb[i])
-+			continue;
-+
-+		usb_free_coherent(dev->udev,
-+				  urb->transfer_buffer_length,
-+				  dev->adev.transfer_buffer[i],
-+				  urb->transfer_dma);
-+
-+		usb_free_urb(urb);
-+		dev->adev.urb[i] = NULL;
-+		dev->adev.transfer_buffer[i] = NULL;
-+	}
-+}
-+
- static int em28xx_audio_init(struct em28xx *dev)
- {
- 	struct em28xx_audio *adev = &dev->adev;
- 	struct snd_pcm      *pcm;
- 	struct snd_card     *card;
- 	static int          devnr;
--	int                 err;
-+	int                 err, i;
-+	const int sb_size = EM28XX_NUM_AUDIO_PACKETS *
-+			    EM28XX_AUDIO_MAX_PACKET_SIZE;
- 
- 	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
- 		/* This device does not support the extension (in this case
-@@ -662,7 +636,8 @@ static int em28xx_audio_init(struct em28xx *dev)
- 
- 	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
- 			 "Rechberger\n");
--	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab\n");
-+	printk(KERN_INFO
-+	       "em28xx-audio.c: Copyright (C) 2007-2014 Mauro Carvalho Chehab\n");
- 
- 	err = snd_card_create(index[devnr], "Em28xx Audio", THIS_MODULE, 0,
- 			      &card);
-@@ -704,6 +679,47 @@ static int em28xx_audio_init(struct em28xx *dev)
- 		em28xx_cvol_new(card, dev, "Surround", AC97_SURROUND_MASTER);
- 	}
- 
-+	/* Alloc URB and transfer buffers */
-+	for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
-+		struct urb *urb;
-+		int j, k;
-+		void *buf;
-+
-+		urb = usb_alloc_urb(EM28XX_NUM_AUDIO_PACKETS, GFP_ATOMIC);
-+		if (!urb) {
-+			em28xx_errdev("usb_alloc_urb failed!\n");
-+			em28xx_audio_free_urb(dev);
-+			return -ENOMEM;
-+		}
-+		dev->adev.urb[i] = urb;
-+
-+		buf = usb_alloc_coherent(dev->udev, sb_size, GFP_ATOMIC,
-+					 &urb->transfer_dma);
-+		if (!buf) {
-+			em28xx_errdev("usb_alloc_coherent failed!\n");
-+			em28xx_audio_free_urb(dev);
-+			return -ENOMEM;
-+		}
-+		dev->adev.transfer_buffer[i] = buf;
-+
-+		urb->dev = dev->udev;
-+		urb->context = dev;
-+		urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
-+		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
-+		urb->transfer_buffer = dev->adev.transfer_buffer[i];
-+		urb->interval = 1;
-+		urb->complete = em28xx_audio_isocirq;
-+		urb->number_of_packets = EM28XX_NUM_AUDIO_PACKETS;
-+		urb->transfer_buffer_length = sb_size;
-+
-+		for (j = k = 0; j < EM28XX_NUM_AUDIO_PACKETS;
-+			     j++, k += EM28XX_AUDIO_MAX_PACKET_SIZE) {
-+			urb->iso_frame_desc[j].offset = k;
-+			urb->iso_frame_desc[j].length =
-+			    EM28XX_AUDIO_MAX_PACKET_SIZE;
-+		}
-+	}
-+
- 	err = snd_card_register(card);
- 	if (err < 0) {
- 		snd_card_free(card);
-@@ -728,6 +744,8 @@ static int em28xx_audio_fini(struct em28xx *dev)
- 		return 0;
- 	}
- 
-+	em28xx_audio_free_urb(dev);
-+
- 	if (dev->adev.sndcard) {
- 		snd_card_free(dev->adev.sndcard);
- 		dev->adev.sndcard = NULL;
--- 
-1.8.3.1
+I'd have sworn I did that once, but I've no idea what happened to that patch...
 
+Regards,
+
+	Hans
+
+On 01/31/2014 04:28 PM, Sakari Ailus wrote:
+> I thought this was already working but apparently not. Allow 32-bit compat
+> IOCTLs on 64-bit systems.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-subdev.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> index 996c248..99c54f4 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -389,6 +389,9 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+>  	.owner = THIS_MODULE,
+>  	.open = subdev_open,
+>  	.unlocked_ioctl = subdev_ioctl,
+> +#ifdef CONFIG_COMPAT
+> +	.compat_ioctl32 = subdev_ioctl,
+> +#endif /* CONFIG_COMPAT */
+>  	.release = subdev_close,
+>  	.poll = subdev_poll,
+>  };
+> 
