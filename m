@@ -1,82 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59636 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751914AbaAYRR2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jan 2014 12:17:28 -0500
-Message-ID: <52E3F1A5.5060403@iki.fi>
-Date: Sat, 25 Jan 2014 19:17:25 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [GIT PULL] SDR API
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3480 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751410AbaAaKCm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 05:02:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 28/32] v4l2: add a motion detection event.
+Date: Fri, 31 Jan 2014 10:56:26 +0100
+Message-Id: <1391162190-8620-29-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-   [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
+Add a new MOTION_DET event to signal when motion is detected.
 
-are available in the git repository at:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-   git://linuxtv.org/anttip/media_tree.git sdr_api
-
-for you to fetch changes up to 3a95ad55cfa4c2b88a3f09509c6903a55dc9cce9:
-
-   devices.txt: add video4linux device for Software Defined Radio 
-(2014-01-25 19:02:06 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (12):
-       v4l: add device type for Software Defined Radio
-       v4l: add new tuner types for SDR
-       v4l: 1 Hz resolution flag for tuners
-       v4l: add stream format for SDR receiver
-       v4l: define own IOCTL ops for SDR FMT
-       v4l: enable some IOCTLs for SDR receiver
-       v4l: add device capability flag for SDR receiver
-       DocBook: document 1 Hz flag
-       DocBook: Software Defined Radio Interface
-       DocBook: mark SDR API as Experimental
-       v4l2-framework.txt: add SDR device type
-       devices.txt: add video4linux device for Software Defined Radio
-
-Hans Verkuil (1):
-       v4l: do not allow modulator ioctls for non-radio devices
-
-  Documentation/DocBook/media/v4l/compat.xml                 |  13 
-+++++++++++++
-  Documentation/DocBook/media/v4l/dev-sdr.xml                | 110 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  Documentation/DocBook/media/v4l/io.xml                     |   6 ++++++
-  Documentation/DocBook/media/v4l/pixfmt.xml                 |   8 ++++++++
-  Documentation/DocBook/media/v4l/v4l2.xml                   |   1 +
-  Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml |   8 +++++---
-  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml           |   7 +++++++
-  Documentation/DocBook/media/v4l/vidioc-g-frequency.xml     |   5 +++--
-  Documentation/DocBook/media/v4l/vidioc-g-modulator.xml     |   6 ++++--
-  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml         |  15 
-++++++++++++---
-  Documentation/DocBook/media/v4l/vidioc-querycap.xml        |   6 ++++++
-  Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml  |   8 ++++++--
-  Documentation/devices.txt                                  |   7 +++++++
-  Documentation/video4linux/v4l2-framework.txt               |   1 +
-  drivers/media/v4l2-core/v4l2-dev.c                         |  30 
-++++++++++++++++++++++++++----
-  drivers/media/v4l2-core/v4l2-ioctl.c                       |  75 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------
-  include/media/v4l2-dev.h                                   |   3 ++-
-  include/media/v4l2-ioctl.h                                 |   8 ++++++++
-  include/trace/events/v4l2.h                                |   1 +
-  include/uapi/linux/videodev2.h                             |  16 
-++++++++++++++++
-  20 files changed, 306 insertions(+), 28 deletions(-)
-  create mode 100644 Documentation/DocBook/media/v4l/dev-sdr.xml
-
-
-
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 8b70f51..4cbfb16 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1773,6 +1773,7 @@ struct v4l2_streamparm {
+ #define V4L2_EVENT_EOS				2
+ #define V4L2_EVENT_CTRL				3
+ #define V4L2_EVENT_FRAME_SYNC			4
++#define V4L2_EVENT_MOTION_DET			5
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
+ 
+ /* Payload for V4L2_EVENT_VSYNC */
+@@ -1804,12 +1805,28 @@ struct v4l2_event_frame_sync {
+ 	__u32 frame_sequence;
+ };
+ 
++#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
++
++/**
++ * struct v4l2_event_motion_det - motion detection event
++ * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
++ *                     frame_sequence field is valid.
++ * @frame_sequence:    the frame sequence number associated with this event.
++ * @region_mask:       which regions detected motion.
++ */
++struct v4l2_event_motion_det {
++	__u32 flags;
++	__u32 frame_sequence;
++	__u32 region_mask;
++};
++
+ struct v4l2_event {
+ 	__u32				type;
+ 	union {
+ 		struct v4l2_event_vsync		vsync;
+ 		struct v4l2_event_ctrl		ctrl;
+ 		struct v4l2_event_frame_sync	frame_sync;
++		struct v4l2_event_motion_det	motion_det;
+ 		__u8				data[64];
+ 	} u;
+ 	__u32				pending;
 -- 
-http://palosaari.fi/
+1.8.5.2
+
