@@ -1,570 +1,661 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:33578 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756171AbaAFV1R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jan 2014 16:27:17 -0500
-Received: by mail-ee0-f44.google.com with SMTP id b57so8072705eek.17
-        for <linux-media@vger.kernel.org>; Mon, 06 Jan 2014 13:27:15 -0800 (PST)
-Message-ID: <52CB1FF7.3060706@googlemail.com>
-Date: Mon, 06 Jan 2014 22:28:23 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 03/22] [media] em28xx: move analog-specific init to
- em28xx-video
-References: <1388832951-11195-1-git-send-email-m.chehab@samsung.com> <1388832951-11195-4-git-send-email-m.chehab@samsung.com> <52C93346.8070507@googlemail.com> <20140105124001.5a90df8a@samsung.com>
-In-Reply-To: <20140105124001.5a90df8a@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2784 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753994AbaAaJ5O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 04:57:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 12/32] v4l2-ctrls: replace cur by a union v4l2_ctrl_ptr.
+Date: Fri, 31 Jan 2014 10:56:10 +0100
+Message-Id: <1391162190-8620-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.01.2014 15:40, schrieb Mauro Carvalho Chehab:
-> Em Sun, 05 Jan 2014 11:26:14 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 04.01.2014 11:55, schrieb Mauro Carvalho Chehab:
->>> There are several init code inside em28xx-cards that are actually
->>> part of analog initialization. Move the code to em28x-video, in
->>> order to remove part of the mess.
->>>
->>> In thesis, no functional changes so far.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
->>> ---
->>>  drivers/media/usb/em28xx/em28xx-cards.c | 71 -------------------------
->>>  drivers/media/usb/em28xx/em28xx-video.c | 91 ++++++++++++++++++++++++++++++---
->>>  2 files changed, 84 insertions(+), 78 deletions(-)
->>>
->>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
->>> index 551cbc294190..175cd776e0a1 100644
->>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
->>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
->>> @@ -2907,7 +2907,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->>>  			   struct usb_interface *interface,
->>>  			   int minor)
->>>  {
->>> -	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
->>>  	int retval;
->>>  	static const char *default_chip_name = "em28xx";
->>>  	const char *chip_name = default_chip_name;
->>> @@ -3034,15 +3033,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->>>  		}
->>>  	}
->>>  
->>> -	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
->>> -	if (retval < 0) {
->>> -		em28xx_errdev("Call to v4l2_device_register() failed!\n");
->>> -		return retval;
->>> -	}
->>> -
->>> -	v4l2_ctrl_handler_init(hdl, 8);
->>> -	dev->v4l2_dev.ctrl_handler = hdl;
->>> -
->>>  	rt_mutex_init(&dev->i2c_bus_lock);
->>>  
->>>  	/* register i2c bus 0 */
->>> @@ -3071,72 +3061,14 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->>>  		}
->>>  	}
->>>  
->>> -	/*
->>> -	 * Default format, used for tvp5150 or saa711x output formats
->>> -	 */
->>> -	dev->vinmode = 0x10;
->>> -	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
->>> -		       EM28XX_VINCTRL_CCIR656_ENABLE;
->>> -
->>>  	/* Do board specific init and eeprom reading */
->>>  	em28xx_card_setup(dev);
->>>  
->> em28xx_card_setup() initializes some v4l2 subdevices, but now the v4l2
->> device (dev->v4l2_dev) isn't ready at this point, because
->> v4l2_device_register() isn't called yet.
->> This introduces oopses.
->> You are fixing this with patch 5/22 later, but patches should never
->> introduce any oopses.
->> The simplest soultion is to move patch 5/22 before this patch.
-> After thinking for a while, the better to just fold patch 5 into patch 3,
-> and do the necessary changes at the error handling logic.
->
-> This makes it simpler to review and test. 
->
-> New patch enclosed.
->
-> Btw, I tested here with HVR-950, without any noticeable changes.
->
-> Cheers,
-> Mauro
->
-> -
->
-> [PATCH] [media] em28xx: move analog-specific init to em28xx-video
->
-> There are several init code inside em28xx-cards that are actually
-> part of analog initialization. Move the code to em28x-video, in
-> order to remove part of the mess.
->
-> In thesis, no functional changes so far.
->
-> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index 154e6f028fd2..541de6df127b 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -2360,24 +2360,6 @@ static struct em28xx_hash_table em28xx_i2c_hash[] = {
->  };
->  /* NOTE: introduce a separate hash table for devices with 16 bit eeproms */
->  
-> -/* I2C possible address to saa7115, tvp5150, msp3400, tvaudio */
-> -static unsigned short saa711x_addrs[] = {
-> -	0x4a >> 1, 0x48 >> 1,   /* SAA7111, SAA7111A and SAA7113 */
-> -	0x42 >> 1, 0x40 >> 1,   /* SAA7114, SAA7115 and SAA7118 */
-> -	I2C_CLIENT_END };
-> -
-> -static unsigned short tvp5150_addrs[] = {
-> -	0xb8 >> 1,
-> -	0xba >> 1,
-> -	I2C_CLIENT_END
-> -};
-> -
-> -static unsigned short msp3400_addrs[] = {
-> -	0x80 >> 1,
-> -	0x88 >> 1,
-> -	I2C_CLIENT_END
-> -};
-> -
->  int em28xx_tuner_callback(void *ptr, int component, int command, int arg)
->  {
->  	struct em28xx_i2c_bus *i2c_bus = ptr;
-> @@ -2782,58 +2764,8 @@ static void em28xx_card_setup(struct em28xx *dev)
->  	/* Allow override tuner type by a module parameter */
->  	if (tuner >= 0)
->  		dev->tuner_type = tuner;
-> -
-> -	/* request some modules */
-> -	if (dev->board.has_msp34xx)
-> -		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> -			"msp3400", 0, msp3400_addrs);
-> -
-> -	if (dev->board.decoder == EM28XX_SAA711X)
-> -		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> -			"saa7115_auto", 0, saa711x_addrs);
-> -
-> -	if (dev->board.decoder == EM28XX_TVP5150)
-> -		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> -			"tvp5150", 0, tvp5150_addrs);
-> -
-> -	if (dev->board.adecoder == EM28XX_TVAUDIO)
-> -		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> -			"tvaudio", dev->board.tvaudio_addr, NULL);
-> -
-> -	if (dev->board.tuner_type != TUNER_ABSENT) {
-> -		int has_demod = (dev->tda9887_conf & TDA9887_PRESENT);
-> -
-> -		if (dev->board.radio.type)
-> -			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> -				"tuner", dev->board.radio_addr, NULL);
-> -
-> -		if (has_demod)
-> -			v4l2_i2c_new_subdev(&dev->v4l2_dev,
-> -				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
-> -				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
-> -		if (dev->tuner_addr == 0) {
-> -			enum v4l2_i2c_tuner_type type =
-> -				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
-> -			struct v4l2_subdev *sd;
-> -
-> -			sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
-> -				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
-> -				0, v4l2_i2c_tuner_addrs(type));
-> -
-> -			if (sd)
-> -				dev->tuner_addr = v4l2_i2c_subdev_addr(sd);
-> -		} else {
-> -			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> -				"tuner", dev->tuner_addr, NULL);
-> -		}
-> -	}
-> -
-> -	em28xx_tuner_setup(dev);
-> -
-> -	em28xx_init_camera(dev);
->  }
->  
-> -
->  static void request_module_async(struct work_struct *work)
->  {
->  	struct em28xx *dev = container_of(work,
-> @@ -2907,7 +2839,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  			   struct usb_interface *interface,
->  			   int minor)
->  {
-> -	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
->  	int retval;
->  	static const char *default_chip_name = "em28xx";
->  	const char *chip_name = default_chip_name;
-> @@ -3034,15 +2965,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  		}
->  	}
->  
-> -	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
-> -	if (retval < 0) {
-> -		em28xx_errdev("Call to v4l2_device_register() failed!\n");
-> -		return retval;
-> -	}
-> -
-> -	v4l2_ctrl_handler_init(hdl, 8);
-> -	dev->v4l2_dev.ctrl_handler = hdl;
-> -
->  	rt_mutex_init(&dev->i2c_bus_lock);
->  
->  	/* register i2c bus 0 */
-> @@ -3053,7 +2975,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  	if (retval < 0) {
->  		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
->  			__func__, retval);
-> -		goto unregister_dev;
-> +		return retval;
->  	}
->  
->  	/* register i2c bus 1 */
-> @@ -3067,75 +2989,16 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  		if (retval < 0) {
->  			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
->  				__func__, retval);
-> -			goto unregister_dev;
-> +			return retval;
->  		}
->  	}
->  
-> -	/*
-> -	 * Default format, used for tvp5150 or saa711x output formats
-> -	 */
-> -	dev->vinmode = 0x10;
-> -	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
-> -		       EM28XX_VINCTRL_CCIR656_ENABLE;
-> -
->  	/* Do board specific init and eeprom reading */
->  	em28xx_card_setup(dev);
->  
-> -	/* Configure audio */
-> -	retval = em28xx_audio_setup(dev);
-> -	if (retval < 0) {
-> -		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
-> -			__func__, retval);
-> -		goto fail;
-> -	}
-> -	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-> -		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-> -			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-> -		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-> -			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
-> -	} else {
-> -		/* install the em28xx notify callback */
-> -		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
-> -				em28xx_ctrl_notify, dev);
-> -		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
-> -				em28xx_ctrl_notify, dev);
-> -	}
-> -
-> -	/* wake i2c devices */
-> -	em28xx_wake_i2c(dev);
-> -
-> -	/* init video dma queues */
-> -	INIT_LIST_HEAD(&dev->vidq.active);
-> -	INIT_LIST_HEAD(&dev->vbiq.active);
-> -
-> -	if (dev->board.has_msp34xx) {
-> -		/* Send a reset to other chips via gpio */
-> -		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
-> -		if (retval < 0) {
-> -			em28xx_errdev("%s: em28xx_write_reg - "
-> -				      "msp34xx(1) failed! error [%d]\n",
-> -				      __func__, retval);
-> -			goto fail;
-> -		}
-> -		msleep(3);
-> -
-> -		retval = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
-> -		if (retval < 0) {
-> -			em28xx_errdev("%s: em28xx_write_reg - "
-> -				      "msp34xx(2) failed! error [%d]\n",
-> -				      __func__, retval);
-> -			goto fail;
-> -		}
-> -		msleep(3);
-> -	}
-> -
->  	retval = em28xx_register_analog_devices(dev);
-> -	if (retval < 0) {
-> +	if (retval < 0)
->  		goto fail;
-> -	}
-> -
-> -	/* Save some power by putting tuner to sleep */
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
->  
->  	return 0;
->  
-> @@ -3143,10 +3006,6 @@ fail:
->  	if (dev->def_i2c_bus)
->  		em28xx_i2c_unregister(dev, 1);
->  	em28xx_i2c_unregister(dev, 0);
-> -	v4l2_ctrl_handler_free(&dev->ctrl_handler);
-> -
-> -unregister_dev:
-> -	v4l2_device_unregister(&dev->v4l2_dev);
->  
->  	return retval;
->  }
-> @@ -3388,9 +3247,6 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->  	/* save our data pointer in this interface device */
->  	usb_set_intfdata(interface, dev);
->  
-> -	/* initialize videobuf2 stuff */
-> -	em28xx_vb2_setup(dev);
-> -
->  	/* allocate device struct */
->  	mutex_init(&dev->lock);
->  	mutex_lock(&dev->lock);
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index b3ede856c32e..3726af134f39 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -2045,6 +2045,24 @@ static struct video_device em28xx_radio_template = {
->  	.ioctl_ops 	      = &radio_ioctl_ops,
->  };
->  
-> +/* I2C possible address to saa7115, tvp5150, msp3400, tvaudio */
-> +static unsigned short saa711x_addrs[] = {
-> +	0x4a >> 1, 0x48 >> 1,   /* SAA7111, SAA7111A and SAA7113 */
-> +	0x42 >> 1, 0x40 >> 1,   /* SAA7114, SAA7115 and SAA7118 */
-> +	I2C_CLIENT_END };
-> +
-> +static unsigned short tvp5150_addrs[] = {
-> +	0xb8 >> 1,
-> +	0xba >> 1,
-> +	I2C_CLIENT_END
-> +};
-> +
-> +static unsigned short msp3400_addrs[] = {
-> +	0x80 >> 1,
-> +	0x88 >> 1,
-> +	I2C_CLIENT_END
-> +};
-> +
->  /******************************** usb interface ******************************/
->  
->  
-> @@ -2186,10 +2204,129 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  	u8 val;
->  	int ret;
->  	unsigned int maxw;
-> +	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
-> +
-> +	if (dev->is_audio_only) {
-> +		/* This device does not support the v4l2 extension */
-> +		return 0;
-> +	}
->  
->  	printk(KERN_INFO "%s: v4l2 driver version %s\n",
->  		dev->name, EM28XX_VERSION);
->  
-> +	ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
-> +	if (ret < 0) {
-> +		em28xx_errdev("Call to v4l2_device_register() failed!\n");
-> +		goto err;
-> +	}
-> +
-> +	v4l2_ctrl_handler_init(hdl, 8);
-> +	dev->v4l2_dev.ctrl_handler = hdl;
-> +
-> +	/*
-> +	 * Default format, used for tvp5150 or saa711x output formats
-> +	 */
-> +	dev->vinmode = 0x10;
-> +	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
-> +		       EM28XX_VINCTRL_CCIR656_ENABLE;
-> +
-> +	/* request some modules */
-> +
-> +	if (dev->board.has_msp34xx)
-> +		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> +			"msp3400", 0, msp3400_addrs);
-> +
-> +	if (dev->board.decoder == EM28XX_SAA711X)
-> +		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> +			"saa7115_auto", 0, saa711x_addrs);
-> +
-> +	if (dev->board.decoder == EM28XX_TVP5150)
-> +		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> +			"tvp5150", 0, tvp5150_addrs);
-> +
-> +	if (dev->board.adecoder == EM28XX_TVAUDIO)
-> +		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> +			"tvaudio", dev->board.tvaudio_addr, NULL);
-> +
-> +	/* Initialize tuner and camera */
-> +
-> +	if (dev->board.tuner_type != TUNER_ABSENT) {
-> +		int has_demod = (dev->tda9887_conf & TDA9887_PRESENT);
-> +
-> +		if (dev->board.radio.type)
-> +			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> +				"tuner", dev->board.radio_addr, NULL);
-> +
-> +		if (has_demod)
-> +			v4l2_i2c_new_subdev(&dev->v4l2_dev,
-> +				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
-> +				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
-> +		if (dev->tuner_addr == 0) {
-> +			enum v4l2_i2c_tuner_type type =
-> +				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
-> +			struct v4l2_subdev *sd;
-> +
-> +			sd = v4l2_i2c_new_subdev(&dev->v4l2_dev,
-> +				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
-> +				0, v4l2_i2c_tuner_addrs(type));
-> +
-> +			if (sd)
-> +				dev->tuner_addr = v4l2_i2c_subdev_addr(sd);
-> +		} else {
-> +			v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap[dev->def_i2c_bus],
-> +				"tuner", dev->tuner_addr, NULL);
-> +		}
-> +	}
-> +
-> +	em28xx_tuner_setup(dev);
-> +	em28xx_init_camera(dev);
-> +
-> +	/* Configure audio */
-> +	ret = em28xx_audio_setup(dev);
-> +	if (ret < 0) {
-> +		em28xx_errdev("%s: Error while setting audio - error [%d]!\n",
-> +			__func__, ret);
-> +		goto unregister_dev;
-> +	}
-> +	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-> +		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-> +			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-> +		v4l2_ctrl_new_std(hdl, &em28xx_ctrl_ops,
-> +			V4L2_CID_AUDIO_VOLUME, 0, 0x1f, 1, 0x1f);
-> +	} else {
-> +		/* install the em28xx notify callback */
-> +		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_MUTE),
-> +				em28xx_ctrl_notify, dev);
-> +		v4l2_ctrl_notify(v4l2_ctrl_find(hdl, V4L2_CID_AUDIO_VOLUME),
-> +				em28xx_ctrl_notify, dev);
-> +	}
-> +
-> +	/* wake i2c devices */
-> +	em28xx_wake_i2c(dev);
-> +
-> +	/* init video dma queues */
-> +	INIT_LIST_HEAD(&dev->vidq.active);
-> +	INIT_LIST_HEAD(&dev->vbiq.active);
-> +
-> +	if (dev->board.has_msp34xx) {
-> +		/* Send a reset to other chips via gpio */
-> +		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xf7);
-> +		if (ret < 0) {
-> +			em28xx_errdev("%s: em28xx_write_reg - msp34xx(1) failed! error [%d]\n",
-> +				      __func__, ret);
-> +			goto unregister_dev;
-> +		}
-> +		msleep(3);
-> +
-> +		ret = em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xff);
-> +		if (ret < 0) {
-> +			em28xx_errdev("%s: em28xx_write_reg - msp34xx(2) failed! error [%d]\n",
-> +				      __func__, ret);
-> +			goto unregister_dev;
-> +		}
-> +		msleep(3);
-> +	}
-> +
->  	/* set default norm */
->  	dev->norm = V4L2_STD_PAL;
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
-> @@ -2252,14 +2389,16 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  	/* Reset image controls */
->  	em28xx_colorlevels_set_default(dev);
->  	v4l2_ctrl_handler_setup(&dev->ctrl_handler);
-> -	if (dev->ctrl_handler.error)
-> -		return dev->ctrl_handler.error;
-> +	ret = dev->ctrl_handler.error;
-> +	if (ret)
-> +		goto unregister_dev;
->  
->  	/* allocate and fill video video_device struct */
->  	dev->vdev = em28xx_vdev_init(dev, &em28xx_video_template, "video");
->  	if (!dev->vdev) {
->  		em28xx_errdev("cannot allocate video_device.\n");
-> -		return -ENODEV;
-> +		ret = -ENODEV;
-> +		goto unregister_dev;
->  	}
->  	dev->vdev->queue = &dev->vb_vidq;
->  	dev->vdev->queue->lock = &dev->vb_queue_lock;
-> @@ -2289,7 +2428,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  	if (ret) {
->  		em28xx_errdev("unable to register video device (error=%i).\n",
->  			      ret);
-> -		return ret;
-> +		goto unregister_dev;
->  	}
->  
->  	/* Allocate and fill vbi video_device struct */
-> @@ -2318,7 +2457,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  					    vbi_nr[dev->devno]);
->  		if (ret < 0) {
->  			em28xx_errdev("unable to register vbi device\n");
-> -			return ret;
-> +			goto unregister_dev;
->  		}
->  	}
->  
-> @@ -2327,13 +2466,14 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  						  "radio");
->  		if (!dev->radio_dev) {
->  			em28xx_errdev("cannot allocate video_device.\n");
-> -			return -ENODEV;
-> +			ret = -ENODEV;
-> +			goto unregister_dev;
->  		}
->  		ret = video_register_device(dev->radio_dev, VFL_TYPE_RADIO,
->  					    radio_nr[dev->devno]);
->  		if (ret < 0) {
->  			em28xx_errdev("can't register radio device\n");
-> -			return ret;
-> +			goto unregister_dev;
->  		}
->  		em28xx_info("Registered radio device as %s\n",
->  			    video_device_node_name(dev->radio_dev));
-> @@ -2346,5 +2486,17 @@ int em28xx_register_analog_devices(struct em28xx *dev)
->  		em28xx_info("V4L2 VBI device registered as %s\n",
->  			    video_device_node_name(dev->vbi_dev));
->  
-> +	/* Save some power by putting tuner to sleep */
-> +	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-> +
-> +	/* initialize videobuf2 stuff */
-> +	em28xx_vb2_setup(dev);
-> +
->  	return 0;
-> +
-> +unregister_dev:
-> +	v4l2_ctrl_handler_free(&dev->ctrl_handler);
-> +	v4l2_device_unregister(&dev->v4l2_dev);
-> +err:
-> +	return ret;
->  }
->
-Ok, looks fine now. :)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Instead of having to maintain the 'cur' union this patch replaces it by
+a v4l2_ctrl_ptr union to be consistent with the future configuration stores,
+which also use that union. The number of drivers that use 'cur' is fairly small,
+so it is easy enough to convert them all.
+
+Unfortunately, the union for the new value cannot be dropped as easily
+since it is used pretty much everywhere.
+
+As a consequence of these changes the v4l2_ctrl struct changes as well.
+
+It was this:
+
+	union { };		 // anonymous union for the 'new' value
+	union { } cur;		 // union for the 'cur' value
+	union v4l2_ctrl_ptr new; // v4l2_ctrl_ptr to the new value (anonymous union)
+	union v4l2_ctrl_ptr stores[]; // v4l2_ctrl_ptr to the cur union
+
+where the stores array contains just one v4l2_ctrl_ptr union when it is
+allocated.
+
+It changes to this:
+
+	union { };		 // anonymous union for the 'new' value
+	union v4l2_ctrl_ptr *stores; // set to &cur
+	union v4l2_ctrl_ptr new; // v4l2_ctrl_ptr to the new value (anonymous union)
+	union v4l2_ctrl_ptr cur; // v4l2_ctrl_ptr for the cur value
+
+The end result is the same: stores[0] is a pointer to the current value,
+stores[-1] is a pointer to the new value, and the 'cur' field is still
+there as well, except that the cur field is now a pointer union to the
+actual value, so cur.val is now *cur.p_s32.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/video4linux/v4l2-controls.txt   |  4 ++--
+ drivers/media/common/cx2341x.c                |  4 ++--
+ drivers/media/i2c/adp1653.c                   | 10 +++++-----
+ drivers/media/i2c/as3645a.c                   | 22 ++++++++++-----------
+ drivers/media/i2c/lm3560.c                    |  2 +-
+ drivers/media/i2c/m5mols/m5mols_controls.c    |  6 +++---
+ drivers/media/i2c/msp3400-driver.c            |  4 ++--
+ drivers/media/i2c/mt9p031.c                   |  4 ++--
+ drivers/media/i2c/mt9t001.c                   |  4 ++--
+ drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c     |  6 +++---
+ drivers/media/i2c/smiapp/smiapp-core.c        | 12 ++++++------
+ drivers/media/pci/cx18/cx18-av-core.c         |  2 +-
+ drivers/media/pci/cx18/cx18-driver.c          | 10 +++++-----
+ drivers/media/platform/exynos4-is/fimc-core.c |  6 +++---
+ drivers/media/platform/vivi.c                 | 28 +++++++++++++--------------
+ drivers/media/radio/radio-isa.c               |  2 +-
+ drivers/media/radio/radio-sf16fmr2.c          |  4 ++--
+ drivers/media/usb/gspca/conex.c               |  8 ++++----
+ drivers/media/usb/gspca/sn9c20x.c             |  4 ++--
+ drivers/media/usb/gspca/topro.c               |  4 ++--
+ drivers/media/v4l2-core/v4l2-ctrls.c          | 16 +++++++--------
+ include/media/v4l2-ctrls.h                    |  9 ++-------
+ 22 files changed, 83 insertions(+), 88 deletions(-)
+
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 06cf3ac..1c353c2 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -362,8 +362,8 @@ will result in a deadlock since these helpers lock the handler as well.
+ You can also take the handler lock yourself:
+ 
+ 	mutex_lock(&state->ctrl_handler.lock);
+-	printk(KERN_INFO "String value is '%s'\n", ctrl1->cur.string);
+-	printk(KERN_INFO "Integer value is '%s'\n", ctrl2->cur.val);
++	pr_info("String value is '%s'\n", ctrl1->cur.p_char);
++	pr_info("Integer value is '%d'\n", *ctrl2->cur.p_s32);
+ 	mutex_unlock(&state->ctrl_handler.lock);
+ 
+ 
+diff --git a/drivers/media/common/cx2341x.c b/drivers/media/common/cx2341x.c
+index 103ef6b..909d334 100644
+--- a/drivers/media/common/cx2341x.c
++++ b/drivers/media/common/cx2341x.c
+@@ -1261,10 +1261,10 @@ static int cx2341x_hdl_api(struct cx2341x_handler *hdl,
+ 	return hdl->func(hdl->priv, cmd, args, 0, data);
+ }
+ 
+-/* ctrl->handler->lock is held, so it is safe to access cur.val */
++/* ctrl->handler->lock is held, so it is safe to access *cur.p_s32 */
+ static inline int cx2341x_neq(struct v4l2_ctrl *ctrl)
+ {
+-	return ctrl && ctrl->val != ctrl->cur.val;
++	return ctrl && ctrl->val != *ctrl->cur.p_s32;
+ }
+ 
+ static int cx2341x_try_ctrl(struct v4l2_ctrl *ctrl)
+diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+index 873fe19..7d478dc 100644
+--- a/drivers/media/i2c/adp1653.c
++++ b/drivers/media/i2c/adp1653.c
+@@ -158,16 +158,16 @@ static int adp1653_get_ctrl(struct v4l2_ctrl *ctrl)
+ 	if (IS_ERR_VALUE(rval))
+ 		return rval;
+ 
+-	ctrl->cur.val = 0;
++	*ctrl->cur.p_s32 = 0;
+ 
+ 	if (flash->fault & ADP1653_REG_FAULT_FLT_SCP)
+-		ctrl->cur.val |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
++		*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
+ 	if (flash->fault & ADP1653_REG_FAULT_FLT_OT)
+-		ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
++		*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
+ 	if (flash->fault & ADP1653_REG_FAULT_FLT_TMR)
+-		ctrl->cur.val |= V4L2_FLASH_FAULT_TIMEOUT;
++		*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_TIMEOUT;
+ 	if (flash->fault & ADP1653_REG_FAULT_FLT_OV)
+-		ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
++		*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
+ 
+ 	flash->fault = 0;
+ 
+diff --git a/drivers/media/i2c/as3645a.c b/drivers/media/i2c/as3645a.c
+index 301084b..4c6041c 100644
+--- a/drivers/media/i2c/as3645a.c
++++ b/drivers/media/i2c/as3645a.c
+@@ -334,24 +334,24 @@ static int as3645a_get_ctrl(struct v4l2_ctrl *ctrl)
+ 		if (value < 0)
+ 			return value;
+ 
+-		ctrl->cur.val = 0;
++		*ctrl->cur.p_s32 = 0;
+ 		if (value & AS_FAULT_INFO_SHORT_CIRCUIT)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
++			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
+ 		if (value & AS_FAULT_INFO_OVER_TEMPERATURE)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
++			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
+ 		if (value & AS_FAULT_INFO_TIMEOUT)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_TIMEOUT;
++			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_TIMEOUT;
+ 		if (value & AS_FAULT_INFO_OVER_VOLTAGE)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
++			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
+ 		if (value & AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_CURRENT;
++			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_CURRENT;
+ 		if (value & AS_FAULT_INFO_INDICATOR_LED)
+-			ctrl->cur.val |= V4L2_FLASH_FAULT_INDICATOR;
++			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_INDICATOR;
+ 		break;
+ 
+ 	case V4L2_CID_FLASH_STROBE_STATUS:
+ 		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH) {
+-			ctrl->cur.val = 0;
++			*ctrl->cur.p_s32 = 0;
+ 			break;
+ 		}
+ 
+@@ -359,11 +359,11 @@ static int as3645a_get_ctrl(struct v4l2_ctrl *ctrl)
+ 		if (value < 0)
+ 			return value;
+ 
+-		ctrl->cur.val = value;
++		*ctrl->cur.p_s32 = value;
+ 		break;
+ 	}
+ 
+-	dev_dbg(&client->dev, "G_CTRL %08x:%d\n", ctrl->id, ctrl->cur.val);
++	dev_dbg(&client->dev, "G_CTRL %08x:%d\n", ctrl->id, *ctrl->cur.p_s32);
+ 
+ 	return 0;
+ }
+@@ -458,7 +458,7 @@ static int as3645a_set_ctrl(struct v4l2_ctrl *ctrl)
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		if ((ctrl->val == 0) == (ctrl->cur.val == 0))
++		if ((ctrl->val == 0) == (*ctrl->cur.p_s32 == 0))
+ 			break;
+ 
+ 		return as3645a_set_output(flash, false);
+diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+index d98ca3a..edfe746 100644
+--- a/drivers/media/i2c/lm3560.c
++++ b/drivers/media/i2c/lm3560.c
+@@ -188,7 +188,7 @@ static int lm3560_get_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
+ 			fault |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
+ 		if (reg_val & FAULT_TIMEOUT)
+ 			fault |= V4L2_FLASH_FAULT_TIMEOUT;
+-		ctrl->cur.val = fault;
++		*ctrl->cur.p_s32 = fault;
+ 	}
+ 
+ out:
+diff --git a/drivers/media/i2c/m5mols/m5mols_controls.c b/drivers/media/i2c/m5mols/m5mols_controls.c
+index a60931e..7851d1f 100644
+--- a/drivers/media/i2c/m5mols/m5mols_controls.c
++++ b/drivers/media/i2c/m5mols/m5mols_controls.c
+@@ -191,7 +191,7 @@ static int m5mols_3a_lock(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
+ 	bool af_lock = ctrl->val & V4L2_LOCK_FOCUS;
+ 	int ret = 0;
+ 
+-	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_EXPOSURE) {
++	if ((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_EXPOSURE) {
+ 		bool ae_lock = ctrl->val & V4L2_LOCK_EXPOSURE;
+ 
+ 		ret = m5mols_write(&info->sd, AE_LOCK, ae_lock ?
+@@ -200,7 +200,7 @@ static int m5mols_3a_lock(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
+ 			return ret;
+ 	}
+ 
+-	if (((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_WHITE_BALANCE)
++	if (((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_WHITE_BALANCE)
+ 	    && info->auto_wb->val) {
+ 		bool awb_lock = ctrl->val & V4L2_LOCK_WHITE_BALANCE;
+ 
+@@ -213,7 +213,7 @@ static int m5mols_3a_lock(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
+ 	if (!info->ver.af || !af_lock)
+ 		return ret;
+ 
+-	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_FOCUS)
++	if ((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_FOCUS)
+ 		ret = m5mols_write(&info->sd, AF_EXECUTE, REG_AF_STOP);
+ 
+ 	return ret;
+diff --git a/drivers/media/i2c/msp3400-driver.c b/drivers/media/i2c/msp3400-driver.c
+index 8190fec..151016d 100644
+--- a/drivers/media/i2c/msp3400-driver.c
++++ b/drivers/media/i2c/msp3400-driver.c
+@@ -411,8 +411,8 @@ void msp_update_volume(struct msp_state *state)
+ {
+ 	/* Force an update of the volume/mute cluster */
+ 	v4l2_ctrl_lock(state->volume);
+-	state->volume->val = state->volume->cur.val;
+-	state->muted->val = state->muted->cur.val;
++	state->volume->val = *state->volume->cur.p_s32;
++	state->muted->val = *state->muted->cur.p_s32;
+ 	msp_s_ctrl(state->volume);
+ 	v4l2_ctrl_unlock(state->volume);
+ }
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index e5ddf47..28c17e0 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -670,12 +670,12 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_TEST_PATTERN:
+ 		if (!ctrl->val) {
+ 			/* Restore the black level compensation settings. */
+-			if (mt9p031->blc_auto->cur.val != 0) {
++			if (*mt9p031->blc_auto->cur.p_s32 != 0) {
+ 				ret = mt9p031_s_ctrl(mt9p031->blc_auto);
+ 				if (ret < 0)
+ 					return ret;
+ 			}
+-			if (mt9p031->blc_offset->cur.val != 0) {
++			if (*mt9p031->blc_offset->cur.p_s32 != 0) {
+ 				ret = mt9p031_s_ctrl(mt9p031->blc_offset);
+ 				if (ret < 0)
+ 					return ret;
+diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
+index d41c70e..6aca05b 100644
+--- a/drivers/media/i2c/mt9t001.c
++++ b/drivers/media/i2c/mt9t001.c
+@@ -447,7 +447,7 @@ static int mt9t001_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		for (i = 0, count = 0; i < 4; ++i) {
+ 			struct v4l2_ctrl *gain = mt9t001->gains[i];
+ 
+-			if (gain->val != gain->cur.val)
++			if (gain->val != *gain->cur.p_s32)
+ 				count++;
+ 		}
+ 
+@@ -461,7 +461,7 @@ static int mt9t001_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		for (i = 0; i < 4; ++i) {
+ 			struct v4l2_ctrl *gain = mt9t001->gains[i];
+ 
+-			if (gain->val == gain->cur.val)
++			if (gain->val == *gain->cur.p_s32)
+ 				continue;
+ 
+ 			value = mt9t001_gain_value(&gain->val);
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c b/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
+index 8001cde..cb6da84 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
+@@ -195,14 +195,14 @@ static int s5c73m3_3a_lock(struct s5c73m3 *state, struct v4l2_ctrl *ctrl)
+ 	bool af_lock = ctrl->val & V4L2_LOCK_FOCUS;
+ 	int ret = 0;
+ 
+-	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_EXPOSURE) {
++	if ((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_EXPOSURE) {
+ 		ret = s5c73m3_isp_command(state, COMM_AE_CON,
+ 				ae_lock ? COMM_AE_STOP : COMM_AE_START);
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
+-	if (((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_WHITE_BALANCE)
++	if (((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_WHITE_BALANCE)
+ 	    && state->ctrls.auto_wb->val) {
+ 		ret = s5c73m3_isp_command(state, COMM_AWB_CON,
+ 			awb_lock ? COMM_AWB_STOP : COMM_AWB_START);
+@@ -210,7 +210,7 @@ static int s5c73m3_3a_lock(struct s5c73m3 *state, struct v4l2_ctrl *ctrl)
+ 			return ret;
+ 	}
+ 
+-	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_FOCUS)
++	if ((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_FOCUS)
+ 		ret = s5c73m3_af_run(state, ~af_lock);
+ 
+ 	return ret;
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 8741cae..d87c5e8 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -297,8 +297,8 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
+ 	if (rval < 0)
+ 		return rval;
+ 
+-	sensor->pixel_rate_parray->cur.val64 = pll->vt_pix_clk_freq_hz;
+-	sensor->pixel_rate_csi->cur.val64 = pll->pixel_rate_csi;
++	*sensor->pixel_rate_parray->cur.p_s64 = pll->vt_pix_clk_freq_hz;
++	*sensor->pixel_rate_csi->cur.p_s64 = pll->pixel_rate_csi;
+ 
+ 	return 0;
+ }
+@@ -324,8 +324,8 @@ static void __smiapp_update_exposure_limits(struct smiapp_sensor *sensor)
+ 		ctrl->default_value = max;
+ 	if (ctrl->val > max)
+ 		ctrl->val = max;
+-	if (ctrl->cur.val > max)
+-		ctrl->cur.val = max;
++	if (*ctrl->cur.p_s32 > max)
++		*ctrl->cur.p_s32 = max;
+ }
+ 
+ /*
+@@ -796,7 +796,7 @@ static void smiapp_update_blanking(struct smiapp_sensor *sensor)
+ 			      vblank->minimum, vblank->maximum);
+ 	vblank->default_value = vblank->minimum;
+ 	vblank->val = vblank->val;
+-	vblank->cur.val = vblank->val;
++	*vblank->cur.p_s32 = vblank->val;
+ 
+ 	hblank->minimum =
+ 		max_t(int,
+@@ -811,7 +811,7 @@ static void smiapp_update_blanking(struct smiapp_sensor *sensor)
+ 			      hblank->minimum, hblank->maximum);
+ 	hblank->default_value = hblank->minimum;
+ 	hblank->val = hblank->val;
+-	hblank->cur.val = hblank->val;
++	*hblank->cur.p_s32 = hblank->val;
+ 
+ 	__smiapp_update_exposure_limits(sensor);
+ }
+diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
+index c4890a4..d230a9b 100644
+--- a/drivers/media/pci/cx18/cx18-av-core.c
++++ b/drivers/media/pci/cx18/cx18-av-core.c
+@@ -262,7 +262,7 @@ static void cx18_av_initialize(struct v4l2_subdev *sd)
+ 		cx18_av_write(cx, 0x8d4, 20);
+ 	}
+ 	default_volume = (((228 - default_volume) >> 1) + 23) << 9;
+-	state->volume->cur.val = state->volume->default_value = default_volume;
++	*state->volume->cur.p_s32 = state->volume->default_value = default_volume;
+ 	v4l2_ctrl_handler_setup(&state->hdl);
+ }
+ 
+diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+index 716bdc5..e4d0740 100644
+--- a/drivers/media/pci/cx18/cx18-driver.c
++++ b/drivers/media/pci/cx18/cx18-driver.c
+@@ -756,11 +756,11 @@ static int cx18_init_struct1(struct cx18 *cx)
+ 		return ret;
+ 	cx->v4l2_dev.ctrl_handler = &cx->cxhdl.hdl;
+ 
+-	cx->temporal_strength = cx->cxhdl.video_temporal_filter->cur.val;
+-	cx->spatial_strength = cx->cxhdl.video_spatial_filter->cur.val;
+-	cx->filter_mode = cx->cxhdl.video_spatial_filter_mode->cur.val |
+-		(cx->cxhdl.video_temporal_filter_mode->cur.val << 1) |
+-		(cx->cxhdl.video_median_filter_type->cur.val << 2);
++	cx->temporal_strength = *cx->cxhdl.video_temporal_filter->cur.p_s32;
++	cx->spatial_strength = *cx->cxhdl.video_spatial_filter->cur.p_s32;
++	cx->filter_mode = *cx->cxhdl.video_spatial_filter_mode->cur.p_s32 |
++		(*cx->cxhdl.video_temporal_filter_mode->cur.p_s32 << 1) |
++		(*cx->cxhdl.video_median_filter_type->cur.p_s32 << 2);
+ 
+ 	init_waitqueue_head(&cx->cap_w);
+ 	init_waitqueue_head(&cx->mb_apu_waitq);
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index a7dfd07..d399699 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -664,7 +664,7 @@ void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active)
+ 		v4l2_ctrl_activate(ctrls->alpha, active && has_alpha);
+ 
+ 	if (active) {
+-		fimc_set_color_effect(ctx, ctrls->colorfx->cur.val);
++		fimc_set_color_effect(ctx, *ctrls->colorfx->cur.p_s32);
+ 		ctx->rotation = ctrls->rotate->val;
+ 		ctx->hflip    = ctrls->hflip->val;
+ 		ctx->vflip    = ctrls->vflip->val;
+@@ -689,8 +689,8 @@ void fimc_alpha_ctrl_update(struct fimc_ctx *ctx)
+ 	v4l2_ctrl_lock(ctrl);
+ 	ctrl->maximum = fimc_get_alpha_mask(ctx->d_frame.fmt);
+ 
+-	if (ctrl->cur.val > ctrl->maximum)
+-		ctrl->cur.val = ctrl->maximum;
++	if (*ctrl->cur.p_s32 > ctrl->maximum)
++		*ctrl->cur.p_s32 = ctrl->maximum;
+ 
+ 	v4l2_ctrl_unlock(ctrl);
+ }
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 3c92ce3..7b9e887 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -642,28 +642,28 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ 	gain = v4l2_ctrl_g_ctrl(dev->gain);
+ 	mutex_lock(dev->ctrl_handler.lock);
+ 	snprintf(str, sizeof(str), " brightness %3d, contrast %3d, saturation %3d, hue %d ",
+-			dev->brightness->cur.val,
+-			dev->contrast->cur.val,
+-			dev->saturation->cur.val,
+-			dev->hue->cur.val);
++			*dev->brightness->cur.p_s32,
++			*dev->contrast->cur.p_s32,
++			*dev->saturation->cur.p_s32,
++			*dev->hue->cur.p_s32);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	snprintf(str, sizeof(str), " autogain %d, gain %3d, volume %3d, alpha 0x%02x ",
+-			dev->autogain->cur.val, gain, dev->volume->cur.val,
+-			dev->alpha->cur.val);
++			*dev->autogain->cur.p_s32, gain, *dev->volume->cur.p_s32,
++			*dev->alpha->cur.p_s32);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	snprintf(str, sizeof(str), " int32 %d, int64 %lld, bitmask %08x ",
+-			dev->int32->cur.val,
+-			dev->int64->cur.val64,
+-			dev->bitmask->cur.val);
++			*dev->int32->cur.p_s32,
++			*dev->int64->cur.p_s64,
++			*dev->bitmask->cur.p_s32);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	snprintf(str, sizeof(str), " boolean %d, menu %s, string \"%s\" ",
+-			dev->boolean->cur.val,
+-			dev->menu->qmenu[dev->menu->cur.val],
+-			dev->string->cur.string);
++			*dev->boolean->cur.p_s32,
++			dev->menu->qmenu[*dev->menu->cur.p_s32],
++			dev->string->cur.p_char);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	snprintf(str, sizeof(str), " integer_menu %lld, value %d ",
+-			dev->int_menu->qmenu_int[dev->int_menu->cur.val],
+-			dev->int_menu->cur.val);
++			dev->int_menu->qmenu_int[*dev->int_menu->cur.p_s32],
++			*dev->int_menu->cur.p_s32);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	mutex_unlock(dev->ctrl_handler.lock);
+ 	if (dev->button_pressed) {
+diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
+index 6ff3508..46d188d 100644
+--- a/drivers/media/radio/radio-isa.c
++++ b/drivers/media/radio/radio-isa.c
+@@ -294,7 +294,7 @@ static int radio_isa_common_remove(struct radio_isa_card *isa,
+ {
+ 	const struct radio_isa_ops *ops = isa->drv->ops;
+ 
+-	ops->s_mute_volume(isa, true, isa->volume ? isa->volume->cur.val : 0);
++	ops->s_mute_volume(isa, true, isa->volume ? *isa->volume->cur.p_s32 : 0);
+ 	video_unregister_device(&isa->vdev);
+ 	v4l2_ctrl_handler_free(&isa->hdl);
+ 	v4l2_device_unregister(&isa->v4l2_dev);
+diff --git a/drivers/media/radio/radio-sf16fmr2.c b/drivers/media/radio/radio-sf16fmr2.c
+index 93d864e..e393130 100644
+--- a/drivers/media/radio/radio-sf16fmr2.c
++++ b/drivers/media/radio/radio-sf16fmr2.c
+@@ -154,11 +154,11 @@ static int fmr2_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_VOLUME:
+ 		volume = ctrl->val;
+-		balance = fmr2->balance->cur.val;
++		balance = *fmr2->balance->cur.p_s32;
+ 		break;
+ 	case V4L2_CID_AUDIO_BALANCE:
+ 		balance = ctrl->val;
+-		volume = fmr2->volume->cur.val;
++		volume = *fmr2->volume->cur.p_s32;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+diff --git a/drivers/media/usb/gspca/conex.c b/drivers/media/usb/gspca/conex.c
+index 2e15c80..e8cfaf3 100644
+--- a/drivers/media/usb/gspca/conex.c
++++ b/drivers/media/usb/gspca/conex.c
+@@ -887,14 +887,14 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_BRIGHTNESS:
+-		setbrightness(gspca_dev, ctrl->val, sd->sat->cur.val);
++		setbrightness(gspca_dev, ctrl->val, *sd->sat->cur.p_s32);
+ 		break;
+ 	case V4L2_CID_CONTRAST:
+-		setcontrast(gspca_dev, ctrl->val, sd->sat->cur.val);
++		setcontrast(gspca_dev, ctrl->val, *sd->sat->cur.p_s32);
+ 		break;
+ 	case V4L2_CID_SATURATION:
+-		setbrightness(gspca_dev, sd->brightness->cur.val, ctrl->val);
+-		setcontrast(gspca_dev, sd->contrast->cur.val, ctrl->val);
++		setbrightness(gspca_dev, *sd->brightness->cur.p_s32, ctrl->val);
++		setcontrast(gspca_dev, *sd->contrast->cur.p_s32, ctrl->val);
+ 		break;
+ 	}
+ 	return gspca_dev->usb_err;
+diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
+index 2a38621..22d93c3 100644
+--- a/drivers/media/usb/gspca/sn9c20x.c
++++ b/drivers/media/usb/gspca/sn9c20x.c
+@@ -2218,7 +2218,7 @@ static void transfer_check(struct gspca_dev *gspca_dev,
+ 			/* Note: we are in interrupt context, so we can't
+ 			   use v4l2_ctrl_g/s_ctrl here. Access the value
+ 			   directly instead. */
+-			s32 curqual = sd->jpegqual->cur.val;
++			s32 curqual = *sd->jpegqual->cur.p_s32;
+ 			sd->nchg = 0;
+ 			new_qual += curqual;
+ 			if (new_qual < sd->jpegqual->minimum)
+@@ -2226,7 +2226,7 @@ static void transfer_check(struct gspca_dev *gspca_dev,
+ 			else if (new_qual > sd->jpegqual->maximum)
+ 				new_qual = sd->jpegqual->maximum;
+ 			if (new_qual != curqual) {
+-				sd->jpegqual->cur.val = new_qual;
++				*sd->jpegqual->cur.p_s32 = new_qual;
+ 				queue_work(sd->work_thread, &sd->work);
+ 			}
+ 		}
+diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
+index 640c2fe..4abe03b 100644
+--- a/drivers/media/usb/gspca/topro.c
++++ b/drivers/media/usb/gspca/topro.c
+@@ -3976,8 +3976,8 @@ static int sd_setgain(struct gspca_dev *gspca_dev)
+ 	s32 val = gspca_dev->gain->val;
+ 
+ 	if (sd->sensor == SENSOR_CX0342) {
+-		s32 old = gspca_dev->gain->cur.val ?
+-					gspca_dev->gain->cur.val : 1;
++		s32 old = *gspca_dev->gain->cur.p_s32 ?
++					*gspca_dev->gain->cur.p_s32 : 1;
+ 
+ 		sd->blue->val = sd->blue->val * val / old;
+ 		if (sd->blue->val > 4095)
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 7dcccbf..9f8af88 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -47,7 +47,7 @@ struct v4l2_ctrl_helper {
+    mode. */
+ static bool is_cur_manual(const struct v4l2_ctrl *master)
+ {
+-	return master->is_auto && master->cur.val == master->manual_mode_value;
++	return master->is_auto && *master->cur.p_s32 == master->manual_mode_value;
+ }
+ 
+ /* Same as above, but this checks the against the new value instead of the
+@@ -1106,7 +1106,7 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
+ 	if (ctrl->is_ptr)
+ 		ev->u.ctrl.value64 = 0;
+ 	else
+-		ev->u.ctrl.value64 = ctrl->cur.val64;
++		ev->u.ctrl.value64 = *ctrl->cur.p_s64;
+ 	ev->u.ctrl.minimum = ctrl->minimum;
+ 	ev->u.ctrl.maximum = ctrl->maximum;
+ 	if (ctrl->type == V4L2_CTRL_TYPE_MENU
+@@ -1786,13 +1786,13 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 
+-	sz_extra = sizeof(union v4l2_ctrl_ptr);
++	sz_extra = elem_size;
+ 	if (type == V4L2_CTRL_TYPE_BUTTON)
+ 		flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 	else if (type == V4L2_CTRL_TYPE_CTRL_CLASS)
+ 		flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 	else if (type == V4L2_CTRL_TYPE_STRING || type >= V4L2_CTRL_COMPLEX_TYPES)
+-		sz_extra += 2 * elem_size;
++		sz_extra += elem_size;
+ 
+ 	ctrl = kzalloc(sizeof(*ctrl) + sz_extra, GFP_KERNEL);
+ 	if (ctrl == NULL) {
+@@ -1825,7 +1825,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
+ 		ctrl->qmenu_int = qmenu_int;
+ 	ctrl->priv = priv;
+-	ctrl->cur.val = ctrl->val = def;
++	ctrl->stores = &ctrl->cur;
+ 	data = &ctrl->stores[1];
+ 
+ 	if (ctrl->is_ptr) {
+@@ -1833,7 +1833,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		ctrl->stores[0].p = data + elem_size;
+ 	} else {
+ 		ctrl->new.p = &ctrl->val;
+-		ctrl->stores[0].p = &ctrl->cur.val;
++		ctrl->stores[0].p = data;
+ 	}
+ 	for (s = -1; s <= 0; s++)
+ 		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
+@@ -3096,10 +3096,10 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 	ctrl->maximum = max;
+ 	ctrl->step = step;
+ 	ctrl->default_value = def;
+-	c.value = ctrl->cur.val;
++	c.value = *ctrl->cur.p_s32;
+ 	if (validate_new(ctrl, &c))
+ 		c.value = def;
+-	if (c.value != ctrl->cur.val)
++	if (c.value != *ctrl->cur.p_s32)
+ 		ret = set_ctrl(NULL, ctrl, &c, V4L2_EVENT_CTRL_CH_RANGE);
+ 	else
+ 		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 9eeb9d9..4f66393 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -198,14 +198,9 @@ struct v4l2_ctrl {
+ 		char *string;
+ 		void *p;
+ 	};
+-	union {
+-		s32 val;
+-		s64 val64;
+-		char *string;
+-		void *p;
+-	} cur;
++	union v4l2_ctrl_ptr *stores;
+ 	union v4l2_ctrl_ptr new;
+-	union v4l2_ctrl_ptr stores[];
++	union v4l2_ctrl_ptr cur;
+ };
+ 
+ /** struct v4l2_ctrl_ref - The control reference.
+-- 
+1.8.5.2
 
