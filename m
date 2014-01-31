@@ -1,52 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:50384 "EHLO plane.gmane.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:33757 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751063AbaAGIQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jan 2014 03:16:24 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1W0Rpl-0004FJ-El
-	for linux-media@vger.kernel.org; Tue, 07 Jan 2014 09:16:21 +0100
-Received: from exchange.muehlbauer.de ([194.25.158.132])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 09:16:21 +0100
-Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 07 Jan 2014 09:16:21 +0100
+	id S1753635AbaAaDhG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jan 2014 22:37:06 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-From: Tom <Bassai_Dai@gmx.net>
-Subject: Re: Add private controls to =?utf-8?b?Y3RybF9oYW5kbGVy?=
-Date: Tue, 7 Jan 2014 08:15:58 +0000 (UTC)
-Message-ID: <loom.20140107T091511-641@post.gmane.org>
-References: <loom.20140106T152825-137@post.gmane.org> <52CAC006.7080907@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/2] DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
+Date: Fri, 31 Jan 2014 05:36:48 +0200
+Message-Id: <1391139409-11737-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil <at> xs4all.nl> writes:
+Document V4L2_SDR_FMT_CU8 SDR format.
+It is complex unsigned 8-bit IQ sample. Used by software defined
+radio devices.
 
-> 
-> Don't use V4L2_CID_PRIVATE_BASE, that doesn't work with the control framework
-> (for good but somewhat obscure reasons).
-> 
-> Instead use (V4L2_CID_USER_BASE | 0x1000) as the base for your private
-controls.
-> If you want to upstream the code, then you should define a range for the
-private
-> controls of this driver in v4l2-controls.h. Search for e.g.
-V4L2_CID_USER_S2255_BASE
-> in that header to see how it is done.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ .../DocBook/media/v4l/pixfmt-sdr-cu08.xml          | 44 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +
+ 2 files changed, 46 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
 
-thanks for your help. It worked for me with "(V4L2_CID_USER_BASE | 0x1000)"
-base and the "v4l2_ctrl_new_custom" function.
-
-Regards, Tom
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+new file mode 100644
+index 0000000..2d80104
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+@@ -0,0 +1,44 @@
++<refentry id="V4L2-SDR-FMT-CU08">
++  <refmeta>
++    <refentrytitle>V4L2_SDR_FMT_CU8 ('CU08')</refentrytitle>
++    &manvol;
++  </refmeta>
++    <refnamediv>
++      <refname>
++        <constant>V4L2_SDR_FMT_CU8</constant>
++      </refname>
++      <refpurpose>Complex unsigned 8-bit IQ sample</refpurpose>
++    </refnamediv>
++    <refsect1>
++      <title>Description</title>
++      <para>
++This format contains sequence of complex number samples. Each complex number
++consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
++represented as a 8 bit unsigned number. I value comes first and Q value after
++that.
++      </para>
++    <example>
++      <title><constant>V4L2_SDR_FMT_CU8</constant> 1 sample</title>
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="2" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>I'<subscript>0</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;1:</entry>
++                  <entry>Q'<subscript>0</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index f586d34..40adcb8 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -817,6 +817,8 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+     <para>These formats are used for <link linkend="sdr">SDR Capture</link>
+ interface only.</para>
+ 
++    &sub-sdr-cu08;
++
+   </section>
+ 
+   <section id="pixfmt-reserved">
+-- 
+1.8.5.3
 
