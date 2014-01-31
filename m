@@ -1,111 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4450 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754064AbaA1Ddt (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4912 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754011AbaAaJ5P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jan 2014 22:33:49 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0S3Xjnr033222
-	for <linux-media@vger.kernel.org>; Tue, 28 Jan 2014 04:33:47 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 91EE72A00A4
-	for <linux-media@vger.kernel.org>; Tue, 28 Jan 2014 04:33:38 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 31 Jan 2014 04:57:15 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140128033338.91EE72A00A4@tschai.lan>
-Date: Tue, 28 Jan 2014 04:33:38 +0100 (CET)
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 23/32] v4l2-ctrls/videodev2.h: add u8 and u16 types.
+Date: Fri, 31 Jan 2014 10:56:21 +0100
+Message-Id: <1391162190-8620-24-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+These are needed by the upcoming patches for the motion detection
+matrices.
 
-date:		Tue Jan 28 04:00:26 CET 2014
-git branch:	test
-git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 24 ++++++++++++++++++++++++
+ include/media/v4l2-ctrls.h           |  4 ++++
+ include/uapi/linux/videodev2.h       |  4 ++++
+ 3 files changed, 32 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 160e4c7..4e3b70d 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1145,6 +1145,10 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return ptr1.p_s64[idx] == ptr2.p_s64[idx];
++	case V4L2_CTRL_TYPE_U8:
++		return ptr1.p_u8[idx] == ptr2.p_u8[idx];
++	case V4L2_CTRL_TYPE_U16:
++		return ptr1.p_u16[idx] == ptr2.p_u16[idx];
+ 	default:
+ 		if (ctrl->is_int)
+ 			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
+@@ -1172,6 +1176,12 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+ 		ptr.p_s32[idx] = ctrl->default_value;
+ 		break;
++	case V4L2_CTRL_TYPE_U8:
++		ptr.p_u8[idx] = ctrl->default_value;
++		break;
++	case V4L2_CTRL_TYPE_U16:
++		ptr.p_u16[idx] = ctrl->default_value;
++		break;
+ 	default:
+ 		idx *= ctrl->elem_size;
+ 		memset(ptr.p + idx, 0, ctrl->elem_size);
+@@ -1208,6 +1218,12 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ 	case V4L2_CTRL_TYPE_STRING:
+ 		pr_cont("%s", ptr.p_char);
+ 		break;
++	case V4L2_CTRL_TYPE_U8:
++		pr_cont("%u", (unsigned)*ptr.p_u8);
++		break;
++	case V4L2_CTRL_TYPE_U16:
++		pr_cont("%u", (unsigned)*ptr.p_u16);
++		break;
+ 	default:
+ 		pr_cont("unknown type %d", ctrl->type);
+ 		break;
+@@ -1238,6 +1254,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
++	case V4L2_CTRL_TYPE_U8:
++		return ROUND_TO_RANGE(ptr.p_u8[idx], u8, ctrl);
++	case V4L2_CTRL_TYPE_U16:
++		return ROUND_TO_RANGE(ptr.p_u16[idx], u16, ctrl);
+ 
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+ 		ptr.p_s32[idx] = !!ptr.p_s32[idx];
+@@ -1468,6 +1488,8 @@ static int check_range(enum v4l2_ctrl_type type,
+ 		if (step != 1 || max > 1 || min < 0)
+ 			return -ERANGE;
+ 		/* fall through */
++	case V4L2_CTRL_TYPE_U8:
++	case V4L2_CTRL_TYPE_U16:
+ 	case V4L2_CTRL_TYPE_INTEGER:
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		if (step == 0 || min > max || def < min || def > max)
+@@ -3118,6 +3140,8 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
++	case V4L2_CTRL_TYPE_U8:
++	case V4L2_CTRL_TYPE_U16:
+ 		if (ctrl->is_matrix)
+ 			return -EINVAL;
+ 		ret = check_range(ctrl->type, min, max, step, def);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 7d72328..2ccad5f 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -39,12 +39,16 @@ struct poll_table_struct;
+ /** union v4l2_ctrl_ptr - A pointer to a control value.
+  * @p_s32:	Pointer to a 32-bit signed value.
+  * @p_s64:	Pointer to a 64-bit signed value.
++ * @p_u8:	Pointer to a 8-bit unsigned value.
++ * @p_u16:	Pointer to a 16-bit unsigned value.
+  * @p_char:	Pointer to a string.
+  * @p:		Pointer to a complex value.
+  */
+ union v4l2_ctrl_ptr {
+ 	s32 *p_s32;
+ 	s64 *p_s64;
++	u8 *p_u8;
++	u16 *p_u16;
+ 	char *p_char;
+ 	void *p;
+ };
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 858a6f3..8b70f51 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1228,6 +1228,8 @@ struct v4l2_ext_control {
+ 		__s32 value;
+ 		__s64 value64;
+ 		char *string;
++		__u8 *p_u8;
++		__u16 *p_u16;
+ 		void *p;
+ 	};
+ } __attribute__ ((packed));
+@@ -1257,6 +1259,8 @@ enum v4l2_ctrl_type {
+ 
+ 	/* Complex types are >= 0x0100 */
+ 	V4L2_CTRL_COMPLEX_TYPES	     = 0x0100,
++	V4L2_CTRL_TYPE_U8	     = 0x0100,
++	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+-- 
+1.8.5.2
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
