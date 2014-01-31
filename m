@@ -1,81 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.aswsp.com ([193.34.35.150]:32494 "EHLO mail.aswsp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752600AbaAFKRc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Jan 2014 05:17:32 -0500
-Message-ID: <52CA8137.8080307@parrot.com>
-Date: Mon, 6 Jan 2014 11:11:03 +0100
-From: Julien BERAUD <julien.beraud@parrot.com>
-MIME-Version: 1.0
-To: Enrico <ebutera@users.berlios.de>, <florian.vaussard@epfl.ch>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Subject: Re: omap3isp device tree support
-References: <CA+2YH7ueF46YA2ZpOT80w3jTzmw0aFWhfshry2k_mrXAmW=MXA@mail.gmail.com>	<52A1A76A.6070301@epfl.ch>	<CA+2YH7vDjCuTPwO9hDv-sM6ALAS_q-ZW2V=uq4MKG=75KD3xKg@mail.gmail.com>	<52B04D70.8060201@epfl.ch>	<CA+2YH7srzQcabeQyPd5TCuKcYaSmPd3THGh3uJE9eLjqKSJHKw@mail.gmail.com> <CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
-In-Reply-To: <CA+2YH7sHg-D9hrTOZ5h03YcAaywZz5tme5omguxPtHdyCb5A4A@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2843 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753537AbaAaDd6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jan 2014 22:33:58 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s0V3Xtqf045356
+	for <linux-media@vger.kernel.org>; Fri, 31 Jan 2014 04:33:57 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 0F3C22A00A4
+	for <linux-media@vger.kernel.org>; Fri, 31 Jan 2014 04:33:44 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140131033344.0F3C22A00A4@tschai.lan>
+Date: Fri, 31 Jan 2014 04:33:44 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Le 03/01/2014 12:30, Enrico a écrit :
-> On Wed, Dec 18, 2013 at 11:09 AM, Enrico <ebutera@users.berlios.de> wrote:
->> On Tue, Dec 17, 2013 at 2:11 PM, Florian Vaussard
->> <florian.vaussard@epfl.ch> wrote:
->>> So I converted the iommu to DT (patches just sent), used pdata quirks
->>> for the isp / mtv9032 data, added a few patches from other people
->>> (mainly clk to fix a crash when deferring the omap3isp probe), and a few
->>> small hacks. I get a 3.13-rc3 (+ board-removal part from Tony Lindgren)
->>> to boot on DT with a working MT9V032 camera. The missing part is the DT
->>> binding for the omap3isp, but I guess that we will have to wait a bit
->>> more for this.
->>>
->>> If you want to test, I have a development tree here [1]. Any feedback is
->>> welcome.
->>>
->>> Cheers,
->>>
->>> Florian
->>>
->>> [1] https://github.com/vaussard/linux/commits/overo-for-3.14/iommu/dt
->> Thanks Florian,
->>
->> i will report what i get with my setup.
-> And here i am.
->
-> I can confirm it works, video source is tvp5150 (with platform data in
-> pdata-quirks.c) in bt656 mode.
->
-> Laurent, i used the two bt656 patches from your omap3isp/bt656 tree so
-> if you want to push it you can add a Tested-by me.
->
-> There is only one problem, but it's unrelated to your DT work.
->
-> It's an old problem (see for example [1] and [2]), seen by other
-> people too and it seems it's still there.
-> Basically if i capture with yavta while the system is idle then it
-> just waits without getting any frame.
-> If i add some cpu load (usually i do a "cat /dev/zero" in a ssh
-> terminal) it starts capturing correctly.
->
-> The strange thing is that i do get isp interrupts in the idle case, so
-> i don't know why they don't "propagate" to yavta.
->
-> Any hints on how to debug this?
->
-> Enrico
->
-> [1]: https://linuxtv.org/patch/7836/
-> [2]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg44923.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-I have had what looked a lot like these problems before and it was due 
-to a wrong configuration of the ccdc cropping regarding to the blanking. 
-Could you send me the configuration of the pipeline that you apply with 
-media-ctl, just in case this is the same problem.
+Results of the daily build of media_tree:
 
-Regards,
-Julien BERAUD
+date:		Fri Jan 31 04:00:31 CET 2014
+git branch:	test
+git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
