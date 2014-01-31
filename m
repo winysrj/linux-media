@@ -1,166 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:42082 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752008AbaAOSAP (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51497 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753891AbaAaPi3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jan 2014 13:00:15 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MZG00IN3FCDGL90@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Jan 2014 13:00:14 -0500 (EST)
-Date: Wed, 15 Jan 2014 15:59:23 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sean Young <sean@mess.org>
-Cc: Martin Kittel <linux@martin-kittel.de>,
-	linux-media@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>
-Subject: Re: Patch mceusb: fix invalid urb interval
-Message-id: <20140115155923.0b8978da.m.chehab@samsung.com>
-In-reply-to: <20140115165245.GA23620@pequod.mess.org>
-References: <loom.20131110T113621-661@post.gmane.org>
- <20131211131751.GA434@pequod.mess.org> <l8ai94$cbr$1@ger.gmane.org>
- <20140115134917.1450f87c@samsung.com> <20140115165245.GA23620@pequod.mess.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Fri, 31 Jan 2014 10:38:29 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
+Date: Fri, 31 Jan 2014 16:39:22 +0100
+Message-ID: <18082456.iNCn4Qe0lB@avalon>
+In-Reply-To: <52A9ADF6.2090900@xs4all.nl>
+References: <201308281419.52009.hverkuil@xs4all.nl> <344618801.kmLM0jZvMY@avalon> <52A9ADF6.2090900@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 15 Jan 2014 16:52:45 +0000
-Sean Young <sean@mess.org> escreveu:
+Hi Hans,
 
-> On Wed, Jan 15, 2014 at 01:49:17PM -0200, Mauro Carvalho Chehab wrote:
-> > Hi Martin,
+On Thursday 12 December 2013 13:37:10 Hans Verkuil wrote:
+> Sakari asked me to reply to this old thread...
+
+He asked me to reply as well :-)
+
+> On 09/06/13 13:05, Laurent Pinchart wrote:
+> > On Thursday 05 September 2013 19:31:30 Sakari Ailus wrote:
+> >> On Sat, Aug 31, 2013 at 11:43:18PM +0200, Laurent Pinchart wrote:
+> >>> On Friday 30 August 2013 19:08:48 Sakari Ailus wrote:
+> >>>> On Fri, Aug 30, 2013 at 01:31:44PM +0200, Laurent Pinchart wrote:
+> >>>>> On Thursday 29 August 2013 14:33:39 Sakari Ailus wrote:
+> >>>>>> On Thu, Aug 29, 2013 at 01:25:05AM +0200, Laurent Pinchart wrote:
+> >>>>>>> On Wednesday 28 August 2013 19:39:19 Sakari Ailus wrote:
+> >>>>>>>> On Wed, Aug 28, 2013 at 06:14:44PM +0200, Laurent Pinchart
+> >>>>>>>> wrote:
+> >>>>>>>> ...
+> >>>>>>>> 
+> >>>>>>>>>>> UVC devices timestamp frames when the frame is captured,
+> >>>>>>>>>>> not when the first pixel is transmitted.
+> >>>>>>>>>> 
+> >>>>>>>>>> I.e. we shouldn't set the SOF flag? "When the frame is
+> >>>>>>>>>> captured" doesn't say much, or almost anything in terms of
+> >>>>>>>>>> *when*. The frames have exposure time and rolling shutter
+> >>>>>>>>>> makes a difference, too.
+> >>>>>>>>> 
+> >>>>>>>>> The UVC 1.1 specification defines the timestamp as
+> >>>>>>>>> 
+> >>>>>>>>> "The source clock time in native deviceclock units when the
+> >>>>>>>>> raw frame capture begins."
+> >>>>>>>>> 
+> >>>>>>>>> What devices do in practice may differ :-)
+> >>>>>>>> 
+> >>>>>>>> I think that this should mean start-of-frame - exposure time.
+> >>>>>>>> I'd really wonder if any practical implementation does that
+> >>>>>>>> however.
+> >>>>>>> 
+> >>>>>>> It's start-of-frame - exposure time - internal delays (UVC webcams
+> >>>>>>> are supposed to report their internal delay value as well).
+> >>>>>> 
+> >>>>>> Do they report it? How about the exposure time?
+> >>>>> 
+> >>>>> It's supposed to be configurable.
+> >>>> 
+> >>>> Is the exposure reported with the frame so it could be used to
+> >>>> construct
+> >>>> the per-frame SOF timestamp?
+> >>> 
+> >>> Not when auto-exposure is turned on I'm afraid :-S
+> >>> 
+> >>> I believe that the capture timestamp makes more sense than the SOF
+> >>> timestamp for applications. SOF/EOF are more of a poor man's timestamp
+> >>> in case nothing else is available, but when you want to synchronize
+> >>> multiple audio and/or video streams the capture timestamp is what you're
+> >>> interested in. I don't think converting a capture timestamp to an SOF
+> >>> would be a good idea.
+> >> 
+> >> I'm not quite sure of that --- I think the SOF/EOF will be more stable
+> >> than the exposure start which depends on the exposure time. If you're
+> >> recording a video you may want to keep the time between the frames
+> >> constant.
 > > 
-> > Em Wed, 11 Dec 2013 21:34:55 +0100
-> > Martin Kittel <linux@martin-kittel.de> escreveu:
+> > I can see two main use cases for timestamps. The first one is multi-stream
+> > synchronization (audio and video, stereo video, ...), the second one is
+> > playback rate control.
 > > 
-> > > Hi Mauro, hi Sean,
-> > > 
-> > > thanks for considering the patch. I have added an updated version at the
-> > > end of this mail.
-> > > 
-> > > Regarding the info Sean was requesting, it is indeed an xhci hub. I also
-> > > added the details of the remote itself.
-> > > 
-> > > Please let me know if there is anything missing.
-> > > 
-> > > Best wishes,
-> > > 
-> > > Martin.
-> > > 
-> > > 
-> > > lsusb -vvv
-> > > ------
-> > > Bus 001 Device 002: ID 2304:0225 Pinnacle Systems, Inc. Remote Kit
-> > > Infrared Transceiver
-> > > Device Descriptor:
-> > >   bLength		 18
-> > >   bDescriptorType	  1
-> > >   bcdUSB	       2.00
-> > >   bDeviceClass		  0 (Defined at Interface level)
-> > >   bDeviceSubClass	  0
-> > >   bDeviceProtocol	  0
-> > >   bMaxPacketSize0	  8
-> > >   idVendor	     0x2304 Pinnacle Systems, Inc.
-> > >   idProduct	     0x0225 Remote Kit Infrared Transceiver
-> > >   bcdDevice	       0.01
-> > >   iManufacturer		  1 Pinnacle Systems
-> > >   iProduct		  2 PCTV Remote USB
-> > >   iSerial		  5 7FFFFFFFFFFFFFFF
-> > >   bNumConfigurations	  1
-> > >   Configuration Descriptor:
-> > >     bLength		    9
-> > >     bDescriptorType	    2
-> > >     wTotalLength	   32
-> > >     bNumInterfaces	    1
-> > >     bConfigurationValue	    1
-> > >     iConfiguration	    3 StandardConfiguration
-> > >     bmAttributes	 0xa0
-> > >       (Bus Powered)
-> > >       Remote Wakeup
-> > >     MaxPower		  100mA
-> > >     Interface Descriptor:
-> > >       bLength		      9
-> > >       bDescriptorType	      4
-> > >       bInterfaceNumber	      0
-> > >       bAlternateSetting	      0
-> > >       bNumEndpoints	      2
-> > >       bInterfaceClass	    255 Vendor Specific Class
-> > >       bInterfaceSubClass      0
-> > >       bInterfaceProtocol      0
-> > >       iInterface	      4 StandardInterface
-> > >       Endpoint Descriptor:
-> > > 	bLength			7
-> > > 	bDescriptorType		5
-> > > 	bEndpointAddress     0x81  EP 1 IN
-> > > 	bmAttributes		2
-> > > 	  Transfer Type		   Bulk
-> > > 	  Synch Type		   None
-> > > 	  Usage Type		   Data
-> > > 	wMaxPacketSize	   0x0040  1x 64 bytes
-> > > 	bInterval	       10
+> > To synchronize media streams you need to timestamp samples with a common
+> > clock. Timestamps must be correlated to the time at which the sound and/or
+> > image events occur. If we consider the speed of sound and speed of light
+> > as negligible (the former could be compensated for if needed, but that's
+> > out of scope), the time at which the sound or image is produced can be
+> > considered as equal to the time at which they're captured. Given that we
+> > only need to synchronize streams here, an offset wouldn't matter, so any
+> > clock that is synchronized to the capture clock with a fixed offset would
+> > do. The SOF event, in particular, will do if the capture time and device
+> > processing time is constant, and if interrupt latencies are kept small
+> > enough.. So will the EOF event if the transmission time is also constant.
 > > 
-> > Hmm... interval is equal to 10, e. g. 125us * 2^(10 - 1) = 64 ms.
+> > Granted, frames are not captured at a precise point of time, as the sensor
+> > needs to be exposed for a certain duration. There is thus no such thing as
+> > a capture time, we instead have a capture interval. However, that's
+> > irrelevant for multi-video synchronization purposes. It could matter for
+> > audio+video synchronization though.
 > > 
-> > I'm wandering why mceusb is just forcing the interval to 1 (125ms). That
-> > sounds wrong, except, of course, if the endpoint descriptor is wrong.
-> 
-> Note that the endpoint descriptor describes it as a bulk endpoint, but
-> it is used as a interrupt endpoint by the driver. For bulk endpoints,
-> the interval should not be used (?).
-> 
-> Maybe the correct solution would be to use the endpoints as bulk endpoints
-> if that is what the endpoint says? mceusb devices come in interrupt and 
-> bulk flavours.
-
-Yes, this could be a possible fix.
-
-> 
-> > On my eyes, though, 64ms seems to be a good enough interval to get
-> > those events.
-> 
-> Each packet will be 64 bytes, and at 64 ms you should be able to 960 
-> bytes per second. That's more than enough.
-> 
-> > Jarod/Sean,
+> > Regarding playback rate control, the goal is to render frames at the same
+> > rate they are captured. If the frame rate isn't constant (for instance
+> > because of a variable exposure time), then a time stamp is required for
+> > every frame. Here we care about the difference between timestamps for two
+> > consecutive frames, and the start of capture timestamp is what will give
+> > best results.
 > > 
-> > Are there any good reason for the mceusb driver to do this?
-> > 	ep_in->bInterval = 1;
-> > 	ep_out->bInterval = 1;
+> > Let's consider three frames, A, B and C, captured as follows.
+> > 
+> > 
+> > 00000000001111111111222222222233333333334444444444555555555566666666667777
+> > 01234567890123456789012345678901234567890123456789012345678901234567890123
+> > 
+> > | --------- A ------------ |      | ----- B ----- |      | ----- C ----- |
+> > 
+> > On the playback side, we want to display A for a duration of 34. If we
+> > timestamp the frames with the start of capture time, we will have the
+> > following timestamps.
+> > 
+> > A  0
+> > B  34
+> > C  57
+> > 
+> > B-A = 34, which is the time during which A needs to be displayed.
+> > 
+> > If we use the end of capture time, we will get
+> > 
+> > A  27
+> > B  50
+> > C  73
+> > 
+> > B-A = 23, which is too short.
+> > 
+> >> Nevertheless --- if we don't get such a timestamp from the device this
+> >> will only remain speculation. Applications might be best using e.g. half
+> >> the frame period to get a guesstimate of the differences between the two
+> >> timestamps.
+> > 
+> > Obviously if the device can't provide the start of capture timestamp we
+> > will need to use any source of timestamps, but I believe we should aim
+> > for start of capture as a first class citizen.
+> > 
+> >>>>>> If you know them all you can calculate the SOF timestamp. The fewer
+> >>>>>> timestamps are available for user programs the better.
+> >>>>>> 
+> >>>>>> It's another matter then if there are webcams that report these
+> >>>>>> values wrong.
+> >>>>> 
+> >>>>> There most probably are :-)
+> >>>>> 
+> >>>>>> Then you could get timestamps that are complete garbage. But I guess
+> >>>>>> you could compare them to the current monotonic timestamp and detect
+> >>>>>> such cases.
+> >>>>>> 
+> >>>>>>>> What's your suggestion; should we use the SOF flag for this or
+> >>>>>>>> do you prefer the end-of-frame timestamp instead? I think it'd
+> >>>>>>>> be quite nice for drivers to know which one is which without
+> >>>>>>>> having to guess, and based on the above start-of-frame comes as
+> >>>>>>>> close to that definition as is meaningful.
+> >>>>>>> 
+> >>>>>>> SOF is better than EOF. Do we need a start-of-capture flag, or
+> >>>>>>> could we document SOF as meaning start-of-capture or start-of-
+> >>>>>>> reception depending on what the device can do ?
+> >>>>>> 
+> >>>>>> One possibility is to dedicate a few flags for this; by using three
+> >>>>>> bits we'd get eight different timestamps already. But I have to say
+> >>>>>> that fewer is better. :-)
+> >>>>> 
+> >>>>> Does it really need to be a per-buffer flag ? This seems to be a
+> >>>>> driver-wide (or at least device-wide) behaviour to me.
+> >>>> 
+> >>>> Same goes for timestamp clock sources. It was concluded to use buffer
+> >>>> flags for those as well.
+> >>> 
+> >>> Yes, and I don't think I was convinced, so I'm not convinced here either
+> >>> 
+> >>> :-)
+> >>>
+> >>>> Using a control for the purpose would however require quite non-zero
+> >>>> amount of initialisation code from each driver so that would probably
+> >>>> need to be sorted out first.
+> >>> 
+> >>> We could also use a capabilities flag.
+> >> 
+> >> Interesting idea. I'm fine that as well. Hans?
 > 
-> I don't know.
->  
-> > At least on my tests here with audio with xHCI and EHCI with audio on
-> > em28xx, it seems that EHCI just uses the USB endpoint interval, when
-> > urb->interval == 1, while xHCI uses whatever value stored there.
-> 
-> The xhci driver is not happy about the interval being changed. With
-> CONFIG_USB_DEBUG you get:
-> 
-> usb 3-12: Driver uses different interval (8 microframes) than xHCI (1 microframe)
+> That would work for uvc, but not in the general case. Depending on the video
+> routing you might have either SOF or EOF timestamps. Unlikely, I admit, but
+> I feel keeping this flag in v4l2_buffers is the most generic solution.
 
-Maybe then changing the interval to 3 could also fix it, if the device
-is using high speed (480 kHz), and 1 otherwise.
+My main concern about this (beside using an extra buffer flags bit, which is a 
+scarce resource - but OK, that's not really a big concern) is complexity for 
+userspace. Correctly handling buffer timestamps when the timestamp type can 
+vary per buffer isn't easy, and I most applications will likely implement it 
+wrong. I expect most applications to look at the timestamp type of the first 
+buffer and use that information for all subsequent buffers. This would defeat 
+the point of having per-buffer timestamp types.
 
-E. g. changing the logic to something like:
-
-if (dev->speed == USB_SPEED_HIGH || dev->speed == USB_SPEED_SUPER) {
-	if (ep_in)
-		ep_in->bInterval = 3;
-	if (ep_out)
-	 	ep_out->bInterval = 3;
-} else {
-	if (ep_in)
-		ep_in->bInterval = 1;
-	if (ep_out)
-	 	ep_out->bInterval = 1;
-}
-
-At the device probing logic.
-
-I think that using a bulk transfer, if it works, is a better solution,
-though.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
