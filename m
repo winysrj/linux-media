@@ -1,155 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53297 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752974AbaAXPqx (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4345 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932942AbaAaRfa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jan 2014 10:46:53 -0500
-Date: Fri, 24 Jan 2014 17:46:19 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
-	laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 08/21] v4l2-ctrls: create type_ops.
-Message-ID: <20140124154619.GE13820@valkosipuli.retiisi.org.uk>
-References: <1390221974-28194-1-git-send-email-hverkuil@xs4all.nl>
- <1390221974-28194-9-git-send-email-hverkuil@xs4all.nl>
+	Fri, 31 Jan 2014 12:35:30 -0500
+Message-ID: <52EBDED0.7020007@xs4all.nl>
+Date: Fri, 31 Jan 2014 18:35:12 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1390221974-28194-9-git-send-email-hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/1] v4l: subdev: Allow 32-bit compat IOCTLs
+References: <52EBCA3D.2040106@xs4all.nl> <1391184952-22223-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1391184952-22223-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Sakari,
 
-On Mon, Jan 20, 2014 at 01:46:01PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 01/31/2014 05:15 PM, Sakari Ailus wrote:
+> I thought this was already working but apparently not. Allow 32-bit compat
+> IOCTLs on 64-bit systems.
 > 
-> Since complex controls can have non-standard types we need to be able to do
-> type-specific checks etc. In order to make that easy type operations are added.
-> There are four operations:
-> 
-> - equal: check if two values are equal
-> - init: initialize a value
-> - log: log the value
-> - validate: validate a new value
-> 
-> This patch uses the v4l2_ctrl_ptr union for the first time.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 267 ++++++++++++++++++++++-------------
->  include/media/v4l2-ctrls.h           |  21 +++
->  2 files changed, 190 insertions(+), 98 deletions(-)
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 98e940f..9f97af4 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1123,6 +1123,149 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
->  			v4l2_event_queue_fh(sev->fh, &ev);
->  }
->  
-> +static bool std_equal(const struct v4l2_ctrl *ctrl,
-> +		      union v4l2_ctrl_ptr ptr1,
-> +		      union v4l2_ctrl_ptr ptr2)
-> +{
-> +	switch (ctrl->type) {
-> +	case V4L2_CTRL_TYPE_BUTTON:
-> +		return false;
-> +	case V4L2_CTRL_TYPE_STRING:
-> +		/* strings are always 0-terminated */
-> +		return !strcmp(ptr1.p_char, ptr2.p_char);
-> +	case V4L2_CTRL_TYPE_INTEGER64:
-> +		return *ptr1.p_s64 == *ptr2.p_s64;
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 8f7a6a4..1fce944 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -1087,6 +1087,18 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>  	case VIDIOC_QUERY_DV_TIMINGS:
+>  	case VIDIOC_DV_TIMINGS_CAP:
+>  	case VIDIOC_ENUM_FREQ_BANDS:
+> +		/* Sub-device IOCTLs */
+> +	case VIDIOC_SUBDEV_G_FMT:
+> +	case VIDIOC_SUBDEV_S_FMT:
+> +	case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
+> +	case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
+> +	case VIDIOC_SUBDEV_ENUM_MBUS_CODE:
+> +	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE:
+> +	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL:
+> +	case VIDIOC_SUBDEV_G_CROP:
+> +	case VIDIOC_SUBDEV_S_CROP:
+> +	case VIDIOC_SUBDEV_G_SELECTION:
+> +	case VIDIOC_SUBDEV_S_SELECTION:
+>  	case VIDIOC_SUBDEV_G_EDID32:
+>  	case VIDIOC_SUBDEV_S_EDID32:
+>  		ret = do_video_ioctl(file, cmd, arg);
+> 
 
-The above two lines seem redundant to me.
+Can you test with contrib/test/ioctl-test? Compile with:
 
-> +	default:
-> +		if (ctrl->is_ptr)
-> +			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
-> +		return *ptr1.p_s32 == *ptr2.p_s32;
-> +	}
-> +}
-> +
-> +static void std_init(const struct v4l2_ctrl *ctrl,
-> +		     union v4l2_ctrl_ptr ptr)
-> +{
-> +	switch (ctrl->type) {
-> +	case V4L2_CTRL_TYPE_STRING:
-> +		memset(ptr.p_char, ' ', ctrl->minimum);
-> +		ptr.p_char[ctrl->minimum] = '\0';
-> +		break;
-> +	case V4L2_CTRL_TYPE_INTEGER64:
-> +		*ptr.p_s64 = ctrl->default_value;
-> +		break;
-> +	case V4L2_CTRL_TYPE_INTEGER:
-> +	case V4L2_CTRL_TYPE_INTEGER_MENU:
-> +	case V4L2_CTRL_TYPE_MENU:
-> +	case V4L2_CTRL_TYPE_BITMASK:
-> +	case V4L2_CTRL_TYPE_BOOLEAN:
-> +		*ptr.p_s32 = ctrl->default_value;
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +}
-> +
-> +static void std_log(const struct v4l2_ctrl *ctrl)
-> +{
-> +	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
-> +
-> +	switch (ctrl->type) {
-> +	case V4L2_CTRL_TYPE_INTEGER:
-> +		pr_cont("%d", *ptr.p_s32);
-> +		break;
-> +	case V4L2_CTRL_TYPE_BOOLEAN:
-> +		pr_cont("%s", *ptr.p_s32 ? "true" : "false");
-> +		break;
-> +	case V4L2_CTRL_TYPE_MENU:
-> +		pr_cont("%s", ctrl->qmenu[*ptr.p_s32]);
-> +		break;
-> +	case V4L2_CTRL_TYPE_INTEGER_MENU:
-> +		pr_cont("%lld", ctrl->qmenu_int[*ptr.p_s32]);
-> +		break;
-> +	case V4L2_CTRL_TYPE_BITMASK:
-> +		pr_cont("0x%08x", *ptr.p_s32);
-> +		break;
-> +	case V4L2_CTRL_TYPE_INTEGER64:
-> +		pr_cont("%lld", *ptr.p_s64);
-> +		break;
-> +	case V4L2_CTRL_TYPE_STRING:
-> +		pr_cont("%s", ptr.p_char);
-> +		break;
-> +	default:
-> +		pr_cont("unknown type %d", ctrl->type);
-> +		break;
-> +	}
-> +}
-> +
-> +/* Round towards the closest legal value */
-> +#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
-> +({								\
-> +	offset_type offset;					\
-> +	val += (ctrl)->step / 2;				\
-> +	val = clamp_t(typeof(val), val,				\
-> +		      (ctrl)->minimum, (ctrl)->maximum);	\
-> +	offset = (val) - (ctrl)->minimum;			\
-> +	offset = (ctrl)->step * (offset / (ctrl)->step);	\
-> +	val = (ctrl)->minimum + offset;				\
-> +	0;							\
-> +})
+gcc -o ioctl-test -m32 -I ../../include/ ioctl-test.c
 
-Could you use an inline function instead? This doesn't really need to be a
-macro, albeit I admit that it's always cool to express one's ability to
-write GCC-only macros. :-D
+Make sure you use the latest v4l-utils version and run autoreconf -vfi
+and configure first.
 
-(I just noticed that this patch just moves the macro to a different place,
-but I think it was added by an earlier patch in the set.)
+BTW, I noticed that VIDIOC_DBG_G_CHIP_INFO is missing as well.
 
--- 
-Kind regards,
+Hmm, this is just asking for problems. 
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+How about this patch:
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 8f7a6a4..cd9da4ce 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -1001,108 +1001,19 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+-	long ret = -ENOIOCTLCMD;
++	long ret = -ENOTTY;
+ 
+ 	if (!file->f_op->unlocked_ioctl)
+ 		return ret;
+ 
+-	switch (cmd) {
+-	case VIDIOC_QUERYCAP:
+-	case VIDIOC_RESERVED:
+-	case VIDIOC_ENUM_FMT:
+-	case VIDIOC_G_FMT32:
+-	case VIDIOC_S_FMT32:
+-	case VIDIOC_REQBUFS:
+-	case VIDIOC_QUERYBUF32:
+-	case VIDIOC_G_FBUF32:
+-	case VIDIOC_S_FBUF32:
+-	case VIDIOC_OVERLAY32:
+-	case VIDIOC_QBUF32:
+-	case VIDIOC_EXPBUF:
+-	case VIDIOC_DQBUF32:
+-	case VIDIOC_STREAMON32:
+-	case VIDIOC_STREAMOFF32:
+-	case VIDIOC_G_PARM:
+-	case VIDIOC_S_PARM:
+-	case VIDIOC_G_STD:
+-	case VIDIOC_S_STD:
+-	case VIDIOC_ENUMSTD32:
+-	case VIDIOC_ENUMINPUT32:
+-	case VIDIOC_G_CTRL:
+-	case VIDIOC_S_CTRL:
+-	case VIDIOC_G_TUNER:
+-	case VIDIOC_S_TUNER:
+-	case VIDIOC_G_AUDIO:
+-	case VIDIOC_S_AUDIO:
+-	case VIDIOC_QUERYCTRL:
+-	case VIDIOC_QUERYMENU:
+-	case VIDIOC_G_INPUT32:
+-	case VIDIOC_S_INPUT32:
+-	case VIDIOC_G_OUTPUT32:
+-	case VIDIOC_S_OUTPUT32:
+-	case VIDIOC_ENUMOUTPUT:
+-	case VIDIOC_G_AUDOUT:
+-	case VIDIOC_S_AUDOUT:
+-	case VIDIOC_G_MODULATOR:
+-	case VIDIOC_S_MODULATOR:
+-	case VIDIOC_S_FREQUENCY:
+-	case VIDIOC_G_FREQUENCY:
+-	case VIDIOC_CROPCAP:
+-	case VIDIOC_G_CROP:
+-	case VIDIOC_S_CROP:
+-	case VIDIOC_G_SELECTION:
+-	case VIDIOC_S_SELECTION:
+-	case VIDIOC_G_JPEGCOMP:
+-	case VIDIOC_S_JPEGCOMP:
+-	case VIDIOC_QUERYSTD:
+-	case VIDIOC_TRY_FMT32:
+-	case VIDIOC_ENUMAUDIO:
+-	case VIDIOC_ENUMAUDOUT:
+-	case VIDIOC_G_PRIORITY:
+-	case VIDIOC_S_PRIORITY:
+-	case VIDIOC_G_SLICED_VBI_CAP:
+-	case VIDIOC_LOG_STATUS:
+-	case VIDIOC_G_EXT_CTRLS32:
+-	case VIDIOC_S_EXT_CTRLS32:
+-	case VIDIOC_TRY_EXT_CTRLS32:
+-	case VIDIOC_ENUM_FRAMESIZES:
+-	case VIDIOC_ENUM_FRAMEINTERVALS:
+-	case VIDIOC_G_ENC_INDEX:
+-	case VIDIOC_ENCODER_CMD:
+-	case VIDIOC_TRY_ENCODER_CMD:
+-	case VIDIOC_DECODER_CMD:
+-	case VIDIOC_TRY_DECODER_CMD:
+-	case VIDIOC_DBG_S_REGISTER:
+-	case VIDIOC_DBG_G_REGISTER:
+-	case VIDIOC_S_HW_FREQ_SEEK:
+-	case VIDIOC_S_DV_TIMINGS:
+-	case VIDIOC_G_DV_TIMINGS:
+-	case VIDIOC_DQEVENT:
+-	case VIDIOC_DQEVENT32:
+-	case VIDIOC_SUBSCRIBE_EVENT:
+-	case VIDIOC_UNSUBSCRIBE_EVENT:
+-	case VIDIOC_CREATE_BUFS32:
+-	case VIDIOC_PREPARE_BUF32:
+-	case VIDIOC_ENUM_DV_TIMINGS:
+-	case VIDIOC_QUERY_DV_TIMINGS:
+-	case VIDIOC_DV_TIMINGS_CAP:
+-	case VIDIOC_ENUM_FREQ_BANDS:
+-	case VIDIOC_SUBDEV_G_EDID32:
+-	case VIDIOC_SUBDEV_S_EDID32:
++	if (_IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
+ 		ret = do_video_ioctl(file, cmd, arg);
+-		break;
++	else if (vdev->fops->compat_ioctl32)
++		ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+ 
+-	default:
+-		if (vdev->fops->compat_ioctl32)
+-			ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+-
+-		if (ret == -ENOIOCTLCMD)
+-			printk(KERN_WARNING "compat_ioctl32: "
+-				"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+-				_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd),
+-				cmd);
+-		break;
+-	}
++	if (ret == -ENOTTY)
++		pr_warn("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
++			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_compat_ioctl32);
+
+Note the ENOIOCTLCMD to ENOTTY changes: ENOTTY should be returned if the ioctl is
+not supported. Although v4l2-subdev seems to return ENOIOCTLCMD as well :-(
+
+Regards,
+
+	Hans
