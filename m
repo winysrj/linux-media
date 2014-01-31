@@ -1,136 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s9.blu0.hotmail.com ([65.55.111.84]:35456 "EHLO
-	blu0-omc2-s9.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751328AbaAJJPs convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jan 2014 04:15:48 -0500
-Message-ID: <BLU0-SMTP6650E76A95FA2BB39C6325ADB30@phx.gbl>
-Date: Fri, 10 Jan 2014 17:15:47 +0800
-From: randy <lxr1234@hotmail.com>
-MIME-Version: 1.0
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1639 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754015AbaAaJ5Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 Jan 2014 04:57:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-CC: Kamil Debski <k.debski@samsung.com>, kyungmin.park@samsung.com
-Subject: Re: using MFC memory to memery encoder, start stream and queue order
- problem
-References: <BLU0-SMTP32889EC1B64B13894EE7C90ADCB0@phx.gbl> <02c701cf07b6$565cd340$031679c0$%debski@samsung.com> <BLU0-SMTP266BE9BC66B254061740251ADCB0@phx.gbl> <02c801cf07ba$8518f2f0$8f4ad8d0$%debski@samsung.com> <BLU0-SMTP150C8C0DB0E9A3A9F4104F8ADCA0@phx.gbl> <04b601cf0c7f$d9e531d0$8daf9570$%debski@samsung.com> <52CD725E.5060903@hotmail.com>
-In-Reply-To: <52CD725E.5060903@hotmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 27/32] DocBook media: document new motion detection controls.
+Date: Fri, 31 Jan 2014 10:56:25 +0100
+Message-Id: <1391162190-8620-28-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391162190-8620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-于 2014年01月08日 23:44, randy 写道:
-> 于 2014年01月08日 22:42, Kamil Debski 写道:
->> Hi Randy,
-> 
->> Please have a look at the V4L2_CID_MPEG_VIDEO_HEADER_MODE
->> control.
->>> From your description it seems that it is in its default state
->>> -
->>> 
->> V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE. This means that the header 
->> for a newly encoded stream is returned after init. Then in
->> another buffer you will find the encoded picture.
-> 
-> There is the lastest my step 1.request buffer. 2.mmap input buffer
-> with OUTPUT 3.output buffer with CAPTURE. 4.filled input buffer
-> with the first frame. 5.enqueue the first frame in the input buffer
-> in OUTPUT side 6.enqueue the all output buffers in CAPTURE side 
-> 7.start stream 8.poll blocking to wait OUTPUT or CAPTURE can be
-> dequeue 9-1.if dequeued a CAPTURE buffer and get index from index
-> from buffer which has been mapped with a output buffer. 9-2.get
-> output data from output buffer and re-enqueue it. 9-3.got back to
-> step 4 but filled the next frame. 10. if dequeued a OUTPUT buffer,
-> then enqueue it and return to step 8 The first frame is 22 bytes
-> but the second is the big size, the third is the same to the first
-> and the forth is the same size to the second, but the others are
-> all big sizes(about 140000 to 16000)
->> You can also try to set the V4L2_CID_MPEG_VIDEO_HEADER_MODE
->> control to V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME and
->> see if it works. (instead of enqueueing the CAPTURE buffer again
->> after receiving the header).
-> 
-> It won't work, if I do that, after step 7, neither OUPUT nor
-> CAPTURE will poll return in my program. but ./mfc-encode -m
-> /dev/video1 -c h264,header_mode=1 work normally,
-I am sorry, I didn't well test it, if I use ./mfc-encode -m
-/dev/video1 -c h264,header_mode=1 -d 1
-then the size of demo.out is zero,
-but ./mfc-encode -d 1 -m /dev/video1 -c h264 will out a 158 bytes files.
-When duration is 2, with header_mode=1, the output file size is 228
-bytes.Without it, the size is 228 too.
-I wonder whether it is the driver's problem, as I see this in dmesg
-[    0.210000] Failed to declare coherent memory for MFC device (0
-bytes at 0x43000000)
-As the driver is not ready to use in 3.13-rc6 as I reported before, I
-still use the 3.5 from manufacturer.
-> I think it is the progblem of my code. As I follow your code, the
-> poll doesn't have timeout. int mfc_enc_output_available(struct
-> mfc_enc_context *ctx) { int pollret; struct pollfd fds[2]; 
-> fds[0].fd = ctx->fd; fds[0].events = POLLOUT | POLLERR; fds[1].fd =
-> ctx->fd; fds[1].events = POLLIN | POLLPRI;
-> 
-> pollret = poll(&fds, 2, -1); if (pollret < 0) { PDEBUG("%s: Poll
-> returned error: %d\n", __func__, errno); return -1; } if (pollret
-> == 0) { PDEBUG("%s: timed out\n", __func__); return -2; } for (int
-> i = 0; i < 2; i++) { if (fds[i].revents & POLLOUT){ /* the
-> OUTPUT(input) is ready */ PDEBUG("input can be dequeue\n"); return
-> 0; } if (fds[i].revents & POLLIN){ /* the CAPTURE(output) is ready
-> */ PDEBUG("output can be dequeue\n"); return 1; } }
-> 
-> PDEBUG("unknown event\n"); return -1; }
->> In addition I would recommend you to use more than one buffer
->> per queue.
-> 
-> Yes, I have, I have read your slide show(Video4Linux2: Path to a 
-> Standardized Video Codec API in pdf format) and your source code,
-> I create 16 in OUTPUT and 4 for CAPTURE. For the step 6, I mistaked
-> before, I have enqueued all the buffers in CAPTURE this time. Here
-> is my poll code.
-> 
->>> 
->>> And the thing in the next is like this I think 11.filled input 
->>> buffer with the next frame 12.enqueue the next frame in the
->>> input buffer in OUTPUT side 13.dequeue CAPTURE buffer and make
->>> output buffer pointer to data of it. 14.dequeue OUTPUT goto 11
->>> Is it correct
->>> 
->>> I doubt the REAME 5. Request CAPTURE and OUTPUT buffers. Due
->>> to hardware limitations of MFC on some platforms it is
->>> recommended to use V4L2_MEMORY_MMAP buffers. 6. Enqueue CAPTURE
->>> buffers. 7. Enqueue OUTPUT buffer with first frame. 8. Start
->>> streaming (VIDIOC_STREAMON) on both ends. 9. Simultaneously: I
->>> don't need to dequeue the OUTPUT buffer which is with first
->>> frame? - enqueue buffers with next frames, - dequeue used
->>> OUTPUT buffers (blocking operation), - dequeue buffers with
->>> encoded stream (blocking operation), - enqueue free CAPTURE
->>> buffers.
->>> 
->>> 
->>> Thank you.
-> 
->> Best wishes, Kamil
-> 
-> 
-> 
-> 
-> Thank you very much
-> 
-> ayaka
-Thank you
-ayaka
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+Document the 'Detect' control class and the new Motion Detection controls.
+Those controls will be used by the solo6x10 and go7007 drivers.
 
-iQEcBAEBAgAGBQJSz7pDAAoJEPb4VsMIzTziS/QIAJL1sd+2XNy4d/wzCYOL5mLv
-xny5/7zWTtiW1Ti7s6pnxyed2RvhzQlSAWHM2nsk9AzCTdUVNmXCq3b4CF3aKSP3
-7OhpqlFWCEb+uxW98FuH9PPvlR8PAnhhWTkdxtW6Xe3CpSZ7rVYaxrs36LWX3K1S
-ntW3nfMwoecmtd45NUTtfajvwR3+kmS5IFzM7zdbIykzhf7aOvxQ9JdSqNBT97O3
-/xk8XCFGAg9kDGcR9g95mZCEEDVgVBHNAM2WLtihV7kEcpOxe0q4FccXxngCWvQd
-vYDYjpFYLjAYJzXM9P5BPCg7drDndCLof6fGeIG783J+OruOfTSrwuxVa7hsEzw=
-=Uq4w
------END PGP SIGNATURE-----
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 95 ++++++++++++++++++++++++++++
+ 1 file changed, 95 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 85d78d4..5f3e138 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5022,4 +5022,99 @@ defines possible values for de-emphasis. Here they are:</entry>
+       </table>
+ 
+       </section>
++
++    <section id="detect-controls">
++      <title>Detect Control Reference</title>
++
++      <para>The Detect class includes controls for common features of
++      various motion or object detection capable devices.</para>
++
++      <table pgwide="1" frame="none" id="detect-control-id">
++      <title>Detect Control IDs</title>
++
++      <tgroup cols="4">
++        <colspec colname="c1" colwidth="1*" />
++        <colspec colname="c2" colwidth="6*" />
++        <colspec colname="c3" colwidth="2*" />
++        <colspec colname="c4" colwidth="6*" />
++        <spanspec namest="c1" nameend="c2" spanname="id" />
++        <spanspec namest="c2" nameend="c4" spanname="descr" />
++        <thead>
++          <row>
++            <entry spanname="id" align="left">ID</entry>
++            <entry align="left">Type</entry>
++          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++          </row>
++        </thead>
++        <tbody valign="top">
++          <row><entry></entry></row>
++          <row>
++            <entry spanname="id"><constant>V4L2_CID_DETECT_CLASS</constant>&nbsp;</entry>
++            <entry>class</entry>
++          </row><row><entry spanname="descr">The Detect class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++          </row>
++          <row>
++            <entry spanname="id"><constant>V4L2_CID_DETECT_MD_MODE</constant>&nbsp;</entry>
++            <entry>menu</entry>
++          </row><row><entry spanname="descr">Sets the motion detection mode.</entry>
++          </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_DETECT_MD_MODE_DISABLED</constant>
++		  </entry><entry>Disable motion detection.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_DETECT_MD_MODE_GLOBAL</constant>
++		  </entry><entry>Use a single motion detection threshold.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_DETECT_MD_MODE_THRESHOLD_GRID</constant>
++		  </entry><entry>The image is divided into a grid, each cell with its own
++		  motion detection threshold. These thresholds are set through the
++		  <constant>V4L2_CID_DETECT_MD_THRESHOLD_GRID</constant> matrix control.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_DETECT_MD_MODE_REGION_GRID</constant>
++		  </entry><entry>The image is divided into a grid, each cell with its own
++		  region value that specifies which per-region motion detection thresholds
++		  should be used. Each region has its own thresholds. How these per-region
++		  thresholds are set up is driver-specific. The region values for the grid are set
++		  through the <constant>V4L2_CID_DETECT_MD_REGION_GRID</constant> matrix
++		  control.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++          <row>
++	    <entry spanname="id"><constant>V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the global motion detection threshold to be
++	  used with the <constant>V4L2_DETECT_MD_MODE_GLOBAL</constant> motion detection mode.</entry>
++          </row>
++          <row>
++	    <entry spanname="id"><constant>V4L2_CID_DETECT_MD_THRESHOLD_GRID</constant>&nbsp;</entry>
++	    <entry>__u16 matrix</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the motion detection thresholds for each cell in the grid.
++	  To be used with the <constant>V4L2_DETECT_MD_MODE_THRESHOLD_GRID</constant>
++	  motion detection mode.</entry>
++          </row>
++          <row>
++	    <entry spanname="id"><constant>V4L2_CID_DETECT_MD_REGION_GRID</constant>&nbsp;</entry>
++	    <entry>__u8 matrix</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the motion detection region value for each cell in the grid.
++	  To be used with the <constant>V4L2_DETECT_MD_MODE_REGION_GRID</constant>
++	  motion detection mode.</entry>
++          </row>
++        </tbody>
++      </tgroup>
++      </table>
++
++      </section>
+ </section>
+-- 
+1.8.5.2
+
