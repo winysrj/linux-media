@@ -1,29 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s31.blu0.hotmail.com ([65.55.111.106]:13928 "EHLO
-	blu0-omc2-s31.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756407AbaBRPdy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 10:33:54 -0500
-Message-ID: <BLU0-SMTP276CA3E6B66F3D63A32DBA7F1980@phx.gbl>
-Date: Tue, 18 Feb 2014 16:28:44 +0100
-From: Andrea Rossi <ar.eu@outlook.com>
-MIME-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:51165 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933209AbaBAOYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 09:24:48 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: easyCap on 12.04
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 13/17] DocBook: media: document V4L2_CTRL_CLASS_RF_TUNER
+Date: Sat,  1 Feb 2014 16:24:30 +0200
+Message-Id: <1391264674-4395-14-git-send-email-crope@iki.fi>
+In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
+References: <1391264674-4395-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hy guys, there's someone can help me?
-I need to get stream by easyCap 12.04.
-With lsusb i get
-Bus 003 Device 003: ID 1b71:3002
-Now, what i do?
+It is class for RF tuner specific controls, like gain controls,
+filters, signal strength.
 
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-tnks to all! =)
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index b3bb957..e9f6735 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -327,7 +327,12 @@ These controls are described in <xref
+ These controls are described in <xref
+ 		linkend="fm-rx-controls" />.</entry>
+ 	  </row>
+-
++	  <row>
++	    <entry><constant>V4L2_CTRL_CLASS_RF_TUNER</constant></entry>
++	    <entry>0xa20000</entry>
++	    <entry>The class containing RF tuner controls.
++These controls are described in <xref linkend="rf-tuner-controls" />.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
 -- 
-Andrea Rossi
+1.8.5.3
 
