@@ -1,85 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1634 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752905AbaBQJ6z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:58:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:43729 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933226AbaBAOYt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 09:24:49 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 05/35] videodev2.h: add struct v4l2_query_ext_ctrl and VIDIOC_QUERY_EXT_CTRL.
-Date: Mon, 17 Feb 2014 10:57:20 +0100
-Message-Id: <1392631070-41868-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH 03/17] r820t: add manual gain controls
+Date: Sat,  1 Feb 2014 16:24:20 +0200
+Message-Id: <1391264674-4395-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
+References: <1391264674-4395-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add gain control for LNA, Mixer and IF. Expose controls via DVB
+frontend .set_config callback.
 
-Add a new struct and ioctl to extend the amount of information you can
-get for a control.
-
-It gives back a unit string, the range is now a s64 type, and the matrix
-and element size can be reported through cols/rows/elem_size.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- include/uapi/linux/videodev2.h | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/media/tuners/r820t.c | 38 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/r820t.h |  7 +++++++
+ 2 files changed, 45 insertions(+)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 4d7782a..858a6f3 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1272,6 +1272,35 @@ struct v4l2_queryctrl {
- 	__u32		     reserved[2];
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index d9ee43f..5a926a3 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -1251,6 +1251,43 @@ static int r820t_set_gain_mode(struct r820t_priv *priv,
+ }
+ #endif
+ 
++static int r820t_set_config(struct dvb_frontend *fe, void *priv_cfg)
++{
++	struct r820t_priv *priv = fe->tuner_priv;
++	struct r820t_ctrl *ctrl = priv_cfg;
++	int rc;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	if (ctrl->lna_gain == INT_MIN)
++		rc = r820t_write_reg_mask(priv, 0x05, 0x00, 0x10);
++	else
++		rc = r820t_write_reg_mask(priv, 0x05,
++				0x10 | ctrl->lna_gain, 0x1f);
++	if (rc < 0)
++		goto err;
++
++	if (ctrl->mixer_gain == INT_MIN)
++		rc = r820t_write_reg_mask(priv, 0x07, 0x10, 0x10);
++	else
++		rc = r820t_write_reg_mask(priv, 0x07,
++				0x00 | ctrl->mixer_gain, 0x1f);
++	if (rc < 0)
++		goto err;
++
++	if (ctrl->if_gain == INT_MIN)
++		rc = r820t_write_reg_mask(priv, 0x0c, 0x10, 0x10);
++	else
++		rc = r820t_write_reg_mask(priv, 0x0c,
++				0x00 | ctrl->if_gain, 0x1f);
++err:
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	return rc;
++}
++
+ static int generic_set_freq(struct dvb_frontend *fe,
+ 			    u32 freq /* in HZ */,
+ 			    unsigned bw,
+@@ -2275,6 +2312,7 @@ static const struct dvb_tuner_ops r820t_tuner_ops = {
+ 	.release = r820t_release,
+ 	.sleep = r820t_sleep,
+ 	.set_params = r820t_set_params,
++	.set_config = r820t_set_config,
+ 	.set_analog_params = r820t_set_analog_freq,
+ 	.get_if_frequency = r820t_get_if_frequency,
+ 	.get_rf_strength = r820t_signal,
+diff --git a/drivers/media/tuners/r820t.h b/drivers/media/tuners/r820t.h
+index 48af354..42c0d8e 100644
+--- a/drivers/media/tuners/r820t.h
++++ b/drivers/media/tuners/r820t.h
+@@ -42,6 +42,13 @@ struct r820t_config {
+ 	bool use_predetect;
  };
  
-+/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
-+struct v4l2_query_ext_ctrl {
-+	__u32		     id;
-+	__u32		     type;
-+	char		     name[32];
-+	char		     unit[32];
-+	union {
-+		__s64 val;
-+		__u32 reserved[4];
-+	} min;
-+	union {
-+		__s64 val;
-+		__u32 reserved[4];
-+	} max;
-+	union {
-+		__u64 val;
-+		__u32 reserved[4];
-+	} step;
-+	union {
-+		__s64 val;
-+		__u32 reserved[4];
-+	} def;
-+	__u32                flags;
-+	__u32                cols;
-+	__u32                rows;
-+	__u32                elem_size;
-+	__u32		     reserved[17];
++/* set INT_MIN for automode */
++struct r820t_ctrl {
++	int lna_gain;
++	int mixer_gain;
++	int if_gain;
 +};
 +
- /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
- struct v4l2_querymenu {
- 	__u32		id;
-@@ -1965,6 +1994,8 @@ struct v4l2_create_buffers {
-    Never use these in applications! */
- #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
- 
-+#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
+ #if IS_ENABLED(CONFIG_MEDIA_TUNER_R820T)
+ struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
+ 				  struct i2c_adapter *i2c,
 -- 
-1.8.4.rc3
+1.8.5.3
 
