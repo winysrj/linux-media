@@ -1,56 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:16379 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490AbaBSN6d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Feb 2014 08:58:33 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N1800EI3XHJ0410@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 19 Feb 2014 08:58:31 -0500 (EST)
-Date: Wed, 19 Feb 2014 22:58:26 +0900
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Sean Young <sean@mess.org>
-Cc: Rune Petersen <rune@megahurts.dk>, linux-media@vger.kernel.org
-Subject: Re: Some questions timeout in rc_dev
-Message-id: <20140219225826.5f5cefbe.m.chehab@samsung.com>
-In-reply-to: <20140218140236.GA10790@pequod.mess.org>
-References: <53013379.70403@megahurts.dk>
- <20140218140236.GA10790@pequod.mess.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:60874 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933200AbaBAOYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 09:24:48 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 10/17] DocBook: document RF tuner gain controls
+Date: Sat,  1 Feb 2014 16:24:27 +0200
+Message-Id: <1391264674-4395-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
+References: <1391264674-4395-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 18 Feb 2014 14:02:37 +0000
-Sean Young <sean@mess.org> escreveu:
+Add documentation for LNA, mixer and IF gain controls. These
+controls are RF tuner specific.
 
-> On Sun, Feb 16, 2014 at 10:54:01PM +0100, Rune Petersen wrote:
-> > The intent of the timeout member in the rc_dev struct is a little unclear to me.
-> > In rc-core.h it is described as:
-> > 	@timeout: optional time after which device stops sending data.
-> > 
-> > But if I look at the usage, it is used to detect idle in ir_raw.c
-> > which again is used by the RC-6 decoder to detect end of RC-6 6A
-> > transmissions.
-> > 
-> > This leaves me with a few questions:
-> >  - Without the timeout (which is optional) the RC-6 decoder will not work
-> >    properly with RC-6 6A transmissions wouldn't that make it required?
-> 
-> That sounds like a bug to me. The decoders shouldn't rely on the length 
-> of trailing space, probably it would be best to not rely on receiving the
-> trailing space if possible.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 91 ++++++++++++++++++++++++++++
+ 1 file changed, 91 insertions(+)
 
-The trailing space is needed, because of some weird variants. For example,
-there are some RC5-like protocols that have less bits. See for example the
-15-bits variant at drivers/media/rc/ir-rc5-sz-decoder.
-
-So, as a general rule, we're always waiting for a trailing space, to be sure
-that the protocol matches. 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a5a3188..0145341 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4971,4 +4971,95 @@ defines possible values for de-emphasis. Here they are:</entry>
+       </table>
+ 
+       </section>
++
++    <section id="rf-tuner-controls">
++      <title>RF Tuner Control Reference</title>
++
++      <para>The RF Tuner (RF_TUNER) class includes controls for common features
++of devices having RF tuner.</para>
++
++      <table pgwide="1" frame="none" id="rf-tuner-control-id">
++        <title>RF_TUNER Control IDs</title>
++
++        <tgroup cols="4">
++          <colspec colname="c1" colwidth="1*" />
++          <colspec colname="c2" colwidth="6*" />
++          <colspec colname="c3" colwidth="2*" />
++          <colspec colname="c4" colwidth="6*" />
++          <spanspec namest="c1" nameend="c2" spanname="id" />
++          <spanspec namest="c2" nameend="c4" spanname="descr" />
++          <thead>
++            <row>
++              <entry spanname="id" align="left">ID</entry>
++              <entry align="left">Type</entry>
++            </row>
++            <row rowsep="1">
++              <entry spanname="descr" align="left">Description</entry>
++            </row>
++          </thead>
++          <tbody valign="top">
++            <row><entry></entry></row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_CLASS</constant>&nbsp;</entry>
++              <entry>class</entry>
++            </row><row><entry spanname="descr">The RF_TUNER class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_LNA_GAIN_AUTO</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Enables/disables LNA automatic gain control (AGC)</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_MIXER_GAIN_AUTO</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Enables/disables mixer automatic gain control (AGC)</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_IF_GAIN_AUTO</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_LNA_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">LNA (low noise amplifier) gain is first
++gain stage on the RF tuner signal path. It is located very close to tuner
++antenna input. Used when <constant>V4L2_CID_LNA_GAIN_AUTO</constant> is not set.
++The range and step are driver-specific.</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_MIXER_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Mixer gain is second gain stage on the RF
++tuner signal path. It is located inside mixer block, where RF signal is
++down-converted by the mixer. Used when <constant>V4L2_CID_MIXER_GAIN_AUTO</constant>
++is not set. The range and step are driver-specific.</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_IF_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">IF gain is last gain stage on the RF tuner
++signal path. It is located on output of RF tuner. It controls signal level of
++intermediate frequency output or baseband output. Used when
++<constant>V4L2_CID_IF_GAIN_AUTO</constant> is not set. The range and step are
++driver-specific.</entry>
++            </row>
++          </tbody>
++        </tgroup>
++      </table>
++    </section>
+ </section>
 -- 
+1.8.5.3
 
-Cheers,
-Mauro
