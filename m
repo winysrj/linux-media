@@ -1,81 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4563 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750716AbaBWIhF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Feb 2014 03:37:05 -0500
-Message-ID: <5309B317.3060603@xs4all.nl>
-Date: Sun, 23 Feb 2014 09:36:39 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv4 PATCH 08/11] vb2: q->num_buffers was updated too soon
-References: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl> <1392374472-18393-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392374472-18393-9-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from sauhun.de ([89.238.76.85]:59297 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933253AbaBAS0U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 13:26:20 -0500
+From: Wolfram Sang <wsa@the-dreams.de>
+To: linux-media@vger.kernel-org
+Cc: Wolfram Sang <wsa@the-dreams.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Brian Johnson <brijohn@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] media: gspca: sn9c20x: add ID for Genius Look 1320 V2
+Date: Sat,  1 Feb 2014 19:26:00 +0100
+Message-Id: <1391279164-2935-1-git-send-email-wsa@the-dreams.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/14/2014 11:41 AM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> In __reqbufs() and __create_bufs() the q->num_buffers field was updated
-> with the number of newly allocated buffers, but right after that those are
-> freed again if some error had occurred before. Move the line updating
-> num_buffers to *after* that error check.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+---
+ Documentation/video4linux/gspca.txt | 1 +
+ drivers/media/usb/gspca/sn9c20x.c   | 1 +
+ 2 files changed, 2 insertions(+)
 
-NACK: this is actually correct behavior since __vb2_queue_free() subtracts
-'allocated_buffers' from q->num_buffers. A comment mentioning this might be
-useful, though.
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index ad3db83..96c5ac6 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -848,13 +848,13 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
->  		 */
->  	}
->  
-> -	q->num_buffers = allocated_buffers;
-> -
->  	if (ret < 0) {
->  		__vb2_queue_free(q, allocated_buffers);
->  		return ret;
->  	}
->  
-> +	q->num_buffers = allocated_buffers;
-> +
->  	/*
->  	 * Return the number of successfully allocated buffers
->  	 * to the userspace.
-> @@ -957,13 +957,13 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
->  		 */
->  	}
->  
-> -	q->num_buffers += allocated_buffers;
-> -
->  	if (ret < 0) {
->  		__vb2_queue_free(q, allocated_buffers);
->  		return -ENOMEM;
->  	}
->  
-> +	q->num_buffers += allocated_buffers;
-> +
->  	/*
->  	 * Return the number of successfully allocated buffers
->  	 * to the userspace.
-> 
+diff --git a/Documentation/video4linux/gspca.txt b/Documentation/video4linux/gspca.txt
+index 1e6b653..d2ba80b 100644
+--- a/Documentation/video4linux/gspca.txt
++++ b/Documentation/video4linux/gspca.txt
+@@ -55,6 +55,7 @@ zc3xx		0458:700f	Genius VideoCam Web V2
+ sonixj		0458:7025	Genius Eye 311Q
+ sn9c20x		0458:7029	Genius Look 320s
+ sonixj		0458:702e	Genius Slim 310 NB
++sn9c20x		0458:7045	Genius Look 1320 V2
+ sn9c20x		0458:704a	Genius Slim 1320
+ sn9c20x		0458:704c	Genius i-Look 1321
+ sn9c20x		045e:00f4	LifeCam VX-6000 (SN9C20x + OV9650)
+diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
+index 2a38621..41a9a89 100644
+--- a/drivers/media/usb/gspca/sn9c20x.c
++++ b/drivers/media/usb/gspca/sn9c20x.c
+@@ -2359,6 +2359,7 @@ static const struct usb_device_id device_table[] = {
+ 	{USB_DEVICE(0x045e, 0x00f4), SN9C20X(OV9650, 0x30, 0)},
+ 	{USB_DEVICE(0x145f, 0x013d), SN9C20X(OV7660, 0x21, 0)},
+ 	{USB_DEVICE(0x0458, 0x7029), SN9C20X(HV7131R, 0x11, 0)},
++	{USB_DEVICE(0x0458, 0x7045), SN9C20X(MT9M112, 0x5d, LED_REVERSE)},
+ 	{USB_DEVICE(0x0458, 0x704a), SN9C20X(MT9M112, 0x5d, 0)},
+ 	{USB_DEVICE(0x0458, 0x704c), SN9C20X(MT9M112, 0x5d, 0)},
+ 	{USB_DEVICE(0xa168, 0x0610), SN9C20X(HV7131R, 0x11, 0)},
+-- 
+1.8.5.1
 
