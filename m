@@ -1,99 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60675 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:44190 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752729AbaBLR7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 12:59:54 -0500
+	id S933225AbaBAOYt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 09:24:49 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH FOR 3.14] em28xx-dvb: fix PCTV 461e tuner I2C binding
-Date: Wed, 12 Feb 2014 19:59:37 +0200
-Message-Id: <1392227977-24528-1-git-send-email-crope@iki.fi>
+Subject: [PATCH 16/17] msi3101: implement tuner bandwidth control
+Date: Sat,  1 Feb 2014 16:24:33 +0200
+Message-Id: <1391264674-4395-17-git-send-email-crope@iki.fi>
+In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
+References: <1391264674-4395-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add missing m88ts2022 module reference counts as removing that module
-is not allowed when it is used by em28xx-dvb module. That same module
-was not unregistered correctly, fix it too.
-
-Error cases validated by returning errors from m88ds3103, m88ts2022
-and a8293 probe().
+Implement control that user could adjust tuner filters manually,
+if he wish.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/em28xx/em28xx-dvb.c | 27 +++++++++++++++++++++++++--
- 1 file changed, 25 insertions(+), 2 deletions(-)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 44 ++++++++++++++---------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index a0a669e..defac24 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1374,6 +1374,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		{
- 			/* demod I2C adapter */
- 			struct i2c_adapter *i2c_adapter;
-+			struct i2c_client *client;
- 			struct i2c_board_info info;
- 			struct m88ts2022_config m88ts2022_config = {
- 				.clock = 27000000,
-@@ -1396,7 +1397,19 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 			info.addr = 0x60;
- 			info.platform_data = &m88ts2022_config;
- 			request_module("m88ts2022");
--			dvb->i2c_client_tuner = i2c_new_device(i2c_adapter, &info);
-+			client = i2c_new_device(i2c_adapter, &info);
-+			if (client == NULL || client->dev.driver == NULL) {
-+				dvb_frontend_detach(dvb->fe[0]);
-+				result = -ENODEV;
-+				goto out_free;
-+			}
-+
-+			if (!try_module_get(client->dev.driver->owner)) {
-+				i2c_unregister_device(client);
-+				dvb_frontend_detach(dvb->fe[0]);
-+				result = -ENODEV;
-+				goto out_free;
-+			}
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 0606941..49e5bd1 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -52,8 +52,6 @@
+ #define MAX_ISOC_ERRORS         20
  
- 			/* delegate signal strength measurement to tuner */
- 			dvb->fe[0]->ops.read_signal_strength =
-@@ -1406,10 +1419,14 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 			if (!dvb_attach(a8293_attach, dvb->fe[0],
- 					&dev->i2c_adap[dev->def_i2c_bus],
- 					&em28xx_a8293_config)) {
-+				module_put(client->dev.driver->owner);
-+				i2c_unregister_device(client);
- 				dvb_frontend_detach(dvb->fe[0]);
- 				result = -ENODEV;
- 				goto out_free;
- 			}
+ /* TODO: These should be moved to V4L2 API */
+-#define MSI3101_CID_TUNER_BW              ((V4L2_CID_USER_BASE | 0xf000) + 11)
+-
+ #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+ #define V4L2_PIX_FMT_SDR_U16LE  v4l2_fourcc('D', 'U', '1', '6') /* unsigned 16-bit LE */
+ #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
+@@ -157,13 +155,14 @@ struct msi3101_state {
+ 
+ 	/* Controls */
+ 	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl *bandwidth_auto;
++	struct v4l2_ctrl *bandwidth;
+ 	struct v4l2_ctrl *lna_gain_auto;
+ 	struct v4l2_ctrl *lna_gain;
+ 	struct v4l2_ctrl *mixer_gain_auto;
+ 	struct v4l2_ctrl *mixer_gain;
+ 	struct v4l2_ctrl *if_gain_auto;
+ 	struct v4l2_ctrl *if_gain;
+-	struct v4l2_ctrl *ctrl_tuner_bw;
+ 
+ 	u32 next_sample; /* for track lost packets */
+ 	u32 sample; /* for sample rate calc */
+@@ -1131,7 +1130,7 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 		{5000000, 0x04}, /* 5 MHz */
+ 		{6000000, 0x05}, /* 6 MHz */
+ 		{7000000, 0x06}, /* 7 MHz */
+-		{    ~0U, 0x07}, /* 8 MHz */
++		{8000000, 0x07}, /* 8 MHz */
+ 	};
+ 
+ 	unsigned int f_rf = s->f_tuner;
+@@ -1140,7 +1139,7 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 	 * bandwidth (Hz)
+ 	 * 200000, 300000, 600000, 1536000, 5000000, 6000000, 7000000, 8000000
+ 	 */
+-	unsigned int bandwidth = s->ctrl_tuner_bw->val;
++	unsigned int bandwidth;
+ 
+ 	/*
+ 	 * intermediate frequency (Hz)
+@@ -1149,8 +1148,8 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 	unsigned int f_if = 0;
+ 
+ 	dev_dbg(&s->udev->dev,
+-			"%s: f_rf=%d bandwidth=%d f_if=%d\n",
+-			__func__, f_rf, bandwidth, f_if);
++			"%s: f_rf=%d f_if=%d\n",
++			__func__, f_rf, f_if);
+ 
+ 	ret = -EINVAL;
+ 
+@@ -1181,9 +1180,13 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 	if (i == ARRAY_SIZE(if_freq_lut))
+ 		goto err;
+ 
+-	/* user has not requested bandwidth, set some reasonable */
+-	if (bandwidth == 0)
++	/* filters */
++	if (s->bandwidth_auto->val)
+ 		bandwidth = s->f_adc;
++	else
++		bandwidth = s->bandwidth->val;
 +
-+			dvb->i2c_client_tuner = client;
- 		}
++	bandwidth = clamp(bandwidth, 200000U, 8000000U);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(bandwidth_lut); i++) {
+ 		if (bandwidth <= bandwidth_lut[i].freq) {
+@@ -1195,6 +1198,8 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 	if (i == ARRAY_SIZE(bandwidth_lut))
+ 		goto err;
+ 
++	s->bandwidth->val = bandwidth_lut[i].freq;
++
+ 	dev_dbg(&s->udev->dev, "%s: bandwidth selected=%d\n",
+ 			__func__, bandwidth_lut[i].freq);
+ 
+@@ -1580,7 +1585,8 @@ static int msi3101_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			ctrl->minimum, ctrl->maximum, ctrl->step);
+ 
+ 	switch (ctrl->id) {
+-	case MSI3101_CID_TUNER_BW:
++	case V4L2_CID_BANDWIDTH_AUTO:
++	case V4L2_CID_BANDWIDTH:
+ 		ret = msi3101_set_tuner(s);
  		break;
- 	default:
-@@ -1471,6 +1488,7 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 	case  V4L2_CID_LNA_GAIN:
+@@ -1617,16 +1623,6 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	struct msi3101_state *s = NULL;
+ 	const struct v4l2_ctrl_ops *ops = &msi3101_ctrl_ops;
+ 	int ret;
+-	static const struct v4l2_ctrl_config ctrl_tuner_bw = {
+-		.ops	= &msi3101_ctrl_ops,
+-		.id	= MSI3101_CID_TUNER_BW,
+-		.type	= V4L2_CTRL_TYPE_INTEGER,
+-		.name	= "Tuner Bandwidth",
+-		.min	= 0,
+-		.max	= 8000000,
+-		.def    = 0,
+-		.step	= 1,
+-	};
  
- 	if (dev->dvb) {
- 		struct em28xx_dvb *dvb = dev->dvb;
-+		struct i2c_client *client = dvb->i2c_client_tuner;
+ 	s = kzalloc(sizeof(struct msi3101_state), GFP_KERNEL);
+ 	if (s == NULL) {
+@@ -1664,8 +1660,12 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	video_set_drvdata(&s->vdev, s);
  
- 		em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
- 
-@@ -1483,7 +1501,12 @@ static int em28xx_dvb_fini(struct em28xx *dev)
- 				prevent_sleep(&dvb->fe[1]->ops);
- 		}
- 
--		i2c_release_client(dvb->i2c_client_tuner);
-+		/* remove I2C tuner */
-+		if (client) {
-+			module_put(client->dev.driver->owner);
-+			i2c_unregister_device(client);
-+		}
-+
- 		em28xx_unregister_dvb(dvb);
- 		kfree(dvb);
- 		dev->dvb = NULL;
+ 	/* Register controls */
+-	v4l2_ctrl_handler_init(&s->hdl, 4);
+-	s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->hdl, &ctrl_tuner_bw, NULL);
++	v4l2_ctrl_handler_init(&s->hdl, 5);
++	s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops,
++			V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
++	s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops,
++			V4L2_CID_BANDWIDTH, 0, 8000000, 1, 0);
++	v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
+ 	s->lna_gain = v4l2_ctrl_new_std(&s->hdl, ops,
+ 			V4L2_CID_LNA_GAIN, 0, 1, 1, 1);
+ 	s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, ops,
 -- 
 1.8.5.3
 
