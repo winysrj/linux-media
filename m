@@ -1,113 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1604 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752621AbaBYDhH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Feb 2014 22:37:07 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1P3b4jg039955
-	for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 04:37:06 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E2E872A0232
-	for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 04:37:01 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:36844 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933227AbaBAOYu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 09:24:50 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140225033701.E2E872A0232@tschai.lan>
-Date: Tue, 25 Feb 2014 04:37:01 +0100 (CET)
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 17/17] rtl2832_sdr: implement tuner bandwidth control
+Date: Sat,  1 Feb 2014 16:24:34 +0200
+Message-Id: <1391264674-4395-18-git-send-email-crope@iki.fi>
+In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
+References: <1391264674-4395-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Implement control that user could adjust tuner filters manually,
+if he wish.
 
-Results of the daily build of media_tree:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 71 ++++++++++++------------
+ 1 file changed, 37 insertions(+), 34 deletions(-)
 
-date:		Tue Feb 25 04:00:21 CET 2014
-git branch:	test
-git hash:	efab6b6a6ea9364ececb955f69a9d3ffc6b782a1
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 15c562e3..1dfe653 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -38,9 +38,6 @@
+ #include <linux/math64.h>
+ 
+ /* TODO: These should be moved to V4L2 API */
+-#define RTL2832_SDR_CID_TUNER_BW            ((V4L2_CID_USER_BASE | 0xf000) + 11)
+-#define RTL2832_SDR_CID_TUNER_GAIN          ((V4L2_CID_USER_BASE | 0xf000) + 13)
+-
+ #define V4L2_PIX_FMT_SDR_U8    v4l2_fourcc('D', 'U', '0', '8')
+ #define V4L2_PIX_FMT_SDR_U16LE v4l2_fourcc('D', 'U', '1', '6')
+ 
+@@ -150,13 +147,14 @@ struct rtl2832_sdr_state {
+ 
+ 	/* Controls */
+ 	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl *bandwidth_auto;
++	struct v4l2_ctrl *bandwidth;
+ 	struct v4l2_ctrl *lna_gain_auto;
+ 	struct v4l2_ctrl *lna_gain;
+ 	struct v4l2_ctrl *mixer_gain_auto;
+ 	struct v4l2_ctrl *mixer_gain;
+ 	struct v4l2_ctrl *if_gain_auto;
+ 	struct v4l2_ctrl *if_gain;
+-	struct v4l2_ctrl *ctrl_tuner_bw;
+ 
+ 	/* for sample rate calc */
+ 	unsigned int sample;
+@@ -1003,12 +1001,23 @@ static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
+ 	/*
+ 	 * bandwidth (Hz)
+ 	 */
+-	unsigned int bandwidth = s->ctrl_tuner_bw->val;
++	unsigned int bandwidth;
+ 
+-	dev_dbg(&s->udev->dev,
+-			"%s: f_rf=%u bandwidth=%d\n",
++	/* filters */
++	if (s->bandwidth_auto->val)
++		bandwidth = s->f_adc;
++	else
++		bandwidth = s->bandwidth->val;
++
++	s->bandwidth->val = bandwidth;
++
++	dev_dbg(&s->udev->dev, "%s: f_rf=%u bandwidth=%d\n",
+ 			__func__, f_rf, bandwidth);
+ 
++	c->bandwidth_hz = bandwidth;
++	c->frequency = f_rf;
++	c->delivery_system = SYS_DVBT;
++
+ 	if (f_rf == 0)
+ 		return 0;
+ 
+@@ -1018,14 +1027,6 @@ static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
+ 	if (fe->ops.tuner_ops.init)
+ 		fe->ops.tuner_ops.init(fe);
+ 
+-	/* user has not requested bandwidth so calculate automatically */
+-	if (bandwidth == 0)
+-		bandwidth = s->f_adc;
+-
+-	c->bandwidth_hz = bandwidth;
+-	c->frequency = f_rf;
+-	c->delivery_system = SYS_DVBT;
+-
+ 	if (fe->ops.tuner_ops.set_params)
+ 		fe->ops.tuner_ops.set_params(fe);
+ 
+@@ -1368,8 +1369,8 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			ctrl->minimum, ctrl->maximum, ctrl->step);
+ 
+ 	switch (ctrl->id) {
+-	case RTL2832_SDR_CID_TUNER_BW:
+-	case RTL2832_SDR_CID_TUNER_GAIN:
++	case V4L2_CID_BANDWIDTH_AUTO:
++	case V4L2_CID_BANDWIDTH:
+ 		ret = rtl2832_sdr_set_tuner(s);
+ 		break;
+ 	case  V4L2_CID_LNA_GAIN_AUTO:
+@@ -1409,16 +1410,6 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	struct rtl2832_sdr_state *s;
+ 	const struct v4l2_ctrl_ops *ops = &rtl2832_sdr_ctrl_ops;
+ 	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
+-	static const struct v4l2_ctrl_config ctrl_tuner_bw = {
+-		.ops    = &rtl2832_sdr_ctrl_ops,
+-		.id     = RTL2832_SDR_CID_TUNER_BW,
+-		.type   = V4L2_CTRL_TYPE_INTEGER,
+-		.name   = "Tuner BW",
+-		.min    = 0,
+-		.max    = INT_MAX,
+-		.def    = 0,
+-		.step   = 1,
+-	};
+ 
+ 	s = kzalloc(sizeof(struct rtl2832_sdr_state), GFP_KERNEL);
+ 	if (s == NULL) {
+@@ -1458,8 +1449,10 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	/* Register controls */
+ 	switch (s->cfg->tuner) {
+ 	case RTL2832_TUNER_E4000:
+-		v4l2_ctrl_handler_init(&s->hdl, 7);
+-		s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->hdl, &ctrl_tuner_bw, NULL);
++		v4l2_ctrl_handler_init(&s->hdl, 8);
++		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
++		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
++		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
+ 		s->lna_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN_AUTO, 0, 1, 1, 1);
+ 		s->lna_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN, 0, 15, 1, 10);
+ 		v4l2_ctrl_auto_cluster(2, &s->lna_gain_auto, 0, false);
+@@ -1471,7 +1464,10 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 		v4l2_ctrl_auto_cluster(2, &s->if_gain_auto, 0, false);
+ 		break;
+ 	case RTL2832_TUNER_R820T:
+-		v4l2_ctrl_handler_init(&s->hdl, 7);
++		v4l2_ctrl_handler_init(&s->hdl, 8);
++		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
++		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH, 0, 8000000, 100000, 0);
++		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
+ 		s->lna_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN_AUTO, 0, 1, 1, 1);
+ 		s->lna_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN, 0, 15, 1, 6);
+ 		v4l2_ctrl_auto_cluster(2, &s->lna_gain_auto, 0, false);
+@@ -1481,12 +1477,19 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 		s->if_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_IF_GAIN_AUTO, 0, 1, 1, 1);
+ 		s->if_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_IF_GAIN, 0, 15, 1, 4);
+ 		v4l2_ctrl_auto_cluster(2, &s->if_gain_auto, 0, false);
+-		s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->hdl, &ctrl_tuner_bw, NULL);
+ 		break;
+-	default:
+-		v4l2_ctrl_handler_init(&s->hdl, 1);
+-		s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->hdl, &ctrl_tuner_bw, NULL);
++	case RTL2832_TUNER_FC0012:
++	case RTL2832_TUNER_FC0013:
++		v4l2_ctrl_handler_init(&s->hdl, 2);
++		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
++		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH, 6000000, 8000000, 1000000, 6000000);
++		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
+ 		break;
++	default:
++		v4l2_ctrl_handler_init(&s->hdl, 0);
++		dev_notice(&s->udev->dev, "%s: Unsupported tuner\n",
++				KBUILD_MODNAME);
++		goto err_free_controls;
+ 	}
+ 
+ 	if (s->hdl.error) {
+-- 
+1.8.5.3
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
