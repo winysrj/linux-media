@@ -1,76 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:48133 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961AbaBISdP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 13:33:15 -0500
-Received: by mail-ee0-f46.google.com with SMTP id c13so2496425eek.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Feb 2014 10:33:14 -0800 (PST)
-Message-ID: <52F7CA40.2010106@googlemail.com>
-Date: Sun, 09 Feb 2014 19:34:40 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: m.chehab@samsung.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/4] em28xx-i2c: do not map -ENXIO errors to -ENODEV for
- empty i2c transfers
-References: <1390168117-2925-1-git-send-email-fschaefer.oss@googlemail.com> <1390168117-2925-4-git-send-email-fschaefer.oss@googlemail.com> <20140204164734.62354b70@samsung.com>
-In-Reply-To: <20140204164734.62354b70@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([217.30.184.167]:56252 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932387AbaBAUog (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 15:44:36 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Robert Schlabbach <Robert.Schlabbach@gmx.net>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/4] m88ds3103: remove dead code 2nd part
+Date: Sat,  1 Feb 2014 22:44:16 +0200
+Message-Id: <1391287458-11939-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1391287458-11939-1-git-send-email-crope@iki.fi>
+References: <1391287458-11939-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Coverity CID 1166051: Logically dead code (DEADCODE)
 
-Am 04.02.2014 19:47, schrieb Mauro Carvalho Chehab:
-> Em Sun, 19 Jan 2014 22:48:36 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Commit e63b009d6e "" changed the error codes i2c ACK errors from -ENODEV to -ENXIO.
->> But it also introduced a line that maps -ENXIO back to -ENODEV in case of empty i2c
->> messages, which makes no sense, because
->> 1.) an ACK error is an ACK error no matter what the i2c message content is
->> 2.) -ENXIO is perfectly suited for probing, too
-> I don't agree with this patch. 0-byte messages are only usin during device
-> probe.
-???
+TS clock calculation could be more accurate, but as it is not,
+remove those unused clock speeds.
 
-The error handling is inconsistent for no good reason.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/m88ds3103.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-The old code always returned -ENODEV.
-Then you came to the conclusion that -ENODEV isn't good and we both
-agreed that -ENXIO is appropriate.
-But then you decided to keep -ENODEV for 0-Byte messages only.
-Why ?
-According to the i2c error code description, -ENXIO and -ENODEV are both
-suited for probing.
-AFAICS there are zero reasons for returning different error codes in
-case of the same i2c ack error.
-So please, either -ENODEV or -ENXIO instead of such inconsistencies.
-
->> 3.) we are loosing the ability to distinguish USB device disconnects
-> Huh?
-Maybe (like me) you didn't notice that before.
-This is probably the most cogent argument for changing -ENODEV to -ENXIO
-for i2c ack errors in case of USB devices. ;-)
-
-Regards,
-Frank
-
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>  drivers/media/usb/em28xx/em28xx-i2c.c |    1 -
->>  1 Datei geändert, 1 Zeile entfernt(-)
->>
->> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
->> index ba6433c..a26d7d4 100644
->> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
->> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
->> @@ -539,7 +539,6 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
->>  				if (rc == -ENXIO) {
->>  					if (i2c_debug > 1)
->>  						printk(KERN_CONT " no device\n");
->> -					rc = -ENODEV;
->>  				} else {
->>  					if (i2c_debug > 1)
->>  						printk(KERN_CONT " ERROR: %i\n", rc);
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index e261bf9..c0a78d9 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -428,18 +428,10 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 		goto err;
+ 
+ 	switch (target_mclk) {
+-	case 72000:
+-		u8tmp1 = 0x00; /* 0b00 */
+-		u8tmp2 = 0x03; /* 0b11 */
+-		break;
+ 	case 96000:
+ 		u8tmp1 = 0x02; /* 0b10 */
+ 		u8tmp2 = 0x01; /* 0b01 */
+ 		break;
+-	case 115200:
+-		u8tmp1 = 0x01; /* 0b01 */
+-		u8tmp2 = 0x01; /* 0b01 */
+-		break;
+ 	case 144000:
+ 		u8tmp1 = 0x00; /* 0b00 */
+ 		u8tmp2 = 0x01; /* 0b01 */
+@@ -448,10 +440,6 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 		u8tmp1 = 0x03; /* 0b11 */
+ 		u8tmp2 = 0x00; /* 0b00 */
+ 		break;
+-	default:
+-		dev_dbg(&priv->i2c->dev, "%s: invalid target_mclk\n", __func__);
+-		ret = -EINVAL;
+-		goto err;
+ 	}
+ 
+ 	ret = m88ds3103_wr_reg_mask(priv, 0x22, u8tmp1 << 6, 0xc0);
+-- 
+1.8.5.3
 
