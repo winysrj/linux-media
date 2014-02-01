@@ -1,52 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753175AbaBEQl7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:51457 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933205AbaBAOYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 09:24:48 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 29/47] adv7604: Add support for asynchronous probing
-Date: Wed,  5 Feb 2014 17:42:20 +0100
-Message-Id: <1391618558-5580-30-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 11/17] DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
+Date: Sat,  1 Feb 2014 16:24:28 +0200
+Message-Id: <1391264674-4395-12-git-send-email-crope@iki.fi>
+In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
+References: <1391264674-4395-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lars-Peter Clausen <lars@metafoo.de>
+Document V4L2_SDR_FMT_CU8 SDR format.
+It is complex unsigned 8-bit IQ sample. Used by software defined
+radio devices.
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7604.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ .../DocBook/media/v4l/pixfmt-sdr-cu08.xml          | 44 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +
+ 2 files changed, 46 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 71c8570..98ac383 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2337,6 +2337,11 @@ static int adv7604_probe(struct i2c_client *client,
- 		goto err_entity;
- 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
- 			client->addr << 1, client->adapter->name);
-+
-+	err = v4l2_async_register_subdev(sd);
-+	if (err)
-+		goto err_entity;
-+
- 	return 0;
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+new file mode 100644
+index 0000000..2d80104
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+@@ -0,0 +1,44 @@
++<refentry id="V4L2-SDR-FMT-CU08">
++  <refmeta>
++    <refentrytitle>V4L2_SDR_FMT_CU8 ('CU08')</refentrytitle>
++    &manvol;
++  </refmeta>
++    <refnamediv>
++      <refname>
++        <constant>V4L2_SDR_FMT_CU8</constant>
++      </refname>
++      <refpurpose>Complex unsigned 8-bit IQ sample</refpurpose>
++    </refnamediv>
++    <refsect1>
++      <title>Description</title>
++      <para>
++This format contains sequence of complex number samples. Each complex number
++consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
++represented as a 8 bit unsigned number. I value comes first and Q value after
++that.
++      </para>
++    <example>
++      <title><constant>V4L2_SDR_FMT_CU8</constant> 1 sample</title>
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="2" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>I'<subscript>0</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;1:</entry>
++                  <entry>Q'<subscript>0</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index f586d34..40adcb8 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -817,6 +817,8 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+     <para>These formats are used for <link linkend="sdr">SDR Capture</link>
+ interface only.</para>
  
- err_entity:
-@@ -2360,6 +2365,7 @@ static int adv7604_remove(struct i2c_client *client)
++    &sub-sdr-cu08;
++
+   </section>
  
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
- 	destroy_workqueue(state->work_queues);
-+	v4l2_async_unregister_subdev(sd);
- 	v4l2_device_unregister_subdev(sd);
- 	media_entity_cleanup(&sd->entity);
- 	adv7604_unregister_clients(to_state(sd));
+   <section id="pixfmt-reserved">
 -- 
-1.8.3.2
+1.8.5.3
 
