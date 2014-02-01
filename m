@@ -1,110 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4976 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752556AbaBDDXk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 22:23:40 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s143Nb71014235
-	for <linux-media@vger.kernel.org>; Tue, 4 Feb 2014 04:23:39 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 070E62A00A5
-	for <linux-media@vger.kernel.org>; Tue,  4 Feb 2014 04:23:21 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:44484 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933176AbaBAOYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 09:24:48 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140204032321.070E62A00A5@tschai.lan>
-Date: Tue,  4 Feb 2014 04:23:21 +0100 (CET)
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 12/17] DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
+Date: Sat,  1 Feb 2014 16:24:29 +0200
+Message-Id: <1391264674-4395-13-git-send-email-crope@iki.fi>
+In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
+References: <1391264674-4395-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Document V4L2_SDR_FMT_CU16LE format.
+It is complex unsigned 16-bit little endian IQ sample. Used by
+software defined radio devices.
 
-Results of the daily build of media_tree:
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        | 46 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
+ 2 files changed, 47 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
 
-date:		Tue Feb  4 04:00:30 CET 2014
-git branch:	test
-git hash:	c29b8f3149f2916e98fc3b8d6c1df2137d003979
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+new file mode 100644
+index 0000000..26288ff
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+@@ -0,0 +1,46 @@
++<refentry id="V4L2-SDR-FMT-CU16LE">
++  <refmeta>
++    <refentrytitle>V4L2_SDR_FMT_CU16LE ('CU16')</refentrytitle>
++    &manvol;
++  </refmeta>
++    <refnamediv>
++      <refname>
++        <constant>V4L2_SDR_FMT_CU16LE</constant>
++      </refname>
++      <refpurpose>Complex unsigned 16-bit little endian IQ sample</refpurpose>
++    </refnamediv>
++    <refsect1>
++      <title>Description</title>
++      <para>
++This format contains sequence of complex number samples. Each complex number
++consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
++represented as a 16 bit unsigned little endian number. I value comes first
++and Q value after that.
++      </para>
++    <example>
++      <title><constant>V4L2_SDR_FMT_CU16LE</constant> 1 sample</title>
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="3" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>I'<subscript>0[7:0]</subscript></entry>
++                  <entry>I'<subscript>0[15:8]</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;2:</entry>
++                  <entry>Q'<subscript>0[7:0]</subscript></entry>
++                  <entry>Q'<subscript>0[15:8]</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 40adcb8..f535d9b 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -818,6 +818,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+ interface only.</para>
+ 
+     &sub-sdr-cu08;
++    &sub-sdr-cu16le;
+ 
+   </section>
+ 
+-- 
+1.8.5.3
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12-i686: WARNINGS
-linux-3.13-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
