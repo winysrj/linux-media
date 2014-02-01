@@ -1,100 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47699 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:60938 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933188AbaBAOYr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 09:24:47 -0500
+	id S932893AbaBAOgi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 09:36:38 -0500
+Message-ID: <52ED0674.3040509@iki.fi>
+Date: Sat, 01 Feb 2014 16:36:36 +0200
 From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 04/17] rtl2832_sdr: expose R820 gain controls to user space
-Date: Sat,  1 Feb 2014 16:24:21 +0200
-Message-Id: <1391264674-4395-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
-References: <1391264674-4395-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+CC: Stefan Becker <schtefan@gmx.net>
+Subject: [GIT PULL 3.14] new AF9035 device USB ID
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Provide R820 gain controls to userspace via V4L2 API. LNA, Mixer
-and IF gain controls are offered, each one both manual and automode.
+PULL that for 3.14. It is only single new USB ID which is suitable stuff 
+for that late (even for stable 3.?? if someone wants to submit there too).
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 41 ++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+regards
+Antti
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index ee72233..69fc996 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -26,6 +26,7 @@
- #include "rtl2832_sdr.h"
- #include "dvb_usb.h"
- #include "e4000.h"
-+#include "r820t.h"
- 
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-@@ -947,6 +948,30 @@ err:
- 	return ret;
- };
- 
-+static int rtl2832_sdr_set_gain_r820t(struct rtl2832_sdr_state *s)
-+{
-+	int ret;
-+	struct dvb_frontend *fe = s->fe;
-+	struct r820t_ctrl ctrl;
-+	dev_dbg(&s->udev->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
-+			s->lna_gain->val, s->mixer_gain->val, s->if_gain->val);
-+
-+	ctrl.lna_gain = s->lna_gain_auto->val ? INT_MIN : s->lna_gain->val;
-+	ctrl.mixer_gain = s->mixer_gain_auto->val ? INT_MIN : s->mixer_gain->val;
-+	ctrl.if_gain = s->if_gain_auto->val ? INT_MIN : s->if_gain->val;
-+
-+	if (fe->ops.tuner_ops.set_config) {
-+		ret = fe->ops.tuner_ops.set_config(fe, &ctrl);
-+		if (ret)
-+			goto err;
-+	}
-+
-+	return 0;
-+err:
-+	dev_dbg(&s->udev->dev, "%s: failed %d\n", __func__, ret);
-+	return ret;
-+};
-+
- static int rtl2832_sdr_set_gain(struct rtl2832_sdr_state *s)
- {
- 	int ret;
-@@ -955,6 +980,9 @@ static int rtl2832_sdr_set_gain(struct rtl2832_sdr_state *s)
- 	case RTL2832_TUNER_E4000:
- 		ret = rtl2832_sdr_set_gain_e4000(s);
- 		break;
-+	case RTL2832_TUNER_R820T:
-+		ret = rtl2832_sdr_set_gain_r820t(s);
-+		break;
- 	default:
- 		ret = 0;
- 	}
-@@ -1442,6 +1470,19 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 		s->if_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_IF_GAIN, 0, 54, 1, 0);
- 		v4l2_ctrl_auto_cluster(2, &s->if_gain_auto, 0, false);
- 		break;
-+	case RTL2832_TUNER_R820T:
-+		v4l2_ctrl_handler_init(&s->hdl, 7);
-+		s->lna_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN_AUTO, 0, 1, 1, 1);
-+		s->lna_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN, 0, 15, 1, 6);
-+		v4l2_ctrl_auto_cluster(2, &s->lna_gain_auto, 0, false);
-+		s->mixer_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_MIXER_GAIN_AUTO, 0, 1, 1, 1);
-+		s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_MIXER_GAIN, 0, 15, 1, 5);
-+		v4l2_ctrl_auto_cluster(2, &s->mixer_gain_auto, 0, false);
-+		s->if_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_IF_GAIN_AUTO, 0, 1, 1, 1);
-+		s->if_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_IF_GAIN, 0, 15, 1, 4);
-+		v4l2_ctrl_auto_cluster(2, &s->if_gain_auto, 0, false);
-+		s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->hdl, &ctrl_tuner_bw, NULL);
-+		break;
- 	default:
- 		v4l2_ctrl_handler_init(&s->hdl, 1);
- 		s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->hdl, &ctrl_tuner_bw, NULL);
+
+The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
+
+   [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git af9035_hauppauge
+
+for you to fetch changes up to 4cb73c085a0cedb590990c9c0e3c48bab6639764:
+
+   af9035: add ID [2040:f900] Hauppauge WinTV-MiniStick 2 (2014-02-01 
+16:27:21 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+       af9035: add ID [2040:f900] Hauppauge WinTV-MiniStick 2
+
+  drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
+  1 file changed, 2 insertions(+)
+
+
 -- 
-1.8.5.3
-
+http://palosaari.fi/
