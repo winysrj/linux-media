@@ -1,193 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49957 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:45562 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754276AbaB0AQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:16:59 -0500
+	id S933186AbaBAOYr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Feb 2014 09:24:47 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 4/8] rtl2832: style changes and minor cleanup
-Date: Thu, 27 Feb 2014 02:16:06 +0200
-Message-Id: <1393460170-11591-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1393460170-11591-1-git-send-email-crope@iki.fi>
-References: <1393460170-11591-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 05/17] e4000: fix PLL calc to allow higher frequencies
+Date: Sat,  1 Feb 2014 16:24:22 +0200
+Message-Id: <1391264674-4395-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
+References: <1391264674-4395-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most of those were reported by checkpatch.pl...
+There was 32-bit overflow on VCO frequency calculation which blocks
+tuning to 1073 - 1104 MHz. Use 64 bit number in order to avoid VCO
+frequency overflow.
 
-debug module parameter is not used anywhere so remove it.
+After that fix device in question tunes to following range:
+60 - 1104 MHz
+1250 - 2207 MHz
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/rtl2832.c      | 26 +++++++---------
- drivers/media/dvb-frontends/rtl2832.h      |  2 +-
- drivers/media/dvb-frontends/rtl2832_priv.h | 50 +++++++++++++++---------------
- 3 files changed, 38 insertions(+), 40 deletions(-)
+ drivers/media/tuners/e4000.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 61d4ecb..00e63b9 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -24,11 +24,6 @@
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index 651de11..9187190 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -221,11 +221,11 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	struct e4000_priv *priv = fe->tuner_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i, sigma_delta;
+-	unsigned int f_vco;
++	u64 f_vco;
+ 	u8 buf[5], i_data[4], q_data[4];
  
- /* Max transfer size done by I2C transfer functions */
- #define MAX_XFER_SIZE  64
--
--int rtl2832_debug;
--module_param_named(debug, rtl2832_debug, int, 0644);
--MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
--
- #define REG_MASK(b) (BIT(b + 1) - 1)
+ 	dev_dbg(&priv->client->dev,
+-			"%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
++			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
+ 			__func__, c->delivery_system, c->frequency,
+ 			c->bandwidth_hz);
  
- static const struct rtl2832_reg_entry registers[] = {
-@@ -189,8 +184,9 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
- 	if (ret == 1) {
- 		ret = 0;
- 	} else {
--		dev_warn(&priv->i2c->dev, "%s: i2c wr failed=%d reg=%02x " \
--				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
-+		dev_warn(&priv->i2c->dev,
-+				"%s: i2c wr failed=%d reg=%02x len=%d\n",
-+				KBUILD_MODNAME, ret, reg, len);
- 		ret = -EREMOTEIO;
+@@ -248,20 +248,16 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 		goto err;
  	}
- 	return ret;
-@@ -218,8 +214,9 @@ static int rtl2832_rd(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
- 	if (ret == 2) {
- 		ret = 0;
- 	} else {
--		dev_warn(&priv->i2c->dev, "%s: i2c rd failed=%d reg=%02x " \
--				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
-+		dev_warn(&priv->i2c->dev,
-+				"%s: i2c rd failed=%d reg=%02x len=%d\n",
-+				KBUILD_MODNAME, ret, reg, len);
- 		ret = -EREMOTEIO;
- 	}
- 	return ret;
-@@ -417,7 +414,7 @@ static int rtl2832_set_if(struct dvb_frontend *fe, u32 if_freq)
  
- 	ret = rtl2832_wr_demod_reg(priv, DVBT_PSET_IFFREQ, pset_iffreq);
+-	/*
+-	 * Note: Currently f_vco overflows when c->frequency is 1 073 741 824 Hz
+-	 * or more.
+-	 */
+-	f_vco = c->frequency * e4000_pll_lut[i].mul;
++	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
+ 	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
+-	buf[0] = f_vco / priv->clock;
++	buf[0] = div_u64(f_vco, priv->clock);
+ 	buf[1] = (sigma_delta >> 0) & 0xff;
+ 	buf[2] = (sigma_delta >> 8) & 0xff;
+ 	buf[3] = 0x00;
+ 	buf[4] = e4000_pll_lut[i].div;
  
--	return (ret);
-+	return ret;
- }
+ 	dev_dbg(&priv->client->dev,
+-			"%s: f_vco=%u pll div=%d sigma_delta=%04x\n",
++			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
+ 			__func__, f_vco, buf[0], sigma_delta);
  
- static int rtl2832_init(struct dvb_frontend *fe)
-@@ -516,7 +513,8 @@ static int rtl2832_init(struct dvb_frontend *fe)
- 
- 	/*
- 	 * r820t NIM code does a software reset here at the demod -
--	 * may not be needed, as there's already a software reset at set_params()
-+	 * may not be needed, as there's already a software reset at
-+	 * set_params()
- 	 */
- #if 1
- 	/* soft reset */
-@@ -593,9 +591,9 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
- 	};
- 
- 
--	dev_dbg(&priv->i2c->dev, "%s: frequency=%d bandwidth_hz=%d " \
--			"inversion=%d\n", __func__, c->frequency,
--			c->bandwidth_hz, c->inversion);
-+	dev_dbg(&priv->i2c->dev,
-+			"%s: frequency=%d bandwidth_hz=%d inversion=%d\n",
-+			__func__, c->frequency, c->bandwidth_hz, c->inversion);
- 
- 	/* program tuner */
- 	if (fe->ops.tuner_ops.set_params)
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index e543081..fa4e5f6 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -51,7 +51,7 @@ struct rtl2832_config {
- };
- 
- #if IS_ENABLED(CONFIG_DVB_RTL2832)
--extern struct dvb_frontend *rtl2832_attach(
-+struct dvb_frontend *rtl2832_attach(
- 	const struct rtl2832_config *cfg,
- 	struct i2c_adapter *i2c
- );
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index b5f2b80..4c845af 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -267,7 +267,7 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_tua9001[] = {
- 	{DVBT_OPT_ADC_IQ,                0x1},
- 	{DVBT_AD_AVI,                    0x0},
- 	{DVBT_AD_AVQ,                    0x0},
--	{DVBT_SPEC_INV,			 0x0},
-+	{DVBT_SPEC_INV,                  0x0},
- };
- 
- static const struct rtl2832_reg_value rtl2832_tuner_init_fc0012[] = {
-@@ -301,7 +301,7 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_fc0012[] = {
- 	{DVBT_GI_PGA_STATE,              0x0},
- 	{DVBT_EN_AGC_PGA,                0x1},
- 	{DVBT_IF_AGC_MAN,                0x0},
--	{DVBT_SPEC_INV,			 0x0},
-+	{DVBT_SPEC_INV,                  0x0},
- };
- 
- static const struct rtl2832_reg_value rtl2832_tuner_init_e4000[] = {
-@@ -339,32 +339,32 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_e4000[] = {
- 	{DVBT_REG_MONSEL,                0x1},
- 	{DVBT_REG_MON,                   0x1},
- 	{DVBT_REG_4MSEL,                 0x0},
--	{DVBT_SPEC_INV,			 0x0},
-+	{DVBT_SPEC_INV,                  0x0},
- };
- 
- static const struct rtl2832_reg_value rtl2832_tuner_init_r820t[] = {
--	{DVBT_DAGC_TRG_VAL,		0x39},
--	{DVBT_AGC_TARG_VAL_0,		0x0},
--	{DVBT_AGC_TARG_VAL_8_1,		0x40},
--	{DVBT_AAGC_LOOP_GAIN,		0x16},
--	{DVBT_LOOP_GAIN2_3_0,		0x8},
--	{DVBT_LOOP_GAIN2_4,		0x1},
--	{DVBT_LOOP_GAIN3,		0x18},
--	{DVBT_VTOP1,			0x35},
--	{DVBT_VTOP2,			0x21},
--	{DVBT_VTOP3,			0x21},
--	{DVBT_KRF1,			0x0},
--	{DVBT_KRF2,			0x40},
--	{DVBT_KRF3,			0x10},
--	{DVBT_KRF4,			0x10},
--	{DVBT_IF_AGC_MIN,		0x80},
--	{DVBT_IF_AGC_MAX,		0x7f},
--	{DVBT_RF_AGC_MIN,		0x80},
--	{DVBT_RF_AGC_MAX,		0x7f},
--	{DVBT_POLAR_RF_AGC,		0x0},
--	{DVBT_POLAR_IF_AGC,		0x0},
--	{DVBT_AD7_SETTING,		0xe9f4},
--	{DVBT_SPEC_INV,			0x1},
-+	{DVBT_DAGC_TRG_VAL,             0x39},
-+	{DVBT_AGC_TARG_VAL_0,            0x0},
-+	{DVBT_AGC_TARG_VAL_8_1,         0x40},
-+	{DVBT_AAGC_LOOP_GAIN,           0x16},
-+	{DVBT_LOOP_GAIN2_3_0,            0x8},
-+	{DVBT_LOOP_GAIN2_4,              0x1},
-+	{DVBT_LOOP_GAIN3,               0x18},
-+	{DVBT_VTOP1,                    0x35},
-+	{DVBT_VTOP2,                    0x21},
-+	{DVBT_VTOP3,                    0x21},
-+	{DVBT_KRF1,                      0x0},
-+	{DVBT_KRF2,                     0x40},
-+	{DVBT_KRF3,                     0x10},
-+	{DVBT_KRF4,                     0x10},
-+	{DVBT_IF_AGC_MIN,               0x80},
-+	{DVBT_IF_AGC_MAX,               0x7f},
-+	{DVBT_RF_AGC_MIN,               0x80},
-+	{DVBT_RF_AGC_MAX,               0x7f},
-+	{DVBT_POLAR_RF_AGC,              0x0},
-+	{DVBT_POLAR_IF_AGC,              0x0},
-+	{DVBT_AD7_SETTING,            0xe9f4},
-+	{DVBT_SPEC_INV,                  0x1},
- };
- 
- #endif /* RTL2832_PRIV_H */
+ 	ret = e4000_wr_regs(priv, 0x09, buf, 5);
 -- 
 1.8.5.3
 
