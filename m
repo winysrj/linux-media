@@ -1,85 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38234 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752106AbaB0Ig4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Feb 2014 03:36:56 -0500
-Message-ID: <530EF914.3000407@ti.com>
-Date: Thu, 27 Feb 2014 10:36:36 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4522 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750AbaBCIz4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 03:55:56 -0500
+Message-ID: <52EF5994.4090101@xs4all.nl>
+Date: Mon, 03 Feb 2014 09:55:48 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Grant Likely <grant.likely@linaro.org>
-CC: Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>	 < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>	 < 20140217181451.7EB7FC4044D@trevor.secretlab.ca>	 <20140218070624.GP17250@ pengutronix.de>	 <20140218162627.32BA4C40517@trevor.secretlab.ca>	 < 1393263389.3091.82.camel@pizza.hi.pengutronix.de>	 <20140226110114.CF2C7C40A89@trevor.secretlab.ca> <1393426129.3248.64.camel@paszta.hi.pengutronix.de>
-In-Reply-To: <1393426129.3248.64.camel@paszta.hi.pengutronix.de>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="tbslvQKphTF8vBEECJCkWDMkFG79k2pmB"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, detlev.casanova@gmail.com
+Subject: Re: [RFC PATCH 0/2] Allow inheritance of private controls
+References: <1391166726-27026-1-git-send-email-hverkuil@xs4all.nl> <14055698.TyElnNSLTS@avalon>
+In-Reply-To: <14055698.TyElnNSLTS@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---tbslvQKphTF8vBEECJCkWDMkFG79k2pmB
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi Laurent,
 
-On 26/02/14 16:48, Philipp Zabel wrote:
+On 02/02/2014 10:45 AM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patches.
+> 
+> On Friday 31 January 2014 12:12:04 Hans Verkuil wrote:
+>> Devices with a simple video pipeline may want to inherit private controls
+>> of sub-devices and expose them to the video node instead of v4l-subdev
+>> nodes (which may be inhibit anyway by the driver).
+>>
+>> Add support for this.
+>>
+>> A typical real-life example of this is a PCI capture card with just a single
+>> video receiver sub-device. Creating v4l-subdev nodes for this is overkill
+>> since it is clear which control belongs to which subdev.
+> 
+> The is_private flag has been introduced to allow subdevs to disable control 
+> inheritance. We're now adding a way for bridges to override that, which makes 
+> me wonder whether private controls are really the best way to express this.
+> 
+> Shouldn't we think about what we're trying to achieve with controls and places 
+> where they're exposed and then possibly rework the code accordingly ?
 
->> I would like the document to acknowledge the difference from the
->> phandle+args pattern used elsewhere and a description of when it would=
+I think is_private should be renamed to is_protected (as used in C++) and
+inheriting protected controls is similar to marking a class as 'friend' in C++.
 
->> be appropriate to use this instead of a simpler binding.
->=20
-> Alright. The main point of this binding is that the devices may have
-> multiple distinct ports that each can be connected to other devices.
+That's the mechanism I have in mind.
 
-The other main point with this binding are multiple endpoints per port.
-So you can have, say, a display controller, with single port, which has
-two endpoints going to two separate LCD panels.
+So is_private -> is_protected and the proposed inherit_private_ctrls field
+becomes inherit_protected_ctrls.
 
-In physical level that would usually mean that the same pins from the
-display controller are connected to two panels. Most likely this would
-mean that only one panel can be used at a time, possibly with different
-settings (say, 16 RGB pins for one panel, 24 RGB pins for the other).
+There are only a handful of drivers that set is_private today, so it is easy
+enough to rename.
 
- Tomi
+What do you think?
 
+Regards,
 
-
---tbslvQKphTF8vBEECJCkWDMkFG79k2pmB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTDvkUAAoJEPo9qoy8lh71ShEP/2H+TP+aNKfmsfd3A6pZl01T
-8Em17vHnfXjxX+7KxhoqJGiydt8NGKEZLrlEuBzyZws2h7tKcQIDh+uV9SKDRTZu
-qWPFWc734SR5kyuCfH9bRDyVQzi5lfLZs8PeQaglxgN6XWe9MQ9YzcLh2aQjZHyN
-f5LRJ3SdOG3rx46skL9kYdOmQw/NtoSIpJeU6X+CISYcoDcIXDKvgSlEYAOHy6oV
-tjORDF05GlsMotKOnehrhmmlXKrnGg21wD1adFYpMhR1ztFbkMpsn9SI9M6IMXno
-bbVa/Ik8BpT2qotMytu8sT83qWgP7DomMPAZkNLtn/D9rLqEntmSV2S8D99qa+Mo
-Zn81g/iUGY9AXF5L/GB935o6kTZAwaB5iXCyceLKaRFaBAoddEHg05hLOAvvmd0o
-D2GXp98N4S3S619dKg3jD634BwnwxeOAa9YJu7+4nvgx+Hi9uGH7kXYLwHOzsX9n
-jJDAZNggrhk4q3+EkM1TXaQ6NyRd8uMb6hK1x4MR9+wfsSQsT6jZlMJ2brndlgtT
-tK8UAR+m+n3mGkRWXx/+a0u5RCGy0YXJeqn25ctAsVE4hmUWgW6vm1bspCZdFA3O
-xvk40WhW6kafAWSbkeGt5BiDt8wD6L+9VQ/6ElT8ivlcMPv2S+GgDzmHgiC3T/40
-NXXecxeyuER7yZsCTjni
-=mQrO
------END PGP SIGNATURE-----
-
---tbslvQKphTF8vBEECJCkWDMkFG79k2pmB--
+	Hans
