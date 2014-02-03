@@ -1,74 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1383 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753125AbaBYKQR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:16:17 -0500
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1614 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750751AbaBCJEG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 04:04:06 -0500
+Message-ID: <52EF5B6B.7030103@xs4all.nl>
+Date: Mon, 03 Feb 2014 10:03:39 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 02/13] v4l2-ioctl: clips, clipcount and bitmap should not be zeroed.
-Date: Tue, 25 Feb 2014 11:15:52 +0100
-Message-Id: <1393323363-30058-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Philipp Zabel <pza@pengutronix.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH] [media] uvcvideo: Enable VIDIOC_CREATE_BUFS
+References: <1391012032-19600-1-git-send-email-p.zabel@pengutronix.de> <1474634.xnVfC2yuQa@avalon> <52EB6214.9030806@xs4all.nl> <3803281.g9jSrV8SES@avalon> <20140202130430.GA15734@pengutronix.de>
+In-Reply-To: <20140202130430.GA15734@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Philipp, Laurent,
 
-Otherwise you cannot get the current clip and bitmap information from
-an overlay.
+On 02/02/2014 02:04 PM, Philipp Zabel wrote:
+> On Sun, Feb 02, 2014 at 11:21:13AM +0100, Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Friday 31 January 2014 09:43:00 Hans Verkuil wrote:
+>>> I think you might want to add a check in uvc_queue_setup to verify the
+>>> fmt that create_bufs passes. The spec says that: "Unsupported formats
+>>> will result in an error". In this case I guess that the format basically
+>>> should match the current selected format.
+>>>
+>>> I'm unhappy with the current implementations of create_bufs (see also this
+>>> patch:
+>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg70796.html).
+>>>
+>>> Nobody is actually checking the format today, which isn't good.
+>>>
+>>> The fact that the spec says that the fmt field isn't changed by the driver
+>>> isn't helping as it invalidated my patch from above, although that can be
+>>> fixed.
+>>>
+>>> I need to think about this some more, but for this particular case you can
+>>> just do a memcmp of the v4l2_pix_format against the currently selected
+>>> format and return an error if they differ. Unless you want to support
+>>> different buffer sizes as well?
+>>
+>> Isn't the whole point of VIDIOC_CREATE_BUFS being able to create buffers of 
+>> different resolutions than the current active resolution ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+Or just additional buffers with the same resolution (or really, the same size).
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 69a1948..82bf164 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1062,6 +1062,30 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 
-+	/*
-+	 * fmt can't be cleared for these overlay types due to the 'clips'
-+	 * 'clipcount' and 'bitmap' pointers in struct v4l2_window.
-+	 * Those are provided by the user. So handle these two overlay types
-+	 * first, and then just do a simple memset for the other types.
-+	 */
-+	switch (p->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY: {
-+		struct v4l2_clip *clips = p->fmt.win.clips;
-+		u32 clipcount = p->fmt.win.clipcount;
-+		void *bitmap = p->fmt.win.bitmap;
-+
-+		memset(&p->fmt, 0, sizeof(p->fmt));
-+		p->fmt.win.clips = clips;
-+		p->fmt.win.clipcount = clipcount;
-+		p->fmt.win.bitmap = bitmap;
-+		break;
-+	}
-+	default:
-+		memset(&p->fmt, 0, sizeof(p->fmt));
-+		break;
-+	}
-+
- 	switch (p->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap))
-@@ -2029,7 +2053,7 @@ struct v4l2_ioctl_info {
- static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_QUERYCAP, v4l_querycap, v4l_print_querycap, 0),
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
--	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, INFO_FL_CLEAR(v4l2_format, type)),
-+	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, 0),
- 	IOCTL_INFO_FNC(VIDIOC_S_FMT, v4l_s_fmt, v4l_print_format, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_REQBUFS, v4l_reqbufs, v4l_print_requestbuffers, INFO_FL_PRIO | INFO_FL_QUEUE),
- 	IOCTL_INFO_FNC(VIDIOC_QUERYBUF, v4l_querybuf, v4l_print_buffer, INFO_FL_QUEUE | INFO_FL_CLEAR(v4l2_buffer, length)),
--- 
-1.9.0
+> For that to work the driver in question would need to keep track of per-buffer
+> format and resolution, and not only of per-queue format and resolution.
+> 
+> For now, would something like the following be enough? Unfortunately the uvc
+> driver doesn't keep a v4l2_format around that we could just memcmp against:
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+> index fa58131..7fa469b 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -1003,10 +1003,26 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  	case VIDIOC_CREATE_BUFS:
+>  	{
+>  		struct v4l2_create_buffers *cb = arg;
+> +		struct v4l2_pix_format *pix;
+> +		struct uvc_format *format;
+> +		struct uvc_frame *frame;
+>  
+>  		if (!uvc_has_privileges(handle))
+>  			return -EBUSY;
+>  
+> +		format = stream->cur_format;
+> +		frame = stream->cur_frame;
+> +		pix = &cb->format.fmt.pix;
+> +
+> +		if (pix->pixelformat != format->fcc ||
+> +		    pix->width != frame->wWidth ||
+> +		    pix->height != frame->wHeight ||
+> +		    pix->field != V4L2_FIELD_NONE ||
+> +		    pix->bytesperline != format->bpp * frame->wWidth / 8 ||
+> +		    pix->sizeimage != stream->ctrl.dwMaxVideoFrameSize ||
+> +		    pix->colorspace != format->colorspace)
 
+I would drop the field and colorspace checks (those do not really affect
+any size calculations), other than that it looks good.
+
+Regards,
+
+	Hans
+
+> +			return -EINVAL;
+> +
+>  		return uvc_create_buffers(&stream->queue, cb);
+>  	}
+>  
+> 
+> regards
+> Philipp
+> 
