@@ -1,76 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:57765 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137AbaBRQ0c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 11:26:32 -0500
-Received: by mail-we0-f177.google.com with SMTP id t61so11669866wes.22
-        for <linux-media@vger.kernel.org>; Tue, 18 Feb 2014 08:26:31 -0800 (PST)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Rob Herring <robherring2@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <20140218070624.GP17250@pengutronix.de>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com> < 20140217181451.7EB7FC4044D@trevor.secretlab.ca> <20140218070624.GP17250@ pengutronix.de>
-Date: Tue, 18 Feb 2014 16:26:27 +0000
-Message-Id: <20140218162627.32BA4C40517@trevor.secretlab.ca>
+Received: from mail.kapsi.fi ([217.30.184.167]:37365 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751195AbaBCKRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Feb 2014 05:17:19 -0500
+Message-ID: <52EF6CAD.4080605@iki.fi>
+Date: Mon, 03 Feb 2014 12:17:17 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 15/17] v4l: add RF tuner channel bandwidth control
+References: <1391264674-4395-1-git-send-email-crope@iki.fi> <1391264674-4395-16-git-send-email-crope@iki.fi> <52EF5CA7.9050303@xs4all.nl> <52EF5D50.4010107@xs4all.nl>
+In-Reply-To: <52EF5D50.4010107@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 18 Feb 2014 08:06:24 +0100, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> Hi Grant,
-> 
-> On Mon, Feb 17, 2014 at 06:14:51PM +0000, Grant Likely wrote:
-> > On Tue, 11 Feb 2014 07:56:33 -0600, Rob Herring <robherring2@gmail.com> wrote:
-> > > On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > > > From: Philipp Zabel <philipp.zabel@gmail.com>
-> > > >
-> > > > This patch moves the parsing helpers used to parse connected graphs
-> > > > in the device tree, like the video interface bindings documented in
-> > > > Documentation/devicetree/bindings/media/video-interfaces.txt, from
-> > > > drivers/media/v4l2-core to drivers/of.
-> > > 
-> > > This is the opposite direction things have been moving...
-> > > 
-> > > > This allows to reuse the same parser code from outside the V4L2 framework,
-> > > > most importantly from display drivers. There have been patches that duplicate
-> > > > the code (and I am going to send one of my own), such as
-> > > > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
-> > > > and others that parse the same binding in a different way:
-> > > > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
-> > > >
-> > > > I think that all common video interface parsing helpers should be moved to a
-> > > > single place, outside of the specific subsystems, so that it can be reused
-> > > > by all drivers.
-> > > 
-> > > Perhaps that should be done rather than moving to drivers/of now and
-> > > then again to somewhere else.
-> > 
-> > This is just parsing helpers though, isn't it? I have no problem pulling
-> > helper functions into drivers/of if they are usable by multiple
-> > subsystems. I don't really understand the model being used though. I
-> > would appreciate a description of the usage model for these functions
-> > for poor folks like me who can't keep track of what is going on in
-> > subsystems.
-> 
-> You can find it under Documentation/devicetree/bindings/media/video-interfaces.txt
+On 03.02.2014 11:11, Hans Verkuil wrote:
+>
+>
+> On 02/03/2014 10:08 AM, Hans Verkuil wrote:
+>> Hi Antti,
+>>
+>> On 02/01/2014 03:24 PM, Antti Palosaari wrote:
+>>> Modern silicon RF tuners has one or more adjustable filters on
+>>> signal path, in order to filter noise from desired radio channel.
+>>>
+>>> Add channel bandwidth control to tell the driver which is radio
+>>> channel width we want receive. Filters could be then adjusted by
+>>> the driver or hardware, using RF frequency and channel bandwidth
+>>> as a base of filter calculations.
+>>>
+>>> On automatic mode (normal mode), bandwidth is calculated from sampling
+>>> rate or tuning info got from userspace. That new control gives
+>>> possibility to set manual mode and let user have more control for
+>>> filters.
+>>>
+>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>   drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
+>>>   include/uapi/linux/v4l2-controls.h   | 2 ++
+>>>   2 files changed, 6 insertions(+)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>>> index d201f61..e44722b 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>>> @@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>>   	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
+>>>   	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
+>>>   	case V4L2_CID_IF_GAIN:			return "IF Gain";
+>>> +	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
+>>> +	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
+>>>   	default:
+>>>   		return NULL;
+>>>   	}
+>>> @@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>>   	case V4L2_CID_LNA_GAIN_AUTO:
+>>>   	case V4L2_CID_MIXER_GAIN_AUTO:
+>>>   	case V4L2_CID_IF_GAIN_AUTO:
+>>> +	case V4L2_CID_BANDWIDTH_AUTO:
+>>>   		*type = V4L2_CTRL_TYPE_BOOLEAN;
+>>>   		*min = 0;
+>>>   		*max = *step = 1;
+>>> @@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>>   	case V4L2_CID_LNA_GAIN:
+>>>   	case V4L2_CID_MIXER_GAIN:
+>>>   	case V4L2_CID_IF_GAIN:
+>>> +	case V4L2_CID_BANDWIDTH:
+>>
+>> Booleans never have the slider flag set (they are represented as a checkbox, so a slider
+>> makes no sense).
+>
+> v4l2-compliance will actually complain about this. It is useful to add support for
+> swradio to v4l2-compliance as it helps you test v4l2 compliance of drivers.
 
-Okay, I think I'm okay with moving the helpers, but I will make one
-requirement. I would like to have a short binding document describing
-the pattern being used. The document above talks a lot about video
-specific issues, but the helpers appear to be specifically about the
-tree walking properties of the API.
+mmm, I already tested it and there was maybe 4 errors or so. Those were 
+related to tuner / device types. Seems like quite many changes are needed...
 
-g.
+regards
+Antti
+
+
+-- 
+http://palosaari.fi/
