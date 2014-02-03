@@ -1,112 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4696 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752430AbaBYJsn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 04:48:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from avasout07.plus.net ([84.93.230.235]:49441 "EHLO
+	avasout07.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752324AbaBCSny (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 13:43:54 -0500
+Received: from localhost ([127.0.0.1] helo=webmail.plus.net)
+	by webmail04.plus.net with esmtp (Exim 4.76)
+	(envelope-from <divenal+catchall@plus.com>)
+	id 1WAOOy-0007Wb-A2
+	for linux-media@vger.kernel.org; Mon, 03 Feb 2014 18:37:48 +0000
+Message-ID: <c70f317fd3025425b4dc17d41fe3fa04.squirrel@webmail.plus.net>
+Date: Mon, 3 Feb 2014 18:37:48 -0000
+Subject: report success with USB DVB-T device - "August DVB-T205"
+From: divenal+catchall@plus.com
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com
-Subject: [REVIEWv1 PATCH 00/16] vb2: fixes, balancing callbacks (PART 1)
-Date: Tue, 25 Feb 2014 10:48:13 +0100
-Message-Id: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series is the first REVIEW series as opposed to RFC.
-It follows RFCv4:
+Hi,
+   I tried to add this directly to the wiki list of devices, but failed.
+Either I'm too thick to follow the instructions, or there's a
+permission problem trying to edit the template area. Perhaps someone
+can do the honours. Apologies if this is an inappropriate use of the
+mailing list, or if it is already on the wiki and I just overlooked it.
 
-http://www.spinics.net/lists/linux-media/msg73039.html
+The "August DVB-T205" is a low-cost device available on Amazon-uk. I got
+it about 6 months ago, and didn't have much success initially, so I
+resigned myself to using it on windows. Gave it another go this weekend,
+having read a note that it works with kernel 3.10 and above. I upgraded a
+debian system to 3.12 and managed to get it working, successfully
+recording some freeview via   tzap -o ...
 
-This is part 1 of vb2 changes. I will post a part 2 RFC series soon
-for more vb2 fixes and enhancements.
+It does come with a remote control, but I've not tried that yet.
 
-Ignore patches 1-3: the first is already merged in 3.14, and 2 and 3
-are pending to be merged in 3.14. But you need them for some follow-up
-patches.
 
-Patches 04-09 and 14 are unchanged from RFCv4.
+Details:
 
-Changelog since RFCv4:
+ "August DVB-T205"
+  http://www.amazon.co.uk/August-DVB-T205-Freeview-Tuner-Stick/dp/B002EHVP9C/ref=cm_cr_pr_product_top
 
-- Dropped RFCv4 patch 08/11 as it was wrong. Instead, I added patch
-  10/14. This fixes a bug in __vb2_queue_free() and improved the code
-  that caused my misunderstanding with RFCv4 patch 08/11.
-- In patch 11/14 I dropped the check against the minimum number of
-  required buffers in create_bufs. Instead, check for this in streamon.
-- Added patch 12: "vb2: properly clean up PREPARED and QUEUED buffers"
-  This fixes one corner case that still produced 'Unbalanced' results.
-- Added patch 13: "vb2: replace BUG by WARN_ON"
-  Just a small change to be more gentle if the driver tries something
-  it shouldn't.
+  USB 2.0 ID 1f4d:a803 G-Tek Electronics Group
 
-This patch series fixes a series of bugs in vb2. Recently I have been
-converting the saa7134 driver to vb2 and as part of that work I discovered
-that the op calls were not properly balanced, which caused saa7134 to
-fail.
+dmesg reports
 
-Based on that I did more debugging and I found lots of different issues
-with vb2 when it comes to balancing ops. This patch series fixes them.
-Many thanks to Pawel Osciak for a good brainstorm session.
+[   55.344057] usb 4-5: new high-speed USB device number 2 using ehci-pci
+[   55.487947] usb 4-5: New USB device found, idVendor=1f4d, idProduct=a803
+[   55.487955] usb 4-5: New USB device strings: Mfr=1, Product=2,
+SerialNumber=3
+[   55.487960] usb 4-5: Product: RTL2838UHIDIR
+[   55.487964] usb 4-5: Manufacturer: Realtek
+[   55.487967] usb 4-5: SerialNumber: 000000041
+[   55.658996] usb 4-5: dvb_usb_v2: found a 'Crypto ReDi PC 50 A' in warm
+state
+[   55.700691] usb 4-5: dvb_usb_v2: will pass the complete MPEG2 transport
+stream to the software demuxer
+[   55.700739] DVB: registering new adapter (Crypto ReDi PC 50 A)
+[   55.746061] usb 4-5: DVB: registering adapter 0 frontend 0 (Realtek
+RTL2832 (DVB-T))...
+[   55.794313] fc0013: Fitipower FC0013 successfully attached.
+[   55.801291] Registered IR keymap rc-empty
+[   55.801464] input: Crypto ReDi PC 50 A as
+/devices/pci0000:00/0000:00:1d.7/usb4/4-5/rc/rc0/input6
+[   55.803358] rc0: Crypto ReDi PC 50 A as
+/devices/pci0000:00/0000:00:1d.7/usb4/4-5/rc/rc0
+[   55.829012] IR RC5(x) protocol handler initialized
+[   55.836156] IR NEC protocol handler initialized
+[   55.837017] IR RC6 protocol handler initialized
+[   55.839978] IR JVC protocol handler initialized
+[   55.842955] IR Sony protocol handler initialized
+[   55.849256] IR SANYO protocol handler initialized
+[   55.852814] usb 4-5: dvb_usb_v2: schedule remote query interval to 400
+msecs
+[   55.856952] input: MCE IR Keyboard/Mouse (dvb_usb_rtl28xxu) as
+/devices/virtual/input/input7
+[   55.857919] IR MCE Keyboard/mouse protocol handler initialized
+[   55.863233] lirc_dev: IR Remote Control driver registered, major 251
+[   55.866471] usb 4-5: dvb_usb_v2: 'Crypto ReDi PC 50 A' successfully
+initialized and connected
+[   55.866577] usbcore: registered new interface driver dvb_usb_rtl28xxu
+[   55.871792] rc rc0: lirc_dev: driver ir-lirc-codec (dvb_usb_rtl28xxu)
+registered at minor = 0
+[   55.871803] IR LIRC bridge handler initialized
 
-Patch 4 adds debugging code to check for unbalanced calls. I used this
-when testing since without this it is very hard to verify correctness.
-It is currently turned on when CONFIG_VIDEO_ADV_DEBUG is set, but perhaps
-this should be placed under a vb2 specific debug option?
 
-The next patch changes the buf_finish return type to void. It must not
-fail, and you can't do anything useful if it does anyway.
-
-Patch 6 just improves some comments.
-
-Patches 7 and 8 fix several unbalanced ops.
-
-Patch 9 just renames queue_count to owned_by_drv_count. The old name
-suggests the number of buffers in the queue_list, but that's not what
-it is. Since the next patch will actually add a real count for the
-number of buffers in the queue_list I decided to just rename this,
-thus freeing up the name 'queue_count'.
-
-Patch 10 fixes a __vb2_queue_free() bug and makes __reqbufs and
-__create_bufs code a bit more understandable.
-
-Patch 11 fixes a bug in the handling of start_streaming: before that op
-is called any prequeued buffers are handed over to the driver. But if
-start_streaming returns an error, then those buffers are not reclaimed.
-Since start_streaming failed, q->streaming is 0, so stop_streaming isn't
-called either.
-
-There are two reasons for an error in start_streaming: either a real
-error when setting up the DMA engine occurred or there were not enough
-buffers queued for the DMA engine to start (start_streaming returns
--ENOBUFS in that case). It makes sense to require that drivers return
-queued buffers back to vb2 in case of an error, but not if they also 
-have to do that in case of insufficient buffers. So this patch replaces
-the -ENOBUFS mechanism by a vb2_queue field that tells vb2 what the
-minimum number of buffers is.
-
-Now if start_streaming returns an error the vb2 core will check if there
-are still buffers owned by the driver and if so produce a warning and
-reclaim those buffers. The same is done when the vb2_queue is freed.
-
-This ensures that the prepare/finish memops are correctly called and
-the state of all the buffers is consistent.
-
-Patch 12 fixes another corner case introducing unbalanced ops.
-
-Patch 13 replaces a BUG_ON by WARN_ON.
-
-Patch 14 fixes vivi for this start_streaming issue. Note that there are
-many drivers that do not clean up properly in case of an error during
-start_streaming.
-
-I have been testing these vb2 changes with vivi (vmalloc based), a patched
-saa7134 (dma-contig based) and an out-of-tree PCI driver (dma-sg based),
-with the mmap/userptr/dmabuf and read/write streaming modes.
-
-Regards,
-
-        Hans
-
+Dave
 
 
