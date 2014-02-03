@@ -1,41 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753175AbaBEQl4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 23/47] ths8200: Remove deprecated video-level DV timings operations
-Date: Wed,  5 Feb 2014 17:42:14 +0100
-Message-Id: <1391618558-5580-24-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-ve0-f174.google.com ([209.85.128.174]:41906 "EHLO
+	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750779AbaBCKN5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 05:13:57 -0500
+MIME-Version: 1.0
+In-Reply-To: <1386911563-26236-2-git-send-email-arun.kk@samsung.com>
+References: <1386911563-26236-1-git-send-email-arun.kk@samsung.com>
+	<1386911563-26236-2-git-send-email-arun.kk@samsung.com>
+Date: Mon, 3 Feb 2014 15:43:55 +0530
+Message-ID: <CALt3h7-VBZgX-ueNa-Fer_RBiWkd-frNwrr8DsykXbvCab=h3w@mail.gmail.com>
+Subject: Re: [PATCH v10 1/2] [media] exynos5-is: Adds DT binding documentation
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	Arun Kumar <arunkk.samsung@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
+Hi Mark,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/ths8200.c | 2 --
- 1 file changed, 2 deletions(-)
+This patch and hence a full series of 13 patches is waiting for a long time now
+due to your missing ack on this DT binding patch.
+I have addressed your review comments given on earlier version -
+http://www.spinics.net/lists/devicetree/msg11550.html
 
-diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
-index e17e5155..0f1e952 100644
---- a/drivers/media/i2c/ths8200.c
-+++ b/drivers/media/i2c/ths8200.c
-@@ -432,8 +432,6 @@ static const struct v4l2_subdev_video_ops ths8200_video_ops = {
- 	.s_stream = ths8200_s_stream,
- 	.s_dv_timings = ths8200_s_dv_timings,
- 	.g_dv_timings = ths8200_g_dv_timings,
--	.enum_dv_timings = ths8200_enum_dv_timings,
--	.dv_timings_cap = ths8200_dv_timings_cap,
- };
- 
- static const struct v4l2_subdev_pad_ops ths8200_pad_ops = {
--- 
-1.8.3.2
+Please check this and give an ack if it is fine to be merged.
 
+Regards
+Arun
+
+On Fri, Dec 13, 2013 at 10:42 AM, Arun Kumar K <arun.kk@samsung.com> wrote:
+> From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>
+> The patch adds the DT binding doc for exynos5 SoC camera
+> subsystem.
+>
+> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> ---
+>  .../bindings/media/exynos5250-camera.txt           |  136 ++++++++++++++++++++
+>  1 file changed, 136 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/exynos5250-camera.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/exynos5250-camera.txt b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+> new file mode 100644
+> index 0000000..0c36bc4
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/exynos5250-camera.txt
+> @@ -0,0 +1,136 @@
+> +Samsung EXYNOS5 SoC Camera Subsystem
+> +------------------------------------
+> +
+> +The Exynos5 SoC Camera subsystem comprises of multiple sub-devices
+> +represented by separate device tree nodes. Currently this includes: FIMC-LITE,
+> +MIPI CSIS and FIMC-IS.
+> +
+> +The sub-device nodes are referenced using phandles in the common 'camera' node
+> +which also includes common properties of the whole subsystem not really
+> +specific to any single sub-device, like common camera port pins or the common
+> +camera bus clocks.
+> +
+> +Common 'camera' node
+> +--------------------
+> +
+> +Required properties:
+> +
+> +- compatible           : must be "samsung,exynos5250-fimc"
+> +- clocks               : list of phandles and clock specifiers, corresponding
+> +                         to entries in the clock-names property
+> +- clock-names          : must contain "sclk_bayer" entry
+> +- samsung,csis         : list of phandles to the mipi-csis device nodes
+> +- samsung,fimc-lite    : list of phandles to the fimc-lite device nodes
+> +- samsung,fimc-is      : phandle to the fimc-is device node
+> +
+> +The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
+> +to define a required pinctrl state named "default".
+> +
+> +'parallel-ports' node
+> +---------------------
+> +
+> +This node should contain child 'port' nodes specifying active parallel video
+> +input ports. It includes camera A, camera B and RGB bay inputs.
+> +'reg' property in the port nodes specifies the input type:
+> + 1 - parallel camport A
+> + 2 - parallel camport B
+> + 5 - RGB camera bay
+> +
+> +3, 4 are for MIPI CSI-2 bus and are already described in samsung-mipi-csis.txt
+> +
+> +Required properties:
+> +
+> +For describing the input type in the child nodes, the following properties
+> +have to be present in the parallel-ports node:
+> +- #address-cells: Must be 1
+> +- #size-cells: Must be 0
+> +
+> +Image sensor nodes
+> +------------------
+> +
+> +The sensor device nodes should be added to their control bus controller (e.g.
+> +I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
+> +using the common video interfaces bindings, defined in video-interfaces.txt.
+> +
+> +Example:
+> +
+> +       aliases {
+> +               fimc-lite0 = &fimc_lite_0
+> +       };
+> +
+> +       /* Parallel bus IF sensor */
+> +       i2c_0: i2c@13860000 {
+> +               s5k6aa: sensor@3c {
+> +                       compatible = "samsung,s5k6aafx";
+> +                       reg = <0x3c>;
+> +                       vddio-supply = <...>;
+> +
+> +                       clock-frequency = <24000000>;
+> +                       clocks = <...>;
+> +                       clock-names = "mclk";
+> +
+> +                       port {
+> +                               s5k6aa_ep: endpoint {
+> +                                       remote-endpoint = <&fimc0_ep>;
+> +                                       bus-width = <8>;
+> +                                       hsync-active = <0>;
+> +                                       vsync-active = <1>;
+> +                                       pclk-sample = <1>;
+> +                               };
+> +                       };
+> +               };
+> +       };
+> +
+> +       /* MIPI CSI-2 bus IF sensor */
+> +       s5c73m3: sensor@1a {
+> +               compatible = "samsung,s5c73m3";
+> +               reg = <0x1a>;
+> +               vddio-supply = <...>;
+> +
+> +               clock-frequency = <24000000>;
+> +               clocks = <...>;
+> +               clock-names = "mclk";
+> +
+> +               port {
+> +                       s5c73m3_1: endpoint {
+> +                               data-lanes = <1 2 3 4>;
+> +                               remote-endpoint = <&csis0_ep>;
+> +                       };
+> +               };
+> +       };
+> +
+> +       camera {
+> +               compatible = "samsung,exynos5250-fimc";
+> +               #address-cells = <1>;
+> +               #size-cells = <1>;
+> +               status = "okay";
+> +
+> +               pinctrl-names = "default";
+> +               pinctrl-0 = <&cam_port_a_clk_active>;
+> +
+> +               samsung,csis = <&csis_0>, <&csis_1>;
+> +               samsung,fimc-lite = <&fimc_lite_0>, <&fimc_lite_1>, <&fimc_lite_2>;
+> +               samsung,fimc-is = <&fimc_is>;
+> +
+> +               /* parallel camera ports */
+> +               parallel-ports {
+> +                       #address-cells = <1>;
+> +                       #size-cells = <0>;
+> +
+> +                       /* camera A input */
+> +                       port@1 {
+> +                               reg = <1>;
+> +                               camport_a_ep: endpoint {
+> +                                       remote-endpoint = <&s5k6aa_ep>;
+> +                                       bus-width = <8>;
+> +                                       hsync-active = <0>;
+> +                                       vsync-active = <1>;
+> +                                       pclk-sample = <1>;
+> +                               };
+> +                       };
+> +               };
+> +       };
+> +
+> +MIPI-CSIS device binding is defined in samsung-mipi-csis.txt, FIMC-LITE
+> +device binding is defined in exynos-fimc-lite.txt and FIMC-IS binding
+> +is defined in exynos5-fimc-is.txt.
+> --
+> 1.7.9.5
+>
