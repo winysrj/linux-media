@@ -1,56 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:27257 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754439AbaBTSfJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 13:35:09 -0500
-Message-id: <53064AD6.40701@samsung.com>
-Date: Thu, 20 Feb 2014 19:35:02 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Moll <Pawel.Moll@arm.com>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH] V4L: s5k6a3: Add DT binding documentation
-References: <1387747620-24676-1-git-send-email-s.nawrocki@samsung.com>
- <53037F8F.3050302@samsung.com>
- <20140219174726.GE25079@e106331-lin.cambridge.arm.com>
-In-reply-to: <20140219174726.GE25079@e106331-lin.cambridge.arm.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2760 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753072AbaBCDdu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Feb 2014 22:33:50 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s133Xk3w001438
+	for <linux-media@vger.kernel.org>; Mon, 3 Feb 2014 04:33:48 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id EB68F2A00A4
+	for <linux-media@vger.kernel.org>; Mon,  3 Feb 2014 04:33:30 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140203033330.EB68F2A00A4@tschai.lan>
+Date: Mon,  3 Feb 2014 04:33:30 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19/02/14 18:47, Mark Rutland wrote:
-> On Tue, Feb 18, 2014 at 03:43:11PM +0000, Sylwester Nawrocki wrote:
->> > On 22/12/13 22:27, Sylwester Nawrocki wrote:
->>> > > This patch adds DT binding documentation for the Samsung S5K6A3(YX)
->>> > > raw image sensor.
->>> > > 
->>> > > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->>> > > ---
->>> > > This patch adds missing documentation [1] for the "samsung,s5k6a3"
->>> > > compatible. Rob, can you please merge it through your tree if it 
->>> > > looks OK ?
->> > 
->> > Anyone cares to Ack this patch so it can be merged through the media
->> > tree ?
->
-> It looks fine to me:
-> 
-> Acked-by: Mark Rutland <mark.rutland@arm.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the review. I'm going to post a short series including this
-patch, I would appreciate your (or other DT binding maintainer) review
-of the DT binding part, so this stuff can finally be pushed upstream.
+Results of the daily build of media_tree:
 
-Cheers,
-Sylwester
+date:		Mon Feb  3 04:00:17 CET 2014
+git branch:	test
+git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
