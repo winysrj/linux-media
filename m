@@ -1,88 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3663 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756065AbaBFLDZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:03:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [RFCv2 PATCH 06/10] vb2: fix read/write regression
-Date: Thu,  6 Feb 2014 12:02:30 +0100
-Message-Id: <1391684554-37956-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:47316 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751322AbaBCWdR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Feb 2014 17:33:17 -0500
+Message-ID: <52F01925.4060701@iki.fi>
+Date: Tue, 04 Feb 2014 00:33:09 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Rik van Mierlo <rik@vanmierlo.nu>, linux-media@vger.kernel.org
+Subject: Re: Terratec H7 with yet another usb ID
+References: <72f12ec0f50db8495447b3104923aa61@mail.vanmierlo.nu>
+In-Reply-To: <72f12ec0f50db8495447b3104923aa61@mail.vanmierlo.nu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hei Rik
 
-Commit 88e268702bfba78448abd20a31129458707383aa ("vb2: Improve file I/O
-emulation to handle buffers in any order") broke read/write support if
-the size of the buffer being read/written is less than the size of the
-image.
+On 03.02.2014 22:21, Rik van Mierlo wrote:
+> Hi,
+>
+> I've recently purchased a Terratec H7, based on the fact that is was
+> supported for a while now. Unfortunately, it turns out that my device
+> uses a different product id, and maybe is not quite the same device
+> inside either.
+>
+> ProductID for the Terratec H7 revisions in the module is either 10b4 or
+> 10a3, the one I purchased is 10a5. Following this patch:
+>
+> https://patchwork.linuxtv.org/patch/9691
+>
+> I modified drivers/media/usb/dvb-usb-v2/az6007.c to include an
+> additional device:
+>
+> static struct usb_device_id az6007_usb_table[] = {
+>          {DVB_USB_DEVICE(USB_VID_AZUREWAVE, USB_PID_AZUREWAVE_6007,
+>                  &az6007_props, "Azurewave 6007", RC_MAP_EMPTY)},
+>          {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7,
+>                  &az6007_props, "Terratec H7",
+> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
+>          {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_2,
+>                  &az6007_props, "Terratec H7",
+> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
+>          {DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_3,
+>                  &az6007_props, "Terratec H7",
+> RC_MAP_NEC_TERRATEC_CINERGY_XS)},
+>          {DVB_USB_DEVICE(USB_VID_TECHNISAT,
+> USB_PID_TECHNISAT_USB2_CABLESTAR_HDCI,
+>                  &az6007_cablestar_hdci_props, "Technisat CableStar
+> Combo HD CI", RC_MAP_EMPTY)},
+>          {0},
+> };
+>
+> and added the following to drivers/media/dvb-core/dvb-usb-ids.h
+>
+> #define USB_PID_TERRATEC_H7_3                           0x10a5
+>
+> and recompiled/installed the kernel and modules. The module seems to
+> have changed somewhat in 3.12.6 from the version that the patch was
+> meant for, so I hope I this was all I had to change.
+>
+> Rebooting and plugging in the device now at least leads to a recognized
+> device, but scanning for channels with w_scan does not work, and from
+> the dmesg output below, it seems something is not working after loading
+> the drxk firmware. Does anybody know what I could try next to get this
+> device working? Could it be that the drxk firmware is not suitable for
+> this revision of the device?
+>
+> [  700.112072] usb 4-2: new high-speed USB device number 2 using ehci-pci
+> [  700.245092] usb 4-2: New USB device found, idVendor=0ccd, idProduct=10a5
+> [  700.245105] usb 4-2: New USB device strings: Mfr=1, Product=2,
+> SerialNumber=3
+> [  700.245114] usb 4-2: Product: TERRATEC T2/T/C CI USB
+> [  700.245123] usb 4-2: Manufacturer: TERRATEC
+> [  700.245131] usb 4-2: SerialNumber: 20130903
+> [  700.494693] usb read operation failed. (-32)
+> [  700.495039] usb write operation failed. (-32)
+> [  700.495413] usb write operation failed. (-32)
+> [  700.495787] usb write operation failed. (-32)
 
-When the commit was tested originally I used qv4l2, which call read()
-with exactly the size of the image. But if you try 'cat /dev/video0'
-then it will fail and typically hang after reading two buffers.
+These low level errors does not promise any good. Are these coming from 
+USB stack as there is no even bus ID (4-2)...
 
-This patch fixes the behavior by adding a new buf_index field that
-contains the index of the field currently being filled/read, or it
-is num_buffers in which case a new buffer needs to be dequeued.
+> [  700.495800] usb 4-2: dvb_usb_v2: found a 'Terratec H7' in cold state
+> [  700.507381] usb 4-2: firmware: direct-loading firmware
+> dvb-usb-terratec-h7-az6007.fw
+> [  700.507397] usb 4-2: dvb_usb_v2: downloading firmware from file
+> 'dvb-usb-terratec-h7-az6007.fw'
+> [  700.524301] usb 4-2: dvb_usb_v2: found a 'Terratec H7' in warm state
+> [  701.760878] usb 4-2: dvb_usb_v2: will pass the complete MPEG2
+> transport stream to the software demuxer
+> [  701.760947] DVB: registering new adapter (Terratec H7)
+> [  701.763853] usb 4-2: dvb_usb_v2: MAC address: c2:cd:0c:a5:10:00
+> [  701.846469] drxk: frontend initialized.
+> [  701.849123] usb 4-2: firmware: direct-loading firmware
+> dvb-usb-terratec-h7-drxk.fw
+> [  701.849215] usb 4-2: DVB: registering adapter 0 frontend 0 (DRXK)...
+> [  701.881072] drxk: status = 0x00c04125
+> [  701.881082] drxk: DeviceID 0x04 not supported
+> [  701.881090] drxk: Error -22 on init_drxk
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
----
- drivers/media/v4l2-core/videobuf2-core.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+I suspect there is no DRX-K.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7766bf5..a3b4b4c 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2418,6 +2418,7 @@ struct vb2_fileio_data {
- 	struct v4l2_requestbuffers req;
- 	struct v4l2_buffer b;
- 	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
-+	unsigned int buf_index;
- 	unsigned int index;
- 	unsigned int q_count;
- 	unsigned int dq_count;
-@@ -2519,6 +2520,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 			fileio->bufs[i].queued = 1;
- 		}
- 		fileio->index = q->num_buffers;
-+		fileio->buf_index = q->num_buffers;
- 	}
- 
- 	/*
-@@ -2597,7 +2599,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	/*
- 	 * Check if we need to dequeue the buffer.
- 	 */
--	index = fileio->index;
-+	index = fileio->buf_index;
- 	if (index >= q->num_buffers) {
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
-@@ -2611,7 +2613,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 			return ret;
- 		fileio->dq_count += 1;
- 
--		index = fileio->b.index;
-+		fileio->buf_index = index = fileio->b.index;
- 		buf = &fileio->bufs[index];
- 
- 		/*
-@@ -2689,6 +2691,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		fileio->q_count += 1;
- 		if (fileio->index < q->num_buffers)
- 			fileio->index++;
-+		fileio->buf_index = fileio->index;
- 	}
- 
- 	/*
+> [  701.908184] mt2063_attach: Attaching MT2063
+> [  701.940248] Registered IR keymap rc-nec-terratec-cinergy-xs
+> [  701.940547] input: Terratec H7 as
+> /devices/pci0000:00/0000:00:1d.7/usb4/4-2/rc/rc0/input16
+> [  701.942559] rc0: Terratec H7 as
+> /devices/pci0000:00/0000:00:1d.7/usb4/4-2/rc/rc0
+> [  701.942575] usb 4-2: dvb_usb_v2: schedule remote query interval to
+> 400 msecs
+> [  701.942587] usb 4-2: dvb_usb_v2: 'Terratec H7' successfully
+> initialized and connected
+> [  701.942643] usbcore: registered new interface driver dvb_usb_az6007
+
+hmm, a little bit surprising that driver accepts hardware even those 
+fatal errors.
+
+My guess is that there is no DRX-K but some other demod or likely more 
+changed chips than demod. DRX-K is rather old demod and there is not 
+very many newer alternatives on the market. Silicon Labs chipset ? Open 
+the device in look what chips it has eaten.
+
+regards
+Antti
+
 -- 
-1.8.5.2
-
+http://palosaari.fi/
