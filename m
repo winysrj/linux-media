@@ -1,20 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from host27-145-static.87-94-b.business.telecomitalia.it ([94.87.145.27]:50828
-	"EHLO serverelintec.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752500AbaBZOYf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 09:24:35 -0500
-Reply-To: <dave_angela0001@yahoo.com>
-From: "Dave and Angela" <daveandangeladonations63736@outlook.com>
-Subject: GOOD NEWS
-Date: Tue, 25 Feb 2014 21:14:02 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20140225201340.ACCAB4C5B1@serverelintec.it>
-To: undisclosed-recipients:;
+Received: from mail.kapsi.fi ([217.30.184.167]:59848 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751451AbaBCLAL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Feb 2014 06:00:11 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 5/5] MAINTAINERS: add rtl2832_sdr driver
+Date: Mon,  3 Feb 2014 12:59:55 +0200
+Message-Id: <1391425195-17865-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1391425195-17865-1-git-send-email-crope@iki.fi>
+References: <1391425195-17865-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You have been Nominated by i and my wife Angela for Donation.Contact us :dave_angela0001@yahoo.com
+Realtek RTL2832 SDR driver. Currently in staging as SDR API is not
+ready.
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ MAINTAINERS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4c1b8cc..c39f771 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7200,6 +7200,16 @@ T:	git git://linuxtv.org/anttip/media_tree.git
+ S:	Maintained
+ F:	drivers/media/dvb-frontends/rtl2832*
+ 
++RTL2832_SDR MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/staging/media/rtl2832u_sdr/rtl2832_sdr*
++
+ RTL8180 WIRELESS DRIVER
+ M:	"John W. Linville" <linville@tuxdriver.com>
+ L:	linux-wireless@vger.kernel.org
+-- 
+1.8.5.3
+
