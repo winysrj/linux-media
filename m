@@ -1,122 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f44.google.com ([209.85.213.44]:35290 "EHLO
-	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970AbaBNEuf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 23:50:35 -0500
-Received: by mail-yh0-f44.google.com with SMTP id f73so11193192yha.31
-        for <linux-media@vger.kernel.org>; Thu, 13 Feb 2014 20:50:34 -0800 (PST)
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1250 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025AbaBCKEG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 05:04:06 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s13A42Lp099227
+	for <linux-media@vger.kernel.org>; Mon, 3 Feb 2014 11:04:04 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.61.75.206] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id BEE432A00A5
+	for <linux-media@vger.kernel.org>; Mon,  3 Feb 2014 11:03:46 +0100 (CET)
+Message-ID: <52EF6991.9030101@xs4all.nl>
+Date: Mon, 03 Feb 2014 11:04:01 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1392284450-41019-8-git-send-email-hverkuil@xs4all.nl>
-References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl> <1392284450-41019-8-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Fri, 14 Feb 2014 13:49:54 +0900
-Message-ID: <CAMm-=zA0Pmn2esZD7FUUqhDR14Q23mcoPPhTJgoGF7DsWA-hWQ@mail.gmail.com>
-Subject: Re: [RFCv3 PATCH 07/10] vb2: rename queued_count to owned_by_drv_count
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.14]
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 13, 2014 at 6:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> 'queued_count' is a bit vague since it is not clear to which queue it
-> refers to: the vb2 internal list of buffers or the driver-owned list
-> of buffers.
->
-> Rename to make it explicit.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+Three bug fixes that I would like to see merged for 3.14.
 
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
->  include/media/videobuf2-core.h           |  4 ++--
->  2 files changed, 7 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index a3b4b4c..6af76ee 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1071,7 +1071,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->         spin_lock_irqsave(&q->done_lock, flags);
->         vb->state = state;
->         list_add_tail(&vb->done_entry, &q->done_list);
-> -       atomic_dec(&q->queued_count);
-> +       atomic_dec(&q->owned_by_drv_count);
->         spin_unlock_irqrestore(&q->done_lock, flags);
->
->         /* Inform any processes that may be waiting for buffers */
-> @@ -1402,7 +1402,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
->         unsigned int plane;
->
->         vb->state = VB2_BUF_STATE_ACTIVE;
-> -       atomic_inc(&q->queued_count);
-> +       atomic_inc(&q->owned_by_drv_count);
->
->         /* sync buffers */
->         for (plane = 0; plane < vb->num_planes; ++plane)
-> @@ -1554,7 +1554,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
->         int ret;
->
->         /* Tell the driver to start streaming */
-> -       ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-> +       ret = call_qop(q, start_streaming, q, atomic_read(&q->owned_by_drv_count));
->         if (ret)
->                 fail_qop(q, start_streaming);
->
-> @@ -1779,7 +1779,7 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
->         }
->
->         if (!q->retry_start_streaming)
-> -               wait_event(q->done_wq, !atomic_read(&q->queued_count));
-> +               wait_event(q->done_wq, !atomic_read(&q->owned_by_drv_count));
->         return 0;
->  }
->  EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
-> @@ -1911,7 +1911,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->          * has not already dequeued before initiating cancel.
->          */
->         INIT_LIST_HEAD(&q->done_list);
-> -       atomic_set(&q->queued_count, 0);
-> +       atomic_set(&q->owned_by_drv_count, 0);
->         wake_up_all(&q->done_wq);
->
->         /*
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 82b7f0f..adaffed 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -353,7 +353,7 @@ struct v4l2_fh;
->   * @bufs:      videobuf buffer structures
->   * @num_buffers: number of allocated/used buffers
->   * @queued_list: list of buffers currently queued from userspace
-> - * @queued_count: number of buffers owned by the driver
-> + * @owned_by_drv_count: number of buffers owned by the driver
->   * @done_list: list of buffers ready to be dequeued to userspace
->   * @done_lock: lock to protect done_list list
->   * @done_wq:   waitqueue for processes waiting for buffers ready to be dequeued
-> @@ -385,7 +385,7 @@ struct vb2_queue {
->
->         struct list_head                queued_list;
->
-> -       atomic_t                        queued_count;
-> +       atomic_t                        owned_by_drv_count;
->         struct list_head                done_list;
->         spinlock_t                      done_lock;
->         wait_queue_head_t               done_wq;
-> --
-> 1.8.4.rc3
->
+Regards,
 
+	Hans
 
+The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
 
--- 
-Best regards,
-Pawel Osciak
+  [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-3.14e
+
+for you to fetch changes up to 0f8cea07630ca15cc904613c6903a55e671bf5f0:
+
+  adv7842: Composite free-run platfrom-data fix (2014-02-03 11:02:41 +0100)
+
+----------------------------------------------------------------
+Martin Bugge (2):
+      v4l2-dv-timings: fix GTF calculation
+      adv7842: Composite free-run platfrom-data fix
+
+Masanari Iida (1):
+      hdpvr: Fix memory leak in debug
+
+ drivers/media/i2c/adv7842.c               | 2 +-
+ drivers/media/usb/hdpvr/hdpvr-core.c      | 4 +++-
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 1 +
+ 3 files changed, 5 insertions(+), 2 deletions(-)
