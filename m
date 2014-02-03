@@ -1,210 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183AbaBEQl6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 27/47] v4l: Add support for DV timings ioctls on subdev nodes
-Date: Wed,  5 Feb 2014 17:42:18 +0100
-Message-Id: <1391618558-5580-28-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4044 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751114AbaBCKfY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 05:35:24 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id s13AZKfL051101
+	for <linux-media@vger.kernel.org>; Mon, 3 Feb 2014 11:35:22 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.61.75.206] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 61CBD2A00A5
+	for <linux-media@vger.kernel.org>; Mon,  3 Feb 2014 11:35:05 +0100 (CET)
+Message-ID: <52EF70E8.6000101@xs4all.nl>
+Date: Mon, 03 Feb 2014 11:35:20 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.15] Updates for 3.15
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    | 27 ++++++++++++++++++----
- .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   | 27 +++++++++++++++++-----
- drivers/media/v4l2-core/v4l2-subdev.c              | 15 ++++++++++++
- include/uapi/linux/v4l2-subdev.h                   |  5 ++++
- 4 files changed, 63 insertions(+), 11 deletions(-)
+Hi Mauro,
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-index cd7720d..baef771 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-@@ -1,11 +1,12 @@
- <refentry id="vidioc-dv-timings-cap">
-   <refmeta>
--    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP</refentrytitle>
-+    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP, VIDIOC_SUBDEV_DV_TIMINGS_CAP</refentrytitle>
-     &manvol;
-   </refmeta>
- 
-   <refnamediv>
-     <refname>VIDIOC_DV_TIMINGS_CAP</refname>
-+    <refname>VIDIOC_SUBDEV_DV_TIMINGS_CAP</refname>
-     <refpurpose>The capabilities of the Digital Video receiver/transmitter</refpurpose>
-   </refnamediv>
- 
-@@ -33,7 +34,7 @@
-       <varlistentry>
- 	<term><parameter>request</parameter></term>
- 	<listitem>
--	  <para>VIDIOC_DV_TIMINGS_CAP</para>
-+	  <para>VIDIOC_DV_TIMINGS_CAP, VIDIOC_SUBDEV_DV_TIMINGS_CAP</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-@@ -54,10 +55,19 @@
-       interface and may change in the future.</para>
-     </note>
- 
--    <para>To query the capabilities of the DV receiver/transmitter applications can call
--this ioctl and the driver will fill in the structure. Note that drivers may return
-+    <para>To query the capabilities of the DV receiver/transmitter applications
-+can call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl on a video node
-+and the driver will fill in the structure. Note that drivers may return
- different values after switching the video input or output.</para>
- 
-+    <para>When implemented by the driver DV capabilities of subdevices can be
-+queried by calling the <constant>VIDIOC_SUBDEV_DV_TIMINGS_CAP</constant> ioctl
-+directly on a subdevice node. The capabilities are specific to inputs (for DV
-+receivers) or outputs (for DV transmitters), application must specify the
-+desired pad number in the &v4l2-dv-timings-cap; <structfield>pad</structfield>
-+field. Attemps to query capabilities on a pad that doesn't support them will
-+return an &EINVAL;.</para>
-+
-     <table pgwide="1" frame="none" id="v4l2-bt-timings-cap">
-       <title>struct <structname>v4l2_bt_timings_cap</structname></title>
-       <tgroup cols="3">
-@@ -127,7 +137,14 @@ different values after switching the video input or output.</para>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[3]</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media controller API. This field
-+	    is only used when operating on a subdevice node. When operating on a
-+	    video node applications must set this field to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[2]</entry>
- 	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
- 	  </row>
- 	  <row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-index b3e17c1..e55df46 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-@@ -1,11 +1,12 @@
- <refentry id="vidioc-enum-dv-timings">
-   <refmeta>
--    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS</refentrytitle>
-+    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS, VIDIOC_SUBDEV_ENUM_DV_TIMINGS</refentrytitle>
-     &manvol;
-   </refmeta>
- 
-   <refnamediv>
-     <refname>VIDIOC_ENUM_DV_TIMINGS</refname>
-+    <refname>VIDIOC_SUBDEV_ENUM_DV_TIMINGS</refname>
-     <refpurpose>Enumerate supported Digital Video timings</refpurpose>
-   </refnamediv>
- 
-@@ -33,7 +34,7 @@
-       <varlistentry>
- 	<term><parameter>request</parameter></term>
- 	<listitem>
--	  <para>VIDIOC_ENUM_DV_TIMINGS</para>
-+	  <para>VIDIOC_ENUM_DV_TIMINGS, VIDIOC_SUBDEV_ENUM_DV_TIMINGS</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-@@ -61,14 +62,21 @@ standards or even custom timings that are not in this list.</para>
- 
-     <para>To query the available timings, applications initialize the
- <structfield>index</structfield> field and zero the reserved array of &v4l2-enum-dv-timings;
--and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl with a pointer to this
--structure. Drivers fill the rest of the structure or return an
-+and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl on a video node with a
-+pointer to this structure. Drivers fill the rest of the structure or return an
- &EINVAL; when the index is out of bounds. To enumerate all supported DV timings,
- applications shall begin at index zero, incrementing by one until the
- driver returns <errorcode>EINVAL</errorcode>. Note that drivers may enumerate a
- different set of DV timings after switching the video input or
- output.</para>
- 
-+    <para>When implemented by the driver DV timings of subdevices can be queried
-+by calling the <constant>VIDIOC_SUBDEV_ENUM_DV_TIMINGS</constant> ioctl directly
-+on a subdevice node. The DV timings are specific to inputs (for DV receivers) or
-+outputs (for DV transmitters), application must specify the desired pad number
-+in the &v4l2-enum-dv-timings; <structfield>pad</structfield> field. Attemps to
-+enumerate timings on a pad that doesn't support them will return an &EINVAL;.</para>
-+
-     <table pgwide="1" frame="none" id="v4l2-enum-dv-timings">
-       <title>struct <structname>v4l2_enum_dv_timings</structname></title>
-       <tgroup cols="3">
-@@ -82,7 +90,14 @@ application.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[3]</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media controller API. This field
-+	    is only used when operating on a subdevice node. When operating on a
-+	    video node applications must set this field to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[2]</entry>
- 	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
- 	  </row>
- 	  <row>
-@@ -103,7 +118,7 @@ application.</entry>
- 	<term><errorcode>EINVAL</errorcode></term>
- 	<listitem>
- 	  <para>The &v4l2-enum-dv-timings; <structfield>index</structfield>
--is out of bounds.</para>
-+is out of bounds or the <structfield>pad</structfield> number is invalid.</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 996c248..0ccf9c8 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -354,6 +354,21 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_SUBDEV_S_EDID:
- 		return v4l2_subdev_call(sd, pad, set_edid, arg);
-+
-+	case VIDIOC_SUBDEV_DV_TIMINGS_CAP:
-+		return v4l2_subdev_call(sd, pad, dv_timings_cap, arg);
-+
-+	case VIDIOC_SUBDEV_ENUM_DV_TIMINGS:
-+		return v4l2_subdev_call(sd, pad, enum_dv_timings, arg);
-+
-+	case VIDIOC_SUBDEV_QUERY_DV_TIMINGS:
-+		return v4l2_subdev_call(sd, video, query_dv_timings, arg);
-+
-+	case VIDIOC_SUBDEV_G_DV_TIMINGS:
-+		return v4l2_subdev_call(sd, video, g_dv_timings, arg);
-+
-+	case VIDIOC_SUBDEV_S_DV_TIMINGS:
-+		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
- #endif
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index 9fe3493..6f5c5de 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -169,5 +169,10 @@ struct v4l2_subdev_edid {
- #define VIDIOC_SUBDEV_S_SELECTION		_IOWR('V', 62, struct v4l2_subdev_selection)
- #define VIDIOC_SUBDEV_G_EDID			_IOWR('V', 40, struct v4l2_subdev_edid)
- #define VIDIOC_SUBDEV_S_EDID			_IOWR('V', 41, struct v4l2_subdev_edid)
-+#define VIDIOC_SUBDEV_DV_TIMINGS_CAP		_IOWR('V', 42, struct v4l2_dv_timings_cap)
-+#define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 43, struct v4l2_enum_dv_timings)
-+#define VIDIOC_SUBDEV_QUERY_DV_TIMINGS		_IOR('V', 44, struct v4l2_dv_timings)
-+#define VIDIOC_SUBDEV_G_DV_TIMINGS		_IOWR('V', 45, struct v4l2_dv_timings)
-+#define VIDIOC_SUBDEV_S_DV_TIMINGS		_IOWR('V', 46, struct v4l2_dv_timings)
- 
- #endif
--- 
-1.8.3.2
+The usual list of updates. I also decided to add my DocBook changes to this
+pull request.
 
+Regards,
+
+	Hans
+
+The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
+
+  [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.15a
+
+for you to fetch changes up to 5979412aac4c8342c4f7d12c642a2ae955b0c68f:
+
+  DocBook media: add revision entry for 3.15. (2014-02-03 11:29:03 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (11):
+      usbvision: drop unused define USBVISION_SAY_AND_WAIT
+      s3c-camif: Remove use of deprecated V4L2_CTRL_FLAG_DISABLED.
+      v4l2-dv-timings.h: add new 4K DMT resolutions.
+      v4l2-dv-timings: mention missing 'reduced blanking V2'
+      DocBook media: fix email addresses.
+      DocBook media: update copyright years and Introduction.
+      DocBook media: partial rewrite of "Opening and Closing Devices"
+      DocBook media: update four more sections
+      DocBook media: update three sections
+      DocBook media: drop the old incorrect packed RGB table.
+      DocBook media: add revision entry for 3.15.
+
+Martin Bugge (4):
+      adv7842: adjust gain and offset for DVI-D signals
+      adv7842: pixelclock read-out
+      adv7842: log-status for Audio Video Info frames (AVI)
+      adv7842: platform-data for Hotplug Active (HPA) manual/auto
+
+Sachin Kamat (1):
+      radio-keene: Use module_usb_driver
+
+sensoray-dev (1):
+      s2255drv: checkpatch fix: coding style fix
+
+ Documentation/DocBook/media/dvb/dvbapi.xml            |   4 +-
+ Documentation/DocBook/media/v4l/common.xml            | 413 +++++++++++++++++++++---------------------------------
+ Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml | 513 +++++++------------------------------------------------------------
+ Documentation/DocBook/media/v4l/v4l2.xml              |  13 +-
+ Documentation/DocBook/media_api.tmpl                  |  15 +-
+ drivers/media/i2c/adv7842.c                           | 149 ++++++++++++++++----
+ drivers/media/platform/s3c-camif/camif-capture.c      |  15 +-
+ drivers/media/radio/radio-keene.c                     |  19 +--
+ drivers/media/usb/s2255/s2255drv.c                    | 333 ++++++++++++++++++++-----------------------
+ drivers/media/usb/usbvision/usbvision.h               |   8 --
+ drivers/media/v4l2-core/v4l2-dv-timings.c             |   4 +
+ include/media/adv7842.h                               |   3 +
+ include/uapi/linux/v4l2-dv-timings.h                  |  17 +++
+ 13 files changed, 536 insertions(+), 970 deletions(-)
