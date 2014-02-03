@@ -1,36 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:54529 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751416AbaBGRTz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 12:19:55 -0500
-Message-Id: <cover.1391793068.git.moinejf@free.fr>
-From: Jean-Francois Moine <moinejf@free.fr>
-Date: Fri, 7 Feb 2014 18:11:08 +0100
-Subject: [PATCH RFC 0/2] drivers/base: simplify simple DT-based components
-To: Russell King <rmk+kernel@arm.linux.org.uk>,
-	devel@driverdev.osuosl.org
-Cc: alsa-devel@alsa-project.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:60806 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751037AbaBCMaJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 07:30:09 -0500
+Received: by mail-pb0-f50.google.com with SMTP id rq2so6982370pbb.23
+        for <linux-media@vger.kernel.org>; Mon, 03 Feb 2014 04:30:09 -0800 (PST)
+From: Sumit Semwal <sumit.semwal@linaro.org>
+To: linux@arm.linux.org.uk
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, patches@linaro.org,
+	linaro-kernel@lists.linaro.org,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: [PATCH] dma-buf: update debugfs output
+Date: Mon,  3 Feb 2014 17:59:41 +0530
+Message-Id: <1391430581-18522-1-git-send-email-sumit.semwal@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series tries to simplify the code of simple devices in case
-they are part of componentised subsystems, are declared in a DT, and
-are not using the component bin/unbind functions.
+Russell King observed 'wierd' looking output from debugfs, and also suggested
+better ways of getting device names (use KBUILD_MODNAME, dev_name())
 
-Jean-Francois Moine (2):
-  drivers/base: permit base components to omit the bind/unbind ops
-  drivers/base: declare phandle DT nodes as components
+This patch addresses these issues to make the debugfs output correct and better
+looking.
 
- drivers/base/component.c | 21 +++++++++++++++++++--
- drivers/base/core.c      | 18 ++++++++++++++++++
- include/linux/of.h       |  2 ++
- 3 files changed, 39 insertions(+), 2 deletions(-)
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+---
+ drivers/base/dma-buf.c  | 18 ++++++++----------
+ include/linux/dma-buf.h |  2 +-
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index cfe1d8b..bf89fe3 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -621,7 +621,7 @@ static int dma_buf_describe(struct seq_file *s)
+ 		return ret;
+ 
+ 	seq_printf(s, "\nDma-buf Objects:\n");
+-	seq_printf(s, "\texp_name\tsize\tflags\tmode\tcount\n");
++	seq_printf(s, "size\tflags\tmode\tcount\texp_name\n");
+ 
+ 	list_for_each_entry(buf_obj, &db_list.head, list_node) {
+ 		ret = mutex_lock_interruptible(&buf_obj->lock);
+@@ -632,24 +632,22 @@ static int dma_buf_describe(struct seq_file *s)
+ 			continue;
+ 		}
+ 
+-		seq_printf(s, "\t");
+-
+-		seq_printf(s, "\t%s\t%08zu\t%08x\t%08x\t%08ld\n",
+-				buf_obj->exp_name, buf_obj->size,
++		seq_printf(s, "%08zu\t%08x\t%08x\t%08ld\t%s\n",
++				buf_obj->size,
+ 				buf_obj->file->f_flags, buf_obj->file->f_mode,
+-				(long)(buf_obj->file->f_count.counter));
++				(long)(buf_obj->file->f_count.counter), buf_obj->exp_name);
+ 
+-		seq_printf(s, "\t\tAttached Devices:\n");
++		seq_printf(s, "\tAttached Devices:\n");
+ 		attach_count = 0;
+ 
+ 		list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
+-			seq_printf(s, "\t\t");
++			seq_printf(s, "\t");
+ 
+-			seq_printf(s, "%s\n", attach_obj->dev->init_name);
++			seq_printf(s, "%s\n", dev_name(attach_obj->dev));
+ 			attach_count++;
+ 		}
+ 
+-		seq_printf(s, "\n\t\tTotal %d devices attached\n",
++		seq_printf(s, "\nTotal %d devices attached\n",
+ 				attach_count);
+ 
+ 		count++;
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index dfac5ed..f886985 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -171,7 +171,7 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
+ 			       size_t size, int flags, const char *);
+ 
+ #define dma_buf_export(priv, ops, size, flags)	\
+-	dma_buf_export_named(priv, ops, size, flags, __FILE__)
++	dma_buf_export_named(priv, ops, size, flags, KBUILD_MODNAME)
+ 
+ int dma_buf_fd(struct dma_buf *dmabuf, int flags);
+ struct dma_buf *dma_buf_get(int fd);
 -- 
-1.9.rc1
+1.8.3.2
 
