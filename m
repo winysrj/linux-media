@@ -1,89 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f44.google.com ([209.85.216.44]:57778 "EHLO
-	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296AbaBESQH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 13:16:07 -0500
-Received: by mail-qa0-f44.google.com with SMTP id w5so1116304qac.3
-        for <linux-media@vger.kernel.org>; Wed, 05 Feb 2014 10:16:04 -0800 (PST)
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3926 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750937AbaBDI4x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 03:56:53 -0500
+Message-ID: <52F0AB35.4080601@xs4all.nl>
+Date: Tue, 04 Feb 2014 09:56:21 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <52F2077E.5040901@imgtec.com>
-References: <20140115173559.7e53239a@samsung.com>
-	<1390246787-15616-1-git-send-email-a.seppala@gmail.com>
-	<20140121122826.GA25490@pequod.mess.org>
-	<CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com>
-	<20140122162953.GA1665@pequod.mess.org>
-	<CAKv9HNbVQwAcG98S3_Mj4A6zo8Ae2fLT6vn4LOYW1UMrwQku7Q@mail.gmail.com>
-	<20140122210024.GA3223@pequod.mess.org>
-	<20140122200142.002a39c2@samsung.com>
-	<CAKv9HNY7==4H2ZDrmaX+1BcarRAJd7zUE491oQ2ZJZXezpwOAw@mail.gmail.com>
-	<20140204155441.438c7a3c@samsung.com>
-	<CAKv9HNbYJ5FsQas=03u8pXCyiF5VSUfsOR46McukeisqVHme+g@mail.gmail.com>
-	<52F206D5.9060601@imgtec.com>
-	<52F2077E.5040901@imgtec.com>
-Date: Wed, 5 Feb 2014 20:16:04 +0200
-Message-ID: <CAKv9HNbfixr2746_4FewodYjOHO1G+TDgs9quyNeX87-KuBpbw@mail.gmail.com>
-Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
-From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
-To: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
+CC: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 7/9] vb2: add reinit_streaming op.
+References: <1391093491-23077-1-git-send-email-hverkuil@xs4all.nl> <1391093491-23077-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391093491-23077-8-git-send-email-hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 5 February 2014 11:42, James Hogan <james.hogan@imgtec.com> wrote:
-> On 05/02/14 09:39, James Hogan wrote:
->> Hi Antti,
->>
->> On 05/02/14 07:03, Antti Seppälä wrote:
->>> To wake up with nuvoton-cir we need to program several raw ir
->>> pulse/space lengths to the hardware and not a scancode. James's
->>> approach doesn't support this.
->>
->> Do the raw pulse/space lengths your hardware requires correspond to a
->> single IR packet (mapping to a single scancode)?
->>
->> If so then my API is simply at a higher level of abstraction. I think
->> this has the following advantages:
->> * userspace sees a consistent interface at the same level of abstraction
->> as it already has access to from input subsystem (i.e. scancodes). I.e.
->> it doesn't need to care which IR device is in use, whether it does
->> raw/hardware decode, or the details of the timings of the current protocol.
->> * it supports hardware decoders which filter on the demodulated data
->> rather than the raw pulse/space lengths.
->>
->> Of course to support this we'd need some per-protocol code to convert a
->> scancode back to pulse/space lengths. I'd like to think that code could
->> be generic, maybe as helper functions which multiple drivers could use,
->> which could also handle corner cases of the API in a consistent way
->> (e.g. user providing filter mask covering multiple scancodes, which
->> presumably pulse/space).
->
-> hmm, I didn't complete that sentence :(.
-> I meant:
-> ..., which presumably pulse/space can't really represent very easily).
->
-> Cheers
-> James
->
->>
->> I see I've just crossed emails with Mauro who has just suggested
->> something similar. I agree that his (2) is the more elegant option.
->>
+On 01/30/2014 03:51 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This new op is called after stop_streaming() or after a failed call to
+> start_streaming(). The driver needs to dequeue any pending active buffers
+> it got from the buf_queue() callback.
+> 
+> The reason this op was added is that stop_streaming() traditionally dequeued
+> any pending active buffers after stopping the DMA engine. However,
+> stop_streaming() is never called if start_streaming() fails, even though any
+> prequeued buffers have been passed on to the driver. In that case those
+> pending active buffers may still be in the driver's active buffer list,
+> which can cause all sorts of problems if they are not removed.
+> 
+> By splitting stop_streaming into stop_streaming (i.e. stop the DMA engine)
+> and reinit_streaming (i.e. reinitialize the buffer lists) this problem is
+> solved. After calling reinit_streaming() the vb2 core will also call
+> vb2_buffer_done() for any remaining active buffers.
 
-Yes, in nuvoton the ir pulses correspond to a scancode (or part of a scancode)
+No need to review patches 7+8: this is going to change. I had a useful discussion
+with Pawel regarding this and we came up with a better solution.
 
-After giving it some thought I agree that using scancodes is the most
-elegant way for specifying wakeup commands. Too bad that nuvoton does
-not work with scancodes.
-I pretty much agree with Mauro that the right solution would be to
-write an IR encoder and use it to convert the given scancode back to a
-format understood by nuvoton.
+Regards,
 
-Writing IR encoders for all the protocols and an encoder selector
-functionality is quite labourous and sadly I don't have time for that
-anytime soon. If anyone wants to step up I'd be more than happy to
-help though :)
+	Hans
 
--Antti
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 13 +++++++++++--
+>  include/media/videobuf2-core.h           |  9 +++++++--
+>  2 files changed, 18 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index a3b4b4c..3030ef6 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -395,9 +395,9 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+>  		if (unbalanced || debug) {
+>  			pr_info("vb2: counters for queue %p:%s\n", q,
+>  				unbalanced ? " UNBALANCED!" : "");
+> -			pr_info("vb2:     setup: %u start_streaming: %u stop_streaming: %u\n",
+> +			pr_info("vb2:     setup: %u start_streaming: %u stop_streaming: %u reinit_streaming: %u\n",
+>  				q->cnt_queue_setup, q->cnt_start_streaming,
+> -				q->cnt_stop_streaming);
+> +				q->cnt_stop_streaming, q->cnt_reinit_streaming);
+>  			pr_info("vb2:     wait_prepare: %u wait_finish: %u\n",
+>  				q->cnt_wait_prepare, q->cnt_wait_finish);
+>  		}
+> @@ -406,6 +406,7 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+>  		q->cnt_wait_finish = 0;
+>  		q->cnt_start_streaming = 0;
+>  		q->cnt_stop_streaming = 0;
+> +		q->cnt_reinit_streaming = 0;
+>  	}
+>  	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
+>  		struct vb2_buffer *vb = q->bufs[buffer];
+> @@ -1900,7 +1901,15 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  	 */
+>  	if (q->streaming)
+>  		call_qop(q, stop_streaming, q);
+> +
+>  	q->streaming = 0;
+> +	if (atomic_read(&q->queued_count)) {
+> +		call_qop(q, reinit_streaming, q);
+> +
+> +		for (i = 0; i < q->num_buffers; ++i)
+> +			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
+> +				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ERROR);
+> +	}
+>  
+>  	/*
+>  	 * Remove all buffers from videobuf's list...
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 82b7f0f..b40dfbc 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -294,8 +294,11 @@ struct vb2_buffer {
+>   *			buffer is queued.
+>   * @stop_streaming:	called when 'streaming' state must be disabled; driver
+>   *			should stop any DMA transactions or wait until they
+> - *			finish and give back all buffers it got from buf_queue()
+> - *			callback; may use vb2_wait_for_all_buffers() function
+> + *			finish; may use vb2_wait_for_all_buffers() function.
+> + * @reinit_streaming:	called after stop_streaming() or after a failed call to
+> + *			start_streaming(). The driver needs to dequeue any
+> + *			pending active buffers it got from the buf_queue()
+> + *			callback.
+>   * @buf_queue:		passes buffer vb to the driver; driver may start
+>   *			hardware operation on this buffer; driver should give
+>   *			the buffer back by calling vb2_buffer_done() function;
+> @@ -318,6 +321,7 @@ struct vb2_ops {
+>  
+>  	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
+>  	int (*stop_streaming)(struct vb2_queue *q);
+> +	void (*reinit_streaming)(struct vb2_queue *q);
+>  
+>  	void (*buf_queue)(struct vb2_buffer *vb);
+>  };
+> @@ -408,6 +412,7 @@ struct vb2_queue {
+>  	u32				cnt_wait_finish;
+>  	u32				cnt_start_streaming;
+>  	u32				cnt_stop_streaming;
+> +	u32				cnt_reinit_streaming;
+>  #endif
+>  };
+>  
+> 
+
