@@ -1,271 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3792 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932174AbaBDSnq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 13:43:46 -0500
-Message-ID: <52F134BD.2050201@xs4all.nl>
-Date: Tue, 04 Feb 2014 19:43:09 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 2/4] e4000: implement controls via v4l2 control framework
-References: <1391478000-24239-1-git-send-email-crope@iki.fi> <1391478000-24239-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1391478000-24239-3-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4976 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752556AbaBDDXk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 22:23:40 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s143Nb71014235
+	for <linux-media@vger.kernel.org>; Tue, 4 Feb 2014 04:23:39 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 070E62A00A5
+	for <linux-media@vger.kernel.org>; Tue,  4 Feb 2014 04:23:21 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140204032321.070E62A00A5@tschai.lan>
+Date: Tue,  4 Feb 2014 04:23:21 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/04/2014 02:39 AM, Antti Palosaari wrote:
-> Implement gain and bandwidth controls using v4l2 control framework.
-> Pointer to control handler is provided by exported symbol.
-> 
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/tuners/e4000.c      | 142 +++++++++++++++++++++++++++++++++++++-
->  drivers/media/tuners/e4000.h      |  14 ++++
->  drivers/media/tuners/e4000_priv.h |  12 ++++
->  3 files changed, 167 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-> index 9187190..11d31b0 100644
-> --- a/drivers/media/tuners/e4000.c
-> +++ b/drivers/media/tuners/e4000.c
-> @@ -448,6 +448,110 @@ err:
->  	return ret;
->  }
->  
-> +static int e4000_set_gain(struct dvb_frontend *fe)
-> +{
-> +	struct e4000_priv *priv = fe->tuner_priv;
-> +	int ret;
-> +	u8 buf[2];
-> +	u8 u8tmp;
-> +	dev_dbg(&priv->client->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
-> +			priv->lna_gain->val, priv->mixer_gain->val,
-> +			priv->if_gain->val);
-> +
-> +	if (fe->ops.i2c_gate_ctrl)
-> +		fe->ops.i2c_gate_ctrl(fe, 1);
-> +
-> +	if (priv->lna_gain_auto->val && priv->if_gain_auto->val)
-> +		u8tmp = 0x17;
-> +	else if (priv->lna_gain_auto->val)
-> +		u8tmp = 0x19;
-> +	else if (priv->if_gain_auto->val)
-> +		u8tmp = 0x16;
-> +	else
-> +		u8tmp = 0x10;
-> +
-> +	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
-> +	if (ret)
-> +		goto err;
-> +
-> +	if (priv->mixer_gain_auto->val)
-> +		u8tmp = 0x15;
-> +	else
-> +		u8tmp = 0x14;
-> +
-> +	ret = e4000_wr_reg(priv, 0x20, u8tmp);
-> +	if (ret)
-> +		goto err;
-> +
-> +	if (priv->lna_gain_auto->val == false) {
-> +		ret = e4000_wr_reg(priv, 0x14, priv->lna_gain->val);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
-> +	if (priv->mixer_gain_auto->val == false) {
-> +		ret = e4000_wr_reg(priv, 0x15, priv->mixer_gain->val);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
-> +	if (priv->if_gain_auto->val == false) {
-> +		buf[0] = e4000_if_gain_lut[priv->if_gain->val].reg16_val;
-> +		buf[1] = e4000_if_gain_lut[priv->if_gain->val].reg17_val;
-> +		ret = e4000_wr_regs(priv, 0x16, buf, 2);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
-> +	if (fe->ops.i2c_gate_ctrl)
-> +		fe->ops.i2c_gate_ctrl(fe, 0);
-> +
-> +	return 0;
-> +err:
-> +	if (fe->ops.i2c_gate_ctrl)
-> +		fe->ops.i2c_gate_ctrl(fe, 0);
-> +
-> +	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-> +	return ret;
-> +}
-> +
-> +static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct e4000_priv *priv =
-> +			container_of(ctrl->handler, struct e4000_priv, hdl);
-> +	struct dvb_frontend *fe = priv->fe;
-> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> +	int ret;
-> +	dev_dbg(&priv->client->dev,
-> +			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
-> +			__func__, ctrl->id, ctrl->name, ctrl->val,
-> +			ctrl->minimum, ctrl->maximum, ctrl->step);
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_BANDWIDTH_AUTO:
-> +	case V4L2_CID_BANDWIDTH:
-> +		c->bandwidth_hz = priv->bandwidth->val;
-> +		ret = e4000_set_params(priv->fe);
-> +		break;
-> +	case  V4L2_CID_LNA_GAIN_AUTO:
-> +	case  V4L2_CID_LNA_GAIN:
-> +	case  V4L2_CID_MIXER_GAIN_AUTO:
-> +	case  V4L2_CID_MIXER_GAIN:
-> +	case  V4L2_CID_IF_GAIN_AUTO:
-> +	case  V4L2_CID_IF_GAIN:
-> +		ret = e4000_set_gain(priv->fe);
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-That won't work. You need to handle each gain cluster separately. The control
-framework processes the controls one cluster at a time and takes a lock on the
-master control before calling s_ctrl. The ctrl->val field is only valid inside
-s_ctrl for the controls in the cluster, not for other controls. For other
-controls only the ctrl->cur.val field is valid.
+Results of the daily build of media_tree:
 
-Regards,
+date:		Tue Feb  4 04:00:30 CET 2014
+git branch:	test
+git hash:	c29b8f3149f2916e98fc3b8d6c1df2137d003979
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-	Hans
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12-i686: WARNINGS
+linux-3.13-i686: WARNINGS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-> +		break;
-> +	default:
-> +		ret = -EINVAL;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops e4000_ctrl_ops = {
-> +	.s_ctrl = e4000_s_ctrl,
-> +};
-> +
->  static const struct dvb_tuner_ops e4000_tuner_ops = {
->  	.info = {
->  		.name           = "Elonics E4000",
-> @@ -463,6 +567,13 @@ static const struct dvb_tuner_ops e4000_tuner_ops = {
->  	.get_if_frequency = e4000_get_if_frequency,
->  };
->  
-> +struct v4l2_ctrl_handler *e4000_get_ctrl_handler(struct dvb_frontend *fe)
-> +{
-> +	struct e4000_priv *priv = fe->tuner_priv;
-> +	return &priv->hdl;
-> +}
-> +EXPORT_SYMBOL(e4000_get_ctrl_handler);
-> +
->  static int e4000_probe(struct i2c_client *client,
->  		const struct i2c_device_id *id)
->  {
-> @@ -504,6 +615,35 @@ static int e4000_probe(struct i2c_client *client,
->  	if (ret < 0)
->  		goto err;
->  
-> +	/* Register controls */
-> +	v4l2_ctrl_handler_init(&priv->hdl, 8);
-> +	priv->bandwidth_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-> +			V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
-> +	priv->bandwidth = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-> +			V4L2_CID_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
-> +	v4l2_ctrl_auto_cluster(2, &priv->bandwidth_auto, 0, false);
-> +	priv->lna_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-> +			V4L2_CID_LNA_GAIN_AUTO, 0, 1, 1, 1);
-> +	priv->lna_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-> +			V4L2_CID_LNA_GAIN, 0, 15, 1, 10);
-> +	v4l2_ctrl_auto_cluster(2, &priv->lna_gain_auto, 0, false);
-> +	priv->mixer_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-> +			V4L2_CID_MIXER_GAIN_AUTO, 0, 1, 1, 1);
-> +	priv->mixer_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-> +			V4L2_CID_MIXER_GAIN, 0, 1, 1, 1);
-> +	v4l2_ctrl_auto_cluster(2, &priv->mixer_gain_auto, 0, false);
-> +	priv->if_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-> +			V4L2_CID_IF_GAIN_AUTO, 0, 1, 1, 1);
-> +	priv->if_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-> +			V4L2_CID_IF_GAIN, 0, 54, 1, 0);
-> +	v4l2_ctrl_auto_cluster(2, &priv->if_gain_auto, 0, false);
-> +	if (priv->hdl.error) {
-> +		ret = priv->hdl.error;
-> +		dev_err(&priv->client->dev, "Could not initialize controls\n");
-> +		v4l2_ctrl_handler_free(&priv->hdl);
-> +		goto err;
-> +	}
-> +
->  	dev_info(&priv->client->dev,
->  			"%s: Elonics E4000 successfully identified\n",
->  			KBUILD_MODNAME);
-> @@ -533,7 +673,7 @@ static int e4000_remove(struct i2c_client *client)
->  	struct dvb_frontend *fe = priv->fe;
->  
->  	dev_dbg(&client->dev, "%s:\n", __func__);
-> -
-> +	v4l2_ctrl_handler_free(&priv->hdl);
->  	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
->  	fe->tuner_priv = NULL;
->  	kfree(priv);
-> diff --git a/drivers/media/tuners/e4000.h b/drivers/media/tuners/e4000.h
-> index d95c472..d86de6d 100644
-> --- a/drivers/media/tuners/e4000.h
-> +++ b/drivers/media/tuners/e4000.h
-> @@ -46,4 +46,18 @@ struct e4000_ctrl {
->  	int if_gain;
->  };
->  
-> +#if IS_ENABLED(CONFIG_MEDIA_TUNER_E4000)
-> +extern struct v4l2_ctrl_handler *e4000_get_ctrl_handler(
-> +		struct dvb_frontend *fe
-> +);
-> +#else
-> +static inline struct v4l2_ctrl_handler *e4000_get_ctrl_handler(
-> +		struct dvb_frontend *fe
-> +)
-> +{
-> +	pr_warn("%s: driver disabled by Kconfig\n", __func__);
-> +	return NULL;
-> +}
-> +#endif
-> +
->  #endif
-> diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
-> index a75a383..8cc27b3 100644
-> --- a/drivers/media/tuners/e4000_priv.h
-> +++ b/drivers/media/tuners/e4000_priv.h
-> @@ -22,11 +22,23 @@
->  #define E4000_PRIV_H
->  
->  #include "e4000.h"
-> +#include <media/v4l2-ctrls.h>
->  
->  struct e4000_priv {
->  	struct i2c_client *client;
->  	u32 clock;
->  	struct dvb_frontend *fe;
-> +
-> +	/* Controls */
-> +	struct v4l2_ctrl_handler hdl;
-> +	struct v4l2_ctrl *bandwidth_auto;
-> +	struct v4l2_ctrl *bandwidth;
-> +	struct v4l2_ctrl *lna_gain_auto;
-> +	struct v4l2_ctrl *lna_gain;
-> +	struct v4l2_ctrl *mixer_gain_auto;
-> +	struct v4l2_ctrl *mixer_gain;
-> +	struct v4l2_ctrl *if_gain_auto;
-> +	struct v4l2_ctrl *if_gain;
->  };
->  
->  struct e4000_pll {
-> 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
