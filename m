@@ -1,106 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3271 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752092AbaBJIsH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:48:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:59745 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753958AbaBDBkR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Feb 2014 20:40:17 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 26/34] v4l2-ctrls: fix comments
-Date: Mon, 10 Feb 2014 09:46:51 +0100
-Message-Id: <1392022019-5519-27-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/4] rtl2832_sdr: use E4000 tuner controls via V4L framework
+Date: Tue,  4 Feb 2014 03:39:59 +0200
+Message-Id: <1391478000-24239-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1391478000-24239-1-git-send-email-crope@iki.fi>
+References: <1391478000-24239-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Use V4L2 control framework for E4000 tuner as it provides controls
+that way now.
 
-Various comments referred to videodev2.h, but the control definitions have
-been moved to v4l2-controls.h.
-
-Also add the same reminder message to each class of controls.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 92 +++++++++---------------
+ 1 file changed, 34 insertions(+), 58 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 0b200dd..d99ce90 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -592,7 +592,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 1dfe653..c26c084 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -922,30 +922,6 @@ err:
+ 	return;
+ };
+ 
+-static int rtl2832_sdr_set_gain_e4000(struct rtl2832_sdr_state *s)
+-{
+-	int ret;
+-	struct dvb_frontend *fe = s->fe;
+-	struct e4000_ctrl ctrl;
+-	dev_dbg(&s->udev->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
+-			s->lna_gain->val, s->mixer_gain->val, s->if_gain->val);
+-
+-	ctrl.lna_gain = s->lna_gain_auto->val ? INT_MIN : s->lna_gain->val;
+-	ctrl.mixer_gain = s->mixer_gain_auto->val ? INT_MIN : s->mixer_gain->val;
+-	ctrl.if_gain = s->if_gain_auto->val ? INT_MIN : s->if_gain->val;
+-
+-	if (fe->ops.tuner_ops.set_config) {
+-		ret = fe->ops.tuner_ops.set_config(fe, &ctrl);
+-		if (ret)
+-			goto err;
+-	}
+-
+-	return 0;
+-err:
+-	dev_dbg(&s->udev->dev, "%s: failed %d\n", __func__, ret);
+-	return ret;
+-};
+-
+ static int rtl2832_sdr_set_gain_r820t(struct rtl2832_sdr_state *s)
  {
- 	switch (id) {
- 	/* USER controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_USER_CLASS:		return "User Controls";
- 	case V4L2_CID_BRIGHTNESS:		return "Brightness";
- 	case V4L2_CID_CONTRAST:			return "Contrast";
-@@ -752,7 +752,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+ 	int ret;
+@@ -975,9 +951,6 @@ static int rtl2832_sdr_set_gain(struct rtl2832_sdr_state *s)
+ 	int ret;
  
- 	/* CAMERA controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
- 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
- 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
-@@ -786,8 +786,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
- 	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
+ 	switch (s->cfg->tuner) {
+-	case RTL2832_TUNER_E4000:
+-		ret = rtl2832_sdr_set_gain_e4000(s);
+-		break;
+ 	case RTL2832_TUNER_R820T:
+ 		ret = rtl2832_sdr_set_gain_r820t(s);
+ 		break;
+@@ -991,35 +964,33 @@ static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
+ {
+ 	struct dvb_frontend *fe = s->fe;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	struct v4l2_ctrl *bandwidth_auto;
++	struct v4l2_ctrl *bandwidth;
+ 	int ret;
  
--	/* FM Radio Modulator control */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* FM Radio Modulator controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
- 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
- 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
-@@ -810,6 +810,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
+ 	/*
+ 	 * tuner RF (Hz)
+ 	 */
+-	unsigned int f_rf = s->f_tuner;
++	if (s->f_tuner == 0)
++		return 0;
  
- 	/* Flash controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_FLASH_CLASS:		return "Flash Controls";
- 	case V4L2_CID_FLASH_LED_MODE:		return "LED Mode";
- 	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe Source";
-@@ -825,7 +826,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
+ 	/*
+ 	 * bandwidth (Hz)
+ 	 */
+-	unsigned int bandwidth;
+-
+-	/* filters */
+-	if (s->bandwidth_auto->val)
+-		bandwidth = s->f_adc;
+-	else
+-		bandwidth = s->bandwidth->val;
+-
+-	s->bandwidth->val = bandwidth;
+-
+-	dev_dbg(&s->udev->dev, "%s: f_rf=%u bandwidth=%d\n",
+-			__func__, f_rf, bandwidth);
++	bandwidth_auto = v4l2_ctrl_find(&s->hdl, V4L2_CID_BANDWIDTH_AUTO);
++	bandwidth = v4l2_ctrl_find(&s->hdl, V4L2_CID_BANDWIDTH);
++	if (v4l2_ctrl_g_ctrl(bandwidth_auto)) {
++		c->bandwidth_hz = s->f_adc;
++		v4l2_ctrl_s_ctrl(bandwidth, s->f_adc);
++	} else {
++		c->bandwidth_hz = v4l2_ctrl_g_ctrl(bandwidth);
++	}
  
- 	/* JPEG encoder controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_JPEG_CLASS:		return "JPEG Compression Controls";
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:	return "Chroma Subsampling";
- 	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
-@@ -833,18 +834,21 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
+-	c->bandwidth_hz = bandwidth;
+-	c->frequency = f_rf;
++	c->frequency = s->f_tuner;
+ 	c->delivery_system = SYS_DVBT;
  
- 	/* Image source controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image Source Controls";
- 	case V4L2_CID_VBLANK:			return "Vertical Blanking";
- 	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
- 	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
+-	if (f_rf == 0)
+-		return 0;
++	dev_dbg(&s->udev->dev, "%s: frequency=%u bandwidth=%d\n",
++			__func__, c->frequency, c->bandwidth_hz);
  
- 	/* Image processing controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
- 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
- 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
- 	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+ 	if (!test_bit(POWER_ON, &s->flags))
+ 		return 0;
+@@ -1362,6 +1333,8 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct rtl2832_sdr_state *s =
+ 			container_of(ctrl->handler, struct rtl2832_sdr_state,
+ 					hdl);
++	struct dvb_frontend *fe = s->fe;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	dev_dbg(&s->udev->dev,
+ 			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
+@@ -1371,7 +1344,18 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_BANDWIDTH_AUTO:
+ 	case V4L2_CID_BANDWIDTH:
+-		ret = rtl2832_sdr_set_tuner(s);
++		if (s->bandwidth_auto->val)
++			s->bandwidth->val = s->f_adc;
++
++		c->bandwidth_hz = s->bandwidth->val;
++
++		if (!test_bit(POWER_ON, &s->flags))
++			return 0;
++
++		if (fe->ops.tuner_ops.set_params)
++			ret = fe->ops.tuner_ops.set_params(fe);
++		else
++			ret = 0;
+ 		break;
+ 	case  V4L2_CID_LNA_GAIN_AUTO:
+ 	case  V4L2_CID_LNA_GAIN:
+@@ -1410,6 +1394,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	struct rtl2832_sdr_state *s;
+ 	const struct v4l2_ctrl_ops *ops = &rtl2832_sdr_ctrl_ops;
+ 	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
++	struct v4l2_ctrl_handler *hdl;
  
- 	/* DV controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_DV_CLASS:			return "Digital Video Controls";
- 	case V4L2_CID_DV_TX_HOTPLUG:		return "Hotplug Present";
- 	case V4L2_CID_DV_TX_RXSENSE:		return "RxSense Present";
+ 	s = kzalloc(sizeof(struct rtl2832_sdr_state), GFP_KERNEL);
+ 	if (s == NULL) {
+@@ -1449,19 +1434,10 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	/* Register controls */
+ 	switch (s->cfg->tuner) {
+ 	case RTL2832_TUNER_E4000:
+-		v4l2_ctrl_handler_init(&s->hdl, 8);
+-		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
+-		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
+-		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
+-		s->lna_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN_AUTO, 0, 1, 1, 1);
+-		s->lna_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN, 0, 15, 1, 10);
+-		v4l2_ctrl_auto_cluster(2, &s->lna_gain_auto, 0, false);
+-		s->mixer_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_MIXER_GAIN_AUTO, 0, 1, 1, 1);
+-		s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_MIXER_GAIN, 0, 1, 1, 1);
+-		v4l2_ctrl_auto_cluster(2, &s->mixer_gain_auto, 0, false);
+-		s->if_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_IF_GAIN_AUTO, 0, 1, 1, 1);
+-		s->if_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_IF_GAIN, 0, 54, 1, 0);
+-		v4l2_ctrl_auto_cluster(2, &s->if_gain_auto, 0, false);
++		hdl = e4000_get_ctrl_handler(fe);
++		v4l2_ctrl_handler_init(&s->hdl, 0);
++		if (hdl)
++			v4l2_ctrl_add_handler(&s->hdl, hdl, NULL);
+ 		break;
+ 	case RTL2832_TUNER_R820T:
+ 		v4l2_ctrl_handler_init(&s->hdl, 8);
 -- 
-1.8.5.2
+1.8.5.3
 
