@@ -1,237 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39721 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752132AbaBZOyr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 09:54:47 -0500
-Message-ID: <1393428297.3248.92.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from
- drivers/media/v4l2-core to drivers/of
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Date: Wed, 26 Feb 2014 16:24:57 +0100
-In-Reply-To: <20140226113729.A9D5AC40A89@trevor.secretlab.ca>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
-	 < 1393340304-19005-2-git-send-email-p.zabel@pengutronix.de>
-	 <20140226113729.A9D5AC40A89@trevor.secretlab.ca>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:40969 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754809AbaBDT0W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 14:26:22 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N0H00MHDKNXDU40@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 04 Feb 2014 14:26:21 -0500 (EST)
+Date: Tue, 04 Feb 2014 17:26:15 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] [media] mceusb: remove redundant function and defines
+Message-id: <20140204172615.3f494373@samsung.com>
+In-reply-to: <1390255844-21826-1-git-send-email-sean@mess.org>
+References: <1390255844-21826-1-git-send-email-sean@mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grant,
+Hi Sean,
 
-Am Mittwoch, den 26.02.2014, 11:37 +0000 schrieb Grant Likely:
-[...]
-> >  drivers/media/v4l2-core/v4l2-of.c             | 117 ----------------------
-> >  drivers/of/Makefile                           |   1 +
-> >  drivers/of/of_graph.c                         | 134 ++++++++++++++++++++++++++
+Em Mon, 20 Jan 2014 22:10:43 +0000
+Sean Young <sean@mess.org> escreveu:
+
+Could you please provide a patch description? Even simple ones should have,
+and this one is everything but trivial...
+
+Also, you should likely break it into smaller changesets. For example, the
+last hunk adding a usb_kill_urb() looks more like a bugfix than a pure
+cleanup change.
+
+Thanks!
+Mauro
+
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  drivers/media/rc/mceusb.c | 92 +++++++++++++++--------------------------------
+>  1 file changed, 28 insertions(+), 64 deletions(-)
 > 
-> Nah. Just put it into drivers/of/base.c. This isn't a separate subsystem
-> and the functions are pretty basic.
+> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+> index a25bb15..3a4f95f 100644
+> --- a/drivers/media/rc/mceusb.c
+> +++ b/drivers/media/rc/mceusb.c
+> @@ -166,15 +166,6 @@ static bool debug;
+>  			dev_info(dev, fmt, ## __VA_ARGS__);	\
+>  	} while (0)
+>  
+> -/* general constants */
+> -#define SEND_FLAG_IN_PROGRESS	1
+> -#define SEND_FLAG_COMPLETE	2
+> -#define RECV_FLAG_IN_PROGRESS	3
+> -#define RECV_FLAG_COMPLETE	4
+> -
+> -#define MCEUSB_RX		1
+> -#define MCEUSB_TX		2
+> -
+>  #define VENDOR_PHILIPS		0x0471
+>  #define VENDOR_SMK		0x0609
+>  #define VENDOR_TATUNG		0x1460
+> @@ -452,7 +443,6 @@ struct mceusb_dev {
+>  	} flags;
+>  
+>  	/* transmit support */
+> -	int send_flags;
+>  	u32 carrier;
+>  	unsigned char tx_mask;
+>  
+> @@ -731,45 +721,29 @@ static void mce_async_callback(struct urb *urb)
+>  
+>  /* request incoming or send outgoing usb packet - used to initialize remote */
+>  static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
+> -			       int size, int urb_type)
+> +			       int size)
+>  {
+>  	int res, pipe;
+>  	struct urb *async_urb;
+>  	struct device *dev = ir->dev;
+>  	unsigned char *async_buf;
+>  
+> -	if (urb_type == MCEUSB_TX) {
+> -		async_urb = usb_alloc_urb(0, GFP_KERNEL);
+> -		if (unlikely(!async_urb)) {
+> -			dev_err(dev, "Error, couldn't allocate urb!\n");
+> -			return;
+> -		}
+> -
+> -		async_buf = kzalloc(size, GFP_KERNEL);
+> -		if (!async_buf) {
+> -			dev_err(dev, "Error, couldn't allocate buf!\n");
+> -			usb_free_urb(async_urb);
+> -			return;
+> -		}
+> +	async_urb = usb_alloc_urb(0, GFP_KERNEL);
+> +	if (unlikely(!async_urb))
+> +		return;
+>  
+> -		/* outbound data */
+> -		pipe = usb_sndintpipe(ir->usbdev,
+> -				      ir->usb_ep_out->bEndpointAddress);
+> -		usb_fill_int_urb(async_urb, ir->usbdev, pipe,
+> -			async_buf, size, mce_async_callback,
+> -			ir, ir->usb_ep_out->bInterval);
+> -		memcpy(async_buf, data, size);
+> -
+> -	} else if (urb_type == MCEUSB_RX) {
+> -		/* standard request */
+> -		async_urb = ir->urb_in;
+> -		ir->send_flags = RECV_FLAG_IN_PROGRESS;
+> -
+> -	} else {
+> -		dev_err(dev, "Error! Unknown urb type %d\n", urb_type);
+> +	async_buf = kmalloc(size, GFP_KERNEL);
+> +	if (!async_buf) {
+> +		usb_free_urb(async_urb);
+>  		return;
+>  	}
+>  
+> +	/* outbound data */
+> +	pipe = usb_sndintpipe(ir->usbdev, ir->usb_ep_out->bEndpointAddress);
+> +	usb_fill_int_urb(async_urb, ir->usbdev, pipe, async_buf, size,
+> +			mce_async_callback, ir, ir->usb_ep_out->bInterval);
+> +	memcpy(async_buf, data, size);
+> +
+>  	mce_dbg(dev, "receive request called (size=%#x)\n", size);
+>  
+>  	async_urb->transfer_buffer_length = size;
+> @@ -789,19 +763,14 @@ static void mce_async_out(struct mceusb_dev *ir, unsigned char *data, int size)
+>  
+>  	if (ir->need_reset) {
+>  		ir->need_reset = false;
+> -		mce_request_packet(ir, DEVICE_RESUME, rsize, MCEUSB_TX);
+> +		mce_request_packet(ir, DEVICE_RESUME, rsize);
+>  		msleep(10);
+>  	}
+>  
+> -	mce_request_packet(ir, data, size, MCEUSB_TX);
+> +	mce_request_packet(ir, data, size);
+>  	msleep(10);
+>  }
+>  
+> -static void mce_flush_rx_buffer(struct mceusb_dev *ir, int size)
+> -{
+> -	mce_request_packet(ir, NULL, size, MCEUSB_RX);
+> -}
+> -
+>  /* Send data out the IR blaster port(s) */
+>  static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+>  {
+> @@ -1040,7 +1009,6 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+>  static void mceusb_dev_recv(struct urb *urb)
+>  {
+>  	struct mceusb_dev *ir;
+> -	int buf_len;
+>  
+>  	if (!urb)
+>  		return;
+> @@ -1051,18 +1019,10 @@ static void mceusb_dev_recv(struct urb *urb)
+>  		return;
+>  	}
+>  
+> -	buf_len = urb->actual_length;
+> -
+> -	if (ir->send_flags == RECV_FLAG_IN_PROGRESS) {
+> -		ir->send_flags = SEND_FLAG_COMPLETE;
+> -		mce_dbg(ir->dev, "setup answer received %d bytes\n",
+> -			buf_len);
+> -	}
+> -
+>  	switch (urb->status) {
+>  	/* success */
+>  	case 0:
+> -		mceusb_process_ir_data(ir, buf_len);
+> +		mceusb_process_ir_data(ir, urb->actual_length);
+>  		break;
+>  
+>  	case -ECONNRESET:
+> @@ -1250,7 +1210,7 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+>  	struct usb_endpoint_descriptor *ep_in = NULL;
+>  	struct usb_endpoint_descriptor *ep_out = NULL;
+>  	struct mceusb_dev *ir = NULL;
+> -	int pipe, maxp, i;
+> +	int pipe, maxp, i, res;
+>  	char buf[63], name[128] = "";
+>  	enum mceusb_model_type model = id->driver_info;
+>  	bool is_gen3;
+> @@ -1346,19 +1306,21 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+>  		snprintf(name + strlen(name), sizeof(name) - strlen(name),
+>  			 " %s", buf);
+>  
+> -	ir->rc = mceusb_init_rc_dev(ir);
+> -	if (!ir->rc)
+> -		goto rc_dev_fail;
+> -
+>  	/* wire up inbound data handler */
+>  	usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in, maxp,
+>  				mceusb_dev_recv, ir, ep_in->bInterval);
+>  	ir->urb_in->transfer_dma = ir->dma_in;
+>  	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+>  
+> -	/* flush buffers on the device */
+> -	mce_dbg(&intf->dev, "Flushing receive buffers\n");
+> -	mce_flush_rx_buffer(ir, maxp);
+> +	res = usb_submit_urb(ir->urb_in, GFP_KERNEL);
+> +	if (res) {
+> +		dev_err(&intf->dev, "failed to submit urb: %d\n", res);
+> +		goto usb_submit_fail;
+> +	}
+> +
+> +	ir->rc = mceusb_init_rc_dev(ir);
+> +	if (!ir->rc)
+> +		goto rc_dev_fail;
+>  
+>  	/* figure out which firmware/emulator version this hardware has */
+>  	mceusb_get_emulator_version(ir);
+> @@ -1393,6 +1355,8 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+>  
+>  	/* Error-handling path */
+>  rc_dev_fail:
+> +	usb_kill_urb(ir->urb_in);
+> +usb_submit_fail:
+>  	usb_free_urb(ir->urb_in);
+>  urb_in_alloc_fail:
+>  	usb_free_coherent(dev, maxp, ir->buf_in, ir->dma_in);
 
-Ok.
 
-[...]
-> > +struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
-> > +					struct device_node *prev)
-> > +{
-> > +	struct device_node *endpoint;
-> > +	struct device_node *port = NULL;
-> > +
-> > +	if (!parent)
-> > +		return NULL;
-> > +
-> > +	if (!prev) {
-> > +		struct device_node *node;
-> > +		/*
-> > +		 * It's the first call, we have to find a port subnode
-> > +		 * within this node or within an optional 'ports' node.
-> > +		 */
-> > +		node = of_get_child_by_name(parent, "ports");
-> > +		if (node)
-> > +			parent = node;
-> > +
-> > +		port = of_get_child_by_name(parent, "port");
-> 
-> If you've got a "ports" node, then I would expect every single child to
-> be a port. Should not need the _by_name variant.
+-- 
 
-The 'ports' node is optional. It is only needed if the parent node has
-its own #address-cells and #size-cells properties. If the ports are
-direct children of the device node, there might be other nodes than
-ports:
-
-	device {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		port@0 {
-			endpoint { ... };
-		};
-		port@1 {
-			endpoint { ... };
-		};
-
-		some-other-child { ... };
-	};
-
-	device {
-		#address-cells = <x>;
-		#size-cells = <y>;
-
-		ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			port@0 {
-				endpoint { ... };
-			};
-			port@1 {
-				endpoint { ... };
-			};
-		};
-
-		some-other-child { ... };
-	};
-
-The helper should find the two endpoints in both cases.
-Tomi suggests an even more compact form for devices with just one port:
-
-	device {
-		endpoint { ... };
-
-		some-other-child { ... };
-	};
-
-> It seems that this function is merely a helper to get all grandchildren
-> of a node (with some very minor constraints). That could be generalized
-> and simplified. If the function takes the "ports" node as an argument
-> instead of the parent, then there is a greater likelyhood that other
-> code can make use of it...
-> 
-> Thinking further. I think the semantics of this whole feature basically
-> boil down to this:
-> 
-> #define for_each_grandchild_of_node(parent, child, grandchild) \
-> 	for_each_child_of_node(parent, child) \
-> 		for_each_child_of_node(child, grandchild)
-> 
-> Correct? Or in this specific case:
-> 
-> 	parent = of_get_child_by_name(np, "ports")
-> 	for_each_grandchild_of_node(parent, child, grandchild) {
-> 		...
-> 	}
-
-Hmm, that would indeed be a bit more generic, but it doesn't handle the
-optional 'ports' subnode and doesn't allow for other child nodes in the
-device node.
-
-> Finally, looking at the actual patch, is any of this actually needed.
-> All of the users updated by this patch only ever handle a single
-> endpoint. Have I read it correctly? Are there any users supporting
-> multiple endpoints?
-
-Yes, mainline currently only contains simple cases. I have posted i.MX6
-patches that use this scheme for the output path:
-  http://www.spinics.net/lists/arm-kernel/msg310817.html
-  http://www.spinics.net/lists/arm-kernel/msg310821.html
-
-> > +
-> > +		if (port) {
-> > +			/* Found a port, get an endpoint. */
-> > +			endpoint = of_get_next_child(port, NULL);
-> > +			of_node_put(port);
-> > +		} else {
-> > +			endpoint = NULL;
-> > +		}
-> > +
-> > +		if (!endpoint)
-> > +			pr_err("%s(): no endpoint nodes specified for %s\n",
-> > +			       __func__, parent->full_name);
-> > +		of_node_put(node);
-> 
-> If you 'return endpoint' here, then the else block can go down a level.
-
-Note that this patch is a straight move of existing code.
-I can follow up with code beautification and ...
-
-> > +	} else {
-> > +		port = of_get_parent(prev);
-> > +		if (!port)
-> > +			/* Hm, has someone given us the root node ?... */
-> > +			return NULL;
-> 
-> WARN_ONCE(). That's a very definite coding failure if that happens.
-
-... with a fix for this.
-
-> > +
-> > +		/* Avoid dropping prev node refcount to 0. */
-> > +		of_node_get(prev);
-> > +		endpoint = of_get_next_child(port, prev);
-> > +		if (endpoint) {
-> > +			of_node_put(port);
-> > +			return endpoint;
-> > +		}
-> > +
-> > +		/* No more endpoints under this port, try the next one. */
-> > +		do {
-> > +			port = of_get_next_child(parent, port);
-> > +			if (!port)
-> > +				return NULL;
-> > +		} while (of_node_cmp(port->name, "port"));
-> > +
-> > +		/* Pick up the first endpoint in this port. */
-> > +		endpoint = of_get_next_child(port, NULL);
-> > +		of_node_put(port);
-> > +	}
-> > +
-> > +	return endpoint;
-> > +}
-> > +EXPORT_SYMBOL(of_graph_get_next_endpoint);
-> > +
-> > +/**
-> > + * of_graph_get_remote_port_parent() - get remote port's parent node
-> > + * @node: pointer to a local endpoint device_node
-> > + *
-> > + * Return: Remote device node associated with remote endpoint node linked
-> > + *	   to @node. Use of_node_put() on it when done.
-> > + */
-> > +struct device_node *of_graph_get_remote_port_parent(
-> > +			       const struct device_node *node)
-> > +{
-> > +	struct device_node *np;
-> > +	unsigned int depth;
-> > +
-> > +	/* Get remote endpoint node. */
-> > +	np = of_parse_phandle(node, "remote-endpoint", 0);
-> > +
-> > +	/* Walk 3 levels up only if there is 'ports' node. */
-> 
-> This needs a some explaining. My reading of the binding pattern is that
-> it will always be a fixed number of levels. Why is this test fuzzy?
-[...]
-
-See above. The ports subnode level is optional. In most cases, the port
-nodes will be direct children of the device node.
-Walking up 3 levels from the endpoint node will return the device if
-there was a ports node. If there is no ports node, we only have to walk
-up two levels.
-
-regards
-Philipp
-
+Cheers,
+Mauro
