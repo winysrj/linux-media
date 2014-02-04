@@ -1,67 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4691 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899AbaBWLpx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Feb 2014 06:45:53 -0500
-Message-ID: <5309DF58.9030004@xs4all.nl>
-Date: Sun, 23 Feb 2014 12:45:28 +0100
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3053 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751333AbaBDLG7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 06:06:59 -0500
+Message-ID: <52F0C908.6060302@xs4all.nl>
+Date: Tue, 04 Feb 2014 12:03:36 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-CC: laurent.pinchart@ideasonboard.com, k.debski@samsung.com
-Subject: Re: [PATCH v5 7/7] v4l: Document timestamp buffer flag behaviour
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi>
+To: linux-media <linux-media@vger.kernel.org>
+CC: Martin Bugge <marbugge@cisco.com>,
+	"prabhakar.csengg@gmail.com" <prabhakar.csengg@gmail.com>
+Subject: RFC: how to set the colorspace for an output sub-device?
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/15/2014 09:53 PM, Sakari Ailus wrote:
-> Timestamp buffer flags are constant at the moment. Document them so that 1)
-> they're always valid and 2) not changed by the drivers. This leaves room to
-> extend the functionality later on if needed.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/io.xml |   10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index fbd0c6e..4f76565 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -653,6 +653,16 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
->  In that case, struct <structname>v4l2_buffer</structname> contains an array of
->  plane structures.</para>
->  
-> +    <para>Dequeued video buffers come with timestamps. These
-> +    timestamps can be taken from different clocks and at different
-> +    part of the frame, depending on the driver. Please see flags in
-> +    the masks <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
-> +    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
-> +    linkend="buffer-flags">. These flags are guaranteed to be always
-> +    valid and will not be changed by the driver autonomously. Changes
-> +    in these flags may take place due as a side effect of
-> +    &VIDIOC-S-INPUT; or &VIDIOC-S-OUTPUT; however.</para>
+Hi all,
 
-There is one exception to this: if the timestamps are copied from the output
-buffer to the capture buffer (TIMESTAMP_COPY), then it can change theoretically
-for every buffer since it entirely depends on what is being sent to it. The
-value comes from userspace and you simply don't have any control over that.
+We have the following situation: we use a ths8200 to send video out
+over a VGA connector. It receives RGB video from a videoport DMA
+engine. However, we want to be able to tell the ths8200 to convert
+the RGB to YUV and send out YUV over the VGA connector instead of
+RGB. Yeah, I know, it's odd, but it turns out that there are some
+cases where that is needed (some cameras do that).
 
-I'm stress testing vb2 in lots of different ways, including timestamp handling.
-It's not a pretty sight, I'm afraid. Expect a looong list of patches in the
-coming week.
+The question is, how do we tell the ths8200 to do that?
+
+Currently in our repository we effectively implement it as another
+output. So even though there is only one connector, the bridge driver
+says that there are three, one RGB VGA and two YUV VGA using slightly
+different YUV colorspaces. The bridge driver will call s_routing in
+ths8200 and that sets up the colorspace conversion hardware.
+
+There really is no way in the spec to explicitly define the colorspace
+in a case like this. VIDIOC_S_FMT does has a colorspace field, but
+that's for the video data in memory, and that remains RGB in this case.
+
+In the subdev video ops you can also specify the colorspace of the
+video going over a mediabus, but again that's RGB as well and we
+don't have a way to specify this for the actual output.
+
+I don't like the 'multiple outputs' idea. It's really a hack.
+
+One option is to add a colorspace field to struct v4l2_bt_timings
+(or to v4l2_dv_timings since it is not really specific to BT 656/1120).
+
+If it is 0, then the default colorspace suitable for that connector
+and format is used. If it is non-zero it can be used to specify which
+colorspace the output should have (or, for receivers, which colorspace
+the input has).
+
+On the other hand, the colorspace doesn't really have anything to do
+with the timings, so perhaps this isn't the best option.
+
+Another alternative is to add RX and TX colorspace controls similar
+to the RGB_RANGE controls that already exist today:
+http://hverkuil.home.xs4all.nl/spec/media.html#dv-controls
+
+E.g. V4L2_CID_TX_COLORSPACE
+
+with options:
+
+"Auto"
+"SMPTE 170M"
+"SMPTE 240M"
+etc, etc. (same as colorspace defines)
+
+One thing that is missing in the colorspaces are support for limited/full
+range. During the Edinburgh summit we decided to add new colorspaces for
+that. Adding this will make the TX/RX_RGB_RANGE controls obsolete since
+those will be folded into the new COLORSPACE controls.
+
+I think I like this approach better than the 'multiple outputs' or
+the v4l2_dv_timings change.
+
+Does anyone have other ideas or feedback?
 
 Regards,
 
 	Hans
-
-> +
->      <table frame="none" pgwide="1" id="v4l2-buffer">
->        <title>struct <structname>v4l2_buffer</structname></title>
->        <tgroup cols="4">
-> 
-
