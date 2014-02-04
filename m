@@ -1,180 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46661 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751105AbaBKM3v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 07:29:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH 45/47] adv7604: Add DT support
-Date: Tue, 11 Feb 2014 13:30:54 +0100
-Message-ID: <348032354.Y8BFzPbpC4@avalon>
-In-Reply-To: <52FA15E4.50001@metafoo.de>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <52FA140F.9060200@cisco.com> <52FA15E4.50001@metafoo.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:60112 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932286AbaBDTlW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Feb 2014 14:41:22 -0500
+Message-ID: <52F1425C.6030604@iki.fi>
+Date: Tue, 04 Feb 2014 21:41:16 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 2/4] e4000: implement controls via v4l2 control framework
+References: <1391478000-24239-1-git-send-email-crope@iki.fi> <1391478000-24239-3-git-send-email-crope@iki.fi> <52F134BD.2050201@xs4all.nl>
+In-Reply-To: <52F134BD.2050201@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lars,
+Moi Hans
 
-On Tuesday 11 February 2014 13:21:56 Lars-Peter Clausen wrote:
-> On 02/11/2014 01:14 PM, Hans Verkuil wrote:
-> > On 02/11/14 13:08, Laurent Pinchart wrote:
-> >> On Tuesday 11 February 2014 10:23:03 Hans Verkuil wrote:
-> >>> On 02/05/14 17:42, Laurent Pinchart wrote:
-> >>>> Parse the device tree node to populate platform data.
-> >>>> 
-> >>>> Cc: devicetree@vger.kernel.org
-> >>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>>> ---
-> >>>> 
-> >>>>   .../devicetree/bindings/media/i2c/adv7604.txt      |  56 ++++++++++++
-> >>>>   drivers/media/i2c/adv7604.c                        | 101 ++++++++++--
-> >>>>   2 files changed, 143 insertions(+), 14 deletions(-)
-> >>>>   create mode 100644
-> >>>>   Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> >>>> 
-> >>>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> >>>> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt new file mode
-> >>>> 100644
-> >>>> index 0000000..0845c50
-> >>>> --- /dev/null
-> >>>> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> >>>> @@ -0,0 +1,56 @@
-> >>>> +* Analog Devices ADV7604/11 video decoder with HDMI receiver
-> >>>> +
-> >>>> +The ADV7604 and ADV7611 are multiformat video decoders with an
-> >>>> integrated
-> >>>> HDMI +receiver. The ADV7604 has four multiplexed HDMI inputs and one
-> >>>> analog input, +and the ADV7611 has one HDMI input and no analog input.
-> >>>> +
-> >>>> +Required Properties:
-> >>>> +
-> >>>> +  - compatible: Must contain one of the following
-> >>>> +    - "adi,adv7604" for the ADV7604
-> >>>> +    - "adi,adv7611" for the ADV7611
-> >>>> +
-> >>>> +  - reg: I2C slave address
-> >>>> +
-> >>>> +  - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
-> >>>> +    detection pins, one per HDMI input. The active flag indicates the
-> >>>> GPIO
-> >>>> +    level that enables hot-plug detection.
-> >>>> +
-> >>>> +Optional Properties:
-> >>>> +
-> >>>> +  - reset-gpios: Reference to the GPIO connected to the device's reset
-> >>>> pin. +
-> >>>> +  - adi,default-input: Index of the input to be configured as default.
-> >>>> Valid +    values are 0..5 for the ADV7604 and 0 for the ADV7611.
-> >>>> +
-> >>>> +  - adi,disable-power-down: Boolean property. When set forces the
-> >>>> device
-> >>>> to +    ignore the power-down pin. The property is valid for the
-> >>>> ADV7604
-> >>>> only as +    the ADV7611 has no power-down pin.
-> >>>> +
-> >>>> +  - adi,disable-cable-reset: Boolean property. When set disables the
-> >>>> HDMI
-> >>>> +    receiver automatic reset when the HDMI cable is unplugged.
-> >>>> +
-> >>>> +Example:
-> >>>> +
-> >>>> +	hdmi_receiver@4c {
-> >>>> +		compatible = "adi,adv7611";
-> >>>> +		reg = <0x4c>;
-> >>>> +
-> >>>> +		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
-> >>>> +		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
-> >>>> +
-> >>>> +		adi,default-input = <0>;
-> >>>> +
-> >>>> +		#address-cells = <1>;
-> >>>> +		#size-cells = <0>;
-> >>>> +
-> >>>> +		port@0 {
-> >>>> +			reg = <0>;
-> >>>> +		};
-> >>>> +		port@1 {
-> >>>> +			reg = <1>;
-> >>>> +			hdmi_in: endpoint {
-> >>>> +				remote-endpoint = <&ccdc_in>;
-> >>>> +			};
-> >>>> +		};
-> >>>> +	};
-> >>>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> >>>> index e586c1c..cd8a2dc 100644
-> >>>> --- a/drivers/media/i2c/adv7604.c
-> >>>> +++ b/drivers/media/i2c/adv7604.c
-> >>>> @@ -32,6 +32,7 @@
-> >>>> 
-> >>>>   #include <linux/i2c.h>
-> >>>>   #include <linux/kernel.h>
-> >>>>   #include <linux/module.h>
-> >>>> 
-> >>>> +#include <linux/of_gpio.h>
-> >>>> 
-> >>>>   #include <linux/slab.h>
-> >>>>   #include <linux/v4l2-dv-timings.h>
-> >>>>   #include <linux/videodev2.h>
-> >>>> 
-> >>>> @@ -2641,13 +2642,83 @@ static const struct adv7604_chip_info
-> >>>> adv7604_chip_info[] = {>
-> >>>> 
-> >>>>   	},
-> >>>>   
-> >>>>   };
-> >>>> 
-> >>>> +static struct i2c_device_id adv7604_i2c_id[] = {
-> >>>> +	{ "adv7604", (kernel_ulong_t)&adv7604_chip_info[ADV7604] },
-> >>>> +	{ "adv7611", (kernel_ulong_t)&adv7604_chip_info[ADV7611] },
-> >>>> +	{ }
-> >>>> +};
-> >>>> +MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
-> >>>> +
-> >>>> +static struct of_device_id adv7604_of_id[] = {
-> >>>> +	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
-> >>>> +	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
-> >>>> +	{ }
-> >>>> +};
-> >>>> +MODULE_DEVICE_TABLE(of, adv7604_of_id);
-> >>>> +
-> >>>> +static int adv7604_parse_dt(struct adv7604_state *state)
-> >>> 
-> >>> Put this under #ifdef CONFIG_OF.
-> >> 
-> >> #ifdef CONFIG_OF has been discouraged. I'll add an IS_ENABLED(CONFIG_OF)
-> >> to condition the call of adv7604_parse_dt() and let the compiler optimize
-> >> the function out, but I've been recommended to fix compilation errors
-> >> instead of using conditional compilation.
-> >> 
-> >>> It fails to compile if CONFIG_OF is not set (as it is in my case since
-> >>> this driver is used with a PCIe card).
-> >> 
-> >> What's the compilation failure ?
-> > 
-> > drivers/media/i2c/adv7604.c: In function ‘adv7604_parse_dt’:
-> > drivers/media/i2c/adv7604.c:2671:48: warning: dereferencing ‘void *’
-> > pointer [enabled by default]> 
-> >    state->info = of_match_node(adv7604_of_id, np)->data;
-> > 
-> > drivers/media/i2c/adv7604.c:2671:48: error: request for member ‘data’ in
-> > something not a structure or union make[3]: ***
-> > [drivers/media/i2c/adv7604.o] Error 1
-> 
-> That looks like a bug in the stubbed out version of of_match_node(). It
-> should be a inline function with a return type, rather than a macro.
+On 04.02.2014 20:43, Hans Verkuil wrote:
+> On 02/04/2014 02:39 AM, Antti Palosaari wrote:
+>> Implement gain and bandwidth controls using v4l2 control framework.
+>> Pointer to control handler is provided by exported symbol.
+>>
+>> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/tuners/e4000.c      | 142 +++++++++++++++++++++++++++++++++++++-
+>>   drivers/media/tuners/e4000.h      |  14 ++++
+>>   drivers/media/tuners/e4000_priv.h |  12 ++++
+>>   3 files changed, 167 insertions(+), 1 deletion(-)
 
-Indeed, I'll cook a patch up.
+>> +static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+>> +{
+>> +	struct e4000_priv *priv =
+>> +			container_of(ctrl->handler, struct e4000_priv, hdl);
+>> +	struct dvb_frontend *fe = priv->fe;
+>> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>> +	int ret;
+>> +	dev_dbg(&priv->client->dev,
+>> +			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
+>> +			__func__, ctrl->id, ctrl->name, ctrl->val,
+>> +			ctrl->minimum, ctrl->maximum, ctrl->step);
+>> +
+>> +	switch (ctrl->id) {
+>> +	case V4L2_CID_BANDWIDTH_AUTO:
+>> +	case V4L2_CID_BANDWIDTH:
+>> +		c->bandwidth_hz = priv->bandwidth->val;
+>> +		ret = e4000_set_params(priv->fe);
+>> +		break;
+>> +	case  V4L2_CID_LNA_GAIN_AUTO:
+>> +	case  V4L2_CID_LNA_GAIN:
+>> +	case  V4L2_CID_MIXER_GAIN_AUTO:
+>> +	case  V4L2_CID_MIXER_GAIN:
+>> +	case  V4L2_CID_IF_GAIN_AUTO:
+>> +	case  V4L2_CID_IF_GAIN:
+>> +		ret = e4000_set_gain(priv->fe);
+>
+> That won't work. You need to handle each gain cluster separately. The control
+> framework processes the controls one cluster at a time and takes a lock on the
+> master control before calling s_ctrl. The ctrl->val field is only valid inside
+> s_ctrl for the controls in the cluster, not for other controls. For other
+> controls only the ctrl->cur.val field is valid.
+
+hmm, actually it worked fine on my tests - but I think see your point. 
+It likely woks as my app sets one control per call, but if you try to 
+set multiple controls then it go out of sync I think.
+
+I am going to split that gain function to three pieces then.
+
+regards
+Antti
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
