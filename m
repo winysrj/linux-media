@@ -1,109 +1,307 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:56766 "EHLO
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:21526 "EHLO
 	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751262AbaBEJgx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 04:36:53 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+	with ESMTP id S1753708AbaBDMVB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 07:21:01 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N0I009TZO1FTF40@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Feb 2014 04:36:52 -0500 (EST)
-Date: Wed, 05 Feb 2014 07:36:46 -0200
+ 17 2011)) with ESMTP id <0N0H00FSO0Z0ZS00@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 04 Feb 2014 07:21:00 -0500 (EST)
+Date: Tue, 04 Feb 2014 10:20:53 -0200
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti =?UTF-8?B?U2VwcMOkbMOk?= <a.seppala@gmail.com>
-Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-	James Hogan <james.hogan@imgtec.com>
-Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
-Message-id: <20140205073646.10166733@samsung.com>
-In-reply-to: <CAKv9HNbYJ5FsQas=03u8pXCyiF5VSUfsOR46McukeisqVHme+g@mail.gmail.com>
-References: <20140115173559.7e53239a@samsung.com>
- <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
- <20140121122826.GA25490@pequod.mess.org>
- <CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com>
- <20140122162953.GA1665@pequod.mess.org>
- <CAKv9HNbVQwAcG98S3_Mj4A6zo8Ae2fLT6vn4LOYW1UMrwQku7Q@mail.gmail.com>
- <20140122210024.GA3223@pequod.mess.org> <20140122200142.002a39c2@samsung.com>
- <CAKv9HNY7==4H2ZDrmaX+1BcarRAJd7zUE491oQ2ZJZXezpwOAw@mail.gmail.com>
- <20140204155441.438c7a3c@samsung.com>
- <CAKv9HNbYJ5FsQas=03u8pXCyiF5VSUfsOR46McukeisqVHme+g@mail.gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 3/6] DocBook media: partial rewrite of
+ "Opening and Closing Devices"
+Message-id: <20140204102053.7faaa317@samsung.com>
+In-reply-to: <52D8F6BB.5010704@xs4all.nl>
+References: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl>
+ <1389100017-42855-4-git-send-email-hverkuil@xs4all.nl>
+ <20140113132013.06f558a0@samsung.com> <52D4112C.5040902@xs4all.nl>
+ <20140113152350.1ab23491@samsung.com> <52D8F6BB.5010704@xs4all.nl>
 MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+Em Fri, 17 Jan 2014 10:24:11 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Em Wed, 05 Feb 2014 09:03:29 +0200
-Antti Seppälä <a.seppala@gmail.com> escreveu:
-
-> On 4 February 2014 19:54, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
-> > Em Thu, 23 Jan 2014 21:11:09 +0200
-> > Antti Seppälä <a.seppala@gmail.com> escreveu:
-> >
-> >> On 23 January 2014 00:01, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
-> >> > Not sure if you saw it, but there's already another patchset proposing
-> >> > that, that got submitted before this changeset:
-> >> >         https://patchwork.linuxtv.org/patch/21625/
+> Hi Mauro,
+> 
+> On 01/13/2014 06:23 PM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 13 Jan 2014 17:15:40 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> On 01/13/2014 04:20 PM, Mauro Carvalho Chehab wrote:
+> >>> Em Tue,  7 Jan 2014 14:06:54 +0100
+> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>>
+> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>>
+> >>>> This section was horribly out of date. A lot of references to old and
+> >>>> obsolete behavior have been dropped.
+> > 
+> > Forgot to mention, put patches 1 and 2 are ok. I'll review the patches 4-6
+> > later this week.
+> > 
+> >>>>
+> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> ---
+> >>>>  Documentation/DocBook/media/v4l/common.xml | 188 ++++++++++-------------------
+> >>>>  1 file changed, 67 insertions(+), 121 deletions(-)
+> >>>>
+> >>>> diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
+> >>>> index 1ddf354..da08df9 100644
+> >>>> --- a/Documentation/DocBook/media/v4l/common.xml
+> >>>> +++ b/Documentation/DocBook/media/v4l/common.xml
+> 
+> <snip>
+> 
+> >>>> +      <para>Devices can support several functions. For example
+> >>>> +video capturing, VBI capturing and radio support.</para>
+> >>>
+> >>> "function" seems to be a poor choice of word here. Ok, it comes from the
+> >>> original text, but it is still not clear.
+> >>>
+> >>> I would use another word, like "broadcast type", in order to refer to
+> >>> radio, software defined radio, VBI and video.
 > >>
-> >> I actually didn't notice that until now. Seems quite a similar kind of
-> >> approach with even more advanced features than what I had in mind
-> >> (namely the scancode filtering and masking).
+> >> I agree that it is not the best word, but neither is (IMHO) "broadcast type".
+> >> This would be something for a follow-up patch.
+> > 
+> > I think we should use the right word here on this fix. Other suggestions:
+> > 	"stream type", "media type".
+> > 
+> > In any case, we should enumerate all those types here, maybe even putting
+> > them into a table, in order to define precisely to what we're referring to.
+> 
+> I'm not going to do this now. I need to think about this some more, and this
+> might also require changes in a lot of other places in the documentation.
+> 
+> So as far as I am concerned this is something for a future patch.
+> 
+> > 
+> >>>> +
+> >>>> +      <para>The V4L2 API creates different nodes for each of these functions.
+> >>>> +One exception to this rule is the overlay function: this is shared
+> >>>> +with the video capture node (or video output node for output overlays).</para>
+> >>>
+> >>> The mention to overlay here is completely out of context, and proofs
+> >>> my point that "function" is a very bad choice: overlay is not a
+> >>> broadcast type. It is just one of the ways to output the data. The same
+> >>> device node can support multiple "delivery types":
+> >>> 	- overlay;
+> >>> 	- dma-buf;
+> >>> 	- mmap;
+> >>> 	- read or write.
+> >>>
+> >>> Let's not mix those two concepts in the new text.
+> >>>
+> >>> Also, the delivery type has nothing to do with "Opening and closing devices".
 > >>
-> >> However it looks like that patchset has the same drawback about not
-> >> knowing which protocol to use for the wakeup scancode as was pointed
-> >> from my patch.
-> >
-> > Well, the protocol is important only if there are two or more active
-> > RCs that produce the same IR code on different protocols.
-> >
-> > Also, from the sysfs description made by James, it seems clear to me
-> > that the protocol to be used is the current protocol.
-> >
-> > I think is an unlikely border case to have some hardware that supports
-> > more than one IR protocols enabled for the wakeup to work, so James
-> > patch looks ok on my eyes.
-> >
-> > Also, nothing prevents to add latter a wakeup_filter_protocol sysfs node
-> > to allow to filter the wakeup scancode to a protocol set different than
-> > the one(s) currently enabled.
-> >
-> >> I think I'll try to come up with a new patch addressing the comments
-> >> I've seen so far.
-> >
-> > I guess I'll merge James approach, as there are a pile of other patches
-> > depending on it. If we need latter to distinguish between current_protocol
-> > and the wakeup one, as I said, a latter patch can add a
-> > "wakeup_filter_protocol" sysfs node to specify it.
-> >
-> > Regards,
-> > Mauro
+> >> I like the word "delivery type" in this context and I agree with you here.
+> >> I'll see if I can improve this text.
+> > 
+> > Thanks!
 > 
-> Hi Mauro.
+> I decided to just drop this paragraph. It doesn't belong here and it doesn't
+> add anything useful.
 > 
-> How do you want to proceed with the nuvoton wakeup I initially set out to do?
+> >  
+> >>>
+> >>>> +
+> >>>> +      <para>The V4L2 API was designed with the idea that one device node could support
+> >>>> +all functions. However, in practice this never worked: this 'feature'
+> >>>> +was never used by applications and many drivers did not support it and if
+> >>>> +they did it was certainly never tested. In addition, switching a device
+> >>>> +node between different functions only works when using the streaming I/O
+> >>>> +API, not with the read()/write() API.</para>
+> >>>> +
+> >>>> +      <para>Today each device node supports just one function, with the
+> >>>> +exception of overlay support.</para>
+> >>>>  
+> >>>>        <para>Besides video input or output the hardware may also
+> >>>>  support audio sampling or playback. If so, these functions are
+> >>>> -implemented as OSS or ALSA PCM devices and eventually OSS or ALSA
+> >>>> -audio mixer. The V4L2 API makes no provisions yet to find these
+> >>>> -related devices. If you have an idea please write to the linux-media
+> >>>> -mailing list: &v4l-ml;.</para>
+> >>>> +implemented as ALSA PCM devices with optional ALSA audio mixer
+> >>>> +devices.</para>
+> >>>> +
+> >>>> +      <para>One problem with all these devices is that the V4L2 API
+> >>>> +makes no provisions to find these related devices. Some really
+> >>>> +complex devices use the Media Controller (see <xref linkend="media_controller" />)
+> >>>> +which can be used for this purpose. But most drivers do not use it,
+> >>>> +and while some code exists that uses sysfs to discover related devices,
+> >>>> +there is no standard library yet. If you want to work on this please write
+> >>>> +to the linux-media mailing list: &v4l-ml;.</para>
+> >>>
+> >>> Not true. It is there at v4l-utils. Ok, patches are always welcome.
+> >>
+> >> Well, sort of. That library only handles sysfs, not the mc.
+> > 
+> > Yes, but that covers almost all devices, as the ones that use mc (except for
+> > uvc) have more serious issues, as libv4l still don't work with them. So, they
+> > demand dedicated applications anyway.
+> > 
+> >> I know Laurent
+> >> has been working on a better replacement, but that's been stalled for ages.
+> >> In other words, someone needs to spend time on this and create a proper
+> >> library for this.
+> > 
+> > True, but, again, media controller based devices also need the libv4l
+> > pieces that Sakari is working (also stalled).
+> > 
+> > Let's not mix things: associating media devices via sysfs has already
+> > a library. If you want to mention about that, please point to it.
 > 
-> To wake up with nuvoton-cir we need to program several raw ir
-> pulse/space lengths to the hardware and not a scancode. James's
-> approach doesn't support this.
+> I clarified the situation and added a pointer to the library in v4l-utils.
 > 
-> To keep things simple maybe module parameters in my first patch
-> (http://www.mail-archive.com/linux-media@vger.kernel.org/msg69782.html)
-> are then the best thing to do for nuvoton? Other drivers can probably
-> adapt to the suggested filter api.
+> > 
+> > A more generic work that will make libv4l and that library to also work
+> > with media controllers is a work to be done/finished.
+> > 
+> >>
+> >>>
+> >>>>      </section>
+> >>>>  
+> >>>>      <section>
+> >>>> @@ -176,19 +124,22 @@ mailing list: &v4l-ml;.</para>
+> >>>>  When this is supported by the driver, users can for example start a
+> >>>>  "panel" application to change controls like brightness or audio
+> >>>>  volume, while another application captures video and audio. In other words, panel
+> >>>> -applications are comparable to an OSS or ALSA audio mixer application.
+> >>>> -When a device supports multiple functions like capturing and overlay
+> >>>> -<emphasis>simultaneously</emphasis>, multiple opens allow concurrent
+> >>>> -use of the device by forked processes or specialized applications.</para>
+> >>>> -
+> >>>> -      <para>Multiple opens are optional, although drivers should
+> >>>> -permit at least concurrent accesses without data exchange, &ie; panel
+> >>>> -applications. This implies &func-open; can return an &EBUSY; when the
+> >>>> -device is already in use, as well as &func-ioctl; functions initiating
+> >>>> -data exchange (namely the &VIDIOC-S-FMT; ioctl), and the &func-read;
+> >>>> -and &func-write; functions.</para>
+> >>>> -
+> >>>> -      <para>Mere opening a V4L2 device does not grant exclusive
+> >>>> +applications are comparable to an ALSA audio mixer application.
+> >>>> +Just opening a V4L2 device should not change the state of the device.
+> >>>> +Unfortunately, opening a radio device often switches the state of the
+> >>>> +device to radio mode in many drivers.</para>
+> >>>
+> >>> This is an API spec document. It should say what is the expected behavior,
+> >>> and not mention non-compliant stuff.
+> >>
+> >> How about putting this in a footnote? I do agree with you, but the fact is
+> >> that most if not all drivers that support both radio and video behave this
+> >> way. So one could argue that it is the spec that is non-compliant :-)
+> > 
+> > If so, let's then fix the API to reflect that opening a radio device will
+> > change the behavior.
+> 
+> I've put this in a footnote together with a mention that this situation needs
+> to be fixed.
+> 
+> >>
+> >> That said, at some point this should be fixed.
+> > 
+> > Yes. one way or the other.
+> > 
+> >>>
+> >>>> +
+> >>>> +      <para>Almost all drivers allow multiple opens although there are
+> >>>> +still some old drivers that have not been updated to allow this.
+> >>>> +This implies &func-open; can return an &EBUSY; when the
+> >>>> +device is already in use.</para>
+> >>>
+> >>> What drivers? We should fix the driver, not the API doc.
+> >>
+> >> vino.c (I do have fixes for this in an old branch), timblogiw.c, fsl-viu.c.
+> >> There are probably a few more. Generally such drivers are old and/or obscure.
+> > 
+> > Maybe in this specific case, a footnote could be added, although the better
+> > would be to simply fix or remove/move to staging those drivers.
+> 
+> I moved this to a footnote.
+> 
+> > 
+> >> Since I am still working (slowly) on converting drivers to the modern frameworks
+> >> I'll come across these eventually.
+> >>
+> >>> Also, we need more discussions. It could make sense to return EBUSY
+> >>> even on new drivers, for example, if they're already in usage by some
+> >>> other broadcast type?
+> >>
+> >> You are not using it until you actually start streaming (or allocating buffers,
+> >> or whatever). There is no reason within the current framework to return EBUSY
+> >> for just opening a device node.
+> >>
+> >> Not being able to open a device node a second time makes it impossible to
+> >> create e.g. monitoring applications that do something when an event happens.
+> > 
+> > Agreed.
+> > 
+> >>>
+> >>>> +
+> >>>> +      <para>It is never possible to start streaming when
+> >>>> +streaming is already in progress. So &func-ioctl; functions initiating
+> >>>> +data exchange (e.g. the &VIDIOC-STREAMON; ioctl), and the &func-read;
+> >>>> +and &func-write; functions can return an &EBUSY;.</para>
+> >>>
+> >>> Here, the Overlay is a somewhat an exception, not in the sense that 
+> >>> they'll call streamon latter, but in the sense that overlay ioctls
+> >>> can happen after streaming.
+> >>
+> >> I'll make a note of that.
+> >>
+> >>> I don't remember well how DMA buf works,
+> >>> but I think you can also start to use a mmaped copy of the dma buffers
+> >>> after start streaming.
+> >>
+> >> Possibly, but that has nothing to do with this paragraph. Once a file
+> >> handle calls STREAMON, then no other file handle of the same device node
+> >> can call STREAMON, unless the owner stops streaming and releases all
+> >> resources (REQBUFS(0)).
+> > 
+> > Well, then the paragraph text is not quite right, as it mentions 
+> > "initiating data exchange".
+> > 
+> > If one mmaps memory latter to use it on an already started DMA buffer,
+> > it is initiating the "memory copy" data exchange with the mmap.
+> > 
+> > STREAMON is just one of the ways to initiate a data exchange.
+> 
+> I completely reworked this paragraph.
+> 
+> I'll post the revised version of this patch next.
 
-Well, you're basically telling that you need an IR encoder to convert
-from protocol/scancode into pulse/space lengths. 
+Weird, I'm not seeing the revised version of this patch posted.
 
-As we need/want a portable interface that will provide the same API
-to  userspace, no matter what hardware, I can see two alternatives:
+Anyway, from your original patch:
 
-1) Use a lirc-like API for that, using the IR encoder code in userspace;
+> +      <para>Today each device node supports just one function, with the
+> +exception of overlay support.</para>
 
-2) The same way as we mapped IR decoders, add IR encoders that can be
-used either for IR TX or to provide IR wakeup codes.
+It is still mixing overlay with "function" (where "function" means
+VBI, radio, video).
 
-IMO, (2) is a much more elegant option.
+I'll drop this one from the series I'm applying. Please review and submit
+latter a new version of this one to the ML for easier review.
 
-Regards,
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Cheers,
 Mauro
