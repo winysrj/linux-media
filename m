@@ -1,100 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:20864 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751219AbaBELqi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Feb 2014 06:46:38 -0500
-Date: Wed, 5 Feb 2014 19:46:35 +0800
-From: Fengguang Wu <fengguang.wu@intel.com>
-To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [linuxtv-media:master 89/499] WARNING: usleep_range should not use
- min == max args; see Documentation/timers/timers-howto.txt
-Message-ID: <20140205114635.GA27786@localhost>
+Received: from mail-yk0-f170.google.com ([209.85.160.170]:41820 "EHLO
+	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751274AbaBDNhn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 08:37:43 -0500
+Received: by mail-yk0-f170.google.com with SMTP id 9so47122229ykp.1
+        for <linux-media@vger.kernel.org>; Tue, 04 Feb 2014 05:37:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <CADyej-mND8fuxseQhp0-XeaapPoK8Q9r5bDjcVFndpoay6wLtQ@mail.gmail.com>
+References: <CADyej-mND8fuxseQhp0-XeaapPoK8Q9r5bDjcVFndpoay6wLtQ@mail.gmail.com>
+Date: Tue, 4 Feb 2014 08:32:08 -0500
+Message-ID: <CALzAhNVdv+nve4mr0i+p=upD3bprSa5Dvj90Mf7e3ZQfco-bgg@mail.gmail.com>
+Subject: Re: Help wanted patching saa7164 driver to work with Compro E900F
+From: Steven Toth <stoth@kernellabs.com>
+To: Daniel Playfair Cal <daniel.playfair.cal@gmail.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Feb 4, 2014 at 5:29 AM, Daniel Playfair Cal
+<daniel.playfair.cal@gmail.com> wrote:
+> Hello all,
+>
+> I've been working on patching the saa7164 driver to work with the
+> Compro Videomate Vista E900F. This is a PCI-e tuner card that seems to
+> be almost identical to the Hauppauge HVR-2200, many versions of which
+> are supported. I've had some success but there are a few problems
 
-Hi Sergio,
+Hey Daniel,
 
-FYI, there are new warnings show up in
+Thanks for showing an interest in the driver.
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   9fd9330c2d0ae6c149ec817ec71797f943db98b4
-commit: b4a0477c0b87c5b7a20a84df8cf81311d1efb226 [89/499] [media] v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers
-:::::: branch date: 11 minutes ago
-:::::: commit date: 9 weeks ago
+I've been trying to source one of these cards for quite a while,
+occasionally checking amazon etc. I can't seem to find anything in
+retail on amazon or on ebay.
 
-scripts/checkpatch.pl 0001-media-v4l-omap4iss-Add-support-for-OMAP4-camera-inte.patch
-# many are suggestions rather than must-fix
+Where did you purchase the card?
 
-WARNING: usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt
-#548: drivers/staging/media/omap4iss/iss_csi2.c:516:
-+			usleep_range(100, 100);
+- Steve
 
-WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#552: drivers/staging/media/omap4iss/iss_csi2.c:520:
-+		printk(KERN_ERR "CSI2: Soft reset try count exceeded!\n");
-
-WARNING: usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt
-#566: drivers/staging/media/omap4iss/iss_csi2.c:534:
-+		usleep_range(100, 100);
-
-WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#570: drivers/staging/media/omap4iss/iss_csi2.c:538:
-+		printk(KERN_ERR
-
-WARNING: quoted string split across lines
-#789: drivers/staging/media/omap4iss/iss_csi2.c:757:
-+		dev_dbg(iss->dev, "CSI2: ComplexIO Error IRQ "
-+			"%x\n", cpxio1_irqstatus);
-
-WARNING: quoted string split across lines
-#799: drivers/staging/media/omap4iss/iss_csi2.c:767:
-+		dev_dbg(iss->dev, "CSI2 Err:"
-+			" OCP:%d,"
-
-WARNING: quoted string split across lines
-#800: drivers/staging/media/omap4iss/iss_csi2.c:768:
-+			" OCP:%d,"
-+			" Short_pack:%d,"
-
-WARNING: quoted string split across lines
-#801: drivers/staging/media/omap4iss/iss_csi2.c:769:
-+			" Short_pack:%d,"
-+			" ECC:%d,"
-
-WARNING: quoted string split across lines
-#802: drivers/staging/media/omap4iss/iss_csi2.c:770:
-+			" ECC:%d,"
-+			" CPXIO:%d,"
-
-WARNING: quoted string split across lines
-#803: drivers/staging/media/omap4iss/iss_csi2.c:771:
-+			" CPXIO:%d,"
-+			" FIFO_OVF:%d,"
-
-WARNING: quoted string split across lines
-#804: drivers/staging/media/omap4iss/iss_csi2.c:772:
-+			" FIFO_OVF:%d,"
-+			"\n",
-
-WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#1649: drivers/staging/media/omap4iss/iss_csiphy.c:81:
-+		printk(KERN_ERR "CSI2 CIO set power failed!\n");
-
-WARNING: line over 80 characters
-#1749: drivers/staging/media/omap4iss/iss_csiphy.c:181:
-+		if (lanes->data[i].pol > 1 || lanes->data[i].pos > (csi2->phy->max_data_lanes + 1))
-
-WARNING: line over 80 characters
-#1759: drivers/staging/media/omap4iss/iss_csiphy.c:191:
-+	if (lanes->clk.pol > 1 || lanes->clk.pos > (csi2->phy->max_data_lanes + 1))
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
