@@ -1,143 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1605 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751714AbaBJJuW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 04:50:22 -0500
-Message-ID: <52F8A0B2.3090907@xs4all.nl>
-Date: Mon, 10 Feb 2014 10:49:38 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, k.debski@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v4.2 3/4] v4l: Add timestamp source flags, mask and document
- them
-References: <1393149.6OyBNhdFTt@avalon> <1391813548-818-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1391813548-818-1-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:25702 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751268AbaBDMdN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 07:33:13 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N0H0025B1JCEUA0@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 04 Feb 2014 07:33:12 -0500 (EST)
+Date: Tue, 04 Feb 2014 10:33:08 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.15] Updates for 3.15
+Message-id: <20140204103308.51f648b3@samsung.com>
+In-reply-to: <52EF70E8.6000101@xs4all.nl>
+References: <52EF70E8.6000101@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/07/2014 11:52 PM, Sakari Ailus wrote:
-> Some devices do not produce timestamps that correspond to the end of the
-> frame. The user space should be informed on the matter. This patch achieves
-> that by adding buffer flags (and a mask) for timestamp sources since more
-> possible timestamping points are expected than just two.
-> 
-> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of the
-> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end of
-> frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure (next
-> value).
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Em Mon, 03 Feb 2014 11:35:20 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-I would prefer to split the uvc change into a separate patch. It doesn't really
-belong here.
-
-Regards,
-
-	Hans
-
-> ---
-> since v4.1:
-> - Replace SOF flag by SOE flag
-> - Add mask for timestamp sources
+> Hi Mauro,
 > 
->  Documentation/DocBook/media/v4l/io.xml |   28 ++++++++++++++++++++++------
->  drivers/media/usb/uvc/uvc_queue.c      |    3 ++-
->  include/media/videobuf2-core.h         |    2 ++
->  include/uapi/linux/videodev2.h         |    4 ++++
->  4 files changed, 30 insertions(+), 7 deletions(-)
+> The usual list of updates. I also decided to add my DocBook changes to this
+> pull request.
 > 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 2c155cc..451626f 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -654,12 +654,6 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
->  In that case, struct <structname>v4l2_buffer</structname> contains an array of
->  plane structures.</para>
->  
-> -      <para>For timestamp types that are sampled from the system clock
-> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
-> -taken after the complete frame has been received (or transmitted in
-> -case of video output devices). For other kinds of
-> -timestamps this may vary depending on the driver.</para>
-> -
->      <table frame="none" pgwide="1" id="v4l2-buffer">
->        <title>struct <structname>v4l2_buffer</structname></title>
->        <tgroup cols="4">
-> @@ -1120,6 +1114,28 @@ in which case caches have not been used.</entry>
->  	    <entry>The CAPTURE buffer timestamp has been taken from the
->  	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
-> +	    <entry>0x00070000</entry>
-> +	    <entry>Mask for timestamp sources below. The timestamp source
-> +	    defines the point of time the timestamp is taken in relation to
-> +	    the frame. Logical and operation between the
-> +	    <structfield>flags</structfield> field and
-> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
-> +	    value of the timestamp source.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
-> +	    <entry>0x00000000</entry>
-> +	    <entry>"End of frame." The buffer timestamp has been taken when
-> +	    the last pixel of the frame has been received.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
-> +	    <entry>0x00010000</entry>
-> +	    <entry>"Start of exposure." The buffer timestamp has been taken
-> +	    when the exposure of the frame has begun.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-> index cd962be..a9292d2 100644
-> --- a/drivers/media/usb/uvc/uvc_queue.c
-> +++ b/drivers/media/usb/uvc/uvc_queue.c
-> @@ -149,7 +149,8 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
->  	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
->  	queue->queue.ops = &uvc_queue_qops;
->  	queue->queue.mem_ops = &vb2_vmalloc_memops;
-> -	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
-> +		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
->  	ret = vb2_queue_init(&queue->queue);
->  	if (ret)
->  		return ret;
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index bef53ce..b6b992d 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -312,6 +312,8 @@ struct v4l2_fh;
->   * @buf_struct_size: size of the driver-specific buffer structure;
->   *		"0" indicates the driver doesn't want to use a custom buffer
->   *		structure type, so sizeof(struct vb2_buffer) will is used
-> + * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_* and
-> + *		V4L2_BUF_FLAGS_TSTAMP_SRC_*
->   * @gfp_flags:	additional gfp flags used when allocating the buffers.
->   *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
->   *		to force the buffer allocation to a specific memory zone.
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index e9ee444..82e8661 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -695,6 +695,10 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
->  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
->  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
-> +/* Timestamp sources. */
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
->  
->  /**
->   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+> Regards,
 > 
+> 	Hans
+> 
+> The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
+> 
+>   [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v3.15a
+> 
+> for you to fetch changes up to 5979412aac4c8342c4f7d12c642a2ae955b0c68f:
+> 
+>   DocBook media: add revision entry for 3.15. (2014-02-03 11:29:03 +0100)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (11):
+>       usbvision: drop unused define USBVISION_SAY_AND_WAIT
+>       s3c-camif: Remove use of deprecated V4L2_CTRL_FLAG_DISABLED.
+>       v4l2-dv-timings.h: add new 4K DMT resolutions.
+>       v4l2-dv-timings: mention missing 'reduced blanking V2'
+>       DocBook media: fix email addresses.
+>       DocBook media: update copyright years and Introduction.
+>       DocBook media: partial rewrite of "Opening and Closing Devices"
+>       DocBook media: update four more sections
+>       DocBook media: update three sections
+>       DocBook media: drop the old incorrect packed RGB table.
+>       DocBook media: add revision entry for 3.15.
 
+Hmm... I didn't see this patch at the ML.
+
+As I dropped the patch that changed the "Opening and Closing Devices" from
+this series, I modified this one to reflect it.
+
+> 
+> Martin Bugge (4):
+>       adv7842: adjust gain and offset for DVI-D signals
+>       adv7842: pixelclock read-out
+>       adv7842: log-status for Audio Video Info frames (AVI)
+>       adv7842: platform-data for Hotplug Active (HPA) manual/auto
+> 
+> Sachin Kamat (1):
+>       radio-keene: Use module_usb_driver
+> 
+> sensoray-dev (1):
+>       s2255drv: checkpatch fix: coding style fix
+> 
+>  Documentation/DocBook/media/dvb/dvbapi.xml            |   4 +-
+>  Documentation/DocBook/media/v4l/common.xml            | 413 +++++++++++++++++++++---------------------------------
+>  Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml | 513 +++++++------------------------------------------------------------
+>  Documentation/DocBook/media/v4l/v4l2.xml              |  13 +-
+>  Documentation/DocBook/media_api.tmpl                  |  15 +-
+>  drivers/media/i2c/adv7842.c                           | 149 ++++++++++++++++----
+>  drivers/media/platform/s3c-camif/camif-capture.c      |  15 +-
+>  drivers/media/radio/radio-keene.c                     |  19 +--
+>  drivers/media/usb/s2255/s2255drv.c                    | 333 ++++++++++++++++++++-----------------------
+>  drivers/media/usb/usbvision/usbvision.h               |   8 --
+>  drivers/media/v4l2-core/v4l2-dv-timings.c             |   4 +
+>  include/media/adv7842.h                               |   3 +
+>  include/uapi/linux/v4l2-dv-timings.h                  |  17 +++
+>  13 files changed, 536 insertions(+), 970 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Cheers,
+Mauro
