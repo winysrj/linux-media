@@ -1,98 +1,271 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2000 "EHLO
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3792 "EHLO
 	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750758AbaBKM1o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 07:27:44 -0500
-Message-ID: <52FA1663.80307@xs4all.nl>
-Date: Tue, 11 Feb 2014 13:24:03 +0100
+	with ESMTP id S932174AbaBDSnq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 13:43:46 -0500
+Message-ID: <52F134BD.2050201@xs4all.nl>
+Date: Tue, 04 Feb 2014 19:43:09 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 35/47] adv7604: Add sink pads
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <3580605.MqbMpcI5hW@avalon> <52FA1297.5070108@cisco.com> <2613751.oRlAYVmzeh@avalon>
-In-Reply-To: <2613751.oRlAYVmzeh@avalon>
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 2/4] e4000: implement controls via v4l2 control framework
+References: <1391478000-24239-1-git-send-email-crope@iki.fi> <1391478000-24239-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1391478000-24239-3-git-send-email-crope@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/11/14 13:23, Laurent Pinchart wrote:
-> Hi Hans,
+On 02/04/2014 02:39 AM, Antti Palosaari wrote:
+> Implement gain and bandwidth controls using v4l2 control framework.
+> Pointer to control handler is provided by exported symbol.
 > 
-> On Tuesday 11 February 2014 13:07:51 Hans Verkuil wrote:
->> On 02/11/14 13:00, Laurent Pinchart wrote:
->>> On Tuesday 11 February 2014 11:19:32 Hans Verkuil wrote:
->>>> On 02/05/14 17:42, Laurent Pinchart wrote:
->>>>> The ADV7604 has sink pads for its HDMI and analog inputs. Report them.
->>>>>
->>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>>> ---
->>>>>
->>>>>  drivers/media/i2c/adv7604.c | 71 ++++++++++++++++++++++++--------------
->>>>>  include/media/adv7604.h     | 14 ---------
->>>>>  2 files changed, 45 insertions(+), 40 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
->>>>> index 05e7e1a..da32ce9 100644
->>>>> --- a/drivers/media/i2c/adv7604.c
->>>>> +++ b/drivers/media/i2c/adv7604.c
->>>>> @@ -97,13 +97,25 @@ struct adv7604_chip_info {
->>>>>
->>>>>   **********************************************************************
->>>>>   */
->>>>>
->>>>> +enum adv7604_pad {
->>>>> +	ADV7604_PAD_HDMI_PORT_A = 0,
->>>>> +	ADV7604_PAD_HDMI_PORT_B = 1,
->>>>> +	ADV7604_PAD_HDMI_PORT_C = 2,
->>>>> +	ADV7604_PAD_HDMI_PORT_D = 3,
->>>>> +	ADV7604_PAD_VGA_RGB = 4,
->>>>> +	ADV7604_PAD_VGA_COMP = 5,
->>>>> +	/* The source pad is either 1 (ADV7611) or 6 (ADV7604) */
->>>>
->>>> How about making this explicit:
->>>> 	ADV7604_PAD_SOURCE = 6,
->>>> 	ADV7611_PAD_SOURCE = 1,
->>>
->>> I can do that, but those two constants won't be used in the driver as they
->>> computed dynamically.
->>>
->>>>> +	ADV7604_PAD_MAX = 7,
->>>>> +};
->>>>
->>>> Wouldn't it make more sense to have this in the header? I would really
->>>> like to use the symbolic names for these pads in my bridge driver.
->>>
->>> That would add a dependency on the adv7604 driver to the bridge driver,
->>> isn't the whole point of subdevs to avoid such dependencies ?
->>
->> The bridge driver has to know about the adv7604, not the other way around.
->>
->> E.g. in my bridge driver I have to match v4l2 inputs to pads, both for
->> S_EDID and for s_routing, so it needs to know which pad number to use.
+> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/tuners/e4000.c      | 142 +++++++++++++++++++++++++++++++++++++-
+>  drivers/media/tuners/e4000.h      |  14 ++++
+>  drivers/media/tuners/e4000_priv.h |  12 ++++
+>  3 files changed, 167 insertions(+), 1 deletion(-)
 > 
-> Is that information that you want to pass to the bridge driver through 
-> platform data, or do you want to hardcode it in the bridge driver itself ? In 
-> the latter case the bridge driver would become specific to the adv7604. It 
-> might be fine in your case if your bridge is specific to your board anyway 
-> (FPGAs come to mind), but it lacks genericity.
+> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+> index 9187190..11d31b0 100644
+> --- a/drivers/media/tuners/e4000.c
+> +++ b/drivers/media/tuners/e4000.c
+> @@ -448,6 +448,110 @@ err:
+>  	return ret;
+>  }
+>  
+> +static int e4000_set_gain(struct dvb_frontend *fe)
+> +{
+> +	struct e4000_priv *priv = fe->tuner_priv;
+> +	int ret;
+> +	u8 buf[2];
+> +	u8 u8tmp;
+> +	dev_dbg(&priv->client->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
+> +			priv->lna_gain->val, priv->mixer_gain->val,
+> +			priv->if_gain->val);
+> +
+> +	if (fe->ops.i2c_gate_ctrl)
+> +		fe->ops.i2c_gate_ctrl(fe, 1);
+> +
+> +	if (priv->lna_gain_auto->val && priv->if_gain_auto->val)
+> +		u8tmp = 0x17;
+> +	else if (priv->lna_gain_auto->val)
+> +		u8tmp = 0x19;
+> +	else if (priv->if_gain_auto->val)
+> +		u8tmp = 0x16;
+> +	else
+> +		u8tmp = 0x10;
+> +
+> +	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (priv->mixer_gain_auto->val)
+> +		u8tmp = 0x15;
+> +	else
+> +		u8tmp = 0x14;
+> +
+> +	ret = e4000_wr_reg(priv, 0x20, u8tmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (priv->lna_gain_auto->val == false) {
+> +		ret = e4000_wr_reg(priv, 0x14, priv->lna_gain->val);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+> +	if (priv->mixer_gain_auto->val == false) {
+> +		ret = e4000_wr_reg(priv, 0x15, priv->mixer_gain->val);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+> +	if (priv->if_gain_auto->val == false) {
+> +		buf[0] = e4000_if_gain_lut[priv->if_gain->val].reg16_val;
+> +		buf[1] = e4000_if_gain_lut[priv->if_gain->val].reg17_val;
+> +		ret = e4000_wr_regs(priv, 0x16, buf, 2);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+> +	if (fe->ops.i2c_gate_ctrl)
+> +		fe->ops.i2c_gate_ctrl(fe, 0);
+> +
+> +	return 0;
+> +err:
+> +	if (fe->ops.i2c_gate_ctrl)
+> +		fe->ops.i2c_gate_ctrl(fe, 0);
+> +
+> +	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+> +	return ret;
+> +}
+> +
+> +static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct e4000_priv *priv =
+> +			container_of(ctrl->handler, struct e4000_priv, hdl);
+> +	struct dvb_frontend *fe = priv->fe;
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> +	int ret;
+> +	dev_dbg(&priv->client->dev,
+> +			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
+> +			__func__, ctrl->id, ctrl->name, ctrl->val,
+> +			ctrl->minimum, ctrl->maximum, ctrl->step);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BANDWIDTH_AUTO:
+> +	case V4L2_CID_BANDWIDTH:
+> +		c->bandwidth_hz = priv->bandwidth->val;
+> +		ret = e4000_set_params(priv->fe);
+> +		break;
+> +	case  V4L2_CID_LNA_GAIN_AUTO:
+> +	case  V4L2_CID_LNA_GAIN:
+> +	case  V4L2_CID_MIXER_GAIN_AUTO:
+> +	case  V4L2_CID_MIXER_GAIN:
+> +	case  V4L2_CID_IF_GAIN_AUTO:
+> +	case  V4L2_CID_IF_GAIN:
+> +		ret = e4000_set_gain(priv->fe);
 
-Hardcoded. It's just like any PCI driver: the PCI ID determines what the
-board is and based on that you set everything up. And if there are multiple
-variations of the board you use card structures to define such things.
-
-The only place where you can put that information is in the bridge driver.
+That won't work. You need to handle each gain cluster separately. The control
+framework processes the controls one cluster at a time and takes a lock on the
+master control before calling s_ctrl. The ctrl->val field is only valid inside
+s_ctrl for the controls in the cluster, not for other controls. For other
+controls only the ctrl->cur.val field is valid.
 
 Regards,
 
 	Hans
 
-> 
->> Also, for calling set_fmt, BTW. There I need to specify the source pad,
->> which is also why I would like to have a symbolic name for it as suggested
->> above.
+> +		break;
+> +	default:
+> +		ret = -EINVAL;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops e4000_ctrl_ops = {
+> +	.s_ctrl = e4000_s_ctrl,
+> +};
+> +
+>  static const struct dvb_tuner_ops e4000_tuner_ops = {
+>  	.info = {
+>  		.name           = "Elonics E4000",
+> @@ -463,6 +567,13 @@ static const struct dvb_tuner_ops e4000_tuner_ops = {
+>  	.get_if_frequency = e4000_get_if_frequency,
+>  };
+>  
+> +struct v4l2_ctrl_handler *e4000_get_ctrl_handler(struct dvb_frontend *fe)
+> +{
+> +	struct e4000_priv *priv = fe->tuner_priv;
+> +	return &priv->hdl;
+> +}
+> +EXPORT_SYMBOL(e4000_get_ctrl_handler);
+> +
+>  static int e4000_probe(struct i2c_client *client,
+>  		const struct i2c_device_id *id)
+>  {
+> @@ -504,6 +615,35 @@ static int e4000_probe(struct i2c_client *client,
+>  	if (ret < 0)
+>  		goto err;
+>  
+> +	/* Register controls */
+> +	v4l2_ctrl_handler_init(&priv->hdl, 8);
+> +	priv->bandwidth_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+> +			V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
+> +	priv->bandwidth = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+> +			V4L2_CID_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
+> +	v4l2_ctrl_auto_cluster(2, &priv->bandwidth_auto, 0, false);
+> +	priv->lna_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+> +			V4L2_CID_LNA_GAIN_AUTO, 0, 1, 1, 1);
+> +	priv->lna_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+> +			V4L2_CID_LNA_GAIN, 0, 15, 1, 10);
+> +	v4l2_ctrl_auto_cluster(2, &priv->lna_gain_auto, 0, false);
+> +	priv->mixer_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+> +			V4L2_CID_MIXER_GAIN_AUTO, 0, 1, 1, 1);
+> +	priv->mixer_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+> +			V4L2_CID_MIXER_GAIN, 0, 1, 1, 1);
+> +	v4l2_ctrl_auto_cluster(2, &priv->mixer_gain_auto, 0, false);
+> +	priv->if_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+> +			V4L2_CID_IF_GAIN_AUTO, 0, 1, 1, 1);
+> +	priv->if_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+> +			V4L2_CID_IF_GAIN, 0, 54, 1, 0);
+> +	v4l2_ctrl_auto_cluster(2, &priv->if_gain_auto, 0, false);
+> +	if (priv->hdl.error) {
+> +		ret = priv->hdl.error;
+> +		dev_err(&priv->client->dev, "Could not initialize controls\n");
+> +		v4l2_ctrl_handler_free(&priv->hdl);
+> +		goto err;
+> +	}
+> +
+>  	dev_info(&priv->client->dev,
+>  			"%s: Elonics E4000 successfully identified\n",
+>  			KBUILD_MODNAME);
+> @@ -533,7 +673,7 @@ static int e4000_remove(struct i2c_client *client)
+>  	struct dvb_frontend *fe = priv->fe;
+>  
+>  	dev_dbg(&client->dev, "%s:\n", __func__);
+> -
+> +	v4l2_ctrl_handler_free(&priv->hdl);
+>  	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
+>  	fe->tuner_priv = NULL;
+>  	kfree(priv);
+> diff --git a/drivers/media/tuners/e4000.h b/drivers/media/tuners/e4000.h
+> index d95c472..d86de6d 100644
+> --- a/drivers/media/tuners/e4000.h
+> +++ b/drivers/media/tuners/e4000.h
+> @@ -46,4 +46,18 @@ struct e4000_ctrl {
+>  	int if_gain;
+>  };
+>  
+> +#if IS_ENABLED(CONFIG_MEDIA_TUNER_E4000)
+> +extern struct v4l2_ctrl_handler *e4000_get_ctrl_handler(
+> +		struct dvb_frontend *fe
+> +);
+> +#else
+> +static inline struct v4l2_ctrl_handler *e4000_get_ctrl_handler(
+> +		struct dvb_frontend *fe
+> +)
+> +{
+> +	pr_warn("%s: driver disabled by Kconfig\n", __func__);
+> +	return NULL;
+> +}
+> +#endif
+> +
+>  #endif
+> diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
+> index a75a383..8cc27b3 100644
+> --- a/drivers/media/tuners/e4000_priv.h
+> +++ b/drivers/media/tuners/e4000_priv.h
+> @@ -22,11 +22,23 @@
+>  #define E4000_PRIV_H
+>  
+>  #include "e4000.h"
+> +#include <media/v4l2-ctrls.h>
+>  
+>  struct e4000_priv {
+>  	struct i2c_client *client;
+>  	u32 clock;
+>  	struct dvb_frontend *fe;
+> +
+> +	/* Controls */
+> +	struct v4l2_ctrl_handler hdl;
+> +	struct v4l2_ctrl *bandwidth_auto;
+> +	struct v4l2_ctrl *bandwidth;
+> +	struct v4l2_ctrl *lna_gain_auto;
+> +	struct v4l2_ctrl *lna_gain;
+> +	struct v4l2_ctrl *mixer_gain_auto;
+> +	struct v4l2_ctrl *mixer_gain;
+> +	struct v4l2_ctrl *if_gain_auto;
+> +	struct v4l2_ctrl *if_gain;
+>  };
+>  
+>  struct e4000_pll {
 > 
 
