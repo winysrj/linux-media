@@ -1,35 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:43331 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752439AbaBTVVD (ORCPT
+Received: from gateway02.websitewelcome.com ([69.56.216.20]:34354 "EHLO
+	gateway02.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933867AbaBDXK3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 16:21:03 -0500
-Received: by mail-ee0-f46.google.com with SMTP id c13so1207077eek.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Feb 2014 13:21:01 -0800 (PST)
-Message-ID: <530671BB.107@gmail.com>
-Date: Thu, 20 Feb 2014 22:20:59 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 4 Feb 2014 18:10:29 -0500
+Received: from gator3086.hostgator.com (ns6171.hostgator.com [50.87.144.121])
+	by gateway02.websitewelcome.com (Postfix) with ESMTP id A041E56550DB1
+	for <linux-media@vger.kernel.org>; Tue,  4 Feb 2014 17:10:28 -0600 (CST)
 MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	k.debski@samsung.com
-Subject: Re: [PATCH v5.1 3/7] v4l: Add timestamp source flags, mask and document
- them
-References: <20140217232931.GW15635@valkosipuli.retiisi.org.uk> <1392925276-20412-1-git-send-email-sakari.ailus@iki.fi> <53066763.3070000@xs4all.nl> <53066F5E.7020202@gmail.com>
-In-Reply-To: <53066F5E.7020202@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
+Date: Tue, 04 Feb 2014 17:10:27 -0600
+From: Dean Anderson <linux-dev@sensoray.com>
+To: <hverkuil@xs4all.nl>, <linux-dev@sensoray.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH] s2255drv: file handle cleanup
+In-Reply-To: <1391553393-17672-1-git-send-email-linux-dev@sensoray.com>
+References: <1391553393-17672-1-git-send-email-linux-dev@sensoray.com>
+Message-ID: <13a909e44a406b9b9e54c6941d853e7f@sensoray.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/20/2014 10:10 PM, Sylwester Nawrocki wrote:
->> I would actually be inclined to drop it altogether for this particular
->> timestamp source. But it's up to Laurent.
->
-> Yup, the "a small amount of time" concept seems a bit vague here.
-> It's not clear how long period it could be and the tolerance would like
-> very across the hardware.
+Hi Hans,
 
-Sorry, I meant "would likely vary".
+Please ignore and reject this patch. videobuf_queue_vmalloc_init needs 
+to be in probe, not in open.
+
+Let me know your thoughts on doing videobuf2 before s2255_fh removal so 
+we don't have to work around or fix videobuf version one's deficiencies.
+
+Thanks,
+
+
+
+
+On 2014-02-04 16:36, Dean Anderson wrote:
+> Removes most parameters from s2255_fh.  These elements belong in 
+> s2255_ch.
+> In the future, s2255_fh will be removed when videobuf2 is used. 
+> videobuf2
+> has convenient and safe functions for locking streaming resources.
+> 
+> The removal of s2255_fh (and s2255_fh->resources) was not done now to
+> avoid using videobuf_queue_is_busy.
+> 
+> videobuf_queue_is busy may be unsafe as noted by the following comment
+> in videobuf-core.c:
+> "/* Locking: Only usage in bttv unsafe find way to remove */"
+> 
+> Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
+> ---
