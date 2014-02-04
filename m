@@ -1,78 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta05.emeryville.ca.mail.comcast.net ([76.96.30.48]:48892 "EHLO
-	qmta05.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753185AbaBVA4u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 19:56:50 -0500
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, shuahkhan@gmail.com
-Subject: [RFC] [PATCH 2/6] media: em28xx-audio - implement em28xx_ops: suspend/resume hooks
-Date: Fri, 21 Feb 2014 17:50:14 -0700
-Message-Id: <38a429856e5ef8a93a4e2b29066f3f36cceeec8a.1393027856.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1393027856.git.shuah.kh@samsung.com>
-References: <cover.1393027856.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1393027856.git.shuah.kh@samsung.com>
-References: <cover.1393027856.git.shuah.kh@samsung.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3807 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750937AbaBDIzv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 03:55:51 -0500
+Message-ID: <52F0AAD9.2010806@xs4all.nl>
+Date: Tue, 04 Feb 2014 09:54:49 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 9/9] v4l2-ioctl: check CREATE_BUFS format via TRY_FMT.
+References: <1391093491-23077-1-git-send-email-hverkuil@xs4all.nl> <1391093491-23077-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391093491-23077-10-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement em28xx_ops: suspend/resume hooks. em28xx usb driver will
-invoke em28xx_ops: suspend and resume hooks for all its extensions
-from its suspend() and resume() interfaces.
+On 01/30/2014 03:51 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The format passed to VIDIOC_CREATE_BUFS is completely unchecked at
+> the moment. So pass it to VIDIOC_TRY_FMT first.
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-audio.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+Don't bother reviewing this. I'm going to change this anyway.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 05e9bd1..a4d159d 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -989,11 +989,41 @@ static int em28xx_audio_fini(struct em28xx *dev)
- 	return 0;
- }
- 
-+static int em28xx_audio_suspend(struct em28xx *dev)
-+{
-+	if (dev == NULL)
-+		return 0;
-+
-+	if (!dev->has_alsa_audio)
-+		return 0;
-+
-+	em28xx_info("Suspending audio extension");
-+	em28xx_deinit_isoc_audio(dev);
-+	atomic_set(&dev->stream_started, 0);
-+	return 0;
-+}
-+
-+static int em28xx_audio_resume(struct em28xx *dev)
-+{
-+	if (dev == NULL)
-+		return 0;
-+
-+	if (!dev->has_alsa_audio)
-+		return 0;
-+
-+	em28xx_info("Resuming audio extension");
-+	/* Nothing to do other than schedule_work() ?? */
-+	schedule_work(&dev->wq_trigger);
-+	return 0;
-+}
-+
- static struct em28xx_ops audio_ops = {
- 	.id   = EM28XX_AUDIO,
- 	.name = "Em28xx Audio Extension",
- 	.init = em28xx_audio_init,
- 	.fini = em28xx_audio_fini,
-+	.suspend = em28xx_audio_suspend,
-+	.resume = em28xx_audio_resume,
- };
- 
- static int __init em28xx_alsa_register(void)
--- 
-1.8.3.2
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 707aef7..7b9d59e 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1443,9 +1443,15 @@ static int v4l_dqbuf(const struct v4l2_ioctl_ops *ops,
+>  static int v4l_create_bufs(const struct v4l2_ioctl_ops *ops,
+>  				struct file *file, void *fh, void *arg)
+>  {
+> +	struct video_device *vfd = video_devdata(file);
+>  	struct v4l2_create_buffers *create = arg;
+>  	int ret = check_fmt(file, create->format.type);
+>  
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (!WARN_ON(!is_valid_ioctl(vfd, VIDIOC_TRY_FMT)))
+> +		ret = v4l_try_fmt(ops, file, fh, &create->format);
+>  	return ret ? ret : ops->vidioc_create_bufs(file, fh, create);
+>  }
+>  
+> 
 
