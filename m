@@ -1,73 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4956 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbaBQJ7D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:59:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:59083 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753981AbaBDBkW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Feb 2014 20:40:22 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 29/35] v4l2: add a motion detection event.
-Date: Mon, 17 Feb 2014 10:57:44 +0100
-Message-Id: <1392631070-41868-30-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/4] rtl28xxu: attach SDR module later
+Date: Tue,  4 Feb 2014 03:39:57 +0200
+Message-Id: <1391478000-24239-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1391478000-24239-1-git-send-email-crope@iki.fi>
+References: <1391478000-24239-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+SDR module was attached between demod and tuner. Change it happen
+after tuner attached. We are going to implement V4L controls for
+tuner drivers and those controls are loaded during SDR attach. Due to
+that (tuner controls), tuner driver must be loaded before SDR module.
 
-Add a new MOTION_DET event to signal when motion is detected.
+Also as we are here, limit SDR module loading only for those tuners
+we support.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- include/uapi/linux/videodev2.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 8b70f51..4cbfb16 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1773,6 +1773,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_MOTION_DET			5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 76cf0de..73348bf 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -777,10 +777,6 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	/* set fe callback */
+ 	adap->fe[0]->callback = rtl2832u_frontend_callback;
  
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -1804,12 +1805,28 @@ struct v4l2_event_frame_sync {
- 	__u32 frame_sequence;
- };
+-	/* attach SDR */
+-	dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
+-			rtl2832_config);
+-
+ 	return 0;
+ err:
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+@@ -906,6 +902,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		 * that to the tuner driver */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_fc0012_config);
+ 		return 0;
+ 		break;
+ 	case TUNER_RTL2832_FC0013:
+@@ -915,6 +915,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		/* fc0013 also supports signal strength reading */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_fc0013_config);
+ 		return 0;
+ 	case TUNER_RTL2832_E4000: {
+ 			struct e4000_config e4000_config = {
+@@ -928,6 +932,11 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
  
-+#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
+ 			request_module("e4000");
+ 			priv->client = i2c_new_device(&d->i2c_adap, &info);
 +
-+/**
-+ * struct v4l2_event_motion_det - motion detection event
-+ * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
-+ *                     frame_sequence field is valid.
-+ * @frame_sequence:    the frame sequence number associated with this event.
-+ * @region_mask:       which regions detected motion.
-+ */
-+struct v4l2_event_motion_det {
-+	__u32 flags;
-+	__u32 frame_sequence;
-+	__u32 region_mask;
-+};
++			/* attach SDR */
++			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
++					&d->i2c_adap,
++					&rtl28xxu_rtl2832_e4000_config);
+ 		}
+ 		break;
+ 	case TUNER_RTL2832_FC2580:
+@@ -954,6 +963,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		/* Use tuner to get the signal strength */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
 +
- struct v4l2_event {
- 	__u32				type;
- 	union {
- 		struct v4l2_event_vsync		vsync;
- 		struct v4l2_event_ctrl		ctrl;
- 		struct v4l2_event_frame_sync	frame_sync;
-+		struct v4l2_event_motion_det	motion_det;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_r820t_config);
+ 		break;
+ 	case TUNER_RTL2832_R828D:
+ 		/* power off mn88472 demod on GPIO0 */
 -- 
-1.8.4.rc3
+1.8.5.3
 
