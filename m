@@ -1,101 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eos.fwall.u-szeged.hu ([160.114.120.248]:40042 "EHLO
-	eos.fwall.u-szeged.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751913AbaBBSjg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Feb 2014 13:39:36 -0500
-Message-ID: <52EE8ACA.2070109@inf.u-szeged.hu>
-Date: Sun, 02 Feb 2014 19:13:30 +0100
-From: Zoltan Arvai <zarvai@inf.u-szeged.hu>
+Received: from mail-ea0-f176.google.com ([209.85.215.176]:40454 "EHLO
+	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936563AbaBDXEo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 18:04:44 -0500
+Received: by mail-ea0-f176.google.com with SMTP id h14so4695332eaj.35
+        for <linux-media@vger.kernel.org>; Tue, 04 Feb 2014 15:04:42 -0800 (PST)
+Message-ID: <52F17208.9010500@gmail.com>
+Date: Wed, 05 Feb 2014 00:04:40 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: mchehab@redhat.com
-CC: linux-media@vger.kernel.org
-Subject: r820t possible bug
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Philipp Zabel <pza@pengutronix.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH] [media] uvcvideo: Enable VIDIOC_CREATE_BUFS
+References: <1391012032-19600-1-git-send-email-p.zabel@pengutronix.de> <1474634.xnVfC2yuQa@avalon> <52EB6214.9030806@xs4all.nl> <3803281.g9jSrV8SES@avalon> <20140202130430.GA15734@pengutronix.de> <52EF5B6B.7030103@xs4all.nl>
+In-Reply-To: <52EF5B6B.7030103@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hi Mauro!
+Hi,
 
-In the past few days I configured my Thinkpad T61 14'1 notebook to use 
-rtl2832+r820t tuneres. It seems something could be wrong that related to 
-r820t. Please take a look on the linked logs.
+On 02/03/2014 10:03 AM, Hans Verkuil wrote:
+> Hi Philipp, Laurent,
+>
+> On 02/02/2014 02:04 PM, Philipp Zabel wrote:
+>> On Sun, Feb 02, 2014 at 11:21:13AM +0100, Laurent Pinchart wrote:
+>>> Hi Hans,
+>>>
+>>> On Friday 31 January 2014 09:43:00 Hans Verkuil wrote:
+>>>> I think you might want to add a check in uvc_queue_setup to verify the
+>>>> fmt that create_bufs passes. The spec says that: "Unsupported formats
+>>>> will result in an error". In this case I guess that the format basically
+>>>> should match the current selected format.
+>>>>
+>>>> I'm unhappy with the current implementations of create_bufs (see also this
+>>>> patch:
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg70796.html).
+>>>>
+>>>> Nobody is actually checking the format today, which isn't good.
+>>>>
+>>>> The fact that the spec says that the fmt field isn't changed by the driver
+>>>> isn't helping as it invalidated my patch from above, although that can be
+>>>> fixed.
+>>>>
+>>>> I need to think about this some more, but for this particular case you can
+>>>> just do a memcmp of the v4l2_pix_format against the currently selected
+>>>> format and return an error if they differ. Unless you want to support
+>>>> different buffer sizes as well?
+>>>
+>>> Isn't the whole point of VIDIOC_CREATE_BUFS being able to create buffers of
+>>> different resolutions than the current active resolution ?
+>
+> Or just additional buffers with the same resolution (or really, the same size).
+>
+>> For that to work the driver in question would need to keep track of per-buffer
+>> format and resolution, and not only of per-queue format and resolution.
+>>
+>> For now, would something like the following be enough? Unfortunately the uvc
+>> driver doesn't keep a v4l2_format around that we could just memcmp against:
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+>> index fa58131..7fa469b 100644
+>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+>> @@ -1003,10 +1003,26 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>>   	case VIDIOC_CREATE_BUFS:
+>>   	{
+>>   		struct v4l2_create_buffers *cb = arg;
+>> +		struct v4l2_pix_format *pix;
+>> +		struct uvc_format *format;
+>> +		struct uvc_frame *frame;
+>>
+>>   		if (!uvc_has_privileges(handle))
+>>   			return -EBUSY;
+>>
+>> +		format = stream->cur_format;
+>> +		frame = stream->cur_frame;
+>> +		pix =&cb->format.fmt.pix;
+>> +
+>> +		if (pix->pixelformat != format->fcc ||
+>> +		    pix->width != frame->wWidth ||
+>> +		    pix->height != frame->wHeight ||
+>> +		    pix->field != V4L2_FIELD_NONE ||
+>> +		    pix->bytesperline != format->bpp * frame->wWidth / 8 ||
+>> +		    pix->sizeimage != stream->ctrl.dwMaxVideoFrameSize ||
+>> +		    pix->colorspace != format->colorspace)
+>
+> I would drop the field and colorspace checks (those do not really affect
+> any size calculations), other than that it looks good.
 
-I use tvheadend 3.4patch1 version that configured to full mux reception.
+That seems completely wrong to me, AFAICT the VIDIOC_CREATE_BUFS was 
+designed
+so that the driver is supposed to allow any format which is supported by the
+hardware.
+What has currently selected format to do with the format passed to
+VIDIOC_CREATE_BUFS ? It should be allowed to create buffers of any size
+(implied by the passed v4l2_pix_format). It is supposed to be checked if
+a buffer meets constraints of current configuration of
+the hardware at QBUF, not at VIDIOC_CREATE_BUFS time. User space may well
+allocate buffers when one image format is set, keep them aside and then
+just before queueing them to the driver may set the format to a different
+one, so the hardware set up matches buffers allocated with 
+VIDIOC_CREATE_BUFS.
 
-First I tried Ubuntu 13.10 32bit (kernel 3.11.0-15) that has r820t 
-support out of the box. At first it seemed to be very unreliable and it 
-got frozen a couple of times. I saw that my dvb-t dongles was 
-disconnected and reconnected. Also it seemed to have some problems with 
-ACPI. (probably unrelated)
+What's the point of having VIDIOC_CREATE_BUFS when you are doing checks
+like above ? Unless I'm missing something that is completely wrong. :)
+Adjusting cb->format.fmt.pix as in VIDIOC_TRY_FORMAT seems more appropriate
+thing to do.
 
-So, I installed Ubuntu 12.04.3 LTS 64bit (kernel 3.8.0-35) + media tree 
-(1ec17dea59ca13b99176a8ab17bc055138714263 on yesterday) "basic" approach 
-following the tutorial from
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-but it seems this has similar problems like Ubuntu 13.10.
-
-It turned out that a system gets unsatble only when my dvb tuners are 
-connected.
-I have some parital logs that I collected
-https://gist.github.com/azbesthu/8755858
-
-Some details about the logs:
-
-It seems it not makes a big difference if I connect only 1 tuner or 3 of 
-them, but maybe it has more often trouble when more tunners are 
-connected to the machine. Also it makes no difference when I connect the 
-tuneres directly to the notebook or its docking statinon's usb hub.
-
-Sometimes it gets completly frozen. SSH connection hangs, opening the 
-lid not turns on the monitor, no connection with the outside world. In 
-that case just holding the power button for a few seconsd can turn it off.
-
-Once I had a crash while I set up muxes in tvheadend. When I mapped 
-available channels the system had a crash that turnd the system 
-partition to read-only. I was not able to save any logs, because the 
-readonly filesystem... I was connected with ssh and I had some dmesg 
-output that showed a kernel failure, but i messed it up while I tied to 
-save it, unfortunately.  The system was so messed up that I was not able 
-to turn off the machine by software. After turning it off and on again 
-with the power button, It  seemd the usb subsystem had still problems, 
-because the connected usb hub in the dock was disconnected continuously. 
-Removing the power cord and the battery got it back to normal working.
-
-After I turned on the machine and left it alone for a while, just 
-checking dmesg for time to time to see what happens. After  5 to 30 
-minutes I saw that one tuner disconnected and reconnected again after an 
-error message. It was the same using hub and connecting it directly to 
-the notebook.
-It had an rc related problem with a tuner and an other tuner got 
-reconnected.
-
-Later I connected only one tuner. I watched a streamed for a few 
-minutes. Everything seemd to be fine. But leaving the system alone for a 
-while it got completly frozen again.
-
-So I removed the tuneres and now the notebook runes withont any glitch, 
-it's rock solid.
-
-Is it possible that some kinde of bug triggerd on my system?
-I can provide more logs if you tell me some info about how to do it, 
-what use case can help you to debug the possible problems. In worst case 
-I'm completly locked out from the system and hdd gets readonly befor 
-able to write out logs.
-
-Also I have in my inventory an rtl2832u+e4000 tuner and some it9135 and 
-an af9015+tda18218, if some test needed with other tuners. I used it9135 
-and af9015 tuners in similar configuration and those worked well.
-I try to use three rtl2832u+r820t: 
-http://logout.hu/bejegyzes/azbest/usb_dvb-t_tuner_rtl2832u_r820t.html
-
-Some details about the system, with a tuner attached:
-lsusb -v
-https://gist.github.com/azbesthu/66a45e30b23dac1d15c8
-
-dmesg
-https://gist.github.com/azbesthu/e5724a430f9b3516bcda
-
-Best regards,
-Zoltan
-
+Thanks,
+Sylwester
