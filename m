@@ -1,75 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50077 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993AbaB0KvG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Feb 2014 05:51:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv2 PATCH 03/15] vb2: fix PREPARE_BUF regression
-Date: Thu, 27 Feb 2014 11:52:20 +0100
-Message-ID: <2857474.2sTDPpVYBC@avalon>
-In-Reply-To: <1393332775-44067-4-git-send-email-hverkuil@xs4all.nl>
-References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl> <1393332775-44067-4-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:45627 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751274AbaBDNXY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 08:23:24 -0500
+Date: Tue, 4 Feb 2014 13:22:56 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Rob Landley <rob@landley.net>,
+	LKML <linux-kernel@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH 34/52] devices.txt: add video4linux device for Software
+ Defined Radio
+Message-ID: <20140204132256.7e829f9a@www.etchedpixels.co.uk>
+In-Reply-To: <20140204111903.5c2e928e@samsung.com>
+References: <20140204111903.5c2e928e@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Tue, 04 Feb 2014 11:19:03 -0200
+Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
 
-Thank you for the patch.
-
-On Tuesday 25 February 2014 13:52:43 Hans Verkuil wrote:
-> Fix an incorrect test in vb2_internal_qbuf() where only DEQUEUED buffers
-> are allowed. But PREPARED buffers are also OK.
+> Alan/Greg/Andrew/Rob,
 > 
-> Introduced by commit 4138111a27859dcc56a5592c804dd16bb12a23d1
-> ("vb2: simplify qbuf/prepare_buf by removing callback").
+> Not sure who is currently maintaining Documentation/devices.txt.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-I wonder how I've managed to ack the commit that broke this without noticing 
-the problem :-/ Sorry about that.
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
+> We're needing to add support of a new type of V4L2 devices there.
 > 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index f1a2857c..909f367 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1420,11 +1420,6 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
-> struct v4l2_buffer *b) return ret;
+> Could you please ack with the following patch? If this one is ok, I intend
+> to send via my tree together with the patch series that implements support
+> for it, if you agree.
 > 
->  	vb = q->bufs[b->index];
-> -	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-> -		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-> -			vb->state);
-> -		return -EINVAL;
-> -	}
+> Thank you!
+> Mauro
 > 
->  	switch (vb->state) {
->  	case VB2_BUF_STATE_DEQUEUED:
-> @@ -1438,7 +1433,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
-> struct v4l2_buffer *b) dprintk(1, "qbuf: buffer still being prepared\n");
->  		return -EINVAL;
->  	default:
-> -		dprintk(1, "qbuf: buffer already in use\n");
-> +		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-> +			vb->state);
->  		return -EINVAL;
->  	}
+> Forwarded message:
+> 
+> Date: Sat, 25 Jan 2014 19:10:28 +0200
+> From: Antti Palosaari <crope@iki.fi>
+> To: linux-media@vger.kernel.org
+> Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+> Subject: [PATCH 34/52] devices.txt: add video4linux device for Software Defined Radio
+> 
+> 
+> Add new video4linux device named /dev/swradio for Software Defined
+> Radio use. V4L device minor numbers are allocated dynamically
+> nowadays, but there is still configuration option for old fixed style.
+> Add note to mention that configuration option too.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Acked-by: Alan Cox <alan@linux.intel.com>
