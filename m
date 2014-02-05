@@ -1,301 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752951AbaBEQls (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 05/47] v4l: Add 12-bit YUV 4:2:2 media bus pixel codes
-Date: Wed,  5 Feb 2014 17:41:56 +0100
-Message-Id: <1391618558-5580-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2681 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695AbaBEHEZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 02:04:25 -0500
+Message-ID: <52F1E259.6070409@xs4all.nl>
+Date: Wed, 05 Feb 2014 08:03:53 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/1] v4l: subdev: Allow 32-bit compat IOCTLs
+References: <52EBCA3D.2040106@xs4all.nl> <1391184952-22223-1-git-send-email-sakari.ailus@linux.intel.com> <52EBDED0.7020007@xs4all.nl> <20140204181029.60a22db2@samsung.com>
+In-Reply-To: <20140204181029.60a22db2@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 240 +++++++++++++++++++++
- include/uapi/linux/v4l2-mediabus.h                 |   6 +-
- 2 files changed, 245 insertions(+), 1 deletion(-)
+On 02/04/2014 09:10 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 31 Jan 2014 18:35:12 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> Hi Sakari,
+>>
+>> On 01/31/2014 05:15 PM, Sakari Ailus wrote:
+>>> I thought this was already working but apparently not. Allow 32-bit compat
+>>> IOCTLs on 64-bit systems.
+>>>
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>> ---
+>>>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 12 ++++++++++++
+>>>  1 file changed, 12 insertions(+)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>>> index 8f7a6a4..1fce944 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>>> @@ -1087,6 +1087,18 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>>>  	case VIDIOC_QUERY_DV_TIMINGS:
+>>>  	case VIDIOC_DV_TIMINGS_CAP:
+>>>  	case VIDIOC_ENUM_FREQ_BANDS:
+>>> +		/* Sub-device IOCTLs */
+>>> +	case VIDIOC_SUBDEV_G_FMT:
+>>> +	case VIDIOC_SUBDEV_S_FMT:
+>>> +	case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
+>>> +	case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
+>>> +	case VIDIOC_SUBDEV_ENUM_MBUS_CODE:
+>>> +	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE:
+>>> +	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL:
+>>> +	case VIDIOC_SUBDEV_G_CROP:
+>>> +	case VIDIOC_SUBDEV_S_CROP:
+>>> +	case VIDIOC_SUBDEV_G_SELECTION:
+>>> +	case VIDIOC_SUBDEV_S_SELECTION:
+>>>  	case VIDIOC_SUBDEV_G_EDID32:
+>>>  	case VIDIOC_SUBDEV_S_EDID32:
+>>>  		ret = do_video_ioctl(file, cmd, arg);
+>>>
+>>
+>> Can you test with contrib/test/ioctl-test? Compile with:
+>>
+>> gcc -o ioctl-test -m32 -I ../../include/ ioctl-test.c
+>>
+>> Make sure you use the latest v4l-utils version and run autoreconf -vfi
+>> and configure first.
+>>
+>> BTW, I noticed that VIDIOC_DBG_G_CHIP_INFO is missing as well.
+>>
+>> Hmm, this is just asking for problems. 
+>>
+>> How about this patch:
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> index 8f7a6a4..cd9da4ce 100644
+>> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> @@ -1001,108 +1001,19 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>>  long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>>  {
+>>  	struct video_device *vdev = video_devdata(file);
+>> -	long ret = -ENOIOCTLCMD;
+>> +	long ret = -ENOTTY;
+>>  
+>>  	if (!file->f_op->unlocked_ioctl)
+>>  		return ret;
+>>  
+>> -	switch (cmd) {
+>> -	case VIDIOC_QUERYCAP:
+>> -	case VIDIOC_RESERVED:
+>> -	case VIDIOC_ENUM_FMT:
+>> -	case VIDIOC_G_FMT32:
+>> -	case VIDIOC_S_FMT32:
+>> -	case VIDIOC_REQBUFS:
+>> -	case VIDIOC_QUERYBUF32:
+>> -	case VIDIOC_G_FBUF32:
+>> -	case VIDIOC_S_FBUF32:
+>> -	case VIDIOC_OVERLAY32:
+>> -	case VIDIOC_QBUF32:
+>> -	case VIDIOC_EXPBUF:
+>> -	case VIDIOC_DQBUF32:
+>> -	case VIDIOC_STREAMON32:
+>> -	case VIDIOC_STREAMOFF32:
+>> -	case VIDIOC_G_PARM:
+>> -	case VIDIOC_S_PARM:
+>> -	case VIDIOC_G_STD:
+>> -	case VIDIOC_S_STD:
+>> -	case VIDIOC_ENUMSTD32:
+>> -	case VIDIOC_ENUMINPUT32:
+>> -	case VIDIOC_G_CTRL:
+>> -	case VIDIOC_S_CTRL:
+>> -	case VIDIOC_G_TUNER:
+>> -	case VIDIOC_S_TUNER:
+>> -	case VIDIOC_G_AUDIO:
+>> -	case VIDIOC_S_AUDIO:
+>> -	case VIDIOC_QUERYCTRL:
+>> -	case VIDIOC_QUERYMENU:
+>> -	case VIDIOC_G_INPUT32:
+>> -	case VIDIOC_S_INPUT32:
+>> -	case VIDIOC_G_OUTPUT32:
+>> -	case VIDIOC_S_OUTPUT32:
+>> -	case VIDIOC_ENUMOUTPUT:
+>> -	case VIDIOC_G_AUDOUT:
+>> -	case VIDIOC_S_AUDOUT:
+>> -	case VIDIOC_G_MODULATOR:
+>> -	case VIDIOC_S_MODULATOR:
+>> -	case VIDIOC_S_FREQUENCY:
+>> -	case VIDIOC_G_FREQUENCY:
+>> -	case VIDIOC_CROPCAP:
+>> -	case VIDIOC_G_CROP:
+>> -	case VIDIOC_S_CROP:
+>> -	case VIDIOC_G_SELECTION:
+>> -	case VIDIOC_S_SELECTION:
+>> -	case VIDIOC_G_JPEGCOMP:
+>> -	case VIDIOC_S_JPEGCOMP:
+>> -	case VIDIOC_QUERYSTD:
+>> -	case VIDIOC_TRY_FMT32:
+>> -	case VIDIOC_ENUMAUDIO:
+>> -	case VIDIOC_ENUMAUDOUT:
+>> -	case VIDIOC_G_PRIORITY:
+>> -	case VIDIOC_S_PRIORITY:
+>> -	case VIDIOC_G_SLICED_VBI_CAP:
+>> -	case VIDIOC_LOG_STATUS:
+>> -	case VIDIOC_G_EXT_CTRLS32:
+>> -	case VIDIOC_S_EXT_CTRLS32:
+>> -	case VIDIOC_TRY_EXT_CTRLS32:
+>> -	case VIDIOC_ENUM_FRAMESIZES:
+>> -	case VIDIOC_ENUM_FRAMEINTERVALS:
+>> -	case VIDIOC_G_ENC_INDEX:
+>> -	case VIDIOC_ENCODER_CMD:
+>> -	case VIDIOC_TRY_ENCODER_CMD:
+>> -	case VIDIOC_DECODER_CMD:
+>> -	case VIDIOC_TRY_DECODER_CMD:
+>> -	case VIDIOC_DBG_S_REGISTER:
+>> -	case VIDIOC_DBG_G_REGISTER:
+>> -	case VIDIOC_S_HW_FREQ_SEEK:
+>> -	case VIDIOC_S_DV_TIMINGS:
+>> -	case VIDIOC_G_DV_TIMINGS:
+>> -	case VIDIOC_DQEVENT:
+>> -	case VIDIOC_DQEVENT32:
+>> -	case VIDIOC_SUBSCRIBE_EVENT:
+>> -	case VIDIOC_UNSUBSCRIBE_EVENT:
+>> -	case VIDIOC_CREATE_BUFS32:
+>> -	case VIDIOC_PREPARE_BUF32:
+>> -	case VIDIOC_ENUM_DV_TIMINGS:
+>> -	case VIDIOC_QUERY_DV_TIMINGS:
+>> -	case VIDIOC_DV_TIMINGS_CAP:
+>> -	case VIDIOC_ENUM_FREQ_BANDS:
+>> -	case VIDIOC_SUBDEV_G_EDID32:
+>> -	case VIDIOC_SUBDEV_S_EDID32:
+>> +	if (_IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
+>>  		ret = do_video_ioctl(file, cmd, arg);
+> 
+> I liked this approach. 
+> 
+>> -		break;
+>> +	else if (vdev->fops->compat_ioctl32)
+>> +		ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+>>  
+>> -	default:
+>> -		if (vdev->fops->compat_ioctl32)
+>> -			ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+>> -
+>> -		if (ret == -ENOIOCTLCMD)
+>> -			printk(KERN_WARNING "compat_ioctl32: "
+>> -				"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+>> -				_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd),
+>> -				cmd);
+>> -		break;
+>> -	}
+>> +	if (ret == -ENOTTY)
+>> +		pr_warn("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+>> +			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+> 
+> I would use, instead, pr_dbg().
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index a0fa7e0..b2d5a03 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -3006,6 +3006,246 @@
- 	      <entry>u<subscript>1</subscript></entry>
- 	      <entry>u<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-UYVY12-1X24">
-+	      <entry>V4L2_MBUS_FMT_UYVY12_1X24</entry>
-+	      <entry>0x2020</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-VYUY12-1X24">
-+	      <entry>V4L2_MBUS_FMT_VYUY12_1X24</entry>
-+	      <entry>0x2021</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-YUYV12-1X24">
-+	      <entry>V4L2_MBUS_FMT_YUYV12_1X24</entry>
-+	      <entry>0x2022</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-YVYU12-1X24">
-+	      <entry>V4L2_MBUS_FMT_YVYU12_1X24</entry>
-+	      <entry>0x2023</entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-8;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
- 	  </tbody>
- 	</tgroup>
-       </table>
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 70a732b..1445e85 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
- 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
- 
--	/* YUV (including grey) - next is 0x2020 */
-+	/* YUV (including grey) - next is 0x2024 */
- 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
- 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
- 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-@@ -84,6 +84,10 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
- 	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
- 	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
-+	V4L2_MBUS_FMT_UYVY12_1X24 = 0x2020,
-+	V4L2_MBUS_FMT_VYUY12_1X24 = 0x2021,
-+	V4L2_MBUS_FMT_YUYV12_1X24 = 0x2022,
-+	V4L2_MBUS_FMT_YVYU12_1X24 = 0x2023,
- 
- 	/* Bayer - next is 0x3019 */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
--- 
-1.8.3.2
+I plan to take another careful look at this over the weekend.
+
+Regards,
+
+	Hans
+
+> 
+>>  	return ret;
+>>  }
+>>  EXPORT_SYMBOL_GPL(v4l2_compat_ioctl32);
+>>
+>> Note the ENOIOCTLCMD to ENOTTY changes: ENOTTY should be returned if the ioctl is
+>> not supported. Although v4l2-subdev seems to return ENOIOCTLCMD as well :-(
+>>
+>> Regards,
+>>
+>> 	Hans
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
