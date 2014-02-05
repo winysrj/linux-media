@@ -1,96 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44484 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933176AbaBAOYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 09:24:48 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752784AbaBEQl4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:56 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 12/17] DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
-Date: Sat,  1 Feb 2014 16:24:29 +0200
-Message-Id: <1391264674-4395-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
-References: <1391264674-4395-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 22/47] s5p-tv: hdmiphy: Remove deprecated video-level DV timings operation
+Date: Wed,  5 Feb 2014 17:42:13 +0100
+Message-Id: <1391618558-5580-23-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document V4L2_SDR_FMT_CU16LE format.
-It is complex unsigned 16-bit little endian IQ sample. Used by
-software defined radio devices.
+The video enum_dv_timings operation is deprecated and unused. Remove it.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        | 46 ++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
- 2 files changed, 47 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+ drivers/media/platform/s5p-tv/hdmiphy_drv.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-new file mode 100644
-index 0000000..26288ff
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-@@ -0,0 +1,46 @@
-+<refentry id="V4L2-SDR-FMT-CU16LE">
-+  <refmeta>
-+    <refentrytitle>V4L2_SDR_FMT_CU16LE ('CU16')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+    <refnamediv>
-+      <refname>
-+        <constant>V4L2_SDR_FMT_CU16LE</constant>
-+      </refname>
-+      <refpurpose>Complex unsigned 16-bit little endian IQ sample</refpurpose>
-+    </refnamediv>
-+    <refsect1>
-+      <title>Description</title>
-+      <para>
-+This format contains sequence of complex number samples. Each complex number
-+consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
-+represented as a 16 bit unsigned little endian number. I value comes first
-+and Q value after that.
-+      </para>
-+    <example>
-+      <title><constant>V4L2_SDR_FMT_CU16LE</constant> 1 sample</title>
-+      <formalpara>
-+        <title>Byte Order.</title>
-+        <para>Each cell is one byte.
-+          <informaltable frame="none">
-+            <tgroup cols="3" align="center">
-+              <colspec align="left" colwidth="2*" />
-+              <tbody valign="top">
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;0:</entry>
-+                  <entry>I'<subscript>0[7:0]</subscript></entry>
-+                  <entry>I'<subscript>0[15:8]</subscript></entry>
-+                </row>
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;2:</entry>
-+                  <entry>Q'<subscript>0[7:0]</subscript></entry>
-+                  <entry>Q'<subscript>0[15:8]</subscript></entry>
-+                </row>
-+              </tbody>
-+            </tgroup>
-+          </informaltable>
-+        </para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 40adcb8..f535d9b 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -818,6 +818,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
- interface only.</para>
+diff --git a/drivers/media/platform/s5p-tv/hdmiphy_drv.c b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+index ff22320..c2f2e35 100644
+--- a/drivers/media/platform/s5p-tv/hdmiphy_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+@@ -262,7 +262,6 @@ static const struct v4l2_subdev_core_ops hdmiphy_core_ops = {
  
-     &sub-sdr-cu08;
-+    &sub-sdr-cu16le;
- 
-   </section>
+ static const struct v4l2_subdev_video_ops hdmiphy_video_ops = {
+ 	.s_dv_timings = hdmiphy_s_dv_timings,
+-	.dv_timings_cap = hdmiphy_dv_timings_cap,
+ 	.s_stream =  hdmiphy_s_stream,
+ };
  
 -- 
-1.8.5.3
+1.8.3.2
 
