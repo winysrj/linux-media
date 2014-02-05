@@ -1,60 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4522 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750750AbaBCIz4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 03:55:56 -0500
-Message-ID: <52EF5994.4090101@xs4all.nl>
-Date: Mon, 03 Feb 2014 09:55:48 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, detlev.casanova@gmail.com
-Subject: Re: [RFC PATCH 0/2] Allow inheritance of private controls
-References: <1391166726-27026-1-git-send-email-hverkuil@xs4all.nl> <14055698.TyElnNSLTS@avalon>
-In-Reply-To: <14055698.TyElnNSLTS@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989AbaBEQlt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 06/47] v4l: Add pad-level DV timings subdev operations
+Date: Wed,  5 Feb 2014 17:41:57 +0100
+Message-Id: <1391618558-5580-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/v4l2-subdev.h    | 4 ++++
+ include/uapi/linux/videodev2.h | 8 ++++++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-On 02/02/2014 10:45 AM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patches.
-> 
-> On Friday 31 January 2014 12:12:04 Hans Verkuil wrote:
->> Devices with a simple video pipeline may want to inherit private controls
->> of sub-devices and expose them to the video node instead of v4l-subdev
->> nodes (which may be inhibit anyway by the driver).
->>
->> Add support for this.
->>
->> A typical real-life example of this is a PCI capture card with just a single
->> video receiver sub-device. Creating v4l-subdev nodes for this is overkill
->> since it is clear which control belongs to which subdev.
-> 
-> The is_private flag has been introduced to allow subdevs to disable control 
-> inheritance. We're now adding a way for bridges to override that, which makes 
-> me wonder whether private controls are really the best way to express this.
-> 
-> Shouldn't we think about what we're trying to achieve with controls and places 
-> where they're exposed and then possibly rework the code accordingly ?
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d67210a..2c7355a 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -505,6 +505,10 @@ struct v4l2_subdev_pad_ops {
+ 			     struct v4l2_subdev_selection *sel);
+ 	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+ 	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
++	int (*dv_timings_cap)(struct v4l2_subdev *sd,
++			      struct v4l2_dv_timings_cap *cap);
++	int (*enum_dv_timings)(struct v4l2_subdev *sd,
++			       struct v4l2_enum_dv_timings *timings);
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
+ 			     struct v4l2_subdev_format *source_fmt,
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 6ae7bbe..b75970d 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1086,12 +1086,14 @@ struct v4l2_dv_timings {
+ 
+ /** struct v4l2_enum_dv_timings - DV timings enumeration
+  * @index:	enumeration index
++ * @pad:	the pad number for which to query capabilities
+  * @reserved:	must be zeroed
+  * @timings:	the timings for the given index
+  */
+ struct v4l2_enum_dv_timings {
+ 	__u32 index;
+-	__u32 reserved[3];
++	__u32 pad;
++	__u32 reserved[2];
+ 	struct v4l2_dv_timings timings;
+ };
+ 
+@@ -1129,11 +1131,13 @@ struct v4l2_bt_timings_cap {
+ 
+ /** struct v4l2_dv_timings_cap - DV timings capabilities
+  * @type:	the type of the timings (same as in struct v4l2_dv_timings)
++ * @pad:	the pad number for which to query capabilities
+  * @bt:		the BT656/1120 timings capabilities
+  */
+ struct v4l2_dv_timings_cap {
+ 	__u32 type;
+-	__u32 reserved[3];
++	__u32 pad;
++	__u32 reserved[2];
+ 	union {
+ 		struct v4l2_bt_timings_cap bt;
+ 		__u32 raw_data[32];
+-- 
+1.8.3.2
 
-I think is_private should be renamed to is_protected (as used in C++) and
-inheriting protected controls is similar to marking a class as 'friend' in C++.
-
-That's the mechanism I have in mind.
-
-So is_private -> is_protected and the proposed inherit_private_ctrls field
-becomes inherit_protected_ctrls.
-
-There are only a handful of drivers that set is_private today, so it is easy
-enough to rename.
-
-What do you think?
-
-Regards,
-
-	Hans
