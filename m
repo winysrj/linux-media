@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49046 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751299AbaBAJDg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 04:03:36 -0500
-Message-ID: <52ECB922.7050302@iki.fi>
-Date: Sat, 01 Feb 2014 11:06:42 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:52892 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751437AbaBEIzB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Feb 2014 03:55:01 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 4/9] v4l: uapi: add SDR formats CU8 and CU16LE
+Date: Wed,  5 Feb 2014 10:54:35 +0200
+Message-Id: <1391590480-2146-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1391590480-2146-1-git-send-email-crope@iki.fi>
+References: <1391590480-2146-1-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, k.debski@samsung.com
-Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use
- it
-References: <201308281419.52009.hverkuil@xs4all.nl> <344618801.kmLM0jZvMY@avalon> <52A9ADF6.2090900@xs4all.nl> <18082456.iNCn4Qe0lB@avalon> <52EBC534.8080903@xs4all.nl> <20140131164233.GB15383@valkosipuli.retiisi.org.uk> <52EBDB8B.80202@xs4all.nl>
-In-Reply-To: <52EBDB8B.80202@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+V4L2_SDR_FMT_CU8 — Complex unsigned 8-bit IQ sample
+V4L2_SDR_FMT_CU16LE — Complex unsigned 16-bit little endian IQ sample
 
-Hans Verkuil wrote:
-> Hi Sakari,
-> 
-> On 01/31/2014 05:42 PM, Sakari Ailus wrote:
->> Hi Hans and Laurent,
->>
->> On Fri, Jan 31, 2014 at 04:45:56PM +0100, Hans Verkuil wrote:
->>> How about defining a capability for use with ENUMINPUT/OUTPUT? I agree that this
->>> won't change between buffers, but it is a property of a specific input or output.
->>
->> Over 80 characters per line. :-P
-> 
-> Stupid thunderbird doesn't show the column, and I can't enable
-> automatic word-wrap because that plays hell with patches. Solutions
-> welcome!
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ include/uapi/linux/videodev2.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Does it? I've used Thunderbird (well, mostly just tried) but I've
-thought it behaves the same way as Seamonkey: wrapping only applies to
-newly written lines. My $EDITOR does the same when I use Mutt.
-
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 27fedfe..3411215 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -436,6 +436,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+ #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+ 
++/* SDR formats - used only for Software Defined Radio devices */
++#define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
++#define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
++
+ /*
+  *	F O R M A T   E N U M E R A T I O N
+  */
 -- 
-Regards,
+1.8.5.3
 
-Sakari Ailus
-sakari.ailus@iki.fi
