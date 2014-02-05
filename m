@@ -1,75 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47297 "EHLO mail.kapsi.fi"
+Received: from multi.imgtec.com ([194.200.65.239]:36075 "EHLO multi.imgtec.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752691AbaB0AWW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:22:22 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [REVIEW PATCH 06/13] v4l: add control for RF tuner PLL lock flag
-Date: Thu, 27 Feb 2014 02:22:01 +0200
-Message-Id: <1393460528-11684-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
-References: <1393460528-11684-1-git-send-email-crope@iki.fi>
+	id S1751701AbaBEJkA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Feb 2014 04:40:00 -0500
+Message-ID: <52F206D5.9060601@imgtec.com>
+Date: Wed, 5 Feb 2014 09:39:33 +0000
+From: James Hogan <james.hogan@imgtec.com>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>,
+	"Mauro Carvalho Chehab" <m.chehab@samsung.com>
+CC: Sean Young <sean@mess.org>, <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
+References: <20140115173559.7e53239a@samsung.com> <1390246787-15616-1-git-send-email-a.seppala@gmail.com> <20140121122826.GA25490@pequod.mess.org> <CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com> <20140122162953.GA1665@pequod.mess.org> <CAKv9HNbVQwAcG98S3_Mj4A6zo8Ae2fLT6vn4LOYW1UMrwQku7Q@mail.gmail.com> <20140122210024.GA3223@pequod.mess.org> <20140122200142.002a39c2@samsung.com> <CAKv9HNY7==4H2ZDrmaX+1BcarRAJd7zUE491oQ2ZJZXezpwOAw@mail.gmail.com> <20140204155441.438c7a3c@samsung.com> <CAKv9HNbYJ5FsQas=03u8pXCyiF5VSUfsOR46McukeisqVHme+g@mail.gmail.com>
+In-Reply-To: <CAKv9HNbYJ5FsQas=03u8pXCyiF5VSUfsOR46McukeisqVHme+g@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add volatile boolean control to indicate if tuner frequency synthesizer
-is locked to requested frequency. That means tuner is able to receive
-given frequency. Control is named as "PLL lock", since frequency
-synthesizers are based of phase-locked-loop. Maybe more general name
-could be wise still?
+Hi Antti,
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 5 +++++
- include/uapi/linux/v4l2-controls.h   | 1 +
- 2 files changed, 6 insertions(+)
+On 05/02/14 07:03, Antti Seppälä wrote:
+> To wake up with nuvoton-cir we need to program several raw ir
+> pulse/space lengths to the hardware and not a scancode. James's
+> approach doesn't support this.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 07400dc..7f1bcab 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -867,6 +867,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_RF_TUNER_IF_GAIN:		return "IF Gain";
- 	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:	return "Bandwidth, Auto";
- 	case V4L2_CID_RF_TUNER_BANDWIDTH:	return "Bandwidth";
-+	case V4L2_CID_RF_TUNER_PLL_LOCK:	return "PLL Lock";
- 	default:
- 		return NULL;
- 	}
-@@ -920,6 +921,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
-+	case V4L2_CID_RF_TUNER_PLL_LOCK:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -1100,6 +1102,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DV_RX_POWER_PRESENT:
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		break;
-+	case V4L2_CID_RF_TUNER_PLL_LOCK:
-+		*flags |= V4L2_CTRL_FLAG_VOLATILE;
-+		break;
- 	}
- }
- EXPORT_SYMBOL(v4l2_ctrl_fill);
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index b7d4bb8..363a092 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -907,5 +907,6 @@ enum v4l2_deemphasis {
- #define V4L2_CID_RF_TUNER_MIXER_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 52)
- #define V4L2_CID_RF_TUNER_IF_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 61)
- #define V4L2_CID_RF_TUNER_IF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
-+#define V4L2_CID_RF_TUNER_PLL_LOCK			(V4L2_CID_RF_TUNER_CLASS_BASE + 91)
- 
- #endif
--- 
-1.8.5.3
+Do the raw pulse/space lengths your hardware requires correspond to a
+single IR packet (mapping to a single scancode)?
+
+If so then my API is simply at a higher level of abstraction. I think
+this has the following advantages:
+* userspace sees a consistent interface at the same level of abstraction
+as it already has access to from input subsystem (i.e. scancodes). I.e.
+it doesn't need to care which IR device is in use, whether it does
+raw/hardware decode, or the details of the timings of the current protocol.
+* it supports hardware decoders which filter on the demodulated data
+rather than the raw pulse/space lengths.
+
+Of course to support this we'd need some per-protocol code to convert a
+scancode back to pulse/space lengths. I'd like to think that code could
+be generic, maybe as helper functions which multiple drivers could use,
+which could also handle corner cases of the API in a consistent way
+(e.g. user providing filter mask covering multiple scancodes, which
+presumably pulse/space).
+
+I see I've just crossed emails with Mauro who has just suggested
+something similar. I agree that his (2) is the more elegant option.
+
+Cheers
+James
 
