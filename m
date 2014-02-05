@@ -1,59 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.linuxtv.org ([130.149.80.248]:42324 "EHLO www.linuxtv.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752557AbaB1RjQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 12:39:16 -0500
-Message-Id: <E1WJRP0-0006ku-5J@www.linuxtv.org>
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Date: Fri, 28 Feb 2014 18:31:02 +0100
-Subject: [git:media_tree/master] [media] omap_vout: avoid sleep_on race
-To: linuxtv-commits@linuxtv.org
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Reply-to: linux-media@vger.kernel.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141AbaBEQlz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 20/47] adv7842: Remove deprecated video-level DV timings operations
+Date: Wed,  5 Feb 2014 17:42:11 +0100
+Message-Id: <1391618558-5580-21-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an automatic generated email to let you know that the following patch were queued at the 
-http://git.linuxtv.org/media_tree.git tree:
+The video enum_dv_timings and dv_timings_cap operations are deprecated
+and unused. Remove them.
 
-Subject: [media] omap_vout: avoid sleep_on race
-Author:  Arnd Bergmann <arnd@arndb.de>
-Date:    Thu Jan 2 09:07:29 2014 -0300
-
-sleep_on and its variants are broken and going away soon. This changes
-the omap vout driver to use wait_event_interruptible_timeout instead,
-which fixes potential race where the dma is complete before we
-schedule.
-
-[hans.verkuil@cisco.com: replaced interruptible_sleep_on_timeout by
-wait_event_interruptible_timeout in the commit msg, obvious typo]
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-
- drivers/media/platform/omap/omap_vout_vrfb.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
+ drivers/media/i2c/adv7842.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-http://git.linuxtv.org/media_tree.git?a=commitdiff;h=6a859e09c40f09fd77411ca46d8b6ca1c08444fe
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 78d21fd..7fd9325 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -2892,8 +2892,6 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
+ 	.s_dv_timings = adv7842_s_dv_timings,
+ 	.g_dv_timings = adv7842_g_dv_timings,
+ 	.query_dv_timings = adv7842_query_dv_timings,
+-	.enum_dv_timings = adv7842_enum_dv_timings,
+-	.dv_timings_cap = adv7842_dv_timings_cap,
+ 	.enum_mbus_fmt = adv7842_enum_mbus_fmt,
+ 	.g_mbus_fmt = adv7842_g_mbus_fmt,
+ 	.try_mbus_fmt = adv7842_g_mbus_fmt,
+-- 
+1.8.3.2
 
-diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
-index cf1c437..62e7e57 100644
---- a/drivers/media/platform/omap/omap_vout_vrfb.c
-+++ b/drivers/media/platform/omap/omap_vout_vrfb.c
-@@ -270,7 +270,8 @@ int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
- 	omap_dma_set_global_params(DMA_DEFAULT_ARB_RATE, 0x20, 0);
- 
- 	omap_start_dma(tx->dma_ch);
--	interruptible_sleep_on_timeout(&tx->wait, VRFB_TX_TIMEOUT);
-+	wait_event_interruptible_timeout(tx->wait, tx->tx_status == 1,
-+					 VRFB_TX_TIMEOUT);
- 
- 	if (tx->tx_status == 0) {
- 		omap_stop_dma(tx->dma_ch);
