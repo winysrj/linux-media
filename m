@@ -1,59 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34926 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752822AbaBLTqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 14:46:32 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753193AbaBEQl7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 2/4] af9035: add default 0x9135 slave I2C address
-Date: Wed, 12 Feb 2014 21:46:16 +0200
-Message-Id: <1392234378-20959-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1392234378-20959-1-git-send-email-crope@iki.fi>
-References: <1392234378-20959-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 30/47] adv7604: Don't put info string arrays on the stack
+Date: Wed,  5 Feb 2014 17:42:21 +0100
+Message-Id: <1391618558-5580-31-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Malcolm Priestley <tvboxspy@gmail.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
 
-On some devices the vendor has not set EEPROM_2ND_DEMOD_ADDR.
+We do not want to modify the info string arrays ever, so no need to
+waste stack space for them. While we are at it also make them const.
 
-Checks tmp is not zero after call to get EEPROM_2ND_DEMOD_ADDR and sets the
-default slave address of 0x3a on 0x9135 devices.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/i2c/adv7604.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 3825c2f..4f682ad 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -576,6 +576,10 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
- 			goto err;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 98ac383..cfcbb6d 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1886,13 +1886,13 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 	struct stdi_readback stdi;
+ 	u8 reg_io_0x02 = io_read(sd, 0x02);
  
- 		if (state->chip_type == 0x9135) {
-+			if (!tmp)
-+				/* default 0x9135 slave I2C address */
-+				tmp = 0x3a;
-+
- 			ret = af9035_wr_reg(d, 0x004bfb, tmp);
- 			if (ret < 0)
- 				goto err;
-@@ -684,6 +688,10 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 		if (ret < 0)
- 			goto err;
- 
-+		if (!tmp && state->chip_type == 0x9135)
-+			/* default 0x9135 slave I2C address */
-+			tmp = 0x3a;
-+
- 		state->af9033_config[1].i2c_addr = tmp;
- 		dev_dbg(&d->udev->dev, "%s: 2nd demod I2C addr=%02x\n",
- 				__func__, tmp);
+-	char *csc_coeff_sel_rb[16] = {
++	static const char * const csc_coeff_sel_rb[16] = {
+ 		"bypassed", "YPbPr601 -> RGB", "reserved", "YPbPr709 -> RGB",
+ 		"reserved", "RGB -> YPbPr601", "reserved", "RGB -> YPbPr709",
+ 		"reserved", "YPbPr709 -> YPbPr601", "YPbPr601 -> YPbPr709",
+ 		"reserved", "reserved", "reserved", "reserved", "manual"
+ 	};
+-	char *input_color_space_txt[16] = {
++	static const char * const input_color_space_txt[16] = {
+ 		"RGB limited range (16-235)", "RGB full range (0-255)",
+ 		"YCbCr Bt.601 (16-235)", "YCbCr Bt.709 (16-235)",
+ 		"xvYCC Bt.601", "xvYCC Bt.709",
+@@ -1900,12 +1900,12 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 		"invalid", "invalid", "invalid", "invalid", "invalid",
+ 		"invalid", "invalid", "automatic"
+ 	};
+-	char *rgb_quantization_range_txt[] = {
++	static const char * const rgb_quantization_range_txt[] = {
+ 		"Automatic",
+ 		"RGB limited range (16-235)",
+ 		"RGB full range (0-255)",
+ 	};
+-	char *deep_color_mode_txt[4] = {
++	static const char * const deep_color_mode_txt[4] = {
+ 		"8-bits per channel",
+ 		"10-bits per channel",
+ 		"12-bits per channel",
 -- 
-1.8.5.3
+1.8.3.2
 
