@@ -1,76 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34108 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753162AbaBKQhY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 11:37:24 -0500
-Message-ID: <1392136617.6943.33.camel@pizza.hi.pengutronix.de>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
- drivers/media/v4l2-core to drivers/of
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robherring2@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Date: Tue, 11 Feb 2014 17:36:57 +0100
-In-Reply-To: <8648675.AIXYyYlgXy@avalon>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
-	 <CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
-	 <20140211145248.GI26684@n2100.arm.linux.org.uk> <8648675.AIXYyYlgXy@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213AbaBEQmG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 39/47] adv7604: Inline the to_sd function
+Date: Wed,  5 Feb 2014 17:42:30 +0100
+Message-Id: <1391618558-5580-40-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Dienstag, den 11.02.2014, 16:23 +0100 schrieb Laurent Pinchart:
-> Hi Russell,
-> 
-> On Tuesday 11 February 2014 14:52:48 Russell King - ARM Linux wrote:
-> > On Tue, Feb 11, 2014 at 07:56:33AM -0600, Rob Herring wrote:
-> > > On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel wrote:
-> > > > This allows to reuse the same parser code from outside the V4L2
-> > > > framework, most importantly from display drivers. There have been
-> > > > patches that duplicate the code (and I am going to send one of my own),
-> > > > such as
-> > > > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
-> > > > and others that parse the same binding in a different way:
-> > > > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
-> > > > 
-> > > > I think that all common video interface parsing helpers should be moved
-> > > > to a single place, outside of the specific subsystems, so that it can
-> > > > be reused by all drivers.
-> > > 
-> > > Perhaps that should be done rather than moving to drivers/of now and
-> > > then again to somewhere else.
-> > 
-> > Do you have a better suggestion where it should move to?
-> > 
-> > drivers/gpu/drm - no, because v4l2 wants to use it
-> > drivers/media/video - no, because DRM drivers want to use it
-> > drivers/video - no, because v4l2 and drm drivers want to use it
-> 
-> Just pointing out a missing location (which might be rejected due to similar 
-> concerns), there's also drivers/media, which isn't V4L-specific.
+This one line function is called in a single location. Inline it.
 
-Since drivers/Makefile has media/ in obj-y, moving the graph helpers to
-drivers/media should technically work.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-> > Maybe drivers/of-graph/ ?  Or maybe it's just as good a place to move it
-> > into drivers/of ?
-
-include/media/of_graph.h,
-drivers/media/of_graph.c?
-
-regards
-Philipp
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 4815063..be75fa5 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -350,11 +350,6 @@ static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct adv7604_state, sd);
+ }
+ 
+-static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
+-{
+-	return &container_of(ctrl->handler, struct adv7604_state, hdl)->sd;
+-}
+-
+ static inline unsigned hblanking(const struct v4l2_bt_timings *t)
+ {
+ 	return V4L2_DV_BT_BLANKING_WIDTH(t);
+@@ -1280,7 +1275,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 
+ static int adv7604_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct v4l2_subdev *sd = to_sd(ctrl);
++	struct v4l2_subdev *sd =
++		&container_of(ctrl->handler, struct adv7604_state, hdl)->sd;
++
+ 	struct adv7604_state *state = to_state(sd);
+ 
+ 	switch (ctrl->id) {
+-- 
+1.8.3.2
 
