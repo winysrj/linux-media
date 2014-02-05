@@ -1,349 +1,286 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752811AbaBEQls (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 04/47] v4l: Add 12-bit YUV 4:2:0 media bus pixel codes
-Date: Wed,  5 Feb 2014 17:41:55 +0100
-Message-Id: <1391618558-5580-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38787 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751387AbaBEJQm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Feb 2014 04:16:42 -0500
+Message-ID: <52F20176.5070302@iki.fi>
+Date: Wed, 05 Feb 2014 11:16:38 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH] e4000: implement controls via v4l2 control framework
+References: <1391558734-26237-1-git-send-email-crope@iki.fi> <1391558734-26237-2-git-send-email-crope@iki.fi> <52F1E828.6020000@xs4all.nl>
+In-Reply-To: <52F1E828.6020000@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 288 +++++++++++++++++++++
- include/uapi/linux/v4l2-mediabus.h                 |   6 +-
- 2 files changed, 293 insertions(+), 1 deletion(-)
+Moi Hans
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index e3cbbb4..a0fa7e0 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -2718,6 +2718,294 @@
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-UYVY12-2X12">
-+	      <entry>V4L2_MBUS_FMT_UYVY12_2X12</entry>
-+	      <entry>0x201c</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-VYUY12-2X12">
-+	      <entry>V4L2_MBUS_FMT_VYUY12_2X12</entry>
-+	      <entry>0x201d</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-YUYV12-2X12">
-+	      <entry>V4L2_MBUS_FMT_YUYV12_2X12</entry>
-+	      <entry>0x201e</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-YVYU12-2X12">
-+	      <entry>V4L2_MBUS_FMT_YVYU12_2X12</entry>
-+	      <entry>0x201f</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
- 	  </tbody>
- 	</tgroup>
-       </table>
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 43707b2..70a732b 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
- 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
- 
--	/* YUV (including grey) - next is 0x201c */
-+	/* YUV (including grey) - next is 0x2020 */
- 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
- 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
- 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-@@ -80,6 +80,10 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
- 	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
- 	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
-+	V4L2_MBUS_FMT_UYVY12_2X12 = 0x201c,
-+	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
-+	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
-+	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
- 
- 	/* Bayer - next is 0x3019 */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+On 05.02.2014 09:28, Hans Verkuil wrote:
+> Hi Antti,
+>
+> Hmm, it's a bit ugly this code. I have some suggestions below...
+
+Yeah, there is some redundancy, I though also the same. But 
+functionality is now correct what I see.
+
+It is mostly that DVB gate-control logic which I personally dislike. 
+There is quite big changes on my TODO list in order to improve overall 
+situation. I already converted that driver to I2C model, it was the 
+first step. Next thing is to implement I2C adapter properly => get rid 
+of those gate-control callbacks. I did it already [1], but there is 
+still some things to study (gate closing, regmap). After driver is 100% 
+I2C model (I2C client + no I2C gate hacks) I could switch to regmap, 
+which gives some nice stuff like register shadowing and I2C message 
+splitting?. So there is a long road to learn and improve things towards 
+to current kernel practices, due to payload from history...
+
+After that I likely try to separate tuner functionality out from DVB / 
+V4L APIs, still keeping those in same driver, but wrapping functionality.
+
+So lets see if I get some inspiration to rebase that anymore at that 
+point :]
+
+
+[1] 
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/mn88472_dvbc
+
+regards
+Antti
+
+
+>
+> On 02/05/2014 01:05 AM, Antti Palosaari wrote:
+>> Implement gain and bandwidth controls using v4l2 control framework.
+>> Pointer to control handler is provided by exported symbol.
+>>
+>> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/tuners/e4000.c      | 210 +++++++++++++++++++++++++++++++++++++-
+>>   drivers/media/tuners/e4000.h      |  14 +++
+>>   drivers/media/tuners/e4000_priv.h |  12 +++
+>>   3 files changed, 235 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+>> index 9187190..77318e9 100644
+>> --- a/drivers/media/tuners/e4000.c
+>> +++ b/drivers/media/tuners/e4000.c
+>> @@ -448,6 +448,178 @@ err:
+>>   	return ret;
+>>   }
+>>
+>> +static int e4000_set_lna_gain(struct dvb_frontend *fe)
+>
+> I would change this to:
+>
+>   e4000_set_lna_if_gain(struct dvb_frontend *fe, bool lna_auto, bool if_auto, bool set_lna)
+>
+>> +{
+>> +	struct e4000_priv *priv = fe->tuner_priv;
+>> +	int ret;
+>> +	u8 u8tmp;
+>
+> General comment: always add a newline after variable declarations.
+>
+>> +	dev_dbg(&priv->client->dev, "%s: lna auto=%d->%d val=%d->%d\n",
+>> +			__func__, priv->lna_gain_auto->cur.val,
+>> +			priv->lna_gain_auto->val, priv->lna_gain->cur.val,
+>> +			priv->lna_gain->val);
+>> +
+>> +	if (fe->ops.i2c_gate_ctrl)
+>> +		fe->ops.i2c_gate_ctrl(fe, 1);
+>> +
+>> +	if (priv->lna_gain_auto->val && priv->if_gain_auto->cur.val)
+>> +		u8tmp = 0x17;
+>> +	else if (priv->lna_gain_auto->val)
+>> +		u8tmp = 0x19;
+>> +	else if (priv->if_gain_auto->cur.val)
+>> +		u8tmp = 0x16;
+>> +	else
+>> +		u8tmp = 0x10;
+>> +
+>> +	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
+>> +	if (ret)
+>> +		goto err;
+>> +
+>> +	if (priv->lna_gain_auto->val == false) {
+>> +		ret = e4000_wr_reg(priv, 0x14, priv->lna_gain->val);
+>> +		if (ret)
+>> +			goto err;
+>> +	}
+>
+> Set lna gain if set_lna is true and lna_auto is false, set if gain if
+> set_lna is false and if_gain is false.
+>
+>> +
+>> +	if (fe->ops.i2c_gate_ctrl)
+>> +		fe->ops.i2c_gate_ctrl(fe, 0);
+>> +
+>> +	return 0;
+>
+> I would remove the 4 lines above, and instead just...
+>
+>> +err:
+>> +	if (fe->ops.i2c_gate_ctrl)
+>> +		fe->ops.i2c_gate_ctrl(fe, 0);
+>> +
+>
+> ...add this:
+>
+> 	if (ret)
+>
+>> +	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+>> +	return ret;
+>> +}
+>> +
+>> +static int e4000_set_mixer_gain(struct dvb_frontend *fe)
+>> +{
+>> +	struct e4000_priv *priv = fe->tuner_priv;
+>> +	int ret;
+>> +	u8 u8tmp;
+>> +	dev_dbg(&priv->client->dev, "%s: mixer auto=%d->%d val=%d->%d\n",
+>> +			__func__, priv->mixer_gain_auto->cur.val,
+>> +			priv->mixer_gain_auto->val, priv->mixer_gain->cur.val,
+>> +			priv->mixer_gain->val);
+>> +
+>> +	if (fe->ops.i2c_gate_ctrl)
+>> +		fe->ops.i2c_gate_ctrl(fe, 1);
+>> +
+>> +	if (priv->mixer_gain_auto->val)
+>> +		u8tmp = 0x15;
+>> +	else
+>> +		u8tmp = 0x14;
+>> +
+>> +	ret = e4000_wr_reg(priv, 0x20, u8tmp);
+>> +	if (ret)
+>> +		goto err;
+>> +
+>> +	if (priv->mixer_gain_auto->val == false) {
+>> +		ret = e4000_wr_reg(priv, 0x15, priv->mixer_gain->val);
+>> +		if (ret)
+>> +			goto err;
+>> +	}
+>> +
+>> +	if (fe->ops.i2c_gate_ctrl)
+>> +		fe->ops.i2c_gate_ctrl(fe, 0);
+>> +
+>> +	return 0;
+>> +err:
+>> +	if (fe->ops.i2c_gate_ctrl)
+>> +		fe->ops.i2c_gate_ctrl(fe, 0);
+>> +
+>> +	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+>> +	return ret;
+>> +}
+>> +
+>> +static int e4000_set_if_gain(struct dvb_frontend *fe)
+>> +{
+>> +	struct e4000_priv *priv = fe->tuner_priv;
+>> +	int ret;
+>> +	u8 buf[2];
+>> +	u8 u8tmp;
+>> +	dev_dbg(&priv->client->dev, "%s: if auto=%d->%d val=%d->%d\n",
+>> +			__func__, priv->if_gain_auto->cur.val,
+>> +			priv->if_gain_auto->val, priv->if_gain->cur.val,
+>> +			priv->if_gain->val);
+>> +
+>> +	if (fe->ops.i2c_gate_ctrl)
+>> +		fe->ops.i2c_gate_ctrl(fe, 1);
+>> +
+>> +	if (priv->if_gain_auto->val && priv->lna_gain_auto->cur.val)
+>> +		u8tmp = 0x17;
+>> +	else if (priv->lna_gain_auto->cur.val)
+>> +		u8tmp = 0x19;
+>> +	else if (priv->if_gain_auto->val)
+>> +		u8tmp = 0x16;
+>> +	else
+>> +		u8tmp = 0x10;
+>> +
+>> +	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
+>> +	if (ret)
+>> +		goto err;
+>> +
+>> +	if (priv->if_gain_auto->val == false) {
+>> +		buf[0] = e4000_if_gain_lut[priv->if_gain->val].reg16_val;
+>> +		buf[1] = e4000_if_gain_lut[priv->if_gain->val].reg17_val;
+>> +		ret = e4000_wr_regs(priv, 0x16, buf, 2);
+>> +		if (ret)
+>> +			goto err;
+>> +	}
+>> +
+>> +	if (fe->ops.i2c_gate_ctrl)
+>> +		fe->ops.i2c_gate_ctrl(fe, 0);
+>> +
+>> +	return 0;
+>> +err:
+>> +	if (fe->ops.i2c_gate_ctrl)
+>> +		fe->ops.i2c_gate_ctrl(fe, 0);
+>> +
+>> +	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+>> +	return ret;
+>> +}
+>
+> This function can be dropped.
+>
+>> +
+>> +static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+>> +{
+>> +	struct e4000_priv *priv =
+>> +			container_of(ctrl->handler, struct e4000_priv, hdl);
+>> +	struct dvb_frontend *fe = priv->fe;
+>> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>> +	int ret;
+>> +	dev_dbg(&priv->client->dev,
+>> +			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
+>> +			__func__, ctrl->id, ctrl->name, ctrl->val,
+>> +			ctrl->minimum, ctrl->maximum, ctrl->step);
+>> +
+>> +	switch (ctrl->id) {
+>> +	case V4L2_CID_BANDWIDTH_AUTO:
+>> +	case V4L2_CID_BANDWIDTH:
+>> +		c->bandwidth_hz = priv->bandwidth->val;
+>> +		ret = e4000_set_params(priv->fe);
+>> +		break;
+>> +	case  V4L2_CID_LNA_GAIN_AUTO:
+>> +	case  V4L2_CID_LNA_GAIN:
+>> +		ret = e4000_set_lna_gain(priv->fe);
+>
+> Becomes:
+>
+> 		ret = e4000_set_lna_if_gain(priv->fe, priv->lna_gain_auto->val,
+> 				priv->if_gain_auto->cur.val, true);
+>
+>> +		break;
+>> +	case  V4L2_CID_MIXER_GAIN_AUTO:
+>> +	case  V4L2_CID_MIXER_GAIN:
+>> +		ret = e4000_set_mixer_gain(priv->fe);
+>> +		break;
+>> +	case  V4L2_CID_IF_GAIN_AUTO:
+>> +	case  V4L2_CID_IF_GAIN:
+>> +		ret = e4000_set_if_gain(priv->fe);
+>
+> 		ret = e4000_set_lna_if_gain(priv->fe, priv->lna_gain_auto->cur.val,
+> 				priv->if_gain_auto->val, false);
+>
+>> +		break;
+>> +	default:
+>> +		ret = -EINVAL;
+>> +	}
+>> +
+>> +	return ret;
+>> +}
+>
+> Regards,
+>
+> 	Hans
+>
+
+
 -- 
-1.8.3.2
-
+http://palosaari.fi/
