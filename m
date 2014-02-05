@@ -1,54 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from elasmtp-banded.atl.sa.earthlink.net ([209.86.89.70]:33530 "EHLO
-	elasmtp-banded.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751209AbaBGURo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 15:17:44 -0500
-Message-ID: <52F53F60.6090003@earthlink.net>
-Date: Fri, 07 Feb 2014 14:17:36 -0600
-From: The Bit Pit <thebitpit@earthlink.net>
-MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: Linux-Media <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: Driver for KWorld UB435Q Version 3 (ATSC) USB id: 1b80:e34c
-References: <52F524A8.9000008@earthlink.net> <CALzAhNWfUWYtQaRH-BcWhY6YE1pV3P=69R2NyXHUeAwZMrfrcg@mail.gmail.com>
-In-Reply-To: <CALzAhNWfUWYtQaRH-BcWhY6YE1pV3P=69R2NyXHUeAwZMrfrcg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753168AbaBEQlz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 21/47] s5p-tv: hdmi: Remove deprecated video-level DV timings operations
+Date: Wed,  5 Feb 2014 17:42:12 +0100
+Message-Id: <1391618558-5580-22-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks steve,
+The video enum_dv_timings and dv_timings_cap operations are deprecated
+and unused. Remove them.
 
-Found it.  Its the same files I found at a different place.  I don't
-understand the way to do things.
-Last time I simply edited the kernel tree and supplied patches to get my
-changes in.  The source for  tda18272 is not in the kernel tree I 'git'
-following the instructions at linuxtv.org.  It is in Manu's tree, but
-the directory structure is slightly different.
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/s5p-tv/hdmi_drv.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-I don't understand the current development process.  Are the
-instructions at linuxtv.org out of date?
-
-In which tree should I edit the following and supply patches against:
-usb/em28xx/em28xx-cards.c
-usb/em28xx/em28xx-dvb.c
-usb/em28xx/em28xx.h
-
-On 02/07/2014 12:39 PM, Steven Toth wrote:
-> On Fri, Feb 7, 2014 at 1:23 PM, The Bit Pit <thebitpit@earthlink.net> wrote:
->> Last May I started writing a driver for a KWorld UB435Q Version 3
->> tuner.  I was able to make the kernel recognize the device, light it's
->> LED, and try to enable the decoder and tuner.
-> Slightly related.... I added support for the KWorld UB445-U2
-> ATSC/Analog stick the other day. It uses the cx231xx bridge, LG3305
-> and TDA18272 tuner. It was fairly simple to get running. Analog and
-> digital TV work OK, the baseband inputs and alsa are running. No great
-> shakes.
->
-> Manu has a TDA18272 Linux tree if you google a little.
->
-> - Steve
->
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 3db496c..754740f 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -693,7 +693,7 @@ static int hdmi_dv_timings_cap(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 
+ 	/* Let the phy fill in the pixelclock range */
+-	v4l2_subdev_call(hdev->phy_sd, video, dv_timings_cap, cap);
++	v4l2_subdev_call(hdev->phy_sd, pad, dv_timings_cap, cap);
+ 	cap->type = V4L2_DV_BT_656_1120;
+ 	cap->bt.min_width = 720;
+ 	cap->bt.max_width = 1920;
+@@ -712,8 +712,6 @@ static const struct v4l2_subdev_core_ops hdmi_sd_core_ops = {
+ static const struct v4l2_subdev_video_ops hdmi_sd_video_ops = {
+ 	.s_dv_timings = hdmi_s_dv_timings,
+ 	.g_dv_timings = hdmi_g_dv_timings,
+-	.enum_dv_timings = hdmi_enum_dv_timings,
+-	.dv_timings_cap = hdmi_dv_timings_cap,
+ 	.g_mbus_fmt = hdmi_g_mbus_fmt,
+ 	.s_stream = hdmi_s_stream,
+ };
+-- 
+1.8.3.2
 
