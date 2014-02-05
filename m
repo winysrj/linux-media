@@ -1,212 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:51941 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbaBIRI5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 12:08:57 -0500
-Received: by mail-pd0-f178.google.com with SMTP id y13so5147114pdi.37
-        for <linux-media@vger.kernel.org>; Sun, 09 Feb 2014 09:08:57 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
-Date: Sun, 9 Feb 2014 19:08:57 +0200
-Message-ID: <CAJL_dMvmtqmF9tdU=jVzgQudbadswgik8a2727Egs6LV9-J=yg@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 00/86] SDR tree
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753227AbaBEQmK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:10 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	devicetree@vger.kernel.org
+Subject: [PATCH 45/47] adv7604: Add DT support
+Date: Wed,  5 Feb 2014 17:42:36 +0100
+Message-Id: <1391618558-5580-46-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 9, 2014 at 10:48 AM, Antti Palosaari <crope@iki.fi> wrote:
-> That is everything I have on my SDR queue. There is drivers for Mirics
-> MSi3101 and Realtek RTL2832U based devices. These drivers are still on
-> staging and I am not going to move those out of staging very soon as I
-> want get some experiments first.
->
-> That set is available via Git:
-> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/sdr_review
->
->
-> Simplest way to test it in practice is listen FM radio using SDRSharp as a radio player.
-> I made simple plug-in for that:
-> https://github.com/palosaari/sdrsharp-v4l2
->
-> That plug-in supports currently only on 64-bit Kernel...
->
->
-> Installation is this simple (Fedora 20):
->
-> $ sudo yum install mono-core monodevelop
-> $ svn co https://subversion.assembla.com/svn/sdrsharp/trunk sdrsharp
-> $ cd sdrsharp
-> $ git clone https://github.com/palosaari/sdrsharp-v4l2.git V4L2
-> $ sed -i 's/Format Version 12\.00/Format Version 11\.00/' SDRSharp.sln
->
-> * Add following line to SDRSharp/App.config file inside frontendPlugins tag
->     <add key="Linux Kernel V4L2" value="SDRSharp.V4L2.LibV4LIO,SDRSharp.V4L2" />
->
-> $ monodevelop SDRSharp.sln
-> * View > Default
-> * Solution SDRSharp > Add > Add Existing Project... > V4L2 > SDRSharp.V4L2.csproj
-> * Select Release|x86
-> * Build > Build All
-> * File > Quit
-> $ mono Release/SDRSharp.exe
+Parse the device tree node to populate platform data.
 
-ok, you have the freedom to do an .exe
-If that is what you want.
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ .../devicetree/bindings/media/i2c/adv7604.txt      |  56 ++++++++++++
+ drivers/media/i2c/adv7604.c                        | 101 ++++++++++++++++++---
+ 2 files changed, 143 insertions(+), 14 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7604.txt
 
-There is projects with graphical interface that can be used on linux,
-mac and windows such as qt.
-Example: subsurface.
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+new file mode 100644
+index 0000000..0845c50
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -0,0 +1,56 @@
++* Analog Devices ADV7604/11 video decoder with HDMI receiver
++
++The ADV7604 and ADV7611 are multiformat video decoders with an integrated HDMI
++receiver. The ADV7604 has four multiplexed HDMI inputs and one analog input,
++and the ADV7611 has one HDMI input and no analog input.
++
++Required Properties:
++
++  - compatible: Must contain one of the following
++    - "adi,adv7604" for the ADV7604
++    - "adi,adv7611" for the ADV7611
++
++  - reg: I2C slave address
++
++  - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
++    detection pins, one per HDMI input. The active flag indicates the GPIO
++    level that enables hot-plug detection.
++
++Optional Properties:
++
++  - reset-gpios: Reference to the GPIO connected to the device's reset pin.
++
++  - adi,default-input: Index of the input to be configured as default. Valid
++    values are 0..5 for the ADV7604 and 0 for the ADV7611.
++
++  - adi,disable-power-down: Boolean property. When set forces the device to
++    ignore the power-down pin. The property is valid for the ADV7604 only as
++    the ADV7611 has no power-down pin.
++
++  - adi,disable-cable-reset: Boolean property. When set disables the HDMI
++    receiver automatic reset when the HDMI cable is unplugged.
++
++Example:
++
++	hdmi_receiver@4c {
++		compatible = "adi,adv7611";
++		reg = <0x4c>;
++
++		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
++		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
++
++		adi,default-input = <0>;
++
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++		};
++		port@1 {
++			reg = <1>;
++			hdmi_in: endpoint {
++				remote-endpoint = <&ccdc_in>;
++			};
++		};
++	};
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index e586c1c..cd8a2dc 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -32,6 +32,7 @@
+ #include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/of_gpio.h>
+ #include <linux/slab.h>
+ #include <linux/v4l2-dv-timings.h>
+ #include <linux/videodev2.h>
+@@ -2641,13 +2642,83 @@ static const struct adv7604_chip_info adv7604_chip_info[] = {
+ 	},
+ };
+ 
++static struct i2c_device_id adv7604_i2c_id[] = {
++	{ "adv7604", (kernel_ulong_t)&adv7604_chip_info[ADV7604] },
++	{ "adv7611", (kernel_ulong_t)&adv7604_chip_info[ADV7611] },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
++
++static struct of_device_id adv7604_of_id[] = {
++	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
++	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, adv7604_of_id);
++
++static int adv7604_parse_dt(struct adv7604_state *state)
++{
++	struct device_node *np;
++	unsigned int i;
++	int ret;
++
++	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
++	state->info = of_match_node(adv7604_of_id, np)->data;
++
++	state->pdata.disable_pwrdnb =
++		of_property_read_bool(np, "adi,disable-power-down");
++	state->pdata.disable_cable_det_rst =
++		of_property_read_bool(np, "adi,disable-cable-reset");
++
++	ret = of_property_read_u32(np, "adi,default-input",
++				   &state->pdata.default_input);
++	if (ret < 0)
++		state->pdata.default_input = -1;
++
++	for (i = 0; i < state->info->num_dv_ports; ++i) {
++		enum of_gpio_flags flags;
++
++		state->pdata.hpd_gpio[i] =
++			of_get_named_gpio_flags(np, "hpd-gpios", i, &flags);
++		if (IS_ERR_VALUE(state->pdata.hpd_gpio[i]))
++			continue;
++
++		state->pdata.hpd_gpio_low[i] = flags == OF_GPIO_ACTIVE_LOW;
++	}
++
++	/* Disable the interrupt for now as no DT-based board uses it. */
++	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
++
++	/* Use the default I2C addresses. */
++	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
++	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
++	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
++	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
++	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
++	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
++	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
++	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
++	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
++	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
++	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
++	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
++
++	/* HACK: Hardcode the remaining platform data fields. */
++	state->pdata.blank_data = 1;
++	state->pdata.op_656_range = 1;
++	state->pdata.alt_data_sat = 1;
++	state->pdata.insert_av_codes = 1;
++	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
++
++	return 0;
++}
++
+ static int adv7604_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+ 	static const struct v4l2_dv_timings cea640x480 =
+ 		V4L2_DV_BT_CEA_640X480P59_94;
+ 	struct adv7604_state *state;
+-	struct adv7604_platform_data *pdata = client->dev.platform_data;
+ 	struct v4l2_ctrl_handler *hdl;
+ 	struct v4l2_subdev *sd;
+ 	unsigned int i;
+@@ -2666,19 +2737,27 @@ static int adv7604_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 	}
+ 
+-	state->info = &adv7604_chip_info[id->driver_data];
+ 	state->i2c_clients[ADV7604_PAGE_IO] = client;
+ 
+ 	/* initialize variables */
+ 	state->restart_stdi_once = true;
+ 	state->selected_input = ~0;
+ 
+-	/* platform data */
+-	if (!pdata) {
++	if (client->dev.of_node) {
++		err = adv7604_parse_dt(state);
++		if (err < 0) {
++			v4l_err(client, "DT parsing error\n");
++			return err;
++		}
++	} else if (client->dev.platform_data) {
++		struct adv7604_platform_data *pdata = client->dev.platform_data;
++
++		state->info = (const struct adv7604_chip_info *)id->driver_data;
++		state->pdata = *pdata;
++	} else {
+ 		v4l_err(client, "No platform data!\n");
+ 		return -ENODEV;
+ 	}
+-	state->pdata = *pdata;
+ 
+ 	/* Request GPIOs. */
+ 	for (i = 0; i < state->info->num_dv_ports; ++i) {
+@@ -2786,7 +2865,7 @@ static int adv7604_probe(struct i2c_client *client,
+ 			continue;
+ 
+ 		state->i2c_clients[i] =
+-			adv7604_dummy_client(sd, pdata->i2c_addresses[i],
++			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
+ 					     0xf2 + i);
+ 		if (state->i2c_clients[i] == NULL) {
+ 			err = -ENOMEM;
+@@ -2860,21 +2939,15 @@ static int adv7604_remove(struct i2c_client *client)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
+-static struct i2c_device_id adv7604_id[] = {
+-	{ "adv7604", ADV7604 },
+-	{ "adv7611", ADV7611 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(i2c, adv7604_id);
+-
+ static struct i2c_driver adv7604_driver = {
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "adv7604",
++		.of_match_table = of_match_ptr(adv7604_of_id),
+ 	},
+ 	.probe = adv7604_probe,
+ 	.remove = adv7604_remove,
+-	.id_table = adv7604_id,
++	.id_table = adv7604_i2c_id,
+ };
+ 
+ module_i2c_driver(adv7604_driver);
+-- 
+1.8.3.2
 
-please nuke mono, or any other Microsoft "technology".
-be informed about the amount of money they make of suing Android.
-
->
->
-> regards
-> Antti
->
->
-> Antti Palosaari (85):
->   rtl2832_sdr: Realtek RTL2832 SDR driver module
->   rtl28xxu: attach SDR extension module
->   rtl2832_sdr: use config struct from rtl2832 module
->   rtl2832_sdr: initial support for R820T tuner
->   rtl2832_sdr: use get_if_frequency()
->   rtl2832_sdr: implement sampling rate
->   rtl2832_sdr: initial support for FC0012 tuner
->   rtl2832_sdr: initial support for FC0013 tuner
->   rtl28xxu: constify demod config structs
->   rtl2832: remove unused if_dvbt config parameter
->   rtl2832: style changes and minor cleanup
->   rtl2832_sdr: pixel format for SDR
->   rtl2832_sdr: implement FMT IOCTLs
->   msi3101: add signed 8-bit pixel format for SDR
->   msi3101: implement FMT IOCTLs
->   msi3101: move format 384 conversion to libv4lconvert
->   msi3101: move format 336 conversion to libv4lconvert
->   msi3101: move format 252 conversion to libv4lconvert
->   rtl28xxu: add module parameter to disable IR
->   rtl2832_sdr: increase USB buffers
->   rtl2832_sdr: convert to SDR API
->   msi3101: convert to SDR API
->   msi3101: add u8 sample format
->   msi3101: add u16 LE sample format
->   msi3101: tons of small changes
->   rtl2832_sdr: return NULL on rtl2832_sdr_attach failure
->   rtl2832_sdr: calculate bandwidth if not set by user
->   rtl2832_sdr: clamp ADC frequency to valid range always
->   rtl2832_sdr: improve ADC device programming logic
->   rtl2832_sdr: remove FMT buffer type checks
->   rtl2832_sdr: switch FM to DAB mode
->   msi3101: calculate tuner filters
->   msi3101: remove FMT buffer type checks
->   msi3101: improve ADC config stream format selection
->   msi3101: clamp ADC and RF to valid range
->   msi3101: disable all but u8 and u16le formats
->   v4l: add RF tuner gain controls
->   msi3101: use standard V4L gain controls
->   e4000: convert DVB tuner to I2C driver model
->   e4000: add manual gain controls
->   rtl2832_sdr: expose E4000 gain controls to user space
->   r820t: add manual gain controls
->   rtl2832_sdr: expose R820 gain controls to user space
->   e4000: fix PLL calc to allow higher frequencies
->   msi3101: fix device caps to advertise SDR receiver
->   rtl2832_sdr: fix device caps to advertise SDR receiver
->   msi3101: add default FMT and ADC frequency
->   msi3101: sleep USB ADC and tuner when streaming is stopped
->   DocBook: document RF tuner gain controls
->   DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
->   DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
->   DocBook: media: document V4L2_CTRL_CLASS_RF_TUNER
->   xc2028: silence compiler warnings
->   v4l: add RF tuner channel bandwidth control
->   msi3101: implement tuner bandwidth control
->   rtl2832_sdr: implement tuner bandwidth control
->   msi001: Mirics MSi001 silicon tuner driver
->   msi3101: use msi001 tuner driver
->   MAINTAINERS: add msi001 driver
->   MAINTAINERS: add msi3101 driver
->   MAINTAINERS: add rtl2832_sdr driver
->   rtl28xxu: attach SDR module later
->   e4000: implement controls via v4l2 control framework
->   rtl2832_sdr: use E4000 tuner controls via V4L framework
->   e4000: remove .set_config() which was for controls
->   rtl28xxu: fix switch-case style issue
->   v4l: reorganize RF tuner control ID numbers
->   DocBook: document RF tuner bandwidth controls
->   v4l: uapi: add SDR formats CU8 and CU16LE
->   msi3101: use formats defined in V4L2 API
->   rtl2832_sdr: use formats defined in V4L2 API
->   v4l: add enum_freq_bands support to tuner sub-device
->   msi001: implement .enum_freq_bands()
->   msi3101: provide RF tuner bands from sub-device
->   r820t/rtl2832u_sdr: implement gains using v4l2 controls
->   v4l: add control for RF tuner PLL lock flag
->   e4000: implement PLL lock v4l control
->   DocBook: media: document PLL lock control
->   rtl2832: provide muxed I2C adapter
->   rtl2832: add muxed I2C adapter for demod itself
->   rtl2832: implement delayed I2C gate close
->   rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
->   e4000: get rid of DVB i2c_gate_ctrl()
->   rtl2832_sdr: do not init tuner when only freq is changed
->   e4000: convert to Regmap API
->
-> Luis Alves (1):
->   rtl2832: Fix deadlock on i2c mux select function.
->
->  Documentation/DocBook/media/v4l/controls.xml       |  119 ++
->  .../DocBook/media/v4l/pixfmt-sdr-cu08.xml          |   44 +
->  .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        |   46 +
->  Documentation/DocBook/media/v4l/pixfmt.xml         |    3 +
->  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +-
->  MAINTAINERS                                        |   30 +
->  drivers/media/dvb-frontends/Kconfig                |    2 +-
->  drivers/media/dvb-frontends/rtl2832.c              |  191 ++-
->  drivers/media/dvb-frontends/rtl2832.h              |   34 +-
->  drivers/media/dvb-frontends/rtl2832_priv.h         |   54 +-
->  drivers/media/tuners/Kconfig                       |    1 +
->  drivers/media/tuners/e4000.c                       |  598 +++++---
->  drivers/media/tuners/e4000.h                       |   21 +-
->  drivers/media/tuners/e4000_priv.h                  |   86 +-
->  drivers/media/tuners/r820t.c                       |  137 +-
->  drivers/media/tuners/r820t.h                       |   10 +
->  drivers/media/tuners/tuner-xc2028.c                |    3 +
->  drivers/media/usb/dvb-usb-v2/Makefile              |    1 +
->  drivers/media/usb/dvb-usb-v2/rtl28xxu.c            |   99 +-
->  drivers/media/usb/dvb-usb-v2/rtl28xxu.h            |    2 +
->  drivers/media/v4l2-core/v4l2-ctrls.c               |   24 +
->  drivers/staging/media/Kconfig                      |    2 +
->  drivers/staging/media/Makefile                     |    2 +
->  drivers/staging/media/msi3101/Kconfig              |    7 +-
->  drivers/staging/media/msi3101/Makefile             |    1 +
->  drivers/staging/media/msi3101/msi001.c             |  499 +++++++
->  drivers/staging/media/msi3101/sdr-msi3101.c        | 1558 +++++++-------------
->  drivers/staging/media/rtl2832u_sdr/Kconfig         |    7 +
->  drivers/staging/media/rtl2832u_sdr/Makefile        |    6 +
->  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c   | 1476 +++++++++++++++++++
->  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h   |   51 +
->  include/media/v4l2-subdev.h                        |    1 +
->  include/uapi/linux/v4l2-controls.h                 |   14 +
->  include/uapi/linux/videodev2.h                     |    4 +
->  34 files changed, 3825 insertions(+), 1315 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
->  create mode 100644 drivers/staging/media/msi3101/msi001.c
->  create mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
->  create mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
->  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
->  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
->
-> --
-> 1.8.5.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
