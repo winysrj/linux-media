@@ -1,204 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4454 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751977AbaBJIsL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:48:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752992AbaBEQlt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 21/34] DocBook media: fix coding style in the control example code
-Date: Mon, 10 Feb 2014 09:46:46 +0100
-Message-Id: <1392022019-5519-22-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 07/47] ad9389b: Add pad-level DV timings operations
+Date: Wed,  5 Feb 2014 17:41:58 +0100
+Message-Id: <1391618558-5580-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The video enum_dv_timings and dv_timings_cap operations are deprecated.
+Implement the pad-level version of those operations to prepare for the
+removal of the video version.
 
-Use the proper kernel coding style in these examples.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml | 81 ++++++++++++++--------------
- 1 file changed, 40 insertions(+), 41 deletions(-)
+ drivers/media/i2c/ad9389b.c | 69 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 40 insertions(+), 29 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index a5a3188..ef55c3e 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -441,61 +441,60 @@ more menu type controls.</para>
- &v4l2-queryctrl; queryctrl;
- &v4l2-querymenu; querymenu;
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index 83225d6..44c037d 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -571,35 +571,6 @@ static const struct v4l2_subdev_core_ops ad9389b_core_ops = {
+ 	.interrupt_service_routine = ad9389b_isr,
+ };
  
--static void
--enumerate_menu (void)
-+static void enumerate_menu(void)
- {
--	printf ("  Menu items:\n");
-+	printf("  Menu items:\n");
- 
--	memset (&amp;querymenu, 0, sizeof (querymenu));
-+	memset(&amp;querymenu, 0, sizeof(querymenu));
- 	querymenu.id = queryctrl.id;
- 
- 	for (querymenu.index = queryctrl.minimum;
- 	     querymenu.index &lt;= queryctrl.maximum;
--	      querymenu.index++) {
--		if (0 == ioctl (fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
--			printf ("  %s\n", querymenu.name);
-+	     querymenu.index++) {
-+		if (0 == ioctl(fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
-+			printf("  %s\n", querymenu.name);
- 		}
- 	}
- }
- 
--memset (&amp;queryctrl, 0, sizeof (queryctrl));
-+memset(&amp;queryctrl, 0, sizeof(queryctrl));
- 
- for (queryctrl.id = V4L2_CID_BASE;
-      queryctrl.id &lt; V4L2_CID_LASTP1;
-      queryctrl.id++) {
--	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
-+	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
- 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
- 			continue;
- 
--		printf ("Control %s\n", queryctrl.name);
-+		printf("Control %s\n", queryctrl.name);
- 
- 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
--			enumerate_menu ();
-+			enumerate_menu();
- 	} else {
- 		if (errno == EINVAL)
- 			continue;
- 
--		perror ("VIDIOC_QUERYCTRL");
--		exit (EXIT_FAILURE);
-+		perror("VIDIOC_QUERYCTRL");
-+		exit(EXIT_FAILURE);
- 	}
- }
- 
- for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
-      queryctrl.id++) {
--	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
-+	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
- 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
- 			continue;
- 
--		printf ("Control %s\n", queryctrl.name);
-+		printf("Control %s\n", queryctrl.name);
- 
- 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
--			enumerate_menu ();
-+			enumerate_menu();
- 	} else {
- 		if (errno == EINVAL)
- 			break;
- 
--		perror ("VIDIOC_QUERYCTRL");
--		exit (EXIT_FAILURE);
-+		perror("VIDIOC_QUERYCTRL");
-+		exit(EXIT_FAILURE);
- 	}
- }
- </programlisting>
-@@ -508,53 +507,53 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
- &v4l2-queryctrl; queryctrl;
- &v4l2-control; control;
- 
--memset (&amp;queryctrl, 0, sizeof (queryctrl));
-+memset(&amp;queryctrl, 0, sizeof(queryctrl));
- queryctrl.id = V4L2_CID_BRIGHTNESS;
- 
--if (-1 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
-+if (-1 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
- 	if (errno != EINVAL) {
--		perror ("VIDIOC_QUERYCTRL");
--		exit (EXIT_FAILURE);
-+		perror("VIDIOC_QUERYCTRL");
-+		exit(EXIT_FAILURE);
- 	} else {
--		printf ("V4L2_CID_BRIGHTNESS is not supported\n");
-+		printf("V4L2_CID_BRIGHTNESS is not supported\n");
- 	}
- } else if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED) {
--	printf ("V4L2_CID_BRIGHTNESS is not supported\n");
-+	printf("V4L2_CID_BRIGHTNESS is not supported\n");
- } else {
--	memset (&amp;control, 0, sizeof (control));
-+	memset(&amp;control, 0, sizeof (control));
- 	control.id = V4L2_CID_BRIGHTNESS;
- 	control.value = queryctrl.default_value;
- 
--	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)) {
--		perror ("VIDIOC_S_CTRL");
--		exit (EXIT_FAILURE);
-+	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)) {
-+		perror("VIDIOC_S_CTRL");
-+		exit(EXIT_FAILURE);
- 	}
- }
- 
--memset (&amp;control, 0, sizeof (control));
-+memset(&amp;control, 0, sizeof(control));
- control.id = V4L2_CID_CONTRAST;
- 
--if (0 == ioctl (fd, &VIDIOC-G-CTRL;, &amp;control)) {
-+if (0 == ioctl(fd, &VIDIOC-G-CTRL;, &amp;control)) {
- 	control.value += 1;
- 
- 	/* The driver may clamp the value or return ERANGE, ignored here */
- 
--	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)
-+	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)
- 	    &amp;&amp; errno != ERANGE) {
--		perror ("VIDIOC_S_CTRL");
--		exit (EXIT_FAILURE);
-+		perror("VIDIOC_S_CTRL");
-+		exit(EXIT_FAILURE);
- 	}
- /* Ignore if V4L2_CID_CONTRAST is unsupported */
- } else if (errno != EINVAL) {
--	perror ("VIDIOC_G_CTRL");
--	exit (EXIT_FAILURE);
-+	perror("VIDIOC_G_CTRL");
-+	exit(EXIT_FAILURE);
- }
- 
- control.id = V4L2_CID_AUDIO_MUTE;
--control.value = TRUE; /* silence */
-+control.value = 1; /* silence */
- 
- /* Errors ignored */
--ioctl (fd, VIDIOC_S_CTRL, &amp;control);
-+ioctl(fd, VIDIOC_S_CTRL, &amp;control);
- </programlisting>
-     </example>
-   </section>
-@@ -675,12 +674,12 @@ control class is found:</para>
-       <informalexample>
- 	<programlisting>
- qctrl.id = V4L2_CTRL_CLASS_MPEG | V4L2_CTRL_FLAG_NEXT_CTRL;
--while (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
--	if (V4L2_CTRL_ID2CLASS (qctrl.id) != V4L2_CTRL_CLASS_MPEG)
-+while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
-+	if (V4L2_CTRL_ID2CLASS(qctrl.id) != V4L2_CTRL_CLASS_MPEG)
- 		break;
- 		/* ... */
--		qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+-/* ------------------------------ PAD OPS ------------------------------ */
+-
+-static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
+-{
+-	struct ad9389b_state *state = get_ad9389b_state(sd);
+-
+-	if (edid->pad != 0)
+-		return -EINVAL;
+-	if (edid->blocks == 0 || edid->blocks > 256)
+-		return -EINVAL;
+-	if (!edid->edid)
+-		return -EINVAL;
+-	if (!state->edid.segments) {
+-		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
+-		return -ENODATA;
 -	}
-+	qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
-+}
- </programlisting>
-       </informalexample>
+-	if (edid->start_block >= state->edid.segments * 2)
+-		return -E2BIG;
+-	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
+-		edid->blocks = state->edid.segments * 2 - edid->start_block;
+-	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
+-	       128 * edid->blocks);
+-	return 0;
+-}
+-
+-static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
+-	.get_edid = ad9389b_get_edid,
+-};
+-
+ /* ------------------------------ VIDEO OPS ------------------------------ */
  
+ /* Enable/disable ad9389b output */
+@@ -678,6 +649,9 @@ static int ad9389b_g_dv_timings(struct v4l2_subdev *sd,
+ static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
+ 				   struct v4l2_enum_dv_timings *timings)
+ {
++	if (timings->pad != 0)
++		return -EINVAL;
++
+ 	return v4l2_enum_dv_timings_cap(timings, &ad9389b_timings_cap,
+ 			NULL, NULL);
+ }
+@@ -685,6 +659,9 @@ static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
+ static int ad9389b_dv_timings_cap(struct v4l2_subdev *sd,
+ 				  struct v4l2_dv_timings_cap *cap)
+ {
++	if (cap->pad != 0)
++		return -EINVAL;
++
+ 	*cap = ad9389b_timings_cap;
+ 	return 0;
+ }
+@@ -697,6 +674,40 @@ static const struct v4l2_subdev_video_ops ad9389b_video_ops = {
+ 	.dv_timings_cap = ad9389b_dv_timings_cap,
+ };
+ 
++/* ------------------------------ PAD OPS ------------------------------ */
++
++static int ad9389b_get_edid(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_edid *edid)
++{
++	struct ad9389b_state *state = get_ad9389b_state(sd);
++
++	if (edid->pad != 0)
++		return -EINVAL;
++	if (edid->blocks == 0 || edid->blocks > 256)
++		return -EINVAL;
++	if (!edid->edid)
++		return -EINVAL;
++	if (!state->edid.segments) {
++		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
++		return -ENODATA;
++	}
++	if (edid->start_block >= state->edid.segments * 2)
++		return -E2BIG;
++	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
++		edid->blocks = state->edid.segments * 2 - edid->start_block;
++	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
++	       128 * edid->blocks);
++	return 0;
++}
++
++static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
++	.get_edid = ad9389b_get_edid,
++	.enum_dv_timings = ad9389b_enum_dv_timings,
++	.dv_timings_cap = ad9389b_dv_timings_cap,
++};
++
++/* ------------------------------ AUDIO OPS ------------------------------ */
++
+ static int ad9389b_s_audio_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	v4l2_dbg(1, debug, sd, "%s: %sable\n", __func__, (enable ? "en" : "dis"));
 -- 
-1.8.5.2
+1.8.3.2
 
