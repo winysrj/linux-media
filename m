@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4083 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752936AbaBYKQY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:16:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753086AbaBEQly (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 10/13] mem2mem_testdev: add USERPTR support.
-Date: Tue, 25 Feb 2014 11:16:00 +0100
-Message-Id: <1393323363-30058-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [PATCH 16/47] media: staging: davinci: vpfe: Switch to pad-level DV operations
+Date: Wed,  5 Feb 2014 17:42:07 +0100
+Message-Id: <1391618558-5580-17-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The video-level enum_dv_timings and dv_timings_cap operations are
+deprecated in favor of the pad-level versions. All subdev drivers
+implement the pad-level versions, switch to them.
 
-There is no reason why we shouldn't enable this here.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/mem2mem_testdev.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-index 0745d1a..8ca828a 100644
---- a/drivers/media/platform/mem2mem_testdev.c
-+++ b/drivers/media/platform/mem2mem_testdev.c
-@@ -779,7 +779,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
- 	int ret;
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 1f3b0f9..a1655a8 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -987,8 +987,10 @@ vpfe_enum_dv_timings(struct file *file, void *fh,
+ 	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+ 	struct v4l2_subdev *subdev = video->current_ext_subdev->subdev;
  
- 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
-+	src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	src_vq->drv_priv = ctx;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->ops = &m2mtest_qops;
-@@ -792,7 +792,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
- 		return ret;
++	timings->pad = 0;
++
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_dv_timings\n");
+-	return v4l2_subdev_call(subdev, video, enum_dv_timings, timings);
++	return v4l2_subdev_call(subdev, pad, enum_dv_timings, timings);
+ }
  
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
-+	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	dst_vq->drv_priv = ctx;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->ops = &m2mtest_qops;
+ /*
 -- 
-1.9.0
+1.8.3.2
 
