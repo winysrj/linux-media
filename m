@@ -1,49 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:40825 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755029AbaBUMHn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 07:07:43 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 2/3] media: omap3isp: ispccdc: remove unwanted comments
-Date: Fri, 21 Feb 2014 17:37:22 +0530
-Message-Id: <1392984443-16694-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1392984443-16694-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1392984443-16694-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2403 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752790AbaBEWKk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 17:10:40 -0500
+Message-ID: <52F2B6C5.3000707@xs4all.nl>
+Date: Wed, 05 Feb 2014 23:10:13 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Dean Anderson <linux-dev@sensoray.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] s2255drv: port to videobuf2
+References: <1391189745-11398-1-git-send-email-linux-dev@sensoray.com> <52EF66A4.30401@xs4all.nl> <4019df5ff7ddbc7945122a7a571ed57b@sensoray.com> <52F0BB3E.2060601@xs4all.nl> <9f20eef936bc930aeba88ff784f4bae0@sensoray.com>
+In-Reply-To: <9f20eef936bc930aeba88ff784f4bae0@sensoray.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On 02/05/2014 10:44 PM, Dean Anderson wrote:
+> On 2014-02-04 04:04, Hans Verkuil wrote:
+>> Hi Dean,
+>>
+>> On 02/03/14 18:06, Dean Anderson wrote:
+>>> On 2014-02-03 03:51, Hans Verkuil wrote:
+>>>> Hi Dean,
+>>>>
+>>>> Some specific comments below, but first two general comments:
+>>>>
+>>>> It is easier to review if at least the removal of the old s2255_fh 
+>>>> struct
+>>>> was done as a separate patch. It's always good to try and keep the 
+>>>> changes
+>>>> in patches as small as possible. The actual vb2 conversion is always 
+>>>> a
+>>>> 'big bang' patch, that's unavoidable, but it's easier if it isn't 
+>>>> mixed in
+>>>> with other changes that are not directly related to the vb2 
+>>>> conversion.
+>>>
+>>>
+>>> I figured removal of s2255_fh was a natural part of the videobuf2 
+>>> conversion process, but I can break it up.
+>>
+>> It's more like the first phase of a vb2 conversion. It really is wrong
+>> for videobuf as well, so it makes sense to do that first.
+>>
+>>> I also did change some formatting and naming changes (s2255_channel 
+>>> to s2255_vc) that can be postponed.
+>>
+>> Just put it in a separate patch either before or after the patch that 
+>> does
+>> the vb2 conversion.
+>>
+>>>
+>>>>
+>>>> And did you also run the v4l2-compliance utility for this driver? 
+>>>> That's
+>>>> useful to check that everything it still correct.
+>>>
+>>> Thanks for the comments.  I'll do a v2 soon with v4l2-compliance 
+>>> fully tested too.
+>>
+>> Rather than the standard v4l2-compliance from v4l-utils, can you use 
+>> this
+>> from my own tree:
+>>
+>> http://git.linuxtv.org/hverkuil/v4l-utils.git/shortlog/refs/heads/streaming
+>>
+>> I've started work to add tests for streaming to v4l2-compliance. While 
+>> not
+>> complete it should cover what the s2255 driver needs. I'm very 
+>> interested
+>> in what it finds (or, as the case might be, what it doesn't find).
+>>
+>> In order to do the streaming tests you have to run it with option -s.
+>>
+> 
+> The current driver before the videobuf2 patch has 3 errors and 8 
+> warnings with option "-s".  The warnings are "msg5650" warnings that 
+> will break existing applications if fixed.
+> 
+> Here's what is causing at least two of the errors (the other is 
+> unsupported USERPTR, which will be fixed in VB2):
+> 
+> Vidioc_reqbufs calls videobuf_reqbufs, which returns a fail if 
+> req->count = 0.
+> 
+> IE:
+> 
+> if (req->count < 1) {
+> 	dprintk(1, "reqbufs: count invalid (%d)\n", req->count);
+> 	return -EINVAL;
+> }
+> 
+> Are drivers using videobuf required to check if 
+> v4l2_requestbuffers->count == 0 before calling videobuf_reqbufs? That 
+> seems unlikely and inefficient, so this could be an issue with 
+> videobuf-core.c..
 
-this patch removes the description of members which
-does not exists for ispccdc_lsc structure.
+videobuf has always handled REQBUFS with a count of 0 wrong. One of the
+many bad things about videobuf. Any driver using videobuf will fail the
+v4l2-compliance test so that is not surprising.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/omap3isp/ispccdc.h |    6 ------
- 1 file changed, 6 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.h b/drivers/media/platform/omap3isp/ispccdc.h
-index a5da9e1..9d24e41 100644
---- a/drivers/media/platform/omap3isp/ispccdc.h
-+++ b/drivers/media/platform/omap3isp/ispccdc.h
-@@ -63,12 +63,6 @@ struct ispccdc_lsc_config_req {
- 
- /*
-  * ispccdc_lsc - CCDC LSC parameters
-- * @update_config: Set when user changes config
-- * @request_enable: Whether LSC is requested to be enabled
-- * @config: LSC config set by user
-- * @update_table: Set when user provides a new LSC table to table_new
-- * @table_new: LSC table set by user, ISP address
-- * @table_inuse: LSC table currently in use, ISP address
-  */
- struct ispccdc_lsc {
- 	enum ispccdc_lsc_state state;
--- 
-1.7.9.5
-
+	Hans
