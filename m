@@ -1,113 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1524 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752163AbaBJI4J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:56:09 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:60688 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751387AbaBEIy4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Feb 2014 03:54:56 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 30/34] DocBook: document new v4l motion detection event.
-Date: Mon, 10 Feb 2014 09:46:55 +0100
-Message-Id: <1392022019-5519-31-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 5/9] msi3101: use formats defined in V4L2 API
+Date: Wed,  5 Feb 2014 10:54:36 +0200
+Message-Id: <1391590480-2146-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1391590480-2146-1-git-send-email-crope@iki.fi>
+References: <1391590480-2146-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Switch new formats V4L2_SDR_FMT_CU8 and V4L2_SDR_FMT_CU16LE as those
+are now defined in API.
 
-Document the new motion detection event.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml | 44 ++++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  8 ++++
- 2 files changed, 52 insertions(+)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 89891ad..ffa1fac 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -94,6 +94,12 @@
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>&v4l2-event-motion-det;</entry>
-+            <entry><structfield>motion_det</structfield></entry>
-+	    <entry>Event data for event V4L2_EVENT_MOTION_DET.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
-             <entry><structfield>data</structfield>[64]</entry>
- 	    <entry>Event data. Defined by the event type. The union
-@@ -242,6 +248,44 @@
-       </tgroup>
-     </table>
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index df1a3a1..36990cb 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -52,8 +52,6 @@
+ #define MAX_ISOC_ERRORS         20
  
-+    <table frame="none" pgwide="1" id="v4l2-event-motion-det">
-+      <title>struct <structname>v4l2_event_motion_det</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>
-+	      Currently only one flag is available: if <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant>
-+	      is set, then the <structfield>frame_sequence</structfield> field is valid,
-+	      otherwise that field should be ignored.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>frame_sequence</structfield></entry>
-+	    <entry>
-+	      The sequence number of the frame being received. Only valid if the
-+	      <constant>V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ</constant> flag was set.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>region_mask</structfield></entry>
-+	    <entry>
-+	      The bitmask of the regions that reported motion. There is at least one
-+	      region. If this field is 0, then no motion was detected at all.
-+	      If there is no <constant>V4L2_CID_DETECT_MD_REGION_GRID</constant> control
-+	      (see <xref linkend="detect-controls" />) to assign a different region
-+	      to each cell in the motion detection grid, then that all cells
-+	      are automatically assigned to the default region 0.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-     <table pgwide="1" frame="none" id="changes-flags">
-       <title>Changes</title>
-       <tgroup cols="3">
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 5c70b61..9e68976 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -155,6 +155,14 @@
- 	    </entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_EVENT_MOTION_DET</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>
-+	      <para>Triggered whenever the motion detection state for one or more of the regions
-+	      changes. This event has a &v4l2-event-motion-det; associated with it.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
- 	    <entry>0x08000000</entry>
- 	    <entry>Base event number for driver-private events.</entry>
+ /* TODO: These should be moved to V4L2 API */
+-#define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+-#define V4L2_PIX_FMT_SDR_U16LE  v4l2_fourcc('D', 'U', '1', '6') /* unsigned 16-bit LE */
+ #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
+ #define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
+ #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
+@@ -97,11 +95,11 @@ struct msi3101_format {
+ /* format descriptions for capture and preview */
+ static struct msi3101_format formats[] = {
+ 	{
+-		.name		= "8-bit unsigned",
+-		.pixelformat	= V4L2_PIX_FMT_SDR_U8,
++		.name		= "IQ U8",
++		.pixelformat	= V4L2_SDR_FMT_CU8,
+ 	}, {
+-		.name		= "16-bit unsigned little endian",
+-		.pixelformat	= V4L2_PIX_FMT_SDR_U16LE,
++		.name		= "IQ U16LE",
++		.pixelformat	=  V4L2_SDR_FMT_CU16LE,
+ #if 0
+ 	}, {
+ 		.name		= "8-bit signed",
+@@ -940,11 +938,11 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 
+ 	/* select stream format */
+ 	switch (s->pixelformat) {
+-	case V4L2_PIX_FMT_SDR_U8:
++	case V4L2_SDR_FMT_CU8:
+ 		s->convert_stream = msi3101_convert_stream_504_u8;
+ 		reg7 = 0x000c9407;
+ 		break;
+-	case V4L2_PIX_FMT_SDR_U16LE:
++	case  V4L2_SDR_FMT_CU16LE:
+ 		s->convert_stream = msi3101_convert_stream_252_u16;
+ 		reg7 = 0x00009407;
+ 		break;
+@@ -1416,7 +1414,7 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	INIT_LIST_HEAD(&s->queued_bufs);
+ 	s->udev = udev;
+ 	s->f_adc = bands_adc[0].rangelow;
+-	s->pixelformat = V4L2_PIX_FMT_SDR_U8;
++	s->pixelformat = V4L2_SDR_FMT_CU8;
+ 
+ 	/* Init videobuf2 queue structure */
+ 	s->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
 -- 
-1.8.5.2
+1.8.5.3
 
