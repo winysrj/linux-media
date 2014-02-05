@@ -1,96 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51839 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:47719 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753595AbaB0AWV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:22:21 -0500
+	id S1751424AbaBEIy6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Feb 2014 03:54:58 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 08/13] DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
-Date: Thu, 27 Feb 2014 02:22:03 +0200
-Message-Id: <1393460528-11684-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
-References: <1393460528-11684-1-git-send-email-crope@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 9/9] msi3101: provide RF tuner bands from sub-device
+Date: Wed,  5 Feb 2014 10:54:40 +0200
+Message-Id: <1391590480-2146-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1391590480-2146-1-git-send-email-crope@iki.fi>
+References: <1391590480-2146-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document V4L2_SDR_FMT_CU16LE format.
-It is complex unsigned 16-bit little endian IQ sample. Used by
-software defined radio devices.
+Let the msi001 tuner driver report its frequency bands.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
 Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        | 46 ++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
- 2 files changed, 47 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+ drivers/staging/media/msi3101/sdr-msi3101.c | 48 +++++++++--------------------
+ 1 file changed, 15 insertions(+), 33 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-new file mode 100644
-index 0000000..26288ff
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-@@ -0,0 +1,46 @@
-+<refentry id="V4L2-SDR-FMT-CU16LE">
-+  <refmeta>
-+    <refentrytitle>V4L2_SDR_FMT_CU16LE ('CU16')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+    <refnamediv>
-+      <refname>
-+        <constant>V4L2_SDR_FMT_CU16LE</constant>
-+      </refname>
-+      <refpurpose>Complex unsigned 16-bit little endian IQ sample</refpurpose>
-+    </refnamediv>
-+    <refsect1>
-+      <title>Description</title>
-+      <para>
-+This format contains sequence of complex number samples. Each complex number
-+consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
-+represented as a 16 bit unsigned little endian number. I value comes first
-+and Q value after that.
-+      </para>
-+    <example>
-+      <title><constant>V4L2_SDR_FMT_CU16LE</constant> 1 sample</title>
-+      <formalpara>
-+        <title>Byte Order.</title>
-+        <para>Each cell is one byte.
-+          <informaltable frame="none">
-+            <tgroup cols="3" align="center">
-+              <colspec align="left" colwidth="2*" />
-+              <tbody valign="top">
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;0:</entry>
-+                  <entry>I'<subscript>0[7:0]</subscript></entry>
-+                  <entry>I'<subscript>0[15:8]</subscript></entry>
-+                </row>
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;2:</entry>
-+                  <entry>Q'<subscript>0[7:0]</subscript></entry>
-+                  <entry>Q'<subscript>0[15:8]</subscript></entry>
-+                </row>
-+              </tbody>
-+            </tgroup>
-+          </informaltable>
-+        </para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 40adcb8..f535d9b 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -818,6 +818,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
- interface only.</para>
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 36990cb..6bd7b67 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -57,7 +57,7 @@
+ #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
+ #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
  
-     &sub-sdr-cu08;
-+    &sub-sdr-cu16le;
+-static const struct v4l2_frequency_band bands_adc[] = {
++static const struct v4l2_frequency_band bands[] = {
+ 	{
+ 		.tuner = 0,
+ 		.type = V4L2_TUNER_ADC,
+@@ -68,24 +68,6 @@ static const struct v4l2_frequency_band bands_adc[] = {
+ 	},
+ };
  
-   </section>
+-static const struct v4l2_frequency_band bands_rf[] = {
+-	{
+-		.tuner = 1,
+-		.type = V4L2_TUNER_RF,
+-		.index = 0,
+-		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
+-		.rangelow   =   49000000,
+-		.rangehigh  =  263000000,
+-	}, {
+-		.tuner = 1,
+-		.type = V4L2_TUNER_RF,
+-		.index = 1,
+-		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
+-		.rangelow   =  390000000,
+-		.rangehigh  =  960000000,
+-	},
+-};
+-
+ /* stream formats */
+ struct msi3101_format {
+ 	char	*name;
+@@ -1268,8 +1250,8 @@ static int msi3101_s_frequency(struct file *file, void *priv,
  
+ 	if (f->tuner == 0) {
+ 		s->f_adc = clamp_t(unsigned int, f->frequency,
+-				bands_adc[0].rangelow,
+-				bands_adc[0].rangehigh);
++				bands[0].rangelow,
++				bands[0].rangehigh);
+ 		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
+ 				__func__, s->f_adc);
+ 		ret = msi3101_set_usb_adc(s);
+@@ -1286,25 +1268,25 @@ static int msi3101_enum_freq_bands(struct file *file, void *priv,
+ 		struct v4l2_frequency_band *band)
+ {
+ 	struct msi3101_state *s = video_drvdata(file);
++	int ret;
+ 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
+ 			__func__, band->tuner, band->type, band->index);
+ 
+ 	if (band->tuner == 0) {
+-		if (band->index >= ARRAY_SIZE(bands_adc))
+-			return -EINVAL;
+-
+-		*band = bands_adc[band->index];
++		if (band->index >= ARRAY_SIZE(bands)) {
++			ret = -EINVAL;
++		} else {
++			*band = bands[band->index];
++			ret = 0;
++		}
+ 	} else if (band->tuner == 1) {
+-		/* TODO: add that to v4l2_subdev_tuner_ops */
+-		if (band->index >= ARRAY_SIZE(bands_rf))
+-			return -EINVAL;
+-
+-		*band = bands_rf[band->index];
++		ret = v4l2_subdev_call(s->v4l2_subdev, tuner,
++				enum_freq_bands, band);
+ 	} else {
+-		return -EINVAL;
++		ret = -EINVAL;
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static const struct v4l2_ioctl_ops msi3101_ioctl_ops = {
+@@ -1413,7 +1395,7 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	spin_lock_init(&s->queued_bufs_lock);
+ 	INIT_LIST_HEAD(&s->queued_bufs);
+ 	s->udev = udev;
+-	s->f_adc = bands_adc[0].rangelow;
++	s->f_adc = bands[0].rangelow;
+ 	s->pixelformat = V4L2_SDR_FMT_CU8;
+ 
+ 	/* Init videobuf2 queue structure */
 -- 
 1.8.5.3
 
