@@ -1,71 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:43090 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751136AbaBGSlp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 13:41:45 -0500
-Date: Fri, 7 Feb 2014 19:42:04 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH RFC 0/2] drivers/base: simplify simple DT-based
- components
-Message-ID: <20140207194204.4d4326bd@armhf>
-In-Reply-To: <20140207173326.GD26684@n2100.arm.linux.org.uk>
-References: <cover.1391793068.git.moinejf@free.fr>
-	<20140207173326.GD26684@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753225AbaBEQmJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 44/47] adv7604: Specify the default input through platform data
+Date: Wed,  5 Feb 2014 17:42:35 +0100
+Message-Id: <1391618558-5580-45-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 7 Feb 2014 17:33:26 +0000
-Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+And set input routing when initializing the device.
 
-> On Fri, Feb 07, 2014 at 06:11:08PM +0100, Jean-Francois Moine wrote:
-> > This patch series tries to simplify the code of simple devices in case
-> > they are part of componentised subsystems, are declared in a DT, and
-> > are not using the component bin/unbind functions.
-> 
-> I wonder - I said earlier today that this works absolutely fine without
-> modification with DT, so why are you messing about with it adding DT
-> support?
-> 
-> This is totally the wrong approach.  The idea is that this deals with
-> /devices/ and /devices/ only.  It groups up /devices/.
-> 
-> It's up to the add_component callback to the master device to decide
-> how to deal with that.
-> 
-> > Jean-Francois Moine (2):
-> >   drivers/base: permit base components to omit the bind/unbind ops
-> 
-> And this patch has me wondering if you even understand how to use
-> this...  The master bind/unbind callbacks are the ones which establish
-> the "card" based context with the subsystem.
-> 
-> Please, before buggering up this nicely designed implementation, please
-> /first/ look at the imx-drm rework which was posted back in early January
-> which illustrates how this is used in a DT context - which is something
-> I've already pointed you at once today already.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 7 +++++++
+ include/media/adv7604.h     | 2 ++
+ 2 files changed, 9 insertions(+)
 
-As I told in a previous mail, your code works fine in my DT-based
-Cubox. I am rewriting the TDA988x as a normal encoder/connector, and,
-yes, the bind/unbind functions are useful in this case.
-
-But you opened a door. In a DT context, you know that the probe_defer
-mechanism does not work correctly. Your work permits to solve delicate
-cases: your component_add tells exactly when a device is available, and
-the master bind callback is the green signal for the device waiting for
-its resources. Indeed, your system was not created for such a usage,
-but it works as it is (anyway, the component bind/unbind functions may
-be empty...).
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 2f38071..e586c1c 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2419,6 +2419,13 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
+ 
+ 	disable_input(sd);
+ 
++	if (pdata->default_input >= 0 &&
++	    pdata->default_input < state->source_pad) {
++		state->selected_input = pdata->default_input;
++		select_input(sd);
++		enable_input(sd);
++	}
++
+ 	/* power */
+ 	io_write(sd, 0x0c, 0x42);   /* Power up part and power down VDP */
+ 	io_write(sd, 0x0b, 0x44);   /* Power down ESDP block */
+diff --git a/include/media/adv7604.h b/include/media/adv7604.h
+index dddb0cb..0cad7a7 100644
+--- a/include/media/adv7604.h
++++ b/include/media/adv7604.h
+@@ -94,6 +94,8 @@ struct adv7604_platform_data {
+ 	int hpd_gpio[4];
+ 	bool hpd_gpio_low[4];
+ 
++	int default_input;
++
+ 	/* Analog input muxing mode */
+ 	enum adv7604_ain_sel ain_sel;
+ 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.8.3.2
+
