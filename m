@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm35.bullet.mail.ne1.yahoo.com ([98.138.229.28]:31921 "EHLO
-	nm35.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754396AbaBUOw1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 09:52:27 -0500
-References: <1392924626.38711.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5307208B.8030908@redhat.com>
-Message-ID: <1392994175.4964.YahooMailNeo@web120304.mail.ne1.yahoo.com>
-Date: Fri, 21 Feb 2014 06:49:35 -0800 (PST)
-From: Chris Rankin <rankincj@yahoo.com>
-Reply-To: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: PWC webcam and setpwc tool no longer working with 3.12.11 kernel
-To: Hans de Goede <hdegoede@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-In-Reply-To: <5307208B.8030908@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213AbaBEQmI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:08 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 42/47] adv7604: Sort headers alphabetically
+Date: Wed,  5 Feb 2014 17:42:33 +0100
+Message-Id: <1391618558-5580-43-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, 21 February 2014, 9:47, Hans de Goede <hdegoede@redhat.com> wrote:
+This helps locating duplicates and inserting new headers.
 
-> This is likely caused by the camera being plugged into a usb-bus which already is used
-> by other reserved-bandwidth devices such as mice, keyboard, usb soundcards, etc.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-> If possible USB-3 ports are preferred over USB-2 ports or connecting through an USB-2
-> hub. USB-2's USB-1 emulation has some issues, which means we cannot use full USB-1 bandwidth
-> there.
-
-Hi,
-
-Yes, it turns out that every device plugged into one of the USB2 ports on the back of this PC ends up on the same USB2 hub. Moving the PWC device to one of the USB3 ports instead allows it to work, although it seems like a shocking waste of a USB3 port - this being an old USB1 webcam!
-
-And v4l2-ctl seem to recognise it as well:
-
-$ v4l2-ctl --info
-Driver Info (not using libv4l2):
-    Driver name   : pwc
-    Card type     : Logitech QuickCam Zoom
-    Bus info      : usb-0000:05:00.0-2
-    Driver version: 3.12.11
-    Capabilities  : 0x85000001
-        Video Capture
-        Read/Write
-        Streaming
-        Device Capabilities
-    Device Caps   : 0x05000001
-        Video Capture
-        Read/Write
-        Streaming
-
-Cheers,
-Chris
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index c34cfd6..369cb1e 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -27,19 +27,19 @@
+  * REF_03 - Analog devices, ADV7604, Hardware Manual, Rev. F, August 2010
+  */
+ 
+-
++#include <linux/delay.h>
++#include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+-#include <linux/i2c.h>
+-#include <linux/delay.h>
++#include <linux/v4l2-dv-timings.h>
+ #include <linux/videodev2.h>
+ #include <linux/workqueue.h>
+-#include <linux/v4l2-dv-timings.h>
+-#include <media/v4l2-device.h>
++
++#include <media/adv7604.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-dv-timings.h>
+-#include <media/adv7604.h>
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+-- 
+1.8.3.2
 
