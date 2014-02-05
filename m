@@ -1,48 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50448 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752995AbaBJT3Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 14:29:16 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753183AbaBEQmA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 4/5] MAINTAINERS: add msi001 driver
-Date: Mon, 10 Feb 2014 21:29:02 +0200
-Message-Id: <1392060543-3972-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1392060543-3972-1-git-send-email-crope@iki.fi>
-References: <1392060543-3972-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 31/47] adv7604: Add 16-bit read functions for CP and HDMI
+Date: Wed,  5 Feb 2014 17:42:22 +0100
+Message-Id: <1391618558-5580-32-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mirics MSi001 silicon tuner driver. Currently in staging as SDR API
-is not ready.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- MAINTAINERS | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/i2c/adv7604.c | 48 ++++++++++++++++++++++-----------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b2cf5cf..15ebabb 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5757,6 +5757,16 @@ L:	platform-driver-x86@vger.kernel.org
- S:	Supported
- F:	drivers/platform/x86/msi-wmi.c
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index cfcbb6d..3d6876d 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -542,6 +542,11 @@ static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
+ 	return adv_smbus_read_byte_data(state->i2c_hdmi, reg);
+ }
  
-+MSI001 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/staging/media/msi3101/msi001*
++static u16 hdmi_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
++{
++	return ((hdmi_read(sd, reg) << 8) | hdmi_read(sd, reg + 1)) & mask;
++}
 +
- MT9M032 APTINA SENSOR DRIVER
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
+ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv7604_state *state = to_state(sd);
+@@ -575,6 +580,11 @@ static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
+ 	return adv_smbus_read_byte_data(state->i2c_cp, reg);
+ }
+ 
++static u16 cp_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
++{
++	return ((cp_read(sd, reg) << 8) | cp_read(sd, reg + 1)) & mask;
++}
++
+ static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ {
+ 	struct adv7604_state *state = to_state(sd);
+@@ -1203,8 +1213,8 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
+ 	}
+ 
+ 	/* read STDI */
+-	stdi->bl = ((cp_read(sd, 0xb1) & 0x3f) << 8) | cp_read(sd, 0xb2);
+-	stdi->lcf = ((cp_read(sd, 0xb3) & 0x7) << 8) | cp_read(sd, 0xb4);
++	stdi->bl = cp_read16(sd, 0xb1, 0x3fff);
++	stdi->lcf = cp_read16(sd, 0xb3, 0x7ff);
+ 	stdi->lcvs = cp_read(sd, 0xb3) >> 3;
+ 	stdi->interlaced = io_read(sd, 0x12) & 0x10;
+ 
+@@ -1315,8 +1325,8 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
+ 
+ 		timings->type = V4L2_DV_BT_656_1120;
+ 
+-		bt->width = (hdmi_read(sd, 0x07) & 0x0f) * 256 + hdmi_read(sd, 0x08);
+-		bt->height = (hdmi_read(sd, 0x09) & 0x0f) * 256 + hdmi_read(sd, 0x0a);
++		bt->width = hdmi_read16(sd, 0x07, 0xfff);
++		bt->height = hdmi_read16(sd, 0x09, 0xfff);
+ 		freq = (hdmi_read(sd, 0x06) * 1000000) +
+ 			((hdmi_read(sd, 0x3b) & 0x30) >> 4) * 250000;
+ 		if (is_hdmi(sd)) {
+@@ -1326,29 +1336,19 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
+ 			freq = freq * 8 / bits_per_channel;
+ 		}
+ 		bt->pixelclock = freq;
+-		bt->hfrontporch = (hdmi_read(sd, 0x20) & 0x03) * 256 +
+-			hdmi_read(sd, 0x21);
+-		bt->hsync = (hdmi_read(sd, 0x22) & 0x03) * 256 +
+-			hdmi_read(sd, 0x23);
+-		bt->hbackporch = (hdmi_read(sd, 0x24) & 0x03) * 256 +
+-			hdmi_read(sd, 0x25);
+-		bt->vfrontporch = ((hdmi_read(sd, 0x2a) & 0x1f) * 256 +
+-			hdmi_read(sd, 0x2b)) / 2;
+-		bt->vsync = ((hdmi_read(sd, 0x2e) & 0x1f) * 256 +
+-			hdmi_read(sd, 0x2f)) / 2;
+-		bt->vbackporch = ((hdmi_read(sd, 0x32) & 0x1f) * 256 +
+-			hdmi_read(sd, 0x33)) / 2;
++		bt->hfrontporch = hdmi_read16(sd, 0x20, 0x3ff);
++		bt->hsync = hdmi_read16(sd, 0x22, 0x3ff);
++		bt->hbackporch = hdmi_read16(sd, 0x24, 0x3ff);
++		bt->vfrontporch = hdmi_read16(sd, 0x2a, 0x1fff) / 2;
++		bt->vsync = hdmi_read16(sd, 0x2e, 0x1fff) / 2;
++		bt->vbackporch = hdmi_read16(sd, 0x32, 0x1fff) / 2;
+ 		bt->polarities = ((hdmi_read(sd, 0x05) & 0x10) ? V4L2_DV_VSYNC_POS_POL : 0) |
+ 			((hdmi_read(sd, 0x05) & 0x20) ? V4L2_DV_HSYNC_POS_POL : 0);
+ 		if (bt->interlaced == V4L2_DV_INTERLACED) {
+-			bt->height += (hdmi_read(sd, 0x0b) & 0x0f) * 256 +
+-					hdmi_read(sd, 0x0c);
+-			bt->il_vfrontporch = ((hdmi_read(sd, 0x2c) & 0x1f) * 256 +
+-					hdmi_read(sd, 0x2d)) / 2;
+-			bt->il_vsync = ((hdmi_read(sd, 0x30) & 0x1f) * 256 +
+-					hdmi_read(sd, 0x31)) / 2;
+-			bt->vbackporch = ((hdmi_read(sd, 0x34) & 0x1f) * 256 +
+-					hdmi_read(sd, 0x35)) / 2;
++			bt->height += hdmi_read16(sd, 0x0b, 0xfff);
++			bt->il_vfrontporch = hdmi_read16(sd, 0x2c, 0x1fff) / 2;
++			bt->il_vsync = hdmi_read16(sd, 0x30, 0x1fff) / 2;
++			bt->vbackporch = hdmi_read16(sd, 0x34, 0x1fff) / 2;
+ 		}
+ 		adv7604_fill_optional_dv_timings_fields(sd, timings);
+ 	} else {
 -- 
-1.8.5.3
+1.8.3.2
 
