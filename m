@@ -1,56 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:51855 "EHLO
-	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753443AbaBORQb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Feb 2014 12:16:31 -0500
-Date: Sat, 15 Feb 2014 09:16:19 -0800
-From: Josh Triplett <josh@joshtriplett.org>
-To: Levente Kurusa <levex@linux.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	OSUOSL Drivers <devel@driverdev.osuosl.org>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Lisa Nguyen <lisa@xenapiadmin.com>,
-	Archana kumari <archanakumari959@gmail.com>,
-	David Binderman <dcb314@hotmail.com>
-Subject: Re: [PATCH] staging: davinci_vpfe: fix error check
-Message-ID: <20140215171619.GA22985@leaf>
-References: <1392459431-28203-1-git-send-email-levex@linux.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1392459431-28203-1-git-send-email-levex@linux.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752784AbaBEQl6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 28/47] adv7604: Add missing include to linux/types.h
+Date: Wed,  5 Feb 2014 17:42:19 +0100
+Message-Id: <1391618558-5580-29-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Feb 15, 2014 at 11:17:11AM +0100, Levente Kurusa wrote:
-> The check would check the pointer, which is never less than 0.
-> According to the error message, the correct check would be
-> to check the return value of ipipe_mode. Check that instead.
-> 
-> Reported-by: David Binderman <dcb314@hotmail.com>
-> Signed-off-by: Levente Kurusa <levex@linux.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
 
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+The file is using u8 which is defined in linux/types.h.
 
->  drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-> index 2d36b60..b2daf5e 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-> @@ -267,7 +267,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
->  	}
->  
->  	ipipe_mode = get_ipipe_mode(ipipe);
-> -	if (ipipe < 0) {
-> +	if (ipipe_mode < 0) {
->  		pr_err("Failed to get ipipe mode");
->  		return -EINVAL;
->  	}
-> -- 
-> 1.8.3.1
-> 
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/adv7604.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/media/adv7604.h b/include/media/adv7604.h
+index d262a3a..c6b3937 100644
+--- a/include/media/adv7604.h
++++ b/include/media/adv7604.h
+@@ -21,6 +21,8 @@
+ #ifndef _ADV7604_
+ #define _ADV7604_
+ 
++#include <linux/types.h>
++
+ /* Analog input muxing modes (AFE register 0x02, [2:0]) */
+ enum adv7604_ain_sel {
+ 	ADV7604_AIN1_2_3_NC_SYNC_1_2 = 0,
+-- 
+1.8.3.2
+
