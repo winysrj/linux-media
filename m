@@ -1,43 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41969 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755760AbaBRO0r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 09:26:47 -0500
+	with ESMTP id S1752784AbaBEQlv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:51 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 0/3] uvcvideo VIDIOC_CREATE_BUFS support
-Date: Tue, 18 Feb 2014 15:27:46 +0100
-Message-Id: <1392733669-5281-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 09/47] adv7842: Add pad-level DV timings operations
+Date: Wed,  5 Feb 2014 17:42:00 +0100
+Message-Id: <1391618558-5580-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+The video enum_dv_timings and dv_timings_cap operations are deprecated.
+Implement the pad-level version of those operations to prepare for the
+removal of the video version.
 
-Here's a patch set that enables VIDIOC_CREATE_BUFS support in the uvcvideo
-driver. It's based on the patch you've submitted (3/3), with two additional
-cleanup patches to simplify the queue_setup implementation and supporting
-allocation of buffers larger than the current frame size.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7842.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-As you've submitted patch 3/3 I assume you have a use case, could you then
-please test the patch set to make sure 1/3 and 2/3 don't break anything ?
-
-Laurent Pinchart (2):
-  uvcvideo: Remove duplicate check for number of buffers in queue_setup
-  uvcvideo: Support allocating buffers larger than the current frame
-    size
-
-Philipp Zabel (1):
-  uvcvideo: Enable VIDIOC_CREATE_BUFS
-
- drivers/media/usb/uvc/uvc_queue.c | 20 +++++++++++++++++---
- drivers/media/usb/uvc/uvc_v4l2.c  | 10 ++++++++++
- drivers/media/usb/uvc/uvcvideo.h  |  4 ++--
- 3 files changed, 29 insertions(+), 5 deletions(-)
-
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index e04fe3f..78d21fd 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1399,6 +1399,9 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
+ static int adv7842_enum_dv_timings(struct v4l2_subdev *sd,
+ 				   struct v4l2_enum_dv_timings *timings)
+ {
++	if (timings->pad != 0)
++		return -EINVAL;
++
+ 	return v4l2_enum_dv_timings_cap(timings,
+ 		adv7842_get_dv_timings_cap(sd), adv7842_check_dv_timings, NULL);
+ }
+@@ -1406,6 +1409,9 @@ static int adv7842_enum_dv_timings(struct v4l2_subdev *sd,
+ static int adv7842_dv_timings_cap(struct v4l2_subdev *sd,
+ 				  struct v4l2_dv_timings_cap *cap)
+ {
++	if (cap->pad != 0)
++		return -EINVAL;
++
+ 	*cap = *adv7842_get_dv_timings_cap(sd);
+ 	return 0;
+ }
+@@ -2897,6 +2903,8 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
+ static const struct v4l2_subdev_pad_ops adv7842_pad_ops = {
+ 	.get_edid = adv7842_get_edid,
+ 	.set_edid = adv7842_set_edid,
++	.enum_dv_timings = adv7842_enum_dv_timings,
++	.dv_timings_cap = adv7842_dv_timings_cap,
+ };
+ 
+ static const struct v4l2_subdev_ops adv7842_ops = {
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
