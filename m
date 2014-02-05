@@ -1,126 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1250 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752089AbaBJIsH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:48:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 20/34] DocBook media: update VIDIOC_G/S/TRY_EXT_CTRLS.
-Date: Mon, 10 Feb 2014 09:46:45 +0100
-Message-Id: <1392022019-5519-21-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([143.182.124.37]:20864 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751219AbaBELqi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Feb 2014 06:46:38 -0500
+Date: Wed, 5 Feb 2014 19:46:35 +0800
+From: Fengguang Wu <fengguang.wu@intel.com>
+To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [linuxtv-media:master 89/499] WARNING: usleep_range should not use
+ min == max args; see Documentation/timers/timers-howto.txt
+Message-ID: <20140205114635.GA27786@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Document the support for the new complex type controls.
+Hi Sergio,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+FYI, there are new warnings show up in
+
+tree:   git://linuxtv.org/media_tree.git master
+head:   9fd9330c2d0ae6c149ec817ec71797f943db98b4
+commit: b4a0477c0b87c5b7a20a84df8cf81311d1efb226 [89/499] [media] v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers
+:::::: branch date: 11 minutes ago
+:::::: commit date: 9 weeks ago
+
+scripts/checkpatch.pl 0001-media-v4l-omap4iss-Add-support-for-OMAP4-camera-inte.patch
+# many are suggestions rather than must-fix
+
+WARNING: usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt
+#548: drivers/staging/media/omap4iss/iss_csi2.c:516:
++			usleep_range(100, 100);
+
+WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+#552: drivers/staging/media/omap4iss/iss_csi2.c:520:
++		printk(KERN_ERR "CSI2: Soft reset try count exceeded!\n");
+
+WARNING: usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt
+#566: drivers/staging/media/omap4iss/iss_csi2.c:534:
++		usleep_range(100, 100);
+
+WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+#570: drivers/staging/media/omap4iss/iss_csi2.c:538:
++		printk(KERN_ERR
+
+WARNING: quoted string split across lines
+#789: drivers/staging/media/omap4iss/iss_csi2.c:757:
++		dev_dbg(iss->dev, "CSI2: ComplexIO Error IRQ "
++			"%x\n", cpxio1_irqstatus);
+
+WARNING: quoted string split across lines
+#799: drivers/staging/media/omap4iss/iss_csi2.c:767:
++		dev_dbg(iss->dev, "CSI2 Err:"
++			" OCP:%d,"
+
+WARNING: quoted string split across lines
+#800: drivers/staging/media/omap4iss/iss_csi2.c:768:
++			" OCP:%d,"
++			" Short_pack:%d,"
+
+WARNING: quoted string split across lines
+#801: drivers/staging/media/omap4iss/iss_csi2.c:769:
++			" Short_pack:%d,"
++			" ECC:%d,"
+
+WARNING: quoted string split across lines
+#802: drivers/staging/media/omap4iss/iss_csi2.c:770:
++			" ECC:%d,"
++			" CPXIO:%d,"
+
+WARNING: quoted string split across lines
+#803: drivers/staging/media/omap4iss/iss_csi2.c:771:
++			" CPXIO:%d,"
++			" FIFO_OVF:%d,"
+
+WARNING: quoted string split across lines
+#804: drivers/staging/media/omap4iss/iss_csi2.c:772:
++			" FIFO_OVF:%d,"
++			"\n",
+
+WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+#1649: drivers/staging/media/omap4iss/iss_csiphy.c:81:
++		printk(KERN_ERR "CSI2 CIO set power failed!\n");
+
+WARNING: line over 80 characters
+#1749: drivers/staging/media/omap4iss/iss_csiphy.c:181:
++		if (lanes->data[i].pol > 1 || lanes->data[i].pos > (csi2->phy->max_data_lanes + 1))
+
+WARNING: line over 80 characters
+#1759: drivers/staging/media/omap4iss/iss_csiphy.c:191:
++	if (lanes->clk.pol > 1 || lanes->clk.pos > (csi2->phy->max_data_lanes + 1))
+
 ---
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 43 ++++++++++++++++++----
- 1 file changed, 35 insertions(+), 8 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index b3bb957..d946d6b 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -72,23 +72,30 @@ initialize the <structfield>id</structfield>,
- <structfield>size</structfield> and <structfield>reserved2</structfield> fields
- of each &v4l2-ext-control; and call the
- <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
--must also set the <structfield>string</structfield> field.</para>
-+must also set the <structfield>string</structfield> field. Controls
-+of complex types (<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set)
-+must set the <structfield>p</structfield> field.</para>
- 
-     <para>If the <structfield>size</structfield> is too small to
- receive the control result (only relevant for pointer-type controls
- like strings), then the driver will set <structfield>size</structfield>
- to a valid value and return an &ENOSPC;. You should re-allocate the
--string memory to this new size and try again. It is possible that the
--same issue occurs again if the string has grown in the meantime. It is
-+memory to this new size and try again. For the string type it is possible that
-+the same issue occurs again if the string has grown in the meantime. It is
- recommended to call &VIDIOC-QUERYCTRL; first and use
- <structfield>maximum</structfield>+1 as the new <structfield>size</structfield>
- value. It is guaranteed that that is sufficient memory.
- </para>
- 
-+    <para>Matrices are set and retrieved row-by-row. You cannot set a partial
-+matrix, all elements have to be set or retrieved. The total size is calculated
-+as <structfield>rows</structfield> * <structfield>cols</structfield> * <structfield>elem_size</structfield>.
-+These values can be obtained by calling &VIDIOC-QUERY-EXT-CTRL;.</para>
-+
-     <para>To change the value of a set of controls applications
- initialize the <structfield>id</structfield>, <structfield>size</structfield>,
- <structfield>reserved2</structfield> and
--<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
-+<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
- call the <constant>VIDIOC_S_EXT_CTRLS</constant> ioctl. The controls
- will only be set if <emphasis>all</emphasis> control values are
- valid.</para>
-@@ -96,11 +103,17 @@ valid.</para>
-     <para>To check if a set of controls have correct values applications
- initialize the <structfield>id</structfield>, <structfield>size</structfield>,
- <structfield>reserved2</structfield> and
--<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
-+<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
- call the <constant>VIDIOC_TRY_EXT_CTRLS</constant> ioctl. It is up to
- the driver whether wrong values are automatically adjusted to a valid
- value or if an error is returned.</para>
- 
-+    <para>For matrices it is possible to only set or check only the first
-+<constant>X</constant> elements by setting size to <constant>X * elem_size</constant>,
-+where <structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
-+Matrix elements are set row-by-row. Matrix elements that are not explicitly
-+set will be initialized to their default value.</para>
-+
-     <para>When the <structfield>id</structfield> or
- <structfield>ctrl_class</structfield> is invalid drivers return an
- &EINVAL;. When the value is out of bounds drivers can choose to take
-@@ -158,19 +171,33 @@ applications must set the array to zero.</entry>
- 	    <entry></entry>
- 	    <entry>__s32</entry>
- 	    <entry><structfield>value</structfield></entry>
--	    <entry>New value or current value.</entry>
-+	    <entry>New value or current value. Valid if this control is not of
-+type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
-+<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>__s64</entry>
- 	    <entry><structfield>value64</structfield></entry>
--	    <entry>New value or current value.</entry>
-+	    <entry>New value or current value. Valid if this control is of
-+type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
-+<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>char *</entry>
- 	    <entry><structfield>string</structfield></entry>
--	    <entry>A pointer to a string.</entry>
-+	    <entry>A pointer to a string. Valid if this control is of
-+type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>void *</entry>
-+	    <entry><structfield>p</structfield></entry>
-+	    <entry>A pointer to a complex type which can be a matrix and/or a
-+complex type (the control's type is >= <constant>V4L2_CTRL_COMPLEX_TYPES</constant>).
-+Valid if <constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set for this control.
-+</entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
--- 
-1.8.5.2
-
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
