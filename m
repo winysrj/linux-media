@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:57444 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755610AbaBGM2v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 07:28:51 -0500
-Date: Fri, 7 Feb 2014 12:28:32 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Daniel Vetter <daniel@ffwll.ch>, devel@driverdev.osuosl.org,
-	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 26/46] drivers/base: provide an infrastructure for
-	componentised subsystems
-Message-ID: <20140207122832.GA26684@n2100.arm.linux.org.uk>
-References: <20140102212528.GD7383@n2100.arm.linux.org.uk> <E1Vypo6-0007FF-Lb@rmk-PC.arm.linux.org.uk> <CAKMK7uFYhz8Pmv5E7aKY7yzZGDe_m8a0382Njv7tZRoBSfmRpw@mail.gmail.com> <20140207094656.GY26684@n2100.arm.linux.org.uk> <20140207125721.2d925387@armhf>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140207125721.2d925387@armhf>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753053AbaBEQlv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 11/47] s5p-tv: hdmiphy: Add pad-level DV timings operations
+Date: Wed,  5 Feb 2014 17:42:02 +0100
+Message-Id: <1391618558-5580-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 07, 2014 at 12:57:21PM +0100, Jean-Francois Moine wrote:
-> I started to use your code (which works fine, thanks), and it avoids a
-> lot of problems, especially, about probe_defer in a DT context.
-> 
-> I was wondering if your componentised mechanism could be extended to the
-> devices defined by DT.
+The video enum_dv_timings operation is deprecated. Implement the
+pad-level version of the operation to prepare for the removal of the
+video version.
 
-It was developed against imx-drm, which is purely DT based.  I already
-have a solution for the cubox armada DRM.
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/s5p-tv/hdmiphy_drv.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
+diff --git a/drivers/media/platform/s5p-tv/hdmiphy_drv.c b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+index e19a0af..ff22320 100644
+--- a/drivers/media/platform/s5p-tv/hdmiphy_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+@@ -225,6 +225,9 @@ static int hdmiphy_s_dv_timings(struct v4l2_subdev *sd,
+ static int hdmiphy_dv_timings_cap(struct v4l2_subdev *sd,
+ 	struct v4l2_dv_timings_cap *cap)
+ {
++	if (cap->pad != 0)
++		return -EINVAL;
++
+ 	cap->type = V4L2_DV_BT_656_1120;
+ 	/* The phy only determines the pixelclock, leave the other values
+ 	 * at 0 to signify that we have no information for them. */
+@@ -263,9 +266,14 @@ static const struct v4l2_subdev_video_ops hdmiphy_video_ops = {
+ 	.s_stream =  hdmiphy_s_stream,
+ };
+ 
++static const struct v4l2_subdev_pad_ops hdmiphy_pad_ops = {
++	.dv_timings_cap = hdmiphy_dv_timings_cap,
++};
++
+ static const struct v4l2_subdev_ops hdmiphy_ops = {
+ 	.core = &hdmiphy_core_ops,
+ 	.video = &hdmiphy_video_ops,
++	.pad = &hdmiphy_pad_ops,
+ };
+ 
+ static int hdmiphy_probe(struct i2c_client *client,
 -- 
-FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
-in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
-Estimate before purchase was "up to 13.2Mbit".
+1.8.3.2
+
