@@ -1,230 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2733 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751987AbaBJIsE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:48:04 -0500
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1904 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752810AbaBEROO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 12:14:14 -0500
+Message-ID: <52F2714A.1000103@xs4all.nl>
+Date: Wed, 05 Feb 2014 18:13:46 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 16/34] v4l2-ctrls: add matrix support.
-Date: Mon, 10 Feb 2014 09:46:41 +0100
-Message-Id: <1392022019-5519-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 06/47] v4l: Add pad-level DV timings subdev operations
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-7-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 02/05/2014 05:41 PM, Laurent Pinchart wrote:
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  include/media/v4l2-subdev.h    | 4 ++++
+>  include/uapi/linux/videodev2.h | 8 ++++++--
+>  2 files changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index d67210a..2c7355a 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -505,6 +505,10 @@ struct v4l2_subdev_pad_ops {
+>  			     struct v4l2_subdev_selection *sel);
+>  	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+>  	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+> +	int (*dv_timings_cap)(struct v4l2_subdev *sd,
+> +			      struct v4l2_dv_timings_cap *cap);
+> +	int (*enum_dv_timings)(struct v4l2_subdev *sd,
+> +			       struct v4l2_enum_dv_timings *timings);
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
+>  			     struct v4l2_subdev_format *source_fmt,
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 6ae7bbe..b75970d 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1086,12 +1086,14 @@ struct v4l2_dv_timings {
+>  
+>  /** struct v4l2_enum_dv_timings - DV timings enumeration
+>   * @index:	enumeration index
+> + * @pad:	the pad number for which to query capabilities
 
-Finish the userspace-facing matrix support.
+Add something like: "pad is only used with v4l-subdev nodes."
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 108 ++++++++++++++++++++---------------
- 1 file changed, 63 insertions(+), 45 deletions(-)
+>   * @reserved:	must be zeroed
+>   * @timings:	the timings for the given index
+>   */
+>  struct v4l2_enum_dv_timings {
+>  	__u32 index;
+> -	__u32 reserved[3];
+> +	__u32 pad;
+> +	__u32 reserved[2];
+>  	struct v4l2_dv_timings timings;
+>  };
+>  
+> @@ -1129,11 +1131,13 @@ struct v4l2_bt_timings_cap {
+>  
+>  /** struct v4l2_dv_timings_cap - DV timings capabilities
+>   * @type:	the type of the timings (same as in struct v4l2_dv_timings)
+> + * @pad:	the pad number for which to query capabilities
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index a61e602..b4a9ada 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1173,6 +1173,8 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- 		ptr.p_s32[idx] = ctrl->default_value;
- 		break;
- 	default:
-+		idx *= ctrl->elem_size;
-+		memset(ptr.p + idx, 0, ctrl->elem_size);
- 		break;
- 	}
- }
-@@ -1290,7 +1292,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 	u32 len;
- 
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
-+		return copy_to_user(c->p, ptr.p, c->size);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
-@@ -1334,8 +1336,17 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 	u32 size;
- 
- 	ctrl->is_new = 1;
--	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_from_user(ptr.p, c->p, ctrl->elem_size);
-+	if (ctrl->is_ptr && !ctrl->is_string) {
-+		unsigned idx;
-+
-+		ret = copy_from_user(ptr.p, c->p, c->size);
-+		if (ret || !ctrl->is_matrix)
-+			return ret;
-+		for (idx = c->size / ctrl->elem_size;
-+		     idx < ctrl->rows * ctrl->cols; idx++)
-+			ctrl->type_ops->init(ctrl, idx, ptr);
-+		return 0;
-+	}
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER64:
-@@ -1378,21 +1389,7 @@ static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
- {
- 	if (ctrl == NULL)
- 		return;
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		strcpy(to.p_char, from.p_char);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		*to.p_s64 = *from.p_s64;
--		break;
--	default:
--		if (ctrl->is_ptr)
--			memcpy(to.p, from.p, ctrl->elem_size);
--		else
--			*to.p_s32 = *from.p_s32;
--		break;
--	}
-+	memcpy(to.p, from.p, ctrl->rows * ctrl->cols * ctrl->elem_size);
- }
- 
- /* Copy the new value to the current value. */
-@@ -1444,15 +1441,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- static int cluster_changed(struct v4l2_ctrl *master)
- {
- 	bool changed = false;
-+	unsigned idx;
- 	int i;
- 
- 	for (i = 0; i < master->ncontrols; i++) {
- 		struct v4l2_ctrl *ctrl = master->cluster[i];
-+		bool ctrl_changed = false;
- 
- 		if (ctrl == NULL)
- 			continue;
--		ctrl->has_changed = !ctrl->type_ops->equal(ctrl, 0,
-+		for (idx = 0; idx < ctrl->rows * ctrl->cols; idx++)
-+			ctrl_changed |= !ctrl->type_ops->equal(ctrl, idx,
- 						ctrl->stores[0], ctrl->new);
-+		ctrl->has_changed = ctrl_changed;
- 		changed |= ctrl->has_changed;
- 	}
- 	return changed;
-@@ -1499,26 +1500,32 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
- 			struct v4l2_ext_control *c)
- {
- 	union v4l2_ctrl_ptr ptr;
--
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_INTEGER:
--	case V4L2_CTRL_TYPE_INTEGER_MENU:
--	case V4L2_CTRL_TYPE_MENU:
--	case V4L2_CTRL_TYPE_BITMASK:
--	case V4L2_CTRL_TYPE_BOOLEAN:
--	case V4L2_CTRL_TYPE_BUTTON:
--	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		ptr.p_s32 = &c->value;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	case V4L2_CTRL_TYPE_INTEGER64:
--		ptr.p_s64 = &c->value64;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
--
--	default:
--		ptr.p = c->p;
--		return ctrl->type_ops->validate(ctrl, 0, ptr);
-+	unsigned idx;
-+	int err = 0;
-+
-+	if (!ctrl->is_ptr) {
-+		switch (ctrl->type) {
-+		case V4L2_CTRL_TYPE_INTEGER:
-+		case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		case V4L2_CTRL_TYPE_MENU:
-+		case V4L2_CTRL_TYPE_BITMASK:
-+		case V4L2_CTRL_TYPE_BOOLEAN:
-+		case V4L2_CTRL_TYPE_BUTTON:
-+		case V4L2_CTRL_TYPE_CTRL_CLASS:
-+			ptr.p_s32 = &c->value;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+
-+		case V4L2_CTRL_TYPE_INTEGER64:
-+			ptr.p_s64 = &c->value64;
-+			return ctrl->type_ops->validate(ctrl, 0, ptr);
-+		default:
-+			break;
-+		}
- 	}
-+	ptr.p = c->p;
-+	for (idx = 0; !err && idx < c->size / ctrl->elem_size; idx++)
-+		err = ctrl->type_ops->validate(ctrl, idx, ptr);
-+	return err;
- }
- 
- static inline u32 node2id(struct list_head *node)
-@@ -1745,6 +1752,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	struct v4l2_ctrl *ctrl;
- 	bool is_matrix;
- 	unsigned sz_extra, tot_ctrl_size;
-+	unsigned idx;
- 	void *data;
- 	int err;
- 	int s;
-@@ -1854,7 +1862,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->stores[0].p = data;
- 	}
- 	for (s = -1; s <= 0; s++)
--		ctrl->type_ops->init(ctrl, 0, ctrl->stores[s]);
-+		for (idx = 0; idx < rows * cols; idx++)
-+			ctrl->type_ops->init(ctrl, idx, ctrl->stores[s]);
- 
- 	if (handler_new_ref(hdl, ctrl)) {
- 		kfree(ctrl);
-@@ -2548,12 +2557,18 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 			have_clusters = true;
- 		if (ctrl->cluster[0] != ctrl)
- 			ref = find_ref_lock(hdl, ctrl->cluster[0]->id);
--		if (ctrl->is_ptr && !ctrl->is_string && c->size < ctrl->elem_size) {
--			if (get) {
--				c->size = ctrl->elem_size;
--				return -ENOSPC;
-+		if (ctrl->is_ptr && !ctrl->is_string) {
-+			unsigned tot_size = ctrl->rows * ctrl->cols *
-+					    ctrl->elem_size;
-+
-+			if (c->size < tot_size) {
-+				if (get) {
-+					c->size = tot_size;
-+					return -ENOSPC;
-+				}
-+				return -EFAULT;
- 			}
--			return -EFAULT;
-+			c->size = tot_size;
- 		}
- 		/* Store the ref to the master control of the cluster */
- 		h->mref = ref;
-@@ -3093,7 +3108,7 @@ EXPORT_SYMBOL(v4l2_ctrl_notify);
- int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 			s64 min, s64 max, u64 step, s64 def)
- {
--	int ret = check_range(ctrl->type, min, max, step, def);
-+	int ret;
- 	struct v4l2_ext_control c;
- 
- 	switch (ctrl->type) {
-@@ -3103,6 +3118,9 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
-+		if (ctrl->is_matrix)
-+			return -EINVAL;
-+		ret = check_range(ctrl->type, min, max, step, def);
- 		if (ret)
- 			return ret;
- 		break;
--- 
-1.8.5.2
+Ditto.
 
+>   * @bt:		the BT656/1120 timings capabilities
+>   */
+>  struct v4l2_dv_timings_cap {
+>  	__u32 type;
+> -	__u32 reserved[3];
+> +	__u32 pad;
+> +	__u32 reserved[2];
+>  	union {
+>  		struct v4l2_bt_timings_cap bt;
+>  		__u32 raw_data[32];
+> 
+
+See also my comments for patch 27.
+
+Regards,
+
+	Hans
