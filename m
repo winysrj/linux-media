@@ -1,57 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2530 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752630AbaBQLo6 (ORCPT
+Received: from gateway01.websitewelcome.com ([69.56.142.19]:56917 "EHLO
+	gateway01.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753508AbaBESmV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 06:44:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 3/3] soc_camera: disable STD ioctls if no tvnorms are set.
-Date: Mon, 17 Feb 2014 12:44:14 +0100
-Message-Id: <1392637454-29179-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392637454-29179-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392637454-29179-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 5 Feb 2014 13:42:21 -0500
+Received: from gator3086.hostgator.com (ns6171.hostgator.com [50.87.144.121])
+	by gateway01.websitewelcome.com (Postfix) with ESMTP id 664F13CA8ABB8
+	for <linux-media@vger.kernel.org>; Wed,  5 Feb 2014 12:19:05 -0600 (CST)
+From: Dean Anderson <linux-dev@sensoray.com>
+To: hverkuil@xs4all.nl, linux-dev@sensoray.com,
+	linux-media@vger.kernel.org
+Subject: [PATCH] s2255drv: remove redundant parameter
+Date: Wed,  5 Feb 2014 10:18:55 -0800
+Message-Id: <1391624335-14963-1-git-send-email-linux-dev@sensoray.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Removing duplicate fmt from buffer structure.
 
-If the sub-device did not report any tvnorms, then disable the STD
-ioctls.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
 ---
- drivers/media/platform/soc_camera/soc_camera.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/usb/s2255/s2255drv.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 4b8c024..c8549bf 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1277,6 +1277,8 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
- 	sd->grp_id = soc_camera_grp_id(icd);
- 	v4l2_set_subdev_hostdata(sd, icd);
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 1b267b1..517901b 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -290,7 +290,6 @@ struct s2255_fmt {
+ struct s2255_buffer {
+ 	/* common v4l buffer stuff -- must be first */
+ 	struct videobuf_buffer vb;
+-	const struct s2255_fmt *fmt;
+ };
  
-+	v4l2_subdev_call(sd, video, g_tvnorms, &icd->vdev->tvnorms);
-+
- 	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler, NULL);
- 	if (ret < 0)
- 		return ret;
-@@ -1997,6 +1999,12 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
- 		return -ENODEV;
+ struct s2255_fh {
+@@ -625,13 +624,13 @@ static void s2255_fillbuff(struct s2255_vc *vc,
+ 	if (last_frame != -1) {
+ 		tmpbuf =
+ 		    (const char *)vc->buffer.frame[last_frame].lpvbits;
+-		switch (buf->fmt->fourcc) {
++		switch (vc->fmt->fourcc) {
+ 		case V4L2_PIX_FMT_YUYV:
+ 		case V4L2_PIX_FMT_UYVY:
+ 			planar422p_to_yuv_packed((const unsigned char *)tmpbuf,
+ 						 vbuf, buf->vb.width,
+ 						 buf->vb.height,
+-						 buf->fmt->fourcc);
++						 vc->fmt->fourcc);
+ 			break;
+ 		case V4L2_PIX_FMT_GREY:
+ 			memcpy(vbuf, tmpbuf, buf->vb.width * buf->vb.height);
+@@ -711,7 +710,6 @@ static int buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+ 		return -EINVAL;
+ 	}
  
- 	video_set_drvdata(icd->vdev, icd);
-+	if (icd->vdev->tvnorms == 0) {
-+		/* disable the STD API if there are no tvnorms defined */
-+		v4l2_disable_ioctl(icd->vdev, VIDIOC_G_STD);
-+		v4l2_disable_ioctl(icd->vdev, VIDIOC_S_STD);
-+		v4l2_disable_ioctl(icd->vdev, VIDIOC_ENUMSTD);
-+	}
- 	ret = video_register_device(icd->vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret < 0) {
- 		dev_err(icd->pdev, "video_register_device failed: %d\n", ret);
+-	buf->fmt = vc->fmt;
+ 	buf->vb.width = w;
+ 	buf->vb.height = h;
+ 	buf->vb.field = field;
 -- 
-1.8.5.2
+1.7.9.5
 
