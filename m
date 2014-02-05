@@ -1,31 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server7.irisoft.sk ([82.208.18.12]:45674 "EHLO
-	server7.irisoft.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211AbaBWQVz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Feb 2014 11:21:55 -0500
-Message-ID: <4db6d6053a0072d7e504d28f4668fd79.squirrel@82.208.18.12>
-Date: Sun, 23 Feb 2014 16:21:36 +0100 (CET)
-Subject: =?iso-8859-2?Q?V=E1=BEen=ED:_Webmail_odberate=B5?=
-From: "SNS Bank" <riaditel@prikrizi.sk>
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:51326 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751420AbaBEIy5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Feb 2014 03:54:57 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/9] DocBook: document RF tuner bandwidth controls
+Date: Wed,  5 Feb 2014 10:54:34 +0200
+Message-Id: <1391590480-2146-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1391590480-2146-1-git-send-email-crope@iki.fi>
+References: <1391590480-2146-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vá¾ení: Webmail odberateµ
+Add documentation for RF tuner bandwidth controls. These controls are
+used to set filters on tuner signal path.
 
-Týmto oznamujeme, ¾e vá¹ e-mailový úèet bol prekroèený
-skladovacie kapacity. Nebudete môc» odosiela» a prijíma»
-e-maily a
-e-mailový úèet bude vymazaný z ná¹ho servera. , aby sa zabránilo
-tento problém,
-Kliknite na odkaz ni¾¹ie pre aktualizáciu pokynov
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-http://webmailsurp.jimdo.com/
-
-Ïakujem.
-Mana¾érsky tím.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 0145341..345b6e5 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5007,6 +5007,25 @@ descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
+ description of this control class.</entry>
+             </row>
+             <row>
++              <entry spanname="id"><constant>V4L2_CID_BANDWIDTH_AUTO</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Enables/disables tuner radio channel
++bandwidth configuration. In automatic mode bandwidth configuration is performed
++by the driver.</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_BANDWIDTH</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Filter(s) on tuner signal path are used to
++filter signal according to receiving party needs. Driver configures filters to
++fulfill desired bandwidth requirement. Used when V4L2_CID_BANDWIDTH_AUTO is not
++set. The range and step are driver-specific.</entry>
++            </row>
++            <row>
+               <entry spanname="id"><constant>V4L2_CID_LNA_GAIN_AUTO</constant>&nbsp;</entry>
+               <entry>boolean</entry>
+             </row>
+-- 
+1.8.5.3
 
