@@ -1,110 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44088 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751687AbaBIItz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:55 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 03/86] rtl2832_sdr: use config struct from rtl2832 module
-Date: Sun,  9 Feb 2014 10:48:08 +0200
-Message-Id: <1391935771-18670-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from mail-qa0-f44.google.com ([209.85.216.44]:57778 "EHLO
+	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753296AbaBESQH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 13:16:07 -0500
+Received: by mail-qa0-f44.google.com with SMTP id w5so1116304qac.3
+        for <linux-media@vger.kernel.org>; Wed, 05 Feb 2014 10:16:04 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <52F2077E.5040901@imgtec.com>
+References: <20140115173559.7e53239a@samsung.com>
+	<1390246787-15616-1-git-send-email-a.seppala@gmail.com>
+	<20140121122826.GA25490@pequod.mess.org>
+	<CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com>
+	<20140122162953.GA1665@pequod.mess.org>
+	<CAKv9HNbVQwAcG98S3_Mj4A6zo8Ae2fLT6vn4LOYW1UMrwQku7Q@mail.gmail.com>
+	<20140122210024.GA3223@pequod.mess.org>
+	<20140122200142.002a39c2@samsung.com>
+	<CAKv9HNY7==4H2ZDrmaX+1BcarRAJd7zUE491oQ2ZJZXezpwOAw@mail.gmail.com>
+	<20140204155441.438c7a3c@samsung.com>
+	<CAKv9HNbYJ5FsQas=03u8pXCyiF5VSUfsOR46McukeisqVHme+g@mail.gmail.com>
+	<52F206D5.9060601@imgtec.com>
+	<52F2077E.5040901@imgtec.com>
+Date: Wed, 5 Feb 2014 20:16:04 +0200
+Message-ID: <CAKv9HNbfixr2746_4FewodYjOHO1G+TDgs9quyNeX87-KuBpbw@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
+From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is absolutely no need to define own configuration struct as
-same params are used demod main module. So use existing config.
+On 5 February 2014 11:42, James Hogan <james.hogan@imgtec.com> wrote:
+> On 05/02/14 09:39, James Hogan wrote:
+>> Hi Antti,
+>>
+>> On 05/02/14 07:03, Antti Seppälä wrote:
+>>> To wake up with nuvoton-cir we need to program several raw ir
+>>> pulse/space lengths to the hardware and not a scancode. James's
+>>> approach doesn't support this.
+>>
+>> Do the raw pulse/space lengths your hardware requires correspond to a
+>> single IR packet (mapping to a single scancode)?
+>>
+>> If so then my API is simply at a higher level of abstraction. I think
+>> this has the following advantages:
+>> * userspace sees a consistent interface at the same level of abstraction
+>> as it already has access to from input subsystem (i.e. scancodes). I.e.
+>> it doesn't need to care which IR device is in use, whether it does
+>> raw/hardware decode, or the details of the timings of the current protocol.
+>> * it supports hardware decoders which filter on the demodulated data
+>> rather than the raw pulse/space lengths.
+>>
+>> Of course to support this we'd need some per-protocol code to convert a
+>> scancode back to pulse/space lengths. I'd like to think that code could
+>> be generic, maybe as helper functions which multiple drivers could use,
+>> which could also handle corner cases of the API in a consistent way
+>> (e.g. user providing filter mask covering multiple scancodes, which
+>> presumably pulse/space).
+>
+> hmm, I didn't complete that sentence :(.
+> I meant:
+> ..., which presumably pulse/space can't really represent very easily).
+>
+> Cheers
+> James
+>
+>>
+>> I see I've just crossed emails with Mauro who has just suggested
+>> something similar. I agree that his (2) is the more elegant option.
+>>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c          | 5 +----
- drivers/staging/media/rtl2832u_sdr/Makefile      | 1 +
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 4 ++--
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h | 9 ++++-----
- 4 files changed, 8 insertions(+), 11 deletions(-)
+Yes, in nuvoton the ir pulses correspond to a scancode (or part of a scancode)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index b398ebf..ec6ab0f 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -735,9 +735,6 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
- 	struct rtl2832_config *rtl2832_config;
--	static const struct rtl2832_sdr_config rtl2832_sdr_config = {
--		.i2c_addr = 0x10,
--	};
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
-@@ -781,7 +778,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 
- 	/* attach SDR */
- 	dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
--			&rtl2832_sdr_config);
-+			rtl2832_config);
- 
- 	return 0;
- err:
-diff --git a/drivers/staging/media/rtl2832u_sdr/Makefile b/drivers/staging/media/rtl2832u_sdr/Makefile
-index 684546776..1009276 100644
---- a/drivers/staging/media/rtl2832u_sdr/Makefile
-+++ b/drivers/staging/media/rtl2832u_sdr/Makefile
-@@ -1,4 +1,5 @@
- obj-$(CONFIG_DVB_RTL2832_SDR) += rtl2832_sdr.o
- 
- ccflags-y += -Idrivers/media/dvb-core
-+ccflags-y += -Idrivers/media/dvb-frontends
- ccflags-y += -Idrivers/media/usb/dvb-usb-v2
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 0b110a3..208520e 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -61,7 +61,7 @@ struct rtl2832_sdr_state {
- #define URB_BUF            (1 << 2)
- 	unsigned long flags;
- 
--	const struct rtl2832_sdr_config *cfg;
-+	const struct rtl2832_config *cfg;
- 	struct dvb_frontend *fe;
- 	struct dvb_usb_device *d;
- 	struct i2c_adapter *i2c;
-@@ -1004,7 +1004,7 @@ static void rtl2832_sdr_video_release(struct v4l2_device *v)
- }
- 
- struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
--		struct i2c_adapter *i2c, const struct rtl2832_sdr_config *cfg)
-+		struct i2c_adapter *i2c, const struct rtl2832_config *cfg)
- {
- 	int ret;
- 	struct rtl2832_sdr_state *s;
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
-index 69d97c1..0803e45 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
-@@ -33,16 +33,15 @@
- 
- #include <linux/kconfig.h>
- 
--struct rtl2832_sdr_config {
--	u8 i2c_addr;
--};
-+/* for config struct */
-+#include "rtl2832.h"
- 
- #if IS_ENABLED(CONFIG_DVB_RTL2832_SDR)
- extern struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, const struct rtl2832_sdr_config *cfg);
-+	struct i2c_adapter *i2c, const struct rtl2832_config *cfg);
- #else
- static inline struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
--	struct i2c_adapter *i2c, const struct rtl2832_sdr_config *cfg)
-+	struct i2c_adapter *i2c, const struct rtl2832_config *cfg)
- {
- 	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
--- 
-1.8.5.3
+After giving it some thought I agree that using scancodes is the most
+elegant way for specifying wakeup commands. Too bad that nuvoton does
+not work with scancodes.
+I pretty much agree with Mauro that the right solution would be to
+write an IR encoder and use it to convert the given scancode back to a
+format understood by nuvoton.
 
+Writing IR encoders for all the protocols and an encoder selector
+functionality is quite labourous and sadly I don't have time for that
+anytime soon. If anyone wants to step up I'd be more than happy to
+help though :)
+
+-Antti
