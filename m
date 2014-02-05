@@ -1,61 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:36681 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711AbaB1VJa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 16:09:30 -0500
-Message-ID: <5310FB05.4000307@gmail.com>
-Date: Fri, 28 Feb 2014 22:09:25 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 3/7] of: Warn if of_graph_get_next_endpoint is called
- with the root node
-References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de> <1393522540-22887-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1393522540-22887-4-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:56857 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751416AbaBEIy4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Feb 2014 03:54:56 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/9] v4l: reorganize RF tuner control ID numbers
+Date: Wed,  5 Feb 2014 10:54:33 +0200
+Message-Id: <1391590480-2146-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1391590480-2146-1-git-send-email-crope@iki.fi>
+References: <1391590480-2146-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/27/2014 06:35 PM, Philipp Zabel wrote:
-> If of_graph_get_next_endpoint is given a parentless node instead of an
-> endpoint node, it is clearly a bug.
->
-> Signed-off-by: Philipp Zabel<p.zabel@pengutronix.de>
-> ---
->   drivers/of/base.c | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index b2f223f..6e650cf 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -2028,8 +2028,8 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
->   		of_node_put(node);
->   	} else {
->   		port = of_get_parent(prev);
-> -		if (!port)
-> -			/* Hm, has someone given us the root node ?... */
-> +		if (WARN_ONCE(!port, "%s(): endpoint has no parent node\n",
-> +			      __func__))
+It appears that controls are ordered by ID number. Change order of
+controls by reorganizing assigned IDs now as we can. It is not
+reasonable possible after the API is released. Leave some spare
+space between IDs too for future extensions.
 
-Perhaps we can add more information to this error log, e.g.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ include/uapi/linux/v4l2-controls.h | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
-			      __func__, prev->full_name))
-?
->   			return NULL;
->
->   		/* Avoid dropping prev node refcount to 0. */
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 3cf68a6..cc488c3 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -899,13 +899,13 @@ enum v4l2_deemphasis {
+ #define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
+ #define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
+ 
+-#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
+-#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
+-#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
+-#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
+-#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
+-#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
+-#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
+-#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
++#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
++#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
++#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
++#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
++#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
++#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 52)
++#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 61)
++#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
+ 
+ #endif
+-- 
+1.8.5.3
+
