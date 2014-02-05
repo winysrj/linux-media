@@ -1,81 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42594 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751826AbaBIJVs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 04:21:48 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1352 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344AbaBEDd4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 22:33:56 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s153Xrnb092505
+	for <linux-media@vger.kernel.org>; Wed, 5 Feb 2014 04:33:55 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id AAB5A2A00A6
+	for <linux-media@vger.kernel.org>; Wed,  5 Feb 2014 04:33:35 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 83/86] rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
-Date: Sun,  9 Feb 2014 10:49:28 +0200
-Message-Id: <1391935771-18670-84-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140205033335.AAB5A2A00A6@tschai.lan>
+Date: Wed,  5 Feb 2014 04:33:35 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RTL2832 driver provides muxed I2C adapters for tuner bus I2C gate
-control. Pass those adapters to rtl2832_sdr and e4000 modules in order
-to get rid of proprietary DVB .i2c_gate_ctrl() callback use.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 12 ++++++++++--
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
- 2 files changed, 11 insertions(+), 2 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index afafe92..e04a3e9 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -774,6 +774,9 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 		goto err;
- 	}
- 
-+	/* RTL2832 I2C repeater */
-+	priv->demod_i2c_adapter = rtl2832_get_i2c_adapter(adap->fe[0]);
-+
- 	/* set fe callback */
- 	adap->fe[0]->callback = rtl2832u_frontend_callback;
- 
-@@ -920,6 +923,8 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 				&rtl28xxu_rtl2832_fc0013_config);
- 		break;
- 	case TUNER_RTL2832_E4000: {
-+			struct i2c_adapter *i2c_adap_internal =
-+					rtl2832_get_private_i2c_adapter(adap->fe[0]);
- 			struct e4000_config e4000_config = {
- 				.fe = adap->fe[0],
- 				.clock = 28800000,
-@@ -930,11 +935,14 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 			info.platform_data = &e4000_config;
- 
- 			request_module("e4000");
--			priv->client = i2c_new_device(&d->i2c_adap, &info);
-+			priv->client = i2c_new_device(priv->demod_i2c_adapter,
-+					&info);
-+
-+			i2c_set_adapdata(i2c_adap_internal, d);
- 
- 			/* attach SDR */
- 			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
--					&d->i2c_adap,
-+					i2c_adap_internal,
- 					&rtl28xxu_rtl2832_e4000_config);
- 		}
- 		break;
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index 367aca1..a26cab1 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -55,6 +55,7 @@ struct rtl28xxu_priv {
- 	u8 tuner;
- 	char *tuner_name;
- 	u8 page; /* integrated demod active register page */
-+	struct i2c_adapter *demod_i2c_adapter;
- 	bool rc_active;
- 	struct i2c_client *client;
- };
--- 
-1.8.5.3
+date:		Wed Feb  5 04:00:30 CET 2014
+git branch:	test
+git hash:	261cb200e7227820cd0056435d7c1a3a9c476766
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
