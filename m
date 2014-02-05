@@ -1,83 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4938 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711AbaBCKYR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 05:24:17 -0500
-Message-ID: <52EF6E41.5050703@xs4all.nl>
-Date: Mon, 03 Feb 2014 11:24:01 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 15/17] v4l: add RF tuner channel bandwidth control
-References: <1391264674-4395-1-git-send-email-crope@iki.fi> <1391264674-4395-16-git-send-email-crope@iki.fi> <52EF5CA7.9050303@xs4all.nl> <52EF6BAF.2060802@iki.fi>
-In-Reply-To: <52EF6BAF.2060802@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141AbaBEQlw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 13/47] tvp7002: Add pad-level DV timings operations
+Date: Wed,  5 Feb 2014 17:42:04 +0100
+Message-Id: <1391618558-5580-14-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The video enum_dv_timings operation is deprecated. Implement the
+pad-level version of the operation to prepare for the removal of the
+video version.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/tvp7002.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-On 02/03/2014 11:13 AM, Antti Palosaari wrote:
-> On 03.02.2014 11:08, Hans Verkuil wrote:
->> Hi Antti,
->>
->> On 02/01/2014 03:24 PM, Antti Palosaari wrote:
->>> Modern silicon RF tuners has one or more adjustable filters on
->>> signal path, in order to filter noise from desired radio channel.
->>>
->>> Add channel bandwidth control to tell the driver which is radio
->>> channel width we want receive. Filters could be then adjusted by
->>> the driver or hardware, using RF frequency and channel bandwidth
->>> as a base of filter calculations.
->>>
->>> On automatic mode (normal mode), bandwidth is calculated from sampling
->>> rate or tuning info got from userspace. That new control gives
->>> possibility to set manual mode and let user have more control for
->>> filters.
->>>
->>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>> ---
->>>   drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
->>>   include/uapi/linux/v4l2-controls.h   | 2 ++
->>>   2 files changed, 6 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> index d201f61..e44722b 100644
->>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> @@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
->>>       case V4L2_CID_MIXER_GAIN:        return "Mixer Gain";
->>>       case V4L2_CID_IF_GAIN_AUTO:        return "IF Gain, Auto";
->>>       case V4L2_CID_IF_GAIN:            return "IF Gain";
->>> +    case V4L2_CID_BANDWIDTH_AUTO:        return "Channel Bandwidth, Auto";
->>> +    case V4L2_CID_BANDWIDTH:        return "Channel Bandwidth";
->>>       default:
->>>           return NULL;
->>>       }
->>> @@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->>>       case V4L2_CID_LNA_GAIN_AUTO:
->>>       case V4L2_CID_MIXER_GAIN_AUTO:
->>>       case V4L2_CID_IF_GAIN_AUTO:
->>> +    case V4L2_CID_BANDWIDTH_AUTO:
->>>           *type = V4L2_CTRL_TYPE_BOOLEAN;
->>>           *min = 0;
->>>           *max = *step = 1;
->>> @@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->>>       case V4L2_CID_LNA_GAIN:
->>>       case V4L2_CID_MIXER_GAIN:
->>>       case V4L2_CID_IF_GAIN:
->>> +    case V4L2_CID_BANDWIDTH:
->>
->> Booleans never have the slider flag set (they are represented as a checkbox, so a slider
->> makes no sense).
->>
->>>           *flags |= V4L2_CTRL_FLAG_SLIDER;
-> 
-> These are two different controls, as it is controls groups with auto mode (boolean) and value (slider).
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 912e1cc..9f56fd5 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -832,6 +832,9 @@ static int tvp7002_log_status(struct v4l2_subdev *sd)
+ static int tvp7002_enum_dv_timings(struct v4l2_subdev *sd,
+ 		struct v4l2_enum_dv_timings *timings)
+ {
++	if (timings->pad != 0)
++		return -EINVAL;
++
+ 	/* Check requested format index is within range */
+ 	if (timings->index >= NUM_TIMINGS)
+ 		return -EINVAL;
+@@ -937,6 +940,7 @@ static const struct v4l2_subdev_pad_ops tvp7002_pad_ops = {
+ 	.enum_mbus_code = tvp7002_enum_mbus_code,
+ 	.get_fmt = tvp7002_get_pad_format,
+ 	.set_fmt = tvp7002_set_pad_format,
++	.enum_dv_timings = tvp7002_enum_dv_timings,
+ };
+ 
+ /* V4L2 top level operation handlers */
+-- 
+1.8.3.2
 
-Oops, my fault. I misread.
-
-	Hans
