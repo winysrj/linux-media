@@ -1,81 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35459 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753298AbaB0Aal (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:30:41 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 12/16] rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
-Date: Thu, 27 Feb 2014 02:30:21 +0200
-Message-Id: <1393461025-11857-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1393461025-11857-1-git-send-email-crope@iki.fi>
-References: <1393461025-11857-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:32932 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751434AbaBEIOK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Feb 2014 03:14:10 -0500
+Date: Wed, 5 Feb 2014 10:13:35 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH v4.1 3/3] v4l: Add V4L2_BUF_FLAG_TIMESTAMP_SOF and use it
+Message-ID: <20140205081334.GD15635@valkosipuli.retiisi.org.uk>
+References: <201308281419.52009.hverkuil@xs4all.nl>
+ <20140131164233.GB15383@valkosipuli.retiisi.org.uk>
+ <52EBDB8B.80202@xs4all.nl>
+ <1393149.6OyBNhdFTt@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1393149.6OyBNhdFTt@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RTL2832 driver provides muxed I2C adapters for tuner bus I2C gate
-control. Pass those adapters to rtl2832_sdr and e4000 modules in order
-to get rid of proprietary DVB .i2c_gate_ctrl() callback use.
+On Sun, Feb 02, 2014 at 10:27:49AM +0100, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Friday 31 January 2014 18:21:15 Hans Verkuil wrote:
+> > On 01/31/2014 05:42 PM, Sakari Ailus wrote:
+> > > On Fri, Jan 31, 2014 at 04:45:56PM +0100, Hans Verkuil wrote:
+> > >>
+> > >> How about defining a capability for use with ENUMINPUT/OUTPUT? I agree
+> > >> that this won't change between buffers, but it is a property of a
+> > >> specific input or output.
+> > >
+> > > Over 80 characters per line. :-P
+> > 
+> > Stupid thunderbird doesn't show the column, and I can't enable
+> > automatic word-wrap because that plays hell with patches. Solutions
+> > welcome!
+> > 
+> > >> There are more than enough bits available in v4l2_input/output to add one
+> > >> for SOF timestamps.
+> > > 
+> > > In complex devices with a non-linear media graph inputs and outputs are
+> > > not very relevant, and for that reason many drivers do not even implement
+> > > them. I'd rather not bind video buffer queues to inputs or outputs.
+> > 
+> > Then we end up again with buffer flags. It's a property of the selected
+> > input or output, so if you can't/don't want to use that, then it's buffer
+> > flags.
+> > 
+> > Which I like as well, but it's probably useful that the documentation states
+> > that it can only change if the input or output changes as well.
+> > 
+> > > My personal favourite is still to use controls for the purpose but the
+> > > buffer flags come close, too, especially now that we're using them for
+> > > timestamp sources.
+> > 
+> > Laurent, can we please end this discussion? It makes perfect sense to store
+> > this information as a BUF_FLAG IMHO. You can just do a QUERYBUF once after
+> > you called REQBUFS and you know what you have to deal with.
+> 
+> I'm OK with a buffer flag. Can we state in the documentation that the same 
+> timestamp flag will be used for all buffers and that QUERYBUF can be used to 
+> query it before the first buffer gets dequeued ?
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 12 ++++++++++--
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
- 2 files changed, 11 insertions(+), 2 deletions(-)
+I think that'd be reasonable. Otherwise it'd be quite painful to use. I'll
+resend.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index afafe92..e04a3e9 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -774,6 +774,9 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 		goto err;
- 	}
- 
-+	/* RTL2832 I2C repeater */
-+	priv->demod_i2c_adapter = rtl2832_get_i2c_adapter(adap->fe[0]);
-+
- 	/* set fe callback */
- 	adap->fe[0]->callback = rtl2832u_frontend_callback;
- 
-@@ -920,6 +923,8 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 				&rtl28xxu_rtl2832_fc0013_config);
- 		break;
- 	case TUNER_RTL2832_E4000: {
-+			struct i2c_adapter *i2c_adap_internal =
-+					rtl2832_get_private_i2c_adapter(adap->fe[0]);
- 			struct e4000_config e4000_config = {
- 				.fe = adap->fe[0],
- 				.clock = 28800000,
-@@ -930,11 +935,14 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 			info.platform_data = &e4000_config;
- 
- 			request_module("e4000");
--			priv->client = i2c_new_device(&d->i2c_adap, &info);
-+			priv->client = i2c_new_device(priv->demod_i2c_adapter,
-+					&info);
-+
-+			i2c_set_adapdata(i2c_adap_internal, d);
- 
- 			/* attach SDR */
- 			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
--					&d->i2c_adap,
-+					i2c_adap_internal,
- 					&rtl28xxu_rtl2832_e4000_config);
- 		}
- 		break;
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index 367aca1..a26cab1 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -55,6 +55,7 @@ struct rtl28xxu_priv {
- 	u8 tuner;
- 	char *tuner_name;
- 	u8 page; /* integrated demod active register page */
-+	struct i2c_adapter *demod_i2c_adapter;
- 	bool rc_active;
- 	struct i2c_client *client;
- };
 -- 
-1.8.5.3
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
