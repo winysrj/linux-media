@@ -1,105 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4194 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755954AbaBFLDR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:03:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 07/10] vb2: rename queued_count to owned_by_drv_count
-Date: Thu,  6 Feb 2014 12:02:31 +0100
-Message-Id: <1391684554-37956-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:59875 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752551AbaBFTZ0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 14:25:26 -0500
+Received: by mail-pa0-f41.google.com with SMTP id fa1so2107639pad.0
+        for <linux-media@vger.kernel.org>; Thu, 06 Feb 2014 11:25:25 -0800 (PST)
+Message-ID: <52F3E06B.5090702@gmail.com>
+Date: Thu, 06 Feb 2014 11:20:11 -0800
+From: Connor Behan <connor.behan@gmail.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: au0828 errors and mangled video with Hauppauge 950Q
+References: <52F1D497.4010509@gmail.com> <CAGoCfiy-EdA4pbcCB6uLBSp7HUBW+=2vRYG8m+Q8V4tQmGTRag@mail.gmail.com>
+In-Reply-To: <CAGoCfiy-EdA4pbcCB6uLBSp7HUBW+=2vRYG8m+Q8V4tQmGTRag@mail.gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="R1MwgAgcv0kLN1mN8SXRvrETTVFC1Rumg"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--R1MwgAgcv0kLN1mN8SXRvrETTVFC1Rumg
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-'queued_count' is a bit vague since it is not clear to which queue it
-refers to: the vb2 internal list of buffers or the driver-owned list
-of buffers.
+On 05/02/14 01:46 AM, Devin Heitmueller wrote:
+> On Wed, Feb 5, 2014 at 1:05 AM, Connor Behan <connor.behan@gmail.com>
+> wrote:
+>> Ccing Devin. I'm pretty sure the analog side has a problem at the driv=
+er
+>> level.
+>>
+>> On most days, one cannot pickup an ATSC signal where I am, so I am
+>> trying to capture analog video with a Hauppauge WinTV HVR 950Q. Whethe=
+r
+>> I use Television, Composite or S-Video, I see the same corrupted video=
 
-Rename to make it explicit.
+>> such as this: http://imgur.com/c398F4v
+> Looks like insufficient USB bandwidth available to support the 24
+> MB/second required for uncompressed analog video.
+>
+> Is this on an x86 PC?  Or some embedded target such as ARM?  If the
+> latter, then the answer is almost certainly that the USB host
+> controller implementation is garbage and cannot handle the throughput.
+>
+> Devin
+>
+It's an x86 PC but bandwidth was indeed the problem. I thought I was
+having a power issue before. So I started using a Cardbus to USB adapter
+that had an external power port. This was a mistake, and I can get the
+tuner to work again if I switch back to a built-in port.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
- include/media/videobuf2-core.h           |  4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+Thanks a lot.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index a3b4b4c..6af76ee 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1071,7 +1071,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
- 	list_add_tail(&vb->done_entry, &q->done_list);
--	atomic_dec(&q->queued_count);
-+	atomic_dec(&q->owned_by_drv_count);
- 	spin_unlock_irqrestore(&q->done_lock, flags);
- 
- 	/* Inform any processes that may be waiting for buffers */
-@@ -1402,7 +1402,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 	unsigned int plane;
- 
- 	vb->state = VB2_BUF_STATE_ACTIVE;
--	atomic_inc(&q->queued_count);
-+	atomic_inc(&q->owned_by_drv_count);
- 
- 	/* sync buffers */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
-@@ -1554,7 +1554,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	int ret;
- 
- 	/* Tell the driver to start streaming */
--	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-+	ret = call_qop(q, start_streaming, q, atomic_read(&q->owned_by_drv_count));
- 	if (ret)
- 		fail_qop(q, start_streaming);
- 
-@@ -1779,7 +1779,7 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
- 	}
- 
- 	if (!q->retry_start_streaming)
--		wait_event(q->done_wq, !atomic_read(&q->queued_count));
-+		wait_event(q->done_wq, !atomic_read(&q->owned_by_drv_count));
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
-@@ -1911,7 +1911,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	 * has not already dequeued before initiating cancel.
- 	 */
- 	INIT_LIST_HEAD(&q->done_list);
--	atomic_set(&q->queued_count, 0);
-+	atomic_set(&q->owned_by_drv_count, 0);
- 	wake_up_all(&q->done_wq);
- 
- 	/*
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 82b7f0f..adaffed 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -353,7 +353,7 @@ struct v4l2_fh;
-  * @bufs:	videobuf buffer structures
-  * @num_buffers: number of allocated/used buffers
-  * @queued_list: list of buffers currently queued from userspace
-- * @queued_count: number of buffers owned by the driver
-+ * @owned_by_drv_count: number of buffers owned by the driver
-  * @done_list:	list of buffers ready to be dequeued to userspace
-  * @done_lock:	lock to protect done_list list
-  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
-@@ -385,7 +385,7 @@ struct vb2_queue {
- 
- 	struct list_head		queued_list;
- 
--	atomic_t			queued_count;
-+	atomic_t			owned_by_drv_count;
- 	struct list_head		done_list;
- 	spinlock_t			done_lock;
- 	wait_queue_head_t		done_wq;
--- 
-1.8.5.2
 
+--R1MwgAgcv0kLN1mN8SXRvrETTVFC1Rumg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQEcBAEBAgAGBQJS8+ByAAoJENU6BEW0eg2rutAH/29Ois0rDWLdgGh+sQ6NxFz2
+80Cif00On6kQEkHE1dsMzSN/irr4lA743xHs6AVp9Ab0h4AvCHd8oQluCBxUiKVV
+c86cLhvF43tNFBNaffWP/zl9xBszqwfs4tBtNG/ezXAsUVnJV97cKOxEut2cu9et
+jdXOF7IwPAYhiQPbFaZPXRSbH6COdnqqUK4LVrRm/wb092AW83xJ1O0uSz9UP9sY
+IYTtONd39KuhWCWF/CCvqCxVbhQdeRYeI0oDaGTcG50cNaVbfmjeAmJxU+6of3bx
+hBW1Ouvd+W6aTe99/IVcrECXsFsVwFU2fYbaKersOrM5F6kQbT6e7Rr2wUtZT7w=
+=cmz/
+-----END PGP SIGNATURE-----
+
+--R1MwgAgcv0kLN1mN8SXRvrETTVFC1Rumg--
