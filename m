@@ -1,61 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33929 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751731AbaBGOVB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 09:21:01 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] Add Antti at the V4L2 revision list
-Date: Fri,  7 Feb 2014 12:20:39 -0200
-Message-Id: <1391782839-26272-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2978 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756049AbaBFLDS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:03:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 09/10] vivi: correctly cleanup after a start_streaming failure.
+Date: Thu,  6 Feb 2014 12:02:33 +0100
+Message-Id: <1391684554-37956-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add SDR to V3.15 revlist, and add the credits to Antti.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+If start_streaming fails then any queued buffers must be given back
+to the vb2 core.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/v4l2.xml | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/media/platform/vivi.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index e826d1d5df08..61a7bb1faccf 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -107,6 +107,16 @@ Remote Controller chapter.</contrib>
- 	  </address>
- 	</affiliation>
-       </author>
-+      <author>
-+	<firstname>Antti</firstname>
-+	<surname>Palosaari</surname>
-+	<contrib>SDR API.</contrib>
-+	<affiliation>
-+	  <address>
-+	    <email>crope@iki.fi</email>
-+	  </address>
-+	</affiliation>
-+      </author>
-     </authorgroup>
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 2d4e73b..6085e2f 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -901,8 +901,19 @@ static void buffer_queue(struct vb2_buffer *vb)
+ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	int err;
++
+ 	dprintk(dev, 1, "%s\n", __func__);
+-	return vivi_start_generating(dev);
++	err = vivi_start_generating(dev);
++	if (err) {
++		struct vivi_buffer *buf, *tmp;
++
++		list_for_each_entry_safe(buf, tmp, &dev->vidq.active, list) {
++			list_del(&buf->list);
++			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
++		}
++	}
++	return err;
+ }
  
-     <copyright>
-@@ -144,10 +154,10 @@ applications. -->
-       <revision>
- 	<revnumber>3.15</revnumber>
- 	<date>2014-02-03</date>
--	<authorinitials>hv</authorinitials>
-+	<authorinitials>hv, ap</authorinitials>
- 	<revremark>Update several sections of "Common API Elements": "Opening and Closing Devices"
- "Querying Capabilities", "Application Priority", "Video Inputs and Outputs", "Audio Inputs and Outputs"
--"Tuners and Modulators", "Video Standards" and "Digital Video (DV) Timings".
-+"Tuners and Modulators", "Video Standards" and "Digital Video (DV) Timings". Added SDR API.
- 	</revremark>
-       </revision>
- 
+ /* abort streaming and wait for last buffer */
 -- 
-1.8.3.1
+1.8.5.2
 
