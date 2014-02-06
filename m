@@ -1,51 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:59297 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933253AbaBAS0U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 13:26:20 -0500
-From: Wolfram Sang <wsa@the-dreams.de>
-To: linux-media@vger.kernel-org
-Cc: Wolfram Sang <wsa@the-dreams.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] media: gspca: sn9c20x: add ID for Genius Look 1320 V2
-Date: Sat,  1 Feb 2014 19:26:00 +0100
-Message-Id: <1391279164-2935-1-git-send-email-wsa@the-dreams.de>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3633 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751296AbaBFDeU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 22:34:20 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s163YGx9087828
+	for <linux-media@vger.kernel.org>; Thu, 6 Feb 2014 04:34:18 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id A43102A00A6
+	for <linux-media@vger.kernel.org>; Thu,  6 Feb 2014 04:33:57 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140206033357.A43102A00A6@tschai.lan>
+Date: Thu,  6 Feb 2014 04:33:57 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
----
- Documentation/video4linux/gspca.txt | 1 +
- drivers/media/usb/gspca/sn9c20x.c   | 1 +
- 2 files changed, 2 insertions(+)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/Documentation/video4linux/gspca.txt b/Documentation/video4linux/gspca.txt
-index 1e6b653..d2ba80b 100644
---- a/Documentation/video4linux/gspca.txt
-+++ b/Documentation/video4linux/gspca.txt
-@@ -55,6 +55,7 @@ zc3xx		0458:700f	Genius VideoCam Web V2
- sonixj		0458:7025	Genius Eye 311Q
- sn9c20x		0458:7029	Genius Look 320s
- sonixj		0458:702e	Genius Slim 310 NB
-+sn9c20x		0458:7045	Genius Look 1320 V2
- sn9c20x		0458:704a	Genius Slim 1320
- sn9c20x		0458:704c	Genius i-Look 1321
- sn9c20x		045e:00f4	LifeCam VX-6000 (SN9C20x + OV9650)
-diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
-index 2a38621..41a9a89 100644
---- a/drivers/media/usb/gspca/sn9c20x.c
-+++ b/drivers/media/usb/gspca/sn9c20x.c
-@@ -2359,6 +2359,7 @@ static const struct usb_device_id device_table[] = {
- 	{USB_DEVICE(0x045e, 0x00f4), SN9C20X(OV9650, 0x30, 0)},
- 	{USB_DEVICE(0x145f, 0x013d), SN9C20X(OV7660, 0x21, 0)},
- 	{USB_DEVICE(0x0458, 0x7029), SN9C20X(HV7131R, 0x11, 0)},
-+	{USB_DEVICE(0x0458, 0x7045), SN9C20X(MT9M112, 0x5d, LED_REVERSE)},
- 	{USB_DEVICE(0x0458, 0x704a), SN9C20X(MT9M112, 0x5d, 0)},
- 	{USB_DEVICE(0x0458, 0x704c), SN9C20X(MT9M112, 0x5d, 0)},
- 	{USB_DEVICE(0xa168, 0x0610), SN9C20X(HV7131R, 0x11, 0)},
--- 
-1.8.5.1
+Results of the daily build of media_tree:
 
+date:		Thu Feb  6 04:00:37 CET 2014
+git branch:	test
+git hash:	261cb200e7227820cd0056435d7c1a3a9c476766
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
