@@ -1,68 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:26148 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752260AbaBXRgB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Feb 2014 12:36:01 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v5 00/10] Add device tree support for Exynos4 camera interface
-Date: Mon, 24 Feb 2014 18:35:12 +0100
-Message-id: <1393263322-28215-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:42953 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755599AbaBFLYO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:24:14 -0500
+Date: Thu, 06 Feb 2014 09:24:05 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
+	Rob Landley <rob@landley.net>,
+	Tomasz Figa <tomasz.figa@gmail.com>
+Cc: James Hogan <james.hogan@imgtec.com>, linux-media@vger.kernel.org,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH v2 06/15] dt: binding: add binding for ImgTec IR block
+Message-id: <20140206092405.49170eed@samsung.com>
+In-reply-to: <1389967140-20704-7-git-send-email-james.hogan@imgtec.com>
+References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+ <1389967140-20704-7-git-send-email-james.hogan@imgtec.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series adds devicetree support for the front and rear camera of
-the Exynos4412 SoC Trats2 board. It converts related drivers to use
-the v4l2-async API. The SoC output clocks are provided to external image
-image sensors through the common clock API.
+Em Fri, 17 Jan 2014 13:58:51 +0000
+James Hogan <james.hogan@imgtec.com> escreveu:
 
-This iteration includes mostly further changes to the clock provider DT 
-binding.
+> Add device tree binding for ImgTec Consumer Infrared block, specifically
+> major revision 1 of the hardware.
 
-My test branch can be found at:
-http://git.linuxtv.org/snawrocki/samsung.git/v3.14-rc2-trats2-camera-v5
+@DT maintainers:
 
-Sylwester Nawrocki (10):
-  Documentation: dt: Add binding documentation for S5K6A3 image sensor
-  Documentation: dt: Add binding documentation for S5C73M3 camera
-  Documentation: devicetree: Update Samsung FIMC DT binding
-  V4L: Add driver for s5k6a3 image sensor
-  V4L: s5c73m3: Add device tree support
-  exynos4-is: Use external s5k6a3 sensor driver
-  exynos4-is: Add clock provider for the SCLK_CAM clock outputs
-  exynos4-is: Add support for asynchronous subdevices registration
-  ARM: dts: Add rear camera nodes for Exynos4412 TRATS2 board
-  ARM: dts: exynos4: Update camera clk provider and s5k6a3 sensor node
+ping.
 
- .../devicetree/bindings/media/samsung-fimc.txt     |   34 +-
- .../devicetree/bindings/media/samsung-s5c73m3.txt  |   97 +++++
- .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++
- arch/arm/boot/dts/exynos4.dtsi                     |    6 +-
- arch/arm/boot/dts/exynos4412-trats2.dts            |   86 ++++-
- drivers/media/i2c/Kconfig                          |    8 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  207 ++++++++---
- drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
- drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
- drivers/media/i2c/s5k6a3.c                         |  388 ++++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
- drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +-------------
- drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +--
- drivers/media/platform/exynos4-is/fimc-is.c        |   97 ++---
- drivers/media/platform/exynos4-is/fimc-is.h        |    4 +-
- drivers/media/platform/exynos4-is/media-dev.c      |  331 ++++++++++++-----
- drivers/media/platform/exynos4-is/media-dev.h      |   32 +-
- 18 files changed, 1127 insertions(+), 543 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
- create mode 100644 drivers/media/i2c/s5k6a3.c
+
+> 
+> Signed-off-by: James Hogan <james.hogan@imgtec.com>
+> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Pawel Moll <pawel.moll@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+> Cc: Kumar Gala <galak@codeaurora.org>
+> Cc: devicetree@vger.kernel.org
+> Cc: Rob Landley <rob@landley.net>
+> Cc: linux-doc@vger.kernel.org
+> Cc: Tomasz Figa <tomasz.figa@gmail.com>
+> ---
+> v2:
+> - Future proof compatible string from "img,ir" to "img,ir1", where the 1
+>   corresponds to the major revision number of the hardware (Tomasz
+>   Figa).
+> - Added clock-names property and three specific clock names described in
+>   the manual, only one of which is used by the current driver (Tomasz
+>   Figa).
+> ---
+>  .../devicetree/bindings/media/img-ir1.txt          | 30 ++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/img-ir1.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/img-ir1.txt b/Documentation/devicetree/bindings/media/img-ir1.txt
+> new file mode 100644
+> index 0000000..ace5fd9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/img-ir1.txt
+> @@ -0,0 +1,30 @@
+> +* ImgTec Infrared (IR) decoder version 1
+> +
+> +This binding is for Imagination Technologies' Infrared decoder block,
+> +specifically major revision 1.
+> +
+> +Required properties:
+> +- compatible:		Should be "img,ir1"
+> +- reg:			Physical base address of the controller and length of
+> +			memory mapped region.
+> +- interrupts:		The interrupt specifier to the cpu.
+> +
+> +Optional properties:
+> +- clocks:		List of clock specifiers as described in standard
+> +			clock bindings.
+> +- clock-names:		List of clock names corresponding to the clocks
+> +			specified in the clocks property.
+> +			Accepted clock names are:
+> +			"core":	Core clock (defaults to 32.768KHz if omitted).
+> +			"sys":	System side (fast) clock.
+> +			"mod":	Power modulation clock.
+> +
+> +Example:
+> +
+> +	ir@02006200 {
+> +		compatible = "img,ir1";
+> +		reg = <0x02006200 0x100>;
+> +		interrupts = <29 4>;
+> +		clocks = <&clk_32khz>;
+> +		clock-names =  "core";
+> +	};
+
 
 -- 
-1.7.9.5
 
+Cheers,
+Mauro
