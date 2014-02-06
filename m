@@ -1,110 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42181 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756381AbaBRPCN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 10:02:13 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH 1/5] ARM: omap2: cm-t35: Add regulators and clock for camera sensor
-Date: Tue, 18 Feb 2014 16:03:22 +0100
-Message-ID: <3444638.OmucgL67eO@avalon>
-In-Reply-To: <53036840.3050605@compulab.co.il>
-References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com> <9621770.WFqvfViqR7@avalon> <53036840.3050605@compulab.co.il>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2548 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755994AbaBFLDR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:03:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 05/10] vb2: fix buf_init/buf_cleanup call sequences
+Date: Thu,  6 Feb 2014 12:02:29 +0100
+Message-Id: <1391684554-37956-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Igor,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Tuesday 18 February 2014 16:03:44 Igor Grinberg wrote:
-> On 02/18/14 14:47, Laurent Pinchart wrote:
-> > On Monday 10 February 2014 22:54:40 Laurent Pinchart wrote:
-> >> The camera sensor will soon require regulators and clocks. Register
-> >> fixed regulators for its VAA and VDD power supplies and a fixed rate
-> >> clock for its master clock.
-> > 
-> > This patch is a prerequisite for a set of 4 patches that need to go
-> > through the linux-media tree. It would simpler if it could go through the
-> > same tree as well. Given that arch/arm/mach-omap2/board-cm-t35.c has seen
-> > very little activity recently I believe the risk of conflict is pretty
-> > low.
-> 
-> Indeed, as we work on DT stuff of cm-t35/3730 and pretty much stopped
-> updating the board-cm-t35.c file.
+Ensure that these ops are properly balanced.
 
-DT support for the OMAP3 ISP is coming. Too slowly, but it's coming :-)
+There two scenarios:
 
-> > Tony, would
-> > that be fine with you ?
-> > 
-> >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+1) for MMAP buf_init is called when the buffers are created and buf_cleanup
+   must be called when the queue is finally freed. This scenario was always
+   working.
 
-Thank you. Tony, could I get your ack as well to push this through Mauro's 
-tree ?
+2) for USERPTR and DMABUF it is more complicated. When a buffer is queued
+   the code checks if all planes of this buffer have been acquired before.
+   If that's the case, then only buf_prepare has to be called. Otherwise
+   buf_clean needs to be called if the buffer was acquired before, then,
+   once all changed planes have been (re)acquired, buf_init has to be
+   called again followed by buf_prepare. Should buf_prepare fail, then
+   buf_cleanup must be called again because all planes will be released
+   in case of an error.
 
-> >> ---
-> >> 
-> >>  arch/arm/mach-omap2/board-cm-t35.c | 16 ++++++++++++++++
-> >>  1 file changed, 16 insertions(+)
-> >> 
-> >> diff --git a/arch/arm/mach-omap2/board-cm-t35.c
-> >> b/arch/arm/mach-omap2/board-cm-t35.c index 8dd0ec8..018353d 100644
-> >> --- a/arch/arm/mach-omap2/board-cm-t35.c
-> >> +++ b/arch/arm/mach-omap2/board-cm-t35.c
-> >> @@ -16,6 +16,8 @@
-> >> 
-> >>   *
-> >>   */
-> >> 
-> >> +#include <linux/clk-provider.h>
-> >> +#include <linux/clkdev.h>
-> >> 
-> >>  #include <linux/kernel.h>
-> >>  #include <linux/init.h>
-> >>  #include <linux/platform_device.h>
-> >> 
-> >> @@ -542,8 +544,22 @@ static struct isp_platform_data cm_t35_isp_pdata = {
-> >> 
-> >>  	.subdevs = cm_t35_isp_subdevs,
-> >>  
-> >>  };
-> >> 
-> >> +static struct regulator_consumer_supply cm_t35_camera_supplies[] = {
-> >> +	REGULATOR_SUPPLY("vaa", "3-005d"),
-> >> +	REGULATOR_SUPPLY("vdd", "3-005d"),
-> >> +};
-> >> +
-> >> 
-> >>  static void __init cm_t35_init_camera(void)
-> >>  {
-> >> 
-> >> +	struct clk *clk;
-> >> +
-> >> +	clk = clk_register_fixed_rate(NULL, "mt9t001-clkin", NULL, 
-CLK_IS_ROOT,
-> >> +				      48000000);
-> >> +	clk_register_clkdev(clk, NULL, "3-005d");
-> >> +
-> >> +	regulator_register_fixed(2, cm_t35_camera_supplies,
-> >> +				 ARRAY_SIZE(cm_t35_camera_supplies));
-> >> +
-> >> 
-> >>  	if (omap3_init_camera(&cm_t35_isp_pdata) < 0)
-> >>  	
-> >>  		pr_warn("CM-T3x: Failed registering camera device!\n");
-> >>  
-> >>  }
+Finally, in __vb2_queue_free we have to check if the buffer was actually
+acquired before calling buf_cleanup. While that it always true for MMAP
+mode, it is not necessarily true for the other modes. E.g. if you just
+call REQBUFS and close the filehandle, then buffers were ever queued and
+so no buf_init was ever called.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 100 +++++++++++++++++++++----------
+ 1 file changed, 67 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 3756378..7766bf5 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -373,8 +373,10 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+ 	/* Call driver-provided cleanup function for each buffer, if provided */
+ 	for (buffer = q->num_buffers - buffers; buffer < q->num_buffers;
+ 	     ++buffer) {
+-		if (q->bufs[buffer])
+-			call_vb_qop(q->bufs[buffer], buf_cleanup, q->bufs[buffer]);
++		struct vb2_buffer *vb = q->bufs[buffer];
++
++		if (vb && vb->planes[0].mem_priv)
++			call_vb_qop(vb, buf_cleanup, vb);
+ 	}
+ 
+ 	/* Release video buffer memory */
+@@ -1161,6 +1163,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	unsigned int plane;
+ 	int ret;
+ 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++	bool reacquired = vb->planes[0].mem_priv == NULL;
+ 
+ 	/* Copy relevant information provided by the userspace */
+ 	__fill_vb2_buffer(vb, b, planes);
+@@ -1186,12 +1189,16 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		}
+ 
+ 		/* Release previously acquired memory if present */
+-		if (vb->planes[plane].mem_priv)
++		if (vb->planes[plane].mem_priv) {
++			if (!reacquired) {
++				reacquired = true;
++				call_vb_qop(vb, buf_cleanup, vb);
++			}
+ 			call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
++		}
+ 
+ 		vb->planes[plane].mem_priv = NULL;
+-		vb->v4l2_planes[plane].m.userptr = 0;
+-		vb->v4l2_planes[plane].length = 0;
++		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
+ 
+ 		/* Acquire each plane's memory */
+ 		mem_priv = call_memop(vb, get_userptr, q->alloc_ctx[plane],
+@@ -1208,23 +1215,34 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	}
+ 
+ 	/*
+-	 * Call driver-specific initialization on the newly acquired buffer,
+-	 * if provided.
+-	 */
+-	ret = call_vb_qop(vb, buf_init, vb);
+-	if (ret) {
+-		dprintk(1, "qbuf: buffer initialization failed\n");
+-		fail_vb_qop(vb, buf_init);
+-		goto err;
+-	}
+-
+-	/*
+ 	 * Now that everything is in order, copy relevant information
+ 	 * provided by userspace.
+ 	 */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+ 		vb->v4l2_planes[plane] = planes[plane];
+ 
++	if (reacquired) {
++		/*
++		 * One or more planes changed, so we must call buf_init to do
++		 * the driver-specific initialization on the newly acquired
++		 * buffer, if provided.
++		 */
++		ret = call_vb_qop(vb, buf_init, vb);
++		if (ret) {
++			dprintk(1, "qbuf: buffer initialization failed\n");
++			fail_vb_qop(vb, buf_init);
++			goto err;
++		}
++	}
++
++	ret = call_vb_qop(vb, buf_prepare, vb);
++	if (ret) {
++		dprintk(1, "qbuf: buffer preparation failed\n");
++		fail_vb_qop(vb, buf_prepare);
++		call_vb_qop(vb, buf_cleanup, vb);
++		goto err;
++	}
++
+ 	return 0;
+ err:
+ 	/* In case of errors, release planes that were already acquired */
+@@ -1244,8 +1262,13 @@ err:
+  */
+ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
++	int ret;
++
+ 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
+-	return 0;
++	ret = call_vb_qop(vb, buf_prepare, vb);
++	if (ret)
++		fail_vb_qop(vb, buf_prepare);
++	return ret;
+ }
+ 
+ /**
+@@ -1259,6 +1282,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	unsigned int plane;
+ 	int ret;
+ 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++	bool reacquired = vb->planes[0].mem_priv == NULL;
+ 
+ 	/* Copy relevant information provided by the userspace */
+ 	__fill_vb2_buffer(vb, b, planes);
+@@ -1294,6 +1318,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 		dprintk(1, "qbuf: buffer for plane %d changed\n", plane);
+ 
++		if (!reacquired) {
++			reacquired = true;
++			call_vb_qop(vb, buf_cleanup, vb);
++		}
++
+ 		/* Release previously acquired memory if present */
+ 		__vb2_plane_dmabuf_put(vb, &vb->planes[plane]);
+ 		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
+@@ -1329,23 +1358,33 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	}
+ 
+ 	/*
+-	 * Call driver-specific initialization on the newly acquired buffer,
+-	 * if provided.
+-	 */
+-	ret = call_vb_qop(vb, buf_init, vb);
+-	if (ret) {
+-		dprintk(1, "qbuf: buffer initialization failed\n");
+-		fail_vb_qop(vb, buf_init);
+-		goto err;
+-	}
+-
+-	/*
+ 	 * Now that everything is in order, copy relevant information
+ 	 * provided by userspace.
+ 	 */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+ 		vb->v4l2_planes[plane] = planes[plane];
+ 
++	if (reacquired) {
++		/*
++		 * Call driver-specific initialization on the newly acquired buffer,
++		 * if provided.
++		 */
++		ret = call_vb_qop(vb, buf_init, vb);
++		if (ret) {
++			dprintk(1, "qbuf: buffer initialization failed\n");
++			fail_vb_qop(vb, buf_init);
++			goto err;
++		}
++	}
++
++	ret = call_vb_qop(vb, buf_prepare, vb);
++	if (ret) {
++		dprintk(1, "qbuf: buffer preparation failed\n");
++		fail_vb_qop(vb, buf_prepare);
++		call_vb_qop(vb, buf_cleanup, vb);
++		goto err;
++	}
++
+ 	return 0;
+ err:
+ 	/* In case of errors, release planes that were already acquired */
+@@ -1420,11 +1459,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = -EINVAL;
+ 	}
+ 
+-	if (!ret) {
+-		ret = call_vb_qop(vb, buf_prepare, vb);
+-		if (ret)
+-			fail_vb_qop(vb, buf_prepare);
+-	}
+ 	if (ret)
+ 		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
+ 	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.2
 
