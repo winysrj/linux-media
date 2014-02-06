@@ -1,115 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53964 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934741AbaBDWK2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 17:10:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Philipp Zabel <pza@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH] [media] uvcvideo: Enable VIDIOC_CREATE_BUFS
-Date: Tue, 04 Feb 2014 23:11:23 +0100
-Message-ID: <2421948.xVuskQpCdf@avalon>
-In-Reply-To: <52EF5B6B.7030103@xs4all.nl>
-References: <1391012032-19600-1-git-send-email-p.zabel@pengutronix.de> <20140202130430.GA15734@pengutronix.de> <52EF5B6B.7030103@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:57673 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751339AbaBFOcO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 09:32:14 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/2] [media] DocBook/media_api: Better organize the DocBook
+Date: Thu,  6 Feb 2014 12:31:18 -0200
+Message-Id: <1391697079-9156-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+All chapters/parts but Remote controllers have the revision
+tags inside the body. Move those to remote_controllers.xml and
+do some cleanup.
 
-On Monday 03 February 2014 10:03:39 Hans Verkuil wrote:
-> On 02/02/2014 02:04 PM, Philipp Zabel wrote:
-> > On Sun, Feb 02, 2014 at 11:21:13AM +0100, Laurent Pinchart wrote:
-> >> On Friday 31 January 2014 09:43:00 Hans Verkuil wrote:
-> >>> I think you might want to add a check in uvc_queue_setup to verify the
-> >>> fmt that create_bufs passes. The spec says that: "Unsupported formats
-> >>> will result in an error". In this case I guess that the format basically
-> >>> should match the current selected format.
-> >>> 
-> >>> I'm unhappy with the current implementations of create_bufs (see also
-> >>> this patch:
-> >>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg70796.html).
-> >>> 
-> >>> Nobody is actually checking the format today, which isn't good.
-> >>> 
-> >>> The fact that the spec says that the fmt field isn't changed by the
-> >>> driver isn't helping as it invalidated my patch from above, although
-> >>> that can be fixed.
-> >>> 
-> >>> I need to think about this some more, but for this particular case you
-> >>> can just do a memcmp of the v4l2_pix_format against the currently
-> >>> selected format and return an error if they differ. Unless you want to
-> >>> support different buffer sizes as well?
-> >> 
-> >> Isn't the whole point of VIDIOC_CREATE_BUFS being able to create buffers
-> >> of different resolutions than the current active resolution ?
-> 
-> Or just additional buffers with the same resolution (or really, the same
-> size).
+No functional changes.
 
-Sure, that as well, but one use is to allocate larger buffers, shouldn't that 
-be allowed ?
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ .../DocBook/media/v4l/remote_controllers.xml       | 31 +++++++++
+ Documentation/DocBook/media_api.tmpl               | 81 +++++-----------------
+ 2 files changed, 50 insertions(+), 62 deletions(-)
 
-> > For that to work the driver in question would need to keep track of
-> > per-buffer format and resolution, and not only of per-queue format and
-> > resolution.
-> > 
-> > For now, would something like the following be enough? Unfortunately the
-> > uvc driver doesn't keep a v4l2_format around that we could just memcmp
-> > against:
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> > b/drivers/media/usb/uvc/uvc_v4l2.c index fa58131..7fa469b 100644
-> > --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> > @@ -1003,10 +1003,26 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> > unsigned int cmd, void *arg)> 
-> >  	case VIDIOC_CREATE_BUFS:
-> >  	{
-> >  	
-> >  		struct v4l2_create_buffers *cb = arg;
-> > 
-> > +		struct v4l2_pix_format *pix;
-> > +		struct uvc_format *format;
-> > +		struct uvc_frame *frame;
-> > 
-> >  		if (!uvc_has_privileges(handle))
-> >  		
-> >  			return -EBUSY;
-> > 
-> > +		format = stream->cur_format;
-> > +		frame = stream->cur_frame;
-> > +		pix = &cb->format.fmt.pix;
-> > +
-> > +		if (pix->pixelformat != format->fcc ||
-> > +		    pix->width != frame->wWidth ||
-> > +		    pix->height != frame->wHeight ||
-> > +		    pix->field != V4L2_FIELD_NONE ||
-> > +		    pix->bytesperline != format->bpp * frame->wWidth / 8 ||
-> > +		    pix->sizeimage != stream->ctrl.dwMaxVideoFrameSize ||
-> > +		    pix->colorspace != format->colorspace)
-> 
-> I would drop the field and colorspace checks (those do not really affect
-> any size calculations), other than that it looks good.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > +			return -EINVAL;
-> > +
-> >  		return uvc_create_buffers(&stream->queue, cb);
-> >  	
-> >  	}
-
+diff --git a/Documentation/DocBook/media/v4l/remote_controllers.xml b/Documentation/DocBook/media/v4l/remote_controllers.xml
+index 160e464d44b7..18288a3c595b 100644
+--- a/Documentation/DocBook/media/v4l/remote_controllers.xml
++++ b/Documentation/DocBook/media/v4l/remote_controllers.xml
+@@ -1,4 +1,34 @@
++<partinfo>
++<authorgroup>
++<author>
++<firstname>Mauro</firstname>
++<surname>Chehab</surname>
++<othername role="mi">Carvalho</othername>
++<affiliation><address><email>m.chehab@samsung.com</email></address></affiliation>
++<contrib>Initial version.</contrib>
++</author>
++</authorgroup>
++<copyright>
++	<year>2009-2014</year>
++        <holder>Mauro Carvalho Chehab</holder>
++</copyright>
++
++<revhistory>
++<!-- Put document revisions here, newest first. -->
++<revision>
++<revnumber>1.0.0</revnumber>
++<date>2009-09-06</date>
++<authorinitials>mcc</authorinitials>
++<revremark>Initial revision</revremark>
++</revision>
++</revhistory>
++</partinfo>
++
++ <title>Remote Controller API</title>
++ <chapter id="remote_controllers">
++
+ <title>Remote Controllers</title>
++
+ <section id="Remote_controllers_Intro">
+ <title>Introduction</title>
+ 
+@@ -175,3 +205,4 @@ keymapping.</para>
+ </section>
+ 
+ &sub-lirc_device_interface;
++</chapter>
+diff --git a/Documentation/DocBook/media_api.tmpl b/Documentation/DocBook/media_api.tmpl
+index ba1d704e4910..4decb46bfa76 100644
+--- a/Documentation/DocBook/media_api.tmpl
++++ b/Documentation/DocBook/media_api.tmpl
+@@ -34,22 +34,20 @@
+ 
+ <book id="media_api">
+ <bookinfo>
+-<title>LINUX MEDIA INFRASTRUCTURE API</title>
+-
+-<copyright>
+-	<year>2009-2014</year>
+-	<holder>LinuxTV Developers</holder>
+-</copyright>
+-
+-<legalnotice>
+-
+-<para>Permission is granted to copy, distribute and/or modify
+-this document under the terms of the GNU Free Documentation License,
+-Version 1.1 or any later version published by the Free Software
+-Foundation. A copy of the license is included in the chapter entitled
+-"GNU Free Documentation License"</para>
+-</legalnotice>
+-
++	<title>LINUX MEDIA INFRASTRUCTURE API</title>
++
++	<copyright>
++		<year>2009-2014</year>
++		<holder>LinuxTV Developers</holder>
++	</copyright>
++
++	<legalnotice>
++		<para>Permission is granted to copy, distribute and/or modify
++		this document under the terms of the GNU Free Documentation License,
++		Version 1.1 or any later version published by the Free Software
++		Foundation. A copy of the license is included in the chapter entitled
++		"GNU Free Documentation License"</para>
++	</legalnotice>
+ </bookinfo>
+ 
+ <toc></toc> <!-- autogenerated -->
+@@ -76,55 +74,14 @@ Foundation. A copy of the license is included in the chapter entitled
+ 	<para>For additional information and for the latest development code,
+ 		see: <ulink url="http://linuxtv.org">http://linuxtv.org</ulink>.</para>
+ 	<para>For discussing improvements, reporting troubles, sending new drivers, etc, please mail to: <ulink url="http://vger.kernel.org/vger-lists.html#linux-media">Linux Media Mailing List (LMML).</ulink>.</para>
+-
+ </preface>
+ 
+-<part id="v4l2spec">
+-&sub-v4l2;
+-</part>
+-<part id="dvbapi">
+-&sub-dvbapi;
+-</part>
+-<part id="v4ldvb_common">
+-<partinfo>
+-<authorgroup>
+-<author>
+-<firstname>Mauro</firstname>
+-<surname>Chehab</surname>
+-<othername role="mi">Carvalho</othername>
+-<affiliation><address><email>m.chehab@samsung.com</email></address></affiliation>
+-<contrib>Initial version.</contrib>
+-</author>
+-</authorgroup>
+-<copyright>
+-	<year>2009-2014</year>
+-	<holder>Mauro Carvalho Chehab</holder>
+-</copyright>
+-
+-<revhistory>
+-<!-- Put document revisions here, newest first. -->
+-<revision>
+-<revnumber>1.0.0</revnumber>
+-<date>2009-09-06</date>
+-<authorinitials>mcc</authorinitials>
+-<revremark>Initial revision</revremark>
+-</revision>
+-</revhistory>
+-</partinfo>
+-
+-<title>Remote Controller API</title>
+-<chapter id="remote_controllers">
+-&sub-remote_controllers;
+-</chapter>
+-</part>
+-<part id="media_common">
+-&sub-media-controller;
+-</part>
+-
+-<chapter id="gen_errors">
+-&sub-gen-errors;
+-</chapter>
++<part id="v4l2spec">&sub-v4l2;</part>
++<part id="dvbapi">&sub-dvbapi;</part>
++<part id="remotes">&sub-remote_controllers;</part>
++<part id="media_common">&sub-media-controller;</part>
+ 
++<chapter id="gen_errors">&sub-gen-errors;</chapter>
+ 
+ &sub-fdl-appendix;
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.1
 
