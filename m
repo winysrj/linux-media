@@ -1,113 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3816 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293AbaBLDfd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 22:35:33 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1C3ZUis027756
-	for <linux-media@vger.kernel.org>; Wed, 12 Feb 2014 04:35:32 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 447322A00A8
-	for <linux-media@vger.kernel.org>; Wed, 12 Feb 2014 04:35:03 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140212033503.447322A00A8@tschai.lan>
-Date: Wed, 12 Feb 2014 04:35:03 +0100 (CET)
+Received: from mail-vb0-f44.google.com ([209.85.212.44]:50113 "EHLO
+	mail-vb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755307AbaBFICU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 03:02:20 -0500
+MIME-Version: 1.0
+In-Reply-To: <1391615773-26467-1-git-send-email-marcus.folkesson@gmail.com>
+References: <1391615773-26467-1-git-send-email-marcus.folkesson@gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 6 Feb 2014 13:31:59 +0530
+Message-ID: <CA+V-a8tZ9h1K10b9D8469Jd03g8y81JnBmv95a0=PRTWDmkR5w@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: Kconfig: create dependency to
+ MEDIA_CONTROLLER for adv7*
+To: Marcus Folkesson <marcus.folkesson@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Martin Bugge <martin.bugge@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Marcus,
 
-Results of the daily build of media_tree:
+On Wed, Feb 5, 2014 at 9:26 PM, Marcus Folkesson
+<marcus.folkesson@gmail.com> wrote:
+> These chips makes use of the media_entity in the v4l2_subdev struct
+> and is therefor dependent of the  MEDIA_CONTROLLER config.
+>
+NAK, as you can currently see these drivers depend on VIDEO_V4L2_SUBDEV_API
+config and if you see VIDEO_V4L2_SUBDEV_API depends on MEDIA_CONTROLLER
+config so there is no point in adding this dependency.
 
-date:		Wed Feb 12 04:00:18 CET 2014
-git branch:	test
-git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Thanks,
+--Prabhakar Lad
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> Signed-off-by: Marcus Folkesson <marcus.folkesson@gmail.com>
+> ---
+>  drivers/media/i2c/Kconfig |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index d18be19..1771b77 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -196,7 +196,7 @@ config VIDEO_ADV7183
+>
+>  config VIDEO_ADV7604
+>         tristate "Analog Devices ADV7604 decoder"
+> -       depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+> +       depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+>         ---help---
+>           Support for the Analog Devices ADV7604 video decoder.
+>
+> @@ -208,7 +208,7 @@ config VIDEO_ADV7604
+>
+>  config VIDEO_ADV7842
+>         tristate "Analog Devices ADV7842 decoder"
+> -       depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+> +       depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+>         ---help---
+>           Support for the Analog Devices ADV7842 video decoder.
+>
+> @@ -431,7 +431,7 @@ config VIDEO_ADV7393
+>
+>  config VIDEO_ADV7511
+>         tristate "Analog Devices ADV7511 encoder"
+> -       depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+> +       depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+>         ---help---
+>           Support for the Analog Devices ADV7511 video encoder.
+>
+> --
+> 1.7.10.4
+>
