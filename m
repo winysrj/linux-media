@@ -1,263 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:32806 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752957AbaBATnR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Feb 2014 14:43:17 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N0C00BC21G3Y470@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 01 Feb 2014 14:43:15 -0500 (EST)
-Date: Sat, 01 Feb 2014 17:43:10 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/17] e4000: add manual gain controls
-Message-id: <20140201174310.42d070e2@samsung.com>
-In-reply-to: <1391264674-4395-2-git-send-email-crope@iki.fi>
-References: <1391264674-4395-1-git-send-email-crope@iki.fi>
- <1391264674-4395-2-git-send-email-crope@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39993 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755760AbaBFQoQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 11:44:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Philipp Zabel <pza@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH] [media] uvcvideo: Enable VIDIOC_CREATE_BUFS
+Date: Thu, 06 Feb 2014 17:45:13 +0100
+Message-ID: <1514592.PnacnYGL3t@avalon>
+In-Reply-To: <52F1EEDA.6040700@xs4all.nl>
+References: <1391012032-19600-1-git-send-email-p.zabel@pengutronix.de> <52F17208.9010500@gmail.com> <52F1EEDA.6040700@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat,  1 Feb 2014 16:24:18 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+Hi Hans,
 
-> Add gain control for LNA, Mixer and IF. Expose controls via DVB
-> frontend .set_config callback.
-
-This is not a full review of this patch (or this series), but please
-see below.
-
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/tuners/e4000.c      | 68 +++++++++++++++++++++++++++++++++++++++
->  drivers/media/tuners/e4000.h      |  6 ++++
->  drivers/media/tuners/e4000_priv.h | 63 ++++++++++++++++++++++++++++++++++++
->  3 files changed, 137 insertions(+)
+On Wednesday 05 February 2014 08:57:14 Hans Verkuil wrote:
+> On 02/05/2014 12:04 AM, Sylwester Nawrocki wrote:
+> > On 02/03/2014 10:03 AM, Hans Verkuil wrote:
+> >> On 02/02/2014 02:04 PM, Philipp Zabel wrote:
+> >>> On Sun, Feb 02, 2014 at 11:21:13AM +0100, Laurent Pinchart wrote:
+> >>>> On Friday 31 January 2014 09:43:00 Hans Verkuil wrote:
+> >>>>> I think you might want to add a check in uvc_queue_setup to verify the
+> >>>>> fmt that create_bufs passes. The spec says that: "Unsupported formats
+> >>>>> will result in an error". In this case I guess that the format
+> >>>>> basically should match the current selected format.
+> >>>>> 
+> >>>>> I'm unhappy with the current implementations of create_bufs (see also
+> >>>>> this patch:
+> >>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg70796.html)
+> >>>>> .
+> >>>>> 
+> >>>>> Nobody is actually checking the format today, which isn't good.
+> >>>>> 
+> >>>>> The fact that the spec says that the fmt field isn't changed by the
+> >>>>> driver isn't helping as it invalidated my patch from above, although
+> >>>>> that can be fixed.
+> >>>>> 
+> >>>>> I need to think about this some more, but for this particular case you
+> >>>>> can just do a memcmp of the v4l2_pix_format against the currently
+> >>>>> selected format and return an error if they differ. Unless you want to
+> >>>>> support different buffer sizes as well?
+> >>>> 
+> >>>> Isn't the whole point of VIDIOC_CREATE_BUFS being able to create
+> >>>> buffers of different resolutions than the current active resolution ?
+> >> 
+> >> Or just additional buffers with the same resolution (or really, the same
+> >> size).
+> >> 
+> >>> For that to work the driver in question would need to keep track of
+> >>> per-buffer format and resolution, and not only of per-queue format and
+> >>> resolution.
+> >>> 
+> >>> For now, would something like the following be enough? Unfortunately the
+> >>> uvc driver doesn't keep a v4l2_format around that we could just memcmp
+> >>> against:
+> >>> 
+> >>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> >>> b/drivers/media/usb/uvc/uvc_v4l2.c index fa58131..7fa469b 100644
+> >>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> >>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> >>> @@ -1003,10 +1003,26 @@ static long uvc_v4l2_do_ioctl(struct file *file,
+> >>> unsigned int cmd, void *arg)>>> 
+> >>>   	case VIDIOC_CREATE_BUFS:
+> >>>   	{
+> >>>   		struct v4l2_create_buffers *cb = arg;
+> >>> +		struct v4l2_pix_format *pix;
+> >>> +		struct uvc_format *format;
+> >>> +		struct uvc_frame *frame;
+> >>> 
+> >>>   		if (!uvc_has_privileges(handle))
+> >>>   			return -EBUSY;
+> >>> 
+> >>> +		format = stream->cur_format;
+> >>> +		frame = stream->cur_frame;
+> >>> +		pix =&cb->format.fmt.pix;
+> >>> +
+> >>> +		if (pix->pixelformat != format->fcc ||
+> >>> +		    pix->width != frame->wWidth ||
+> >>> +		    pix->height != frame->wHeight ||
+> >>> +		    pix->field != V4L2_FIELD_NONE ||
+> >>> +		    pix->bytesperline != format->bpp * frame->wWidth / 8 ||
+> >>> +		    pix->sizeimage != stream->ctrl.dwMaxVideoFrameSize ||
+> >>> +		    pix->colorspace != format->colorspace)
+> >> 
+> >> I would drop the field and colorspace checks (those do not really affect
+> >> any size calculations), other than that it looks good.
+> > 
+> > That seems completely wrong to me, AFAICT the VIDIOC_CREATE_BUFS was
+> > designed so that the driver is supposed to allow any format which is
+> > supported by the hardware. What has currently selected format to do with
+> > the format passed to VIDIOC_CREATE_BUFS ? It should be allowed to create
+> > buffers of any size (implied by the passed v4l2_pix_format). It is
+> > supposed to be checked if a buffer meets constraints of current
+> > configuration of the hardware at QBUF, not at VIDIOC_CREATE_BUFS time.
+> > User space may well allocate buffers when one image format is set, keep
+> > them aside and then just before queueing them to the driver may set the
+> > format to a different one, so the hardware set up matches buffers
+> > allocated with VIDIOC_CREATE_BUFS.
+> > 
+> > What's the point of having VIDIOC_CREATE_BUFS when you are doing checks
+> > like above ? Unless I'm missing something that is completely wrong. :)
+> > Adjusting cb->format.fmt.pix as in VIDIOC_TRY_FORMAT seems more
+> > appropriate thing to do.
 > 
-> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-> index 0153169..651de11 100644
-> --- a/drivers/media/tuners/e4000.c
-> +++ b/drivers/media/tuners/e4000.c
-> @@ -385,6 +385,73 @@ static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
->  	return 0;
->  }
->  
-> +static int e4000_set_config(struct dvb_frontend *fe, void *priv_cfg)
-> +{
+> OK, I agree that the code above is wrong. So ignore that.
+> 
+> What should CREATE_BUFS do when it is called?
+> 
+> Should I go back to this patch:
+> http://www.spinics.net/lists/linux-media/msg72171.html
+> 
+> It will at least ensure that the fmt is consistent. It is however not quite
+> according to the spec since invalid formats are generally 'reformatted' by
+> TRY_FMT to something valid, and the spec says invalid formats should return
+> an error. It is possible to do something more advanced here, though: you
+> could make a copy of v4l2_format, call TRY_FMT on it, and check if there
+> are any differences with what was passed in. If there are, return an
+> error.
+> 
+> It's a bit of work, but probably better to do it in the core rather than
+> depend on drivers to do it (since they won't :-) ).
+> 
+> If queue_setup can rely on fmt to be a valid format, then sizeimage can
+> just be used as the buffer size.
 
-Hmm... that looks weird to me... the set_config() callback should
-be used only be those parameters that never change and are required for
-the device initialization. It is similar to the parameters passed during
-a DVB attach.
+It sounds good in the general case, but I wonder whether we wouldn't have 
+cases where TRY_FMT can mangle the format in a way that depends on controls 
+for instance. In that case applications wouldn't be able to create buffers for 
+a format that will be valid later but isn't now.
 
-So, it is for those things that you won't be exposing to userspace.
+I suppose this is really a more generic problem of formats and controls 
+interactions, which are ill-defined at the moment.
 
-Normal control parameters are, instead, implemented using something
-like:
+> With regards to checking constraints on QBUF: I see a problem there. For
+> a regular buffer it can be checked in buf_prepare, but what if a buffer
+> is already prepared using VIDIOC_PREPARE_BUF, then the format is changed
+> and you call VIDIOC_QBUF with that prepared buffer? Then there is no
+> callback where you can check this since the buf_prepare call has already
+> happened.
 
-static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
-{
-	struct v4l2_subdev *sd = to_sd(ctrl);
+Maybe we shouldn't allow format changes when buffers have been prepared ? We 
+might then need a way to unprepare a buffer... That sounds a bit hackish 
+though. Another solution would be to unprepare all buffers when the format is 
+changed, but that sounds even worse.
 
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		tvp5150_write(sd, TVP5150_BRIGHT_CTL, ctrl->val);
-		return 0;
-	case V4L2_CID_CONTRAST:
-		tvp5150_write(sd, TVP5150_CONTRAST_CTL, ctrl->val);
-		return 0;
-	case V4L2_CID_SATURATION:
-		tvp5150_write(sd, TVP5150_SATURATION_CTL, ctrl->val);
-		return 0;
-	case V4L2_CID_HUE:
-		tvp5150_write(sd, TVP5150_HUE_CTL, ctrl->val);
-		return 0;
-	}
-	return -EINVAL;
-}
-
-static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
-	.s_ctrl = tvp5150_s_ctrl,
-};
-
-That allows them to be independently set, with reduces the I2C
-traffic and makes their updates faster.
-
-It also benefits from V4L controls core implementation.
-
-Are there any reason why not using it here?
-
-> +	struct e4000_priv *priv = fe->tuner_priv;
-> +	struct e4000_ctrl *ctrl = priv_cfg;
-> +	int ret;
-> +	u8 buf[2];
-> +	u8 u8tmp;
-> +	dev_dbg(&priv->client->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
-> +			ctrl->lna_gain, ctrl->mixer_gain, ctrl->if_gain);
-> +
-> +	if (fe->ops.i2c_gate_ctrl)
-> +		fe->ops.i2c_gate_ctrl(fe, 1);
-> +
-> +	if (ctrl->lna_gain == INT_MIN && ctrl->if_gain == INT_MIN)
-> +		u8tmp = 0x17;
-> +	else if (ctrl->lna_gain == INT_MIN)
-> +		u8tmp = 0x19;
-> +	else if (ctrl->if_gain == INT_MIN)
-> +		u8tmp = 0x16;
-> +	else
-> +		u8tmp = 0x10;
-> +
-> +	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
-> +	if (ret)
-> +		goto err;
-> +
-> +	if (ctrl->mixer_gain == INT_MIN)
-> +		u8tmp = 0x15;
-> +	else
-> +		u8tmp = 0x14;
-> +
-> +	ret = e4000_wr_reg(priv, 0x20, u8tmp);
-> +	if (ret)
-> +		goto err;
-> +
-> +	if (ctrl->lna_gain != INT_MIN) {
-> +		ret = e4000_wr_reg(priv, 0x14, ctrl->lna_gain);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
-> +	if (ctrl->mixer_gain != INT_MIN) {
-> +		ret = e4000_wr_reg(priv, 0x15, ctrl->mixer_gain);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
-> +	if (ctrl->if_gain != INT_MIN) {
-> +		buf[0] = e4000_if_gain_lut[ctrl->if_gain].reg16_val;
-> +		buf[1] = e4000_if_gain_lut[ctrl->if_gain].reg17_val;
-> +		ret = e4000_wr_regs(priv, 0x16, buf, 2);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
-> +	if (fe->ops.i2c_gate_ctrl)
-> +		fe->ops.i2c_gate_ctrl(fe, 0);
-> +
-> +	return 0;
-> +err:
-> +	if (fe->ops.i2c_gate_ctrl)
-> +		fe->ops.i2c_gate_ctrl(fe, 0);
-> +
-> +	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-> +	return ret;
-> +}
-> +
->  static const struct dvb_tuner_ops e4000_tuner_ops = {
->  	.info = {
->  		.name           = "Elonics E4000",
-> @@ -395,6 +462,7 @@ static const struct dvb_tuner_ops e4000_tuner_ops = {
->  	.init = e4000_init,
->  	.sleep = e4000_sleep,
->  	.set_params = e4000_set_params,
-> +	.set_config = e4000_set_config,
->  
->  	.get_if_frequency = e4000_get_if_frequency,
->  };
-> diff --git a/drivers/media/tuners/e4000.h b/drivers/media/tuners/e4000.h
-> index e74b8b2..d95c472 100644
-> --- a/drivers/media/tuners/e4000.h
-> +++ b/drivers/media/tuners/e4000.h
-> @@ -40,4 +40,10 @@ struct e4000_config {
->  	u32 clock;
->  };
->  
-> +struct e4000_ctrl {
-> +	int lna_gain;
-> +	int mixer_gain;
-> +	int if_gain;
-> +};
-> +
->  #endif
-> diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
-> index 8f45a30..a75a383 100644
-> --- a/drivers/media/tuners/e4000_priv.h
-> +++ b/drivers/media/tuners/e4000_priv.h
-> @@ -145,4 +145,67 @@ static const struct e4000_if_filter e4000_if_filter_lut[] = {
->  	{ 0xffffffff, 0x00, 0x20 },
->  };
->  
-> +struct e4000_if_gain {
-> +	u8 reg16_val;
-> +	u8 reg17_val;
-> +};
-> +
-> +static const struct e4000_if_gain e4000_if_gain_lut[] = {
-> +	{0x00, 0x00},
-> +	{0x20, 0x00},
-> +	{0x40, 0x00},
-> +	{0x02, 0x00},
-> +	{0x22, 0x00},
-> +	{0x42, 0x00},
-> +	{0x04, 0x00},
-> +	{0x24, 0x00},
-> +	{0x44, 0x00},
-> +	{0x01, 0x00},
-> +	{0x21, 0x00},
-> +	{0x41, 0x00},
-> +	{0x03, 0x00},
-> +	{0x23, 0x00},
-> +	{0x43, 0x00},
-> +	{0x05, 0x00},
-> +	{0x25, 0x00},
-> +	{0x45, 0x00},
-> +	{0x07, 0x00},
-> +	{0x27, 0x00},
-> +	{0x47, 0x00},
-> +	{0x0f, 0x00},
-> +	{0x2f, 0x00},
-> +	{0x4f, 0x00},
-> +	{0x17, 0x00},
-> +	{0x37, 0x00},
-> +	{0x57, 0x00},
-> +	{0x1f, 0x00},
-> +	{0x3f, 0x00},
-> +	{0x5f, 0x00},
-> +	{0x1f, 0x01},
-> +	{0x3f, 0x01},
-> +	{0x5f, 0x01},
-> +	{0x1f, 0x02},
-> +	{0x3f, 0x02},
-> +	{0x5f, 0x02},
-> +	{0x1f, 0x03},
-> +	{0x3f, 0x03},
-> +	{0x5f, 0x03},
-> +	{0x1f, 0x04},
-> +	{0x3f, 0x04},
-> +	{0x5f, 0x04},
-> +	{0x1f, 0x0c},
-> +	{0x3f, 0x0c},
-> +	{0x5f, 0x0c},
-> +	{0x1f, 0x14},
-> +	{0x3f, 0x14},
-> +	{0x5f, 0x14},
-> +	{0x1f, 0x1c},
-> +	{0x3f, 0x1c},
-> +	{0x5f, 0x1c},
-> +	{0x1f, 0x24},
-> +	{0x3f, 0x24},
-> +	{0x5f, 0x24},
-> +	{0x7f, 0x24},
-> +};
-> +
->  #endif
-
+Maybe we should document the queue operations interactions with format setup 
+and start from there.
 
 -- 
+Regards,
 
-Cheers,
-Mauro
+Laurent Pinchart
+
