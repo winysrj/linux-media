@@ -1,115 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183AbaBEQmA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 31/47] adv7604: Add 16-bit read functions for CP and HDMI
-Date: Wed,  5 Feb 2014 17:42:22 +0100
-Message-Id: <1391618558-5580-32-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:63848 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756850AbaBFT77 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 14:59:59 -0500
+Received: by mail-wi0-f169.google.com with SMTP id e4so190284wiv.4
+        for <linux-media@vger.kernel.org>; Thu, 06 Feb 2014 11:59:57 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>
+Subject: [RFC 1/4] rc: ir-raw: add scancode encoder callback
+Date: Thu,  6 Feb 2014 19:59:20 +0000
+Message-Id: <1391716763-2689-2-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
+References: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/adv7604.c | 48 ++++++++++++++++++++++-----------------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
+Add a callback to raw ir handlers for encoding and modulating a scancode
+to a set of raw events. This could be used for transmit, or for
+converting a wakeup scancode filter to a form that is more suitable for
+raw hardware wake up filters.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index cfcbb6d..3d6876d 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -542,6 +542,11 @@ static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
- 	return adv_smbus_read_byte_data(state->i2c_hdmi, reg);
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+---
+ drivers/media/rc/ir-raw.c       | 37 +++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/rc-core-priv.h |  2 ++
+ include/media/rc-core.h         |  3 +++
+ 3 files changed, 42 insertions(+)
+
+diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
+index 79a9cb6..9aea407 100644
+--- a/drivers/media/rc/ir-raw.c
++++ b/drivers/media/rc/ir-raw.c
+@@ -240,6 +240,43 @@ ir_raw_get_allowed_protocols(void)
+ 	return protocols;
  }
  
-+static u16 hdmi_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
++/**
++ * ir_raw_encode_scancode() - Encode a scancode as raw events
++ *
++ * @protocols:		permitted protocols
++ * @scancode:		scancode filter describing a single scancode
++ * @events:		array of raw events to write into
++ * @max:		max number of raw events
++ *
++ * Attempts to encode the scancode as raw events.
++ *
++ * Returns -EINVAL if the scancode is ambiguous or invalid, or there isn't
++ * enough space in the array to fit the encoding.
++ *
++ * Returns -ENOTSUPP if no compatible encoder is found.
++ */
++int ir_raw_encode_scancode(u64 protocols,
++			   const struct rc_scancode_filter *scancode,
++			   struct ir_raw_event *events, unsigned int max)
 +{
-+	return ((hdmi_read(sd, reg) << 8) | hdmi_read(sd, reg + 1)) & mask;
-+}
++	struct ir_raw_handler *handler;
++	int ret = -ENOTSUPP;
 +
- static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- {
- 	struct adv7604_state *state = to_state(sd);
-@@ -575,6 +580,11 @@ static inline int cp_read(struct v4l2_subdev *sd, u8 reg)
- 	return adv_smbus_read_byte_data(state->i2c_cp, reg);
- }
- 
-+static u16 cp_read16(struct v4l2_subdev *sd, u8 reg, u16 mask)
-+{
-+	return ((cp_read(sd, reg) << 8) | cp_read(sd, reg + 1)) & mask;
-+}
++	mutex_lock(&ir_raw_handler_lock);
++	list_for_each_entry(handler, &ir_raw_handler_list, list) {
++		if (handler->protocols & protocols && handler->encode) {
++			ret = handler->encode(protocols, scancode, events, max);
++			if (ret >= 0)
++				break;
++		}
++	}
++	mutex_unlock(&ir_raw_handler_lock);
 +
- static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
++	return ret;
++}
++EXPORT_SYMBOL(ir_raw_encode_scancode);
++
++
+ /*
+  * Used to (un)register raw event clients
+  */
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index dc3b0b7..dfbaad0 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -25,6 +25,8 @@ struct ir_raw_handler {
+ 
+ 	u64 protocols; /* which are handled by this handler */
+ 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
++	int (*encode)(u64 protocols, const struct rc_scancode_filter *scancode,
++		      struct ir_raw_event *events, unsigned int max);
+ 
+ 	/* These two should only be used by the lirc decoder */
+ 	int (*raw_register)(struct rc_dev *dev);
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 4a72176..7bd66be 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -234,6 +234,9 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type);
+ int ir_raw_event_store_with_filter(struct rc_dev *dev,
+ 				struct ir_raw_event *ev);
+ void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
++int ir_raw_encode_scancode(u64 protocols,
++			   const struct rc_scancode_filter *scancode,
++			   struct ir_raw_event *events, unsigned int max);
+ 
+ static inline void ir_raw_event_reset(struct rc_dev *dev)
  {
- 	struct adv7604_state *state = to_state(sd);
-@@ -1203,8 +1213,8 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
- 	}
- 
- 	/* read STDI */
--	stdi->bl = ((cp_read(sd, 0xb1) & 0x3f) << 8) | cp_read(sd, 0xb2);
--	stdi->lcf = ((cp_read(sd, 0xb3) & 0x7) << 8) | cp_read(sd, 0xb4);
-+	stdi->bl = cp_read16(sd, 0xb1, 0x3fff);
-+	stdi->lcf = cp_read16(sd, 0xb3, 0x7ff);
- 	stdi->lcvs = cp_read(sd, 0xb3) >> 3;
- 	stdi->interlaced = io_read(sd, 0x12) & 0x10;
- 
-@@ -1315,8 +1325,8 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
- 
- 		timings->type = V4L2_DV_BT_656_1120;
- 
--		bt->width = (hdmi_read(sd, 0x07) & 0x0f) * 256 + hdmi_read(sd, 0x08);
--		bt->height = (hdmi_read(sd, 0x09) & 0x0f) * 256 + hdmi_read(sd, 0x0a);
-+		bt->width = hdmi_read16(sd, 0x07, 0xfff);
-+		bt->height = hdmi_read16(sd, 0x09, 0xfff);
- 		freq = (hdmi_read(sd, 0x06) * 1000000) +
- 			((hdmi_read(sd, 0x3b) & 0x30) >> 4) * 250000;
- 		if (is_hdmi(sd)) {
-@@ -1326,29 +1336,19 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
- 			freq = freq * 8 / bits_per_channel;
- 		}
- 		bt->pixelclock = freq;
--		bt->hfrontporch = (hdmi_read(sd, 0x20) & 0x03) * 256 +
--			hdmi_read(sd, 0x21);
--		bt->hsync = (hdmi_read(sd, 0x22) & 0x03) * 256 +
--			hdmi_read(sd, 0x23);
--		bt->hbackporch = (hdmi_read(sd, 0x24) & 0x03) * 256 +
--			hdmi_read(sd, 0x25);
--		bt->vfrontporch = ((hdmi_read(sd, 0x2a) & 0x1f) * 256 +
--			hdmi_read(sd, 0x2b)) / 2;
--		bt->vsync = ((hdmi_read(sd, 0x2e) & 0x1f) * 256 +
--			hdmi_read(sd, 0x2f)) / 2;
--		bt->vbackporch = ((hdmi_read(sd, 0x32) & 0x1f) * 256 +
--			hdmi_read(sd, 0x33)) / 2;
-+		bt->hfrontporch = hdmi_read16(sd, 0x20, 0x3ff);
-+		bt->hsync = hdmi_read16(sd, 0x22, 0x3ff);
-+		bt->hbackporch = hdmi_read16(sd, 0x24, 0x3ff);
-+		bt->vfrontporch = hdmi_read16(sd, 0x2a, 0x1fff) / 2;
-+		bt->vsync = hdmi_read16(sd, 0x2e, 0x1fff) / 2;
-+		bt->vbackporch = hdmi_read16(sd, 0x32, 0x1fff) / 2;
- 		bt->polarities = ((hdmi_read(sd, 0x05) & 0x10) ? V4L2_DV_VSYNC_POS_POL : 0) |
- 			((hdmi_read(sd, 0x05) & 0x20) ? V4L2_DV_HSYNC_POS_POL : 0);
- 		if (bt->interlaced == V4L2_DV_INTERLACED) {
--			bt->height += (hdmi_read(sd, 0x0b) & 0x0f) * 256 +
--					hdmi_read(sd, 0x0c);
--			bt->il_vfrontporch = ((hdmi_read(sd, 0x2c) & 0x1f) * 256 +
--					hdmi_read(sd, 0x2d)) / 2;
--			bt->il_vsync = ((hdmi_read(sd, 0x30) & 0x1f) * 256 +
--					hdmi_read(sd, 0x31)) / 2;
--			bt->vbackporch = ((hdmi_read(sd, 0x34) & 0x1f) * 256 +
--					hdmi_read(sd, 0x35)) / 2;
-+			bt->height += hdmi_read16(sd, 0x0b, 0xfff);
-+			bt->il_vfrontporch = hdmi_read16(sd, 0x2c, 0x1fff) / 2;
-+			bt->il_vsync = hdmi_read16(sd, 0x30, 0x1fff) / 2;
-+			bt->vbackporch = hdmi_read16(sd, 0x34, 0x1fff) / 2;
- 		}
- 		adv7604_fill_optional_dv_timings_fields(sd, timings);
- 	} else {
 -- 
 1.8.3.2
 
