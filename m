@@ -1,81 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60688 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751387AbaBEIy4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Feb 2014 03:54:56 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
+Received: from mail-ve0-f170.google.com ([209.85.128.170]:38894 "EHLO
+	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305AbaBFOdT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 09:33:19 -0500
+MIME-Version: 1.0
+In-Reply-To: <1389967140-20704-7-git-send-email-james.hogan@imgtec.com>
+References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+	<1389967140-20704-7-git-send-email-james.hogan@imgtec.com>
+Date: Thu, 6 Feb 2014 08:33:17 -0600
+Message-ID: <CAL_Jsq+wk6_9Da5Xj3Ys-MZYPTpu6V3pAEpGFv44148BodmmrQ@mail.gmail.com>
+Subject: Re: [PATCH v2 06/15] dt: binding: add binding for ImgTec IR block
+From: Rob Herring <robherring2@gmail.com>
+To: James Hogan <james.hogan@imgtec.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 5/9] msi3101: use formats defined in V4L2 API
-Date: Wed,  5 Feb 2014 10:54:36 +0200
-Message-Id: <1391590480-2146-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1391590480-2146-1-git-send-email-crope@iki.fi>
-References: <1391590480-2146-1-git-send-email-crope@iki.fi>
+	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Rob Landley <rob@landley.net>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch new formats V4L2_SDR_FMT_CU8 and V4L2_SDR_FMT_CU16LE as those
-are now defined in API.
+On Fri, Jan 17, 2014 at 7:58 AM, James Hogan <james.hogan@imgtec.com> wrote:
+> Add device tree binding for ImgTec Consumer Infrared block, specifically
+> major revision 1 of the hardware.
+>
+> Signed-off-by: James Hogan <james.hogan@imgtec.com>
+> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Pawel Moll <pawel.moll@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+> Cc: Kumar Gala <galak@codeaurora.org>
+> Cc: devicetree@vger.kernel.org
+> Cc: Rob Landley <rob@landley.net>
+> Cc: linux-doc@vger.kernel.org
+> Cc: Tomasz Figa <tomasz.figa@gmail.com>
+> ---
+> v2:
+> - Future proof compatible string from "img,ir" to "img,ir1", where the 1
+>   corresponds to the major revision number of the hardware (Tomasz
+>   Figa).
+> - Added clock-names property and three specific clock names described in
+>   the manual, only one of which is used by the current driver (Tomasz
+>   Figa).
+> ---
+>  .../devicetree/bindings/media/img-ir1.txt          | 30 ++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/img-ir1.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/img-ir1.txt b/Documentation/devicetree/bindings/media/img-ir1.txt
+> new file mode 100644
+> index 0000000..ace5fd9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/img-ir1.txt
+> @@ -0,0 +1,30 @@
+> +* ImgTec Infrared (IR) decoder version 1
+> +
+> +This binding is for Imagination Technologies' Infrared decoder block,
+> +specifically major revision 1.
+> +
+> +Required properties:
+> +- compatible:          Should be "img,ir1"
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+Kind of short for a name. I don't have anything much better, but how
+about img,ir-rev1.
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index df1a3a1..36990cb 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -52,8 +52,6 @@
- #define MAX_ISOC_ERRORS         20
- 
- /* TODO: These should be moved to V4L2 API */
--#define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
--#define V4L2_PIX_FMT_SDR_U16LE  v4l2_fourcc('D', 'U', '1', '6') /* unsigned 16-bit LE */
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
- #define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
- #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
-@@ -97,11 +95,11 @@ struct msi3101_format {
- /* format descriptions for capture and preview */
- static struct msi3101_format formats[] = {
- 	{
--		.name		= "8-bit unsigned",
--		.pixelformat	= V4L2_PIX_FMT_SDR_U8,
-+		.name		= "IQ U8",
-+		.pixelformat	= V4L2_SDR_FMT_CU8,
- 	}, {
--		.name		= "16-bit unsigned little endian",
--		.pixelformat	= V4L2_PIX_FMT_SDR_U16LE,
-+		.name		= "IQ U16LE",
-+		.pixelformat	=  V4L2_SDR_FMT_CU16LE,
- #if 0
- 	}, {
- 		.name		= "8-bit signed",
-@@ -940,11 +938,11 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
- 
- 	/* select stream format */
- 	switch (s->pixelformat) {
--	case V4L2_PIX_FMT_SDR_U8:
-+	case V4L2_SDR_FMT_CU8:
- 		s->convert_stream = msi3101_convert_stream_504_u8;
- 		reg7 = 0x000c9407;
- 		break;
--	case V4L2_PIX_FMT_SDR_U16LE:
-+	case  V4L2_SDR_FMT_CU16LE:
- 		s->convert_stream = msi3101_convert_stream_252_u16;
- 		reg7 = 0x00009407;
- 		break;
-@@ -1416,7 +1414,7 @@ static int msi3101_probe(struct usb_interface *intf,
- 	INIT_LIST_HEAD(&s->queued_bufs);
- 	s->udev = udev;
- 	s->f_adc = bands_adc[0].rangelow;
--	s->pixelformat = V4L2_PIX_FMT_SDR_U8;
-+	s->pixelformat = V4L2_SDR_FMT_CU8;
- 
- 	/* Init videobuf2 queue structure */
- 	s->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
--- 
-1.8.5.3
+> +- reg:                 Physical base address of the controller and length of
+> +                       memory mapped region.
+> +- interrupts:          The interrupt specifier to the cpu.
+> +
+> +Optional properties:
+> +- clocks:              List of clock specifiers as described in standard
+> +                       clock bindings.
+> +- clock-names:         List of clock names corresponding to the clocks
+> +                       specified in the clocks property.
+> +                       Accepted clock names are:
+> +                       "core": Core clock (defaults to 32.768KHz if omitted).
+> +                       "sys":  System side (fast) clock.
+> +                       "mod":  Power modulation clock.
 
+You need to define the order of clocks including how they are
+interpreted with different number of clocks (not relying on the name).
+Although, if the h/w block really has different number of clock
+inputs, then it is a different h/w block and should have a different
+compatible string.
+
+Rob
