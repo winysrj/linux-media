@@ -1,113 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4412 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752711AbaBRDf4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 22:35:56 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1I3Zq9l067007
-	for <linux-media@vger.kernel.org>; Tue, 18 Feb 2014 04:35:54 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id C1E2F2A00A9
-	for <linux-media@vger.kernel.org>; Tue, 18 Feb 2014 04:35:17 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1611 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756020AbaBFLDN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:03:13 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140218033517.C1E2F2A00A9@tschai.lan>
-Date: Tue, 18 Feb 2014 04:35:17 +0100 (CET)
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 03/10] vb2: add note that buf_finish can be called with !vb2_is_streaming()
+Date: Thu,  6 Feb 2014 12:02:27 +0100
+Message-Id: <1391684554-37956-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Drivers need to be aware that buf_finish can be called when there is no
+streaming going on, so make a note of that.
 
-date:		Tue Feb 18 04:00:22 CET 2014
-git branch:	test
-git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Also add a bunch of missing periods at the end of sentences.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/videobuf2-core.h | 44 ++++++++++++++++++++++--------------------
+ 1 file changed, 23 insertions(+), 21 deletions(-)
 
-Detailed results are available here:
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index f443ce0..82b7f0f 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -34,49 +34,49 @@ struct vb2_fileio_data;
+  *		usually will result in the allocator freeing the buffer (if
+  *		no other users of this buffer are present); the buf_priv
+  *		argument is the allocator private per-buffer structure
+- *		previously returned from the alloc callback
++ *		previously returned from the alloc callback.
+  * @get_userptr: acquire userspace memory for a hardware operation; used for
+  *		 USERPTR memory types; vaddr is the address passed to the
+  *		 videobuf layer when queuing a video buffer of USERPTR type;
+  *		 should return an allocator private per-buffer structure
+  *		 associated with the buffer on success, NULL on failure;
+  *		 the returned private structure will then be passed as buf_priv
+- *		 argument to other ops in this structure
++ *		 argument to other ops in this structure.
+  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
+- *		 be used
++ *		 be used.
+  * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
+  *		   used for DMABUF memory types; alloc_ctx is the alloc context
+  *		   dbuf is the shared dma_buf; returns NULL on failure;
+  *		   allocator private per-buffer structure on success;
+- *		   this needs to be used for further accesses to the buffer
++ *		   this needs to be used for further accesses to the buffer.
+  * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
+  *		   buffer is no longer used; the buf_priv argument is the
+  *		   allocator private per-buffer structure previously returned
+- *		   from the attach_dmabuf callback
++ *		   from the attach_dmabuf callback.
+  * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
+  *		of dmabuf is informed that this driver is going to use the
+- *		dmabuf
++ *		dmabuf.
+  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
+- *		  that this driver is done using the dmabuf for now
++ *		  that this driver is done using the dmabuf for now.
+  * @prepare:	called every time the buffer is passed from userspace to the
+- *		driver, useful for cache synchronisation, optional
++ *		driver, useful for cache synchronisation, optional.
+  * @finish:	called every time the buffer is passed back from the driver
+- *		to the userspace, also optional
++ *		to the userspace, also optional.
+  * @vaddr:	return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+- *		such mapping exists
++ *		such mapping exists.
+  * @cookie:	return allocator specific cookie for a given memory buffer
+  *		associated with the passed private structure or NULL if not
+- *		available
++ *		available.
+  * @num_users:	return the current number of users of a memory buffer;
+  *		return 1 if the videobuf layer (or actually the driver using
+- *		it) is the only user
++ *		it) is the only user.
+  * @mmap:	setup a userspace mapping for a given memory buffer under
+- *		the provided virtual memory region
++ *		the provided virtual memory region.
+  *
+  * Required ops for USERPTR types: get_userptr, put_userptr.
+  * Required ops for MMAP types: alloc, put, num_users, mmap.
+- * Required ops for read/write access types: alloc, put, num_users, vaddr
++ * Required ops for read/write access types: alloc, put, num_users, vaddr.
+  * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
+  *				  unmap_dmabuf.
+  */
+@@ -258,27 +258,29 @@ struct vb2_buffer {
+  * @wait_prepare:	release any locks taken while calling vb2 functions;
+  *			it is called before an ioctl needs to wait for a new
+  *			buffer to arrive; required to avoid a deadlock in
+- *			blocking access type
++ *			blocking access type.
+  * @wait_finish:	reacquire all locks released in the previous callback;
+  *			required to continue operation after sleeping while
+- *			waiting for a new buffer to arrive
++ *			waiting for a new buffer to arrive.
+  * @buf_init:		called once after allocating a buffer (in MMAP case)
+  *			or after acquiring a new USERPTR buffer; drivers may
+  *			perform additional buffer-related initialization;
+  *			initialization failure (return != 0) will prevent
+- *			queue setup from completing successfully; optional
++ *			queue setup from completing successfully; optional.
+  * @buf_prepare:	called every time the buffer is queued from userspace
+  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+  *			perform any initialization required before each hardware
+  *			operation in this callback; drivers that support
+  *			VIDIOC_CREATE_BUFS must also validate the buffer size;
+  *			if an error is returned, the buffer will not be queued
+- *			in driver; optional
++ *			in driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+  *			userspace; drivers may perform any operations required
+- *			before userspace accesses the buffer; optional
++ *			before userspace accesses the buffer; optional. Note:
++ *			this op can be called as well when vb2_is_streaming()
++ *			returns false!
+  * @buf_cleanup:	called once before the buffer is freed; drivers may
+- *			perform any additional cleanup; optional
++ *			perform any additional cleanup; optional.
+  * @start_streaming:	called once to enter 'streaming' state; the driver may
+  *			receive buffers with @buf_queue callback before
+  *			@start_streaming is called; the driver gets the number
+@@ -299,7 +301,7 @@ struct vb2_buffer {
+  *			the buffer back by calling vb2_buffer_done() function;
+  *			it is allways called after calling STREAMON ioctl;
+  *			might be called before start_streaming callback if user
+- *			pre-queued buffers before calling STREAMON
++ *			pre-queued buffers before calling STREAMON.
+  */
+ struct vb2_ops {
+ 	int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
+-- 
+1.8.5.2
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
