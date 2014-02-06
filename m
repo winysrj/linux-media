@@ -1,176 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:55577 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750763AbaBLKpB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 05:45:01 -0500
-Received: by mail-oa0-f51.google.com with SMTP id h16so10627022oag.24
-        for <linux-media@vger.kernel.org>; Wed, 12 Feb 2014 02:45:01 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1392022019-5519-25-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl> <1392022019-5519-25-git-send-email-hverkuil@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 12 Feb 2014 11:44:41 +0100
-Message-ID: <CAPybu_2TkODSMUCdSQ8Q1wu=Mr-gmaC_ZQQBiatOPYw=gGcu2g@mail.gmail.com>
-Subject: Re: [REVIEWv2 PATCH 24/34] v4l2-ctrls/videodev2.h: add u8 and u16 types.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:45040 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756996AbaBFUAB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 15:00:01 -0500
+Received: by mail-wi0-f180.google.com with SMTP id hm4so183838wib.13
+        for <linux-media@vger.kernel.org>; Thu, 06 Feb 2014 12:00:00 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>
+Subject: [RFC 3/4] rc: ir-nec-decoder: add encode capability
+Date: Thu,  6 Feb 2014 19:59:22 +0000
+Message-Id: <1391716763-2689-4-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
+References: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+Add the capability to encode NEC scancodes as raw events. The
+scancode_to_raw is pretty much taken from the img-ir NEC filter()
+callback, and modulation uses the pulse distance helper added in a
+previous commit.
 
-In the case of U8 and U16 data types. Why dont you fill the elem_size
-automatically in v4l2_ctrl and request the driver to fill the field?
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+---
+ drivers/media/rc/ir-nec-decoder.c | 91 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 91 insertions(+)
 
-Other option would be not declaring the basic data types (U8, U16,
-U32...) and use elem_size. Ie. If type==V4L2_CTRL_COMPLEX_TYPES, then
-the type is basic and elem_size is the size of the type. If the type
->V4L2_CTRL_COMPLEX_TYPES the type is not basic.
-
-Thanks!
-
-On Mon, Feb 10, 2014 at 9:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> These are needed by the upcoming patches for the motion detection
-> matrices.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 24 ++++++++++++++++++++++++
->  include/media/v4l2-ctrls.h           |  4 ++++
->  include/uapi/linux/videodev2.h       |  4 ++++
->  3 files changed, 32 insertions(+)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index c81ebcf..0b200dd 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1145,6 +1145,10 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
->                 return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
->         case V4L2_CTRL_TYPE_INTEGER64:
->                 return ptr1.p_s64[idx] == ptr2.p_s64[idx];
-> +       case V4L2_CTRL_TYPE_U8:
-> +               return ptr1.p_u8[idx] == ptr2.p_u8[idx];
-> +       case V4L2_CTRL_TYPE_U16:
-> +               return ptr1.p_u16[idx] == ptr2.p_u16[idx];
->         default:
->                 if (ctrl->is_int)
->                         return ptr1.p_s32[idx] == ptr2.p_s32[idx];
-> @@ -1172,6 +1176,12 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
->         case V4L2_CTRL_TYPE_BOOLEAN:
->                 ptr.p_s32[idx] = ctrl->default_value;
->                 break;
-> +       case V4L2_CTRL_TYPE_U8:
-> +               ptr.p_u8[idx] = ctrl->default_value;
-> +               break;
-> +       case V4L2_CTRL_TYPE_U16:
-> +               ptr.p_u16[idx] = ctrl->default_value;
-> +               break;
->         default:
->                 idx *= ctrl->elem_size;
->                 memset(ptr.p + idx, 0, ctrl->elem_size);
-> @@ -1208,6 +1218,12 @@ static void std_log(const struct v4l2_ctrl *ctrl)
->         case V4L2_CTRL_TYPE_STRING:
->                 pr_cont("%s", ptr.p_char);
->                 break;
-> +       case V4L2_CTRL_TYPE_U8:
-> +               pr_cont("%u", (unsigned)*ptr.p_u8);
-> +               break;
-> +       case V4L2_CTRL_TYPE_U16:
-> +               pr_cont("%u", (unsigned)*ptr.p_u16);
-> +               break;
->         default:
->                 pr_cont("unknown type %d", ctrl->type);
->                 break;
-> @@ -1238,6 +1254,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
->                 return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
->         case V4L2_CTRL_TYPE_INTEGER64:
->                 return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
-> +       case V4L2_CTRL_TYPE_U8:
-> +               return ROUND_TO_RANGE(ptr.p_u8[idx], u8, ctrl);
-> +       case V4L2_CTRL_TYPE_U16:
-> +               return ROUND_TO_RANGE(ptr.p_u16[idx], u16, ctrl);
->
->         case V4L2_CTRL_TYPE_BOOLEAN:
->                 ptr.p_s32[idx] = !!ptr.p_s32[idx];
-> @@ -1469,6 +1489,8 @@ static int check_range(enum v4l2_ctrl_type type,
->                 if (step != 1 || max > 1 || min < 0)
->                         return -ERANGE;
->                 /* fall through */
-> +       case V4L2_CTRL_TYPE_U8:
-> +       case V4L2_CTRL_TYPE_U16:
->         case V4L2_CTRL_TYPE_INTEGER:
->         case V4L2_CTRL_TYPE_INTEGER64:
->                 if (step == 0 || min > max || def < min || def > max)
-> @@ -3119,6 +3141,8 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
->         case V4L2_CTRL_TYPE_MENU:
->         case V4L2_CTRL_TYPE_INTEGER_MENU:
->         case V4L2_CTRL_TYPE_BITMASK:
-> +       case V4L2_CTRL_TYPE_U8:
-> +       case V4L2_CTRL_TYPE_U16:
->                 if (ctrl->is_matrix)
->                         return -EINVAL;
->                 ret = check_range(ctrl->type, min, max, step, def);
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 7d72328..2ccad5f 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -39,12 +39,16 @@ struct poll_table_struct;
->  /** union v4l2_ctrl_ptr - A pointer to a control value.
->   * @p_s32:     Pointer to a 32-bit signed value.
->   * @p_s64:     Pointer to a 64-bit signed value.
-> + * @p_u8:      Pointer to a 8-bit unsigned value.
-> + * @p_u16:     Pointer to a 16-bit unsigned value.
->   * @p_char:    Pointer to a string.
->   * @p:         Pointer to a complex value.
->   */
->  union v4l2_ctrl_ptr {
->         s32 *p_s32;
->         s64 *p_s64;
-> +       u8 *p_u8;
-> +       u16 *p_u16;
->         char *p_char;
->         void *p;
->  };
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 858a6f3..8b70f51 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1228,6 +1228,8 @@ struct v4l2_ext_control {
->                 __s32 value;
->                 __s64 value64;
->                 char *string;
-> +               __u8 *p_u8;
-> +               __u16 *p_u16;
->                 void *p;
->         };
->  } __attribute__ ((packed));
-> @@ -1257,6 +1259,8 @@ enum v4l2_ctrl_type {
->
->         /* Complex types are >= 0x0100 */
->         V4L2_CTRL_COMPLEX_TYPES      = 0x0100,
-> +       V4L2_CTRL_TYPE_U8            = 0x0100,
-> +       V4L2_CTRL_TYPE_U16           = 0x0101,
->  };
->
->  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
-> --
-> 1.8.5.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 1bab7ea..5083ed6 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -203,9 +203,100 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	return -EINVAL;
+ }
+ 
++/**
++ * ir_nec_scancode_to_raw() - encode an NEC scancode ready for modulation.
++ * @in:		scancode filter describing a single NEC scancode.
++ * @raw:	raw data to be modulated.
++ */
++static int ir_nec_scancode_to_raw(const struct rc_scancode_filter *in,
++				  u32 *raw)
++{
++	unsigned int addr, addr_inv, data, data_inv;
++
++	data = in->data & 0xff;
++
++	if ((in->data | in->mask) & 0xff000000) {
++		/* 32-bit NEC (used by Apple and TiVo remotes) */
++		/* scan encoding: aaAAddDD */
++		if (in->mask != 0xffffffff)
++			return -EINVAL;
++		addr_inv   = (in->data >> 24) & 0xff;
++		addr       = (in->data >> 16) & 0xff;
++		data_inv   = (in->data >>  8) & 0xff;
++	} else if ((in->data | in->mask) & 0x00ff0000) {
++		/* Extended NEC */
++		/* scan encoding AAaaDD */
++		if (in->mask != 0x00ffffff)
++			return -EINVAL;
++		addr       = (in->data >> 16) & 0xff;
++		addr_inv   = (in->data >>  8) & 0xff;
++		data_inv   = data ^ 0xff;
++	} else {
++		/* Normal NEC */
++		/* scan encoding: AADD */
++		if (in->mask != 0x0000ffff)
++			return -EINVAL;
++		addr       = (in->data >>  8) & 0xff;
++		addr_inv   = addr ^ 0xff;
++		data_inv   = data ^ 0xff;
++	}
++
++	/* raw encoding: ddDDaaAA */
++	*raw = data_inv << 24 |
++	       data     << 16 |
++	       addr_inv <<  8 |
++	       addr;
++	return 0;
++}
++
++static struct ir_raw_timings_pd ir_nec_timings = {
++	.header_pulse	= NEC_HEADER_PULSE,
++	.header_space	= NEC_HEADER_SPACE,
++	.bit_pulse	= NEC_BIT_PULSE,
++	.bit_space[0]	= NEC_BIT_0_SPACE,
++	.bit_space[1]	= NEC_BIT_1_SPACE,
++	.trailer_pulse	= NEC_TRAILER_PULSE,
++	.trailer_space	= NEC_TRAILER_SPACE,
++	.msb_first = 0,
++};
++
++/**
++ * ir_nec_encode() - Encode a scancode as a stream of raw events
++ *
++ * @protocols:	allowed protocols
++ * @scancode:	scancode filter describing scancode (helps distinguish between
++ *		protocol subtypes when scancode is ambiguous)
++ * @events:	array of raw ir events to write into
++ * @max:	maximum size of @events
++ *
++ * This function returns -EINVAL if the scancode filter is invalid or matches
++ * multiple scancodes.
++ */
++static int ir_nec_encode(u64 protocols,
++			 const struct rc_scancode_filter *scancode,
++			 struct ir_raw_event *events, unsigned int max)
++{
++	struct ir_raw_event *e = events;
++	int ret;
++	u32 raw;
++
++	/* Convert a NEC scancode to raw NEC data */
++	ret = ir_nec_scancode_to_raw(scancode, &raw);
++	if (ret < 0)
++		return ret;
++
++	/* Modulate the raw data using a pulse distance modulation */
++	ret = ir_raw_gen_pd(&e, max, &ir_nec_timings, NEC_NBITS, raw);
++	if (ret < 0)
++		return ret;
++
++	return e - events;
++}
++
+ static struct ir_raw_handler nec_handler = {
+ 	.protocols	= RC_BIT_NEC,
+ 	.decode		= ir_nec_decode,
++	.encode		= ir_nec_encode,
+ };
+ 
+ static int __init ir_nec_decode_init(void)
 -- 
-Ricardo Ribalda
+1.8.3.2
+
