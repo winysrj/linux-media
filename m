@@ -1,129 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34581 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753685AbaB0AWV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:22:21 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 09/13] DocBook: document RF tuner gain controls
-Date: Thu, 27 Feb 2014 02:22:04 +0200
-Message-Id: <1393460528-11684-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
-References: <1393460528-11684-1-git-send-email-crope@iki.fi>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:39328 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756997AbaBFUAB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 15:00:01 -0500
+Received: by mail-wi0-f174.google.com with SMTP id f8so181701wiw.13
+        for <linux-media@vger.kernel.org>; Thu, 06 Feb 2014 12:00:00 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>
+Subject: [RFC 4/4] DEBUG: rc: img-ir: raw: Add loopback on s_filter
+Date: Thu,  6 Feb 2014 19:59:23 +0000
+Message-Id: <1391716763-2689-5-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
+References: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for LNA, mixer and IF gain controls. These
-controls are RF tuner specific.
-
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Purely for the purposes of debugging the raw IR encode, add the s_filter
+callback to the img-ir-raw driver, which instead of setting the filter
+just feeds it back through the input device so that it can be verified.
 ---
- Documentation/DocBook/media/v4l/controls.xml | 91 ++++++++++++++++++++++++++++
- 1 file changed, 91 insertions(+)
+ drivers/media/rc/img-ir/img-ir-raw.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index a5a3188..6c9dbf6 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4971,4 +4971,95 @@ defines possible values for de-emphasis. Here they are:</entry>
-       </table>
+diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
+index cfb01d9..272767a 100644
+--- a/drivers/media/rc/img-ir/img-ir-raw.c
++++ b/drivers/media/rc/img-ir/img-ir-raw.c
+@@ -7,6 +7,7 @@
+  * signal edges are reported and decoded by generic software decoders.
+  */
  
-       </section>
++#include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <media/rc-core.h>
+ #include "img-ir.h"
+@@ -95,6 +96,34 @@ void img_ir_setup_raw(struct img_ir_priv *priv)
+ 	spin_unlock_irq(&priv->lock);
+ }
+ 
++static int img_ir_raw_set_filter(struct rc_dev *dev, enum rc_filter_type type,
++				 struct rc_scancode_filter *sc_filter)
++{
++	struct ir_raw_event *raw;
++	int ret;
++	int i;
 +
-+    <section id="rf-tuner-controls">
-+      <title>RF Tuner Control Reference</title>
++	/* fine to disable filter */
++	if (!sc_filter->mask)
++		return 0;
++	
++	raw = kmalloc(512 * sizeof(*raw), GFP_KERNEL);
++	ret = ir_raw_encode_scancode(dev->enabled_protocols, sc_filter, raw,
++				     512);
++	if (ret >= 0) {
++		/* loop back the scancode just for fun! */
++		for (i = 0; i < ret; ++i)
++			ir_raw_event_store(dev, &raw[i]);
++		ir_raw_event_handle(dev);
 +
-+      <para>The RF Tuner (RF_TUNER) class includes controls for common features
-+of devices having RF tuner.</para>
++		ret = 0;
++	}
 +
-+      <table pgwide="1" frame="none" id="rf-tuner-control-id">
-+        <title>RF_TUNER Control IDs</title>
++	kfree(raw);
 +
-+        <tgroup cols="4">
-+          <colspec colname="c1" colwidth="1*" />
-+          <colspec colname="c2" colwidth="6*" />
-+          <colspec colname="c3" colwidth="2*" />
-+          <colspec colname="c4" colwidth="6*" />
-+          <spanspec namest="c1" nameend="c2" spanname="id" />
-+          <spanspec namest="c2" nameend="c4" spanname="descr" />
-+          <thead>
-+            <row>
-+              <entry spanname="id" align="left">ID</entry>
-+              <entry align="left">Type</entry>
-+            </row>
-+            <row rowsep="1">
-+              <entry spanname="descr" align="left">Description</entry>
-+            </row>
-+          </thead>
-+          <tbody valign="top">
-+            <row><entry></entry></row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_CLASS</constant>&nbsp;</entry>
-+              <entry>class</entry>
-+            </row><row><entry spanname="descr">The RF_TUNER class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant>&nbsp;</entry>
-+              <entry>boolean</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">Enables/disables LNA automatic gain control (AGC)</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO</constant>&nbsp;</entry>
-+              <entry>boolean</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">Enables/disables mixer automatic gain control (AGC)</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_IF_GAIN_AUTO</constant>&nbsp;</entry>
-+              <entry>boolean</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
-+              <entry>integer</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">LNA (low noise amplifier) gain is first
-+gain stage on the RF tuner signal path. It is located very close to tuner
-+antenna input. Used when <constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant> is not set.
-+The range and step are driver-specific.</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_MIXER_GAIN</constant>&nbsp;</entry>
-+              <entry>integer</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">Mixer gain is second gain stage on the RF
-+tuner signal path. It is located inside mixer block, where RF signal is
-+down-converted by the mixer. Used when <constant>V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO</constant>
-+is not set. The range and step are driver-specific.</entry>
-+            </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_IF_GAIN</constant>&nbsp;</entry>
-+              <entry>integer</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">IF gain is last gain stage on the RF tuner
-+signal path. It is located on output of RF tuner. It controls signal level of
-+intermediate frequency output or baseband output. Used when
-+<constant>V4L2_CID_RF_TUNER_IF_GAIN_AUTO</constant> is not set. The range and step are
-+driver-specific.</entry>
-+            </row>
-+          </tbody>
-+        </tgroup>
-+      </table>
-+    </section>
- </section>
++	return ret;
++}
++
+ int img_ir_probe_raw(struct img_ir_priv *priv)
+ {
+ 	struct img_ir_priv_raw *raw = &priv->raw;
+@@ -114,6 +143,7 @@ int img_ir_probe_raw(struct img_ir_priv *priv)
+ 	rdev->map_name = RC_MAP_EMPTY;
+ 	rdev->input_name = "IMG Infrared Decoder Raw";
+ 	rdev->driver_type = RC_DRIVER_IR_RAW;
++	rdev->s_filter = img_ir_raw_set_filter;
+ 
+ 	/* Register raw decoder */
+ 	error = rc_register_device(rdev);
 -- 
-1.8.5.3
+1.8.3.2
 
