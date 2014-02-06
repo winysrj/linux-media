@@ -1,109 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:63848 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756850AbaBFT77 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 14:59:59 -0500
-Received: by mail-wi0-f169.google.com with SMTP id e4so190284wiv.4
-        for <linux-media@vger.kernel.org>; Thu, 06 Feb 2014 11:59:57 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>
-Subject: [RFC 1/4] rc: ir-raw: add scancode encoder callback
-Date: Thu,  6 Feb 2014 19:59:20 +0000
-Message-Id: <1391716763-2689-2-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
-References: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2933 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756007AbaBFLDM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:03:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 04/10] vb2: call buf_finish from __dqbuf
+Date: Thu,  6 Feb 2014 12:02:28 +0100
+Message-Id: <1391684554-37956-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a callback to raw ir handlers for encoding and modulating a scancode
-to a set of raw events. This could be used for transmit, or for
-converting a wakeup scancode filter to a form that is more suitable for
-raw hardware wake up filters.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
+This ensures that it is also called from queue_cancel, which also calls
+__dqbuf(). Without this change any time queue_cancel is called while
+streaming the buf_finish op will not be called and any driver cleanup
+will not happen.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/rc/ir-raw.c       | 37 +++++++++++++++++++++++++++++++++++++
- drivers/media/rc/rc-core-priv.h |  2 ++
- include/media/rc-core.h         |  3 +++
- 3 files changed, 42 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
-index 79a9cb6..9aea407 100644
---- a/drivers/media/rc/ir-raw.c
-+++ b/drivers/media/rc/ir-raw.c
-@@ -240,6 +240,43 @@ ir_raw_get_allowed_protocols(void)
- 	return protocols;
- }
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 07b58bd..3756378 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1762,6 +1762,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+ 		return;
  
-+/**
-+ * ir_raw_encode_scancode() - Encode a scancode as raw events
-+ *
-+ * @protocols:		permitted protocols
-+ * @scancode:		scancode filter describing a single scancode
-+ * @events:		array of raw events to write into
-+ * @max:		max number of raw events
-+ *
-+ * Attempts to encode the scancode as raw events.
-+ *
-+ * Returns -EINVAL if the scancode is ambiguous or invalid, or there isn't
-+ * enough space in the array to fit the encoding.
-+ *
-+ * Returns -ENOTSUPP if no compatible encoder is found.
-+ */
-+int ir_raw_encode_scancode(u64 protocols,
-+			   const struct rc_scancode_filter *scancode,
-+			   struct ir_raw_event *events, unsigned int max)
-+{
-+	struct ir_raw_handler *handler;
-+	int ret = -ENOTSUPP;
++	call_vb_qop(vb, buf_finish, vb);
 +
-+	mutex_lock(&ir_raw_handler_lock);
-+	list_for_each_entry(handler, &ir_raw_handler_list, list) {
-+		if (handler->protocols & protocols && handler->encode) {
-+			ret = handler->encode(protocols, scancode, events, max);
-+			if (ret >= 0)
-+				break;
-+		}
-+	}
-+	mutex_unlock(&ir_raw_handler_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(ir_raw_encode_scancode);
-+
-+
- /*
-  * Used to (un)register raw event clients
-  */
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index dc3b0b7..dfbaad0 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -25,6 +25,8 @@ struct ir_raw_handler {
+ 	vb->state = VB2_BUF_STATE_DEQUEUED;
  
- 	u64 protocols; /* which are handled by this handler */
- 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
-+	int (*encode)(u64 protocols, const struct rc_scancode_filter *scancode,
-+		      struct ir_raw_event *events, unsigned int max);
+ 	/* unmap DMABUF buffer */
+@@ -1787,12 +1789,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	if (ret < 0)
+ 		return ret;
  
- 	/* These two should only be used by the lirc decoder */
- 	int (*raw_register)(struct rc_dev *dev);
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 4a72176..7bd66be 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -234,6 +234,9 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type);
- int ir_raw_event_store_with_filter(struct rc_dev *dev,
- 				struct ir_raw_event *ev);
- void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
-+int ir_raw_encode_scancode(u64 protocols,
-+			   const struct rc_scancode_filter *scancode,
-+			   struct ir_raw_event *events, unsigned int max);
- 
- static inline void ir_raw_event_reset(struct rc_dev *dev)
- {
+-	ret = call_vb_qop(vb, buf_finish, vb);
+-	if (ret) {
+-		dprintk(1, "dqbuf: buffer finish failed\n");
+-		return ret;
+-	}
+-
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DONE:
+ 		dprintk(3, "dqbuf: Returning done buffer\n");
 -- 
-1.8.3.2
+1.8.5.2
 
