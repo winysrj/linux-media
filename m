@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3414 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227AbaBYMxW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 07:53:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 14/15] vb2: fix streamoff handling if streamon wasn't called.
-Date: Tue, 25 Feb 2014 13:52:54 +0100
-Message-Id: <1393332775-44067-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-yk0-f172.google.com ([209.85.160.172]:45307 "EHLO
+	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751546AbaBGU7l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 15:59:41 -0500
+Received: by mail-yk0-f172.google.com with SMTP id 200so544584ykr.3
+        for <linux-media@vger.kernel.org>; Fri, 07 Feb 2014 12:59:40 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <52F53F60.6090003@earthlink.net>
+References: <52F524A8.9000008@earthlink.net>
+	<CALzAhNWfUWYtQaRH-BcWhY6YE1pV3P=69R2NyXHUeAwZMrfrcg@mail.gmail.com>
+	<52F53F60.6090003@earthlink.net>
+Date: Fri, 7 Feb 2014 15:51:33 -0500
+Message-ID: <CALzAhNVhPQrtwYgmuipVPBg-Ogi61cndu59BdcbAO3QtC5GLrw@mail.gmail.com>
+Subject: Re: Driver for KWorld UB435Q Version 3 (ATSC) USB id: 1b80:e34c
+From: Steven Toth <stoth@kernellabs.com>
+To: The Bit Pit <thebitpit@earthlink.net>
+Cc: Linux-Media <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+> Thanks steve,
 
-If you request buffers, then queue buffers and then call STREAMOFF
-those buffers are not returned to their dequeued state because streamoff
-will just return if q->streaming was 0.
+You are very welcome.
 
-This means that afterwards you can never QBUF that same buffer again unless
-you do STREAMON, REQBUFS or close the filehandle first.
+>
+> Found it.  Its the same files I found at a different place.  I don't
+> understand the way to do things.
+> Last time I simply edited the kernel tree and supplied patches to get my
+> changes in.  The source for  tda18272 is not in the kernel tree I 'git'
+> following the instructions at linuxtv.org.  It is in Manu's tree, but
+> the directory structure is slightly different.
 
-It is clear that if you do STREAMOFF even if no STREAMON was called before,
-you still want to have all buffers returned to their proper dequeued state.
+That's ok. Anything that gets submitted for upstream merge (by manu
+for example) would be moved into the correct directories by the
+developer. It's not unusual to see personal development trees with odd
+file placements.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+>
+> I don't understand the current development process.  Are the
+> instructions at linuxtv.org out of date?
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 68f3def..4af6457 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2067,14 +2067,14 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
- 		return -EINVAL;
- 	}
- 
--	if (!q->streaming) {
--		dprintk(3, "streamoff successful: not streaming\n");
--		return 0;
--	}
--
- 	/*
- 	 * Cancel will pause streaming and remove all buffers from the driver
- 	 * and videobuf, effectively returning control over them to userspace.
-+	 *
-+	 * Note that we do this even if q->streaming == 0: if you prepare or
-+	 * queue buffers, and then call streamoff without ever having called
-+	 * streamon, you would still expect those buffers to be returned to
-+	 * their normal dequeued state.
- 	 */
- 	__vb2_queue_cancel(q);
- 
+No, last I checked they were correct.
+
+>
+> In which tree should I edit the following and supply patches against:
+> usb/em28xx/em28xx-cards.c
+> usb/em28xx/em28xx-dvb.c
+> usb/em28xx/em28xx.h
+
+http://git.linuxtv.org/media_tree.git
+
+- Steve
+
 -- 
-1.9.0
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
