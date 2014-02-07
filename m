@@ -1,53 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4721 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752745AbaB1Rmr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 12:42:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:41168 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750712AbaBGG7h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Feb 2014 01:59:37 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 15/17] vb2: call buf_finish after the state check.
-Date: Fri, 28 Feb 2014 18:42:13 +0100
-Message-Id: <1393609335-12081-16-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/3] v4l: add control for RF tuner PLL lock flag
+Date: Fri,  7 Feb 2014 08:59:10 +0200
+Message-Id: <1391756352-3841-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add volatile boolean control to indicate if tuner frequency synthesizer
+is locked to requested frequency. That means tuner is able to receive
+given frequency. Control is named as "PLL lock", since frequency
+synthesizers are based of phase-locked-loop. Maybe more general name
+could be wise still?
 
-Don't call buf_finish unless we know that the buffer is in a valid state.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 5 +++++
+ include/uapi/linux/v4l2-controls.h   | 1 +
+ 2 files changed, 6 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index c52de1d..7716b73 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1878,8 +1878,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 	if (ret < 0)
- 		return ret;
- 
--	call_vb_qop(vb, buf_finish, vb);
--
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DONE:
- 		dprintk(3, "dqbuf: Returning done buffer\n");
-@@ -1892,6 +1890,8 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 		return -EINVAL;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index e44722b..95e2465 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -867,6 +867,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_IF_GAIN:			return "IF Gain";
+ 	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
+ 	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
++	case V4L2_CID_PLL_LOCK:			return "PLL lock";
+ 	default:
+ 		return NULL;
  	}
+@@ -920,6 +921,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MIXER_GAIN_AUTO:
+ 	case V4L2_CID_IF_GAIN_AUTO:
+ 	case V4L2_CID_BANDWIDTH_AUTO:
++	case V4L2_CID_PLL_LOCK:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -1100,6 +1102,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DV_RX_POWER_PRESENT:
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		break;
++	case V4L2_CID_PLL_LOCK:
++		*flags |= V4L2_CTRL_FLAG_VOLATILE;
++		break;
+ 	}
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_fill);
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index cc488c3..06918c9 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -907,5 +907,6 @@ enum v4l2_deemphasis {
+ #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 52)
+ #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 61)
+ #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
++#define V4L2_CID_PLL_LOCK			(V4L2_CID_RF_TUNER_CLASS_BASE + 91)
  
-+	call_vb_qop(vb, buf_finish, vb);
-+
- 	/* Fill buffer information for the userspace */
- 	__fill_v4l2_buffer(vb, b);
- 	/* Remove from videobuf queue */
+ #endif
 -- 
-1.9.rc1
+1.8.5.3
 
