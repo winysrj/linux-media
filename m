@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f48.google.com ([209.85.213.48]:60744 "EHLO
-	mail-yh0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132AbaBTMvn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 07:51:43 -0500
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42455 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751933AbaBGAti (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 19:49:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 06/47] v4l: Add pad-level DV timings subdev operations
+Date: Fri, 07 Feb 2014 01:50:36 +0100
+Message-ID: <4784461.L01N9ONqSC@avalon>
+In-Reply-To: <20140206173323.GJ15635@valkosipuli.retiisi.org.uk>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-7-git-send-email-laurent.pinchart@ideasonboard.com> <20140206173323.GJ15635@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20140220092559.GX26722@mwanda>
-References: <20140206092800.GB31780@elgon.mountain>
-	<CAHFNz9LMU0X2YsqniY+6VOS_mM-jUfAvP2sF5MFNdwWWwEVgsw@mail.gmail.com>
-	<20140218085651.GL26722@mwanda>
-	<CAHFNz9LUP4UVROk5RWW_-=LQ5=gC8__zD67aLxNq7bHUMgipCQ@mail.gmail.com>
-	<20140219074455.GQ26722@mwanda>
-	<CAHFNz9K=0TRLDq1q=2+sYknSw6CeGreeEWPSZbfYvsxUNLXJeA@mail.gmail.com>
-	<20140220092559.GX26722@mwanda>
-Date: Thu, 20 Feb 2014 18:15:53 +0530
-Message-ID: <CAHFNz9KfeWxYQDB7ykzXBQsLBYwD9zOoUT5vrNfLXFnBU9ZVxw@mail.gmail.com>
-Subject: Re: [patch] [media] stv090x: remove indent levels
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 20, 2014 at 2:55 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> Guys, what Manu is saying is purest nonsense.  The "lock" variable is a
-> stack variable, it's not a "demodulator Read-modify-Write register".
-> The implications of changing "if (!lock)" to "if (lock)" are simple and
-> obvious.
+Hi Sakari,
 
-Sorry, you mistook. By demodulator Read-modify-Write register,
-I do really mean a register on the demodulator. If you do miss
-a read when flipping a logic, it does indeed make a large difference.
+Thank you for the review.
 
+On Thursday 06 February 2014 19:33:23 Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> On Wed, Feb 05, 2014 at 05:41:57PM +0100, Laurent Pinchart wrote:
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  include/media/v4l2-subdev.h    | 4 ++++
+> >  include/uapi/linux/videodev2.h | 8 ++++++--
+> >  2 files changed, 10 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index d67210a..2c7355a 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -505,6 +505,10 @@ struct v4l2_subdev_pad_ops {
+> > 
+> >  			     struct v4l2_subdev_selection *sel);
+> >  	
+> >  	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid 
+*edid);
+> >  	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid 
+*edid);
+> > 
+> > +	int (*dv_timings_cap)(struct v4l2_subdev *sd,
+> > +			      struct v4l2_dv_timings_cap *cap);
+> > +	int (*enum_dv_timings)(struct v4l2_subdev *sd,
+> > +			       struct v4l2_enum_dv_timings *timings);
+> 
+> Do you think there would be use for these in the user space API? The
+> argument structs are defined in the user space header. The driver does also
+> export a sub-device node.
 
->
-> He's not reviewing patches, he's just NAKing them.  It's not helpful.
->
+Please have a look at
 
-Uh !?
+[PATCH 27/47] v4l: Add support for DV timings ioctls on subdev nodes
 
-I said "Ok, will have a look at it later, the second lock test might
-be superfluous,
-which will fix your static checker as well."
+:-)
 
-Where's the NAK in there ?
-
-Just said that, I prefer a simplified version, rather than that logic flip.
-
+-- 
 Regards,
 
-Manu
+Laurent Pinchart
+
