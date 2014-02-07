@@ -1,254 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2702 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752961AbaBERbn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 12:31:43 -0500
-Message-ID: <52F27562.9070103@xs4all.nl>
-Date: Wed, 05 Feb 2014 18:31:14 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-vb0-f42.google.com ([209.85.212.42]:41529 "EHLO
+	mail-vb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744AbaBGW3i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 17:29:38 -0500
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 27/47] v4l: Add support for DV timings ioctls on subdev
- nodes
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-28-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-28-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20140207145053.GF25314@e106331-lin.cambridge.arm.com>
+References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
+	<1389967140-20704-7-git-send-email-james.hogan@imgtec.com>
+	<CAL_Jsq+wk6_9Da5Xj3Ys-MZYPTpu6V3pAEpGFv44148BodmmrQ@mail.gmail.com>
+	<52F39F30.70104@imgtec.com>
+	<CAL_JsqLL6MbwajCUAm+NJk=ofL5OHq8b0zwO3LFb-TKY6UtVMQ@mail.gmail.com>
+	<20140207145053.GF25314@e106331-lin.cambridge.arm.com>
+Date: Fri, 7 Feb 2014 16:29:36 -0600
+Message-ID: <CAL_JsqLRt71vhvjBofYC9WzgA+jco2q5PY=+7bnbkihWDcG0pQ@mail.gmail.com>
+Subject: Re: [PATCH v2 06/15] dt: binding: add binding for ImgTec IR block
+From: Rob Herring <robherring2@gmail.com>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: James Hogan <james.hogan@imgtec.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <Pawel.Moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Rob Landley <rob@landley.net>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Fri, Feb 7, 2014 at 8:50 AM, Mark Rutland <mark.rutland@arm.com> wrote:
+> Hi Rob,
+>
+> On Fri, Feb 07, 2014 at 02:33:27PM +0000, Rob Herring wrote:
+>> On Thu, Feb 6, 2014 at 8:41 AM, James Hogan <james.hogan@imgtec.com> wrote:
+>> > Hi Rob,
+>> >
+>> > On 06/02/14 14:33, Rob Herring wrote:
+>> >> On Fri, Jan 17, 2014 at 7:58 AM, James Hogan <james.hogan@imgtec.com> wrote:
+>> >>> +Required properties:
+>> >>> +- compatible:          Should be "img,ir1"
+>> >>
+>> >> Kind of short for a name. I don't have anything much better, but how
+>> >> about img,ir-rev1.
+>> >
+>> > Okay, that sounds reasonable.
+>> >
+>> >>> +Optional properties:
+>> >>> +- clocks:              List of clock specifiers as described in standard
+>> >>> +                       clock bindings.
+>> >>> +- clock-names:         List of clock names corresponding to the clocks
+>> >>> +                       specified in the clocks property.
+>> >>> +                       Accepted clock names are:
+>> >>> +                       "core": Core clock (defaults to 32.768KHz if omitted).
+>> >>> +                       "sys":  System side (fast) clock.
+>> >>> +                       "mod":  Power modulation clock.
+>> >>
+>> >> You need to define the order of clocks including how they are
+>> >> interpreted with different number of clocks (not relying on the name).
+>> >
+>> > Would it be sufficient to specify that "clock-names" is required if
+>> > "clocks" is provided (i.e. unnamed clocks aren't used), or is there some
+>> > other reason that clock-names shouldn't be relied upon?
+>>
+>> irq-names, reg-names, clock-names, etc. are considered optional to
+>> their associated property and the order is supposed to be defined.
+>> clock-names is a bit different in that clk_get needs a name, so it
+>> effectively is required by Linux when there is more than 1 clock.
+>> Really, we should fix Linux.
+>
+> If they're optional then you can't handle optional entries (i.e.  when
+> nothing's wired to an input), and this is counter to the style I've been
+> recommending to people (defining clocks in terms of clock-names).
+>
+> I really don't see the point in any *-names property if they don't
+> define the list and allow for optional / reordered lists. Why does the
+> order have to be fixed rather than using the -names properties? It's
+> already a de-facto standard.
 
-Some comments:
+Maybe for clocks, but I don't think we should treat clocks differently
+from other properties. We've already got enough variation in binding
+styles, I'd like to be consistent across interrupts, reg, clocks, etc.
 
-On 02/05/2014 05:42 PM, Laurent Pinchart wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    | 27 ++++++++++++++++++----
->  .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   | 27 +++++++++++++++++-----
->  drivers/media/v4l2-core/v4l2-subdev.c              | 15 ++++++++++++
->  include/uapi/linux/v4l2-subdev.h                   |  5 ++++
->  4 files changed, 63 insertions(+), 11 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-> index cd7720d..baef771 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-> @@ -1,11 +1,12 @@
->  <refentry id="vidioc-dv-timings-cap">
->    <refmeta>
-> -    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP</refentrytitle>
-> +    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP, VIDIOC_SUBDEV_DV_TIMINGS_CAP</refentrytitle>
->      &manvol;
->    </refmeta>
->  
->    <refnamediv>
->      <refname>VIDIOC_DV_TIMINGS_CAP</refname>
-> +    <refname>VIDIOC_SUBDEV_DV_TIMINGS_CAP</refname>
->      <refpurpose>The capabilities of the Digital Video receiver/transmitter</refpurpose>
->    </refnamediv>
->  
-> @@ -33,7 +34,7 @@
->        <varlistentry>
->  	<term><parameter>request</parameter></term>
->  	<listitem>
-> -	  <para>VIDIOC_DV_TIMINGS_CAP</para>
-> +	  <para>VIDIOC_DV_TIMINGS_CAP, VIDIOC_SUBDEV_DV_TIMINGS_CAP</para>
->  	</listitem>
->        </varlistentry>
->        <varlistentry>
-> @@ -54,10 +55,19 @@
->        interface and may change in the future.</para>
->      </note>
->  
-> -    <para>To query the capabilities of the DV receiver/transmitter applications can call
-> -this ioctl and the driver will fill in the structure. Note that drivers may return
-> +    <para>To query the capabilities of the DV receiver/transmitter applications
-> +can call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl on a video node
-> +and the driver will fill in the structure. Note that drivers may return
->  different values after switching the video input or output.</para>
->  
-> +    <para>When implemented by the driver DV capabilities of subdevices can be
-> +queried by calling the <constant>VIDIOC_SUBDEV_DV_TIMINGS_CAP</constant> ioctl
-> +directly on a subdevice node. The capabilities are specific to inputs (for DV
-> +receivers) or outputs (for DV transmitters), application must specify the
+>> Regardless, my other point is still valid. A given h/w block has a
+>> fixed number of clocks. You may have them all connected to the same
+>> source in some cases, but that does not change the number of inputs.
+>> Defining what are the valid combinations needs to be done. Seems like
+>> this could be:
+>>
+>> <none> - default to 32KHz
+>> <core> - only a "baud" clock
+>> <core>, <sys>, <mod> - all clocks
+>
+> For more complex IP blocks you might have more inputs than you actually
+> have clocks wired to.
+>
+> How do you handle an unwired input in the middle of the list, or a new
+> revision of the IP block that got rid of the first clock input from the
+> list but is otherwise compatible?
 
-s/application/the application/
+fixed-clock with freq of 0 for unwired (really wired to gnd) inputs?
 
-> +desired pad number in the &v4l2-dv-timings-cap; <structfield>pad</structfield>
-> +field. Attemps to query capabilities on a pad that doesn't support them will
+With a new compatible string if it is a new block.
 
-s/Attemps/Attempts/
-
-> +return an &EINVAL;.</para>
-> +
->      <table pgwide="1" frame="none" id="v4l2-bt-timings-cap">
->        <title>struct <structname>v4l2_bt_timings_cap</structname></title>
->        <tgroup cols="3">
-> @@ -127,7 +137,14 @@ different values after switching the video input or output.</para>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>reserved</structfield>[3]</entry>
-> +	    <entry><structfield>pad</structfield></entry>
-> +	    <entry>Pad number as reported by the media controller API. This field
-> +	    is only used when operating on a subdevice node. When operating on a
-> +	    video node applications must set this field to zero.</entry>
-
-Currently the spec says that the driver will zero the reserved array. No mention
-is made of the application having to zero it. This means that drivers cannot rely
-on what is in the pad field since apps can leave it uninitialized.
-
-If we keep that behavior, then the text has to change as follows:
-
-s/applications must set this field to zero/this field is ignored/
-
-However, should be keep that behavior? This ioctl is still marked as experimental,
-so perhaps we should change the spec to require that reserved should be zeroed by
-applications as well. I'm not certain, to be honest.
-
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[2]</entry>
->  	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
->  	  </row>
->  	  <row>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-> index b3e17c1..e55df46 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-> @@ -1,11 +1,12 @@
->  <refentry id="vidioc-enum-dv-timings">
->    <refmeta>
-> -    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS</refentrytitle>
-> +    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS, VIDIOC_SUBDEV_ENUM_DV_TIMINGS</refentrytitle>
->      &manvol;
->    </refmeta>
->  
->    <refnamediv>
->      <refname>VIDIOC_ENUM_DV_TIMINGS</refname>
-> +    <refname>VIDIOC_SUBDEV_ENUM_DV_TIMINGS</refname>
->      <refpurpose>Enumerate supported Digital Video timings</refpurpose>
->    </refnamediv>
->  
-> @@ -33,7 +34,7 @@
->        <varlistentry>
->  	<term><parameter>request</parameter></term>
->  	<listitem>
-> -	  <para>VIDIOC_ENUM_DV_TIMINGS</para>
-> +	  <para>VIDIOC_ENUM_DV_TIMINGS, VIDIOC_SUBDEV_ENUM_DV_TIMINGS</para>
->  	</listitem>
->        </varlistentry>
->        <varlistentry>
-> @@ -61,14 +62,21 @@ standards or even custom timings that are not in this list.</para>
->  
->      <para>To query the available timings, applications initialize the
->  <structfield>index</structfield> field and zero the reserved array of &v4l2-enum-dv-timings;
-> -and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl with a pointer to this
-> -structure. Drivers fill the rest of the structure or return an
-> +and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl on a video node with a
-> +pointer to this structure. Drivers fill the rest of the structure or return an
->  &EINVAL; when the index is out of bounds. To enumerate all supported DV timings,
->  applications shall begin at index zero, incrementing by one until the
->  driver returns <errorcode>EINVAL</errorcode>. Note that drivers may enumerate a
->  different set of DV timings after switching the video input or
->  output.</para>
->  
-> +    <para>When implemented by the driver DV timings of subdevices can be queried
-> +by calling the <constant>VIDIOC_SUBDEV_ENUM_DV_TIMINGS</constant> ioctl directly
-> +on a subdevice node. The DV timings are specific to inputs (for DV receivers) or
-> +outputs (for DV transmitters), application must specify the desired pad number
-
-s/application/the application/
-
-> +in the &v4l2-enum-dv-timings; <structfield>pad</structfield> field. Attemps to
-
-s/Attemps/Attempts/
-
-> +enumerate timings on a pad that doesn't support them will return an &EINVAL;.</para>
-> +
->      <table pgwide="1" frame="none" id="v4l2-enum-dv-timings">
->        <title>struct <structname>v4l2_enum_dv_timings</structname></title>
->        <tgroup cols="3">
-> @@ -82,7 +90,14 @@ application.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>reserved</structfield>[3]</entry>
-> +	    <entry><structfield>pad</structfield></entry>
-> +	    <entry>Pad number as reported by the media controller API. This field
-> +	    is only used when operating on a subdevice node. When operating on a
-> +	    video node applications must set this field to zero.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[2]</entry>
->  	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
-
-This needs to change to:
-
-"Drivers and applications must set the array to zero."
-
-The description section for this ioctl clearly states that applications must zero the array,
-so this field description is not correct.
-
->  	  </row>
->  	  <row>
-> @@ -103,7 +118,7 @@ application.</entry>
->  	<term><errorcode>EINVAL</errorcode></term>
->  	<listitem>
->  	  <para>The &v4l2-enum-dv-timings; <structfield>index</structfield>
-> -is out of bounds.</para>
-> +is out of bounds or the <structfield>pad</structfield> number is invalid.</para>
->  	</listitem>
->        </varlistentry>
->        <varlistentry>
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 996c248..0ccf9c8 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -354,6 +354,21 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  
->  	case VIDIOC_SUBDEV_S_EDID:
->  		return v4l2_subdev_call(sd, pad, set_edid, arg);
-> +
-> +	case VIDIOC_SUBDEV_DV_TIMINGS_CAP:
-> +		return v4l2_subdev_call(sd, pad, dv_timings_cap, arg);
-> +
-> +	case VIDIOC_SUBDEV_ENUM_DV_TIMINGS:
-> +		return v4l2_subdev_call(sd, pad, enum_dv_timings, arg);
-> +
-> +	case VIDIOC_SUBDEV_QUERY_DV_TIMINGS:
-> +		return v4l2_subdev_call(sd, video, query_dv_timings, arg);
-> +
-> +	case VIDIOC_SUBDEV_G_DV_TIMINGS:
-> +		return v4l2_subdev_call(sd, video, g_dv_timings, arg);
-> +
-> +	case VIDIOC_SUBDEV_S_DV_TIMINGS:
-> +		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
->  #endif
->  	default:
->  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-> diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-> index 9fe3493..6f5c5de 100644
-> --- a/include/uapi/linux/v4l2-subdev.h
-> +++ b/include/uapi/linux/v4l2-subdev.h
-> @@ -169,5 +169,10 @@ struct v4l2_subdev_edid {
->  #define VIDIOC_SUBDEV_S_SELECTION		_IOWR('V', 62, struct v4l2_subdev_selection)
->  #define VIDIOC_SUBDEV_G_EDID			_IOWR('V', 40, struct v4l2_subdev_edid)
->  #define VIDIOC_SUBDEV_S_EDID			_IOWR('V', 41, struct v4l2_subdev_edid)
-> +#define VIDIOC_SUBDEV_DV_TIMINGS_CAP		_IOWR('V', 42, struct v4l2_dv_timings_cap)
-> +#define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 43, struct v4l2_enum_dv_timings)
-> +#define VIDIOC_SUBDEV_QUERY_DV_TIMINGS		_IOR('V', 44, struct v4l2_dv_timings)
-> +#define VIDIOC_SUBDEV_G_DV_TIMINGS		_IOWR('V', 45, struct v4l2_dv_timings)
-> +#define VIDIOC_SUBDEV_S_DV_TIMINGS		_IOWR('V', 46, struct v4l2_dv_timings)
->  
->  #endif
-> 
-
-Regards,
-
-	Hans
+Rob
