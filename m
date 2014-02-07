@@ -1,182 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37270 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850AbaBXRg6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Feb 2014 12:36:58 -0500
-Message-ID: <1393263389.3091.82.camel@pizza.hi.pengutronix.de>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
- drivers/media/v4l2-core to drivers/of
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+Received: from mail.kapsi.fi ([217.30.184.167]:35228 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751013AbaBGXFl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Feb 2014 18:05:41 -0500
+Message-ID: <52F566BF.3080909@iki.fi>
+Date: Sat, 08 Feb 2014 01:05:35 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: kbuild test robot <fengguang.wu@intel.com>
+CC: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Date: Mon, 24 Feb 2014 18:36:29 +0100
-In-Reply-To: <20140218162627.32BA4C40517@trevor.secretlab.ca>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
-	 < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
-	 < 20140217181451.7EB7FC4044D@trevor.secretlab.ca>
-	 <20140218070624.GP17250@ pengutronix.de>
-	 <20140218162627.32BA4C40517@trevor.secretlab.ca>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	kbuild-all@01.org
+Subject: Re: [linuxtv-media:sdr 488/499] drivers/media/tuners/tuner-xc2028.c:1037:2:
+ warning: enumeration value 'V4L2_TUNER_ADC' not handled in switch
+References: <52f4f331.fX8f2CStgBpu2FQK%fengguang.wu@intel.com>
+In-Reply-To: <52f4f331.fX8f2CStgBpu2FQK%fengguang.wu@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Dienstag, den 18.02.2014, 16:26 +0000 schrieb Grant Likely:
-> On Tue, 18 Feb 2014 08:06:24 +0100, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> > Hi Grant,
-> > 
-> > On Mon, Feb 17, 2014 at 06:14:51PM +0000, Grant Likely wrote:
-> > > On Tue, 11 Feb 2014 07:56:33 -0600, Rob Herring <robherring2@gmail.com> wrote:
-> > > > On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > > > > From: Philipp Zabel <philipp.zabel@gmail.com>
-> > > > >
-> > > > > This patch moves the parsing helpers used to parse connected graphs
-> > > > > in the device tree, like the video interface bindings documented in
-> > > > > Documentation/devicetree/bindings/media/video-interfaces.txt, from
-> > > > > drivers/media/v4l2-core to drivers/of.
-> > > > 
-> > > > This is the opposite direction things have been moving...
-> > > > 
-> > > > > This allows to reuse the same parser code from outside the V4L2 framework,
-> > > > > most importantly from display drivers. There have been patches that duplicate
-> > > > > the code (and I am going to send one of my own), such as
-> > > > > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
-> > > > > and others that parse the same binding in a different way:
-> > > > > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
-> > > > >
-> > > > > I think that all common video interface parsing helpers should be moved to a
-> > > > > single place, outside of the specific subsystems, so that it can be reused
-> > > > > by all drivers.
-> > > > 
-> > > > Perhaps that should be done rather than moving to drivers/of now and
-> > > > then again to somewhere else.
-> > > 
-> > > This is just parsing helpers though, isn't it? I have no problem pulling
-> > > helper functions into drivers/of if they are usable by multiple
-> > > subsystems. I don't really understand the model being used though. I
-> > > would appreciate a description of the usage model for these functions
-> > > for poor folks like me who can't keep track of what is going on in
-> > > subsystems.
-> > 
-> > You can find it under Documentation/devicetree/bindings/media/video-interfaces.txt
-> 
-> Okay, I think I'm okay with moving the helpers, but I will make one
-> requirement. I would like to have a short binding document describing
-> the pattern being used. The document above talks a lot about video
-> specific issues, but the helpers appear to be specifically about the
-> tree walking properties of the API.
+Moikka
+That is already fixed. I will pull next set of SDR patches next week.
+https://patchwork.linuxtv.org/patch/21887/
 
-Reusing the non-video-secific parts of video-interfaces.txt, how about
-the following:
-
-"Common bindings for device graphs"
-
-General concept
----------------
-
-The hierarchical organisation of the device tree is well suited to describe
-control flow to devices, but data flow between devices that work together to
-form a logical compound device can follow arbitrarily complex graphs.
-The device tree graph bindings allow to describe data bus connections between
-individual devices, that can't be inferred from device tree parent-child
-relationships. The common bindings do not contain any information about the
-direction or type of data flow, they just map connections. Specific properties
-of the connections can be set depending on the type of connection. To see
-how this binding applies to video pipelines, see for example
-Documentation/device-tree/bindings/media/video-interfaces.txt.
-
-Data interfaces on devices are described by their child 'port' nodes. The port
-node contains an 'endpoint' subnode for each remote device connected to this
-port via a bus. If a port is connected to more than one remote device on the
-same bus, an 'endpoint' child node must be provided for each of them. If more
-than one port is present in a device node or there is more than one endpoint at
-a port, or port node needs to be associated with a selected hardware interface,
-a common scheme using '#address-cells', '#size-cells' and 'reg' properties is
-used.
-
-device {
-	...
-	#address-cells = <1>;
-	#size-cells = <0>;
-
-	port@0 {
-		...
-		endpoint@0 { ... };
-		endpoint@1 { ... };
-	};
-
-	port@1 { ... };
-};
-
-All 'port' nodes can be grouped under optional 'ports' node, which allows to
-specify #address-cells, #size-cells properties independently for the 'port'
-and 'endpoint' nodes and any child device nodes a device might have.
-
-device {
-	...
-	ports {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		port@0 {
-			...
-			endpoint@0 { ... };
-			endpoint@1 { ... };
-		};
-
-		port@1 { ... };
-	};
-};
-
-Each endpoint can contain a 'remote-endpoint' phandle property that points to
-the corresponding endpoint in the port of the remote device. Two 'endpoint'
-nodes are linked with each other through their 'remote-endpoint' phandles.
-
-device_1 {
-	port {
-		device_1_output: endpoint {
-			remote-endpoint = <&device_2_input>;
-		};
-	};
-};
-
-device_1 {
-	port {
-		device_2_input: endpoint {
-			remote-endpoint = <&device_1_output>;
-		};
-	};
-};
+regards
+Antti
 
 
-Required properties
--------------------
+On 07.02.2014 16:52, kbuild test robot wrote:
+> tree:   git://linuxtv.org/media_tree.git sdr
+> head:   11532660e6f5b6b3a74a03f999d878f35d2cc668
+> commit: 6b200814f9eaac45ad816da459e31534b576c37b [488/499] [media] v4l: add new tuner types for SDR
+> config: make ARCH=powerpc allmodconfig
+>
+> All warnings:
+>
+>     drivers/media/tuners/tuner-xc2028.c: In function 'generic_set_freq':
+>>> drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value 'V4L2_TUNER_ADC' not handled in switch [-Wswitch]
+>       switch (new_type) {
+>       ^
+>>> drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value 'V4L2_TUNER_RF' not handled in switch [-Wswitch]
+>
+> vim +/V4L2_TUNER_ADC +1037 drivers/media/tuners/tuner-xc2028.c
+>
+> 7e28adb2 drivers/media/video/tuner-xc2028.c         Harvey Harrison       2008-04-08  1021  	tuner_dbg("%s called\n", __func__);
+> 215b95ba drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-23  1022
+> de3fe21b drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-24  1023  	mutex_lock(&priv->lock);
+> de3fe21b drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-24  1024
+> 2ce4b3aa drivers/media/video/tuner-xc2028.c         Chris Pascoe          2007-11-19  1025  	tuner_dbg("should set frequency %d kHz\n", freq / 1000);
+> 6cb45879 drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-02  1026
+> 66c2d53d drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-25  1027  	if (check_firmware(fe, type, std, int_freq) < 0)
+> 3b20532c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-09-27  1028  		goto ret;
+> 2e4160ca drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-07-18  1029
+> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1030  	/* On some cases xc2028 can disable video output, if
+> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1031  	 * very weak signals are received. By sending a soft
+> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1032  	 * reset, this is re-enabled. So, it is better to always
+> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1033  	 * send a soft reset before changing channels, to be sure
+> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1034  	 * that xc2028 will be in a safe state.
+> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1035  	 * Maybe this might also be needed for DTV.
+> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1036  	 */
+> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31 @1037  	switch (new_type) {
+> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1038  	case V4L2_TUNER_ANALOG_TV:
+> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1039  		rc = send_seq(priv, {0x00, 0x00});
+> 0a863975 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2009-06-01  1040
+> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1041  		/* Analog mode requires offset = 0 */
+> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1042  		break;
+> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1043  	case V4L2_TUNER_RADIO:
+> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1044  		/* Radio mode requires offset = 0 */
+> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1045  		break;
+>
+> :::::: The code at line 1037 was first introduced by commit
+> :::::: fd34cb08babcd898c6b0e30cd7d507ffa62685a1 [media] tuner/xc2028: Fix frequency offset for radio mode
+>
+> :::::: TO: Mauro Carvalho Chehab <mchehab@redhat.com>
+> :::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> ---
+> 0-DAY kernel build testing backend              Open Source Technology Center
+> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-If there is more than one 'port' or more than one 'endpoint' node or 'reg'
-property is present in port and/or endpoint nodes the following properties
-are required in a relevant parent node:
 
- - #address-cells : number of cells required to define port/endpoint
-		    identifier, should be 1.
- - #size-cells    : should be zero.
-
-Optional endpoint properties
-----------------------------
-
-- remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
-
-
+-- 
+http://palosaari.fi/
