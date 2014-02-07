@@ -1,112 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3366 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752087AbaBJIsH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:48:07 -0500
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4838 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439AbaBGOLX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 09:11:23 -0500
+Message-ID: <52F4E95A.7000301@xs4all.nl>
+Date: Fri, 07 Feb 2014 15:10:34 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 23/34] v4l2-controls.txt: update to the new way of accessing controls.
-Date: Mon, 10 Feb 2014 09:46:48 +0100
-Message-Id: <1392022019-5519-24-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH v3] v4l2-subdev: Allow 32-bit compat ioctls
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add support for 32-bit ioctls with v4l-subdev device nodes.
 
-The way current and new values are accessed has changed. Update the
-document to bring it up to date with the code.
+Rather than keep adding new ioctls to the list in v4l2-compat-ioctl32.c, just check
+if the ioctl is a non-private V4L2 ioctl and if so, call the conversion code.
+
+We keep forgetting to add new ioctls, so this is a more robust solution.
+
+In addition extend the subdev API with support for a compat32 function to
+convert custom v4l-subdev ioctls.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- Documentation/video4linux/v4l2-controls.txt | 46 +++++++++++++++++++----------
- 1 file changed, 31 insertions(+), 15 deletions(-)
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index 1c353c2..f94dcfd 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -77,9 +77,9 @@ Basic usage for V4L2 and sub-device drivers
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 8f7a6a4..1b18616 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -1006,103 +1006,14 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	if (!file->f_op->unlocked_ioctl)
+ 		return ret;
  
-   Where foo->v4l2_dev is of type struct v4l2_device.
+-	switch (cmd) {
+-	case VIDIOC_QUERYCAP:
+-	case VIDIOC_RESERVED:
+-	case VIDIOC_ENUM_FMT:
+-	case VIDIOC_G_FMT32:
+-	case VIDIOC_S_FMT32:
+-	case VIDIOC_REQBUFS:
+-	case VIDIOC_QUERYBUF32:
+-	case VIDIOC_G_FBUF32:
+-	case VIDIOC_S_FBUF32:
+-	case VIDIOC_OVERLAY32:
+-	case VIDIOC_QBUF32:
+-	case VIDIOC_EXPBUF:
+-	case VIDIOC_DQBUF32:
+-	case VIDIOC_STREAMON32:
+-	case VIDIOC_STREAMOFF32:
+-	case VIDIOC_G_PARM:
+-	case VIDIOC_S_PARM:
+-	case VIDIOC_G_STD:
+-	case VIDIOC_S_STD:
+-	case VIDIOC_ENUMSTD32:
+-	case VIDIOC_ENUMINPUT32:
+-	case VIDIOC_G_CTRL:
+-	case VIDIOC_S_CTRL:
+-	case VIDIOC_G_TUNER:
+-	case VIDIOC_S_TUNER:
+-	case VIDIOC_G_AUDIO:
+-	case VIDIOC_S_AUDIO:
+-	case VIDIOC_QUERYCTRL:
+-	case VIDIOC_QUERYMENU:
+-	case VIDIOC_G_INPUT32:
+-	case VIDIOC_S_INPUT32:
+-	case VIDIOC_G_OUTPUT32:
+-	case VIDIOC_S_OUTPUT32:
+-	case VIDIOC_ENUMOUTPUT:
+-	case VIDIOC_G_AUDOUT:
+-	case VIDIOC_S_AUDOUT:
+-	case VIDIOC_G_MODULATOR:
+-	case VIDIOC_S_MODULATOR:
+-	case VIDIOC_S_FREQUENCY:
+-	case VIDIOC_G_FREQUENCY:
+-	case VIDIOC_CROPCAP:
+-	case VIDIOC_G_CROP:
+-	case VIDIOC_S_CROP:
+-	case VIDIOC_G_SELECTION:
+-	case VIDIOC_S_SELECTION:
+-	case VIDIOC_G_JPEGCOMP:
+-	case VIDIOC_S_JPEGCOMP:
+-	case VIDIOC_QUERYSTD:
+-	case VIDIOC_TRY_FMT32:
+-	case VIDIOC_ENUMAUDIO:
+-	case VIDIOC_ENUMAUDOUT:
+-	case VIDIOC_G_PRIORITY:
+-	case VIDIOC_S_PRIORITY:
+-	case VIDIOC_G_SLICED_VBI_CAP:
+-	case VIDIOC_LOG_STATUS:
+-	case VIDIOC_G_EXT_CTRLS32:
+-	case VIDIOC_S_EXT_CTRLS32:
+-	case VIDIOC_TRY_EXT_CTRLS32:
+-	case VIDIOC_ENUM_FRAMESIZES:
+-	case VIDIOC_ENUM_FRAMEINTERVALS:
+-	case VIDIOC_G_ENC_INDEX:
+-	case VIDIOC_ENCODER_CMD:
+-	case VIDIOC_TRY_ENCODER_CMD:
+-	case VIDIOC_DECODER_CMD:
+-	case VIDIOC_TRY_DECODER_CMD:
+-	case VIDIOC_DBG_S_REGISTER:
+-	case VIDIOC_DBG_G_REGISTER:
+-	case VIDIOC_S_HW_FREQ_SEEK:
+-	case VIDIOC_S_DV_TIMINGS:
+-	case VIDIOC_G_DV_TIMINGS:
+-	case VIDIOC_DQEVENT:
+-	case VIDIOC_DQEVENT32:
+-	case VIDIOC_SUBSCRIBE_EVENT:
+-	case VIDIOC_UNSUBSCRIBE_EVENT:
+-	case VIDIOC_CREATE_BUFS32:
+-	case VIDIOC_PREPARE_BUF32:
+-	case VIDIOC_ENUM_DV_TIMINGS:
+-	case VIDIOC_QUERY_DV_TIMINGS:
+-	case VIDIOC_DV_TIMINGS_CAP:
+-	case VIDIOC_ENUM_FREQ_BANDS:
+-	case VIDIOC_SUBDEV_G_EDID32:
+-	case VIDIOC_SUBDEV_S_EDID32:
++	if (_IOC_TYPE(cmd) == 'V' && _IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
+ 		ret = do_video_ioctl(file, cmd, arg);
+-		break;
++	else if (vdev->fops->compat_ioctl32)
++		ret = vdev->fops->compat_ioctl32(file, cmd, arg);
  
--  Finally, remove all control functions from your v4l2_ioctl_ops:
--  vidioc_queryctrl, vidioc_querymenu, vidioc_g_ctrl, vidioc_s_ctrl,
--  vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
-+  Finally, remove all control functions from your v4l2_ioctl_ops (if any):
-+  vidioc_queryctrl, vidioc_query_ext_ctrl, vidioc_querymenu, vidioc_g_ctrl,
-+  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
-   Those are now no longer needed.
+-	default:
+-		if (vdev->fops->compat_ioctl32)
+-			ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+-
+-		if (ret == -ENOIOCTLCMD)
+-			printk(KERN_WARNING "compat_ioctl32: "
+-				"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+-				_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd),
+-				cmd);
+-		break;
+-	}
++	if (ret == -ENOIOCTLCMD)
++		pr_warn("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
++			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_compat_ioctl32);
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 996c248..60d2550 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -368,6 +368,17 @@ static long subdev_ioctl(struct file *file, unsigned int cmd,
+ 	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
+ }
  
- 1.3.2) For sub-device drivers do this:
-@@ -258,8 +258,8 @@ The new control value has already been validated, so all you need to do is
- to actually update the hardware registers.
- 
- You're done! And this is sufficient for most of the drivers we have. No need
--to do any validation of control values, or implement QUERYCTRL/QUERYMENU. And
--G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
-+to do any validation of control values, or implement QUERYCTRL, QUERY_EXT_CTRL
-+and QUERYMENU. And G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
- 
- 
- ==============================================================================
-@@ -288,24 +288,40 @@ of v4l2_device.
- Accessing Control Values
- ========================
- 
--The v4l2_ctrl struct contains these two unions:
-+The following union is used inside the control framework to access control
-+values:
- 
--	/* The current control value. */
--	union {
--		s32 val;
--		s64 val64;
--		char *string;
--	} cur;
-+union v4l2_ctrl_ptr {
-+	s32 *p_s32;
-+	s64 *p_s64;
-+	char *p_char;
-+	void *p;
-+};
++#ifdef CONFIG_COMPAT
++static long subdev_compat_ioctl32(struct file *file, unsigned int cmd,
++	unsigned long arg)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
 +
-+The v4l2_ctrl struct contains these fields that can be used to access both
-+current and new values:
- 
--	/* The new control value. */
- 	union {
- 		s32 val;
- 		s64 val64;
--		char *string;
- 	};
-+	union v4l2_ctrl_ptr new;
-+	union v4l2_ctrl_ptr cur;
++	return v4l2_subdev_call(sd, core, compat_ioctl32, cmd, arg);
++}
++#endif
 +
-+If the control has a simple s32 type or s64 type, then:
-+
-+	&ctrl->val == ctrl->new.p_s32
-+
-+or:
-+
-+	&ctrl->val64 == ctrl->new.p_s64
-+
-+For all other types use ctrl->new.p<something> instead of ctrl->val/val64.
-+Basically the val and val64 fields can be considered aliases since these
-+are used so often.
- 
- Within the control ops you can freely use these. The val and val64 speak for
--themselves. The string pointers point to character buffers of length
-+themselves. The p_char pointers point to character buffers of length
- ctrl->maximum + 1, and are always 0-terminated.
- 
- In most cases 'cur' contains the current cached control value. When you create
--- 
-1.8.5.2
-
+ static unsigned int subdev_poll(struct file *file, poll_table *wait)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+@@ -389,6 +400,9 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = subdev_open,
+ 	.unlocked_ioctl = subdev_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl32 = subdev_compat_ioctl32,
++#endif
+ 	.release = subdev_close,
+ 	.poll = subdev_poll,
+ };
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d67210a..84b7cce 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -162,6 +162,9 @@ struct v4l2_subdev_core_ops {
+ 	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
+ 	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
+ 	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
++#ifdef CONFIG_COMPAT
++	long (*compat_ioctl32)(struct v4l2_subdev *sd, unsigned int cmd, unsigned long arg);
++#endif
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
+ 	int (*s_register)(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg);
