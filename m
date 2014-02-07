@@ -1,38 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46383 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750754AbaBWKjf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Feb 2014 05:39:35 -0500
-Date: Sun, 23 Feb 2014 12:39:02 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	k.debski@samsung.com
-Subject: Re: [PATCH v5.1 7/7] v4l: Document timestamp buffer flag behaviour
-Message-ID: <20140223103902.GD15635@valkosipuli.retiisi.org.uk>
-References: <20140217233305.GY15635@valkosipuli.retiisi.org.uk>
- <1392925376-20562-1-git-send-email-sakari.ailus@iki.fi>
- <530664CB.6000408@xs4all.nl>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2401 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750868AbaBGJR1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 04:17:27 -0500
+Message-ID: <52F4A486.30100@xs4all.nl>
+Date: Fri, 07 Feb 2014 10:16:54 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <530664CB.6000408@xs4all.nl>
+To: Arnd Bergmann <arnd@arndb.de>
+CC: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH, RFC 08/30] [media] arv: fix sleep_on race
+References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <1388664474-1710039-9-git-send-email-arnd@arndb.de> <52D90B42.90206@xs4all.nl>
+In-Reply-To: <52D90B42.90206@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 20, 2014 at 09:25:47PM +0100, Hans Verkuil wrote:
-> On 02/20/2014 08:42 PM, Sakari Ailus wrote:
-> > Timestamp buffer flags are constant at the moment. Document them so that 1)
-> > they're always valid and 2) not changed by the drivers. This leaves room to
-> > extend the functionality later on if needed.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+On 01/17/2014 11:51 AM, Hans Verkuil wrote:
+> On 01/02/2014 01:07 PM, Arnd Bergmann wrote:
+>> interruptible_sleep_on is racy and going away. In the arv driver that
+>> race has probably never caused problems since it would require a whole
+>> video frame to be captured before the read function has a chance to
+>> go to sleep, but using wait_event_interruptible lets us kill off the
+>> old interface. In order to do this, we have to slightly adapt the
+>> meaning of the ar->start_capture field to distinguish between not having
+>> started a frame and having completed it.
+>>
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>> Cc: linux-media@vger.kernel.org
+>> ---
+>>  drivers/media/platform/arv.c | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/arv.c b/drivers/media/platform/arv.c
+>> index e346d32d..32f6d70 100644
+>> --- a/drivers/media/platform/arv.c
+>> +++ b/drivers/media/platform/arv.c
+>> @@ -307,11 +307,11 @@ static ssize_t ar_read(struct file *file, char *buf, size_t count, loff_t *ppos)
+>>  	/*
+>>  	 * Okay, kick AR LSI to invoke an interrupt
+>>  	 */
+>> -	ar->start_capture = 0;
+>> +	ar->start_capture = -1;
 > 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> start_capture is defined as an unsigned. Can you make a new patch that changes
+> the type of start_capture to int?
+> 
+> Otherwise it looks fine.
 
-Thanks! :-)
+ping!
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+
+	Hans
