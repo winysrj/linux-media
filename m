@@ -1,89 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3053 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148AbaBYKEy (ORCPT
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:57133 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751356AbaBGJrU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:04:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 06/20] vb2: memop prepare: return errors
-Date: Tue, 25 Feb 2014 11:04:11 +0100
-Message-Id: <1393322665-29889-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 7 Feb 2014 04:47:20 -0500
+Date: Fri, 7 Feb 2014 09:46:56 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>, devel@driverdev.osuosl.org,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Takashi Iwai <tiwai@suse.de>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH RFC 26/46] drivers/base: provide an infrastructure for
+	componentised subsystems
+Message-ID: <20140207094656.GY26684@n2100.arm.linux.org.uk>
+References: <20140102212528.GD7383@n2100.arm.linux.org.uk> <E1Vypo6-0007FF-Lb@rmk-PC.arm.linux.org.uk> <CAKMK7uFYhz8Pmv5E7aKY7yzZGDe_m8a0382Njv7tZRoBSfmRpw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAKMK7uFYhz8Pmv5E7aKY7yzZGDe_m8a0382Njv7tZRoBSfmRpw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, Feb 07, 2014 at 10:04:30AM +0100, Daniel Vetter wrote:
+> I've chatted a bit with Hans Verkuil about this topic at fosdem and
+> apparently both v4l and alsa have something like this already in their
+> helper libraries. Adding more people as fyi in case they want to
+> switch to the new driver core stuff from Russell.
 
-For vb2-dma-sg the dma_map_sg function can return an error. This means that
-the prepare memop also needs to change so an error can be returned.
+It's not ALSA, but ASoC which has this.  Mark is already aware of this
+and will be looking at it from an ASoC perspective.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++--
- drivers/media/v4l2-core/videobuf2-dma-sg.c     | 4 ++--
- include/media/videobuf2-core.h                 | 2 +-
- 3 files changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 1e994a9..604f2f4 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -108,16 +108,17 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
- 	return atomic_read(&buf->refcount);
- }
- 
--static void vb2_dc_prepare(void *buf_priv)
-+static int vb2_dc_prepare(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
- 
- 	/* DMABUF exporter will flush the cache for us */
- 	if (!sgt || buf->db_attach)
--		return;
-+		return 0;
- 
- 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	return 0;
- }
- 
- static void vb2_dc_finish(void *buf_priv)
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index c7e0eca..c54df54 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -170,12 +170,12 @@ static void vb2_dma_sg_put(void *buf_priv)
- 	}
- }
- 
--static void vb2_dma_sg_prepare(void *buf_priv)
-+static int vb2_dma_sg_prepare(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
- 	struct sg_table *sgt = &buf->sg_table;
- 
--	dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	return dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) ? 0 : -EIO;
- }
- 
- static void vb2_dma_sg_finish(void *buf_priv)
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 4b7fed0..a0dedc1 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -90,7 +90,7 @@ struct vb2_mem_ops {
- 					unsigned long size, int write);
- 	void		(*put_userptr)(void *buf_priv);
- 
--	void		(*prepare)(void *buf_priv);
-+	int		(*prepare)(void *buf_priv);
- 	void		(*finish)(void *buf_priv);
- 
- 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
 -- 
-1.9.0
-
+FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
+in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
+Estimate before purchase was "up to 13.2Mbit".
