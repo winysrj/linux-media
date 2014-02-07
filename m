@@ -1,80 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34737 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752410AbaBJQRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:17:19 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 2/6] v4l: add RF tuner channel bandwidth control
-Date: Mon, 10 Feb 2014 18:17:02 +0200
-Message-Id: <1392049026-13398-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1392049026-13398-1-git-send-email-crope@iki.fi>
-References: <1392049026-13398-1-git-send-email-crope@iki.fi>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:19363 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537AbaBGOD7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 09:03:59 -0500
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N0M00F8CPQMZ680@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 07 Feb 2014 09:03:58 -0500 (EST)
+Date: Fri, 07 Feb 2014 12:03:53 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 23/52] v4l: add new tuner types for SDR
+Message-id: <20140207120353.26d71842@samsung.com>
+In-reply-to: <1390669846-8131-24-git-send-email-crope@iki.fi>
+References: <1390669846-8131-1-git-send-email-crope@iki.fi>
+ <1390669846-8131-24-git-send-email-crope@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modern silicon RF tuners has one or more adjustable filters on
-signal path, in order to filter noise from desired radio channel.
+Em Sat, 25 Jan 2014 19:10:17 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Add channel bandwidth control to tell the driver which is radio
-channel width we want receive. Filters could be then adjusted by
-the driver or hardware, using RF frequency and channel bandwidth
-as a base of filter calculations.
+> Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_RF for SDR usage.
+> 
+> ADC is used for setting sampling rate (sampling frequency) to SDR
+> device.
+> 
+> Another tuner type, named as V4L2_TUNER_RF, is possible RF tuner.
+> Is is used to down-convert RF frequency to range ADC could sample.
+> Having RF tuner is optional, whilst in practice it is almost always
+> there.
+> 
+> Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
+> VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
+> type is SDR (VFL_TYPE_SDR). For VIDIOC_G_FREQUENCY we do not check
+> tuner type, instead override type with V4L2_TUNER_ADC in every
+> case (requested by Hans in order to keep functionality in line with
+> existing tuners and existing API does not specify it).
+> 
+> Prohibit VIDIOC_S_HW_FREQ_SEEK explicitly when device type is SDR,
+> as device cannot do hardware seek without a hardware demodulator.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 39 ++++++++++++++++++++++++++----------
+>  include/uapi/linux/videodev2.h       |  2 ++
+>  2 files changed, 30 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 707aef7..15ab349 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1291,8 +1291,11 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+>  	struct video_device *vfd = video_devdata(file);
+>  	struct v4l2_frequency *p = arg;
+>  
+> -	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> +	if (vfd->vfl_type == VFL_TYPE_SDR)
+> +		p->type = V4L2_TUNER_ADC;
+> +	else
+> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>  	return ops->vidioc_g_frequency(file, fh, p);
+>  }
+>  
+> @@ -1303,10 +1306,15 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+>  	const struct v4l2_frequency *p = arg;
+>  	enum v4l2_tuner_type type;
+>  
+> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> -	if (p->type != type)
+> -		return -EINVAL;
+> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+> +			return -EINVAL;
+> +	} else {
+> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> +		if (type != p->type)
+> +			return -EINVAL;
+> +	}
+>  	return ops->vidioc_s_frequency(file, fh, p);
+>  }
+>  
+> @@ -1386,6 +1394,10 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
+>  	struct v4l2_hw_freq_seek *p = arg;
+>  	enum v4l2_tuner_type type;
+>  
+> +	/* s_hw_freq_seek is not supported for SDR for now */
+> +	if (vfd->vfl_type == VFL_TYPE_SDR)
+> +		return -EINVAL;
 
-On automatic mode (normal mode), bandwidth is calculated from sampling
-rate or tuning info got from userspace. That new control gives
-possibility to set manual mode and let user have more control for
-filters.
+A minor issue: return code here is IMHO wrong. It should be -ENOTTY.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- include/uapi/linux/v4l2-controls.h   | 2 ++
- 2 files changed, 6 insertions(+)
+It makes sense to add a printk_once() to warn about it, as, if we ever
+need it for SDR, people could lose hours debugging why this is not work
+until finally discovering that the Kernel is blocking such call.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d201f61..e44722b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
- 	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
- 	case V4L2_CID_IF_GAIN:			return "IF Gain";
-+	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
-+	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
- 	default:
- 		return NULL;
- 	}
-@@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_LNA_GAIN_AUTO:
- 	case V4L2_CID_MIXER_GAIN_AUTO:
- 	case V4L2_CID_IF_GAIN_AUTO:
-+	case V4L2_CID_BANDWIDTH_AUTO:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_LNA_GAIN:
- 	case V4L2_CID_MIXER_GAIN:
- 	case V4L2_CID_IF_GAIN:
-+	case V4L2_CID_BANDWIDTH:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 076fa34..3cf68a6 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -905,5 +905,7 @@ enum v4l2_deemphasis {
- #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
- #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
- #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
-+#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
-+#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
- 
- #endif
+In any case, I'll apply this patch. Please send a fix on a next series.
+
+> +
+>  	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>  		V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>  	if (p->type != type)
+> @@ -1885,11 +1897,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+>  	enum v4l2_tuner_type type;
+>  	int err;
+>  
+> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> -
+> -	if (type != p->type)
+> -		return -EINVAL;
+> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
+> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
+> +			return -EINVAL;
+> +		type = p->type;
+> +	} else {
+> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> +		if (type != p->type)
+> +			return -EINVAL;
+> +	}
+>  	if (ops->vidioc_enum_freq_bands)
+>  		return ops->vidioc_enum_freq_bands(file, fh, p);
+>  	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 6ae7bbe..9dc79d1 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -159,6 +159,8 @@ enum v4l2_tuner_type {
+>  	V4L2_TUNER_RADIO	     = 1,
+>  	V4L2_TUNER_ANALOG_TV	     = 2,
+>  	V4L2_TUNER_DIGITAL_TV	     = 3,
+> +	V4L2_TUNER_ADC               = 4,
+> +	V4L2_TUNER_RF                = 5,
+>  };
+>  
+>  enum v4l2_memory {
+
+
 -- 
-1.8.5.3
 
+Cheers,
+Mauro
