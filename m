@@ -1,56 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4070 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460AbaBYMxV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 07:53:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 07/15] vb2: call buf_finish from __dqbuf
-Date: Tue, 25 Feb 2014 13:52:47 +0100
-Message-Id: <1393332775-44067-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:55782 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753699AbaBGL5T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 06:57:19 -0500
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id E8286CA8880
+	for <linux-media@vger.kernel.org>; Fri,  7 Feb 2014 12:57:14 +0100 (CET)
+Date: Fri, 7 Feb 2014 12:57:21 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Daniel Vetter <daniel@ffwll.ch>, devel@driverdev.osuosl.org,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+	David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Takashi Iwai <tiwai@suse.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC 26/46] drivers/base: provide an infrastructure for
+ componentised subsystems
+Message-ID: <20140207125721.2d925387@armhf>
+In-Reply-To: <20140207094656.GY26684@n2100.arm.linux.org.uk>
+References: <20140102212528.GD7383@n2100.arm.linux.org.uk>
+	<E1Vypo6-0007FF-Lb@rmk-PC.arm.linux.org.uk>
+	<CAKMK7uFYhz8Pmv5E7aKY7yzZGDe_m8a0382Njv7tZRoBSfmRpw@mail.gmail.com>
+	<20140207094656.GY26684@n2100.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, 7 Feb 2014 09:46:56 +0000
+Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
 
-This ensures that it is also called from queue_cancel, which also calls
-__dqbuf(). Without this change any time queue_cancel is called while
-streaming the buf_finish op will not be called and any driver cleanup
-will not happen.
+> On Fri, Feb 07, 2014 at 10:04:30AM +0100, Daniel Vetter wrote:
+> > I've chatted a bit with Hans Verkuil about this topic at fosdem and
+> > apparently both v4l and alsa have something like this already in their
+> > helper libraries. Adding more people as fyi in case they want to
+> > switch to the new driver core stuff from Russell.  
+> 
+> It's not ALSA, but ASoC which has this.  Mark is already aware of this
+> and will be looking at it from an ASoC perspective.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Russell,
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 59bfd85..b5142e5 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1758,6 +1758,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
- 		return;
- 
-+	call_vb_qop(vb, buf_finish, vb);
-+
- 	vb->state = VB2_BUF_STATE_DEQUEUED;
- 
- 	/* unmap DMABUF buffer */
-@@ -1783,8 +1785,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 	if (ret < 0)
- 		return ret;
- 
--	call_vb_qop(vb, buf_finish, vb);
--
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DONE:
- 		dprintk(3, "dqbuf: Returning done buffer\n");
+I started to use your code (which works fine, thanks), and it avoids a
+lot of problems, especially, about probe_defer in a DT context.
+
+I was wondering if your componentised mechanism could be extended to the
+devices defined by DT.
+
+In the DT, when a device_node is a phandle, this means it is referenced
+by some other device(s), and these device(s) will not start until the
+phandle device is registered.
+
+Then, the idea is to do a component_add() for such phandle devices in
+device_add() (device_register).
+
+Pratically,
+
+- the component_add() call in device_register would not include any
+  bind/unbind callback function, so, this should be tested in
+  component_bind/unbind(),
+
+- component_add would not be called if the device being added already
+  called component_add in its probe function. A simple flag in the
+  struct device_node should solve this problem.
+
+What do you think about this?
+
 -- 
-1.9.0
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
