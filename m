@@ -1,29 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57818 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751136AbaBGR3h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 12:29:37 -0500
-Date: Fri, 7 Feb 2014 09:30:46 -0800
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>,
-	devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH v3 0/2] *** SUBJECT HERE ***
-Message-ID: <20140207173046.GA4983@kroah.com>
-References: <cover.1391792986.git.moinejf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1391792986.git.moinejf@free.fr>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45745 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752054AbaBGWtU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Feb 2014 17:49:20 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATCH v4.2 4/4] v4l: Document timestamp buffer flag behaviour
+Date: Sat,  8 Feb 2014 00:52:28 +0200
+Message-Id: <1391813548-818-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1391813548-818-1-git-send-email-sakari.ailus@iki.fi>
+References: <1393149.6OyBNhdFTt@avalon>
+ <1391813548-818-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 07, 2014 at 06:09:46PM +0100, Jean-Francois Moine wrote:
-> *** BLURB HERE ***
+Timestamp buffer flags are constant at the moment. Document them so that 1)
+they're always valid and 2) not changed by the drivers. This leaves room to
+extend the functionality later on if needed.
 
-Subject and BLURB forgotten?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/io.xml |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 451626f..f523725 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -654,6 +654,14 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+ In that case, struct <structname>v4l2_buffer</structname> contains an array of
+ plane structures.</para>
+ 
++    <para>Buffers that have been dequeued come with timestamps. These
++    timestamps can be taken from different clocks and at different part of
++    the frame, depending on the driver. Please see flags in the masks
++    <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
++    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
++    linkend="buffer-flags">. These flags are guaranteed to be always valid
++    and will not be changed by the driver.</para>
++
+     <table frame="none" pgwide="1" id="v4l2-buffer">
+       <title>struct <structname>v4l2_buffer</structname></title>
+       <tgroup cols="4">
+-- 
+1.7.10.4
 
