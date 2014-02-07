@@ -1,32 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([208.91.2.12]:48976 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753791AbaBSN6X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Feb 2014 08:58:23 -0500
-Message-ID: <5304B87B.6040804@vmware.com>
-Date: Wed, 19 Feb 2014 14:58:19 +0100
-From: Thomas Hellstrom <thellstrom@vmware.com>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:43090 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751136AbaBGSlp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 13:41:45 -0500
+Date: Fri, 7 Feb 2014 19:42:04 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH RFC 0/2] drivers/base: simplify simple DT-based
+ components
+Message-ID: <20140207194204.4d4326bd@armhf>
+In-Reply-To: <20140207173326.GD26684@n2100.arm.linux.org.uk>
+References: <cover.1391793068.git.moinejf@free.fr>
+	<20140207173326.GD26684@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	ccross@google.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/6] dma-buf: use reservation objects
-References: <20140217155056.20337.25254.stgit@patser> <20140217155617.20337.22601.stgit@patser>
-In-Reply-To: <20140217155617.20337.22601.stgit@patser>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/17/2014 04:56 PM, Maarten Lankhorst wrote:
-> This allows reservation objects to be used in dma-buf. it's required
-> for implementing polling support on the fences that belong to a dma-buf.
->
-> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-> Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com> #drivers/media/v4l2-core/
+On Fri, 7 Feb 2014 17:33:26 +0000
+Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
 
-For the TTM part:
+> On Fri, Feb 07, 2014 at 06:11:08PM +0100, Jean-Francois Moine wrote:
+> > This patch series tries to simplify the code of simple devices in case
+> > they are part of componentised subsystems, are declared in a DT, and
+> > are not using the component bin/unbind functions.
+> 
+> I wonder - I said earlier today that this works absolutely fine without
+> modification with DT, so why are you messing about with it adding DT
+> support?
+> 
+> This is totally the wrong approach.  The idea is that this deals with
+> /devices/ and /devices/ only.  It groups up /devices/.
+> 
+> It's up to the add_component callback to the master device to decide
+> how to deal with that.
+> 
+> > Jean-Francois Moine (2):
+> >   drivers/base: permit base components to omit the bind/unbind ops
+> 
+> And this patch has me wondering if you even understand how to use
+> this...  The master bind/unbind callbacks are the ones which establish
+> the "card" based context with the subsystem.
+> 
+> Please, before buggering up this nicely designed implementation, please
+> /first/ look at the imx-drm rework which was posted back in early January
+> which illustrates how this is used in a DT context - which is something
+> I've already pointed you at once today already.
 
- Acked-by: Thomas Hellstrom <thellstrom@vmware.com>
+As I told in a previous mail, your code works fine in my DT-based
+Cubox. I am rewriting the TDA988x as a normal encoder/connector, and,
+yes, the bind/unbind functions are useful in this case.
+
+But you opened a door. In a DT context, you know that the probe_defer
+mechanism does not work correctly. Your work permits to solve delicate
+cases: your component_add tells exactly when a device is available, and
+the master bind callback is the green signal for the device waiting for
+its resources. Indeed, your system was not created for such a usage,
+but it works as it is (anyway, the component bind/unbind functions may
+be empty...).
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
