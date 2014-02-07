@@ -1,46 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55812 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752691AbaB0AWU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:22:20 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1429 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755358AbaBGMUH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 07:20:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 04/13] v4l: uapi: add SDR formats CU8 and CU16LE
-Date: Thu, 27 Feb 2014 02:21:59 +0200
-Message-Id: <1393460528-11684-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
-References: <1393460528-11684-1-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: edubezval@gmail.com
+Subject: [RFC PATCH 0/7] si4713 enhancements, add miro RDS support
+Date: Fri,  7 Feb 2014 13:19:33 +0100
+Message-Id: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2_SDR_FMT_CU8 — Complex unsigned 8-bit IQ sample
-V4L2_SDR_FMT_CU16LE — Complex unsigned 16-bit little endian IQ sample
+This patch series adds some missing RDS functionality to the si4713
+driver. In addition it adds back support for RDS to the radio-miropcm20
+driver that was dropped somewhere around the 2.6.2x timeframe.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- include/uapi/linux/videodev2.h | 4 ++++
- 1 file changed, 4 insertions(+)
+It's been tested with a miropcm20 board, an si4713 board and a si470x
+based usb stick.
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 27fedfe..3411215 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -436,6 +436,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
- #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
- 
-+/* SDR formats - used only for Software Defined Radio devices */
-+#define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
-+#define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
-+
- /*
-  *	F O R M A T   E N U M E R A T I O N
-  */
--- 
-1.8.5.3
+Regards,
+
+	Hans
 
