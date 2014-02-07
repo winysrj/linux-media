@@ -1,60 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:18941 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600AbaBUCTp (ORCPT
+Received: from [173.38.203.53] ([173.38.203.53]:39935 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751666AbaBGILW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 21:19:45 -0500
-Received: from epcpsbgr5.samsung.com
- (u145.gpu120.samsung.co.kr [203.254.230.145])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0N1B00M30QGO5O10@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 21 Feb 2014 11:19:36 +0900 (KST)
-From: Joonyoung Shim <jy0922.shim@samsung.com>
+	Fri, 7 Feb 2014 03:11:22 -0500
+From: Martin Bugge <marbugge@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jtp.park@samsung.com
-Subject: [PATCH] s5p-mfc: Replaced commas with semicolons.
-Date: Fri, 21 Feb 2014 11:19:33 +0900
-Message-id: <1392949173-17990-1-git-send-email-jy0922.shim@samsung.com>
+Cc: Martin Bugge <marbugge@cisco.com>
+Subject: [PATCH 1/3] [media] ths8200: Zero blanking level for RGB.
+Date: Fri,  7 Feb 2014 09:11:03 +0100
+Message-Id: <1391760665-24784-2-git-send-email-marbugge@cisco.com>
+In-Reply-To: <1391760665-24784-1-git-send-email-marbugge@cisco.com>
+References: <1391760665-24784-1-git-send-email-marbugge@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is any reason to use comma here.
+Currently only RGB444 input data is supported so set to zero.
 
-Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Martin Bugge <marbugge@cisco.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/i2c/ths8200.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index e2aac59..90f4f69 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1147,9 +1147,9 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 		ret = -ENOMEM;
- 		goto err_dec_alloc;
- 	}
--	vfd->fops	= &s5p_mfc_fops,
-+	vfd->fops	= &s5p_mfc_fops;
- 	vfd->ioctl_ops	= get_dec_v4l2_ioctl_ops();
--	vfd->release	= video_device_release,
-+	vfd->release	= video_device_release;
- 	vfd->lock	= &dev->mfc_mutex;
- 	vfd->v4l2_dev	= &dev->v4l2_dev;
- 	vfd->vfl_dir	= VFL_DIR_M2M;
-@@ -1172,9 +1172,9 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 		ret = -ENOMEM;
- 		goto err_enc_alloc;
- 	}
--	vfd->fops	= &s5p_mfc_fops,
-+	vfd->fops	= &s5p_mfc_fops;
- 	vfd->ioctl_ops	= get_enc_v4l2_ioctl_ops();
--	vfd->release	= video_device_release,
-+	vfd->release	= video_device_release;
- 	vfd->lock	= &dev->mfc_mutex;
- 	vfd->v4l2_dev	= &dev->v4l2_dev;
- 	vfd->vfl_dir	= VFL_DIR_M2M;
+diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
+index 04139ee..5c7dca3 100644
+--- a/drivers/media/i2c/ths8200.c
++++ b/drivers/media/i2c/ths8200.c
+@@ -217,8 +217,8 @@ static void ths8200_core_init(struct v4l2_subdev *sd)
+ 	/* Disable embedded syncs on the output by setting
+ 	 * the amplitude to zero for all channels.
+ 	 */
+-	ths8200_write(sd, THS8200_DTG1_Y_SYNC_MSB, 0x2a);
+-	ths8200_write(sd, THS8200_DTG1_CBCR_SYNC_MSB, 0x2a);
++	ths8200_write(sd, THS8200_DTG1_Y_SYNC_MSB, 0x00);
++	ths8200_write(sd, THS8200_DTG1_CBCR_SYNC_MSB, 0x00);
+ }
+ 
+ static void ths8200_setup(struct v4l2_subdev *sd, struct v4l2_bt_timings *bt)
 -- 
-1.8.1.2
+1.8.1.4
 
