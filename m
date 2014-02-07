@@ -1,73 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4949 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751199AbaBNOqN (ORCPT
+Received: from elasmtp-masked.atl.sa.earthlink.net ([209.86.89.68]:45373 "EHLO
+	elasmtp-masked.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750993AbaBGSeW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 09:46:13 -0500
-Message-ID: <52FE2C0A.1060105@xs4all.nl>
-Date: Fri, 14 Feb 2014 15:45:30 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 7 Feb 2014 13:34:22 -0500
+Received: from [24.206.66.147] (helo=[192.168.1.7])
+	by elasmtp-masked.atl.sa.earthlink.net with esmtpsa (TLSv1:AES128-SHA:128)
+	(Exim 4.67)
+	(envelope-from <thebitpit@earthlink.net>)
+	id 1WBq5W-0003FA-HZ
+	for linux-media@vger.kernel.org; Fri, 07 Feb 2014 13:23:42 -0500
+Message-ID: <52F524A8.9000008@earthlink.net>
+Date: Fri, 07 Feb 2014 12:23:36 -0600
+From: The Bit Pit <thebitpit@earthlink.net>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 0/5] SDR API - Mirics MSi3101 driver
-References: <1392060543-3972-1-git-send-email-crope@iki.fi> <52FE2AD2.4030404@xs4all.nl>
-In-Reply-To: <52FE2AD2.4030404@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Driver for KWorld UB435Q Version 3 (ATSC)  USB id: 1b80:e34c
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/14/2014 03:40 PM, Hans Verkuil wrote:
-> Hi Antti,
-> 
-> Just one very tiny thing: in patch 1 in msi3101_template you added this line:
-> 
-> +	.debug                    = 0,
-> 
-> Please remove. Fields initialized to 0 should in general be dropped since the
-> compiler sets it to 0 already, and eventually the debug field will disappear
-> anyway since you can set it by doing echo 1 >/sys/class/video4linux/video0/debug
+Last May I started writing a driver for a KWorld UB435Q Version 3
+tuner.  I was able to make the kernel recognize the device, light it's
+LED, and try to enable the decoder and tuner.
 
-Sorry, forgot to mention that after making that small change you can add my
+I was unable to locate any information for the tda18272 tuner chip until
+last week.  I received an email at another address with a pointer to a
+GPL driver that used a tda18272 in a pcie based tuner.  It appears that
+a bit of refactoring has been done to v4l2 since it was written.  I want
+to try to incorporate it into the kernel tree properly while making the
+KWorld UB435Q Version 3 usable under linux.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Would the tda18271 be a good model?
 
-for these 5 patches.
+The tda18271 organized with part in tuners and part in dvb-frontends. 
+What is the dvb-frontends stuff used for?
 
-Regards,
+The tda18271 files in kernel are:
 
-	Hans
+./media/tuners/tda18271-maps.c
+./media/tuners/tda18271-fe.c
+./media/tuners/tda18271.h
+./media/tuners/tda18271-priv.h
+./media/tuners/tda18271-common.c
+./media/dvb-frontends/tda18271c2dd.c
+./media/dvb-frontends/tda18271c2dd.h
+./media/dvb-frontends/tda18271c2dd_maps.h
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> On 02/10/2014 08:28 PM, Antti Palosaari wrote:
->> Split / group / merge changes as requested by Hans.
->>
->> Antti
->>
->> Antti Palosaari (5):
->>   msi3101: convert to SDR API
->>   msi001: Mirics MSi001 silicon tuner driver
->>   msi3101: use msi001 tuner driver
->>   MAINTAINERS: add msi001 driver
->>   MAINTAINERS: add msi3101 driver
->>
->>  MAINTAINERS                                 |   20 +
->>  drivers/staging/media/msi3101/Kconfig       |    7 +-
->>  drivers/staging/media/msi3101/Makefile      |    1 +
->>  drivers/staging/media/msi3101/msi001.c      |  499 +++++++++
->>  drivers/staging/media/msi3101/sdr-msi3101.c | 1558 ++++++++++-----------------
->>  5 files changed, 1095 insertions(+), 990 deletions(-)
->>  create mode 100644 drivers/staging/media/msi3101/msi001.c
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+The tda18272 files I located are:
+
+./media/dvb/frontends/tda18272_reg.h
+./media/dvb/frontends/tda18272.h
+./media/dvb/frontends/tda18272.c
+
+The tuner is only used in digital mode with KWorld UB435Q Version 3. 
+The tda18272 supports both digital and analog.  Should I include the
+analog support in the tda18272 files without testing it?
+
 
