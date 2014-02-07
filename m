@@ -1,95 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2944 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751959AbaBNKlp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 05:41:45 -0500
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1306 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755386AbaBGMUK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 07:20:10 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 11/11] v4l2-ioctl: add CREATE_BUFS sanity checks.
-Date: Fri, 14 Feb 2014 11:41:12 +0100
-Message-Id: <1392374472-18393-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
+Cc: edubezval@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 3/7] si4713: add the missing RDS functionality.
+Date: Fri,  7 Feb 2014 13:19:36 +0100
+Message-Id: <1391775580-29907-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Many drivers do not check anything. At least make sure that the various
-buffer size related fields are not obviously wrong.
+Not all the RDS features of the si4713 were supported. Add
+the missing bits to fully support the hardware capabilities.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 52 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 50 insertions(+), 2 deletions(-)
+ drivers/media/radio/si4713/si4713.c | 64 ++++++++++++++++++++++++++++++++++++-
+ drivers/media/radio/si4713/si4713.h |  9 ++++++
+ 2 files changed, 72 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 707aef7..69a1948 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1444,9 +1444,57 @@ static int v4l_create_bufs(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
- 	struct v4l2_create_buffers *create = arg;
--	int ret = check_fmt(file, create->format.type);
-+	const struct v4l2_format *fmt = &create->format;
-+	const struct v4l2_pix_format *pix = &fmt->fmt.pix;
-+	const struct v4l2_pix_format_mplane *mp = &fmt->fmt.pix_mp;
-+	const struct v4l2_plane_pix_format *p;
-+	int ret = check_fmt(file, fmt->type);
-+	unsigned i;
-+
-+	if (ret)
-+		return ret;
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index 07d5153..741db93 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -957,6 +957,41 @@ static int si4713_choose_econtrol_action(struct si4713_device *sdev, u32 id,
+ 		*bit = 5;
+ 		*mask = 0x1F << 5;
+ 		break;
++	case V4L2_CID_RDS_TX_DYNAMIC_PTY:
++		*property = SI4713_TX_RDS_PS_MISC;
++		*bit = 15;
++		*mask = 1 << 15;
++		break;
++	case V4L2_CID_RDS_TX_COMPRESSED:
++		*property = SI4713_TX_RDS_PS_MISC;
++		*bit = 14;
++		*mask = 1 << 14;
++		break;
++	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:
++		*property = SI4713_TX_RDS_PS_MISC;
++		*bit = 13;
++		*mask = 1 << 13;
++		break;
++	case V4L2_CID_RDS_TX_MONO_STEREO:
++		*property = SI4713_TX_RDS_PS_MISC;
++		*bit = 12;
++		*mask = 1 << 12;
++		break;
++	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
++		*property = SI4713_TX_RDS_PS_MISC;
++		*bit = 10;
++		*mask = 1 << 10;
++		break;
++	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
++		*property = SI4713_TX_RDS_PS_MISC;
++		*bit = 4;
++		*mask = 1 << 4;
++		break;
++	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
++		*property = SI4713_TX_RDS_PS_MISC;
++		*bit = 3;
++		*mask = 1 << 3;
++		break;
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:
+ 		*property = SI4713_TX_ACOMP_ENABLE;
+ 		*bit = 1;
+@@ -1122,6 +1157,15 @@ static int si4713_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			}
+ 			break;
  
--	return ret ? ret : ops->vidioc_create_bufs(file, fh, create);
-+	/* Sanity checks */
-+	switch (fmt->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		if (pix->sizeimage == 0 || pix->width == 0 || pix->height == 0)
-+			return -EINVAL;
-+		/* Note: bytesperline is 0 for compressed formats */
-+		if (pix->bytesperline &&
-+		    pix->height * pix->bytesperline > pix->sizeimage)
-+			return -EINVAL;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (mp->num_planes == 0 || mp->width == 0 || mp->height == 0)
-+			return -EINVAL;
-+		for (i = 0; i < mp->num_planes; i++) {
-+			p = &mp->plane_fmt[i];
++		case V4L2_CID_RDS_TX_ALT_FREQ_ENABLE:
++		case V4L2_CID_RDS_TX_ALT_FREQ:
++			if (sdev->rds_alt_freq_enable->val)
++				val = sdev->rds_alt_freq->val / 100 - 876 + 0xe101;
++			else
++				val = 0xe0e0;
++			ret = si4713_write_property(sdev, SI4713_TX_RDS_PS_AF, val);
++			break;
 +
-+			if (p->sizeimage == 0)
-+				return -EINVAL;
-+			/* Note: bytesperline is 0 for compressed formats */
-+			if (p->bytesperline &&
-+			    p->bytesperline * mp->height > p->sizeimage)
-+				return -EINVAL;
-+		}
-+		break;
-+	case V4L2_BUF_TYPE_VBI_CAPTURE:
-+	case V4L2_BUF_TYPE_VBI_OUTPUT:
-+		if (fmt->fmt.vbi.count[0] + fmt->fmt.vbi.count[1] == 0)
-+			return -EINVAL;
-+		break;
-+	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
-+	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-+		if (fmt->fmt.sliced.io_size == 0)
-+			return -EINVAL;
-+		break;
-+	default:
-+		/* Overlay formats are invalid */
-+		return -EINVAL;
-+	}
-+	return ops->vidioc_create_bufs(file, fh, create);
- }
+ 		default:
+ 			ret = si4713_choose_econtrol_action(sdev, ctrl->id, &bit,
+ 					&mask, &property, &mul, &table, &size);
+@@ -1410,6 +1454,24 @@ static int si4713_probe(struct i2c_client *client,
+ 			V4L2_CID_RDS_TX_PI, 0, 0xffff, 1, DEFAULT_RDS_PI);
+ 	sdev->rds_pty = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
+ 			V4L2_CID_RDS_TX_PTY, 0, 31, 1, DEFAULT_RDS_PTY);
++	sdev->rds_compressed = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
++			V4L2_CID_RDS_TX_COMPRESSED, 0, 1, 1, 0);
++	sdev->rds_art_head = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
++			V4L2_CID_RDS_TX_ARTIFICIAL_HEAD, 0, 1, 1, 0);
++	sdev->rds_stereo = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
++			V4L2_CID_RDS_TX_MONO_STEREO, 0, 1, 1, 1);
++	sdev->rds_tp = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
++			V4L2_CID_RDS_TX_TRAFFIC_PROGRAM, 0, 1, 1, 0);
++	sdev->rds_ta = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
++			V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT, 0, 1, 1, 0);
++	sdev->rds_ms = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
++			V4L2_CID_RDS_TX_MUSIC_SPEECH, 0, 1, 1, 1);
++	sdev->rds_dyn_pty = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
++			V4L2_CID_RDS_TX_DYNAMIC_PTY, 0, 1, 1, 0);
++	sdev->rds_alt_freq_enable = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
++			V4L2_CID_RDS_TX_ALT_FREQ_ENABLE, 0, 1, 1, 0);
++	sdev->rds_alt_freq = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
++			V4L2_CID_RDS_TX_ALT_FREQ, 87600, 107900, 100, 87600);
+ 	sdev->rds_deviation = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
+ 			V4L2_CID_RDS_TX_DEVIATION, 0, MAX_RDS_DEVIATION,
+ 			10, DEFAULT_RDS_DEVIATION);
+@@ -1476,7 +1538,7 @@ static int si4713_probe(struct i2c_client *client,
+ 		rval = hdl->error;
+ 		goto free_ctrls;
+ 	}
+-	v4l2_ctrl_cluster(20, &sdev->mute);
++	v4l2_ctrl_cluster(29, &sdev->mute);
+ 	sdev->sd.ctrl_handler = hdl;
  
- static int v4l_prepare_buf(const struct v4l2_ioctl_ops *ops,
+ 	if (client->irq) {
+diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
+index 4837cf6..3bee6a5 100644
+--- a/drivers/media/radio/si4713/si4713.h
++++ b/drivers/media/radio/si4713/si4713.h
+@@ -211,6 +211,15 @@ struct si4713_device {
+ 		struct v4l2_ctrl *rds_pi;
+ 		struct v4l2_ctrl *rds_deviation;
+ 		struct v4l2_ctrl *rds_pty;
++		struct v4l2_ctrl *rds_compressed;
++		struct v4l2_ctrl *rds_art_head;
++		struct v4l2_ctrl *rds_stereo;
++		struct v4l2_ctrl *rds_ta;
++		struct v4l2_ctrl *rds_tp;
++		struct v4l2_ctrl *rds_ms;
++		struct v4l2_ctrl *rds_dyn_pty;
++		struct v4l2_ctrl *rds_alt_freq_enable;
++		struct v4l2_ctrl *rds_alt_freq;
+ 		struct v4l2_ctrl *compression_enabled;
+ 		struct v4l2_ctrl *compression_threshold;
+ 		struct v4l2_ctrl *compression_gain;
 -- 
-1.8.4.rc3
+1.8.5.2
 
