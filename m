@@ -1,59 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3122 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769AbaBUHkr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 02:40:47 -0500
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1L7ehkR061646
-	for <linux-media@vger.kernel.org>; Fri, 21 Feb 2014 08:40:45 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0F15C2A01A7
-	for <linux-media@vger.kernel.org>; Fri, 21 Feb 2014 08:40:41 +0100 (CET)
-Message-ID: <530702F8.2030501@xs4all.nl>
-Date: Fri, 21 Feb 2014 08:40:40 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-qa0-f48.google.com ([209.85.216.48]:47385 "EHLO
+	mail-qa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753715AbaBGNqR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 08:46:17 -0500
+Received: by mail-qa0-f48.google.com with SMTP id f11so5218916qae.35
+        for <linux-media@vger.kernel.org>; Fri, 07 Feb 2014 05:46:17 -0800 (PST)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.14] Kconfig fixes and vb2 regression fixes
+In-Reply-To: <CAPLVkLv6JNvSdSFCY7YNRkmfzHv5+JD7Y5hxvjxdFtRT2JgE2A@mail.gmail.com>
+References: <1344307634-11673-1-git-send-email-dheitmueller@kernellabs.com>
+	<1344307634-11673-8-git-send-email-dheitmueller@kernellabs.com>
+	<CAPLVkLv6JNvSdSFCY7YNRkmfzHv5+JD7Y5hxvjxdFtRT2JgE2A@mail.gmail.com>
+Date: Fri, 7 Feb 2014 08:46:16 -0500
+Message-ID: <CAGoCfixUNkFOji-LO2moDkj+8oBgLVkWNbC-otBWNu9JQWw88A@mail.gmail.com>
+Subject: Re: [PATCH 07/24] xc5000: properly report i2c write failures
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Joonyoung Shim <dofmind@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+> I can't load firmware like error of below link.
+>
+> https://bugs.launchpad.net/ubuntu/+source/linux-firmware-nonfree/+bug/1263837
+>
+> This error is related with this patch. This fix is right but above error is
+> created after this fix
+> because my device makes WatchDogTimer to 0 when load firmware.
+> Maybe it will be related with XREG_BUSY register but i can't check it.
+>
+> I removed this fix, but i have faced at other error with "xc5000: PLL not
+> running after fwload"
+> So i have commented like below.
+>
+> static const struct xc5000_fw_cfg xc5000a_1_6_114 = {
+>         .name = XC5000A_FIRMWARE,
+>         .size = 12401,
+>         //.pll_reg = 0x806c,
+> };
+>
+> Then, xc5000 device works well.
+>
+> I don't have xc5000 datasheet so i can't debug xc5000 driver anymore.
 
-The first two patches fix some Kconfig dependencies and the second two patches
-fix regressions introduced in vb2 in 3.14.
+Hi Joonyoung,
 
-They were found by v4l2-compliance and tested very well.
+Assuming this is the DViCO FusionHDTV7 device that uses the
+au0828/au8522, I suspect that what's happening here is your I2C
+controller is not stable.  The I2C clock stretching done by the xc5000
+often exposed bugs in various bridge drivers and the au0828 was no
+exception.  I had to work around these hardware bugs in the au0828
+driver but I made them specific to the HVR-950q since that was the
+only device I could test with.
 
-Regards,
+In other words, the xc5000 is most likely doing exactly what it is
+supposed to, and the increased robustness of the tuner driver with
+those two patches exposed intermittent I2C failures in au0828 that
+were previously being silently discarded (resulting in indeterminate
+behavior).
 
-	Hans
+I would recommending looking at the changes in au0828-cards.c for the
+HVR-950q and add the code necessary to make them also apply for the
+DVICO device, and that should resolve your problems (in particular the
+i2c_clk_divider field should be set).
 
-The following changes since commit 37e59f876bc710d67a30b660826a5e83e07101ce:
+Devin
 
-  [media, edac] Change my email address (2014-02-07 08:03:07 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.14e
-
-for you to fetch changes up to e1b326e45d7e935be8ece34ef87a0549d1b13789:
-
-  vb2: fix PREPARE_BUF regression. (2014-02-21 08:37:17 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      si4713: fix Kconfig dependencies
-      saa6752hs: depends on CRC32
-      vb2: fix read/write regression
-      vb2: fix PREPARE_BUF regression.
-
- drivers/media/i2c/Kconfig                |  1 +
- drivers/media/radio/si4713/Kconfig       |  6 +++---
- drivers/media/v4l2-core/videobuf2-core.c | 54 ++++++++++++++++++++++++++++++++++++++++++------------
- 3 files changed, 46 insertions(+), 15 deletions(-)
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
