@@ -1,104 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:25702 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268AbaBDMdN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 07:33:13 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N0H0025B1JCEUA0@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 04 Feb 2014 07:33:12 -0500 (EST)
-Date: Tue, 04 Feb 2014 10:33:08 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.15] Updates for 3.15
-Message-id: <20140204103308.51f648b3@samsung.com>
-In-reply-to: <52EF70E8.6000101@xs4all.nl>
-References: <52EF70E8.6000101@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:57010 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751854AbaBGVLM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Feb 2014 16:11:12 -0500
+Message-ID: <52F54BEE.3080603@iki.fi>
+Date: Fri, 07 Feb 2014 23:11:10 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>,
+	David Jedelsky <david.jedelsky@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] stb0899: Fix DVB-S2 support for TechniSat SkyStar
+ 2 HD CI USB ID 14f7:0002
+References: <1391679907-17876-1-git-send-email-david.jedelsky@gmail.com>	<CAHFNz9KKjjbuRFS=TZtB4e2FuC5-UMyVN-yTrAeRbVCqdmVkwg@mail.gmail.com>	<CAOEt8JJD9oiLu-AtjDt4G7440nrjzz8zAVW_LBp7neZySL=qCQ@mail.gmail.com> <CAHFNz9KROonr3kfv_mYqHHC7diqqgEa1zuaXOG2QcbRO-_kKRQ@mail.gmail.com>
+In-Reply-To: <CAHFNz9KROonr3kfv_mYqHHC7diqqgEa1zuaXOG2QcbRO-_kKRQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 03 Feb 2014 11:35:20 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 07.02.2014 22:54, Manu Abraham wrote:
+> On Sat, Feb 8, 2014 at 1:19 AM, David Jedelsky <david.jedelsky@gmail.com> wrote:
+>>> That changes I2C functionality from STOP + START to repeated START.
+>>> Current functionality looks also very weird, as there is 5 messages sent,
+>>> all with STOP condition. I am not surprised if actually bug is still in
+>>> adapter... Somehow it should be first resolved how those messages are send,
+>>> with repeated START or STOP. And fix I2C client or adapter or both.
+>>>
+>>> regards
+>>> Antti
+>>
+>>
+>>
+>> Manu, Antti,
+>>
+>> Thank you for your response. I agree that the code is somewhat peculiar and
+>> it could be worthy to review it using documentation before I leave it as bug
+>> in my hw. Unfortunately I don't own appropriate documentation. If you can
+>> supply it I can look at it.
+>
+> I can assure you that the STB0899 driver works well for S2 with most
+> USB bridges and PCI bridges, which brings me to the fact that the issue
+> does not exist with the STB0899 driver.
+>
+> Regarding the documentation, I don't have any wrt to the USB bridge, but
+> only for the demodulator, tuner. But my hands are tied on that front, due to
+> NDA's and agreements.
+>
+> Looking further in my hardware museum, I did find a
+> Technisat Skystar USB2 HD CI REV 2.0
+>
+> The information on a white sticker on the PCB states:
+> Model AD-SB301, Project ID: 6027
+> DVB-S2, CI, USB Box (on-line update)
+> H/W Ver: A1, PID/VID: 14F7 / 0002
+>
+> manufactured and sent to me by Azurewave.
+>
+> It has a broken ferrite cored inductor on it, which appears to be on the
+> power line to the demodulator/tuner.
+>
+> The PID/VID looks exactly the same as yours. If you have a firmware bug,
+> maybe it helps to update the firmware online ? (I guess the windows driver
+> uses some stock Cypress driver, from what I can imagine ?)
+>
+> I had similar problems as you state, when I worked with a prototype version
+> of the Mantis PCI chipset where it had some issues regarding repeated
+> starts. I can't really remember the exact issue back then, but I do remember
+> the issue being tuner related as well, since the write to the tuner would reach
+> the very first tuner register alone. The communications to the tuner are
+> through a repeater on the demodulator.
+>
+> This issue was addressed with an ECO Metal fix for the PCI bridge, but that
+> did eventually result in a newer chip though.
+>
+> The problem could likely be similar with your USB bridge. Maybe it is a
+> driver bug too .. I haven't looked deeply at the az6027 driver.
 
-> Hi Mauro,
-> 
-> The usual list of updates. I also decided to add my DocBook changes to this
-> pull request.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
-> 
->   [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git for-v3.15a
-> 
-> for you to fetch changes up to 5979412aac4c8342c4f7d12c642a2ae955b0c68f:
-> 
->   DocBook media: add revision entry for 3.15. (2014-02-03 11:29:03 +0100)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (11):
->       usbvision: drop unused define USBVISION_SAY_AND_WAIT
->       s3c-camif: Remove use of deprecated V4L2_CTRL_FLAG_DISABLED.
->       v4l2-dv-timings.h: add new 4K DMT resolutions.
->       v4l2-dv-timings: mention missing 'reduced blanking V2'
->       DocBook media: fix email addresses.
->       DocBook media: update copyright years and Introduction.
->       DocBook media: partial rewrite of "Opening and Closing Devices"
->       DocBook media: update four more sections
->       DocBook media: update three sections
->       DocBook media: drop the old incorrect packed RGB table.
->       DocBook media: add revision entry for 3.15.
+It is almost 100% sure I2C adapter or client bug. az6027 driver i2c 
+adapter seems to have some weird looking things, it behaves differently 
+according I2C slave address used. If I didn't read code wrong, in that 
+case it does to branch "if (msg[i].addr == 0xd0)". And looking that 
+logic reveals it supports only 2 I2C transfers:
+for reg read: START + write + REPEATED START + read + STOP
+for reg write: START + write + STOP
 
-Hmm... I didn't see this patch at the ML.
+So that read operation (START + read + STOP) used by STB0899 is not 
+implemented at all.
 
-As I dropped the patch that changed the "Opening and Closing Devices" from
-this series, I modified this one to reflect it.
-
-> 
-> Martin Bugge (4):
->       adv7842: adjust gain and offset for DVI-D signals
->       adv7842: pixelclock read-out
->       adv7842: log-status for Audio Video Info frames (AVI)
->       adv7842: platform-data for Hotplug Active (HPA) manual/auto
-> 
-> Sachin Kamat (1):
->       radio-keene: Use module_usb_driver
-> 
-> sensoray-dev (1):
->       s2255drv: checkpatch fix: coding style fix
-> 
->  Documentation/DocBook/media/dvb/dvbapi.xml            |   4 +-
->  Documentation/DocBook/media/v4l/common.xml            | 413 +++++++++++++++++++++---------------------------------
->  Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml | 513 +++++++------------------------------------------------------------
->  Documentation/DocBook/media/v4l/v4l2.xml              |  13 +-
->  Documentation/DocBook/media_api.tmpl                  |  15 +-
->  drivers/media/i2c/adv7842.c                           | 149 ++++++++++++++++----
->  drivers/media/platform/s3c-camif/camif-capture.c      |  15 +-
->  drivers/media/radio/radio-keene.c                     |  19 +--
->  drivers/media/usb/s2255/s2255drv.c                    | 333 ++++++++++++++++++++-----------------------
->  drivers/media/usb/usbvision/usbvision.h               |   8 --
->  drivers/media/v4l2-core/v4l2-dv-timings.c             |   4 +
->  include/media/adv7842.h                               |   3 +
->  include/uapi/linux/v4l2-dv-timings.h                  |  17 +++
->  13 files changed, 536 insertions(+), 970 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+regards
+Antti
 
 -- 
-
-Cheers,
-Mauro
+http://palosaari.fi/
