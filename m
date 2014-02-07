@@ -1,60 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:37165 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbaBNJqB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 04:46:01 -0500
-From: Daniel Jeong <gshark.jeong@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Jeong <gshark.jeong@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
-Subject: [RFC v3,2/3] controls.xml : add addtional Flash fault bits
-Date: Fri, 14 Feb 2014 18:45:51 +0900
-Message-Id: <1392371151-32644-1-git-send-email-gshark.jeong@gmail.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4635 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755389AbaBGMUK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 07:20:10 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: edubezval@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/7] v4l2-ctrls: add new RDS TX controls
+Date: Fri,  7 Feb 2014 13:19:34 +0100
+Message-Id: <1391775580-29907-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add addtional falult bits for FLASH
-V4L2_FLASH_FAULT_UNDER_VOLTAGE	: UVLO
-V4L2_FLASH_FAULT_INPUT_VOLTAGE	: input voltage is adjusted by IVFM
-V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE : NTC Trip point is crossed.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+The si4713 supports several RDS features not yet implemented in the driver.
+
+This patch adds the missing RDS functionality to the list of RDS controls.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 17 +++++++++++++++++
+ include/uapi/linux/v4l2-controls.h   |  9 +++++++++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index a5a3188..8121f7e 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4370,6 +4370,22 @@ interface and may change in the future.</para>
-     		  <entry>The flash controller has detected a short or open
-     		  circuit condition on the indicator LED.</entry>
-     		</row>
-+    		<row>
-+    		  <entry><constant>V4L2_FLASH_FAULT_UNDER_VOLTAGE</constant></entry>
-+    		  <entry>Flash controller voltage to the flash LED
-+    		  has been below the minimum limit specific to the flash
-+    		  controller.</entry>
-+    		</row>
-+    		<row>
-+    		  <entry><constant>V4L2_FLASH_FAULT_INPUT_VOLTAGE</constant></entry>
-+    		  <entry>The flash controller has detected adjustment of input
-+    		  voltage by Input Volage Flash Monitor(IVFM).</entry>
-+    		</row>
-+    		<row>
-+    		  <entry><constant>V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE</constant></entry>
-+    		  <entry>The flash controller has detected that TEMP input has
-+    		  crossed NTC Trip Voltage.</entry>
-+    		</row>
-     	      </tbody>
-     	    </entrytbl>
-     	  </row>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 6ff002b..66a2d0b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -794,6 +794,15 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
+ 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_RDS_TX_MONO_STEREO:	return "RDS Stereo";
++	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:	return "RDS Artificial Head";
++	case V4L2_CID_RDS_TX_COMPRESSED:	return "RDS Compressed";
++	case V4L2_CID_RDS_TX_DYNAMIC_PTY:	return "RDS Dynamic PTY";
++	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT: return "RDS Traffic Announcement";
++	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:	return "RDS Traffic Program";
++	case V4L2_CID_RDS_TX_MUSIC_SPEECH:	return "RDS Music";
++	case V4L2_CID_RDS_TX_ALT_FREQ_ENABLE:	return "RDS Enable Alternate Frequency";
++	case V4L2_CID_RDS_TX_ALT_FREQ:		return "RDS Alternate Frequency";
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
+ 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
+ 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
+@@ -906,6 +915,14 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
+ 	case V4L2_CID_RDS_RECEPTION:
++	case V4L2_CID_RDS_TX_MONO_STEREO:
++	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:
++	case V4L2_CID_RDS_TX_COMPRESSED:
++	case V4L2_CID_RDS_TX_DYNAMIC_PTY:
++	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
++	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
++	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
++	case V4L2_CID_RDS_TX_ALT_FREQ_ENABLE:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2cbe605..21abf77 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -753,6 +753,15 @@ enum v4l2_auto_focus_range {
+ #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
+ #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
+ #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_RDS_TX_MONO_STEREO		(V4L2_CID_FM_TX_CLASS_BASE + 7)
++#define V4L2_CID_RDS_TX_ARTIFICIAL_HEAD		(V4L2_CID_FM_TX_CLASS_BASE + 8)
++#define V4L2_CID_RDS_TX_COMPRESSED		(V4L2_CID_FM_TX_CLASS_BASE + 9)
++#define V4L2_CID_RDS_TX_DYNAMIC_PTY		(V4L2_CID_FM_TX_CLASS_BASE + 10)
++#define V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT	(V4L2_CID_FM_TX_CLASS_BASE + 11)
++#define V4L2_CID_RDS_TX_TRAFFIC_PROGRAM		(V4L2_CID_FM_TX_CLASS_BASE + 12)
++#define V4L2_CID_RDS_TX_MUSIC_SPEECH		(V4L2_CID_FM_TX_CLASS_BASE + 13)
++#define V4L2_CID_RDS_TX_ALT_FREQ_ENABLE		(V4L2_CID_FM_TX_CLASS_BASE + 14)
++#define V4L2_CID_RDS_TX_ALT_FREQ		(V4L2_CID_FM_TX_CLASS_BASE + 15)
+ 
+ #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
+ #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
 -- 
-1.7.9.5
+1.8.5.2
 
