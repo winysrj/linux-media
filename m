@@ -1,42 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.vif.com ([216.239.64.153]:35118 "EHLO zanzibar.vif.com"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:59066 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752033AbaBYJKy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 04:10:54 -0500
-Subject: patch for media-build for CentOS release 6.5 (Final)
-From: Jacques Lussier <tech@cognotek.com>
-Reply-To: tech@cognotek.com
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 23 Feb 2014 14:35:48 -0500
-Message-ID: <1393184148.4292.9.camel@cognotek.dyndns-ip.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1751617AbaBGRVB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Feb 2014 12:21:01 -0500
+Message-Id: <9b3c3c2c982f31b026fd1516a2b608026d55b1e9.1391792986.git.moinejf@free.fr>
+In-Reply-To: <cover.1391792986.git.moinejf@free.fr>
+References: <cover.1391792986.git.moinejf@free.fr>
+From: Jean-Francois Moine <moinejf@free.fr>
+Date: Fri, 7 Feb 2014 16:55:00 +0100
+Subject: [PATCH v3 1/2] drivers/base: permit base components to omit the
+ bind/unbind ops
+To: Russell King <rmk+kernel@arm.linux.org.uk>,
+	devel@driverdev.osuosl.org
+Cc: alsa-devel@alsa-project.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	Daniel Vetter <daniel@ffwll.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Some simple components don't need to do any specific action on
+bind to / unbind from a master component.
 
-At the end is my output in Terminal while running ./build. The patch I
-applied is :
+This patch permits such components to omit the bind/unbind
+operations.
 
-Perl Extension for SHA-1/224/256/384/512
-perl-Digest-SHA-5.71.1.el6.rfx (x86_64)
+Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+---
+ drivers/base/component.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-I imagine for those running 32-bit kernels the patch would be:
-
-perl-Digest-SHA-PurePerl-5.48.1.el6.rf (noarch)
-
-Here is the actual output before patch:
-
- ./build
-Checking if the needed tools for CentOS release 6.5 (Final)
-are available
-ERROR: please install "Digest::SHA", otherwise, build
-won't work.
-I don't know distro CentOS release 6.5 (Final).
-So, I can't provide you a hint with the package names. Be welcome to
-contribute with a patch for media-build, by submitting a distro-specific
-hint to linux-media@vger.kernel.org Build can't procceed as 1 dependency
-is missing at ./build line 266.
+diff --git a/drivers/base/component.c b/drivers/base/component.c
+index c53efe6..0a39d7a 100644
+--- a/drivers/base/component.c
++++ b/drivers/base/component.c
+@@ -225,7 +225,8 @@ static void component_unbind(struct component *component,
+ {
+ 	WARN_ON(!component->bound);
+ 
+-	component->ops->unbind(component->dev, master->dev, data);
++	if (component->ops)
++		component->ops->unbind(component->dev, master->dev, data);
+ 	component->bound = false;
+ 
+ 	/* Release all resources claimed in the binding of this component */
+@@ -274,7 +275,11 @@ static int component_bind(struct component *component, struct master *master,
+ 	dev_dbg(master->dev, "binding %s (ops %ps)\n",
+ 		dev_name(component->dev), component->ops);
+ 
+-	ret = component->ops->bind(component->dev, master->dev, data);
++	if (component->ops)
++		ret = component->ops->bind(component->dev, master->dev, data);
++	else
++		ret = 0;
++
+ 	if (!ret) {
+ 		component->bound = true;
+ 
+-- 
+1.9.rc1
 
