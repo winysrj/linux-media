@@ -1,64 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.130]:62692 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497AbaBZLCn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 06:02:43 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 08/16] [media] arv: fix sleep_on race
-Date: Wed, 26 Feb 2014 12:01:48 +0100
-Message-Id: <1393412516-3762435-9-git-send-email-arnd@arndb.de>
-In-Reply-To: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
-References: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3434 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755358AbaBGMUK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 07:20:10 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: edubezval@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 4/7] v4l2-ctrls: add RX RDS controls.
+Date: Fri,  7 Feb 2014 13:19:37 +0100
+Message-Id: <1391775580-29907-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-interruptible_sleep_on is racy and going away. In the arv driver that
-race has probably never caused problems since it would require a whole
-video frame to be captured before the read function has a chance to
-go to sleep, but using wait_event_interruptible lets us kill off the
-old interface. In order to do this, we have to slightly adapt the
-meaning of the ar->start_capture field to distinguish between not having
-started a frame and having completed it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
+The radio-miropcm20 driver has firmware that decodes the RDS signals. So in that
+case the RDS data becomes available in the form of controls.
+
+Add support for these controls to the control framework, allowing the miro driver
+to use them.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/arv.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 17 +++++++++++++++++
+ include/uapi/linux/v4l2-controls.h   |  6 ++++++
+ 2 files changed, 23 insertions(+)
 
-diff --git a/drivers/media/platform/arv.c b/drivers/media/platform/arv.c
-index e346d32d..e9410e4 100644
---- a/drivers/media/platform/arv.c
-+++ b/drivers/media/platform/arv.c
-@@ -109,7 +109,7 @@ extern struct cpuinfo_m32r	boot_cpu_data;
- struct ar {
- 	struct v4l2_device v4l2_dev;
- 	struct video_device vdev;
--	unsigned int start_capture;	/* duaring capture in INT. mode. */
-+	int start_capture;	/* duaring capture in INT. mode. */
- #if USE_INT
- 	unsigned char *line_buff;	/* DMA line buffer */
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 66a2d0b..7c138b5 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -866,6 +866,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
+ 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+ 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
++	case V4L2_CID_RDS_RX_PTY:		return "RDS Program Type";
++	case V4L2_CID_RDS_RX_PS_NAME:		return "RDS PS Name";
++	case V4L2_CID_RDS_RX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_RDS_RX_TRAFFIC_ANNOUNCEMENT: return "RDS Traffic Announcement";
++	case V4L2_CID_RDS_RX_TRAFFIC_PROGRAM:	return "RDS Traffic Program";
++	case V4L2_CID_RDS_RX_MUSIC_SPEECH:	return "RDS Music";
+ 	default:
+ 		return NULL;
+ 	}
+@@ -923,6 +929,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
+ 	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
+ 	case V4L2_CID_RDS_TX_ALT_FREQ_ENABLE:
++	case V4L2_CID_RDS_RX_TRAFFIC_ANNOUNCEMENT:
++	case V4L2_CID_RDS_RX_TRAFFIC_PROGRAM:
++	case V4L2_CID_RDS_RX_MUSIC_SPEECH:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -990,6 +999,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		break;
+ 	case V4L2_CID_RDS_TX_PS_NAME:
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:
++	case V4L2_CID_RDS_RX_PS_NAME:
++	case V4L2_CID_RDS_RX_RADIO_TEXT:
+ 		*type = V4L2_CTRL_TYPE_STRING;
+ 		break;
+ 	case V4L2_CID_ISO_SENSITIVITY:
+@@ -1096,6 +1107,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DV_TX_RXSENSE:
+ 	case V4L2_CID_DV_TX_EDID_PRESENT:
+ 	case V4L2_CID_DV_RX_POWER_PRESENT:
++	case V4L2_CID_RDS_RX_PTY:
++	case V4L2_CID_RDS_RX_PS_NAME:
++	case V4L2_CID_RDS_RX_RADIO_TEXT:
++	case V4L2_CID_RDS_RX_TRAFFIC_ANNOUNCEMENT:
++	case V4L2_CID_RDS_RX_TRAFFIC_PROGRAM:
++	case V4L2_CID_RDS_RX_MUSIC_SPEECH:
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		break;
+ 	}
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 21abf77..52c9679 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -903,5 +903,11 @@ enum v4l2_deemphasis {
+ };
+ 
+ #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
++#define V4L2_CID_RDS_RX_PTY			(V4L2_CID_FM_RX_CLASS_BASE + 3)
++#define V4L2_CID_RDS_RX_PS_NAME			(V4L2_CID_FM_RX_CLASS_BASE + 4)
++#define V4L2_CID_RDS_RX_RADIO_TEXT		(V4L2_CID_FM_RX_CLASS_BASE + 5)
++#define V4L2_CID_RDS_RX_TRAFFIC_ANNOUNCEMENT	(V4L2_CID_FM_RX_CLASS_BASE + 6)
++#define V4L2_CID_RDS_RX_TRAFFIC_PROGRAM		(V4L2_CID_FM_RX_CLASS_BASE + 7)
++#define V4L2_CID_RDS_RX_MUSIC_SPEECH		(V4L2_CID_FM_RX_CLASS_BASE + 8)
+ 
  #endif
-@@ -307,11 +307,11 @@ static ssize_t ar_read(struct file *file, char *buf, size_t count, loff_t *ppos)
- 	/*
- 	 * Okay, kick AR LSI to invoke an interrupt
- 	 */
--	ar->start_capture = 0;
-+	ar->start_capture = -1;
- 	ar_outl(arvcr1 | ARVCR1_HIEN, ARVCR1);
- 	local_irq_restore(flags);
- 	/* .... AR interrupts .... */
--	interruptible_sleep_on(&ar->wait);
-+	wait_event_interruptible(ar->wait, ar->start_capture == 0);
- 	if (signal_pending(current)) {
- 		printk(KERN_ERR "arv: interrupted while get frame data.\n");
- 		ret = -EINTR;
 -- 
-1.8.3.2
+1.8.5.2
 
