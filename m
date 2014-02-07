@@ -1,99 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:36520 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751845AbaBZOYI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 09:24:08 -0500
-Message-ID: <1393426623.3248.70.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Wed, 26 Feb 2014 15:57:03 +0100
-In-Reply-To: <530DE8A9.9050809@ti.com>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
-	 <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
-	 <530DE8A9.9050809@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([217.30.184.167]:55059 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751925AbaBGXRH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Feb 2014 18:17:07 -0500
+Message-ID: <52F56971.8060104@iki.fi>
+Date: Sat, 08 Feb 2014 01:17:05 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: kapetr@mizera.cz, linux-media@vger.kernel.org
+Subject: Re: video from USB DVB-T get  damaged after some time
+References: <52F50E0B.1060507@mizera.cz>
+In-Reply-To: <52F50E0B.1060507@mizera.cz>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
+Moikka
 
-Am Mittwoch, den 26.02.2014, 15:14 +0200 schrieb Tomi Valkeinen:
-> On 25/02/14 16:58, Philipp Zabel wrote:
-> 
-> > +Optional endpoint properties
-> > +----------------------------
-> > +
-> > +- remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
-> 
-> Why is that optional? What use is an endpoint, if it's not connected to
-> something?
+On 07.02.2014 18:47, kapetr@mizera.cz wrote:
+> Hello,
+>
+> I have this:
+> http://linuxtv.org/wiki/index.php/ITE_IT9135
+>
+> with dvb-usb-it9135-02.fw (chip version 2) on U12.04 64b with compiled
+> newest drivers from:
+> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers.
+>
+>
+>
+> The problem is - after some time I receive a program (e.g. in Kaffeine,
+> me-tv, vlc, ...) the program get more and more damaged and finely get
+> lost at all.
+>
+> I happens quicker (+- after 10-20 minutes) on channels with lower
+> signal. On stronger signals it happens after +- 30-100 minutes.
+>
+> The USB stick stays cool.
+>
+> I can switch to another frequency and back and it works again OK - for
+> only the "same" while.
+>
+> Could that problem be in (or solvable by) FW/drivers or is it
+> !absolutely certain! "only" HW problem ?
+>
+> In attachment is output from tzap - you can see the time point where the
+> video TS gets damaged.
+>
+> Any suggestion ?
+>
+>
+> Thanks  --kapetr
+>
 
-This allows to include the an empty endpoint template in a SoC dtsi for
-the convenience of board dts writers. Also, the same property is
-currently listed as optional in video-interfaces.txt.
+Could you test AF9035 driver? It support also IT9135 (difference between 
+AF9035 is integrated RF tuner, AF9035 is older and needs external tuner 
+whilst IT9135 contains tuner in same chip).
 
-  soc.dtsi:
-	display-controller {
-		port {
-			disp0: endpoint { };
-		};
-	};
-
-  board.dts:
-	#include "soc.dtsi"
-	&disp0 {
-		remote-endpoint = <&panel_input>;
-	};
-	panel {
-		port {
-			panel_in: endpoint {
-				remote-endpoint = <&disp0>;
-			};
-		};
-	};
-
-Any board not using that port can just leave the endpoint disconnected.
-
-On the other hand, the same could be achieved with Heiko Stübner's
-conditional nodes dtc patch:
-
-  soc.dtsi:
-	display-controller {
-		port {
-			/delete-unreferenced/ disp0: endpoint { };
-		};
-	};
-
-> Also, if this is being worked on, I'd like to propose the addition of
-> simpler single-endpoint cases which I've been using with OMAP DSS. So if
-> there's just a single endpoint for the device, which is very common, you
-> can have just:
-> 
-> device {
-> 	...
-> 	endpoint { ... };
-> };
-> 
-> However, I guess that the patch just keeps growing and growing, so maybe
-> it's better to add such things later =).
-
-Yes, that looks good. I'd be happy if we could add this in a second step
-as a backwards compatible simplification.
+Here is example patch how to add USB ID to af9035 driver:
+https://patchwork.linuxtv.org/patch/21611/
 
 regards
-Philipp
+Antti
 
+-- 
+http://palosaari.fi/
