@@ -1,124 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46651 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752341AbaBLTqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 14:46:32 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 1/4] af9035: Move it913x single devices to af9035
-Date: Wed, 12 Feb 2014 21:46:15 +0200
-Message-Id: <1392234378-20959-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4806 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753745AbaBGLg2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 06:36:28 -0500
+Message-ID: <52F4C51A.90002@xs4all.nl>
+Date: Fri, 07 Feb 2014 12:35:54 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Arnd Bergmann <arnd@arndb.de>
+CC: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH, RFC 07/30] [media] radio-cadet: avoid interruptible_sleep_on
+ race
+References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <201401171528.02016.arnd@arndb.de> <52F4A82C.7010104@xs4all.nl> <55674412.rAimUmdW3X@wuerfel>
+In-Reply-To: <55674412.rAimUmdW3X@wuerfel>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Malcolm Priestley <tvboxspy@gmail.com>
+On 02/07/2014 11:17 AM, Arnd Bergmann wrote:
+> On Friday 07 February 2014 10:32:28 Hans Verkuil wrote:
+>>         mutex_lock(&dev->lock);
+>>         if (dev->rdsstat == 0)
+>>                 cadet_start_rds(dev);
+>> -       if (dev->rdsin == dev->rdsout) {
+>> +       while (dev->rdsin == dev->rdsout) {
+>>                 if (file->f_flags & O_NONBLOCK) {
+>>                         i = -EWOULDBLOCK;
+>>                         goto unlock;
+>>                 }
+>>                 mutex_unlock(&dev->lock);
+>> -               interruptible_sleep_on(&dev->read_queue);
+>> +               if (wait_event_interruptible(&dev->read_queue,
+>> +                                            dev->rdsin != dev->rdsout))
+>> +                       return -EINTR;
+>>                 mutex_lock(&dev->lock);
+>>         }
+>>         while (i < count && dev->rdsin != dev->rdsout)
+>>
+> 
+> This will normally work, but now the mutex is no longer
+> protecting the shared access to the dev->rdsin and
+> dev->rdsout variables, which was evidently the intention
+> of the author of the original code.
+> 
+> AFAICT, the possible result is a similar race as before:
+> if once CPU changes dev->rdsin after the process in
+> cadet_read dropped the lock, the wakeup may get lost.
+> 
+> It's quite possible this race never happens in practice,
+> but the code is probably still wrong.
+> 
+> If you think we don't actually need the lock to check
+> "dev->rdsin != dev->rdsout", the code can be simplified
+> further, to
+> 
+> 	if ((dev->rdsin == dev->rdsout) && (file->f_flags & O_NONBLOCK)) {
+> 	        return -EWOULDBLOCK;
+> 	i = wait_event_interruptible(&dev->read_queue, dev->rdsin != dev->rdsout);
+> 	if (i)
+> 		return i;
+> 	
+> 	Arnd
+> 
 
-The generic v1 and v2 devices have been all tested.
+OK, let's try again. This patch is getting bigger and bigger, but it is always
+nice to know that your ISA card that almost no one else in the world has is really,
+really working well. :-)
 
-IDs tested
-USB_PID_ITETECH_IT9135 v1 & v2
-USB_PID_ITETECH_IT9135_9005 v1
-USB_PID_ITETECH_IT9135_9006 v2
+Regards,
 
-Current Issues
-There is no signal  on
-USB_PID_ITETECH_IT9135 v2
+	Hans
 
-No SNR reported all devices.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-All single devices tune and scan fine.
-
-All remotes tested okay.
-
-Dual device failed to register second adapter
-USB_PID_KWORLD_UB499_2T_T09
-It is not clear what the problem is at the moment.
-
-So only single IDs are transferred in this patch.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 22 ++++++++++++++++------
- drivers/media/usb/dvb-usb-v2/it913x.c | 24 ------------------------
- 2 files changed, 16 insertions(+), 30 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 8ede8ea..3825c2f 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1528,12 +1528,22 @@ static const struct usb_device_id af9035_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
- 		&af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
- 	/* IT9135 devices */
--#if 0
--	{ DVB_USB_DEVICE(0x048d, 0x9135,
--		&af9035_props, "IT9135 reference design", NULL) },
--	{ DVB_USB_DEVICE(0x048d, 0x9006,
--		&af9035_props, "IT9135 reference design", NULL) },
--#endif
-+	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
-+		&af9035_props, "ITE 9135 Generic", RC_MAP_IT913X_V1) },
-+	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9005,
-+		&af9035_props, "ITE 9135(9005) Generic", RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9006,
-+		&af9035_props, "ITE 9135(9006) Generic", RC_MAP_IT913X_V1) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_1835,
-+		&af9035_props, "Avermedia A835B(1835)", RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_2835,
-+		&af9035_props, "Avermedia A835B(2835)", RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_3835,
-+		&af9035_props, "Avermedia A835B(3835)", RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
-+		&af9035_props, "Avermedia A835B(4835)",	RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
-+		&af9035_props, "Avermedia H335", RC_MAP_IT913X_V2) },
- 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
- 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
-diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
-index fe95a58..78bf8fd 100644
---- a/drivers/media/usb/dvb-usb-v2/it913x.c
-+++ b/drivers/media/usb/dvb-usb-v2/it913x.c
-@@ -772,36 +772,12 @@ static const struct usb_device_id it913x_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB499_2T_T09,
- 		&it913x_properties, "Kworld UB499-2T T09(IT9137)",
- 			RC_MAP_IT913X_V1) },
--	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
--		&it913x_properties, "ITE 9135 Generic",
--			RC_MAP_IT913X_V1) },
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV22_IT9137,
- 		&it913x_properties, "Sveon STV22 Dual DVB-T HDTV(IT9137)",
- 			RC_MAP_IT913X_V1) },
--	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9005,
--		&it913x_properties, "ITE 9135(9005) Generic",
--			RC_MAP_IT913X_V2) },
--	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9006,
--		&it913x_properties, "ITE 9135(9006) Generic",
--			RC_MAP_IT913X_V1) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_1835,
--		&it913x_properties, "Avermedia A835B(1835)",
--			RC_MAP_IT913X_V2) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_2835,
--		&it913x_properties, "Avermedia A835B(2835)",
--			RC_MAP_IT913X_V2) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_3835,
--		&it913x_properties, "Avermedia A835B(3835)",
--			RC_MAP_IT913X_V2) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
--		&it913x_properties, "Avermedia A835B(4835)",
--			RC_MAP_IT913X_V2) },
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
- 		&it913x_properties, "Digital Dual TV Receiver CTVDIGDUAL_V2",
- 			RC_MAP_IT913X_V1) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
--		&it913x_properties, "Avermedia H335",
--			RC_MAP_IT913X_V2) },
- 	{}		/* Terminating entry */
- };
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index 545c04c..d27e8b2 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -270,6 +270,16 @@ reset_rds:
+ 	outb(inb(dev->io + 1) & 0x7f, dev->io + 1);
+ }
  
--- 
-1.8.5.3
++static bool cadet_has_rds_data(struct cadet *dev)
++{
++	bool result;
++	
++	mutex_lock(&dev->lock);
++	result = dev->rdsin != dev->rdsout;
++	mutex_unlock(&dev->lock);
++	return result;
++}
++
+ 
+ static void cadet_handler(unsigned long data)
+ {
+@@ -279,13 +289,12 @@ static void cadet_handler(unsigned long data)
+ 	if (mutex_trylock(&dev->lock)) {
+ 		outb(0x3, dev->io);       /* Select RDS Decoder Control */
+ 		if ((inb(dev->io + 1) & 0x20) != 0)
+-			printk(KERN_CRIT "cadet: RDS fifo overflow\n");
++			pr_err("cadet: RDS fifo overflow\n");
+ 		outb(0x80, dev->io);      /* Select RDS fifo */
++
+ 		while ((inb(dev->io) & 0x80) != 0) {
+ 			dev->rdsbuf[dev->rdsin] = inb(dev->io + 1);
+-			if (dev->rdsin + 1 == dev->rdsout)
+-				printk(KERN_WARNING "cadet: RDS buffer overflow\n");
+-			else
++			if (dev->rdsin + 1 != dev->rdsout)
+ 				dev->rdsin++;
+ 		}
+ 		mutex_unlock(&dev->lock);
+@@ -294,7 +303,7 @@ static void cadet_handler(unsigned long data)
+ 	/*
+ 	 * Service pending read
+ 	 */
+-	if (dev->rdsin != dev->rdsout)
++	if (cadet_has_rds_data(dev))
+ 		wake_up_interruptible(&dev->read_queue);
+ 
+ 	/*
+@@ -327,22 +336,21 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
+ 	mutex_lock(&dev->lock);
+ 	if (dev->rdsstat == 0)
+ 		cadet_start_rds(dev);
+-	if (dev->rdsin == dev->rdsout) {
+-		if (file->f_flags & O_NONBLOCK) {
+-			i = -EWOULDBLOCK;
+-			goto unlock;
+-		}
+-		mutex_unlock(&dev->lock);
+-		interruptible_sleep_on(&dev->read_queue);
+-		mutex_lock(&dev->lock);
+-	}
++	mutex_unlock(&dev->lock);
++
++	if (!cadet_has_rds_data(dev) && (file->f_flags & O_NONBLOCK))
++		return -EWOULDBLOCK;
++	i = wait_event_interruptible(dev->read_queue, cadet_has_rds_data(dev));
++	if (i)
++		return i;
++
++	mutex_lock(&dev->lock);
+ 	while (i < count && dev->rdsin != dev->rdsout)
+ 		readbuf[i++] = dev->rdsbuf[dev->rdsout++];
++	mutex_unlock(&dev->lock);
+ 
+ 	if (i && copy_to_user(data, readbuf, i))
+-		i = -EFAULT;
+-unlock:
+-	mutex_unlock(&dev->lock);
++		return -EFAULT;
+ 	return i;
+ }
+ 
+@@ -352,7 +360,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ {
+ 	strlcpy(v->driver, "ADS Cadet", sizeof(v->driver));
+ 	strlcpy(v->card, "ADS Cadet", sizeof(v->card));
+-	strlcpy(v->bus_info, "ISA", sizeof(v->bus_info));
++	strlcpy(v->bus_info, "ISA:radio-cadet", sizeof(v->bus_info));
+ 	v->device_caps = V4L2_CAP_TUNER | V4L2_CAP_RADIO |
+ 			  V4L2_CAP_READWRITE | V4L2_CAP_RDS_CAPTURE;
+ 	v->capabilities = v->device_caps | V4L2_CAP_DEVICE_CAPS;
+@@ -491,7 +499,7 @@ static unsigned int cadet_poll(struct file *file, struct poll_table_struct *wait
+ 			cadet_start_rds(dev);
+ 		mutex_unlock(&dev->lock);
+ 	}
+-	if (dev->rdsin != dev->rdsout)
++	if (cadet_has_rds_data(dev))
+ 		res |= POLLIN | POLLRDNORM;
+ 	return res;
+ }
 
