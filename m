@@ -1,84 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2919 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938AbaBJIr7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:47:59 -0500
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2507 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755393AbaBGMUO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 07:20:14 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 05/34] videodev2.h: add struct v4l2_query_ext_ctrl and VIDIOC_QUERY_EXT_CTRL.
-Date: Mon, 10 Feb 2014 09:46:30 +0100
-Message-Id: <1392022019-5519-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+Cc: edubezval@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 6/7] v4l2-ctrls: add support for setting string controls
+Date: Fri,  7 Feb 2014 13:19:39 +0100
+Message-Id: <1391775580-29907-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
+References: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add a new struct and ioctl to extend the amount of information you can
-get for a control.
-
-It gives back a unit string, the range is now a s64 type, and the matrix
-and element size can be reported through cols/rows/elem_size.
+Rather than always having to use a v4l2_ext_control struct to set
+a control value from within a driver, switch to just setting the
+new value. This is faster and it makes it possible to set more
+complex types such as a string control.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/uapi/linux/videodev2.h | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 46 ++++++++++++++++++++++++------------
+ include/media/v4l2-ctrls.h           | 12 ++++++++++
+ 2 files changed, 43 insertions(+), 15 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 4d7782a..858a6f3 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1272,6 +1272,35 @@ struct v4l2_queryctrl {
- 	__u32		     reserved[2];
- };
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 7c138b5..2aad5c6 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2786,26 +2786,22 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
+ 	struct v4l2_ctrl *master = ctrl->cluster[0];
+ 	int i;
  
-+/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
-+struct v4l2_query_ext_ctrl {
-+	__u32		     id;
-+	__u32		     type;
-+	char		     name[32];
-+	char		     unit[32];
-+	union {
-+		__s64 val;
-+		__u32 reserved[4];
-+	} min;
-+	union {
-+		__s64 val;
-+		__u32 reserved[4];
-+	} max;
-+	union {
-+		__u64 val;
-+		__u32 reserved[4];
-+	} step;
-+	union {
-+		__s64 val;
-+		__u32 reserved[4];
-+	} def;
-+	__u32                flags;
-+	__u32                cols;
-+	__u32                rows;
-+	__u32                elem_size;
-+	__u32		     reserved[17];
-+};
+-	/* String controls are not supported. The user_to_new() and
+-	 * cur_to_user() calls below would need to be modified not to access
+-	 * userspace memory when called from set_ctrl().
+-	 */
+-	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
+-		return -EINVAL;
+-
+ 	/* Reset the 'is_new' flags of the cluster */
+ 	for (i = 0; i < master->ncontrols; i++)
+ 		if (master->cluster[i])
+ 			master->cluster[i]->is_new = 0;
+ 
++	if (c)
++		user_to_new(c, ctrl);
 +
- /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
- struct v4l2_querymenu {
- 	__u32		id;
-@@ -1965,6 +1994,8 @@ struct v4l2_create_buffers {
-    Never use these in applications! */
- #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+ 	/* For autoclusters with volatiles that are switched from auto to
+ 	   manual mode we have to update the current volatile values since
+ 	   those will become the initial manual values after such a switch. */
+ 	if (master->is_auto && master->has_volatiles && ctrl == master &&
+-	    !is_cur_manual(master) && c->value == master->manual_mode_value)
++	    !is_cur_manual(master) && ctrl->val == master->manual_mode_value)
+ 		update_from_auto_cluster(master);
  
-+#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
+-	user_to_new(c, ctrl);
++	ctrl->is_new = 1;
+ 	return try_or_set_cluster(fh, master, true, ch_flags);
+ }
+ 
+@@ -2853,26 +2849,46 @@ EXPORT_SYMBOL(v4l2_subdev_s_ctrl);
+ 
+ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+ {
+-	struct v4l2_ext_control c;
++	int ret;
+ 
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(!type_is_int(ctrl));
+-	c.value = val;
+-	return set_ctrl_lock(NULL, ctrl, &c);
++	v4l2_ctrl_lock(ctrl);
++	ctrl->val = val;
++	ret = set_ctrl(NULL, ctrl, NULL, 0);
++	v4l2_ctrl_unlock(ctrl);
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+ 
+ int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
+ {
+-	struct v4l2_ext_control c;
++	int ret;
+ 
+ 	/* It's a driver bug if this happens. */
+ 	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
+-	c.value64 = val;
+-	return set_ctrl_lock(NULL, ctrl, &c);
++	v4l2_ctrl_lock(ctrl);
++	ctrl->val64 = val;
++	ret = set_ctrl(NULL, ctrl, NULL, 0);
++	v4l2_ctrl_unlock(ctrl);
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
+ 
++int v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
++{
++	int ret;
 +
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
++	/* It's a driver bug if this happens. */
++	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_STRING);
++	v4l2_ctrl_lock(ctrl);
++	strlcpy(ctrl->string, s, ctrl->maximum + 1);
++	ret = set_ctrl(NULL, ctrl, NULL, 0);
++	v4l2_ctrl_unlock(ctrl);
++	return ret;
++}
++EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_string);
++
+ void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
+ {
+ 	if (ctrl == NULL)
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 16f7f26..ee00f11 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -640,6 +640,18 @@ s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl);
+   */
+ int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val);
  
++/** v4l2_ctrl_s_ctrl_string() - Helper function to set a control's string value from within a driver.
++  * @ctrl:	The control.
++  * @s:		The new string.
++  *
++  * This set the control's new string safely by going through the control
++  * framework. This function will lock the control's handler, so it cannot be
++  * used from within the &v4l2_ctrl_ops functions.
++  *
++  * This function is for string type controls only.
++  */
++int v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s);
++
+ /* Internal helper functions that deal with control events. */
+ extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
+ void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
 -- 
 1.8.5.2
 
