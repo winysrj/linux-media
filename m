@@ -1,53 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews09.kpnxchange.com ([213.75.39.14]:52676 "EHLO
-	cpsmtpb-ews09.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752195AbaBJPNy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 10:13:54 -0500
-Message-ID: <1392045231.3585.33.camel@x220>
-Subject: Re: [PATCH] [media] v4l: omap4iss: Remove VIDEO_OMAP4_DEBUG
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Date: Mon, 10 Feb 2014 16:13:51 +0100
-In-Reply-To: <3300576.MqDnfacnEA@avalon>
-References: <1391958577.25424.22.camel@x220> <3300576.MqDnfacnEA@avalon>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:46964 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751071AbaBHUgR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Feb 2014 15:36:17 -0500
+Received: by mail-wi0-f172.google.com with SMTP id e4so1778221wiv.5
+        for <linux-media@vger.kernel.org>; Sat, 08 Feb 2014 12:36:16 -0800 (PST)
+Message-ID: <1391891765.2408.13.camel@canaries32-MCP7A>
+Subject: Re: video from USB DVB-T get  damaged after some time
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: kapetr@mizera.cz
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Date: Sat, 08 Feb 2014 20:36:05 +0000
+In-Reply-To: <52F678DC.2040307@mizera.cz>
+References: <52F50E0B.1060507@mizera.cz> <52F56971.8060104@iki.fi>
+		 <52F6429E.6070704@mizera.cz> <1391872102.3386.10.camel@canaries32-MCP7A>
+	 <52F678DC.2040307@mizera.cz>
 Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent,
-
-On Mon, 2014-02-10 at 15:13 +0100, Laurent Pinchart wrote:
-> On Sunday 09 February 2014 16:09:37 Paul Bolle wrote:
-> > Commit d632dfefd36f ("[media] v4l: omap4iss: Add support for OMAP4
-> > camera interface - Build system") added a Kconfig entry for
-> > VIDEO_OMAP4_DEBUG. But nothing uses that symbol.
-> > 
-> > This entry was apparently copied from a similar entry for "OMAP 3
-> > Camera debug messages". But a corresponding Makefile line is missing.
-> > Besides, the debug code also depends on a mysterious ISS_ISR_DEBUG
-> > macro. This Kconfig entry can be removed.
+On Sat, 2014-02-08 at 19:35 +0100, kapetr@mizera.cz wrote:
+> Hello,
 > 
-> What about adding the associated Makefile line instead to #define DEBUG when 
-> VIDEO_OMAP4_DEBUG is selected, as with the OMAP3 ISP driver ?
->  
-> > Someone familiar with the code might be able to say what to do with the
-> > code depending on the DEBUG and ISS_ISR_DEBUG macros.
+> I have compile it (I hope) the more right way now :-)
 > 
-> ISS_ISR_DEBUG is expected to be set by manually modifying the source code, as 
-> it prints lots of messages in interrupt context.
+> The patch saved as aaa.patch in media_build/backports
+> and added lines to  media_build/backports/backports.txt:
+> ----
+> [3.2.0]
+> add aaa.patch
+> ----
+> 
+> Now dmesg looks like:
+> -----------------
+> [   17.643287] usb 1-1.3: dvb_usb_af9035: prechip_version=83 
+> chip_version=02 chip_type=9135
+> [   17.643661] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in cold 
+> state
+> [   17.652169] usb 1-1.3: dvb_usb_v2: downloading firmware from file 
+> 'dvb-usb-it9135-02.fw'
+> [   17.746382] usb 1-1.3: dvb_usb_af9035: firmware version=3.39.1.0
+> [   17.746389] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in warm 
+> state
+> [   17.747413] usb 1-1.3: dvb_usb_v2: will pass the complete MPEG2 
+> transport stream to the software demuxer
+> [   17.747429] DVB: registering new adapter (ITE 9135 Generic)
+> [   17.805233] i2c i2c-16: af9033: firmware version: LINK=0.0.0.0 
+> OFDM=3.9.1.0
+> [   17.805238] usb 1-1.3: DVB: registering adapter 0 frontend 0 (Afatech 
+> AF9033 (DVB-T))...
+> [   17.821832] i2c i2c-16: tuner_it913x: ITE Tech IT913X successfully 
+> attached
+> [   17.858231] Registered IR keymap rc-it913x-v1
+> [   17.858291] input: ITE 9135 Generic as 
+> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0/input5
+> [   17.858395] rc0: ITE 9135 Generic as 
+> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0
+> [   17.858398] usb 1-1.3: dvb_usb_v2: schedule remote query interval to 
+> 500 msecs
+> [   17.858401] usb 1-1.3: dvb_usb_v2: 'ITE 9135 Generic' successfully 
+> initialized and connected
+> [   17.858415] usbcore: registered new interface driver dvb_usb_af9035
+> ------------------
+> 
+> First I have thing the problem is gone: It has run OK over 20 minutes 
+> (before it goes down mostly in <10 min on CH59).
+> 
+> But - unfortunately after cca 25 min it has go down again :-(
+> --------
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 0000014f | 
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 0000830e | unc 0000014f | 
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 0001061c | unc 0000014f | 
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00000000 | unc 0000014f | 
+> FE_HAS_LOCK
+> 
+> ...
+> 
+> status 1f | signal ffff | snr 0122 | ber 003dedb0 | unc 0002fd94 | 
+> FE_HAS_LOCK
+> status 07 | signal ffff | snr 0122 | ber 004c8030 | unc 0002fffd |
+> status 1f | signal ffff | snr 0118 | ber 006d50fd | unc 0003026d | 
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 006cfc4e | unc 00030569 | 
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 009d1eda | unc 00030832 | 
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 008924b1 | unc 00030a5e | 
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 00712074 | unc 00030d27 | 
+> FE_HAS_LOCK
+> status 1f | signal ffff | snr 0122 | ber 008d4d85 | unc 00030f55 | 
+> FE_HAS_LOCK
+That BER looks awful.
 
-Which renders the DEBUG macro pointless. Or does the code use some
-dev_dbg()-like magic, which is only triggered if the DEBUG macro is set?
+If the antenna is good, it looks like local interference.
 
-Thanks,
+Check the wifi adapter is not causing it.
+
+If possible put the TV adapter on a short 0.5m/1m USB extension cable
+away from the PC. Trouble is these devices do not have any shielding.
+
+I have heard problems of memory leak in Ubuntu 64 running low on memory
+check free memory after 30 mins. 
+
+Regards
 
 
-Paul Bolle
+Malcolm
+
+> ---------
+> 
+> 
+> So - maybe is it little better, but the problem persist.
+> Any chance to solve it in dvb driver ?
+> 
+> 
+> I have tested (with the old driver) - that it helps to CTRL+C the:
+> tzap -r -c /etc/channels.conf "Prima ZOOM"
+> 
+> And then run it again. (It was not necessary to switch to another freq. 
+> and back, as I wrote before).
+> Unfortunately it damages for  a while the recording (file.ts).
+> Is there another way how to "re-tune" (re-zap) without break 
+> recording/viewing ?
+> I could then re-tune e.g. every 5 minutes and it could solve the problem.
+> Could not that be done in driver itself ?
+> 
+> Thanks.
+> 
+> --kapetr
+> 
+> 
+> 
+> 
+> Dne 8.2.2014 16:08, Malcolm Priestley napsal(a):
+> > On Sat, 2014-02-08 at 15:43 +0100, kapetr@mizera.cz wrote:
+> >> Hello,
+> >>
+> >> unfortunately I do not understand development, patching, compiling things.
+> >> I have try it but I need more help.
+> >>
+> >> I have done:
+> >>
+> >> git clone --depth=1 git://linuxtv.org/media_build.git
+> >> cd media_build
+> >> ./build
+> >>
+> >> it downloads and builds all. At begin of compiling I had stop it.
+> >> Then I did manual change of
+> >> ./media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+> >>
+> >> ------------------- old part:
+> >>           { DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
+> >>                   &af9035_props, "TerraTec Cinergy T Stick (rev. 2)",
+> >> NULL) },
+> >>           /* IT9135 devices */
+> >> #if 0
+> >>           { DVB_USB_DEVICE(0x048d, 0x9135,
+> >>                   &af9035_props, "IT9135 reference design", NULL) },
+> >>           { DVB_USB_DEVICE(0x048d, 0x9006,
+> >>                   &af9035_props, "IT9135 reference design", NULL) },
+> >> #endif
+> >>           /* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
+> >>           { DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
+> >>                   &af9035_props, "TerraTec Cinergy T Stick Dual RC (rev.
+> >> 2)", NULL) },
+> >> ----------------------------- new:
+> >> 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
+> >> 		&af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
+> >> 	/* IT9135 devices */
+> >>
+> >> 	{ DVB_USB_DEVICE(0x048d, 0x9135,
+> >> 		&af9035_props, "IT9135 reference design", NULL) },
+> >>
+> >> 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
+> >> 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
+> >> 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
+> >> --------------------------------------------
+> >>
+> >>
+> >> But now I do not know how to "restart" build process.
+> >
+> > Just
+> >
+> > make
+> >
+> > from media_build directory.
+> >
+> >>
+> >> I have try:
+> >>
+> >> cd /tmp/media_build/linux
+> >> make
+> >>
+> >> It had compiled *. and *.ko files.
+> >>
+> > you need to run
+> > /sbin/depmod -a
+> >
+> > and reboot
+> >
+> > it best to just run with su/sudo
+> >
+> > make install
+> >
+> > I have just tested all the single ids.
+> >
+> > I am about to send a patch to add all the single tuner ids
+> > to af9035 from it913x.
+> >
+> > I haven't found any problems.
+> >
+> >
+> > Regards
+> >
+> >
+> > Malcolm
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+
 
