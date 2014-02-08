@@ -1,218 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4860 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753146AbaBYKEy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:04:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:42436 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751503AbaBHJiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Feb 2014 04:38:51 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [RFCv1 PATCH 09/20] vb2-dma-sg: add get_dmabuf
-Date: Tue, 25 Feb 2014 11:04:14 +0100
-Message-Id: <1393322665-29889-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Luis Alves <ljalvs@gmail.com>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/8] rtl2832: Fix deadlock on i2c mux select function.
+Date: Sat,  8 Feb 2014 11:37:56 +0200
+Message-Id: <1391852281-18291-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1391852281-18291-1-git-send-email-crope@iki.fi>
+References: <1391852281-18291-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+From: Luis Alves <ljalvs@gmail.com>
 
-Add DMABUF export support to vb2-dma-sg.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
- 1 file changed, 170 insertions(+)
+ drivers/media/dvb-frontends/rtl2832.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 075acbe..3efa27c 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -385,6 +385,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- }
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index c0366a8..cfc5438 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -917,7 +917,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	buf[0] = 0x00;
+ 	buf[1] = 0x01;
  
- /*********************************************/
-+/*         DMABUF ops for exporters          */
-+/*********************************************/
-+
-+struct vb2_dma_sg_attachment {
-+	struct sg_table sgt;
-+	enum dma_data_direction dir;
-+};
-+
-+static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
-+	struct dma_buf_attachment *dbuf_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach;
-+	unsigned int i;
-+	struct scatterlist *rd, *wr;
-+	struct sg_table *sgt;
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+	int ret;
-+
-+	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
-+	if (!attach)
-+		return -ENOMEM;
-+
-+	sgt = &attach->sgt;
-+	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
-+	 * map the same scatter list to multiple attachments at the same time.
-+	 */
-+	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
-+	if (ret) {
-+		kfree(attach);
-+		return -ENOMEM;
-+	}
-+
-+	rd = buf->dma_sgt->sgl;
-+	wr = sgt->sgl;
-+	for (i = 0; i < sgt->orig_nents; ++i) {
-+		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-+		rd = sg_next(rd);
-+		wr = sg_next(wr);
-+	}
-+
-+	attach->dir = DMA_NONE;
-+	dbuf_attach->priv = attach;
-+
-+	return 0;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
-+	struct dma_buf_attachment *db_attach)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	struct sg_table *sgt;
-+
-+	if (!attach)
-+		return;
-+
-+	sgt = &attach->sgt;
-+
-+	/* release the scatterlist cache */
-+	if (attach->dir != DMA_NONE)
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dir);
-+	sg_free_table(sgt);
-+	kfree(attach);
-+	db_attach->priv = NULL;
-+}
-+
-+static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
-+	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
-+{
-+	struct vb2_dma_sg_attachment *attach = db_attach->priv;
-+	/* stealing dmabuf mutex to serialize map/unmap operations */
-+	struct mutex *lock = &db_attach->dmabuf->lock;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	mutex_lock(lock);
-+
-+	sgt = &attach->sgt;
-+	/* return previously mapped sg table */
-+	if (attach->dir == dir) {
-+		mutex_unlock(lock);
-+		return sgt;
-+	}
-+
-+	/* release any previous cache */
-+	if (attach->dir != DMA_NONE) {
-+		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
-+			attach->dir);
-+		attach->dir = DMA_NONE;
-+	}
-+
-+	/* mapping to the client with new direction */
-+	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
-+	if (ret <= 0) {
-+		pr_err("failed to map scatterlist\n");
-+		mutex_unlock(lock);
-+		return ERR_PTR(-EIO);
-+	}
-+
-+	attach->dir = dir;
-+
-+	mutex_unlock(lock);
-+
-+	return sgt;
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
-+	struct sg_table *sgt, enum dma_data_direction dir)
-+{
-+	/* nothing to be done here */
-+}
-+
-+static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
-+{
-+	/* drop reference obtained in vb2_dma_sg_get_dmabuf */
-+	vb2_dma_sg_put(dbuf->priv);
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return buf->vaddr + pgnum * PAGE_SIZE;
-+}
-+
-+static void *vb2_dma_sg_dmabuf_ops_vmap(struct dma_buf *dbuf)
-+{
-+	struct vb2_dma_sg_buf *buf = dbuf->priv;
-+
-+	return vb2_dma_sg_vaddr(buf);
-+}
-+
-+static int vb2_dma_sg_dmabuf_ops_mmap(struct dma_buf *dbuf,
-+	struct vm_area_struct *vma)
-+{
-+	return vb2_dma_sg_mmap(dbuf->priv, vma);
-+}
-+
-+static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
-+	.attach = vb2_dma_sg_dmabuf_ops_attach,
-+	.detach = vb2_dma_sg_dmabuf_ops_detach,
-+	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
-+	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
-+	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
-+	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
-+	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
-+	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
-+	.release = vb2_dma_sg_dmabuf_ops_release,
-+};
-+
-+static struct dma_buf *vb2_dma_sg_get_dmabuf(void *buf_priv, unsigned long flags)
-+{
-+	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct dma_buf *dbuf;
-+
-+	if (WARN_ON(!buf->dma_sgt))
-+		return NULL;
-+
-+	dbuf = dma_buf_export(buf, &vb2_dma_sg_dmabuf_ops, buf->size, flags);
-+	if (IS_ERR(dbuf))
-+		return NULL;
-+
-+	/* dmabuf keeps reference to vb2 buffer */
-+	atomic_inc(&buf->refcount);
-+
-+	return dbuf;
-+}
-+
-+/*********************************************/
- /*       callbacks for DMABUF buffers        */
- /*********************************************/
+-	ret = i2c_transfer(adap, msg, 1);
++	ret = __i2c_transfer(adap, msg, 1);
+ 	if (ret != 1)
+ 		goto err;
  
-@@ -494,6 +663,7 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- 	.vaddr		= vb2_dma_sg_vaddr,
- 	.mmap		= vb2_dma_sg_mmap,
- 	.num_users	= vb2_dma_sg_num_users,
-+	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
- 	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
- 	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
- 	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
+@@ -930,7 +930,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	else
+ 		buf[1] = 0x10; /* close */
+ 
+-	ret = i2c_transfer(adap, msg, 1);
++	ret = __i2c_transfer(adap, msg, 1);
+ 	if (ret != 1)
+ 		goto err;
+ 
 -- 
-1.9.0
+1.8.5.3
 
