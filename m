@@ -1,126 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1838 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752407AbaBLQNu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 11:13:50 -0500
-Message-ID: <52FB9CE3.9010409@xs4all.nl>
-Date: Wed, 12 Feb 2014 17:10:11 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:41056 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617AbaBHRWM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Feb 2014 12:22:12 -0500
+Received: by mail-vc0-f174.google.com with SMTP id im17so3555835vcb.5
+        for <linux-media@vger.kernel.org>; Sat, 08 Feb 2014 09:22:11 -0800 (PST)
 MIME-Version: 1.0
-To: Dean Anderson <linux-dev@sensoray.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] s2255drv: upgrade to videobuf2
-References: <1392159384-30088-1-git-send-email-linux-dev@sensoray.com> <cd5a631056e9d46cea6f70e6231c0c33@sensoray.com> <52FAAD23.2010606@xs4all.nl> <3b3175b374d23eafaf8ea226e9312d68@sensoray.com>
-In-Reply-To: <3b3175b374d23eafaf8ea226e9312d68@sensoray.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Date: Sat, 8 Feb 2014 17:22:11 +0000
+Message-ID: <CAF93UxJ_+K6gP4DzcS0mc0VG5Te32uNFjCVeXX7n+v8H4QoZAw@mail.gmail.com>
+Subject: GSPCA ov534 payload error
+From: Mark Pupilli <mpupilli@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/12/14 17:01, Dean Anderson wrote:
-> "./utils/v4l2-compliance/v4l2-compliance -s"
-> 
-> Driver Info:
->     Driver name   : s2255
->     Card type     : s2255
->     Bus info      : usb-0000:00:1a.7-3.6
->     Driver version: 3.13.0
->     Capabilities  : 0x84000001
->         Video Capture
->         Streaming
->         Device Capabilities
->     Device Caps   : 0x04000001
->         Video Capture
->         Streaming
-> 
-> Compliance test for device /dev/video0 (not using libv4l2):
-> 
-> Required ioctls:
->     test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
->     test second video open: OK
->     test VIDIOC_QUERYCAP: OK
->     test VIDIOC_G/S_PRIORITY: OK
-> 
-> Debug ioctls:
->     test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->     test VIDIOC_LOG_STATUS: OK
-> 
-> Input ioctls:
->     test VIDIOC_G/S_TUNER: OK (Not Supported)
->     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->     test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->     test VIDIOC_ENUMAUDIO: OK (Not Supported)
->     test VIDIOC_G/S/ENUMINPUT: OK
->     test VIDIOC_G/S_AUDIO: OK (Not Supported)
->     Inputs: 1 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
->     test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->     test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->     test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->     test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->     Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Control ioctls:
->     test VIDIOC_QUERYCTRL/MENU: OK
->     test VIDIOC_G/S_CTRL: OK
->     test VIDIOC_G/S/TRY_EXT_CTRLS: OK
->     test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
->         warn: v4l2-test-controls.cpp(753): The VIDIOC_G_JPEGCOMP ioctl is deprecated!
->         warn: v4l2-test-controls.cpp(770): The VIDIOC_S_JPEGCOMP ioctl is deprecated!
->     test VIDIOC_G/S_JPEGCOMP: OK
->     Standard Controls: 7 Private Controls: 1
-> 
-> Input/Output configuration ioctls:
->     test VIDIOC_ENUM/G/S/QUERY_STD: OK
->     test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->     test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-> 
-> Format ioctls:
->     test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->     test VIDIOC_G/S_PARM: OK
->     test VIDIOC_G_FBUF: OK (Not Supported)
->     test VIDIOC_G_FMT: OK
->         warn: v4l2-test-formats.cpp(599): TRY_FMT cannot handle an invalid pixelformat.
->         warn: v4l2-test-formats.cpp(600): This may or may not be a problem. For more information see:
->         warn: v4l2-test-formats.cpp(601): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
->     test VIDIOC_TRY_FMT: OK
->         warn: v4l2-test-formats.cpp(786): S_FMT cannot handle an invalid pixelformat.
->         warn: v4l2-test-formats.cpp(787): This may or may not be a problem. For more information see:
->         warn: v4l2-test-formats.cpp(788): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
->     test VIDIOC_S_FMT: OK
->     test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> 
-> Codec ioctls:
->     test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->     test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->     test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
-> Buffer ioctls:
->         warn: v4l2-test-buffers.cpp(343): VIDIOC_CREATE_BUFS not supported
->     test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->         fail: v4l2-test-buffers.cpp(379): ret < 0 && errno != EINVAL
+Hi,
 
-You added read() support, but did not add V4L2_CAP_READWRITE to querycap.
+I have successfully been using the PS3 eye camera on a beagleboard-xm
+with kernel 2.6.32. I have upgraded to kernel 3.13.1 and can no longer
+stream from the camera. I am using unicap to access the camera which
+never returns any frames.
 
-The following errors are a knock-on effect of that since the driver
-is still in read() mode so attempts to call REQBUFS will fail.
+I enabled debugging for the gspca_main module and saw that it is
+repeatedly getting payload errors:
 
-I should see if I can improve that in v4l2-compliance.
+root@(none): $ dmesg | grep -A 50 -B10 "stream on"
+[  801.179748] ov534 2-2.3:1.0: SET 01 0000 00f2 0cov534 2-2.3:1.0:
+SET 01 0000 00f3 d0
+[  801.180847] ov534 2-2.3:1.0: SET 01 0000 00f5 37ov534 2-2.3:1.0:
+GET 01 0000 00f6 00
+[  801.199005] ov534 2-2.3:1.0: SET 01 0000 00f2 0cov534 2-2.3:1.0:
+SET 01 0000 00f5 33
+[  801.218994] ov534 2-2.3:1.0: GET 01 0000 00f6 00ov534 2-2.3:1.0:
+SET 01 0000 00f5 f9
+[  801.238861] ov534 2-2.3:1.0: GET 01 0000 00f6 00ov534 2-2.3:1.0:
+GET 01 0000 00f4 d0
+[  801.239349] ov534 2-2.3:1.0: sccb write: 0c d0ov534 2-2.3:1.0: SET
+01 0000 00f2 0c
+[  801.240081] ov534 2-2.3:1.0: SET 01 0000 00f3 d0ov534 2-2.3:1.0:
+SET 01 0000 00f5 37
+[  801.258850] ov534 2-2.3:1.0: GET 01 0000 00f6 00ov534 2-2.3:1.0:
+sccb write: 2b 00
+[  801.258972] ov534 2-2.3:1.0: SET 01 0000 00f2 2bov534 2-2.3:1.0:
+SET 01 0000 00f3 00
+[  801.260040] ov534 2-2.3:1.0: SET 01 0000 00f5 37ov534 2-2.3:1.0:
+GET 01 0000 00f6 00
+[  801.278930] ov534 2-2.3:1.0: stream on OK YUYV 640x480ov534
+2-2.3:1.0: bulk irq
+[  801.284210] ov534 2-2.3:1.0: packet l:12ov534 2-2.3:1.0: payload error
+[  801.285919] ov534 2-2.3:1.0: bulk irqov534 2-2.3:1.0: packet l:8768
+[  801.286041] ov534 2-2.3:1.0: add t:1 l:2036ov534 2-2.3:1.0: add t:2 l:2036
+[  801.286468] ov534 2-2.3:1.0: add t:2 l:2036ov534 2-2.3:1.0: add t:2 l:2036
+[  801.286834] ov534 2-2.3:1.0: add t:2 l:564ov534 2-2.3:1.0: bulk irq
+[  801.287139] ov534 2-2.3:1.0: packet l:12ov534 2-2.3:1.0: payload error
+...
 
-Regards,
+Is this likely to be a problem with the gspca ov534 driver or with the
+USB subsystem?
 
-	Hans
-
->     test read/write: FAIL
->         fail: v4l2-test-buffers.cpp(537): can_stream
->     test MMAP: FAIL
->         fail: v4l2-test-buffers.cpp(641): can_stream
->     test USERPTR: FAIL
-> 
-> Total: 39, Succeeded: 36, Failed: 3, Warnings: 9
-
+thanks,
+Mark
