@@ -1,123 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47719 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:43989 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751424AbaBEIy6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Feb 2014 03:54:58 -0500
+	id S1751512AbaBHJiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Feb 2014 04:38:51 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
 	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 9/9] msi3101: provide RF tuner bands from sub-device
-Date: Wed,  5 Feb 2014 10:54:40 +0200
-Message-Id: <1391590480-2146-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1391590480-2146-1-git-send-email-crope@iki.fi>
-References: <1391590480-2146-1-git-send-email-crope@iki.fi>
+Subject: [PATCH 5/8] rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
+Date: Sat,  8 Feb 2014 11:37:58 +0200
+Message-Id: <1391852281-18291-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1391852281-18291-1-git-send-email-crope@iki.fi>
+References: <1391852281-18291-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let the msi001 tuner driver report its frequency bands.
+RTL2832 driver provides muxed I2C adapters for tuner bus I2C gate
+control. Pass those adapters to rtl2832_sdr and e4000 modules in order
+to get rid of proprietary DVB .i2c_gate_ctrl() callback use.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/staging/media/msi3101/sdr-msi3101.c | 48 +++++++++--------------------
- 1 file changed, 15 insertions(+), 33 deletions(-)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 12 ++++++++++--
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 36990cb..6bd7b67 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -57,7 +57,7 @@
- #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
- #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
- 
--static const struct v4l2_frequency_band bands_adc[] = {
-+static const struct v4l2_frequency_band bands[] = {
- 	{
- 		.tuner = 0,
- 		.type = V4L2_TUNER_ADC,
-@@ -68,24 +68,6 @@ static const struct v4l2_frequency_band bands_adc[] = {
- 	},
- };
- 
--static const struct v4l2_frequency_band bands_rf[] = {
--	{
--		.tuner = 1,
--		.type = V4L2_TUNER_RF,
--		.index = 0,
--		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
--		.rangelow   =   49000000,
--		.rangehigh  =  263000000,
--	}, {
--		.tuner = 1,
--		.type = V4L2_TUNER_RF,
--		.index = 1,
--		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
--		.rangelow   =  390000000,
--		.rangehigh  =  960000000,
--	},
--};
--
- /* stream formats */
- struct msi3101_format {
- 	char	*name;
-@@ -1268,8 +1250,8 @@ static int msi3101_s_frequency(struct file *file, void *priv,
- 
- 	if (f->tuner == 0) {
- 		s->f_adc = clamp_t(unsigned int, f->frequency,
--				bands_adc[0].rangelow,
--				bands_adc[0].rangehigh);
-+				bands[0].rangelow,
-+				bands[0].rangehigh);
- 		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
- 				__func__, s->f_adc);
- 		ret = msi3101_set_usb_adc(s);
-@@ -1286,25 +1268,25 @@ static int msi3101_enum_freq_bands(struct file *file, void *priv,
- 		struct v4l2_frequency_band *band)
- {
- 	struct msi3101_state *s = video_drvdata(file);
-+	int ret;
- 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
- 			__func__, band->tuner, band->type, band->index);
- 
- 	if (band->tuner == 0) {
--		if (band->index >= ARRAY_SIZE(bands_adc))
--			return -EINVAL;
--
--		*band = bands_adc[band->index];
-+		if (band->index >= ARRAY_SIZE(bands)) {
-+			ret = -EINVAL;
-+		} else {
-+			*band = bands[band->index];
-+			ret = 0;
-+		}
- 	} else if (band->tuner == 1) {
--		/* TODO: add that to v4l2_subdev_tuner_ops */
--		if (band->index >= ARRAY_SIZE(bands_rf))
--			return -EINVAL;
--
--		*band = bands_rf[band->index];
-+		ret = v4l2_subdev_call(s->v4l2_subdev, tuner,
-+				enum_freq_bands, band);
- 	} else {
--		return -EINVAL;
-+		ret = -EINVAL;
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index afafe92..e04a3e9 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -774,6 +774,9 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 		goto err;
  	}
  
--	return 0;
-+	return ret;
- }
++	/* RTL2832 I2C repeater */
++	priv->demod_i2c_adapter = rtl2832_get_i2c_adapter(adap->fe[0]);
++
+ 	/* set fe callback */
+ 	adap->fe[0]->callback = rtl2832u_frontend_callback;
  
- static const struct v4l2_ioctl_ops msi3101_ioctl_ops = {
-@@ -1413,7 +1395,7 @@ static int msi3101_probe(struct usb_interface *intf,
- 	spin_lock_init(&s->queued_bufs_lock);
- 	INIT_LIST_HEAD(&s->queued_bufs);
- 	s->udev = udev;
--	s->f_adc = bands_adc[0].rangelow;
-+	s->f_adc = bands[0].rangelow;
- 	s->pixelformat = V4L2_SDR_FMT_CU8;
+@@ -920,6 +923,8 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 				&rtl28xxu_rtl2832_fc0013_config);
+ 		break;
+ 	case TUNER_RTL2832_E4000: {
++			struct i2c_adapter *i2c_adap_internal =
++					rtl2832_get_private_i2c_adapter(adap->fe[0]);
+ 			struct e4000_config e4000_config = {
+ 				.fe = adap->fe[0],
+ 				.clock = 28800000,
+@@ -930,11 +935,14 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 			info.platform_data = &e4000_config;
  
- 	/* Init videobuf2 queue structure */
+ 			request_module("e4000");
+-			priv->client = i2c_new_device(&d->i2c_adap, &info);
++			priv->client = i2c_new_device(priv->demod_i2c_adapter,
++					&info);
++
++			i2c_set_adapdata(i2c_adap_internal, d);
+ 
+ 			/* attach SDR */
+ 			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
+-					&d->i2c_adap,
++					i2c_adap_internal,
+ 					&rtl28xxu_rtl2832_e4000_config);
+ 		}
+ 		break;
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index 367aca1..a26cab1 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -55,6 +55,7 @@ struct rtl28xxu_priv {
+ 	u8 tuner;
+ 	char *tuner_name;
+ 	u8 page; /* integrated demod active register page */
++	struct i2c_adapter *demod_i2c_adapter;
+ 	bool rc_active;
+ 	struct i2c_client *client;
+ };
 -- 
 1.8.5.3
 
