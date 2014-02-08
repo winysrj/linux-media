@@ -1,82 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3387 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751891AbaBLMoB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 07:44:01 -0500
-Message-ID: <52FB6BB3.1060300@xs4all.nl>
-Date: Wed, 12 Feb 2014 13:40:19 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:64853 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751312AbaBHMHx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Feb 2014 07:07:53 -0500
+Received: by mail-lb0-f177.google.com with SMTP id 10so1980979lbg.36
+        for <linux-media@vger.kernel.org>; Sat, 08 Feb 2014 04:07:52 -0800 (PST)
+From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Subject: [RFC PATCH 1/3] rc-core: Add Manchester encoder (phase encoder) support to rc-core
+Date: Sat,  8 Feb 2014 14:07:28 +0200
+Message-Id: <1391861250-26068-2-git-send-email-a.seppala@gmail.com>
+In-Reply-To: <1391861250-26068-1-git-send-email-a.seppala@gmail.com>
+References: <CAKv9HNYxY0isLt+uZvDZJJ=PX0SF93RsFeS6PsRMMk5gqtu8kQ@mail.gmail.com>
+ <1391861250-26068-1-git-send-email-a.seppala@gmail.com>
 MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv2 PATCH 24/34] v4l2-ctrls/videodev2.h: add u8 and u16
- types.
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl> <1392022019-5519-25-git-send-email-hverkuil@xs4all.nl> <CAPybu_2TkODSMUCdSQ8Q1wu=Mr-gmaC_ZQQBiatOPYw=gGcu2g@mail.gmail.com> <52FB5910.9040101@xs4all.nl> <CAPybu_0Kw8-Rq2-oNmwBpF36N6HLg3vZ9CaywLsTQp+9Ym5Z8w@mail.gmail.com>
-In-Reply-To: <CAPybu_0Kw8-Rq2-oNmwBpF36N6HLg3vZ9CaywLsTQp+9Ym5Z8w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/12/14 13:11, Ricardo Ribalda Delgado wrote:
-> Hi Hans
-> 
-> Thanks for your reply
-> 
-> On Wed, Feb 12, 2014 at 12:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Ricardo,
->>
->> On 02/12/14 11:44, Ricardo Ribalda Delgado wrote:
->>> Hello Hans
->>>
->>> In the case of U8 and U16 data types. Why dont you fill the elem_size
->>> automatically in v4l2_ctrl and request the driver to fill the field?
->>
->> When you create the control the control framework has to know the element
->> size beforehand as it will use that to allocate the memory containing the
->> control's value. The control framework is aware of the 'old' control types
->> and will fill in the elem_size accordingly, but it cannot do that in the
->> general case for these complex types. I guess it could be filled in by the
->> framework for the more common types (U8, U16) but I felt it was more
->> consistent to just require drivers to fill it in manually, rather than have
->> it set for some types but not for others.
->>
->>>
->>> Other option would be not declaring the basic data types (U8, U16,
->>> U32...) and use elem_size. Ie. If type==V4L2_CTRL_COMPLEX_TYPES, then
->>> the type is basic and elem_size is the size of the type. If the type
->>>> V4L2_CTRL_COMPLEX_TYPES the type is not basic.
->>
->> You still need to know the type. Applications have to be able to check for
->> the type, the element size by itself doesn't tell you how to interpret the
->> data, you need the type identifier as well.
-> 
-> I think that the driver is setting twice the same info. I see no gain
-> in declaring U8, U16 types etc if we still have to set the element
-> size. This is why I believe that we should only declare the "structs".
+Adding a simple Manchester encoder to rc-core.
+Manchester coding is used by at least RC-5 protocol and its variants.
 
-Just to make sure I understand you: for simple types like U8/U16 you want
-the control framework to fill in elem_size, for more complex types (structs)
-you want the driver to fill in elem_size?
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+---
+ drivers/media/rc/ir-raw.c       | 44 +++++++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/rc-core-priv.h | 14 +++++++++++++
+ 2 files changed, 58 insertions(+)
+
+diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
+index 9d734dd..7fea9ac 100644
+--- a/drivers/media/rc/ir-raw.c
++++ b/drivers/media/rc/ir-raw.c
+@@ -240,6 +240,50 @@ ir_raw_get_allowed_protocols(void)
+ 	return protocols;
+ }
  
-> what about something like: V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER +
-> size, V4L2_CTRL_COMPLEX_TYPES_UNSIGNED_INTEGER + size.... instead of
-> V4L2_CTRL_COMPLEX_TYPES_U8, V4L2_CTRL_COMPLEX_TYPES_U16,
-> V4L2_CTRL_COMPLEX_TYPES_U32, V4L2_CTRL_COMPLEX_TYPES_S8 ....
-> 
-> Btw, I am trying to implement a dead pixel control on the top of you
-> api. Shall I wait until you patchset is merged or shall I send the
-> patches right away?
++int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
++			  const struct ir_raw_timings_manchester *timings,
++			  unsigned int n, unsigned int data)
++{
++	bool need_pulse;
++	int i, count = 0;
++	i = 1 << (n - 1);
++
++	if (n > max || max < 2)
++		return -EINVAL;
++
++	if (timings->pulse_space_start) {
++		init_ir_raw_event_duration((*ev)++, 1, timings->clock);
++		init_ir_raw_event_duration((*ev), 0, timings->clock);
++		count += 2;
++	} else {
++		init_ir_raw_event_duration((*ev), 1, timings->clock);
++		count++;
++	}
++	i >>= 1;
++
++	while (i > 0) {
++		if (count > max)
++			return -EINVAL;
++
++		need_pulse = !(data & i);
++		if (need_pulse == !!(*ev)->pulse) {
++			(*ev)->duration += timings->clock;
++		} else {
++			init_ir_raw_event_duration(++(*ev), need_pulse,
++						   timings->clock);
++			count++;
++		}
++
++		init_ir_raw_event_duration(++(*ev), !need_pulse,
++					   timings->clock);
++		count++;
++		i >>= 1;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL(ir_raw_gen_manchester);
++
+ int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
+ 		  const struct ir_raw_timings_pd *timings,
+ 		  unsigned int n, unsigned int data)
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 3bf8c7b..4a2e2b8 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -173,6 +173,20 @@ static inline void ir_raw_gen_pulse_space(struct ir_raw_event **ev,
+ }
+ 
+ /**
++ * struct ir_raw_timings_manchester - manchester coding timings
++ * @pulse_space_start:	1 for starting with pulse (0 for starting with space)
++ * @clock:		duration of each pulse/space in ns
++ */
++struct ir_raw_timings_manchester {
++	unsigned int pulse_space_start:1;
++	unsigned int clock;
++};
++
++int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
++			  const struct ir_raw_timings_manchester *timings,
++			  unsigned int n, unsigned int data);
++
++/**
+  * struct ir_raw_timings_pd - pulse-distance modulation timings
+  * @header_pulse:	duration of header pulse in ns (0 for none)
+  * @header_space:	duration of header space in ns
+-- 
+1.8.3.2
 
-You're free to experiment, but I am not going to ask Mauro to pull additional
-patches as long as this initial patch set isn't merged.
-
-Regards,
-
-	Hans
