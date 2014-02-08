@@ -1,78 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47598 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751617AbaBHR1K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Feb 2014 12:27:10 -0500
-Message-ID: <52F669AA.30805@iki.fi>
-Date: Sat, 08 Feb 2014 19:30:18 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from smtp4.pb.cz ([109.72.0.114]:52108 "EHLO smtp4.pb.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751981AbaBHSfL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Feb 2014 13:35:11 -0500
+Message-ID: <52F678DC.2040307@mizera.cz>
+Date: Sat, 08 Feb 2014 19:35:08 +0100
+From: kapetr@mizera.cz
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, k.debski@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v4.2 4/4] v4l: Document timestamp buffer flag behaviour
-References: <1393149.6OyBNhdFTt@avalon> <1391813548-818-1-git-send-email-sakari.ailus@iki.fi> <1391813548-818-2-git-send-email-sakari.ailus@iki.fi> <52F623EF.3020003@xs4all.nl>
-In-Reply-To: <52F623EF.3020003@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: video from USB DVB-T get  damaged after some time
+References: <52F50E0B.1060507@mizera.cz> <52F56971.8060104@iki.fi>	 <52F6429E.6070704@mizera.cz> <1391872102.3386.10.camel@canaries32-MCP7A>
+In-Reply-To: <1391872102.3386.10.camel@canaries32-MCP7A>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello,
 
-Thanks for the comments.
+I have compile it (I hope) the more right way now :-)
 
-Hans Verkuil wrote:
-> On 02/07/2014 11:52 PM, Sakari Ailus wrote:
->> Timestamp buffer flags are constant at the moment. Document them so that 1)
->> they're always valid and 2) not changed by the drivers. This leaves room to
->> extend the functionality later on if needed.
+The patch saved as aaa.patch in media_build/backports
+and added lines to  media_build/backports/backports.txt:
+----
+[3.2.0]
+add aaa.patch
+----
+
+Now dmesg looks like:
+-----------------
+[   17.643287] usb 1-1.3: dvb_usb_af9035: prechip_version=83 
+chip_version=02 chip_type=9135
+[   17.643661] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in cold 
+state
+[   17.652169] usb 1-1.3: dvb_usb_v2: downloading firmware from file 
+'dvb-usb-it9135-02.fw'
+[   17.746382] usb 1-1.3: dvb_usb_af9035: firmware version=3.39.1.0
+[   17.746389] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in warm 
+state
+[   17.747413] usb 1-1.3: dvb_usb_v2: will pass the complete MPEG2 
+transport stream to the software demuxer
+[   17.747429] DVB: registering new adapter (ITE 9135 Generic)
+[   17.805233] i2c i2c-16: af9033: firmware version: LINK=0.0.0.0 
+OFDM=3.9.1.0
+[   17.805238] usb 1-1.3: DVB: registering adapter 0 frontend 0 (Afatech 
+AF9033 (DVB-T))...
+[   17.821832] i2c i2c-16: tuner_it913x: ITE Tech IT913X successfully 
+attached
+[   17.858231] Registered IR keymap rc-it913x-v1
+[   17.858291] input: ITE 9135 Generic as 
+/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0/input5
+[   17.858395] rc0: ITE 9135 Generic as 
+/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0
+[   17.858398] usb 1-1.3: dvb_usb_v2: schedule remote query interval to 
+500 msecs
+[   17.858401] usb 1-1.3: dvb_usb_v2: 'ITE 9135 Generic' successfully 
+initialized and connected
+[   17.858415] usbcore: registered new interface driver dvb_usb_af9035
+------------------
+
+First I have thing the problem is gone: It has run OK over 20 minutes 
+(before it goes down mostly in <10 min on CH59).
+
+But - unfortunately after cca 25 min it has go down again :-(
+--------
+status 1f | signal ffff | snr 0122 | ber 00000000 | unc 0000014f | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0122 | ber 0000830e | unc 0000014f | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0122 | ber 0001061c | unc 0000014f | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0122 | ber 00000000 | unc 0000014f | 
+FE_HAS_LOCK
+
+...
+
+status 1f | signal ffff | snr 0122 | ber 003dedb0 | unc 0002fd94 | 
+FE_HAS_LOCK
+status 07 | signal ffff | snr 0122 | ber 004c8030 | unc 0002fffd |
+status 1f | signal ffff | snr 0118 | ber 006d50fd | unc 0003026d | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0122 | ber 006cfc4e | unc 00030569 | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0122 | ber 009d1eda | unc 00030832 | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0122 | ber 008924b1 | unc 00030a5e | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0122 | ber 00712074 | unc 00030d27 | 
+FE_HAS_LOCK
+status 1f | signal ffff | snr 0122 | ber 008d4d85 | unc 00030f55 | 
+FE_HAS_LOCK
+---------
+
+
+So - maybe is it little better, but the problem persist.
+Any chance to solve it in dvb driver ?
+
+
+I have tested (with the old driver) - that it helps to CTRL+C the:
+tzap -r -c /etc/channels.conf "Prima ZOOM"
+
+And then run it again. (It was not necessary to switch to another freq. 
+and back, as I wrote before).
+Unfortunately it damages for  a while the recording (file.ts).
+Is there another way how to "re-tune" (re-zap) without break 
+recording/viewing ?
+I could then re-tune e.g. every 5 minutes and it could solve the problem.
+Could not that be done in driver itself ?
+
+Thanks.
+
+--kapetr
+
+
+
+
+Dne 8.2.2014 16:08, Malcolm Priestley napsal(a):
+> On Sat, 2014-02-08 at 15:43 +0100, kapetr@mizera.cz wrote:
+>> Hello,
 >>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> ---
->>  Documentation/DocBook/media/v4l/io.xml |    8 ++++++++
->>  1 file changed, 8 insertions(+)
+>> unfortunately I do not understand development, patching, compiling things.
+>> I have try it but I need more help.
 >>
->> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
->> index 451626f..f523725 100644
->> --- a/Documentation/DocBook/media/v4l/io.xml
->> +++ b/Documentation/DocBook/media/v4l/io.xml
->> @@ -654,6 +654,14 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
->>  In that case, struct <structname>v4l2_buffer</structname> contains an array of
->>  plane structures.</para>
->>  
->> +    <para>Buffers that have been dequeued come with timestamps. These
->> +    timestamps can be taken from different clocks and at different part of
->> +    the frame, depending on the driver. Please see flags in the masks
->> +    <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
->> +    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
->> +    linkend="buffer-flags">. These flags are guaranteed to be always valid
->> +    and will not be changed by the driver.</para>
-> 
-> That's a bit too strong. Different inputs or outputs may have different timestamp
-
-Fixed.
-
-> sources. Also add a note that the SOE does not apply to outputs (there is no
-
-The flags are already documented separately, but I can add that to make
-it explicit.
-
-> exposure there after all). For EOF the formulation for outputs should be:
-> "..last pixel of the frame has been transmitted."
-
-Added.
-
-> For the COPY mode I think the SRC_MASK bits should be copied as well. That should
-> be stated in the documentation.
-
-Good point. I'll make that a separate patch as it changes a number of
-drivers. Perhaps this could be a good occasion to clean up some timecode
-field usage from those drivers, too.
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@iki.fi
+>> I have done:
+>>
+>> git clone --depth=1 git://linuxtv.org/media_build.git
+>> cd media_build
+>> ./build
+>>
+>> it downloads and builds all. At begin of compiling I had stop it.
+>> Then I did manual change of
+>> ./media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
+>>
+>> ------------------- old part:
+>>           { DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
+>>                   &af9035_props, "TerraTec Cinergy T Stick (rev. 2)",
+>> NULL) },
+>>           /* IT9135 devices */
+>> #if 0
+>>           { DVB_USB_DEVICE(0x048d, 0x9135,
+>>                   &af9035_props, "IT9135 reference design", NULL) },
+>>           { DVB_USB_DEVICE(0x048d, 0x9006,
+>>                   &af9035_props, "IT9135 reference design", NULL) },
+>> #endif
+>>           /* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
+>>           { DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
+>>                   &af9035_props, "TerraTec Cinergy T Stick Dual RC (rev.
+>> 2)", NULL) },
+>> ----------------------------- new:
+>> 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
+>> 		&af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
+>> 	/* IT9135 devices */
+>>
+>> 	{ DVB_USB_DEVICE(0x048d, 0x9135,
+>> 		&af9035_props, "IT9135 reference design", NULL) },
+>>
+>> 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
+>> 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
+>> 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
+>> --------------------------------------------
+>>
+>>
+>> But now I do not know how to "restart" build process.
+>
+> Just
+>
+> make
+>
+> from media_build directory.
+>
+>>
+>> I have try:
+>>
+>> cd /tmp/media_build/linux
+>> make
+>>
+>> It had compiled *. and *.ko files.
+>>
+> you need to run
+> /sbin/depmod -a
+>
+> and reboot
+>
+> it best to just run with su/sudo
+>
+> make install
+>
+> I have just tested all the single ids.
+>
+> I am about to send a patch to add all the single tuner ids
+> to af9035 from it913x.
+>
+> I haven't found any problems.
+>
+>
+> Regards
+>
+>
+> Malcolm
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
