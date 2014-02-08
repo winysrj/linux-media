@@ -1,175 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:10514 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752483AbaBYNJo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 08:09:44 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N1J00EM7Z87PH60@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Feb 2014 13:09:43 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sakari Ailus' <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
- <1392497585-5084-4-git-send-email-sakari.ailus@iki.fi>
-In-reply-to: <1392497585-5084-4-git-send-email-sakari.ailus@iki.fi>
-Subject: RE: [PATCH v5 3/7] v4l: Add timestamp source flags,
- mask and document them
-Date: Tue, 25 Feb 2014 14:09:41 +0100
-Message-id: <12fa01cf322a$d8c35950$8a4a0bf0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:34867 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751497AbaBHQL3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Feb 2014 11:11:29 -0500
+Received: by mail-wg0-f41.google.com with SMTP id n12so1502789wgh.2
+        for <linux-media@vger.kernel.org>; Sat, 08 Feb 2014 08:11:27 -0800 (PST)
+Message-ID: <1391875876.2944.3.camel@canaries32-MCP7A>
+Subject: [PATCH] af9035: Move it913x single devices to af9035
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, kapetr@mizera.cz
+Date: Sat, 08 Feb 2014 16:11:16 +0000
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The generic v1 and v2 devices have been all tested.
 
-> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-> Sent: Saturday, February 15, 2014 9:53 PM
-> 
-> Some devices do not produce timestamps that correspond to the end of
-> the frame. The user space should be informed on the matter. This patch
-> achieves that by adding buffer flags (and a mask) for timestamp sources
-> since more possible timestamping points are expected than just two.
-> 
-> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of
-> the eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF
-> for end of frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of
-> exposure (next value).
-> 
+IDs tested
+USB_PID_ITETECH_IT9135 v1 & v2
+USB_PID_ITETECH_IT9135_9005 v1
+USB_PID_ITETECH_IT9135_9006 v2
 
-Changes in videobuf2-core.c look good.
+Current Issues
+There is no signal  on
+USB_PID_ITETECH_IT9135 v2 
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+No SNR reported all devices.
 
-Acked-by: Kamil Debski <k.debski@samsung.com>
+All single devices tune and scan fine.
 
-> ---
->  Documentation/DocBook/media/v4l/io.xml   |   31
-> ++++++++++++++++++++++++------
->  drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
->  include/media/videobuf2-core.h           |    2 ++
->  include/uapi/linux/videodev2.h           |    4 ++++
->  4 files changed, 34 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml
-> b/Documentation/DocBook/media/v4l/io.xml
-> index 46d24b3..fbd0c6e 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -653,12 +653,6 @@ plane, are stored in struct
-> <structname>v4l2_plane</structname> instead.
->  In that case, struct <structname>v4l2_buffer</structname> contains an
-> array of  plane structures.</para>
-> 
-> -      <para>For timestamp types that are sampled from the system clock
-> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the
-> timestamp is -taken after the complete frame has been received (or
-> transmitted in -case of video output devices). For other kinds of -
-> timestamps this may vary depending on the driver.</para>
-> -
->      <table frame="none" pgwide="1" id="v4l2-buffer">
->        <title>struct <structname>v4l2_buffer</structname></title>
->        <tgroup cols="4">
-> @@ -1119,6 +1113,31 @@ in which case caches have not been used.</entry>
->  	    <entry>The CAPTURE buffer timestamp has been taken from the
->  	    corresponding OUTPUT buffer. This flag applies only to
-> mem2mem devices.</entry>
->  	  </row>
-> +	  <row>
-> +
-> <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
-> +	    <entry>0x00070000</entry>
-> +	    <entry>Mask for timestamp sources below. The timestamp source
-> +	    defines the point of time the timestamp is taken in relation
-> to
-> +	    the frame. Logical and operation between the
-> +	    <structfield>flags</structfield> field and
-> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces
-> the
-> +	    value of the timestamp source.</entry>
-> +	  </row>
-> +	  <row>
-> +
-> <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
-> +	    <entry>0x00000000</entry>
-> +	    <entry>"End of frame." The buffer timestamp has been taken
-> +	    when the last pixel of the frame has been received or the
-> +	    last pixel of the frame has been transmitted.</entry>
-> +	  </row>
-> +	  <row>
-> +
-> <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
-> +	    <entry>0x00010000</entry>
-> +	    <entry>"Start of exposure." The buffer timestamp has been
-> taken
-> +	    when the exposure of the frame has begun. This is only
-> +	    valid for buffer type
-> +	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c
-> index 5a5fb7f..6e314b0 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2195,7 +2195,9 @@ int vb2_queue_init(struct vb2_queue *q)
->  	    WARN_ON(!q->io_modes)	  ||
->  	    WARN_ON(!q->ops->queue_setup) ||
->  	    WARN_ON(!q->ops->buf_queue)   ||
-> -	    WARN_ON(q->timestamp_type & ~V4L2_BUF_FLAG_TIMESTAMP_MASK))
-> +	    WARN_ON(q->timestamp_type &
-> +		    ~(V4L2_BUF_FLAG_TIMESTAMP_MASK |
-> +		      V4L2_BUF_FLAG_TSTAMP_SRC_MASK)))
->  		return -EINVAL;
+All remotes tested okay.
 
-Looks good.
+Dual device failed to register second adapter
+USB_PID_KWORLD_UB499_2T_T09
+It is not clear what the problem is at the moment.
 
-> 
->  	/* Warn that the driver should choose an appropriate timestamp
-> type */ diff --git a/include/media/videobuf2-core.h
-> b/include/media/videobuf2-core.h index bef53ce..b6b992d 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -312,6 +312,8 @@ struct v4l2_fh;
->   * @buf_struct_size: size of the driver-specific buffer structure;
->   *		"0" indicates the driver doesn't want to use a custom
-> buffer
->   *		structure type, so sizeof(struct vb2_buffer) will is used
-> + * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_* and
-> + *		V4L2_BUF_FLAGS_TSTAMP_SRC_*
->   * @gfp_flags:	additional gfp flags used when allocating the
-> buffers.
->   *		Typically this is 0, but it may be e.g. GFP_DMA or
-> __GFP_DMA32
->   *		to force the buffer allocation to a specific memory zone.
-> diff --git a/include/uapi/linux/videodev2.h
-> b/include/uapi/linux/videodev2.h index e9ee444..82e8661 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -695,6 +695,10 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
->  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
->  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
-> +/* Timestamp sources. */
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
-> 
->  /**
->   * struct v4l2_exportbuffer - export of video buffer as DMABUF file
-> descriptor
-> --
-> 1.7.10.4
+So only single IDs are transferred in this patch.
 
-Best wishes,
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 22 ++++++++++++++++------
+ drivers/media/usb/dvb-usb-v2/it913x.c | 24 ------------------------
+ 2 files changed, 16 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 8ede8ea..3825c2f 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1528,12 +1528,22 @@ static const struct usb_device_id af9035_id_table[] = {
+ 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
+ 		&af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
+ 	/* IT9135 devices */
+-#if 0
+-	{ DVB_USB_DEVICE(0x048d, 0x9135,
+-		&af9035_props, "IT9135 reference design", NULL) },
+-	{ DVB_USB_DEVICE(0x048d, 0x9006,
+-		&af9035_props, "IT9135 reference design", NULL) },
+-#endif
++	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
++		&af9035_props, "ITE 9135 Generic", RC_MAP_IT913X_V1) },
++	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9005,
++		&af9035_props, "ITE 9135(9005) Generic", RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9006,
++		&af9035_props, "ITE 9135(9006) Generic", RC_MAP_IT913X_V1) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_1835,
++		&af9035_props, "Avermedia A835B(1835)", RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_2835,
++		&af9035_props, "Avermedia A835B(2835)", RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_3835,
++		&af9035_props, "Avermedia A835B(3835)", RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
++		&af9035_props, "Avermedia A835B(4835)",	RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
++		&af9035_props, "Avermedia H335", RC_MAP_IT913X_V2) },
+ 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
+ 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
+ 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
+diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
+index fe95a58..78bf8fd 100644
+--- a/drivers/media/usb/dvb-usb-v2/it913x.c
++++ b/drivers/media/usb/dvb-usb-v2/it913x.c
+@@ -772,36 +772,12 @@ static const struct usb_device_id it913x_id_table[] = {
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB499_2T_T09,
+ 		&it913x_properties, "Kworld UB499-2T T09(IT9137)",
+ 			RC_MAP_IT913X_V1) },
+-	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
+-		&it913x_properties, "ITE 9135 Generic",
+-			RC_MAP_IT913X_V1) },
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV22_IT9137,
+ 		&it913x_properties, "Sveon STV22 Dual DVB-T HDTV(IT9137)",
+ 			RC_MAP_IT913X_V1) },
+-	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9005,
+-		&it913x_properties, "ITE 9135(9005) Generic",
+-			RC_MAP_IT913X_V2) },
+-	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9006,
+-		&it913x_properties, "ITE 9135(9006) Generic",
+-			RC_MAP_IT913X_V1) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_1835,
+-		&it913x_properties, "Avermedia A835B(1835)",
+-			RC_MAP_IT913X_V2) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_2835,
+-		&it913x_properties, "Avermedia A835B(2835)",
+-			RC_MAP_IT913X_V2) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_3835,
+-		&it913x_properties, "Avermedia A835B(3835)",
+-			RC_MAP_IT913X_V2) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
+-		&it913x_properties, "Avermedia A835B(4835)",
+-			RC_MAP_IT913X_V2) },
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
+ 		&it913x_properties, "Digital Dual TV Receiver CTVDIGDUAL_V2",
+ 			RC_MAP_IT913X_V1) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
+-		&it913x_properties, "Avermedia H335",
+-			RC_MAP_IT913X_V2) },
+ 	{}		/* Terminating entry */
+ };
+ 
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+1.9.rc1
 
