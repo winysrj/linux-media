@@ -1,575 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38755 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751959AbaBIIuA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:50:00 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 38/86] msi3101: use standard V4L gain controls
-Date: Sun,  9 Feb 2014 10:48:43 +0200
-Message-Id: <1391935771-18670-39-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from outrelay02.libero.it ([212.52.84.102]:40932 "EHLO
+	outrelay02.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752641AbaBIWvZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 17:51:25 -0500
+Received: from wmail47 (172.31.0.237) by outrelay02.libero.it (8.5.140.03)
+        id 52F1E20A009741FF for linux-media@vger.kernel.org; Sun, 9 Feb 2014 23:51:22 +0100
+Message-ID: <24531158.2645611391986282827.JavaMail.defaultUser@defaultHost>
+Date: Sun, 9 Feb 2014 23:51:22 +0100 (CET)
+From: "valerio.vanni@inwind.it" <valerio.vanni@inwind.it>
+Reply-To: "valerio.vanni@inwind.it" <valerio.vanni@inwind.it>
+To: <linux-media@vger.kernel.org>
+Subject: saa7134 warning during resume from S3
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use LNA, Mixer and IF gain controls offered by V4L API.
+[1.] One line summary of the problem:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 433 ++++------------------------
- 1 file changed, 56 insertions(+), 377 deletions(-)
+Kernel from 3.12.6 (did not try lower) to 3.13.2 gives a warning during resume 
+from S3 sleep
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index e6b7cba..e8dfcac 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -34,317 +34,6 @@
- #include <linux/usb.h>
- #include <media/videobuf2-vmalloc.h>
- 
--struct msi3101_gain {
--	u8 tot:7;
--	u8 baseband:6;
--	bool lna:1;
--	bool mixer:1;
--};
--
--/* 60 – 120 MHz band, lna 24dB, mixer 19dB */
--static const struct msi3101_gain msi3101_gain_lut_120[] = {
--	{  0,  0,  0,  0},
--	{  1,  1,  0,  0},
--	{  2,  2,  0,  0},
--	{  3,  3,  0,  0},
--	{  4,  4,  0,  0},
--	{  5,  5,  0,  0},
--	{  6,  6,  0,  0},
--	{  7,  7,  0,  0},
--	{  8,  8,  0,  0},
--	{  9,  9,  0,  0},
--	{ 10, 10,  0,  0},
--	{ 11, 11,  0,  0},
--	{ 12, 12,  0,  0},
--	{ 13, 13,  0,  0},
--	{ 14, 14,  0,  0},
--	{ 15, 15,  0,  0},
--	{ 16, 16,  0,  0},
--	{ 17, 17,  0,  0},
--	{ 18, 18,  0,  0},
--	{ 19, 19,  0,  0},
--	{ 20, 20,  0,  0},
--	{ 21, 21,  0,  0},
--	{ 22, 22,  0,  0},
--	{ 23, 23,  0,  0},
--	{ 24, 24,  0,  0},
--	{ 25, 25,  0,  0},
--	{ 26, 26,  0,  0},
--	{ 27, 27,  0,  0},
--	{ 28, 28,  0,  0},
--	{ 29,  5,  1,  0},
--	{ 30,  6,  1,  0},
--	{ 31,  7,  1,  0},
--	{ 32,  8,  1,  0},
--	{ 33,  9,  1,  0},
--	{ 34, 10,  1,  0},
--	{ 35, 11,  1,  0},
--	{ 36, 12,  1,  0},
--	{ 37, 13,  1,  0},
--	{ 38, 14,  1,  0},
--	{ 39, 15,  1,  0},
--	{ 40, 16,  1,  0},
--	{ 41, 17,  1,  0},
--	{ 42, 18,  1,  0},
--	{ 43, 19,  1,  0},
--	{ 44, 20,  1,  0},
--	{ 45, 21,  1,  0},
--	{ 46, 22,  1,  0},
--	{ 47, 23,  1,  0},
--	{ 48, 24,  1,  0},
--	{ 49, 25,  1,  0},
--	{ 50, 26,  1,  0},
--	{ 51, 27,  1,  0},
--	{ 52, 28,  1,  0},
--	{ 53, 29,  1,  0},
--	{ 54, 30,  1,  0},
--	{ 55, 31,  1,  0},
--	{ 56, 32,  1,  0},
--	{ 57, 33,  1,  0},
--	{ 58, 34,  1,  0},
--	{ 59, 35,  1,  0},
--	{ 60, 36,  1,  0},
--	{ 61, 37,  1,  0},
--	{ 62, 38,  1,  0},
--	{ 63, 39,  1,  0},
--	{ 64, 40,  1,  0},
--	{ 65, 41,  1,  0},
--	{ 66, 42,  1,  0},
--	{ 67, 43,  1,  0},
--	{ 68, 44,  1,  0},
--	{ 69, 45,  1,  0},
--	{ 70, 46,  1,  0},
--	{ 71, 47,  1,  0},
--	{ 72, 48,  1,  0},
--	{ 73, 49,  1,  0},
--	{ 74, 50,  1,  0},
--	{ 75, 51,  1,  0},
--	{ 76, 52,  1,  0},
--	{ 77, 53,  1,  0},
--	{ 78, 54,  1,  0},
--	{ 79, 55,  1,  0},
--	{ 80, 56,  1,  0},
--	{ 81, 57,  1,  0},
--	{ 82, 58,  1,  0},
--	{ 83, 40,  1,  1},
--	{ 84, 41,  1,  1},
--	{ 85, 42,  1,  1},
--	{ 86, 43,  1,  1},
--	{ 87, 44,  1,  1},
--	{ 88, 45,  1,  1},
--	{ 89, 46,  1,  1},
--	{ 90, 47,  1,  1},
--	{ 91, 48,  1,  1},
--	{ 92, 49,  1,  1},
--	{ 93, 50,  1,  1},
--	{ 94, 51,  1,  1},
--	{ 95, 52,  1,  1},
--	{ 96, 53,  1,  1},
--	{ 97, 54,  1,  1},
--	{ 98, 55,  1,  1},
--	{ 99, 56,  1,  1},
--	{100, 57,  1,  1},
--	{101, 58,  1,  1},
--	{102, 59,  1,  1},
--};
--
--/* 120 – 245 MHz band, lna 24dB, mixer 19dB */
--static const struct msi3101_gain msi3101_gain_lut_245[] = {
--	{  0,  0,  0,  0},
--	{  1,  1,  0,  0},
--	{  2,  2,  0,  0},
--	{  3,  3,  0,  0},
--	{  4,  4,  0,  0},
--	{  5,  5,  0,  0},
--	{  6,  6,  0,  0},
--	{  7,  7,  0,  0},
--	{  8,  8,  0,  0},
--	{  9,  9,  0,  0},
--	{ 10, 10,  0,  0},
--	{ 11, 11,  0,  0},
--	{ 12, 12,  0,  0},
--	{ 13, 13,  0,  0},
--	{ 14, 14,  0,  0},
--	{ 15, 15,  0,  0},
--	{ 16, 16,  0,  0},
--	{ 17, 17,  0,  0},
--	{ 18, 18,  0,  0},
--	{ 19, 19,  0,  0},
--	{ 20, 20,  0,  0},
--	{ 21, 21,  0,  0},
--	{ 22, 22,  0,  0},
--	{ 23, 23,  0,  0},
--	{ 24, 24,  0,  0},
--	{ 25, 25,  0,  0},
--	{ 26, 26,  0,  0},
--	{ 27, 27,  0,  0},
--	{ 28, 28,  0,  0},
--	{ 29,  5,  1,  0},
--	{ 30,  6,  1,  0},
--	{ 31,  7,  1,  0},
--	{ 32,  8,  1,  0},
--	{ 33,  9,  1,  0},
--	{ 34, 10,  1,  0},
--	{ 35, 11,  1,  0},
--	{ 36, 12,  1,  0},
--	{ 37, 13,  1,  0},
--	{ 38, 14,  1,  0},
--	{ 39, 15,  1,  0},
--	{ 40, 16,  1,  0},
--	{ 41, 17,  1,  0},
--	{ 42, 18,  1,  0},
--	{ 43, 19,  1,  0},
--	{ 44, 20,  1,  0},
--	{ 45, 21,  1,  0},
--	{ 46, 22,  1,  0},
--	{ 47, 23,  1,  0},
--	{ 48, 24,  1,  0},
--	{ 49, 25,  1,  0},
--	{ 50, 26,  1,  0},
--	{ 51, 27,  1,  0},
--	{ 52, 28,  1,  0},
--	{ 53, 29,  1,  0},
--	{ 54, 30,  1,  0},
--	{ 55, 31,  1,  0},
--	{ 56, 32,  1,  0},
--	{ 57, 33,  1,  0},
--	{ 58, 34,  1,  0},
--	{ 59, 35,  1,  0},
--	{ 60, 36,  1,  0},
--	{ 61, 37,  1,  0},
--	{ 62, 38,  1,  0},
--	{ 63, 39,  1,  0},
--	{ 64, 40,  1,  0},
--	{ 65, 41,  1,  0},
--	{ 66, 42,  1,  0},
--	{ 67, 43,  1,  0},
--	{ 68, 44,  1,  0},
--	{ 69, 45,  1,  0},
--	{ 70, 46,  1,  0},
--	{ 71, 47,  1,  0},
--	{ 72, 48,  1,  0},
--	{ 73, 49,  1,  0},
--	{ 74, 50,  1,  0},
--	{ 75, 51,  1,  0},
--	{ 76, 52,  1,  0},
--	{ 77, 53,  1,  0},
--	{ 78, 54,  1,  0},
--	{ 79, 55,  1,  0},
--	{ 80, 56,  1,  0},
--	{ 81, 57,  1,  0},
--	{ 82, 58,  1,  0},
--	{ 83, 40,  1,  1},
--	{ 84, 41,  1,  1},
--	{ 85, 42,  1,  1},
--	{ 86, 43,  1,  1},
--	{ 87, 44,  1,  1},
--	{ 88, 45,  1,  1},
--	{ 89, 46,  1,  1},
--	{ 90, 47,  1,  1},
--	{ 91, 48,  1,  1},
--	{ 92, 49,  1,  1},
--	{ 93, 50,  1,  1},
--	{ 94, 51,  1,  1},
--	{ 95, 52,  1,  1},
--	{ 96, 53,  1,  1},
--	{ 97, 54,  1,  1},
--	{ 98, 55,  1,  1},
--	{ 99, 56,  1,  1},
--	{100, 57,  1,  1},
--	{101, 58,  1,  1},
--	{102, 59,  1,  1},
--};
--
--/* 420 – 1000 MHz band, lna 7dB, mixer 19dB */
--static const struct msi3101_gain msi3101_gain_lut_1000[] = {
--	{  0,  0, 0,  0},
--	{  1,  1, 0,  0},
--	{  2,  2, 0,  0},
--	{  3,  3, 0,  0},
--	{  4,  4, 0,  0},
--	{  5,  5, 0,  0},
--	{  6,  6, 0,  0},
--	{  7,  7, 0,  0},
--	{  8,  8, 0,  0},
--	{  9,  9, 0,  0},
--	{ 10, 10, 0,  0},
--	{ 11, 11, 0,  0},
--	{ 12,  5, 1,  0},
--	{ 13,  6, 1,  0},
--	{ 14,  7, 1,  0},
--	{ 15,  8, 1,  0},
--	{ 16,  9, 1,  0},
--	{ 17, 10, 1,  0},
--	{ 18, 11, 1,  0},
--	{ 19, 12, 1,  0},
--	{ 20, 13, 1,  0},
--	{ 21, 14, 1,  0},
--	{ 22, 15, 1,  0},
--	{ 23, 16, 1,  0},
--	{ 24, 17, 1,  0},
--	{ 25, 18, 1,  0},
--	{ 26, 19, 1,  0},
--	{ 27, 20, 1,  0},
--	{ 28, 21, 1,  0},
--	{ 29, 22, 1,  0},
--	{ 30, 23, 1,  0},
--	{ 31, 24, 1,  0},
--	{ 32, 25, 1,  0},
--	{ 33, 26, 1,  0},
--	{ 34, 27, 1,  0},
--	{ 35, 28, 1,  0},
--	{ 36, 29, 1,  0},
--	{ 37, 30, 1,  0},
--	{ 38, 31, 1,  0},
--	{ 39, 32, 1,  0},
--	{ 40, 33, 1,  0},
--	{ 41, 34, 1,  0},
--	{ 42, 35, 1,  0},
--	{ 43, 36, 1,  0},
--	{ 44, 37, 1,  0},
--	{ 45, 38, 1,  0},
--	{ 46, 39, 1,  0},
--	{ 47, 40, 1,  0},
--	{ 48, 41, 1,  0},
--	{ 49, 42, 1,  0},
--	{ 50, 43, 1,  0},
--	{ 51, 44, 1,  0},
--	{ 52, 45, 1,  0},
--	{ 53, 46, 1,  0},
--	{ 54, 47, 1,  0},
--	{ 55, 48, 1,  0},
--	{ 56, 49, 1,  0},
--	{ 57, 50, 1,  0},
--	{ 58, 51, 1,  0},
--	{ 59, 52, 1,  0},
--	{ 60, 53, 1,  0},
--	{ 61, 54, 1,  0},
--	{ 62, 55, 1,  0},
--	{ 63, 56, 1,  0},
--	{ 64, 57, 1,  0},
--	{ 65, 58, 1,  0},
--	{ 66, 40, 1,  1},
--	{ 67, 41, 1,  1},
--	{ 68, 42, 1,  1},
--	{ 69, 43, 1,  1},
--	{ 70, 44, 1,  1},
--	{ 71, 45, 1,  1},
--	{ 72, 46, 1,  1},
--	{ 73, 47, 1,  1},
--	{ 74, 48, 1,  1},
--	{ 75, 49, 1,  1},
--	{ 76, 50, 1,  1},
--	{ 77, 51, 1,  1},
--	{ 78, 52, 1,  1},
--	{ 79, 53, 1,  1},
--	{ 80, 54, 1,  1},
--	{ 81, 55, 1,  1},
--	{ 82, 56, 1,  1},
--	{ 83, 57, 1,  1},
--	{ 84, 58, 1,  1},
--	{ 85, 59, 1,  1},
--};
--
- /*
-  *   iConfiguration          0
-  *     bInterfaceNumber        0
-@@ -364,7 +53,6 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
- 
- /* TODO: These should be moved to V4L2 API */
- #define MSI3101_CID_TUNER_BW              ((V4L2_CID_USER_BASE | 0xf000) + 11)
--#define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
- 
- #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
- #define V4L2_PIX_FMT_SDR_U16LE  v4l2_fourcc('D', 'U', '1', '6') /* unsigned 16-bit LE */
-@@ -468,9 +156,14 @@ struct msi3101_state {
- 			unsigned int src_len);
- 
- 	/* Controls */
--	struct v4l2_ctrl_handler ctrl_handler;
-+	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_ctrl *lna_gain_auto;
-+	struct v4l2_ctrl *lna_gain;
-+	struct v4l2_ctrl *mixer_gain_auto;
-+	struct v4l2_ctrl *mixer_gain;
-+	struct v4l2_ctrl *if_gain_auto;
-+	struct v4l2_ctrl *if_gain;
- 	struct v4l2_ctrl *ctrl_tuner_bw;
--	struct v4l2_ctrl *ctrl_tuner_gain;
- 
- 	u32 next_sample; /* for track lost packets */
- 	u32 sample; /* for sample rate calc */
-@@ -1376,14 +1069,37 @@ err:
- 	return ret;
- };
- 
-+static int msi3101_set_gain(struct msi3101_state *s)
-+{
-+	int ret;
-+	u32 reg;
-+	dev_dbg(&s->udev->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
-+			s->lna_gain->val, s->mixer_gain->val, s->if_gain->val);
-+
-+	reg = 1 << 0;
-+	reg |= (59 - s->if_gain->val) << 4;
-+	reg |= 0 << 10;
-+	reg |= (1 - s->mixer_gain->val) << 12;
-+	reg |= (1 - s->lna_gain->val) << 13;
-+	reg |= 4 << 14;
-+	reg |= 0 << 17;
-+	ret = msi3101_tuner_write(s, reg);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	dev_dbg(&s->udev->dev, "%s: failed %d\n", __func__, ret);
-+	return ret;
-+};
-+
- static int msi3101_set_tuner(struct msi3101_state *s)
- {
--	int ret, i, len;
-+	int ret, i;
- 	unsigned int n, m, thresh, frac, vco_step, tmp, f_if1;
- 	u32 reg;
- 	u64 f_vco, tmp64;
- 	u8 mode, filter_mode, lo_div;
--	const struct msi3101_gain *gain_lut;
- 	static const struct {
- 		u32 rf;
- 		u8 mode;
-@@ -1432,16 +1148,9 @@ static int msi3101_set_tuner(struct msi3101_state *s)
- 	 */
- 	unsigned int f_if = 0;
- 
--	/*
--	 * gain reduction (dB)
--	 * 0 - 102 below 420 MHz
--	 * 0 - 85 above 420 MHz
--	 */
--	int gain = s->ctrl_tuner_gain->val;
--
- 	dev_dbg(&s->udev->dev,
--			"%s: f_rf=%d bandwidth=%d f_if=%d gain=%d\n",
--			__func__, f_rf, bandwidth, f_if, gain);
-+			"%s: f_rf=%d bandwidth=%d f_if=%d\n",
-+			__func__, f_rf, bandwidth, f_if);
- 
- 	ret = -EINVAL;
- 
-@@ -1553,38 +1262,7 @@ static int msi3101_set_tuner(struct msi3101_state *s)
- 	if (ret)
- 		goto err;
- 
--	if (f_rf < 120000000) {
--		gain_lut = msi3101_gain_lut_120;
--		len = ARRAY_SIZE(msi3101_gain_lut_120);
--	} else if (f_rf < 245000000) {
--		gain_lut = msi3101_gain_lut_245;
--		len = ARRAY_SIZE(msi3101_gain_lut_120);
--	} else {
--		gain_lut = msi3101_gain_lut_1000;
--		len = ARRAY_SIZE(msi3101_gain_lut_1000);
--	}
--
--	for (i = 0; i < len; i++) {
--		if (gain_lut[i].tot >= gain)
--			break;
--	}
--
--	if (i == len)
--		goto err;
--
--	dev_dbg(&s->udev->dev,
--			"%s: gain tot=%d baseband=%d lna=%d mixer=%d\n",
--			__func__, gain_lut[i].tot, gain_lut[i].baseband,
--			gain_lut[i].lna, gain_lut[i].mixer);
--
--	reg = 1 << 0;
--	reg |= gain_lut[i].baseband << 4;
--	reg |= 0 << 10;
--	reg |= gain_lut[i].mixer << 12;
--	reg |= gain_lut[i].lna << 13;
--	reg |= 4 << 14;
--	reg |= 0 << 17;
--	ret = msi3101_tuner_write(s, reg);
-+	ret = msi3101_set_gain(s);
- 	if (ret)
- 		goto err;
- 
-@@ -1887,7 +1565,7 @@ static int msi3101_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct msi3101_state *s =
- 			container_of(ctrl->handler, struct msi3101_state,
--					ctrl_handler);
-+					hdl);
- 	int ret;
- 	dev_dbg(&s->udev->dev,
- 			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
-@@ -1896,10 +1574,15 @@ static int msi3101_s_ctrl(struct v4l2_ctrl *ctrl)
- 
- 	switch (ctrl->id) {
- 	case MSI3101_CID_TUNER_BW:
--	case MSI3101_CID_TUNER_GAIN:
- 		ret = msi3101_set_tuner(s);
- 		break;
-+	case  V4L2_CID_LNA_GAIN:
-+	case  V4L2_CID_MIXER_GAIN:
-+	case  V4L2_CID_IF_GAIN:
-+		ret = msi3101_set_gain(s);
-+		break;
- 	default:
-+		dev_dbg(&s->udev->dev, "%s: EINVAL\n", __func__);
- 		ret = -EINVAL;
- 	}
- 
-@@ -1915,7 +1598,7 @@ static void msi3101_video_release(struct v4l2_device *v)
- 	struct msi3101_state *s =
- 			container_of(v, struct msi3101_state, v4l2_dev);
- 
--	v4l2_ctrl_handler_free(&s->ctrl_handler);
-+	v4l2_ctrl_handler_free(&s->hdl);
- 	v4l2_device_unregister(&s->v4l2_dev);
- 	kfree(s);
- }
-@@ -1925,6 +1608,7 @@ static int msi3101_probe(struct usb_interface *intf,
- {
- 	struct usb_device *udev = interface_to_usbdev(intf);
- 	struct msi3101_state *s = NULL;
-+	const struct v4l2_ctrl_ops *ops = &msi3101_ctrl_ops;
- 	int ret;
- 	static const struct v4l2_ctrl_config ctrl_tuner_bw = {
- 		.ops	= &msi3101_ctrl_ops,
-@@ -1936,16 +1620,6 @@ static int msi3101_probe(struct usb_interface *intf,
- 		.def    = 0,
- 		.step	= 1,
- 	};
--	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
--		.ops	= &msi3101_ctrl_ops,
--		.id	= MSI3101_CID_TUNER_GAIN,
--		.type	= V4L2_CTRL_TYPE_INTEGER,
--		.name	= "Tuner Gain",
--		.min	= 0,
--		.max	= 102,
--		.def    = 50,
--		.step	= 1,
--	};
- 
- 	s = kzalloc(sizeof(struct msi3101_state), GFP_KERNEL);
- 	if (s == NULL) {
-@@ -1982,11 +1656,16 @@ static int msi3101_probe(struct usb_interface *intf,
- 	video_set_drvdata(&s->vdev, s);
- 
- 	/* Register controls */
--	v4l2_ctrl_handler_init(&s->ctrl_handler, 2);
--	s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_bw, NULL);
--	s->ctrl_tuner_gain = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_gain, NULL);
--	if (s->ctrl_handler.error) {
--		ret = s->ctrl_handler.error;
-+	v4l2_ctrl_handler_init(&s->hdl, 4);
-+	s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->hdl, &ctrl_tuner_bw, NULL);
-+	s->lna_gain = v4l2_ctrl_new_std(&s->hdl, ops,
-+			V4L2_CID_LNA_GAIN, 0, 1, 1, 1);
-+	s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, ops,
-+			V4L2_CID_MIXER_GAIN, 0, 1, 1, 1);
-+	s->if_gain = v4l2_ctrl_new_std(&s->hdl, ops,
-+			V4L2_CID_IF_GAIN, 0, 59, 1, 0);
-+	if (s->hdl.error) {
-+		ret = s->hdl.error;
- 		dev_err(&s->udev->dev, "Could not initialize controls\n");
- 		goto err_free_controls;
- 	}
-@@ -2000,7 +1679,7 @@ static int msi3101_probe(struct usb_interface *intf,
- 		goto err_free_controls;
- 	}
- 
--	s->v4l2_dev.ctrl_handler = &s->ctrl_handler;
-+	s->v4l2_dev.ctrl_handler = &s->hdl;
- 	s->vdev.v4l2_dev = &s->v4l2_dev;
- 	s->vdev.lock = &s->v4l2_lock;
- 
-@@ -2019,7 +1698,7 @@ static int msi3101_probe(struct usb_interface *intf,
- err_unregister_v4l2_dev:
- 	v4l2_device_unregister(&s->v4l2_dev);
- err_free_controls:
--	v4l2_ctrl_handler_free(&s->ctrl_handler);
-+	v4l2_ctrl_handler_free(&s->hdl);
- err_free_mem:
- 	kfree(s);
- 	return ret;
--- 
-1.8.5.3
+[2.] Full description of the problem/report:
+
+It doesn't happen with 2.6.24.7.
+OS is Debian Lenny, with vanilla kernel. It happens the same after upgrade to 
+Squeeze.
+
+I suspend the machine with s2ram and it goes off.
+During the resume it writes that warning, then it seem to work normally, 
+except for serial redirection of console.
+
+I use redirection of console to serial port (with lilo directive: append="
+console=ttyS0 console=tty0") and I check the messages in another machine.
+This stops working as soon as I resume. It begins to send mangled lines and 
+it doesn't work again until the next full restart.
+Only the serial redirection has this problem, the local console  works.
+
+dmesg:
+
+PM: Syncing filesystems ... done.
+PM: Preparing system for mem sleep
+Freezing user space processes ... (elapsed 0.001 seconds) done.
+Freezing remaining freezable tasks ... (elapsed 0.006 seconds) done.
+PM: Entering mem sleep
+Suspending console(s) (use no_console_suspend to debug)
+sd 5:0:0:0: [sdc] Synchronizing SCSI cache
+sd 4:0:0:0: [sdb] Synchronizing SCSI cache
+sd 5:0:0:0: [sdc] Stopping disk
+sd 4:0:0:0: [sdb] Stopping disk
+sd 1:0:0:0: [sda] Synchronizing SCSI cache
+parport_pc 00:09: disabled
+serial 00:08: disabled
+serial 00:08: System wakeup disabled by ACPI
+serial 00:07: disabled
+serial 00:07: System wakeup disabled by ACPI
+sd 1:0:0:0: [sda] Stopping disk
+PM: suspend of devices complete after 859.795 msecs
+PM: late suspend of devices complete after 0.144 msecs
+pcieport 0000:00:1c.5: System wakeup enabled by ACPI
+ehci-pci 0000:00:1d.7: System wakeup enabled by ACPI
+uhci_hcd 0000:00:1d.2: System wakeup enabled by ACPI
+uhci_hcd 0000:00:1d.1: System wakeup enabled by ACPI
+uhci_hcd 0000:00:1d.0: System wakeup enabled by ACPI
+ehci-pci 0000:00:1a.7: System wakeup enabled by ACPI
+uhci_hcd 0000:00:1a.2: System wakeup enabled by ACPI
+uhci_hcd 0000:00:1a.1: System wakeup enabled by ACPI
+uhci_hcd 0000:00:1a.0: System wakeup enabled by ACPI
+PM: noirq suspend of devices complete after 32.930 msecs
+ACPI: Preparing to enter system sleep state S3
+PM: Saving platform NVS memory
+Disabling non-boot CPUs ...
+smpboot: CPU 1 is now offline
+smpboot: CPU 2 is now offline
+smpboot: CPU 3 is now offline
+ACPI: Low-level resume complete
+PM: Restoring platform NVS memory
+Enabling non-boot CPUs ...
+x86: Booting SMP configuration:
+smpboot: Booting Node 0 Processor 1 APIC 0x1
+Initializing CPU#1
+CPU1 is up
+smpboot: Booting Node 0 Processor 2 APIC 0x3
+Initializing CPU#2
+CPU2 is up
+smpboot: Booting Node 0 Processor 3 APIC 0x2
+Initializing CPU#3
+CPU3 is up
+ACPI: Waking up from system sleep state S3
+uhci_hcd 0000:00:1a.0: System wakeup disabled by ACPI
+uhci_hcd 0000:00:1a.1: System wakeup disabled by ACPI
+uhci_hcd 0000:00:1a.2: System wakeup disabled by ACPI
+ehci-pci 0000:00:1a.7: System wakeup disabled by ACPI
+uhci_hcd 0000:00:1d.0: System wakeup disabled by ACPI
+uhci_hcd 0000:00:1d.1: System wakeup disabled by ACPI
+uhci_hcd 0000:00:1d.2: System wakeup disabled by ACPI
+ehci-pci 0000:00:1d.7: System wakeup disabled by ACPI
+PM: noirq resume of devices complete after 99.105 msecs
+PM: early resume of devices complete after 0.059 msecs
+usb usb3: root hub lost power or was reset
+usb usb4: root hub lost power or was reset
+usb usb5: root hub lost power or was reset
+snd_hda_intel 0000:00:1b.0: irq 45 for MSI/MSI-X
+usb usb6: root hub lost power or was reset
+usb usb7: root hub lost power or was reset
+pcieport 0000:00:1c.5: System wakeup disabled by ACPI
+usb usb8: root hub lost power or was reset
+saa7133[0]: board init: gpio is 40000
+serial 00:07: activated
+serial 00:08: activated
+parport_pc 00:09: activated
+r8169 0000:03:00.0 eth0: link down
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 7928 at kernel/kmod.c:148 __request_module+0x34/0x1ae()
+Modules linked in: vmnet(O) vsock(O) vmci(O) vmmon(O) lp fbcon font bitblit 
+softcursor i915 drm_kms_helper fb fbdev cfbcopyarea video backlight cfbimgblt 
+cfbfillrect bnep nfsd lockd sunrpc fuse saa7134_alsa snd_seq_dummy snd_seq_oss 
+snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq snd_seq_device cifs rfcomm 
+bluetooth rfkill it87 hwmon_vid isofs zlib_inflate nls_utf8 nls_iso8859_1 
+nls_cp850 nls_cp437 nls_ascii cpuid vfat ntfs msdos fat udf nls_iso8859_15 
+softdog loop tda1004x saa7134_dvb videobuf_dvb dvb_core tda827x mousedev 
+tda8290 tuner snd_hda_codec_realtek snd_hda_intel snd_hda_codec saa7134 
+v4l2_common usb_storage videodev r8169 snd_hwdep parport_pc snd_pcm_oss 
+snd_mixer_oss videobuf_dma_sg mii ehci_pci parport videobuf_core snd_pcm 
+uhci_hcd firewire_ohci firewire_core evdev crc_itu_t ehci_hcd psmouse rtc_cmos 
+tveeprom pcspkr intel_agp intel_gtt snd_timer snd_page_alloc
+CPU: 0 PID: 7928 Comm: kworker/u8:12 Tainted: G           O 3.13.2 #1
+Hardware name: Gigabyte Technology Co., Ltd. G33M-S2/G33M-S2, BIOS F7f 
+04/02/2008
+Workqueue: events_unbound async_run_entry_fn
+ 00000000 00000000 c13534fe c103d476 c102e079 00000009 f13ede00 f534f1a4
+ f80630d0 f534f024 c102e099 00000009 00000000 c103d476 ffffffff 01000282
+ c1036a29 00000282 f13edda4 c155c680 c155c680 c1036a5c 003a8aba c1353657
+Call Trace:
+ [<c13534fe>] ? dump_stack+0x3e/0x50
+ [<c103d476>] ? __request_module+0x34/0x1ae
+ [<c102e079>] ? warn_slowpath_common+0x66/0x7a
+ [<c102e099>] ? warn_slowpath_null+0xc/0xf
+ [<c103d476>] ? __request_module+0x34/0x1ae
+ [<c1036a29>] ? try_to_del_timer_sync+0x3a/0x41
+ [<c1036a5c>] ? del_timer_sync+0x2c/0x36
+ [<c1353657>] ? schedule_timeout+0x147/0x15d
+ [<c1036aa6>] ? del_timer+0x40/0x40
+ [<f8062370>] ? v4l2_i2c_new_subdev_board+0x23/0xa7 [v4l2_common]
+ [<f806243d>] ? v4l2_i2c_new_subdev+0x49/0x51 [v4l2_common]
+ [<f831290b>] ? saa7134_board_init2+0x869/0xb58 [saa7134]
+ [<c1036a29>] ? try_to_del_timer_sync+0x3a/0x41
+ [<c1036a5c>] ? del_timer_sync+0x2c/0x36
+ [<c1353657>] ? schedule_timeout+0x147/0x15d
+ [<c1030003>] ? do_exit+0x51a/0x7ce
+ [<f8313ca7>] ? saa7134_resume+0xbf/0x150 [saa7134]
+ [<c11ef0a7>] ? pci_legacy_resume+0x23/0x2c
+ [<c11ef19a>] ? pci_pm_thaw+0x62/0x62
+ [<c12650d5>] ? dpm_run_callback+0x25/0x60
+ [<c1265308>] ? device_resume+0x10f/0x12c
+ [<c1265338>] ? async_resume+0x13/0x33
+ [<c1048004>] ? async_run_entry_fn+0x52/0xf3
+ [<c103fba7>] ? process_one_work+0x200/0x331
+ [<c103fe83>] ? worker_thread+0x1ab/0x2e1
+ [<c103fcd8>] ? process_one_work+0x331/0x331
+ [<c1044120>] ? kthread+0xa1/0xaa
+ [<c135b837>] ? ret_from_kernel_thread+0x1b/0x28
+ [<c104407f>] ? kthread_freezable_should_stop+0x4d/0x4d
+---[ end trace d02ad8471166632e ]---
+ata7.01: ACPI cmd ef/03:0c:00:00:00:b0 (SET FEATURES) filtered out
+ata7.01: ACPI cmd ef/03:46:00:00:00:b0 (SET FEATURES) filtered out
+ata7.01: configured for UDMA/66
+ata1: SATA link down (SStatus 0 SControl 300)
+/dev/vmmon[0]: HostIFReadUptimeWork: detected settimeofday: fixed uptimeBase 
+old 18445352091656191211 new 18445352091650191210 attempts 1
+firewire_core 0000:04:07.0: rediscovered device fw0
+r8169 0000:03:00.0 eth0: link up
+ata2: SATA link up 3.0 Gbps (SStatus 123 SControl 300)
+ata2.00: configured for UDMA/133
+sd 1:0:0:0: [sda] Starting disk
+ata6: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+ata6.00: configured for UDMA/133
+sd 5:0:0:0: [sdc] Starting disk
+ata5: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+ata5.00: configured for UDMA/133
+sd 4:0:0:0: [sdb] Starting disk
+
+floppy driver state
+-------------------
+now=3846048 last interrupt=4294717586 diff=4095758 last called 
+handler=seek_interrupt
+timeout_message=lock fdc
+last output bytes:
+ 8 80 4294677234
+ 8 80 4294677234
+ 8 80 4294677234
+ 8 80 4294677234
+12 80 4294717581
+ 0 90 4294717581
+13 90 4294717581
+ 0 90 4294717581
+1a 90 4294717581
+ 0 90 4294717581
+ 3 90 4294717581
+c1 90 4294717581
+10 90 4294717581
+ 7 90 4294717581
+ 0 90 4294717581
+ 8 81 4294717581
+ f 80 4294717581
+ 0 90 4294717581
+ 1 91 4294717581
+ 8 81 4294717586
+last result at 4294717586
+last redo_fd_request at 4294717606
+20 01                                             .
+status=0
+fdc_busy=1
+do_floppy=reset_interrupt
+cont=c139ffb8
+current_req=  (null)
+command_status=-1
+
+floppy0: floppy timeout called
+PM: resume of devices complete after 10521.796 msecs
+psmouse serio1: Wheel Mouse at isa0060/serio1/input0 lost synchronization, 
+throwing 3 bytes away.
+psmouse serio1: resync failed, issuing reconnect request
+PM: Finishing wakeup.
+Restarting tasks ... done.
+device eth0 left promiscuous mode
+bridge-eth0: disabled promiscuous mode
+bridge-eth0: disabling the bridge
+bridge-eth0: down
+bridge-eth0: detached
+/dev/vmnet: open called by PID 3506 (vmnet-bridge)
+/dev/vmnet: port on hub 0 successfully opened
+bridge-eth0: up
+bridge-eth0: attached
+device eth0 entered promiscuous mode
+bridge-eth0: enabled promiscuous mode
+userif-3: sent link down event.
+userif-3: sent link up event.
 
