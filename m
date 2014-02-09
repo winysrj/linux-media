@@ -1,75 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:58324 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751343AbaBYH6x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 02:58:53 -0500
-Message-ID: <530C4D13.7000000@free-electrons.com>
-Date: Tue, 25 Feb 2014 08:58:11 +0100
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH][RESEND] [media] davinci: vpfe: remove deprecated IRQF_DISABLED
-References: <CA+V-a8tn54CcaFEBMM48GMnTuG=OhQtxm7=od_4OZm6Xo_S9qA@mail.gmail.com> <1386584182-5400-1-git-send-email-michael.opdenacker@free-electrons.com> <4210530.AR5GZgidVz@avalon> <53060055.2010408@free-electrons.com> <CA+V-a8s2RFiqENVk2mR4dQ92ZhvB93BcyMLy0cX3eZkns5HRaQ@mail.gmail.com> <CA+V-a8sQk8oRiTWpLhfQQCkibe2FCOz=opb+Ge1R-ig4ZqrdFw@mail.gmail.com>
-In-Reply-To: <CA+V-a8sQk8oRiTWpLhfQQCkibe2FCOz=opb+Ge1R-ig4ZqrdFw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:50676 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751786AbaBIIuA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:50:00 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 44/86] e4000: fix PLL calc to allow higher frequencies
+Date: Sun,  9 Feb 2014 10:48:49 +0200
+Message-Id: <1391935771-18670-45-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar
+There was 32-bit overflow on VCO frequency calculation which blocks
+tuning to 1073 - 1104 MHz. Use 64 bit number in order to avoid VCO
+frequency overflow.
 
-On 02/25/2014 07:02 AM, Prabhakar Lad wrote:
-> Hi Michael,
->
-> On Mon, Feb 24, 2014 at 11:01 AM, Prabhakar Lad
-> <prabhakar.csengg@gmail.com> wrote:
->> Hi Michael,
->>
->> On Thu, Feb 20, 2014 at 6:47 PM, Michael Opdenacker
->> <michael.opdenacker@free-electrons.com> wrote:
->>> Hi Laurent,
->>>
->>> On 02/20/2014 12:36 PM, Laurent Pinchart wrote:
->>>> Hi Michael,
->>>>
->>>> What's the status of this patch ? Do expect Prabhakar to pick it up, or do you
->>>> plan to push all your IRQF_DISABLED removal patches in one go ?
->>> It's true a good number of my patches haven't been picked up yet, even
->>> after multiple resends.
->>>
->>> I was planning to ask the community tomorrow about what to do to finally
->>> get rid of IRQF_DISABLED. Effectively, pushing all the remaining changes
->>> in one go (or removing the definition of IRQF_DISABLED) may be the final
->>> solution.
->>>
->>> I hope to be able to answer your question by the end of the week.
->>>
->> gentle ping. should I pick it up ?
->>
-> I've picked it up.
->
-> Thanks,
-> --Prabhakar Lad
+After that fix device in question tunes to following range:
+60 - 1104 MHz
+1250 - 2207 MHz
 
-Thanks a lot! Yes, I was planning to wait for another cycle before
-sending a treewide patch.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/e4000.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-Cheers,
-
-Michael.
-
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index 651de11..9187190 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -221,11 +221,11 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	struct e4000_priv *priv = fe->tuner_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i, sigma_delta;
+-	unsigned int f_vco;
++	u64 f_vco;
+ 	u8 buf[5], i_data[4], q_data[4];
+ 
+ 	dev_dbg(&priv->client->dev,
+-			"%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
++			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
+ 			__func__, c->delivery_system, c->frequency,
+ 			c->bandwidth_hz);
+ 
+@@ -248,20 +248,16 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
+ 
+-	/*
+-	 * Note: Currently f_vco overflows when c->frequency is 1 073 741 824 Hz
+-	 * or more.
+-	 */
+-	f_vco = c->frequency * e4000_pll_lut[i].mul;
++	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
+ 	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
+-	buf[0] = f_vco / priv->clock;
++	buf[0] = div_u64(f_vco, priv->clock);
+ 	buf[1] = (sigma_delta >> 0) & 0xff;
+ 	buf[2] = (sigma_delta >> 8) & 0xff;
+ 	buf[3] = 0x00;
+ 	buf[4] = e4000_pll_lut[i].div;
+ 
+ 	dev_dbg(&priv->client->dev,
+-			"%s: f_vco=%u pll div=%d sigma_delta=%04x\n",
++			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
+ 			__func__, f_vco, buf[0], sigma_delta);
+ 
+ 	ret = e4000_wr_regs(priv, 0x09, buf, 5);
 -- 
-Michael Opdenacker, CEO, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-+33 484 258 098
+1.8.5.3
 
