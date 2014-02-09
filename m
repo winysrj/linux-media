@@ -1,112 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1819 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752387AbaBJDfe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 22:35:34 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1A3ZVRG087185
-	for <linux-media@vger.kernel.org>; Mon, 10 Feb 2014 04:35:33 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 955D52A00A7
-	for <linux-media@vger.kernel.org>; Mon, 10 Feb 2014 04:35:06 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:36251 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751511AbaBIJVq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:21:46 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140210033506.955D52A00A7@tschai.lan>
-Date: Mon, 10 Feb 2014 04:35:06 +0100 (CET)
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 82/86] rtl2832: implement delayed I2C gate close
+Date: Sun,  9 Feb 2014 10:49:27 +0200
+Message-Id: <1391935771-18670-83-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Delay possible I2C gate close a little bit in order to see if there
+is next message coming to tuner in a sequence.
 
-Results of the daily build of media_tree:
+Also, export private muxed I2C adapter. That is aimed only for SDR
+extension module as SDR belongs to same RTL2832 physical I2C bus (it
+is physically property of RTL2832, whilst it is own kernel module).
 
-date:		Mon Feb 10 04:00:23 CET 2014
-git branch:	test
-git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 92 +++++++++++++++++++++++++++++-
+ drivers/media/dvb-frontends/rtl2832.h      | 12 ++++
+ drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
+ 3 files changed, 102 insertions(+), 3 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index cfc5438..fdbed35 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -891,16 +891,65 @@ static void rtl2832_release(struct dvb_frontend *fe)
+ 	struct rtl2832_priv *priv = fe->demodulator_priv;
+ 
+ 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
++	cancel_delayed_work_sync(&priv->i2c_gate_work);
+ 	i2c_del_mux_adapter(priv->i2c_adapter_tuner);
+ 	i2c_del_mux_adapter(priv->i2c_adapter);
+ 	kfree(priv);
+ }
+ 
++/*
++ * Delay mechanism to avoid unneeded I2C gate open / close. Gate close is
++ * delayed here a little bit in order to see if there is sequence of I2C
++ * messages sent to same I2C bus.
++ * We must use unlocked version of __i2c_transfer() in order to avoid deadlock
++ * as lock is already taken by calling muxed i2c_transfer().
++ */
++static void rtl2832_i2c_gate_work(struct work_struct *work)
++{
++	struct rtl2832_priv *priv = container_of(work,
++			struct rtl2832_priv, i2c_gate_work.work);
++	struct i2c_adapter *adap = priv->i2c;
++	int ret;
++	u8 buf[2];
++	struct i2c_msg msg[1] = {
++		{
++			.addr = priv->cfg.i2c_addr,
++			.flags = 0,
++			.len = sizeof(buf),
++			.buf = buf,
++		}
++	};
++
++	/* select reg bank 1 */
++	buf[0] = 0x00;
++	buf[1] = 0x01;
++	ret = __i2c_transfer(adap, msg, 1);
++	if (ret != 1)
++		goto err;
++
++	priv->page = 1;
++
++	/* close I2C repeater gate */
++	buf[0] = 0x01;
++	buf[1] = 0x10;
++	ret = __i2c_transfer(adap, msg, 1);
++	if (ret != 1)
++		goto err;
++
++	priv->i2c_gate_state = 0;
++
++	return;
++err:
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
++
++	return;
++}
++
+ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ {
+ 	struct rtl2832_priv *priv = mux_priv;
+ 	int ret;
+-	u8 buf[2];
++	u8 buf[2], val;
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = priv->cfg.i2c_addr,
+@@ -909,6 +958,22 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 			.buf = buf,
+ 		}
+ 	};
++	struct i2c_msg msg_rd[2] = {
++		{
++			.addr = priv->cfg.i2c_addr,
++			.flags = 0,
++			.len = 1,
++			.buf = "\x01",
++		}, {
++			.addr = priv->cfg.i2c_addr,
++			.flags = I2C_M_RD,
++			.len = 1,
++			.buf = &val,
++		}
++	};
++
++	/* terminate possible gate closing */
++	cancel_delayed_work_sync(&priv->i2c_gate_work);
+ 
+ 	if (priv->i2c_gate_state == chan_id)
+ 		return 0;
+@@ -916,13 +981,17 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	/* select reg bank 1 */
+ 	buf[0] = 0x00;
+ 	buf[1] = 0x01;
+-
+ 	ret = __i2c_transfer(adap, msg, 1);
+ 	if (ret != 1)
+ 		goto err;
+ 
+ 	priv->page = 1;
+ 
++	/* we must read that register, otherwise there will be errors */
++	ret = __i2c_transfer(adap, msg_rd, 2);
++	if (ret != 2)
++		goto err;
++
+ 	/* open or close I2C repeater gate */
+ 	buf[0] = 0x01;
+ 	if (chan_id == 1)
+@@ -939,9 +1008,18 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	return 0;
+ err:
+ 	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
++
+ 	return -EREMOTEIO;
+ }
+ 
++static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv,
++		u32 chan_id)
++{
++	struct rtl2832_priv *priv = mux_priv;
++	schedule_delayed_work(&priv->i2c_gate_work, usecs_to_jiffies(100));
++	return 0;
++}
++
+ struct i2c_adapter *rtl2832_get_i2c_adapter(struct dvb_frontend *fe)
+ {
+ 	struct rtl2832_priv *priv = fe->demodulator_priv;
+@@ -949,6 +1027,13 @@ struct i2c_adapter *rtl2832_get_i2c_adapter(struct dvb_frontend *fe)
+ }
+ EXPORT_SYMBOL(rtl2832_get_i2c_adapter);
+ 
++struct i2c_adapter *rtl2832_get_private_i2c_adapter(struct dvb_frontend *fe)
++{
++	struct rtl2832_priv *priv = fe->demodulator_priv;
++	return priv->i2c_adapter;
++}
++EXPORT_SYMBOL(rtl2832_get_private_i2c_adapter);
++
+ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+ 	struct i2c_adapter *i2c)
+ {
+@@ -967,6 +1052,7 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+ 	priv->i2c = i2c;
+ 	priv->tuner = cfg->tuner;
+ 	memcpy(&priv->cfg, cfg, sizeof(struct rtl2832_config));
++	INIT_DELAYED_WORK(&priv->i2c_gate_work, rtl2832_i2c_gate_work);
+ 
+ 	/* create muxed i2c adapter for demod itself */
+ 	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
+@@ -981,7 +1067,7 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+ 
+ 	/* create muxed i2c adapter for demod tuner bus */
+ 	priv->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, priv,
+-			0, 1, 0, rtl2832_select, NULL);
++			0, 1, 0, rtl2832_select, rtl2832_deselect);
+ 	if (priv->i2c_adapter_tuner == NULL)
+ 		goto err;
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
+index a9202d7..cb3b6b0 100644
+--- a/drivers/media/dvb-frontends/rtl2832.h
++++ b/drivers/media/dvb-frontends/rtl2832.h
+@@ -60,6 +60,10 @@ extern struct i2c_adapter *rtl2832_get_i2c_adapter(
+ 	struct dvb_frontend *fe
+ );
+ 
++extern struct i2c_adapter *rtl2832_get_private_i2c_adapter(
++	struct dvb_frontend *fe
++);
++
+ #else
+ 
+ static inline struct dvb_frontend *rtl2832_attach(
+@@ -77,6 +81,14 @@ static inline struct i2c_adapter *rtl2832_get_i2c_adapter(
+ {
+ 	return NULL;
+ }
++
++static inline struct i2c_adapter *rtl2832_get_private_i2c_adapter(
++	struct dvb_frontend *fe
++)
++{
++	return NULL;
++}
++
+ #endif
+ 
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 8b7c1ae..ae469f0 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -37,6 +37,7 @@ struct rtl2832_priv {
+ 
+ 	u8 tuner;
+ 	u8 page; /* active register page */
++	struct delayed_work i2c_gate_work;
+ };
+ 
+ struct rtl2832_reg_entry {
+-- 
+1.8.5.3
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
