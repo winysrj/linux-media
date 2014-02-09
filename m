@@ -1,169 +1,349 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout11.t-online.de ([194.25.134.85]:48166 "EHLO
-	mailout11.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750703AbaBBFS0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Feb 2014 00:18:26 -0500
-From: "Andreas Witte" <andreaz@t-online.de>
-To: <linux-media@vger.kernel.org>
-Subject: PCTV 200Xe Tuning (get a lock, but no data)
-Date: Sun, 2 Feb 2014 06:18:24 +0100
-Message-ID: <004601cf1fd6$32753c00$975fb400$@de>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: de
+Received: from mail.kapsi.fi ([217.30.184.167]:59777 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751581AbaBIGGX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 01:06:23 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 4/5] v4l2-ctl: add support for SDR FMT
+Date: Sun,  9 Feb 2014 08:05:53 +0200
+Message-Id: <1391925954-25975-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1391925954-25975-1-git-send-email-crope@iki.fi>
+References: <1391925954-25975-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello List,
+Add support for FMT IOCTL operations used for SDR receivers.
 
-i done a new installation of my box. I am on gentoo, kernel 3.10.25.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ utils/v4l2-ctl/Makefile.am         |   2 +-
+ utils/v4l2-ctl/v4l2-ctl-common.cpp |   1 +
+ utils/v4l2-ctl/v4l2-ctl-sdr.cpp    | 104 +++++++++++++++++++++++++++++++++++++
+ utils/v4l2-ctl/v4l2-ctl.cpp        |  22 ++++++++
+ utils/v4l2-ctl/v4l2-ctl.h          |  12 +++++
+ 5 files changed, 140 insertions(+), 1 deletion(-)
+ create mode 100644 utils/v4l2-ctl/v4l2-ctl-sdr.cpp
 
-The problem is: I can tune to a station, it tunes and locks to it, but i get
-not any
-data (stream) from the device.
-
-When i bootup, i get following message from the device:
-
-[   19.359539] ------------[ cut here ]------------
-[   19.359546] WARNING: at drivers/usb/core/urb.c:435
-usb_submit_urb+0x141/0x4c0()
-[   19.359549] Device: usb
-BOGUS urb xfer, pipe 3 != type 1
-[   19.359551] Modules linked in: mt352(O) dvb_bt8xx(O) bt878(O) mt2266(O)
-rc_imon_pad(O) rc_avermedia_dvbt(O) bttv(O) imon(O) dvb_usb_dib0700(O+)
-dib3000mc(O) dib9000(O) tveeprom(O) dib8000(O) btcx_risc(O) dvb_usb(O)
-videobuf_dma_sg(O) videobuf_core(O) dib0070(O) dib7000m(O) dib0090(O)
-dib7000p(O) v4l2_common(O) videodev(O) media(O) dvb_core(O)
-dibx000_common(O) rc_core(O) nvidia(PO) asus_atk0110
-[   19.359571] CPU: 0 PID: 3135 Comm: udevd Tainted: P           O
-3.10.25-gentoo #16
-[   19.359572] Hardware name: System manufacturer P5E/P5E, BIOS 1201   
-02/19/2009
-[   19.359574]  f4f67ca0 f4f67ca0 f4f67c68 c180bbac f4f67c90 c103084f
-c19e3bf8 f4f67cbc
-[   19.359578]  000001b3 c1580f11 c1580f11 f4e7f880 00000003 00000001
-f4f67ca8 c10308ee
-[   19.359581]  00000009 f4f67ca0 c19e3bf8 f4f67cbc f4f67cf0 c1580f11
-c19c5302 000001b3
-[   19.359585] Call Trace:
-[   19.359591]  [<c180bbac>] dump_stack+0x16/0x18
-[   19.359594]  [<c103084f>] warn_slowpath_common+0x5f/0x80
-[   19.359597]  [<c1580f11>] ? usb_submit_urb+0x141/0x4c0
-[   19.359599]  [<c1580f11>] ? usb_submit_urb+0x141/0x4c0
-[   19.359602]  [<c10308ee>] warn_slowpath_fmt+0x2e/0x30
-[   19.359604]  [<c1580f11>] usb_submit_urb+0x141/0x4c0
-[   19.359611]  [<faba17d7>] dib0700_rc_setup+0x97/0xf0 [dvb_usb_dib0700]
-[   19.359616]  [<faba18d5>] dib0700_probe+0xa5/0x100 [dvb_usb_dib0700]
-[   19.359619]  [<c1584a31>] usb_probe_interface+0xe1/0x1d0
-[   19.359623]  [<c14b5136>] driver_probe_device+0x56/0x1f0
-[   19.359626]  [<c14b5359>] __driver_attach+0x89/0x90
-[   19.359629]  [<c14b52d0>] ? driver_probe_device+0x1f0/0x1f0
-[   19.359632]  [<c14b3972>] bus_for_each_dev+0x42/0x80
-[   19.359635]  [<c14b4d29>] driver_attach+0x19/0x20
-[   19.359637]  [<c14b52d0>] ? driver_probe_device+0x1f0/0x1f0
-[   19.359654]  [<c14b4964>] bus_add_driver+0xd4/0x220
-[   19.359657]  [<c14b58f5>] driver_register+0x65/0x160
-[   19.359661]  [<c10ff357>] ? kmem_cache_alloc_trace+0x27/0x100
-[   19.359664]  [<c180f953>] ? mutex_lock+0x13/0x40
-[   19.359668]  [<c10a68dc>] ? tracepoint_module_notify+0x4c/0x190
-[   19.359671]  [<c1583f32>] usb_register_driver+0x62/0x150
-[   19.359674]  [<c10a6955>] ? tracepoint_module_notify+0xc5/0x190
-[   19.359676]  [<fabb8000>] ? 0xfabb7fff
-[   19.359680]  [<fabb8017>] dib0700_driver_init+0x17/0x19 [dvb_usb_dib0700]
-[   19.359683]  [<c10001ca>] do_one_initcall+0xda/0x130
-[   19.359687]  [<c1054ff7>] ? __blocking_notifier_call_chain+0x47/0x60
-[   19.359690]  [<c1084ef8>] load_module+0x1668/0x1e50
-[   19.359694]  [<c10857fc>] SyS_finit_module+0x6c/0x90
-[   19.359699]  [<c1818b7a>] sysenter_do_call+0x12/0x22
-[   19.359701] ---[ end trace d33d74f167a41384 ]---
-
-Anyways, both adapters are registered. And i can speak to them. But it seems
-they wont
-talk back to me.. :)
-Stick out and back in the usb stick will erase that message, but the tuner
-is still not 
-functional. I tried it with vlc, mplayer, mythtv. 
-
-lx_andreaz ~ # dmesg|grep adapter
-[   18.416319] DVB: registering new adapter (Pinnacle PCTV 2000e)
-[   18.618253] usb 2-4: DVB: registering adapter 0 frontend 0 (DiBcom
-7000PC)...
-[   19.071198] DVB: registering new adapter (Pinnacle PCTV 2000e)
-[   19.092057] DVB: registering new adapter (bttv0)
-[   19.099280] bt878 0000:05:01.1: DVB: registering adapter 2 frontend 0
-(Zarlink MT352 DVB-T)...
-[   19.099321] DVB: registering new adapter (bttv1)
-[   19.099952] bt878 0000:05:02.1: DVB: registering adapter 3 frontend 0
-(Zarlink MT352 DVB-T)...
-[   19.207628] usb 2-4: DVB: registering adapter 1 frontend 0 (DiBcom
-7000PC)...
-
-Here i try if the tuner lock to a given station, it will:
-
-lx_andreaz ~ # tzap -a 0 -c /home/andreaz/channels.conf ZDF
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/home/andreaz/channels.conf'
-tuning to 570000000 Hz
-video pid 0x0221, audio pid 0x0222
-status 00 | signal ffff | snr 034c | ber 001fffff | unc 00000000 |
-status 0e | signal ffff | snr 00ae | ber 001fffff | unc 00000000 |
-status 1e | signal ffff | snr 00d8 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00da | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00d4 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00d5 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00d9 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00d5 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00d4 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00d6 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00d1 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00da | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00d1 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status 1e | signal ffff | snr 00d6 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-
-Sometimes, the first tuning after un- and reloading the dvb-usb-dib0700
-module
-is succesfull, i got my videostream, but after a channelchange, all is at
-the old 
-state again. 
-
-The different parameters in /etc/modprobe.d/options.conf i tried alrady in
-all
-combinations:
-
-options dvb_usb disable_rc_polling=1
-options dvb_usb_dib0700 force_lna_activation=1
-#options usbcore autosuspend=1
-
-The stick worked nicely before, on a 2.6.xx anything kernel, without any
-hassle 
-in the same antenna configuration like it is now. Except from the stick, i
-also got
-2 Avermedia 771 Cards inside this pc, they work flawless on the same
-Antenna.
-
-Is there anything i can do about? I nearly tried all. The normal kernel
-drivers in
-3.10.25, the media-build, nothing changes the behavior. Im at the end of my 
-knowledge and wonder, what have changed in the meantime?
-
-Hope anyone can help me with that?
-
-Regards,
-Andreas
-
-(Sorry for the long post, but i tried to be as concrete as i can)
+diff --git a/utils/v4l2-ctl/Makefile.am b/utils/v4l2-ctl/Makefile.am
+index b5744e7..becaa15 100644
+--- a/utils/v4l2-ctl/Makefile.am
++++ b/utils/v4l2-ctl/Makefile.am
+@@ -8,5 +8,5 @@ ivtv_ctl_LDFLAGS = -lm
+ v4l2_ctl_SOURCES = v4l2-ctl.cpp v4l2-ctl.h v4l2-ctl-common.cpp v4l2-ctl-tuner.cpp \
+ 	v4l2-ctl-io.cpp v4l2-ctl-stds.cpp v4l2-ctl-vidcap.cpp v4l2-ctl-vidout.cpp \
+ 	v4l2-ctl-overlay.cpp v4l2-ctl-vbi.cpp v4l2-ctl-selection.cpp v4l2-ctl-misc.cpp \
+-	v4l2-ctl-streaming.cpp v4l2-ctl-test-patterns.cpp
++	v4l2-ctl-streaming.cpp v4l2-ctl-test-patterns.cpp v4l2-ctl-sdr.cpp
+ v4l2_ctl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la
+diff --git a/utils/v4l2-ctl/v4l2-ctl-common.cpp b/utils/v4l2-ctl/v4l2-ctl-common.cpp
+index fe570b0..37099cd 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-common.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-common.cpp
+@@ -64,6 +64,7 @@ void common_usage(void)
+ 	       "  --help-io          input/output options\n"
+ 	       "  --help-misc        miscellaneous options\n"
+ 	       "  --help-overlay     overlay format options\n"
++	       "  --help-sdr         SDR format options\n"
+ 	       "  --help-selection   crop/selection options\n"
+ 	       "  --help-stds        standards and other video timings options\n"
+ 	       "  --help-streaming   streaming options\n"
+diff --git a/utils/v4l2-ctl/v4l2-ctl-sdr.cpp b/utils/v4l2-ctl/v4l2-ctl-sdr.cpp
+new file mode 100644
+index 0000000..9c9a6c4
+--- /dev/null
++++ b/utils/v4l2-ctl/v4l2-ctl-sdr.cpp
+@@ -0,0 +1,104 @@
++#include <unistd.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++#include <inttypes.h>
++#include <getopt.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <ctype.h>
++#include <errno.h>
++#include <sys/ioctl.h>
++#include <sys/time.h>
++#include <dirent.h>
++#include <math.h>
++#include <config.h>
++
++#include <linux/videodev2.h>
++#include <libv4l2.h>
++#include <string>
++
++#include "v4l2-ctl.h"
++
++static struct v4l2_format vfmt;	/* set_format/get_format */
++
++void sdr_usage(void)
++{
++	printf("\nSDR Formats options:\n"
++	       "  --list-formats-sdr display supported SDR formats [VIDIOC_ENUM_FMT]\n"
++	       "  --get-fmt-sdr      query the SDR capture format [VIDIOC_G_FMT]\n"
++	       "  --set-fmt-sdr=<f>  set the SDR capture format [VIDIOC_S_FMT]\n"
++	       "                     parameter is either the format index as reported by\n"
++	       "                     --list-formats-sdr, or the fourcc value as a string\n"
++	       "  --try-fmt-sdr=<f>  try the SDR capture format [VIDIOC_TRY_FMT]\n"
++	       "                     parameter is either the format index as reported by\n"
++	       "                     --list-formats-sdr, or the fourcc value as a string\n"
++	       );
++}
++
++void sdr_cmd(int ch, char *optarg)
++{
++	switch (ch) {
++	case OptSetSdrFormat:
++	case OptTrySdrFormat:
++		if (strlen(optarg) == 0) {
++			sdr_usage();
++			exit(1);
++		} else if (strlen(optarg) == 4) {
++			vfmt.fmt.sdr.pixelformat = v4l2_fourcc(optarg[0],
++					optarg[1], optarg[2], optarg[3]);
++		} else {
++			vfmt.fmt.sdr.pixelformat = strtol(optarg, 0L, 0);
++		}
++		break;
++	}
++}
++
++void sdr_set(int fd)
++{
++	int ret;
++
++	if (options[OptSetSdrFormat] || options[OptTrySdrFormat]) {
++		struct v4l2_format in_vfmt;
++
++		in_vfmt.type = V4L2_BUF_TYPE_SDR_CAPTURE;
++		in_vfmt.fmt.sdr.pixelformat = vfmt.fmt.sdr.pixelformat;
++
++		if (in_vfmt.fmt.sdr.pixelformat < 256) {
++			struct v4l2_fmtdesc fmt;
++
++			fmt.index = in_vfmt.fmt.sdr.pixelformat;
++			fmt.type = V4L2_BUF_TYPE_SDR_CAPTURE;
++
++			if (doioctl(fd, VIDIOC_ENUM_FMT, &fmt))
++				fmt.pixelformat = 0;
++
++			in_vfmt.fmt.sdr.pixelformat = fmt.pixelformat;
++		}
++
++		if (options[OptSetSdrFormat])
++			ret = doioctl(fd, VIDIOC_S_FMT, &in_vfmt);
++		else
++			ret = doioctl(fd, VIDIOC_TRY_FMT, &in_vfmt);
++		if (ret == 0 && (verbose || options[OptTrySdrFormat]))
++			printfmt(in_vfmt);
++	}
++}
++
++void sdr_get(int fd)
++{
++	if (options[OptGetSdrFormat]) {
++		vfmt.type = V4L2_BUF_TYPE_SDR_CAPTURE;
++		if (doioctl(fd, VIDIOC_G_FMT, &vfmt) == 0)
++			printfmt(vfmt);
++	}
++}
++
++void sdr_list(int fd)
++{
++	if (options[OptListSdrFormats]) {
++		printf("ioctl: VIDIOC_ENUM_FMT\n");
++		print_video_formats(fd, V4L2_BUF_TYPE_SDR_CAPTURE);
++	}
++}
+diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
+index c64c2fe..855613c 100644
+--- a/utils/v4l2-ctl/v4l2-ctl.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl.cpp
+@@ -85,6 +85,7 @@ static struct option long_options[] = {
+ 	{"help-vidout", no_argument, 0, OptHelpVidOut},
+ 	{"help-overlay", no_argument, 0, OptHelpOverlay},
+ 	{"help-vbi", no_argument, 0, OptHelpVbi},
++	{"help-sdr", no_argument, 0, OptHelpSdr},
+ 	{"help-selection", no_argument, 0, OptHelpSelection},
+ 	{"help-misc", no_argument, 0, OptHelpMisc},
+ 	{"help-streaming", no_argument, 0, OptHelpStreaming},
+@@ -111,6 +112,7 @@ static struct option long_options[] = {
+ 	{"list-framesizes", required_argument, 0, OptListFrameSizes},
+ 	{"list-frameintervals", required_argument, 0, OptListFrameIntervals},
+ 	{"list-formats-overlay", no_argument, 0, OptListOverlayFormats},
++	{"list-formats-sdr", no_argument, 0, OptListSdrFormats},
+ 	{"list-formats-out", no_argument, 0, OptListOutFormats},
+ 	{"list-formats-out-mplane", no_argument, 0, OptListOutMplaneFormats},
+ 	{"get-standard", no_argument, 0, OptGetStandard},
+@@ -145,6 +147,9 @@ static struct option long_options[] = {
+ 	{"try-fmt-sliced-vbi-out", required_argument, 0, OptTrySlicedVbiOutFormat},
+ 	{"get-fmt-vbi", no_argument, 0, OptGetVbiFormat},
+ 	{"get-fmt-vbi-out", no_argument, 0, OptGetVbiOutFormat},
++	{"get-fmt-sdr", no_argument, 0, OptGetSdrFormat},
++	{"set-fmt-sdr", required_argument, 0, OptSetSdrFormat},
++	{"try-fmt-sdr", required_argument, 0, OptTrySdrFormat},
+ 	{"get-sliced-vbi-cap", no_argument, 0, OptGetSlicedVbiCap},
+ 	{"get-sliced-vbi-out-cap", no_argument, 0, OptGetSlicedVbiOutCap},
+ 	{"get-fbuf", no_argument, 0, OptGetFBuf},
+@@ -217,6 +222,7 @@ static void usage_all(void)
+        vidout_usage();
+        overlay_usage();
+        vbi_usage();
++       sdr_usage();
+        selection_usage();
+        misc_usage();
+        streaming_usage();
+@@ -285,6 +291,8 @@ std::string buftype2s(int type)
+ 		return "Sliced VBI Output";
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		return "Video Output Overlay";
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		return "SDR Capture";
+ 	default:
+ 		return "Unknown (" + num2s(type) + ")";
+ 	}
+@@ -458,6 +466,9 @@ void printfmt(const struct v4l2_format &vfmt)
+ 		}
+ 		printf("\tI/O Size       : %u\n", vfmt.fmt.sliced.io_size);
+ 		break;
++	case V4L2_BUF_TYPE_SDR_CAPTURE:
++		printf("\tSample Format   : %s\n", fcc2s(vfmt.fmt.sdr.pixelformat).c_str());
++		break;
+ 	}
+ }
+ 
+@@ -519,6 +530,8 @@ static std::string cap2s(unsigned cap)
+ 		s += "\t\tSliced VBI Capture\n";
+ 	if (cap & V4L2_CAP_SLICED_VBI_OUTPUT)
+ 		s += "\t\tSliced VBI Output\n";
++	if (cap & V4L2_CAP_SDR_CAPTURE)
++		s += "\t\tSDR Capture\n";
+ 	if (cap & V4L2_CAP_RDS_CAPTURE)
+ 		s += "\t\tRDS Capture\n";
+ 	if (cap & V4L2_CAP_RDS_OUTPUT)
+@@ -736,6 +749,7 @@ __u32 find_pixel_format(int fd, unsigned index, bool output, bool mplane)
+ 	else
+ 		fmt.type = mplane ?  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
+ 			V4L2_BUF_TYPE_VIDEO_CAPTURE;
++
+ 	if (doioctl(fd, VIDIOC_ENUM_FMT, &fmt))
+ 		return 0;
+ 	return fmt.pixelformat;
+@@ -807,6 +821,9 @@ int main(int argc, char **argv)
+ 		case OptHelpVbi:
+ 			vbi_usage();
+ 			return 0;
++		case OptHelpSdr:
++			sdr_usage();
++			return 0;
+ 		case OptHelpSelection:
+ 			selection_usage();
+ 			return 0;
+@@ -860,6 +877,7 @@ int main(int argc, char **argv)
+ 			vidout_cmd(ch, optarg);
+ 			overlay_cmd(ch, optarg);
+ 			vbi_cmd(ch, optarg);
++			sdr_cmd(ch, optarg);
+ 			selection_cmd(ch, optarg);
+ 			misc_cmd(ch, optarg);
+ 			streaming_cmd(ch, optarg);
+@@ -921,6 +939,7 @@ int main(int argc, char **argv)
+ 		options[OptGetVbiOutFormat] = 1;
+ 		options[OptGetSlicedVbiFormat] = 1;
+ 		options[OptGetSlicedVbiOutFormat] = 1;
++		options[OptGetSdrFormat] = 1;
+ 		options[OptGetFBuf] = 1;
+ 		options[OptGetCropCap] = 1;
+ 		options[OptGetOutputCropCap] = 1;
+@@ -964,6 +983,7 @@ int main(int argc, char **argv)
+ 	vidout_set(fd);
+ 	overlay_set(fd);
+ 	vbi_set(fd);
++	sdr_set(fd);
+ 	selection_set(fd);
+ 	streaming_set(fd);
+ 	misc_set(fd);
+@@ -978,6 +998,7 @@ int main(int argc, char **argv)
+ 	vidout_get(fd);
+ 	overlay_get(fd);
+ 	vbi_get(fd);
++	sdr_get(fd);
+ 	selection_get(fd);
+ 	misc_get(fd);
+ 
+@@ -990,6 +1011,7 @@ int main(int argc, char **argv)
+ 	vidout_list(fd);
+ 	overlay_list(fd);
+ 	vbi_list(fd);
++	sdr_list(fd);
+ 	streaming_list(fd);
+ 
+ 	if (options[OptWaitForEvent]) {
+diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
+index 03c45b7..108198d 100644
+--- a/utils/v4l2-ctl/v4l2-ctl.h
++++ b/utils/v4l2-ctl/v4l2-ctl.h
+@@ -44,6 +44,7 @@ enum Option {
+ 	OptGetOutputOverlayFormat,
+ 	OptGetVbiFormat,
+ 	OptGetVbiOutFormat,
++	OptGetSdrFormat,
+ 	OptGetVideoOutFormat,
+ 	OptGetVideoOutMplaneFormat,
+ 	OptSetSlicedVbiOutFormat,
+@@ -51,6 +52,7 @@ enum Option {
+ 	OptSetOverlayFormat,
+ 	//OptSetVbiFormat, TODO
+ 	//OptSetVbiOutFormat, TODO
++	OptSetSdrFormat,
+ 	OptSetVideoOutFormat,
+ 	OptSetVideoOutMplaneFormat,
+ 	OptTryVideoOutFormat,
+@@ -63,6 +65,7 @@ enum Option {
+ 	OptTryOverlayFormat,
+ 	//OptTryVbiFormat, TODO
+ 	//OptTryVbiOutFormat, TODO
++	OptTrySdrFormat,
+ 	OptAll,
+ 	OptListStandards,
+ 	OptListFormats,
+@@ -72,6 +75,7 @@ enum Option {
+ 	OptListFrameSizes,
+ 	OptListFrameIntervals,
+ 	OptListOverlayFormats,
++	OptListSdrFormats,
+ 	OptListOutFormats,
+ 	OptListOutMplaneFormats,
+ 	OptLogStatus,
+@@ -153,6 +157,7 @@ enum Option {
+ 	OptHelpVidOut,
+ 	OptHelpOverlay,
+ 	OptHelpVbi,
++	OptHelpSdr,
+ 	OptHelpSelection,
+ 	OptHelpMisc,
+ 	OptHelpStreaming,
+@@ -257,6 +262,13 @@ void vbi_set(int fd);
+ void vbi_get(int fd);
+ void vbi_list(int fd);
+ 
++// v4l2-ctl-sdr.cpp
++void sdr_usage(void);
++void sdr_cmd(int ch, char *optarg);
++void sdr_set(int fd);
++void sdr_get(int fd);
++void sdr_list(int fd);
++
+ // v4l2-ctl-selection.cpp
+ void selection_usage(void);
+ void selection_cmd(int ch, char *optarg);
+-- 
+1.8.5.3
 
