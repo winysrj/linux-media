@@ -1,233 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4722 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752457AbaBYJsz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 04:48:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:43762 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751467AbaBIJ04 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:26:56 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv1 PATCH 08/14] vb2: fix buf_init/buf_cleanup call sequences
-Date: Tue, 25 Feb 2014 10:48:21 +0100
-Message-Id: <1393321707-9749-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 77/86] e4000: implement PLL lock v4l control
+Date: Sun,  9 Feb 2014 10:49:22 +0200
+Message-Id: <1391935771-18670-78-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Implement PLL lock control to get PLL lock flag status from tuner
+synthesizer.
 
-Ensure that these ops are properly balanced.
-
-There are two scenarios:
-
-1) for MMAP buf_init is called when the buffers are created and buf_cleanup
-   must be called when the queue is finally freed. This scenario was always
-   working.
-
-2) for USERPTR and DMABUF it is more complicated. When a buffer is queued
-   the code checks if all planes of this buffer have been acquired before.
-   If that's the case, then only buf_prepare has to be called. Otherwise
-   buf_cleanup needs to be called if the buffer was acquired before, then,
-   once all changed planes have been (re)acquired, buf_init has to be
-   called followed by buf_prepare. Should buf_prepare fail, then buf_cleanup
-   must be called on the newly acquired planes to release them in.
-
-Finally, in __vb2_queue_free we have to check if the buffer was actually
-acquired before calling buf_cleanup. While that it always true for MMAP
-mode, it is not necessarily true for the other modes. E.g. if you just
-call REQBUFS and close the file handle, then buffers were never queued and
-so no buf_init was ever called.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 100 +++++++++++++++++++++----------
- 1 file changed, 67 insertions(+), 33 deletions(-)
+ drivers/media/tuners/e4000.c      | 53 ++++++++++++++++++++++++++++++++++++++-
+ drivers/media/tuners/e4000_priv.h |  2 ++
+ 2 files changed, 54 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index b5142e5..eefcff7 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -373,8 +373,10 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 	/* Call driver-provided cleanup function for each buffer, if provided */
- 	for (buffer = q->num_buffers - buffers; buffer < q->num_buffers;
- 	     ++buffer) {
--		if (q->bufs[buffer])
--			call_vb_qop(q->bufs[buffer], buf_cleanup, q->bufs[buffer]);
-+		struct vb2_buffer *vb = q->bufs[buffer];
-+
-+		if (vb && vb->planes[0].mem_priv)
-+			call_vb_qop(vb, buf_cleanup, vb);
- 	}
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index 019dc62..662e19a1 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -181,6 +181,8 @@ static int e4000_init(struct dvb_frontend *fe)
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
  
- 	/* Release video buffer memory */
-@@ -1161,6 +1163,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	unsigned int plane;
- 	int ret;
- 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	bool reacquired = vb->planes[0].mem_priv == NULL;
- 
- 	/* Copy relevant information provided by the userspace */
- 	__fill_vb2_buffer(vb, b, planes);
-@@ -1186,12 +1189,16 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		}
- 
- 		/* Release previously acquired memory if present */
--		if (vb->planes[plane].mem_priv)
-+		if (vb->planes[plane].mem_priv) {
-+			if (!reacquired) {
-+				reacquired = true;
-+				call_vb_qop(vb, buf_cleanup, vb);
-+			}
- 			call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
-+		}
- 
- 		vb->planes[plane].mem_priv = NULL;
--		vb->v4l2_planes[plane].m.userptr = 0;
--		vb->v4l2_planes[plane].length = 0;
-+		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_memop(vb, get_userptr, q->alloc_ctx[plane],
-@@ -1208,23 +1215,34 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	}
- 
- 	/*
--	 * Call driver-specific initialization on the newly acquired buffer,
--	 * if provided.
--	 */
--	ret = call_vb_qop(vb, buf_init, vb);
--	if (ret) {
--		dprintk(1, "qbuf: buffer initialization failed\n");
--		fail_vb_qop(vb, buf_init);
--		goto err;
--	}
--
--	/*
- 	 * Now that everything is in order, copy relevant information
- 	 * provided by userspace.
- 	 */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
- 		vb->v4l2_planes[plane] = planes[plane];
- 
-+	if (reacquired) {
-+		/*
-+		 * One or more planes changed, so we must call buf_init to do
-+		 * the driver-specific initialization on the newly acquired
-+		 * buffer, if provided.
-+		 */
-+		ret = call_vb_qop(vb, buf_init, vb);
-+		if (ret) {
-+			dprintk(1, "qbuf: buffer initialization failed\n");
-+			fail_vb_qop(vb, buf_init);
-+			goto err;
-+		}
-+	}
-+
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret) {
-+		dprintk(1, "qbuf: buffer preparation failed\n");
-+		fail_vb_qop(vb, buf_prepare);
-+		call_vb_qop(vb, buf_cleanup, vb);
-+		goto err;
-+	}
++	priv->active = true;
 +
  	return 0;
  err:
- 	/* In case of errors, release planes that were already acquired */
-@@ -1244,8 +1262,13 @@ err:
-  */
- static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
-+	int ret;
+ 	if (fe->ops.i2c_gate_ctrl)
+@@ -197,6 +199,8 @@ static int e4000_sleep(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+ 
++	priv->active = false;
 +
- 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
--	return 0;
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret)
-+		fail_vb_qop(vb, buf_prepare);
-+	return ret;
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+@@ -512,6 +516,50 @@ err:
+ 	return ret;
  }
  
- /**
-@@ -1259,6 +1282,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	unsigned int plane;
- 	int ret;
- 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	bool reacquired = vb->planes[0].mem_priv == NULL;
- 
- 	/* Copy relevant information provided by the userspace */
- 	__fill_vb2_buffer(vb, b, planes);
-@@ -1294,6 +1318,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 
- 		dprintk(1, "qbuf: buffer for plane %d changed\n", plane);
- 
-+		if (!reacquired) {
-+			reacquired = true;
-+			call_vb_qop(vb, buf_cleanup, vb);
-+		}
++static int e4000_pll_lock(struct dvb_frontend *fe)
++{
++	struct e4000_priv *priv = fe->tuner_priv;
++	int ret;
++	u8 u8tmp;
 +
- 		/* Release previously acquired memory if present */
- 		__vb2_plane_dmabuf_put(vb, &vb->planes[plane]);
- 		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
-@@ -1329,23 +1358,33 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	}
- 
- 	/*
--	 * Call driver-specific initialization on the newly acquired buffer,
--	 * if provided.
--	 */
--	ret = call_vb_qop(vb, buf_init, vb);
--	if (ret) {
--		dprintk(1, "qbuf: buffer initialization failed\n");
--		fail_vb_qop(vb, buf_init);
--		goto err;
--	}
--
--	/*
- 	 * Now that everything is in order, copy relevant information
- 	 * provided by userspace.
- 	 */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
- 		vb->v4l2_planes[plane] = planes[plane];
- 
-+	if (reacquired) {
-+		/*
-+		 * Call driver-specific initialization on the newly acquired buffer,
-+		 * if provided.
-+		 */
-+		ret = call_vb_qop(vb, buf_init, vb);
-+		if (ret) {
-+			dprintk(1, "qbuf: buffer initialization failed\n");
-+			fail_vb_qop(vb, buf_init);
-+			goto err;
-+		}
-+	}
++	if (priv->active == false)
++		return 0;
 +
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret) {
-+		dprintk(1, "qbuf: buffer preparation failed\n");
-+		fail_vb_qop(vb, buf_prepare);
-+		call_vb_qop(vb, buf_cleanup, vb);
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	ret = e4000_rd_reg(priv, 0x07, &u8tmp);
++	if (ret)
 +		goto err;
++
++	priv->pll_lock->val = (u8tmp & 0x01);
++err:
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	if (ret)
++		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
++
++	return ret;
++}
++
++static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct e4000_priv *priv =
++			container_of(ctrl->handler, struct e4000_priv, hdl);
++	int ret;
++
++	switch (ctrl->id) {
++	case  V4L2_CID_PLL_LOCK:
++		ret = e4000_pll_lock(priv->fe);
++		break;
++	default:
++		ret = -EINVAL;
 +	}
 +
- 	return 0;
- err:
- 	/* In case of errors, release planes that were already acquired */
-@@ -1420,11 +1459,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = -EINVAL;
- 	}
++	return ret;
++}
++
+ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct e4000_priv *priv =
+@@ -550,6 +598,7 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+ }
  
--	if (!ret) {
--		ret = call_vb_qop(vb, buf_prepare, vb);
--		if (ret)
--			fail_vb_qop(vb, buf_prepare);
--	}
- 	if (ret)
- 		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
- 	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
+ static const struct v4l2_ctrl_ops e4000_ctrl_ops = {
++	.g_volatile_ctrl = e4000_g_volatile_ctrl,
+ 	.s_ctrl = e4000_s_ctrl,
+ };
+ 
+@@ -616,7 +665,7 @@ static int e4000_probe(struct i2c_client *client,
+ 		goto err;
+ 
+ 	/* Register controls */
+-	v4l2_ctrl_handler_init(&priv->hdl, 8);
++	v4l2_ctrl_handler_init(&priv->hdl, 9);
+ 	priv->bandwidth_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+ 			V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
+ 	priv->bandwidth = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+@@ -637,6 +686,8 @@ static int e4000_probe(struct i2c_client *client,
+ 	priv->if_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+ 			V4L2_CID_IF_GAIN, 0, 54, 1, 0);
+ 	v4l2_ctrl_auto_cluster(2, &priv->if_gain_auto, 0, false);
++	priv->pll_lock = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
++			V4L2_CID_PLL_LOCK,  0, 1, 1, 0);
+ 	if (priv->hdl.error) {
+ 		ret = priv->hdl.error;
+ 		dev_err(&priv->client->dev, "Could not initialize controls\n");
+diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
+index 8cc27b3..d41dbcc 100644
+--- a/drivers/media/tuners/e4000_priv.h
++++ b/drivers/media/tuners/e4000_priv.h
+@@ -28,6 +28,7 @@ struct e4000_priv {
+ 	struct i2c_client *client;
+ 	u32 clock;
+ 	struct dvb_frontend *fe;
++	bool active;
+ 
+ 	/* Controls */
+ 	struct v4l2_ctrl_handler hdl;
+@@ -39,6 +40,7 @@ struct e4000_priv {
+ 	struct v4l2_ctrl *mixer_gain;
+ 	struct v4l2_ctrl *if_gain_auto;
+ 	struct v4l2_ctrl *if_gain;
++	struct v4l2_ctrl *pll_lock;
+ };
+ 
+ struct e4000_pll {
 -- 
-1.9.0
+1.8.5.3
 
