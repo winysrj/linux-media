@@ -1,131 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46218 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752811AbaBZPTr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 10:19:47 -0500
-Message-ID: <1393429676.3248.110.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Wed, 26 Feb 2014 16:47:56 +0100
-In-Reply-To: <530DFF4C.8080807@ti.com>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
-		 <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
-		 <530DE8A9.9050809@ti.com>
-	 <1393426623.3248.70.camel@paszta.hi.pengutronix.de>
-	 <530DFF4C.8080807@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4342 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751523AbaBITOU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 14:14:20 -0500
+Message-ID: <52F7D363.2080108@xs4all.nl>
+Date: Sun, 09 Feb 2014 20:13:39 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Richard Weinberger <richard@nod.at>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
+	open list <linux-kernel@vger.kernel.org>,
+	Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: [PATCH 19/28] Remove SI4713
+References: <1391971686-9517-1-git-send-email-richard@nod.at> <1391971686-9517-20-git-send-email-richard@nod.at>
+In-Reply-To: <1391971686-9517-20-git-send-email-richard@nod.at>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 26.02.2014, 16:50 +0200 schrieb Tomi Valkeinen:
-> On 26/02/14 16:57, Philipp Zabel wrote:
-> > Hi Tomi,
-> > 
-> > Am Mittwoch, den 26.02.2014, 15:14 +0200 schrieb Tomi Valkeinen:
-> >> On 25/02/14 16:58, Philipp Zabel wrote:
-> >>
-> >>> +Optional endpoint properties
-> >>> +----------------------------
-> >>> +
-> >>> +- remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
-> >>
-> >> Why is that optional? What use is an endpoint, if it's not connected to
-> >> something?
-> > 
-> > This allows to include the an empty endpoint template in a SoC dtsi for
-> > the convenience of board dts writers. Also, the same property is
-> > currently listed as optional in video-interfaces.txt.
-> > 
-> >   soc.dtsi:
-> > 	display-controller {
-> > 		port {
-> > 			disp0: endpoint { };
-> > 		};
-> > 	};
-> > 
-> >   board.dts:
-> > 	#include "soc.dtsi"
-> > 	&disp0 {
-> > 		remote-endpoint = <&panel_input>;
-> > 	};
-> > 	panel {
-> > 		port {
-> > 			panel_in: endpoint {
-> > 				remote-endpoint = <&disp0>;
-> > 			};
-> > 		};
-> > 	};
-> > 
-> > Any board not using that port can just leave the endpoint disconnected.
-> 
-> Hmm I see. I'm against that.
-> 
-> I think the SoC dtsi should not contain endpoint node, or even port node
-> (at least usually).
+On 02/09/2014 07:47 PM, Richard Weinberger wrote:
+> The symbol is an orphan, get rid of it.
 
-Well, at least the port is a physical thing. I see no reason not to have
-it in the dtsi.
+NACK.
 
-> It doesn't know how many endpoints, if any, a
-> particular board has. That part should be up to the board dts.
+It's not an orphan, it's a typo. It should be I2C_SI4713.
 
-...
+Paul, Richard, let me handle this. I'll make a patch for this tomorrow (I believe
+there was a report about a missing I2C dependency as well) and make sure it ends
+up in a pull request for 3.14.
 
-> I've done this with OMAP as (much simplified):
-> 
-> SoC.dtsi:
-> 
-> dss: dss@58000000 {
-> 	status = "disabled";
-> };
-> 
-> Nothing else (relevant here). The binding documentation states that dss
-> has one port, and information what data is needed for the port and endpoint.
-> 
-> board.dts:
-> 
-> &dss {
->         status = "ok";
-> 
->         pinctrl-names = "default";
->         pinctrl-0 = <&dss_dpi_pins>;
-> 
->         dpi_out: endpoint {
-> 
->                 remote-endpoint = <&tfp410_in>;
->                 data-lines = <24>;
->         };
-> };
-> 
-> That's using the shortened version without port node.
+Regards,
 
-Ok, that looks compact enough. I still don't see the need to change make
-the remote-endpoint property required to achieve this, though. On the
-other hand, I wouldn't object to making it mandatory either.
+	Hans
 
-> Of course, it's up to the developer how his dts looks like. But to me it
-> makes sense to require the remote-endpoint property, as the endpoint, or
-> even the port, doesn't make much sense if there's nothing to connect to.
-
-Please let's not make it mandatory for a port node to contain an
-endpoint. For any device with multiple ports we can't use the simplified
-form above, and only adding the (correctly numbered) port in all the
-board device trees would be a pain.
-
-regards
-Philipp
+> 
+> Signed-off-by: Richard Weinberger <richard@nod.at>
+> ---
+>  drivers/media/radio/si4713/Kconfig | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/drivers/media/radio/si4713/Kconfig b/drivers/media/radio/si4713/Kconfig
+> index a7c3ba8..ed51ed0 100644
+> --- a/drivers/media/radio/si4713/Kconfig
+> +++ b/drivers/media/radio/si4713/Kconfig
+> @@ -1,7 +1,6 @@
+>  config USB_SI4713
+>  	tristate "Silicon Labs Si4713 FM Radio Transmitter support with USB"
+>  	depends on USB && RADIO_SI4713
+> -	select SI4713
+>  	---help---
+>  	  This is a driver for USB devices with the Silicon Labs SI4713
+>  	  chip. Currently these devices are known to work.
+> @@ -16,7 +15,6 @@ config USB_SI4713
+>  config PLATFORM_SI4713
+>  	tristate "Silicon Labs Si4713 FM Radio Transmitter support with I2C"
+>  	depends on I2C && RADIO_SI4713
+> -	select SI4713
+>  	---help---
+>  	  This is a driver for I2C devices with the Silicon Labs SI4713
+>  	  chip.
+> 
 
