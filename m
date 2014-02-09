@@ -1,48 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41652 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:36145 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751204AbaBCLAL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Feb 2014 06:00:11 -0500
+	id S1752106AbaBIJXE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:23:04 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 4/5] MAINTAINERS: add msi3101 driver
-Date: Mon,  3 Feb 2014 12:59:54 +0200
-Message-Id: <1391425195-17865-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1391425195-17865-1-git-send-email-crope@iki.fi>
-References: <1391425195-17865-1-git-send-email-crope@iki.fi>
+Subject: [REVIEW PATCH 80/86] rtl2832: add muxed I2C adapter for demod itself
+Date: Sun,  9 Feb 2014 10:49:25 +0200
+Message-Id: <1391935771-18670-81-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mirics MSi2500 (MSi3101) SDR ADC + USB interface driver. Currently
-in staging as SDR API is not ready.
+There was a deadlock between master I2C adapter and muxed I2C
+adapter. Implement two I2C muxed I2C adapters and leave master
+alone, just only for offering I2C adapter for these mux adapters.
 
+Reported-by: Luis Alves <ljalvs@gmail.com>
+Reported-by: Benjamin Larsson <benjamin@southpole.se>
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- MAINTAINERS | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/dvb-frontends/rtl2832.c      | 71 ++++++++++++++++++++++++------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
+ 2 files changed, 58 insertions(+), 14 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 69fc44b..4c1b8cc 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5695,6 +5695,16 @@ T:	git git://linuxtv.org/anttip/media_tree.git
- S:	Maintained
- F:	drivers/staging/media/msi3101/msi001*
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index dc46cf0..c0366a8 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -180,7 +180,7 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], val, len);
  
-+MSI3101 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/staging/media/msi3101/sdr-msi3101*
+-	ret = i2c_transfer(priv->i2c, msg, 1);
++	ret = i2c_transfer(priv->i2c_adapter, msg, 1);
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+@@ -210,7 +210,7 @@ static int rtl2832_rd(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ 		}
+ 	};
+ 
+-	ret = i2c_transfer(priv->i2c, msg, 2);
++	ret = i2c_transfer(priv->i2c_adapter, msg, 2);
+ 	if (ret == 2) {
+ 		ret = 0;
+ 	} else {
+@@ -891,26 +891,61 @@ static void rtl2832_release(struct dvb_frontend *fe)
+ 	struct rtl2832_priv *priv = fe->demodulator_priv;
+ 
+ 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
++	i2c_del_mux_adapter(priv->i2c_adapter_tuner);
+ 	i2c_del_mux_adapter(priv->i2c_adapter);
+ 	kfree(priv);
+ }
+ 
+-static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ {
+ 	struct rtl2832_priv *priv = mux_priv;
+-	return rtl2832_i2c_gate_ctrl(&priv->fe, 1);
+-}
++	int ret;
++	u8 buf[2];
++	struct i2c_msg msg[1] = {
++		{
++			.addr = priv->cfg.i2c_addr,
++			.flags = 0,
++			.len = sizeof(buf),
++			.buf = buf,
++		}
++	};
+ 
+-static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
+-{
+-	struct rtl2832_priv *priv = mux_priv;
+-	return rtl2832_i2c_gate_ctrl(&priv->fe, 0);
++	if (priv->i2c_gate_state == chan_id)
++		return 0;
 +
- MT9M032 APTINA SENSOR DRIVER
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
++	/* select reg bank 1 */
++	buf[0] = 0x00;
++	buf[1] = 0x01;
++
++	ret = i2c_transfer(adap, msg, 1);
++	if (ret != 1)
++		goto err;
++
++	priv->page = 1;
++
++	/* open or close I2C repeater gate */
++	buf[0] = 0x01;
++	if (chan_id == 1)
++		buf[1] = 0x18; /* open */
++	else
++		buf[1] = 0x10; /* close */
++
++	ret = i2c_transfer(adap, msg, 1);
++	if (ret != 1)
++		goto err;
++
++	priv->i2c_gate_state = chan_id;
++
++	return 0;
++err:
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	return -EREMOTEIO;
+ }
+ 
+ struct i2c_adapter *rtl2832_get_i2c_adapter(struct dvb_frontend *fe)
+ {
+ 	struct rtl2832_priv *priv = fe->demodulator_priv;
+-	return priv->i2c_adapter;
++	return priv->i2c_adapter_tuner;
+ }
+ EXPORT_SYMBOL(rtl2832_get_i2c_adapter);
+ 
+@@ -933,15 +968,21 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+ 	priv->tuner = cfg->tuner;
+ 	memcpy(&priv->cfg, cfg, sizeof(struct rtl2832_config));
+ 
++	/* create muxed i2c adapter for demod itself */
++	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
++			rtl2832_select, NULL);
++	if (priv->i2c_adapter == NULL)
++		goto err;
++
+ 	/* check if the demod is there */
+ 	ret = rtl2832_rd_reg(priv, 0x00, 0x0, &tmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	/* create muxed i2c adapter */
+-	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
+-			rtl2832_select, rtl2832_deselect);
+-	if (priv->i2c_adapter == NULL)
++	/* create muxed i2c adapter for demod tuner bus */
++	priv->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, priv,
++			0, 1, 0, rtl2832_select, NULL);
++	if (priv->i2c_adapter_tuner == NULL)
+ 		goto err;
+ 
+ 	/* create dvb_frontend */
+@@ -954,6 +995,8 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+ 	return &priv->fe;
+ err:
+ 	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
++	if (priv && priv->i2c_adapter)
++		i2c_del_mux_adapter(priv->i2c_adapter);
+ 	kfree(priv);
+ 	return NULL;
+ }
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index ec26c92..8b7c1ae 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -28,6 +28,7 @@
+ struct rtl2832_priv {
+ 	struct i2c_adapter *i2c;
+ 	struct i2c_adapter *i2c_adapter;
++	struct i2c_adapter *i2c_adapter_tuner;
+ 	struct dvb_frontend fe;
+ 	struct rtl2832_config cfg;
+ 
 -- 
 1.8.5.3
 
