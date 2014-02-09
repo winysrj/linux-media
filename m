@@ -1,846 +1,410 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41095 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751514AbaBHJiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Feb 2014 04:38:51 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 8/8] e4000: convert to Regmap API
-Date: Sat,  8 Feb 2014 11:38:01 +0200
-Message-Id: <1391852281-18291-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1391852281-18291-1-git-send-email-crope@iki.fi>
-References: <1391852281-18291-1-git-send-email-crope@iki.fi>
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:53025 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751732AbaBIXw1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 18:52:27 -0500
+Received: by mail-ee0-f52.google.com with SMTP id e53so2607447eek.11
+        for <linux-media@vger.kernel.org>; Sun, 09 Feb 2014 15:52:26 -0800 (PST)
+Message-ID: <52F814B5.5070608@gmail.com>
+Date: Mon, 10 Feb 2014 01:52:21 +0200
+From: GEORGE <geoubuntu@gmail.com>
+MIME-Version: 1.0
+To: Anca Emanuel <anca.emanuel@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] saa7134: Add support for SnaZio TvPVR PRO
+References: <1391961995-3948-1-git-send-email-user@george> <CAJL_dMsQLrYpkOa4T_pfOKqS8tyUx8t36SWhJZxJSwdob9FE_g@mail.gmail.com> <52F812F8.6070702@gmail.com>
+In-Reply-To: <52F812F8.6070702@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That comes possible after driver was converted to kernel I2C model
-(I2C binding & proper I2C client with no gate control hack). All
-nasty low level I2C routines are now covered by regmap.
+Screenshot with lspci -vnn output:
+http://imgur.com/RnKkQCj
 
-Also some variable renaming and minor functionality changes.
-
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/Kconfig      |   1 +
- drivers/media/tuners/e4000.c      | 442 ++++++++++++++++----------------------
- drivers/media/tuners/e4000_priv.h |   4 +-
- 3 files changed, 184 insertions(+), 263 deletions(-)
-
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index ba2e365..a128488 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -204,6 +204,7 @@ config MEDIA_TUNER_TDA18212
- config MEDIA_TUNER_E4000
- 	tristate "Elonics E4000 silicon tuner"
- 	depends on MEDIA_SUPPORT && I2C
-+	select REGMAP_I2C
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Elonics E4000 silicon tuner driver.
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index e3e3b7e..0d516ad 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -21,203 +21,112 @@
- #include "e4000_priv.h"
- #include <linux/math64.h>
- 
--/* Max transfer size done by I2C transfer functions */
--#define MAX_XFER_SIZE  64
--
--/* write multiple registers */
--static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
--{
--	int ret;
--	u8 buf[MAX_XFER_SIZE];
--	struct i2c_msg msg[1] = {
--		{
--			.addr = priv->client->addr,
--			.flags = 0,
--			.len = 1 + len,
--			.buf = buf,
--		}
--	};
--
--	if (1 + len > sizeof(buf)) {
--		dev_warn(&priv->client->dev,
--			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
--			 KBUILD_MODNAME, reg, len);
--		return -EINVAL;
--	}
--
--	buf[0] = reg;
--	memcpy(&buf[1], val, len);
--
--	ret = i2c_transfer(priv->client->adapter, msg, 1);
--	if (ret == 1) {
--		ret = 0;
--	} else {
--		dev_warn(&priv->client->dev,
--				"%s: i2c wr failed=%d reg=%02x len=%d\n",
--				KBUILD_MODNAME, ret, reg, len);
--		ret = -EREMOTEIO;
--	}
--	return ret;
--}
--
--/* read multiple registers */
--static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
--{
--	int ret;
--	u8 buf[MAX_XFER_SIZE];
--	struct i2c_msg msg[2] = {
--		{
--			.addr = priv->client->addr,
--			.flags = 0,
--			.len = 1,
--			.buf = &reg,
--		}, {
--			.addr = priv->client->addr,
--			.flags = I2C_M_RD,
--			.len = len,
--			.buf = buf,
--		}
--	};
--
--	if (len > sizeof(buf)) {
--		dev_warn(&priv->client->dev,
--			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
--			 KBUILD_MODNAME, reg, len);
--		return -EINVAL;
--	}
--
--	ret = i2c_transfer(priv->client->adapter, msg, 2);
--	if (ret == 2) {
--		memcpy(val, buf, len);
--		ret = 0;
--	} else {
--		dev_warn(&priv->client->dev,
--				"%s: i2c rd failed=%d reg=%02x len=%d\n",
--				KBUILD_MODNAME, ret, reg, len);
--		ret = -EREMOTEIO;
--	}
--
--	return ret;
--}
--
--/* write single register */
--static int e4000_wr_reg(struct e4000_priv *priv, u8 reg, u8 val)
--{
--	return e4000_wr_regs(priv, reg, &val, 1);
--}
--
--/* read single register */
--static int e4000_rd_reg(struct e4000_priv *priv, u8 reg, u8 *val)
--{
--	return e4000_rd_regs(priv, reg, val, 1);
--}
--
- static int e4000_init(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 
--	dev_dbg(&priv->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "%s:\n", __func__);
- 
- 	/* dummy I2C to ensure I2C wakes up */
--	ret = e4000_wr_reg(priv, 0x02, 0x40);
-+	ret = regmap_write(s->regmap, 0x02, 0x40);
- 
- 	/* reset */
--	ret = e4000_wr_reg(priv, 0x00, 0x01);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x00, 0x01);
-+	if (ret)
- 		goto err;
- 
- 	/* disable output clock */
--	ret = e4000_wr_reg(priv, 0x06, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x06, 0x00);
-+	if (ret)
- 		goto err;
- 
--	ret = e4000_wr_reg(priv, 0x7a, 0x96);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x7a, 0x96);
-+	if (ret)
- 		goto err;
- 
- 	/* configure gains */
--	ret = e4000_wr_regs(priv, 0x7e, "\x01\xfe", 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x7e, "\x01\xfe", 2);
-+	if (ret)
- 		goto err;
- 
--	ret = e4000_wr_reg(priv, 0x82, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x82, 0x00);
-+	if (ret)
- 		goto err;
- 
--	ret = e4000_wr_reg(priv, 0x24, 0x05);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x24, 0x05);
-+	if (ret)
- 		goto err;
- 
--	ret = e4000_wr_regs(priv, 0x87, "\x20\x01", 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x87, "\x20\x01", 2);
-+	if (ret)
- 		goto err;
- 
--	ret = e4000_wr_regs(priv, 0x9f, "\x7f\x07", 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x9f, "\x7f\x07", 2);
-+	if (ret)
- 		goto err;
- 
- 	/* DC offset control */
--	ret = e4000_wr_reg(priv, 0x2d, 0x1f);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x2d, 0x1f);
-+	if (ret)
- 		goto err;
- 
--	ret = e4000_wr_regs(priv, 0x70, "\x01\x01", 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x70, "\x01\x01", 2);
-+	if (ret)
- 		goto err;
- 
- 	/* gain control */
--	ret = e4000_wr_reg(priv, 0x1a, 0x17);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x1a, 0x17);
-+	if (ret)
- 		goto err;
- 
--	ret = e4000_wr_reg(priv, 0x1f, 0x1a);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x1f, 0x1a);
-+	if (ret)
- 		goto err;
- 
--	priv->active = true;
-+	s->active = true;
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_sleep(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 
--	dev_dbg(&priv->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "%s:\n", __func__);
- 
--	priv->active = false;
-+	s->active = false;
- 
--	ret = e4000_wr_reg(priv, 0x00, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x00, 0x00);
-+	if (ret)
- 		goto err;
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_set_params(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i, sigma_delta;
- 	u64 f_vco;
- 	u8 buf[5], i_data[4], q_data[4];
- 
--	dev_dbg(&priv->client->dev,
-+	dev_dbg(&s->client->dev,
- 			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
- 			__func__, c->delivery_system, c->frequency,
- 			c->bandwidth_hz);
- 
- 	/* gain control manual */
--	ret = e4000_wr_reg(priv, 0x1a, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x1a, 0x00);
-+	if (ret)
- 		goto err;
- 
- 	/* PLL */
-@@ -232,19 +141,19 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	}
- 
- 	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
--	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
--	buf[0] = div_u64(f_vco, priv->clock);
-+	sigma_delta = div_u64(0x10000ULL * (f_vco % s->clock), s->clock);
-+	buf[0] = div_u64(f_vco, s->clock);
- 	buf[1] = (sigma_delta >> 0) & 0xff;
- 	buf[2] = (sigma_delta >> 8) & 0xff;
- 	buf[3] = 0x00;
- 	buf[4] = e4000_pll_lut[i].div;
- 
--	dev_dbg(&priv->client->dev,
-+	dev_dbg(&s->client->dev,
- 			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
- 			__func__, f_vco, buf[0], sigma_delta);
- 
--	ret = e4000_wr_regs(priv, 0x09, buf, 5);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x09, buf, 5);
-+	if (ret)
- 		goto err;
- 
- 	/* LNA filter (RF filter) */
-@@ -258,8 +167,8 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	ret = e4000_wr_reg(priv, 0x10, e400_lna_filter_lut[i].val);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x10, e400_lna_filter_lut[i].val);
-+	if (ret)
- 		goto err;
- 
- 	/* IF filters */
-@@ -276,8 +185,8 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	buf[0] = e4000_if_filter_lut[i].reg11_val;
- 	buf[1] = e4000_if_filter_lut[i].reg12_val;
- 
--	ret = e4000_wr_regs(priv, 0x11, buf, 2);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x11, buf, 2);
-+	if (ret)
- 		goto err;
- 
- 	/* frequency band */
-@@ -291,34 +200,34 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	ret = e4000_wr_reg(priv, 0x07, e4000_band_lut[i].reg07_val);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x07, e4000_band_lut[i].reg07_val);
-+	if (ret)
- 		goto err;
- 
--	ret = e4000_wr_reg(priv, 0x78, e4000_band_lut[i].reg78_val);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x78, e4000_band_lut[i].reg78_val);
-+	if (ret)
- 		goto err;
- 
- 	/* DC offset */
- 	for (i = 0; i < 4; i++) {
- 		if (i == 0)
--			ret = e4000_wr_regs(priv, 0x15, "\x00\x7e\x24", 3);
-+			ret = regmap_bulk_write(s->regmap, 0x15, "\x00\x7e\x24", 3);
- 		else if (i == 1)
--			ret = e4000_wr_regs(priv, 0x15, "\x00\x7f", 2);
-+			ret = regmap_bulk_write(s->regmap, 0x15, "\x00\x7f", 2);
- 		else if (i == 2)
--			ret = e4000_wr_regs(priv, 0x15, "\x01", 1);
-+			ret = regmap_bulk_write(s->regmap, 0x15, "\x01", 1);
- 		else
--			ret = e4000_wr_regs(priv, 0x16, "\x7e", 1);
-+			ret = regmap_bulk_write(s->regmap, 0x16, "\x7e", 1);
- 
--		if (ret < 0)
-+		if (ret)
- 			goto err;
- 
--		ret = e4000_wr_reg(priv, 0x29, 0x01);
--		if (ret < 0)
-+		ret = regmap_write(s->regmap, 0x29, 0x01);
-+		if (ret)
- 			goto err;
- 
--		ret = e4000_rd_regs(priv, 0x2a, buf, 3);
--		if (ret < 0)
-+		ret = regmap_bulk_read(s->regmap, 0x2a, buf, 3);
-+		if (ret)
- 			goto err;
- 
- 		i_data[i] = (((buf[2] >> 0) & 0x3) << 6) | (buf[0] & 0x3f);
-@@ -328,30 +237,30 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	swap(q_data[2], q_data[3]);
- 	swap(i_data[2], i_data[3]);
- 
--	ret = e4000_wr_regs(priv, 0x50, q_data, 4);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x50, q_data, 4);
-+	if (ret)
- 		goto err;
- 
--	ret = e4000_wr_regs(priv, 0x60, i_data, 4);
--	if (ret < 0)
-+	ret = regmap_bulk_write(s->regmap, 0x60, i_data, 4);
-+	if (ret)
- 		goto err;
- 
- 	/* gain control auto */
--	ret = e4000_wr_reg(priv, 0x1a, 0x17);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x1a, 0x17);
-+	if (ret)
- 		goto err;
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 
--	dev_dbg(&priv->client->dev, "%s:\n", __func__);
-+	dev_dbg(&s->client->dev, "%s:\n", __func__);
- 
- 	*frequency = 0; /* Zero-IF */
- 
-@@ -360,143 +269,144 @@ static int e4000_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- 
- static int e4000_set_lna_gain(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&priv->client->dev, "%s: lna auto=%d->%d val=%d->%d\n",
--			__func__, priv->lna_gain_auto->cur.val,
--			priv->lna_gain_auto->val, priv->lna_gain->cur.val,
--			priv->lna_gain->val);
-+	dev_dbg(&s->client->dev, "%s: lna auto=%d->%d val=%d->%d\n",
-+			__func__, s->lna_gain_auto->cur.val,
-+			s->lna_gain_auto->val, s->lna_gain->cur.val,
-+			s->lna_gain->val);
- 
--	if (priv->lna_gain_auto->val && priv->if_gain_auto->cur.val)
-+	if (s->lna_gain_auto->val && s->if_gain_auto->cur.val)
- 		u8tmp = 0x17;
--	else if (priv->lna_gain_auto->val)
-+	else if (s->lna_gain_auto->val)
- 		u8tmp = 0x19;
--	else if (priv->if_gain_auto->cur.val)
-+	else if (s->if_gain_auto->cur.val)
- 		u8tmp = 0x16;
- 	else
- 		u8tmp = 0x10;
- 
--	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
-+	ret = regmap_write(s->regmap, 0x1a, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	if (priv->lna_gain_auto->val == false) {
--		ret = e4000_wr_reg(priv, 0x14, priv->lna_gain->val);
-+	if (s->lna_gain_auto->val == false) {
-+		ret = regmap_write(s->regmap, 0x14, s->lna_gain->val);
- 		if (ret)
- 			goto err;
- 	}
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_set_mixer_gain(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 	u8 u8tmp;
- 
--	dev_dbg(&priv->client->dev, "%s: mixer auto=%d->%d val=%d->%d\n",
--			__func__, priv->mixer_gain_auto->cur.val,
--			priv->mixer_gain_auto->val, priv->mixer_gain->cur.val,
--			priv->mixer_gain->val);
-+	dev_dbg(&s->client->dev, "%s: mixer auto=%d->%d val=%d->%d\n",
-+			__func__, s->mixer_gain_auto->cur.val,
-+			s->mixer_gain_auto->val, s->mixer_gain->cur.val,
-+			s->mixer_gain->val);
- 
--	if (priv->mixer_gain_auto->val)
-+	if (s->mixer_gain_auto->val)
- 		u8tmp = 0x15;
- 	else
- 		u8tmp = 0x14;
- 
--	ret = e4000_wr_reg(priv, 0x20, u8tmp);
-+	ret = regmap_write(s->regmap, 0x20, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	if (priv->mixer_gain_auto->val == false) {
--		ret = e4000_wr_reg(priv, 0x15, priv->mixer_gain->val);
-+	if (s->mixer_gain_auto->val == false) {
-+		ret = regmap_write(s->regmap, 0x15, s->mixer_gain->val);
- 		if (ret)
- 			goto err;
- 	}
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_set_if_gain(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
- 	u8 buf[2];
- 	u8 u8tmp;
- 
--	dev_dbg(&priv->client->dev, "%s: if auto=%d->%d val=%d->%d\n",
--			__func__, priv->if_gain_auto->cur.val,
--			priv->if_gain_auto->val, priv->if_gain->cur.val,
--			priv->if_gain->val);
-+	dev_dbg(&s->client->dev, "%s: if auto=%d->%d val=%d->%d\n",
-+			__func__, s->if_gain_auto->cur.val,
-+			s->if_gain_auto->val, s->if_gain->cur.val,
-+			s->if_gain->val);
- 
--	if (priv->if_gain_auto->val && priv->lna_gain_auto->cur.val)
-+	if (s->if_gain_auto->val && s->lna_gain_auto->cur.val)
- 		u8tmp = 0x17;
--	else if (priv->lna_gain_auto->cur.val)
-+	else if (s->lna_gain_auto->cur.val)
- 		u8tmp = 0x19;
--	else if (priv->if_gain_auto->val)
-+	else if (s->if_gain_auto->val)
- 		u8tmp = 0x16;
- 	else
- 		u8tmp = 0x10;
- 
--	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
-+	ret = regmap_write(s->regmap, 0x1a, u8tmp);
- 	if (ret)
- 		goto err;
- 
--	if (priv->if_gain_auto->val == false) {
--		buf[0] = e4000_if_gain_lut[priv->if_gain->val].reg16_val;
--		buf[1] = e4000_if_gain_lut[priv->if_gain->val].reg17_val;
--		ret = e4000_wr_regs(priv, 0x16, buf, 2);
-+	if (s->if_gain_auto->val == false) {
-+		buf[0] = e4000_if_gain_lut[s->if_gain->val].reg16_val;
-+		buf[1] = e4000_if_gain_lut[s->if_gain->val].reg17_val;
-+		ret = regmap_bulk_write(s->regmap, 0x16, buf, 2);
- 		if (ret)
- 			goto err;
- 	}
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_pll_lock(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
-+	struct e4000 *s = fe->tuner_priv;
- 	int ret;
--	u8 u8tmp;
--
--	if (priv->active == false)
--		return 0;
-+	unsigned int utmp;
- 
--	ret = e4000_rd_reg(priv, 0x07, &u8tmp);
-+	ret = regmap_read(s->regmap, 0x07, &utmp);
- 	if (ret)
- 		goto err;
- 
--	priv->pll_lock->val = (u8tmp & 0x01);
-+	s->pll_lock->val = (utmp & 0x01);
- err:
- 	if (ret)
--		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+		dev_dbg(&s->client->dev, "%s: failed=%d\n", __func__, ret);
- 
- 	return ret;
- }
- 
- static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct e4000_priv *priv =
--			container_of(ctrl->handler, struct e4000_priv, hdl);
-+	struct e4000 *s = container_of(ctrl->handler, struct e4000, hdl);
- 	int ret;
- 
-+	if (s->active == false)
-+		return 0;
-+
- 	switch (ctrl->id) {
- 	case  V4L2_CID_PLL_LOCK:
--		ret = e4000_pll_lock(priv->fe);
-+		ret = e4000_pll_lock(s->fe);
- 		break;
- 	default:
-+		dev_dbg(&s->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
-+				__func__, ctrl->id, ctrl->name);
- 		ret = -EINVAL;
- 	}
- 
-@@ -505,36 +415,35 @@ static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 
- static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct e4000_priv *priv =
--			container_of(ctrl->handler, struct e4000_priv, hdl);
--	struct dvb_frontend *fe = priv->fe;
-+	struct e4000 *s = container_of(ctrl->handler, struct e4000, hdl);
-+	struct dvb_frontend *fe = s->fe;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 
--	dev_dbg(&priv->client->dev,
--			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
--			__func__, ctrl->id, ctrl->name, ctrl->val,
--			ctrl->minimum, ctrl->maximum, ctrl->step);
-+	if (s->active == false)
-+		return 0;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_BANDWIDTH_AUTO:
- 	case V4L2_CID_BANDWIDTH:
--		c->bandwidth_hz = priv->bandwidth->val;
--		ret = e4000_set_params(priv->fe);
-+		c->bandwidth_hz = s->bandwidth->val;
-+		ret = e4000_set_params(s->fe);
- 		break;
- 	case  V4L2_CID_LNA_GAIN_AUTO:
- 	case  V4L2_CID_LNA_GAIN:
--		ret = e4000_set_lna_gain(priv->fe);
-+		ret = e4000_set_lna_gain(s->fe);
- 		break;
- 	case  V4L2_CID_MIXER_GAIN_AUTO:
- 	case  V4L2_CID_MIXER_GAIN:
--		ret = e4000_set_mixer_gain(priv->fe);
-+		ret = e4000_set_mixer_gain(s->fe);
- 		break;
- 	case  V4L2_CID_IF_GAIN_AUTO:
- 	case  V4L2_CID_IF_GAIN:
--		ret = e4000_set_if_gain(priv->fe);
-+		ret = e4000_set_if_gain(s->fe);
- 		break;
- 	default:
-+		dev_dbg(&s->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
-+				__func__, ctrl->id, ctrl->name);
- 		ret = -EINVAL;
- 	}
- 
-@@ -562,8 +471,8 @@ static const struct dvb_tuner_ops e4000_tuner_ops = {
- 
- struct v4l2_ctrl_handler *e4000_get_ctrl_handler(struct dvb_frontend *fe)
- {
--	struct e4000_priv *priv = fe->tuner_priv;
--	return &priv->hdl;
-+	struct e4000 *s = fe->tuner_priv;
-+	return &s->hdl;
- }
- EXPORT_SYMBOL(e4000_get_ctrl_handler);
- 
-@@ -572,82 +481,91 @@ static int e4000_probe(struct i2c_client *client,
- {
- 	struct e4000_config *cfg = client->dev.platform_data;
- 	struct dvb_frontend *fe = cfg->fe;
--	struct e4000_priv *priv;
-+	struct e4000 *s;
- 	int ret;
--	u8 chip_id;
-+	unsigned int utmp;
-+	static const struct regmap_config regmap_config = {
-+		.reg_bits = 8,
-+		.val_bits = 8,
-+		.max_register = 0xff,
-+	};
- 
--	priv = kzalloc(sizeof(struct e4000_priv), GFP_KERNEL);
--	if (!priv) {
-+	s = kzalloc(sizeof(struct e4000), GFP_KERNEL);
-+	if (!s) {
- 		ret = -ENOMEM;
- 		dev_err(&client->dev, "%s: kzalloc() failed\n", KBUILD_MODNAME);
- 		goto err;
- 	}
- 
--	priv->clock = cfg->clock;
--	priv->client = client;
--	priv->fe = cfg->fe;
-+	s->clock = cfg->clock;
-+	s->client = client;
-+	s->fe = cfg->fe;
-+	s->regmap = devm_regmap_init_i2c(client, &regmap_config);
-+	if (IS_ERR(s->regmap)) {
-+		ret = PTR_ERR(s->regmap);
-+		goto err;
-+	}
- 
- 	/* check if the tuner is there */
--	ret = e4000_rd_reg(priv, 0x02, &chip_id);
--	if (ret < 0)
-+	ret = regmap_read(s->regmap, 0x02, &utmp);
-+	if (ret)
- 		goto err;
- 
--	dev_dbg(&priv->client->dev,
--			"%s: chip_id=%02x\n", __func__, chip_id);
-+	dev_dbg(&s->client->dev, "%s: chip id=%02x\n", __func__, utmp);
- 
--	if (chip_id != 0x40) {
-+	if (utmp != 0x40) {
- 		ret = -ENODEV;
- 		goto err;
- 	}
- 
- 	/* put sleep as chip seems to be in normal mode by default */
--	ret = e4000_wr_reg(priv, 0x00, 0x00);
--	if (ret < 0)
-+	ret = regmap_write(s->regmap, 0x00, 0x00);
-+	if (ret)
- 		goto err;
- 
- 	/* Register controls */
--	v4l2_ctrl_handler_init(&priv->hdl, 9);
--	priv->bandwidth_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_handler_init(&s->hdl, 9);
-+	s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
--	priv->bandwidth = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	s->bandwidth = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
--	v4l2_ctrl_auto_cluster(2, &priv->bandwidth_auto, 0, false);
--	priv->lna_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
-+	s->lna_gain_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_LNA_GAIN_AUTO, 0, 1, 1, 1);
--	priv->lna_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	s->lna_gain = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_LNA_GAIN, 0, 15, 1, 10);
--	v4l2_ctrl_auto_cluster(2, &priv->lna_gain_auto, 0, false);
--	priv->mixer_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &s->lna_gain_auto, 0, false);
-+	s->mixer_gain_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_MIXER_GAIN_AUTO, 0, 1, 1, 1);
--	priv->mixer_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_MIXER_GAIN, 0, 1, 1, 1);
--	v4l2_ctrl_auto_cluster(2, &priv->mixer_gain_auto, 0, false);
--	priv->if_gain_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &s->mixer_gain_auto, 0, false);
-+	s->if_gain_auto = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_IF_GAIN_AUTO, 0, 1, 1, 1);
--	priv->if_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	s->if_gain = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_IF_GAIN, 0, 54, 1, 0);
--	v4l2_ctrl_auto_cluster(2, &priv->if_gain_auto, 0, false);
--	priv->pll_lock = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+	v4l2_ctrl_auto_cluster(2, &s->if_gain_auto, 0, false);
-+	s->pll_lock = v4l2_ctrl_new_std(&s->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_PLL_LOCK,  0, 1, 1, 0);
--	if (priv->hdl.error) {
--		ret = priv->hdl.error;
--		dev_err(&priv->client->dev, "Could not initialize controls\n");
--		v4l2_ctrl_handler_free(&priv->hdl);
-+	if (s->hdl.error) {
-+		ret = s->hdl.error;
-+		dev_err(&s->client->dev, "Could not initialize controls\n");
-+		v4l2_ctrl_handler_free(&s->hdl);
- 		goto err;
- 	}
- 
--	dev_info(&priv->client->dev,
-+	dev_info(&s->client->dev,
- 			"%s: Elonics E4000 successfully identified\n",
- 			KBUILD_MODNAME);
- 
--	fe->tuner_priv = priv;
-+	fe->tuner_priv = s;
- 	memcpy(&fe->ops.tuner_ops, &e4000_tuner_ops,
- 			sizeof(struct dvb_tuner_ops));
--	i2c_set_clientdata(client, priv);
-+	i2c_set_clientdata(client, s);
- err:
- 	if (ret) {
- 		dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
--		kfree(priv);
-+		kfree(s);
- 	}
- 
- 	return ret;
-@@ -655,15 +573,15 @@ err:
- 
- static int e4000_remove(struct i2c_client *client)
- {
--	struct e4000_priv *priv = i2c_get_clientdata(client);
--	struct dvb_frontend *fe = priv->fe;
-+	struct e4000 *s = i2c_get_clientdata(client);
-+	struct dvb_frontend *fe = s->fe;
- 
- 	dev_dbg(&client->dev, "%s:\n", __func__);
- 
--	v4l2_ctrl_handler_free(&priv->hdl);
-+	v4l2_ctrl_handler_free(&s->hdl);
- 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
- 	fe->tuner_priv = NULL;
--	kfree(priv);
-+	kfree(s);
- 
- 	return 0;
- }
-diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
-index d41dbcc..ee36de1 100644
---- a/drivers/media/tuners/e4000_priv.h
-+++ b/drivers/media/tuners/e4000_priv.h
-@@ -23,9 +23,11 @@
- 
- #include "e4000.h"
- #include <media/v4l2-ctrls.h>
-+#include <linux/regmap.h>
- 
--struct e4000_priv {
-+struct e4000 {
- 	struct i2c_client *client;
-+	struct regmap *regmap;
- 	u32 clock;
- 	struct dvb_frontend *fe;
- 	bool active;
--- 
-1.8.5.3
+On 10.02.2014 01:44, GEORGE wrote:
+> git clone git://linuxtv.org/media_build.git
+> cd media_build
+> make -C linux/ download
+> make -C linux/ untar
+>
+>
+> git send-email --to "linux-media@vger.kernel.org" 
+> 0001-Adding-debugging-level-for-printk.patch
+>
+> V One Multimedia Pte Ltd
+>
+>
+> The hardware working:
+>
+> Tested:
+> TV: http://imgur.com/Kz37m9e
+> RADIO: http://imgur.com/Y8p7caM
+> REMOTE: http://imgur.com/FpC3u1c
+> ALSA: http://imgur.com/1co2JF1
+>
+> I do not know how to add PCI vendor id for this card:
+> "V One Multimedia Limited" to be printed in "lspci -vnn" command"
+>
+> Subsystem: V One Multimedia Limited [1779:13cf]
+>
+> now show up:
+>
+> Subsystem: Device [1779:13cf]
+>
+> I changed the first patch, reason: there is an error in the line 
+> (double "int" typed):
+>
+> "static int int __init init_rc_map_snazio_tvpvr_pro(void)":
+>
+> From 90db67edcae832d68006a8bae7c9856bf87de071 Mon Sep 17 00:00:00 2001
+> From: POJAR GEORGE <geoubuntu@gmail.com>
+> Date: Sun, 9 Feb 2014 21:25:55 +0200
+> Subject: [PATCH] saa7134: Add support for SnaZio TvPVR PRO
+>
+> Signed-off-by: POJAR GEORGE <geoubuntu@gmail.com>
+> ---
+>  Documentation/video4linux/CARDLIST.saa7134     |   1 +
+>  drivers/media/pci/saa7134/saa7134-cards.c      |  51 ++++++++++-
+>  drivers/media/pci/saa7134/saa7134-input.c      |  62 +++++++++++++
+>  drivers/media/pci/saa7134/saa7134.h            |   1 +
+>  drivers/media/rc/keymaps/Makefile              |   1 +
+>  drivers/media/rc/keymaps/rc-snazio-tvpvr-pro.c | 116 
+> +++++++++++++++++++++++++
+>  include/media/rc-map.h                         |   1 +
+>  7 files changed, 232 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/media/rc/keymaps/rc-snazio-tvpvr-pro.c
+>
+> diff --git a/Documentation/video4linux/CARDLIST.saa7134 
+> b/Documentation/video4linux/CARDLIST.saa7134
+> index 8df17d0..32e4353 100644
+> --- a/Documentation/video4linux/CARDLIST.saa7134
+> +++ b/Documentation/video4linux/CARDLIST.saa7134
+> @@ -191,3 +191,4 @@
+>  190 -> Asus My Cinema PS3-100                   [1043:48cd]
+>  191 -> Hawell HW-9004V1
+>  192 -> AverMedia AverTV Satellite Hybrid+FM A706 [1461:2055]
+> +193 -> SnaZio TvPVR PRO [0x1779:0x13cf,0x1779:0x13d0,0x1779:0x13d1]
+> diff --git a/drivers/media/pci/saa7134/saa7134-cards.c 
+> b/drivers/media/pci/saa7134/saa7134-cards.c
+> index d45e7f6..3476785 100644
+> --- a/drivers/media/pci/saa7134/saa7134-cards.c
+> +++ b/drivers/media/pci/saa7134/saa7134-cards.c
+> @@ -5827,7 +5827,37 @@ struct saa7134_board saa7134_boards[] = {
+>              .gpio = 0x0000800,
+>          },
+>      },
+> -
+> +    [SAA7134_BOARD_SNAZIO_TVPVR_PRO] = {
+> +        .name           = "SnaZio TvPVR PRO",
+> +        .audio_clock    = 0x00187de7,
+> +        .tuner_type     = TUNER_PHILIPS_TDA8290,
+> +        .radio_type     = UNSET,
+> +        .tuner_addr     = ADDR_UNSET,
+> +        .radio_addr     = ADDR_UNSET,
+> +        .gpiomask       = 1 << 21,
+> +        .inputs         = {{
+> +            .name = name_tv,
+> +            .vmux = 1,
+> +            .amux = TV,
+> +            .gpio = 0x0000000,
+> +            .tv   = 1,
+> +        }, {
+> +            .name = name_comp1,     /* Composite input */
+> +            .vmux = 3,
+> +            .amux = LINE2,
+> +            .gpio = 0x0000000,
+> +        }, {
+> +            .name = name_svideo,    /* S-Video input */
+> +            .vmux = 8,
+> +            .amux = LINE2,
+> +            .gpio = 0x0000000,
+> +        } },
+> +        .radio = {
+> +            .name = name_radio,
+> +            .amux = TV,
+> +            .gpio = 0x0200000,
+> +        },
+> +    },
+>  };
+>
+>  const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+> @@ -7080,6 +7110,24 @@ struct pci_device_id saa7134_pci_tbl[] = {
+>          .subdevice    = 0x2055, /* AverTV Satellite Hybrid+FM A706 */
+>          .driver_data  = SAA7134_BOARD_AVERMEDIA_A706,
+>      }, {
+> +        .vendor       = PCI_VENDOR_ID_PHILIPS,
+> +        .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+> +        .subvendor    = 0x1779,
+> +        .subdevice    = 0x13cf,
+> +        .driver_data  = SAA7134_BOARD_SNAZIO_TVPVR_PRO,
+> +    }, {
+> +        .vendor       = PCI_VENDOR_ID_PHILIPS,
+> +        .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+> +        .subvendor    = 0x1779,
+> +        .subdevice    = 0x13d0,
+> +        .driver_data  = SAA7134_BOARD_SNAZIO_TVPVR_PRO,
+> +    }, {
+> +        .vendor       = PCI_VENDOR_ID_PHILIPS,
+> +        .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+> +        .subvendor    = 0x1779,
+> +        .subdevice    = 0x13d1,
+> +        .driver_data  = SAA7134_BOARD_SNAZIO_TVPVR_PRO,
+> +    }, {
+>          /* --- boards without eeprom + subsystem ID --- */
+>          .vendor       = PCI_VENDOR_ID_PHILIPS,
+>          .device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+> @@ -7608,6 +7656,7 @@ int saa7134_board_init1(struct saa7134_dev *dev)
+>      case SAA7134_BOARD_BEHOLD_H7:
+>      case SAA7134_BOARD_BEHOLD_A7:
+>      case SAA7134_BOARD_KWORLD_PC150U:
+> +    case SAA7134_BOARD_SNAZIO_TVPVR_PRO:
+>          dev->has_remote = SAA7134_REMOTE_I2C;
+>          break;
+>      case SAA7134_BOARD_AVERMEDIA_A169_B:
+> diff --git a/drivers/media/pci/saa7134/saa7134-input.c 
+> b/drivers/media/pci/saa7134/saa7134-input.c
+> index 6f43126..62ccc7d 100644
+> --- a/drivers/media/pci/saa7134/saa7134-input.c
+> +++ b/drivers/media/pci/saa7134/saa7134-input.c
+> @@ -416,6 +416,53 @@ static int get_key_pinnacle_color(struct IR_i2c 
+> *ir, u32 *ir_key, u32 *ir_raw)
+>      return get_key_pinnacle(ir, ir_key, ir_raw, 2, 0x80, 0x88);
+>  }
+>
+> +/* copied and modified from get_key_msi_tvanywhere_plus() */
+> +static int get_key_snazio_tvpvr_pro(struct IR_i2c *ir, u32 *ir_key, 
+> u32 *ir_raw)
+> +{
+> +    unsigned char b;
+> +    unsigned int gpio;
+> +
+> +    /* <dev> is needed to access GPIO. Used by the saa_readl macro. */
+> +    struct saa7134_dev *dev = ir->c->adapter->algo_data;
+> +    if (dev == NULL) {
+> +        i2cdprintk("get_key_snazio_tvpvr_pro: "
+> +               "ir->c->adapter->algo_data is NULL!\n");
+> +        return -EIO;
+> +    }
+> +
+> +    /* rising SAA7134_GPIO_GPRESCAN reads the status */
+> +
+> +    saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
+> +    saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
+> +
+> +    gpio = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2);
+> +
+> +    /* GPIO&0x100 is pulsed low when a button is pressed. Don't do
+> +       I2C receive if gpio&0x100 is not low. */
+> +
+> +    if (gpio & 0x100)
+> +        return 0;       /* No button press */
+> +
+> +    /* GPIO says there is a button press. Get it. */
+> +
+> +    if (1 != i2c_master_recv(ir->c, &b, 1)) {
+> +        i2cdprintk("read error\n");
+> +        return -EIO;
+> +    }
+> +
+> +    /* No button press */
+> +
+> +    if (b == 0xff)
+> +        return 0;
+> +
+> +    /* Button pressed */
+> +
+> +    dprintk("get_key_snazio_tvpvr_pro: Key = 0x%02X\n", b);
+> +    *ir_key = b;
+> +    *ir_raw = b;
+> +    return 1;
+> +}
+> +
+>  void saa7134_input_irq(struct saa7134_dev *dev)
+>  {
+>      struct saa7134_card_ir *ir;
+> @@ -1006,6 +1053,21 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
+>          dev->init_data.ir_codes = RC_MAP_FLYDVB;
+>          info.addr = 0x0b;
+>          break;
+> +    case SAA7134_BOARD_SNAZIO_TVPVR_PRO:
+> +        /* copied and modified from MSI TV@nywhere Plus */
+> +        dev->init_data.name = "SnaZio TvPVR PRO";
+> +        dev->init_data.get_key = get_key_snazio_tvpvr_pro;
+> +        dev->init_data.ir_codes = RC_MAP_SNAZIO_TVPVR_PRO;
+> +        info.addr = 0x30;
+> +        /* MSI TV@nywhere Plus controller doesn't seem to
+> +           respond to probes unless we read something from
+> +           an existing device. Weird...
+> +           REVISIT: might no longer be needed */
+> +        rc = i2c_transfer(&dev->i2c_adap, &msg_msi, 1);
+> +        dprintk("probe 0x%02x @ %s: %s\n",
+> +            msg_msi.addr, dev->i2c_adap.name,
+> +            (1 == rc) ? "yes" : "no");
+> +        break;
+>      default:
+>          dprintk("No I2C IR support for board %x\n", dev->board);
+>          return;
+> diff --git a/drivers/media/pci/saa7134/saa7134.h 
+> b/drivers/media/pci/saa7134/saa7134.h
+> index 2474e84..28b083f 100644
+> --- a/drivers/media/pci/saa7134/saa7134.h
+> +++ b/drivers/media/pci/saa7134/saa7134.h
+> @@ -338,6 +338,7 @@ struct saa7134_card_ir {
+>  #define SAA7134_BOARD_ASUSTeK_PS3_100      190
+>  #define SAA7134_BOARD_HAWELL_HW_9004V1      191
+>  #define SAA7134_BOARD_AVERMEDIA_A706        192
+> +#define SAA7134_BOARD_SNAZIO_TVPVR_PRO      193
+>
+>  #define SAA7134_MAXBOARDS 32
+>  #define SAA7134_INPUT_MAX 8
+> diff --git a/drivers/media/rc/keymaps/Makefile 
+> b/drivers/media/rc/keymaps/Makefile
+> index 0b8c549..72b2e45 100644
+> --- a/drivers/media/rc/keymaps/Makefile
+> +++ b/drivers/media/rc/keymaps/Makefile
+> @@ -81,6 +81,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+>              rc-real-audio-220-32-keys.o \
+>              rc-reddo.o \
+>              rc-snapstream-firefly.o \
+> +            rc-snazio-tvpvr-pro.o \
+>              rc-streamzap.o \
+>              rc-tbs-nec.o \
+>              rc-technisat-usb2.o \
+> diff --git a/drivers/media/rc/keymaps/rc-snazio-tvpvr-pro.c 
+> b/drivers/media/rc/keymaps/rc-snazio-tvpvr-pro.c
+> new file mode 100644
+> index 0000000..44f0c81
+> --- /dev/null
+> +++ b/drivers/media/rc/keymaps/rc-snazio-tvpvr-pro.c
+> @@ -0,0 +1,116 @@
+> +/* rc-snazio-tvpvr-pro.h - Keytable for snazio_tvpvr_pro Remote 
+> Controller
+> + *
+> + * keymap imported from ir-keymaps.c
+> + *
+> + * Copyright (c) 2010 by Mauro Carvalho Chehab
+> + * Copyright (c) 2014 by POJAR GEORGE <geoubuntu@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include <media/rc-map.h>
+> +#include <linux/module.h>
+> +
+> +/*
+> +  Keycodes for remote on the SnaZio TvPVR PRO.
+> +  POJAR GEORGE <geoubuntu@gmail.com>
+> +*/
+> +
+> +static struct rc_map_table snazio_tvpvr_pro[] = {
+> +
+> +/*  ---- Remote Button Layout ----
+> +
+> +    POWER   SOURCE  SCAN    MUTE
+> +    TV/FM   1       2       3
+> +    |>      4       5       6
+> +    <|      7       8       9
+> +    ^^UP    0       +       RECALL
+> +    vvDN    RECORD  STOP    PLAY
+> +
+> +    MINIMIZE          ZOOM
+> +
+> +          CH+
+> +      VOL-                   VOL+
+> +          CH-
+> +
+> +    SNAPSHOT           MTS
+> +
+> +     <<      FUNC    >>     RESET
+> +*/
+> +
+> +    { 0x01, KEY_1 },        /* 1 */
+> +    { 0x0b, KEY_2 },        /* 2 */
+> +    { 0x1b, KEY_3 },        /* 3 */
+> +    { 0x05, KEY_4 },        /* 4 */
+> +    { 0x09, KEY_5 },        /* 5 */
+> +    { 0x15, KEY_6 },        /* 6 */
+> +    { 0x06, KEY_7 },        /* 7 */
+> +    { 0x0a, KEY_8 },        /* 8 */
+> +    { 0x12, KEY_9 },        /* 9 */
+> +    { 0x02, KEY_0 },        /* 0 */
+> +    { 0x10, KEY_KPPLUS },        /* + */
+> +    { 0x13, KEY_AGAIN },        /* Recall */
+> +
+> +    { 0x1e, KEY_POWER },        /* Power */
+> +    { 0x07, KEY_VIDEO },        /* Source */
+> +    { 0x1c, KEY_SEARCH },        /* Scan */
+> +    { 0x18, KEY_MUTE },        /* Mute */
+> +
+> +    { 0x03, KEY_RADIO },        /* TV/FM */
+> +    /* The next four keys are duplicates that appear to send the
+> +       same IR code as Ch+, Ch-, >>, and << .  The raw code assigned
+> +       to them is the actual code + 0x20 - they will never be
+> +       detected as such unless some way is discovered to distinguish
+> +       these buttons from those that have the same code. */
+> +    { 0x3f, KEY_RIGHT },        /* |> and Ch+ */
+> +    { 0x37, KEY_LEFT },        /* <| and Ch- */
+> +    { 0x2c, KEY_UP },        /* ^^Up and >> */
+> +    { 0x24, KEY_DOWN },        /* vvDn and << */
+> +
+> +    { 0x00, KEY_RECORD },        /* Record */
+> +    { 0x08, KEY_STOP },        /* Stop */
+> +    { 0x11, KEY_PLAY },        /* Play */
+> +
+> +    { 0x0f, KEY_CLOSE },        /* Minimize */
+> +    { 0x19, KEY_ZOOM },        /* Zoom */
+> +    { 0x1a, KEY_CAMERA },        /* Snapshot */
+> +    { 0x0d, KEY_LANGUAGE },        /* MTS */
+> +
+> +    { 0x14, KEY_VOLUMEDOWN },    /* Vol- */
+> +    { 0x16, KEY_VOLUMEUP },        /* Vol+ */
+> +    { 0x17, KEY_CHANNELDOWN },    /* Ch- */
+> +    { 0x1f, KEY_CHANNELUP },    /* Ch+ */
+> +
+> +    { 0x04, KEY_REWIND },        /* << */
+> +    { 0x0e, KEY_MENU },        /* Function */
+> +    { 0x0c, KEY_FASTFORWARD },    /* >> */
+> +    { 0x1d, KEY_RESTART },        /* Reset */
+> +};
+> +
+> +static struct rc_map_list snazio_tvpvr_pro_map = {
+> +    .map = {
+> +        .scan    = snazio_tvpvr_pro,
+> +        .size    = ARRAY_SIZE(snazio_tvpvr_pro),
+> +        .rc_type = RC_TYPE_UNKNOWN,    /* Legacy IR type */
+> +        .name    = RC_MAP_SNAZIO_TVPVR_PRO,
+> +    }
+> +};
+> +
+> +static int __init init_rc_map_snazio_tvpvr_pro(void)
+> +{
+> +    return rc_map_register(&snazio_tvpvr_pro_map);
+> +}
+> +
+> +static void __exit exit_rc_map_snazio_tvpvr_pro(void)
+> +{
+> +    rc_map_unregister(&snazio_tvpvr_pro_map);
+> +}
+> +
+> +module_init(init_rc_map_snazio_tvpvr_pro)
+> +module_exit(exit_rc_map_snazio_tvpvr_pro)
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("POJAR GEORGE <geoubuntu@gmail.com>");
+> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+> index e5aa240..b802af4 100644
+> --- a/include/media/rc-map.h
+> +++ b/include/media/rc-map.h
+> @@ -177,6 +177,7 @@ void rc_map_init(void);
+>  #define RC_MAP_REAL_AUDIO_220_32_KEYS "rc-real-audio-220-32-keys"
+>  #define RC_MAP_REDDO                     "rc-reddo"
+>  #define RC_MAP_SNAPSTREAM_FIREFLY        "rc-snapstream-firefly"
+> +#define RC_MAP_SNAZIO_TVPVR_PRO          "rc-snazio-tvpvr-pro"
+>  #define RC_MAP_STREAMZAP                 "rc-streamzap"
+>  #define RC_MAP_TBS_NEC                   "rc-tbs-nec"
+>  #define RC_MAP_TECHNISAT_USB2            "rc-technisat-usb2"
 
