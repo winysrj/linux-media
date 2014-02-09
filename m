@@ -1,358 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f169.google.com ([209.85.213.169]:62304 "EHLO
-	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752463AbaBQQqS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 11:46:18 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:36304 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751467AbaBIItz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:55 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 00/86] SDR tree
+Date: Sun,  9 Feb 2014 10:48:05 +0200
+Message-Id: <1391935771-18670-1-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20140217155617.20337.22601.stgit@patser>
-References: <20140217155056.20337.25254.stgit@patser>
-	<20140217155617.20337.22601.stgit@patser>
-Date: Mon, 17 Feb 2014 11:46:16 -0500
-Message-ID: <CAF6AEGtFAB4QaPZyeWvEYeUdGcbBK=sAKe20LPTuKNkDoEFdWw@mail.gmail.com>
-Subject: Re: [PATCH 3/6] dma-buf: use reservation objects
-From: Rob Clark <robdclark@gmail.com>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-arch@vger.kernel.org, Colin Cross <ccross@google.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 17, 2014 at 10:56 AM, Maarten Lankhorst
-<maarten.lankhorst@canonical.com> wrote:
-> This allows reservation objects to be used in dma-buf. it's required
-> for implementing polling support on the fences that belong to a dma-buf.
->
-> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-> Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com> #drivers/media/v4l2-core/
-> ---
->  drivers/base/dma-buf.c                         |   22 ++++++++++++++++++++--
->  drivers/gpu/drm/drm_prime.c                    |    8 +++++++-
->  drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |    2 +-
->  drivers/gpu/drm/i915/i915_gem_dmabuf.c         |    2 +-
->  drivers/gpu/drm/nouveau/nouveau_drm.c          |    1 +
->  drivers/gpu/drm/nouveau/nouveau_gem.h          |    1 +
->  drivers/gpu/drm/nouveau/nouveau_prime.c        |    7 +++++++
->  drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |    2 +-
->  drivers/gpu/drm/radeon/radeon_drv.c            |    2 ++
->  drivers/gpu/drm/radeon/radeon_prime.c          |    8 ++++++++
->  drivers/gpu/drm/ttm/ttm_object.c               |    2 +-
->  drivers/media/v4l2-core/videobuf2-dma-contig.c |    2 +-
->  include/drm/drmP.h                             |    2 ++
->  include/linux/dma-buf.h                        |    9 ++++++---
->  14 files changed, 59 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index 1e16cbd61da2..85e792c2c909 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -25,10 +25,12 @@
->  #include <linux/fs.h>
->  #include <linux/slab.h>
->  #include <linux/dma-buf.h>
-> +#include <linux/fence.h>
->  #include <linux/anon_inodes.h>
->  #include <linux/export.h>
->  #include <linux/debugfs.h>
->  #include <linux/seq_file.h>
-> +#include <linux/reservation.h>
->
->  static inline int is_dma_buf_file(struct file *);
->
-> @@ -56,6 +58,9 @@ static int dma_buf_release(struct inode *inode, struct file *file)
->         list_del(&dmabuf->list_node);
->         mutex_unlock(&db_list.lock);
->
-> +       if (dmabuf->resv == (struct reservation_object*)&dmabuf[1])
-> +               reservation_object_fini(dmabuf->resv);
-> +
->         kfree(dmabuf);
->         return 0;
->  }
-> @@ -128,6 +133,7 @@ static inline int is_dma_buf_file(struct file *file)
->   * @size:      [in]    Size of the buffer
->   * @flags:     [in]    mode flags for the file.
->   * @exp_name:  [in]    name of the exporting module - useful for debugging.
-> + * @resv:      [in]    reservation-object, NULL to allocate default one.
->   *
->   * Returns, on success, a newly created dma_buf object, which wraps the
->   * supplied private data and operations for dma_buf_ops. On either missing
-> @@ -135,10 +141,17 @@ static inline int is_dma_buf_file(struct file *file)
->   *
->   */
->  struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
-> -                               size_t size, int flags, const char *exp_name)
-> +                               size_t size, int flags, const char *exp_name,
-> +                               struct reservation_object *resv)
->  {
->         struct dma_buf *dmabuf;
->         struct file *file;
-> +       size_t alloc_size = sizeof(struct dma_buf);
-> +       if (!resv)
-> +               alloc_size += sizeof(struct reservation_object);
-> +       else
-> +               /* prevent &dma_buf[1] == dma_buf->resv */
-> +               alloc_size += 1;
->
->         if (WARN_ON(!priv || !ops
->                           || !ops->map_dma_buf
-> @@ -150,7 +163,7 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
->                 return ERR_PTR(-EINVAL);
->         }
->
-> -       dmabuf = kzalloc(sizeof(struct dma_buf), GFP_KERNEL);
-> +       dmabuf = kzalloc(alloc_size, GFP_KERNEL);
->         if (dmabuf == NULL)
->                 return ERR_PTR(-ENOMEM);
->
-> @@ -158,6 +171,11 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
->         dmabuf->ops = ops;
->         dmabuf->size = size;
->         dmabuf->exp_name = exp_name;
-> +       if (!resv) {
-> +               resv = (struct reservation_object*)&dmabuf[1];
-> +               reservation_object_init(resv);
-> +       }
-> +       dmabuf->resv = resv;
->
->         file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf, flags);
->         if (IS_ERR(file)) {
-> diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
-> index 56805c39c906..a13e90245adf 100644
-> --- a/drivers/gpu/drm/drm_prime.c
-> +++ b/drivers/gpu/drm/drm_prime.c
-> @@ -318,7 +318,13 @@ static const struct dma_buf_ops drm_gem_prime_dmabuf_ops =  {
->  struct dma_buf *drm_gem_prime_export(struct drm_device *dev,
->                                      struct drm_gem_object *obj, int flags)
->  {
-> -       return dma_buf_export(obj, &drm_gem_prime_dmabuf_ops, obj->size, flags);
-> +       struct reservation_object *robj = NULL;
-> +
-> +       if (dev->driver->gem_prime_res_obj)
-> +               robj = dev->driver->gem_prime_res_obj(obj);
+That is everything I have on my SDR queue. There is drivers for Mirics
+MSi3101 and Realtek RTL2832U based devices. These drivers are still on
+staging and I am not going to move those out of staging very soon as I
+want get some experiments first.
 
-well, you could hook up msm_gem_prime_res_obj too (since I already
-have a resv obj in 'struct msm_gem_object' ;-)
+That set is available via Git:
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/sdr_review
 
-That said, I wonder if maybe we just want to promote the 'struct
-reservation_object' ptr into 'struct drm_gem_object' so we can have a
-common get_prime_res_obj fxn for everyone using GEM?
 
-Anyways, that only matters within drivers/gpu/drm so easy enough to
-change it later.. so for the drm/fence/reservation/dmabuf bits:
+Simplest way to test it in practice is listen FM radio using SDRSharp as a radio player.
+I made simple plug-in for that:
+https://github.com/palosaari/sdrsharp-v4l2
 
-Reviewed-by: Rob Clark <robdclark@gmail.com>
+That plug-in supports currently only on 64-bit Kernel...
 
-> +
-> +       return dma_buf_export(obj, &drm_gem_prime_dmabuf_ops, obj->size,
-> +                             flags, robj);
->  }
->  EXPORT_SYMBOL(drm_gem_prime_export);
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-> index 59827cc5e770..b5e89f46326e 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-> @@ -187,7 +187,7 @@ struct dma_buf *exynos_dmabuf_prime_export(struct drm_device *drm_dev,
->         struct exynos_drm_gem_obj *exynos_gem_obj = to_exynos_gem_obj(obj);
->
->         return dma_buf_export(obj, &exynos_dmabuf_ops,
-> -                               exynos_gem_obj->base.size, flags);
-> +                               exynos_gem_obj->base.size, flags, NULL);
->  }
->
->  struct drm_gem_object *exynos_dmabuf_prime_import(struct drm_device *drm_dev,
-> diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> index 9bb533e0d762..ea66f40e95b3 100644
-> --- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> +++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> @@ -233,7 +233,7 @@ static const struct dma_buf_ops i915_dmabuf_ops =  {
->  struct dma_buf *i915_gem_prime_export(struct drm_device *dev,
->                                       struct drm_gem_object *gem_obj, int flags)
->  {
-> -       return dma_buf_export(gem_obj, &i915_dmabuf_ops, gem_obj->size, flags);
-> +       return dma_buf_export(gem_obj, &i915_dmabuf_ops, gem_obj->size, flags, NULL);
->  }
->
->  static int i915_gem_object_get_pages_dmabuf(struct drm_i915_gem_object *obj)
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_drm.c b/drivers/gpu/drm/nouveau/nouveau_drm.c
-> index 78c8e7146d56..2a15c8e8d199 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_drm.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_drm.c
-> @@ -816,6 +816,7 @@ driver = {
->         .gem_prime_export = drm_gem_prime_export,
->         .gem_prime_import = drm_gem_prime_import,
->         .gem_prime_pin = nouveau_gem_prime_pin,
-> +       .gem_prime_res_obj = nouveau_gem_prime_res_obj,
->         .gem_prime_unpin = nouveau_gem_prime_unpin,
->         .gem_prime_get_sg_table = nouveau_gem_prime_get_sg_table,
->         .gem_prime_import_sg_table = nouveau_gem_prime_import_sg_table,
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_gem.h b/drivers/gpu/drm/nouveau/nouveau_gem.h
-> index 7caca057bc38..ddab762d81fe 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_gem.h
-> +++ b/drivers/gpu/drm/nouveau/nouveau_gem.h
-> @@ -35,6 +35,7 @@ extern int nouveau_gem_ioctl_info(struct drm_device *, void *,
->                                   struct drm_file *);
->
->  extern int nouveau_gem_prime_pin(struct drm_gem_object *);
-> +struct reservation_object *nouveau_gem_prime_res_obj(struct drm_gem_object *);
->  extern void nouveau_gem_prime_unpin(struct drm_gem_object *);
->  extern struct sg_table *nouveau_gem_prime_get_sg_table(struct drm_gem_object *);
->  extern struct drm_gem_object *nouveau_gem_prime_import_sg_table(
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_prime.c b/drivers/gpu/drm/nouveau/nouveau_prime.c
-> index 51a2cb102b44..1f51008e4d26 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_prime.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_prime.c
-> @@ -102,3 +102,10 @@ void nouveau_gem_prime_unpin(struct drm_gem_object *obj)
->
->         nouveau_bo_unpin(nvbo);
->  }
-> +
-> +struct reservation_object *nouveau_gem_prime_res_obj(struct drm_gem_object *obj)
-> +{
-> +       struct nouveau_bo *nvbo = nouveau_gem_object(obj);
-> +
-> +       return nvbo->bo.resv;
-> +}
-> diff --git a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-> index 4fcca8d42796..a2dbfb1737b4 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-> @@ -171,7 +171,7 @@ static struct dma_buf_ops omap_dmabuf_ops = {
->  struct dma_buf *omap_gem_prime_export(struct drm_device *dev,
->                 struct drm_gem_object *obj, int flags)
->  {
-> -       return dma_buf_export(obj, &omap_dmabuf_ops, obj->size, flags);
-> +       return dma_buf_export(obj, &omap_dmabuf_ops, obj->size, flags, NULL);
->  }
->
->  struct drm_gem_object *omap_gem_prime_import(struct drm_device *dev,
-> diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
-> index 84a1bbb75f91..c15c1a1996fc 100644
-> --- a/drivers/gpu/drm/radeon/radeon_drv.c
-> +++ b/drivers/gpu/drm/radeon/radeon_drv.c
-> @@ -128,6 +128,7 @@ struct drm_gem_object *radeon_gem_prime_import_sg_table(struct drm_device *dev,
->                                                         struct sg_table *sg);
->  int radeon_gem_prime_pin(struct drm_gem_object *obj);
->  void radeon_gem_prime_unpin(struct drm_gem_object *obj);
-> +struct reservation_object *radeon_gem_prime_res_obj(struct drm_gem_object *);
->  void *radeon_gem_prime_vmap(struct drm_gem_object *obj);
->  void radeon_gem_prime_vunmap(struct drm_gem_object *obj, void *vaddr);
->  extern long radeon_kms_compat_ioctl(struct file *filp, unsigned int cmd,
-> @@ -561,6 +562,7 @@ static struct drm_driver kms_driver = {
->         .gem_prime_import = drm_gem_prime_import,
->         .gem_prime_pin = radeon_gem_prime_pin,
->         .gem_prime_unpin = radeon_gem_prime_unpin,
-> +       .gem_prime_res_obj = radeon_gem_prime_res_obj,
->         .gem_prime_get_sg_table = radeon_gem_prime_get_sg_table,
->         .gem_prime_import_sg_table = radeon_gem_prime_import_sg_table,
->         .gem_prime_vmap = radeon_gem_prime_vmap,
-> diff --git a/drivers/gpu/drm/radeon/radeon_prime.c b/drivers/gpu/drm/radeon/radeon_prime.c
-> index 20074560fc25..28d71070c389 100644
-> --- a/drivers/gpu/drm/radeon/radeon_prime.c
-> +++ b/drivers/gpu/drm/radeon/radeon_prime.c
-> @@ -103,3 +103,11 @@ void radeon_gem_prime_unpin(struct drm_gem_object *obj)
->         radeon_bo_unpin(bo);
->         radeon_bo_unreserve(bo);
->  }
-> +
-> +
-> +struct reservation_object *radeon_gem_prime_res_obj(struct drm_gem_object *obj)
-> +{
-> +       struct radeon_bo *bo = gem_to_radeon_bo(obj);
-> +
-> +       return bo->tbo.resv;
-> +}
-> diff --git a/drivers/gpu/drm/ttm/ttm_object.c b/drivers/gpu/drm/ttm/ttm_object.c
-> index 53b51c4e671a..d06f29bd2124 100644
-> --- a/drivers/gpu/drm/ttm/ttm_object.c
-> +++ b/drivers/gpu/drm/ttm/ttm_object.c
-> @@ -649,7 +649,7 @@ int ttm_prime_handle_to_fd(struct ttm_object_file *tfile,
->                 }
->
->                 dma_buf = dma_buf_export(prime, &tdev->ops,
-> -                                        prime->size, flags);
-> +                                        prime->size, flags, NULL);
->                 if (IS_ERR(dma_buf)) {
->                         ret = PTR_ERR(dma_buf);
->                         ttm_mem_global_free(tdev->mem_glob,
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index 33d3871d1e13..93bd2230ab0b 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -404,7 +404,7 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
->         if (WARN_ON(!buf->sgt_base))
->                 return NULL;
->
-> -       dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, flags);
-> +       dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, flags, NULL);
->         if (IS_ERR(dbuf))
->                 return NULL;
->
-> diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-> index 04a7f31301f8..902d3abdd9f9 100644
-> --- a/include/drm/drmP.h
-> +++ b/include/drm/drmP.h
-> @@ -82,6 +82,7 @@ struct drm_device;
->
->  struct device_node;
->  struct videomode;
-> +struct reservation_object;
->
->  #include <drm/drm_os_linux.h>
->  #include <drm/drm_hashtab.h>
-> @@ -959,6 +960,7 @@ struct drm_driver {
->         /* low-level interface used by drm_gem_prime_{import,export} */
->         int (*gem_prime_pin)(struct drm_gem_object *obj);
->         void (*gem_prime_unpin)(struct drm_gem_object *obj);
-> +       struct reservation_object *(*gem_prime_res_obj)(struct drm_gem_object *);
->         struct sg_table *(*gem_prime_get_sg_table)(struct drm_gem_object *obj);
->         struct drm_gem_object *(*gem_prime_import_sg_table)(
->                                 struct drm_device *dev, size_t size,
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index dfac5ed31120..34cfbac52c03 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -115,6 +115,7 @@ struct dma_buf_ops {
->   * @exp_name: name of the exporter; useful for debugging.
->   * @list_node: node for dma_buf accounting and debugging.
->   * @priv: exporter specific private data for this buffer object.
-> + * @resv: reservation object linked to this dma-buf
->   */
->  struct dma_buf {
->         size_t size;
-> @@ -128,6 +129,7 @@ struct dma_buf {
->         const char *exp_name;
->         struct list_head list_node;
->         void *priv;
-> +       struct reservation_object *resv;
->  };
->
->  /**
-> @@ -168,10 +170,11 @@ void dma_buf_detach(struct dma_buf *dmabuf,
->                                 struct dma_buf_attachment *dmabuf_attach);
->
->  struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
-> -                              size_t size, int flags, const char *);
-> +                              size_t size, int flags, const char *,
-> +                              struct reservation_object *);
->
-> -#define dma_buf_export(priv, ops, size, flags) \
-> -       dma_buf_export_named(priv, ops, size, flags, __FILE__)
-> +#define dma_buf_export(priv, ops, size, flags, resv)   \
-> +       dma_buf_export_named(priv, ops, size, flags, __FILE__, resv)
->
->  int dma_buf_fd(struct dma_buf *dmabuf, int flags);
->  struct dma_buf *dma_buf_get(int fd);
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+
+Installation is this simple (Fedora 20):
+
+$ sudo yum install mono-core monodevelop
+$ svn co https://subversion.assembla.com/svn/sdrsharp/trunk sdrsharp
+$ cd sdrsharp
+$ git clone https://github.com/palosaari/sdrsharp-v4l2.git V4L2
+$ sed -i 's/Format Version 12\.00/Format Version 11\.00/' SDRSharp.sln
+
+* Add following line to SDRSharp/App.config file inside frontendPlugins tag
+    <add key="Linux Kernel V4L2" value="SDRSharp.V4L2.LibV4LIO,SDRSharp.V4L2" />
+
+$ monodevelop SDRSharp.sln
+* View > Default
+* Solution SDRSharp > Add > Add Existing Project... > V4L2 > SDRSharp.V4L2.csproj
+* Select Release|x86
+* Build > Build All
+* File > Quit
+$ mono Release/SDRSharp.exe
+
+
+regards
+Antti
+
+
+Antti Palosaari (85):
+  rtl2832_sdr: Realtek RTL2832 SDR driver module
+  rtl28xxu: attach SDR extension module
+  rtl2832_sdr: use config struct from rtl2832 module
+  rtl2832_sdr: initial support for R820T tuner
+  rtl2832_sdr: use get_if_frequency()
+  rtl2832_sdr: implement sampling rate
+  rtl2832_sdr: initial support for FC0012 tuner
+  rtl2832_sdr: initial support for FC0013 tuner
+  rtl28xxu: constify demod config structs
+  rtl2832: remove unused if_dvbt config parameter
+  rtl2832: style changes and minor cleanup
+  rtl2832_sdr: pixel format for SDR
+  rtl2832_sdr: implement FMT IOCTLs
+  msi3101: add signed 8-bit pixel format for SDR
+  msi3101: implement FMT IOCTLs
+  msi3101: move format 384 conversion to libv4lconvert
+  msi3101: move format 336 conversion to libv4lconvert
+  msi3101: move format 252 conversion to libv4lconvert
+  rtl28xxu: add module parameter to disable IR
+  rtl2832_sdr: increase USB buffers
+  rtl2832_sdr: convert to SDR API
+  msi3101: convert to SDR API
+  msi3101: add u8 sample format
+  msi3101: add u16 LE sample format
+  msi3101: tons of small changes
+  rtl2832_sdr: return NULL on rtl2832_sdr_attach failure
+  rtl2832_sdr: calculate bandwidth if not set by user
+  rtl2832_sdr: clamp ADC frequency to valid range always
+  rtl2832_sdr: improve ADC device programming logic
+  rtl2832_sdr: remove FMT buffer type checks
+  rtl2832_sdr: switch FM to DAB mode
+  msi3101: calculate tuner filters
+  msi3101: remove FMT buffer type checks
+  msi3101: improve ADC config stream format selection
+  msi3101: clamp ADC and RF to valid range
+  msi3101: disable all but u8 and u16le formats
+  v4l: add RF tuner gain controls
+  msi3101: use standard V4L gain controls
+  e4000: convert DVB tuner to I2C driver model
+  e4000: add manual gain controls
+  rtl2832_sdr: expose E4000 gain controls to user space
+  r820t: add manual gain controls
+  rtl2832_sdr: expose R820 gain controls to user space
+  e4000: fix PLL calc to allow higher frequencies
+  msi3101: fix device caps to advertise SDR receiver
+  rtl2832_sdr: fix device caps to advertise SDR receiver
+  msi3101: add default FMT and ADC frequency
+  msi3101: sleep USB ADC and tuner when streaming is stopped
+  DocBook: document RF tuner gain controls
+  DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
+  DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
+  DocBook: media: document V4L2_CTRL_CLASS_RF_TUNER
+  xc2028: silence compiler warnings
+  v4l: add RF tuner channel bandwidth control
+  msi3101: implement tuner bandwidth control
+  rtl2832_sdr: implement tuner bandwidth control
+  msi001: Mirics MSi001 silicon tuner driver
+  msi3101: use msi001 tuner driver
+  MAINTAINERS: add msi001 driver
+  MAINTAINERS: add msi3101 driver
+  MAINTAINERS: add rtl2832_sdr driver
+  rtl28xxu: attach SDR module later
+  e4000: implement controls via v4l2 control framework
+  rtl2832_sdr: use E4000 tuner controls via V4L framework
+  e4000: remove .set_config() which was for controls
+  rtl28xxu: fix switch-case style issue
+  v4l: reorganize RF tuner control ID numbers
+  DocBook: document RF tuner bandwidth controls
+  v4l: uapi: add SDR formats CU8 and CU16LE
+  msi3101: use formats defined in V4L2 API
+  rtl2832_sdr: use formats defined in V4L2 API
+  v4l: add enum_freq_bands support to tuner sub-device
+  msi001: implement .enum_freq_bands()
+  msi3101: provide RF tuner bands from sub-device
+  r820t/rtl2832u_sdr: implement gains using v4l2 controls
+  v4l: add control for RF tuner PLL lock flag
+  e4000: implement PLL lock v4l control
+  DocBook: media: document PLL lock control
+  rtl2832: provide muxed I2C adapter
+  rtl2832: add muxed I2C adapter for demod itself
+  rtl2832: implement delayed I2C gate close
+  rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
+  e4000: get rid of DVB i2c_gate_ctrl()
+  rtl2832_sdr: do not init tuner when only freq is changed
+  e4000: convert to Regmap API
+
+Luis Alves (1):
+  rtl2832: Fix deadlock on i2c mux select function.
+
+ Documentation/DocBook/media/v4l/controls.xml       |  119 ++
+ .../DocBook/media/v4l/pixfmt-sdr-cu08.xml          |   44 +
+ .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        |   46 +
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    3 +
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +-
+ MAINTAINERS                                        |   30 +
+ drivers/media/dvb-frontends/Kconfig                |    2 +-
+ drivers/media/dvb-frontends/rtl2832.c              |  191 ++-
+ drivers/media/dvb-frontends/rtl2832.h              |   34 +-
+ drivers/media/dvb-frontends/rtl2832_priv.h         |   54 +-
+ drivers/media/tuners/Kconfig                       |    1 +
+ drivers/media/tuners/e4000.c                       |  598 +++++---
+ drivers/media/tuners/e4000.h                       |   21 +-
+ drivers/media/tuners/e4000_priv.h                  |   86 +-
+ drivers/media/tuners/r820t.c                       |  137 +-
+ drivers/media/tuners/r820t.h                       |   10 +
+ drivers/media/tuners/tuner-xc2028.c                |    3 +
+ drivers/media/usb/dvb-usb-v2/Makefile              |    1 +
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c            |   99 +-
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h            |    2 +
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   24 +
+ drivers/staging/media/Kconfig                      |    2 +
+ drivers/staging/media/Makefile                     |    2 +
+ drivers/staging/media/msi3101/Kconfig              |    7 +-
+ drivers/staging/media/msi3101/Makefile             |    1 +
+ drivers/staging/media/msi3101/msi001.c             |  499 +++++++
+ drivers/staging/media/msi3101/sdr-msi3101.c        | 1558 +++++++-------------
+ drivers/staging/media/rtl2832u_sdr/Kconfig         |    7 +
+ drivers/staging/media/rtl2832u_sdr/Makefile        |    6 +
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c   | 1476 +++++++++++++++++++
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h   |   51 +
+ include/media/v4l2-subdev.h                        |    1 +
+ include/uapi/linux/v4l2-controls.h                 |   14 +
+ include/uapi/linux/videodev2.h                     |    4 +
+ 34 files changed, 3825 insertions(+), 1315 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+ create mode 100644 drivers/staging/media/msi3101/msi001.c
+ create mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
+ create mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
+ create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+ create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
+
+-- 
+1.8.5.3
+
