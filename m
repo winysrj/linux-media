@@ -1,79 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50078 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809AbaBRHGr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 02:06:47 -0500
-Date: Tue, 18 Feb 2014 08:06:24 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robherring2@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
- drivers/media/v4l2-core to drivers/of
-Message-ID: <20140218070624.GP17250@pengutronix.de>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
- <CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
- <20140217181451.7EB7FC4044D@trevor.secretlab.ca>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140217181451.7EB7FC4044D@trevor.secretlab.ca>
+Received: from mail-we0-f171.google.com ([74.125.82.171]:45130 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379AbaBIJAI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 04:00:08 -0500
+Received: by mail-we0-f171.google.com with SMTP id u56so3440939wes.16
+        for <linux-media@vger.kernel.org>; Sun, 09 Feb 2014 01:00:06 -0800 (PST)
+Message-ID: <1391936396.2893.18.camel@canaries32-MCP7A>
+Subject: Re: [PATCH] af9035: Move it913x single devices to af9035
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Cc: kapetr@mizera.cz
+Date: Sun, 09 Feb 2014 08:59:56 +0000
+In-Reply-To: <1391875876.2944.3.camel@canaries32-MCP7A>
+References: <1391875876.2944.3.camel@canaries32-MCP7A>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grant,
-
-On Mon, Feb 17, 2014 at 06:14:51PM +0000, Grant Likely wrote:
-> On Tue, 11 Feb 2014 07:56:33 -0600, Rob Herring <robherring2@gmail.com> wrote:
-> > On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > > From: Philipp Zabel <philipp.zabel@gmail.com>
-> > >
-> > > This patch moves the parsing helpers used to parse connected graphs
-> > > in the device tree, like the video interface bindings documented in
-> > > Documentation/devicetree/bindings/media/video-interfaces.txt, from
-> > > drivers/media/v4l2-core to drivers/of.
-> > 
-> > This is the opposite direction things have been moving...
-> > 
-> > > This allows to reuse the same parser code from outside the V4L2 framework,
-> > > most importantly from display drivers. There have been patches that duplicate
-> > > the code (and I am going to send one of my own), such as
-> > > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
-> > > and others that parse the same binding in a different way:
-> > > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
-> > >
-> > > I think that all common video interface parsing helpers should be moved to a
-> > > single place, outside of the specific subsystems, so that it can be reused
-> > > by all drivers.
-> > 
-> > Perhaps that should be done rather than moving to drivers/of now and
-> > then again to somewhere else.
+On Sat, 2014-02-08 at 16:11 +0000, Malcolm Priestley wrote:
+> The generic v1 and v2 devices have been all tested.
 > 
-> This is just parsing helpers though, isn't it? I have no problem pulling
-> helper functions into drivers/of if they are usable by multiple
-> subsystems. I don't really understand the model being used though. I
-> would appreciate a description of the usage model for these functions
-> for poor folks like me who can't keep track of what is going on in
-> subsystems.
+> IDs tested
+> USB_PID_ITETECH_IT9135 v1 & v2
+> USB_PID_ITETECH_IT9135_9005 v1
+> USB_PID_ITETECH_IT9135_9006 v2
+> 
+> Current Issues
+> There is no signal  on
+> USB_PID_ITETECH_IT9135 v2 
+> 
+> No SNR reported all devices.
+> 
+> All single devices tune and scan fine.
+> 
+> All remotes tested okay.
+> 
+> Dual device failed to register second adapter
+> USB_PID_KWORLD_UB499_2T_T09
+> It is not clear what the problem is at the moment.
+Hi Antti
 
-You can find it under Documentation/devicetree/bindings/media/video-interfaces.txt
+I have found the problem here.
 
-Sascha
+state->eeprom_addr + EEPROM_2ND_DEMOD_ADDR
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+contains no value
+
+So on 9135 devices register 0x4bfb and the I2C address
+(state->af9033_config[1].i2c_addr) need to be set to 0x3a.
+
+I have only manually changed these and both adapters work fine.
+
+Also, I can't find pick up for register 0xcfff although it appears
+to be on by default.
+
+I will try and do a patch later and the patch for remaining ids in
+it913x.
+
+Regards
+
+
+Malcolm
+
