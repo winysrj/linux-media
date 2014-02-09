@@ -1,62 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34150 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750889AbaBMOcw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 09:32:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 43/47] adv7604: Control hot-plug detect through a GPIO
-Date: Thu, 13 Feb 2014 15:33:56 +0100
-Message-ID: <8543668.DSPsMptzyE@avalon>
-In-Reply-To: <52FC94C0.5000904@xs4all.nl>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1637754.DCKyOCpBtn@avalon> <52FC94C0.5000904@xs4all.nl>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:48133 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751961AbaBISdP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 13:33:15 -0500
+Received: by mail-ee0-f46.google.com with SMTP id c13so2496425eek.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Feb 2014 10:33:14 -0800 (PST)
+Message-ID: <52F7CA40.2010106@googlemail.com>
+Date: Sun, 09 Feb 2014 19:34:40 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: m.chehab@samsung.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] em28xx-i2c: do not map -ENXIO errors to -ENODEV for
+ empty i2c transfers
+References: <1390168117-2925-1-git-send-email-fschaefer.oss@googlemail.com> <1390168117-2925-4-git-send-email-fschaefer.oss@googlemail.com> <20140204164734.62354b70@samsung.com>
+In-Reply-To: <20140204164734.62354b70@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Thursday 13 February 2014 10:47:44 Hans Verkuil wrote:
-> On 02/11/14 13:03, Laurent Pinchart wrote:
-> > On Tuesday 11 February 2014 11:09:31 Hans Verkuil wrote:
-> >> On 02/05/14 17:42, Laurent Pinchart wrote:
-> >>> Replace the ADV7604-specific hotplug notifier with a GPIO to control the
-> >>> HPD pin directly instead of going through the bridge driver.
-> >> 
-> >> Hmm, that's not going to work for me. I don't have a GPIO pin here,
-> >> instead it is a bit in a register that I have to set.
-> > 
-> > But that bit controls a GPIO, doesn't it ? In that case it should be
-> > exposed as a GPIO controller.
-> 
-> I feel unhappy about losing this notifier for two reasons: first adding a
-> GPIO controller just to toggle a bit adds 40 lines to my driver, and that
-> doesn't sit well with me. It's basically completely unnecessary overhead.
-> 
-> The second reason is that in some cases you want to do something in addition
-> to just toggling the hotplug pin. In particular for CEC support this could
-> be quite useful.
+Am 04.02.2014 19:47, schrieb Mauro Carvalho Chehab:
+> Em Sun, 19 Jan 2014 22:48:36 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Commit e63b009d6e "" changed the error codes i2c ACK errors from -ENODEV to -ENXIO.
+>> But it also introduced a line that maps -ENXIO back to -ENODEV in case of empty i2c
+>> messages, which makes no sense, because
+>> 1.) an ACK error is an ACK error no matter what the i2c message content is
+>> 2.) -ENXIO is perfectly suited for probing, too
+> I don't agree with this patch. 0-byte messages are only usin during device
+> probe.
+???
 
-As discuss over IRC, I'll keep the HPD notification and add optional GPIO 
-support in v2.
+The error handling is inconsistent for no good reason.
 
-> In fact, if the adv7604 supports the ARC feature (Audio Return Channel),
-> then this is really needed because in that case the hotplug toggling would
-> have to be done via CEC CDC commands. However, while this webpage claims
-> that the ARC is supported, I can't find any other information about that.
-> 
-> http://www.analog.com/en/audiovideo-products/analoghdmidvi-interfaces/adv760
-> 4/products/product.html
-> 
-> Lars-Peter, do you know anything about ARC support in the adv7604?
+The old code always returned -ENODEV.
+Then you came to the conclusion that -ENODEV isn't good and we both
+agreed that -ENXIO is appropriate.
+But then you decided to keep -ENODEV for 0-Byte messages only.
+Why ?
+According to the i2c error code description, -ENXIO and -ENODEV are both
+suited for probing.
+AFAICS there are zero reasons for returning different error codes in
+case of the same i2c ack error.
+So please, either -ENODEV or -ENXIO instead of such inconsistencies.
 
--- 
+>> 3.) we are loosing the ability to distinguish USB device disconnects
+> Huh?
+Maybe (like me) you didn't notice that before.
+This is probably the most cogent argument for changing -ENODEV to -ENXIO
+for i2c ack errors in case of USB devices. ;-)
+
 Regards,
+Frank
 
-Laurent Pinchart
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/usb/em28xx/em28xx-i2c.c |    1 -
+>>  1 Datei geändert, 1 Zeile entfernt(-)
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> index ba6433c..a26d7d4 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> @@ -539,7 +539,6 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+>>  				if (rc == -ENXIO) {
+>>  					if (i2c_debug > 1)
+>>  						printk(KERN_CONT " no device\n");
+>> -					rc = -ENODEV;
+>>  				} else {
+>>  					if (i2c_debug > 1)
+>>  						printk(KERN_CONT " ERROR: %i\n", rc);
 
