@@ -1,112 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1976 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916AbaBHDbl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 22:31:41 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s183VcQe093522
-	for <linux-media@vger.kernel.org>; Sat, 8 Feb 2014 04:31:40 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 553DA2A00A6
-	for <linux-media@vger.kernel.org>; Sat,  8 Feb 2014 04:31:16 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:40711 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751469AbaBIIt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:58 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140208033116.553DA2A00A6@tschai.lan>
-Date: Sat,  8 Feb 2014 04:31:16 +0100 (CET)
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 26/86] rtl2832_sdr: return NULL on rtl2832_sdr_attach failure
+Date: Sun,  9 Feb 2014 10:48:31 +0200
+Message-Id: <1391935771-18670-27-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+dvb_attach() expects NULL on attach failure.
+Do some style changes also while we are here.
 
-Results of the daily build of media_tree:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 50 ++++++++++++------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
-date:		Sat Feb  8 04:00:28 CET 2014
-git branch:	test
-git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index a26125c..1cc7bf7 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -1250,31 +1250,31 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	struct rtl2832_sdr_state *s;
+ 	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
+ 	static const struct v4l2_ctrl_config ctrl_tuner_bw = {
+-		.ops	= &rtl2832_sdr_ctrl_ops,
+-		.id	= RTL2832_SDR_CID_TUNER_BW,
+-		.type	= V4L2_CTRL_TYPE_INTEGER,
+-		.name	= "Tuner BW",
+-		.min	=  200000,
+-		.max	= 8000000,
++		.ops    = &rtl2832_sdr_ctrl_ops,
++		.id     = RTL2832_SDR_CID_TUNER_BW,
++		.type   = V4L2_CTRL_TYPE_INTEGER,
++		.name   = "Tuner BW",
++		.min    =  200000,
++		.max    = 8000000,
+ 		.def    =  600000,
+-		.step	= 1,
++		.step   = 1,
+ 	};
+ 	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
+-		.ops	= &rtl2832_sdr_ctrl_ops,
+-		.id	= RTL2832_SDR_CID_TUNER_GAIN,
+-		.type	= V4L2_CTRL_TYPE_INTEGER,
+-		.name	= "Tuner Gain",
+-		.min	= 0,
+-		.max	= 102,
++		.ops    = &rtl2832_sdr_ctrl_ops,
++		.id     = RTL2832_SDR_CID_TUNER_GAIN,
++		.type   = V4L2_CTRL_TYPE_INTEGER,
++		.name   = "Tuner Gain",
++		.min    = 0,
++		.max    = 102,
+ 		.def    = 0,
+-		.step	= 1,
++		.step   = 1,
+ 	};
+ 
+ 	s = kzalloc(sizeof(struct rtl2832_sdr_state), GFP_KERNEL);
+ 	if (s == NULL) {
+ 		dev_err(&d->udev->dev,
+ 				"Could not allocate memory for rtl2832_sdr_state\n");
+-		return ERR_PTR(-ENOMEM);
++		return NULL;
+ 	}
+ 
+ 	/* setup the state */
+@@ -1298,18 +1298,11 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	s->vb_queue.mem_ops = &vb2_vmalloc_memops;
+ 	s->vb_queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	ret = vb2_queue_init(&s->vb_queue);
+-	if (ret < 0) {
++	if (ret) {
+ 		dev_err(&s->udev->dev, "Could not initialize vb2 queue\n");
+ 		goto err_free_mem;
+ 	}
+ 
+-	/* Init video_device structure */
+-	s->vdev = rtl2832_sdr_template;
+-	s->vdev.queue = &s->vb_queue;
+-	s->vdev.queue->lock = &s->vb_queue_lock;
+-	set_bit(V4L2_FL_USE_FH_PRIO, &s->vdev.flags);
+-	video_set_drvdata(&s->vdev, s);
+-
+ 	/* Register controls */
+ 	v4l2_ctrl_handler_init(&s->ctrl_handler, 2);
+ 	s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_bw, NULL);
+@@ -1320,6 +1313,13 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 		goto err_free_controls;
+ 	}
+ 
++	/* Init video_device structure */
++	s->vdev = rtl2832_sdr_template;
++	s->vdev.queue = &s->vb_queue;
++	s->vdev.queue->lock = &s->vb_queue_lock;
++	set_bit(V4L2_FL_USE_FH_PRIO, &s->vdev.flags);
++	video_set_drvdata(&s->vdev, s);
++
+ 	/* Register the v4l2_device structure */
+ 	s->v4l2_dev.release = rtl2832_sdr_video_release;
+ 	ret = v4l2_device_register(&s->udev->dev, &s->v4l2_dev);
+@@ -1335,7 +1335,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	s->vdev.vfl_dir = VFL_DIR_RX;
+ 
+ 	ret = video_register_device(&s->vdev, VFL_TYPE_SDR, -1);
+-	if (ret < 0) {
++	if (ret) {
+ 		dev_err(&s->udev->dev,
+ 				"Failed to register as video device (%d)\n",
+ 				ret);
+@@ -1357,7 +1357,7 @@ err_free_controls:
+ 	v4l2_ctrl_handler_free(&s->ctrl_handler);
+ err_free_mem:
+ 	kfree(s);
+-	return ERR_PTR(ret);
++	return NULL;
+ }
+ EXPORT_SYMBOL(rtl2832_sdr_attach);
+ 
+-- 
+1.8.5.3
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
