@@ -1,106 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3424 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753579AbaBMJla (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 04:41:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:54082 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751782AbaBIJVb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:21:31 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 07/10] vb2: rename queued_count to owned_by_drv_count
-Date: Thu, 13 Feb 2014 10:40:47 +0100
-Message-Id: <1392284450-41019-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 69/86] v4l: uapi: add SDR formats CU8 and CU16LE
+Date: Sun,  9 Feb 2014 10:49:14 +0200
+Message-Id: <1391935771-18670-70-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+V4L2_SDR_FMT_CU8 — Complex unsigned 8-bit IQ sample
+V4L2_SDR_FMT_CU16LE — Complex unsigned 16-bit little endian IQ sample
 
-'queued_count' is a bit vague since it is not clear to which queue it
-refers to: the vb2 internal list of buffers or the driver-owned list
-of buffers.
-
-Rename to make it explicit.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
- include/media/videobuf2-core.h           |  4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ include/uapi/linux/videodev2.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index a3b4b4c..6af76ee 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1071,7 +1071,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
- 	list_add_tail(&vb->done_entry, &q->done_list);
--	atomic_dec(&q->queued_count);
-+	atomic_dec(&q->owned_by_drv_count);
- 	spin_unlock_irqrestore(&q->done_lock, flags);
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 27fedfe..3411215 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -436,6 +436,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+ #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
  
- 	/* Inform any processes that may be waiting for buffers */
-@@ -1402,7 +1402,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 	unsigned int plane;
- 
- 	vb->state = VB2_BUF_STATE_ACTIVE;
--	atomic_inc(&q->queued_count);
-+	atomic_inc(&q->owned_by_drv_count);
- 
- 	/* sync buffers */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
-@@ -1554,7 +1554,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	int ret;
- 
- 	/* Tell the driver to start streaming */
--	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-+	ret = call_qop(q, start_streaming, q, atomic_read(&q->owned_by_drv_count));
- 	if (ret)
- 		fail_qop(q, start_streaming);
- 
-@@ -1779,7 +1779,7 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
- 	}
- 
- 	if (!q->retry_start_streaming)
--		wait_event(q->done_wq, !atomic_read(&q->queued_count));
-+		wait_event(q->done_wq, !atomic_read(&q->owned_by_drv_count));
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
-@@ -1911,7 +1911,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	 * has not already dequeued before initiating cancel.
- 	 */
- 	INIT_LIST_HEAD(&q->done_list);
--	atomic_set(&q->queued_count, 0);
-+	atomic_set(&q->owned_by_drv_count, 0);
- 	wake_up_all(&q->done_wq);
- 
- 	/*
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 82b7f0f..adaffed 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -353,7 +353,7 @@ struct v4l2_fh;
-  * @bufs:	videobuf buffer structures
-  * @num_buffers: number of allocated/used buffers
-  * @queued_list: list of buffers currently queued from userspace
-- * @queued_count: number of buffers owned by the driver
-+ * @owned_by_drv_count: number of buffers owned by the driver
-  * @done_list:	list of buffers ready to be dequeued to userspace
-  * @done_lock:	lock to protect done_list list
-  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
-@@ -385,7 +385,7 @@ struct vb2_queue {
- 
- 	struct list_head		queued_list;
- 
--	atomic_t			queued_count;
-+	atomic_t			owned_by_drv_count;
- 	struct list_head		done_list;
- 	spinlock_t			done_lock;
- 	wait_queue_head_t		done_wq;
++/* SDR formats - used only for Software Defined Radio devices */
++#define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
++#define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
++
+ /*
+  *	F O R M A T   E N U M E R A T I O N
+  */
 -- 
-1.8.4.rc3
+1.8.5.3
 
