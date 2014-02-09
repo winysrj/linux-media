@@ -1,39 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4740 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751533AbaBQLo6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 06:44:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:33963 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752073AbaBIJVu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:21:50 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de
-Subject: [REVIEW PATCH 0/3] Add g_tvnorms video op
-Date: Mon, 17 Feb 2014 12:44:11 +0100
-Message-Id: <1392637454-29179-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 62/86] rtl28xxu: attach SDR module later
+Date: Sun,  9 Feb 2014 10:49:07 +0200
+Message-Id: <1391935771-18670-63-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series addresses a problem that was exposed by commit a5338190e.
-The issue is that soc_camera implements s/g_std ioctls and just forwards
-those to the subdev, whether or not the subdev actually implements them.
+SDR module was attached between demod and tuner. Change it happen
+after tuner attached. We are going to implement V4L controls for
+tuner drivers and those controls are loaded during SDR attach. Due to
+that (tuner controls), tuner driver must be loaded before SDR module.
 
-In addition, tvnorms is never set, so even if the subdev implements the
-s/g_std the ENUMSTD ioctl will not report anything.
+Also as we are here, limit SDR module loading only for those tuners
+we support.
 
-The solution is to add a g_tvnorms video op to v4l2_subdev (there was already
-a g_tvnorms_output, so that fits nicely) and to let soc_camera call that so
-the video_device tvnorms field is set correctly.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-Before registering the video node it will check if tvnorms == 0 and disable
-the STD ioctls if that's the case.
-
-While this problem cropped up in soc_camera it is really a problem for any
-generic bridge driver, so this is useful to have.
-
-Note that it is untested. The plan is that Laurent tests and Guennadi pulls
-it into his tree.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 76cf0de..73348bf 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -777,10 +777,6 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	/* set fe callback */
+ 	adap->fe[0]->callback = rtl2832u_frontend_callback;
+ 
+-	/* attach SDR */
+-	dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
+-			rtl2832_config);
+-
+ 	return 0;
+ err:
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+@@ -906,6 +902,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		 * that to the tuner driver */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_fc0012_config);
+ 		return 0;
+ 		break;
+ 	case TUNER_RTL2832_FC0013:
+@@ -915,6 +915,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		/* fc0013 also supports signal strength reading */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_fc0013_config);
+ 		return 0;
+ 	case TUNER_RTL2832_E4000: {
+ 			struct e4000_config e4000_config = {
+@@ -928,6 +932,11 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ 			request_module("e4000");
+ 			priv->client = i2c_new_device(&d->i2c_adap, &info);
++
++			/* attach SDR */
++			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
++					&d->i2c_adap,
++					&rtl28xxu_rtl2832_e4000_config);
+ 		}
+ 		break;
+ 	case TUNER_RTL2832_FC2580:
+@@ -954,6 +963,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		/* Use tuner to get the signal strength */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_r820t_config);
+ 		break;
+ 	case TUNER_RTL2832_R828D:
+ 		/* power off mn88472 demod on GPIO0 */
+-- 
+1.8.5.3
 
