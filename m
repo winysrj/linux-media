@@ -1,58 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46382 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:52211 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752931AbaBWVpo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Feb 2014 16:45:44 -0500
-Message-ID: <530A6BFB.8060001@redhat.com>
-Date: Sun, 23 Feb 2014 22:45:31 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>,
-	linux-media@vger.kernel.org
-CC: m.chehab@samsung.com, Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 1/2] gspca_kinect: fix kinect_read() error path
-References: <20131230165625.814796d9e041d2261e1d078a@studenti.unina.it> <1388421706-8366-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1388421706-8366-1-git-send-email-ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1751930AbaBIIt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:58 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 30/86] rtl2832_sdr: remove FMT buffer type checks
+Date: Sun,  9 Feb 2014 10:48:35 +0200
+Message-Id: <1391935771-18670-31-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Remove unneeded buffer type checks from FMT IOTCL handlers. Checks
+are already done by V4L core.
 
-Thanks I've added both to my gspca tree for 3.15
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-Regards,
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 0bc417d..d101409 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -1191,9 +1191,6 @@ static int rtl2832_sdr_g_fmt_sdr_cap(struct file *file, void *priv,
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+-	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
+-		return -EINVAL;
+-
+ 	f->fmt.sdr.pixelformat = s->pixelformat;
+ 
+ 	return 0;
+@@ -1208,9 +1205,6 @@ static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+ 			(char *)&f->fmt.sdr.pixelformat);
+ 
+-	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
+-		return -EINVAL;
+-
+ 	if (vb2_is_busy(q))
+ 		return -EBUSY;
+ 
+@@ -1235,9 +1229,6 @@ static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+ 			(char *)&f->fmt.sdr.pixelformat);
+ 
+-	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
+-		return -EINVAL;
+-
+ 	for (i = 0; i < NUM_FORMATS; i++) {
+ 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
+ 			return 0;
+-- 
+1.8.5.3
 
-Hans
-
-
-On 12/30/2013 05:41 PM, Antonio Ospite wrote:
-> The error checking code relative to the invocations of kinect_read()
-> does not return the actual return code of the function just called, it
-> returns "res" which still contains the value of the last invocation of
-> a previous kinect_write().
-> 
-> Return the proper value, and while at it also report with -EREMOTEIO the
-> case of a partial transfer.
-> 
-> Reported-by: Julia Lawall <julia.lawall@lip6.fr>
-> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-> ---
->  drivers/media/usb/gspca/kinect.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
-> index 3773a8a..48084736 100644
-> --- a/drivers/media/usb/gspca/kinect.c
-> +++ b/drivers/media/usb/gspca/kinect.c
-> @@ -158,7 +158,7 @@ static int send_cmd(struct gspca_dev *gspca_dev, uint16_t cmd, void *cmdbuf,
->  	PDEBUG(D_USBO, "Control reply: %d", res);
->  	if (actual_len < sizeof(*rhdr)) {
->  		pr_err("send_cmd: Input control transfer failed (%d)\n", res);
-> -		return res;
-> +		return actual_len < 0 ? actual_len : -EREMOTEIO;
->  	}
->  	actual_len -= sizeof(*rhdr);
->  
-> 
