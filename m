@@ -1,170 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41321 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:38717 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754278AbaB0AQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:16:59 -0500
+	id S1751951AbaBIIt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:59 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 6/8] rtl2832: add muxed I2C adapter for demod itself
-Date: Thu, 27 Feb 2014 02:16:08 +0200
-Message-Id: <1393460170-11591-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1393460170-11591-1-git-send-email-crope@iki.fi>
-References: <1393460170-11591-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 37/86] v4l: add RF tuner gain controls
+Date: Sun,  9 Feb 2014 10:48:42 +0200
+Message-Id: <1391935771-18670-38-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was a deadlock between master I2C adapter and muxed I2C
-adapter. Implement two I2C muxed I2C adapters and leave master
-alone, just only for offering I2C adapter for these mux adapters.
+Modern silicon RF tuners used nowadays has many controllable gain
+stages on signal path. Usually, but not always, there is at least
+3 gain stages. Also on some cases there could be multiple gain
+stages within the ones specified here. However, I think that having
+these three controllable gain stages offers enough fine-tuning for
+real use cases.
 
-Reported-by: Luis Alves <ljalvs@gmail.com>
-Reported-by: Benjamin Larsson <benjamin@southpole.se>
+1) LNA gain. That is first gain just after antenna input.
+2) Mixer gain. It is located quite middle of the signal path, where
+RF signal is down-converted to IF/BB.
+3) IF gain. That is last gain in order to adjust output signal level
+to optimal level for receiving party (usually demodulator ADC).
+
+Each gain stage could be set rather often both manual or automatic
+(AGC) mode. Due to that add separate controls for controlling
+operation mode.
+
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/rtl2832.c      | 71 ++++++++++++++++++++++++------
- drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
- 2 files changed, 58 insertions(+), 14 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 15 +++++++++++++++
+ include/uapi/linux/v4l2-controls.h   | 11 +++++++++++
+ 2 files changed, 26 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index dc46cf0..c0366a8 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -180,7 +180,7 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
- 	buf[0] = reg;
- 	memcpy(&buf[1], val, len);
- 
--	ret = i2c_transfer(priv->i2c, msg, 1);
-+	ret = i2c_transfer(priv->i2c_adapter, msg, 1);
- 	if (ret == 1) {
- 		ret = 0;
- 	} else {
-@@ -210,7 +210,7 @@ static int rtl2832_rd(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
- 		}
- 	};
- 
--	ret = i2c_transfer(priv->i2c, msg, 2);
-+	ret = i2c_transfer(priv->i2c_adapter, msg, 2);
- 	if (ret == 2) {
- 		ret = 0;
- 	} else {
-@@ -891,26 +891,61 @@ static void rtl2832_release(struct dvb_frontend *fe)
- 	struct rtl2832_priv *priv = fe->demodulator_priv;
- 
- 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
-+	i2c_del_mux_adapter(priv->i2c_adapter_tuner);
- 	i2c_del_mux_adapter(priv->i2c_adapter);
- 	kfree(priv);
- }
- 
--static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
- {
- 	struct rtl2832_priv *priv = mux_priv;
--	return rtl2832_i2c_gate_ctrl(&priv->fe, 1);
--}
-+	int ret;
-+	u8 buf[2];
-+	struct i2c_msg msg[1] = {
-+		{
-+			.addr = priv->cfg.i2c_addr,
-+			.flags = 0,
-+			.len = sizeof(buf),
-+			.buf = buf,
-+		}
-+	};
- 
--static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
--{
--	struct rtl2832_priv *priv = mux_priv;
--	return rtl2832_i2c_gate_ctrl(&priv->fe, 0);
-+	if (priv->i2c_gate_state == chan_id)
-+		return 0;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 6ff002b..d201f61 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -857,6 +857,14 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
+ 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+ 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
 +
-+	/* select reg bank 1 */
-+	buf[0] = 0x00;
-+	buf[1] = 0x01;
-+
-+	ret = i2c_transfer(adap, msg, 1);
-+	if (ret != 1)
-+		goto err;
-+
-+	priv->page = 1;
-+
-+	/* open or close I2C repeater gate */
-+	buf[0] = 0x01;
-+	if (chan_id == 1)
-+		buf[1] = 0x18; /* open */
-+	else
-+		buf[1] = 0x10; /* close */
-+
-+	ret = i2c_transfer(adap, msg, 1);
-+	if (ret != 1)
-+		goto err;
-+
-+	priv->i2c_gate_state = chan_id;
-+
-+	return 0;
-+err:
-+	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	return -EREMOTEIO;
- }
++	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
++	case V4L2_CID_LNA_GAIN_AUTO:		return "LNA Gain, Auto";
++	case V4L2_CID_LNA_GAIN:			return "LNA Gain";
++	case V4L2_CID_MIXER_GAIN_AUTO:		return "Mixer Gain, Auto";
++	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
++	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
++	case V4L2_CID_IF_GAIN:			return "IF Gain";
+ 	default:
+ 		return NULL;
+ 	}
+@@ -906,6 +914,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
+ 	case V4L2_CID_RDS_RECEPTION:
++	case V4L2_CID_LNA_GAIN_AUTO:
++	case V4L2_CID_MIXER_GAIN_AUTO:
++	case V4L2_CID_IF_GAIN_AUTO:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -991,6 +1002,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_IMAGE_PROC_CLASS:
+ 	case V4L2_CID_DV_CLASS:
+ 	case V4L2_CID_FM_RX_CLASS:
++	case V4L2_CID_RF_TUNER_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+@@ -1063,6 +1075,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_PILOT_TONE_FREQUENCY:
+ 	case V4L2_CID_TUNE_POWER_LEVEL:
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
++	case V4L2_CID_LNA_GAIN:
++	case V4L2_CID_MIXER_GAIN:
++	case V4L2_CID_IF_GAIN:
+ 		*flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2cbe605..076fa34 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -60,6 +60,7 @@
+ #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
+ #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
+ #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
++#define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
  
- struct i2c_adapter *rtl2832_get_i2c_adapter(struct dvb_frontend *fe)
- {
- 	struct rtl2832_priv *priv = fe->demodulator_priv;
--	return priv->i2c_adapter;
-+	return priv->i2c_adapter_tuner;
- }
- EXPORT_SYMBOL(rtl2832_get_i2c_adapter);
+ /* User-class control IDs */
  
-@@ -933,15 +968,21 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
- 	priv->tuner = cfg->tuner;
- 	memcpy(&priv->cfg, cfg, sizeof(struct rtl2832_config));
+@@ -895,4 +896,14 @@ enum v4l2_deemphasis {
  
-+	/* create muxed i2c adapter for demod itself */
-+	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
-+			rtl2832_select, NULL);
-+	if (priv->i2c_adapter == NULL)
-+		goto err;
+ #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
+ 
++#define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
++#define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
 +
- 	/* check if the demod is there */
- 	ret = rtl2832_rd_reg(priv, 0x00, 0x0, &tmp);
- 	if (ret)
- 		goto err;
- 
--	/* create muxed i2c adapter */
--	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
--			rtl2832_select, rtl2832_deselect);
--	if (priv->i2c_adapter == NULL)
-+	/* create muxed i2c adapter for demod tuner bus */
-+	priv->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, priv,
-+			0, 1, 0, rtl2832_select, NULL);
-+	if (priv->i2c_adapter_tuner == NULL)
- 		goto err;
- 
- 	/* create dvb_frontend */
-@@ -954,6 +995,8 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
- 	return &priv->fe;
- err:
- 	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
-+	if (priv && priv->i2c_adapter)
-+		i2c_del_mux_adapter(priv->i2c_adapter);
- 	kfree(priv);
- 	return NULL;
- }
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index ec26c92..8b7c1ae 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -28,6 +28,7 @@
- struct rtl2832_priv {
- 	struct i2c_adapter *i2c;
- 	struct i2c_adapter *i2c_adapter;
-+	struct i2c_adapter *i2c_adapter_tuner;
- 	struct dvb_frontend fe;
- 	struct rtl2832_config cfg;
- 
++#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
++#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
++#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
++#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
++#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
++#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
++
+ #endif
 -- 
 1.8.5.3
 
