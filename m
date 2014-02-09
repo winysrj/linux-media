@@ -1,112 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41019 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:50617 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752468AbaBKCFP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 21:05:15 -0500
+	id S1751797AbaBIIt5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:57 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 09/16] rtl28xxu: constify demod config structs
-Date: Tue, 11 Feb 2014 04:04:52 +0200
-Message-Id: <1392084299-16549-10-git-send-email-crope@iki.fi>
-In-Reply-To: <1392084299-16549-1-git-send-email-crope@iki.fi>
-References: <1392084299-16549-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 20/86] rtl2832_sdr: increase USB buffers
+Date: Sun,  9 Feb 2014 10:48:25 +0200
+Message-Id: <1391935771-18670-21-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Optimize a little bit from data to text.
+Increase USB xfer buffers heavily in order handle wider data stream.
+Stream is quite heavy, over 50Mbit/sec, when sampling rates are
+increased up to 3.2Msps. With remote controller interrupts disabled
+and huge USB buffers it seems to perform even 3.2Msps rather well.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 38f4bc8..00d9440 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -516,7 +516,7 @@ err:
- 	return ret;
- }
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 348df05..4b8c016 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -51,8 +51,8 @@
  
--static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
-+static const struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.ts_mode = 0,
-@@ -527,7 +527,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
+ #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
  
- };
+-#define MAX_BULK_BUFS            (8)
+-#define BULK_BUFFER_SIZE         (8 * 512)
++#define MAX_BULK_BUFS            (10)
++#define BULK_BUFFER_SIZE         (128 * 512)
  
--static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
-+static const struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.ts_mode = 0,
-@@ -537,7 +537,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
- 	.agc_targ_val = 0x2d,
- };
- 
--static struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
-+static const struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.ts_mode = 0,
-@@ -551,7 +551,7 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
- {
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	struct rtl2830_config *rtl2830_config;
-+	const struct rtl2830_config *rtl2830_config;
- 	int ret;
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-@@ -586,31 +586,31 @@ err:
- 	return ret;
- }
- 
--static struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_FC0012
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_FC0013
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_TUA9001,
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_E4000,
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
- 	.i2c_addr = 0x10,
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_R820T,
-@@ -734,7 +734,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	int ret;
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	struct rtl2832_config *rtl2832_config;
-+	const struct rtl2832_config *rtl2832_config;
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
+ /* intermediate buffers with raw data from the USB device */
+ struct rtl2832_sdr_frame_buf {
 -- 
 1.8.5.3
 
