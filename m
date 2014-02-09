@@ -1,52 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41295 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754288AbaBRMTQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 07:19:16 -0500
-Received: from avalon.localnet (unknown [91.178.144.128])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 670FB35A46
-	for <linux-media@vger.kernel.org>; Tue, 18 Feb 2014 13:18:15 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34924 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751722AbaBIItz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:55 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.15] OMAP3 ISP fixes
-Date: Tue, 18 Feb 2014 13:20:24 +0100
-Message-ID: <1505895.hMaJzqaOi5@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 05/86] rtl2832_sdr: use get_if_frequency()
+Date: Sun,  9 Feb 2014 10:48:10 +0200
+Message-Id: <1391935771-18670-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Get IF from tuner and use it.
 
-The following changes since commit 37e59f876bc710d67a30b660826a5e83e07101ce:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 60 ++++++++++++++++++++----
+ 1 file changed, 51 insertions(+), 9 deletions(-)
 
-  [media, edac] Change my email address (2014-02-07 08:03:07 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git omap3isp/next
-
-for you to fetch changes up to 58ee8629ebc528b629dac36e5e5c67dffeecd2fa:
-
-  omap3isp: Don't ignore failure to locate external subdev (2014-02-18 
-13:18:52 +0100)
-
-----------------------------------------------------------------
-Florian Vaussard (1):
-      omap3isp: preview: Fix the crop margins
-
-Laurent Pinchart (2):
-      omap3isp: Don't try to locate external subdev for mem-to-mem pipelines
-      omap3isp: Don't ignore failure to locate external subdev
-
- drivers/media/platform/omap3isp/isppreview.c | 9 +++++++++
- drivers/media/platform/omap3isp/ispvideo.c   | 8 ++++++--
- 2 files changed, 15 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 513da22..c4b72c1 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -208,7 +208,15 @@ static int rtl2832_sdr_rd_regs(struct rtl2832_sdr_state *s, u16 reg, u8 *val,
+ 
+ 	return rtl2832_sdr_rd(s, reg2, val, len);
+ }
++#endif
+ 
++/* write single register */
++static int rtl2832_sdr_wr_reg(struct rtl2832_sdr_state *s, u16 reg, u8 val)
++{
++	return rtl2832_sdr_wr_regs(s, reg, &val, 1);
++}
++
++#if 0
+ /* read single register */
+ static int rtl2832_sdr_rd_reg(struct rtl2832_sdr_state *s, u16 reg, u8 *val)
+ {
+@@ -632,8 +640,12 @@ static void rtl2832_sdr_buf_queue(struct vb2_buffer *vb)
+ 
+ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ {
++	struct dvb_frontend *fe = s->fe;
+ 	int ret;
+-	unsigned int f_sr;
++	unsigned int f_sr, f_if;
++	u8 buf[3], tmp;
++	u64 u64tmp;
++	u32 u32tmp;
+ 
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
+ 
+@@ -647,14 +659,42 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 	ret = rtl2832_sdr_wr_regs(s, 0x116, "\x00\x00", 2);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x118, "\x00", 1);
+ 
+-	if (s->cfg->tuner == RTL2832_TUNER_R820T) {
+-		ret = rtl2832_sdr_wr_regs(s, 0x119, "\x38\x11", 2);
+-		ret = rtl2832_sdr_wr_regs(s, 0x11b, "\x12", 1);
+-		ret = rtl2832_sdr_wr_regs(s, 0x115, "\x01", 1);
+-	} else {
+-		ret = rtl2832_sdr_wr_regs(s, 0x119, "\x00\x00", 2);
+-		ret = rtl2832_sdr_wr_regs(s, 0x11b, "\x00", 1);
+-	}
++	/* get IF from tuner */
++	if (fe->ops.tuner_ops.get_if_frequency)
++		ret = fe->ops.tuner_ops.get_if_frequency(fe, &f_if);
++	else
++		ret = -EINVAL;
++
++	if (ret)
++		goto err;
++
++	/* program IF */
++	u64tmp = f_if % s->cfg->xtal;
++	u64tmp *= 0x400000;
++	u64tmp = div_u64(u64tmp, s->cfg->xtal);
++	u64tmp = -u64tmp;
++	u32tmp = u64tmp & 0x3fffff;
++
++	dev_dbg(&s->udev->dev, "%s: f_if=%u if_ctl=%08x\n",
++			__func__, f_if, u32tmp);
++
++	buf[0] = (u32tmp >> 16) & 0xff;
++	buf[1] = (u32tmp >>  8) & 0xff;
++	buf[2] = (u32tmp >>  0) & 0xff;
++
++	ret = rtl2832_sdr_wr_regs(s, 0x119, buf, 3);
++	if (ret)
++		goto err;
++
++	/* program BB / IF mode */
++	if (f_if)
++		tmp = 0x00;
++	else
++		tmp = 0x01;
++
++	ret = rtl2832_sdr_wr_reg(s, 0x1b1, tmp);
++	if (ret)
++		goto err;
+ 
+ 	ret = rtl2832_sdr_wr_regs(s, 0x19f, "\x03\x84", 2);
+ 	ret = rtl2832_sdr_wr_regs(s, 0x1a1, "\x00\x00", 2);
+@@ -696,6 +736,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 	ret = rtl2832_sdr_wr_regs(s, 0x102, "\x40", 1);
+ 
+ 	if (s->cfg->tuner == RTL2832_TUNER_R820T) {
++		ret = rtl2832_sdr_wr_regs(s, 0x115, "\x01", 1);
+ 		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x80", 1);
+ 		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x24", 1);
+ 		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
+@@ -751,6 +792,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x10", 1);
+ 	}
+ 
++err:
+ 	return ret;
+ };
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.3
 
