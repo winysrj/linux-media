@@ -1,105 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46670 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809AbaBKMbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 07:31:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:60534 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646AbaBIUyE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 15:54:04 -0500
+From: Arnd Bergmann <arnd@arndb.de>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 35/47] adv7604: Add sink pads
-Date: Tue, 11 Feb 2014 13:32:10 +0100
-Message-ID: <1908907.sAJsozBgzM@avalon>
-In-Reply-To: <52FA1663.80307@xs4all.nl>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <2613751.oRlAYVmzeh@avalon> <52FA1663.80307@xs4all.nl>
+Subject: Re: [PATCH, RFC 07/30] [media] radio-cadet: avoid interruptible_sleep_on race
+Date: Sun, 9 Feb 2014 21:53:51 +0100
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <55674412.rAimUmdW3X@wuerfel> <52F4C51A.90002@xs4all.nl>
+In-Reply-To: <52F4C51A.90002@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201402092153.51781.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Tuesday 11 February 2014 13:24:03 Hans Verkuil wrote:
-> On 02/11/14 13:23, Laurent Pinchart wrote:
-> > On Tuesday 11 February 2014 13:07:51 Hans Verkuil wrote:
-> >> On 02/11/14 13:00, Laurent Pinchart wrote:
-> >>> On Tuesday 11 February 2014 11:19:32 Hans Verkuil wrote:
-> >>>> On 02/05/14 17:42, Laurent Pinchart wrote:
-> >>>>> The ADV7604 has sink pads for its HDMI and analog inputs. Report them.
-> >>>>> 
-> >>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>>>> ---
-> >>>>> 
-> >>>>>  drivers/media/i2c/adv7604.c | 71  ++++++++++++++++++++++-------------
-> >>>>>  include/media/adv7604.h     | 14 ---------
-> >>>>>  2 files changed, 45 insertions(+), 40 deletions(-)
-> >>>>> 
-> >>>>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> >>>>> index 05e7e1a..da32ce9 100644
-> >>>>> --- a/drivers/media/i2c/adv7604.c
-> >>>>> +++ b/drivers/media/i2c/adv7604.c
-> >>>>> @@ -97,13 +97,25 @@ struct adv7604_chip_info {
-> >>>>> 
-> >>>>>   ********************************************************************
-> >>>>>   */
-> >>>>> 
-> >>>>> +enum adv7604_pad {
-> >>>>> +	ADV7604_PAD_HDMI_PORT_A = 0,
-> >>>>> +	ADV7604_PAD_HDMI_PORT_B = 1,
-> >>>>> +	ADV7604_PAD_HDMI_PORT_C = 2,
-> >>>>> +	ADV7604_PAD_HDMI_PORT_D = 3,
-> >>>>> +	ADV7604_PAD_VGA_RGB = 4,
-> >>>>> +	ADV7604_PAD_VGA_COMP = 5,
-> >>>>> +	/* The source pad is either 1 (ADV7611) or 6 (ADV7604) */
-> >>>> 
-> >>>> How about making this explicit:
-> >>>> 	ADV7604_PAD_SOURCE = 6,
-> >>>> 	ADV7611_PAD_SOURCE = 1,
-> >>> 
-> >>> I can do that, but those two constants won't be used in the driver as
-> >>> they
-> >>> computed dynamically.
-> >>> 
-> >>>>> +	ADV7604_PAD_MAX = 7,
-> >>>>> +};
-> >>>> 
-> >>>> Wouldn't it make more sense to have this in the header? I would really
-> >>>> like to use the symbolic names for these pads in my bridge driver.
-> >>> 
-> >>> That would add a dependency on the adv7604 driver to the bridge driver,
-> >>> isn't the whole point of subdevs to avoid such dependencies ?
-> >> 
-> >> The bridge driver has to know about the adv7604, not the other way
-> >> around.
-> >> 
-> >> E.g. in my bridge driver I have to match v4l2 inputs to pads, both for
-> >> S_EDID and for s_routing, so it needs to know which pad number to use.
-> > 
-> > Is that information that you want to pass to the bridge driver through
-> > platform data, or do you want to hardcode it in the bridge driver itself ?
-> > In the latter case the bridge driver would become specific to the
-> > adv7604. It might be fine in your case if your bridge is specific to your
-> > board anyway (FPGAs come to mind), but it lacks genericity.
+On Friday 07 February 2014, Hans Verkuil wrote:
+> OK, let's try again. This patch is getting bigger and bigger, but it is always
+> nice to know that your ISA card that almost no one else in the world has is really,
+> really working well. :-)
 > 
-> Hardcoded. It's just like any PCI driver: the PCI ID determines what the
-> board is and based on that you set everything up. And if there are multiple
-> variations of the board you use card structures to define such things.
+> Regards,
 > 
-> The only place where you can put that information is in the bridge driver.
+>         Hans
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Or in DT I suppose ;-) It could be argued that the bridge driver could/should 
-discover pad numbers somehow dynamically, but there's no harm in moving the 
-enum to the header, so I'll do that.
+Looks good,
 
-> >> Also, for calling set_fmt, BTW. There I need to specify the source pad,
-> >> which is also why I would like to have a symbolic name for it as
-> >> suggested
-> >> above.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Acked-by: Arnd Bergmann <arnd@arndb.de>
