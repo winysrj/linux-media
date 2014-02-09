@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:45942 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751333AbaBZHE3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 02:04:29 -0500
-From: Daniel Jeong <gshark.jeong@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Jeong <gshark.jeong@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
-Subject: [RFC v6,2/3] controls.xml : add addtional Flash fault bits
-Date: Wed, 26 Feb 2014 16:04:10 +0900
-Message-Id: <1393398251-5383-3-git-send-email-gshark.jeong@gmail.com>
-In-Reply-To: <1393398251-5383-1-git-send-email-gshark.jeong@gmail.com>
-References: <1393398251-5383-1-git-send-email-gshark.jeong@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:50372 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751937AbaBIIt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:59 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 32/86] msi3101: calculate tuner filters
+Date: Sun,  9 Feb 2014 10:48:37 +0200
+Message-Id: <1391935771-18670-33-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Descriptions for flash faluts.
- V4L2_FLASH_FAULT_UNDER_VOLTAGE,
- V4L2_FLASH_FAULT_INPUT_VOLTAGE,
- and V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE
+Calculate tuner filters from sampling rate and use it if not
+defined manually.
 
-Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/DocBook/media/v4l/controls.xml |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index a5a3188..16f8af3 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4370,6 +4370,24 @@ interface and may change in the future.</para>
-     		  <entry>The flash controller has detected a short or open
-     		  circuit condition on the indicator LED.</entry>
-     		</row>
-+    		<row>
-+    		  <entry><constant>V4L2_FLASH_FAULT_UNDER_VOLTAGE</constant></entry>
-+    		  <entry>Flash controller voltage to the flash LED
-+    		  has been below the minimum limit specific to the flash
-+    		  controller.</entry>
-+    		</row>
-+    		<row>
-+    		  <entry><constant>V4L2_FLASH_FAULT_INPUT_VOLTAGE</constant></entry>
-+    		  <entry>The flash current can't reach to the target current
-+    		  because the input voltage is dropped below lower limit. 
-+    		  and Flash controller have adjusted the flash current
-+    		  not to occur under voltage event.</entry>
-+    		</row>
-+    		<row>
-+    		  <entry><constant>V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE</constant></entry>
-+    		  <entry>The temperature of the LED has exceeded its
-+    		  allowed upper limit.</entry>
-+    		</row>
-     	      </tbody>
-     	    </entrytbl>
-     	  </row>
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index cb66f81..02960c7 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -1416,7 +1416,7 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 		{5000000, 0x04}, /* 5 MHz */
+ 		{6000000, 0x05}, /* 6 MHz */
+ 		{7000000, 0x06}, /* 7 MHz */
+-		{8000000, 0x07}, /* 8 MHz */
++		{    ~0U, 0x07}, /* 8 MHz */
+ 	};
+ 
+ 	unsigned int f_rf = s->f_tuner;
+@@ -1473,8 +1473,12 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 	if (i == ARRAY_SIZE(if_freq_lut))
+ 		goto err;
+ 
++	/* user has not requested bandwidth, set some reasonable */
++	if (bandwidth == 0)
++		bandwidth = s->f_adc;
++
+ 	for (i = 0; i < ARRAY_SIZE(bandwidth_lut); i++) {
+-		if (bandwidth == bandwidth_lut[i].freq) {
++		if (bandwidth <= bandwidth_lut[i].freq) {
+ 			bandwidth = bandwidth_lut[i].val;
+ 			break;
+ 		}
+@@ -1483,6 +1487,9 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 	if (i == ARRAY_SIZE(bandwidth_lut))
+ 		goto err;
+ 
++	dev_dbg(&s->udev->dev, "%s: bandwidth selected=%d\n",
++			__func__, bandwidth_lut[i].freq);
++
+ #define F_OUT_STEP 1
+ #define R_REF 4
+ 	f_vco = (f_rf + f_if + f_if1) * lo_div;
+@@ -1925,9 +1932,9 @@ static int msi3101_probe(struct usb_interface *intf,
+ 		.id	= MSI3101_CID_TUNER_BW,
+ 		.type	= V4L2_CTRL_TYPE_INTEGER,
+ 		.name	= "Tuner Bandwidth",
+-		.min	= 200000,
++		.min	= 0,
+ 		.max	= 8000000,
+-		.def    = 600000,
++		.def    = 0,
+ 		.step	= 1,
+ 	};
+ 	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
 -- 
-1.7.9.5
+1.8.5.3
 
