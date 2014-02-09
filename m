@@ -1,78 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta12.emeryville.ca.mail.comcast.net ([76.96.27.227]:46800
-	"EHLO qmta12.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754517AbaBVAut (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 19:50:49 -0500
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, shuahkhan@gmail.com
-Subject: [RFC] [PATCH 5/6] media: em28xx-video - implement em28xx_ops: suspend/resume hooks
-Date: Fri, 21 Feb 2014 17:50:17 -0700
-Message-Id: <428b784414ab17562ee30396bdd999885b3916ad.1393027856.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1393027856.git.shuah.kh@samsung.com>
-References: <cover.1393027856.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1393027856.git.shuah.kh@samsung.com>
-References: <cover.1393027856.git.shuah.kh@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:44522 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751232AbaBIKqn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 05:46:43 -0500
+Message-ID: <52F75C91.5080507@iki.fi>
+Date: Sun, 09 Feb 2014 12:46:41 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Malcolm Priestley <tvboxspy@gmail.com>, linux-media@vger.kernel.org
+CC: kapetr@mizera.cz
+Subject: Re: [PATCH] af9035: Move it913x single devices to af9035
+References: <1391875876.2944.3.camel@canaries32-MCP7A> <1391936396.2893.18.camel@canaries32-MCP7A>
+In-Reply-To: <1391936396.2893.18.camel@canaries32-MCP7A>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement em28xx_ops: suspend/resume hooks. em28xx usb driver will
-invoke em28xx_ops: suspend and resume hooks for all its extensions
-from its suspend() and resume() interfaces.
+Moi Malcolm!
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-video.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+On 09.02.2014 10:59, Malcolm Priestley wrote:
+> On Sat, 2014-02-08 at 16:11 +0000, Malcolm Priestley wrote:
+>> The generic v1 and v2 devices have been all tested.
+>>
+>> IDs tested
+>> USB_PID_ITETECH_IT9135 v1 & v2
+>> USB_PID_ITETECH_IT9135_9005 v1
+>> USB_PID_ITETECH_IT9135_9006 v2
+>>
+>> Current Issues
+>> There is no signal  on
+>> USB_PID_ITETECH_IT9135 v2
+>>
+>> No SNR reported all devices.
+>>
+>> All single devices tune and scan fine.
+>>
+>> All remotes tested okay.
+>>
+>> Dual device failed to register second adapter
+>> USB_PID_KWORLD_UB499_2T_T09
+>> It is not clear what the problem is at the moment.
+> Hi Antti
+>
+> I have found the problem here.
+>
+> state->eeprom_addr + EEPROM_2ND_DEMOD_ADDR
+>
+> contains no value
+>
+> So on 9135 devices register 0x4bfb and the I2C address
+> (state->af9033_config[1].i2c_addr) need to be set to 0x3a.
+>
+> I have only manually changed these and both adapters work fine.
+>
+> Also, I can't find pick up for register 0xcfff although it appears
+> to be on by default.
+>
+> I will try and do a patch later and the patch for remaining ids in
+> it913x.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index c3c9289..1df6750 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1933,6 +1933,32 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
- 	return 0;
- }
- 
-+static int em28xx_v4l2_suspend(struct em28xx *dev)
-+{
-+	if (dev->is_audio_only)
-+		return 0;
-+
-+	if (!dev->has_video)
-+		return 0;
-+
-+	em28xx_info("Suspending video extension");
-+	em28xx_stop_urbs(dev);
-+	return 0;
-+}
-+
-+static int em28xx_v4l2_resume(struct em28xx *dev)
-+{
-+	if (dev->is_audio_only)
-+		return 0;
-+
-+	if (!dev->has_video)
-+		return 0;
-+
-+	em28xx_info("Resuming video extension");
-+	/* what do we do here */
-+	return 0;
-+}
-+
- /*
-  * em28xx_v4l2_close()
-  * stops streaming and deallocates all resources allocated by the v4l2
-@@ -2504,6 +2530,8 @@ static struct em28xx_ops v4l2_ops = {
- 	.name = "Em28xx v4l2 Extension",
- 	.init = em28xx_v4l2_init,
- 	.fini = em28xx_v4l2_fini,
-+	.suspend = em28xx_v4l2_suspend,
-+	.resume = em28xx_v4l2_resume,
- };
- 
- static int __init em28xx_video_register(void)
+Good!
+That non-working dual device must be IT9135 v2 as I have one dual 
+TerraTec, which is working and is build upon version 1 of IT9135. I have 
+no v2 dual device.
+
+regards
+Antti
+
 -- 
-1.8.3.2
-
+http://palosaari.fi/
