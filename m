@@ -1,297 +1,515 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2239 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753733AbaBDM6k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 07:58:40 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s14CwaQB027281
-	for <linux-media@vger.kernel.org>; Tue, 4 Feb 2014 13:58:38 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
-	by tschai.lan (Postfix) with ESMTPSA id 654AA2A00A6
-	for <linux-media@vger.kernel.org>; Tue,  4 Feb 2014 13:58:19 +0100 (CET)
-Message-ID: <52F0E337.4080401@xs4all.nl>
-Date: Tue, 04 Feb 2014 13:55:19 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [REVIEW PATCH] DocBook media: partial rewrite of "Opening and Closing
- Devices"
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:45631 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751925AbaBIIt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:58 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 25/86] msi3101: tons of small changes
+Date: Sun,  9 Feb 2014 10:48:30 +0200
+Message-Id: <1391935771-18670-26-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This section was horribly out of date. A lot of references to old and
-obsolete behavior have been dropped.
+* remove unneeded controls
+* rename things
+* remove unneeded callbacks
+* use likely/unlikely on hot paths
+* use 1Hz resolution for tuner RF frequency
 
-Same as https://patchwork.linuxtv.org/patch/21620/, but with the text
-", with the exception of overlay support." dropped since 'overlay' is
-not a function in that sense.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/DocBook/media/v4l/common.xml | 191 +++++++++++------------------
- Documentation/DocBook/media/v4l/v4l2.xml   |   2 +-
- 2 files changed, 70 insertions(+), 123 deletions(-)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 214 +++++++---------------------
+ 1 file changed, 55 insertions(+), 159 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-index 0936dd2..71f6bf9 100644
---- a/Documentation/DocBook/media/v4l/common.xml
-+++ b/Documentation/DocBook/media/v4l/common.xml
-@@ -38,70 +38,41 @@ the basic concepts applicable to all devices.</para>
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 7a64f18..cb66f81 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -21,20 +21,6 @@
+  *  (C) 1999-2004 Nemosoft Unv.
+  *  (C) 2004-2006 Luc Saillard (luc@saillard.org)
+  *  (C) 2011 Hans de Goede <hdegoede@redhat.com>
+- *
+- * Development tree of that driver will be on:
+- * http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/mirics
+- *
+- * GNU Radio plugin "gr-kernel" for device usage will be on:
+- * http://git.linuxtv.org/anttip/gr-kernel.git
+- *
+- * TODO:
+- * Help is very highly welcome for these + all the others you could imagine:
+- * - split USB ADC interface and RF tuner to own drivers (msi2500 and msi001)
+- * - move controls to V4L2 API
+- * - use libv4l2 for stream format conversions
+- * - gr-kernel: switch to v4l2_mmap (current read eats a lot of cpu)
+- * - SDRSharp support
+  */
  
-       <para>V4L2 drivers are implemented as kernel modules, loaded
- manually by the system administrator or automatically when a device is
--first opened. The driver modules plug into the "videodev" kernel
-+first discovered. The driver modules plug into the "videodev" kernel
- module. It provides helper functions and a common application
- interface specified in this document.</para>
+ #include <linux/module.h>
+@@ -377,12 +363,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
+ #define MAX_ISOC_ERRORS         20
  
-       <para>Each driver thus loaded registers one or more device nodes
--with major number 81 and a minor number between 0 and 255. Assigning
--minor numbers to V4L2 devices is entirely up to the system administrator,
--this is primarily intended to solve conflicts between devices.<footnote>
--	  <para>Access permissions are associated with character
--device special files, hence we must ensure device numbers cannot
--change with the module load order. To this end minor numbers are no
--longer automatically assigned by the "videodev" module as in V4L but
--requested by the driver. The defaults will suffice for most people
--unless two drivers compete for the same minor numbers.</para>
--	</footnote> The module options to select minor numbers are named
--after the device special file with a "_nr" suffix. For example "video_nr"
--for <filename>/dev/video</filename> video capture devices. The number is
--an offset to the base minor number associated with the device type.
--<footnote>
--	  <para>In earlier versions of the V4L2 API the module options
--where named after the device special file with a "unit_" prefix, expressing
--the minor number itself, not an offset. Rationale for this change is unknown.
--Lastly the naming and semantics are just a convention among driver writers,
--the point to note is that minor numbers are not supposed to be hardcoded
--into drivers.</para>
--	</footnote> When the driver supports multiple devices of the same
--type more than one minor number can be assigned, separated by commas:
--<informalexample>
-+with major number 81 and a minor number between 0 and 255. Minor numbers
-+are allocated dynamically unless the kernel is compiled with the kernel
-+option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers are
-+allocated in ranges depending on the device node type (video, radio, etc.).</para>
-+
-+      <para>Many drivers support "video_nr", "radio_nr" or "vbi_nr"
-+module options to select specific video/radio/vbi node numbers. This allows
-+the user to request that the device node is named e.g. /dev/video5 instead
-+of leaving it to chance. When the driver supports multiple devices of the same
-+type more than one device node number can be assigned, separated by commas:
-+	<informalexample>
- 	  <screen>
--&gt; insmod mydriver.o video_nr=0,1 radio_nr=0,1</screen>
-+&gt; modprobe mydriver video_nr=0,1 radio_nr=0,1</screen>
- 	</informalexample></para>
+ /* TODO: These should be moved to V4L2 API */
+-#define MSI3101_CID_SAMPLING_MODE         ((V4L2_CID_USER_BASE | 0xf000) + 0)
+-#define MSI3101_CID_SAMPLING_RATE         ((V4L2_CID_USER_BASE | 0xf000) + 1)
+-#define MSI3101_CID_SAMPLING_RESOLUTION   ((V4L2_CID_USER_BASE | 0xf000) + 2)
+-#define MSI3101_CID_TUNER_RF              ((V4L2_CID_USER_BASE | 0xf000) + 10)
+ #define MSI3101_CID_TUNER_BW              ((V4L2_CID_USER_BASE | 0xf000) + 11)
+-#define MSI3101_CID_TUNER_IF              ((V4L2_CID_USER_BASE | 0xf000) + 12)
+ #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
  
-       <para>In <filename>/etc/modules.conf</filename> this may be
- written as: <informalexample>
- 	  <screen>
--alias char-major-81-0 mydriver
--alias char-major-81-1 mydriver
--alias char-major-81-64 mydriver              <co id="alias" />
--options mydriver video_nr=0,1 radio_nr=0,1   <co id="options" />
-+options mydriver video_nr=0,1 radio_nr=0,1
- 	  </screen>
--	  <calloutlist>
--	    <callout arearefs="alias">
--	      <para>When an application attempts to open a device
--special file with major number 81 and minor number 0, 1, or 64, load
--"mydriver" (and the "videodev" module it depends upon).</para>
--	    </callout>
--	    <callout arearefs="options">
--	      <para>Register the first two video capture devices with
--minor number 0 and 1 (base number is 0), the first two radio device
--with minor number 64 and 65 (base 64).</para>
--	    </callout>
--	  </calloutlist>
--	</informalexample> When no minor number is given as module
--option the driver supplies a default. <xref linkend="devices" />
--recommends the base minor numbers to be used for the various device
--types. Obviously minor numbers must be unique. When the number is
--already in use the <emphasis>offending device</emphasis> will not be
--registered. <!-- Blessed by Linus Torvalds on
--linux-kernel@vger.kernel.org, 2002-11-20. --></para>
+ #define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
+@@ -408,16 +389,16 @@ static const struct v4l2_frequency_band bands_rf[] = {
+ 		.tuner = 1,
+ 		.type = V4L2_TUNER_RF,
+ 		.index = 0,
+-		.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS,
+-		.rangelow   =   49000000 / 62.5,
+-		.rangehigh  =  263000000 / 62.5,
++		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow   =   49000000,
++		.rangehigh  =  263000000,
+ 	}, {
+ 		.tuner = 1,
+ 		.type = V4L2_TUNER_RF,
+ 		.index = 1,
+-		.capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS,
+-		.rangelow   =  390000000 / 62.5,
+-		.rangehigh  =  960000000 / 62.5,
++		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow   =  390000000,
++		.rangehigh  =  960000000,
+ 	},
+ };
+ 
+@@ -430,27 +411,27 @@ struct msi3101_format {
+ /* format descriptions for capture and preview */
+ static struct msi3101_format formats[] = {
+ 	{
+-		.name		= "I/Q 8-bit unsigned",
++		.name		= "8-bit unsigned",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_U8,
+ 	}, {
+-		.name		= "I/Q 16-bit unsigned little endian",
++		.name		= "16-bit unsigned little endian",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_U16LE,
+ 	}, {
+-		.name		= "I/Q 8-bit signed",
++		.name		= "8-bit signed",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
+ 	}, {
+-		.name		= "I/Q 10+2-bit signed",
++		.name		= "10+2-bit signed",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_MSI2500_384,
+ 	}, {
+-		.name		= "I/Q 12-bit signed",
++		.name		= "12-bit signed",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_S12,
+ 	}, {
+-		.name		= "I/Q 14-bit signed",
++		.name		= "14-bit signed",
+ 		.pixelformat	= V4L2_PIX_FMT_SDR_S14,
+ 	},
+ };
+ 
+-static const int NUM_FORMATS = sizeof(formats) / sizeof(struct msi3101_format);
++static const unsigned int NUM_FORMATS = ARRAY_SIZE(formats);
+ 
+ /* intermediate buffers with raw data from the USB device */
+ struct msi3101_frame_buf {
+@@ -486,15 +467,11 @@ struct msi3101_state {
+ 
+ 	/* Controls */
+ 	struct v4l2_ctrl_handler ctrl_handler;
+-	struct v4l2_ctrl *ctrl_sampling_rate;
+-	struct v4l2_ctrl *ctrl_tuner_rf;
+ 	struct v4l2_ctrl *ctrl_tuner_bw;
+-	struct v4l2_ctrl *ctrl_tuner_if;
+ 	struct v4l2_ctrl *ctrl_tuner_gain;
+ 
+ 	u32 next_sample; /* for track lost packets */
+ 	u32 sample; /* for sample rate calc */
+-	unsigned long jiffies;
+ 	unsigned long jiffies_next;
+ 	unsigned int sample_ctrl_bit[4];
+ };
+@@ -563,11 +540,11 @@ static int msi3101_convert_stream_504(struct msi3101_state *s, u8 *dst,
+ 	}
+ 
+ 	/* calculate samping rate and output it in 10 seconds intervals */
+-	if ((s->jiffies + msecs_to_jiffies(10000)) <= jiffies) {
++	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+ 		unsigned long jiffies_now = jiffies;
+-		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies);
++		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
+ 		unsigned int samples = sample_num[i_max - 1] - s->sample;
+-		s->jiffies = jiffies_now;
++		s->jiffies_next = jiffies_now;
+ 		s->sample = sample_num[i_max - 1];
+ 		dev_dbg(&s->udev->dev,
+ 				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
+@@ -715,11 +692,11 @@ static int msi3101_convert_stream_384(struct msi3101_state *s, u8 *dst,
+ 	}
+ 
+ 	/* calculate samping rate and output it in 10 seconds intervals */
+-	if ((s->jiffies + msecs_to_jiffies(10000)) <= jiffies) {
++	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+ 		unsigned long jiffies_now = jiffies;
+-		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies);
++		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
+ 		unsigned int samples = sample_num[i_max - 1] - s->sample;
+-		s->jiffies = jiffies_now;
++		s->jiffies_next = jiffies_now;
+ 		s->sample = sample_num[i_max - 1];
+ 		dev_dbg(&s->udev->dev,
+ 				"slen=%d samples=%u msecs=%lu sampling rate=%lu bits=%d.%d.%d.%d\n",
+@@ -780,11 +757,11 @@ static int msi3101_convert_stream_336(struct msi3101_state *s, u8 *dst,
+ 	}
+ 
+ 	/* calculate samping rate and output it in 10 seconds intervals */
+-	if ((s->jiffies + msecs_to_jiffies(10000)) <= jiffies) {
++	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+ 		unsigned long jiffies_now = jiffies;
+-		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies);
++		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
+ 		unsigned int samples = sample_num[i_max - 1] - s->sample;
+-		s->jiffies = jiffies_now;
++		s->jiffies_next = jiffies_now;
+ 		s->sample = sample_num[i_max - 1];
+ 		dev_dbg(&s->udev->dev,
+ 				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
+@@ -843,11 +820,11 @@ static int msi3101_convert_stream_252(struct msi3101_state *s, u8 *dst,
+ 	}
+ 
+ 	/* calculate samping rate and output it in 10 seconds intervals */
+-	if ((s->jiffies + msecs_to_jiffies(10000)) <= jiffies) {
++	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+ 		unsigned long jiffies_now = jiffies;
+-		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies);
++		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
+ 		unsigned int samples = sample_num[i_max - 1] - s->sample;
+-		s->jiffies = jiffies_now;
++		s->jiffies_next = jiffies_now;
+ 		s->sample = sample_num[i_max - 1];
+ 		dev_dbg(&s->udev->dev,
+ 				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
+@@ -944,14 +921,14 @@ static void msi3101_isoc_handler(struct urb *urb)
+ 	unsigned char *iso_buf = NULL;
+ 	struct msi3101_frame_buf *fbuf;
+ 
+-	if (urb->status == -ENOENT || urb->status == -ECONNRESET ||
+-			urb->status == -ESHUTDOWN) {
++	if (unlikely(urb->status == -ENOENT || urb->status == -ECONNRESET ||
++			urb->status == -ESHUTDOWN)) {
+ 		dev_dbg(&s->udev->dev, "URB (%p) unlinked %ssynchronuously\n",
+ 				urb, urb->status == -ENOENT ? "" : "a");
+ 		return;
+ 	}
+ 
+-	if (urb->status != 0) {
++	if (unlikely(urb->status != 0)) {
+ 		dev_dbg(&s->udev->dev,
+ 				"msi3101_isoc_handler() called with status %d\n",
+ 				urb->status);
+@@ -971,28 +948,28 @@ static void msi3101_isoc_handler(struct urb *urb)
+ 
+ 		/* Check frame error */
+ 		fstatus = urb->iso_frame_desc[i].status;
+-		if (fstatus) {
++		if (unlikely(fstatus)) {
+ 			dev_dbg_ratelimited(&s->udev->dev,
+ 					"frame=%d/%d has error %d skipping\n",
+ 					i, urb->number_of_packets, fstatus);
+-			goto skip;
++			continue;
+ 		}
+ 
+ 		/* Check if that frame contains data */
+ 		flen = urb->iso_frame_desc[i].actual_length;
+-		if (flen == 0)
+-			goto skip;
++		if (unlikely(flen == 0))
++			continue;
+ 
+ 		iso_buf = urb->transfer_buffer + urb->iso_frame_desc[i].offset;
+ 
+ 		/* Get free framebuffer */
+ 		fbuf = msi3101_get_next_fill_buf(s);
+-		if (fbuf == NULL) {
++		if (unlikely(fbuf == NULL)) {
+ 			s->vb_full++;
+ 			dev_dbg_ratelimited(&s->udev->dev,
+ 					"videobuf is full, %d packets dropped\n",
+ 					s->vb_full);
+-			goto skip;
++			continue;
+ 		}
+ 
+ 		/* fill framebuffer */
+@@ -1000,13 +977,11 @@ static void msi3101_isoc_handler(struct urb *urb)
+ 		flen = s->convert_stream(s, ptr, iso_buf, flen);
+ 		vb2_set_plane_payload(&fbuf->vb, 0, flen);
+ 		vb2_buffer_done(&fbuf->vb, VB2_BUF_STATE_DONE);
+-skip:
+-		;
+ 	}
+ 
+ handler_end:
+ 	i = usb_submit_urb(urb, GFP_ATOMIC);
+-	if (i != 0)
++	if (unlikely(i != 0))
+ 		dev_dbg(&s->udev->dev,
+ 				"Error (%d) re-submitting urb in msi3101_isoc_handler\n",
+ 				i);
+@@ -1069,7 +1044,7 @@ static int msi3101_isoc_init(struct msi3101_state *s)
+ 	udev = s->udev;
+ 
+ 	ret = usb_set_interface(s->udev, 0, 1);
+-	if (ret < 0)
++	if (ret)
+ 		return ret;
+ 
+ 	/* Allocate and init Isochronuous urbs */
+@@ -1202,17 +1177,6 @@ static int msi3101_queue_setup(struct vb2_queue *vq,
+ 	return 0;
+ }
+ 
+-static int msi3101_buf_prepare(struct vb2_buffer *vb)
+-{
+-	struct msi3101_state *s = vb2_get_drv_priv(vb->vb2_queue);
 -
--      <para>By convention system administrators create various
--character device special files with these major and minor numbers in
--the <filename>/dev</filename> directory. The names recommended for the
--different V4L2 device types are listed in <xref linkend="devices" />.
-+	</informalexample> When no device node number is given as module
-+option the driver supplies a default.</para>
-+
-+      <para>Normally udev will create the device nodes in /dev automatically
-+for you. If udev is not installed, then you need to enable the
-+CONFIG_VIDEO_FIXED_MINOR_RANGES kernel option in order to be able to correctly
-+relate a minor number to a device node number. I.e., you need to be certain
-+that minor number 5 maps to device node name video5. With this kernel option
-+different device types have different minor number ranges. These ranges are
-+listed in <xref linkend="devices" />.
- </para>
- 
-       <para>The creation of character special files (with
-@@ -110,85 +81,66 @@ devices cannot be opened by major and minor number. That means
- applications cannot <emphasis>reliable</emphasis> scan for loaded or
- installed drivers. The user must enter a device name, or the
- application can try the conventional device names.</para>
+-	/* Don't allow queing new buffers after device disconnection */
+-	if (!s->udev)
+-		return -ENODEV;
 -
--      <para>Under the device filesystem (devfs) the minor number
--options are ignored. V4L2 drivers (or by proxy the "videodev" module)
--automatically create the required device files in the
--<filename>/dev/v4l</filename> directory using the conventional device
--names above.</para>
-     </section>
- 
-     <section id="related">
-       <title>Related Devices</title>
- 
--      <para>Devices can support several related functions. For example
--video capturing, video overlay and VBI capturing are related because
--these functions share, amongst other, the same video input and tuner
--frequency. V4L and earlier versions of V4L2 used the same device name
--and minor number for video capturing and overlay, but different ones
--for VBI. Experience showed this approach has several problems<footnote>
--	  <para>Given a device file name one cannot reliable find
--related devices. For once names are arbitrary and in a system with
--multiple devices, where only some support VBI capturing, a
--<filename>/dev/video2</filename> is not necessarily related to
--<filename>/dev/vbi2</filename>. The V4L
--<constant>VIDIOCGUNIT</constant> ioctl would require a search for a
--device file with a particular major and minor number.</para>
--	</footnote>, and to make things worse the V4L videodev module
--used to prohibit multiple opens of a device.</para>
+-	return 0;
+-}
 -
--      <para>As a remedy the present version of the V4L2 API relaxed the
--concept of device types with specific names and minor numbers. For
--compatibility with old applications drivers must still register different
--minor numbers to assign a default function to the device. But if related
--functions are supported by the driver they must be available under all
--registered minor numbers. The desired function can be selected after
--opening the device as described in <xref linkend="devices" />.</para>
--
--      <para>Imagine a driver supporting video capturing, video
--overlay, raw VBI capturing, and FM radio reception. It registers three
--devices with minor number 0, 64 and 224 (this numbering scheme is
--inherited from the V4L API). Regardless if
--<filename>/dev/video</filename> (81, 0) or
--<filename>/dev/vbi</filename> (81, 224) is opened the application can
--select any one of the video capturing, overlay or VBI capturing
--functions. Without programming (e.&nbsp;g. reading from the device
--with <application>dd</application> or <application>cat</application>)
--<filename>/dev/video</filename> captures video images, while
--<filename>/dev/vbi</filename> captures raw VBI data.
--<filename>/dev/radio</filename> (81, 64) is invariable a radio device,
--unrelated to the video functions. Being unrelated does not imply the
--devices can be used at the same time, however. The &func-open;
--function may very well return an &EBUSY;.</para>
-+      <para>Devices can support several functions. For example
-+video capturing, VBI capturing and radio support.</para>
-+
-+      <para>The V4L2 API creates different nodes for each of these functions.</para>
-+
-+      <para>The V4L2 API was designed with the idea that one device node could support
-+all functions. However, in practice this never worked: this 'feature'
-+was never used by applications and many drivers did not support it and if
-+they did it was certainly never tested. In addition, switching a device
-+node between different functions only works when using the streaming I/O
-+API, not with the read()/write() API.</para>
-+
-+      <para>Today each device node supports just one function.</para>
+ static void msi3101_buf_queue(struct vb2_buffer *vb)
+ {
+ 	struct msi3101_state *s = vb2_get_drv_priv(vb->vb2_queue);
+@@ -1221,7 +1185,7 @@ static void msi3101_buf_queue(struct vb2_buffer *vb)
+ 	unsigned long flags = 0;
  
-       <para>Besides video input or output the hardware may also
- support audio sampling or playback. If so, these functions are
--implemented as OSS or ALSA PCM devices and eventually OSS or ALSA
--audio mixer. The V4L2 API makes no provisions yet to find these
--related devices. If you have an idea please write to the linux-media
--mailing list: &v4l-ml;.</para>
-+implemented as ALSA PCM devices with optional ALSA audio mixer
-+devices.</para>
-+
-+      <para>One problem with all these devices is that the V4L2 API
-+makes no provisions to find these related devices. Some really
-+complex devices use the Media Controller (see <xref linkend="media_controller" />)
-+which can be used for this purpose. But most drivers do not use it,
-+and while some code exists that uses sysfs to discover related devices
-+(see libmedia_dev in the <ulink url="http://git.linuxtv.org/v4l-utils/">v4l-utils</ulink>
-+git repository), there is no library yet that can provide a single API towards
-+both Media Controller-based devices and devices that do not use the Media Controller.
-+If you want to work on this please write to the linux-media mailing list: &v4l-ml;.</para>
-     </section>
+ 	/* Check the device has not disconnected between prep and queuing */
+-	if (!s->udev) {
++	if (unlikely(!s->udev)) {
+ 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+ 		return;
+ 	}
+@@ -1280,7 +1244,7 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
+ 	int ret, div_n, div_m, div_r_out, f_sr, f_vco, fract;
+ 	u32 reg3, reg4, reg7;
  
-     <section>
-       <title>Multiple Opens</title>
+-	f_sr = s->ctrl_sampling_rate->val64;
++	f_sr = s->f_adc;
  
--      <para>In general, V4L2 devices can be opened more than once.
-+      <para>V4L2 devices can be opened more than once.<footnote><para>
-+There are still some old and obscure drivers that have not been updated to
-+allow for multiple opens. This implies that for such drivers &func-open; can
-+return an &EBUSY; when the device is already in use.</para></footnote>
- When this is supported by the driver, users can for example start a
- "panel" application to change controls like brightness or audio
- volume, while another application captures video and audio. In other words, panel
--applications are comparable to an OSS or ALSA audio mixer application.
--When a device supports multiple functions like capturing and overlay
--<emphasis>simultaneously</emphasis>, multiple opens allow concurrent
--use of the device by forked processes or specialized applications.</para>
--
--      <para>Multiple opens are optional, although drivers should
--permit at least concurrent accesses without data exchange, &ie; panel
--applications. This implies &func-open; can return an &EBUSY; when the
--device is already in use, as well as &func-ioctl; functions initiating
--data exchange (namely the &VIDIOC-S-FMT; ioctl), and the &func-read;
--and &func-write; functions.</para>
--
--      <para>Mere opening a V4L2 device does not grant exclusive
-+applications are comparable to an ALSA audio mixer application.
-+Just opening a V4L2 device should not change the state of the device.<footnote>
-+<para>Unfortunately, opening a radio device often switches the state of the
-+device to radio mode in many drivers. This behavior should be fixed eventually
-+as it violates the V4L2 specification.</para></footnote></para>
-+
-+      <para>Once an application has allocated the memory buffers needed for
-+streaming data (by calling the &VIDIOC-REQBUFS; or &VIDIOC-CREATE-BUFS; ioctls,
-+or implicitly by calling the &func-read; or &func-write; functions) that
-+application (filehandle) becomes the owner of the device. It is no longer
-+allowed to make changes that would affect the buffer sizes (e.g. by calling
-+the &VIDIOC-S-FMT; ioctl) and other applications are no longer allowed to allocate
-+buffers or start or stop streaming. The &EBUSY; will be returned instead.</para>
-+
-+      <para>Merely opening a V4L2 device does not grant exclusive
- access.<footnote>
- 	  <para>Drivers could recognize the
- <constant>O_EXCL</constant> open flag. Presently this is not required,
-@@ -206,12 +158,7 @@ additional access privileges using the priority mechanism described in
-       <para>V4L2 drivers should not support multiple applications
- reading or writing the same data stream on a device by copying
- buffers, time multiplexing or similar means. This is better handled by
--a proxy application in user space. When the driver supports stream
--sharing anyway it must be implemented transparently. The V4L2 API does
--not specify how conflicts are solved. <!-- For example O_EXCL when the
--application does not want to be preempted, PROT_READ mmapped buffers
--which can be mapped twice, what happens when image formats do not
--match etc.--></para>
-+a proxy application in user space.</para>
-     </section>
+ 	/* select stream format */
+ 	if (f_sr < 6000000) {
+@@ -1455,7 +1419,7 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 		{8000000, 0x07}, /* 8 MHz */
+ 	};
  
-     <section>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 087e846..6bf3532 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -145,7 +145,7 @@ applications. -->
- 	<revnumber>3.15</revnumber>
- 	<date>2014-02-03</date>
- 	<authorinitials>hv</authorinitials>
--	<revremark>Update several sections of "Common API Elements":
-+	<revremark>Update several sections of "Common API Elements": "Opening and Closing Devices"
- "Querying Capabilities", "Application Priority", "Video Inputs and Outputs", "Audio Inputs and Outputs"
- "Tuners and Modulators", "Video Standards" and "Digital Video (DV) Timings".
- 	</revremark>
+-	unsigned int f_rf = s->ctrl_tuner_rf->val64;
++	unsigned int f_rf = s->f_tuner;
+ 
+ 	/*
+ 	 * bandwidth (Hz)
+@@ -1467,7 +1431,7 @@ static int msi3101_set_tuner(struct msi3101_state *s)
+ 	 * intermediate frequency (Hz)
+ 	 * 0, 450000, 1620000, 2048000
+ 	 */
+-	unsigned int f_if = s->ctrl_tuner_if->val;
++	unsigned int f_if = 0;
+ 
+ 	/*
+ 	 * gain reduction (dB)
+@@ -1680,7 +1644,6 @@ static int msi3101_stop_streaming(struct vb2_queue *vq)
+ 
+ static struct vb2_ops msi3101_vb2_ops = {
+ 	.queue_setup            = msi3101_queue_setup,
+-	.buf_prepare            = msi3101_buf_prepare,
+ 	.buf_queue              = msi3101_buf_queue,
+ 	.start_streaming        = msi3101_start_streaming,
+ 	.stop_streaming         = msi3101_stop_streaming,
+@@ -1789,9 +1752,9 @@ static int msi3101_g_tuner(struct file *file, void *priv, struct v4l2_tuner *v)
+ 	} else if (v->index == 1) {
+ 		strlcpy(v->name, "RF: Mirics MSi001", sizeof(v->name));
+ 		v->type = V4L2_TUNER_RF;
+-		v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_FREQ_BANDS;
+-		v->rangelow =    49000000 / 62.5;
+-		v->rangehigh =  960000000 / 62.5;
++		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
++		v->rangelow =    49000000;
++		v->rangehigh =  960000000;
+ 	} else {
+ 		return -EINVAL;
+ 	}
+@@ -1826,17 +1789,15 @@ static int msi3101_s_frequency(struct file *file, void *priv,
+ 			__func__, f->tuner, f->type, f->frequency);
+ 
+ 	if (f->tuner == 0) {
+-		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
+-				__func__, f->frequency);
+ 		s->f_adc = f->frequency;
+-		ret = v4l2_ctrl_s_ctrl_int64(s->ctrl_sampling_rate,
+-				f->frequency);
++		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
++				__func__, s->f_adc);
++		ret = msi3101_set_usb_adc(s);
+ 	} else if (f->tuner == 1) {
+-		dev_dbg(&s->udev->dev, "%s: RF frequency=%lu Hz\n",
+-				__func__, f->frequency * 625UL / 10UL);
+ 		s->f_tuner = f->frequency;
+-		ret = v4l2_ctrl_s_ctrl_int64(s->ctrl_tuner_rf,
+-				f->frequency * 625UL / 10UL);
++		dev_dbg(&s->udev->dev, "%s: RF frequency=%u Hz\n",
++				__func__, f->frequency);
++		ret = msi3101_set_tuner(s);
+ 	} else {
+ 		return -EINVAL;
+ 	}
+@@ -1913,6 +1874,7 @@ static struct video_device msi3101_template = {
+ 	.release                  = video_device_release_empty,
+ 	.fops                     = &msi3101_fops,
+ 	.ioctl_ops                = &msi3101_ioctl_ops,
++	.debug                    = 0,
+ };
+ 
+ static int msi3101_s_ctrl(struct v4l2_ctrl *ctrl)
+@@ -1927,14 +1889,7 @@ static int msi3101_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			ctrl->minimum, ctrl->maximum, ctrl->step);
+ 
+ 	switch (ctrl->id) {
+-	case MSI3101_CID_SAMPLING_MODE:
+-	case MSI3101_CID_SAMPLING_RATE:
+-	case MSI3101_CID_SAMPLING_RESOLUTION:
+-		ret = 0;
+-		break;
+-	case MSI3101_CID_TUNER_RF:
+ 	case MSI3101_CID_TUNER_BW:
+-	case MSI3101_CID_TUNER_IF:
+ 	case MSI3101_CID_TUNER_GAIN:
+ 		ret = msi3101_set_tuner(s);
+ 		break;
+@@ -1965,70 +1920,16 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	struct usb_device *udev = interface_to_usbdev(intf);
+ 	struct msi3101_state *s = NULL;
+ 	int ret;
+-	static const char * const ctrl_sampling_mode_qmenu_strings[] = {
+-		"Quadrature Sampling",
+-		NULL,
+-	};
+-	static const struct v4l2_ctrl_config ctrl_sampling_mode = {
+-		.ops	= &msi3101_ctrl_ops,
+-		.id	= MSI3101_CID_SAMPLING_MODE,
+-		.type   = V4L2_CTRL_TYPE_MENU,
+-		.flags  = V4L2_CTRL_FLAG_INACTIVE,
+-		.name	= "Sampling Mode",
+-		.qmenu  = ctrl_sampling_mode_qmenu_strings,
+-	};
+-	static const struct v4l2_ctrl_config ctrl_sampling_rate = {
+-		.ops	= &msi3101_ctrl_ops,
+-		.id	= MSI3101_CID_SAMPLING_RATE,
+-		.type	= V4L2_CTRL_TYPE_INTEGER64,
+-		.name	= "Sampling Rate",
+-		.min	= 500000,
+-		.max	= 12000000,
+-		.def    = 2048000,
+-		.step	= 1,
+-	};
+-	static const struct v4l2_ctrl_config ctrl_sampling_resolution = {
+-		.ops	= &msi3101_ctrl_ops,
+-		.id	= MSI3101_CID_SAMPLING_RESOLUTION,
+-		.type	= V4L2_CTRL_TYPE_INTEGER,
+-		.flags  = V4L2_CTRL_FLAG_INACTIVE,
+-		.name	= "Sampling Resolution",
+-		.min	= 10,
+-		.max	= 10,
+-		.def    = 10,
+-		.step	= 1,
+-	};
+-	static const struct v4l2_ctrl_config ctrl_tuner_rf = {
+-		.ops	= &msi3101_ctrl_ops,
+-		.id	= MSI3101_CID_TUNER_RF,
+-		.type   = V4L2_CTRL_TYPE_INTEGER64,
+-		.name	= "Tuner RF",
+-		.min	= 40000000,
+-		.max	= 2000000000,
+-		.def    = 100000000,
+-		.step	= 1,
+-	};
+ 	static const struct v4l2_ctrl_config ctrl_tuner_bw = {
+ 		.ops	= &msi3101_ctrl_ops,
+ 		.id	= MSI3101_CID_TUNER_BW,
+ 		.type	= V4L2_CTRL_TYPE_INTEGER,
+-		.name	= "Tuner BW",
++		.name	= "Tuner Bandwidth",
+ 		.min	= 200000,
+ 		.max	= 8000000,
+ 		.def    = 600000,
+ 		.step	= 1,
+ 	};
+-	static const struct v4l2_ctrl_config ctrl_tuner_if = {
+-		.ops	= &msi3101_ctrl_ops,
+-		.id	= MSI3101_CID_TUNER_IF,
+-		.type	= V4L2_CTRL_TYPE_INTEGER,
+-		.flags  = V4L2_CTRL_FLAG_INACTIVE,
+-		.name	= "Tuner IF",
+-		.min	= 0,
+-		.max	= 2048000,
+-		.def    = 0,
+-		.step	= 1,
+-	};
+ 	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
+ 		.ops	= &msi3101_ctrl_ops,
+ 		.id	= MSI3101_CID_TUNER_GAIN,
+@@ -2036,7 +1937,7 @@ static int msi3101_probe(struct usb_interface *intf,
+ 		.name	= "Tuner Gain",
+ 		.min	= 0,
+ 		.max	= 102,
+-		.def    = 0,
++		.def    = 50,
+ 		.step	= 1,
+ 	};
+ 
+@@ -2062,7 +1963,7 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	s->vb_queue.mem_ops = &vb2_vmalloc_memops;
+ 	s->vb_queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	ret = vb2_queue_init(&s->vb_queue);
+-	if (ret < 0) {
++	if (ret) {
+ 		dev_err(&s->udev->dev, "Could not initialize vb2 queue\n");
+ 		goto err_free_mem;
+ 	}
+@@ -2075,13 +1976,8 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	video_set_drvdata(&s->vdev, s);
+ 
+ 	/* Register controls */
+-	v4l2_ctrl_handler_init(&s->ctrl_handler, 7);
+-	v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_sampling_mode, NULL);
+-	s->ctrl_sampling_rate = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_sampling_rate, NULL);
+-	v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_sampling_resolution, NULL);
+-	s->ctrl_tuner_rf = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_rf, NULL);
++	v4l2_ctrl_handler_init(&s->ctrl_handler, 2);
+ 	s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_bw, NULL);
+-	s->ctrl_tuner_if = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_if, NULL);
+ 	s->ctrl_tuner_gain = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_gain, NULL);
+ 	if (s->ctrl_handler.error) {
+ 		ret = s->ctrl_handler.error;
+@@ -2103,7 +1999,7 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	s->vdev.lock = &s->v4l2_lock;
+ 
+ 	ret = video_register_device(&s->vdev, VFL_TYPE_SDR, -1);
+-	if (ret < 0) {
++	if (ret) {
+ 		dev_err(&s->udev->dev,
+ 				"Failed to register as video device (%d)\n",
+ 				ret);
 -- 
-1.8.4.rc3
+1.8.5.3
 
