@@ -1,39 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:59158 "EHLO mout.web.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:46974 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753679AbaBOUgM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Feb 2014 15:36:12 -0500
-Received: from fslaptop.schwarz.lokal ([85.178.12.40]) by smtp.web.de
- (mrweb002) with ESMTPSA (Nemesis) id 0LlFSg-1VdmSS38pa-00b6Um for
- <linux-media@vger.kernel.org>; Sat, 15 Feb 2014 21:36:10 +0100
-Message-ID: <52FFCFB9.1010505@web.de>
-Date: Sat, 15 Feb 2014 21:36:09 +0100
-From: Felix Schwarz <felix.schwarz@web.de>
-MIME-Version: 1.0
+	id S1751435AbaBII4A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:56:00 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: linuxtv wiki: How to update device information?
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [REVIEW PATCH 53/86] xc2028: silence compiler warnings
+Date: Sun,  9 Feb 2014 10:48:58 +0200
+Message-Id: <1391935771-18670-54-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey,
+There is now new tuner types which are not handled on that switch-case.
+Print error if unknown tuner type is meet.
 
-I tried to update some device information in the linuxtv wiki but failed (even
-though I'm logged in).
+drivers/media/tuners/tuner-xc2028.c: In function ‘generic_set_freq’:
+drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_ADC’ not handled in switch [-Wswitch]
+  switch (new_type) {
+  ^
+drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_RF’ not handled in switch [-Wswitch]
 
-For example the data table on
-  http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_DTT_deluxe_v2
-has an "edit" link in the rightmost cell but that redirects to
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/tuner-xc2028.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-http://www.linuxtv.org/wiki/index.php/Template:USB_Device_Data#elgato-eyetv-dtt-dlx-v2
-and I am not allowed to edit that page in any way (even though the explanation
-text on that page indicates something different):
-"The data for the device leadtek-winfast-dtv-dongle-h is right here. You just
-can't see it because it is meant to be used in a template 'transclusion'. If
-you are logged in you can click on the [edit] link to the right to change the
-data for this device. If you are not logged in, you can click on the view
-source tab at the top of this page to at least see how data is stored here."
+diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+index cca508d..76a8165 100644
+--- a/drivers/media/tuners/tuner-xc2028.c
++++ b/drivers/media/tuners/tuner-xc2028.c
+@@ -1107,6 +1107,9 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 				offset += 200000;
+ 		}
+ #endif
++	default:
++		tuner_err("Unsupported tuner type %d.\n", new_type);
++		break;
+ 	}
+ 
+ 	div = (freq - offset + DIV / 2) / DIV;
+-- 
+1.8.5.3
 
-How can I update device data?
-Felix
