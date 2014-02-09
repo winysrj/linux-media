@@ -1,140 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35690 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:47091 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751199AbaBHJiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Feb 2014 04:38:51 -0500
+	id S1751403AbaBIJ2Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:28:25 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/8] rtl2832: provide muxed I2C adapter
-Date: Sat,  8 Feb 2014 11:37:54 +0200
-Message-Id: <1391852281-18291-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1391852281-18291-1-git-send-email-crope@iki.fi>
-References: <1391852281-18291-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 74/86] msi3101: provide RF tuner bands from sub-device
+Date: Sun,  9 Feb 2014 10:49:19 +0200
+Message-Id: <1391935771-18670-75-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RTL2832 provides gated / repeater I2C adapter for tuner.
-Implement it as a muxed I2C adapter.
+Let the msi001 tuner driver report its frequency bands.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/Kconfig        |  2 +-
- drivers/media/dvb-frontends/rtl2832.c      | 26 ++++++++++++++++++++++++++
- drivers/media/dvb-frontends/rtl2832.h      | 13 +++++++++++++
- drivers/media/dvb-frontends/rtl2832_priv.h |  2 ++
- 4 files changed, 42 insertions(+), 1 deletion(-)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 48 +++++++++--------------------
+ 1 file changed, 15 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index dd12a1e..d701488 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -441,7 +441,7 @@ config DVB_RTL2830
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index f996220..158cbe0 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -57,7 +57,7 @@
+ #define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
+ #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
  
- config DVB_RTL2832
- 	tristate "Realtek RTL2832 DVB-T"
--	depends on DVB_CORE && I2C
-+	depends on DVB_CORE && I2C && I2C_MUX
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y when you want to support this frontend.
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 00e63b9..dc46cf0 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -891,9 +891,29 @@ static void rtl2832_release(struct dvb_frontend *fe)
- 	struct rtl2832_priv *priv = fe->demodulator_priv;
+-static const struct v4l2_frequency_band bands_adc[] = {
++static const struct v4l2_frequency_band bands[] = {
+ 	{
+ 		.tuner = 0,
+ 		.type = V4L2_TUNER_ADC,
+@@ -68,24 +68,6 @@ static const struct v4l2_frequency_band bands_adc[] = {
+ 	},
+ };
  
- 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
-+	i2c_del_mux_adapter(priv->i2c_adapter);
- 	kfree(priv);
- }
+-static const struct v4l2_frequency_band bands_rf[] = {
+-	{
+-		.tuner = 1,
+-		.type = V4L2_TUNER_RF,
+-		.index = 0,
+-		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
+-		.rangelow   =   49000000,
+-		.rangehigh  =  263000000,
+-	}, {
+-		.tuner = 1,
+-		.type = V4L2_TUNER_RF,
+-		.index = 1,
+-		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
+-		.rangelow   =  390000000,
+-		.rangehigh  =  960000000,
+-	},
+-};
+-
+ /* stream formats */
+ struct msi3101_format {
+ 	char	*name;
+@@ -1269,8 +1251,8 @@ static int msi3101_s_frequency(struct file *file, void *priv,
  
-+static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+{
-+	struct rtl2832_priv *priv = mux_priv;
-+	return rtl2832_i2c_gate_ctrl(&priv->fe, 1);
-+}
-+
-+static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+{
-+	struct rtl2832_priv *priv = mux_priv;
-+	return rtl2832_i2c_gate_ctrl(&priv->fe, 0);
-+}
-+
-+struct i2c_adapter *rtl2832_get_i2c_adapter(struct dvb_frontend *fe)
-+{
-+	struct rtl2832_priv *priv = fe->demodulator_priv;
-+	return priv->i2c_adapter;
-+}
-+EXPORT_SYMBOL(rtl2832_get_i2c_adapter);
-+
- struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
- 	struct i2c_adapter *i2c)
+ 	if (f->tuner == 0) {
+ 		s->f_adc = clamp_t(unsigned int, f->frequency,
+-				bands_adc[0].rangelow,
+-				bands_adc[0].rangehigh);
++				bands[0].rangelow,
++				bands[0].rangehigh);
+ 		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
+ 				__func__, s->f_adc);
+ 		ret = msi3101_set_usb_adc(s);
+@@ -1287,25 +1269,25 @@ static int msi3101_enum_freq_bands(struct file *file, void *priv,
+ 		struct v4l2_frequency_band *band)
  {
-@@ -918,6 +938,12 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
- 	if (ret)
- 		goto err;
+ 	struct msi3101_state *s = video_drvdata(file);
++	int ret;
+ 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
+ 			__func__, band->tuner, band->type, band->index);
  
-+	/* create muxed i2c adapter */
-+	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
-+			rtl2832_select, rtl2832_deselect);
-+	if (priv->i2c_adapter == NULL)
-+		goto err;
-+
- 	/* create dvb_frontend */
- 	memcpy(&priv->fe.ops, &rtl2832_ops, sizeof(struct dvb_frontend_ops));
- 	priv->fe.demodulator_priv = priv;
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index fa4e5f6..a9202d7 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -55,7 +55,13 @@ struct dvb_frontend *rtl2832_attach(
- 	const struct rtl2832_config *cfg,
- 	struct i2c_adapter *i2c
- );
-+
-+extern struct i2c_adapter *rtl2832_get_i2c_adapter(
-+	struct dvb_frontend *fe
-+);
-+
- #else
-+
- static inline struct dvb_frontend *rtl2832_attach(
- 	const struct rtl2832_config *config,
- 	struct i2c_adapter *i2c
-@@ -64,6 +70,13 @@ static inline struct dvb_frontend *rtl2832_attach(
- 	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
+ 	if (band->tuner == 0) {
+-		if (band->index >= ARRAY_SIZE(bands_adc))
+-			return -EINVAL;
+-
+-		*band = bands_adc[band->index];
++		if (band->index >= ARRAY_SIZE(bands)) {
++			ret = -EINVAL;
++		} else {
++			*band = bands[band->index];
++			ret = 0;
++		}
+ 	} else if (band->tuner == 1) {
+-		/* TODO: add that to v4l2_subdev_tuner_ops */
+-		if (band->index >= ARRAY_SIZE(bands_rf))
+-			return -EINVAL;
+-
+-		*band = bands_rf[band->index];
++		ret = v4l2_subdev_call(s->v4l2_subdev, tuner,
++				enum_freq_bands, band);
+ 	} else {
+-		return -EINVAL;
++		ret = -EINVAL;
+ 	}
+ 
+-	return 0;
++	return ret;
  }
-+
-+static inline struct i2c_adapter *rtl2832_get_i2c_adapter(
-+	struct dvb_frontend *fe
-+)
-+{
-+	return NULL;
-+}
- #endif
  
+ static const struct v4l2_ioctl_ops msi3101_ioctl_ops = {
+@@ -1414,7 +1396,7 @@ static int msi3101_probe(struct usb_interface *intf,
+ 	spin_lock_init(&s->queued_bufs_lock);
+ 	INIT_LIST_HEAD(&s->queued_bufs);
+ 	s->udev = udev;
+-	s->f_adc = bands_adc[0].rangelow;
++	s->f_adc = bands[0].rangelow;
+ 	s->pixelformat = V4L2_SDR_FMT_CU8;
  
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index 4c845af..ec26c92 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -23,9 +23,11 @@
- 
- #include "dvb_frontend.h"
- #include "rtl2832.h"
-+#include <linux/i2c-mux.h>
- 
- struct rtl2832_priv {
- 	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c_adapter;
- 	struct dvb_frontend fe;
- 	struct rtl2832_config cfg;
- 
+ 	/* Init videobuf2 queue structure */
 -- 
 1.8.5.3
 
