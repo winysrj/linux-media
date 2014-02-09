@@ -1,176 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:59108 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100AbaBZLBW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 06:01:22 -0500
-Received: by mail-ig0-f178.google.com with SMTP id hl1so1124437igb.5
-        for <linux-media@vger.kernel.org>; Wed, 26 Feb 2014 03:01:21 -0800 (PST)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <1393263389.3091.82.camel@pizza.hi.pengutronix.de>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com> < 20140217181451.7EB7FC4044D@trevor.secretlab.ca> <20140218070624.GP17250@ pengutronix.de> <20140218162627.32BA4C40517@trevor.secretlab.ca> < 1393263389.3091.82.camel@pizza.hi.pengutronix.de>
-Date: Wed, 26 Feb 2014 11:01:14 +0000
-Message-Id: <20140226110114.CF2C7C40A89@trevor.secretlab.ca>
+Received: from mail.kapsi.fi ([217.30.184.167]:35401 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751435AbaBII5L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:57:11 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 51/86] DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
+Date: Sun,  9 Feb 2014 10:48:56 +0200
+Message-Id: <1391935771-18670-52-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 24 Feb 2014 18:36:29 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Am Dienstag, den 18.02.2014, 16:26 +0000 schrieb Grant Likely:
-> > > 
-> > > You can find it under Documentation/devicetree/bindings/media/video-interfaces.txt
-> > 
-> > Okay, I think I'm okay with moving the helpers, but I will make one
-> > requirement. I would like to have a short binding document describing
-> > the pattern being used. The document above talks a lot about video
-> > specific issues, but the helpers appear to be specifically about the
-> > tree walking properties of the API.
-> 
-> Reusing the non-video-secific parts of video-interfaces.txt, how about
-> the following:
+Document V4L2_SDR_FMT_CU16LE format.
+It is complex unsigned 16-bit little endian IQ sample. Used by
+software defined radio devices.
 
-This is good, but I have some comments. This document describes itself
-as the common way for doing a device graph within the device tree, but
-there is already a well established pattern for device graphs that is
-used by the interrupts-extended, clocks and other bindings. Those are
-all domain-specific bindings, but the core concept is one device uses
-a resource provided by another device. The resource references construct
-a graph independent from the natural FDT node graph. (ie. the interrupts
-binding forms the interrupt graph. Same for the clock binding).
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        | 46 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
+ 2 files changed, 47 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
 
-So, while this binding does describe a pattern for separate device
-graphs, it is by no means the only common way of doing so.
-
-I would like the document to acknowledge the difference from the
-phandle+args pattern used elsewhere and a description of when it would
-be appropriate to use this instead of a simpler binding.
-
-> 
-> "Common bindings for device graphs"
-> 
-> General concept
-> ---------------
-> 
-> The hierarchical organisation of the device tree is well suited to describe
-> control flow to devices, but data flow between devices that work together to
-> form a logical compound device can follow arbitrarily complex graphs.
-
-I would argue that this pattern isn't necessarily restricted to data
-flow descriptions. It wants to describe linkage between devices that are
-sufficiently complex that the simple binding doesn't do the job.
-
-> The device tree graph bindings allow to describe data bus connections between
-> individual devices, that can't be inferred from device tree parent-child
-> relationships. The common bindings do not contain any information about the
-> direction or type of data flow, they just map connections. Specific properties
-> of the connections can be set depending on the type of connection. To see
-> how this binding applies to video pipelines, see for example
-> Documentation/device-tree/bindings/media/video-interfaces.txt.
-
-Even if you don't want to declare the direction of data flow, there does
-need to be some guidance as to how the binding is constructed. Does
-device A point to device B? Or the other way around? Why would someone
-choose one over the other? I don't want to see a situation where A & B
-point to each other. Things get complex if the graph is allowed to be
-cyclical.
-
-> Data interfaces on devices are described by their child 'port' nodes. The port
-> node contains an 'endpoint' subnode for each remote device connected to this
-> port via a bus. If a port is connected to more than one remote device on the
-> same bus, an 'endpoint' child node must be provided for each of them. If more
-> than one port is present in a device node or there is more than one endpoint at
-> a port, or port node needs to be associated with a selected hardware interface,
-> a common scheme using '#address-cells', '#size-cells' and 'reg' properties is
-> used.
-> 
-> device {
-> 	...
-> 	#address-cells = <1>;
-> 	#size-cells = <0>;
-> 
-> 	port@0 {
-> 		...
-> 		endpoint@0 { ... };
-> 		endpoint@1 { ... };
-> 	};
-> 
-> 	port@1 { ... };
-> };
-> 
-> All 'port' nodes can be grouped under optional 'ports' node, which allows to
-> specify #address-cells, #size-cells properties independently for the 'port'
-> and 'endpoint' nodes and any child device nodes a device might have.
-> 
-> device {
-> 	...
-> 	ports {
-> 		#address-cells = <1>;
-> 		#size-cells = <0>;
-> 
-> 		port@0 {
-> 			...
-> 			endpoint@0 { ... };
-> 			endpoint@1 { ... };
-> 		};
-> 
-> 		port@1 { ... };
-> 	};
-> };
-> 
-> Each endpoint can contain a 'remote-endpoint' phandle property that points to
-> the corresponding endpoint in the port of the remote device. Two 'endpoint'
-> nodes are linked with each other through their 'remote-endpoint' phandles.
-
-I really don't like this aspect. It is far too easy to get wrong. Graphs
-should be one direction only.
-
-> 
-> device_1 {
-> 	port {
-> 		device_1_output: endpoint {
-> 			remote-endpoint = <&device_2_input>;
-> 		};
-> 	};
-> };
-> 
-> device_1 {
-> 	port {
-> 		device_2_input: endpoint {
-> 			remote-endpoint = <&device_1_output>;
-> 		};
-> 	};
-> };
-> 
-> 
-> Required properties
-> -------------------
-> 
-> If there is more than one 'port' or more than one 'endpoint' node or 'reg'
-> property is present in port and/or endpoint nodes the following properties
-> are required in a relevant parent node:
-> 
->  - #address-cells : number of cells required to define port/endpoint
-> 		    identifier, should be 1.
->  - #size-cells    : should be zero.
-> 
-> Optional endpoint properties
-> ----------------------------
-> 
-> - remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
-> 
-> 
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+new file mode 100644
+index 0000000..26288ff
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+@@ -0,0 +1,46 @@
++<refentry id="V4L2-SDR-FMT-CU16LE">
++  <refmeta>
++    <refentrytitle>V4L2_SDR_FMT_CU16LE ('CU16')</refentrytitle>
++    &manvol;
++  </refmeta>
++    <refnamediv>
++      <refname>
++        <constant>V4L2_SDR_FMT_CU16LE</constant>
++      </refname>
++      <refpurpose>Complex unsigned 16-bit little endian IQ sample</refpurpose>
++    </refnamediv>
++    <refsect1>
++      <title>Description</title>
++      <para>
++This format contains sequence of complex number samples. Each complex number
++consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
++represented as a 16 bit unsigned little endian number. I value comes first
++and Q value after that.
++      </para>
++    <example>
++      <title><constant>V4L2_SDR_FMT_CU16LE</constant> 1 sample</title>
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="3" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>I'<subscript>0[7:0]</subscript></entry>
++                  <entry>I'<subscript>0[15:8]</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;2:</entry>
++                  <entry>Q'<subscript>0[7:0]</subscript></entry>
++                  <entry>Q'<subscript>0[15:8]</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 40adcb8..f535d9b 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -818,6 +818,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+ interface only.</para>
+ 
+     &sub-sdr-cu08;
++    &sub-sdr-cu16le;
+ 
+   </section>
+ 
+-- 
+1.8.5.3
 
