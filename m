@@ -1,57 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41970 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755640AbaBRO0r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 09:26:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] uvcvideo: Remove duplicate check for number of buffers in queue_setup
-Date: Tue, 18 Feb 2014 15:27:47 +0100
-Message-Id: <1392733669-5281-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1392733669-5281-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1392733669-5281-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:49538 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751939AbaBIIt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:59 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 33/86] msi3101: remove FMT buffer type checks
+Date: Sun,  9 Feb 2014 10:48:38 +0200
+Message-Id: <1391935771-18670-34-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-videobuf2 already ensures that the number of buffers will not exceed
-VIDEO_MAX_FRAME, which is equal to our arbitraty limit of
-UVC_MAX_VIDEO_BUFFERS. Remove the duplicate check.
+Remove unneeded buffer type checks from FMT IOTCL handlers. Checks
+are already done by V4L core.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/uvc/uvc_queue.c | 3 ---
- drivers/media/usb/uvc/uvcvideo.h  | 2 --
- 2 files changed, 5 deletions(-)
+ drivers/staging/media/msi3101/sdr-msi3101.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index cd962be..254bc34 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -48,9 +48,6 @@ static int uvc_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 	struct uvc_streaming *stream =
- 			container_of(queue, struct uvc_streaming, queue);
+diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
+index 02960c7..6b9f0da 100644
+--- a/drivers/staging/media/msi3101/sdr-msi3101.c
++++ b/drivers/staging/media/msi3101/sdr-msi3101.c
+@@ -1679,9 +1679,6 @@ static int msi3101_g_fmt_sdr_cap(struct file *file, void *priv,
+ 	struct msi3101_state *s = video_drvdata(file);
+ 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
  
--	if (*nbuffers > UVC_MAX_VIDEO_BUFFERS)
--		*nbuffers = UVC_MAX_VIDEO_BUFFERS;
+-	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
+-		return -EINVAL;
 -
- 	*nplanes = 1;
+ 	f->fmt.sdr.pixelformat = s->pixelformat;
  
- 	sizes[0] = stream->ctrl.dwMaxVideoFrameSize;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 9e35982..6173632 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -115,8 +115,6 @@
- #define UVC_URBS		5
- /* Maximum number of packets per URB. */
- #define UVC_MAX_PACKETS		32
--/* Maximum number of video buffers. */
--#define UVC_MAX_VIDEO_BUFFERS	32
- /* Maximum status buffer size in bytes of interrupt URB. */
- #define UVC_MAX_STATUS_SIZE	16
+ 	return 0;
+@@ -1696,9 +1693,6 @@ static int msi3101_s_fmt_sdr_cap(struct file *file, void *priv,
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+ 			(char *)&f->fmt.sdr.pixelformat);
  
+-	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
+-		return -EINVAL;
+-
+ 	if (vb2_is_busy(q))
+ 		return -EBUSY;
+ 
+@@ -1723,9 +1717,6 @@ static int msi3101_try_fmt_sdr_cap(struct file *file, void *priv,
+ 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
+ 			(char *)&f->fmt.sdr.pixelformat);
+ 
+-	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
+-		return -EINVAL;
+-
+ 	for (i = 0; i < NUM_FORMATS; i++) {
+ 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
+ 			return 0;
 -- 
-1.8.3.2
+1.8.5.3
 
