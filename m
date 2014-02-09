@@ -1,167 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:37078 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753219AbaBXRhz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Feb 2014 12:37:55 -0500
-Received: by mail-ee0-f44.google.com with SMTP id d49so920298eek.31
-        for <linux-media@vger.kernel.org>; Mon, 24 Feb 2014 09:37:53 -0800 (PST)
-Message-ID: <530B83B3.3030906@googlemail.com>
-Date: Mon, 24 Feb 2014 18:38:59 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Keith Lawson <keith.lawson@libertas-tech.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Support for Empia 2980 video/audio capture chip set
-References: <1ed89f5b0a32bf26e17cee890a26b012@www.nowhere.ca> <52D2C929.9080109@googlemail.com> <de907f83197624a31fc6690a43a21929@www.nowhere.ca> <52D6FFA8.8060008@googlemail.com> <20140117001102.GA18205@nowhere.ca> <52DD8239.6060001@googlemail.com> <20140206125719.GA10386@nowhere.ca>
-In-Reply-To: <20140206125719.GA10386@nowhere.ca>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([217.30.184.167]:37891 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751467AbaBIJYQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:24:16 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 84/86] e4000: get rid of DVB i2c_gate_ctrl()
+Date: Sun,  9 Feb 2014 10:49:29 +0200
+Message-Id: <1391935771-18670-85-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Gate control is now implemented by rtl2832 I2C adapter so we do not
+need proprietary DVB i2c_gate_ctrl() anymore.
 
-Am 06.02.2014 13:57, schrieb Keith Lawson:
-> On Mon, Jan 20, 2014 at 09:08:25PM +0100, Frank Schäfer wrote:
->> On 17.01.2014 01:11, Keith Lawson wrote:
->>> On Wed, Jan 15, 2014 at 10:37:44PM +0100, Frank Schäfer wrote:
->>>> Am 14.01.2014 01:48, schrieb Keith Lawson:
->>>>> On 2014-01-12 11:56, Frank Schäfer wrote:
->>>>>
->>>>>> On 09.01.2014 02:02, Keith Lawson wrote:
->>>>>>
->>>>>>> Hello, I sent the following message to the linux-usb mailing list
->>>>>>> and they suggested I try here. I'm trying to get a "Dazzle Video
->>>>>>> Capture USB V1.0" video capture card working on a Linux device but
->>>>>>> it doesn't
->>>>>>> look like the chip set is supported yet. I believe this card is the
->>>>>>> next version of the Pinnacle VC100 capture card that worked with the
->>>>>>> em28xx kernel module. The hardware vendor that sold the card says that
->>>>>>> this device has an Empia 2980 chip set in it so I'm inquiring about
->>>>>>> support for that chip set. I'm just wondering about the best
->>>>>>> approach for getting the new chip supported in the kernel. Is this
->>>>>>> something the
->>>>>>> em28xx maintainers would naturally address in time or can I assist
->>>>>>> in getting this into the kernel? Here's dmesg from the Debian box
->>>>>>> I'm working on: [ 3198.920619] usb 3-1: new high-speed USB device
->>>>>>> number 5
->>>>>>> usingxhci_hcd [ 3198.939394] usb 3-1: New USB device found,
->>>>>>> idVendor=1b80,idProduct=e60a [ 3198.939399] usb 3-1: New USB device
->>>>>>> strings: Mfr=0, Product=1,SerialNumber=2 [ 3198.939403] usb 3-1:
->>>>>>> Product: Dazzle
->>>>>>> Video Capture USB Audio Device [ 3198.939405] usb 3-1: SerialNumber:
->>>>>>> 0 l440:~$ uname -a Linux l440 3.10-3-amd64 #1 SMP Debian 3.10.11-1
->>>>>>> (2013-09-10) x86_64 GNU/Linux If this isn't the appropriate list to ask
->>>>>>> this question please point me in the right direction. Thanks, Keith
->>>>>> The em28xx is indeed the dedicated driver for this device, but it's hard
->>>>>> to say how much work would be necessary to add support for it.
->>>>>> We currently don't support any em29xx chip yet, but in theory it is just
->>>>>> an extended em28xx device.
->>>>>> Whatever that means when it comes to the low level stuff... ;)
->>>>>>
->>>>> What's the best route to get support for this chip added then? Should
->>>>> I start working on a patch myself or will this just happen during the
->>>>> course of development of the em28xx module? I'm a developer but
->>>>> haven't done any kernel hacking so this would likely be a steep
->>>>> learning curve for me.
->>>> Can you create USB-Traces of the Windows driver and send us the output
->>>> of "lsusb -v -d 1b80:e60a" for this device ?
->>>> That will give us a hint how much work will be needed.
->>> For the USB-trace will the Win7 logman output do or is there a Win7 64-bit utility like usbsnoop I should use?
->> AFAIK the logman output doesn't contain any transferred data.
->> SniffUSB would be preferred, but AFAIK it doesn't work with Win 7.
->> You may also want to try USBPcap (http://desowin.org/usbpcap/), but
->> I don't know if it runs on the 64bit version of Win 7.
->> There are also various commercial USB-Sniffers and some of them are
->> providing a free trial period/version.
->> In any case we need a readable (text) sniffing output.
-> Thanks for the pointer. I used USBPcap and exported text out of wireshark. 
->
-> Here's the capture of connecting the device: 
->
-> https://www.libertas-tech.com/dazzle_usb_connect.txt
->
-> Here's a capture of the device recording a 1 minute video. This one is almost 700 meg so you probably don't want to try and open it in a browser: 
->
-> https://www.libertas-tech.com/dazzle_recording_video.txt 
->
-> I can arrange to get one of these devices in the hands of a developer if that would help too. 
-Sorry for the delay, I'm currently burried under lots other stuff...
-I haven't finished evaluating these logs yet, but so far I can say that
-there's a lot of known stuff but also much new/unknown stuff.
-Which capturing settings (resolution, video format, ...) did you use for
-these logs ?
-Does the device consist of any other chips (AC97, demodulator, ...) ?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/e4000.c | 106 +++++++++----------------------------------
+ 1 file changed, 21 insertions(+), 85 deletions(-)
 
-Regards,
-Frank
-
->
->>> Here's the lsusb output:
->> ...
->>
->>>     Interface Descriptor:
->>>       bLength                 9
->>>       bDescriptorType         4
->>>       bInterfaceNumber        0
->>>       bAlternateSetting       7
->>>       bNumEndpoints           4
->>>       bInterfaceClass       255 Vendor Specific Class
->>>       bInterfaceSubClass      0
->>>       bInterfaceProtocol    255
->>>       iInterface              0
->>>       Endpoint Descriptor:
->>>         bLength                 7
->>>         bDescriptorType         5
->>>         bEndpointAddress     0x81  EP 1 IN
->>>         bmAttributes            3
->>>           Transfer Type            Interrupt
->>>           Synch Type               None
->>>           Usage Type               Data
->>>         wMaxPacketSize     0x0001  1x 1 bytes
->>>         bInterval              11
->>>       Endpoint Descriptor:
->>>         bLength                 7
->>>         bDescriptorType         5
->>>         bEndpointAddress     0x82  EP 2 IN
->>>         bmAttributes            1
->>>           Transfer Type            Isochronous
->>>           Synch Type               None
->>>           Usage Type               Data
->>>         wMaxPacketSize     0x1400  3x 1024 bytes
->>>         bInterval               1
->>>       Endpoint Descriptor:
->>>         bLength                 7
->>>         bDescriptorType         5
->>>         bEndpointAddress     0x84  EP 4 IN
->>>         bmAttributes            1
->>>           Transfer Type            Isochronous
->>>           Synch Type               None
->>>           Usage Type               Data
->>>         wMaxPacketSize     0x03ac  1x 940 bytes
->>>         bInterval               1
->>>       Endpoint Descriptor:
->>>         bLength                 7
->>>         bDescriptorType         5
->>>         bEndpointAddress     0x8a  EP 10 IN
->>>         bmAttributes            2
->>>           Transfer Type            Bulk
->>>           Synch Type               None
->>>           Usage Type               Data
->>>         wMaxPacketSize     0x0200  1x 512 bytes
->>>         bInterval               0
->> This endpoint configuration is different from the Empia devices
->> we've seen so far.
->> We have never seen any devices using endpoint address 0x8a and
->> endpoint 0x84 looks strange.
->> It's hard to say what they are used for.
->> The current em28xx driver will assume 0x84 is used for DVB, but that
->> makes no sense for this device.
->>
->> Regards,
->> Frank
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index 662e19a1..e3e3b7e 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -119,9 +119,6 @@ static int e4000_init(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+ 	/* dummy I2C to ensure I2C wakes up */
+ 	ret = e4000_wr_reg(priv, 0x02, 0x40);
+ 
+@@ -178,17 +175,11 @@ static int e4000_init(struct dvb_frontend *fe)
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+ 	priv->active = true;
+-
+-	return 0;
+ err:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++	if (ret)
++		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 
+-	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -201,22 +192,13 @@ static int e4000_sleep(struct dvb_frontend *fe)
+ 
+ 	priv->active = false;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+ 	ret = e4000_wr_reg(priv, 0x00, 0x00);
+ 	if (ret < 0)
+ 		goto err;
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+-	return 0;
+ err:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++	if (ret)
++		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 
+-	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -233,9 +215,6 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 			__func__, c->delivery_system, c->frequency,
+ 			c->bandwidth_hz);
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+ 	/* gain control manual */
+ 	ret = e4000_wr_reg(priv, 0x1a, 0x00);
+ 	if (ret < 0)
+@@ -361,16 +340,10 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	ret = e4000_wr_reg(priv, 0x1a, 0x17);
+ 	if (ret < 0)
+ 		goto err;
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+-	return 0;
+ err:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++	if (ret)
++		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 
+-	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -390,14 +363,12 @@ static int e4000_set_lna_gain(struct dvb_frontend *fe)
+ 	struct e4000_priv *priv = fe->tuner_priv;
+ 	int ret;
+ 	u8 u8tmp;
++
+ 	dev_dbg(&priv->client->dev, "%s: lna auto=%d->%d val=%d->%d\n",
+ 			__func__, priv->lna_gain_auto->cur.val,
+ 			priv->lna_gain_auto->val, priv->lna_gain->cur.val,
+ 			priv->lna_gain->val);
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+ 	if (priv->lna_gain_auto->val && priv->if_gain_auto->cur.val)
+ 		u8tmp = 0x17;
+ 	else if (priv->lna_gain_auto->val)
+@@ -416,16 +387,10 @@ static int e4000_set_lna_gain(struct dvb_frontend *fe)
+ 		if (ret)
+ 			goto err;
+ 	}
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+-	return 0;
+ err:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++	if (ret)
++		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 
+-	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -434,14 +399,12 @@ static int e4000_set_mixer_gain(struct dvb_frontend *fe)
+ 	struct e4000_priv *priv = fe->tuner_priv;
+ 	int ret;
+ 	u8 u8tmp;
++
+ 	dev_dbg(&priv->client->dev, "%s: mixer auto=%d->%d val=%d->%d\n",
+ 			__func__, priv->mixer_gain_auto->cur.val,
+ 			priv->mixer_gain_auto->val, priv->mixer_gain->cur.val,
+ 			priv->mixer_gain->val);
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+ 	if (priv->mixer_gain_auto->val)
+ 		u8tmp = 0x15;
+ 	else
+@@ -456,16 +419,10 @@ static int e4000_set_mixer_gain(struct dvb_frontend *fe)
+ 		if (ret)
+ 			goto err;
+ 	}
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+-	return 0;
+ err:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++	if (ret)
++		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 
+-	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -475,14 +432,12 @@ static int e4000_set_if_gain(struct dvb_frontend *fe)
+ 	int ret;
+ 	u8 buf[2];
+ 	u8 u8tmp;
++
+ 	dev_dbg(&priv->client->dev, "%s: if auto=%d->%d val=%d->%d\n",
+ 			__func__, priv->if_gain_auto->cur.val,
+ 			priv->if_gain_auto->val, priv->if_gain->cur.val,
+ 			priv->if_gain->val);
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+ 	if (priv->if_gain_auto->val && priv->lna_gain_auto->cur.val)
+ 		u8tmp = 0x17;
+ 	else if (priv->lna_gain_auto->cur.val)
+@@ -503,16 +458,10 @@ static int e4000_set_if_gain(struct dvb_frontend *fe)
+ 		if (ret)
+ 			goto err;
+ 	}
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+-	return 0;
+ err:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++	if (ret)
++		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 
+-	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -525,18 +474,12 @@ static int e4000_pll_lock(struct dvb_frontend *fe)
+ 	if (priv->active == false)
+ 		return 0;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+ 	ret = e4000_rd_reg(priv, 0x07, &u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+ 	priv->pll_lock->val = (u8tmp & 0x01);
+ err:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+ 	if (ret)
+ 		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+ 
+@@ -567,6 +510,7 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct dvb_frontend *fe = priv->fe;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
++
+ 	dev_dbg(&priv->client->dev,
+ 			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
+ 			__func__, ctrl->id, ctrl->name, ctrl->val,
+@@ -632,9 +576,6 @@ static int e4000_probe(struct i2c_client *client,
+ 	int ret;
+ 	u8 chip_id;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+ 	priv = kzalloc(sizeof(struct e4000_priv), GFP_KERNEL);
+ 	if (!priv) {
+ 		ret = -ENOMEM;
+@@ -702,19 +643,13 @@ static int e4000_probe(struct i2c_client *client,
+ 	fe->tuner_priv = priv;
+ 	memcpy(&fe->ops.tuner_ops, &e4000_tuner_ops,
+ 			sizeof(struct dvb_tuner_ops));
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+ 	i2c_set_clientdata(client, priv);
+-
+-	return 0;
+ err:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++	if (ret) {
++		dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
++		kfree(priv);
++	}
+ 
+-	dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
+-	kfree(priv);
+ 	return ret;
+ }
+ 
+@@ -724,6 +659,7 @@ static int e4000_remove(struct i2c_client *client)
+ 	struct dvb_frontend *fe = priv->fe;
+ 
+ 	dev_dbg(&client->dev, "%s:\n", __func__);
++
+ 	v4l2_ctrl_handler_free(&priv->hdl);
+ 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
+ 	fe->tuner_priv = NULL;
+-- 
+1.8.5.3
 
