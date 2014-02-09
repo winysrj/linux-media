@@ -1,44 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48203 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:42594 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750764AbaBCLAK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Feb 2014 06:00:10 -0500
+	id S1751826AbaBIJVs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:21:48 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 0/5] separate MSi001 driver from MSi3101 driver
-Date: Mon,  3 Feb 2014 12:59:50 +0200
-Message-Id: <1391425195-17865-1-git-send-email-crope@iki.fi>
+Subject: [REVIEW PATCH 83/86] rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
+Date: Sun,  9 Feb 2014 10:49:28 +0200
+Message-Id: <1391935771-18670-84-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Split MSi001 RF tuner driver out from MSi3101 module. It is
-implemented as SPI driver binding model offering V4L subdevice as
-control interface.
+RTL2832 driver provides muxed I2C adapters for tuner bus I2C gate
+control. Pass those adapters to rtl2832_sdr and e4000 modules in order
+to get rid of proprietary DVB .i2c_gate_ctrl() callback use.
 
-Wonder how much whine this will cause as implementing E4000 driver
-using I2C driver model earlier... It is yet another, even much more
-exotic bus than I2C. But I simply don't want to use any proprietary
-models to bind these modules, nor abuse I2C model...
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 12 ++++++++++--
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-Antti
-
-
-Antti Palosaari (5):
-  msi001: Mirics MSi001 silicon tuner driver
-  msi3101: use msi001 tuner driver
-  MAINTAINERS: add msi001 driver
-  MAINTAINERS: add msi3101 driver
-  MAINTAINERS: add rtl2832_sdr driver
-
- MAINTAINERS                                 |  30 ++
- drivers/staging/media/msi3101/Kconfig       |   7 +
- drivers/staging/media/msi3101/Makefile      |   1 +
- drivers/staging/media/msi3101/msi001.c      | 472 ++++++++++++++++++++++++++++
- drivers/staging/media/msi3101/sdr-msi3101.c | 437 +++++++------------------
- 5 files changed, 629 insertions(+), 318 deletions(-)
- create mode 100644 drivers/staging/media/msi3101/msi001.c
-
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index afafe92..e04a3e9 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -774,6 +774,9 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 		goto err;
+ 	}
+ 
++	/* RTL2832 I2C repeater */
++	priv->demod_i2c_adapter = rtl2832_get_i2c_adapter(adap->fe[0]);
++
+ 	/* set fe callback */
+ 	adap->fe[0]->callback = rtl2832u_frontend_callback;
+ 
+@@ -920,6 +923,8 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 				&rtl28xxu_rtl2832_fc0013_config);
+ 		break;
+ 	case TUNER_RTL2832_E4000: {
++			struct i2c_adapter *i2c_adap_internal =
++					rtl2832_get_private_i2c_adapter(adap->fe[0]);
+ 			struct e4000_config e4000_config = {
+ 				.fe = adap->fe[0],
+ 				.clock = 28800000,
+@@ -930,11 +935,14 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 			info.platform_data = &e4000_config;
+ 
+ 			request_module("e4000");
+-			priv->client = i2c_new_device(&d->i2c_adap, &info);
++			priv->client = i2c_new_device(priv->demod_i2c_adapter,
++					&info);
++
++			i2c_set_adapdata(i2c_adap_internal, d);
+ 
+ 			/* attach SDR */
+ 			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
+-					&d->i2c_adap,
++					i2c_adap_internal,
+ 					&rtl28xxu_rtl2832_e4000_config);
+ 		}
+ 		break;
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index 367aca1..a26cab1 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -55,6 +55,7 @@ struct rtl28xxu_priv {
+ 	u8 tuner;
+ 	char *tuner_name;
+ 	u8 page; /* integrated demod active register page */
++	struct i2c_adapter *demod_i2c_adapter;
+ 	bool rc_active;
+ 	struct i2c_client *client;
+ };
 -- 
 1.8.5.3
 
