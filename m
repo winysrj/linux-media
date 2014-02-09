@@ -1,40 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45334 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:56182 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933198AbaBAOYr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 09:24:47 -0500
+	id S1751782AbaBIItz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:55 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 07/17] rtl2832_sdr: fix device caps to advertise SDR receiver
-Date: Sat,  1 Feb 2014 16:24:24 +0200
-Message-Id: <1391264674-4395-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
-References: <1391264674-4395-1-git-send-email-crope@iki.fi>
+Subject: [REVIEW PATCH 07/86] rtl2832_sdr: initial support for FC0012 tuner
+Date: Sun,  9 Feb 2014 10:48:12 +0200
+Message-Id: <1391935771-18670-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Advertise device as a SDR receiver, not video. After that libv4l
-accepts opening device.
+Use tuner via internal DVB API.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
 diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 69fc996..15c562e3 100644
+index 0e12e1a..c088957 100644
 --- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
 +++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -609,7 +609,7 @@ static int rtl2832_sdr_querycap(struct file *file, void *fh,
- 	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
- 	strlcpy(cap->card, s->vdev.name, sizeof(cap->card));
- 	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
--	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-+	cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_STREAMING |
- 			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
+@@ -753,6 +753,12 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
+ 		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
+ 		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x14", 1);
++	} else if (s->cfg->tuner == RTL2832_TUNER_FC0012) {
++		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x2c", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x16", 1);
+ 	} else {
+ 		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
+ 		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x30", 1);
+@@ -782,6 +788,19 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 		ret = rtl2832_sdr_wr_regs(s, 0x019, "\x21", 1);
+ 		ret = rtl2832_sdr_wr_regs(s, 0x116, "\x00\x00", 2);
+ 		ret = rtl2832_sdr_wr_regs(s, 0x118, "\x00", 1);
++	} else if (s->cfg->tuner == RTL2832_TUNER_FC0012) {
++		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xe9\xbf", 2);
++		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1d9, "\x00", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1db, "\x00", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1dd, "\x11", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1de, "\xef", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1d8, "\x0c", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1e6, "\x02", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x1d7, "\x09", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x008, "\xcd", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x14", 1);
++		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x10", 1);
+ 	} else {
+ 		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xd4", 1);
+ 		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
 -- 
 1.8.5.3
 
