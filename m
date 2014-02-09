@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4068 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752929AbaBYJsr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 04:48:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:42464 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751467AbaBIJZY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:25:24 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv1 PATCH 03/14] vb2: fix PREPARE_BUF regression
-Date: Tue, 25 Feb 2014 10:48:16 +0100
-Message-Id: <1393321707-9749-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 78/86] DocBook: media: document PLL lock control
+Date: Sun,  9 Feb 2014 10:49:23 +0200
+Message-Id: <1391935771-18670-79-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix an incorrect test in vb2_internal_qbuf() where only DEQUEUED buffers
-are allowed. But PREPARED buffers are also OK.
+Document PLL lock V4L2 control. It is read only RF tuner control
+which is used to inform if tuner is receiving frequency or not.
 
-Introduced by commit 4138111a27859dcc56a5592c804dd16bb12a23d1
-("vb2: simplify qbuf/prepare_buf by removing callback").
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index f1a2857c..909f367 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1420,11 +1420,6 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		return ret;
- 
- 	vb = q->bufs[b->index];
--	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
--		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
--			vb->state);
--		return -EINVAL;
--	}
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
-@@ -1438,7 +1433,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		dprintk(1, "qbuf: buffer still being prepared\n");
- 		return -EINVAL;
- 	default:
--		dprintk(1, "qbuf: buffer already in use\n");
-+		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-+			vb->state);
- 		return -EINVAL;
- 	}
- 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 345b6e5..e6d4b50 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5077,6 +5077,15 @@ intermediate frequency output or baseband output. Used when
+ <constant>V4L2_CID_IF_GAIN_AUTO</constant> is not set. The range and step are
+ driver-specific.</entry>
+             </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_PLL_LOCK</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Is synthesizer PLL locked? RF tuner is
++receiving given frequency when that control is set. This is a read-only control.
++</entry>
++            </row>
+           </tbody>
+         </tgroup>
+       </table>
 -- 
-1.9.0
+1.8.5.3
 
