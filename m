@@ -1,51 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46724 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753821AbaBOUvi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Feb 2014 15:51:38 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:36766 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751481AbaBIIuT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:50:19 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
-	hverkuil@xs4all.nl, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v5 7/7] v4l: Document timestamp buffer flag behaviour
-Date: Sat, 15 Feb 2014 22:53:05 +0200
-Message-Id: <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 59/86] MAINTAINERS: add msi001 driver
+Date: Sun,  9 Feb 2014 10:49:04 +0200
+Message-Id: <1391935771-18670-60-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Timestamp buffer flags are constant at the moment. Document them so that 1)
-they're always valid and 2) not changed by the drivers. This leaves room to
-extend the functionality later on if needed.
+Mirics MSi001 silicon tuner driver. Currently in staging as SDR API
+is not ready.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/DocBook/media/v4l/io.xml |   10 ++++++++++
+ MAINTAINERS | 10 ++++++++++
  1 file changed, 10 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index fbd0c6e..4f76565 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -653,6 +653,16 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
- In that case, struct <structname>v4l2_buffer</structname> contains an array of
- plane structures.</para>
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b2cf5cf..15ebabb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5757,6 +5757,16 @@ L:	platform-driver-x86@vger.kernel.org
+ S:	Supported
+ F:	drivers/platform/x86/msi-wmi.c
  
-+    <para>Dequeued video buffers come with timestamps. These
-+    timestamps can be taken from different clocks and at different
-+    part of the frame, depending on the driver. Please see flags in
-+    the masks <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
-+    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
-+    linkend="buffer-flags">. These flags are guaranteed to be always
-+    valid and will not be changed by the driver autonomously. Changes
-+    in these flags may take place due as a side effect of
-+    &VIDIOC-S-INPUT; or &VIDIOC-S-OUTPUT; however.</para>
++MSI001 MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/staging/media/msi3101/msi001*
 +
-     <table frame="none" pgwide="1" id="v4l2-buffer">
-       <title>struct <structname>v4l2_buffer</structname></title>
-       <tgroup cols="4">
+ MT9M032 APTINA SENSOR DRIVER
+ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-media@vger.kernel.org
 -- 
-1.7.10.4
+1.8.5.3
 
