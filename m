@@ -1,145 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1611 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756020AbaBFLDN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:03:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:57914 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751610AbaBIGGX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 01:06:23 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 03/10] vb2: add note that buf_finish can be called with !vb2_is_streaming()
-Date: Thu,  6 Feb 2014 12:02:27 +0100
-Message-Id: <1391684554-37956-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/5] libdvbv5: better handle ATSC/Annex B
+Date: Sun,  9 Feb 2014 08:05:50 +0200
+Message-Id: <1391925954-25975-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1391925954-25975-1-git-send-email-crope@iki.fi>
+References: <1391925954-25975-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-Drivers need to be aware that buf_finish can be called when there is no
-streaming going on, so make a note of that.
+As DVBv3 is confusing with regards to ATSC and ClearQAM (DVB-C
+annex B), userpace apps also only differenciate between ATSC and
+ClearQAM via modulation.
 
-Also add a bunch of missing periods at the end of sentences.
+However, when using DVBv5, may be using the delivery system
+in order to enforce one or the other.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+In any case, the DVB API should clearly identify between ATSC
+and ClearQAM.
+
+So, make the API to better handle it, fixing the delivery
+system if needed, when reading or write a file.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- include/media/videobuf2-core.h | 44 ++++++++++++++++++++++--------------------
- 1 file changed, 23 insertions(+), 21 deletions(-)
+ lib/libdvbv5/dvb-file.c | 33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f443ce0..82b7f0f 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -34,49 +34,49 @@ struct vb2_fileio_data;
-  *		usually will result in the allocator freeing the buffer (if
-  *		no other users of this buffer are present); the buf_priv
-  *		argument is the allocator private per-buffer structure
-- *		previously returned from the alloc callback
-+ *		previously returned from the alloc callback.
-  * @get_userptr: acquire userspace memory for a hardware operation; used for
-  *		 USERPTR memory types; vaddr is the address passed to the
-  *		 videobuf layer when queuing a video buffer of USERPTR type;
-  *		 should return an allocator private per-buffer structure
-  *		 associated with the buffer on success, NULL on failure;
-  *		 the returned private structure will then be passed as buf_priv
-- *		 argument to other ops in this structure
-+ *		 argument to other ops in this structure.
-  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
-- *		 be used
-+ *		 be used.
-  * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
-  *		   used for DMABUF memory types; alloc_ctx is the alloc context
-  *		   dbuf is the shared dma_buf; returns NULL on failure;
-  *		   allocator private per-buffer structure on success;
-- *		   this needs to be used for further accesses to the buffer
-+ *		   this needs to be used for further accesses to the buffer.
-  * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
-  *		   buffer is no longer used; the buf_priv argument is the
-  *		   allocator private per-buffer structure previously returned
-- *		   from the attach_dmabuf callback
-+ *		   from the attach_dmabuf callback.
-  * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
-  *		of dmabuf is informed that this driver is going to use the
-- *		dmabuf
-+ *		dmabuf.
-  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-- *		  that this driver is done using the dmabuf for now
-+ *		  that this driver is done using the dmabuf for now.
-  * @prepare:	called every time the buffer is passed from userspace to the
-- *		driver, useful for cache synchronisation, optional
-+ *		driver, useful for cache synchronisation, optional.
-  * @finish:	called every time the buffer is passed back from the driver
-- *		to the userspace, also optional
-+ *		to the userspace, also optional.
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-- *		such mapping exists
-+ *		such mapping exists.
-  * @cookie:	return allocator specific cookie for a given memory buffer
-  *		associated with the passed private structure or NULL if not
-- *		available
-+ *		available.
-  * @num_users:	return the current number of users of a memory buffer;
-  *		return 1 if the videobuf layer (or actually the driver using
-- *		it) is the only user
-+ *		it) is the only user.
-  * @mmap:	setup a userspace mapping for a given memory buffer under
-- *		the provided virtual memory region
-+ *		the provided virtual memory region.
-  *
-  * Required ops for USERPTR types: get_userptr, put_userptr.
-  * Required ops for MMAP types: alloc, put, num_users, mmap.
-- * Required ops for read/write access types: alloc, put, num_users, vaddr
-+ * Required ops for read/write access types: alloc, put, num_users, vaddr.
-  * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
-  *				  unmap_dmabuf.
-  */
-@@ -258,27 +258,29 @@ struct vb2_buffer {
-  * @wait_prepare:	release any locks taken while calling vb2 functions;
-  *			it is called before an ioctl needs to wait for a new
-  *			buffer to arrive; required to avoid a deadlock in
-- *			blocking access type
-+ *			blocking access type.
-  * @wait_finish:	reacquire all locks released in the previous callback;
-  *			required to continue operation after sleeping while
-- *			waiting for a new buffer to arrive
-+ *			waiting for a new buffer to arrive.
-  * @buf_init:		called once after allocating a buffer (in MMAP case)
-  *			or after acquiring a new USERPTR buffer; drivers may
-  *			perform additional buffer-related initialization;
-  *			initialization failure (return != 0) will prevent
-- *			queue setup from completing successfully; optional
-+ *			queue setup from completing successfully; optional.
-  * @buf_prepare:	called every time the buffer is queued from userspace
-  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
-  *			perform any initialization required before each hardware
-  *			operation in this callback; drivers that support
-  *			VIDIOC_CREATE_BUFS must also validate the buffer size;
-  *			if an error is returned, the buffer will not be queued
-- *			in driver; optional
-+ *			in driver; optional.
-  * @buf_finish:		called before every dequeue of the buffer back to
-  *			userspace; drivers may perform any operations required
-- *			before userspace accesses the buffer; optional
-+ *			before userspace accesses the buffer; optional. Note:
-+ *			this op can be called as well when vb2_is_streaming()
-+ *			returns false!
-  * @buf_cleanup:	called once before the buffer is freed; drivers may
-- *			perform any additional cleanup; optional
-+ *			perform any additional cleanup; optional.
-  * @start_streaming:	called once to enter 'streaming' state; the driver may
-  *			receive buffers with @buf_queue callback before
-  *			@start_streaming is called; the driver gets the number
-@@ -299,7 +301,7 @@ struct vb2_buffer {
-  *			the buffer back by calling vb2_buffer_done() function;
-  *			it is allways called after calling STREAMON ioctl;
-  *			might be called before start_streaming callback if user
-- *			pre-queued buffers before calling STREAMON
-+ *			pre-queued buffers before calling STREAMON.
-  */
- struct vb2_ops {
- 	int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
+diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
+index 1c33a90..e0cef34 100644
+--- a/lib/libdvbv5/dvb-file.c
++++ b/lib/libdvbv5/dvb-file.c
+@@ -88,6 +88,32 @@ int retrieve_entry_prop(struct dvb_entry *entry,
+ 	return -1;
+ }
+ 
++static void adjust_delsys(struct dvb_entry *entry)
++{
++	uint32_t delsys = SYS_UNDEFINED;
++
++	retrieve_entry_prop(entry, DTV_DELIVERY_SYSTEM, &delsys);
++	switch (delsys) {
++	case SYS_ATSC:
++	case SYS_DVBC_ANNEX_B: {
++		uint32_t modulation = VSB_8;
++
++		retrieve_entry_prop(entry, DTV_MODULATION, &modulation);
++		switch (modulation) {
++		case VSB_8:
++		case VSB_16:
++			delsys = SYS_ATSC;
++			break;
++		default:
++			delsys = SYS_DVBC_ANNEX_B;
++			break;
++		}
++		store_entry_prop(entry, DTV_DELIVERY_SYSTEM, delsys);
++		break;
++	}
++	} /* switch */
++}
++
+ /*
+  * Generic parse function for all formats each channel is contained into
+  * just one line.
+@@ -242,7 +268,7 @@ struct dvb_file *parse_format_oneline(const char *fname,
+ 			entry->props[entry->n_props].cmd = DTV_INVERSION;
+ 			entry->props[entry->n_props++].u.data = INVERSION_AUTO;
+ 		}
+-
++		adjust_delsys(entry);
+ 	} while (1);
+ 	fclose(fd);
+ 	free(buf);
+@@ -330,6 +356,7 @@ int write_format_oneline(const char *fname,
+ 				 delsys);
+ 			goto error;
+ 		}
++		adjust_delsys(entry);
+ 		if (parse_file->has_delsys_id) {
+ 			fprintf(fp, "%s", formats[i].id);
+ 			first = 0;
+@@ -596,6 +623,7 @@ struct dvb_file *read_dvb_file(const char *fname)
+ 				dvb_file->first_entry = calloc(sizeof(*entry), 1);
+ 				entry = dvb_file->first_entry;
+ 			} else {
++				adjust_delsys(entry);
+ 				entry->next = calloc(sizeof(*entry), 1);
+ 				entry = entry->next;
+ 			}
+@@ -644,6 +672,8 @@ struct dvb_file *read_dvb_file(const char *fname)
+ 			}
+ 		}
+ 	} while (1);
++	if (entry)
++		adjust_delsys(entry);
+ 	fclose(fd);
+ 	return dvb_file;
+ 
+@@ -668,6 +698,7 @@ int write_dvb_file(const char *fname, struct dvb_file *dvb_file)
+ 	}
+ 
+ 	for (entry = dvb_file->first_entry; entry != NULL; entry = entry->next) {
++		adjust_delsys(entry);
+ 		if (entry->channel) {
+ 			fprintf(fp, "[%s]\n", entry->channel);
+ 			if (entry->vchannel)
 -- 
-1.8.5.2
+1.8.5.3
 
