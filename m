@@ -1,83 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:57938 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752413AbaBGS72 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 13:59:28 -0500
-Date: Fri, 7 Feb 2014 18:59:11 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH RFC 0/2] drivers/base: simplify simple DT-based
-	components
-Message-ID: <20140207185911.GG26684@n2100.arm.linux.org.uk>
-References: <cover.1391793068.git.moinejf@free.fr> <20140207173326.GD26684@n2100.arm.linux.org.uk> <20140207194204.4d4326bd@armhf>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140207194204.4d4326bd@armhf>
+Received: from mail.kapsi.fi ([217.30.184.167]:44863 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751481AbaBIItz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:55 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 02/86] rtl28xxu: attach SDR extension module
+Date: Sun,  9 Feb 2014 10:48:07 +0200
+Message-Id: <1391935771-18670-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 07, 2014 at 07:42:04PM +0100, Jean-Francois Moine wrote:
-> On Fri, 7 Feb 2014 17:33:26 +0000
-> Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
-> 
-> > On Fri, Feb 07, 2014 at 06:11:08PM +0100, Jean-Francois Moine wrote:
-> > > This patch series tries to simplify the code of simple devices in case
-> > > they are part of componentised subsystems, are declared in a DT, and
-> > > are not using the component bin/unbind functions.
-> > 
-> > I wonder - I said earlier today that this works absolutely fine without
-> > modification with DT, so why are you messing about with it adding DT
-> > support?
-> > 
-> > This is totally the wrong approach.  The idea is that this deals with
-> > /devices/ and /devices/ only.  It groups up /devices/.
-> > 
-> > It's up to the add_component callback to the master device to decide
-> > how to deal with that.
-> > 
-> > > Jean-Francois Moine (2):
-> > >   drivers/base: permit base components to omit the bind/unbind ops
-> > 
-> > And this patch has me wondering if you even understand how to use
-> > this...  The master bind/unbind callbacks are the ones which establish
-> > the "card" based context with the subsystem.
-> > 
-> > Please, before buggering up this nicely designed implementation, please
-> > /first/ look at the imx-drm rework which was posted back in early January
-> > which illustrates how this is used in a DT context - which is something
-> > I've already pointed you at once today already.
-> 
-> As I told in a previous mail, your code works fine in my DT-based
-> Cubox. I am rewriting the TDA988x as a normal encoder/connector, and,
-> yes, the bind/unbind functions are useful in this case.
+With that extension module it supports SDR.
 
-So, which bit of "I've already got that" was missed?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/Makefile   | 1 +
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 8 ++++++++
+ 2 files changed, 9 insertions(+)
 
-> But you opened a door. In a DT context, you know that the probe_defer
-> mechanism does not work correctly. Your work permits to solve delicate
-> cases: your component_add tells exactly when a device is available, and
-> the master bind callback is the green signal for the device waiting for
-> its resources. Indeed, your system was not created for such a usage,
-> but it works as it is (anyway, the component bind/unbind functions may
-> be empty...).
-
-Sorry.  Deferred probe does work, it's been tested with imx-drm, not
-only from the master component but also the sub-components.  There's
-no problem here.
-
-And no component bind/unbind function should ever be empty.
-
-Again, I put it to you that you don't understand this layer.
-
+diff --git a/drivers/media/usb/dvb-usb-v2/Makefile b/drivers/media/usb/dvb-usb-v2/Makefile
+index 2c06714..bfe67f9 100644
+--- a/drivers/media/usb/dvb-usb-v2/Makefile
++++ b/drivers/media/usb/dvb-usb-v2/Makefile
+@@ -44,3 +44,4 @@ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+ ccflags-y += -I$(srctree)/drivers/media/tuners
+ ccflags-y += -I$(srctree)/drivers/media/common
++ccflags-y += -I$(srctree)/drivers/staging/media/rtl2832u_sdr
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index fda5c64..b398ebf 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -24,6 +24,7 @@
+ 
+ #include "rtl2830.h"
+ #include "rtl2832.h"
++#include "rtl2832_sdr.h"
+ 
+ #include "qt1010.h"
+ #include "mt2060.h"
+@@ -734,6 +735,9 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+ 	struct rtl2832_config *rtl2832_config;
++	static const struct rtl2832_sdr_config rtl2832_sdr_config = {
++		.i2c_addr = 0x10,
++	};
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+@@ -775,6 +779,10 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	/* set fe callback */
+ 	adap->fe[0]->callback = rtl2832u_frontend_callback;
+ 
++	/* attach SDR */
++	dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++			&rtl2832_sdr_config);
++
+ 	return 0;
+ err:
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
 -- 
-FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
-in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
-Estimate before purchase was "up to 13.2Mbit".
+1.8.5.3
+
