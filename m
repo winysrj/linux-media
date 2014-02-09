@@ -1,80 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42887 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:39852 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933215AbaBAOYt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 09:24:49 -0500
+	id S1751927AbaBIIt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:49:58 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 15/17] v4l: add RF tuner channel bandwidth control
-Date: Sat,  1 Feb 2014 16:24:32 +0200
-Message-Id: <1391264674-4395-16-git-send-email-crope@iki.fi>
-In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
-References: <1391264674-4395-1-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 28/86] rtl2832_sdr: clamp ADC frequency to valid range always
+Date: Sun,  9 Feb 2014 10:48:33 +0200
+Message-Id: <1391935771-18670-29-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modern silicon RF tuners has one or more adjustable filters on
-signal path, in order to filter noise from desired radio channel.
+V4L2 tuner API says incorrect value should be round to nearest
+legal value. Implement it for ADC frequency setting.
 
-Add channel bandwidth control to tell the driver which is radio
-channel width we want receive. Filters could be then adjusted by
-the driver or hardware, using RF frequency and channel bandwidth
-as a base of filter calculations.
-
-On automatic mode (normal mode), bandwidth is calculated from sampling
-rate or tuning info got from userspace. That new control gives
-possibility to set manual mode and let user have more control for
-filters.
-
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- include/uapi/linux/v4l2-controls.h   | 2 ++
- 2 files changed, 6 insertions(+)
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d201f61..e44722b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
- 	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
- 	case V4L2_CID_IF_GAIN:			return "IF Gain";
-+	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
-+	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
- 	default:
- 		return NULL;
- 	}
-@@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_LNA_GAIN_AUTO:
- 	case V4L2_CID_MIXER_GAIN_AUTO:
- 	case V4L2_CID_IF_GAIN_AUTO:
-+	case V4L2_CID_BANDWIDTH_AUTO:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_LNA_GAIN:
- 	case V4L2_CID_MIXER_GAIN:
- 	case V4L2_CID_IF_GAIN:
-+	case V4L2_CID_BANDWIDTH:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 076fa34..3cf68a6 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -905,5 +905,7 @@ enum v4l2_deemphasis {
- #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
- #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
- #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
-+#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
-+#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 2c9b703..ddacfd2 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -666,7 +666,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
+ 	u64 u64tmp;
+ 	u32 u32tmp;
  
- #endif
+-	dev_dbg(&s->udev->dev, "%s:\n", __func__);
++	dev_dbg(&s->udev->dev, "%s: f_adc=%u\n", __func__, s->f_adc);
+ 
+ 	if (!test_bit(POWER_ON, &s->flags))
+ 		return 0;
+@@ -1064,12 +1064,26 @@ static int rtl2832_sdr_s_frequency(struct file *file, void *priv,
+ 		const struct v4l2_frequency *f)
+ {
+ 	struct rtl2832_sdr_state *s = video_drvdata(file);
+-	int ret;
++	int ret, band;
+ 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
+ 			__func__, f->tuner, f->type, f->frequency);
+ 
+-	if (f->tuner == 0) {
+-		s->f_adc = f->frequency;
++	/* ADC band midpoints */
++	#define BAND_ADC_0 ((bands_adc[0].rangehigh + bands_adc[1].rangelow) / 2)
++	#define BAND_ADC_1 ((bands_adc[1].rangehigh + bands_adc[2].rangelow) / 2)
++
++	if (f->tuner == 0 && f->type == V4L2_TUNER_ADC) {
++		if (f->frequency < BAND_ADC_0)
++			band = 0;
++		else if (f->frequency < BAND_ADC_1)
++			band = 1;
++		else
++			band = 2;
++
++		s->f_adc = clamp_t(unsigned int, f->frequency,
++				bands_adc[band].rangelow,
++				bands_adc[band].rangehigh);
++
+ 		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
+ 				__func__, s->f_adc);
+ 		ret = rtl2832_sdr_set_adc(s);
+@@ -1287,6 +1301,8 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	s->udev = d->udev;
+ 	s->i2c = i2c;
+ 	s->cfg = cfg;
++	s->f_adc = bands_adc[0].rangelow;
++	s->pixelformat = V4L2_PIX_FMT_SDR_U8;
+ 
+ 	mutex_init(&s->v4l2_lock);
+ 	mutex_init(&s->vb_queue_lock);
 -- 
 1.8.5.3
 
