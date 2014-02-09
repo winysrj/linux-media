@@ -1,128 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:55483 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755905AbaBKUx5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 15:53:57 -0500
-Date: Tue, 11 Feb 2014 21:53:54 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Bryan Wu <cooloney@gmail.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-tegra <linux-tegra@vger.kernel.org>
-Subject: Re: [PATCH] media: soc-camera: support deferred probing of clients
- and OF cameras
-In-Reply-To: <CAK5ve-Kct71b4jZ_c9Jq3-tLozSBBH7FxgZUy2VSV1VUUefsZA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1402112151370.521@axis700.grange>
-References: <1391807504-8946-1-git-send-email-pengw@nvidia.com>
- <Pine.LNX.4.64.1402092122250.7755@axis700.grange>
- <CAK5ve-L5y+X+hLBrP_XTuv_fEU46mXB1P_Xoin+upboutT-8gQ@mail.gmail.com>
- <Pine.LNX.4.64.1402110732070.24582@axis700.grange>
- <CAK5ve-Kct71b4jZ_c9Jq3-tLozSBBH7FxgZUy2VSV1VUUefsZA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:56316 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751597AbaBIGGX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 01:06:23 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/5] synch videodev2.h headers with kernel SDR API
+Date: Sun,  9 Feb 2014 08:05:51 +0200
+Message-Id: <1391925954-25975-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1391925954-25975-1-git-send-email-crope@iki.fi>
+References: <1391925954-25975-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 11 Feb 2014, Bryan Wu wrote:
-
-> On Mon, Feb 10, 2014 at 10:37 PM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > Hi Bryan,
-> >
-> > On Mon, 10 Feb 2014, Bryan Wu wrote:
-> >
-> >> On Sun, Feb 9, 2014 at 2:20 PM, Guennadi Liakhovetski
-> >> <g.liakhovetski@gmx.de> wrote:
-> >> > Hi Bryan,
-> >> >
-> >> > Thanks for reiterating this patch!
-> >> >
-> >>
-> >> Sure, my pleasure. I basically assembled your patches together and
-> >> change them to use latest V4L2 soc_camera API.
-> >>
-> >> > On Fri, 7 Feb 2014, Bryan Wu wrote:
-> >
-> > [snip]
-> >
-> >> >> @@ -67,6 +81,8 @@ struct soc_camera_async_client {
-> >> >>
-> >> >>  static int soc_camera_video_start(struct soc_camera_device *icd);
-> >> >>  static int video_dev_create(struct soc_camera_device *icd);
-> >> >> +static void soc_camera_of_i2c_info(struct device_node *node,
-> >> >> +                               struct soc_camera_of_client *sofc);
-> >> >
-> >> > If you have to resubmit this patch, plase, make sure the second line of
-> >> > the above declaration is aligned af usual - under the first character
-> >> > _after_ the opening bracket.
-> >> >
-> >>
-> >> No problem, I will update this.
-> >> Hmmm, something weird on my side. I did put the second line starting
-> >> under the first character after the opening bracket. But in git show
-> >> and git format-patch I got this
-> >> ---
-> >> static int soc_camera_video_start(struct soc_camera_device *icd);
-> >>  static int video_dev_create(struct soc_camera_device *icd);
-> >> +static void soc_camera_of_i2c_info(struct device_node *node,
-> >> +                                  struct soc_camera_of_client *sofc);
-> >> ---
-> >>
-> >> But I think that's what you want, right?
-> >
-> > Don't know - now aöö TABs above are replaced with spaces, so, cannot say.
-> >
-> > [snip]
-> >
-> >> >> +{
-> >> >> +     struct soc_camera_of_client *sofc;
-> >> >> +     struct soc_camera_desc *sdesc;
-> >> >
-> >> > I'm really grateful, that you decided to use my original patch and
-> >> > preserve my authorship! But then, I think, it'd be also better to avoid
-> >> > unnecessary changes to it. What was wrong with allocation of *sofc in the
-> >> > definition line?
-> >> >
-> >>
-> >> Oh, this is really I want to bring up. It's a very subtle bug here.
-> >>
-> >> If we use local variable sofc instead of zalloc, fields of sofc have
-> >> undetermined None NULL value.
-> >
-> > No. If you initialise some members of a struct in its definition line, the
-> > rest will be initialised to 0 / NULL. I.e. in
-> >
-> >         struct foo y = {.x = 1,};
-> >
-> > all other fields of y will be initialised to 0.
-> 
-> I see, but original one is soc_camera_link which is simple in this
-> case. right now we move to soc_camera_desc. I think following line is
-> not very straight forward in a local function.
-> 
-> struct soc_camera_desc sdesc = { .host_desc = { .host_wait = true,},};
-
-I usually do
-
-struct soc_camera_desc sdesc = {.host_desc.host_wait = true,};
-
-> What about a) struct soc_camera_desc sdesc and use memset to all 0. b) 
-> use kzalloc() and kfree() in this function.
-> 
-> I think b) is more straight forward and easy to understand.
-
-With error handling for a failed kzalloc() - don't think so.
-
-Thanks
-Guennadi
-
-> 
-> Thanks,
-> -Bryan
-> 
-
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ contrib/freebsd/include/linux/videodev2.h | 16 ++++++++++++++++
+ include/linux/videodev2.h                 | 16 ++++++++++++++++
+ 2 files changed, 32 insertions(+)
+
+diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
+index 5c75762..6d49f97 100644
+--- a/contrib/freebsd/include/linux/videodev2.h
++++ b/contrib/freebsd/include/linux/videodev2.h
+@@ -173,6 +173,7 @@ enum v4l2_buf_type {
+ #endif
+ 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
+ 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
++	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+ 	/* Deprecated, do not use */
+ 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+ };
+@@ -193,6 +194,8 @@ enum v4l2_tuner_type {
+ 	V4L2_TUNER_RADIO	     = 1,
+ 	V4L2_TUNER_ANALOG_TV	     = 2,
+ 	V4L2_TUNER_DIGITAL_TV	     = 3,
++	V4L2_TUNER_ADC               = 4,
++	V4L2_TUNER_RF                = 5,
+ };
+ 
+ enum v4l2_memory {
+@@ -298,6 +301,8 @@ struct v4l2_capability {
+ #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
+ #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
+ 
++#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
++
+ #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
+ #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+ #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
+@@ -1373,6 +1378,7 @@ struct v4l2_modulator {
+ #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
+ #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
+ #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
++#define V4L2_TUNER_CAP_1HZ		0x1000
+ 
+ /*  Flags for the 'rxsubchans' field */
+ #define V4L2_TUNER_SUB_MONO		0x0001
+@@ -1726,6 +1732,15 @@ struct v4l2_pix_format_mplane {
+ } __attribute__ ((packed));
+ 
+ /**
++ * struct v4l2_format_sdr - SDR format definition
++ * @pixelformat:	little endian four character code (fourcc)
++ */
++struct v4l2_format_sdr {
++	uint32_t				pixelformat;
++	uint8_t				reserved[28];
++} __attribute__ ((packed));
++
++/**
+  * struct v4l2_format - stream data format
+  * @type:	enum v4l2_buf_type; type of the data stream
+  * @pix:	definition of an image format
+@@ -1743,6 +1758,7 @@ struct v4l2_format {
+ 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+ 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+ 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
++		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+ 		uint8_t	raw_data[200];                   /* user-defined */
+ 	} fmt;
+ };
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 6ae7bbe..27fedfe 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -139,6 +139,7 @@ enum v4l2_buf_type {
+ #endif
+ 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
+ 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
++	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+ 	/* Deprecated, do not use */
+ 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+ };
+@@ -159,6 +160,8 @@ enum v4l2_tuner_type {
+ 	V4L2_TUNER_RADIO	     = 1,
+ 	V4L2_TUNER_ANALOG_TV	     = 2,
+ 	V4L2_TUNER_DIGITAL_TV	     = 3,
++	V4L2_TUNER_ADC               = 4,
++	V4L2_TUNER_RF                = 5,
+ };
+ 
+ enum v4l2_memory {
+@@ -264,6 +267,8 @@ struct v4l2_capability {
+ #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
+ #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
+ 
++#define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
++
+ #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
+ #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+ #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
+@@ -1339,6 +1344,7 @@ struct v4l2_modulator {
+ #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
+ #define V4L2_TUNER_CAP_FREQ_BANDS	0x0400
+ #define V4L2_TUNER_CAP_HWSEEK_PROG_LIM	0x0800
++#define V4L2_TUNER_CAP_1HZ		0x1000
+ 
+ /*  Flags for the 'rxsubchans' field */
+ #define V4L2_TUNER_SUB_MONO		0x0001
+@@ -1692,6 +1698,15 @@ struct v4l2_pix_format_mplane {
+ } __attribute__ ((packed));
+ 
+ /**
++ * struct v4l2_format_sdr - SDR format definition
++ * @pixelformat:	little endian four character code (fourcc)
++ */
++struct v4l2_format_sdr {
++	__u32				pixelformat;
++	__u8				reserved[28];
++} __attribute__ ((packed));
++
++/**
+  * struct v4l2_format - stream data format
+  * @type:	enum v4l2_buf_type; type of the data stream
+  * @pix:	definition of an image format
+@@ -1709,6 +1724,7 @@ struct v4l2_format {
+ 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+ 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+ 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
++		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+ 		__u8	raw_data[200];                   /* user-defined */
+ 	} fmt;
+ };
+-- 
+1.8.5.3
+
