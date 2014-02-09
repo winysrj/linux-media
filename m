@@ -1,86 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55790 "EHLO arroyo.ext.ti.com"
+Received: from mail.oefa.gob.pe ([190.116.34.227]:51734 "EHLO mail.oefa.gob.pe"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752543AbaBZNOp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 08:14:45 -0500
-Message-ID: <530DE8A9.9050809@ti.com>
-Date: Wed, 26 Feb 2014 15:14:17 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+	id S1752202AbaBJCPS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 21:15:18 -0500
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="P5XuDVSgpRe7oq63NjUpwRNaupJAvQLnT"
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+To: Recipients <ds112@oefa.gob.pe>
+From: "ADMIN" <ds112@oefa.gob.pe>
+Date: Mon, 10 Feb 2014 00:37:49 +0100
+Reply-To: 647812717@qq.com
+Message-Id: <20140209233853.C0D9E5FBD731@mail.oefa.gob.pe>
+Subject: Sehr geehrter Nutzer
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---P5XuDVSgpRe7oq63NjUpwRNaupJAvQLnT
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Sehr geehrter Nutzer 
 
-On 25/02/14 16:58, Philipp Zabel wrote:
+Ihre E-Mail wurde von 2 GB, die von Webmaster erstellt überschritten wird, können Sie derzeit laufen 
+2.30GB, kann man nicht senden oder empfangen, neue Nachrichten, bis Sie Ihre account.Complete überprüfen 
+bilden unten, um Ihr Konto zu überprüfen. 
 
-> +Optional endpoint properties
-> +----------------------------
-> +
-> +- remote-endpoint: phandle to an 'endpoint' subnode of a remote device=
- node.
+Bitte füllen Sie die Details unten, um Ihr Konto zu bestätigen 
 
-Why is that optional? What use is an endpoint, if it's not connected to
-something?
+(1) E-mail: 
+(2) Name: 
+(3) Passwort: 
+(4) Passwort bestätigen: 
 
-Also, if this is being worked on, I'd like to propose the addition of
-simpler single-endpoint cases which I've been using with OMAP DSS. So if
-there's just a single endpoint for the device, which is very common, you
-can have just:
+danke 
+Systemadministrator
 
-device {
-	...
-	endpoint { ... };
-};
+-- 
+Este mensaje ha sido analizado por MailScanner
+en busca de virus y otros contenidos peligrosos,
+y se considera que está limpio.
+For all your IT requirements visit: http://www.transtec.co.uk
 
-However, I guess that the patch just keeps growing and growing, so maybe
-it's better to add such things later =3D).
-
- Tomi
-
-
-
---P5XuDVSgpRe7oq63NjUpwRNaupJAvQLnT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTDeipAAoJEPo9qoy8lh71kfUQAJhRq4j0qyfE4BGDXs+uIlkO
-TfkI7j8C/6ISwDRsgW84HTsdOUUynHk+Yi2haW++dz+q65vtVbsXwZZEJBig+s7u
-GURZkDuVYaO0Go4RltBAICKvPHyuiPFBw6R75i44pDurmzzGeIFyE4WO6fV0eY5R
-l0arhQwYax78+fAonRiLpQ+qHAPA2eMn7171P6zkQ5DaIb4tN5KcfrzFnZJeLH7M
-LwkgDo2lgixd9h1LjZB3av2WygnXW3HxVv9dZmTsizqoYw0FiQCg8uEnVYhevBBj
-Zni9bftyryKQhTvpvOokvPmFAQWIB/xy2NnM1HHivhv2QsBA/Rp7yi3wLE4Rq1ni
-rGh7Twq9P0l6/IFF0iffI+PoiK8K+mqbZjDrLyLjJsAE008JgILXE93xBubeaY+k
-j5j1Qb08jPqzkKtpCOw2SXTpS2ZSWmWrJHt8x3joAQG4dzB3f5dKbapCi6EJ29Z+
-9ppgINTtERFwnFaZh2onuk+/ogPMjuc/yS5LdU7NHkA5Ze4jqhgcIVguAljugaDX
-dA7lkynRrb2tjAVhsoSygEQklRz5eYNBPd4g8hFx7mAgOeUgMMYxz3lRQ6J+wptv
-/NjtZmn7dFeRjD6/0ru3SOjLwaVYeUPu/C/bQmzwsEoC33fqqbTIvA82m0zf3ROB
-eObjYrE8uzOLi0TTSTC+
-=TZyW
------END PGP SIGNATURE-----
-
---P5XuDVSgpRe7oq63NjUpwRNaupJAvQLnT--
