@@ -1,49 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1642 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752976AbaB1Rms (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 12:42:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:53893 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751481AbaBIIuB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:50:01 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 17/17] vivi: fix ENUM_FRAMEINTERVALS implementation
-Date: Fri, 28 Feb 2014 18:42:15 +0100
-Message-Id: <1393609335-12081-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 46/86] rtl2832_sdr: fix device caps to advertise SDR receiver
+Date: Sun,  9 Feb 2014 10:48:51 +0200
+Message-Id: <1391935771-18670-47-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Advertise device as a SDR receiver, not video. After that libv4l
+accepts opening device.
 
-This function never checked if width and height are correct. Add such
-a check so the v4l2-compliance tool returns OK again for vivi.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/vivi.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index 643937b..7360a84 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -1121,7 +1121,11 @@ static int vidioc_enum_frameintervals(struct file *file, void *priv,
- 	if (!fmt)
- 		return -EINVAL;
- 
--	/* regarding width & height - we support any */
-+	/* check for valid width/height */
-+	if (fival->width < 48 || fival->width > MAX_WIDTH || (fival->width & 3))
-+		return -EINVAL;
-+	if (fival->height < 32 || fival->height > MAX_HEIGHT)
-+		return -EINVAL;
- 
- 	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
- 
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 69fc996..15c562e3 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -609,7 +609,7 @@ static int rtl2832_sdr_querycap(struct file *file, void *fh,
+ 	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
+ 	strlcpy(cap->card, s->vdev.name, sizeof(cap->card));
+ 	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
+-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++	cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_STREAMING |
+ 			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
 -- 
-1.9.rc1
+1.8.5.3
 
