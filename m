@@ -1,147 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2988 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753169AbaBQJ7G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:59:06 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:33876 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751788AbaBIIuB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 03:50:01 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 27/35] v4l2-ctrls/v4l2-controls.h: add MD controls
-Date: Mon, 17 Feb 2014 10:57:42 +0100
-Message-Id: <1392631070-41868-28-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 49/86] DocBook: document RF tuner gain controls
+Date: Sun,  9 Feb 2014 10:48:54 +0200
+Message-Id: <1391935771-18670-50-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add documentation for LNA, mixer and IF gain controls. These
+controls are RF tuner specific.
 
-Add the 'Detect' control class and the new motion detection controls.
-Those controls will be used by the solo6x10 and go7007 drivers.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 27 +++++++++++++++++++++++++++
- include/uapi/linux/v4l2-controls.h   | 17 +++++++++++++++++
- 2 files changed, 44 insertions(+)
+ Documentation/DocBook/media/v4l/controls.xml | 91 ++++++++++++++++++++++++++++
+ 1 file changed, 91 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 2a73360..859ac29 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -462,6 +462,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"RGB full range (0-255)",
- 		NULL,
- 	};
-+	static const char * const detect_md_mode[] = {
-+		"Disabled",
-+		"Global",
-+		"Threshold Grid",
-+		"Region Grid",
-+		NULL,
-+	};
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a5a3188..0145341 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4971,4 +4971,95 @@ defines possible values for de-emphasis. Here they are:</entry>
+       </table>
  
- 
- 	switch (id) {
-@@ -553,6 +560,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 	case V4L2_CID_DV_TX_RGB_RANGE:
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 		return dv_rgb_range;
-+	case V4L2_CID_DETECT_MD_MODE:
-+		return detect_md_mode;
- 
- 	default:
- 		return NULL;
-@@ -861,6 +870,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
- 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+       </section>
 +
-+	/* Detection controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-+	case V4L2_CID_DETECT_CLASS:		return "Detection Controls";
-+	case V4L2_CID_DETECT_MD_MODE:		return "Motion Detection Mode";
-+	case V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD: return "MD Global Threshold";
-+	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:	return "MD Threshold Grid";
-+	case V4L2_CID_DETECT_MD_REGION_GRID:	return "MD Region Grid";
++    <section id="rf-tuner-controls">
++      <title>RF Tuner Control Reference</title>
 +
- 	default:
- 		return NULL;
- 	}
-@@ -971,6 +989,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
- 	case V4L2_CID_TEST_PATTERN:
- 	case V4L2_CID_TUNE_DEEMPHASIS:
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
-+	case V4L2_CID_DETECT_MD_MODE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-@@ -996,6 +1015,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
- 	case V4L2_CID_IMAGE_PROC_CLASS:
- 	case V4L2_CID_DV_CLASS:
- 	case V4L2_CID_FM_RX_CLASS:
-+	case V4L2_CID_DETECT_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -1041,6 +1061,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
- 		*type = V4L2_CTRL_TYPE_INTEGER64;
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		break;
-+	case V4L2_CID_DETECT_MD_REGION_GRID:
-+		*type = V4L2_CTRL_TYPE_U8;
-+		break;
-+	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
-+		*type = V4L2_CTRL_TYPE_U16;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-@@ -1077,6 +1103,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, const char **unit,
- 	case V4L2_CID_PILOT_TONE_FREQUENCY:
- 	case V4L2_CID_TUNE_POWER_LEVEL:
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+	case V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2cbe605..93ff343 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -60,6 +60,7 @@
- #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
- #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
-+#define V4L2_CTRL_CLASS_DETECT		0x00a20000	/* Detection controls */
- 
- /* User-class control IDs */
- 
-@@ -895,4 +896,20 @@ enum v4l2_deemphasis {
- 
- #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
- 
++      <para>The RF Tuner (RF_TUNER) class includes controls for common features
++of devices having RF tuner.</para>
 +
-+/*  Detection-class control IDs defined by V4L2 */
-+#define V4L2_CID_DETECT_CLASS_BASE		(V4L2_CTRL_CLASS_DETECT | 0x900)
-+#define V4L2_CID_DETECT_CLASS			(V4L2_CTRL_CLASS_DETECT | 1)
++      <table pgwide="1" frame="none" id="rf-tuner-control-id">
++        <title>RF_TUNER Control IDs</title>
 +
-+#define V4L2_CID_DETECT_MD_MODE			(V4L2_CID_DETECT_CLASS_BASE + 1)
-+enum v4l2_detect_md_mode {
-+	V4L2_DETECT_MD_MODE_DISABLED		= 0,
-+	V4L2_DETECT_MD_MODE_GLOBAL		= 1,
-+	V4L2_DETECT_MD_MODE_THRESHOLD_GRID	= 2,
-+	V4L2_DETECT_MD_MODE_REGION_GRID		= 3,
-+};
-+#define V4L2_CID_DETECT_MD_GLOBAL_THRESHOLD	(V4L2_CID_DETECT_CLASS_BASE + 2)
-+#define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
-+#define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
-+
- #endif
++        <tgroup cols="4">
++          <colspec colname="c1" colwidth="1*" />
++          <colspec colname="c2" colwidth="6*" />
++          <colspec colname="c3" colwidth="2*" />
++          <colspec colname="c4" colwidth="6*" />
++          <spanspec namest="c1" nameend="c2" spanname="id" />
++          <spanspec namest="c2" nameend="c4" spanname="descr" />
++          <thead>
++            <row>
++              <entry spanname="id" align="left">ID</entry>
++              <entry align="left">Type</entry>
++            </row>
++            <row rowsep="1">
++              <entry spanname="descr" align="left">Description</entry>
++            </row>
++          </thead>
++          <tbody valign="top">
++            <row><entry></entry></row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_CLASS</constant>&nbsp;</entry>
++              <entry>class</entry>
++            </row><row><entry spanname="descr">The RF_TUNER class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_LNA_GAIN_AUTO</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Enables/disables LNA automatic gain control (AGC)</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_MIXER_GAIN_AUTO</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Enables/disables mixer automatic gain control (AGC)</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_IF_GAIN_AUTO</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_LNA_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">LNA (low noise amplifier) gain is first
++gain stage on the RF tuner signal path. It is located very close to tuner
++antenna input. Used when <constant>V4L2_CID_LNA_GAIN_AUTO</constant> is not set.
++The range and step are driver-specific.</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_MIXER_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Mixer gain is second gain stage on the RF
++tuner signal path. It is located inside mixer block, where RF signal is
++down-converted by the mixer. Used when <constant>V4L2_CID_MIXER_GAIN_AUTO</constant>
++is not set. The range and step are driver-specific.</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_IF_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">IF gain is last gain stage on the RF tuner
++signal path. It is located on output of RF tuner. It controls signal level of
++intermediate frequency output or baseband output. Used when
++<constant>V4L2_CID_IF_GAIN_AUTO</constant> is not set. The range and step are
++driver-specific.</entry>
++            </row>
++          </tbody>
++        </tgroup>
++      </table>
++    </section>
+ </section>
 -- 
-1.8.4.rc3
+1.8.5.3
 
