@@ -1,135 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50490 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026AbaB0MHJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Feb 2014 07:07:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv2 PATCH 10/15] vb2: don't init the list if there are still buffers
-Date: Thu, 27 Feb 2014 13:08:29 +0100
-Message-ID: <1862429.C5S5BLTOjI@avalon>
-In-Reply-To: <1393332775-44067-11-git-send-email-hverkuil@xs4all.nl>
-References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl> <1393332775-44067-11-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:58274 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751894AbaBIJ2e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Feb 2014 04:28:34 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 68/86] DocBook: document RF tuner bandwidth controls
+Date: Sun,  9 Feb 2014 10:49:13 +0200
+Message-Id: <1391935771-18670-69-git-send-email-crope@iki.fi>
+In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
+References: <1391935771-18670-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Add documentation for RF tuner bandwidth controls. These controls are
+used to set filters on tuner signal path.
 
-Thank you for the patch.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-On Tuesday 25 February 2014 13:52:50 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> __vb2_queue_free() would init the queued_list at all times, even if
-> q->num_buffers > 0. This should only happen if num_buffers == 0.
-> 
-> This situation can happen if a CREATE_BUFFERS call couldn't allocate
-> enough buffers and had to free those it did manage to allocate before
-> returning an error.
-> 
-> While we're at it: __vb2_queue_alloc() returns the number of buffers
-> allocated, not an error code. So stick the result in allocated_buffers
-> instead of ret as that's very confusing.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 29 +++++++++++++++++------------
-> 1 file changed, 17 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 2a7815c..90374c0 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -452,9 +452,10 @@ static int __vb2_queue_free(struct vb2_queue *q,
-> unsigned int buffers) }
-> 
->  	q->num_buffers -= buffers;
-> -	if (!q->num_buffers)
-> +	if (!q->num_buffers) {
->  		q->memory = 0;
-> -	INIT_LIST_HEAD(&q->queued_list);
-> +		INIT_LIST_HEAD(&q->queued_list);
-> +	}
->  	return 0;
->  }
-> 
-> @@ -820,14 +821,12 @@ static int __reqbufs(struct vb2_queue *q, struct
-> v4l2_requestbuffers *req) }
-> 
->  	/* Finally, allocate buffers and video memory */
-> -	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
-> -	if (ret == 0) {
-> +	allocated_buffers = __vb2_queue_alloc(q, req->memory, num_buffers,
-> num_planes); +	if (allocated_buffers == 0) {
->  		dprintk(1, "Memory allocation failed\n");
->  		return -ENOMEM;
->  	}
-> 
-> -	allocated_buffers = ret;
-> -
->  	/*
->  	 * Check if driver can handle the allocated number of buffers.
->  	 */
-> @@ -851,6 +850,10 @@ static int __reqbufs(struct vb2_queue *q, struct
-> v4l2_requestbuffers *req) q->num_buffers = allocated_buffers;
-> 
->  	if (ret < 0) {
-> +		/*
-> +		 * Note: __vb2_queue_free() will subtract 'allocated_buffers'
-> +		 * from q->num_buffers.
-> +		 */
->  		__vb2_queue_free(q, allocated_buffers);
->  		return ret;
->  	}
-> @@ -924,20 +927,18 @@ static int __create_bufs(struct vb2_queue *q, struct
-> v4l2_create_buffers *create }
-> 
->  	/* Finally, allocate buffers and video memory */
-> -	ret = __vb2_queue_alloc(q, create->memory, num_buffers,
-> +	allocated_buffers = __vb2_queue_alloc(q, create->memory, num_buffers,
->  				num_planes);
-> -	if (ret == 0) {
-> +	if (allocated_buffers == 0) {
->  		dprintk(1, "Memory allocation failed\n");
->  		return -ENOMEM;
->  	}
-> 
-> -	allocated_buffers = ret;
-> -
->  	/*
->  	 * Check if driver can handle the so far allocated number of buffers.
->  	 */
-> -	if (ret < num_buffers) {
-> -		num_buffers = ret;
-> +	if (allocated_buffers < num_buffers) {
-> +		num_buffers = allocated_buffers;
-> 
->  		/*
->  		 * q->num_buffers contains the total number of buffers, that the
-> @@ -960,6 +961,10 @@ static int __create_bufs(struct vb2_queue *q, struct
-> v4l2_create_buffers *create q->num_buffers += allocated_buffers;
-> 
->  	if (ret < 0) {
-> +		/*
-> +		 * Note: __vb2_queue_free() will subtract 'allocated_buffers'
-> +		 * from q->num_buffers.
-> +		 */
->  		__vb2_queue_free(q, allocated_buffers);
->  		return -ENOMEM;
->  	}
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 0145341..345b6e5 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5007,6 +5007,25 @@ descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
+ description of this control class.</entry>
+             </row>
+             <row>
++              <entry spanname="id"><constant>V4L2_CID_BANDWIDTH_AUTO</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Enables/disables tuner radio channel
++bandwidth configuration. In automatic mode bandwidth configuration is performed
++by the driver.</entry>
++            </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_BANDWIDTH</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Filter(s) on tuner signal path are used to
++filter signal according to receiving party needs. Driver configures filters to
++fulfill desired bandwidth requirement. Used when V4L2_CID_BANDWIDTH_AUTO is not
++set. The range and step are driver-specific.</entry>
++            </row>
++            <row>
+               <entry spanname="id"><constant>V4L2_CID_LNA_GAIN_AUTO</constant>&nbsp;</entry>
+               <entry>boolean</entry>
+             </row>
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.3
 
