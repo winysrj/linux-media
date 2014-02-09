@@ -1,113 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2755 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742AbaB1DfH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Feb 2014 22:35:07 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1S3Z3vw069604
-	for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 04:35:05 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E52752A0232
-	for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 04:34:56 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:54519 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751886AbaBINDD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 08:03:03 -0500
+Received: by mail-we0-f169.google.com with SMTP id t61so3542526wes.14
+        for <linux-media@vger.kernel.org>; Sun, 09 Feb 2014 05:03:01 -0800 (PST)
+Message-ID: <1391950969.13992.14.camel@canaries32-MCP7A>
+Subject: [PATCH 1/2] af9035: add default 0x9135 slave I2C address
+From: Malcolm Priestley <tvboxspy@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140228033456.E52752A0232@tschai.lan>
-Date: Fri, 28 Feb 2014 04:34:56 +0100 (CET)
+Cc: Antti Palosaari <crope@iki.fi>
+Date: Sun, 09 Feb 2014 13:02:49 +0000
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On some devices the vendor has not set EEPROM_2ND_DEMOD_ADDR.
 
-Results of the daily build of media_tree:
+Checks tmp is not zero after call to get EEPROM_2ND_DEMOD_ADDR and sets the
+default slave address of 0x3a on 0x9135 devices.
 
-date:		Fri Feb 28 04:00:27 CET 2014
-git branch:	test
-git hash:	efab6b6a6ea9364ececb955f69a9d3ffc6b782a1
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 3825c2f..4f682ad 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -576,6 +576,10 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+ 			goto err;
+ 
+ 		if (state->chip_type == 0x9135) {
++			if (!tmp)
++				/* default 0x9135 slave I2C address */
++				tmp = 0x3a;
++
+ 			ret = af9035_wr_reg(d, 0x004bfb, tmp);
+ 			if (ret < 0)
+ 				goto err;
+@@ -684,6 +688,10 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		if (ret < 0)
+ 			goto err;
+ 
++		if (!tmp && state->chip_type == 0x9135)
++			/* default 0x9135 slave I2C address */
++			tmp = 0x3a;
++
+ 		state->af9033_config[1].i2c_addr = tmp;
+ 		dev_dbg(&d->udev->dev, "%s: 2nd demod I2C addr=%02x\n",
+ 				__func__, tmp);
+-- 
+1.9.rc1
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
