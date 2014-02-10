@@ -1,44 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45386 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752100AbaBOKTb (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39173 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752206AbaBJMwt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Feb 2014 05:19:31 -0500
-Message-ID: <52FF3FA6.1080903@iki.fi>
-Date: Sat, 15 Feb 2014 12:21:26 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 10 Feb 2014 07:52:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 27/47] v4l: Add support for DV timings ioctls on subdev nodes
+Date: Mon, 10 Feb 2014 13:53:48 +0100
+Message-ID: <4536221.tW42ItNFuj@avalon>
+In-Reply-To: <20140207110739.GM15635@valkosipuli.retiisi.org.uk>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-28-git-send-email-laurent.pinchart@ideasonboard.com> <20140207110739.GM15635@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: Peter Meerwald <pmeerw@pmeerw.net>
-Subject: Re: [PATCH 0/2] OMAP3 ISP pipeline validation patches
-References: <1392427195-2017-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1392427195-2017-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hello,
-> 
-> Those two patches fix the OMAP3 ISP pipeline validation when locating the
-> external subdevice.
-> 
-> The code currently works by chance with memory-to-memory pipelines, as it
-> tries to locate the external subdevice when none is available, but ignores the
-> failure due to a bug. This patch set fixes both issues.
-> 
-> Peter, could you check whether this fixes the warning you've reported ?
-> 
-> Laurent Pinchart (2):
->   omap3isp: Don't try to locate external subdev for mem-to-mem pipelines
->   omap3isp: Don't ignore failure to locate external subdev
+Hi Sakari,
 
-To both:
+On Friday 07 February 2014 13:07:40 Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> Thanks for the patch.
+> 
+> On Wed, Feb 05, 2014 at 05:42:18PM +0100, Laurent Pinchart wrote:
+> ...
+> 
+> > diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
+> > b/drivers/media/v4l2-core/v4l2-subdev.c index 996c248..0ccf9c8 100644
+> > --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> > @@ -354,6 +354,21 @@ static long subdev_do_ioctl(struct file *file,
+> > unsigned int cmd, void *arg)> 
+> >  	case VIDIOC_SUBDEV_S_EDID:
+> >  		return v4l2_subdev_call(sd, pad, set_edid, arg);
+> > 
+> > +
+> > +	case VIDIOC_SUBDEV_DV_TIMINGS_CAP:
+> > +		return v4l2_subdev_call(sd, pad, dv_timings_cap, arg);
+> > +
+> > +	case VIDIOC_SUBDEV_ENUM_DV_TIMINGS:
+> > +		return v4l2_subdev_call(sd, pad, enum_dv_timings, arg);
+> > +
+> > +	case VIDIOC_SUBDEV_QUERY_DV_TIMINGS:
+> > +		return v4l2_subdev_call(sd, video, query_dv_timings, arg);
+> > +
+> > +	case VIDIOC_SUBDEV_G_DV_TIMINGS:
+> > +		return v4l2_subdev_call(sd, video, g_dv_timings, arg);
+> > +
+> > +	case VIDIOC_SUBDEV_S_DV_TIMINGS:
+> > +		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
+> 
+> Please validate the fields of the argument structs above you can. The pad
+> field at least can be validated.
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+I wonder how I've missed that :-) I'll fix this, and add pad validation for 
+the [GS]_EDID ioctls while I'm at it.
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
+
