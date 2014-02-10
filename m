@@ -1,254 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34325 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933177AbaBAOYq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 09:24:46 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3366 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087AbaBJIsH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 03:48:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 02/17] rtl2832_sdr: expose E4000 gain controls to user space
-Date: Sat,  1 Feb 2014 16:24:19 +0200
-Message-Id: <1391264674-4395-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
-References: <1391264674-4395-1-git-send-email-crope@iki.fi>
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 23/34] v4l2-controls.txt: update to the new way of accessing controls.
+Date: Mon, 10 Feb 2014 09:46:48 +0100
+Message-Id: <1392022019-5519-24-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Provide E4000 gain controls to userspace via V4L2 API. LNA, Mixer
-and IF gain controls are offered, each one both manual and automode.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The way current and new values are accessed has changed. Update the
+document to bring it up to date with the code.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/staging/media/rtl2832u_sdr/Makefile      |   1 +
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 115 +++++++++++++++++------
- 2 files changed, 88 insertions(+), 28 deletions(-)
+ Documentation/video4linux/v4l2-controls.txt | 46 +++++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/Makefile b/drivers/staging/media/rtl2832u_sdr/Makefile
-index 1009276..7e00a0d 100644
---- a/drivers/staging/media/rtl2832u_sdr/Makefile
-+++ b/drivers/staging/media/rtl2832u_sdr/Makefile
-@@ -2,4 +2,5 @@ obj-$(CONFIG_DVB_RTL2832_SDR) += rtl2832_sdr.o
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 1c353c2..f94dcfd 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -77,9 +77,9 @@ Basic usage for V4L2 and sub-device drivers
  
- ccflags-y += -Idrivers/media/dvb-core
- ccflags-y += -Idrivers/media/dvb-frontends
-+ccflags-y += -Idrivers/media/tuners
- ccflags-y += -Idrivers/media/usb/dvb-usb-v2
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index fccb16f..ee72233 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -25,6 +25,7 @@
- #include "dvb_frontend.h"
- #include "rtl2832_sdr.h"
- #include "dvb_usb.h"
-+#include "e4000.h"
+   Where foo->v4l2_dev is of type struct v4l2_device.
  
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-@@ -147,9 +148,14 @@ struct rtl2832_sdr_state {
- 	u32 pixelformat;
+-  Finally, remove all control functions from your v4l2_ioctl_ops:
+-  vidioc_queryctrl, vidioc_querymenu, vidioc_g_ctrl, vidioc_s_ctrl,
+-  vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
++  Finally, remove all control functions from your v4l2_ioctl_ops (if any):
++  vidioc_queryctrl, vidioc_query_ext_ctrl, vidioc_querymenu, vidioc_g_ctrl,
++  vidioc_s_ctrl, vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
+   Those are now no longer needed.
  
- 	/* Controls */
--	struct v4l2_ctrl_handler ctrl_handler;
-+	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_ctrl *lna_gain_auto;
-+	struct v4l2_ctrl *lna_gain;
-+	struct v4l2_ctrl *mixer_gain_auto;
-+	struct v4l2_ctrl *mixer_gain;
-+	struct v4l2_ctrl *if_gain_auto;
-+	struct v4l2_ctrl *if_gain;
- 	struct v4l2_ctrl *ctrl_tuner_bw;
--	struct v4l2_ctrl *ctrl_tuner_gain;
+ 1.3.2) For sub-device drivers do this:
+@@ -258,8 +258,8 @@ The new control value has already been validated, so all you need to do is
+ to actually update the hardware registers.
  
- 	/* for sample rate calc */
- 	unsigned int sample;
-@@ -917,10 +923,49 @@ err:
- 	return;
- };
+ You're done! And this is sufficient for most of the drivers we have. No need
+-to do any validation of control values, or implement QUERYCTRL/QUERYMENU. And
+-G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
++to do any validation of control values, or implement QUERYCTRL, QUERY_EXT_CTRL
++and QUERYMENU. And G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
  
-+static int rtl2832_sdr_set_gain_e4000(struct rtl2832_sdr_state *s)
-+{
-+	int ret;
-+	struct dvb_frontend *fe = s->fe;
-+	struct e4000_ctrl ctrl;
-+	dev_dbg(&s->udev->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
-+			s->lna_gain->val, s->mixer_gain->val, s->if_gain->val);
-+
-+	ctrl.lna_gain = s->lna_gain_auto->val ? INT_MIN : s->lna_gain->val;
-+	ctrl.mixer_gain = s->mixer_gain_auto->val ? INT_MIN : s->mixer_gain->val;
-+	ctrl.if_gain = s->if_gain_auto->val ? INT_MIN : s->if_gain->val;
-+
-+	if (fe->ops.tuner_ops.set_config) {
-+		ret = fe->ops.tuner_ops.set_config(fe, &ctrl);
-+		if (ret)
-+			goto err;
-+	}
-+
-+	return 0;
-+err:
-+	dev_dbg(&s->udev->dev, "%s: failed %d\n", __func__, ret);
-+	return ret;
+ 
+ ==============================================================================
+@@ -288,24 +288,40 @@ of v4l2_device.
+ Accessing Control Values
+ ========================
+ 
+-The v4l2_ctrl struct contains these two unions:
++The following union is used inside the control framework to access control
++values:
+ 
+-	/* The current control value. */
+-	union {
+-		s32 val;
+-		s64 val64;
+-		char *string;
+-	} cur;
++union v4l2_ctrl_ptr {
++	s32 *p_s32;
++	s64 *p_s64;
++	char *p_char;
++	void *p;
 +};
 +
-+static int rtl2832_sdr_set_gain(struct rtl2832_sdr_state *s)
-+{
-+	int ret;
-+
-+	switch (s->cfg->tuner) {
-+	case RTL2832_TUNER_E4000:
-+		ret = rtl2832_sdr_set_gain_e4000(s);
-+		break;
-+	default:
-+		ret = 0;
-+	}
-+	return ret;
-+}
-+
- static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
- {
- 	struct dvb_frontend *fe = s->fe;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int ret;
++The v4l2_ctrl struct contains these fields that can be used to access both
++current and new values:
  
- 	/*
- 	 * tuner RF (Hz)
-@@ -932,14 +977,9 @@ static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
- 	 */
- 	unsigned int bandwidth = s->ctrl_tuner_bw->val;
- 
--	/*
--	 * gain (dB)
--	 */
--	int gain = s->ctrl_tuner_gain->val;
--
- 	dev_dbg(&s->udev->dev,
--			"%s: f_rf=%u bandwidth=%d gain=%d\n",
--			__func__, f_rf, bandwidth, gain);
-+			"%s: f_rf=%u bandwidth=%d\n",
-+			__func__, f_rf, bandwidth);
- 
- 	if (f_rf == 0)
- 		return 0;
-@@ -961,6 +1001,8 @@ static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
- 	if (fe->ops.tuner_ops.set_params)
- 		fe->ops.tuner_ops.set_params(fe);
- 
-+	ret = rtl2832_sdr_set_gain(s);
-+
- 	return 0;
- };
- 
-@@ -1290,7 +1332,7 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct rtl2832_sdr_state *s =
- 			container_of(ctrl->handler, struct rtl2832_sdr_state,
--					ctrl_handler);
-+					hdl);
- 	int ret;
- 	dev_dbg(&s->udev->dev,
- 			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
-@@ -1302,6 +1344,15 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case RTL2832_SDR_CID_TUNER_GAIN:
- 		ret = rtl2832_sdr_set_tuner(s);
- 		break;
-+	case  V4L2_CID_LNA_GAIN_AUTO:
-+	case  V4L2_CID_LNA_GAIN:
-+	case  V4L2_CID_MIXER_GAIN_AUTO:
-+	case  V4L2_CID_MIXER_GAIN:
-+	case  V4L2_CID_IF_GAIN_AUTO:
-+	case  V4L2_CID_IF_GAIN:
-+		dev_dbg(&s->udev->dev, "%s: GAIN IOCTL\n", __func__);
-+		ret = rtl2832_sdr_set_gain(s);
-+		break;
- 	default:
- 		ret = -EINVAL;
- 	}
-@@ -1318,7 +1369,7 @@ static void rtl2832_sdr_video_release(struct v4l2_device *v)
- 	struct rtl2832_sdr_state *s =
- 			container_of(v, struct rtl2832_sdr_state, v4l2_dev);
- 
--	v4l2_ctrl_handler_free(&s->ctrl_handler);
-+	v4l2_ctrl_handler_free(&s->hdl);
- 	v4l2_device_unregister(&s->v4l2_dev);
- 	kfree(s);
- }
-@@ -1328,6 +1379,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- {
- 	int ret;
- 	struct rtl2832_sdr_state *s;
-+	const struct v4l2_ctrl_ops *ops = &rtl2832_sdr_ctrl_ops;
- 	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
- 	static const struct v4l2_ctrl_config ctrl_tuner_bw = {
- 		.ops    = &rtl2832_sdr_ctrl_ops,
-@@ -1339,16 +1391,6 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 		.def    = 0,
- 		.step   = 1,
+-	/* The new control value. */
+ 	union {
+ 		s32 val;
+ 		s64 val64;
+-		char *string;
  	};
--	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
--		.ops    = &rtl2832_sdr_ctrl_ops,
--		.id     = RTL2832_SDR_CID_TUNER_GAIN,
--		.type   = V4L2_CTRL_TYPE_INTEGER,
--		.name   = "Tuner Gain",
--		.min    = 0,
--		.max    = 102,
--		.def    = 0,
--		.step   = 1,
--	};
- 
- 	s = kzalloc(sizeof(struct rtl2832_sdr_state), GFP_KERNEL);
- 	if (s == NULL) {
-@@ -1386,11 +1428,28 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	}
- 
- 	/* Register controls */
--	v4l2_ctrl_handler_init(&s->ctrl_handler, 2);
--	s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_bw, NULL);
--	s->ctrl_tuner_gain = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_gain, NULL);
--	if (s->ctrl_handler.error) {
--		ret = s->ctrl_handler.error;
-+	switch (s->cfg->tuner) {
-+	case RTL2832_TUNER_E4000:
-+		v4l2_ctrl_handler_init(&s->hdl, 7);
-+		s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->hdl, &ctrl_tuner_bw, NULL);
-+		s->lna_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN_AUTO, 0, 1, 1, 1);
-+		s->lna_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_LNA_GAIN, 0, 15, 1, 10);
-+		v4l2_ctrl_auto_cluster(2, &s->lna_gain_auto, 0, false);
-+		s->mixer_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_MIXER_GAIN_AUTO, 0, 1, 1, 1);
-+		s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_MIXER_GAIN, 0, 1, 1, 1);
-+		v4l2_ctrl_auto_cluster(2, &s->mixer_gain_auto, 0, false);
-+		s->if_gain_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_IF_GAIN_AUTO, 0, 1, 1, 1);
-+		s->if_gain = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_IF_GAIN, 0, 54, 1, 0);
-+		v4l2_ctrl_auto_cluster(2, &s->if_gain_auto, 0, false);
-+		break;
-+	default:
-+		v4l2_ctrl_handler_init(&s->hdl, 1);
-+		s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->hdl, &ctrl_tuner_bw, NULL);
-+		break;
-+	}
++	union v4l2_ctrl_ptr new;
++	union v4l2_ctrl_ptr cur;
 +
-+	if (s->hdl.error) {
-+		ret = s->hdl.error;
- 		dev_err(&s->udev->dev, "Could not initialize controls\n");
- 		goto err_free_controls;
- 	}
-@@ -1411,7 +1470,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 		goto err_free_controls;
- 	}
++If the control has a simple s32 type or s64 type, then:
++
++	&ctrl->val == ctrl->new.p_s32
++
++or:
++
++	&ctrl->val64 == ctrl->new.p_s64
++
++For all other types use ctrl->new.p<something> instead of ctrl->val/val64.
++Basically the val and val64 fields can be considered aliases since these
++are used so often.
  
--	s->v4l2_dev.ctrl_handler = &s->ctrl_handler;
-+	s->v4l2_dev.ctrl_handler = &s->hdl;
- 	s->vdev.v4l2_dev = &s->v4l2_dev;
- 	s->vdev.lock = &s->v4l2_lock;
- 	s->vdev.vfl_dir = VFL_DIR_RX;
-@@ -1436,7 +1495,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- err_unregister_v4l2_dev:
- 	v4l2_device_unregister(&s->v4l2_dev);
- err_free_controls:
--	v4l2_ctrl_handler_free(&s->ctrl_handler);
-+	v4l2_ctrl_handler_free(&s->hdl);
- err_free_mem:
- 	kfree(s);
- 	return NULL;
+ Within the control ops you can freely use these. The val and val64 speak for
+-themselves. The string pointers point to character buffers of length
++themselves. The p_char pointers point to character buffers of length
+ ctrl->maximum + 1, and are always 0-terminated.
+ 
+ In most cases 'cur' contains the current cached control value. When you create
 -- 
-1.8.5.3
+1.8.5.2
 
