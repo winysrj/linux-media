@@ -1,151 +1,484 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4.pb.cz ([109.72.0.114]:57305 "EHLO smtp4.pb.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751859AbaBJKF0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 05:05:26 -0500
-Message-ID: <52F8A463.10003@mizera.cz>
-Date: Mon, 10 Feb 2014 11:05:23 +0100
-From: kapetr@mizera.cz
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: video from USB DVB-T get  damaged after some time
-References: <52F50E0B.1060507@mizera.cz> <52F56971.8060104@iki.fi>		 <52F6429E.6070704@mizera.cz> <1391872102.3386.10.camel@canaries32-MCP7A>	 <52F678DC.2040307@mizera.cz> <1391891765.2408.13.camel@canaries32-MCP7A> <52F6CEFC.3020307@iki.fi> <52F70A9F.50200@iki.fi> <52F88BED.8010003@mizera.cz> <52F88F25.5000906@iki.fi>
-In-Reply-To: <52F88F25.5000906@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2334 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751753AbaBJIr7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 03:47:59 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 08/34] v4l2-ctrls: create type_ops.
+Date: Mon, 10 Feb 2014 09:46:33 +0100
+Message-Id: <1392022019-5519-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-it is this one:
-http://www.buyincoins.com/item/30948.html
+Since complex controls can have non-standard types we need to be able to do
+type-specific checks etc. In order to make that easy type operations are added.
+There are four operations:
 
-I shop there often - lowest prices of all China e-shops I have found.
-BTW: if you want try the shop - by registry/first buy give my nick 
-"jipan0" as referrer. You will get 5% off :-)
+- equal: check if two values are equal
+- init: initialize a value
+- log: log the value
+- validate: validate a new value
 
---kapetr
+This patch uses the v4l2_ctrl_ptr union for the first time.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 267 ++++++++++++++++++++++-------------
+ include/media/v4l2-ctrls.h           |  21 +++
+ 2 files changed, 190 insertions(+), 98 deletions(-)
 
-Dne 10.2.2014 09:34, Antti Palosaari napsal(a):
-> Moi!
->
-> On 10.02.2014 10:21, kapetr@mizera.cz wrote:
->> Hello,
->>
->> I have test FW version 12.10.04.1
->> (FYI dmesg changes follows)
->>
->> The problem without change.
->>
->> I did want to test the DVB-T stick under Windows XP, but in VirtualBox
->> works the tuner not at all - I get just jerky sound, no video.
->> But there is older driver (12.7.6.11) - but don't thing the problem is
->> there - rather in VBOX.
->> And no free partition to test.
->
->
-> OK, thank for the testing anyway.
-> I have few different it9135 devices. Could you find some picture of
-> yours, I would like to test myself if I had same device.
->
-> regards
-> Antti
->
->
->
->
->>
->> Regards.
->>
->> kapetr
->>
->>
->> ----------- old from
->> https://raw.github.com/torvalds/linux/master/Documentation/dvb/get_dvb_firmware
->>
->>
->>
->>
->> [   21.546241] usb 1-1.3: dvb_usb_af9035: prechip_version=83
->> chip_version=02 chip_type=9135
->> [   21.546613] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in cold
->> state
->> [   21.563582] usb 1-1.3: dvb_usb_v2: downloading firmware from file
->> 'dvb-usb-it9135-02.fw'
->> [   21.594974] EXT4-fs (sda2): re-mounted. Opts: errors=remount-ro
->> [   21.659449] usb 1-1.3: dvb_usb_af9035: firmware version=3.39.1.0
->> [   21.659456] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in warm
->> state
->> [   21.660358] usb 1-1.3: dvb_usb_v2: will pass the complete MPEG2
->> transport stream to the software demuxer
->> [   21.660375] DVB: registering new adapter (ITE 9135 Generic)
->> [   21.750565] i2c i2c-16: af9033: firmware version: LINK=0.0.0.0
->> OFDM=3.9.1.0
->> [   21.750570] usb 1-1.3: DVB: registering adapter 0 frontend 0 (Afatech
->> AF9033 (DVB-T))...
->> [   22.064646] i2c i2c-16: tuner_it913x: ITE Tech IT913X successfully
->> attached
->> [   22.099994] Registered IR keymap rc-it913x-v1
->> [   22.100068] input: ITE 9135 Generic as
->> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0/input14
->> [   22.100103] rc0: ITE 9135 Generic as
->> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0
->> [   22.100106] usb 1-1.3: dvb_usb_v2: schedule remote query interval to
->> 500 msecs
->> [   22.100109] usb 1-1.3: dvb_usb_v2: 'ITE 9135 Generic' successfully
->> initialized and connected
->> [   22.100123] usbcore: registered new interface driver dvb_usb_af9035
->>
->> ---------------new from
->> http://palosaari.fi/linux/v4l-dvb/firmware/IT9135/12.10.04.1/IT9135v2_3.42.3.3_3.29.3.3/
->>
->>
->>
->> Feb  9 15:00:54 zly-hugo kernel: [12732.520617] usb 1-1.3:
->> dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
->> Feb  9 15:00:54 zly-hugo kernel: [12732.520988] usb 1-1.3: dvb_usb_v2:
->> found a 'ITE 9135 Generic' in cold state
->> Feb  9 15:00:54 zly-hugo kernel: [12732.522267] usb 1-1.3: dvb_usb_v2:
->> downloading firmware from file 'dvb-usb-it9135-02.fw'
->> Feb  9 15:00:54 zly-hugo kernel: [12732.626497] usb 1-1.3:
->> dvb_usb_af9035: firmware version=3.42.3.3
->> Feb  9 15:00:54 zly-hugo kernel: [12732.626509] usb 1-1.3: dvb_usb_v2:
->> found a 'ITE 9135 Generic' in warm state
->> Feb  9 15:00:54 zly-hugo kernel: [12732.627381] usb 1-1.3: dvb_usb_v2:
->> will pass the complete MPEG2 transport stream to the software demuxer
->> Feb  9 15:00:54 zly-hugo kernel: [12732.627405] DVB: registering new
->> adapter (ITE 9135 Generic)
->> Feb  9 15:00:54 zly-hugo kernel: [12732.631208] i2c i2c-16: af9033:
->> firmware version: LINK=0.0.0.0 OFDM=3.29.3.3
->> Feb  9 15:00:54 zly-hugo kernel: [12732.631215] usb 1-1.3: DVB:
->> registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
->> Feb  9 15:00:54 zly-hugo kernel: [12732.631328] i2c i2c-16:
->> tuner_it913x: ITE Tech IT913X successfully attached
->> --------------
->>
->>
->>
->>
->> Dne 9.2.2014 05:57, Antti Palosaari napsal(a):
->>> On 09.02.2014 02:42, Antti Palosaari wrote:
->>>> Moikka!
->>>> I am going to extract new firmware. I dumped init tables out from
->>>> Windows driver version 12.07.06.1. Is there any newer?
->>>>
->>>> regards
->>>> Antti
->>>>
->>>
->>> I extracted firmwares from Windows driver 12.10.04.1. Didn't find newer
->>> driver...
->>>
->>> http://blog.palosaari.fi/2014/02/linux-it9135-driver-firmwares.html
->>>
->>> regards
->>> Antti
->>>
->
->
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 67e5d1e..988a2bd8 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1132,6 +1132,149 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+ 			v4l2_event_queue_fh(sev->fh, &ev);
+ }
+ 
++static bool std_equal(const struct v4l2_ctrl *ctrl,
++		      union v4l2_ctrl_ptr ptr1,
++		      union v4l2_ctrl_ptr ptr2)
++{
++	switch (ctrl->type) {
++	case V4L2_CTRL_TYPE_BUTTON:
++		return false;
++	case V4L2_CTRL_TYPE_STRING:
++		/* strings are always 0-terminated */
++		return !strcmp(ptr1.p_char, ptr2.p_char);
++	case V4L2_CTRL_TYPE_INTEGER64:
++		return *ptr1.p_s64 == *ptr2.p_s64;
++	default:
++		if (ctrl->is_ptr)
++			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
++		return *ptr1.p_s32 == *ptr2.p_s32;
++	}
++}
++
++static void std_init(const struct v4l2_ctrl *ctrl,
++		     union v4l2_ctrl_ptr ptr)
++{
++	switch (ctrl->type) {
++	case V4L2_CTRL_TYPE_STRING:
++		memset(ptr.p_char, ' ', ctrl->minimum);
++		ptr.p_char[ctrl->minimum] = '\0';
++		break;
++	case V4L2_CTRL_TYPE_INTEGER64:
++		*ptr.p_s64 = ctrl->default_value;
++		break;
++	case V4L2_CTRL_TYPE_INTEGER:
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
++	case V4L2_CTRL_TYPE_MENU:
++	case V4L2_CTRL_TYPE_BITMASK:
++	case V4L2_CTRL_TYPE_BOOLEAN:
++		*ptr.p_s32 = ctrl->default_value;
++		break;
++	default:
++		break;
++	}
++}
++
++static void std_log(const struct v4l2_ctrl *ctrl)
++{
++	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
++
++	switch (ctrl->type) {
++	case V4L2_CTRL_TYPE_INTEGER:
++		pr_cont("%d", *ptr.p_s32);
++		break;
++	case V4L2_CTRL_TYPE_BOOLEAN:
++		pr_cont("%s", *ptr.p_s32 ? "true" : "false");
++		break;
++	case V4L2_CTRL_TYPE_MENU:
++		pr_cont("%s", ctrl->qmenu[*ptr.p_s32]);
++		break;
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
++		pr_cont("%lld", ctrl->qmenu_int[*ptr.p_s32]);
++		break;
++	case V4L2_CTRL_TYPE_BITMASK:
++		pr_cont("0x%08x", *ptr.p_s32);
++		break;
++	case V4L2_CTRL_TYPE_INTEGER64:
++		pr_cont("%lld", *ptr.p_s64);
++		break;
++	case V4L2_CTRL_TYPE_STRING:
++		pr_cont("%s", ptr.p_char);
++		break;
++	default:
++		pr_cont("unknown type %d", ctrl->type);
++		break;
++	}
++}
++
++/* Round towards the closest legal value */
++#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
++({								\
++	offset_type offset;					\
++	val += (ctrl)->step / 2;				\
++	val = clamp_t(typeof(val), val,				\
++		      (ctrl)->minimum, (ctrl)->maximum);	\
++	offset = (val) - (ctrl)->minimum;			\
++	offset = (ctrl)->step * (offset / (ctrl)->step);	\
++	val = (ctrl)->minimum + offset;				\
++	0;							\
++})
++
++/* Validate a new control */
++static int std_validate(const struct v4l2_ctrl *ctrl,
++			union v4l2_ctrl_ptr ptr)
++{
++	size_t len;
++
++	switch (ctrl->type) {
++	case V4L2_CTRL_TYPE_INTEGER:
++		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
++	case V4L2_CTRL_TYPE_INTEGER64:
++		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
++
++	case V4L2_CTRL_TYPE_BOOLEAN:
++		*ptr.p_s32 = !!*ptr.p_s32;
++		return 0;
++
++	case V4L2_CTRL_TYPE_MENU:
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
++		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
++			return -ERANGE;
++		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
++			return -EINVAL;
++		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
++		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
++			return -EINVAL;
++		return 0;
++
++	case V4L2_CTRL_TYPE_BITMASK:
++		*ptr.p_s32 &= ctrl->maximum;
++		return 0;
++
++	case V4L2_CTRL_TYPE_BUTTON:
++	case V4L2_CTRL_TYPE_CTRL_CLASS:
++		*ptr.p_s32 = 0;
++		return 0;
++
++	case V4L2_CTRL_TYPE_STRING:
++		len = strlen(ptr.p_char);
++		if (len < ctrl->minimum)
++			return -ERANGE;
++		if ((len - ctrl->minimum) % ctrl->step)
++			return -ERANGE;
++		return 0;
++
++	default:
++		return -EINVAL;
++	}
++}
++
++static const struct v4l2_ctrl_type_ops std_type_ops = {
++	.equal = std_equal,
++	.init = std_init,
++	.log = std_log,
++	.validate = std_validate,
++};
++
+ /* Helper function: copy the current control value back to the caller */
+ static int cur_to_user(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+@@ -1315,21 +1458,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ 
+ 		if (ctrl == NULL)
+ 			continue;
+-		switch (ctrl->type) {
+-		case V4L2_CTRL_TYPE_BUTTON:
+-			/* Button controls are always 'different' */
+-			return 1;
+-		case V4L2_CTRL_TYPE_STRING:
+-			/* strings are always 0-terminated */
+-			diff = strcmp(ctrl->string, ctrl->cur.string);
+-			break;
+-		case V4L2_CTRL_TYPE_INTEGER64:
+-			diff = ctrl->val64 != ctrl->cur.val64;
+-			break;
+-		default:
+-			diff = ctrl->val != ctrl->cur.val;
+-			break;
+-		}
++		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
+ 	}
+ 	return diff;
+ }
+@@ -1370,65 +1499,30 @@ static int check_range(enum v4l2_ctrl_type type,
+ 	}
+ }
+ 
+-/* Round towards the closest legal value */
+-#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
+-({								\
+-	offset_type offset;					\
+-	val += (ctrl)->step / 2;				\
+-	val = clamp_t(typeof(val), val,				\
+-		      (ctrl)->minimum, (ctrl)->maximum);	\
+-	offset = (val) - (ctrl)->minimum;			\
+-	offset = (ctrl)->step * (offset / (ctrl)->step);	\
+-	val = (ctrl)->minimum + offset;				\
+-	0;							\
+-})
+-
+ /* Validate a new control */
+ static int validate_new(const struct v4l2_ctrl *ctrl,
+ 			struct v4l2_ext_control *c)
+ {
+-	size_t len;
++	union v4l2_ctrl_ptr ptr;
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+-		return ROUND_TO_RANGE(*(s32 *)&c->value, u32, ctrl);
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		return ROUND_TO_RANGE(*(s64 *)&c->value64, u64, ctrl);
+-
+-	case V4L2_CTRL_TYPE_BOOLEAN:
+-		c->value = !!c->value;
+-		return 0;
+-
+-	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
+-			return -ERANGE;
+-		if (ctrl->menu_skip_mask & (1 << c->value))
+-			return -EINVAL;
+-		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+-		    ctrl->qmenu[c->value][0] == '\0')
+-			return -EINVAL;
+-		return 0;
+-
++	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		c->value &= ctrl->maximum;
+-		return 0;
+-
++	case V4L2_CTRL_TYPE_BOOLEAN:
+ 	case V4L2_CTRL_TYPE_BUTTON:
+ 	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		c->value = 0;
+-		return 0;
++		ptr.p_s32 = &c->value;
++		return ctrl->type_ops->validate(ctrl, ptr);
+ 
+-	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(c->string);
+-		if (len < ctrl->minimum)
+-			return -ERANGE;
+-		if ((len - ctrl->minimum) % ctrl->step)
+-			return -ERANGE;
+-		return 0;
++	case V4L2_CTRL_TYPE_INTEGER64:
++		ptr.p_s64 = &c->value64;
++		return ctrl->type_ops->validate(ctrl, ptr);
+ 
+ 	default:
+-		return -EINVAL;
++		ptr.p = c->p;
++		return ctrl->type_ops->validate(ctrl, ptr);
+ 	}
+ }
+ 
+@@ -1645,6 +1739,7 @@ unlock:
+ /* Add a new control */
+ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
++			const struct v4l2_ctrl_type_ops *type_ops,
+ 			u32 id, const char *name, const char *unit,
+ 			enum v4l2_ctrl_type type,
+ 			s64 min, s64 max, u64 step, s64 def,
+@@ -1656,6 +1751,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	unsigned sz_extra;
+ 	void *data;
+ 	int err;
++	int s;
+ 
+ 	if (hdl->error)
+ 		return NULL;
+@@ -1715,6 +1811,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	INIT_LIST_HEAD(&ctrl->ev_subs);
+ 	ctrl->handler = hdl;
+ 	ctrl->ops = ops;
++	ctrl->type_ops = type_ops ? type_ops : &std_type_ops;
+ 	ctrl->id = id;
+ 	ctrl->name = name;
+ 	ctrl->unit = unit;
+@@ -1736,19 +1833,16 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->cur.val = ctrl->val = def;
+ 	data = &ctrl->stores[1];
+ 
+-	if (ctrl->is_string) {
+-		ctrl->string = ctrl->new.p_char = data;
+-		ctrl->stores[0].p_char = data + elem_size;
+-
+-		if (ctrl->minimum)
+-			memset(ctrl->cur.string, ' ', ctrl->minimum);
+-	} else if (ctrl->is_ptr) {
++	if (ctrl->is_ptr) {
+ 		ctrl->p = ctrl->new.p = data;
+ 		ctrl->stores[0].p = data + elem_size;
+ 	} else {
+ 		ctrl->new.p = &ctrl->val;
+ 		ctrl->stores[0].p = &ctrl->cur.val;
+ 	}
++	for (s = -1; s <= 0; s++)
++		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
++
+ 	if (handler_new_ref(hdl, ctrl)) {
+ 		kfree(ctrl);
+ 		return NULL;
+@@ -1793,7 +1887,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 
+-	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
++	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
+ 			type, min, max,
+ 			is_menu ? cfg->menu_skip_mask : step,
+ 			def, cfg->elem_size,
+@@ -1821,7 +1915,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
++	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+ 			     min, max, step, def, 0,
+ 			     flags, NULL, NULL, NULL);
+ }
+@@ -1855,7 +1949,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
++	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+ 			     0, max, mask, def, 0,
+ 			     flags, qmenu, qmenu_int, NULL);
+ }
+@@ -1888,7 +1982,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
++	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
++			     0, max, mask, def,
+ 			     0, flags, qmenu, NULL, NULL);
+ 
+ }
+@@ -1913,7 +2008,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+-	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
++	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+ 			     0, max, 0, def, 0,
+ 			     flags, NULL, qmenu_int, NULL);
+ }
+@@ -2096,32 +2191,8 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
+ 
+ 	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
+ 
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_INTEGER:
+-		pr_cont("%d", ctrl->cur.val);
+-		break;
+-	case V4L2_CTRL_TYPE_BOOLEAN:
+-		pr_cont("%s", ctrl->cur.val ? "true" : "false");
+-		break;
+-	case V4L2_CTRL_TYPE_MENU:
+-		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
+-		break;
+-	case V4L2_CTRL_TYPE_BITMASK:
+-		pr_cont("0x%08x", ctrl->cur.val);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		pr_cont("%lld", ctrl->cur.val64);
+-		break;
+-	case V4L2_CTRL_TYPE_STRING:
+-		pr_cont("%s", ctrl->cur.string);
+-		break;
+-	default:
+-		pr_cont("unknown type %d", ctrl->type);
+-		break;
+-	}
++	ctrl->type_ops->log(ctrl);
++
+ 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
+ 			   V4L2_CTRL_FLAG_GRABBED |
+ 			   V4L2_CTRL_FLAG_VOLATILE)) {
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 515c1ba..aaf7333 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -67,6 +67,23 @@ struct v4l2_ctrl_ops {
+ 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
+ };
+ 
++/** struct v4l2_ctrl_type_ops - The control type operations that the driver has to provide.
++  * @equal: return true if both values are equal.
++  * @init: initialize the value.
++  * @log: log the value.
++  * @validate: validate the value. Return 0 on success and a negative value otherwise.
++  */
++struct v4l2_ctrl_type_ops {
++	bool (*equal)(const struct v4l2_ctrl *ctrl,
++		      union v4l2_ctrl_ptr ptr1,
++		      union v4l2_ctrl_ptr ptr2);
++	void (*init)(const struct v4l2_ctrl *ctrl,
++		     union v4l2_ctrl_ptr ptr);
++	void (*log)(const struct v4l2_ctrl *ctrl);
++	int (*validate)(const struct v4l2_ctrl *ctrl,
++			union v4l2_ctrl_ptr ptr);
++};
++
+ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+ 
+ /** struct v4l2_ctrl - The control structure.
+@@ -102,6 +119,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   *		value, then the whole cluster is in manual mode. Drivers should
+   *		never set this flag directly.
+   * @ops:	The control ops.
++  * @type_ops:	The control type ops.
+   * @id:	The control ID.
+   * @name:	The control name.
+   * @unit:	The control's unit. May be NULL.
+@@ -151,6 +169,7 @@ struct v4l2_ctrl {
+ 	unsigned int manual_mode_value:8;
+ 
+ 	const struct v4l2_ctrl_ops *ops;
++	const struct v4l2_ctrl_type_ops *type_ops;
+ 	u32 id;
+ 	const char *name;
+ 	const char *unit;
+@@ -234,6 +253,7 @@ struct v4l2_ctrl_handler {
+ 
+ /** struct v4l2_ctrl_config - Control configuration structure.
+   * @ops:	The control ops.
++  * @type_ops:	The control type ops. Only needed for complex controls.
+   * @id:	The control ID.
+   * @name:	The control name.
+   * @unit:	The control's unit.
+@@ -259,6 +279,7 @@ struct v4l2_ctrl_handler {
+   */
+ struct v4l2_ctrl_config {
+ 	const struct v4l2_ctrl_ops *ops;
++	const struct v4l2_ctrl_type_ops *type_ops;
+ 	u32 id;
+ 	const char *name;
+ 	const char *unit;
+-- 
+1.8.5.2
+
