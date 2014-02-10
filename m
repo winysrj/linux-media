@@ -1,61 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50400 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754111AbaBSRdn (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:51084 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751889AbaBJOfW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Feb 2014 12:33:43 -0500
-Received: from avalon.localnet (unknown [91.178.208.133])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id A8B4B35A46
-	for <linux-media@vger.kernel.org>; Wed, 19 Feb 2014 18:32:42 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.15] uvcvideo patches
-Date: Wed, 19 Feb 2014 18:34:54 +0100
-Message-ID: <12009046.L1L9DmOzHD@avalon>
+	Mon, 10 Feb 2014 09:35:22 -0500
+Date: Mon, 10 Feb 2014 15:35:51 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+	Takashi Iwai <tiwai@suse.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel@lists.freedesktop.org,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/2] drivers/base: permit base components to omit the
+ bind/unbind ops
+Message-ID: <20140210153551.1309f017@armhf>
+In-Reply-To: <20140210131233.GT26684@n2100.arm.linux.org.uk>
+References: <cover.1391792986.git.moinejf@free.fr>
+	<9b3c3c2c982f31b026fd1516a2b608026d55b1e9.1391792986.git.moinejf@free.fr>
+	<20140210125307.GG20143@ulmo.nvidia.com>
+	<20140210131233.GT26684@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, 10 Feb 2014 13:12:33 +0000
+Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
 
-The following changes since commit 37e59f876bc710d67a30b660826a5e83e07101ce:
+> I've NAK'd these patches already - I believe they're based on a
+> mis-understanding of how this should be used.  I believe Jean-Francois
+> has only looked at the core, rather than looking at the imx-drm example
+> it was posted with in an attempt to understand it.
+> 
+> Omitting the component bind operations is absurd because it makes the
+> component code completely pointless, since there is then no way to
+> control the sequencing of driver initialisation - something which is
+> one of the primary reasons for this code existing in the first place.
 
-  [media, edac] Change my email address (2014-02-07 08:03:07 -0200)
+I perfectly looked at your example and I use it now in my system.
 
-are available in the git repository at:
+You did not see what could be done with your component code. For
+example, since november, I have not yet the clock probe_defer in the
+mainline (http://www.spinics.net/lists/arm-kernel/msg306072.html), so,
+there are 3 solutions:
 
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+- hope the patch will be some day in the mainline and, today, reboot
+  when the system does not start correctly,
 
-for you to fetch changes up to b7857d4ea90742c5a756c12b3fc34c9caf1b942c:
+- insert a delay in the tda998x and kirkwood probe sequences (delay
+  long enough to be sure the si5351 is started, or loop),
 
-  uvcvideo: Enable VIDIOC_CREATE_BUFS (2014-02-19 18:33:49 +0100)
+- use your component work.
 
-----------------------------------------------------------------
-Laurent Pinchart (2):
-      uvcvideo: Remove duplicate check for number of buffers in queue_setup
-      uvcvideo: Support allocating buffers larger than the current frame size
+In the last case, it is easy:
 
-Oliver Neukum (1):
-      uvcvideo: Simplify redundant check
+- the si5351 driver calls component_add (with empty ops: it has no
+  interest in the bind/unbind functions) when it is fully started (i.e.
+  registered - that was the subject of my patch),
 
-Philipp Zabel (1):
-      uvcvideo: Enable VIDIOC_CREATE_BUFS
+- in the DRM driver, look for the si5351 as a clock in the DT (drm ->
+  encoder -> clock), and add it to the awaited components (CRTCs,
+  encoders..),
 
-Thomas Pugliese (1):
-      uvcvideo: Update uvc_endpoint_max_bpi to handle USB_SPEED_WIRELESS 
-devices
+- in the audio subsystem, look for the si5351 as an external clock in
+  the DT (simple-card -> CPU DAI -> clock) and add it to the awaited
+  components (CPU and CODEC DAIs - yes, the S/PDIF CODEC should also be
+  a component with no bin/unbind ops).
 
- drivers/media/usb/uvc/uvc_driver.c |  2 +-
- drivers/media/usb/uvc/uvc_queue.c  | 20 +++++++++++++++++---
- drivers/media/usb/uvc/uvc_v4l2.c   | 11 +++++++++++
- drivers/media/usb/uvc/uvc_video.c  |  3 +++
- drivers/media/usb/uvc/uvcvideo.h   |  4 ++--
- 5 files changed, 34 insertions(+), 6 deletions(-)
+Then, when the si5351 is registered, both master components video and
+audio can safely run.
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
