@@ -1,89 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3858 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753910AbaBMJld (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3155 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752276AbaBJJAx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 04:41:33 -0500
+	Mon, 10 Feb 2014 04:00:53 -0500
+Message-ID: <52F89523.5030101@xs4all.nl>
+Date: Mon, 10 Feb 2014 10:00:19 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [RFCv3 PATCH 06/10] vb2: fix read/write regression
-Date: Thu, 13 Feb 2014 10:40:46 +0100
-Message-Id: <1392284450-41019-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: fimc-lite.c: compile warning indicates bug
+References: <52CC01ED.8080002@xs4all.nl> <52CC124B.8060700@samsung.com>
+In-Reply-To: <52CC124B.8060700@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 01/07/2014 03:42 PM, Sylwester Nawrocki wrote:
+> Hi Hans,
+> 
+> On 07/01/14 14:32, Hans Verkuil wrote:
+>> Hi Sylwester,
+>>
+>> I just did a quick build with the latest set of commits and I found this
+>> warning:
+>>
+>> .../media-git/drivers/media/platform/exynos4-is/fimc-lite.c: In function 'fimc_lite_probe':
+>> .../media-git/drivers/media/platform/exynos4-is/fimc-lite.c:1583:1: warning: label 'err_sd' defined but not used [-Wunused-label]
+>>  err_sd:
+>>  ^
+>>
+>> As far as I can tell err_sd should certainly be used to do proper cleanup.
+>> Can you check the code and prepare a patch?
+> 
+> Yes, I also noticed it in the media daily builds. It's a rebase error,
+> unfortunately the mainline driver is now far behind our internal code.
+> I will prepare a patch to fix this as soon as possible.
 
-Commit 88e268702bfba78448abd20a31129458707383aa ("vb2: Improve file I/O
-emulation to handle buffers in any order") broke read/write support if
-the size of the buffer being read/written is less than the size of the
-image.
+This is now the only warning left. Did you post a patch and did I miss it?
 
-When the commit was tested originally I used qv4l2, which call read()
-with exactly the size of the image. But if you try 'cat /dev/video0'
-then it will fail and typically hang after reading two buffers.
+Regards,
 
-This patch fixes the behavior by adding a new buf_index field that
-contains the index of the field currently being filled/read, or it
-is num_buffers in which case a new buffer needs to be dequeued.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
----
- drivers/media/v4l2-core/videobuf2-core.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7766bf5..a3b4b4c 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2418,6 +2418,7 @@ struct vb2_fileio_data {
- 	struct v4l2_requestbuffers req;
- 	struct v4l2_buffer b;
- 	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
-+	unsigned int buf_index;
- 	unsigned int index;
- 	unsigned int q_count;
- 	unsigned int dq_count;
-@@ -2519,6 +2520,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 			fileio->bufs[i].queued = 1;
- 		}
- 		fileio->index = q->num_buffers;
-+		fileio->buf_index = q->num_buffers;
- 	}
- 
- 	/*
-@@ -2597,7 +2599,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	/*
- 	 * Check if we need to dequeue the buffer.
- 	 */
--	index = fileio->index;
-+	index = fileio->buf_index;
- 	if (index >= q->num_buffers) {
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
-@@ -2611,7 +2613,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 			return ret;
- 		fileio->dq_count += 1;
- 
--		index = fileio->b.index;
-+		fileio->buf_index = index = fileio->b.index;
- 		buf = &fileio->bufs[index];
- 
- 		/*
-@@ -2689,6 +2691,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		fileio->q_count += 1;
- 		if (fileio->index < q->num_buffers)
- 			fileio->index++;
-+		fileio->buf_index = fileio->index;
- 	}
- 
- 	/*
--- 
-1.8.4.rc3
-
+	Hans
