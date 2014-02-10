@@ -1,406 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:38982 "EHLO multi.imgtec.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:55946 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751463AbaBGQQu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 11:16:50 -0500
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	<linux-media@vger.kernel.org>
-CC: James Hogan <james.hogan@imgtec.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>, <devicetree@vger.kernel.org>
-Subject: [PATCH v3 07/15] media: rc: img-ir: add base driver
-Date: Fri, 7 Feb 2014 16:16:29 +0000
-Message-ID: <1391789789-30841-1-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1389967140-20704-8-git-send-email-james.hogan@imgtec.com>
-References: <1389967140-20704-8-git-send-email-james.hogan@imgtec.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1752684AbaBJQMu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 11:12:50 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 6/8] rtl2832: add muxed I2C adapter for demod itself
+Date: Mon, 10 Feb 2014 18:12:31 +0200
+Message-Id: <1392048753-13292-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1392048753-13292-1-git-send-email-crope@iki.fi>
+References: <1392048753-13292-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add base driver for the ImgTec Infrared decoder block. The driver is
-split into separate components for raw (software) decode and hardware
-decoder which are in following commits.
+There was a deadlock between master I2C adapter and muxed I2C
+adapter. Implement two I2C muxed I2C adapters and leave master
+alone, just only for offering I2C adapter for these mux adapters.
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org
+Reported-by: Luis Alves <ljalvs@gmail.com>
+Reported-by: Benjamin Larsson <benjamin@southpole.se>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-v3:
-- Use new compatible string "img,ir-rev1"
-v2:
-- Use new DT binding, with a different compatibility string and get core
-  clock by name.
-- Remove next pointer from struct img_ir_priv. This is related to the
-  removal of dynamic registration/unregistration of protocol decode
-  timings from later patches.
-- Add io.h include to img-ir.h.
----
- drivers/media/rc/img-ir/img-ir-core.c | 176 ++++++++++++++++++++++++++++++++++
- drivers/media/rc/img-ir/img-ir.h      | 166 ++++++++++++++++++++++++++++++++
- 2 files changed, 342 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-core.c
- create mode 100644 drivers/media/rc/img-ir/img-ir.h
+ drivers/media/dvb-frontends/rtl2832.c      | 71 ++++++++++++++++++++++++------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
+ 2 files changed, 58 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/rc/img-ir/img-ir-core.c b/drivers/media/rc/img-ir/img-ir-core.c
-new file mode 100644
-index 000000000000..6b7834834fb8
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-core.c
-@@ -0,0 +1,176 @@
-+/*
-+ * ImgTec IR Decoder found in PowerDown Controller.
-+ *
-+ * Copyright 2010-2014 Imagination Technologies Ltd.
-+ *
-+ * This contains core img-ir code for setting up the driver. The two interfaces
-+ * (raw and hardware decode) are handled separately.
-+ */
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index dc46cf0..c0366a8 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -180,7 +180,7 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], val, len);
+ 
+-	ret = i2c_transfer(priv->i2c, msg, 1);
++	ret = i2c_transfer(priv->i2c_adapter, msg, 1);
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+@@ -210,7 +210,7 @@ static int rtl2832_rd(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ 		}
+ 	};
+ 
+-	ret = i2c_transfer(priv->i2c, msg, 2);
++	ret = i2c_transfer(priv->i2c_adapter, msg, 2);
+ 	if (ret == 2) {
+ 		ret = 0;
+ 	} else {
+@@ -891,26 +891,61 @@ static void rtl2832_release(struct dvb_frontend *fe)
+ 	struct rtl2832_priv *priv = fe->demodulator_priv;
+ 
+ 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
++	i2c_del_mux_adapter(priv->i2c_adapter_tuner);
+ 	i2c_del_mux_adapter(priv->i2c_adapter);
+ 	kfree(priv);
+ }
+ 
+-static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ {
+ 	struct rtl2832_priv *priv = mux_priv;
+-	return rtl2832_i2c_gate_ctrl(&priv->fe, 1);
+-}
++	int ret;
++	u8 buf[2];
++	struct i2c_msg msg[1] = {
++		{
++			.addr = priv->cfg.i2c_addr,
++			.flags = 0,
++			.len = sizeof(buf),
++			.buf = buf,
++		}
++	};
+ 
+-static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
+-{
+-	struct rtl2832_priv *priv = mux_priv;
+-	return rtl2832_i2c_gate_ctrl(&priv->fe, 0);
++	if (priv->i2c_gate_state == chan_id)
++		return 0;
 +
-+#include <linux/clk.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include "img-ir.h"
++	/* select reg bank 1 */
++	buf[0] = 0x00;
++	buf[1] = 0x01;
 +
-+static irqreturn_t img_ir_isr(int irq, void *dev_id)
-+{
-+	struct img_ir_priv *priv = dev_id;
-+	u32 irq_status;
++	ret = i2c_transfer(adap, msg, 1);
++	if (ret != 1)
++		goto err;
 +
-+	spin_lock(&priv->lock);
-+	/* we have to clear irqs before reading */
-+	irq_status = img_ir_read(priv, IMG_IR_IRQ_STATUS);
-+	img_ir_write(priv, IMG_IR_IRQ_CLEAR, irq_status);
++	priv->page = 1;
 +
-+	/* don't handle valid data irqs if we're only interested in matches */
-+	irq_status &= img_ir_read(priv, IMG_IR_IRQ_ENABLE);
++	/* open or close I2C repeater gate */
++	buf[0] = 0x01;
++	if (chan_id == 1)
++		buf[1] = 0x18; /* open */
++	else
++		buf[1] = 0x10; /* close */
 +
-+	/* hand off edge interrupts to raw decode handler */
-+	if (irq_status & IMG_IR_IRQ_EDGE && img_ir_raw_enabled(&priv->raw))
-+		img_ir_isr_raw(priv, irq_status);
++	ret = i2c_transfer(adap, msg, 1);
++	if (ret != 1)
++		goto err;
 +
-+	/* hand off hardware match interrupts to hardware decode handler */
-+	if (irq_status & (IMG_IR_IRQ_DATA_MATCH |
-+			  IMG_IR_IRQ_DATA_VALID |
-+			  IMG_IR_IRQ_DATA2_VALID) &&
-+	    img_ir_hw_enabled(&priv->hw))
-+		img_ir_isr_hw(priv, irq_status);
-+
-+	spin_unlock(&priv->lock);
-+	return IRQ_HANDLED;
-+}
-+
-+static void img_ir_setup(struct img_ir_priv *priv)
-+{
-+	/* start off with interrupts disabled */
-+	img_ir_write(priv, IMG_IR_IRQ_ENABLE, 0);
-+
-+	img_ir_setup_raw(priv);
-+	img_ir_setup_hw(priv);
-+
-+	if (!IS_ERR(priv->clk))
-+		clk_prepare_enable(priv->clk);
-+}
-+
-+static void img_ir_ident(struct img_ir_priv *priv)
-+{
-+	u32 core_rev = img_ir_read(priv, IMG_IR_CORE_REV);
-+
-+	dev_info(priv->dev,
-+		 "IMG IR Decoder (%d.%d.%d.%d) probed successfully\n",
-+		 (core_rev & IMG_IR_DESIGNER) >> IMG_IR_DESIGNER_SHIFT,
-+		 (core_rev & IMG_IR_MAJOR_REV) >> IMG_IR_MAJOR_REV_SHIFT,
-+		 (core_rev & IMG_IR_MINOR_REV) >> IMG_IR_MINOR_REV_SHIFT,
-+		 (core_rev & IMG_IR_MAINT_REV) >> IMG_IR_MAINT_REV_SHIFT);
-+	dev_info(priv->dev, "Modes:%s%s\n",
-+		 img_ir_hw_enabled(&priv->hw) ? " hardware" : "",
-+		 img_ir_raw_enabled(&priv->raw) ? " raw" : "");
-+}
-+
-+static int img_ir_probe(struct platform_device *pdev)
-+{
-+	struct img_ir_priv *priv;
-+	struct resource *res_regs;
-+	int irq, error, error2;
-+
-+	/* Get resources from platform device */
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0) {
-+		dev_err(&pdev->dev, "cannot find IRQ resource\n");
-+		return irq;
-+	}
-+
-+	/* Private driver data */
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv) {
-+		dev_err(&pdev->dev, "cannot allocate device data\n");
-+		return -ENOMEM;
-+	}
-+	platform_set_drvdata(pdev, priv);
-+	priv->dev = &pdev->dev;
-+	spin_lock_init(&priv->lock);
-+
-+	/* Ioremap the registers */
-+	res_regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	priv->reg_base = devm_ioremap_resource(&pdev->dev, res_regs);
-+	if (IS_ERR(priv->reg_base))
-+		return PTR_ERR(priv->reg_base);
-+
-+	/* Get core clock */
-+	priv->clk = devm_clk_get(&pdev->dev, "core");
-+	if (IS_ERR(priv->clk))
-+		dev_warn(&pdev->dev, "cannot get core clock resource\n");
-+	/*
-+	 * The driver doesn't need to know about the system ("sys") or power
-+	 * modulation ("mod") clocks yet
-+	 */
-+
-+	/* Set up raw & hw decoder */
-+	error = img_ir_probe_raw(priv);
-+	error2 = img_ir_probe_hw(priv);
-+	if (error && error2)
-+		return (error == -ENODEV) ? error2 : error;
-+
-+	/* Get the IRQ */
-+	priv->irq = irq;
-+	error = request_irq(priv->irq, img_ir_isr, 0, "img-ir", priv);
-+	if (error) {
-+		dev_err(&pdev->dev, "cannot register IRQ %u\n",
-+			priv->irq);
-+		error = -EIO;
-+		goto err_irq;
-+	}
-+
-+	img_ir_ident(priv);
-+	img_ir_setup(priv);
++	priv->i2c_gate_state = chan_id;
 +
 +	return 0;
++err:
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	return -EREMOTEIO;
+ }
+ 
+ struct i2c_adapter *rtl2832_get_i2c_adapter(struct dvb_frontend *fe)
+ {
+ 	struct rtl2832_priv *priv = fe->demodulator_priv;
+-	return priv->i2c_adapter;
++	return priv->i2c_adapter_tuner;
+ }
+ EXPORT_SYMBOL(rtl2832_get_i2c_adapter);
+ 
+@@ -933,15 +968,21 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+ 	priv->tuner = cfg->tuner;
+ 	memcpy(&priv->cfg, cfg, sizeof(struct rtl2832_config));
+ 
++	/* create muxed i2c adapter for demod itself */
++	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
++			rtl2832_select, NULL);
++	if (priv->i2c_adapter == NULL)
++		goto err;
 +
-+err_irq:
-+	img_ir_remove_hw(priv);
-+	img_ir_remove_raw(priv);
-+	return error;
-+}
-+
-+static int img_ir_remove(struct platform_device *pdev)
-+{
-+	struct img_ir_priv *priv = platform_get_drvdata(pdev);
-+
-+	free_irq(priv->irq, img_ir_isr);
-+	img_ir_remove_hw(priv);
-+	img_ir_remove_raw(priv);
-+
-+	if (!IS_ERR(priv->clk))
-+		clk_disable_unprepare(priv->clk);
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(img_ir_pmops, img_ir_suspend, img_ir_resume);
-+
-+static const struct of_device_id img_ir_match[] = {
-+	{ .compatible = "img,ir-rev1" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, img_ir_match);
-+
-+static struct platform_driver img_ir_driver = {
-+	.driver = {
-+		.name = "img-ir",
-+		.owner	= THIS_MODULE,
-+		.of_match_table	= img_ir_match,
-+		.pm = &img_ir_pmops,
-+	},
-+	.probe = img_ir_probe,
-+	.remove = img_ir_remove,
-+};
-+
-+module_platform_driver(img_ir_driver);
-+
-+MODULE_AUTHOR("Imagination Technologies Ltd.");
-+MODULE_DESCRIPTION("ImgTec IR");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/rc/img-ir/img-ir.h b/drivers/media/rc/img-ir/img-ir.h
-new file mode 100644
-index 000000000000..afb189394af9
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir.h
-@@ -0,0 +1,166 @@
-+/*
-+ * ImgTec IR Decoder found in PowerDown Controller.
-+ *
-+ * Copyright 2010-2014 Imagination Technologies Ltd.
-+ */
-+
-+#ifndef _IMG_IR_H_
-+#define _IMG_IR_H_
-+
-+#include <linux/io.h>
-+#include <linux/spinlock.h>
-+
-+#include "img-ir-raw.h"
-+#include "img-ir-hw.h"
-+
-+/* registers */
-+
-+/* relative to the start of the IR block of registers */
-+#define IMG_IR_CONTROL		0x00
-+#define IMG_IR_STATUS		0x04
-+#define IMG_IR_DATA_LW		0x08
-+#define IMG_IR_DATA_UP		0x0c
-+#define IMG_IR_LEAD_SYMB_TIMING	0x10
-+#define IMG_IR_S00_SYMB_TIMING	0x14
-+#define IMG_IR_S01_SYMB_TIMING	0x18
-+#define IMG_IR_S10_SYMB_TIMING	0x1c
-+#define IMG_IR_S11_SYMB_TIMING	0x20
-+#define IMG_IR_FREE_SYMB_TIMING	0x24
-+#define IMG_IR_POW_MOD_PARAMS	0x28
-+#define IMG_IR_POW_MOD_ENABLE	0x2c
-+#define IMG_IR_IRQ_MSG_DATA_LW	0x30
-+#define IMG_IR_IRQ_MSG_DATA_UP	0x34
-+#define IMG_IR_IRQ_MSG_MASK_LW	0x38
-+#define IMG_IR_IRQ_MSG_MASK_UP	0x3c
-+#define IMG_IR_IRQ_ENABLE	0x40
-+#define IMG_IR_IRQ_STATUS	0x44
-+#define IMG_IR_IRQ_CLEAR	0x48
-+#define IMG_IR_IRCORE_ID	0xf0
-+#define IMG_IR_CORE_REV		0xf4
-+#define IMG_IR_CORE_DES1	0xf8
-+#define IMG_IR_CORE_DES2	0xfc
-+
-+
-+/* field masks */
-+
-+/* IMG_IR_CONTROL */
-+#define IMG_IR_DECODEN		0x40000000
-+#define IMG_IR_CODETYPE		0x30000000
-+#define IMG_IR_CODETYPE_SHIFT		28
-+#define IMG_IR_HDRTOG		0x08000000
-+#define IMG_IR_LDRDEC		0x04000000
-+#define IMG_IR_DECODINPOL	0x02000000	/* active high */
-+#define IMG_IR_BITORIEN		0x01000000	/* MSB first */
-+#define IMG_IR_D1VALIDSEL	0x00008000
-+#define IMG_IR_BITINV		0x00000040	/* don't invert */
-+#define IMG_IR_DECODEND2	0x00000010
-+#define IMG_IR_BITORIEND2	0x00000002	/* MSB first */
-+#define IMG_IR_BITINVD2		0x00000001	/* don't invert */
-+
-+/* IMG_IR_STATUS */
-+#define IMG_IR_RXDVALD2		0x00001000
-+#define IMG_IR_IRRXD		0x00000400
-+#define IMG_IR_TOGSTATE		0x00000200
-+#define IMG_IR_RXDVAL		0x00000040
-+#define IMG_IR_RXDLEN		0x0000003f
-+#define IMG_IR_RXDLEN_SHIFT		0
-+
-+/* IMG_IR_LEAD_SYMB_TIMING, IMG_IR_Sxx_SYMB_TIMING */
-+#define IMG_IR_PD_MAX		0xff000000
-+#define IMG_IR_PD_MAX_SHIFT		24
-+#define IMG_IR_PD_MIN		0x00ff0000
-+#define IMG_IR_PD_MIN_SHIFT		16
-+#define IMG_IR_W_MAX		0x0000ff00
-+#define IMG_IR_W_MAX_SHIFT		8
-+#define IMG_IR_W_MIN		0x000000ff
-+#define IMG_IR_W_MIN_SHIFT		0
-+
-+/* IMG_IR_FREE_SYMB_TIMING */
-+#define IMG_IR_MAXLEN		0x0007e000
-+#define IMG_IR_MAXLEN_SHIFT		13
-+#define IMG_IR_MINLEN		0x00001f00
-+#define IMG_IR_MINLEN_SHIFT		8
-+#define IMG_IR_FT_MIN		0x000000ff
-+#define IMG_IR_FT_MIN_SHIFT		0
-+
-+/* IMG_IR_POW_MOD_PARAMS */
-+#define IMG_IR_PERIOD_LEN	0x3f000000
-+#define IMG_IR_PERIOD_LEN_SHIFT		24
-+#define IMG_IR_PERIOD_DUTY	0x003f0000
-+#define IMG_IR_PERIOD_DUTY_SHIFT	16
-+#define IMG_IR_STABLE_STOP	0x00003f00
-+#define IMG_IR_STABLE_STOP_SHIFT	8
-+#define IMG_IR_STABLE_START	0x0000003f
-+#define IMG_IR_STABLE_START_SHIFT	0
-+
-+/* IMG_IR_POW_MOD_ENABLE */
-+#define IMG_IR_POWER_OUT_EN	0x00000002
-+#define IMG_IR_POWER_MOD_EN	0x00000001
-+
-+/* IMG_IR_IRQ_ENABLE, IMG_IR_IRQ_STATUS, IMG_IR_IRQ_CLEAR */
-+#define IMG_IR_IRQ_DEC2_ERR	0x00000080
-+#define IMG_IR_IRQ_DEC_ERR	0x00000040
-+#define IMG_IR_IRQ_ACT_LEVEL	0x00000020
-+#define IMG_IR_IRQ_FALL_EDGE	0x00000010
-+#define IMG_IR_IRQ_RISE_EDGE	0x00000008
-+#define IMG_IR_IRQ_DATA_MATCH	0x00000004
-+#define IMG_IR_IRQ_DATA2_VALID	0x00000002
-+#define IMG_IR_IRQ_DATA_VALID	0x00000001
-+#define IMG_IR_IRQ_ALL		0x000000ff
-+#define IMG_IR_IRQ_EDGE		(IMG_IR_IRQ_FALL_EDGE | IMG_IR_IRQ_RISE_EDGE)
-+
-+/* IMG_IR_CORE_ID */
-+#define IMG_IR_CORE_ID		0x00ff0000
-+#define IMG_IR_CORE_ID_SHIFT		16
-+#define IMG_IR_CORE_CONFIG	0x0000ffff
-+#define IMG_IR_CORE_CONFIG_SHIFT	0
-+
-+/* IMG_IR_CORE_REV */
-+#define IMG_IR_DESIGNER		0xff000000
-+#define IMG_IR_DESIGNER_SHIFT		24
-+#define IMG_IR_MAJOR_REV	0x00ff0000
-+#define IMG_IR_MAJOR_REV_SHIFT		16
-+#define IMG_IR_MINOR_REV	0x0000ff00
-+#define IMG_IR_MINOR_REV_SHIFT		8
-+#define IMG_IR_MAINT_REV	0x000000ff
-+#define IMG_IR_MAINT_REV_SHIFT		0
-+
-+struct device;
-+struct clk;
-+
-+/**
-+ * struct img_ir_priv - Private driver data.
-+ * @dev:		Platform device.
-+ * @irq:		IRQ number.
-+ * @clk:		Input clock.
-+ * @reg_base:		Iomem base address of IR register block.
-+ * @lock:		Protects IR registers and variables in this struct.
-+ * @raw:		Driver data for raw decoder.
-+ * @hw:			Driver data for hardware decoder.
-+ */
-+struct img_ir_priv {
-+	struct device		*dev;
-+	int			irq;
-+	struct clk		*clk;
-+	void __iomem		*reg_base;
-+	spinlock_t		lock;
-+
-+	struct img_ir_priv_raw	raw;
-+	struct img_ir_priv_hw	hw;
-+};
-+
-+/* Hardware access */
-+
-+static inline void img_ir_write(struct img_ir_priv *priv,
-+				unsigned int reg_offs, unsigned int data)
-+{
-+	iowrite32(data, priv->reg_base + reg_offs);
-+}
-+
-+static inline unsigned int img_ir_read(struct img_ir_priv *priv,
-+				       unsigned int reg_offs)
-+{
-+	return ioread32(priv->reg_base + reg_offs);
-+}
-+
-+#endif /* _IMG_IR_H_ */
+ 	/* check if the demod is there */
+ 	ret = rtl2832_rd_reg(priv, 0x00, 0x0, &tmp);
+ 	if (ret)
+ 		goto err;
+ 
+-	/* create muxed i2c adapter */
+-	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
+-			rtl2832_select, rtl2832_deselect);
+-	if (priv->i2c_adapter == NULL)
++	/* create muxed i2c adapter for demod tuner bus */
++	priv->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, priv,
++			0, 1, 0, rtl2832_select, NULL);
++	if (priv->i2c_adapter_tuner == NULL)
+ 		goto err;
+ 
+ 	/* create dvb_frontend */
+@@ -954,6 +995,8 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+ 	return &priv->fe;
+ err:
+ 	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
++	if (priv && priv->i2c_adapter)
++		i2c_del_mux_adapter(priv->i2c_adapter);
+ 	kfree(priv);
+ 	return NULL;
+ }
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index ec26c92..8b7c1ae 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -28,6 +28,7 @@
+ struct rtl2832_priv {
+ 	struct i2c_adapter *i2c;
+ 	struct i2c_adapter *i2c_adapter;
++	struct i2c_adapter *i2c_adapter_tuner;
+ 	struct dvb_frontend fe;
+ 	struct rtl2832_config cfg;
+ 
 -- 
-1.8.1.2
-
+1.8.5.3
 
