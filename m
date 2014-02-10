@@ -1,68 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42011 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755063AbaBROay (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 09:30:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Josh Triplett <josh@joshtriplett.org>,
-	Levente Kurusa <levex@linux.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Lisa Nguyen <lisa@xenapiadmin.com>,
-	Archana kumari <archanakumari959@gmail.com>,
-	David Binderman <dcb314@hotmail.com>
-Subject: Re: [PATCH] staging: davinci_vpfe: fix error check
-Date: Tue, 18 Feb 2014 15:32:03 +0100
-Message-ID: <7270574.TJsfU1PaQa@avalon>
-In-Reply-To: <20140215171619.GA22985@leaf>
-References: <1392459431-28203-1-git-send-email-levex@linux.com> <20140215171619.GA22985@leaf>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:44803 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752363AbaBJQRU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 11:17:20 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [REVIEW PATCH 6/6] v4l: add control for RF tuner PLL lock flag
+Date: Mon, 10 Feb 2014 18:17:06 +0200
+Message-Id: <1392049026-13398-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1392049026-13398-1-git-send-email-crope@iki.fi>
+References: <1392049026-13398-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Add volatile boolean control to indicate if tuner frequency synthesizer
+is locked to requested frequency. That means tuner is able to receive
+given frequency. Control is named as "PLL lock", since frequency
+synthesizers are based of phase-locked-loop. Maybe more general name
+could be wise still?
 
-(Removing Greg, Mauro and the devel@driverdev.osuosl.org list to avoid 
-spamming them)
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 5 +++++
+ include/uapi/linux/v4l2-controls.h   | 1 +
+ 2 files changed, 6 insertions(+)
 
-On Saturday 15 February 2014 09:16:19 Josh Triplett wrote:
-> On Sat, Feb 15, 2014 at 11:17:11AM +0100, Levente Kurusa wrote:
-> > The check would check the pointer, which is never less than 0.
-> > According to the error message, the correct check would be
-> > to check the return value of ipipe_mode. Check that instead.
-> > 
-> > Reported-by: David Binderman <dcb314@hotmail.com>
-> > Signed-off-by: Levente Kurusa <levex@linux.com>
-> 
-> Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-
-Could you please handle this patch ?
-
-> >  drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-> > b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c index
-> > 2d36b60..b2daf5e 100644
-> > --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-> > +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-> > @@ -267,7 +267,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
-> > 
-> >  	}
-> >  	
-> >  	ipipe_mode = get_ipipe_mode(ipipe);
-> > -	if (ipipe < 0) {
-> > +	if (ipipe_mode < 0) {
-> >  		pr_err("Failed to get ipipe mode");
-> >  		return -EINVAL;
-> >  	}
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index e44722b..dc6cba4 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -867,6 +867,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_IF_GAIN:			return "IF Gain";
+ 	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
+ 	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
++	case V4L2_CID_PLL_LOCK:			return "PLL Lock";
+ 	default:
+ 		return NULL;
+ 	}
+@@ -920,6 +921,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MIXER_GAIN_AUTO:
+ 	case V4L2_CID_IF_GAIN_AUTO:
+ 	case V4L2_CID_BANDWIDTH_AUTO:
++	case V4L2_CID_PLL_LOCK:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -1100,6 +1102,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DV_RX_POWER_PRESENT:
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		break;
++	case V4L2_CID_PLL_LOCK:
++		*flags |= V4L2_CTRL_FLAG_VOLATILE;
++		break;
+ 	}
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_fill);
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index cc488c3..06918c9 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -907,5 +907,6 @@ enum v4l2_deemphasis {
+ #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 52)
+ #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 61)
+ #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
++#define V4L2_CID_PLL_LOCK			(V4L2_CID_RF_TUNER_CLASS_BASE + 91)
+ 
+ #endif
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.3
 
