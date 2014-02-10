@@ -1,68 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55059 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:52349 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751925AbaBGXRH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 18:17:07 -0500
-Message-ID: <52F56971.8060104@iki.fi>
-Date: Sat, 08 Feb 2014 01:17:05 +0200
+	id S1752429AbaBJQMt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 11:12:49 -0500
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: kapetr@mizera.cz, linux-media@vger.kernel.org
-Subject: Re: video from USB DVB-T get  damaged after some time
-References: <52F50E0B.1060507@mizera.cz>
-In-Reply-To: <52F50E0B.1060507@mizera.cz>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 3/8] rtl2832: remove unused if_dvbt config parameter
+Date: Mon, 10 Feb 2014 18:12:28 +0200
+Message-Id: <1392048753-13292-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1392048753-13292-1-git-send-email-crope@iki.fi>
+References: <1392048753-13292-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
+All used tuners has get_if_frequency() callback and that parameter
+is not needed and will not needed as all upcoming tuner drivers
+should implement get_if_frequency().
 
-On 07.02.2014 18:47, kapetr@mizera.cz wrote:
-> Hello,
->
-> I have this:
-> http://linuxtv.org/wiki/index.php/ITE_IT9135
->
-> with dvb-usb-it9135-02.fw (chip version 2) on U12.04 64b with compiled
-> newest drivers from:
-> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers.
->
->
->
-> The problem is - after some time I receive a program (e.g. in Kaffeine,
-> me-tv, vlc, ...) the program get more and more damaged and finely get
-> lost at all.
->
-> I happens quicker (+- after 10-20 minutes) on channels with lower
-> signal. On stronger signals it happens after +- 30-100 minutes.
->
-> The USB stick stays cool.
->
-> I can switch to another frequency and back and it works again OK - for
-> only the "same" while.
->
-> Could that problem be in (or solvable by) FW/drivers or is it
-> !absolutely certain! "only" HW problem ?
->
-> In attachment is output from tzap - you can see the time point where the
-> video TS gets damaged.
->
-> Any suggestion ?
->
->
-> Thanks  --kapetr
->
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c   | 6 ------
+ drivers/media/dvb-frontends/rtl2832.h   | 7 -------
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 --
+ 3 files changed, 15 deletions(-)
 
-Could you test AF9035 driver? It support also IT9135 (difference between 
-AF9035 is integrated RF tuner, AF9035 is older and needs external tuner 
-whilst IT9135 contains tuner in same chip).
-
-Here is example patch how to add USB ID to af9035 driver:
-https://patchwork.linuxtv.org/patch/21611/
-
-regards
-Antti
-
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index ff73da9..61d4ecb 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -514,12 +514,6 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
+-	if (!fe->ops.tuner_ops.get_if_frequency) {
+-		ret = rtl2832_set_if(fe, priv->cfg.if_dvbt);
+-		if (ret)
+-			goto err;
+-	}
+-
+ 	/*
+ 	 * r820t NIM code does a software reset here at the demod -
+ 	 * may not be needed, as there's already a software reset at set_params()
+diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
+index 2cfbb6a..e543081 100644
+--- a/drivers/media/dvb-frontends/rtl2832.h
++++ b/drivers/media/dvb-frontends/rtl2832.h
+@@ -38,13 +38,6 @@ struct rtl2832_config {
+ 	u32 xtal;
+ 
+ 	/*
+-	 * IFs for all used modes.
+-	 * Hz
+-	 * 4570000, 4571429, 36000000, 36125000, 36166667, 44000000
+-	 */
+-	u32 if_dvbt;
+-
+-	/*
+ 	 * tuner
+ 	 * XXX: This must be keep sync with dvb_usb_rtl28xxu demod driver.
+ 	 */
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 7de3e54..52eb5db 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -589,14 +589,12 @@ err:
+ static struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+-	.if_dvbt = 0,
+ 	.tuner = TUNER_RTL2832_FC0012
+ };
+ 
+ static struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+-	.if_dvbt = 0,
+ 	.tuner = TUNER_RTL2832_FC0013
+ };
+ 
 -- 
-http://palosaari.fi/
+1.8.5.3
+
