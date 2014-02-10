@@ -1,75 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44803 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752363AbaBJQRU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:17:20 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3410 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751753AbaBJIsJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 03:48:09 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [REVIEW PATCH 6/6] v4l: add control for RF tuner PLL lock flag
-Date: Mon, 10 Feb 2014 18:17:06 +0200
-Message-Id: <1392049026-13398-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1392049026-13398-1-git-send-email-crope@iki.fi>
-References: <1392049026-13398-1-git-send-email-crope@iki.fi>
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 33/34] solo6x10: fix 'dma from stack' warning.
+Date: Mon, 10 Feb 2014 09:46:58 +0100
+Message-Id: <1392022019-5519-34-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add volatile boolean control to indicate if tuner frequency synthesizer
-is locked to requested frequency. That means tuner is able to receive
-given frequency. Control is named as "PLL lock", since frequency
-synthesizers are based of phase-locked-loop. Maybe more general name
-could be wise still?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 5 +++++
- include/uapi/linux/v4l2-controls.h   | 1 +
- 2 files changed, 6 insertions(+)
+ drivers/staging/media/solo6x10/solo6x10-disp.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e44722b..dc6cba4 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -867,6 +867,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_IF_GAIN:			return "IF Gain";
- 	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
- 	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
-+	case V4L2_CID_PLL_LOCK:			return "PLL Lock";
- 	default:
- 		return NULL;
- 	}
-@@ -920,6 +921,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MIXER_GAIN_AUTO:
- 	case V4L2_CID_IF_GAIN_AUTO:
- 	case V4L2_CID_BANDWIDTH_AUTO:
-+	case V4L2_CID_PLL_LOCK:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -1100,6 +1102,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DV_RX_POWER_PRESENT:
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		break;
-+	case V4L2_CID_PLL_LOCK:
-+		*flags |= V4L2_CTRL_FLAG_VOLATILE;
-+		break;
- 	}
- }
- EXPORT_SYMBOL(v4l2_ctrl_fill);
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index cc488c3..06918c9 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -907,5 +907,6 @@ enum v4l2_deemphasis {
- #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 52)
- #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 61)
- #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
-+#define V4L2_CID_PLL_LOCK			(V4L2_CID_RF_TUNER_CLASS_BASE + 91)
+diff --git a/drivers/staging/media/solo6x10/solo6x10-disp.c b/drivers/staging/media/solo6x10/solo6x10-disp.c
+index 44d98b8..b529a96 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-disp.c
++++ b/drivers/staging/media/solo6x10/solo6x10-disp.c
+@@ -213,19 +213,21 @@ int solo_set_motion_threshold(struct solo_dev *solo_dev, u8 ch, u16 val)
+ int solo_set_motion_block(struct solo_dev *solo_dev, u8 ch,
+ 		const u16 *thresholds)
+ {
++	const unsigned size = sizeof(u16) * 64;
+ 	u32 off = SOLO_MOT_FLAG_AREA + ch * SOLO_MOT_THRESH_SIZE * 2;
+-	u16 buf[64];
++	u16 *buf;
+ 	int x, y;
+ 	int ret = 0;
  
- #endif
+-	memset(buf, 0, sizeof(buf));
++	buf = kzalloc(size, GFP_KERNEL);
+ 	for (y = 0; y < SOLO_MOTION_SZ; y++) {
+ 		for (x = 0; x < SOLO_MOTION_SZ; x++)
+ 			buf[x] = cpu_to_le16(thresholds[y * SOLO_MOTION_SZ + x]);
+ 		ret |= solo_p2m_dma(solo_dev, 1, buf,
+-			SOLO_MOTION_EXT_ADDR(solo_dev) + off + y * sizeof(buf),
+-			sizeof(buf), 0, 0);
++			SOLO_MOTION_EXT_ADDR(solo_dev) + off + y * size,
++			size, 0, 0);
+ 	}
++	kfree(buf);
+ 	return ret;
+ }
+ 
 -- 
-1.8.5.3
+1.8.5.2
 
