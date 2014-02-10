@@ -1,82 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway15.websitewelcome.com ([69.41.245.9]:60388 "EHLO
-	gateway15.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750888AbaBESvx (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3352 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751977AbaBJIsD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Feb 2014 13:51:53 -0500
-Received: from gator3086.hostgator.com (ns6171.hostgator.com [50.87.144.121])
-	by gateway15.websitewelcome.com (Postfix) with ESMTP id 19D60A1147FB3
-	for <linux-media@vger.kernel.org>; Wed,  5 Feb 2014 11:58:12 -0600 (CST)
-From: Dean Anderson <linux-dev@sensoray.com>
-To: hverkuil@xs4all.nl, linux-dev@sensoray.com,
-	linux-media@vger.kernel.org
-Subject: [PATCH] s2255drv: buffer setup fix
-Date: Wed,  5 Feb 2014 09:58:06 -0800
-Message-Id: <1391623086-13485-1-git-send-email-linux-dev@sensoray.com>
+	Mon, 10 Feb 2014 03:48:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 11/34] v4l2-ctrls: prepare for matrix support: add cols & rows fields.
+Date: Mon, 10 Feb 2014 09:46:36 +0100
+Message-Id: <1392022019-5519-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Buffer setup should check if minimum number of buffers is used.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
+Add cols and rows fields to the core control structures in preparation
+for matrix support.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/usb/s2255/s2255drv.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++++++---------
+ include/media/v4l2-ctrls.h           |  6 ++++++
+ 2 files changed, 23 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 2e24aee..1b267b1 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -69,7 +69,7 @@
- #define S2255_DSP_BOOTTIME      800
- /* maximum time to wait for firmware to load (ms) */
- #define S2255_LOAD_TIMEOUT      (5000 + S2255_DSP_BOOTTIME)
--#define S2255_DEF_BUFS          16
-+#define S2255_MIN_BUFS          2
- #define S2255_SETMODE_TIMEOUT   500
- #define S2255_VIDSTATUS_TIMEOUT 350
- #define S2255_MARKER_FRAME	cpu_to_le32(0x2255DA4AL)
-@@ -374,9 +374,6 @@ static long s2255_vendor_req(struct s2255_dev *dev, unsigned char req,
- 
- static struct usb_driver s2255_driver;
- 
--/* Declare static vars that will be used as parameters */
--static unsigned int vid_limit = 16;	/* Video memory limit, in Mb */
--
- /* start video number */
- static int video_nr = -1;	/* /dev/videoN, -1 for autodetect */
- 
-@@ -385,8 +382,6 @@ static int jpeg_enable = 1;
- 
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Debug level(0-100) default 0");
--module_param(vid_limit, int, 0644);
--MODULE_PARM_DESC(vid_limit, "video memory limit(Mb)");
- module_param(video_nr, int, 0644);
- MODULE_PARM_DESC(video_nr, "start video minor(-1 default autodetect)");
- module_param(jpeg_enable, int, 0644);
-@@ -671,18 +666,15 @@ static void s2255_fillbuff(struct s2255_vc *vc,
-    Videobuf operations
-    ------------------------------------------------------------------*/
- 
--static int buffer_setup(struct videobuf_queue *vq, unsigned int *count,
-+static int buffer_setup(struct videobuf_queue *vq, unsigned int *nbuffers,
- 			unsigned int *size)
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 87f9a4e..7dcccbf 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1731,7 +1731,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			u32 id, const char *name, const char *unit,
+ 			enum v4l2_ctrl_type type,
+ 			s64 min, s64 max, u64 step, s64 def,
+-			u32 elem_size,
++			u32 cols, u32 rows, u32 elem_size,
+ 			u32 flags, const char * const *qmenu,
+ 			const s64 *qmenu_int, void *priv)
  {
- 	struct s2255_fh *fh = vq->priv_data;
- 	struct s2255_vc *vc = fh->vc;
- 	*size = vc->width * vc->height * (vc->fmt->depth >> 3);
+@@ -1744,6 +1744,11 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	if (hdl->error)
+ 		return NULL;
  
--	if (0 == *count)
--		*count = S2255_DEF_BUFS;
--
--	if (*size * *count > vid_limit * 1024 * 1024)
--		*count = (vid_limit * 1024 * 1024) / *size;
-+	if (*nbuffers < S2255_MIN_BUFS)
-+		*nbuffers = S2255_MIN_BUFS;
++	if (cols == 0)
++		cols = 1;
++	if (rows == 0)
++		rows = 1;
++
+ 	if (type == V4L2_CTRL_TYPE_INTEGER64)
+ 		elem_size = sizeof(s64);
+ 	else if (type == V4L2_CTRL_TYPE_STRING)
+@@ -1812,6 +1817,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->is_string = type == V4L2_CTRL_TYPE_STRING;
+ 	ctrl->is_ptr = type >= V4L2_CTRL_COMPLEX_TYPES || ctrl->is_string;
+ 	ctrl->is_int = !ctrl->is_ptr && type != V4L2_CTRL_TYPE_INTEGER64;
++	ctrl->cols = cols;
++	ctrl->rows = rows;
+ 	ctrl->elem_size = elem_size;
+ 	if (type == V4L2_CTRL_TYPE_MENU)
+ 		ctrl->qmenu = qmenu;
+@@ -1877,8 +1884,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
  
- 	return 0;
+ 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
+ 			type, min, max,
+-			is_menu ? cfg->menu_skip_mask : step,
+-			def, cfg->elem_size,
++			is_menu ? cfg->menu_skip_mask : step, def,
++			cfg->cols, cfg->rows, cfg->elem_size,
+ 			flags, qmenu, qmenu_int, priv);
+ 	if (ctrl)
+ 		ctrl->is_private = cfg->is_private;
+@@ -1904,7 +1911,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     min, max, step, def, 0,
++			     min, max, step, def, 0, 0, 0,
+ 			     flags, NULL, NULL, NULL);
  }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std);
+@@ -1938,7 +1945,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     0, max, mask, def, 0,
++			     0, max, mask, def, 0, 0, 0,
+ 			     flags, qmenu, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
+@@ -1971,8 +1978,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     0, max, mask, def,
+-			     0, flags, qmenu, NULL, NULL);
++			     0, max, mask, def, 0, 0, 0,
++			     flags, qmenu, NULL, NULL);
+ 
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu_items);
+@@ -1997,7 +2004,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     0, max, 0, def, 0,
++			     0, max, 0, def, 0, 0, 0,
+ 			     flags, NULL, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
+@@ -2343,7 +2350,8 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
+ 	qc->min.val = ctrl->minimum;
+ 	qc->max.val = ctrl->maximum;
+ 	qc->def.val = ctrl->default_value;
+-	qc->cols = qc->rows = 1;
++	qc->cols = ctrl->cols;
++	qc->rows = ctrl->rows;
+ 	if (ctrl->type == V4L2_CTRL_TYPE_MENU
+ 	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
+ 		qc->step.val = 1;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 5a39877..9eeb9d9 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -129,6 +129,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   * @minimum:	The control's minimum value.
+   * @maximum:	The control's maximum value.
+   * @default_value: The control's default value.
++  * @rows:	The number of rows in the matrix.
++  * @cols:	The number of columns in the matrix.
+   * @step:	The control's step value for non-menu controls.
+   * @elem_size:	The size in bytes of the control.
+   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
+@@ -178,6 +180,7 @@ struct v4l2_ctrl {
+ 	const char *unit;
+ 	enum v4l2_ctrl_type type;
+ 	s64 minimum, maximum, default_value;
++	u32 rows, cols;
+ 	u32 elem_size;
+ 	union {
+ 		u64 step;
+@@ -265,6 +268,8 @@ struct v4l2_ctrl_handler {
+   * @max:	The control's maximum value.
+   * @step:	The control's step value for non-menu controls.
+   * @def: 	The control's default value.
++  * @rows:	The number of rows in the matrix.
++  * @cols:	The number of columns in the matrix.
+   * @elem_size:	The size in bytes of the control.
+   * @flags:	The control's flags.
+   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
+@@ -291,6 +296,7 @@ struct v4l2_ctrl_config {
+ 	s64 max;
+ 	u64 step;
+ 	s64 def;
++	u32 rows, cols;
+ 	u32 elem_size;
+ 	u32 flags;
+ 	u64 menu_skip_mask;
 -- 
-1.7.9.5
+1.8.5.2
 
