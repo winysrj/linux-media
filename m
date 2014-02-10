@@ -1,100 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1075 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753820AbaBQKIu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 05:08:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 25/35] DocBook media: document new u8 and u16 control types.
-Date: Mon, 17 Feb 2014 10:57:40 +0100
-Message-Id: <1392631070-41868-26-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+Received: from multi.imgtec.com ([194.200.65.239]:54157 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752060AbaBJKa3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 05:30:29 -0500
+Message-ID: <52F8AA42.2020409@imgtec.com>
+Date: Mon, 10 Feb 2014 10:30:26 +0000
+From: James Hogan <james.hogan@imgtec.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?QW50dGkgU2VwcMOkbMOk?= <a.seppala@gmail.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 2/3] ir-rc5-sz: Add ir encoding support
+References: <CAKv9HNYxY0isLt+uZvDZJJ=PX0SF93RsFeS6PsRMMk5gqtu8kQ@mail.gmail.com> <1391861250-26068-1-git-send-email-a.seppala@gmail.com> <1391861250-26068-3-git-send-email-a.seppala@gmail.com>
+In-Reply-To: <1391861250-26068-3-git-send-email-a.seppala@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Antti,
 
-These types are needed for the upcoming Motion Detection matrix
-controls, so document them.
+On 08/02/14 12:07, Antti Seppälä wrote:
+> The encoding in rc5-sz first inserts a pulse and then simply utilizes the
+> generic Manchester encoder available in rc-core.
+> 
+> Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+> ---
+>  drivers/media/rc/ir-rc5-sz-decoder.c | 35 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+> 
+> diff --git a/drivers/media/rc/ir-rc5-sz-decoder.c b/drivers/media/rc/ir-rc5-sz-decoder.c
+> index 984e5b9..0d5e552 100644
+> --- a/drivers/media/rc/ir-rc5-sz-decoder.c
+> +++ b/drivers/media/rc/ir-rc5-sz-decoder.c
+> @@ -127,9 +127,44 @@ out:
+>  	return -EINVAL;
+>  }
+>  
+> +static struct ir_raw_timings_manchester ir_rc5_sz_timings = {
+> +	.pulse_space_start	= 0,
+> +	.clock			= RC5_UNIT,
+> +};
+> +
+> +/*
+> + * ir_rc5_sz_encode() - Encode a scancode as a stream of raw events
+> + *
+> + * @protocols:  allowed protocols
+> + * @scancode:   scancode filter describing scancode (helps distinguish between
+> + *              protocol subtypes when scancode is ambiguous)
+> + * @events:     array of raw ir events to write into
+> + * @max:        maximum size of @events
+> + *
+> + * This function returns -EINVAL if the scancode filter is invalid or matches
+> + * multiple scancodes. Otherwise the number of ir_raw_events generated is
+> + * returned.
+> + */
+> +static int ir_rc5_sz_encode(u64 protocols,
+> +			    const struct rc_scancode_filter *scancode,
+> +			    struct ir_raw_event *events, unsigned int max)
+> +{
+> +	int ret;
+> +	struct ir_raw_event *e = events;
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 14 +++++++++++++
- .../DocBook/media/v4l/vidioc-queryctrl.xml         | 23 +++++++++++++++++++++-
- 2 files changed, 36 insertions(+), 1 deletion(-)
+Probably worth checking scancode->mask == 0xfff too?
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index d946d6b..2dcc284 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -192,6 +192,20 @@ type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>__u8 *</entry>
-+	    <entry><structfield>p_u8</structfield></entry>
-+	    <entry>A pointer to a matrix control of unsigned 8-bit values.
-+Valid if this control is of type <constant>V4L2_CTRL_TYPE_U8</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__u16 *</entry>
-+	    <entry><structfield>p_u16</structfield></entry>
-+	    <entry>A pointer to a matrix control of unsigned 16-bit values.
-+Valid if this control is of type <constant>V4L2_CTRL_TYPE_U16</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>void *</entry>
- 	    <entry><structfield>p</structfield></entry>
- 	    <entry>A pointer to a complex type which can be a matrix and/or a
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index da0e534..93c350b 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -301,7 +301,8 @@ accepts values 0-511 and the driver reports 0-65535, step should be
- 	    <entry>The default value of a
- <constant>V4L2_CTRL_TYPE_INTEGER</constant>, <constant>_INTEGER64</constant>,
- <constant>_BOOLEAN</constant>, <constant>_BITMASK</constant>,
--<constant>_MENU</constant> or <constant>_INTEGER_MENU</constant> control.
-+<constant>_MENU</constant>, <constant>_INTEGER_MENU</constant>,
-+<constant>_U8</constant> or <constant>_U16</constant> control.
- Not valid for other types of controls.
- Note that drivers reset controls to their default value only when the
- driver is first loaded, never afterwards.
-@@ -519,6 +520,26 @@ ioctl returns the name of the control class and this control type.
- Older drivers which do not support this feature return an
- &EINVAL;.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_U8</constant></entry>
-+	    <entry>any</entry>
-+	    <entry>any</entry>
-+	    <entry>any</entry>
-+	    <entry>An unsigned 8-bit valued control ranging from minimum to
-+maximum inclusive. The step value indicates the increment between
-+values which are actually different on the hardware. This type is only used
-+in matrix controls.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_U16</constant></entry>
-+	    <entry>any</entry>
-+	    <entry>any</entry>
-+	    <entry>any</entry>
-+	    <entry>An unsigned 16-bit valued control ranging from minimum to
-+maximum inclusive. The step value indicates the increment between
-+values which are actually different on the hardware. This type is only used
-+in matrix controls.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
--- 
-1.8.4.rc3
+> +
+> +	/* RC5-SZ scancode is raw enough for manchester as it is */
+> +	ret = ir_raw_gen_manchester(&e, max, &ir_rc5_sz_timings, RC5_SZ_NBITS,
+> +				    scancode->data);
+> +	if (ret < 0)
+> +		return ret;
+
+I suspect it needs some more space at the end too, to be sure that no
+more bits afterwards are accepted.
+
+> +
+> +	return e - events;
+> +}
+> +
+>  static struct ir_raw_handler rc5_sz_handler = {
+>  	.protocols	= RC_BIT_RC5_SZ,
+>  	.decode		= ir_rc5_sz_decode,
+> +	.encode		= ir_rc5_sz_encode,
+>  };
+>  
+>  static int __init ir_rc5_sz_decode_init(void)
+> 
+
+Cheers
+James
 
