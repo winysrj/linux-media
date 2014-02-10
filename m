@@ -1,138 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35822 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:59347 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750797AbaBJIet (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:34:49 -0500
-Message-ID: <52F88F25.5000906@iki.fi>
-Date: Mon, 10 Feb 2014 10:34:45 +0200
+	id S1752101AbaBJK1K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 05:27:10 -0500
+Message-ID: <52F8A97B.9080401@iki.fi>
+Date: Mon, 10 Feb 2014 12:27:07 +0200
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: kapetr@mizera.cz, Malcolm Priestley <tvboxspy@gmail.com>
+To: gennarone@gmail.com, Hans Verkuil <hverkuil@xs4all.nl>
 CC: linux-media@vger.kernel.org
-Subject: Re: video from USB DVB-T get  damaged after some time
-References: <52F50E0B.1060507@mizera.cz> <52F56971.8060104@iki.fi>		 <52F6429E.6070704@mizera.cz> <1391872102.3386.10.camel@canaries32-MCP7A>	 <52F678DC.2040307@mizera.cz> <1391891765.2408.13.camel@canaries32-MCP7A> <52F6CEFC.3020307@iki.fi> <52F70A9F.50200@iki.fi> <52F88BED.8010003@mizera.cz>
-In-Reply-To: <52F88BED.8010003@mizera.cz>
+Subject: Re: [REVIEW PATCH 00/86] SDR tree
+References: <1391935771-18670-1-git-send-email-crope@iki.fi> <52F89F2E.3040902@xs4all.nl> <52F8A4A2.9080106@gmail.com>
+In-Reply-To: <52F8A4A2.9080106@gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moi!
-
-On 10.02.2014 10:21, kapetr@mizera.cz wrote:
-> Hello,
+On 10.02.2014 12:06, Gianluca Gennari wrote:
+> Hi Hans,
 >
-> I have test FW version 12.10.04.1
-> (FYI dmesg changes follows)
+>> First of all, would this work for a rtl2838 as well or is this really 2832u
+>> specific? I've got a 2838...  If it is 2832u specific, then do you know which
+>> product has it? It would be useful for me to have a usb stick with which I can
+>> test SDR.
 >
-> The problem without change.
+> regarding this question, 2838 is just another USB Id for rtl2832u
+> devices based on reference design. I have one with rtl2832u + e4000
+> tuner, so probably your stick is fine for SDR.
 >
-> I did want to test the DVB-T stick under Windows XP, but in VirtualBox
-> works the tuner not at all - I get just jerky sound, no video.
-> But there is older driver (12.7.6.11) - but don't thing the problem is
-> there - rather in VBOX.
-> And no free partition to test.
+> Realtek makes several different demodulators with similar codenames:
+> - 2830/2832 DVB-T
+> - 2836 DTMB
+> - 2840 DVB-C
+>
+> see here for more info:
+> http://www.realtek.com.tw/products/productsView.aspx?Langid=1&PNid=7&PFid=22&Level=3&Conn=2
 
+Yeah, demod chips are just like that. Then these are integrated like that:
+RT2831U = USB-interface + RTL2830 DVB-T demod
+RT2832U = USB-interface + RTL2832 DVB-T demod
+RT2832P = USB-interface + RTL2832 DVB-T demod + TS interface
 
-OK, thank for the testing anyway.
-I have few different it9135 devices. Could you find some picture of 
-yours, I would like to test myself if I had same device.
+USB-interface used is pretty same for all these, thus it is split to own 
+driver named dvb_usb_rtl28xxu.
+
+SDR functionality is property of RTL2832 demodulator, but I decided to 
+split it to own driver too.
+
+Currently that SDR driver has support for devices having following RF 
+tuners: e4000, r820t, fc0012 and fc0013. So if Hans has a device having 
+some of those tuners, it should work.
 
 regards
 Antti
-
-
-
-
->
-> Regards.
->
-> kapetr
->
->
-> ----------- old from
-> https://raw.github.com/torvalds/linux/master/Documentation/dvb/get_dvb_firmware
->
->
->
-> [   21.546241] usb 1-1.3: dvb_usb_af9035: prechip_version=83
-> chip_version=02 chip_type=9135
-> [   21.546613] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in cold
-> state
-> [   21.563582] usb 1-1.3: dvb_usb_v2: downloading firmware from file
-> 'dvb-usb-it9135-02.fw'
-> [   21.594974] EXT4-fs (sda2): re-mounted. Opts: errors=remount-ro
-> [   21.659449] usb 1-1.3: dvb_usb_af9035: firmware version=3.39.1.0
-> [   21.659456] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in warm
-> state
-> [   21.660358] usb 1-1.3: dvb_usb_v2: will pass the complete MPEG2
-> transport stream to the software demuxer
-> [   21.660375] DVB: registering new adapter (ITE 9135 Generic)
-> [   21.750565] i2c i2c-16: af9033: firmware version: LINK=0.0.0.0
-> OFDM=3.9.1.0
-> [   21.750570] usb 1-1.3: DVB: registering adapter 0 frontend 0 (Afatech
-> AF9033 (DVB-T))...
-> [   22.064646] i2c i2c-16: tuner_it913x: ITE Tech IT913X successfully
-> attached
-> [   22.099994] Registered IR keymap rc-it913x-v1
-> [   22.100068] input: ITE 9135 Generic as
-> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0/input14
-> [   22.100103] rc0: ITE 9135 Generic as
-> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0
-> [   22.100106] usb 1-1.3: dvb_usb_v2: schedule remote query interval to
-> 500 msecs
-> [   22.100109] usb 1-1.3: dvb_usb_v2: 'ITE 9135 Generic' successfully
-> initialized and connected
-> [   22.100123] usbcore: registered new interface driver dvb_usb_af9035
->
-> ---------------new from
-> http://palosaari.fi/linux/v4l-dvb/firmware/IT9135/12.10.04.1/IT9135v2_3.42.3.3_3.29.3.3/
->
->
-> Feb  9 15:00:54 zly-hugo kernel: [12732.520617] usb 1-1.3:
-> dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
-> Feb  9 15:00:54 zly-hugo kernel: [12732.520988] usb 1-1.3: dvb_usb_v2:
-> found a 'ITE 9135 Generic' in cold state
-> Feb  9 15:00:54 zly-hugo kernel: [12732.522267] usb 1-1.3: dvb_usb_v2:
-> downloading firmware from file 'dvb-usb-it9135-02.fw'
-> Feb  9 15:00:54 zly-hugo kernel: [12732.626497] usb 1-1.3:
-> dvb_usb_af9035: firmware version=3.42.3.3
-> Feb  9 15:00:54 zly-hugo kernel: [12732.626509] usb 1-1.3: dvb_usb_v2:
-> found a 'ITE 9135 Generic' in warm state
-> Feb  9 15:00:54 zly-hugo kernel: [12732.627381] usb 1-1.3: dvb_usb_v2:
-> will pass the complete MPEG2 transport stream to the software demuxer
-> Feb  9 15:00:54 zly-hugo kernel: [12732.627405] DVB: registering new
-> adapter (ITE 9135 Generic)
-> Feb  9 15:00:54 zly-hugo kernel: [12732.631208] i2c i2c-16: af9033:
-> firmware version: LINK=0.0.0.0 OFDM=3.29.3.3
-> Feb  9 15:00:54 zly-hugo kernel: [12732.631215] usb 1-1.3: DVB:
-> registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
-> Feb  9 15:00:54 zly-hugo kernel: [12732.631328] i2c i2c-16:
-> tuner_it913x: ITE Tech IT913X successfully attached
-> --------------
->
->
->
->
-> Dne 9.2.2014 05:57, Antti Palosaari napsal(a):
->> On 09.02.2014 02:42, Antti Palosaari wrote:
->>> Moikka!
->>> I am going to extract new firmware. I dumped init tables out from
->>> Windows driver version 12.07.06.1. Is there any newer?
->>>
->>> regards
->>> Antti
->>>
->>
->> I extracted firmwares from Windows driver 12.10.04.1. Didn't find newer
->> driver...
->>
->> http://blog.palosaari.fi/2014/02/linux-it9135-driver-firmwares.html
->>
->> regards
->> Antti
->>
-
 
 -- 
 http://palosaari.fi/
