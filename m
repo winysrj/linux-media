@@ -1,146 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37890 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943AbaBZOvQ (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3496 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752243AbaBJJx1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 09:51:16 -0500
-Message-ID: <530DFF4C.8080807@ti.com>
-Date: Wed, 26 Feb 2014 16:50:52 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+	Mon, 10 Feb 2014 04:53:27 -0500
+Message-ID: <52F8A175.6000509@xs4all.nl>
+Date: Mon, 10 Feb 2014 10:52:53 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>	 <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>	 <530DE8A9.9050809@ti.com> <1393426623.3248.70.camel@paszta.hi.pengutronix.de>
-In-Reply-To: <1393426623.3248.70.camel@paszta.hi.pengutronix.de>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="tEHsptXr4FFpWcoGvwDA40KVVAmjgkgcU"
+To: linux-media@vger.kernel.org
+CC: edubezval@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 1/7] v4l2-ctrls: add new RDS TX controls
+References: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl> <1391775580-29907-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1391775580-29907-2-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---tEHsptXr4FFpWcoGvwDA40KVVAmjgkgcU
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On 02/07/2014 01:19 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The si4713 supports several RDS features not yet implemented in the driver.
+> 
+> This patch adds the missing RDS functionality to the list of RDS controls.
 
-On 26/02/14 16:57, Philipp Zabel wrote:
-> Hi Tomi,
->=20
-> Am Mittwoch, den 26.02.2014, 15:14 +0200 schrieb Tomi Valkeinen:
->> On 25/02/14 16:58, Philipp Zabel wrote:
->>
->>> +Optional endpoint properties
->>> +----------------------------
->>> +
->>> +- remote-endpoint: phandle to an 'endpoint' subnode of a remote devi=
-ce node.
->>
->> Why is that optional? What use is an endpoint, if it's not connected t=
-o
->> something?
->=20
-> This allows to include the an empty endpoint template in a SoC dtsi for=
+I'm going to postpone this until the patch series adding support for complex control
+types is merged. The ALT_FREQ control should really be an array control since you
+can set up to 25 (if memory serves) alternate frequencies. Note though that this
+particular device can handle only one alternate frequency.
 
-> the convenience of board dts writers. Also, the same property is
-> currently listed as optional in video-interfaces.txt.
->=20
->   soc.dtsi:
-> 	display-controller {
-> 		port {
-> 			disp0: endpoint { };
-> 		};
-> 	};
->=20
->   board.dts:
-> 	#include "soc.dtsi"
-> 	&disp0 {
-> 		remote-endpoint =3D <&panel_input>;
-> 	};
-> 	panel {
-> 		port {
-> 			panel_in: endpoint {
-> 				remote-endpoint =3D <&disp0>;
-> 			};
-> 		};
-> 	};
->=20
-> Any board not using that port can just leave the endpoint disconnected.=
+Regards,
 
+	Hans
 
-Hmm I see. I'm against that.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Eduardo Valentin <edubezval@gmail.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 17 +++++++++++++++++
+>  include/uapi/linux/v4l2-controls.h   |  9 +++++++++
+>  2 files changed, 26 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 6ff002b..66a2d0b 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -794,6 +794,15 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
+>  	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
+>  	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
+> +	case V4L2_CID_RDS_TX_MONO_STEREO:	return "RDS Stereo";
+> +	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:	return "RDS Artificial Head";
+> +	case V4L2_CID_RDS_TX_COMPRESSED:	return "RDS Compressed";
+> +	case V4L2_CID_RDS_TX_DYNAMIC_PTY:	return "RDS Dynamic PTY";
+> +	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT: return "RDS Traffic Announcement";
+> +	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:	return "RDS Traffic Program";
+> +	case V4L2_CID_RDS_TX_MUSIC_SPEECH:	return "RDS Music";
+> +	case V4L2_CID_RDS_TX_ALT_FREQ_ENABLE:	return "RDS Enable Alternate Frequency";
+> +	case V4L2_CID_RDS_TX_ALT_FREQ:		return "RDS Alternate Frequency";
+>  	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
+>  	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
+>  	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
+> @@ -906,6 +915,14 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+>  	case V4L2_CID_IMAGE_STABILIZATION:
+>  	case V4L2_CID_RDS_RECEPTION:
+> +	case V4L2_CID_RDS_TX_MONO_STEREO:
+> +	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:
+> +	case V4L2_CID_RDS_TX_COMPRESSED:
+> +	case V4L2_CID_RDS_TX_DYNAMIC_PTY:
+> +	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
+> +	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
+> +	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
+> +	case V4L2_CID_RDS_TX_ALT_FREQ_ENABLE:
+>  		*type = V4L2_CTRL_TYPE_BOOLEAN;
+>  		*min = 0;
+>  		*max = *step = 1;
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 2cbe605..21abf77 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -753,6 +753,15 @@ enum v4l2_auto_focus_range {
+>  #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
+>  #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
+>  #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
+> +#define V4L2_CID_RDS_TX_MONO_STEREO		(V4L2_CID_FM_TX_CLASS_BASE + 7)
+> +#define V4L2_CID_RDS_TX_ARTIFICIAL_HEAD		(V4L2_CID_FM_TX_CLASS_BASE + 8)
+> +#define V4L2_CID_RDS_TX_COMPRESSED		(V4L2_CID_FM_TX_CLASS_BASE + 9)
+> +#define V4L2_CID_RDS_TX_DYNAMIC_PTY		(V4L2_CID_FM_TX_CLASS_BASE + 10)
+> +#define V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT	(V4L2_CID_FM_TX_CLASS_BASE + 11)
+> +#define V4L2_CID_RDS_TX_TRAFFIC_PROGRAM		(V4L2_CID_FM_TX_CLASS_BASE + 12)
+> +#define V4L2_CID_RDS_TX_MUSIC_SPEECH		(V4L2_CID_FM_TX_CLASS_BASE + 13)
+> +#define V4L2_CID_RDS_TX_ALT_FREQ_ENABLE		(V4L2_CID_FM_TX_CLASS_BASE + 14)
+> +#define V4L2_CID_RDS_TX_ALT_FREQ		(V4L2_CID_FM_TX_CLASS_BASE + 15)
+>  
+>  #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
+>  #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
+> 
 
-I think the SoC dtsi should not contain endpoint node, or even port node
-(at least usually). It doesn't know how many endpoints, if any, a
-particular board has. That part should be up to the board dts.
-
-I've done this with OMAP as (much simplified):
-
-SoC.dtsi:
-
-dss: dss@58000000 {
-	status =3D "disabled";
-};
-
-Nothing else (relevant here). The binding documentation states that dss
-has one port, and information what data is needed for the port and endpoi=
-nt.
-
-board.dts:
-
-&dss {
-        status =3D "ok";
-
-        pinctrl-names =3D "default";
-        pinctrl-0 =3D <&dss_dpi_pins>;
-
-        dpi_out: endpoint {
-
-                remote-endpoint =3D <&tfp410_in>;
-                data-lines =3D <24>;
-        };
-};
-
-That's using the shortened version without port node.
-
-Of course, it's up to the developer how his dts looks like. But to me it
-makes sense to require the remote-endpoint property, as the endpoint, or
-even the port, doesn't make much sense if there's nothing to connect to.
-
- Tomi
-
-
-
---tEHsptXr4FFpWcoGvwDA40KVVAmjgkgcU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTDf9MAAoJEPo9qoy8lh71JaAQAJbPz+9VpNn17W+xOl/uxT2m
-7yfxwYtwoVzI3GP5CHS110ALyJh9cFQ0R/p2QEGESO1l/03gIVteCdypHUdzQDhT
-gVa7ALqhf5XrN7FneCWD4liAS1kh9vjT77p66RTKHDjH6NjSKDgPlKotUEkwasRC
-Bx1DwbEQ+6W92TyCp40rNK60buMvJr1yerA9WuPFz/nlynBvB742rYd+xBKS89oR
-kFq0ZzAeXeKrUxQ4kCk4o/Jlj+GW0QVwQiI4973m5/wfHAHVkxJ7yWD/CLRKHB0e
-82OHiHkyOBD6srbsbVGdZBSk/cdYFvpMPCBxyL1hFTWaaZ076sCDozU1RGBPyi8k
-41ERnfKWfz70aDwWo6EpG0kXDBSygwZHi20aMNi4gNQQwAHarO6zgZGGsZfyc3Z6
-pGomVCRZ4tpcEHyFmCUVm6NrocNFL9p3utQVOECC1VeLhT/Nbxaj96LKsFpBcd/d
-4yQjBPhtN22wgmT7maLOPqveUFvVItDLVWGoUeH2w5rOBzEnnTxDzzwV3R27fKvf
-T7NVF9xFTJnzt+NJChwrlTBgNTSMRThWf8YjmfWAJmk9V83esYHNo65m2DBCOcJE
-p7FiQOrG3pcrUUJD8HI98H0mEfLp52UB8kdLedJxI0NHCdO5HBHVge2M5sn3MPXT
-X+MSBcHoIVzFTpb6tGBZ
-=KzUA
------END PGP SIGNATURE-----
-
---tEHsptXr4FFpWcoGvwDA40KVVAmjgkgcU--
