@@ -1,104 +1,555 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1614 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750751AbaBCJEG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 04:04:06 -0500
-Message-ID: <52EF5B6B.7030103@xs4all.nl>
-Date: Mon, 03 Feb 2014 10:03:39 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Philipp Zabel <pza@pengutronix.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH] [media] uvcvideo: Enable VIDIOC_CREATE_BUFS
-References: <1391012032-19600-1-git-send-email-p.zabel@pengutronix.de> <1474634.xnVfC2yuQa@avalon> <52EB6214.9030806@xs4all.nl> <3803281.g9jSrV8SES@avalon> <20140202130430.GA15734@pengutronix.de>
-In-Reply-To: <20140202130430.GA15734@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:59595 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752987AbaBJT3Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 14:29:16 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 2/5] msi001: Mirics MSi001 silicon tuner driver
+Date: Mon, 10 Feb 2014 21:29:00 +0200
+Message-Id: <1392060543-3972-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1392060543-3972-1-git-send-email-crope@iki.fi>
+References: <1392060543-3972-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp, Laurent,
+That RF tuner driver is bound via SPI bus model and it implements V4L
+subdev API. I split it out from MSi3101 SDR driver.
+MSi3101 = MSi2500 + MSi001.
 
-On 02/02/2014 02:04 PM, Philipp Zabel wrote:
-> On Sun, Feb 02, 2014 at 11:21:13AM +0100, Laurent Pinchart wrote:
->> Hi Hans,
->>
->> On Friday 31 January 2014 09:43:00 Hans Verkuil wrote:
->>> I think you might want to add a check in uvc_queue_setup to verify the
->>> fmt that create_bufs passes. The spec says that: "Unsupported formats
->>> will result in an error". In this case I guess that the format basically
->>> should match the current selected format.
->>>
->>> I'm unhappy with the current implementations of create_bufs (see also this
->>> patch:
->>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg70796.html).
->>>
->>> Nobody is actually checking the format today, which isn't good.
->>>
->>> The fact that the spec says that the fmt field isn't changed by the driver
->>> isn't helping as it invalidated my patch from above, although that can be
->>> fixed.
->>>
->>> I need to think about this some more, but for this particular case you can
->>> just do a memcmp of the v4l2_pix_format against the currently selected
->>> format and return an error if they differ. Unless you want to support
->>> different buffer sizes as well?
->>
->> Isn't the whole point of VIDIOC_CREATE_BUFS being able to create buffers of 
->> different resolutions than the current active resolution ?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/msi3101/Kconfig  |   4 +
+ drivers/staging/media/msi3101/Makefile |   1 +
+ drivers/staging/media/msi3101/msi001.c | 499 +++++++++++++++++++++++++++++++++
+ 3 files changed, 504 insertions(+)
+ create mode 100644 drivers/staging/media/msi3101/msi001.c
 
-Or just additional buffers with the same resolution (or really, the same size).
+diff --git a/drivers/staging/media/msi3101/Kconfig b/drivers/staging/media/msi3101/Kconfig
+index 0c349c8..97d5210 100644
+--- a/drivers/staging/media/msi3101/Kconfig
++++ b/drivers/staging/media/msi3101/Kconfig
+@@ -3,3 +3,7 @@ config USB_MSI3101
+ 	depends on USB && VIDEO_DEV && VIDEO_V4L2
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_VMALLOC
++
++config MEDIA_TUNER_MSI001
++	tristate "Mirics MSi001"
++	depends on VIDEO_V4L2 && SPI
+diff --git a/drivers/staging/media/msi3101/Makefile b/drivers/staging/media/msi3101/Makefile
+index 3730654..daf4f58 100644
+--- a/drivers/staging/media/msi3101/Makefile
++++ b/drivers/staging/media/msi3101/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_USB_MSI3101)             += sdr-msi3101.o
++obj-$(CONFIG_MEDIA_TUNER_MSI001)      += msi001.o
+diff --git a/drivers/staging/media/msi3101/msi001.c b/drivers/staging/media/msi3101/msi001.c
+new file mode 100644
+index 0000000..da7a34d
+--- /dev/null
++++ b/drivers/staging/media/msi3101/msi001.c
+@@ -0,0 +1,499 @@
++/*
++ * Mirics MSi001 silicon tuner driver
++ *
++ * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
++ * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/gcd.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
++
++static const struct v4l2_frequency_band bands[] = {
++	{
++		.type = V4L2_TUNER_RF,
++		.index = 0,
++		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow   =   49000000,
++		.rangehigh  =  263000000,
++	}, {
++		.type = V4L2_TUNER_RF,
++		.index = 1,
++		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow   =  390000000,
++		.rangehigh  =  960000000,
++	},
++};
++
++struct msi001 {
++	struct spi_device *spi;
++	struct v4l2_subdev sd;
++
++	/* Controls */
++	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl *bandwidth_auto;
++	struct v4l2_ctrl *bandwidth;
++	struct v4l2_ctrl *lna_gain;
++	struct v4l2_ctrl *mixer_gain;
++	struct v4l2_ctrl *if_gain;
++
++	unsigned int f_tuner;
++};
++
++static inline struct msi001 *sd_to_msi001(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct msi001, sd);
++}
++
++static int msi001_wreg(struct msi001 *s, u32 data)
++{
++	/* Register format: 4 bits addr + 20 bits value */
++	return spi_write(s->spi, &data, 3);
++};
++
++static int msi001_set_gain(struct msi001 *s, int lna_gain, int mixer_gain,
++		int if_gain)
++{
++	int ret;
++	u32 reg;
++	dev_dbg(&s->spi->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
++			lna_gain, mixer_gain, if_gain);
++
++	reg = 1 << 0;
++	reg |= (59 - if_gain) << 4;
++	reg |= 0 << 10;
++	reg |= (1 - mixer_gain) << 12;
++	reg |= (1 - lna_gain) << 13;
++	reg |= 4 << 14;
++	reg |= 0 << 17;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&s->spi->dev, "%s: failed %d\n", __func__, ret);
++	return ret;
++};
++
++static int msi001_set_tuner(struct msi001 *s)
++{
++	int ret, i;
++	unsigned int n, m, thresh, frac, vco_step, tmp, f_if1;
++	u32 reg;
++	u64 f_vco, tmp64;
++	u8 mode, filter_mode, lo_div;
++	static const struct {
++		u32 rf;
++		u8 mode;
++		u8 lo_div;
++	} band_lut[] = {
++		{ 50000000, 0xe1, 16}, /* AM_MODE2, antenna 2 */
++		{108000000, 0x42, 32}, /* VHF_MODE */
++		{330000000, 0x44, 16}, /* B3_MODE */
++		{960000000, 0x48,  4}, /* B45_MODE */
++		{      ~0U, 0x50,  2}, /* BL_MODE */
++	};
++	static const struct {
++		u32 freq;
++		u8 filter_mode;
++	} if_freq_lut[] = {
++		{      0, 0x03}, /* Zero IF */
++		{ 450000, 0x02}, /* 450 kHz IF */
++		{1620000, 0x01}, /* 1.62 MHz IF */
++		{2048000, 0x00}, /* 2.048 MHz IF */
++	};
++	static const struct {
++		u32 freq;
++		u8 val;
++	} bandwidth_lut[] = {
++		{ 200000, 0x00}, /* 200 kHz */
++		{ 300000, 0x01}, /* 300 kHz */
++		{ 600000, 0x02}, /* 600 kHz */
++		{1536000, 0x03}, /* 1.536 MHz */
++		{5000000, 0x04}, /* 5 MHz */
++		{6000000, 0x05}, /* 6 MHz */
++		{7000000, 0x06}, /* 7 MHz */
++		{8000000, 0x07}, /* 8 MHz */
++	};
++
++	unsigned int f_rf = s->f_tuner;
++
++	/*
++	 * bandwidth (Hz)
++	 * 200000, 300000, 600000, 1536000, 5000000, 6000000, 7000000, 8000000
++	 */
++	unsigned int bandwidth;
++
++	/*
++	 * intermediate frequency (Hz)
++	 * 0, 450000, 1620000, 2048000
++	 */
++	unsigned int f_if = 0;
++	#define F_REF 24000000
++	#define R_REF 4
++	#define F_OUT_STEP 1
++
++	dev_dbg(&s->spi->dev,
++			"%s: f_rf=%d f_if=%d\n",
++			__func__, f_rf, f_if);
++
++	for (i = 0; i < ARRAY_SIZE(band_lut); i++) {
++		if (f_rf <= band_lut[i].rf) {
++			mode = band_lut[i].mode;
++			lo_div = band_lut[i].lo_div;
++			break;
++		}
++	}
++
++	if (i == ARRAY_SIZE(band_lut)) {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	/* AM_MODE is upconverted */
++	if ((mode >> 0) & 0x1)
++		f_if1 =  5 * F_REF;
++	else
++		f_if1 =  0;
++
++	for (i = 0; i < ARRAY_SIZE(if_freq_lut); i++) {
++		if (f_if == if_freq_lut[i].freq) {
++			filter_mode = if_freq_lut[i].filter_mode;
++			break;
++		}
++	}
++
++	if (i == ARRAY_SIZE(if_freq_lut)) {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	/* filters */
++	bandwidth = s->bandwidth->val;
++	bandwidth = clamp(bandwidth, 200000U, 8000000U);
++
++	for (i = 0; i < ARRAY_SIZE(bandwidth_lut); i++) {
++		if (bandwidth <= bandwidth_lut[i].freq) {
++			bandwidth = bandwidth_lut[i].val;
++			break;
++		}
++	}
++
++	if (i == ARRAY_SIZE(bandwidth_lut)) {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	s->bandwidth->val = bandwidth_lut[i].freq;
++
++	dev_dbg(&s->spi->dev, "%s: bandwidth selected=%d\n",
++			__func__, bandwidth_lut[i].freq);
++
++	f_vco = (f_rf + f_if + f_if1) * lo_div;
++	tmp64 = f_vco;
++	m = do_div(tmp64, F_REF * R_REF);
++	n = (unsigned int) tmp64;
++
++	vco_step = F_OUT_STEP * lo_div;
++	thresh = (F_REF * R_REF) / vco_step;
++	frac = 1ul * thresh * m / (F_REF * R_REF);
++
++	/* Find out greatest common divisor and divide to smaller. */
++	tmp = gcd(thresh, frac);
++	thresh /= tmp;
++	frac /= tmp;
++
++	/* Force divide to reg max. Resolution will be reduced. */
++	tmp = DIV_ROUND_UP(thresh, 4095);
++	thresh = DIV_ROUND_CLOSEST(thresh, tmp);
++	frac = DIV_ROUND_CLOSEST(frac, tmp);
++
++	/* calc real RF set */
++	tmp = 1ul * F_REF * R_REF * n;
++	tmp += 1ul * F_REF * R_REF * frac / thresh;
++	tmp /= lo_div;
++
++	dev_dbg(&s->spi->dev,
++			"%s: rf=%u:%u n=%d thresh=%d frac=%d\n",
++				__func__, f_rf, tmp, n, thresh, frac);
++
++	ret = msi001_wreg(s, 0x00000e);
++	if (ret)
++		goto err;
++
++	ret = msi001_wreg(s, 0x000003);
++	if (ret)
++		goto err;
++
++	reg = 0 << 0;
++	reg |= mode << 4;
++	reg |= filter_mode << 12;
++	reg |= bandwidth << 14;
++	reg |= 0x02 << 17;
++	reg |= 0x00 << 20;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	reg = 5 << 0;
++	reg |= thresh << 4;
++	reg |= 1 << 19;
++	reg |= 1 << 21;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	reg = 2 << 0;
++	reg |= frac << 4;
++	reg |= n << 16;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	ret = msi001_set_gain(s, s->lna_gain->cur.val, s->mixer_gain->cur.val,
++			s->if_gain->cur.val);
++	if (ret)
++		goto err;
++
++	reg = 6 << 0;
++	reg |= 63 << 4;
++	reg |= 4095 << 10;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&s->spi->dev, "%s: failed %d\n", __func__, ret);
++	return ret;
++};
++
++static int msi001_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	int ret;
++	dev_dbg(&s->spi->dev, "%s: on=%d\n", __func__, on);
++
++	if (on)
++		ret = 0;
++	else
++		ret = msi001_wreg(s, 0x000000);
++
++	return ret;
++}
++
++static const struct v4l2_subdev_core_ops msi001_core_ops = {
++	.s_power                  = msi001_s_power,
++};
++
++static int msi001_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *v)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&s->spi->dev, "%s: index=%d\n", __func__, v->index);
++
++	strlcpy(v->name, "Mirics MSi001", sizeof(v->name));
++	v->type = V4L2_TUNER_RF;
++	v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
++	v->rangelow =    49000000;
++	v->rangehigh =  960000000;
++
++	return 0;
++}
++
++static int msi001_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *v)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&s->spi->dev, "%s: index=%d\n", __func__, v->index);
++	return 0;
++}
++
++static int msi001_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&s->spi->dev, "%s: tuner=%d\n", __func__, f->tuner);
++	f->frequency = s->f_tuner;
++	return 0;
++}
++
++static int msi001_s_frequency(struct v4l2_subdev *sd,
++		const struct v4l2_frequency *f)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	unsigned int band;
++	dev_dbg(&s->spi->dev, "%s: tuner=%d type=%d frequency=%u\n",
++			__func__, f->tuner, f->type, f->frequency);
++
++	if (f->frequency < ((bands[0].rangehigh + bands[1].rangelow) / 2))
++		band = 0;
++	else
++		band = 1;
++	s->f_tuner = clamp_t(unsigned int, f->frequency,
++			bands[band].rangelow, bands[band].rangehigh);
++
++	return msi001_set_tuner(s);
++}
++
++static int msi001_enum_freq_bands(struct v4l2_subdev *sd,
++		struct v4l2_frequency_band *band)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&s->spi->dev, "%s: tuner=%d type=%d index=%d\n",
++			__func__, band->tuner, band->type, band->index);
++
++	if (band->index >= ARRAY_SIZE(bands))
++		return -EINVAL;
++
++	band->capability = bands[band->index].capability;
++	band->rangelow = bands[band->index].rangelow;
++	band->rangehigh = bands[band->index].rangehigh;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_tuner_ops msi001_tuner_ops = {
++	.g_tuner                  = msi001_g_tuner,
++	.s_tuner                  = msi001_s_tuner,
++	.g_frequency              = msi001_g_frequency,
++	.s_frequency              = msi001_s_frequency,
++	.enum_freq_bands          = msi001_enum_freq_bands,
++};
++
++static const struct v4l2_subdev_ops msi001_ops = {
++	.core                     = &msi001_core_ops,
++	.tuner                    = &msi001_tuner_ops,
++};
++
++static int msi001_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct msi001 *s = container_of(ctrl->handler, struct msi001, hdl);
++
++	int ret;
++	dev_dbg(&s->spi->dev,
++			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
++			__func__, ctrl->id, ctrl->name, ctrl->val,
++			ctrl->minimum, ctrl->maximum, ctrl->step);
++
++	switch (ctrl->id) {
++	case V4L2_CID_BANDWIDTH_AUTO:
++	case V4L2_CID_BANDWIDTH:
++		ret = msi001_set_tuner(s);
++		break;
++	case  V4L2_CID_LNA_GAIN:
++		ret = msi001_set_gain(s, s->lna_gain->val,
++				s->mixer_gain->cur.val, s->if_gain->cur.val);
++		break;
++	case  V4L2_CID_MIXER_GAIN:
++		ret = msi001_set_gain(s, s->lna_gain->cur.val,
++				s->mixer_gain->val, s->if_gain->cur.val);
++		break;
++	case  V4L2_CID_IF_GAIN:
++		ret = msi001_set_gain(s, s->lna_gain->cur.val,
++				s->mixer_gain->cur.val, s->if_gain->val);
++		break;
++	default:
++		dev_dbg(&s->spi->dev, "%s: unkown control %d\n",
++				__func__, ctrl->id);
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops msi001_ctrl_ops = {
++	.s_ctrl                   = msi001_s_ctrl,
++};
++
++static int msi001_probe(struct spi_device *spi)
++{
++	struct msi001 *s;
++	int ret;
++	dev_dbg(&spi->dev, "%s:\n", __func__);
++
++	s = kzalloc(sizeof(struct msi001), GFP_KERNEL);
++	if (s == NULL) {
++		ret = -ENOMEM;
++		dev_dbg(&spi->dev, "Could not allocate memory for msi001\n");
++		goto err_kfree;
++	}
++
++	s->spi = spi;
++	v4l2_spi_subdev_init(&s->sd, spi, &msi001_ops);
++
++	/* Register controls */
++	v4l2_ctrl_handler_init(&s->hdl, 5);
++	s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
++	s->bandwidth = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_BANDWIDTH, 200000, 8000000, 1, 200000);
++	v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
++	s->lna_gain = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_LNA_GAIN, 0, 1, 1, 1);
++	s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_MIXER_GAIN, 0, 1, 1, 1);
++	s->if_gain = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_IF_GAIN, 0, 59, 1, 0);
++	if (s->hdl.error) {
++		ret = s->hdl.error;
++		dev_err(&s->spi->dev, "Could not initialize controls\n");
++		/* control init failed, free handler */
++		goto err_ctrl_handler_free;
++	}
++
++	s->sd.ctrl_handler = &s->hdl;
++	return 0;
++
++err_ctrl_handler_free:
++	v4l2_ctrl_handler_free(&s->hdl);
++err_kfree:
++	kfree(s);
++	return ret;
++}
++
++static int msi001_remove(struct spi_device *spi)
++{
++	struct v4l2_subdev *sd = spi_get_drvdata(spi);
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&spi->dev, "%s:\n", __func__);
++
++	/*
++	 * Registered by v4l2_spi_new_subdev() from master driver, but we must
++	 * unregister it from here. Weird.
++	 */
++	v4l2_device_unregister_subdev(&s->sd);
++	v4l2_ctrl_handler_free(&s->hdl);
++	kfree(s);
++	return 0;
++}
++
++static const struct spi_device_id msi001_id[] = {
++	{"msi001", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(spi, msi001_id);
++
++static struct spi_driver msi001_driver = {
++	.driver = {
++		.name	= "msi001",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= msi001_probe,
++	.remove		= msi001_remove,
++	.id_table	= msi001_id,
++};
++module_spi_driver(msi001_driver);
++
++MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
++MODULE_DESCRIPTION("Mirics MSi001");
++MODULE_LICENSE("GPL");
+-- 
+1.8.5.3
 
-> For that to work the driver in question would need to keep track of per-buffer
-> format and resolution, and not only of per-queue format and resolution.
-> 
-> For now, would something like the following be enough? Unfortunately the uvc
-> driver doesn't keep a v4l2_format around that we could just memcmp against:
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-> index fa58131..7fa469b 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -1003,10 +1003,26 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  	case VIDIOC_CREATE_BUFS:
->  	{
->  		struct v4l2_create_buffers *cb = arg;
-> +		struct v4l2_pix_format *pix;
-> +		struct uvc_format *format;
-> +		struct uvc_frame *frame;
->  
->  		if (!uvc_has_privileges(handle))
->  			return -EBUSY;
->  
-> +		format = stream->cur_format;
-> +		frame = stream->cur_frame;
-> +		pix = &cb->format.fmt.pix;
-> +
-> +		if (pix->pixelformat != format->fcc ||
-> +		    pix->width != frame->wWidth ||
-> +		    pix->height != frame->wHeight ||
-> +		    pix->field != V4L2_FIELD_NONE ||
-> +		    pix->bytesperline != format->bpp * frame->wWidth / 8 ||
-> +		    pix->sizeimage != stream->ctrl.dwMaxVideoFrameSize ||
-> +		    pix->colorspace != format->colorspace)
-
-I would drop the field and colorspace checks (those do not really affect
-any size calculations), other than that it looks good.
-
-Regards,
-
-	Hans
-
-> +			return -EINVAL;
-> +
->  		return uvc_create_buffers(&stream->queue, cb);
->  	}
->  
-> 
-> regards
-> Philipp
-> 
