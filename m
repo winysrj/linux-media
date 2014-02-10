@@ -1,144 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38405 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979AbaB0KDE (ORCPT
+Received: from smtp.math.uni-bielefeld.de ([129.70.45.10]:46186 "EHLO
+	smtp.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751772AbaBJK1r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Feb 2014 05:03:04 -0500
-Message-ID: <1393498356.4507.32.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Thu, 27 Feb 2014 11:52:36 +0100
-In-Reply-To: <530EF294.7070801@ti.com>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
-			 <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
-			 <530DE8A9.9050809@ti.com>
-		 <1393426623.3248.70.camel@paszta.hi.pengutronix.de>
-		 <530DFF4C.8080807@ti.com>
-	 <1393429676.3248.110.camel@paszta.hi.pengutronix.de>
-	 <530EF294.7070801@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	Mon, 10 Feb 2014 05:27:47 -0500
+Message-ID: <52F8A9A0.5020408@math.uni-bielefeld.de>
+Date: Mon, 10 Feb 2014 11:27:44 +0100
+From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+MIME-Version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>,
+	Inki Dae <inki.dae@samsung.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: exynos4 / g2d
+References: <52F7CE59.90009@math.uni-bielefeld.de>	<CAK9yfHz7_9UWh=tTJeKyJh7V8yFtn8B4+ub=coV67ovRtebRfQ@mail.gmail.com>	<52F88DA0.8000201@math.uni-bielefeld.de>	<CAK9yfHx=KZjvJGbPs89Yfwyt6mgY_bC+=1YeBo+q0sMyaWN8GA@mail.gmail.com>	<CAAQKjZM7UWPYwjNESSwP_02=JMDN22StGuG4S2ZX=ZkpVXhPhw@mail.gmail.com> <CAK9yfHzmKDoYXUhGszkrspY=PAzVQ7xuOSav70yKBXF4+WTSng@mail.gmail.com>
+In-Reply-To: <CAK9yfHzmKDoYXUhGszkrspY=PAzVQ7xuOSav70yKBXF4+WTSng@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
-
-Am Donnerstag, den 27.02.2014, 10:08 +0200 schrieb Tomi Valkeinen:
-> On 26/02/14 17:47, Philipp Zabel wrote:
-> > Please let's not make it mandatory for a port node to contain an
-> > endpoint. For any device with multiple ports we can't use the simplified
-> > form above, and only adding the (correctly numbered) port in all the
-> > board device trees would be a pain.
-> 
-> That's true. I went with having the ports in the board file, for example
-> on omap3 the dss has two ports, and N900 board uses the second one:
-> 
-> &dss {
-> 	status = "ok";
-> 
-> 	pinctrl-names = "default";
-> 	pinctrl-0 = <&dss_sdi_pins>;
-> 
-> 	vdds_sdi-supply = <&vaux1>;
-> 
-> 	ports {
-> 		#address-cells = <1>;
-> 		#size-cells = <0>;
-> 
-> 		port@1 {
-> 			reg = <1>;
-> 
-> 			sdi_out: endpoint {
-> 				remote-endpoint = <&lcd_in>;
-> 				datapairs = <2>;
-> 			};
-> 		};
-> 	};
-> };
-
-This is a bit verbose, and if your output port is on an encoder device
-with multiple inputs, the correct port number would become a bit
-unintuitive. For example, we'd have to use port@4 as the output encoder
-units that have a 4-port input multiplexer and port@1 for those that
-don't.
-
-> Here I guess I could have:
-> 
-> &dss {
-> 	status = "ok";
-> 
-> 	pinctrl-names = "default";
-> 	pinctrl-0 = <&dss_sdi_pins>;
-> 
-> 	vdds_sdi-supply = <&vaux1>;
-> };
-
-What is supplied by this regulator. Is it the PHY?
-
-> &dss_sdi_port {
-> 	sdi_out: endpoint {
-> 		remote-endpoint = <&lcd_in>;
-> 		datapairs = <2>;
-> 	};
-> };
-> 
-> But I didn't like that as it splits the pincontrol and regulator supply
-> from the port/endpoint, which are functionally linked together.
+Sachin Kamat wrote:
+> On 10 February 2014 14:28, Inki Dae <inki.dae@samsung.com> wrote:
+>> 2014-02-10 17:44 GMT+09:00 Sachin Kamat <sachin.kamat@linaro.org>:
+>>> +cc Joonyoung Shim
+>>>
+>>> Hi,
+>>>
+>>> On 10 February 2014 13:58, Tobias Jakobi <tjakobi@math.uni-bielefeld.de> wrote:
+>>>> Hello!
+>>>>
+>>>>
+>>>> Sachin Kamat wrote:
+>>>>> +cc linux-media list and some related maintainers
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>> On 10 February 2014 00:22, Tobias Jakobi <tjakobi@math.uni-bielefeld.de> wrote:
+>>>>>> Hello!
+>>>>>>
+>>>>>> I noticed while here
+>>>>>> (https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/arch/arm/boot/dts/exynos4x12.dtsi?id=3a0d48f6f81459c874165ffb14b310c0b5bb0c58)
+>>>>>> the necessary entry for the dts was made, on the drm driver side
+>>>>>> (https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/gpu/drm/exynos/exynos_drm_g2d.c)
+>>>>>> this was never added.
+>>>>>>
+>>>>>> Shouldn't "samsung,exynos4212-g2d" go into exynos_g2d_match as well?
+>>>>> The DRM version of G2D driver does not support Exynos4 based G2D IP
+>>>>> yet. The support for this IP
+>>>>> is available only in the V4L2 version of the driver. Please see the file:
+>>>>> drivers/media/platform/s5p-g2d/g2d.c
+>>>>>
+>>>> That doesn't make sense to me. From the initial commit message of the
+>>>> DRM code:
+>>>> "The G2D is a 2D graphic accelerator that supports Bit Block Transfer.
+>>>> This G2D driver is exynos drm specific and supports only G2D(version
+>>>> 4.1) of later Exynos series from Exynos4X12 because supporting DMA."
+>>>> (https://git.kernel.org/cgit/linux/kernel/git/stable/linux-stable.git/commit/drivers/gpu/drm/exynos/exynos_drm_g2d.c?id=d7f1642c90ab5eb2d7c48af0581c993094f97e1a)
+>>>>
+>>>> In fact, this doesn't even mention the Exynos5?!
+>>> It does say "later Exynos series from Exynos4X12" which technically
+>>> includes Exynos5 and
+>> Right, supported.
+>>
+>>> does not include previous Exynos series SoCs like 4210, etc.
+>>> Anyway, I haven't tested this driver on Exynos4 based platforms and
+>>> hence cannot confirm if it
+>>> supports 4x12 in the current form. I leave it to the original author
+>>> and Inki to comment about it.
+>>>
+>> Just add "samsung,exynos4212-g2d" to exynos_g2d_match if you want to
+>> use g2d driver on exynos4212 SoC. We already tested this driver on
+>> Exynos4x12 SoC also. We didn't just post dt support patch for
+>> exynos4x12 series.
+> If you prefer I could add that and send a patch. I wouldn't be able to
+> test it though.
 >
-> Actually, somewhat aside the subject, I'd like to have the pinctrl and
-> maybe regulator supply also per endpoint, but I didn't see how that
-> would be possible with the current framework. If a board would need to
-> endpoints for the same port, most likely it would also need to different
-> sets of pinctrls.
+Thanks for the feedback!
 
-I have a usecase for this the other way around. The i.MX6 DISP0 parallel
-display pads can be connected to two different display controllers via
-multiplexers in the pin control block.
+The reason for bringing this up is the following. I'm trying to get the
+G2D block working through the DRM interface on a Hardkernel ODROID-X2,
+which is Exynos4412 based. Hardkernel provides a modified 3.8.y kernel,
+which they somehow "support". The problem is that the G2D doesn't work
+there. I can provide more specific details on that, if wanted.
 
-parallel-display {
-	compatible = "fsl,imx-parallel-display";
-	#address-cells = <1>;
-	#size-cells = <0>;
+So my plan was to check if the G2D at least works with a more recent
+kernel. I'm currently working on getting 3.13.y vanilla running on the
+device and then want to test the G2D block there (e.g. with the test
+tool that is included in the libdrm tree -- this is also the one that
+fails on the odroid kernel).
 
-	port@0 {
-		endpoint {
-			remote-endpoint = <&ipu1_di0>;
-		};
-	};
+Obviously this would be huge waste of time, if you guys would tell me
+that the G2D isn't working (at least through the DRM) on the Exynos4412
+platform anyway.
 
-	port@1 {
-		endpoint {
-			remote-endpoint = <&ipu2_di0>;
-		};
-	};
-
-	disp0: port@2 {
-		endpoint {
-			pinctrl-names = "0", "1";
-			pinctrl-0 = <&pinctrl_disp0_ipu1>;
-			pinctrl-1 = <&pinctrl_disp0_ipu2>;
-			remote-endpoint = <&lcd_in>;
-		};
-	}
-};
-
-Here, depending on the active input port, the corresponding pin control
-on the output port could be set. This is probably quite driver specific,
-so I don't see yet how the framework should help with this. In any case,
-maybe this is a bit out of scope for the generic graph bindings.
-
-regards
-Philipp
+With best regards,
+Tobias
 
