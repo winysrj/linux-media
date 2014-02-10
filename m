@@ -1,87 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4635 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755389AbaBGMUK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 07:20:10 -0500
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1047 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171AbaBJLJT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 06:09:19 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: edubezval@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/7] v4l2-ctrls: add new RDS TX controls
-Date: Fri,  7 Feb 2014 13:19:34 +0100
-Message-Id: <1391775580-29907-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 2/5] v4l2-subdev: Allow 32-bit compat ioctls
+Date: Mon, 10 Feb 2014 12:08:44 +0100
+Message-Id: <1392030527-32661-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392030527-32661-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392030527-32661-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add support for 32-bit ioctls with v4l-subdev device nodes.
 
-The si4713 supports several RDS features not yet implemented in the driver.
+Rather than keep adding new ioctls to the list in v4l2-compat-ioctl32.c, just check
+if the ioctl is a non-private V4L2 ioctl and if so, call the conversion code.
 
-This patch adds the missing RDS functionality to the list of RDS controls.
+We keep forgetting to add new ioctls, so this is a more robust solution.
+
+In addition extend the subdev API with support for a compat32 function to
+convert custom v4l-subdev ioctls.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>
+Tested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 17 +++++++++++++++++
- include/uapi/linux/v4l2-controls.h   |  9 +++++++++
- 2 files changed, 26 insertions(+)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 101 ++------------------------
+ drivers/media/v4l2-core/v4l2-subdev.c         |  14 ++++
+ include/media/v4l2-subdev.h                   |   4 +
+ 3 files changed, 24 insertions(+), 95 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 6ff002b..66a2d0b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -794,6 +794,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
- 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
- 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-+	case V4L2_CID_RDS_TX_MONO_STEREO:	return "RDS Stereo";
-+	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:	return "RDS Artificial Head";
-+	case V4L2_CID_RDS_TX_COMPRESSED:	return "RDS Compressed";
-+	case V4L2_CID_RDS_TX_DYNAMIC_PTY:	return "RDS Dynamic PTY";
-+	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT: return "RDS Traffic Announcement";
-+	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:	return "RDS Traffic Program";
-+	case V4L2_CID_RDS_TX_MUSIC_SPEECH:	return "RDS Music";
-+	case V4L2_CID_RDS_TX_ALT_FREQ_ENABLE:	return "RDS Enable Alternate Frequency";
-+	case V4L2_CID_RDS_TX_ALT_FREQ:		return "RDS Alternate Frequency";
- 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
- 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
- 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-@@ -906,6 +915,14 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
- 	case V4L2_CID_RDS_RECEPTION:
-+	case V4L2_CID_RDS_TX_MONO_STEREO:
-+	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:
-+	case V4L2_CID_RDS_TX_COMPRESSED:
-+	case V4L2_CID_RDS_TX_DYNAMIC_PTY:
-+	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
-+	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
-+	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
-+	case V4L2_CID_RDS_TX_ALT_FREQ_ENABLE:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2cbe605..21abf77 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -753,6 +753,15 @@ enum v4l2_auto_focus_range {
- #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
- #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
- #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
-+#define V4L2_CID_RDS_TX_MONO_STEREO		(V4L2_CID_FM_TX_CLASS_BASE + 7)
-+#define V4L2_CID_RDS_TX_ARTIFICIAL_HEAD		(V4L2_CID_FM_TX_CLASS_BASE + 8)
-+#define V4L2_CID_RDS_TX_COMPRESSED		(V4L2_CID_FM_TX_CLASS_BASE + 9)
-+#define V4L2_CID_RDS_TX_DYNAMIC_PTY		(V4L2_CID_FM_TX_CLASS_BASE + 10)
-+#define V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT	(V4L2_CID_FM_TX_CLASS_BASE + 11)
-+#define V4L2_CID_RDS_TX_TRAFFIC_PROGRAM		(V4L2_CID_FM_TX_CLASS_BASE + 12)
-+#define V4L2_CID_RDS_TX_MUSIC_SPEECH		(V4L2_CID_FM_TX_CLASS_BASE + 13)
-+#define V4L2_CID_RDS_TX_ALT_FREQ_ENABLE		(V4L2_CID_FM_TX_CLASS_BASE + 14)
-+#define V4L2_CID_RDS_TX_ALT_FREQ		(V4L2_CID_FM_TX_CLASS_BASE + 15)
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 8f7a6a4..1b18616 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -1006,103 +1006,14 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	if (!file->f_op->unlocked_ioctl)
+ 		return ret;
  
- #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
- #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
+-	switch (cmd) {
+-	case VIDIOC_QUERYCAP:
+-	case VIDIOC_RESERVED:
+-	case VIDIOC_ENUM_FMT:
+-	case VIDIOC_G_FMT32:
+-	case VIDIOC_S_FMT32:
+-	case VIDIOC_REQBUFS:
+-	case VIDIOC_QUERYBUF32:
+-	case VIDIOC_G_FBUF32:
+-	case VIDIOC_S_FBUF32:
+-	case VIDIOC_OVERLAY32:
+-	case VIDIOC_QBUF32:
+-	case VIDIOC_EXPBUF:
+-	case VIDIOC_DQBUF32:
+-	case VIDIOC_STREAMON32:
+-	case VIDIOC_STREAMOFF32:
+-	case VIDIOC_G_PARM:
+-	case VIDIOC_S_PARM:
+-	case VIDIOC_G_STD:
+-	case VIDIOC_S_STD:
+-	case VIDIOC_ENUMSTD32:
+-	case VIDIOC_ENUMINPUT32:
+-	case VIDIOC_G_CTRL:
+-	case VIDIOC_S_CTRL:
+-	case VIDIOC_G_TUNER:
+-	case VIDIOC_S_TUNER:
+-	case VIDIOC_G_AUDIO:
+-	case VIDIOC_S_AUDIO:
+-	case VIDIOC_QUERYCTRL:
+-	case VIDIOC_QUERYMENU:
+-	case VIDIOC_G_INPUT32:
+-	case VIDIOC_S_INPUT32:
+-	case VIDIOC_G_OUTPUT32:
+-	case VIDIOC_S_OUTPUT32:
+-	case VIDIOC_ENUMOUTPUT:
+-	case VIDIOC_G_AUDOUT:
+-	case VIDIOC_S_AUDOUT:
+-	case VIDIOC_G_MODULATOR:
+-	case VIDIOC_S_MODULATOR:
+-	case VIDIOC_S_FREQUENCY:
+-	case VIDIOC_G_FREQUENCY:
+-	case VIDIOC_CROPCAP:
+-	case VIDIOC_G_CROP:
+-	case VIDIOC_S_CROP:
+-	case VIDIOC_G_SELECTION:
+-	case VIDIOC_S_SELECTION:
+-	case VIDIOC_G_JPEGCOMP:
+-	case VIDIOC_S_JPEGCOMP:
+-	case VIDIOC_QUERYSTD:
+-	case VIDIOC_TRY_FMT32:
+-	case VIDIOC_ENUMAUDIO:
+-	case VIDIOC_ENUMAUDOUT:
+-	case VIDIOC_G_PRIORITY:
+-	case VIDIOC_S_PRIORITY:
+-	case VIDIOC_G_SLICED_VBI_CAP:
+-	case VIDIOC_LOG_STATUS:
+-	case VIDIOC_G_EXT_CTRLS32:
+-	case VIDIOC_S_EXT_CTRLS32:
+-	case VIDIOC_TRY_EXT_CTRLS32:
+-	case VIDIOC_ENUM_FRAMESIZES:
+-	case VIDIOC_ENUM_FRAMEINTERVALS:
+-	case VIDIOC_G_ENC_INDEX:
+-	case VIDIOC_ENCODER_CMD:
+-	case VIDIOC_TRY_ENCODER_CMD:
+-	case VIDIOC_DECODER_CMD:
+-	case VIDIOC_TRY_DECODER_CMD:
+-	case VIDIOC_DBG_S_REGISTER:
+-	case VIDIOC_DBG_G_REGISTER:
+-	case VIDIOC_S_HW_FREQ_SEEK:
+-	case VIDIOC_S_DV_TIMINGS:
+-	case VIDIOC_G_DV_TIMINGS:
+-	case VIDIOC_DQEVENT:
+-	case VIDIOC_DQEVENT32:
+-	case VIDIOC_SUBSCRIBE_EVENT:
+-	case VIDIOC_UNSUBSCRIBE_EVENT:
+-	case VIDIOC_CREATE_BUFS32:
+-	case VIDIOC_PREPARE_BUF32:
+-	case VIDIOC_ENUM_DV_TIMINGS:
+-	case VIDIOC_QUERY_DV_TIMINGS:
+-	case VIDIOC_DV_TIMINGS_CAP:
+-	case VIDIOC_ENUM_FREQ_BANDS:
+-	case VIDIOC_SUBDEV_G_EDID32:
+-	case VIDIOC_SUBDEV_S_EDID32:
++	if (_IOC_TYPE(cmd) == 'V' && _IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
+ 		ret = do_video_ioctl(file, cmd, arg);
+-		break;
++	else if (vdev->fops->compat_ioctl32)
++		ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+ 
+-	default:
+-		if (vdev->fops->compat_ioctl32)
+-			ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+-
+-		if (ret == -ENOIOCTLCMD)
+-			printk(KERN_WARNING "compat_ioctl32: "
+-				"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+-				_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd),
+-				cmd);
+-		break;
+-	}
++	if (ret == -ENOIOCTLCMD)
++		pr_warn("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
++			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_compat_ioctl32);
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 996c248..60d2550 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -368,6 +368,17 @@ static long subdev_ioctl(struct file *file, unsigned int cmd,
+ 	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
+ }
+ 
++#ifdef CONFIG_COMPAT
++static long subdev_compat_ioctl32(struct file *file, unsigned int cmd,
++	unsigned long arg)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++
++	return v4l2_subdev_call(sd, core, compat_ioctl32, cmd, arg);
++}
++#endif
++
+ static unsigned int subdev_poll(struct file *file, poll_table *wait)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+@@ -389,6 +400,9 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = subdev_open,
+ 	.unlocked_ioctl = subdev_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl32 = subdev_compat_ioctl32,
++#endif
+ 	.release = subdev_close,
+ 	.poll = subdev_poll,
+ };
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d67210a..1752530 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -162,6 +162,10 @@ struct v4l2_subdev_core_ops {
+ 	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
+ 	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
+ 	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
++#ifdef CONFIG_COMPAT
++	long (*compat_ioctl32)(struct v4l2_subdev *sd, unsigned int cmd,
++			       unsigned long arg);
++#endif
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
+ 	int (*s_register)(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg);
 -- 
 1.8.5.2
 
