@@ -1,64 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56252 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932387AbaBAUog (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 15:44:36 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4454 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751977AbaBJIsL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 03:48:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Robert Schlabbach <Robert.Schlabbach@gmx.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/4] m88ds3103: remove dead code 2nd part
-Date: Sat,  1 Feb 2014 22:44:16 +0200
-Message-Id: <1391287458-11939-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1391287458-11939-1-git-send-email-crope@iki.fi>
-References: <1391287458-11939-1-git-send-email-crope@iki.fi>
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 21/34] DocBook media: fix coding style in the control example code
+Date: Mon, 10 Feb 2014 09:46:46 +0100
+Message-Id: <1392022019-5519-22-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Coverity CID 1166051: Logically dead code (DEADCODE)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-TS clock calculation could be more accurate, but as it is not,
-remove those unused clock speeds.
+Use the proper kernel coding style in these examples.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/m88ds3103.c | 12 ------------
- 1 file changed, 12 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml | 81 ++++++++++++++--------------
+ 1 file changed, 40 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index e261bf9..c0a78d9 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -428,18 +428,10 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 		goto err;
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a5a3188..ef55c3e 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -441,61 +441,60 @@ more menu type controls.</para>
+ &v4l2-queryctrl; queryctrl;
+ &v4l2-querymenu; querymenu;
  
- 	switch (target_mclk) {
--	case 72000:
--		u8tmp1 = 0x00; /* 0b00 */
--		u8tmp2 = 0x03; /* 0b11 */
--		break;
- 	case 96000:
- 		u8tmp1 = 0x02; /* 0b10 */
- 		u8tmp2 = 0x01; /* 0b01 */
- 		break;
--	case 115200:
--		u8tmp1 = 0x01; /* 0b01 */
--		u8tmp2 = 0x01; /* 0b01 */
--		break;
- 	case 144000:
- 		u8tmp1 = 0x00; /* 0b00 */
- 		u8tmp2 = 0x01; /* 0b01 */
-@@ -448,10 +440,6 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 		u8tmp1 = 0x03; /* 0b11 */
- 		u8tmp2 = 0x00; /* 0b00 */
- 		break;
--	default:
--		dev_dbg(&priv->i2c->dev, "%s: invalid target_mclk\n", __func__);
--		ret = -EINVAL;
--		goto err;
+-static void
+-enumerate_menu (void)
++static void enumerate_menu(void)
+ {
+-	printf ("  Menu items:\n");
++	printf("  Menu items:\n");
+ 
+-	memset (&amp;querymenu, 0, sizeof (querymenu));
++	memset(&amp;querymenu, 0, sizeof(querymenu));
+ 	querymenu.id = queryctrl.id;
+ 
+ 	for (querymenu.index = queryctrl.minimum;
+ 	     querymenu.index &lt;= queryctrl.maximum;
+-	      querymenu.index++) {
+-		if (0 == ioctl (fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
+-			printf ("  %s\n", querymenu.name);
++	     querymenu.index++) {
++		if (0 == ioctl(fd, &VIDIOC-QUERYMENU;, &amp;querymenu)) {
++			printf("  %s\n", querymenu.name);
+ 		}
  	}
+ }
  
- 	ret = m88ds3103_wr_reg_mask(priv, 0x22, u8tmp1 << 6, 0xc0);
+-memset (&amp;queryctrl, 0, sizeof (queryctrl));
++memset(&amp;queryctrl, 0, sizeof(queryctrl));
+ 
+ for (queryctrl.id = V4L2_CID_BASE;
+      queryctrl.id &lt; V4L2_CID_LASTP1;
+      queryctrl.id++) {
+-	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+ 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
+ 			continue;
+ 
+-		printf ("Control %s\n", queryctrl.name);
++		printf("Control %s\n", queryctrl.name);
+ 
+ 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+-			enumerate_menu ();
++			enumerate_menu();
+ 	} else {
+ 		if (errno == EINVAL)
+ 			continue;
+ 
+-		perror ("VIDIOC_QUERYCTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_QUERYCTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ }
+ 
+ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+      queryctrl.id++) {
+-	if (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++	if (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+ 		if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
+ 			continue;
+ 
+-		printf ("Control %s\n", queryctrl.name);
++		printf("Control %s\n", queryctrl.name);
+ 
+ 		if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+-			enumerate_menu ();
++			enumerate_menu();
+ 	} else {
+ 		if (errno == EINVAL)
+ 			break;
+ 
+-		perror ("VIDIOC_QUERYCTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_QUERYCTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ }
+ </programlisting>
+@@ -508,53 +507,53 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+ &v4l2-queryctrl; queryctrl;
+ &v4l2-control; control;
+ 
+-memset (&amp;queryctrl, 0, sizeof (queryctrl));
++memset(&amp;queryctrl, 0, sizeof(queryctrl));
+ queryctrl.id = V4L2_CID_BRIGHTNESS;
+ 
+-if (-1 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
++if (-1 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+ 	if (errno != EINVAL) {
+-		perror ("VIDIOC_QUERYCTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_QUERYCTRL");
++		exit(EXIT_FAILURE);
+ 	} else {
+-		printf ("V4L2_CID_BRIGHTNESS is not supported\n");
++		printf("V4L2_CID_BRIGHTNESS is not supported\n");
+ 	}
+ } else if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED) {
+-	printf ("V4L2_CID_BRIGHTNESS is not supported\n");
++	printf("V4L2_CID_BRIGHTNESS is not supported\n");
+ } else {
+-	memset (&amp;control, 0, sizeof (control));
++	memset(&amp;control, 0, sizeof (control));
+ 	control.id = V4L2_CID_BRIGHTNESS;
+ 	control.value = queryctrl.default_value;
+ 
+-	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)) {
+-		perror ("VIDIOC_S_CTRL");
+-		exit (EXIT_FAILURE);
++	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)) {
++		perror("VIDIOC_S_CTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ }
+ 
+-memset (&amp;control, 0, sizeof (control));
++memset(&amp;control, 0, sizeof(control));
+ control.id = V4L2_CID_CONTRAST;
+ 
+-if (0 == ioctl (fd, &VIDIOC-G-CTRL;, &amp;control)) {
++if (0 == ioctl(fd, &VIDIOC-G-CTRL;, &amp;control)) {
+ 	control.value += 1;
+ 
+ 	/* The driver may clamp the value or return ERANGE, ignored here */
+ 
+-	if (-1 == ioctl (fd, &VIDIOC-S-CTRL;, &amp;control)
++	if (-1 == ioctl(fd, &VIDIOC-S-CTRL;, &amp;control)
+ 	    &amp;&amp; errno != ERANGE) {
+-		perror ("VIDIOC_S_CTRL");
+-		exit (EXIT_FAILURE);
++		perror("VIDIOC_S_CTRL");
++		exit(EXIT_FAILURE);
+ 	}
+ /* Ignore if V4L2_CID_CONTRAST is unsupported */
+ } else if (errno != EINVAL) {
+-	perror ("VIDIOC_G_CTRL");
+-	exit (EXIT_FAILURE);
++	perror("VIDIOC_G_CTRL");
++	exit(EXIT_FAILURE);
+ }
+ 
+ control.id = V4L2_CID_AUDIO_MUTE;
+-control.value = TRUE; /* silence */
++control.value = 1; /* silence */
+ 
+ /* Errors ignored */
+-ioctl (fd, VIDIOC_S_CTRL, &amp;control);
++ioctl(fd, VIDIOC_S_CTRL, &amp;control);
+ </programlisting>
+     </example>
+   </section>
+@@ -675,12 +674,12 @@ control class is found:</para>
+       <informalexample>
+ 	<programlisting>
+ qctrl.id = V4L2_CTRL_CLASS_MPEG | V4L2_CTRL_FLAG_NEXT_CTRL;
+-while (0 == ioctl (fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
+-	if (V4L2_CTRL_ID2CLASS (qctrl.id) != V4L2_CTRL_CLASS_MPEG)
++while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;qctrl)) {
++	if (V4L2_CTRL_ID2CLASS(qctrl.id) != V4L2_CTRL_CLASS_MPEG)
+ 		break;
+ 		/* ... */
+-		qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+-	}
++	qctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
++}
+ </programlisting>
+       </informalexample>
+ 
 -- 
-1.8.5.3
+1.8.5.2
 
