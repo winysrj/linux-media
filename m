@@ -1,116 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55382 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:48018 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752400AbaBJQRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:17:19 -0500
+	id S1751889AbaBJQVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 11:21:34 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 1/6] v4l: add RF tuner gain controls
-Date: Mon, 10 Feb 2014 18:17:01 +0200
-Message-Id: <1392049026-13398-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1392049026-13398-1-git-send-email-crope@iki.fi>
-References: <1392049026-13398-1-git-send-email-crope@iki.fi>
+Subject: [REVIEW PATCH 0/6] SDR API - V4L documentation
+Date: Mon, 10 Feb 2014 18:21:13 +0200
+Message-Id: <1392049279-13495-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modern silicon RF tuners used nowadays has many controllable gain
-stages on signal path. Usually, but not always, there is at least
-3 gain stages. Also on some cases there could be multiple gain
-stages within the ones specified here. However, I think that having
-these three controllable gain stages offers enough fine-tuning for
-real use cases.
+Split / group / merge changes as requested by Hans.
 
-1) LNA gain. That is first gain just after antenna input.
-2) Mixer gain. It is located quite middle of the signal path, where
-RF signal is down-converted to IF/BB.
-3) IF gain. That is last gain in order to adjust output signal level
-to optimal level for receiving party (usually demodulator ADC).
+That is last set of API changes itself. All the upcoming patches are
+driver implementation. It will took a while to rebase those....
 
-Each gain stage could be set rather often both manual or automatic
-(AGC) mode. Due to that add separate controls for controlling
-operation mode.
+Antti
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 15 +++++++++++++++
- include/uapi/linux/v4l2-controls.h   | 11 +++++++++++
- 2 files changed, 26 insertions(+)
+Antti Palosaari (6):
+  DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
+  DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
+  DocBook: document RF tuner gain controls
+  DocBook: media: document V4L2_CTRL_CLASS_RF_TUNER
+  DocBook: document RF tuner bandwidth controls
+  DocBook: media: document PLL lock control
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 6ff002b..d201f61 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -857,6 +857,14 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
- 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
-+
-+	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
-+	case V4L2_CID_LNA_GAIN_AUTO:		return "LNA Gain, Auto";
-+	case V4L2_CID_LNA_GAIN:			return "LNA Gain";
-+	case V4L2_CID_MIXER_GAIN_AUTO:		return "Mixer Gain, Auto";
-+	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
-+	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
-+	case V4L2_CID_IF_GAIN:			return "IF Gain";
- 	default:
- 		return NULL;
- 	}
-@@ -906,6 +914,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
- 	case V4L2_CID_RDS_RECEPTION:
-+	case V4L2_CID_LNA_GAIN_AUTO:
-+	case V4L2_CID_MIXER_GAIN_AUTO:
-+	case V4L2_CID_IF_GAIN_AUTO:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -991,6 +1002,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_IMAGE_PROC_CLASS:
- 	case V4L2_CID_DV_CLASS:
- 	case V4L2_CID_FM_RX_CLASS:
-+	case V4L2_CID_RF_TUNER_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -1063,6 +1075,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_FREQUENCY:
- 	case V4L2_CID_TUNE_POWER_LEVEL:
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+	case V4L2_CID_LNA_GAIN:
-+	case V4L2_CID_MIXER_GAIN:
-+	case V4L2_CID_IF_GAIN:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2cbe605..076fa34 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -60,6 +60,7 @@
- #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
- #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
-+#define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
- 
- /* User-class control IDs */
- 
-@@ -895,4 +896,14 @@ enum v4l2_deemphasis {
- 
- #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
- 
-+#define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
-+#define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
-+
-+#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
-+#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
-+#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
-+#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
-+#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
-+#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
-+
- #endif
+ Documentation/DocBook/media/v4l/controls.xml       | 119 +++++++++++++++++++++
+ .../DocBook/media/v4l/pixfmt-sdr-cu08.xml          |  44 ++++++++
+ .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        |  46 ++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |   3 +
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   7 +-
+ 5 files changed, 218 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+
 -- 
 1.8.5.3
 
