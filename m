@@ -1,253 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:54977 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752810AbaB1VJ7 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1605 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714AbaBJJuW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 16:09:59 -0500
-Message-ID: <5310FB23.5040203@gmail.com>
-Date: Fri, 28 Feb 2014 22:09:55 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Mon, 10 Feb 2014 04:50:22 -0500
+Message-ID: <52F8A0B2.3090907@xs4all.nl>
+Date: Mon, 10 Feb 2014 10:49:38 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 5/7] [media] of: move common endpoint parsing to drivers/of
-References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de> <1393522540-22887-6-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1393522540-22887-6-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, k.debski@samsung.com,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v4.2 3/4] v4l: Add timestamp source flags, mask and document
+ them
+References: <1393149.6OyBNhdFTt@avalon> <1391813548-818-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1391813548-818-1-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/27/2014 06:35 PM, Philipp Zabel wrote:
-> This patch adds a new struct of_endpoint which is then embedded in struct
-> v4l2_of_endpoint and contains the endpoint properties that are not V4L2
-> (or even media) specific: the port number, endpoint id, local device tree
-> node and remote endpoint phandle. of_graph_parse_endpoint parses those
-> properties and is used by v4l2_of_parse_endpoint, which just adds the
-> V4L2 MBUS information to the containing v4l2_of_endpoint structure.
->
-> Signed-off-by: Philipp Zabel<p.zabel@pengutronix.de>
+On 02/07/2014 11:52 PM, Sakari Ailus wrote:
+> Some devices do not produce timestamps that correspond to the end of the
+> frame. The user space should be informed on the matter. This patch achieves
+> that by adding buffer flags (and a mask) for timestamp sources since more
+> possible timestamping points are expected than just two.
+> 
+> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of the
+> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end of
+> frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure (next
+> value).
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+I would prefer to split the uvc change into a separate patch. It doesn't really
+belong here.
+
+Regards,
+
+	Hans
+
 > ---
-> Changes since v4:
->   - Fixed users of struct v4l2_of_endpoint
->   - Removed left-over #include<media/of_graph.h>  from v4l2-of.h
-> ---
->   drivers/media/platform/exynos4-is/media-dev.c | 10 ++++-----
->   drivers/media/platform/exynos4-is/mipi-csis.c |  2 +-
->   drivers/media/v4l2-core/v4l2-of.c             | 16 +++-----------
->   drivers/of/base.c                             | 31 +++++++++++++++++++++++++++
->   include/linux/of_graph.h                      | 20 +++++++++++++++++
->   include/media/v4l2-of.h                       |  8 ++-----
->   6 files changed, 62 insertions(+), 25 deletions(-)
->
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index d0f82da..04d6ecd 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -469,10 +469,10 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->   		return 0;
->
->   	v4l2_of_parse_endpoint(ep,&endpoint);
-> -	if (WARN_ON(endpoint.port == 0) || index>= FIMC_MAX_SENSORS)
-> +	if (WARN_ON(endpoint.base.port == 0) || index>= FIMC_MAX_SENSORS)
->   		return -EINVAL;
->
-> -	pd->mux_id = (endpoint.port - 1)&  0x1;
-> +	pd->mux_id = (endpoint.base.port - 1)&  0x1;
->
->   	rem = of_graph_get_remote_port_parent(ep);
->   	of_node_put(ep);
-> @@ -494,13 +494,13 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->   		return -EINVAL;
->   	}
->
-> -	if (fimc_input_is_parallel(endpoint.port)) {
-> +	if (fimc_input_is_parallel(endpoint.base.port)) {
->   		if (endpoint.bus_type == V4L2_MBUS_PARALLEL)
->   			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_601;
->   		else
->   			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_656;
->   		pd->flags = endpoint.bus.parallel.flags;
-> -	} else if (fimc_input_is_mipi_csi(endpoint.port)) {
-> +	} else if (fimc_input_is_mipi_csi(endpoint.base.port)) {
->   		/*
->   		 * MIPI CSI-2: only input mux selection and
->   		 * the sensor's clock frequency is needed.
-> @@ -508,7 +508,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->   		pd->sensor_bus_type = FIMC_BUS_TYPE_MIPI_CSI2;
->   	} else {
->   		v4l2_err(&fmd->v4l2_dev, "Wrong port id (%u) at node %s\n",
-> -			 endpoint.port, rem->full_name);
-> +			 endpoint.base.port, rem->full_name);
->   	}
->   	/*
->   	 * For FIMC-IS handled sensors, that are placed under i2c-isp device
-> diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-> index fd1ae65..3678ba5 100644
-> --- a/drivers/media/platform/exynos4-is/mipi-csis.c
-> +++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-> @@ -772,7 +772,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
->   	/* Get port node and validate MIPI-CSI channel id. */
->   	v4l2_of_parse_endpoint(node,&endpoint);
->
-> -	state->index = endpoint.port - FIMC_INPUT_MIPI_CSI2_0;
-> +	state->index = endpoint.base.port - FIMC_INPUT_MIPI_CSI2_0;
->   	if (state->index<  0 || state->index>= CSIS_MAX_ENTITIES)
->   		return -ENXIO;
->
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> index f919db3..b4ed9a9 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -127,17 +127,9 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
->   int v4l2_of_parse_endpoint(const struct device_node *node,
->   			   struct v4l2_of_endpoint *endpoint)
->   {
-> -	struct device_node *port_node = of_get_parent(node);
+> since v4.1:
+> - Replace SOF flag by SOE flag
+> - Add mask for timestamp sources
+> 
+>  Documentation/DocBook/media/v4l/io.xml |   28 ++++++++++++++++++++++------
+>  drivers/media/usb/uvc/uvc_queue.c      |    3 ++-
+>  include/media/videobuf2-core.h         |    2 ++
+>  include/uapi/linux/videodev2.h         |    4 ++++
+>  4 files changed, 30 insertions(+), 7 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> index 2c155cc..451626f 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -654,12 +654,6 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+>  In that case, struct <structname>v4l2_buffer</structname> contains an array of
+>  plane structures.</para>
+>  
+> -      <para>For timestamp types that are sampled from the system clock
+> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
+> -taken after the complete frame has been received (or transmitted in
+> -case of video output devices). For other kinds of
+> -timestamps this may vary depending on the driver.</para>
 > -
-> -	memset(endpoint, 0, offsetof(struct v4l2_of_endpoint, head));
-> -
-> -	endpoint->local_node = node;
-> -	/*
-> -	 * It doesn't matter whether the two calls below succeed.
-> -	 * If they don't then the default value 0 is used.
-> -	 */
-> -	of_property_read_u32(port_node, "reg",&endpoint->port);
-> -	of_property_read_u32(node, "reg",&endpoint->id);
-> +	of_graph_parse_endpoint(node,&endpoint->base);
-> +	endpoint->bus_type = 0;
-> +	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
->
->   	v4l2_of_parse_csi_bus(node, endpoint);
->   	/*
-> @@ -147,8 +139,6 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
->   	if (endpoint->bus.mipi_csi2.flags == 0)
->   		v4l2_of_parse_parallel_bus(node, endpoint);
->
-> -	of_node_put(port_node);
-> -
->   	return 0;
->   }
->   EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index 8ecca7a..ba3cfca 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -1985,6 +1985,37 @@ struct device_node *of_find_next_cache_node(const struct device_node *np)
->   }
->
->   /**
-> + * of_graph_parse_endpoint() - parse common endpoint node properties
-> + * @node: pointer to endpoint device_node
-> + * @endpoint: pointer to the OF endpoint data structure
-> + *
-> + * All properties are optional. If none are found, we don't set any flags.
-> + * This means the port has a static configuration and no properties have
-> + * to be specified explicitly.
+>      <table frame="none" pgwide="1" id="v4l2-buffer">
+>        <title>struct <structname>v4l2_buffer</structname></title>
+>        <tgroup cols="4">
+> @@ -1120,6 +1114,28 @@ in which case caches have not been used.</entry>
+>  	    <entry>The CAPTURE buffer timestamp has been taken from the
+>  	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
+> +	    <entry>0x00070000</entry>
+> +	    <entry>Mask for timestamp sources below. The timestamp source
+> +	    defines the point of time the timestamp is taken in relation to
+> +	    the frame. Logical and operation between the
+> +	    <structfield>flags</structfield> field and
+> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
+> +	    value of the timestamp source.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
+> +	    <entry>0x00000000</entry>
+> +	    <entry>"End of frame." The buffer timestamp has been taken when
+> +	    the last pixel of the frame has been received.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
+> +	    <entry>0x00010000</entry>
+> +	    <entry>"Start of exposure." The buffer timestamp has been taken
+> +	    when the exposure of the frame has begun.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+> index cd962be..a9292d2 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -149,7 +149,8 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+>  	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+>  	queue->queue.ops = &uvc_queue_qops;
+>  	queue->queue.mem_ops = &vb2_vmalloc_memops;
+> -	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+> +		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
+>  	ret = vb2_queue_init(&queue->queue);
+>  	if (ret)
+>  		return ret;
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index bef53ce..b6b992d 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -312,6 +312,8 @@ struct v4l2_fh;
+>   * @buf_struct_size: size of the driver-specific buffer structure;
+>   *		"0" indicates the driver doesn't want to use a custom buffer
+>   *		structure type, so sizeof(struct vb2_buffer) will is used
+> + * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_* and
+> + *		V4L2_BUF_FLAGS_TSTAMP_SRC_*
+>   * @gfp_flags:	additional gfp flags used when allocating the buffers.
+>   *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
+>   *		to force the buffer allocation to a specific memory zone.
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index e9ee444..82e8661 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -695,6 +695,10 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
+>  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
+>  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
+> +/* Timestamp sources. */
+> +#define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
+> +#define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
+> +#define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+>  
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+> 
 
-I don't think these two sentences are needed, it's all described in the
-DT binding documentation. And struct of_endpoint doesn't contain any
-"flags" field.
-
-> + * The caller should hold a reference to @node.
-> + */
-> +int of_graph_parse_endpoint(const struct device_node *node,
-> +			    struct of_endpoint *endpoint)
-> +{
-> +	struct device_node *port_node = of_get_parent(node);
-> +
-> +	memset(endpoint, 0, sizeof(*endpoint));
-> +
-> +	endpoint->local_node = node;
-> +	/*
-> +	 * It doesn't matter whether the two calls below succeed.
-> +	 * If they don't then the default value 0 is used.
-> +	 */
-> +	of_property_read_u32(port_node, "reg",&endpoint->port);
-> +	of_property_read_u32(node, "reg",&endpoint->id);
-> +
-> +	of_node_put(port_node);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(of_graph_parse_endpoint);
-> +
-> +/**
->    * of_graph_get_next_endpoint() - get next endpoint node
->    * @parent: pointer to the parent device node
->    * @prev: previous endpoint node, or NULL to get first
-> diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-> index 3bbeb60..2b233db 100644
-> --- a/include/linux/of_graph.h
-> +++ b/include/linux/of_graph.h
-> @@ -14,7 +14,21 @@
->   #ifndef __LINUX_OF_GRAPH_H
->   #define __LINUX_OF_GRAPH_H
->
-> +/**
-> + * struct of_endpoint - the OF graph endpoint data structure
-> + * @port: identifier (value of reg property) of a port this endpoint belongs to
-> + * @id: identifier (value of reg property) of this endpoint
-> + * @local_node: pointer to device_node of this endpoint
-> + */
-> +struct of_endpoint {
-> +	unsigned int port;
-> +	unsigned int id;
-> +	const struct device_node *local_node;
-> +};
-> +
->   #ifdef CONFIG_OF
-> +int of_graph_parse_endpoint(const struct device_node *node,
-> +				struct of_endpoint *endpoint);
->   struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
->   					struct device_node *previous);
->   struct device_node *of_graph_get_remote_port_parent(
-> @@ -22,6 +36,12 @@ struct device_node *of_graph_get_remote_port_parent(
->   struct device_node *of_graph_get_remote_port(const struct device_node *node);
->   #else
->
-> +static inline int of_graph_parse_endpoint(const struct device_node *node,
-> +					struct of_endpoint *endpoint);
-> +{
-> +	return -ENOSYS;
-> +}
-> +
->   static inline struct device_node *of_graph_get_next_endpoint(
->   					const struct device_node *parent,
->   					struct device_node *previous)
-> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> index 3a49735..70fa7b7 100644
-> --- a/include/media/v4l2-of.h
-> +++ b/include/media/v4l2-of.h
-> @@ -51,17 +51,13 @@ struct v4l2_of_bus_parallel {
->
->   /**
->    * struct v4l2_of_endpoint - the endpoint data structure
-> - * @port: identifier (value of reg property) of a port this endpoint belongs to
-> - * @id: identifier (value of reg property) of this endpoint
-> - * @local_node: pointer to device_node of this endpoint
-> + * @base: struct of_endpoint containing port, id, and local of_node
->    * @bus_type: bus type
->    * @bus: bus configuration data structure
->    * @head: list head for this structure
->    */
->   struct v4l2_of_endpoint {
-> -	unsigned int port;
-> -	unsigned int id;
-> -	const struct device_node *local_node;
-> +	struct of_endpoint base;
->   	enum v4l2_mbus_type bus_type;
->   	union {
->   		struct v4l2_of_bus_parallel parallel;
-
-Otherwise looks good to me.
