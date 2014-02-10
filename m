@@ -1,74 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57297 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752691AbaB0Aak (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:30:40 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 03/16] e4000: fix PLL calc to allow higher frequencies
-Date: Thu, 27 Feb 2014 02:30:12 +0200
-Message-Id: <1393461025-11857-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1393461025-11857-1-git-send-email-crope@iki.fi>
-References: <1393461025-11857-1-git-send-email-crope@iki.fi>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:59891 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751988AbaBJPO0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 10:14:26 -0500
+Date: Mon, 10 Feb 2014 15:14:06 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+	devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+	Takashi Iwai <tiwai@suse.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel@lists.freedesktop.org,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/2] drivers/base: permit base components to omit
+	the bind/unbind ops
+Message-ID: <20140210151406.GX26684@n2100.arm.linux.org.uk>
+References: <cover.1391792986.git.moinejf@free.fr> <9b3c3c2c982f31b026fd1516a2b608026d55b1e9.1391792986.git.moinejf@free.fr> <20140210125307.GG20143@ulmo.nvidia.com> <20140210131233.GT26684@n2100.arm.linux.org.uk> <20140210153551.1309f017@armhf>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140210153551.1309f017@armhf>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was 32-bit overflow on VCO frequency calculation which blocks
-tuning to 1073 - 1104 MHz. Use 64 bit number in order to avoid VCO
-frequency overflow.
+On Mon, Feb 10, 2014 at 03:35:51PM +0100, Jean-Francois Moine wrote:
+> On Mon, 10 Feb 2014 13:12:33 +0000
+> Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+> 
+> > I've NAK'd these patches already - I believe they're based on a
+> > mis-understanding of how this should be used.  I believe Jean-Francois
+> > has only looked at the core, rather than looking at the imx-drm example
+> > it was posted with in an attempt to understand it.
+> > 
+> > Omitting the component bind operations is absurd because it makes the
+> > component code completely pointless, since there is then no way to
+> > control the sequencing of driver initialisation - something which is
+> > one of the primary reasons for this code existing in the first place.
+> 
+> I perfectly looked at your example and I use it now in my system.
+> 
+> You did not see what could be done with your component code. For
+> example, since november, I have not yet the clock probe_defer in the
+> mainline (http://www.spinics.net/lists/arm-kernel/msg306072.html), so,
+> there are 3 solutions:
+> 
+> - hope the patch will be some day in the mainline and, today, reboot
+>   when the system does not start correctly,
+> 
+> - insert a delay in the tda998x and kirkwood probe sequences (delay
+>   long enough to be sure the si5351 is started, or loop),
+> 
+> - use your component work.
+> 
+> In the last case, it is easy:
+> 
+> - the si5351 driver calls component_add (with empty ops: it has no
+>   interest in the bind/unbind functions) when it is fully started (i.e.
+>   registered - that was the subject of my patch),
 
-After that fix device in question tunes to following range:
-60 - 1104 MHz
-1250 - 2207 MHz
+There is only one word for this:
+Ewwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/e4000.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+Definitely not.
 
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index c97daa0..e439ef6 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -221,11 +221,11 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	struct e4000_priv *priv = fe->tuner_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i, sigma_delta;
--	unsigned int f_vco;
-+	u64 f_vco;
- 	u8 buf[5], i_data[4], q_data[4];
- 
- 	dev_dbg(&priv->client->dev,
--			"%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
-+			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
- 			__func__, c->delivery_system, c->frequency,
- 			c->bandwidth_hz);
- 
-@@ -248,20 +248,16 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	/*
--	 * Note: Currently f_vco overflows when c->frequency is 1 073 741 824 Hz
--	 * or more.
--	 */
--	f_vco = c->frequency * e4000_pll_lut[i].mul;
-+	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
- 	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
--	buf[0] = f_vco / priv->clock;
-+	buf[0] = div_u64(f_vco, priv->clock);
- 	buf[1] = (sigma_delta >> 0) & 0xff;
- 	buf[2] = (sigma_delta >> 8) & 0xff;
- 	buf[3] = 0x00;
- 	buf[4] = e4000_pll_lut[i].div;
- 
- 	dev_dbg(&priv->client->dev,
--			"%s: f_vco=%u pll div=%d sigma_delta=%04x\n",
-+			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
- 			__func__, f_vco, buf[0], sigma_delta);
- 
- 	ret = e4000_wr_regs(priv, 0x09, buf, 5);
+The component stuff is there to sort out the subsystems which expect a
+"card" but in DT we supply a set of components.  It's not there to sort
+out dependencies between different subsystems.
+
+I've no idea why your patch to add the deferred probing hasn't been acked
+by Mike yet, but that needs to happen before I take it.  Or, split it up
+in two so I can take the clkdev part and Mike can take the CCF part.
+
 -- 
-1.8.5.3
-
+FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
+in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
+Estimate before purchase was "up to 13.2Mbit".
