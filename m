@@ -1,68 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47570 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752093AbaBKPWw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 10:22:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robherring2@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-Date: Tue, 11 Feb 2014 16:23:56 +0100
-Message-ID: <8648675.AIXYyYlgXy@avalon>
-In-Reply-To: <20140211145248.GI26684@n2100.arm.linux.org.uk>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com> <20140211145248.GI26684@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:34737 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752410AbaBJQRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 11:17:19 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 2/6] v4l: add RF tuner channel bandwidth control
+Date: Mon, 10 Feb 2014 18:17:02 +0200
+Message-Id: <1392049026-13398-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1392049026-13398-1-git-send-email-crope@iki.fi>
+References: <1392049026-13398-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
+Modern silicon RF tuners has one or more adjustable filters on
+signal path, in order to filter noise from desired radio channel.
 
-On Tuesday 11 February 2014 14:52:48 Russell King - ARM Linux wrote:
-> On Tue, Feb 11, 2014 at 07:56:33AM -0600, Rob Herring wrote:
-> > On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel wrote:
-> > > This allows to reuse the same parser code from outside the V4L2
-> > > framework, most importantly from display drivers. There have been
-> > > patches that duplicate the code (and I am going to send one of my own),
-> > > such as
-> > > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
-> > > and others that parse the same binding in a different way:
-> > > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
-> > > 
-> > > I think that all common video interface parsing helpers should be moved
-> > > to a single place, outside of the specific subsystems, so that it can
-> > > be reused by all drivers.
-> > 
-> > Perhaps that should be done rather than moving to drivers/of now and
-> > then again to somewhere else.
-> 
-> Do you have a better suggestion where it should move to?
-> 
-> drivers/gpu/drm - no, because v4l2 wants to use it
-> drivers/media/video - no, because DRM drivers want to use it
-> drivers/video - no, because v4l2 and drm drivers want to use it
+Add channel bandwidth control to tell the driver which is radio
+channel width we want receive. Filters could be then adjusted by
+the driver or hardware, using RF frequency and channel bandwidth
+as a base of filter calculations.
 
-Just pointing out a missing location (which might be rejected due to similar 
-concerns), there's also drivers/media, which isn't V4L-specific.
+On automatic mode (normal mode), bandwidth is calculated from sampling
+rate or tuning info got from userspace. That new control gives
+possibility to set manual mode and let user have more control for
+filters.
 
-> Maybe drivers/of-graph/ ?  Or maybe it's just as good a place to move it
-> into drivers/of ?
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
+ include/uapi/linux/v4l2-controls.h   | 2 ++
+ 2 files changed, 6 insertions(+)
 
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d201f61..e44722b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
+ 	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
+ 	case V4L2_CID_IF_GAIN:			return "IF Gain";
++	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
++	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
+ 	default:
+ 		return NULL;
+ 	}
+@@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_LNA_GAIN_AUTO:
+ 	case V4L2_CID_MIXER_GAIN_AUTO:
+ 	case V4L2_CID_IF_GAIN_AUTO:
++	case V4L2_CID_BANDWIDTH_AUTO:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_LNA_GAIN:
+ 	case V4L2_CID_MIXER_GAIN:
+ 	case V4L2_CID_IF_GAIN:
++	case V4L2_CID_BANDWIDTH:
+ 		*flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 076fa34..3cf68a6 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -905,5 +905,7 @@ enum v4l2_deemphasis {
+ #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
+ #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
+ #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
++#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
++#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
+ 
+ #endif
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.3
 
