@@ -1,191 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4838 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbaBGOLX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 09:11:23 -0500
-Message-ID: <52F4E95A.7000301@xs4all.nl>
-Date: Fri, 07 Feb 2014 15:10:34 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from bear.ext.ti.com ([192.94.94.41]:41798 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751371AbaBJJwP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 04:52:15 -0500
+Message-ID: <52F8A146.4080407@ti.com>
+Date: Mon, 10 Feb 2014 11:52:06 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH v3] v4l2-subdev: Allow 32-bit compat ioctls
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH] omap_vout: Add DVI display type support
+References: <1391869935-10495-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1391869935-10495-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="GT1bfAwAtiPiABvBbcPp3k1F09UrMhSS3"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for 32-bit ioctls with v4l-subdev device nodes.
+--GT1bfAwAtiPiABvBbcPp3k1F09UrMhSS3
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Rather than keep adding new ioctls to the list in v4l2-compat-ioctl32.c, just check
-if the ioctl is a non-private V4L2 ioctl and if so, call the conversion code.
+On 08/02/14 16:32, Laurent Pinchart wrote:
+> Since the introduction of the new OMAP DSS DVI connector driver in
+> commit 348077b154357eec595068a3336ef6beb870e6f3 ("OMAPDSS: Add new DVI
+> Connector driver"), DVI outputs report a new display type of
+> OMAP_DISPLAY_TYPE_DVI instead of OMAP_DISPLAY_TYPE_DPI. Handle the new
+> type in the IRQ handler.
+>=20
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/omap/omap_vout.c | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/pl=
+atform/omap/omap_vout.c
+> index dfd0a21..9a726ea 100644
+> --- a/drivers/media/platform/omap/omap_vout.c
+> +++ b/drivers/media/platform/omap/omap_vout.c
+> @@ -601,6 +601,7 @@ static void omap_vout_isr(void *arg, unsigned int i=
+rqstatus)
+>  	switch (cur_display->type) {
+>  	case OMAP_DISPLAY_TYPE_DSI:
+>  	case OMAP_DISPLAY_TYPE_DPI:
+> +	case OMAP_DISPLAY_TYPE_DVI:
+>  		if (mgr_id =3D=3D OMAP_DSS_CHANNEL_LCD)
+>  			irq =3D DISPC_IRQ_VSYNC;
+>  		else if (mgr_id =3D=3D OMAP_DSS_CHANNEL_LCD2)
+>=20
 
-We keep forgetting to add new ioctls, so this is a more robust solution.
+Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-In addition extend the subdev API with support for a compat32 function to
-convert custom v4l-subdev ioctls.
+ Tomi
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 8f7a6a4..1b18616 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -1006,103 +1006,14 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	if (!file->f_op->unlocked_ioctl)
- 		return ret;
- 
--	switch (cmd) {
--	case VIDIOC_QUERYCAP:
--	case VIDIOC_RESERVED:
--	case VIDIOC_ENUM_FMT:
--	case VIDIOC_G_FMT32:
--	case VIDIOC_S_FMT32:
--	case VIDIOC_REQBUFS:
--	case VIDIOC_QUERYBUF32:
--	case VIDIOC_G_FBUF32:
--	case VIDIOC_S_FBUF32:
--	case VIDIOC_OVERLAY32:
--	case VIDIOC_QBUF32:
--	case VIDIOC_EXPBUF:
--	case VIDIOC_DQBUF32:
--	case VIDIOC_STREAMON32:
--	case VIDIOC_STREAMOFF32:
--	case VIDIOC_G_PARM:
--	case VIDIOC_S_PARM:
--	case VIDIOC_G_STD:
--	case VIDIOC_S_STD:
--	case VIDIOC_ENUMSTD32:
--	case VIDIOC_ENUMINPUT32:
--	case VIDIOC_G_CTRL:
--	case VIDIOC_S_CTRL:
--	case VIDIOC_G_TUNER:
--	case VIDIOC_S_TUNER:
--	case VIDIOC_G_AUDIO:
--	case VIDIOC_S_AUDIO:
--	case VIDIOC_QUERYCTRL:
--	case VIDIOC_QUERYMENU:
--	case VIDIOC_G_INPUT32:
--	case VIDIOC_S_INPUT32:
--	case VIDIOC_G_OUTPUT32:
--	case VIDIOC_S_OUTPUT32:
--	case VIDIOC_ENUMOUTPUT:
--	case VIDIOC_G_AUDOUT:
--	case VIDIOC_S_AUDOUT:
--	case VIDIOC_G_MODULATOR:
--	case VIDIOC_S_MODULATOR:
--	case VIDIOC_S_FREQUENCY:
--	case VIDIOC_G_FREQUENCY:
--	case VIDIOC_CROPCAP:
--	case VIDIOC_G_CROP:
--	case VIDIOC_S_CROP:
--	case VIDIOC_G_SELECTION:
--	case VIDIOC_S_SELECTION:
--	case VIDIOC_G_JPEGCOMP:
--	case VIDIOC_S_JPEGCOMP:
--	case VIDIOC_QUERYSTD:
--	case VIDIOC_TRY_FMT32:
--	case VIDIOC_ENUMAUDIO:
--	case VIDIOC_ENUMAUDOUT:
--	case VIDIOC_G_PRIORITY:
--	case VIDIOC_S_PRIORITY:
--	case VIDIOC_G_SLICED_VBI_CAP:
--	case VIDIOC_LOG_STATUS:
--	case VIDIOC_G_EXT_CTRLS32:
--	case VIDIOC_S_EXT_CTRLS32:
--	case VIDIOC_TRY_EXT_CTRLS32:
--	case VIDIOC_ENUM_FRAMESIZES:
--	case VIDIOC_ENUM_FRAMEINTERVALS:
--	case VIDIOC_G_ENC_INDEX:
--	case VIDIOC_ENCODER_CMD:
--	case VIDIOC_TRY_ENCODER_CMD:
--	case VIDIOC_DECODER_CMD:
--	case VIDIOC_TRY_DECODER_CMD:
--	case VIDIOC_DBG_S_REGISTER:
--	case VIDIOC_DBG_G_REGISTER:
--	case VIDIOC_S_HW_FREQ_SEEK:
--	case VIDIOC_S_DV_TIMINGS:
--	case VIDIOC_G_DV_TIMINGS:
--	case VIDIOC_DQEVENT:
--	case VIDIOC_DQEVENT32:
--	case VIDIOC_SUBSCRIBE_EVENT:
--	case VIDIOC_UNSUBSCRIBE_EVENT:
--	case VIDIOC_CREATE_BUFS32:
--	case VIDIOC_PREPARE_BUF32:
--	case VIDIOC_ENUM_DV_TIMINGS:
--	case VIDIOC_QUERY_DV_TIMINGS:
--	case VIDIOC_DV_TIMINGS_CAP:
--	case VIDIOC_ENUM_FREQ_BANDS:
--	case VIDIOC_SUBDEV_G_EDID32:
--	case VIDIOC_SUBDEV_S_EDID32:
-+	if (_IOC_TYPE(cmd) == 'V' && _IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
- 		ret = do_video_ioctl(file, cmd, arg);
--		break;
-+	else if (vdev->fops->compat_ioctl32)
-+		ret = vdev->fops->compat_ioctl32(file, cmd, arg);
- 
--	default:
--		if (vdev->fops->compat_ioctl32)
--			ret = vdev->fops->compat_ioctl32(file, cmd, arg);
--
--		if (ret == -ENOIOCTLCMD)
--			printk(KERN_WARNING "compat_ioctl32: "
--				"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
--				_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd),
--				cmd);
--		break;
--	}
-+	if (ret == -ENOIOCTLCMD)
-+		pr_warn("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
-+			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(v4l2_compat_ioctl32);
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 996c248..60d2550 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -368,6 +368,17 @@ static long subdev_ioctl(struct file *file, unsigned int cmd,
- 	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
- }
- 
-+#ifdef CONFIG_COMPAT
-+static long subdev_compat_ioctl32(struct file *file, unsigned int cmd,
-+	unsigned long arg)
-+{
-+	struct video_device *vdev = video_devdata(file);
-+	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+
-+	return v4l2_subdev_call(sd, core, compat_ioctl32, cmd, arg);
-+}
-+#endif
-+
- static unsigned int subdev_poll(struct file *file, poll_table *wait)
- {
- 	struct video_device *vdev = video_devdata(file);
-@@ -389,6 +400,9 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
- 	.owner = THIS_MODULE,
- 	.open = subdev_open,
- 	.unlocked_ioctl = subdev_ioctl,
-+#ifdef CONFIG_COMPAT
-+	.compat_ioctl32 = subdev_compat_ioctl32,
-+#endif
- 	.release = subdev_close,
- 	.poll = subdev_poll,
- };
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index d67210a..84b7cce 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -162,6 +162,9 @@ struct v4l2_subdev_core_ops {
- 	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
- 	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
- 	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
-+#ifdef CONFIG_COMPAT
-+	long (*compat_ioctl32)(struct v4l2_subdev *sd, unsigned int cmd, unsigned long arg);
-+#endif
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
- 	int (*s_register)(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg);
+
+--GT1bfAwAtiPiABvBbcPp3k1F09UrMhSS3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJS+KFJAAoJEPo9qoy8lh71P24P/i7xJwG1Y6kA0GMXYLbl7rq7
+VxG6iI+nAdQ7OWsLt8U0eCyfPwCWRrCDvSeteECfJVl/5lNTLdVgNEwHoFL0PAd4
+vvoX+PPYy0h7258uPGv6mz/z9+V0+2UKVYsXjLdYPrYLf1bXdwSuYx47HId0as95
+7pm+VS2NsE3b4yUqZEFWW3A9lbmB20fxbuO2pmsmmm1ikKtqvPPclfPmp8roMsSp
+vND3AXL0QsfYBR+ZNAjeRIZS7cJe35avs+7t5+tnlgJJy1WF+T6rx+2wzC6RHQa2
+UvsZxG32P8gpR0q9NY5Op+SOchLRdSj0ieTtKxC8d4t5HNI1MCMCiU+9x/dYEi8R
+1sgGMEtaik4SfHyHu2VndJWiH3zyr+Pt/4akWcRNnmeoI3LDrDh7Ki76dbtbhL+H
+NM8J56l4PPf7E3vELAtYIrjBKINuwofkvDn3YBdjEbxX9BNDbGlIKDJ3Tu2fDZqf
+dWb0BW0JZWO9mN1bhyTM4R/oZFIyjVDkjz7+6smj7YOVGzc2WG7iN76pggmoJCra
+JC4W5YjAZbS6N+r/GudoqKj96+5rnbOM5GoEk0Z1MFcMMl+tAzmTd0WXrOogZX7d
+oiJe1dbaYx90nkKNTQZOkXj88ffnDLyNvZyxLsvONI5E5mo7C4m25DECP6Pz1cKs
+18pmD37PaKLj28eHdcyz
+=IMER
+-----END PGP SIGNATURE-----
+
+--GT1bfAwAtiPiABvBbcPp3k1F09UrMhSS3--
