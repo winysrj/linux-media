@@ -1,49 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:39884 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753177AbaBOMmd (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1205 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972AbaBJJLb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Feb 2014 07:42:33 -0500
-From: Levente Kurusa <levex@linux.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mon, 10 Feb 2014 04:11:31 -0500
+Message-ID: <52F89799.2060606@xs4all.nl>
+Date: Mon, 10 Feb 2014 10:10:49 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	OSUOSL Drivers <devel@driverdev.osuosl.org>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Josh Triplett <josh@joshtriplett.org>,
-	Lisa Nguyen <lisa@xenapiadmin.com>,
-	Archana kumari <archanakumari959@gmail.com>,
-	David Binderman <dcb314@hotmail.com>,
-	Levente Kurusa <levex@linux.com>
-Subject: [PATCH] staging: davinci_vpfe: fix error check
-Date: Sat, 15 Feb 2014 11:17:11 +0100
-Message-Id: <1392459431-28203-1-git-send-email-levex@linux.com>
+Subject: Re: [PATCH 3/5] v4l2-ctl: add tuner support for SDR tuners
+References: <1391925954-25975-1-git-send-email-crope@iki.fi> <1391925954-25975-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1391925954-25975-4-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The check would check the pointer, which is never less than 0.
-According to the error message, the correct check would be
-to check the return value of ipipe_mode. Check that instead.
+On 02/09/2014 07:05 AM, Antti Palosaari wrote:
+> Add initial SDR support for tuner related operations.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 
-Reported-by: David Binderman <dcb314@hotmail.com>
-Signed-off-by: Levente Kurusa <levex@linux.com>
----
- drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-index 2d36b60..b2daf5e 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-@@ -267,7 +267,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
- 	}
- 
- 	ipipe_mode = get_ipipe_mode(ipipe);
--	if (ipipe < 0) {
-+	if (ipipe_mode < 0) {
- 		pr_err("Failed to get ipipe mode");
- 		return -EINVAL;
- 	}
--- 
-1.8.3.1
+Thanks!
+
+	Hans
+
+> ---
+>  utils/v4l2-ctl/v4l2-ctl-tuner.cpp | 53 +++++++++++++++++++++++++++++++--------
+>  1 file changed, 43 insertions(+), 10 deletions(-)
+> 
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-tuner.cpp b/utils/v4l2-ctl/v4l2-ctl-tuner.cpp
+> index 16e1652..0fc2371 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl-tuner.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl-tuner.cpp
+> @@ -116,6 +116,8 @@ static std::string tcap2s(unsigned cap)
+>  
+>  	if (cap & V4L2_TUNER_CAP_LOW)
+>  		s += "62.5 Hz ";
+> +	else if (cap & V4L2_TUNER_CAP_1HZ)
+> +		s += "1 Hz ";
+>  	else
+>  		s += "62.5 kHz ";
+>  	if (cap & V4L2_TUNER_CAP_NORM)
+> @@ -264,12 +266,24 @@ void tuner_set(int fd)
+>  	if (capabilities & V4L2_CAP_MODULATOR) {
+>  		type = V4L2_TUNER_RADIO;
+>  		modulator.index = tuner_index;
+> -		if (doioctl(fd, VIDIOC_G_MODULATOR, &modulator) == 0)
+> -			fac = (modulator.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
+> +		if (doioctl(fd, VIDIOC_G_MODULATOR, &modulator) == 0) {
+> +			if (modulator.capability & V4L2_TUNER_CAP_LOW)
+> +				fac = 16000;
+> +			else if (modulator.capability & V4L2_TUNER_CAP_1HZ)
+> +				fac = 1000000;
+> +			else
+> +				fac = 16;
+> +		}
+>  	} else if (capabilities & V4L2_CAP_TUNER) {
+>  		tuner.index = tuner_index;
+>  		if (doioctl(fd, VIDIOC_G_TUNER, &tuner) == 0) {
+> -			fac = (tuner.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
+> +			if (tuner.capability & V4L2_TUNER_CAP_LOW)
+> +				fac = 16000;
+> +			else if (tuner.capability & V4L2_TUNER_CAP_1HZ)
+> +				fac = 1000000;
+> +			else
+> +				fac = 16;
+> +
+>  			type = tuner.type;
+>  		}
+>  	}
+> @@ -310,6 +324,9 @@ void tuner_set(int fd)
+>  			if (band.capability & V4L2_TUNER_CAP_LOW)
+>  				printf("\tFrequency Range: %.3f MHz - %.3f MHz\n",
+>  				     band.rangelow / 16000.0, band.rangehigh / 16000.0);
+> +			else if (band.capability & V4L2_TUNER_CAP_1HZ)
+> +				printf("\tFrequency Range: %.6f MHz - %.6f MHz\n",
+> +				     band.rangelow / 1000000.0, band.rangehigh / 1000000.0);
+>  			else
+>  				printf("\tFrequency Range: %.3f MHz - %.3f MHz\n",
+>  				     band.rangelow / 16.0, band.rangehigh / 16.0);
+> @@ -345,13 +362,24 @@ void tuner_get(int fd)
+>  		if (capabilities & V4L2_CAP_MODULATOR) {
+>  			vf.type = V4L2_TUNER_RADIO;
+>  			modulator.index = tuner_index;
+> -			if (doioctl(fd, VIDIOC_G_MODULATOR, &modulator) == 0)
+> -				fac = (modulator.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
+> +			if (doioctl(fd, VIDIOC_G_MODULATOR, &modulator) == 0) {
+> +				if (modulator.capability & V4L2_TUNER_CAP_LOW)
+> +					fac = 16000;
+> +				else if (modulator.capability & V4L2_TUNER_CAP_1HZ)
+> +					fac = 1000000;
+> +				else
+> +					fac = 16;
+> +			}
+>  		} else {
+>  			vf.type = V4L2_TUNER_ANALOG_TV;
+>  			tuner.index = tuner_index;
+>  			if (doioctl(fd, VIDIOC_G_TUNER, &tuner) == 0) {
+> -				fac = (tuner.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
+> +				if (tuner.capability & V4L2_TUNER_CAP_LOW)
+> +					fac = 16000;
+> +				else if (tuner.capability & V4L2_TUNER_CAP_1HZ)
+> +					fac = 1000000;
+> +				else
+> +					fac = 16;
+>  				vf.type = tuner.type;
+>  			}
+>  		}
+> @@ -373,13 +401,18 @@ void tuner_get(int fd)
+>  			if (vt.capability & V4L2_TUNER_CAP_LOW)
+>  				printf("\tFrequency range      : %.3f MHz - %.3f MHz\n",
+>  				     vt.rangelow / 16000.0, vt.rangehigh / 16000.0);
+> +			else if (vt.capability & V4L2_TUNER_CAP_1HZ)
+> +				printf("\tFrequency range      : %.6f MHz - %.6f MHz\n",
+> +				     vt.rangelow / 1000000.0, vt.rangehigh / 1000000.0);
+>  			else
+>  				printf("\tFrequency range      : %.3f MHz - %.3f MHz\n",
+>  				     vt.rangelow / 16.0, vt.rangehigh / 16.0);
+> -			printf("\tSignal strength/AFC  : %d%%/%d\n", (int)((vt.signal / 655.35)+0.5), vt.afc);
+> -			printf("\tCurrent audio mode   : %s\n", audmode2s(vt.audmode));
+> -			printf("\tAvailable subchannels: %s\n",
+> -					rxsubchans2s(vt.rxsubchans).c_str());
+> +
+> +			if (vt.type != V4L2_TUNER_ADC && vt.type != V4L2_TUNER_RF) {
+> +				printf("\tSignal strength/AFC  : %d%%/%d\n", (int)((vt.signal / 655.35)+0.5), vt.afc);
+> +				printf("\tCurrent audio mode   : %s\n", audmode2s(vt.audmode));
+> +				printf("\tAvailable subchannels: %s\n", rxsubchans2s(vt.rxsubchans).c_str());
+> +			}
+>  		}
+>  	}
+>  
+> 
 
