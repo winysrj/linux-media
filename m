@@ -1,66 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4114 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752661AbaBJLJU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 06:09:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:50448 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752995AbaBJT3Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 14:29:16 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 3/5] vivi: fix sequence counting
-Date: Mon, 10 Feb 2014 12:08:45 +0100
-Message-Id: <1392030527-32661-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392030527-32661-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392030527-32661-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 4/5] MAINTAINERS: add msi001 driver
+Date: Mon, 10 Feb 2014 21:29:02 +0200
+Message-Id: <1392060543-3972-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1392060543-3972-1-git-send-email-crope@iki.fi>
+References: <1392060543-3972-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Mirics MSi001 silicon tuner driver. Currently in staging as SDR API
+is not ready.
 
-The sequence counting was not reset to 0 between each streaming run,
-and it was increased only every other frame. This is incorrect behavior:
-the confusion is with FIELD_ALTERNATE systems where each field is transmitted
-separately and only when both fields have been received is the frame
-sequence number increased.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/vivi.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ MAINTAINERS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index 2d4e73b..eb09fe6 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -254,7 +254,7 @@ struct vivi_dev {
- 	struct v4l2_fract          timeperframe;
- 	unsigned int               width, height;
- 	struct vb2_queue	   vb_vidq;
--	unsigned int		   field_count;
-+	unsigned int		   seq_count;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b2cf5cf..15ebabb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5757,6 +5757,16 @@ L:	platform-driver-x86@vger.kernel.org
+ S:	Supported
+ F:	drivers/platform/x86/msi-wmi.c
  
- 	u8			   bars[9][3];
- 	u8			   line[MAX_WIDTH * 8] __attribute__((__aligned__(4)));
-@@ -675,8 +675,7 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- 	dev->mv_count += 2;
- 
- 	buf->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
--	dev->field_count++;
--	buf->vb.v4l2_buf.sequence = dev->field_count >> 1;
-+	buf->vb.v4l2_buf.sequence = dev->seq_count++;
- 	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
- }
- 
-@@ -901,7 +900,9 @@ static void buffer_queue(struct vb2_buffer *vb)
- static int start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++MSI001 MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/staging/media/msi3101/msi001*
 +
- 	dprintk(dev, 1, "%s\n", __func__);
-+	dev->seq_count = 0;
- 	return vivi_start_generating(dev);
- }
- 
+ MT9M032 APTINA SENSOR DRIVER
+ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-media@vger.kernel.org
 -- 
-1.8.5.2
+1.8.5.3
 
