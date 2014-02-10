@@ -1,86 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2517 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753017AbaBYR22 (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3271 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752092AbaBJIsH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 12:28:28 -0500
-Message-ID: <530CD2A6.80906@xs4all.nl>
-Date: Tue, 25 Feb 2014 18:28:06 +0100
+	Mon, 10 Feb 2014 03:48:07 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	k.debski@samsung.com
-Subject: Re: [PATCH v5 7/7] v4l: Document timestamp buffer flag behaviour
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi> <5309DF58.9030004@xs4all.nl> <20140225170842.GF15635@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20140225170842.GF15635@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 26/34] v4l2-ctrls: fix comments
+Date: Mon, 10 Feb 2014 09:46:51 +0100
+Message-Id: <1392022019-5519-27-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/25/2014 06:08 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Sun, Feb 23, 2014 at 12:45:28PM +0100, Hans Verkuil wrote:
->> On 02/15/2014 09:53 PM, Sakari Ailus wrote:
->>> Timestamp buffer flags are constant at the moment. Document them so that 1)
->>> they're always valid and 2) not changed by the drivers. This leaves room to
->>> extend the functionality later on if needed.
->>>
->>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->>> ---
->>>  Documentation/DocBook/media/v4l/io.xml |   10 ++++++++++
->>>  1 file changed, 10 insertions(+)
->>>
->>> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
->>> index fbd0c6e..4f76565 100644
->>> --- a/Documentation/DocBook/media/v4l/io.xml
->>> +++ b/Documentation/DocBook/media/v4l/io.xml
->>> @@ -653,6 +653,16 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
->>>  In that case, struct <structname>v4l2_buffer</structname> contains an array of
->>>  plane structures.</para>
->>>  
->>> +    <para>Dequeued video buffers come with timestamps. These
->>> +    timestamps can be taken from different clocks and at different
->>> +    part of the frame, depending on the driver. Please see flags in
->>> +    the masks <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
->>> +    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
->>> +    linkend="buffer-flags">. These flags are guaranteed to be always
->>> +    valid and will not be changed by the driver autonomously. Changes
->>> +    in these flags may take place due as a side effect of
->>> +    &VIDIOC-S-INPUT; or &VIDIOC-S-OUTPUT; however.</para>
->>
->> There is one exception to this: if the timestamps are copied from the output
->> buffer to the capture buffer (TIMESTAMP_COPY), then it can change theoretically
->> for every buffer since it entirely depends on what is being sent to it. The
->> value comes from userspace and you simply don't have any control over that.
-> 
-> Yes; I agree.
-> 
-> And a good point as well --- the timestamp source flags currently come from
-> __fill_v4l2_buffer() which takes them from q->timestamp. This isn't right
-> for m2m devices.
-> 
-> I'll fix and resend (3rd patch most likely).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-You'll want to reference this patch I posted today:
+Various comments referred to videodev2.h, but the control definitions have
+been moved to v4l2-controls.h.
 
-[RFCv1 PATCH 16/20] vb2: fix timecode and flags handling for output buffers
+Also add the same reminder message to each class of controls.
 
-Also available in this git repo:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/vb2-part4
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 0b200dd..d99ce90 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -592,7 +592,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ {
+ 	switch (id) {
+ 	/* USER controls */
+-	/* Keep the order of the 'case's the same as in videodev2.h! */
++	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_USER_CLASS:		return "User Controls";
+ 	case V4L2_CID_BRIGHTNESS:		return "Brightness";
+ 	case V4L2_CID_CONTRAST:			return "Contrast";
+@@ -752,7 +752,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+ 
+ 	/* CAMERA controls */
+-	/* Keep the order of the 'case's the same as in videodev2.h! */
++	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+ 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
+ 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
+@@ -786,8 +786,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
+ 	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
+ 
+-	/* FM Radio Modulator control */
+-	/* Keep the order of the 'case's the same as in videodev2.h! */
++	/* FM Radio Modulator controls */
++	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
+ 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
+ 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
+@@ -810,6 +810,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
+ 
+ 	/* Flash controls */
++	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_FLASH_CLASS:		return "Flash Controls";
+ 	case V4L2_CID_FLASH_LED_MODE:		return "LED Mode";
+ 	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe Source";
+@@ -825,7 +826,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
+ 
+ 	/* JPEG encoder controls */
+-	/* Keep the order of the 'case's the same as in videodev2.h! */
++	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_JPEG_CLASS:		return "JPEG Compression Controls";
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:	return "Chroma Subsampling";
+ 	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
+@@ -833,18 +834,21 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
+ 
+ 	/* Image source controls */
++	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image Source Controls";
+ 	case V4L2_CID_VBLANK:			return "Vertical Blanking";
+ 	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
+ 	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
+ 
+ 	/* Image processing controls */
++	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
+ 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+ 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+ 	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+ 
+ 	/* DV controls */
++	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_DV_CLASS:			return "Digital Video Controls";
+ 	case V4L2_CID_DV_TX_HOTPLUG:		return "Hotplug Present";
+ 	case V4L2_CID_DV_TX_RXSENSE:		return "RxSense Present";
+-- 
+1.8.5.2
 
-The current implementation in vb2 is actually broken (which is one of the
-things fixed by this patch): if you prepare a buffer (VIDIOC_PREPARE_BUF)
-and only then call VIDIOC_QBUF with a timestamp, that timestamp will be
-lost since it will use the one set by PREPARE_BUF (either that or it is
-zeroed, I've forgotten which of the two it was).
-
-If you want to take that patch and add your own changes to it, then that's
-fine by me. It should be pretty much standalone.
-
-Regards,
-
-	Hans
