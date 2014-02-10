@@ -1,2420 +1,326 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:34386 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323AbaBMV3x (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42214 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752903AbaBJVxt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 16:29:53 -0500
-Received: by mail-we0-f170.google.com with SMTP id w62so8183778wes.1
-        for <linux-media@vger.kernel.org>; Thu, 13 Feb 2014 13:29:52 -0800 (PST)
-Message-ID: <1392326973.6200.15.camel@canaries32-MCP7A>
-Subject: [PATCH 2/4] it913x-fe: Dead code remove driver.
-From: Malcolm Priestley <tvboxspy@gmail.com>
+	Mon, 10 Feb 2014 16:53:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Date: Thu, 13 Feb 2014 21:29:33 +0000
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Subject: [PATCH 2/5] mt9t001: Add regulator support
+Date: Mon, 10 Feb 2014 22:54:41 +0100
+Message-Id: <1392069284-18024-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver has been replaced by af9033 and tuner_it913x
+The sensor needs two power supplies, VAA and VDD. Require a regulator
+for each of them.
 
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/Kconfig          |    8 -
- drivers/media/dvb-frontends/Makefile         |    1 -
- drivers/media/dvb-frontends/it913x-fe-priv.h | 1051 --------------------------
- drivers/media/dvb-frontends/it913x-fe.c      | 1045 -------------------------
- drivers/media/dvb-frontends/it913x-fe.h      |  237 ------
- 5 files changed, 2342 deletions(-)
- delete mode 100644 drivers/media/dvb-frontends/it913x-fe-priv.h
- delete mode 100644 drivers/media/dvb-frontends/it913x-fe.c
- delete mode 100644 drivers/media/dvb-frontends/it913x-fe.h
+ drivers/media/i2c/mt9t001.c | 206 +++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 156 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index dd12a1e..4433071 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -733,14 +733,6 @@ config DVB_IX2505V
- 	help
- 	  A DVB-S tuner module. Say Y when you want to support this frontend.
+diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
+index d41c70e..9a0bb06 100644
+--- a/drivers/media/i2c/mt9t001.c
++++ b/drivers/media/i2c/mt9t001.c
+@@ -13,8 +13,9 @@
+  */
  
--config DVB_IT913X_FE
--	tristate "it913x frontend and it9137 tuner"
--	depends on DVB_CORE && I2C
--	default m if !MEDIA_SUBDRV_AUTOSELECT
--	help
--	  A DVB-T tuner module.
--	  Say Y when you want to support this frontend.
--
- config DVB_M88RS2000
- 	tristate "M88RS2000 DVB-S demodulator and tuner"
- 	depends on DVB_CORE && I2C
-diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
-index 0c75a6a..b5815c8 100644
---- a/drivers/media/dvb-frontends/Makefile
-+++ b/drivers/media/dvb-frontends/Makefile
-@@ -98,7 +98,6 @@ obj-$(CONFIG_DVB_STV0367) += stv0367.o
- obj-$(CONFIG_DVB_CXD2820R) += cxd2820r.o
- obj-$(CONFIG_DVB_DRXK) += drxk.o
- obj-$(CONFIG_DVB_TDA18271C2DD) += tda18271c2dd.o
--obj-$(CONFIG_DVB_IT913X_FE) += it913x-fe.o
- obj-$(CONFIG_DVB_A8293) += a8293.o
- obj-$(CONFIG_DVB_TDA10071) += tda10071.o
- obj-$(CONFIG_DVB_RTL2830) += rtl2830.o
-diff --git a/drivers/media/dvb-frontends/it913x-fe-priv.h b/drivers/media/dvb-frontends/it913x-fe-priv.h
-deleted file mode 100644
-index eb6fd8a..0000000
---- a/drivers/media/dvb-frontends/it913x-fe-priv.h
-+++ /dev/null
-@@ -1,1051 +0,0 @@
--
--struct it913xset {	u32 pro;
--			u32 address;
--			u8 reg[15];
--			u8 count;
--};
--
--struct adctable {	u32 adcFrequency;
--			u32 bandwidth;
--			u32 coeff_1_2048;
--			u32 coeff_1_4096;
--			u32 coeff_1_8191;
--			u32 coeff_1_8192;
--			u32 coeff_1_8193;
--			u32 coeff_2_2k;
--			u32 coeff_2_4k;
--			u32 coeff_2_8k;
--			u16 bfsfcw_fftinx_ratio;
--			u16 fftinx_bfsfcw_ratio;
--};
--
--/* clock and coeff tables only table 3 is used with IT9137*/
--/* TODO other tables relate AF9035 may be removed */
--static struct adctable tab1[] = {
--	{	20156250, 6000000,
--		0x02b8ba6e, 0x015c5d37, 0x00ae340d, 0x00ae2e9b, 0x00ae292a,
--		0x015c5d37, 0x00ae2e9b, 0x0057174e, 0x02f1, 0x015c	},
--	{	20156250, 7000000,
--		0x032cd980, 0x01966cc0, 0x00cb3cba, 0x00cb3660, 0x00cb3007,
--		0x01966cc0, 0x00cb3660, 0x00659b30, 0x0285, 0x0196	},
--	{	20156250, 8000000,
--		0x03a0f893, 0x01d07c49, 0x00e84567, 0x00e83e25, 0x00e836e3,
--		0x01d07c49, 0x00e83e25, 0x00741f12, 0x0234, 0x01d0	},
--	{	20156250, 5000000,
--		0x02449b5c, 0x01224dae, 0x00912b60, 0x009126d7, 0x0091224e,
--		0x01224dae, 0x009126d7, 0x0048936b, 0x0387, 0x0122	}
--};
--
--static struct adctable tab2[] = {
--	{	20187500, 6000000,
--		0x02b7a654, 0x015bd32a, 0x00adef04, 0x00ade995, 0x00ade426,
--		0x015bd32a, 0x00ade995, 0x0056f4ca, 0x02f2, 0x015c	},
--	{	20187500, 7000000,
--		0x032b9761, 0x0195cbb1, 0x00caec30, 0x00cae5d8, 0x00cadf81,
--		0x0195cbb1, 0x00cae5d8, 0x006572ec, 0x0286, 0x0196	},
--	{	20187500, 8000000,
--		0x039f886f, 0x01cfc438, 0x00e7e95b, 0x00e7e21c, 0x00e7dadd,
--		0x01cfc438, 0x00e7e21c, 0x0073f10e, 0x0235, 0x01d0	},
--	{	20187500, 5000000,
--		0x0243b546, 0x0121daa3, 0x0090f1d9, 0x0090ed51, 0x0090e8ca,
--		0x0121daa3, 0x0090ed51, 0x004876a9, 0x0388, 0x0122	}
--
--};
--
--static struct adctable tab3[] = {
--	{	20250000, 6000000,
--		0x02b580ad, 0x015ac057, 0x00ad6597, 0x00ad602b, 0x00ad5ac1,
--		0x015ac057, 0x00ad602b, 0x0056b016, 0x02f4, 0x015b	},
--	{	20250000, 7000000,
--		0x03291620, 0x01948b10, 0x00ca4bda, 0x00ca4588, 0x00ca3f36,
--		0x01948b10, 0x00ca4588, 0x006522c4, 0x0288, 0x0195	},
--	{	20250000, 8000000,
--		0x039cab92, 0x01ce55c9, 0x00e7321e, 0x00e72ae4, 0x00e723ab,
--		0x01ce55c9, 0x00e72ae4, 0x00739572, 0x0237, 0x01ce	},
--	{	20250000, 5000000,
--		0x0241eb3b, 0x0120f59e, 0x00907f53, 0x00907acf, 0x0090764b,
--		0x0120f59e, 0x00907acf, 0x00483d67, 0x038b, 0x0121	}
--
--};
--
--static struct adctable tab4[] = {
--	{	20583333, 6000000,
--		0x02aa4598, 0x015522cc, 0x00aa96bb, 0x00aa9166, 0x00aa8c12,
--		0x015522cc, 0x00aa9166, 0x005548b3, 0x0300, 0x0155	},
--	{	20583333, 7000000,
--		0x031bfbdc, 0x018dfdee, 0x00c7052f, 0x00c6fef7, 0x00c6f8bf,
--		0x018dfdee, 0x00c6fef7, 0x00637f7b, 0x0293, 0x018e	},
--	{	20583333, 8000000,
--		0x038db21f, 0x01c6d910, 0x00e373a3, 0x00e36c88, 0x00e3656d,
--		0x01c6d910, 0x00e36c88, 0x0071b644, 0x0240, 0x01c7	},
--	{	20583333, 5000000,
--		0x02388f54, 0x011c47aa, 0x008e2846, 0x008e23d5, 0x008e1f64,
--		0x011c47aa, 0x008e23d5, 0x004711ea, 0x039a, 0x011c	}
--
--};
--
--static struct adctable tab5[] = {
--	{	20416667, 6000000,
--		0x02afd765, 0x0157ebb3, 0x00abfb39, 0x00abf5d9, 0x00abf07a,
--		0x0157ebb3, 0x00abf5d9, 0x0055faed, 0x02fa, 0x0158	},
--	{	20416667, 7000000,
--		0x03227b4b, 0x01913da6, 0x00c8a518, 0x00c89ed3, 0x00c8988e,
--		0x01913da6, 0x00c89ed3, 0x00644f69, 0x028d, 0x0191	},
--	{	20416667, 8000000,
--		0x03951f32, 0x01ca8f99, 0x00e54ef7, 0x00e547cc, 0x00e540a2,
--		0x01ca8f99, 0x00e547cc, 0x0072a3e6, 0x023c, 0x01cb	},
--	{	20416667, 5000000,
--		0x023d337f, 0x011e99c0, 0x008f515a, 0x008f4ce0, 0x008f4865,
--		0x011e99c0, 0x008f4ce0, 0x0047a670, 0x0393, 0x011f	}
--
--};
--
--static struct adctable tab6[] = {
--	{	20480000, 6000000,
--		0x02adb6db, 0x0156db6e, 0x00ab7312, 0x00ab6db7, 0x00ab685c,
--		0x0156db6e, 0x00ab6db7, 0x0055b6db, 0x02fd, 0x0157	},
--	{	20480000, 7000000,
--		0x03200000, 0x01900000, 0x00c80640, 0x00c80000, 0x00c7f9c0,
--		0x01900000, 0x00c80000, 0x00640000, 0x028f, 0x0190	},
--	{	20480000, 8000000,
--		0x03924925, 0x01c92492, 0x00e4996e, 0x00e49249, 0x00e48b25,
--		0x01c92492, 0x00e49249, 0x00724925, 0x023d, 0x01c9	},
--	{	20480000, 5000000,
--		0x023b6db7, 0x011db6db, 0x008edfe5, 0x008edb6e, 0x008ed6f7,
--		0x011db6db, 0x008edb6e, 0x00476db7, 0x0396, 0x011e	}
--};
--
--static struct adctable tab7[] = {
--	{	20500000, 6000000,
--		0x02ad0b99, 0x015685cc, 0x00ab4840, 0x00ab42e6, 0x00ab3d8c,
--		0x015685cc, 0x00ab42e6, 0x0055a173, 0x02fd, 0x0157	},
--	{	20500000, 7000000,
--		0x031f3832, 0x018f9c19, 0x00c7d44b, 0x00c7ce0c, 0x00c7c7ce,
--		0x018f9c19, 0x00c7ce0c, 0x0063e706, 0x0290, 0x0190	},
--	{	20500000, 8000000,
--		0x039164cb, 0x01c8b266, 0x00e46056, 0x00e45933, 0x00e45210,
--		0x01c8b266, 0x00e45933, 0x00722c99, 0x023e, 0x01c9	},
--	{	20500000, 5000000,
--		0x023adeff, 0x011d6f80, 0x008ebc36, 0x008eb7c0, 0x008eb34a,
--		0x011d6f80, 0x008eb7c0, 0x00475be0, 0x0396, 0x011d	}
--
--};
--
--static struct adctable tab8[] = {
--	{	20625000, 6000000,
--		0x02a8e4bd, 0x0154725e, 0x00aa3e81, 0x00aa392f, 0x00aa33de,
--		0x0154725e, 0x00aa392f, 0x00551c98, 0x0302, 0x0154	},
--	{	20625000, 7000000,
--		0x031a6032, 0x018d3019, 0x00c69e41, 0x00c6980c, 0x00c691d8,
--		0x018d3019, 0x00c6980c, 0x00634c06, 0x0294, 0x018d	},
--	{	20625000, 8000000,
--		0x038bdba6, 0x01c5edd3, 0x00e2fe02, 0x00e2f6ea, 0x00e2efd2,
--		0x01c5edd3, 0x00e2f6ea, 0x00717b75, 0x0242, 0x01c6	},
--	{	20625000, 5000000,
--		0x02376948, 0x011bb4a4, 0x008ddec1, 0x008dda52, 0x008dd5e3,
--		0x011bb4a4, 0x008dda52, 0x0046ed29, 0x039c, 0x011c	}
--
--};
--
--struct table {
--		u32 xtal;
--		struct adctable *table;
--};
--
--static struct table fe_clockTable[] = {
--		{12000000, tab3},	/* 12.00MHz */
--		{20480000, tab6},	/* 20.48MHz */
--		{36000000, tab3},	/* 36.00MHz */
--		{30000000, tab1},	/* 30.00MHz */
--		{26000000, tab4},	/* 26.00MHz */
--		{28000000, tab5},	/* 28.00MHz */
--		{32000000, tab7},	/* 32.00MHz */
--		{34000000, tab2},	/* 34.00MHz */
--		{24000000, tab1},	/* 24.00MHz */
--		{22000000, tab8},	/* 22.00MHz */
--};
--
--/* fe get */
--fe_code_rate_t fe_code[] = {
--	FEC_1_2,
--	FEC_2_3,
--	FEC_3_4,
--	FEC_5_6,
--	FEC_7_8,
--	FEC_NONE,
--};
--
--fe_guard_interval_t fe_gi[] = {
--	GUARD_INTERVAL_1_32,
--	GUARD_INTERVAL_1_16,
--	GUARD_INTERVAL_1_8,
--	GUARD_INTERVAL_1_4,
--};
--
--fe_hierarchy_t fe_hi[] = {
--	HIERARCHY_NONE,
--	HIERARCHY_1,
--	HIERARCHY_2,
--	HIERARCHY_4,
--};
--
--fe_transmit_mode_t fe_mode[] = {
--	TRANSMISSION_MODE_2K,
--	TRANSMISSION_MODE_8K,
--	TRANSMISSION_MODE_4K,
--};
--
--fe_modulation_t fe_con[] = {
--	QPSK,
--	QAM_16,
--	QAM_64,
--};
--
--enum {
--	PRIORITY_HIGH = 0,	/* High-priority stream */
--	PRIORITY_LOW,	/* Low-priority stream */
--};
--
--/* Standard demodulator functions */
--static struct it913xset set_solo_fe[] = {
--	{PRO_LINK, GPIOH5_EN, {0x01}, 0x01},
--	{PRO_LINK, GPIOH5_ON, {0x01}, 0x01},
--	{PRO_LINK, GPIOH5_O, {0x00}, 0x01},
--	{PRO_LINK, GPIOH5_O, {0x01}, 0x01},
--	{PRO_LINK, DVBT_INTEN, {0x04}, 0x01},
--	{PRO_LINK, DVBT_ENABLE, {0x05}, 0x01},
--	{PRO_DMOD, MP2IF_MPEG_PAR_MODE, {0x00}, 0x01},
--	{PRO_LINK, HOSTB_MPEG_SER_MODE, {0x00}, 0x01},
--	{PRO_LINK, HOSTB_MPEG_PAR_MODE, {0x00}, 0x01},
--	{PRO_DMOD, DCA_UPPER_CHIP, {0x00}, 0x01},
--	{PRO_LINK, HOSTB_DCA_UPPER, {0x00}, 0x01},
--	{PRO_DMOD, DCA_LOWER_CHIP, {0x00}, 0x01},
--	{PRO_LINK, HOSTB_DCA_LOWER, {0x00}, 0x01},
--	{PRO_DMOD, DCA_PLATCH, {0x00}, 0x01},
--	{PRO_DMOD, DCA_FPGA_LATCH, {0x00}, 0x01},
--	{PRO_DMOD, DCA_STAND_ALONE, {0x01}, 0x01},
--	{PRO_DMOD, DCA_ENABLE, {0x00}, 0x01},
--	{PRO_DMOD, MP2IF_MPEG_PAR_MODE, {0x00}, 0x01},
--	{PRO_DMOD, BFS_FCW, {0x00, 0x00, 0x00}, 0x03},
--	{0xff, 0x0000, {0x00}, 0x00}, /* Terminating Entry */
--};
--
--
--static struct it913xset init_1[] = {
--	{PRO_LINK, LOCK3_OUT, {0x01}, 0x01},
--	{PRO_LINK, PADMISCDRSR, {0x01}, 0x01},
--	{PRO_LINK, PADMISCDR2, {0x00}, 0x01},
--	{PRO_DMOD, 0xec57, {0x00, 0x00}, 0x02},
--	{PRO_LINK, PADMISCDR4, {0x00}, 0x01}, /* Power up */
--	{PRO_LINK, PADMISCDR8, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
--};
--
--
--/* Version 1 types */
--static struct it913xset it9135_v1[] = {
--	{PRO_DMOD, 0x0051, {0x01}, 0x01},
--	{PRO_DMOD, 0x0070, {0x0a}, 0x01},
--	{PRO_DMOD, 0x007e, {0x04}, 0x01},
--	{PRO_DMOD, 0x0081, {0x0a}, 0x01},
--	{PRO_DMOD, 0x008a, {0x01}, 0x01},
--	{PRO_DMOD, 0x008e, {0x01}, 0x01},
--	{PRO_DMOD, 0x0092, {0x06}, 0x01},
--	{PRO_DMOD, 0x0099, {0x01}, 0x01},
--	{PRO_DMOD, 0x009f, {0xe1}, 0x01},
--	{PRO_DMOD, 0x00a0, {0xcf}, 0x01},
--	{PRO_DMOD, 0x00a3, {0x01}, 0x01},
--	{PRO_DMOD, 0x00a5, {0x01}, 0x01},
--	{PRO_DMOD, 0x00a6, {0x01}, 0x01},
--	{PRO_DMOD, 0x00a9, {0x00}, 0x01},
--	{PRO_DMOD, 0x00aa, {0x01}, 0x01},
--	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
--	{PRO_DMOD, 0x00c2, {0x05}, 0x01},
--	{PRO_DMOD, 0x00c6, {0x19}, 0x01},
--	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf016, {0x10}, 0x01},
--	{PRO_DMOD, 0xf017, {0x04}, 0x01},
--	{PRO_DMOD, 0xf018, {0x05}, 0x01},
--	{PRO_DMOD, 0xf019, {0x04}, 0x01},
--	{PRO_DMOD, 0xf01a, {0x05}, 0x01},
--	{PRO_DMOD, 0xf021, {0x03}, 0x01},
--	{PRO_DMOD, 0xf022, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf023, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf02b, {0x00}, 0x01},
--	{PRO_DMOD, 0xf02c, {0x01}, 0x01},
--	{PRO_DMOD, 0xf064, {0x03}, 0x01},
--	{PRO_DMOD, 0xf065, {0xf9}, 0x01},
--	{PRO_DMOD, 0xf066, {0x03}, 0x01},
--	{PRO_DMOD, 0xf067, {0x01}, 0x01},
--	{PRO_DMOD, 0xf06f, {0xe0}, 0x01},
--	{PRO_DMOD, 0xf070, {0x03}, 0x01},
--	{PRO_DMOD, 0xf072, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf073, {0x03}, 0x01},
--	{PRO_DMOD, 0xf078, {0x00}, 0x01},
--	{PRO_DMOD, 0xf087, {0x00}, 0x01},
--	{PRO_DMOD, 0xf09b, {0x3f}, 0x01},
--	{PRO_DMOD, 0xf09c, {0x00}, 0x01},
--	{PRO_DMOD, 0xf09d, {0x20}, 0x01},
--	{PRO_DMOD, 0xf09e, {0x00}, 0x01},
--	{PRO_DMOD, 0xf09f, {0x0c}, 0x01},
--	{PRO_DMOD, 0xf0a0, {0x00}, 0x01},
--	{PRO_DMOD, 0xf130, {0x04}, 0x01},
--	{PRO_DMOD, 0xf132, {0x04}, 0x01},
--	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
--	{PRO_DMOD, 0xf146, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
--	{PRO_DMOD, 0xf14c, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14d, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
--	{PRO_DMOD, 0xf15a, {0x00}, 0x01},
--	{PRO_DMOD, 0xf15b, {0x08}, 0x01},
--	{PRO_DMOD, 0xf15d, {0x03}, 0x01},
--	{PRO_DMOD, 0xf15e, {0x05}, 0x01},
--	{PRO_DMOD, 0xf163, {0x05}, 0x01},
--	{PRO_DMOD, 0xf166, {0x01}, 0x01},
--	{PRO_DMOD, 0xf167, {0x40}, 0x01},
--	{PRO_DMOD, 0xf168, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf17a, {0x00}, 0x01},
--	{PRO_DMOD, 0xf17b, {0x00}, 0x01},
--	{PRO_DMOD, 0xf183, {0x01}, 0x01},
--	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
--	{PRO_DMOD, 0xf1bc, {0x36}, 0x01},
--	{PRO_DMOD, 0xf1bd, {0x00}, 0x01},
--	{PRO_DMOD, 0xf1cb, {0xa0}, 0x01},
--	{PRO_DMOD, 0xf1cc, {0x01}, 0x01},
--	{PRO_DMOD, 0xf204, {0x10}, 0x01},
--	{PRO_DMOD, 0xf214, {0x00}, 0x01},
--	{PRO_DMOD, 0xf40e, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf40f, {0x40}, 0x01},
--	{PRO_DMOD, 0xf410, {0x08}, 0x01},
--	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf561, {0x15}, 0x01},
--	{PRO_DMOD, 0xf562, {0x20}, 0x01},
--	{PRO_DMOD, 0xf5df, {0xfb}, 0x01},
--	{PRO_DMOD, 0xf5e0, {0x00}, 0x01},
--	{PRO_DMOD, 0xf5e3, {0x09}, 0x01},
--	{PRO_DMOD, 0xf5e4, {0x01}, 0x01},
--	{PRO_DMOD, 0xf5e5, {0x01}, 0x01},
--	{PRO_DMOD, 0xf5f8, {0x01}, 0x01},
--	{PRO_DMOD, 0xf5fd, {0x01}, 0x01},
--	{PRO_DMOD, 0xf600, {0x05}, 0x01},
--	{PRO_DMOD, 0xf601, {0x08}, 0x01},
--	{PRO_DMOD, 0xf602, {0x0b}, 0x01},
--	{PRO_DMOD, 0xf603, {0x0e}, 0x01},
--	{PRO_DMOD, 0xf604, {0x11}, 0x01},
--	{PRO_DMOD, 0xf605, {0x14}, 0x01},
--	{PRO_DMOD, 0xf606, {0x17}, 0x01},
--	{PRO_DMOD, 0xf607, {0x1f}, 0x01},
--	{PRO_DMOD, 0xf60e, {0x00}, 0x01},
--	{PRO_DMOD, 0xf60f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf610, {0x32}, 0x01},
--	{PRO_DMOD, 0xf611, {0x10}, 0x01},
--	{PRO_DMOD, 0xf707, {0xfc}, 0x01},
--	{PRO_DMOD, 0xf708, {0x00}, 0x01},
--	{PRO_DMOD, 0xf709, {0x37}, 0x01},
--	{PRO_DMOD, 0xf70a, {0x00}, 0x01},
--	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
--	{PRO_DMOD, 0xf80f, {0x40}, 0x01},
--	{PRO_DMOD, 0xf810, {0x54}, 0x01},
--	{PRO_DMOD, 0xf811, {0x5a}, 0x01},
--	{PRO_DMOD, 0xf905, {0x01}, 0x01},
--	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
--	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
--};
--
--static struct it913xset it9135_38[] = {
--	{PRO_DMOD, 0x0043, {0x00}, 0x01},
--	{PRO_DMOD, 0x0046, {0x38}, 0x01},
--	{PRO_DMOD, 0x0051, {0x01}, 0x01},
--	{PRO_DMOD, 0x005f, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0x0068, {0x0a}, 0x01},
--	{PRO_DMOD, 0x0070, {0x0a, 0x05, 0x02}, 0x03},
--	{PRO_DMOD, 0x0075, {0x8c, 0x8c, 0x8c, 0xc8, 0x01}, 0x05},
--	{PRO_DMOD, 0x007e, {0x04, 0x00}, 0x02},
--	{PRO_DMOD, 0x0081, {	0x0a, 0x12, 0x02, 0x0a, 0x03, 0xc8, 0xb8,
--				0xd0, 0xc3, 0x01}, 0x0a},
--	{PRO_DMOD, 0x008e, {0x01}, 0x01},
--	{PRO_DMOD, 0x0092, {0x06, 0x00, 0x00, 0x00, 0x00}, 0x05},
--	{PRO_DMOD, 0x0099, {0x01}, 0x01},
--	{PRO_DMOD, 0x009b, {0x3c, 0x28}, 0x02},
--	{PRO_DMOD, 0x009f, {0xe1, 0xcf}, 0x02},
--	{PRO_DMOD, 0x00a3, {0x01, 0x5a, 0x01, 0x01}, 0x04},
--	{PRO_DMOD, 0x00a9, {0x00, 0x01}, 0x02},
--	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
--	{PRO_DMOD, 0x00b3, {0x02, 0x32}, 0x02},
--	{PRO_DMOD, 0x00b6, {0x14}, 0x01},
--	{PRO_DMOD, 0x00c0, {0x11, 0x00, 0x05}, 0x03},
--	{PRO_DMOD, 0x00c4, {0x00}, 0x01},
--	{PRO_DMOD, 0x00c6, {0x19, 0x00}, 0x02},
--	{PRO_DMOD, 0x00cc, {0x2e, 0x51, 0x33}, 0x03},
--	{PRO_DMOD, 0x00f3, {0x05, 0x8c, 0x8c}, 0x03},
--	{PRO_DMOD, 0x00f8, {0x03, 0x06, 0x06}, 0x03},
--	{PRO_DMOD, 0x00fc, {	0x02, 0x02, 0x02, 0x09, 0x50, 0x7b, 0x77,
--				0x00, 0x02, 0xc8, 0x05, 0x7b}, 0x0c},
--	{PRO_DMOD, 0x0109, {0x02}, 0x01},
--	{PRO_DMOD, 0x0115, {0x0a, 0x03, 0x02, 0x80}, 0x04},
--	{PRO_DMOD, 0x011a, {0xc8, 0x7b, 0x8a, 0xa0}, 0x04},
--	{PRO_DMOD, 0x0122, {0x02, 0x18, 0xc3}, 0x03},
--	{PRO_DMOD, 0x0127, {0x00, 0x07}, 0x02},
--	{PRO_DMOD, 0x012a, {0x53, 0x51, 0x4e, 0x43}, 0x04},
--	{PRO_DMOD, 0x0137, {0x01, 0x00, 0x07, 0x00, 0x06}, 0x05},
--	{PRO_DMOD, 0x013d, {0x00, 0x01, 0x5b, 0xc8, 0x59}, 0x05},
--	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf016, {0x10, 0x04, 0x05, 0x04, 0x05}, 0x05},
--	{PRO_DMOD, 0xf01f, {0x8c, 0x00, 0x03, 0x0a, 0x0a}, 0x05},
--	{PRO_DMOD, 0xf029, {0x8c, 0x00, 0x00, 0x01}, 0x04},
--	{PRO_DMOD, 0xf064, {0x03, 0xf9, 0x03, 0x01}, 0x04},
--	{PRO_DMOD, 0xf06f, {0xe0, 0x03}, 0x02},
--	{PRO_DMOD, 0xf072, {0x0f, 0x03}, 0x02},
--	{PRO_DMOD, 0xf077, {0x01, 0x00}, 0x02},
--	{PRO_DMOD, 0xf085, {0x00, 0x02, 0x00}, 0x03},
--	{PRO_DMOD, 0xf09b, {0x3f, 0x00, 0x20, 0x00, 0x0c, 0x00}, 0x06},
--	{PRO_DMOD, 0xf130, {0x04}, 0x01},
--	{PRO_DMOD, 0xf132, {0x04}, 0x01},
--	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
--	{PRO_DMOD, 0xf146, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
--	{PRO_DMOD, 0xf14c, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
--	{PRO_DMOD, 0xf15a, {0x00, 0x08}, 0x02},
--	{PRO_DMOD, 0xf15d, {0x03, 0x05}, 0x02},
--	{PRO_DMOD, 0xf163, {0x05}, 0x01},
--	{PRO_DMOD, 0xf166, {0x01, 0x40, 0x0f}, 0x03},
--	{PRO_DMOD, 0xf17a, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf183, {0x01}, 0x01},
--	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
--	{PRO_DMOD, 0xf1bc, {0x36, 0x00}, 0x02},
--	{PRO_DMOD, 0xf1cb, {0xa0, 0x01}, 0x02},
--	{PRO_DMOD, 0xf204, {0x10}, 0x01},
--	{PRO_DMOD, 0xf214, {0x00}, 0x01},
--	{PRO_DMOD, 0xf24c, {0x88, 0x95, 0x9a, 0x90}, 0x04},
--	{PRO_DMOD, 0xf25a, {0x07, 0xe8, 0x03, 0xb0, 0x04}, 0x05},
--	{PRO_DMOD, 0xf270, {0x01, 0x02, 0x01, 0x02}, 0x04},
--	{PRO_DMOD, 0xf40e, {0x0a, 0x40, 0x08}, 0x03},
--	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf561, {0x15, 0x20}, 0x02},
--	{PRO_DMOD, 0xf5df, {0xfb, 0x00}, 0x02},
--	{PRO_DMOD, 0xf5e3, {0x09, 0x01, 0x01}, 0x03},
--	{PRO_DMOD, 0xf5f8, {0x01}, 0x01},
--	{PRO_DMOD, 0xf5fd, {0x01}, 0x01},
--	{PRO_DMOD, 0xf600, {	0x05, 0x08, 0x0b, 0x0e, 0x11, 0x14, 0x17,
--				0x1f}, 0x08},
--	{PRO_DMOD, 0xf60e, {0x00, 0x04, 0x32, 0x10}, 0x04},
--	{PRO_DMOD, 0xf707, {0xfc, 0x00, 0x37, 0x00}, 0x04},
--	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
--	{PRO_DMOD, 0xf80f, {0x40, 0x54, 0x5a}, 0x03},
--	{PRO_DMOD, 0xf905, {0x01}, 0x01},
--	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
--	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
--};
--
--static struct it913xset it9135_51[] = {
--	{PRO_DMOD, 0x0043, {0x00}, 0x01},
--	{PRO_DMOD, 0x0046, {0x51}, 0x01},
--	{PRO_DMOD, 0x0051, {0x01}, 0x01},
--	{PRO_DMOD, 0x005f, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0x0068, {0x0a}, 0x01},
--	{PRO_DMOD, 0x0070, {0x0a, 0x06, 0x02}, 0x03},
--	{PRO_DMOD, 0x0075, {0x8c, 0x8c, 0x8c, 0xc8, 0x01}, 0x05},
--	{PRO_DMOD, 0x007e, {0x04, 0x00}, 0x02},
--	{PRO_DMOD, 0x0081, {	0x0a, 0x12, 0x02, 0x0a, 0x03, 0xc0, 0x96,
--				0xcf, 0xc3, 0x01}, 0x0a},
--	{PRO_DMOD, 0x008e, {0x01}, 0x01},
--	{PRO_DMOD, 0x0092, {0x06, 0x00, 0x00, 0x00, 0x00}, 0x05},
--	{PRO_DMOD, 0x0099, {0x01}, 0x01},
--	{PRO_DMOD, 0x009b, {0x3c, 0x28}, 0x02},
--	{PRO_DMOD, 0x009f, {0xe1, 0xcf}, 0x02},
--	{PRO_DMOD, 0x00a3, {0x01, 0x5a, 0x01, 0x01}, 0x04},
--	{PRO_DMOD, 0x00a9, {0x00, 0x01}, 0x02},
--	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
--	{PRO_DMOD, 0x00b3, {0x02, 0x3c}, 0x02},
--	{PRO_DMOD, 0x00b6, {0x14}, 0x01},
--	{PRO_DMOD, 0x00c0, {0x11, 0x00, 0x05}, 0x03},
--	{PRO_DMOD, 0x00c4, {0x00}, 0x01},
--	{PRO_DMOD, 0x00c6, {0x19, 0x00}, 0x02},
--	{PRO_DMOD, 0x00cc, {0x2e, 0x51, 0x33}, 0x03},
--	{PRO_DMOD, 0x00f3, {0x05, 0x8c, 0x8c}, 0x03},
--	{PRO_DMOD, 0x00f8, {0x03, 0x06, 0x06}, 0x03},
--	{PRO_DMOD, 0x00fc, {	0x03, 0x02, 0x02, 0x09, 0x50, 0x7a, 0x77,
--				0x01, 0x02, 0xb0, 0x02, 0x7a}, 0x0c},
--	{PRO_DMOD, 0x0109, {0x02}, 0x01},
--	{PRO_DMOD, 0x0115, {0x0a, 0x03, 0x02, 0x80}, 0x04},
--	{PRO_DMOD, 0x011a, {0xc0, 0x7a, 0xac, 0x8c}, 0x04},
--	{PRO_DMOD, 0x0122, {0x02, 0x70, 0xa4}, 0x03},
--	{PRO_DMOD, 0x0127, {0x00, 0x07}, 0x02},
--	{PRO_DMOD, 0x012a, {0x53, 0x51, 0x4e, 0x43}, 0x04},
--	{PRO_DMOD, 0x0137, {0x01, 0x00, 0x07, 0x00, 0x06}, 0x05},
--	{PRO_DMOD, 0x013d, {0x00, 0x01, 0x5b, 0xc0, 0x59}, 0x05},
--	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf016, {0x10, 0x04, 0x05, 0x04, 0x05}, 0x05},
--	{PRO_DMOD, 0xf01f, {0x8c, 0x00, 0x03, 0x0a, 0x0a}, 0x05},
--	{PRO_DMOD, 0xf029, {0x8c, 0x00, 0x00, 0x01}, 0x04},
--	{PRO_DMOD, 0xf064, {0x03, 0xf9, 0x03, 0x01}, 0x04},
--	{PRO_DMOD, 0xf06f, {0xe0, 0x03}, 0x02},
--	{PRO_DMOD, 0xf072, {0x0f, 0x03}, 0x02},
--	{PRO_DMOD, 0xf077, {0x01, 0x00}, 0x02},
--	{PRO_DMOD, 0xf085, {0xc0, 0x01, 0x00}, 0x03},
--	{PRO_DMOD, 0xf09b, {0x3f, 0x00, 0x20, 0x00, 0x0c, 0x00}, 0x06},
--	{PRO_DMOD, 0xf130, {0x04}, 0x01},
--	{PRO_DMOD, 0xf132, {0x04}, 0x01},
--	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
--	{PRO_DMOD, 0xf146, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
--	{PRO_DMOD, 0xf14c, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
--	{PRO_DMOD, 0xf15a, {0x00, 0x08}, 0x02},
--	{PRO_DMOD, 0xf15d, {0x03, 0x05}, 0x02},
--	{PRO_DMOD, 0xf163, {0x05}, 0x01},
--	{PRO_DMOD, 0xf166, {0x01, 0x40, 0x0f}, 0x03},
--	{PRO_DMOD, 0xf17a, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf183, {0x01}, 0x01},
--	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
--	{PRO_DMOD, 0xf1bc, {0x36, 0x00}, 0x02},
--	{PRO_DMOD, 0xf1cb, {0xa0, 0x01}, 0x02},
--	{PRO_DMOD, 0xf204, {0x10}, 0x01},
--	{PRO_DMOD, 0xf214, {0x00}, 0x01},
--	{PRO_DMOD, 0xf24c, {0x88, 0x95, 0x9a, 0x90}, 0x04},
--	{PRO_DMOD, 0xf25a, {0x07, 0xe8, 0x03, 0xb0, 0x04}, 0x05},
--	{PRO_DMOD, 0xf270, {0x01, 0x02, 0x01, 0x02}, 0x04},
--	{PRO_DMOD, 0xf40e, {0x0a, 0x40, 0x08}, 0x03},
--	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf561, {0x15, 0x20}, 0x02},
--	{PRO_DMOD, 0xf5df, {0xfb, 0x00}, 0x02},
--	{PRO_DMOD, 0xf5e3, {0x09, 0x01, 0x01}, 0x03},
--	{PRO_DMOD, 0xf5f8, {0x01}, 0x01},
--	{PRO_DMOD, 0xf5fd, {0x01}, 0x01},
--	{PRO_DMOD, 0xf600, {	0x05, 0x08, 0x0b, 0x0e, 0x11, 0x14, 0x17,
--				0x1f}, 0x08},
--	{PRO_DMOD, 0xf60e, {0x00, 0x04, 0x32, 0x10}, 0x04},
--	{PRO_DMOD, 0xf707, {0xfc, 0x00, 0x37, 0x00}, 0x04},
--	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
--	{PRO_DMOD, 0xf80f, {0x40, 0x54, 0x5a}, 0x03},
--	{PRO_DMOD, 0xf905, {0x01}, 0x01},
--	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
--	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
--};
--
--static struct it913xset it9135_52[] = {
--	{PRO_DMOD, 0x0043, {0x00}, 0x01},
--	{PRO_DMOD, 0x0046, {0x52}, 0x01},
--	{PRO_DMOD, 0x0051, {0x01}, 0x01},
--	{PRO_DMOD, 0x005f, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0x0068, {0x10}, 0x01},
--	{PRO_DMOD, 0x0070, {0x0a, 0x05, 0x02}, 0x03},
--	{PRO_DMOD, 0x0075, {0x8c, 0x8c, 0x8c, 0xa0, 0x01}, 0x05},
--	{PRO_DMOD, 0x007e, {0x04, 0x00}, 0x02},
--	{PRO_DMOD, 0x0081, {	0x0a, 0x12, 0x03, 0x0a, 0x03, 0xb3, 0x97,
--				0xc0, 0x9e, 0x01}, 0x0a},
--	{PRO_DMOD, 0x008e, {0x01}, 0x01},
--	{PRO_DMOD, 0x0092, {0x06, 0x00, 0x00, 0x00, 0x00}, 0x05},
--	{PRO_DMOD, 0x0099, {0x01}, 0x01},
--	{PRO_DMOD, 0x009b, {0x3c, 0x28}, 0x02},
--	{PRO_DMOD, 0x009f, {0xe1, 0xcf}, 0x02},
--	{PRO_DMOD, 0x00a3, {0x01, 0x5c, 0x01, 0x01}, 0x04},
--	{PRO_DMOD, 0x00a9, {0x00, 0x01}, 0x02},
--	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
--	{PRO_DMOD, 0x00b3, {0x02, 0x3c}, 0x02},
--	{PRO_DMOD, 0x00b6, {0x14}, 0x01},
--	{PRO_DMOD, 0x00c0, {0x11, 0x00, 0x05}, 0x03},
--	{PRO_DMOD, 0x00c4, {0x00}, 0x01},
--	{PRO_DMOD, 0x00c6, {0x19, 0x00}, 0x02},
--	{PRO_DMOD, 0x00cc, {0x2e, 0x51, 0x33}, 0x03},
--	{PRO_DMOD, 0x00f3, {0x05, 0x91, 0x8c}, 0x03},
--	{PRO_DMOD, 0x00f8, {0x03, 0x06, 0x06}, 0x03},
--	{PRO_DMOD, 0x00fc, {	0x03, 0x02, 0x02, 0x09, 0x50, 0x74, 0x77,
--				0x02, 0x02, 0xae, 0x02, 0x6e}, 0x0c},
--	{PRO_DMOD, 0x0109, {0x02}, 0x01},
--	{PRO_DMOD, 0x0115, {0x0a, 0x03, 0x02, 0x80}, 0x04},
--	{PRO_DMOD, 0x011a, {0xcd, 0x62, 0xa4, 0x8c}, 0x04},
--	{PRO_DMOD, 0x0122, {0x03, 0x18, 0x9e}, 0x03},
--	{PRO_DMOD, 0x0127, {0x00, 0x07}, 0x02},
--	{PRO_DMOD, 0x012a, {0x53, 0x51, 0x4e, 0x43}, 0x04},
--	{PRO_DMOD, 0x0137, {0x00, 0x00, 0x07, 0x00, 0x06}, 0x05},
--	{PRO_DMOD, 0x013d, {0x00, 0x01, 0x5b, 0xb6, 0x59}, 0x05},
--	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf016, {0x10, 0x04, 0x05, 0x04, 0x05}, 0x05},
--	{PRO_DMOD, 0xf01f, {0x8c, 0x00, 0x03, 0x0a, 0x0a}, 0x05},
--	{PRO_DMOD, 0xf029, {0x8c, 0x00, 0x00, 0x01}, 0x04},
--	{PRO_DMOD, 0xf064, {0x03, 0xf9, 0x03, 0x01}, 0x04},
--	{PRO_DMOD, 0xf06f, {0xe0, 0x03}, 0x02},
--	{PRO_DMOD, 0xf072, {0x0f, 0x03}, 0x02},
--	{PRO_DMOD, 0xf077, {0x01, 0x00}, 0x02},
--	{PRO_DMOD, 0xf085, {0xc0, 0x01, 0x00}, 0x03},
--	{PRO_DMOD, 0xf09b, {0x3f, 0x00, 0x20, 0x00, 0x0c, 0x00}, 0x06},
--	{PRO_DMOD, 0xf130, {0x04}, 0x01},
--	{PRO_DMOD, 0xf132, {0x04}, 0x01},
--	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
--	{PRO_DMOD, 0xf146, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
--	{PRO_DMOD, 0xf14c, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
--	{PRO_DMOD, 0xf15a, {0x00, 0x08}, 0x02},
--	{PRO_DMOD, 0xf15d, {0x03, 0x05}, 0x02},
--	{PRO_DMOD, 0xf163, {0x05}, 0x01},
--	{PRO_DMOD, 0xf166, {0x01, 0x40, 0x0f}, 0x03},
--	{PRO_DMOD, 0xf17a, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf183, {0x01}, 0x01},
--	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
--	{PRO_DMOD, 0xf1bc, {0x36, 0x00}, 0x02},
--	{PRO_DMOD, 0xf1cb, {0xa0, 0x01}, 0x02},
--	{PRO_DMOD, 0xf204, {0x10}, 0x01},
--	{PRO_DMOD, 0xf214, {0x00}, 0x01},
--	{PRO_DMOD, 0xf24c, {0x88, 0x95, 0x9a, 0x90}, 0x04},
--	{PRO_DMOD, 0xf25a, {0x07, 0xe8, 0x03, 0xb0, 0x04}, 0x05},
--	{PRO_DMOD, 0xf270, {0x01, 0x02, 0x01, 0x02}, 0x04},
--	{PRO_DMOD, 0xf40e, {0x0a, 0x40, 0x08}, 0x03},
--	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf561, {0x15, 0x20}, 0x02},
--	{PRO_DMOD, 0xf5df, {0xfb, 0x00}, 0x02},
--	{PRO_DMOD, 0xf5e3, {0x09, 0x01, 0x01}, 0x03},
--	{PRO_DMOD, 0xf5f8, {0x01}, 0x01},
--	{PRO_DMOD, 0xf5fd, {0x01}, 0x01},
--	{PRO_DMOD, 0xf600, {0x05, 0x08, 0x0b, 0x0e, 0x11, 0x14, 0x17,
--				0x1f}, 0x08},
--	{PRO_DMOD, 0xf60e, {0x00, 0x04, 0x32, 0x10}, 0x04},
--	{PRO_DMOD, 0xf707, {0xfc, 0x00, 0x37, 0x00}, 0x04},
--	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
--	{PRO_DMOD, 0xf80f, {0x40, 0x54, 0x5a}, 0x03},
--	{PRO_DMOD, 0xf905, {0x01}, 0x01},
--	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
--	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
--};
--
--/* Version 2 types */
--static struct it913xset it9135_v2[] = {
--	{PRO_DMOD, 0x0051, {0x01}, 0x01},
--	{PRO_DMOD, 0x0070, {0x0a}, 0x01},
--	{PRO_DMOD, 0x007e, {0x04}, 0x01},
--	{PRO_DMOD, 0x0081, {0x0a}, 0x01},
--	{PRO_DMOD, 0x008a, {0x01}, 0x01},
--	{PRO_DMOD, 0x008e, {0x01}, 0x01},
--	{PRO_DMOD, 0x0092, {0x06}, 0x01},
--	{PRO_DMOD, 0x0099, {0x01}, 0x01},
--	{PRO_DMOD, 0x009f, {0xe1}, 0x01},
--	{PRO_DMOD, 0x00a0, {0xcf}, 0x01},
--	{PRO_DMOD, 0x00a3, {0x01}, 0x01},
--	{PRO_DMOD, 0x00a5, {0x01}, 0x01},
--	{PRO_DMOD, 0x00a6, {0x01}, 0x01},
--	{PRO_DMOD, 0x00a9, {0x00}, 0x01},
--	{PRO_DMOD, 0x00aa, {0x01}, 0x01},
--	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
--	{PRO_DMOD, 0x00c2, {0x05}, 0x01},
--	{PRO_DMOD, 0x00c6, {0x19}, 0x01},
--	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf02b, {0x00}, 0x01},
--	{PRO_DMOD, 0xf064, {0x03}, 0x01},
--	{PRO_DMOD, 0xf065, {0xf9}, 0x01},
--	{PRO_DMOD, 0xf066, {0x03}, 0x01},
--	{PRO_DMOD, 0xf067, {0x01}, 0x01},
--	{PRO_DMOD, 0xf06f, {0xe0}, 0x01},
--	{PRO_DMOD, 0xf070, {0x03}, 0x01},
--	{PRO_DMOD, 0xf072, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf073, {0x03}, 0x01},
--	{PRO_DMOD, 0xf078, {0x00}, 0x01},
--	{PRO_DMOD, 0xf087, {0x00}, 0x01},
--	{PRO_DMOD, 0xf09b, {0x3f}, 0x01},
--	{PRO_DMOD, 0xf09c, {0x00}, 0x01},
--	{PRO_DMOD, 0xf09d, {0x20}, 0x01},
--	{PRO_DMOD, 0xf09e, {0x00}, 0x01},
--	{PRO_DMOD, 0xf09f, {0x0c}, 0x01},
--	{PRO_DMOD, 0xf0a0, {0x00}, 0x01},
--	{PRO_DMOD, 0xf130, {0x04}, 0x01},
--	{PRO_DMOD, 0xf132, {0x04}, 0x01},
--	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
--	{PRO_DMOD, 0xf146, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
--	{PRO_DMOD, 0xf14c, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14d, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
--	{PRO_DMOD, 0xf15a, {0x00}, 0x01},
--	{PRO_DMOD, 0xf15b, {0x08}, 0x01},
--	{PRO_DMOD, 0xf15d, {0x03}, 0x01},
--	{PRO_DMOD, 0xf15e, {0x05}, 0x01},
--	{PRO_DMOD, 0xf163, {0x05}, 0x01},
--	{PRO_DMOD, 0xf166, {0x01}, 0x01},
--	{PRO_DMOD, 0xf167, {0x40}, 0x01},
--	{PRO_DMOD, 0xf168, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf17a, {0x00}, 0x01},
--	{PRO_DMOD, 0xf17b, {0x00}, 0x01},
--	{PRO_DMOD, 0xf183, {0x01}, 0x01},
--	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
--	{PRO_DMOD, 0xf1bc, {0x36}, 0x01},
--	{PRO_DMOD, 0xf1bd, {0x00}, 0x01},
--	{PRO_DMOD, 0xf1cb, {0xa0}, 0x01},
--	{PRO_DMOD, 0xf1cc, {0x01}, 0x01},
--	{PRO_DMOD, 0xf204, {0x10}, 0x01},
--	{PRO_DMOD, 0xf214, {0x00}, 0x01},
--	{PRO_DMOD, 0xf40e, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf40f, {0x40}, 0x01},
--	{PRO_DMOD, 0xf410, {0x08}, 0x01},
--	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf561, {0x15}, 0x01},
--	{PRO_DMOD, 0xf562, {0x20}, 0x01},
--	{PRO_DMOD, 0xf5e3, {0x09}, 0x01},
--	{PRO_DMOD, 0xf5e4, {0x01}, 0x01},
--	{PRO_DMOD, 0xf5e5, {0x01}, 0x01},
--	{PRO_DMOD, 0xf600, {0x05}, 0x01},
--	{PRO_DMOD, 0xf601, {0x08}, 0x01},
--	{PRO_DMOD, 0xf602, {0x0b}, 0x01},
--	{PRO_DMOD, 0xf603, {0x0e}, 0x01},
--	{PRO_DMOD, 0xf604, {0x11}, 0x01},
--	{PRO_DMOD, 0xf605, {0x14}, 0x01},
--	{PRO_DMOD, 0xf606, {0x17}, 0x01},
--	{PRO_DMOD, 0xf607, {0x1f}, 0x01},
--	{PRO_DMOD, 0xf60e, {0x00}, 0x01},
--	{PRO_DMOD, 0xf60f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf610, {0x32}, 0x01},
--	{PRO_DMOD, 0xf611, {0x10}, 0x01},
--	{PRO_DMOD, 0xf707, {0xfc}, 0x01},
--	{PRO_DMOD, 0xf708, {0x00}, 0x01},
--	{PRO_DMOD, 0xf709, {0x37}, 0x01},
--	{PRO_DMOD, 0xf70a, {0x00}, 0x01},
--	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
--	{PRO_DMOD, 0xf80f, {0x40}, 0x01},
--	{PRO_DMOD, 0xf810, {0x54}, 0x01},
--	{PRO_DMOD, 0xf811, {0x5a}, 0x01},
--	{PRO_DMOD, 0xf905, {0x01}, 0x01},
--	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
--	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
--};
--
--static struct it913xset it9135_60[] = {
--	{PRO_DMOD, 0x0043, {0x00}, 0x01},
--	{PRO_DMOD, 0x0046, {0x60}, 0x01},
--	{PRO_DMOD, 0x0051, {0x01}, 0x01},
--	{PRO_DMOD, 0x005f, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0x0068, {0x0a}, 0x01},
--	{PRO_DMOD, 0x006a, {0x03}, 0x01},
--	{PRO_DMOD, 0x0070, {0x0a, 0x05, 0x02}, 0x03},
--	{PRO_DMOD, 0x0075, {0x8c, 0x8c, 0x8c, 0x8c, 0x01}, 0x05},
--	{PRO_DMOD, 0x007e, {0x04}, 0x01},
--	{PRO_DMOD, 0x0081, {0x0a, 0x12}, 0x02},
--	{PRO_DMOD, 0x0084, {0x0a, 0x33, 0xbe, 0xa0, 0xc6, 0xb6, 0x01}, 0x07},
--	{PRO_DMOD, 0x008e, {0x01}, 0x01},
--	{PRO_DMOD, 0x0092, {0x06, 0x00, 0x00, 0x00, 0x00}, 0x05},
--	{PRO_DMOD, 0x0099, {0x01}, 0x01},
--	{PRO_DMOD, 0x009b, {0x3c, 0x28}, 0x02},
--	{PRO_DMOD, 0x009f, {0xe1, 0xcf}, 0x02},
--	{PRO_DMOD, 0x00a3, {0x01, 0x5a, 0x01, 0x01}, 0x04},
--	{PRO_DMOD, 0x00a9, {0x00, 0x01}, 0x02},
--	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
--	{PRO_DMOD, 0x00b3, {0x02, 0x3a}, 0x02},
--	{PRO_DMOD, 0x00b6, {0x14}, 0x01},
--	{PRO_DMOD, 0x00c0, {0x11, 0x00, 0x05, 0x01, 0x00}, 0x05},
--	{PRO_DMOD, 0x00c6, {0x19, 0x00}, 0x02},
--	{PRO_DMOD, 0x00cb, {0x32, 0x2c, 0x4f, 0x30}, 0x04},
--	{PRO_DMOD, 0x00f3, {0x05, 0xa0, 0x8c}, 0x03},
--	{PRO_DMOD, 0x00f8, {0x03, 0x06, 0x06}, 0x03},
--	{PRO_DMOD, 0x00fc, {	0x03, 0x03, 0x02, 0x0a, 0x50, 0x7b, 0x8c,
--				0x00, 0x02, 0xbe, 0x00}, 0x0b},
--	{PRO_DMOD, 0x0109, {0x02}, 0x01},
--	{PRO_DMOD, 0x0115, {0x0a, 0x03}, 0x02},
--	{PRO_DMOD, 0x011a, {0xbe}, 0x01},
--	{PRO_DMOD, 0x0124, {0xae}, 0x01},
--	{PRO_DMOD, 0x0127, {0x00}, 0x01},
--	{PRO_DMOD, 0x012a, {0x56, 0x50, 0x47, 0x42}, 0x04},
--	{PRO_DMOD, 0x0137, {0x00}, 0x01},
--	{PRO_DMOD, 0x013b, {0x08}, 0x01},
--	{PRO_DMOD, 0x013f, {0x5b}, 0x01},
--	{PRO_DMOD, 0x0141, {	0x59, 0xf9, 0x19, 0x19, 0x8c, 0x8c, 0x8c,
--				0x6e, 0x8c, 0x50, 0x8c, 0x8c, 0xac, 0xc6,
--				0x33}, 0x0f},
--	{PRO_DMOD, 0x0151, {0x28}, 0x01},
--	{PRO_DMOD, 0x0153, {0xbc}, 0x01},
--	{PRO_DMOD, 0x0178, {0x09}, 0x01},
--	{PRO_DMOD, 0x0181, {0x94, 0x6e}, 0x02},
--	{PRO_DMOD, 0x0185, {0x24}, 0x01},
--	{PRO_DMOD, 0x0187, {0x00, 0x00, 0xbe, 0x02, 0x80}, 0x05},
--	{PRO_DMOD, 0xed02, {0xff}, 0x01},
--	{PRO_DMOD, 0xee42, {0xff}, 0x01},
--	{PRO_DMOD, 0xee82, {0xff}, 0x01},
--	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf01f, {0x8c, 0x00}, 0x02},
--	{PRO_DMOD, 0xf029, {0x8c, 0x00, 0x00}, 0x03},
--	{PRO_DMOD, 0xf064, {0x03, 0xf9, 0x03, 0x01}, 0x04},
--	{PRO_DMOD, 0xf06f, {0xe0, 0x03}, 0x02},
--	{PRO_DMOD, 0xf072, {0x0f, 0x03}, 0x02},
--	{PRO_DMOD, 0xf077, {0x01, 0x00}, 0x02},
--	{PRO_DMOD, 0xf087, {0x00}, 0x01},
--	{PRO_DMOD, 0xf09b, {0x3f, 0x00, 0x20, 0x00, 0x0c, 0x00}, 0x06},
--	{PRO_DMOD, 0xf130, {0x04}, 0x01},
--	{PRO_DMOD, 0xf132, {0x04}, 0x01},
--	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
--	{PRO_DMOD, 0xf146, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
--	{PRO_DMOD, 0xf14c, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
--	{PRO_DMOD, 0xf15a, {0x00, 0x08}, 0x02},
--	{PRO_DMOD, 0xf15d, {0x03, 0x05}, 0x02},
--	{PRO_DMOD, 0xf163, {0x05}, 0x01},
--	{PRO_DMOD, 0xf166, {0x01, 0x40, 0x0f}, 0x03},
--	{PRO_DMOD, 0xf17a, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf183, {0x01}, 0x01},
--	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
--	{PRO_DMOD, 0xf1bc, {0x36, 0x00}, 0x02},
--	{PRO_DMOD, 0xf1cb, {0xa0, 0x01}, 0x02},
--	{PRO_DMOD, 0xf204, {0x10}, 0x01},
--	{PRO_DMOD, 0xf214, {0x00}, 0x01},
--	{PRO_DMOD, 0xf24c, {0x88, 0x95, 0x9a, 0x90}, 0x04},
--	{PRO_DMOD, 0xf25a, {0x07, 0xe8, 0x03, 0xb0, 0x04}, 0x05},
--	{PRO_DMOD, 0xf270, {0x01, 0x02, 0x01, 0x02}, 0x04},
--	{PRO_DMOD, 0xf40e, {0x0a, 0x40, 0x08}, 0x03},
--	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf561, {0x15, 0x20}, 0x02},
--	{PRO_DMOD, 0xf5e3, {0x09, 0x01, 0x01}, 0x03},
--	{PRO_DMOD, 0xf600, {0x05, 0x08, 0x0b, 0x0e, 0x11, 0x14, 0x17
--		, 0x1f}, 0x08},
--	{PRO_DMOD, 0xf60e, {0x00, 0x04, 0x32, 0x10}, 0x04},
--	{PRO_DMOD, 0xf707, {0xfc, 0x00, 0x37, 0x00}, 0x04},
--	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
--	{PRO_DMOD, 0xf80f, {0x40, 0x54, 0x5a}, 0x03},
--	{PRO_DMOD, 0xf905, {0x01}, 0x01},
--	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
--	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
--};
--
--static struct it913xset it9135_61[] = {
--	{PRO_DMOD, 0x0043, {0x00}, 0x01},
--	{PRO_DMOD, 0x0046, {0x61}, 0x01},
--	{PRO_DMOD, 0x0051, {0x01}, 0x01},
--	{PRO_DMOD, 0x005f, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0x0068, {0x06}, 0x01},
--	{PRO_DMOD, 0x006a, {0x03}, 0x01},
--	{PRO_DMOD, 0x0070, {0x0a, 0x05, 0x02}, 0x03},
--	{PRO_DMOD, 0x0075, {0x8c, 0x8c, 0x8c, 0x90, 0x01}, 0x05},
--	{PRO_DMOD, 0x007e, {0x04}, 0x01},
--	{PRO_DMOD, 0x0081, {0x0a, 0x12}, 0x02},
--	{PRO_DMOD, 0x0084, {0x0a, 0x33, 0xbc, 0x9c, 0xcc, 0xa8, 0x01}, 0x07},
--	{PRO_DMOD, 0x008e, {0x01}, 0x01},
--	{PRO_DMOD, 0x0092, {0x06, 0x00, 0x00, 0x00, 0x00}, 0x05},
--	{PRO_DMOD, 0x0099, {0x01}, 0x01},
--	{PRO_DMOD, 0x009b, {0x3c, 0x28}, 0x02},
--	{PRO_DMOD, 0x009f, {0xe1, 0xcf}, 0x02},
--	{PRO_DMOD, 0x00a3, {0x01, 0x5c, 0x01, 0x01}, 0x04},
--	{PRO_DMOD, 0x00a9, {0x00, 0x01}, 0x02},
--	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
--	{PRO_DMOD, 0x00b3, {0x02, 0x3a}, 0x02},
--	{PRO_DMOD, 0x00b6, {0x14}, 0x01},
--	{PRO_DMOD, 0x00c0, {0x11, 0x00, 0x05, 0x01, 0x00}, 0x05},
--	{PRO_DMOD, 0x00c6, {0x19, 0x00}, 0x02},
--	{PRO_DMOD, 0x00cb, {0x32, 0x2c, 0x4f, 0x30}, 0x04},
--	{PRO_DMOD, 0x00f3, {0x05, 0xa0, 0x8c}, 0x03},
--	{PRO_DMOD, 0x00f8, {0x03, 0x06, 0x06}, 0x03},
--	{PRO_DMOD, 0x00fc, {	0x03, 0x03, 0x02, 0x08, 0x50, 0x7b, 0x8c,
--				0x01, 0x02, 0xc8, 0x00}, 0x0b},
--	{PRO_DMOD, 0x0109, {0x02}, 0x01},
--	{PRO_DMOD, 0x0115, {0x0a, 0x03}, 0x02},
--	{PRO_DMOD, 0x011a, {0xc6}, 0x01},
--	{PRO_DMOD, 0x0124, {0xa8}, 0x01},
--	{PRO_DMOD, 0x0127, {0x00}, 0x01},
--	{PRO_DMOD, 0x012a, {0x59, 0x50, 0x47, 0x42}, 0x04},
--	{PRO_DMOD, 0x0137, {0x00}, 0x01},
--	{PRO_DMOD, 0x013b, {0x05}, 0x01},
--	{PRO_DMOD, 0x013f, {0x5b}, 0x01},
--	{PRO_DMOD, 0x0141, {	0x59, 0xf9, 0x59, 0x59, 0x8c, 0x8c, 0x8c,
--				0x7b, 0x8c, 0x50, 0x8c, 0x8c, 0xa8, 0xc6,
--				0x33}, 0x0f},
--	{PRO_DMOD, 0x0151, {0x28}, 0x01},
--	{PRO_DMOD, 0x0153, {0xcc}, 0x01},
--	{PRO_DMOD, 0x0178, {0x09}, 0x01},
--	{PRO_DMOD, 0x0181, {0x9c, 0x76}, 0x02},
--	{PRO_DMOD, 0x0185, {0x28}, 0x01},
--	{PRO_DMOD, 0x0187, {0x01, 0x00, 0xaa, 0x02, 0x80}, 0x05},
--	{PRO_DMOD, 0xed02, {0xff}, 0x01},
--	{PRO_DMOD, 0xee42, {0xff}, 0x01},
--	{PRO_DMOD, 0xee82, {0xff}, 0x01},
--	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf01f, {0x8c, 0x00}, 0x02},
--	{PRO_DMOD, 0xf029, {0x8c, 0x00, 0x00}, 0x03},
--	{PRO_DMOD, 0xf064, {0x03, 0xf9, 0x03, 0x01}, 0x04},
--	{PRO_DMOD, 0xf06f, {0xe0, 0x03}, 0x02},
--	{PRO_DMOD, 0xf072, {0x0f, 0x03}, 0x02},
--	{PRO_DMOD, 0xf077, {0x01, 0x00}, 0x02},
--	{PRO_DMOD, 0xf087, {0x00}, 0x01},
--	{PRO_DMOD, 0xf09b, {0x3f, 0x00, 0x20, 0x00, 0x0c, 0x00}, 0x06},
--	{PRO_DMOD, 0xf130, {0x04}, 0x01},
--	{PRO_DMOD, 0xf132, {0x04}, 0x01},
--	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
--	{PRO_DMOD, 0xf146, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
--	{PRO_DMOD, 0xf14c, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
--	{PRO_DMOD, 0xf15a, {0x00, 0x08}, 0x02},
--	{PRO_DMOD, 0xf15d, {0x03, 0x05}, 0x02},
--	{PRO_DMOD, 0xf163, {0x05}, 0x01},
--	{PRO_DMOD, 0xf166, {0x01, 0x40, 0x0f}, 0x03},
--	{PRO_DMOD, 0xf17a, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf183, {0x01}, 0x01},
--	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
--	{PRO_DMOD, 0xf1bc, {0x36, 0x00}, 0x02},
--	{PRO_DMOD, 0xf1cb, {0xa0, 0x01}, 0x02},
--	{PRO_DMOD, 0xf204, {0x10}, 0x01},
--	{PRO_DMOD, 0xf214, {0x00}, 0x01},
--	{PRO_DMOD, 0xf24c, {0x88, 0x95, 0x9a, 0x90}, 0x04},
--	{PRO_DMOD, 0xf25a, {0x07, 0xe8, 0x03, 0xb0, 0x04}, 0x05},
--	{PRO_DMOD, 0xf270, {0x01, 0x02, 0x01, 0x02}, 0x04},
--	{PRO_DMOD, 0xf40e, {0x0a, 0x40, 0x08}, 0x03},
--	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf561, {0x15, 0x20}, 0x02},
--	{PRO_DMOD, 0xf5e3, {0x09, 0x01, 0x01}, 0x03},
--	{PRO_DMOD, 0xf600, {	0x05, 0x08, 0x0b, 0x0e, 0x11, 0x14, 0x17,
--				0x1f}, 0x08},
--	{PRO_DMOD, 0xf60e, {0x00, 0x04, 0x32, 0x10}, 0x04},
--	{PRO_DMOD, 0xf707, {0xfc, 0x00, 0x37, 0x00}, 0x04},
--	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
--	{PRO_DMOD, 0xf80f, {0x40, 0x54, 0x5a}, 0x03},
--	{PRO_DMOD, 0xf905, {0x01}, 0x01},
--	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
--	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
--};
--
--static struct it913xset it9135_62[] = {
--	{PRO_DMOD, 0x0043, {0x00}, 0x01},
--	{PRO_DMOD, 0x0046, {0x62}, 0x01},
--	{PRO_DMOD, 0x0051, {0x01}, 0x01},
--	{PRO_DMOD, 0x005f, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0x0068, {0x0a}, 0x01},
--	{PRO_DMOD, 0x006a, {0x03}, 0x01},
--	{PRO_DMOD, 0x0070, {0x0a, 0x05, 0x02}, 0x03},
--	{PRO_DMOD, 0x0075, {0x8c, 0x8c, 0x8c, 0x8c, 0x01}, 0x05},
--	{PRO_DMOD, 0x007e, {0x04}, 0x01},
--	{PRO_DMOD, 0x0081, {0x0a, 0x12}, 0x02},
--	{PRO_DMOD, 0x0084, {	0x0a, 0x33, 0xb8, 0x9c, 0xb2, 0xa6, 0x01},
--				0x07},
--	{PRO_DMOD, 0x008e, {0x01}, 0x01},
--	{PRO_DMOD, 0x0092, {0x06, 0x00, 0x00, 0x00, 0x00}, 0x05},
--	{PRO_DMOD, 0x0099, {0x01}, 0x01},
--	{PRO_DMOD, 0x009b, {0x3c, 0x28}, 0x02},
--	{PRO_DMOD, 0x009f, {0xe1, 0xcf}, 0x02},
--	{PRO_DMOD, 0x00a3, {0x01, 0x5a, 0x01, 0x01}, 0x04},
--	{PRO_DMOD, 0x00a9, {0x00, 0x01}, 0x02},
--	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
--	{PRO_DMOD, 0x00b3, {0x02, 0x3a}, 0x02},
--	{PRO_DMOD, 0x00b6, {0x14}, 0x01},
--	{PRO_DMOD, 0x00c0, {0x11, 0x00, 0x05, 0x01, 0x00}, 0x05},
--	{PRO_DMOD, 0x00c6, {0x19, 0x00}, 0x02},
--	{PRO_DMOD, 0x00cb, {0x32, 0x2c, 0x4f, 0x30}, 0x04},
--	{PRO_DMOD, 0x00f3, {0x05, 0x8c, 0x8c}, 0x03},
--	{PRO_DMOD, 0x00f8, {0x03, 0x06, 0x06}, 0x03},
--	{PRO_DMOD, 0x00fc, {	0x02, 0x03, 0x02, 0x09, 0x50, 0x6e, 0x8c,
--				0x02, 0x02, 0xc2, 0x00}, 0x0b},
--	{PRO_DMOD, 0x0109, {0x02}, 0x01},
--	{PRO_DMOD, 0x0115, {0x0a, 0x03}, 0x02},
--	{PRO_DMOD, 0x011a, {0xb8}, 0x01},
--	{PRO_DMOD, 0x0124, {0xa8}, 0x01},
--	{PRO_DMOD, 0x0127, {0x00}, 0x01},
--	{PRO_DMOD, 0x012a, {0x53, 0x51, 0x4e, 0x43}, 0x04},
--	{PRO_DMOD, 0x0137, {0x00}, 0x01},
--	{PRO_DMOD, 0x013b, {0x05}, 0x01},
--	{PRO_DMOD, 0x013f, {0x5b}, 0x01},
--	{PRO_DMOD, 0x0141, {	0x59, 0xf9, 0x59, 0x19, 0x8c, 0x8c, 0x8c,
--				0x7b, 0x8c, 0x50, 0x70, 0x8c, 0x96, 0xd0,
--				0x33}, 0x0f},
--	{PRO_DMOD, 0x0151, {0x28}, 0x01},
--	{PRO_DMOD, 0x0153, {0xb2}, 0x01},
--	{PRO_DMOD, 0x0178, {0x09}, 0x01},
--	{PRO_DMOD, 0x0181, {0x9c, 0x6e}, 0x02},
--	{PRO_DMOD, 0x0185, {0x24}, 0x01},
--	{PRO_DMOD, 0x0187, {0x00, 0x00, 0xb8, 0x02, 0x80}, 0x05},
--	{PRO_DMOD, 0xed02, {0xff}, 0x01},
--	{PRO_DMOD, 0xee42, {0xff}, 0x01},
--	{PRO_DMOD, 0xee82, {0xff}, 0x01},
--	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
--	{PRO_DMOD, 0xf01f, {0x8c, 0x00}, 0x02},
--	{PRO_DMOD, 0xf029, {0x8c, 0x00, 0x00}, 0x03},
--	{PRO_DMOD, 0xf064, {0x03, 0xf9, 0x03, 0x01}, 0x04},
--	{PRO_DMOD, 0xf06f, {0xe0, 0x03}, 0x02},
--	{PRO_DMOD, 0xf072, {0x0f, 0x03}, 0x02},
--	{PRO_DMOD, 0xf077, {0x01, 0x00}, 0x02},
--	{PRO_DMOD, 0xf087, {0x00}, 0x01},
--	{PRO_DMOD, 0xf09b, {0x3f, 0x00, 0x20, 0x00, 0x0c, 0x00}, 0x06},
--	{PRO_DMOD, 0xf130, {0x04}, 0x01},
--	{PRO_DMOD, 0xf132, {0x04}, 0x01},
--	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
--	{PRO_DMOD, 0xf146, {0x00}, 0x01},
--	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
--	{PRO_DMOD, 0xf14c, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
--	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
--	{PRO_DMOD, 0xf15a, {0x00, 0x08}, 0x02},
--	{PRO_DMOD, 0xf15d, {0x03, 0x05}, 0x02},
--	{PRO_DMOD, 0xf163, {0x05}, 0x01},
--	{PRO_DMOD, 0xf166, {0x01, 0x40, 0x0f}, 0x03},
--	{PRO_DMOD, 0xf17a, {0x00, 0x00}, 0x02},
--	{PRO_DMOD, 0xf183, {0x01}, 0x01},
--	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
--	{PRO_DMOD, 0xf1bc, {0x36, 0x00}, 0x02},
--	{PRO_DMOD, 0xf1cb, {0xa0, 0x01}, 0x02},
--	{PRO_DMOD, 0xf204, {0x10}, 0x01},
--	{PRO_DMOD, 0xf214, {0x00}, 0x01},
--	{PRO_DMOD, 0xf24c, {0x88, 0x95, 0x9a, 0x90}, 0x04},
--	{PRO_DMOD, 0xf25a, {0x07, 0xe8, 0x03, 0xb0, 0x04}, 0x05},
--	{PRO_DMOD, 0xf270, {0x01, 0x02, 0x01, 0x02}, 0x04},
--	{PRO_DMOD, 0xf40e, {0x0a, 0x40, 0x08}, 0x03},
--	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
--	{PRO_DMOD, 0xf561, {0x15, 0x20}, 0x02},
--	{PRO_DMOD, 0xf5e3, {0x09, 0x01, 0x01}, 0x03},
--	{PRO_DMOD, 0xf600, {	0x05, 0x08, 0x0b, 0x0e, 0x11, 0x14, 0x17,
--				0x1f}, 0x08},
--	{PRO_DMOD, 0xf60e, {0x00, 0x04, 0x32, 0x10}, 0x04},
--	{PRO_DMOD, 0xf707, {0xfc, 0x00, 0x37, 0x00}, 0x04},
--	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
--	{PRO_DMOD, 0xf80f, {0x40, 0x54, 0x5a}, 0x03},
--	{PRO_DMOD, 0xf905, {0x01}, 0x01},
--	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
--	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
--};
--
--/* Tuner setting scripts (still keeping it9137) */
--static struct it913xset it9137_tuner_off[] = {
--	{PRO_DMOD, 0xfba8, {0x01}, 0x01}, /* Tuner Clock Off  */
--	{PRO_DMOD, 0xec40, {0x00}, 0x01}, /* Power Down Tuner */
--	{PRO_DMOD, 0xec02, {0x3f, 0x1f, 0x3f, 0x3f}, 0x04},
--	{PRO_DMOD, 0xec06, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--				0x00, 0x00, 0x00, 0x00}, 0x0c},
--	{PRO_DMOD, 0xec12, {0x00, 0x00, 0x00, 0x00}, 0x04},
--	{PRO_DMOD, 0xec17, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--				0x00}, 0x09},
--	{PRO_DMOD, 0xec22, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--				0x00, 0x00}, 0x0a},
--	{PRO_DMOD, 0xec20, {0x00}, 0x01},
--	{PRO_DMOD, 0xec3f, {0x01}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00}, /* Terminating Entry */
--};
--
--static struct it913xset set_it9135_template[] = {
--	{PRO_DMOD, 0xee06, {0x00}, 0x01},
--	{PRO_DMOD, 0xec56, {0x00}, 0x01},
--	{PRO_DMOD, 0xec4c, {0x00}, 0x01},
--	{PRO_DMOD, 0xec4d, {0x00}, 0x01},
--	{PRO_DMOD, 0xec4e, {0x00}, 0x01},
--	{PRO_DMOD, 0x011e, {0x00}, 0x01}, /* Older Devices */
--	{PRO_DMOD, 0x011f, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00}, /* Terminating Entry */
--};
--
--static struct it913xset set_it9137_template[] = {
--	{PRO_DMOD, 0xee06, {0x00}, 0x01},
--	{PRO_DMOD, 0xec56, {0x00}, 0x01},
--	{PRO_DMOD, 0xec4c, {0x00}, 0x01},
--	{PRO_DMOD, 0xec4d, {0x00}, 0x01},
--	{PRO_DMOD, 0xec4e, {0x00}, 0x01},
--	{PRO_DMOD, 0xec4f, {0x00}, 0x01},
--	{PRO_DMOD, 0xec50, {0x00}, 0x01},
--	{0xff, 0x0000, {0x00}, 0x00}, /* Terminating Entry */
--};
-diff --git a/drivers/media/dvb-frontends/it913x-fe.c b/drivers/media/dvb-frontends/it913x-fe.c
-deleted file mode 100644
-index 6e1c6eb..0000000
---- a/drivers/media/dvb-frontends/it913x-fe.c
-+++ /dev/null
-@@ -1,1045 +0,0 @@
--/*
-- *  Driver for it913x-fe Frontend
-- *
-- *  with support for on chip it9137 integral tuner
-- *
-- *  Copyright (C) 2011 Malcolm Priestley (tvboxspy@gmail.com)
-- *  IT9137 Copyright (C) ITE Tech Inc.
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-- */
--
+ #include <linux/i2c.h>
 -#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/slab.h>
--#include <linux/types.h>
--
--#include "dvb_frontend.h"
--#include "it913x-fe.h"
--#include "it913x-fe-priv.h"
--
--static int it913x_debug;
--
--module_param_named(debug, it913x_debug, int, 0644);
--MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able)).");
--
--#define dprintk(level, args...) do { \
--	if (level & it913x_debug) \
--		printk(KERN_DEBUG "it913x-fe: " args); \
--} while (0)
--
--#define deb_info(args...)  dprintk(0x01, args)
--#define debug_data_snipet(level, name, p) \
--	  dprintk(level, name" (%02x%02x%02x%02x%02x%02x%02x%02x)", \
--		*p, *(p+1), *(p+2), *(p+3), *(p+4), \
--			*(p+5), *(p+6), *(p+7));
--#define info(format, arg...) \
--	printk(KERN_INFO "it913x-fe: " format "\n" , ## arg)
--
--struct it913x_fe_state {
--	struct dvb_frontend frontend;
--	struct i2c_adapter *i2c_adap;
--	struct ite_config *config;
--	u8 i2c_addr;
--	u32 frequency;
--	fe_modulation_t constellation;
--	fe_transmit_mode_t transmission_mode;
--	u8 priority;
--	u32 crystalFrequency;
--	u32 adcFrequency;
--	u8 tuner_type;
--	struct adctable *table;
--	fe_status_t it913x_status;
--	u16 tun_xtal;
--	u8 tun_fdiv;
--	u8 tun_clk_mode;
--	u32 tun_fn_min;
--	u32 ucblocks;
--};
--
--static int it913x_read_reg(struct it913x_fe_state *state,
--		u32 reg, u8 *data, u8 count)
--{
--	int ret;
--	u8 pro = PRO_DMOD; /* All reads from demodulator */
--	u8 b[4];
--	struct i2c_msg msg[2] = {
--		{ .addr = state->i2c_addr + (pro << 1), .flags = 0,
--			.buf = b, .len = sizeof(b) },
--		{ .addr = state->i2c_addr + (pro << 1), .flags = I2C_M_RD,
--			.buf = data, .len = count }
--	};
--	b[0] = (u8) reg >> 24;
--	b[1] = (u8)(reg >> 16) & 0xff;
--	b[2] = (u8)(reg >> 8) & 0xff;
--	b[3] = (u8) reg & 0xff;
--
--	ret = i2c_transfer(state->i2c_adap, msg, 2);
--
--	return ret;
--}
--
--static int it913x_read_reg_u8(struct it913x_fe_state *state, u32 reg)
--{
--	int ret;
--	u8 b[1];
--	ret = it913x_read_reg(state, reg, &b[0], sizeof(b));
--	return (ret < 0) ? -ENODEV : b[0];
--}
--
--static int it913x_write(struct it913x_fe_state *state,
--		u8 pro, u32 reg, u8 buf[], u8 count)
--{
--	u8 b[256];
--	struct i2c_msg msg[1] = {
--		{ .addr = state->i2c_addr + (pro << 1), .flags = 0,
--		  .buf = b, .len = count + 4 }
--	};
--	int ret;
--
--	b[0] = (u8) reg >> 24;
--	b[1] = (u8)(reg >> 16) & 0xff;
--	b[2] = (u8)(reg >> 8) & 0xff;
--	b[3] = (u8) reg & 0xff;
--	memcpy(&b[4], buf, count);
--
--	ret = i2c_transfer(state->i2c_adap, msg, 1);
--
--	if (ret < 0)
--		return -EIO;
--
+ #include <linux/log2.h>
++#include <linux/module.h>
++#include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <linux/v4l2-mediabus.h>
+@@ -55,6 +56,7 @@
+ #define		MT9T001_OUTPUT_CONTROL_SYNC		(1 << 0)
+ #define		MT9T001_OUTPUT_CONTROL_CHIP_ENABLE	(1 << 1)
+ #define		MT9T001_OUTPUT_CONTROL_TEST_DATA	(1 << 6)
++#define		MT9T001_OUTPUT_CONTROL_DEF		0x0002
+ #define MT9T001_SHUTTER_WIDTH_HIGH			0x08
+ #define MT9T001_SHUTTER_WIDTH_LOW			0x09
+ #define		MT9T001_SHUTTER_WIDTH_MIN		1
+@@ -116,6 +118,11 @@ struct mt9t001 {
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pad;
+ 
++	struct regulator_bulk_data regulators[2];
++
++	struct mutex power_lock; /* lock to protect power_count */
++	int power_count;
++
+ 	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect crop;
+ 
+@@ -159,6 +166,62 @@ static int mt9t001_set_output_control(struct mt9t001 *mt9t001, u16 clear,
+ 	return 0;
+ }
+ 
++static int mt9t001_reset(struct mt9t001 *mt9t001)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9t001->subdev);
++	int ret;
++
++	/* Reset the chip and stop data read out */
++	ret = mt9t001_write(client, MT9T001_RESET, 1);
++	if (ret < 0)
++		return ret;
++
++	ret = mt9t001_write(client, MT9T001_RESET, 0);
++	if (ret < 0)
++		return ret;
++
++	mt9t001->output_control = MT9T001_OUTPUT_CONTROL_DEF;
++
++	return mt9t001_set_output_control(mt9t001,
++					  MT9T001_OUTPUT_CONTROL_CHIP_ENABLE,
++					  0);
++}
++
++static int mt9t001_power_on(struct mt9t001 *mt9t001)
++{
++	/* Bring up the supplies */
++	return regulator_bulk_enable(ARRAY_SIZE(mt9t001->regulators),
++				     mt9t001->regulators);
++}
++
++static void mt9t001_power_off(struct mt9t001 *mt9t001)
++{
++	regulator_bulk_disable(ARRAY_SIZE(mt9t001->regulators),
++			       mt9t001->regulators);
++
++static int __mt9t001_set_power(struct mt9t001 *mt9t001, bool on)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9t001->subdev);
++	int ret;
++
++	if (!on) {
++		mt9t001_power_off(mt9t001);
++		return 0;
++	}
++
++	ret = mt9t001_power_on(mt9t001);
++	if (ret < 0)
++		return ret;
++
++	ret = mt9t001_reset(mt9t001);
++	if (ret < 0) {
++		dev_err(&client->dev, "Failed to reset the camera\n");
++		return ret;
++	}
++
++	return v4l2_ctrl_handler_setup(&mt9t001->ctrls);
++}
++
+ /* -----------------------------------------------------------------------------
+  * V4L2 subdev video operations
+  */
+@@ -195,6 +258,7 @@ static int mt9t001_s_stream(struct v4l2_subdev *subdev, int enable)
+ {
+ 	const u16 mode = MT9T001_OUTPUT_CONTROL_CHIP_ENABLE;
+ 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct mt9t001_platform_data *pdata = client->dev.platform_data;
+ 	struct mt9t001 *mt9t001 = to_mt9t001(subdev);
+ 	struct v4l2_mbus_framefmt *format = &mt9t001->format;
+ 	struct v4l2_rect *crop = &mt9t001->crop;
+@@ -205,6 +269,14 @@ static int mt9t001_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	if (!enable)
+ 		return mt9t001_set_output_control(mt9t001, mode, 0);
+ 
++	/* Configure the pixel clock polarity */
++	if (pdata->clk_pol) {
++		ret  = mt9t001_write(client, MT9T001_PIXEL_CLOCK,
++				     MT9T001_PIXEL_CLOCK_INVERT);
++		if (ret < 0)
++			return ret;
++	}
++
+ 	/* Configure the window size and row/column bin */
+ 	hratio = DIV_ROUND_CLOSEST(crop->width, format->width);
+ 	vratio = DIV_ROUND_CLOSEST(crop->height, format->height);
+@@ -630,9 +702,67 @@ static const struct v4l2_ctrl_config mt9t001_gains[] = {
+ };
+ 
+ /* -----------------------------------------------------------------------------
++ * V4L2 subdev core operations
++ */
++
++static int mt9t001_set_power(struct v4l2_subdev *subdev, int on)
++{
++	struct mt9t001 *mt9t001 = to_mt9t001(subdev);
++	int ret = 0;
++
++	mutex_lock(&mt9t001->power_lock);
++
++	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
++	 * update the power state.
++	 */
++	if (mt9t001->power_count == !on) {
++		ret = __mt9t001_set_power(mt9t001, !!on);
++		if (ret < 0)
++			goto out;
++	}
++
++	/* Update the power count. */
++	mt9t001->power_count += on ? 1 : -1;
++	WARN_ON(mt9t001->power_count < 0);
++
++out:
++	mutex_unlock(&mt9t001->power_lock);
++	return ret;
++}
++
++/* -----------------------------------------------------------------------------
+  * V4L2 subdev internal operations
+  */
+ 
++static int mt9t001_registered(struct v4l2_subdev *subdev)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct mt9t001 *mt9t001 = to_mt9t001(subdev);
++	s32 data;
++	int ret;
++
++	ret = mt9t001_power_on(mt9t001);
++	if (ret < 0) {
++		dev_err(&client->dev, "MT9T001 power up failed\n");
++		return ret;
++	}
++
++	/* Read out the chip version register */
++	data = mt9t001_read(client, MT9T001_CHIP_VERSION);
++	mt9t001_power_off(mt9t001);
++
++	if (data != MT9T001_CHIP_ID) {
++		dev_err(&client->dev,
++			"MT9T001 not detected, wrong version 0x%04x\n", data);
++		return -ENODEV;
++	}
++
++	dev_info(&client->dev, "MT9T001 detected at address 0x%02x\n",
++		 client->addr);
++
++	return 0;
++}
++
+ static int mt9t001_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+ {
+ 	struct v4l2_mbus_framefmt *format;
+@@ -651,9 +781,18 @@ static int mt9t001_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+ 	format->field = V4L2_FIELD_NONE;
+ 	format->colorspace = V4L2_COLORSPACE_SRGB;
+ 
 -	return 0;
--}
--
--static int it913x_write_reg(struct it913x_fe_state *state,
--		u8 pro, u32 reg, u32 data)
++	return mt9t001_set_power(subdev, 1);
+ }
+ 
++static int mt9t001_close(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
++{
++	return mt9t001_set_power(subdev, 0);
++}
++
++static struct v4l2_subdev_core_ops mt9t001_subdev_core_ops = {
++	.s_power = mt9t001_set_power,
++};
++
+ static struct v4l2_subdev_video_ops mt9t001_subdev_video_ops = {
+ 	.s_stream = mt9t001_s_stream,
+ };
+@@ -668,58 +807,17 @@ static struct v4l2_subdev_pad_ops mt9t001_subdev_pad_ops = {
+ };
+ 
+ static struct v4l2_subdev_ops mt9t001_subdev_ops = {
++	.core = &mt9t001_subdev_core_ops,
+ 	.video = &mt9t001_subdev_video_ops,
+ 	.pad = &mt9t001_subdev_pad_ops,
+ };
+ 
+ static struct v4l2_subdev_internal_ops mt9t001_subdev_internal_ops = {
++	.registered = mt9t001_registered,
+ 	.open = mt9t001_open,
++	.close = mt9t001_close,
+ };
+ 
+-static int mt9t001_video_probe(struct i2c_client *client)
 -{
+-	struct mt9t001_platform_data *pdata = client->dev.platform_data;
+-	s32 data;
 -	int ret;
--	u8 b[4];
--	u8 s;
 -
--	b[0] = data >> 24;
--	b[1] = (data >> 16) & 0xff;
--	b[2] = (data >> 8) & 0xff;
--	b[3] = data & 0xff;
--	/* expand write as needed */
--	if (data < 0x100)
--		s = 3;
--	else if (data < 0x1000)
--		s = 2;
--	else if (data < 0x100000)
--		s = 1;
--	else
--		s = 0;
+-	dev_info(&client->dev, "Probing MT9T001 at address 0x%02x\n",
+-		 client->addr);
 -
--	ret = it913x_write(state, pro, reg, &b[s], sizeof(b) - s);
--
--	return ret;
--}
--
--static int it913x_fe_script_loader(struct it913x_fe_state *state,
--		struct it913xset *loadscript)
--{
--	int ret, i;
--	if (loadscript == NULL)
--		return -EINVAL;
--
--	for (i = 0; i < 1000; ++i) {
--		if (loadscript[i].pro == 0xff)
--			break;
--		ret = it913x_write(state, loadscript[i].pro,
--			loadscript[i].address,
--			loadscript[i].reg, loadscript[i].count);
--		if (ret < 0)
--			return -ENODEV;
--	}
--	return 0;
--}
--
--static int it913x_init_tuner(struct it913x_fe_state *state)
--{
--	int ret, i, reg;
--	u8 val, nv_val;
--	u8 nv[] = {48, 32, 24, 16, 12, 8, 6, 4, 2};
--	u8 b[2];
--
--	reg = it913x_read_reg_u8(state, 0xec86);
--	switch (reg) {
--	case 0:
--		state->tun_clk_mode = reg;
--		state->tun_xtal = 2000;
--		state->tun_fdiv = 3;
--		val = 16;
--		break;
--	case -ENODEV:
--		return -ENODEV;
--	case 1:
--	default:
--		state->tun_clk_mode = reg;
--		state->tun_xtal = 640;
--		state->tun_fdiv = 1;
--		val = 6;
--		break;
--	}
--
--	reg = it913x_read_reg_u8(state, 0xed03);
--
--	if (reg < 0)
--		return -ENODEV;
--	else if (reg < ARRAY_SIZE(nv))
--		nv_val = nv[reg];
--	else
--		nv_val = 2;
--
--	for (i = 0; i < 50; i++) {
--		ret = it913x_read_reg(state, 0xed23, &b[0], sizeof(b));
--		reg = (b[1] << 8) + b[0];
--		if (reg > 0)
--			break;
--		if (ret < 0)
--			return -ENODEV;
--		udelay(2000);
--	}
--	state->tun_fn_min = state->tun_xtal * reg;
--	state->tun_fn_min /= (state->tun_fdiv * nv_val);
--	deb_info("Tuner fn_min %d", state->tun_fn_min);
--
--	if (state->config->chip_ver > 1)
--		msleep(50);
--	else {
--		for (i = 0; i < 50; i++) {
--			reg = it913x_read_reg_u8(state, 0xec82);
--			if (reg > 0)
--				break;
--			if (reg < 0)
--				return -ENODEV;
--			udelay(2000);
--		}
--	}
--
--	return it913x_write_reg(state, PRO_DMOD, 0xed81, val);
--}
--
--static int it9137_set_tuner(struct it913x_fe_state *state,
--		u32 bandwidth, u32 frequency_m)
--{
--	struct it913xset *set_tuner = set_it9137_template;
--	int ret, reg;
--	u32 frequency = frequency_m / 1000;
--	u32 freq, temp_f, tmp;
--	u16 iqik_m_cal;
--	u16 n_div;
--	u8 n;
--	u8 l_band;
--	u8 lna_band;
--	u8 bw;
--
--	if (state->config->firmware_ver == 1)
--		set_tuner = set_it9135_template;
--	else
--		set_tuner = set_it9137_template;
--
--	deb_info("Tuner Frequency %d Bandwidth %d", frequency, bandwidth);
--
--	if (frequency >= 51000 && frequency <= 440000) {
--		l_band = 0;
--		lna_band = 0;
--	} else if (frequency > 440000 && frequency <= 484000) {
--		l_band = 1;
--		lna_band = 1;
--	} else if (frequency > 484000 && frequency <= 533000) {
--		l_band = 1;
--		lna_band = 2;
--	} else if (frequency > 533000 && frequency <= 587000) {
--		l_band = 1;
--		lna_band = 3;
--	} else if (frequency > 587000 && frequency <= 645000) {
--		l_band = 1;
--		lna_band = 4;
--	} else if (frequency > 645000 && frequency <= 710000) {
--		l_band = 1;
--		lna_band = 5;
--	} else if (frequency > 710000 && frequency <= 782000) {
--		l_band = 1;
--		lna_band = 6;
--	} else if (frequency > 782000 && frequency <= 860000) {
--		l_band = 1;
--		lna_band = 7;
--	} else if (frequency > 1450000 && frequency <= 1492000) {
--		l_band = 1;
--		lna_band = 0;
--	} else if (frequency > 1660000 && frequency <= 1685000) {
--		l_band = 1;
--		lna_band = 1;
--	} else
--		return -EINVAL;
--	set_tuner[0].reg[0] = lna_band;
--
--	switch (bandwidth) {
--	case 5000000:
--		bw = 0;
--		break;
--	case 6000000:
--		bw = 2;
--		break;
--	case 7000000:
--		bw = 4;
--		break;
--	default:
--	case 8000000:
--		bw = 6;
--		break;
--	}
--
--	set_tuner[1].reg[0] = bw;
--	set_tuner[2].reg[0] = 0xa0 | (l_band << 3);
--
--	if (frequency > 53000 && frequency <= 74000) {
--		n_div = 48;
--		n = 0;
--	} else if (frequency > 74000 && frequency <= 111000) {
--		n_div = 32;
--		n = 1;
--	} else if (frequency > 111000 && frequency <= 148000) {
--		n_div = 24;
--		n = 2;
--	} else if (frequency > 148000 && frequency <= 222000) {
--		n_div = 16;
--		n = 3;
--	} else if (frequency > 222000 && frequency <= 296000) {
--		n_div = 12;
--		n = 4;
--	} else if (frequency > 296000 && frequency <= 445000) {
--		n_div = 8;
--		n = 5;
--	} else if (frequency > 445000 && frequency <= state->tun_fn_min) {
--		n_div = 6;
--		n = 6;
--	} else if (frequency > state->tun_fn_min && frequency <= 950000) {
--		n_div = 4;
--		n = 7;
--	} else if (frequency > 1450000 && frequency <= 1680000) {
--		n_div = 2;
--		n = 0;
--	} else
--		return -EINVAL;
--
--	reg = it913x_read_reg_u8(state, 0xed81);
--	iqik_m_cal = (u16)reg * n_div;
--
--	if (reg < 0x20) {
--		if (state->tun_clk_mode == 0)
--			iqik_m_cal = (iqik_m_cal * 9) >> 5;
--		else
--			iqik_m_cal >>= 1;
--	} else {
--		iqik_m_cal = 0x40 - iqik_m_cal;
--		if (state->tun_clk_mode == 0)
--			iqik_m_cal = ~((iqik_m_cal * 9) >> 5);
--		else
--			iqik_m_cal = ~(iqik_m_cal >> 1);
--	}
--
--	temp_f = frequency * (u32)n_div * (u32)state->tun_fdiv;
--	freq = temp_f / state->tun_xtal;
--	tmp = freq * state->tun_xtal;
--
--	if ((temp_f - tmp) >= (state->tun_xtal >> 1))
--		freq++;
--
--	freq += (u32) n << 13;
--	/* Frequency OMEGA_IQIK_M_CAL_MID*/
--	temp_f = freq + (u32)iqik_m_cal;
--
--	set_tuner[3].reg[0] =  temp_f & 0xff;
--	set_tuner[4].reg[0] =  (temp_f >> 8) & 0xff;
--
--	deb_info("High Frequency = %04x", temp_f);
--
--	/* Lower frequency */
--	set_tuner[5].reg[0] =  freq & 0xff;
--	set_tuner[6].reg[0] =  (freq >> 8) & 0xff;
--
--	deb_info("low Frequency = %04x", freq);
--
--	ret = it913x_fe_script_loader(state, set_tuner);
--
--	return (ret < 0) ? -ENODEV : 0;
--}
--
--static int it913x_fe_select_bw(struct it913x_fe_state *state,
--			u32 bandwidth, u32 adcFrequency)
--{
--	int ret, i;
--	u8 buffer[256];
--	u32 coeff[8];
--	u16 bfsfcw_fftinx_ratio;
--	u16 fftinx_bfsfcw_ratio;
--	u8 count;
--	u8 bw;
--	u8 adcmultiplier;
--
--	deb_info("Bandwidth %d Adc %d", bandwidth, adcFrequency);
--
--	switch (bandwidth) {
--	case 5000000:
--		bw = 3;
--		break;
--	case 6000000:
--		bw = 0;
--		break;
--	case 7000000:
--		bw = 1;
--		break;
--	default:
--	case 8000000:
--		bw = 2;
--		break;
--	}
--	ret = it913x_write_reg(state, PRO_DMOD, REG_BW, bw);
--
--	if (state->table == NULL)
--		return -EINVAL;
--
--	/* In write order */
--	coeff[0] = state->table[bw].coeff_1_2048;
--	coeff[1] = state->table[bw].coeff_2_2k;
--	coeff[2] = state->table[bw].coeff_1_8191;
--	coeff[3] = state->table[bw].coeff_1_8192;
--	coeff[4] = state->table[bw].coeff_1_8193;
--	coeff[5] = state->table[bw].coeff_2_8k;
--	coeff[6] = state->table[bw].coeff_1_4096;
--	coeff[7] = state->table[bw].coeff_2_4k;
--	bfsfcw_fftinx_ratio = state->table[bw].bfsfcw_fftinx_ratio;
--	fftinx_bfsfcw_ratio = state->table[bw].fftinx_bfsfcw_ratio;
--
--	/* ADC multiplier */
--	ret = it913x_read_reg_u8(state, ADC_X_2);
--	if (ret < 0)
--		return -EINVAL;
--
--	adcmultiplier = ret;
--
--	count = 0;
--
--	/*  Build Buffer for COEFF Registers */
--	for (i = 0; i < 8; i++) {
--		if (adcmultiplier == 1)
--			coeff[i] /= 2;
--		buffer[count++] = (coeff[i] >> 24) & 0x3;
--		buffer[count++] = (coeff[i] >> 16) & 0xff;
--		buffer[count++] = (coeff[i] >> 8) & 0xff;
--		buffer[count++] = coeff[i] & 0xff;
--	}
--
--	/* bfsfcw_fftinx_ratio register 0x21-0x22 */
--	buffer[count++] = bfsfcw_fftinx_ratio & 0xff;
--	buffer[count++] = (bfsfcw_fftinx_ratio >> 8) & 0xff;
--	/* fftinx_bfsfcw_ratio register 0x23-0x24 */
--	buffer[count++] = fftinx_bfsfcw_ratio & 0xff;
--	buffer[count++] = (fftinx_bfsfcw_ratio >> 8) & 0xff;
--	/* start at COEFF_1_2048 and write through to fftinx_bfsfcw_ratio*/
--	ret = it913x_write(state, PRO_DMOD, COEFF_1_2048, buffer, count);
--
--	for (i = 0; i < 42; i += 8)
--		debug_data_snipet(0x1, "Buffer", &buffer[i]);
--
--	return ret;
--}
--
--
--
--static int it913x_fe_read_status(struct dvb_frontend *fe, fe_status_t *status)
--{
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	int ret, i;
--	fe_status_t old_status = state->it913x_status;
--	*status = 0;
--
--	if (state->it913x_status == 0) {
--		ret = it913x_read_reg_u8(state, EMPTY_CHANNEL_STATUS);
--		if (ret == 0x1) {
--			*status |= FE_HAS_SIGNAL;
--			for (i = 0; i < 40; i++) {
--				ret = it913x_read_reg_u8(state, MP2IF_SYNC_LK);
--				if (ret == 0x1)
--					break;
--				msleep(25);
--			}
--			if (ret == 0x1)
--				*status |= FE_HAS_CARRIER
--					| FE_HAS_VITERBI
--					| FE_HAS_SYNC;
--			state->it913x_status = *status;
--		}
--	}
--
--	if (state->it913x_status & FE_HAS_SYNC) {
--		ret = it913x_read_reg_u8(state, TPSD_LOCK);
--		if (ret == 0x1)
--			*status |= FE_HAS_LOCK
--				| state->it913x_status;
--		else
--			state->it913x_status = 0;
--		if (old_status != state->it913x_status)
--			ret = it913x_write_reg(state, PRO_LINK, GPIOH3_O, ret);
--	}
--
--	return 0;
--}
--
--/* FEC values based on fe_code_rate_t non supported values 0*/
--int it913x_qpsk_pval[] = {0, -93, -91, -90, 0, -89, -88};
--int it913x_16qam_pval[] = {0, -87, -85, -84, 0, -83, -82};
--int it913x_64qam_pval[] = {0, -82, -80, -78, 0, -77, -76};
--
--static int it913x_get_signal_strength(struct dvb_frontend *fe)
--{
--	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	u8 code_rate;
--	int ret, temp;
--	u8 lna_gain_os;
--
--	ret = it913x_read_reg_u8(state, VAR_P_INBAND);
+-	/* Reset the chip and stop data read out */
+-	ret = mt9t001_write(client, MT9T001_RESET, 1);
 -	if (ret < 0)
 -		return ret;
 -
--	/* VHF/UHF gain offset */
--	if (state->frequency < 300000000)
--		lna_gain_os = 7;
--	else
--		lna_gain_os = 14;
+-	ret = mt9t001_write(client, MT9T001_RESET, 0);
+-	if (ret < 0)
+-		return ret;
 -
--	temp = (ret - 100) - lna_gain_os;
+-	ret  = mt9t001_write(client, MT9T001_OUTPUT_CONTROL, 0);
+-	if (ret < 0)
+-		return ret;
 -
--	if (state->priority == PRIORITY_HIGH)
--		code_rate = p->code_rate_HP;
--	else
--		code_rate = p->code_rate_LP;
--
--	if (code_rate >= ARRAY_SIZE(it913x_qpsk_pval))
--		return -EINVAL;
--
--	deb_info("Reg VAR_P_INBAND:%d Calc Offset Value:%d", ret, temp);
--
--	/* Apply FEC offset values*/
--	switch (p->modulation) {
--	case QPSK:
--		temp -= it913x_qpsk_pval[code_rate];
--		break;
--	case QAM_16:
--		temp -= it913x_16qam_pval[code_rate];
--		break;
--	case QAM_64:
--		temp -= it913x_64qam_pval[code_rate];
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	if (temp < -15)
--		ret = 0;
--	else if ((-15 <= temp) && (temp < 0))
--		ret = (2 * (temp + 15)) / 3;
--	else if ((0 <= temp) && (temp < 20))
--		ret = 4 * temp + 10;
--	else if ((20 <= temp) && (temp < 35))
--		ret = (2 * (temp - 20)) / 3 + 90;
--	else if (temp >= 35)
--		ret = 100;
--
--	deb_info("Signal Strength :%d", ret);
--
--	return ret;
--}
--
--static int it913x_fe_read_signal_strength(struct dvb_frontend *fe,
--		u16 *strength)
--{
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	int ret = 0;
--	if (state->config->read_slevel) {
--		if (state->it913x_status & FE_HAS_SIGNAL)
--			ret = it913x_read_reg_u8(state, SIGNAL_LEVEL);
--	} else
--		ret = it913x_get_signal_strength(fe);
--
--	if (ret >= 0)
--		*strength = (u16)((u32)ret * 0xffff / 0x64);
--
--	return (ret < 0) ? -ENODEV : 0;
--}
--
--static int it913x_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
--{
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	int ret;
--	u8 reg[3];
--	u32 snr_val, snr_min, snr_max;
--	u32 temp;
--
--	ret = it913x_read_reg(state, 0x2c, reg, sizeof(reg));
--
--	snr_val = (u32)(reg[2] << 16) | (reg[1] << 8) | reg[0];
--
--	ret |= it913x_read_reg(state, 0xf78b, reg, 1);
--	if (reg[0])
--		snr_val /= reg[0];
--
--	if (state->transmission_mode == TRANSMISSION_MODE_2K)
--		snr_val *= 4;
--	else if (state->transmission_mode == TRANSMISSION_MODE_4K)
--		snr_val *= 2;
--
--	if (state->constellation == QPSK) {
--		snr_min = 0xb4711;
--		snr_max = 0x191451;
--	} else if (state->constellation == QAM_16) {
--		snr_min = 0x4f0d5;
--		snr_max = 0xc7925;
--	} else if (state->constellation == QAM_64) {
--		snr_min = 0x256d0;
--		snr_max = 0x626be;
--	} else
--		return -EINVAL;
--
--	if (snr_val < snr_min)
--		*snr = 0;
--	else if (snr_val < snr_max) {
--		temp = (snr_val - snr_min) >> 5;
--		temp *= 0xffff;
--		temp /= (snr_max - snr_min) >> 5;
--		*snr = (u16)temp;
--	} else
--		*snr = 0xffff;
--
--	return (ret < 0) ? -ENODEV : 0;
--}
--
--static int it913x_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
--{
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	u8 reg[5];
--	/* Read Aborted Packets and Pre-Viterbi error rate 5 bytes */
--	it913x_read_reg(state, RSD_ABORT_PKT_LSB, reg, sizeof(reg));
--	state->ucblocks += (u32)(reg[1] << 8) | reg[0];
--	*ber = (u32)(reg[4] << 16) | (reg[3] << 8) | reg[2];
--	return 0;
--}
--
--static int it913x_fe_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
--{
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	int ret;
--	u8 reg[2];
--	/* Aborted Packets */
--	ret = it913x_read_reg(state, RSD_ABORT_PKT_LSB, reg, sizeof(reg));
--	state->ucblocks += (u32)(reg[1] << 8) | reg[0];
--	*ucblocks = state->ucblocks;
--	return ret;
--}
--
--static int it913x_fe_get_frontend(struct dvb_frontend *fe)
--{
--	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	u8 reg[8];
--
--	it913x_read_reg(state, REG_TPSD_TX_MODE, reg, sizeof(reg));
--
--	if (reg[3] < 3)
--		p->modulation = fe_con[reg[3]];
--
--	if (reg[0] < 3)
--		p->transmission_mode = fe_mode[reg[0]];
--
--	if (reg[1] < 4)
--		p->guard_interval = fe_gi[reg[1]];
--
--	if (reg[2] < 4)
--		p->hierarchy = fe_hi[reg[2]];
--
--	state->priority = reg[5];
--
--	p->code_rate_HP = (reg[6] < 6) ? fe_code[reg[6]] : FEC_NONE;
--	p->code_rate_LP = (reg[7] < 6) ? fe_code[reg[7]] : FEC_NONE;
--
--	/* Update internal state to reflect the autodetected props */
--	state->constellation = p->modulation;
--	state->transmission_mode = p->transmission_mode;
--
--	return 0;
--}
--
--static int it913x_fe_set_frontend(struct dvb_frontend *fe)
--{
--	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	int i;
--	u8 empty_ch, last_ch;
--
--	state->it913x_status = 0;
--
--	/* Set bw*/
--	it913x_fe_select_bw(state, p->bandwidth_hz,
--		state->adcFrequency);
--
--	/* Training Mode Off */
--	it913x_write_reg(state, PRO_LINK, TRAINING_MODE, 0x0);
--
--	/* Clear Empty Channel */
--	it913x_write_reg(state, PRO_DMOD, EMPTY_CHANNEL_STATUS, 0x0);
--
--	/* Clear bits */
--	it913x_write_reg(state, PRO_DMOD, MP2IF_SYNC_LK, 0x0);
--	/* LED on */
--	it913x_write_reg(state, PRO_LINK, GPIOH3_O, 0x1);
--	/* Select Band*/
--	if ((p->frequency >= 51000000) && (p->frequency <= 230000000))
--		i = 0;
--	else if ((p->frequency >= 350000000) && (p->frequency <= 900000000))
--			i = 1;
--	else if ((p->frequency >= 1450000000) && (p->frequency <= 1680000000))
--			i = 2;
--	else
--		return -EOPNOTSUPP;
--
--	it913x_write_reg(state, PRO_DMOD, FREE_BAND, i);
--
--	deb_info("Frontend Set Tuner Type %02x", state->tuner_type);
--	switch (state->tuner_type) {
--	case IT9135_38:
--	case IT9135_51:
--	case IT9135_52:
--	case IT9135_60:
--	case IT9135_61:
--	case IT9135_62:
--		it9137_set_tuner(state,
--			p->bandwidth_hz, p->frequency);
--		break;
--	default:
--		if (fe->ops.tuner_ops.set_params) {
--			fe->ops.tuner_ops.set_params(fe);
--			if (fe->ops.i2c_gate_ctrl)
--				fe->ops.i2c_gate_ctrl(fe, 0);
--		}
--		break;
--	}
--	/* LED off */
--	it913x_write_reg(state, PRO_LINK, GPIOH3_O, 0x0);
--	/* Trigger ofsm */
--	it913x_write_reg(state, PRO_DMOD, TRIGGER_OFSM, 0x0);
--	last_ch = 2;
--	for (i = 0; i < 40; ++i) {
--		empty_ch = it913x_read_reg_u8(state, EMPTY_CHANNEL_STATUS);
--		if (last_ch == 1 && empty_ch == 1)
--			break;
--		if (last_ch == 2 && empty_ch == 2)
--			return 0;
--		last_ch = empty_ch;
--		msleep(25);
--	}
--	for (i = 0; i < 40; ++i) {
--		if (it913x_read_reg_u8(state, D_TPSD_LOCK) == 1)
--			break;
--		msleep(25);
--	}
--
--	state->frequency = p->frequency;
--	return 0;
--}
--
--static int it913x_fe_suspend(struct it913x_fe_state *state)
--{
--	int ret, i;
--	u8 b;
--
--	ret = it913x_write_reg(state, PRO_DMOD, SUSPEND_FLAG, 0x1);
--
--	ret |= it913x_write_reg(state, PRO_DMOD, TRIGGER_OFSM, 0x0);
--
--	for (i = 0; i < 128; i++) {
--		ret = it913x_read_reg(state, SUSPEND_FLAG, &b, 1);
+-	/* Configure the pixel clock polarity */
+-	if (pdata->clk_pol) {
+-		ret  = mt9t001_write(client, MT9T001_PIXEL_CLOCK,
+-				     MT9T001_PIXEL_CLOCK_INVERT);
 -		if (ret < 0)
--			return -ENODEV;
--		if (b == 0)
--			break;
--
+-			return ret;
 -	}
 -
--	ret |= it913x_write_reg(state, PRO_DMOD, AFE_MEM0, 0x8);
--	/* Turn LED off */
--	ret |= it913x_write_reg(state, PRO_LINK, GPIOH3_O, 0x0);
--
--	ret |= it913x_fe_script_loader(state, it9137_tuner_off);
--
--	return (ret < 0) ? -ENODEV : 0;
--}
--
--/* Power sequence */
--/* Power Up	Tuner on -> Frontend suspend off -> Tuner clk on */
--/* Power Down	Frontend suspend on -> Tuner clk off -> Tuner off */
--
--static int it913x_fe_sleep(struct dvb_frontend *fe)
--{
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	return it913x_fe_suspend(state);
--}
--
--static u32 compute_div(u32 a, u32 b, u32 x)
--{
--	u32 res = 0;
--	u32 c = 0;
--	u32 i = 0;
--
--	if (a > b) {
--		c = a / b;
--		a = a - c * b;
--	}
--
--	for (i = 0; i < x; i++) {
--		if (a >= b) {
--			res += 1;
--			a -= b;
--		}
--		a <<= 1;
--		res <<= 1;
--	}
--
--	res = (c << x) + res;
--
--	return res;
--}
--
--static int it913x_fe_start(struct it913x_fe_state *state)
--{
--	struct it913xset *set_lna;
--	struct it913xset *set_mode;
--	int ret;
--	u8 adf = (state->config->adf & 0xf);
--	u32 adc, xtal;
--	u8 b[4];
--
--	if (state->config->chip_ver == 1)
--		ret = it913x_init_tuner(state);
--
--	info("ADF table value	:%02x", adf);
--
--	if (adf < 10) {
--		state->crystalFrequency = fe_clockTable[adf].xtal ;
--		state->table = fe_clockTable[adf].table;
--		state->adcFrequency = state->table->adcFrequency;
--
--		adc = compute_div(state->adcFrequency, 1000000ul, 19ul);
--		xtal = compute_div(state->crystalFrequency, 1000000ul, 19ul);
--
--	} else
--		return -EINVAL;
--
--	/* Set LED indicator on GPIOH3 */
--	ret = it913x_write_reg(state, PRO_LINK, GPIOH3_EN, 0x1);
--	ret |= it913x_write_reg(state, PRO_LINK, GPIOH3_ON, 0x1);
--	ret |= it913x_write_reg(state, PRO_LINK, GPIOH3_O, 0x1);
--
--	ret |= it913x_write_reg(state, PRO_LINK, 0xf641, state->tuner_type);
--	ret |= it913x_write_reg(state, PRO_DMOD, 0xf5ca, 0x01);
--	ret |= it913x_write_reg(state, PRO_DMOD, 0xf715, 0x01);
--
--	b[0] = xtal & 0xff;
--	b[1] = (xtal >> 8) & 0xff;
--	b[2] = (xtal >> 16) & 0xff;
--	b[3] = (xtal >> 24);
--	ret |= it913x_write(state, PRO_DMOD, XTAL_CLK, b , 4);
--
--	b[0] = adc & 0xff;
--	b[1] = (adc >> 8) & 0xff;
--	b[2] = (adc >> 16) & 0xff;
--	ret |= it913x_write(state, PRO_DMOD, ADC_FREQ, b, 3);
--
--	if (state->config->adc_x2)
--		ret |= it913x_write_reg(state, PRO_DMOD, ADC_X_2, 0x01);
--	b[0] = 0;
--	b[1] = 0;
--	b[2] = 0;
--	ret |= it913x_write(state, PRO_DMOD, 0x0029, b, 3);
--
--	info("Crystal Frequency :%d Adc Frequency :%d ADC X2: %02x",
--		state->crystalFrequency, state->adcFrequency,
--			state->config->adc_x2);
--	deb_info("Xtal value :%04x Adc value :%04x", xtal, adc);
--
--	if (ret < 0)
+-	/* Read and check the sensor version */
+-	data = mt9t001_read(client, MT9T001_CHIP_VERSION);
+-	if (data != MT9T001_CHIP_ID) {
+-		dev_err(&client->dev, "MT9T001 not detected, wrong version "
+-			"0x%04x\n", data);
 -		return -ENODEV;
+-	}
 -
--	/* v1 or v2 tuner script */
--	if (state->config->chip_ver > 1)
--		ret = it913x_fe_script_loader(state, it9135_v2);
--	else
--		ret = it913x_fe_script_loader(state, it9135_v1);
+-	dev_info(&client->dev, "MT9T001 detected at address 0x%02x\n",
+-		 client->addr);
+-
+-	return ret;
+-}
+-
+ static int mt9t001_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *did)
+ {
+@@ -740,14 +838,22 @@ static int mt9t001_probe(struct i2c_client *client,
+ 		return -EIO;
+ 	}
+ 
+-	ret = mt9t001_video_probe(client);
 -	if (ret < 0)
 -		return ret;
 -
--	/* LNA Scripts */
--	switch (state->tuner_type) {
--	case IT9135_51:
--		set_lna = it9135_51;
--		break;
--	case IT9135_52:
--		set_lna = it9135_52;
--		break;
--	case IT9135_60:
--		set_lna = it9135_60;
--		break;
--	case IT9135_61:
--		set_lna = it9135_61;
--		break;
--	case IT9135_62:
--		set_lna = it9135_62;
--		break;
--	case IT9135_38:
--	default:
--		set_lna = it9135_38;
--	}
--	info("Tuner LNA type :%02x", state->tuner_type);
--
--	ret = it913x_fe_script_loader(state, set_lna);
--	if (ret < 0)
--		return ret;
--
--	if (state->config->chip_ver == 2) {
--		ret = it913x_write_reg(state, PRO_DMOD, TRIGGER_OFSM, 0x1);
--		ret |= it913x_write_reg(state, PRO_LINK, PADODPU, 0x0);
--		ret |= it913x_write_reg(state, PRO_LINK, AGC_O_D, 0x0);
--		ret |= it913x_init_tuner(state);
--	}
--	if (ret < 0)
--		return -ENODEV;
--
--	/* Always solo frontend */
--	set_mode = set_solo_fe;
--	ret |= it913x_fe_script_loader(state, set_mode);
--
--	ret |= it913x_fe_suspend(state);
--	return (ret < 0) ? -ENODEV : 0;
--}
--
--static int it913x_fe_init(struct dvb_frontend *fe)
--{
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	int ret = 0;
--	/* Power Up Tuner - common all versions */
--	ret = it913x_write_reg(state, PRO_DMOD, 0xec40, 0x1);
--
--	ret |= it913x_fe_script_loader(state, init_1);
--
--	ret |= it913x_write_reg(state, PRO_DMOD, AFE_MEM0, 0x0);
--
--	ret |= it913x_write_reg(state, PRO_DMOD, 0xfba8, 0x0);
--
--	return (ret < 0) ? -ENODEV : 0;
--}
--
--static void it913x_fe_release(struct dvb_frontend *fe)
--{
--	struct it913x_fe_state *state = fe->demodulator_priv;
--	kfree(state);
--}
--
--static struct dvb_frontend_ops it913x_fe_ofdm_ops;
--
--struct dvb_frontend *it913x_fe_attach(struct i2c_adapter *i2c_adap,
--		u8 i2c_addr, struct ite_config *config)
--{
--	struct it913x_fe_state *state = NULL;
--	int ret;
--
--	/* allocate memory for the internal state */
--	state = kzalloc(sizeof(struct it913x_fe_state), GFP_KERNEL);
--	if (state == NULL)
--		return NULL;
--	if (config == NULL)
--		goto error;
--
--	state->i2c_adap = i2c_adap;
--	state->i2c_addr = i2c_addr;
--	state->config = config;
--
--	switch (state->config->tuner_id_0) {
--	case IT9135_51:
--	case IT9135_52:
--	case IT9135_60:
--	case IT9135_61:
--	case IT9135_62:
--		state->tuner_type = state->config->tuner_id_0;
--		break;
--	default:
--	case IT9135_38:
--		state->tuner_type = IT9135_38;
--	}
--
--	ret = it913x_fe_start(state);
--	if (ret < 0)
--		goto error;
--
--
--	/* create dvb_frontend */
--	memcpy(&state->frontend.ops, &it913x_fe_ofdm_ops,
--			sizeof(struct dvb_frontend_ops));
--	state->frontend.demodulator_priv = state;
--
--	return &state->frontend;
--error:
--	kfree(state);
--	return NULL;
--}
--EXPORT_SYMBOL(it913x_fe_attach);
--
--static struct dvb_frontend_ops it913x_fe_ofdm_ops = {
--	.delsys = { SYS_DVBT },
--	.info = {
--		.name			= "it913x-fe DVB-T",
--		.frequency_min		= 51000000,
--		.frequency_max		= 1680000000,
--		.frequency_stepsize	= 62500,
--		.caps = FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
--			FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
--			FE_CAN_FEC_7_8 | FE_CAN_FEC_8_9 | FE_CAN_FEC_AUTO |
--			FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
--			FE_CAN_TRANSMISSION_MODE_AUTO |
--			FE_CAN_GUARD_INTERVAL_AUTO |
--			FE_CAN_HIERARCHY_AUTO,
--	},
--
--	.release = it913x_fe_release,
--
--	.init = it913x_fe_init,
--	.sleep = it913x_fe_sleep,
--
--	.set_frontend = it913x_fe_set_frontend,
--	.get_frontend = it913x_fe_get_frontend,
--
--	.read_status = it913x_fe_read_status,
--	.read_signal_strength = it913x_fe_read_signal_strength,
--	.read_snr = it913x_fe_read_snr,
--	.read_ber = it913x_fe_read_ber,
--	.read_ucblocks = it913x_fe_read_ucblocks,
--};
--
--MODULE_DESCRIPTION("it913x Frontend and it9137 tuner");
--MODULE_AUTHOR("Malcolm Priestley tvboxspy@gmail.com");
--MODULE_VERSION("1.15");
--MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/it913x-fe.h b/drivers/media/dvb-frontends/it913x-fe.h
-deleted file mode 100644
-index df0ad42..0000000
---- a/drivers/media/dvb-frontends/it913x-fe.h
-+++ /dev/null
-@@ -1,237 +0,0 @@
--/*
-- *  Driver for it913x Frontend
-- *
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-- */
--
--#ifndef IT913X_FE_H
--#define IT913X_FE_H
--
--#include <linux/kconfig.h>
--#include <linux/dvb/frontend.h>
--#include "dvb_frontend.h"
--
--struct ite_config {
--	u8 chip_ver;
--	u16 chip_type;
--	u32 firmware;
--	u8 firmware_ver;
--	u8 adc_x2;
--	u8 tuner_id_0;
--	u8 tuner_id_1;
--	u8 dual_mode;
--	u8 adf;
--	/* option to read SIGNAL_LEVEL */
--	u8 read_slevel;
--};
--
--#if IS_ENABLED(CONFIG_DVB_IT913X_FE)
--extern struct dvb_frontend *it913x_fe_attach(struct i2c_adapter *i2c_adap,
--			u8 i2c_addr, struct ite_config *config);
--#else
--static inline struct dvb_frontend *it913x_fe_attach(
--		struct i2c_adapter *i2c_adap,
--			u8 i2c_addr, struct ite_config *config)
--{
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
--	return NULL;
--}
--#endif /* CONFIG_IT913X_FE */
--#define I2C_BASE_ADDR		0x10
--#define DEV_0			0x0
--#define DEV_1			0x10
--#define PRO_LINK		0x0
--#define PRO_DMOD		0x1
--#define DEV_0_DMOD		(PRO_DMOD << 0x7)
--#define DEV_1_DMOD		(DEV_0_DMOD | DEV_1)
--#define CHIP2_I2C_ADDR		0x3a
--
--#define AFE_MEM0		0xfb24
--
--#define MP2_SW_RST		0xf99d
--#define MP2IF2_SW_RST		0xf9a4
--
--#define	PADODPU			0xd827
--#define THIRDODPU		0xd828
--#define AGC_O_D			0xd829
--
--#define EP0_TX_EN		0xdd11
--#define EP0_TX_NAK		0xdd13
--#define EP4_TX_LEN_LSB		0xdd88
--#define EP4_TX_LEN_MSB		0xdd89
--#define EP4_MAX_PKT		0xdd0c
--#define EP5_TX_LEN_LSB		0xdd8a
--#define EP5_TX_LEN_MSB		0xdd8b
--#define EP5_MAX_PKT		0xdd0d
--
--#define IO_MUX_POWER_CLK	0xd800
--#define CLK_O_EN		0xd81a
--#define I2C_CLK			0xf103
--#define I2C_CLK_100		0x7
--#define I2C_CLK_400		0x1a
--
--#define D_TPSD_LOCK		0xf5a9
--#define MP2IF2_EN		0xf9a3
--#define MP2IF_SERIAL		0xf985
--#define TSIS_ENABLE		0xf9cd
--#define MP2IF2_HALF_PSB		0xf9a5
--#define MP2IF_STOP_EN		0xf9b5
--#define MPEG_FULL_SPEED		0xf990
--#define TOP_HOSTB_SER_MODE	0xd91c
--
--#define PID_RST			0xf992
--#define PID_EN			0xf993
--#define PID_INX_EN		0xf994
--#define PID_INX			0xf995
--#define PID_LSB			0xf996
--#define PID_MSB			0xf997
--
--#define MP2IF_MPEG_PAR_MODE	0xf986
--#define DCA_UPPER_CHIP		0xf731
--#define DCA_LOWER_CHIP		0xf732
--#define DCA_PLATCH		0xf730
--#define DCA_FPGA_LATCH		0xf778
--#define DCA_STAND_ALONE		0xf73c
--#define DCA_ENABLE		0xf776
--
--#define DVBT_INTEN		0xf41f
--#define DVBT_ENABLE		0xf41a
--#define HOSTB_DCA_LOWER		0xd91f
--#define HOSTB_MPEG_PAR_MODE	0xd91b
--#define HOSTB_MPEG_SER_MODE	0xd91c
--#define HOSTB_MPEG_SER_DO7	0xd91d
--#define HOSTB_DCA_UPPER		0xd91e
--#define PADMISCDR2		0xd830
--#define PADMISCDR4		0xd831
--#define PADMISCDR8		0xd832
--#define PADMISCDRSR		0xd833
--#define LOCK3_OUT		0xd8fd
--
--#define GPIOH1_O		0xd8af
--#define GPIOH1_EN		0xd8b0
--#define GPIOH1_ON		0xd8b1
--#define GPIOH3_O		0xd8b3
--#define GPIOH3_EN		0xd8b4
--#define GPIOH3_ON		0xd8b5
--#define GPIOH5_O		0xd8bb
--#define GPIOH5_EN		0xd8bc
--#define GPIOH5_ON		0xd8bd
--
--#define AFE_MEM0		0xfb24
--
--#define REG_TPSD_TX_MODE	0xf900
--#define REG_TPSD_GI		0xf901
--#define REG_TPSD_HIER		0xf902
--#define REG_TPSD_CONST		0xf903
--#define REG_BW			0xf904
--#define REG_PRIV		0xf905
--#define REG_TPSD_HP_CODE	0xf906
--#define REG_TPSD_LP_CODE	0xf907
--
--#define MP2IF_SYNC_LK		0xf999
--#define ADC_FREQ		0xf1cd
--
--#define TRIGGER_OFSM		0x0000
--/* COEFF Registers start at 0x0001 to 0x0020 */
--#define COEFF_1_2048		0x0001
--#define XTAL_CLK		0x0025
--#define BFS_FCW			0x0029
--
--/* Error Regs */
--#define RSD_ABORT_PKT_LSB	0x0032
--#define RSD_ABORT_PKT_MSB	0x0033
--#define RSD_BIT_ERR_0_7		0x0034
--#define RSD_BIT_ERR_8_15	0x0035
--#define RSD_BIT_ERR_23_16	0x0036
--#define RSD_BIT_COUNT_LSB	0x0037
--#define RSD_BIT_COUNT_MSB	0x0038
--
--#define TPSD_LOCK		0x003c
--#define TRAINING_MODE		0x0040
--#define ADC_X_2			0x0045
--#define TUNER_ID		0x0046
--#define EMPTY_CHANNEL_STATUS	0x0047
--#define SIGNAL_LEVEL		0x0048
--#define SIGNAL_QUALITY		0x0049
--#define EST_SIGNAL_LEVEL	0x004a
--#define FREE_BAND		0x004b
--#define SUSPEND_FLAG		0x004c
--#define VAR_P_INBAND		0x00f7
--
--/* Build in tuner types */
--#define IT9137 0x38
--#define IT9135_38 0x38
--#define IT9135_51 0x51
--#define IT9135_52 0x52
--#define IT9135_60 0x60
--#define IT9135_61 0x61
--#define IT9135_62 0x62
--
--enum {
--	CMD_DEMOD_READ = 0,
--	CMD_DEMOD_WRITE,
--	CMD_TUNER_READ,
--	CMD_TUNER_WRITE,
--	CMD_REG_EEPROM_READ,
--	CMD_REG_EEPROM_WRITE,
--	CMD_DATA_READ,
--	CMD_VAR_READ = 8,
--	CMD_VAR_WRITE,
--	CMD_PLATFORM_GET,
--	CMD_PLATFORM_SET,
--	CMD_IP_CACHE,
--	CMD_IP_ADD,
--	CMD_IP_REMOVE,
--	CMD_PID_ADD,
--	CMD_PID_REMOVE,
--	CMD_SIPSI_GET,
--	CMD_SIPSI_MPE_RESET,
--	CMD_H_PID_ADD = 0x15,
--	CMD_H_PID_REMOVE,
--	CMD_ABORT,
--	CMD_IR_GET,
--	CMD_IR_SET,
--	CMD_FW_DOWNLOAD = 0x21,
--	CMD_QUERYINFO,
--	CMD_BOOT,
--	CMD_FW_DOWNLOAD_BEGIN,
--	CMD_FW_DOWNLOAD_END,
--	CMD_RUN_CODE,
--	CMD_SCATTER_READ = 0x28,
--	CMD_SCATTER_WRITE,
--	CMD_GENERIC_READ,
--	CMD_GENERIC_WRITE
--};
--
--enum {
--	READ_LONG,
--	WRITE_LONG,
--	READ_SHORT,
--	WRITE_SHORT,
--	READ_DATA,
--	WRITE_DATA,
--	WRITE_CMD,
--};
--
--enum {
--	IT9135_AUTO = 0,
--	IT9137_FW,
--	IT9135_V1_FW,
--	IT9135_V2_FW,
--};
--
--#endif /* IT913X_FE_H */
+ 	mt9t001 = devm_kzalloc(&client->dev, sizeof(*mt9t001), GFP_KERNEL);
+ 	if (!mt9t001)
+ 		return -ENOMEM;
+ 
++	mutex_init(&mt9t001->power_lock);
++	mt9t001->output_control = MT9T001_OUTPUT_CONTROL_DEF;
++
++	mt9t001->regulators[0].supply = "vdd";
++	mt9t001->regulators[1].supply = "vaa";
++
++	ret = devm_regulator_bulk_get(&client->dev, 2, mt9t001->regulators);
++	if (ret < 0) {
++		dev_err(&client->dev, "Unable to get regulators\n");
++		return ret;
++	}
++
+ 	v4l2_ctrl_handler_init(&mt9t001->ctrls, ARRAY_SIZE(mt9t001_ctrls) +
+ 						ARRAY_SIZE(mt9t001_gains) + 4);
+ 
 -- 
-1.9.rc1
+1.8.3.2
 
