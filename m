@@ -1,53 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from slow1-d.mail.gandi.net ([217.70.178.86]:37806 "EHLO
-	slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932130AbaBFIZh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 03:25:37 -0500
-Received: from relay6-d.mail.gandi.net (relay6-d.mail.gandi.net [217.70.183.198])
-	by slow1-d.mail.gandi.net (Postfix) with ESMTP id 0E5FE47B8AE
-	for <linux-media@vger.kernel.org>; Thu,  6 Feb 2014 09:25:36 +0100 (CET)
-Received: from mfilter20-d.gandi.net (mfilter20-d.gandi.net [217.70.178.148])
-	by relay6-d.mail.gandi.net (Postfix) with ESMTP id 3610BFB89B
-	for <linux-media@vger.kernel.org>; Thu,  6 Feb 2014 09:25:23 +0100 (CET)
-Received: from relay6-d.mail.gandi.net ([217.70.183.198])
-	by mfilter20-d.gandi.net (mfilter20-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
-	with ESMTP id kmXOk-1y-Uzs for <linux-media@vger.kernel.org>;
-	Thu,  6 Feb 2014 09:25:21 +0100 (CET)
-Received: from mail.sardemff7.net (128-79-238-221.hfc.dyn.abo.bbox.fr [128.79.238.221])
-	(Authenticated sender: sardemff7@sardemff7.net)
-	by relay6-d.mail.gandi.net (Postfix) with ESMTPA id 88C8BFB8A4
-	for <linux-media@vger.kernel.org>; Thu,  6 Feb 2014 09:25:21 +0100 (CET)
-Received: from lizzy.sardemff7.net (unknown [87.89.29.250])
-	by mail.sardemff7.net (Postfix) with ESMTPSA id D7F99265E9AF
-	for <linux-media@vger.kernel.org>; Thu,  6 Feb 2014 08:25:19 +0000 (UTC)
-Message-ID: <52F346EA.4070100@sardemff7.net>
-Date: Thu, 06 Feb 2014 09:25:14 +0100
-From: Quentin Glidic <sardemff7+linuxtv@sardemff7.net>
-MIME-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:39817 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752491AbaBJQRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 11:17:19 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: dvb-apps build failure
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 3/6] v4l: reorganize RF tuner control ID numbers
+Date: Mon, 10 Feb 2014 18:17:03 +0200
+Message-Id: <1392049026-13398-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1392049026-13398-1-git-send-email-crope@iki.fi>
+References: <1392049026-13398-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+It appears that controls are ordered by ID number. Change order of
+controls by reorganizing assigned IDs now as we can. It is not
+reasonable possible after the API is released. Leave some spare
+space between IDs too for future extensions.
 
-When building dvb-apps from the Mercurial repository, you hit the 
-following error:
-install: cannot stat 'atsc/*': No such file or directory
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ include/uapi/linux/v4l2-controls.h | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-In the latest changeset 
-(http://linuxtv.org/hg/dvb-apps/rev/d40083fff895) scan files were 
-deleted from the repository but not their install rule.
-
-Could someone please remove the bottom part of util/scan/Makefile (from 
-line 31, 
-http://linuxtv.org/hg/dvb-apps/file/d40083fff895/util/scan/Makefile#l31) 
-to fix this issue?
-
-Thanks,
-
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 3cf68a6..cc488c3 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -899,13 +899,13 @@ enum v4l2_deemphasis {
+ #define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
+ #define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
+ 
+-#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
+-#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
+-#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
+-#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
+-#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
+-#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
+-#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
+-#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
++#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
++#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
++#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
++#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
++#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
++#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 52)
++#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 61)
++#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
+ 
+ #endif
 -- 
+1.8.5.3
 
-Quentin “Sardem FF7” Glidic
