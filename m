@@ -1,145 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4596 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752174AbaB1Rmt (ORCPT
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:59758 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752353AbaBJNMt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 12:42:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 07/17] vb2: consistent usage of periods in videobuf2-core.h
-Date: Fri, 28 Feb 2014 18:42:05 +0100
-Message-Id: <1393609335-12081-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 10 Feb 2014 08:12:49 -0500
+Date: Mon, 10 Feb 2014 13:12:33 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>, devel@driverdev.osuosl.org,
+	alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	dri-devel@lists.freedesktop.org,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/2] drivers/base: permit base components to omit
+	the bind/unbind ops
+Message-ID: <20140210131233.GT26684@n2100.arm.linux.org.uk>
+References: <cover.1391792986.git.moinejf@free.fr> <9b3c3c2c982f31b026fd1516a2b608026d55b1e9.1391792986.git.moinejf@free.fr> <20140210125307.GG20143@ulmo.nvidia.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140210125307.GG20143@ulmo.nvidia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Feb 10, 2014 at 01:53:08PM +0100, Thierry Reding wrote:
+> On Fri, Feb 07, 2014 at 04:55:00PM +0100, Jean-Francois Moine wrote:
+> > Some simple components don't need to do any specific action on
+> > bind to / unbind from a master component.
+> > 
+> > This patch permits such components to omit the bind/unbind
+> > operations.
+> > 
+> > Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+> > ---
+> >  drivers/base/component.c | 9 +++++++--
+> >  1 file changed, 7 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/base/component.c b/drivers/base/component.c
+> > index c53efe6..0a39d7a 100644
+> > --- a/drivers/base/component.c
+> > +++ b/drivers/base/component.c
+> > @@ -225,7 +225,8 @@ static void component_unbind(struct component *component,
+> >  {
+> >  	WARN_ON(!component->bound);
+> >  
+> > -	component->ops->unbind(component->dev, master->dev, data);
+> > +	if (component->ops)
+> > +		component->ops->unbind(component->dev, master->dev, data);
+> 
+> This doesn't actually do what the commit message says. This makes
+> component->ops optional, not component->ops->unbind().
+> 
+> A more correct check would be:
+> 
+> 	if (component->ops && component->ops->unbind)
+> 
+> >  	component->bound = false;
+> >  
+> >  	/* Release all resources claimed in the binding of this component */
+> > @@ -274,7 +275,11 @@ static int component_bind(struct component *component, struct master *master,
+> >  	dev_dbg(master->dev, "binding %s (ops %ps)\n",
+> >  		dev_name(component->dev), component->ops);
+> >  
+> > -	ret = component->ops->bind(component->dev, master->dev, data);
+> > +	if (component->ops)
+> > +		ret = component->ops->bind(component->dev, master->dev, data);
+> 
+> Same here.
 
-Sometimes sentences in comments ended with a period, and sometimes they
-didn't. Add periods. No other changes.
+I've NAK'd these patches already - I believe they're based on a
+mis-understanding of how this should be used.  I believe Jean-Francois
+has only looked at the core, rather than looking at the imx-drm example
+it was posted with in an attempt to understand it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/videobuf2-core.h | 40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+Omitting the component bind operations is absurd because it makes the
+component code completely pointless, since there is then no way to
+control the sequencing of driver initialisation - something which is
+one of the primary reasons for this code existing in the first place.
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 3cb0bcf..06efa4a 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -34,49 +34,49 @@ struct vb2_fileio_data;
-  *		usually will result in the allocator freeing the buffer (if
-  *		no other users of this buffer are present); the buf_priv
-  *		argument is the allocator private per-buffer structure
-- *		previously returned from the alloc callback
-+ *		previously returned from the alloc callback.
-  * @get_userptr: acquire userspace memory for a hardware operation; used for
-  *		 USERPTR memory types; vaddr is the address passed to the
-  *		 videobuf layer when queuing a video buffer of USERPTR type;
-  *		 should return an allocator private per-buffer structure
-  *		 associated with the buffer on success, NULL on failure;
-  *		 the returned private structure will then be passed as buf_priv
-- *		 argument to other ops in this structure
-+ *		 argument to other ops in this structure.
-  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
-- *		 be used
-+ *		 be used.
-  * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
-  *		   used for DMABUF memory types; alloc_ctx is the alloc context
-  *		   dbuf is the shared dma_buf; returns NULL on failure;
-  *		   allocator private per-buffer structure on success;
-- *		   this needs to be used for further accesses to the buffer
-+ *		   this needs to be used for further accesses to the buffer.
-  * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
-  *		   buffer is no longer used; the buf_priv argument is the
-  *		   allocator private per-buffer structure previously returned
-- *		   from the attach_dmabuf callback
-+ *		   from the attach_dmabuf callback.
-  * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
-  *		of dmabuf is informed that this driver is going to use the
-- *		dmabuf
-+ *		dmabuf.
-  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-- *		  that this driver is done using the dmabuf for now
-+ *		  that this driver is done using the dmabuf for now.
-  * @prepare:	called every time the buffer is passed from userspace to the
-- *		driver, useful for cache synchronisation, optional
-+ *		driver, useful for cache synchronisation, optional.
-  * @finish:	called every time the buffer is passed back from the driver
-- *		to the userspace, also optional
-+ *		to the userspace, also optional.
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-- *		such mapping exists
-+ *		such mapping exists.
-  * @cookie:	return allocator specific cookie for a given memory buffer
-  *		associated with the passed private structure or NULL if not
-- *		available
-+ *		available.
-  * @num_users:	return the current number of users of a memory buffer;
-  *		return 1 if the videobuf layer (or actually the driver using
-- *		it) is the only user
-+ *		it) is the only user.
-  * @mmap:	setup a userspace mapping for a given memory buffer under
-- *		the provided virtual memory region
-+ *		the provided virtual memory region.
-  *
-  * Required ops for USERPTR types: get_userptr, put_userptr.
-  * Required ops for MMAP types: alloc, put, num_users, mmap.
-- * Required ops for read/write access types: alloc, put, num_users, vaddr
-+ * Required ops for read/write access types: alloc, put, num_users, vaddr.
-  * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
-  *				  unmap_dmabuf.
-  */
-@@ -258,22 +258,22 @@ struct vb2_buffer {
-  * @wait_prepare:	release any locks taken while calling vb2 functions;
-  *			it is called before an ioctl needs to wait for a new
-  *			buffer to arrive; required to avoid a deadlock in
-- *			blocking access type
-+ *			blocking access type.
-  * @wait_finish:	reacquire all locks released in the previous callback;
-  *			required to continue operation after sleeping while
-- *			waiting for a new buffer to arrive
-+ *			waiting for a new buffer to arrive.
-  * @buf_init:		called once after allocating a buffer (in MMAP case)
-  *			or after acquiring a new USERPTR buffer; drivers may
-  *			perform additional buffer-related initialization;
-  *			initialization failure (return != 0) will prevent
-- *			queue setup from completing successfully; optional
-+ *			queue setup from completing successfully; optional.
-  * @buf_prepare:	called every time the buffer is queued from userspace
-  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
-  *			perform any initialization required before each hardware
-  *			operation in this callback; drivers that support
-  *			VIDIOC_CREATE_BUFS must also validate the buffer size;
-  *			if an error is returned, the buffer will not be queued
-- *			in driver; optional
-+ *			in driver; optional.
-  * @buf_finish:		called before every dequeue of the buffer back to
-  *			userspace; drivers may perform any operations required
-  *			before userspace accesses the buffer; optional. The
-@@ -286,7 +286,7 @@ struct vb2_buffer {
-  *			all other cases the buffer contents will be ignored
-  *			anyway.
-  * @buf_cleanup:	called once before the buffer is freed; drivers may
-- *			perform any additional cleanup; optional
-+ *			perform any additional cleanup; optional.
-  * @start_streaming:	called once to enter 'streaming' state; the driver may
-  *			receive buffers with @buf_queue callback before
-  *			@start_streaming is called; the driver gets the number
-@@ -307,7 +307,7 @@ struct vb2_buffer {
-  *			the buffer back by calling vb2_buffer_done() function;
-  *			it is allways called after calling STREAMON ioctl;
-  *			might be called before start_streaming callback if user
-- *			pre-queued buffers before calling STREAMON
-+ *			pre-queued buffers before calling STREAMON.
-  */
- struct vb2_ops {
- 	int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
 -- 
-1.9.rc1
-
+FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
+in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
+Estimate before purchase was "up to 13.2Mbit".
