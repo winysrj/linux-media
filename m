@@ -1,59 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:57207 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752468AbaBUEtj (ORCPT
+Received: from omr-d02.mx.aol.com ([205.188.109.194]:51078 "EHLO
+	omr-d02.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751564AbaBJJuv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 23:49:39 -0500
-From: Daniel Jeong <gshark.jeong@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Jeong <gshark.jeong@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
-Subject: [RFC v5,2/3] controls.xml : add addtional Flash fault bits
-Date: Fri, 21 Feb 2014 13:49:26 +0900
-Message-Id: <1392958166-4614-1-git-send-email-gshark.jeong@gmail.com>
+	Mon, 10 Feb 2014 04:50:51 -0500
+Received: from mtaout-mbe02.mx.aol.com (mtaout-mbe02.mx.aol.com [172.26.254.174])
+	by omr-d02.mx.aol.com (Outbound Mail Relay) with ESMTP id 5621C700000AB
+	for <linux-media@vger.kernel.org>; Mon, 10 Feb 2014 04:45:13 -0500 (EST)
+Received: from [192.168.10.62] (p23240-ipngn2601marunouchi.tokyo.ocn.ne.jp [180.11.96.240])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by mtaout-mbe02.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id AE29B380000A3
+	for <linux-media@vger.kernel.org>; Mon, 10 Feb 2014 04:45:12 -0500 (EST)
+Message-ID: <52F89FB9.7080004@aim.com>
+Date: Mon, 10 Feb 2014 18:45:29 +0900
+From: Satoshi Nagahama <sattnag@aim.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Siano: smsusb - Add a device id for PX-S1UD
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added more comment about Input voltage flash monitor and external temp function.
+Add a device id to support for PX-S1UD (PLEX ISDB-T usb dongle) which
+has sms2270.
 
-Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+Signed-off-by: Satoshi Nagahama <sattnag@aim.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/media/usb/siano/smsusb.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index a5a3188..145a127 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4370,6 +4370,24 @@ interface and may change in the future.</para>
-     		  <entry>The flash controller has detected a short or open
-     		  circuit condition on the indicator LED.</entry>
-     		</row>
-+    		<row>
-+    		  <entry><constant>V4L2_FLASH_FAULT_UNDER_VOLTAGE</constant></entry>
-+    		  <entry>Flash controller voltage to the flash LED
-+    		  has been below the minimum limit specific to the flash
-+    		  controller.</entry>
-+    		</row>
-+    		<row>
-+    		  <entry><constant>V4L2_FLASH_FAULT_INPUT_VOLTAGE</constant></entry>
-+    		  <entry>The flash controller has detected adjustment by IVFM
-+    		  (Input Voltage Flash Monitor) block.
-+		  If during the flash current turn-on, the input voltage falls
-+		  below the threshold input voltage, IVFM adjust level</entry>
-+    		</row>
-+    		<row>
-+    		  <entry><constant>V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE</constant></entry>
-+    		  <entry>The flash controller has detected that TEMP input has
-+    		  crossed threshold by external temperature sensor.</entry>
-+    		</row>
-     	      </tbody>
-     	    </entrytbl>
-     	  </row>
+diff --git a/drivers/media/usb/siano/smsusb.c
+b/drivers/media/usb/siano/smsusb.c
+index 05bd91a..1836a41 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -653,6 +653,8 @@ static const struct usb_device_id smsusb_id_table[] = {
+ 		.driver_info = SMS1XXX_BOARD_ZTE_DVB_DATA_CARD },
+ 	{ USB_DEVICE(0x19D2, 0x0078),
+ 		.driver_info = SMS1XXX_BOARD_ONDA_MDTV_DATA_CARD },
++	{ USB_DEVICE(0x3275, 0x0080),
++		.driver_info = SMS1XXX_BOARD_SIANO_RIO },
+ 	{ } /* Terminating entry */
+ 	};
+
 -- 
-1.7.9.5
+1.8.4.2
 
