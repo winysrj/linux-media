@@ -1,41 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784AbaBEQlz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:40634 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752540AbaBJQRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 11:17:19 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 19/47] adv7511: Remove deprecated video-level DV timings operations
-Date: Wed,  5 Feb 2014 17:42:10 +0100
-Message-Id: <1391618558-5580-20-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 4/6] v4l: uapi: add SDR formats CU8 and CU16LE
+Date: Mon, 10 Feb 2014 18:17:04 +0200
+Message-Id: <1392049026-13398-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1392049026-13398-1-git-send-email-crope@iki.fi>
+References: <1392049026-13398-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
+V4L2_SDR_FMT_CU8 — Complex unsigned 8-bit IQ sample
+V4L2_SDR_FMT_CU16LE — Complex unsigned 16-bit little endian IQ sample
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/i2c/adv7511.c | 2 --
- 1 file changed, 2 deletions(-)
+ include/uapi/linux/videodev2.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index f8c75c6..de7ddf5 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -692,8 +692,6 @@ static const struct v4l2_subdev_video_ops adv7511_video_ops = {
- 	.s_stream = adv7511_s_stream,
- 	.s_dv_timings = adv7511_s_dv_timings,
- 	.g_dv_timings = adv7511_g_dv_timings,
--	.enum_dv_timings = adv7511_enum_dv_timings,
--	.dv_timings_cap = adv7511_dv_timings_cap,
- };
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 27fedfe..3411215 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -436,6 +436,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+ #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
  
- /* ------------------------------ AUDIO OPS ------------------------------ */
++/* SDR formats - used only for Software Defined Radio devices */
++#define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
++#define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
++
+ /*
+  *	F O R M A T   E N U M E R A T I O N
+  */
 -- 
-1.8.3.2
+1.8.5.3
 
