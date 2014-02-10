@@ -1,537 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32789 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751379AbaBIJER (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 04:04:17 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1164 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751869AbaBJIr7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 03:47:59 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 57/86] msi001: Mirics MSi001 silicon tuner driver
-Date: Sun,  9 Feb 2014 10:49:02 +0200
-Message-Id: <1391935771-18670-58-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 14/34] v4l2-ctrls: prepare for matrix support.
+Date: Mon, 10 Feb 2014 09:46:39 +0100
+Message-Id: <1392022019-5519-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That RF tuner driver is bound via SPI bus model and it implements V4L
-subdev API. I split it out from MSi3101 SDR driver.
-MSi3101 = MSi2500 + MSi001.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Add core support for matrices.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/msi3101/Kconfig  |   4 +
- drivers/staging/media/msi3101/Makefile |   1 +
- drivers/staging/media/msi3101/msi001.c | 481 +++++++++++++++++++++++++++++++++
- 3 files changed, 486 insertions(+)
- create mode 100644 drivers/staging/media/msi3101/msi001.c
+ drivers/media/v4l2-core/v4l2-ctrls.c | 54 +++++++++++++++++++++++-------------
+ include/media/v4l2-ctrls.h           |  8 ++++--
+ 2 files changed, 39 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/staging/media/msi3101/Kconfig b/drivers/staging/media/msi3101/Kconfig
-index 0c349c8..97d5210 100644
---- a/drivers/staging/media/msi3101/Kconfig
-+++ b/drivers/staging/media/msi3101/Kconfig
-@@ -3,3 +3,7 @@ config USB_MSI3101
- 	depends on USB && VIDEO_DEV && VIDEO_V4L2
- 	select VIDEOBUF2_CORE
- 	select VIDEOBUF2_VMALLOC
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 86a27af..16c29e1 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1132,7 +1132,7 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+ 			v4l2_event_queue_fh(sev->fh, &ev);
+ }
+ 
+-static bool std_equal(const struct v4l2_ctrl *ctrl,
++static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		      union v4l2_ctrl_ptr ptr1,
+ 		      union v4l2_ctrl_ptr ptr2)
+ {
+@@ -1151,7 +1151,7 @@ static bool std_equal(const struct v4l2_ctrl *ctrl,
+ 	}
+ }
+ 
+-static void std_init(const struct v4l2_ctrl *ctrl,
++static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		     union v4l2_ctrl_ptr ptr)
+ {
+ 	switch (ctrl->type) {
+@@ -1178,6 +1178,9 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ {
+ 	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
+ 
++	if (ctrl->is_matrix)
++		pr_cont("[%u][%u] ", ctrl->rows, ctrl->cols);
 +
-+config MEDIA_TUNER_MSI001
-+	tristate "Mirics MSi001"
-+	depends on VIDEO_V4L2 && SPI
-diff --git a/drivers/staging/media/msi3101/Makefile b/drivers/staging/media/msi3101/Makefile
-index 3730654..daf4f58 100644
---- a/drivers/staging/media/msi3101/Makefile
-+++ b/drivers/staging/media/msi3101/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_USB_MSI3101)             += sdr-msi3101.o
-+obj-$(CONFIG_MEDIA_TUNER_MSI001)      += msi001.o
-diff --git a/drivers/staging/media/msi3101/msi001.c b/drivers/staging/media/msi3101/msi001.c
-new file mode 100644
-index 0000000..5c5bb52
---- /dev/null
-+++ b/drivers/staging/media/msi3101/msi001.c
-@@ -0,0 +1,481 @@
-+/*
-+ * Mirics MSi001 silicon tuner driver
-+ *
-+ * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
-+ * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-+ *
-+ *    This program is free software; you can redistribute it and/or modify
-+ *    it under the terms of the GNU General Public License as published by
-+ *    the Free Software Foundation; either version 2 of the License, or
-+ *    (at your option) any later version.
-+ *
-+ *    This program is distributed in the hope that it will be useful,
-+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *    GNU General Public License for more details.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/gcd.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
-+
-+static const struct v4l2_frequency_band bands[] = {
-+	{
-+		.type = V4L2_TUNER_RF,
-+		.index = 0,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =   49000000,
-+		.rangehigh  =  263000000,
-+	}, {
-+		.type = V4L2_TUNER_RF,
-+		.index = 1,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =  390000000,
-+		.rangehigh  =  960000000,
-+	},
-+};
-+
-+struct msi001 {
-+	struct spi_device *spi;
-+	struct v4l2_subdev sd;
-+
-+	/* Controls */
-+	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_ctrl *bandwidth_auto;
-+	struct v4l2_ctrl *bandwidth;
-+	struct v4l2_ctrl *lna_gain;
-+	struct v4l2_ctrl *mixer_gain;
-+	struct v4l2_ctrl *if_gain;
-+
-+	unsigned int f_tuner;
-+};
-+
-+static inline struct msi001 *sd_to_msi001(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct msi001, sd);
-+}
-+
-+static int msi001_wreg(struct msi001 *s, u32 data)
-+{
-+	/* Register format: 4 bits addr + 20 bits value */
-+	return spi_write(s->spi, &data, 3);
-+};
-+
-+static int msi001_set_gain(struct msi001 *s, int lna_gain, int mixer_gain,
-+		int if_gain)
-+{
-+	int ret;
-+	u32 reg;
-+	dev_dbg(&s->spi->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
-+			lna_gain, mixer_gain, if_gain);
-+
-+	reg = 1 << 0;
-+	reg |= (59 - if_gain) << 4;
-+	reg |= 0 << 10;
-+	reg |= (1 - mixer_gain) << 12;
-+	reg |= (1 - lna_gain) << 13;
-+	reg |= 4 << 14;
-+	reg |= 0 << 17;
-+	ret = msi001_wreg(s, reg);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	dev_dbg(&s->spi->dev, "%s: failed %d\n", __func__, ret);
-+	return ret;
-+};
-+
-+static int msi001_set_tuner(struct msi001 *s)
-+{
-+	int ret, i;
-+	unsigned int n, m, thresh, frac, vco_step, tmp, f_if1;
-+	u32 reg;
-+	u64 f_vco, tmp64;
-+	u8 mode, filter_mode, lo_div;
-+	static const struct {
-+		u32 rf;
-+		u8 mode;
-+		u8 lo_div;
-+	} band_lut[] = {
-+		{ 50000000, 0xe1, 16}, /* AM_MODE2, antenna 2 */
-+		{108000000, 0x42, 32}, /* VHF_MODE */
-+		{330000000, 0x44, 16}, /* B3_MODE */
-+		{960000000, 0x48,  4}, /* B45_MODE */
-+		{      ~0U, 0x50,  2}, /* BL_MODE */
-+	};
-+	static const struct {
-+		u32 freq;
-+		u8 filter_mode;
-+	} if_freq_lut[] = {
-+		{      0, 0x03}, /* Zero IF */
-+		{ 450000, 0x02}, /* 450 kHz IF */
-+		{1620000, 0x01}, /* 1.62 MHz IF */
-+		{2048000, 0x00}, /* 2.048 MHz IF */
-+	};
-+	static const struct {
-+		u32 freq;
-+		u8 val;
-+	} bandwidth_lut[] = {
-+		{ 200000, 0x00}, /* 200 kHz */
-+		{ 300000, 0x01}, /* 300 kHz */
-+		{ 600000, 0x02}, /* 600 kHz */
-+		{1536000, 0x03}, /* 1.536 MHz */
-+		{5000000, 0x04}, /* 5 MHz */
-+		{6000000, 0x05}, /* 6 MHz */
-+		{7000000, 0x06}, /* 7 MHz */
-+		{8000000, 0x07}, /* 8 MHz */
-+	};
-+
-+	unsigned int f_rf = s->f_tuner;
-+
-+	/*
-+	 * bandwidth (Hz)
-+	 * 200000, 300000, 600000, 1536000, 5000000, 6000000, 7000000, 8000000
-+	 */
-+	unsigned int bandwidth;
-+
-+	/*
-+	 * intermediate frequency (Hz)
-+	 * 0, 450000, 1620000, 2048000
-+	 */
-+	unsigned int f_if = 0;
-+	#define F_REF 24000000
-+	#define R_REF 4
-+	#define F_OUT_STEP 1
-+
-+	dev_dbg(&s->spi->dev,
-+			"%s: f_rf=%d f_if=%d\n",
-+			__func__, f_rf, f_if);
-+
-+	for (i = 0; i < ARRAY_SIZE(band_lut); i++) {
-+		if (f_rf <= band_lut[i].rf) {
-+			mode = band_lut[i].mode;
-+			lo_div = band_lut[i].lo_div;
-+			break;
-+		}
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+ 		pr_cont("%d", *ptr.p_s32);
+@@ -1220,7 +1223,7 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ })
+ 
+ /* Validate a new control */
+-static int std_validate(const struct v4l2_ctrl *ctrl,
++static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			union v4l2_ctrl_ptr ptr)
+ {
+ 	size_t len;
+@@ -1444,7 +1447,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
+ 
+ 		if (ctrl == NULL)
+ 			continue;
+-		ctrl->has_changed = !ctrl->type_ops->equal(ctrl,
++		ctrl->has_changed = !ctrl->type_ops->equal(ctrl, 0,
+ 						ctrl->stores[0], ctrl->new);
+ 		changed |= ctrl->has_changed;
+ 	}
+@@ -1502,15 +1505,15 @@ static int validate_new(const struct v4l2_ctrl *ctrl,
+ 	case V4L2_CTRL_TYPE_BUTTON:
+ 	case V4L2_CTRL_TYPE_CTRL_CLASS:
+ 		ptr.p_s32 = &c->value;
+-		return ctrl->type_ops->validate(ctrl, ptr);
++		return ctrl->type_ops->validate(ctrl, 0, ptr);
+ 
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		ptr.p_s64 = &c->value64;
+-		return ctrl->type_ops->validate(ctrl, ptr);
++		return ctrl->type_ops->validate(ctrl, 0, ptr);
+ 
+ 	default:
+ 		ptr.p = c->p;
+-		return ctrl->type_ops->validate(ctrl, ptr);
++		return ctrl->type_ops->validate(ctrl, 0, ptr);
+ 	}
+ }
+ 
+@@ -1736,7 +1739,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			const s64 *qmenu_int, void *priv)
+ {
+ 	struct v4l2_ctrl *ctrl;
+-	unsigned sz_extra;
++	bool is_matrix;
++	unsigned sz_extra, tot_ctrl_size;
+ 	void *data;
+ 	int err;
+ 	int s;
+@@ -1748,6 +1752,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		cols = 1;
+ 	if (rows == 0)
+ 		rows = 1;
++	is_matrix = cols > 1 || rows > 1;
+ 
+ 	if (type == V4L2_CTRL_TYPE_INTEGER64)
+ 		elem_size = sizeof(s64);
+@@ -1755,17 +1760,18 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		elem_size = max + 1;
+ 	else if (type < V4L2_CTRL_COMPLEX_TYPES)
+ 		elem_size = sizeof(s32);
++	tot_ctrl_size = elem_size * cols * rows;
+ 
+ 	/* Sanity checks */
+-	if (id == 0 || name == NULL || id >= V4L2_CID_PRIVATE_BASE ||
+-	    elem_size == 0 ||
++	if (id == 0 || name == NULL || !elem_size ||
++	    id >= V4L2_CID_PRIVATE_BASE ||
+ 	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL) ||
+ 	    (type == V4L2_CTRL_TYPE_INTEGER_MENU && qmenu_int == NULL)) {
+ 		handler_set_err(hdl, -ERANGE);
+ 		return NULL;
+ 	}
+ 	/* Complex controls are always hidden */
+-	if (type >= V4L2_CTRL_COMPLEX_TYPES)
++	if (is_matrix || type >= V4L2_CTRL_COMPLEX_TYPES)
+ 		flags |= V4L2_CTRL_FLAG_HIDDEN;
+ 	/*
+ 	 * No hidden controls are allowed in the USER class
+@@ -1785,14 +1791,21 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		handler_set_err(hdl, -ERANGE);
+ 		return NULL;
+ 	}
++	if (is_matrix &&
++	    (type == V4L2_CTRL_TYPE_BUTTON ||
++	     type == V4L2_CTRL_TYPE_CTRL_CLASS)) {
++		handler_set_err(hdl, -EINVAL);
++		return NULL;
 +	}
-+
-+	if (i == ARRAY_SIZE(band_lut)) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	/* AM_MODE is upconverted */
-+	if ((mode >> 0) & 0x1)
-+		f_if1 =  5 * F_REF;
-+	else
-+		f_if1 =  0;
-+
-+	for (i = 0; i < ARRAY_SIZE(if_freq_lut); i++) {
-+		if (f_if == if_freq_lut[i].freq) {
-+			filter_mode = if_freq_lut[i].filter_mode;
-+			break;
-+		}
-+	}
-+
-+	if (i == ARRAY_SIZE(if_freq_lut)) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	/* filters */
-+	bandwidth = s->bandwidth->val;
-+	bandwidth = clamp(bandwidth, 200000U, 8000000U);
-+
-+	for (i = 0; i < ARRAY_SIZE(bandwidth_lut); i++) {
-+		if (bandwidth <= bandwidth_lut[i].freq) {
-+			bandwidth = bandwidth_lut[i].val;
-+			break;
-+		}
-+	}
-+
-+	if (i == ARRAY_SIZE(bandwidth_lut)) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	s->bandwidth->val = bandwidth_lut[i].freq;
-+
-+	dev_dbg(&s->spi->dev, "%s: bandwidth selected=%d\n",
-+			__func__, bandwidth_lut[i].freq);
-+
-+	f_vco = (f_rf + f_if + f_if1) * lo_div;
-+	tmp64 = f_vco;
-+	m = do_div(tmp64, F_REF * R_REF);
-+	n = (unsigned int) tmp64;
-+
-+	vco_step = F_OUT_STEP * lo_div;
-+	thresh = (F_REF * R_REF) / vco_step;
-+	frac = 1ul * thresh * m / (F_REF * R_REF);
-+
-+	/* Find out greatest common divisor and divide to smaller. */
-+	tmp = gcd(thresh, frac);
-+	thresh /= tmp;
-+	frac /= tmp;
-+
-+	/* Force divide to reg max. Resolution will be reduced. */
-+	tmp = DIV_ROUND_UP(thresh, 4095);
-+	thresh = DIV_ROUND_CLOSEST(thresh, tmp);
-+	frac = DIV_ROUND_CLOSEST(frac, tmp);
-+
-+	/* calc real RF set */
-+	tmp = 1ul * F_REF * R_REF * n;
-+	tmp += 1ul * F_REF * R_REF * frac / thresh;
-+	tmp /= lo_div;
-+
-+	dev_dbg(&s->spi->dev,
-+			"%s: rf=%u:%u n=%d thresh=%d frac=%d\n",
-+				__func__, f_rf, tmp, n, thresh, frac);
-+
-+	ret = msi001_wreg(s, 0x00000e);
-+	if (ret)
-+		goto err;
-+
-+	ret = msi001_wreg(s, 0x000003);
-+	if (ret)
-+		goto err;
-+
-+	reg = 0 << 0;
-+	reg |= mode << 4;
-+	reg |= filter_mode << 12;
-+	reg |= bandwidth << 14;
-+	reg |= 0x02 << 17;
-+	reg |= 0x00 << 20;
-+	ret = msi001_wreg(s, reg);
-+	if (ret)
-+		goto err;
-+
-+	reg = 5 << 0;
-+	reg |= thresh << 4;
-+	reg |= 1 << 19;
-+	reg |= 1 << 21;
-+	ret = msi001_wreg(s, reg);
-+	if (ret)
-+		goto err;
-+
-+	reg = 2 << 0;
-+	reg |= frac << 4;
-+	reg |= n << 16;
-+	ret = msi001_wreg(s, reg);
-+	if (ret)
-+		goto err;
-+
-+	ret = msi001_set_gain(s, s->lna_gain->cur.val, s->mixer_gain->cur.val,
-+			s->if_gain->cur.val);
-+	if (ret)
-+		goto err;
-+
-+	reg = 6 << 0;
-+	reg |= 63 << 4;
-+	reg |= 4095 << 10;
-+	ret = msi001_wreg(s, reg);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	dev_dbg(&s->spi->dev, "%s: failed %d\n", __func__, ret);
-+	return ret;
-+};
-+
-+static int msi001_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct msi001 *s = sd_to_msi001(sd);
-+	int ret;
-+	dev_dbg(&s->spi->dev, "%s: on=%d\n", __func__, on);
-+
-+	if (on)
-+		ret = 0;
-+	else
-+		ret = msi001_wreg(s, 0x000000);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_subdev_core_ops msi001_core_ops = {
-+	.s_power                  = msi001_s_power,
-+};
-+
-+static int msi001_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *v)
-+{
-+	struct msi001 *s = sd_to_msi001(sd);
-+	dev_dbg(&s->spi->dev, "%s: index=%d\n", __func__, v->index);
-+
-+	strlcpy(v->name, "Mirics MSi001", sizeof(v->name));
-+	v->type = V4L2_TUNER_RF;
-+	v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+	v->rangelow =    49000000;
-+	v->rangehigh =  960000000;
-+
-+	return 0;
-+}
-+
-+static int msi001_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *v)
-+{
-+	struct msi001 *s = sd_to_msi001(sd);
-+	dev_dbg(&s->spi->dev, "%s: index=%d\n", __func__, v->index);
-+	return 0;
-+}
-+
-+static int msi001_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
-+{
-+	struct msi001 *s = sd_to_msi001(sd);
-+	dev_dbg(&s->spi->dev, "%s: tuner=%d\n", __func__, f->tuner);
-+	f->frequency = s->f_tuner;
-+	return 0;
-+}
-+
-+static int msi001_s_frequency(struct v4l2_subdev *sd,
-+		const struct v4l2_frequency *f)
-+{
-+	struct msi001 *s = sd_to_msi001(sd);
-+	unsigned int band;
-+	dev_dbg(&s->spi->dev, "%s: tuner=%d type=%d frequency=%u\n",
-+			__func__, f->tuner, f->type, f->frequency);
-+
-+	if (f->frequency < ((bands[0].rangehigh + bands[1].rangelow) / 2))
-+		band = 0;
-+	else
-+		band = 1;
-+	s->f_tuner = clamp_t(unsigned int, f->frequency,
-+			bands[band].rangelow, bands[band].rangehigh);
-+
-+	return msi001_set_tuner(s);
-+}
-+
-+static const struct v4l2_subdev_tuner_ops msi001_tuner_ops = {
-+	.g_tuner                  = msi001_g_tuner,
-+	.s_tuner                  = msi001_s_tuner,
-+	.g_frequency              = msi001_g_frequency,
-+	.s_frequency              = msi001_s_frequency,
-+};
-+
-+static const struct v4l2_subdev_ops msi001_ops = {
-+	.core                     = &msi001_core_ops,
-+	.tuner                    = &msi001_tuner_ops,
-+};
-+
-+static int msi001_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct msi001 *s = container_of(ctrl->handler, struct msi001, hdl);
-+
-+	int ret;
-+	dev_dbg(&s->spi->dev,
-+			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
-+			__func__, ctrl->id, ctrl->name, ctrl->val,
-+			ctrl->minimum, ctrl->maximum, ctrl->step);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_BANDWIDTH_AUTO:
-+	case V4L2_CID_BANDWIDTH:
-+		ret = msi001_set_tuner(s);
-+		break;
-+	case  V4L2_CID_LNA_GAIN:
-+		ret = msi001_set_gain(s, s->lna_gain->val,
-+				s->mixer_gain->cur.val, s->if_gain->cur.val);
-+		break;
-+	case  V4L2_CID_MIXER_GAIN:
-+		ret = msi001_set_gain(s, s->lna_gain->cur.val,
-+				s->mixer_gain->val, s->if_gain->cur.val);
-+		break;
-+	case  V4L2_CID_IF_GAIN:
-+		ret = msi001_set_gain(s, s->lna_gain->cur.val,
-+				s->mixer_gain->cur.val, s->if_gain->val);
-+		break;
-+	default:
-+		dev_dbg(&s->spi->dev, "%s: unkown control %d\n",
-+				__func__, ctrl->id);
-+		ret = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops msi001_ctrl_ops = {
-+	.s_ctrl                   = msi001_s_ctrl,
-+};
-+
-+static int msi001_probe(struct spi_device *spi)
-+{
-+	struct msi001 *s;
-+	int ret;
-+	dev_dbg(&spi->dev, "%s:\n", __func__);
-+
-+	s = kzalloc(sizeof(struct msi001), GFP_KERNEL);
-+	if (s == NULL) {
-+		ret = -ENOMEM;
-+		dev_dbg(&spi->dev, "Could not allocate memory for msi001\n");
-+		goto err_kfree;
-+	}
-+
-+	s->spi = spi;
-+	v4l2_spi_subdev_init(&s->sd, spi, &msi001_ops);
-+
-+	/* Register controls */
-+	v4l2_ctrl_handler_init(&s->hdl, 5);
-+	s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
-+			V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
-+	s->bandwidth = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
-+			V4L2_CID_BANDWIDTH, 200000, 8000000, 1, 200000);
-+	v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
-+	s->lna_gain = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
-+			V4L2_CID_LNA_GAIN, 0, 1, 1, 1);
-+	s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
-+			V4L2_CID_MIXER_GAIN, 0, 1, 1, 1);
-+	s->if_gain = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
-+			V4L2_CID_IF_GAIN, 0, 59, 1, 0);
-+	if (s->hdl.error) {
-+		ret = s->hdl.error;
-+		dev_err(&s->spi->dev, "Could not initialize controls\n");
-+		/* control init failed, free handler */
-+		goto err_ctrl_handler_free;
-+	}
-+
-+	s->sd.ctrl_handler = &s->hdl;
-+	return 0;
-+
-+err_ctrl_handler_free:
-+	v4l2_ctrl_handler_free(&s->hdl);
-+err_kfree:
-+	kfree(s);
-+	return ret;
-+}
-+
-+static int msi001_remove(struct spi_device *spi)
-+{
-+	struct v4l2_subdev *sd = spi_get_drvdata(spi);
-+	struct msi001 *s = sd_to_msi001(sd);
-+	dev_dbg(&spi->dev, "%s:\n", __func__);
-+
-+	/*
-+	 * Registered by v4l2_spi_new_subdev() from master driver, but we must
-+	 * unregister it from here. Weird.
-+	 */
-+	v4l2_device_unregister_subdev(&s->sd);
-+	v4l2_ctrl_handler_free(&s->hdl);
-+	kfree(s);
-+	return 0;
-+}
-+
-+static const struct spi_device_id msi001_id[] = {
-+	{"msi001", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(spi, msi001_id);
-+
-+static struct spi_driver msi001_driver = {
-+	.driver = {
-+		.name	= "msi001",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= msi001_probe,
-+	.remove		= msi001_remove,
-+	.id_table	= msi001_id,
-+};
-+module_spi_driver(msi001_driver);
-+
-+MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
-+MODULE_DESCRIPTION("Mirics MSi001");
-+MODULE_LICENSE("GPL");
+ 
+-	sz_extra = elem_size;
++	sz_extra = tot_ctrl_size;
+ 	if (type == V4L2_CTRL_TYPE_BUTTON)
+ 		flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 	else if (type == V4L2_CTRL_TYPE_CTRL_CLASS)
+ 		flags |= V4L2_CTRL_FLAG_READ_ONLY;
+-	else if (type == V4L2_CTRL_TYPE_STRING || type >= V4L2_CTRL_COMPLEX_TYPES)
+-		sz_extra += elem_size;
++	else if (type == V4L2_CTRL_TYPE_STRING ||
++		 type >= V4L2_CTRL_COMPLEX_TYPES || is_matrix)
++		sz_extra += tot_ctrl_size;
+ 
+ 	ctrl = kzalloc(sizeof(*ctrl) + sz_extra, GFP_KERNEL);
+ 	if (ctrl == NULL) {
+@@ -1814,9 +1827,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->maximum = max;
+ 	ctrl->step = step;
+ 	ctrl->default_value = def;
+-	ctrl->is_string = type == V4L2_CTRL_TYPE_STRING;
+-	ctrl->is_ptr = type >= V4L2_CTRL_COMPLEX_TYPES || ctrl->is_string;
++	ctrl->is_string = !is_matrix && type == V4L2_CTRL_TYPE_STRING;
++	ctrl->is_ptr = is_matrix || type >= V4L2_CTRL_COMPLEX_TYPES || ctrl->is_string;
+ 	ctrl->is_int = !ctrl->is_ptr && type != V4L2_CTRL_TYPE_INTEGER64;
++	ctrl->is_matrix = is_matrix;
+ 	ctrl->cols = cols;
+ 	ctrl->rows = rows;
+ 	ctrl->elem_size = elem_size;
+@@ -1830,13 +1844,13 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 
+ 	if (ctrl->is_ptr) {
+ 		for (s = -1; s <= 0; s++)
+-			ctrl->stores[s].p = data + (s + 1) * elem_size;
++			ctrl->stores[s].p = data + (s + 1) * tot_ctrl_size;
+ 	} else {
+ 		ctrl->new.p = &ctrl->val;
+ 		ctrl->stores[0].p = data;
+ 	}
+ 	for (s = -1; s <= 0; s++)
+-		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
++		ctrl->type_ops->init(ctrl, 0, ctrl->stores[s]);
+ 
+ 	if (handler_new_ref(hdl, ctrl)) {
+ 		kfree(ctrl);
+@@ -2740,7 +2754,7 @@ s64 v4l2_ctrl_g_ctrl_int64(struct v4l2_ctrl *ctrl)
+ 	struct v4l2_ext_control c;
+ 
+ 	/* It's a driver bug if this happens. */
+-	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
++	WARN_ON(ctrl->is_ptr || ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
+ 	c.value = 0;
+ 	get_ctrl(ctrl, &c);
+ 	return c.value;
+@@ -3050,7 +3064,7 @@ int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
+ 	struct v4l2_ext_control c;
+ 
+ 	/* It's a driver bug if this happens. */
+-	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
++	WARN_ON(ctrl->is_ptr || ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
+ 	c.value64 = val;
+ 	return set_ctrl_lock(NULL, ctrl, &c);
+ }
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 1b06930..7d72328 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -74,13 +74,13 @@ struct v4l2_ctrl_ops {
+   * @validate: validate the value. Return 0 on success and a negative value otherwise.
+   */
+ struct v4l2_ctrl_type_ops {
+-	bool (*equal)(const struct v4l2_ctrl *ctrl,
++	bool (*equal)(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		      union v4l2_ctrl_ptr ptr1,
+ 		      union v4l2_ctrl_ptr ptr2);
+-	void (*init)(const struct v4l2_ctrl *ctrl,
++	void (*init)(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		     union v4l2_ctrl_ptr ptr);
+ 	void (*log)(const struct v4l2_ctrl *ctrl);
+-	int (*validate)(const struct v4l2_ctrl *ctrl,
++	int (*validate)(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			union v4l2_ctrl_ptr ptr);
+ };
+ 
+@@ -111,6 +111,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   * @is_ptr:	If set, then this control is a matrix and/or has type >= V4L2_CTRL_COMPLEX_TYPES
+   *		and/or has type V4L2_CTRL_TYPE_STRING. In other words, struct
+   *		v4l2_ext_control uses field p to point to the data.
++  * @is_matrix: If set, then this control contains a matrix.
+   * @has_volatiles: If set, then one or more members of the cluster are volatile.
+   *		Drivers should never touch this flag.
+   * @call_notify: If set, then call the handler's notify function whenever the
+@@ -169,6 +170,7 @@ struct v4l2_ctrl {
+ 	unsigned int is_int:1;
+ 	unsigned int is_string:1;
+ 	unsigned int is_ptr:1;
++	unsigned int is_matrix:1;
+ 	unsigned int has_volatiles:1;
+ 	unsigned int call_notify:1;
+ 	unsigned int manual_mode_value:8;
 -- 
-1.8.5.3
+1.8.5.2
 
