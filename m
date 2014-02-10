@@ -1,84 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:39328 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756997AbaBFUAB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 15:00:01 -0500
-Received: by mail-wi0-f174.google.com with SMTP id f8so181701wiw.13
-        for <linux-media@vger.kernel.org>; Thu, 06 Feb 2014 12:00:00 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>
-Subject: [RFC 4/4] DEBUG: rc: img-ir: raw: Add loopback on s_filter
-Date: Thu,  6 Feb 2014 19:59:23 +0000
-Message-Id: <1391716763-2689-5-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
-References: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3290 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751851AbaBJIr7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 03:47:59 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 09/34] v4l2-ctrls: rewrite copy routines to operate on union v4l2_ctrl_ptr.
+Date: Mon, 10 Feb 2014 09:46:34 +0100
+Message-Id: <1392022019-5519-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Purely for the purposes of debugging the raw IR encode, add the s_filter
-callback to the img-ir-raw driver, which instead of setting the filter
-just feeds it back through the input device so that it can be verified.
----
- drivers/media/rc/img-ir/img-ir-raw.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
-index cfb01d9..272767a 100644
---- a/drivers/media/rc/img-ir/img-ir-raw.c
-+++ b/drivers/media/rc/img-ir/img-ir-raw.c
-@@ -7,6 +7,7 @@
-  * signal edges are reported and decoded by generic software decoders.
-  */
+In order to implement matrix support and (for the future) configuration stores
+we need to have more generic copy routines. The v4l2_ctrl_ptr union was designed
+for this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 129 +++++++++++++++--------------------
+ 1 file changed, 56 insertions(+), 73 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 988a2bd8..b945008 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1275,48 +1275,64 @@ static const struct v4l2_ctrl_type_ops std_type_ops = {
+ 	.validate = std_validate,
+ };
  
-+#include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <media/rc-core.h>
- #include "img-ir.h"
-@@ -95,6 +96,34 @@ void img_ir_setup_raw(struct img_ir_priv *priv)
- 	spin_unlock_irq(&priv->lock);
+-/* Helper function: copy the current control value back to the caller */
+-static int cur_to_user(struct v4l2_ext_control *c,
+-		       struct v4l2_ctrl *ctrl)
++/* Helper function: copy the given control value back to the caller */
++static int ptr_to_user(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl *ctrl,
++		       union v4l2_ctrl_ptr ptr)
+ {
+ 	u32 len;
+ 
+ 	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_to_user(c->p, ctrl->cur.p, ctrl->elem_size);
++		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(ctrl->cur.string);
++		len = strlen(ptr.p_char);
+ 		if (c->size < len + 1) {
+ 			c->size = len + 1;
+ 			return -ENOSPC;
+ 		}
+-		return copy_to_user(c->string, ctrl->cur.string,
+-						len + 1) ? -EFAULT : 0;
++		return copy_to_user(c->string, ptr.p_char, len + 1) ?
++								-EFAULT : 0;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		c->value64 = ctrl->cur.val64;
++		c->value64 = *ptr.p_s64;
+ 		break;
+ 	default:
+-		c->value = ctrl->cur.val;
++		c->value = *ptr.p_s32;
+ 		break;
+ 	}
+ 	return 0;
  }
  
-+static int img_ir_raw_set_filter(struct rc_dev *dev, enum rc_filter_type type,
-+				 struct rc_scancode_filter *sc_filter)
-+{
-+	struct ir_raw_event *raw;
-+	int ret;
-+	int i;
-+
-+	/* fine to disable filter */
-+	if (!sc_filter->mask)
-+		return 0;
-+	
-+	raw = kmalloc(512 * sizeof(*raw), GFP_KERNEL);
-+	ret = ir_raw_encode_scancode(dev->enabled_protocols, sc_filter, raw,
-+				     512);
-+	if (ret >= 0) {
-+		/* loop back the scancode just for fun! */
-+		for (i = 0; i < ret; ++i)
-+			ir_raw_event_store(dev, &raw[i]);
-+		ir_raw_event_handle(dev);
-+
-+		ret = 0;
-+	}
-+
-+	kfree(raw);
-+
-+	return ret;
+-/* Helper function: copy the caller-provider value as the new control value */
+-static int user_to_new(struct v4l2_ext_control *c,
++/* Helper function: copy the current control value back to the caller */
++static int cur_to_user(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+ {
++	return ptr_to_user(c, ctrl, ctrl->stores[0]);
 +}
 +
- int img_ir_probe_raw(struct img_ir_priv *priv)
- {
- 	struct img_ir_priv_raw *raw = &priv->raw;
-@@ -114,6 +143,7 @@ int img_ir_probe_raw(struct img_ir_priv *priv)
- 	rdev->map_name = RC_MAP_EMPTY;
- 	rdev->input_name = "IMG Infrared Decoder Raw";
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
-+	rdev->s_filter = img_ir_raw_set_filter;
++/* Helper function: copy the new control value back to the caller */
++static int new_to_user(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl *ctrl)
++{
++	return ptr_to_user(c, ctrl, ctrl->new);
++}
++
++/* Helper function: copy the caller-provider value to the given control value */
++static int user_to_ptr(struct v4l2_ext_control *c,
++		       struct v4l2_ctrl *ctrl,
++		       union v4l2_ctrl_ptr ptr)
++{
+ 	int ret;
+ 	u32 size;
  
- 	/* Register raw decoder */
- 	error = rc_register_device(rdev);
+ 	ctrl->is_new = 1;
+ 	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_from_user(ctrl->p, c->p, ctrl->elem_size);
++		return copy_from_user(ptr.p, c->p, ctrl->elem_size);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		ctrl->val64 = c->value64;
++		*ptr.p_s64 = c->value64;
+ 		break;
+ 	case V4L2_CTRL_TYPE_STRING:
+ 		size = c->size;
+@@ -1324,83 +1340,64 @@ static int user_to_new(struct v4l2_ext_control *c,
+ 			return -ERANGE;
+ 		if (size > ctrl->maximum + 1)
+ 			size = ctrl->maximum + 1;
+-		ret = copy_from_user(ctrl->string, c->string, size);
++		ret = copy_from_user(ptr.p_char, c->string, size);
+ 		if (!ret) {
+-			char last = ctrl->string[size - 1];
++			char last = ptr.p_char[size - 1];
+ 
+-			ctrl->string[size - 1] = 0;
++			ptr.p_char[size - 1] = 0;
+ 			/* If the string was longer than ctrl->maximum,
+ 			   then return an error. */
+-			if (strlen(ctrl->string) == ctrl->maximum && last)
++			if (strlen(ptr.p_char) == ctrl->maximum && last)
+ 				return -ERANGE;
+ 		}
+ 		return ret ? -EFAULT : 0;
+ 	default:
+-		ctrl->val = c->value;
++		*ptr.p_s32 = c->value;
+ 		break;
+ 	}
+ 	return 0;
+ }
+ 
+-/* Helper function: copy the new control value back to the caller */
+-static int new_to_user(struct v4l2_ext_control *c,
++/* Helper function: copy the caller-provider value as the new control value */
++static int user_to_new(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl)
+ {
+-	u32 len;
+-
+-	if (ctrl->is_ptr && !ctrl->is_string)
+-		return copy_to_user(c->p, ctrl->p, ctrl->elem_size);
++	return user_to_ptr(c, ctrl, ctrl->new);
++}
+ 
++/* Copy the one value to another. */
++static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
++		       union v4l2_ctrl_ptr from, union v4l2_ctrl_ptr to)
++{
++	if (ctrl == NULL)
++		return;
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(ctrl->string);
+-		if (c->size < len + 1) {
+-			c->size = ctrl->maximum + 1;
+-			return -ENOSPC;
+-		}
+-		return copy_to_user(c->string, ctrl->string,
+-						len + 1) ? -EFAULT : 0;
++		/* strings are always 0-terminated */
++		strcpy(to.p_char, from.p_char);
++		break;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		c->value64 = ctrl->val64;
++		*to.p_s64 = *from.p_s64;
+ 		break;
+ 	default:
+-		c->value = ctrl->val;
++		if (ctrl->is_ptr)
++			memcpy(to.p, from.p, ctrl->elem_size);
++		else
++			*to.p_s32 = *from.p_s32;
+ 		break;
+ 	}
+-	return 0;
+ }
+ 
+ /* Copy the new value to the current value. */
+ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
+ {
+-	bool changed = false;
++	bool changed;
+ 
+ 	if (ctrl == NULL)
+ 		return;
++	changed = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
++	ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
+ 
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_BUTTON:
+-		changed = true;
+-		break;
+-	case V4L2_CTRL_TYPE_STRING:
+-		/* strings are always 0-terminated */
+-		changed = strcmp(ctrl->string, ctrl->cur.string);
+-		strcpy(ctrl->cur.string, ctrl->string);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		changed = ctrl->val64 != ctrl->cur.val64;
+-		ctrl->cur.val64 = ctrl->val64;
+-		break;
+-	default:
+-		if (ctrl->is_ptr) {
+-			changed = memcmp(ctrl->p, ctrl->cur.p, ctrl->elem_size);
+-			memcpy(ctrl->cur.p, ctrl->p, ctrl->elem_size);
+-		} else {
+-			changed = ctrl->val != ctrl->cur.val;
+-			ctrl->cur.val = ctrl->val;
+-		}
+-		break;
+-	}
+ 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
+ 		/* Note: CH_FLAGS is only set for auto clusters. */
+ 		ctrl->flags &=
+@@ -1429,21 +1426,7 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
+ {
+ 	if (ctrl == NULL)
+ 		return;
+-	switch (ctrl->type) {
+-	case V4L2_CTRL_TYPE_STRING:
+-		/* strings are always 0-terminated */
+-		strcpy(ctrl->string, ctrl->cur.string);
+-		break;
+-	case V4L2_CTRL_TYPE_INTEGER64:
+-		ctrl->val64 = ctrl->cur.val64;
+-		break;
+-	default:
+-		if (ctrl->is_ptr)
+-			memcpy(ctrl->p, ctrl->cur.p, ctrl->elem_size);
+-		else
+-			ctrl->val = ctrl->cur.val;
+-		break;
+-	}
++	ptr_to_ptr(ctrl, ctrl->stores[0], ctrl->new);
+ }
+ 
+ /* Return non-zero if one or more of the controls in the cluster has a new
 -- 
-1.8.3.2
+1.8.5.2
 
