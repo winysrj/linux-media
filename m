@@ -1,110 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3633 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751296AbaBFDeU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 22:34:20 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s163YGx9087828
-	for <linux-media@vger.kernel.org>; Thu, 6 Feb 2014 04:34:18 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id A43102A00A6
-	for <linux-media@vger.kernel.org>; Thu,  6 Feb 2014 04:33:57 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42214 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931AbaBJVxx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 16:53:53 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140206033357.A43102A00A6@tschai.lan>
-Date: Thu,  6 Feb 2014 04:33:57 +0100 (CET)
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Subject: [PATCH 5/5] mt9p031: Add support for PLL bypass
+Date: Mon, 10 Feb 2014 22:54:44 +0100
+Message-Id: <1392069284-18024-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+When the input clock frequency is out of bounds for the PLL, bypass the
+PLL and just divide the input clock to achieve the requested output
+frequency.
 
-Results of the daily build of media_tree:
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/mt9p031.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-date:		Thu Feb  6 04:00:37 CET 2014
-git branch:	test
-git hash:	261cb200e7227820cd0056435d7c1a3a9c476766
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index 14a616e..5483ab2 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -78,6 +78,9 @@
+ #define	MT9P031_PLL_CONFIG_1				0x11
+ #define	MT9P031_PLL_CONFIG_2				0x12
+ #define MT9P031_PIXEL_CLOCK_CONTROL			0x0a
++#define		MT9P031_PIXEL_CLOCK_INVERT		(1 << 15)
++#define		MT9P031_PIXEL_CLOCK_SHIFT(n)		((n) << 8)
++#define		MT9P031_PIXEL_CLOCK_DIVIDE(n)		((n) << 0)
+ #define MT9P031_FRAME_RESTART				0x0b
+ #define MT9P031_SHUTTER_DELAY				0x0c
+ #define MT9P031_RST					0x0d
+@@ -130,6 +133,8 @@ struct mt9p031 {
+ 
+ 	enum mt9p031_model model;
+ 	struct aptina_pll pll;
++	unsigned int clk_div;
++	bool use_pll;
+ 	int reset;
+ 
+ 	struct v4l2_ctrl_handler ctrls;
+@@ -198,6 +203,11 @@ static int mt9p031_reset(struct mt9p031 *mt9p031)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	ret = mt9p031_write(client, MT9P031_PIXEL_CLOCK_CONTROL,
++			    MT9P031_PIXEL_CLOCK_DIVIDE(mt9p031->clk_div));
++	if (ret < 0)
++		return ret;
++
+ 	return mt9p031_set_output_control(mt9p031, MT9P031_OUTPUT_CONTROL_CEN,
+ 					  0);
+ }
+@@ -232,8 +242,24 @@ static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	/* If the external clock frequency is out of bounds for the PLL use the
++	 * pixel clock divider only and disable the PLL.
++	 */
++	if (pdata->ext_freq > limits.ext_clock_max) {
++		unsigned int div;
++
++		div = DIV_ROUND_UP(pdata->ext_freq, pdata->target_freq);
++		div = roundup_pow_of_two(div) / 2;
++
++		mt9p031->clk_div = max_t(unsigned int, div, 64);
++		mt9p031->use_pll = false;
++
++		return 0;
++	}
++
+ 	mt9p031->pll.ext_clock = pdata->ext_freq;
+ 	mt9p031->pll.pix_clock = pdata->target_freq;
++	mt9p031->use_pll = true;
+ 
+ 	return aptina_pll_calculate(&client->dev, &limits, &mt9p031->pll);
+ }
+@@ -243,6 +269,9 @@ static int mt9p031_pll_enable(struct mt9p031 *mt9p031)
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+ 	int ret;
+ 
++	if (!mt9p031->use_pll)
++		return 0;
++
+ 	ret = mt9p031_write(client, MT9P031_PLL_CONTROL,
+ 			    MT9P031_PLL_CONTROL_PWRON);
+ 	if (ret < 0)
+@@ -268,6 +297,9 @@ static inline int mt9p031_pll_disable(struct mt9p031 *mt9p031)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+ 
++	if (!mt9p031->use_pll)
++		return 0;
++
+ 	return mt9p031_write(client, MT9P031_PLL_CONTROL,
+ 			     MT9P031_PLL_CONTROL_PWROFF);
+ }
+-- 
+1.8.3.2
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
