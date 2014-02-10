@@ -1,94 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3925 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756048AbaBFLDS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:03:18 -0500
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1268 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714AbaBJKCW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 05:02:22 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 10/10] v4l2-ioctl: add CREATE_BUFS sanity checks.
-Date: Thu,  6 Feb 2014 12:02:34 +0100
-Message-Id: <1391684554-37956-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391684554-37956-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH for 3.14 1/2] si4713: fix Kconfig dependencies
+Date: Mon, 10 Feb 2014 11:01:48 +0100
+Message-Id: <1392026509-48039-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392026509-48039-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392026509-48039-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Many drivers do not check anything. At least make sure that the various
-buffer size related fields are not obviously wrong.
+The SI4713 select should be I2C_SI4713 and the USB driver needs to depend on
+I2C as well.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Paul Bolle <pebolle@tiscali.nl>
+Reported-by: Richard Weinberger <richard@nod.at>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 52 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 50 insertions(+), 2 deletions(-)
+ drivers/media/radio/si4713/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 707aef7..69a1948 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1444,9 +1444,57 @@ static int v4l_create_bufs(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
- 	struct v4l2_create_buffers *create = arg;
--	int ret = check_fmt(file, create->format.type);
-+	const struct v4l2_format *fmt = &create->format;
-+	const struct v4l2_pix_format *pix = &fmt->fmt.pix;
-+	const struct v4l2_pix_format_mplane *mp = &fmt->fmt.pix_mp;
-+	const struct v4l2_plane_pix_format *p;
-+	int ret = check_fmt(file, fmt->type);
-+	unsigned i;
-+
-+	if (ret)
-+		return ret;
- 
--	return ret ? ret : ops->vidioc_create_bufs(file, fh, create);
-+	/* Sanity checks */
-+	switch (fmt->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		if (pix->sizeimage == 0 || pix->width == 0 || pix->height == 0)
-+			return -EINVAL;
-+		/* Note: bytesperline is 0 for compressed formats */
-+		if (pix->bytesperline &&
-+		    pix->height * pix->bytesperline > pix->sizeimage)
-+			return -EINVAL;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (mp->num_planes == 0 || mp->width == 0 || mp->height == 0)
-+			return -EINVAL;
-+		for (i = 0; i < mp->num_planes; i++) {
-+			p = &mp->plane_fmt[i];
-+
-+			if (p->sizeimage == 0)
-+				return -EINVAL;
-+			/* Note: bytesperline is 0 for compressed formats */
-+			if (p->bytesperline &&
-+			    p->bytesperline * mp->height > p->sizeimage)
-+				return -EINVAL;
-+		}
-+		break;
-+	case V4L2_BUF_TYPE_VBI_CAPTURE:
-+	case V4L2_BUF_TYPE_VBI_OUTPUT:
-+		if (fmt->fmt.vbi.count[0] + fmt->fmt.vbi.count[1] == 0)
-+			return -EINVAL;
-+		break;
-+	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
-+	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-+		if (fmt->fmt.sliced.io_size == 0)
-+			return -EINVAL;
-+		break;
-+	default:
-+		/* Overlay formats are invalid */
-+		return -EINVAL;
-+	}
-+	return ops->vidioc_create_bufs(file, fh, create);
- }
- 
- static int v4l_prepare_buf(const struct v4l2_ioctl_ops *ops,
+diff --git a/drivers/media/radio/si4713/Kconfig b/drivers/media/radio/si4713/Kconfig
+index a7c3ba8..9c8b887 100644
+--- a/drivers/media/radio/si4713/Kconfig
++++ b/drivers/media/radio/si4713/Kconfig
+@@ -1,7 +1,7 @@
+ config USB_SI4713
+ 	tristate "Silicon Labs Si4713 FM Radio Transmitter support with USB"
+-	depends on USB && RADIO_SI4713
+-	select SI4713
++	depends on USB && I2C && RADIO_SI4713
++	select I2C_SI4713
+ 	---help---
+ 	  This is a driver for USB devices with the Silicon Labs SI4713
+ 	  chip. Currently these devices are known to work.
+@@ -16,7 +16,7 @@ config USB_SI4713
+ config PLATFORM_SI4713
+ 	tristate "Silicon Labs Si4713 FM Radio Transmitter support with I2C"
+ 	depends on I2C && RADIO_SI4713
+-	select SI4713
++	select I2C_SI4713
+ 	---help---
+ 	  This is a driver for I2C devices with the Silicon Labs SI4713
+ 	  chip.
 -- 
 1.8.5.2
 
