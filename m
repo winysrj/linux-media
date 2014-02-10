@@ -1,104 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:35294 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056AbaBGR4V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 12:56:21 -0500
-Received: by mail-ea0-f179.google.com with SMTP id q10so1463728ead.10
-        for <linux-media@vger.kernel.org>; Fri, 07 Feb 2014 09:56:20 -0800 (PST)
-Received: from [192.168.1.100] ([188.24.80.42])
-        by mx.google.com with ESMTPSA id d9sm18991626eei.9.2014.02.07.09.56.18
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Fri, 07 Feb 2014 09:56:19 -0800 (PST)
-Message-ID: <52F51E41.7000000@gmail.com>
-Date: Fri, 07 Feb 2014 19:56:17 +0200
-From: GEORGE <geoubuntu@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:35822 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750797AbaBJIet (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 03:34:49 -0500
+Message-ID: <52F88F25.5000906@iki.fi>
+Date: Mon, 10 Feb 2014 10:34:45 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] bttv: Add support for Kworld V-Stream Xpert TV PVR878
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: kapetr@mizera.cz, Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: video from USB DVB-T get  damaged after some time
+References: <52F50E0B.1060507@mizera.cz> <52F56971.8060104@iki.fi>		 <52F6429E.6070704@mizera.cz> <1391872102.3386.10.camel@canaries32-MCP7A>	 <52F678DC.2040307@mizera.cz> <1391891765.2408.13.camel@canaries32-MCP7A> <52F6CEFC.3020307@iki.fi> <52F70A9F.50200@iki.fi> <52F88BED.8010003@mizera.cz>
+In-Reply-To: <52F88BED.8010003@mizera.cz>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- From 27c5541a93bee007d41a70b393c97ea19c62ace2 Mon Sep 17 00:00:00 2001
-From: POJAR GEORGE <geoubuntu@gmail.com>
-Date: Fri, 7 Feb 2014 19:34:41 +0200
-Subject: [PATCH] bttv: Add support for Kworld V-Stream Xpert TV PVR878
+Moi!
 
-Signed-off-by: POJAR GEORGE <geoubuntu@gmail.com>
----
-  Documentation/video4linux/CARDLIST.bttv |  1 +
-  drivers/media/video/bt8xx/bttv-cards.c  | 16 ++++++++++++++++
-  drivers/media/video/bt8xx/bttv-input.c  |  1 +
-  drivers/media/video/bt8xx/bttv.h        |  1 +
-  4 files changed, 19 insertions(+)
-
-diff --git a/Documentation/video4linux/CARDLIST.bttv 
-b/Documentation/video4linux/CARDLIST.bttv
-index 4739d56..0103fe4 100644
---- a/Documentation/video4linux/CARDLIST.bttv
-+++ b/Documentation/video4linux/CARDLIST.bttv
-@@ -158,3 +158,4 @@
-  157 -> Geovision GV-800(S) (master) [800a:763d]
-  158 -> Geovision GV-800(S) (slave) [800b:763d,800c:763d,800d:763d]
-  159 -> ProVideo PV183 
-[1830:1540,1831:1540,1832:1540,1833:1540,1834:1540,1835:1540,1836:1540,1837:1540]
-+160 -> Kworld V-Stream Xpert TV PVR878
-diff --git a/drivers/media/video/bt8xx/bttv-cards.c 
-b/drivers/media/video/bt8xx/bttv-cards.c
-index 49efcf6..7e02b8e 100644
---- a/drivers/media/video/bt8xx/bttv-cards.c
-+++ b/drivers/media/video/bt8xx/bttv-cards.c
-@@ -2916,6 +2916,22 @@ struct tvcard bttv_tvcards[] = {
-          .tuner_type     = TUNER_ABSENT,
-          .tuner_addr    = ADDR_UNSET,
-      },
-+    [BTTV_BOARD_KWORLD_VSTREAM_XPERT] = {
-+        /* POJAR GEORGE <geoubuntu@gmail.com> */
-+        .name           = "Kworld V-Stream Xpert TV PVR878",
-+        .video_inputs   = 3,
-+        /* .audio_inputs= 1, */
-+        .svhs           = 2,
-+        .gpiomask       = 0x001c0007,
-+        .muxsel         = MUXSEL(2, 3, 1, 1),
-+        .gpiomux        = { 0, 1, 2, 2 },
-+        .gpiomute     = 3,
-+        .pll            = PLL_28,
-+        .tuner_type     = TUNER_TENA_9533_DI,
-+        .tuner_addr    = ADDR_UNSET,
-+        .has_remote     = 1,
-+        .has_radio      = 1,
-+    },
-  };
-
-  static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
-diff --git a/drivers/media/video/bt8xx/bttv-input.c 
-b/drivers/media/video/bt8xx/bttv-input.c
-index 6bf05a7..3af1e23 100644
---- a/drivers/media/video/bt8xx/bttv-input.c
-+++ b/drivers/media/video/bt8xx/bttv-input.c
-@@ -391,6 +391,7 @@ int bttv_input_init(struct bttv *btv)
-      case BTTV_BOARD_ASKEY_CPH03X:
-      case BTTV_BOARD_CONCEPTRONIC_CTVFMI2:
-      case BTTV_BOARD_CONTVFMI:
-+    case BTTV_BOARD_KWORLD_VSTREAM_XPERT:
-          ir_codes         = RC_MAP_PIXELVIEW;
-          ir->mask_keycode = 0x001F00;
-          ir->mask_keyup   = 0x006000;
-diff --git a/drivers/media/video/bt8xx/bttv.h 
-b/drivers/media/video/bt8xx/bttv.h
-index 6fd2a8e..dd926d8 100644
---- a/drivers/media/video/bt8xx/bttv.h
-+++ b/drivers/media/video/bt8xx/bttv.h
-@@ -184,6 +184,7 @@
-  #define BTTV_BOARD_GEOVISION_GV800S       0x9d
-  #define BTTV_BOARD_GEOVISION_GV800S_SL       0x9e
-  #define BTTV_BOARD_PV183                   0x9f
-+#define BTTV_BOARD_KWORLD_VSTREAM_XPERT    0xa0
+On 10.02.2014 10:21, kapetr@mizera.cz wrote:
+> Hello,
+>
+> I have test FW version 12.10.04.1
+> (FYI dmesg changes follows)
+>
+> The problem without change.
+>
+> I did want to test the DVB-T stick under Windows XP, but in VirtualBox
+> works the tuner not at all - I get just jerky sound, no video.
+> But there is older driver (12.7.6.11) - but don't thing the problem is
+> there - rather in VBOX.
+> And no free partition to test.
 
 
-  /* more card-specific defines */
+OK, thank for the testing anyway.
+I have few different it9135 devices. Could you find some picture of 
+yours, I would like to test myself if I had same device.
+
+regards
+Antti
+
+
+
+
+>
+> Regards.
+>
+> kapetr
+>
+>
+> ----------- old from
+> https://raw.github.com/torvalds/linux/master/Documentation/dvb/get_dvb_firmware
+>
+>
+>
+> [   21.546241] usb 1-1.3: dvb_usb_af9035: prechip_version=83
+> chip_version=02 chip_type=9135
+> [   21.546613] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in cold
+> state
+> [   21.563582] usb 1-1.3: dvb_usb_v2: downloading firmware from file
+> 'dvb-usb-it9135-02.fw'
+> [   21.594974] EXT4-fs (sda2): re-mounted. Opts: errors=remount-ro
+> [   21.659449] usb 1-1.3: dvb_usb_af9035: firmware version=3.39.1.0
+> [   21.659456] usb 1-1.3: dvb_usb_v2: found a 'ITE 9135 Generic' in warm
+> state
+> [   21.660358] usb 1-1.3: dvb_usb_v2: will pass the complete MPEG2
+> transport stream to the software demuxer
+> [   21.660375] DVB: registering new adapter (ITE 9135 Generic)
+> [   21.750565] i2c i2c-16: af9033: firmware version: LINK=0.0.0.0
+> OFDM=3.9.1.0
+> [   21.750570] usb 1-1.3: DVB: registering adapter 0 frontend 0 (Afatech
+> AF9033 (DVB-T))...
+> [   22.064646] i2c i2c-16: tuner_it913x: ITE Tech IT913X successfully
+> attached
+> [   22.099994] Registered IR keymap rc-it913x-v1
+> [   22.100068] input: ITE 9135 Generic as
+> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0/input14
+> [   22.100103] rc0: ITE 9135 Generic as
+> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0
+> [   22.100106] usb 1-1.3: dvb_usb_v2: schedule remote query interval to
+> 500 msecs
+> [   22.100109] usb 1-1.3: dvb_usb_v2: 'ITE 9135 Generic' successfully
+> initialized and connected
+> [   22.100123] usbcore: registered new interface driver dvb_usb_af9035
+>
+> ---------------new from
+> http://palosaari.fi/linux/v4l-dvb/firmware/IT9135/12.10.04.1/IT9135v2_3.42.3.3_3.29.3.3/
+>
+>
+> Feb  9 15:00:54 zly-hugo kernel: [12732.520617] usb 1-1.3:
+> dvb_usb_af9035: prechip_version=83 chip_version=02 chip_type=9135
+> Feb  9 15:00:54 zly-hugo kernel: [12732.520988] usb 1-1.3: dvb_usb_v2:
+> found a 'ITE 9135 Generic' in cold state
+> Feb  9 15:00:54 zly-hugo kernel: [12732.522267] usb 1-1.3: dvb_usb_v2:
+> downloading firmware from file 'dvb-usb-it9135-02.fw'
+> Feb  9 15:00:54 zly-hugo kernel: [12732.626497] usb 1-1.3:
+> dvb_usb_af9035: firmware version=3.42.3.3
+> Feb  9 15:00:54 zly-hugo kernel: [12732.626509] usb 1-1.3: dvb_usb_v2:
+> found a 'ITE 9135 Generic' in warm state
+> Feb  9 15:00:54 zly-hugo kernel: [12732.627381] usb 1-1.3: dvb_usb_v2:
+> will pass the complete MPEG2 transport stream to the software demuxer
+> Feb  9 15:00:54 zly-hugo kernel: [12732.627405] DVB: registering new
+> adapter (ITE 9135 Generic)
+> Feb  9 15:00:54 zly-hugo kernel: [12732.631208] i2c i2c-16: af9033:
+> firmware version: LINK=0.0.0.0 OFDM=3.29.3.3
+> Feb  9 15:00:54 zly-hugo kernel: [12732.631215] usb 1-1.3: DVB:
+> registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
+> Feb  9 15:00:54 zly-hugo kernel: [12732.631328] i2c i2c-16:
+> tuner_it913x: ITE Tech IT913X successfully attached
+> --------------
+>
+>
+>
+>
+> Dne 9.2.2014 05:57, Antti Palosaari napsal(a):
+>> On 09.02.2014 02:42, Antti Palosaari wrote:
+>>> Moikka!
+>>> I am going to extract new firmware. I dumped init tables out from
+>>> Windows driver version 12.07.06.1. Is there any newer?
+>>>
+>>> regards
+>>> Antti
+>>>
+>>
+>> I extracted firmwares from Windows driver 12.10.04.1. Didn't find newer
+>> driver...
+>>
+>> http://blog.palosaari.fi/2014/02/linux-it9135-driver-firmwares.html
+>>
+>> regards
+>> Antti
+>>
+
+
 -- 
-1.9.rc1
-
+http://palosaari.fi/
