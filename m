@@ -1,54 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56007 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751491AbaBHJiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Feb 2014 04:38:51 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 0/8] regmap API & kernel I2C driver model
-Date: Sat,  8 Feb 2014 11:37:53 +0200
-Message-Id: <1391852281-18291-1-git-send-email-crope@iki.fi>
+Received: from mail-vc0-f169.google.com ([209.85.220.169]:56660 "EHLO
+	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049AbaBKQa6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 11:30:58 -0500
+MIME-Version: 1.0
+In-Reply-To: <20140211145248.GI26684@n2100.arm.linux.org.uk>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
+	<CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
+	<20140211145248.GI26684@n2100.arm.linux.org.uk>
+Date: Tue, 11 Feb 2014 10:30:57 -0600
+Message-ID: <CAL_Jsq+_81fUgio9mwscv__-4P6rUy-nHesnzCCUmdu+amhYPg@mail.gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+From: Rob Herring <robherring2@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Converting DVB tuner driver to near kernel practices has been long on
-my todo, as I have mentioned multiple times.
-Here it is, looks pretty nice! No gate-control, nor home made I2C low
-level access routines anymore...
+On Tue, Feb 11, 2014 at 8:52 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Feb 11, 2014 at 07:56:33AM -0600, Rob Herring wrote:
+>> On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+>> > This allows to reuse the same parser code from outside the V4L2 framework,
+>> > most importantly from display drivers. There have been patches that duplicate
+>> > the code (and I am going to send one of my own), such as
+>> > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
+>> > and others that parse the same binding in a different way:
+>> > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
+>> >
+>> > I think that all common video interface parsing helpers should be moved to a
+>> > single place, outside of the specific subsystems, so that it can be reused
+>> > by all drivers.
+>>
+>> Perhaps that should be done rather than moving to drivers/of now and
+>> then again to somewhere else.
+>
+> Do you have a better suggestion where it should move to?
 
-Maybe the only downside is new dependency to regmap (and I2C mux, which
-was done already). Fortunately regmap seems to be quite widely used, it
-is likely enabled by default most distributions already.
+No.
 
-Antti
+> drivers/gpu/drm - no, because v4l2 wants to use it
+> drivers/media/video - no, because DRM drivers want to use it
+> drivers/video - no, because v4l2 and drm drivers want to use it
 
-Antti Palosaari (7):
-  rtl2832: provide muxed I2C adapter
-  rtl2832: add muxed I2C adapter for demod itself
-  rtl2832: implement delayed I2C gate close
-  rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
-  e4000: get rid of DVB i2c_gate_ctrl()
-  rtl2832_sdr: do not init tuner when only freq is changed
-  e4000: convert to Regmap API
+I don't believe it exists currently, so it would need to be created.
+Perhaps adding a layer of directory to combine these. This patch alone
+is not enough to really justify that, but if there's a lot more shared
+code possible then it would be the right direction.
 
-Luis Alves (1):
-  rtl2832: Fix deadlock on i2c mux select function.
+> Maybe drivers/of-graph/ ?  Or maybe it's just as good a place to move it
+> into drivers/of ?
 
- drivers/media/dvb-frontends/Kconfig              |   2 +-
- drivers/media/dvb-frontends/rtl2832.c            | 159 ++++++-
- drivers/media/dvb-frontends/rtl2832.h            |  25 ++
- drivers/media/dvb-frontends/rtl2832_priv.h       |   4 +
- drivers/media/tuners/Kconfig                     |   1 +
- drivers/media/tuners/e4000.c                     | 528 ++++++++---------------
- drivers/media/tuners/e4000_priv.h                |   4 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c          |  12 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h          |   1 +
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c |  25 +-
- 10 files changed, 413 insertions(+), 348 deletions(-)
+I assume you weren't serious, but no for /of-graph. If a better place
+can't be found/made, I'll take it.
 
--- 
-1.8.5.3
-
+Rob
