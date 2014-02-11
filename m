@@ -1,49 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59250 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752691AbaBJQMu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:12:50 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Luis Alves <ljalvs@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 7/8] rtl2832: Fix deadlock on i2c mux select function.
-Date: Mon, 10 Feb 2014 18:12:32 +0200
-Message-Id: <1392048753-13292-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1392048753-13292-1-git-send-email-crope@iki.fi>
-References: <1392048753-13292-1-git-send-email-crope@iki.fi>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:36304 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751566AbaBKNoW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 08:44:22 -0500
+Received: by mail-oa0-f47.google.com with SMTP id m1so9084449oag.6
+        for <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 05:44:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAHFNz9KyEm=2GreevUzrdwWun8V3vzrgHE9yU389i59aKt=-uw@mail.gmail.com>
+References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
+	<CAHFNz9KzKdC0xvq7nM6yF0DGQ3pCq7tUr0et-cvf6Wk5Htarxg@mail.gmail.com>
+	<CALzAhNW=uCLsu4sdrGyycxRoOdaRTFNM8yVj=Y+ahSZrWqrABg@mail.gmail.com>
+	<CAHFNz9+Z9oBwezNURpOhoCn3Rk-HWHdZSh7CK7SopkPPv7Z6Qg@mail.gmail.com>
+	<CALzAhNXs0dH-HoF792PQL_XqnO5OYzRmG2a3f8gt5CmB9JO0aQ@mail.gmail.com>
+	<CAHFNz9KyEm=2GreevUzrdwWun8V3vzrgHE9yU389i59aKt=-uw@mail.gmail.com>
+Date: Tue, 11 Feb 2014 13:44:20 +0000
+Message-ID: <CAGj5WxA5FOyXvZd5Lc9YuVqMt=NJDfFSstwqcOLFUmPB-t17zQ@mail.gmail.com>
+Subject: Re: Upstreaming SAA716x driver to the media_tree
+From: Luis Alves <ljalvs@gmail.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Steven Toth <stoth@kernellabs.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Andreas Regel <andreas.regel@gmx.de>,
+	Chris Lee <updatelee@gmail.com>, crazycat69@narod.ru,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Luis Alves <ljalvs@gmail.com>
+Hi,
 
-Signed-off-by: Luis Alves <ljalvs@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Any update on this?
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index c0366a8..cfc5438 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -917,7 +917,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
- 	buf[0] = 0x00;
- 	buf[1] = 0x01;
- 
--	ret = i2c_transfer(adap, msg, 1);
-+	ret = __i2c_transfer(adap, msg, 1);
- 	if (ret != 1)
- 		goto err;
- 
-@@ -930,7 +930,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
- 	else
- 		buf[1] = 0x10; /* close */
- 
--	ret = i2c_transfer(adap, msg, 1);
-+	ret = __i2c_transfer(adap, msg, 1);
- 	if (ret != 1)
- 		goto err;
- 
--- 
-1.8.5.3
+Thanks,
+Luis
 
+On Wed, Jan 22, 2014 at 3:26 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> On Wed, Jan 22, 2014 at 3:29 AM, Steven Toth <stoth@kernellabs.com> wrote:
+>> On Mon, Jan 13, 2014 at 10:35 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+>>> On Tue, Jan 14, 2014 at 12:20 AM, Steven Toth <stoth@kernellabs.com> wrote:
+>>>>>> Manu, do you see any inconvenience in sending your driver to the
+>>>>>> linux_media tree?
+>>>>>> I'm available to place some effort on this task.
+>>>>>
+>>>>>
+>>>>> I can push the 716x driver and whatever additional changes that I have
+>>>>> later on this weekend, if that's okay with you.
+>>>>
+>>>> I never saw a push.
+>>>
+>>> Spliiting and cleaning up the patches took up more time than expected.
+>>> Please wait a few days.
+>>
+>> Any news on this?
+>
+>
+> I just pushed out a large chunk of the changes. There are a few
+> dependencies that need to be resolved with the rebased tree.
