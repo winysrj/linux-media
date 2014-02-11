@@ -1,74 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55742 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752305AbaBKCFO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 21:05:14 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 03/16] e4000: fix PLL calc to allow higher frequencies
-Date: Tue, 11 Feb 2014 04:04:46 +0200
-Message-Id: <1392084299-16549-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1392084299-16549-1-git-send-email-crope@iki.fi>
-References: <1392084299-16549-1-git-send-email-crope@iki.fi>
+Received: from [173.38.203.54] ([173.38.203.54]:30033 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750809AbaBKMLU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 07:11:20 -0500
+Message-ID: <52FA1297.5070108@cisco.com>
+Date: Tue, 11 Feb 2014 13:07:51 +0100
+From: Hans Verkuil <hansverk@cisco.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 35/47] adv7604: Add sink pads
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-36-git-send-email-laurent.pinchart@ideasonboard.com> <52F9F934.9090202@xs4all.nl> <3580605.MqbMpcI5hW@avalon>
+In-Reply-To: <3580605.MqbMpcI5hW@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was 32-bit overflow on VCO frequency calculation which blocks
-tuning to 1073 - 1104 MHz. Use 64 bit number in order to avoid VCO
-frequency overflow.
 
-After that fix device in question tunes to following range:
-60 - 1104 MHz
-1250 - 2207 MHz
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/e4000.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+On 02/11/14 13:00, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Tuesday 11 February 2014 11:19:32 Hans Verkuil wrote:
+>> On 02/05/14 17:42, Laurent Pinchart wrote:
+>>> The ADV7604 has sink pads for its HDMI and analog inputs. Report them.
+>>>
+>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> ---
+>>>
+>>>  drivers/media/i2c/adv7604.c | 71 +++++++++++++++++++++++++---------------
+>>>  include/media/adv7604.h     | 14 ---------
+>>>  2 files changed, 45 insertions(+), 40 deletions(-)
+>>>
+>>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+>>> index 05e7e1a..da32ce9 100644
+>>> --- a/drivers/media/i2c/adv7604.c
+>>> +++ b/drivers/media/i2c/adv7604.c
+>>> @@ -97,13 +97,25 @@ struct adv7604_chip_info {
+>>>
+>>>   **********************************************************************
+>>>   */
+>>>
+>>> +enum adv7604_pad {
+>>> +	ADV7604_PAD_HDMI_PORT_A = 0,
+>>> +	ADV7604_PAD_HDMI_PORT_B = 1,
+>>> +	ADV7604_PAD_HDMI_PORT_C = 2,
+>>> +	ADV7604_PAD_HDMI_PORT_D = 3,
+>>> +	ADV7604_PAD_VGA_RGB = 4,
+>>> +	ADV7604_PAD_VGA_COMP = 5,
+>>> +	/* The source pad is either 1 (ADV7611) or 6 (ADV7604) */
+>>
+>> How about making this explicit:
+>>
+>> 	ADV7604_PAD_SOURCE = 6,
+>> 	ADV7611_PAD_SOURCE = 1,
+> 
+> I can do that, but those two constants won't be used in the driver as they 
+> computed dynamically.
+> 
+>>> +	ADV7604_PAD_MAX = 7,
+>>> +};
+>>
+>> Wouldn't it make more sense to have this in the header? I would really
+>> like to use the symbolic names for these pads in my bridge driver.
+> 
+> That would add a dependency on the adv7604 driver to the bridge driver, isn't 
+> the whole point of subdevs to avoid such dependencies ?
 
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index ac44dd2..019dc62 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -221,11 +221,11 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	struct e4000_priv *priv = fe->tuner_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i, sigma_delta;
--	unsigned int f_vco;
-+	u64 f_vco;
- 	u8 buf[5], i_data[4], q_data[4];
- 
- 	dev_dbg(&priv->client->dev,
--			"%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
-+			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
- 			__func__, c->delivery_system, c->frequency,
- 			c->bandwidth_hz);
- 
-@@ -248,20 +248,16 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	/*
--	 * Note: Currently f_vco overflows when c->frequency is 1 073 741 824 Hz
--	 * or more.
--	 */
--	f_vco = c->frequency * e4000_pll_lut[i].mul;
-+	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
- 	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
--	buf[0] = f_vco / priv->clock;
-+	buf[0] = div_u64(f_vco, priv->clock);
- 	buf[1] = (sigma_delta >> 0) & 0xff;
- 	buf[2] = (sigma_delta >> 8) & 0xff;
- 	buf[3] = 0x00;
- 	buf[4] = e4000_pll_lut[i].div;
- 
- 	dev_dbg(&priv->client->dev,
--			"%s: f_vco=%u pll div=%d sigma_delta=%04x\n",
-+			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
- 			__func__, f_vco, buf[0], sigma_delta);
- 
- 	ret = e4000_wr_regs(priv, 0x09, buf, 5);
--- 
-1.8.5.3
+The bridge driver has to know about the adv7604, not the other way around.
 
+E.g. in my bridge driver I have to match v4l2 inputs to pads, both for
+S_EDID and for s_routing, so it needs to know which pad number to use.
+
+Also, for calling set_fmt, BTW. There I need to specify the source pad,
+which is also why I would like to have a symbolic name for it as suggested
+above.
+
+Regards,
+
+	Hans
