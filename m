@@ -1,131 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3967 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752174AbaB1Rml (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 12:42:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:55742 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752305AbaBKCFO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 21:05:14 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 06/17] vb2: call buf_finish from __queue_cancel.
-Date: Fri, 28 Feb 2014 18:42:04 +0100
-Message-Id: <1393609335-12081-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 03/16] e4000: fix PLL calc to allow higher frequencies
+Date: Tue, 11 Feb 2014 04:04:46 +0200
+Message-Id: <1392084299-16549-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1392084299-16549-1-git-send-email-crope@iki.fi>
+References: <1392084299-16549-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+There was 32-bit overflow on VCO frequency calculation which blocks
+tuning to 1073 - 1104 MHz. Use 64 bit number in order to avoid VCO
+frequency overflow.
 
-If a queue was canceled, then the buf_finish op was never called for the
-pending buffers. So add this call to queue_cancel. Before calling buf_finish
-set the buffer state to PREPARED, which is the correct state. That way the
-states DONE and ERROR will only be seen in buf_finish if streaming is in
-progress.
+After that fix device in question tunes to following range:
+60 - 1104 MHz
+1250 - 2207 MHz
 
-Since buf_finish can now be called from non-streaming state we need to
-adapt the handful of drivers that actually need to know this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/parport/bw-qcam.c          |  3 +++
- drivers/media/pci/sta2x11/sta2x11_vip.c  |  3 ++-
- drivers/media/usb/uvc/uvc_queue.c        |  3 ++-
- drivers/media/v4l2-core/videobuf2-core.c | 14 ++++++++++++--
- include/media/videobuf2-core.h           | 10 +++++++++-
- 5 files changed, 28 insertions(+), 5 deletions(-)
+ drivers/media/tuners/e4000.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
-index 0166aef..8d69bfb 100644
---- a/drivers/media/parport/bw-qcam.c
-+++ b/drivers/media/parport/bw-qcam.c
-@@ -674,6 +674,9 @@ static void buffer_finish(struct vb2_buffer *vb)
- 	int size = vb->vb2_queue->plane_sizes[0];
- 	int len;
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index ac44dd2..019dc62 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -221,11 +221,11 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	struct e4000_priv *priv = fe->tuner_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i, sigma_delta;
+-	unsigned int f_vco;
++	u64 f_vco;
+ 	u8 buf[5], i_data[4], q_data[4];
  
-+	if (!vb2_is_streaming(vb->vb2_queue))
-+		return;
-+
- 	mutex_lock(&qcam->lock);
- 	parport_claim_or_block(qcam->pdev);
+ 	dev_dbg(&priv->client->dev,
+-			"%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
++			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
+ 			__func__, c->delivery_system, c->frequency,
+ 			c->bandwidth_hz);
  
-diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-index e66556c..bb11443 100644
---- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-+++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-@@ -337,7 +337,8 @@ static void buffer_finish(struct vb2_buffer *vb)
- 	list_del_init(&vip_buf->list);
- 	spin_unlock(&vip->lock);
+@@ -248,20 +248,16 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
  
--	vip_active_buf_next(vip);
-+	if (vb2_is_streaming(vb->vb2_queue))
-+		vip_active_buf_next(vip);
- }
+-	/*
+-	 * Note: Currently f_vco overflows when c->frequency is 1 073 741 824 Hz
+-	 * or more.
+-	 */
+-	f_vco = c->frequency * e4000_pll_lut[i].mul;
++	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
+ 	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
+-	buf[0] = f_vco / priv->clock;
++	buf[0] = div_u64(f_vco, priv->clock);
+ 	buf[1] = (sigma_delta >> 0) & 0xff;
+ 	buf[2] = (sigma_delta >> 8) & 0xff;
+ 	buf[3] = 0x00;
+ 	buf[4] = e4000_pll_lut[i].div;
  
- static int start_streaming(struct vb2_queue *vq, unsigned int count)
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index cca2c6e..ab9f96e 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -111,7 +111,8 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
- 			container_of(queue, struct uvc_streaming, queue);
- 	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
+ 	dev_dbg(&priv->client->dev,
+-			"%s: f_vco=%u pll div=%d sigma_delta=%04x\n",
++			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
+ 			__func__, f_vco, buf[0], sigma_delta);
  
--	uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
-+	if (vb->state == VB2_BUF_STATE_DONE)
-+		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
- }
- 
- static void uvc_wait_prepare(struct vb2_queue *vq)
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 59bfd85..6f84bcb 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1878,9 +1878,19 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 
- 	/*
- 	 * Reinitialize all buffers for next use.
-+	 * Make sure to call buf_finish for any queued buffers. Normally
-+	 * that's done in dqbuf, but that's not going to happen when we
-+	 * cancel the whole queue.
- 	 */
--	for (i = 0; i < q->num_buffers; ++i)
--		__vb2_dqbuf(q->bufs[i]);
-+	for (i = 0; i < q->num_buffers; ++i) {
-+		struct vb2_buffer *vb = q->bufs[i];
-+
-+		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-+			vb->state = VB2_BUF_STATE_PREPARED;
-+			call_vb_qop(vb, buf_finish, vb);
-+		}
-+		__vb2_dqbuf(vb);
-+	}
- }
- 
- static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f443ce0..3cb0bcf 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -276,7 +276,15 @@ struct vb2_buffer {
-  *			in driver; optional
-  * @buf_finish:		called before every dequeue of the buffer back to
-  *			userspace; drivers may perform any operations required
-- *			before userspace accesses the buffer; optional
-+ *			before userspace accesses the buffer; optional. The
-+ *			buffer state can be one of the following: DONE and
-+ *			ERROR occur while streaming is in progress, and the
-+ *			PREPARED state occurs when the queue has been canceled
-+ *			and all pending buffers are being returned to their
-+ *			default DEQUEUED state. Typically you only have to do
-+ *			something if the state is VB2_BUF_STATE_DONE, since in
-+ *			all other cases the buffer contents will be ignored
-+ *			anyway.
-  * @buf_cleanup:	called once before the buffer is freed; drivers may
-  *			perform any additional cleanup; optional
-  * @start_streaming:	called once to enter 'streaming' state; the driver may
+ 	ret = e4000_wr_regs(priv, 0x09, buf, 5);
 -- 
-1.9.rc1
+1.8.5.3
 
