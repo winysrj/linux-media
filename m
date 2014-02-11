@@ -1,51 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews06.kpnxchange.com ([213.75.39.9]:65521 "EHLO
-	cpsmtpb-ews06.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750932AbaBLKIv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 05:08:51 -0500
-Message-ID: <1392199729.23759.20.camel@x220>
-Subject: [PATCH] [media] s5p-fimc: Remove reference to outdated macro
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Rob Landley <rob@landley.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Richard Weinberger <richard@nod.at>, linux-media@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Wed, 12 Feb 2014 11:08:49 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:41509 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752456AbaBKCFP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 21:05:15 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 10/16] rtl28xxu: attach SDR extension module
+Date: Tue, 11 Feb 2014 04:04:53 +0200
+Message-Id: <1392084299-16549-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1392084299-16549-1-git-send-email-crope@iki.fi>
+References: <1392084299-16549-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Kconfig symbol S5P_SETUP_MIPIPHY was removed in v3.13. Remove a
-reference to its macro from a list of Kconfig options.
+With that extension module it supports SDR.
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-See commit e66f233dc7f7 ("ARM: Samsung: Remove the MIPI PHY setup
-code"). Should one or more options be added to replace
-S5P_SETUP_MIPIPHY? I couldn't say. It's safe to remove this one anyway.
+ drivers/media/usb/dvb-usb-v2/Makefile   |  1 +
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 18 ++++++++++++++++++
+ 2 files changed, 19 insertions(+)
 
- Documentation/video4linux/fimc.txt | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/Documentation/video4linux/fimc.txt b/Documentation/video4linux/fimc.txt
-index e51f1b5..7d6e160 100644
---- a/Documentation/video4linux/fimc.txt
-+++ b/Documentation/video4linux/fimc.txt
-@@ -151,9 +151,8 @@ CONFIG_S5P_DEV_FIMC1  \
- CONFIG_S5P_DEV_FIMC2  |    optional
- CONFIG_S5P_DEV_FIMC3  |
- CONFIG_S5P_SETUP_FIMC /
--CONFIG_S5P_SETUP_MIPIPHY \
--CONFIG_S5P_DEV_CSIS0     | optional for MIPI-CSI interface
--CONFIG_S5P_DEV_CSIS1     /
-+CONFIG_S5P_DEV_CSIS0  \    optional for MIPI-CSI interface
-+CONFIG_S5P_DEV_CSIS1  /
+diff --git a/drivers/media/usb/dvb-usb-v2/Makefile b/drivers/media/usb/dvb-usb-v2/Makefile
+index 2c06714..bfe67f9 100644
+--- a/drivers/media/usb/dvb-usb-v2/Makefile
++++ b/drivers/media/usb/dvb-usb-v2/Makefile
+@@ -44,3 +44,4 @@ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+ ccflags-y += -I$(srctree)/drivers/media/tuners
+ ccflags-y += -I$(srctree)/drivers/media/common
++ccflags-y += -I$(srctree)/drivers/staging/media/rtl2832u_sdr
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 00d9440..73348bf 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -24,6 +24,7 @@
  
- Except that, relevant s5p_device_fimc? should be registered in the machine code
- in addition to a "s5p-fimc-md" platform device to which the media device driver
+ #include "rtl2830.h"
+ #include "rtl2832.h"
++#include "rtl2832_sdr.h"
+ 
+ #include "qt1010.h"
+ #include "mt2060.h"
+@@ -901,6 +902,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		 * that to the tuner driver */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_fc0012_config);
+ 		return 0;
+ 		break;
+ 	case TUNER_RTL2832_FC0013:
+@@ -910,6 +915,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		/* fc0013 also supports signal strength reading */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_fc0013_config);
+ 		return 0;
+ 	case TUNER_RTL2832_E4000: {
+ 			struct e4000_config e4000_config = {
+@@ -923,6 +932,11 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ 			request_module("e4000");
+ 			priv->client = i2c_new_device(&d->i2c_adap, &info);
++
++			/* attach SDR */
++			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
++					&d->i2c_adap,
++					&rtl28xxu_rtl2832_e4000_config);
+ 		}
+ 		break;
+ 	case TUNER_RTL2832_FC2580:
+@@ -949,6 +963,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		/* Use tuner to get the signal strength */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_r820t_config);
+ 		break;
+ 	case TUNER_RTL2832_R828D:
+ 		/* power off mn88472 demod on GPIO0 */
 -- 
 1.8.5.3
 
