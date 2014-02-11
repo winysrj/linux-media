@@ -1,100 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58023 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751010AbaBCKNG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Feb 2014 05:13:06 -0500
-Message-ID: <52EF6BAF.2060802@iki.fi>
-Date: Mon, 03 Feb 2014 12:13:03 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 15/17] v4l: add RF tuner channel bandwidth control
-References: <1391264674-4395-1-git-send-email-crope@iki.fi> <1391264674-4395-16-git-send-email-crope@iki.fi> <52EF5CA7.9050303@xs4all.nl>
-In-Reply-To: <52EF5CA7.9050303@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:11483 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751071AbaBKRl1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 12:41:27 -0500
+Date: Wed, 12 Feb 2014 02:41:19 +0900
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Rob Herring <robherring2@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+Message-id: <20140212024119.7fc96f30.m.chehab@samsung.com>
+In-reply-to: <52FA5C5A.1090008@samsung.com>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
+ <CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
+ <20140211145248.GI26684@n2100.arm.linux.org.uk> <8648675.AIXYyYlgXy@avalon>
+ <1392136617.6943.33.camel@pizza.hi.pengutronix.de>
+ <52FA5C5A.1090008@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03.02.2014 11:08, Hans Verkuil wrote:
-> Hi Antti,
->
-> On 02/01/2014 03:24 PM, Antti Palosaari wrote:
->> Modern silicon RF tuners has one or more adjustable filters on
->> signal path, in order to filter noise from desired radio channel.
->>
->> Add channel bandwidth control to tell the driver which is radio
->> channel width we want receive. Filters could be then adjusted by
->> the driver or hardware, using RF frequency and channel bandwidth
->> as a base of filter calculations.
->>
->> On automatic mode (normal mode), bandwidth is calculated from sampling
->> rate or tuning info got from userspace. That new control gives
->> possibility to set manual mode and let user have more control for
->> filters.
->>
->> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> ---
->>   drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
->>   include/uapi/linux/v4l2-controls.h   | 2 ++
->>   2 files changed, 6 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->> index d201f61..e44722b 100644
->> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->> @@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
->>   	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
->>   	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
->>   	case V4L2_CID_IF_GAIN:			return "IF Gain";
->> +	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
->> +	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
->>   	default:
->>   		return NULL;
->>   	}
->> @@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->>   	case V4L2_CID_LNA_GAIN_AUTO:
->>   	case V4L2_CID_MIXER_GAIN_AUTO:
->>   	case V4L2_CID_IF_GAIN_AUTO:
->> +	case V4L2_CID_BANDWIDTH_AUTO:
->>   		*type = V4L2_CTRL_TYPE_BOOLEAN;
->>   		*min = 0;
->>   		*max = *step = 1;
->> @@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->>   	case V4L2_CID_LNA_GAIN:
->>   	case V4L2_CID_MIXER_GAIN:
->>   	case V4L2_CID_IF_GAIN:
->> +	case V4L2_CID_BANDWIDTH:
->
-> Booleans never have the slider flag set (they are represented as a checkbox, so a slider
-> makes no sense).
->
->>   		*flags |= V4L2_CTRL_FLAG_SLIDER;
+Em Tue, 11 Feb 2014 18:22:34 +0100
+Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
 
-These are two different controls, as it is controls groups with auto 
-mode (boolean) and value (slider).
+> (adding Guennadi to Cc)
+> 
+> On 11/02/14 17:36, Philipp Zabel wrote:
+> > Am Dienstag, den 11.02.2014, 16:23 +0100 schrieb Laurent Pinchart:
+> >> Hi Russell,
+> >>
+> >> On Tuesday 11 February 2014 14:52:48 Russell King - ARM Linux wrote:
+> >>> On Tue, Feb 11, 2014 at 07:56:33AM -0600, Rob Herring wrote:
+> >>>> On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel wrote:
+> >>>>> This allows to reuse the same parser code from outside the V4L2
+> >>>>> framework, most importantly from display drivers. There have been
+> >>>>> patches that duplicate the code (and I am going to send one of my own),
+> >>>>> such as
+> >>>>> http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
+> >>>>> and others that parse the same binding in a different way:
+> >>>>> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
+> >>>>>
+> >>>>> I think that all common video interface parsing helpers should be moved
+> >>>>> to a single place, outside of the specific subsystems, so that it can
+> >>>>> be reused by all drivers.
+> >>>>
+> >>>> Perhaps that should be done rather than moving to drivers/of now and
+> >>>> then again to somewhere else.
+> >>>
+> >>> Do you have a better suggestion where it should move to?
+> >>>
+> >>> drivers/gpu/drm - no, because v4l2 wants to use it
+> >>> drivers/media/video - no, because DRM drivers want to use it
+> >>> drivers/video - no, because v4l2 and drm drivers want to use it
+> >>
+> >> Just pointing out a missing location (which might be rejected due to similar 
+> >> concerns), there's also drivers/media, which isn't V4L-specific.
+> > 
+> > Since drivers/Makefile has media/ in obj-y, moving the graph helpers to
+> > drivers/media should technically work.
+> > 
+> >>> Maybe drivers/of-graph/ ?  Or maybe it's just as good a place to move it
+> >>> into drivers/of ?
+> > 
+> > include/media/of_graph.h,
+> > drivers/media/of_graph.c?
+> 
+> drivers/media sounds like a good alternative to me.
 
-regards
-Antti
+>From my side, I'm ok with putting them at drivers/media. You may add my acked-by
+for such change:
 
->>   		break;
->>   	case V4L2_CID_PAN_RELATIVE:
->> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
->> index 076fa34..3cf68a6 100644
->> --- a/include/uapi/linux/v4l2-controls.h
->> +++ b/include/uapi/linux/v4l2-controls.h
->> @@ -905,5 +905,7 @@ enum v4l2_deemphasis {
->>   #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
->>   #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
->>   #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
->> +#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
->> +#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
->>
->>   #endif
->>
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+
+> I would just remove also v4l2_of_{parse/get}* and update the users
+> to call of_graph_* directly, there should not be many of them.
+> 
+> --
+> Thanks,
+> Sylwester
+> 
 
 
 -- 
-http://palosaari.fi/
+
+Cheers,
+Mauro
