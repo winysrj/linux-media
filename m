@@ -1,88 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50838 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751045AbaBQJlr (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:56202 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750762AbaBKGhS convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:41:47 -0500
-Date: Mon, 17 Feb 2014 11:41:43 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Daniel Jeong <gshark.jeong@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	linux-doc@vger.kernel.org
-Subject: Re: [RFC v3,2/3] controls.xml : add addtional Flash fault bits
-Message-ID: <20140217094143.GU15635@valkosipuli.retiisi.org.uk>
-References: <1392371151-32644-1-git-send-email-gshark.jeong@gmail.com>
+	Tue, 11 Feb 2014 01:37:18 -0500
+Date: Tue, 11 Feb 2014 07:37:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Bryan Wu <cooloney@gmail.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	linux-tegra <linux-tegra@vger.kernel.org>
+Subject: Re: [PATCH] media: soc-camera: support deferred probing of clients
+ and OF cameras
+In-Reply-To: <CAK5ve-L5y+X+hLBrP_XTuv_fEU46mXB1P_Xoin+upboutT-8gQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1402110732070.24582@axis700.grange>
+References: <1391807504-8946-1-git-send-email-pengw@nvidia.com>
+ <Pine.LNX.4.64.1402092122250.7755@axis700.grange>
+ <CAK5ve-L5y+X+hLBrP_XTuv_fEU46mXB1P_Xoin+upboutT-8gQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1392371151-32644-1-git-send-email-gshark.jeong@gmail.com>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+Hi Bryan,
 
-Thanks for the update.
+On Mon, 10 Feb 2014, Bryan Wu wrote:
 
-Daniel Jeong wrote:
-> Add addtional falult bits for FLASH
-> V4L2_FLASH_FAULT_UNDER_VOLTAGE	: UVLO
-> V4L2_FLASH_FAULT_INPUT_VOLTAGE	: input voltage is adjusted by IVFM
-> V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE : NTC Trip point is crossed.
+> On Sun, Feb 9, 2014 at 2:20 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > Hi Bryan,
+> >
+> > Thanks for reiterating this patch!
+> >
 > 
-> Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+> Sure, my pleasure. I basically assembled your patches together and
+> change them to use latest V4L2 soc_camera API.
+> 
+> > On Fri, 7 Feb 2014, Bryan Wu wrote:
+
+[snip]
+
+> >> @@ -67,6 +81,8 @@ struct soc_camera_async_client {
+> >>
+> >>  static int soc_camera_video_start(struct soc_camera_device *icd);
+> >>  static int video_dev_create(struct soc_camera_device *icd);
+> >> +static void soc_camera_of_i2c_info(struct device_node *node,
+> >> +                               struct soc_camera_of_client *sofc);
+> >
+> > If you have to resubmit this patch, plase, make sure the second line of
+> > the above declaration is aligned af usual - under the first character
+> > _after_ the opening bracket.
+> >
+> 
+> No problem, I will update this.
+> Hmmm, something weird on my side. I did put the second line starting
+> under the first character after the opening bracket. But in git show
+> and git format-patch I got this
 > ---
->  Documentation/DocBook/media/v4l/controls.xml |   16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
+> static int soc_camera_video_start(struct soc_camera_device *icd);
+>  static int video_dev_create(struct soc_camera_device *icd);
+> +static void soc_camera_of_i2c_info(struct device_node *node,
+> +                                  struct soc_camera_of_client *sofc);
+> ---
 > 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index a5a3188..8121f7e 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4370,6 +4370,22 @@ interface and may change in the future.</para>
->      		  <entry>The flash controller has detected a short or open
->      		  circuit condition on the indicator LED.</entry>
->      		</row>
-> +    		<row>
-> +    		  <entry><constant>V4L2_FLASH_FAULT_UNDER_VOLTAGE</constant></entry>
-> +    		  <entry>Flash controller voltage to the flash LED
-> +    		  has been below the minimum limit specific to the flash
-> +    		  controller.</entry>
-> +    		</row>
-> +    		<row>
-> +    		  <entry><constant>V4L2_FLASH_FAULT_INPUT_VOLTAGE</constant></entry>
-> +    		  <entry>The flash controller has detected adjustment of input
-> +    		  voltage by Input Volage Flash Monitor(IVFM).</entry>
+> But I think that's what you want, right?
 
-Volage -> Voltage; space before "(".
+Don't know - now aöö TABs above are replaced with spaces, so, cannot say. 
 
-I still feel uncomfortable with the reference to the IVFM. That appears
-clearely an implementation specific term.
+[snip]
 
-You previously mentioned the flash current may be adjusted by the flash
-controller. It should be mentioned here.
-
-Is it possible to read the adjusted value from the chip?
-
-> +    		</row>
-> +    		<row>
-> +    		  <entry><constant>V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE</constant></entry>
-> +    		  <entry>The flash controller has detected that TEMP input has
-> +    		  crossed NTC Trip Voltage.</entry>
-
-Even if the NTC resistor might be the actual implementation, I wouldn't
-refer to it here. There could be a real temperature sensor, for instance.
-
-> +    		</row>
->      	      </tbody>
->      	    </entrytbl>
->      	  </row>
+> >> +{
+> >> +     struct soc_camera_of_client *sofc;
+> >> +     struct soc_camera_desc *sdesc;
+> >
+> > I'm really grateful, that you decided to use my original patch and
+> > preserve my authorship! But then, I think, it'd be also better to avoid
+> > unnecessary changes to it. What was wrong with allocation of *sofc in the
+> > definition line?
+> >
 > 
+> Oh, this is really I want to bring up. It's a very subtle bug here.
+> 
+> If we use local variable sofc instead of zalloc, fields of sofc have
+> undetermined None NULL value.
 
--- 
-Kind regards,
+No. If you initialise some members of a struct in its definition line, the 
+rest will be initialised to 0 / NULL. I.e. in
 
-Sakari Ailus
-sakari.ailus@iki.fi
+	struct foo y = {.x = 1,};
+
+all other fields of y will be initialised to 0.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
