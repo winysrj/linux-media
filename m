@@ -1,44 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.24]:50663 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751106AbaBZJDS (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39957 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989AbaBKVqs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 04:03:18 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH, RFC 05/30] [media] omap_vout: avoid sleep_on race
-Date: Wed, 26 Feb 2014 10:03:02 +0100
-Cc: linux-kernel@vger.kernel.org,
+	Tue, 11 Feb 2014 16:46:48 -0500
+Date: Tue, 11 Feb 2014 22:46:28 +0100
+From: Philipp Zabel <pza@pengutronix.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Rob Herring <robherring2@gmail.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <1388664474-1710039-6-git-send-email-arnd@arndb.de> <52D90490.3080407@xs4all.nl>
-In-Reply-To: <52D90490.3080407@xs4all.nl>
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+Message-ID: <20140211214628.GA10068@pengutronix.de>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
+ <CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
+ <20140211145248.GI26684@n2100.arm.linux.org.uk>
+ <8648675.AIXYyYlgXy@avalon>
+ <1392136617.6943.33.camel@pizza.hi.pengutronix.de>
+ <52FA5C5A.1090008@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201402261003.03076.arnd@arndb.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <52FA5C5A.1090008@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 17 January 2014, Hans Verkuil wrote:
-> On 01/02/2014 01:07 PM, Arnd Bergmann wrote:
-> > sleep_on and its variants are broken and going away soon. This changes
-> > the omap vout driver to use interruptible_sleep_on_timeout instead,
-> 
-> I assume you mean wait_event_interruptible_timeout here :-)
-> 
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> If there are no other comments, then I plan to merge this next week.
-> 
+Hi Sylwester,
 
-Hi Hans,
+On Tue, Feb 11, 2014 at 06:22:34PM +0100, Sylwester Nawrocki wrote:
+> drivers/media sounds like a good alternative to me.
+> 
+> I would just remove also v4l2_of_{parse/get}* and update the users
+> to call of_graph_* directly, there should not be many of them.
 
-Not sure if you merged the media patches into a local tree, but I see
-they are not in linux-next at the moment. I'll just re-send them,
-but please let me know if I can drop them on my end, or better
-make sure your tree is in linux-next if you have already picked them
-up.
+For now I'd like to skip v4l2_of_parse_endpoint. The others can just be
+copied verbatim, but this one also depends on struct 4l2_of_endpoint,
+struct v4l2_of_bus_*, and <media/v4l2-mediabus.h>.
 
-	Arnd
+regards
+Philipp
