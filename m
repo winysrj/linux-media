@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3644 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750784AbaBWLuO (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3894 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825AbaBKH4Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Feb 2014 06:50:14 -0500
-Message-ID: <5309E05E.4030108@xs4all.nl>
-Date: Sun, 23 Feb 2014 12:49:50 +0100
+	Tue, 11 Feb 2014 02:56:24 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1B7uLxr078958
+	for <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 08:56:23 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5745B2A00A8
+	for <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 08:55:55 +0100 (CET)
+Message-ID: <52F9D78B.4010201@xs4all.nl>
+Date: Tue, 11 Feb 2014 08:55:55 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-CC: laurent.pinchart@ideasonboard.com, k.debski@samsung.com
-Subject: Re: [PATCH v5 2/7] v4l: Use full 32 bits for buffer flags
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <1392497585-5084-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1392497585-5084-3-git-send-email-sakari.ailus@iki.fi>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [ANN] Added streaming tests for v4l2-compliance
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/15/2014 09:53 PM, Sakari Ailus wrote:
-> The buffer flags field is 32 bits but the defined only used 16. This is
-> fine, but as more than 16 bits will be used in the very near future, define
-> them as 32-bit numbers for consistency.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/io.xml |   30 ++++++++++++-------------
->  include/uapi/linux/videodev2.h         |   38 +++++++++++++++++++-------------
->  2 files changed, 38 insertions(+), 30 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 8facac4..46d24b3 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
+Hi all,
 
-<snip>
+I've just committed and pushed my latest changes to v4l2-compliance. It adds
+initial support for testing the I/O streaming ioctls. It's currently limited
+to standard VIDEO_CAPTURE, so no output, m2m or multiplanar support.
 
-> @@ -1115,7 +1115,7 @@ in which case caches have not been used.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_COPY</constant></entry>
-> -	    <entry>0x4000</entry>
-> +	    <entry>0x00004000</entry>
->  	    <entry>The CAPTURE buffer timestamp has been taken from the
->  	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
->  	  </row>
+You need to add the -s flag in order to test this, and you may have to set the
+correct input and frequency as well since the streaming tests assume you have
+a proper video signal on the input.
 
-Should we add here that if TIMESTAMP_COPY is set and the TIMECODE flag is set,
-then drivers should copy the TIMECODE struct as well? This is happening already
-in various drivers and I think that is appropriate. Although to be honest nobody
-is actually using the timecode struct, but we plan to hijack that for hardware
-timestamps in the future anyway.
+It already found this regression:
+
+http://www.spinics.net/lists/linux-media/msg72824.html
+
+So any driver that supports VIDIOC_PREPARE_BUF will have to apply that patch
+first, otherwise it will definitely fail to work.
+
+By no means am I doing full coverage testing, but at least the main things
+are now covered.
+
+Particularly tests for nasty things (wrong pointers, buffers too small, closing
+filehandles mid-streaming, stuff like that) need to be added. That's never tested
+normally so stress tests like that will be very useful.
+
+Feedback and ideas are welcome!
 
 Regards,
 
