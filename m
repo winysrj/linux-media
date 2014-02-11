@@ -1,72 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:58685 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751457AbaBIKEm (ORCPT
+Received: from mail-vb0-f53.google.com ([209.85.212.53]:50484 "EHLO
+	mail-vb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750903AbaBKN4e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 05:04:42 -0500
-Date: Sun, 9 Feb 2014 10:04:24 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Rob Clark <robdclark@gmail.com>, devel@driverdev.osuosl.org,
-	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH RFC 0/2] drivers/base: simplify simple DT-based
-	components
-Message-ID: <20140209100424.GK26684@n2100.arm.linux.org.uk>
-References: <cover.1391793068.git.moinejf@free.fr> <20140207202351.GH26684@n2100.arm.linux.org.uk> <20140209102219.3ab40b5e@armhf>
+	Tue, 11 Feb 2014 08:56:34 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140209102219.3ab40b5e@armhf>
+In-Reply-To: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
+Date: Tue, 11 Feb 2014 07:56:33 -0600
+Message-ID: <CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+From: Rob Herring <robherring2@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 09, 2014 at 10:22:19AM +0100, Jean-Francois Moine wrote:
-> On Fri, 7 Feb 2014 20:23:51 +0000
-> Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
-> 
-> > Here's my changes to the TDA998x driver to add support for the component
-> > helper.  The TDA998x driver retains support for the old way so that
-> > drivers can be transitioned.  For any one DRM "card" the transition to
-> 
-> I rewrote the tda998x as a simple encoder+connector (i.e. not a
-> slave_encoder) with your component helper, and the code is much clearer
-> and simpler: the DRM driver has nothing to do except to know that the
-> tda998x is a component and to set the possible_crtcs.
+On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> From: Philipp Zabel <philipp.zabel@gmail.com>
+>
+> This patch moves the parsing helpers used to parse connected graphs
+> in the device tree, like the video interface bindings documented in
+> Documentation/devicetree/bindings/media/video-interfaces.txt, from
+> drivers/media/v4l2-core to drivers/of.
 
-That's exactly what I've done - the slave encoder veneer can be simply
-deleted when tilcdc is converted.
+This is the opposite direction things have been moving...
 
-> AFAIK, only the tilcdc drm driver is using the tda998x as a
-> slave_encoder. It does a (encoder+connector) conversion to
-> (slave_encoder). Then, in your changes in the TDA998x, you do a
-> (slave_encoder) translation to (encoder+connector).
-> This seems rather complicated!
+> This allows to reuse the same parser code from outside the V4L2 framework,
+> most importantly from display drivers. There have been patches that duplicate
+> the code (and I am going to send one of my own), such as
+> http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
+> and others that parse the same binding in a different way:
+> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
+>
+> I think that all common video interface parsing helpers should be moved to a
+> single place, outside of the specific subsystems, so that it can be reused
+> by all drivers.
 
-No.  I first split out the slave encoder functions to be a veneer onto
-the tda998x backend, and then add the encoder & connector component
-support.  Later, the slave encoder veneer can be deleted.
+Perhaps that should be done rather than moving to drivers/of now and
+then again to somewhere else.
 
-The reason for this is that virtually all the tda998x backend is what's
-required by the encoder & connector support - which is completely logical
-when you realise that the generic slave encoder support is just a veneer
-itself adapting the encoder & connector support to a slave encoder.
+> I moved v4l2_of_get_next_endpoint, v4l2_of_get_remote_port,
+> and v4l2_of_get_remote_port_parent. They are renamed to
+> of_graph_get_next_endpoint, of_graph_get_remote_port, and
+> of_graph_get_remote_port_parent, respectively.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/Kconfig             |   1 +
+>  drivers/media/v4l2-core/v4l2-of.c | 117 ---------------------------------
+>  drivers/of/Kconfig                |   3 +
+>  drivers/of/Makefile               |   1 +
+>  drivers/of/of_graph.c             | 133 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/of_graph.h          |  23 +++++++
+>  include/media/v4l2-of.h           |  16 ++---
+>  7 files changed, 167 insertions(+), 127 deletions(-)
+>  create mode 100644 drivers/of/of_graph.c
+>  create mode 100644 include/linux/of_graph.h
 
-So, we're basically getting rid of two veneers, but we end up with exactly
-the same functionality.
+[snip]
 
-> > And yes, I'm thinking that maybe moving compare_of() into the component
-> > support so that drivers can share this generic function may be a good
-> > idea.
-> 
-> This function exists already in drivers/of/platform.c as
-> of_dev_node_match(). It just needs to be exported.
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> index 541cea4..404a493 100644
+> --- a/include/media/v4l2-of.h
+> +++ b/include/media/v4l2-of.h
+> @@ -17,6 +17,7 @@
+>  #include <linux/list.h>
+>  #include <linux/types.h>
+>  #include <linux/errno.h>
+> +#include <linux/of_graph.h>
+>
+>  #include <media/v4l2-mediabus.h>
+>
+> @@ -72,11 +73,6 @@ struct v4l2_of_endpoint {
+>  #ifdef CONFIG_OF
+>  int v4l2_of_parse_endpoint(const struct device_node *node,
+>                            struct v4l2_of_endpoint *endpoint);
+> -struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
+> -                                       struct device_node *previous);
+> -struct device_node *v4l2_of_get_remote_port_parent(
+> -                                       const struct device_node *node);
+> -struct device_node *v4l2_of_get_remote_port(const struct device_node *node);
+>  #else /* CONFIG_OF */
+>
+>  static inline int v4l2_of_parse_endpoint(const struct device_node *node,
+> @@ -85,25 +81,25 @@ static inline int v4l2_of_parse_endpoint(const struct device_node *node,
+>         return -ENOSYS;
+>  }
+>
+> +#endif /* CONFIG_OF */
+> +
+>  static inline struct device_node *v4l2_of_get_next_endpoint(
+>                                         const struct device_node *parent,
+>                                         struct device_node *previous)
+>  {
+> -       return NULL;
+> +       return of_graph_get_next_endpoint(parent, previous);
 
-Good, thanks for pointing that out.
+Won't this break for !OF?
 
--- 
-FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
-in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
-Estimate before purchase was "up to 13.2Mbit".
+Rob
