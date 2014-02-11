@@ -1,167 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:60074 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752146AbaBGRVR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 12:21:17 -0500
-Message-Id: <9f8bbe28b00160cab2cedffa3f8fb42121035964.1391792986.git.moinejf@free.fr>
-In-Reply-To: <cover.1391792986.git.moinejf@free.fr>
-References: <cover.1391792986.git.moinejf@free.fr>
-From: Jean-Francois Moine <moinejf@free.fr>
-Date: Fri, 7 Feb 2014 17:53:27 +0100
-Subject: [PATCH v3 2/2] drivers/base: declare phandle DT nodes as components
-To: Russell King <rmk+kernel@arm.linux.org.uk>,
-	devel@driverdev.osuosl.org
-Cc: alsa-devel@alsa-project.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46487 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909AbaBKMCy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 07:02:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 43/47] adv7604: Control hot-plug detect through a GPIO
+Date: Tue, 11 Feb 2014 13:03:57 +0100
+Message-ID: <1637754.DCKyOCpBtn@avalon>
+In-Reply-To: <52F9F6DB.1080700@xs4all.nl>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-44-git-send-email-laurent.pinchart@ideasonboard.com> <52F9F6DB.1080700@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At system startup time, some devices depends on the availability of
-some other devices before starting. The infrastructure for componentised
-subsystems permits to handle this dependence, each driver defining
-its own role.
+Hi Hans,
 
-This patch does an automatic creation of the lowest components in
-case of DT. This permits simple devices to be part of complex
-componentised subsystems without any specific code.
+On Tuesday 11 February 2014 11:09:31 Hans Verkuil wrote:
+> On 02/05/14 17:42, Laurent Pinchart wrote:
+> > Replace the ADV7604-specific hotplug notifier with a GPIO to control the
+> > HPD pin directly instead of going through the bridge driver.
+> 
+> Hmm, that's not going to work for me. I don't have a GPIO pin here, instead
+> it is a bit in a register that I have to set.
 
-When created from DT, the device dependence is generally indicated by
-phandle: a device which is pointed to by a phandle must be started
-before the pointing device(s).
+But that bit controls a GPIO, doesn't it ? In that case it should be exposed 
+as a GPIO controller.
 
-So, at device register time, the devices which are pointed to by a
-phandle are declared as components, except when they declared
-themselves as such in their probe function.
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/i2c/adv7604.c | 47 ++++++++++++++++++++++++++++++++++++----
+> >  include/media/adv7604.h     |  5 ++++-
+> >  2 files changed, 47 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> > index 369cb1e..2f38071 100644
+> > --- a/drivers/media/i2c/adv7604.c
+> > +++ b/drivers/media/i2c/adv7604.c
+> > @@ -28,6 +28,7 @@
+> >   */
+> >  
+> >  #include <linux/delay.h>
+> > +#include <linux/gpio.h>
+> >  #include <linux/i2c.h>
+> >  #include <linux/kernel.h>
+> >  #include <linux/module.h>
+> > @@ -608,6 +609,23 @@ static inline int edid_write_block(struct v4l2_subdev
+> > *sd,
+> >  	return err;
+> >  }
+> > 
+> > +static void adv7604_set_hpd(struct adv7604_state *state, unsigned int
+> > hpd)
+> > +{
+> > +	unsigned int i;
+> > +
+> > +	for (i = 0; i < state->info->num_dv_ports; ++i) {
+> > +		unsigned int enable = hpd & BIT(i);
+> > +
+> > +		if (IS_ERR_VALUE(state->pdata.hpd_gpio[i]))
+> 
+> IS_ERR_VALUE: that's normally used for pointers, not integers. I would
+> much prefer something simple like 'bool hpd_use_gpio[4]'.
 
-Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
----
- drivers/base/component.c | 12 ++++++++++++
- drivers/base/core.c      | 18 ++++++++++++++++++
- include/linux/of.h       |  2 ++
- 3 files changed, 32 insertions(+)
+I've reworked this to use the gpiod_* API, I'll post v2 when the whole set 
+will be reviewed.
 
-diff --git a/drivers/base/component.c b/drivers/base/component.c
-index 0a39d7a..3cab26b 100644
---- a/drivers/base/component.c
-+++ b/drivers/base/component.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- 
- struct master {
- 	struct list_head node;
-@@ -336,6 +337,7 @@ EXPORT_SYMBOL_GPL(component_bind_all);
- int component_add(struct device *dev, const struct component_ops *ops)
- {
- 	struct component *component;
-+	struct device_node *np;
- 	int ret;
- 
- 	component = kzalloc(sizeof(*component), GFP_KERNEL);
-@@ -356,6 +358,11 @@ int component_add(struct device *dev, const struct component_ops *ops)
- 
- 		kfree(component);
- 	}
-+
-+	np = dev->of_node;
-+	if (np)
-+		np->_flags |= OF_DEV_COMPONENT;
-+
- 	mutex_unlock(&component_mutex);
- 
- 	return ret < 0 ? ret : 0;
-@@ -365,6 +372,7 @@ EXPORT_SYMBOL_GPL(component_add);
- void component_del(struct device *dev, const struct component_ops *ops)
- {
- 	struct component *c, *component = NULL;
-+	struct device_node *np;
- 
- 	mutex_lock(&component_mutex);
- 	list_for_each_entry(c, &component_list, node)
-@@ -377,6 +385,10 @@ void component_del(struct device *dev, const struct component_ops *ops)
- 	if (component && component->master)
- 		take_down_master(component->master);
- 
-+	np = dev->of_node;
-+	if (np)
-+		np->_flags &= ~OF_DEV_COMPONENT;
-+
- 	mutex_unlock(&component_mutex);
- 
- 	WARN_ON(!component);
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 2b56717..0517b91 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -27,6 +27,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/netdevice.h>
- #include <linux/sysfs.h>
-+#include <linux/component.h>
- 
- #include "base.h"
- #include "power/power.h"
-@@ -980,6 +981,7 @@ int device_add(struct device *dev)
- 	struct device *parent = NULL;
- 	struct kobject *kobj;
- 	struct class_interface *class_intf;
-+	struct device_node *np;
- 	int error = -EINVAL;
- 
- 	dev = get_device(dev);
-@@ -1088,6 +1090,15 @@ int device_add(struct device *dev)
- 				class_intf->add_dev(dev, class_intf);
- 		mutex_unlock(&dev->class->p->mutex);
- 	}
-+
-+	/* if DT-created device referenced by phandle, create a component */
-+	np = dev->of_node;
-+	if (np && np->phandle &&
-+	    !(np->_flags & OF_DEV_COMPONENT)) {
-+		component_add(dev, NULL);
-+		np->_flags |= OF_DEV_IMPLICIT_COMPONENT;
-+	}
-+
- done:
- 	put_device(dev);
- 	return error;
-@@ -1189,10 +1200,17 @@ void device_del(struct device *dev)
- {
- 	struct device *parent = dev->parent;
- 	struct class_interface *class_intf;
-+	struct device_node *np;
- 
- 	/* Notify clients of device removal.  This call must come
- 	 * before dpm_sysfs_remove().
- 	 */
-+	np = dev->of_node;
-+	if (np && (np->_flags & OF_DEV_COMPONENT)) {
-+		component_del(dev, NULL);
-+		np->_flags &= ~OF_DEV_IMPLICIT_COMPONENT;
-+	}
-+
- 	if (dev->bus)
- 		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
- 					     BUS_NOTIFY_DEL_DEVICE, dev);
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 70c64ba..40f1c34 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -59,6 +59,8 @@ struct device_node {
- 	struct	proc_dir_entry *pde;	/* this node's proc directory */
- 	struct	kref kref;
- 	unsigned long _flags;
-+#define OF_DEV_COMPONENT 1
-+#define OF_DEV_IMPLICIT_COMPONENT 2
- 	void	*data;
- #if defined(CONFIG_SPARC)
- 	const char *path_component_name;
+> > +			continue;
+> > +
+> > +		if (state->pdata.hpd_gpio_low[i])
+> > +			enable = !enable;
+> > +
+> > +		gpio_set_value_cansleep(state->pdata.hpd_gpio[i], enable);
+> > +	}
+> > +}
+> > +
+> > 
+> >  static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
+> >  {
+> >  	struct delayed_work *dwork = to_delayed_work(work);
+> > @@ -617,7 +635,7 @@ static void adv7604_delayed_work_enable_hotplug(struct
+> > work_struct *work)> 
+> >  	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
+> > 
+> > -	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state-
+>edid.present);
+> > +	adv7604_set_hpd(state, state->edid.present);
+> >  }
+> >  
+> >  static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
+> > @@ -2022,7 +2040,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd,
+> > struct v4l2_subdev_edid *edi> 
+> >  	struct adv7604_state *state = to_state(sd);
+> >  	const struct adv7604_chip_info *info = state->info;
+> >  	int spa_loc;
+> > -	int tmp = 0;
+> >  	int err;
+> >  	int i;
+> > 
+> > @@ -2033,7 +2050,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd,
+> > struct v4l2_subdev_edid *edi> 
+> >  	if (edid->blocks == 0) {
+> >  		/* Disable hotplug and I2C access to EDID RAM from DDC port */
+> >  		state->edid.present &= ~(1 << edid->pad);
+> > -		v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state-
+>edid.present);
+> > +		adv7604_set_hpd(state, state->edid.present);
+> >  		rep_write_clr_set(sd, info->edid_enable_reg, 0x0f,
+> >  		state->edid.present);
+> >  		/* Fall back to a 16:9 aspect ratio */
+> > @@ -2059,7 +2076,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd,
+> > struct v4l2_subdev_edid *edi
+> >  	/* Disable hotplug and I2C access to EDID RAM from DDC port */
+> >  	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
+> > 
+> > -	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
+> > +	adv7604_set_hpd(state, 0);
+> > 
+> >  	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, 0x00);
+> >  	
+> >  	spa_loc = get_edid_spa_location(edid->edid);
+> > @@ -2655,6 +2672,28 @@ static int adv7604_probe(struct i2c_client *client,
+> >  		return -ENODEV;
+> >  	}
+> >  	state->pdata = *pdata;
+> > +
+> > +	/* Request GPIOs. */
+> > +	for (i = 0; i < state->info->num_dv_ports; ++i) {
+> > +		char name[5];
+> > +
+> > +		if (IS_ERR_VALUE(state->pdata.hpd_gpio[i]))
+> > +			continue;
+> > +
+> > +		sprintf(name, "hpd%u", i);
+> > +		err = devm_gpio_request_one(&client->dev,
+> > +					    state->pdata.hpd_gpio[i],
+> > +					    state->pdata.hpd_gpio_low[i] ?
+> > +					    GPIOF_OUT_INIT_HIGH :
+> > +					    GPIOF_OUT_INIT_LOW,
+> > +					    name);
+> > +		if (err < 0) {
+> > +			v4l_err(client, "Failed to request HPD %u GPIO (%u)\n",
+> > +				i, state->pdata.hpd_gpio[i]);
+> > +			return err;
+> > +		}
+> > +	}
+> > +
+> > 
+> >  	state->timings = cea640x480;
+> >  	state->format = adv7604_format_info(state, V4L2_MBUS_FMT_YUYV8_2X8);
+> > diff --git a/include/media/adv7604.h b/include/media/adv7604.h
+> > index 4da678c..dddb0cb 100644
+> > --- a/include/media/adv7604.h
+> > +++ b/include/media/adv7604.h
+> > @@ -90,6 +90,10 @@ struct adv7604_platform_data {
+> >  	/* DIS_CABLE_DET_RST: 1 if the 5V pins are unused and unconnected */
+> >  	unsigned disable_cable_det_rst:1;
+> > 
+> > +	/* Hot-Plug Detect control GPIOs */
+> > +	int hpd_gpio[4];
+> > +	bool hpd_gpio_low[4];
+> > +
+> >  	/* Analog input muxing mode */
+> >  	enum adv7604_ain_sel ain_sel;
+> > 
+> > @@ -133,7 +137,6 @@ struct adv7604_platform_data {
+> > 
+> >  #define V4L2_CID_ADV_RX_FREE_RUN_COLOR		(V4L2_CID_DV_CLASS_BASE + 
+0x1002)
+> >  
+> >  /* notify events */
+> > -#define ADV7604_HOTPLUG		1
+> >  #define ADV7604_FMT_CHANGE	2
+> >  
+> >  #endif
+
 -- 
-1.9.rc1
+Regards,
+
+Laurent Pinchart
 
