@@ -1,105 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:42953 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755599AbaBFLYO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 06:24:14 -0500
-Date: Thu, 06 Feb 2014 09:24:05 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
-	Rob Landley <rob@landley.net>,
-	Tomasz Figa <tomasz.figa@gmail.com>
-Cc: James Hogan <james.hogan@imgtec.com>, linux-media@vger.kernel.org,
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH v2 06/15] dt: binding: add binding for ImgTec IR block
-Message-id: <20140206092405.49170eed@samsung.com>
-In-reply-to: <1389967140-20704-7-git-send-email-james.hogan@imgtec.com>
-References: <1389967140-20704-1-git-send-email-james.hogan@imgtec.com>
- <1389967140-20704-7-git-send-email-james.hogan@imgtec.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:41019 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752468AbaBKCFP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 21:05:15 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 09/16] rtl28xxu: constify demod config structs
+Date: Tue, 11 Feb 2014 04:04:52 +0200
+Message-Id: <1392084299-16549-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1392084299-16549-1-git-send-email-crope@iki.fi>
+References: <1392084299-16549-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 17 Jan 2014 13:58:51 +0000
-James Hogan <james.hogan@imgtec.com> escreveu:
+Optimize a little bit from data to text.
 
-> Add device tree binding for ImgTec Consumer Infrared block, specifically
-> major revision 1 of the hardware.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-@DT maintainers:
-
-ping.
-
-
-> 
-> Signed-off-by: James Hogan <james.hogan@imgtec.com>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: linux-media@vger.kernel.org
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Pawel Moll <pawel.moll@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-> Cc: Kumar Gala <galak@codeaurora.org>
-> Cc: devicetree@vger.kernel.org
-> Cc: Rob Landley <rob@landley.net>
-> Cc: linux-doc@vger.kernel.org
-> Cc: Tomasz Figa <tomasz.figa@gmail.com>
-> ---
-> v2:
-> - Future proof compatible string from "img,ir" to "img,ir1", where the 1
->   corresponds to the major revision number of the hardware (Tomasz
->   Figa).
-> - Added clock-names property and three specific clock names described in
->   the manual, only one of which is used by the current driver (Tomasz
->   Figa).
-> ---
->  .../devicetree/bindings/media/img-ir1.txt          | 30 ++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/img-ir1.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/img-ir1.txt b/Documentation/devicetree/bindings/media/img-ir1.txt
-> new file mode 100644
-> index 0000000..ace5fd9
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/img-ir1.txt
-> @@ -0,0 +1,30 @@
-> +* ImgTec Infrared (IR) decoder version 1
-> +
-> +This binding is for Imagination Technologies' Infrared decoder block,
-> +specifically major revision 1.
-> +
-> +Required properties:
-> +- compatible:		Should be "img,ir1"
-> +- reg:			Physical base address of the controller and length of
-> +			memory mapped region.
-> +- interrupts:		The interrupt specifier to the cpu.
-> +
-> +Optional properties:
-> +- clocks:		List of clock specifiers as described in standard
-> +			clock bindings.
-> +- clock-names:		List of clock names corresponding to the clocks
-> +			specified in the clocks property.
-> +			Accepted clock names are:
-> +			"core":	Core clock (defaults to 32.768KHz if omitted).
-> +			"sys":	System side (fast) clock.
-> +			"mod":	Power modulation clock.
-> +
-> +Example:
-> +
-> +	ir@02006200 {
-> +		compatible = "img,ir1";
-> +		reg = <0x02006200 0x100>;
-> +		interrupts = <29 4>;
-> +		clocks = <&clk_32khz>;
-> +		clock-names =  "core";
-> +	};
-
-
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 38f4bc8..00d9440 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -516,7 +516,7 @@ err:
+ 	return ret;
+ }
+ 
+-static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
++static const struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.ts_mode = 0,
+@@ -527,7 +527,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
+ 
+ };
+ 
+-static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
++static const struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.ts_mode = 0,
+@@ -537,7 +537,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
+ 	.agc_targ_val = 0x2d,
+ };
+ 
+-static struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
++static const struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.ts_mode = 0,
+@@ -551,7 +551,7 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+-	struct rtl2830_config *rtl2830_config;
++	const struct rtl2830_config *rtl2830_config;
+ 	int ret;
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+@@ -586,31 +586,31 @@ err:
+ 	return ret;
+ }
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.tuner = TUNER_RTL2832_FC0012
+ };
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.tuner = TUNER_RTL2832_FC0013
+ };
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.tuner = TUNER_RTL2832_TUA9001,
+ };
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
+ 	.i2c_addr = 0x10, /* 0x20 */
+ 	.xtal = 28800000,
+ 	.tuner = TUNER_RTL2832_E4000,
+ };
+ 
+-static struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
++static const struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
+ 	.i2c_addr = 0x10,
+ 	.xtal = 28800000,
+ 	.tuner = TUNER_RTL2832_R820T,
+@@ -734,7 +734,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	int ret;
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct rtl28xxu_priv *priv = d_to_priv(d);
+-	struct rtl2832_config *rtl2832_config;
++	const struct rtl2832_config *rtl2832_config;
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
 -- 
+1.8.5.3
 
-Cheers,
-Mauro
