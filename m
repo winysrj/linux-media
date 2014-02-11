@@ -1,155 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35226 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754003AbaBUL5s (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:37988 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753033AbaBKWBT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 06:57:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	k.debski@samsung.com
-Subject: Re: [PATCH v5.1 3/7] v4l: Add timestamp source flags, mask and document them
-Date: Fri, 21 Feb 2014 12:58:58 +0100
-Message-ID: <1627498.vqEXNhvDry@avalon>
-In-Reply-To: <53071CFA.5060503@iki.fi>
-References: <20140217232931.GW15635@valkosipuli.retiisi.org.uk> <53066763.3070000@xs4all.nl> <53071CFA.5060503@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 11 Feb 2014 17:01:19 -0500
+Received: by mail-wi0-f170.google.com with SMTP id hi5so407206wib.1
+        for <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 14:01:18 -0800 (PST)
+Message-ID: <1392156065.3512.22.camel@canaries32-MCP7A>
+Subject: Re: [PATCH 2/2] af9035: Add remaining it913x dual ids to af9035.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Date: Tue, 11 Feb 2014 22:01:05 +0000
+In-Reply-To: <52FA8B10.9060009@iki.fi>
+References: <1391951046.13992.15.camel@canaries32-MCP7A>
+		 <52FA6113.300@iki.fi> <1392150757.3378.14.camel@canaries32-MCP7A>
+	 <52FA8B10.9060009@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On Friday 21 February 2014 11:31:38 Sakari Ailus wrote:
-> Hans Verkuil wrote:
-> > On 02/20/2014 08:41 PM, Sakari Ailus wrote:
-> >> Some devices do not produce timestamps that correspond to the end of the
-> >> frame. The user space should be informed on the matter. This patch
-> >> achieves that by adding buffer flags (and a mask) for timestamp sources
-> >> since more possible timestamping points are expected than just two.
-> >> 
-> >> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of
-> >> the
-> >> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end
-> >> of frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure
-> >> (next value).
-> > 
-> > Sorry, but I still have two small notes:
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> >> ---
-> >> since v5:
-> >> - Add a note on software generated timestamp inaccuracy.
-> >> 
-> >>   Documentation/DocBook/media/v4l/io.xml   |   38
-> >>   +++++++++++++++++++++++++-----
-> >>   drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
-> >>   include/media/videobuf2-core.h           |    2 ++
-> >>   include/uapi/linux/videodev2.h           |    4 ++++
-> >>   4 files changed, 41 insertions(+), 7 deletions(-)
-> >> 
-> >> diff --git a/Documentation/DocBook/media/v4l/io.xml
-> >> b/Documentation/DocBook/media/v4l/io.xml index 46d24b3..22b87bc 100644
-> >> --- a/Documentation/DocBook/media/v4l/io.xml
-> >> +++ b/Documentation/DocBook/media/v4l/io.xml
-> >> @@ -653,12 +653,6 @@ plane, are stored in struct
-> >> <structname>v4l2_plane</structname> instead.>> 
-> >>   In that case, struct <structname>v4l2_buffer</structname> contains an
-> >>   array of plane structures.</para>
-> >> 
-> >> -      <para>For timestamp types that are sampled from the system clock
-> >> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp
-> >> is
-> >> -taken after the complete frame has been received (or transmitted in
-> >> -case of video output devices). For other kinds of
-> >> -timestamps this may vary depending on the driver.</para>
-> >> -
-> >> 
-> >>       <table frame="none" pgwide="1" id="v4l2-buffer">
-> >>       
-> >>         <title>struct <structname>v4l2_buffer</structname></title>
-> >>         <tgroup cols="4">
-> >> 
-> >> @@ -1119,6 +1113,38 @@ in which case caches have not been used.</entry>
-> >> 
-> >>   	    <entry>The CAPTURE buffer timestamp has been taken from the
-> >>   	    corresponding OUTPUT buffer. This flag applies only to mem2mem
-> >>   	    devices.</entry>>>   	  
-> >>   	  </row>
-> >> 
-> >> +	  <row>
-> >> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
-> >> +	    <entry>0x00070000</entry>
-> >> +	    <entry>Mask for timestamp sources below. The timestamp source
-> >> +	    defines the point of time the timestamp is taken in relation to
-> >> +	    the frame. Logical and operation between the
-> >> +	    <structfield>flags</structfield> field and
-> >> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
-> >> +	    value of the timestamp source.</entry>
-> >> +	  </row>
-> >> +	  <row>
-> >> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
-> >> +	    <entry>0x00000000</entry>
-> >> +	    <entry>End Of Frame. The buffer timestamp has been taken
-> >> +	    when the last pixel of the frame has been received or the
-> >> +	    last pixel of the frame has been transmitted. In practice,
-> >> +	    software generated timestamps will typically be read from
-> >> +	    the clock a small amount of time after the last pixel has
-> >> +	    been received, depending on the system and other activity
-> > 
-> > s/been received/been received or transmitted/
+On Tue, 2014-02-11 at 22:41 +0200, Antti Palosaari wrote:
+> On 11.02.2014 22:32, Malcolm Priestley wrote:
+> > On Tue, 2014-02-11 at 19:42 +0200, Antti Palosaari wrote:
+> >> Moikka Malcolm!
+> >> Thanks for the patch serie.
+> >>
+> >> You removed all IDs from it913x driver. There is possibility to just
+> >> remove / comment out:
+> >> 	MODULE_DEVICE_TABLE(usb, it913x_id_table);
+> >> which prevents loading that driver automatically, but leaves possibility
+> >> to load it manually if user wants to fallback. I am fine either way you
+> >> decide to do it, just a propose.
+> > Hi Antti
+> >
+> > I am going post a patches to remove it.
+> >
+> > The only reason why an user would want to fall back is
+> > the use dvb-usb-it9137-01.fw firmware with USB_VID_KWORLD_2.
+> >
+> > I left the USB_VID_KWORLD_2 ids in the driver.
+> >
+> > I haven't found any issues with dvb-usb-it9135-01.fw
+> >
+> > USB_VID_KWORLD_2 users could have trouble updating older kernels via
+> > media_build.
+> >
+> > Perhaps there should be a warning message in af9035 that users need to
+> > change firmware.
 > 
-> I'll fix that.
-> 
-> >> +	    in it.</entry>
-> >> +	  </row>
-> >> +	  <row>
-> >> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
-> >> +	    <entry>0x00010000</entry>
-> >> +	    <entry>Start Of Exposure. The buffer timestamp has been
-> >> +	    taken when the exposure of the frame has begun. In
-> >> +	    practice, software generated timestamps will typically be
-> >> +	    read from the clock a small amount of time after the last
-> >> +	    pixel has been received, depending on the system and other
-> >> +	    activity in it. This is only valid for buffer type
-> >> +	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
-> > 
-> > I would move the last sentence up to just before "In practice...". The
-> > way it is now it looks like an afterthought.
-> 
-> Same here.
-> 
-> > I am also not sure whether the whole "In practice" sentence is valid
-> > here. Certainly the bit about "the last pixel" isn't since this is the
-> > "SOE" case and not the End Of Frame. In the case of the UVC driver (and
-> > that's the only one using this timestamp source) the timestamps come from
-> > the hardware as I understand it, so the "software generated" bit doesn't
-> > apply.
-> 
-> Indeed. I don't know how the timestamp is even produced by the hardware.
+> Is that KẂorld device dual model (I guess yes, because of it9137)? Is it 
+> version 1 (AX) or version 2 (BX) chip?
 
-In practice I don't know either, as that's hidden in the device firmware. The 
-UVC specification just describes the timestamp as "The source clock time in 
-native device clock units when the raw frame capture begins."
+Both apparently exist, but the firmware is the same.
 
-Let's face it, I'm pretty sure many devices don't care much and will send a 
-time stamp that's taken at some other, possibly semi-random, time.
+The main difference registers in the firmwares
+dvb-usb-it9137-01.fw -->clk enable 0xd81a --> tuner_it91x_priv.h...set_it9137_template
+dvb-usb-it9135-01.fw -->clk enable 0xcfff --> tuner_it91x_priv.h...set_it9135_template
+dvb-usb-it9135-02.fw -->clk enable 0xcfff --> tuner_it91x_priv.h...set_it9135_template
 
-> It's possible to calculate it (decrementing the readout time + exposure
-> time from the end of frame timestamp) and that's what the devices
-> supposedly do. The pre-frame exposure time isn't available to the host,
-> so the end of frame timestamp cannot be calculated by the host from the
-> camera generated timestamp.
-> 
-> However the link to the host is USB which has a lot more latency than
-> almost anything else which makes even hardware generated timestamps a
-> little imprecise.
+As far as It can tell all the latest firmwares are based on
+set_it9135_template.
 
-Why so ? There will be a jitter in frame arrival, but the hardware timestamp 
-should be accurate (at least if properly generated by the camera firmware).
+On the KWorld the second device is another it9137 and has an eeprom
+24c02 fitted.
 
--- 
-Regards,
+So dropping the dvb-usb-it9137-01.fw firmware is fine.
 
-Laurent Pinchart
+Regards
+
+
+Malcolm
 
