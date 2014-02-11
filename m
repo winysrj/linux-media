@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053AbaBEQlv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 11/47] s5p-tv: hdmiphy: Add pad-level DV timings operations
-Date: Wed,  5 Feb 2014 17:42:02 +0100
-Message-Id: <1391618558-5580-12-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from cpsmtpb-ews01.kpnxchange.com ([213.75.39.4]:62783 "EHLO
+	cpsmtpb-ews01.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750878AbaBKLRF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 06:17:05 -0500
+Message-ID: <1392117421.5686.4.camel@x220>
+Subject: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Date: Tue, 11 Feb 2014 12:17:01 +0100
+In-Reply-To: <1409428.L7JLLEda5C@avalon>
+References: <1391958577.25424.22.camel@x220> <3300576.MqDnfacnEA@avalon>
+	 <1392045231.3585.33.camel@x220> <1409428.L7JLLEda5C@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings operation is deprecated. Implement the
-pad-level version of the operation to prepare for the removal of the
-video version.
+Commit d632dfefd36f ("[media] v4l: omap4iss: Add support for OMAP4
+camera interface - Build system") added a Kconfig entry for
+VIDEO_OMAP4_DEBUG. But nothing uses that symbol.
 
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This entry was apparently copied from a similar entry for "OMAP 3
+Camera debug messages". The OMAP 3 entry is used to set the DEBUG
+compiler flag, which enables calls of dev_dbg().
+
+So add a Makefile line to do that for omap4iss too.
+
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 ---
- drivers/media/platform/s5p-tv/hdmiphy_drv.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+0) v1 was called "[media] v4l: omap4iss: Remove VIDEO_OMAP4_DEBUG". This
+versions implements Laurent's alternative (which is much better).
 
-diff --git a/drivers/media/platform/s5p-tv/hdmiphy_drv.c b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-index e19a0af..ff22320 100644
---- a/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-@@ -225,6 +225,9 @@ static int hdmiphy_s_dv_timings(struct v4l2_subdev *sd,
- static int hdmiphy_dv_timings_cap(struct v4l2_subdev *sd,
- 	struct v4l2_dv_timings_cap *cap)
- {
-+	if (cap->pad != 0)
-+		return -EINVAL;
-+
- 	cap->type = V4L2_DV_BT_656_1120;
- 	/* The phy only determines the pixelclock, leave the other values
- 	 * at 0 to signify that we have no information for them. */
-@@ -263,9 +266,14 @@ static const struct v4l2_subdev_video_ops hdmiphy_video_ops = {
- 	.s_stream =  hdmiphy_s_stream,
- };
+1) Still untested.
+
+ drivers/staging/media/omap4iss/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/staging/media/omap4iss/Makefile b/drivers/staging/media/omap4iss/Makefile
+index a716ce9..f46c6bd 100644
+--- a/drivers/staging/media/omap4iss/Makefile
++++ b/drivers/staging/media/omap4iss/Makefile
+@@ -1,5 +1,7 @@
+ # Makefile for OMAP4 ISS driver
  
-+static const struct v4l2_subdev_pad_ops hdmiphy_pad_ops = {
-+	.dv_timings_cap = hdmiphy_dv_timings_cap,
-+};
++ccflags-$(CONFIG_VIDEO_OMAP4_DEBUG) += -DDEBUG
 +
- static const struct v4l2_subdev_ops hdmiphy_ops = {
- 	.core = &hdmiphy_core_ops,
- 	.video = &hdmiphy_video_ops,
-+	.pad = &hdmiphy_pad_ops,
- };
+ omap4-iss-objs += \
+ 	iss.o iss_csi2.o iss_csiphy.o iss_ipipeif.o iss_ipipe.o iss_resizer.o iss_video.o
  
- static int hdmiphy_probe(struct i2c_client *client,
 -- 
-1.8.3.2
+1.8.5.3
 
