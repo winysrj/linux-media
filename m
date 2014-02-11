@@ -1,65 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42213 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46611 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752787AbaBJVxq (ORCPT
+	with ESMTP id S1751935AbaBKMWx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 16:53:46 -0500
+	Tue, 11 Feb 2014 07:22:53 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Subject: [PATCH 1/5] ARM: omap2: cm-t35: Add regulators and clock for camera sensor
-Date: Mon, 10 Feb 2014 22:54:40 +0100
-Message-Id: <1392069284-18024-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 35/47] adv7604: Add sink pads
+Date: Tue, 11 Feb 2014 13:23:55 +0100
+Message-ID: <2613751.oRlAYVmzeh@avalon>
+In-Reply-To: <52FA1297.5070108@cisco.com>
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <3580605.MqbMpcI5hW@avalon> <52FA1297.5070108@cisco.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The camera sensor will soon require regulators and clocks. Register
-fixed regulators for its VAA and VDD power supplies and a fixed rate
-clock for its master clock.
+Hi Hans,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- arch/arm/mach-omap2/board-cm-t35.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+On Tuesday 11 February 2014 13:07:51 Hans Verkuil wrote:
+> On 02/11/14 13:00, Laurent Pinchart wrote:
+> > On Tuesday 11 February 2014 11:19:32 Hans Verkuil wrote:
+> >> On 02/05/14 17:42, Laurent Pinchart wrote:
+> >>> The ADV7604 has sink pads for its HDMI and analog inputs. Report them.
+> >>> 
+> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>> ---
+> >>> 
+> >>>  drivers/media/i2c/adv7604.c | 71 ++++++++++++++++++++++++--------------
+> >>>  include/media/adv7604.h     | 14 ---------
+> >>>  2 files changed, 45 insertions(+), 40 deletions(-)
+> >>> 
+> >>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> >>> index 05e7e1a..da32ce9 100644
+> >>> --- a/drivers/media/i2c/adv7604.c
+> >>> +++ b/drivers/media/i2c/adv7604.c
+> >>> @@ -97,13 +97,25 @@ struct adv7604_chip_info {
+> >>> 
+> >>>   **********************************************************************
+> >>>   */
+> >>> 
+> >>> +enum adv7604_pad {
+> >>> +	ADV7604_PAD_HDMI_PORT_A = 0,
+> >>> +	ADV7604_PAD_HDMI_PORT_B = 1,
+> >>> +	ADV7604_PAD_HDMI_PORT_C = 2,
+> >>> +	ADV7604_PAD_HDMI_PORT_D = 3,
+> >>> +	ADV7604_PAD_VGA_RGB = 4,
+> >>> +	ADV7604_PAD_VGA_COMP = 5,
+> >>> +	/* The source pad is either 1 (ADV7611) or 6 (ADV7604) */
+> >> 
+> >> How about making this explicit:
+> >> 	ADV7604_PAD_SOURCE = 6,
+> >> 	ADV7611_PAD_SOURCE = 1,
+> > 
+> > I can do that, but those two constants won't be used in the driver as they
+> > computed dynamically.
+> > 
+> >>> +	ADV7604_PAD_MAX = 7,
+> >>> +};
+> >> 
+> >> Wouldn't it make more sense to have this in the header? I would really
+> >> like to use the symbolic names for these pads in my bridge driver.
+> > 
+> > That would add a dependency on the adv7604 driver to the bridge driver,
+> > isn't the whole point of subdevs to avoid such dependencies ?
+> 
+> The bridge driver has to know about the adv7604, not the other way around.
+> 
+> E.g. in my bridge driver I have to match v4l2 inputs to pads, both for
+> S_EDID and for s_routing, so it needs to know which pad number to use.
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 8dd0ec8..018353d 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -16,6 +16,8 @@
-  *
-  */
- 
-+#include <linux/clk-provider.h>
-+#include <linux/clkdev.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
-@@ -542,8 +544,22 @@ static struct isp_platform_data cm_t35_isp_pdata = {
- 	.subdevs = cm_t35_isp_subdevs,
- };
- 
-+static struct regulator_consumer_supply cm_t35_camera_supplies[] = {
-+	REGULATOR_SUPPLY("vaa", "3-005d"),
-+	REGULATOR_SUPPLY("vdd", "3-005d"),
-+};
-+
- static void __init cm_t35_init_camera(void)
- {
-+	struct clk *clk;
-+
-+	clk = clk_register_fixed_rate(NULL, "mt9t001-clkin", NULL, CLK_IS_ROOT,
-+				      48000000);
-+	clk_register_clkdev(clk, NULL, "3-005d");
-+
-+	regulator_register_fixed(2, cm_t35_camera_supplies,
-+				 ARRAY_SIZE(cm_t35_camera_supplies));
-+
- 	if (omap3_init_camera(&cm_t35_isp_pdata) < 0)
- 		pr_warn("CM-T3x: Failed registering camera device!\n");
- }
+Is that information that you want to pass to the bridge driver through 
+platform data, or do you want to hardcode it in the bridge driver itself ? In 
+the latter case the bridge driver would become specific to the adv7604. It 
+might be fine in your case if your bridge is specific to your board anyway 
+(FPGAs come to mind), but it lacks genericity.
+
+> Also, for calling set_fmt, BTW. There I need to specify the source pad,
+> which is also why I would like to have a symbolic name for it as suggested
+> above.
+
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
