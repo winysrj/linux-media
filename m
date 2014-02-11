@@ -1,100 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:10243 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751835AbaBELra (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Feb 2014 06:47:30 -0500
-Date: Wed, 5 Feb 2014 19:47:27 +0800
-From: Fengguang Wu <fengguang.wu@intel.com>
-To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [linuxtv-media:master 91/499] WARNING: usleep_range should not use
- min == max args; see Documentation/timers/timers-howto.txt
-Message-ID: <20140205114727.GA27938@localhost>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2369 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750758AbaBKH57 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 02:57:59 -0500
+Message-ID: <52F9D7E2.9040607@xs4all.nl>
+Date: Tue, 11 Feb 2014 08:57:22 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 00/16] SDR API - drivers
+References: <1392084299-16549-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1392084299-16549-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Antti,
 
-Hi Sergio,
+Thanks for reorganizing the patch series. This looks much nicer!
 
-FYI, there are new warnings show up in
+I plan on reviewing these series on Friday or in the weekend.
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   c29b8f3149f2916e98fc3b8d6c1df2137d003979
-commit: b4a0477c0b87c5b7a20a84df8cf81311d1efb226 [91/499] [media] v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers
-:::::: branch date: 44 minutes ago
-:::::: commit date: 9 weeks ago
+Regards,
 
-scripts/checkpatch.pl 0001-media-v4l-omap4iss-Add-support-for-OMAP4-camera-inte.patch
-# many are suggestions rather than must-fix
+	Hans
 
-WARNING: usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt
-#548: drivers/staging/media/omap4iss/iss_csi2.c:516:
-+			usleep_range(100, 100);
+On 02/11/2014 03:04 AM, Antti Palosaari wrote:
+> *** BLURB HERE ***
+> 
+> Antti Palosaari (16):
+>   e4000: convert DVB tuner to I2C driver model
+>   e4000: implement controls via v4l2 control framework
+>   e4000: fix PLL calc to allow higher frequencies
+>   e4000: implement PLL lock v4l control
+>   e4000: get rid of DVB i2c_gate_ctrl()
+>   e4000: convert to Regmap API
+>   e4000: rename some variables
+>   rtl2832_sdr: Realtek RTL2832 SDR driver module
+>   rtl28xxu: constify demod config structs
+>   rtl28xxu: attach SDR extension module
+>   rtl28xxu: fix switch-case style issue
+>   rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
+>   rtl2832_sdr: expose e4000 controls to user
+>   r820t: add manual gain controls
+>   rtl2832_sdr: expose R820T controls to user
+>   MAINTAINERS: add rtl2832_sdr driver
+> 
+>  MAINTAINERS                                      |   10 +
+>  drivers/media/tuners/Kconfig                     |    1 +
+>  drivers/media/tuners/e4000.c                     |  598 +++++----
+>  drivers/media/tuners/e4000.h                     |   21 +-
+>  drivers/media/tuners/e4000_priv.h                |   86 +-
+>  drivers/media/tuners/r820t.c                     |  137 +-
+>  drivers/media/tuners/r820t.h                     |   10 +
+>  drivers/media/usb/dvb-usb-v2/Makefile            |    1 +
+>  drivers/media/usb/dvb-usb-v2/rtl28xxu.c          |   90 +-
+>  drivers/media/usb/dvb-usb-v2/rtl28xxu.h          |    2 +
+>  drivers/staging/media/Kconfig                    |    2 +
+>  drivers/staging/media/Makefile                   |    2 +
+>  drivers/staging/media/rtl2832u_sdr/Kconfig       |    7 +
+>  drivers/staging/media/rtl2832u_sdr/Makefile      |    6 +
+>  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 1476 ++++++++++++++++++++++
+>  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h |   51 +
+>  16 files changed, 2234 insertions(+), 266 deletions(-)
+>  create mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
+>  create mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
+>  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+>  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
+> 
 
-WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#552: drivers/staging/media/omap4iss/iss_csi2.c:520:
-+		printk(KERN_ERR "CSI2: Soft reset try count exceeded!\n");
-
-WARNING: usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt
-#566: drivers/staging/media/omap4iss/iss_csi2.c:534:
-+		usleep_range(100, 100);
-
-WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#570: drivers/staging/media/omap4iss/iss_csi2.c:538:
-+		printk(KERN_ERR
-
-WARNING: quoted string split across lines
-#789: drivers/staging/media/omap4iss/iss_csi2.c:757:
-+		dev_dbg(iss->dev, "CSI2: ComplexIO Error IRQ "
-+			"%x\n", cpxio1_irqstatus);
-
-WARNING: quoted string split across lines
-#799: drivers/staging/media/omap4iss/iss_csi2.c:767:
-+		dev_dbg(iss->dev, "CSI2 Err:"
-+			" OCP:%d,"
-
-WARNING: quoted string split across lines
-#800: drivers/staging/media/omap4iss/iss_csi2.c:768:
-+			" OCP:%d,"
-+			" Short_pack:%d,"
-
-WARNING: quoted string split across lines
-#801: drivers/staging/media/omap4iss/iss_csi2.c:769:
-+			" Short_pack:%d,"
-+			" ECC:%d,"
-
-WARNING: quoted string split across lines
-#802: drivers/staging/media/omap4iss/iss_csi2.c:770:
-+			" ECC:%d,"
-+			" CPXIO:%d,"
-
-WARNING: quoted string split across lines
-#803: drivers/staging/media/omap4iss/iss_csi2.c:771:
-+			" CPXIO:%d,"
-+			" FIFO_OVF:%d,"
-
-WARNING: quoted string split across lines
-#804: drivers/staging/media/omap4iss/iss_csi2.c:772:
-+			" FIFO_OVF:%d,"
-+			"\n",
-
-WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#1649: drivers/staging/media/omap4iss/iss_csiphy.c:81:
-+		printk(KERN_ERR "CSI2 CIO set power failed!\n");
-
-WARNING: line over 80 characters
-#1749: drivers/staging/media/omap4iss/iss_csiphy.c:181:
-+		if (lanes->data[i].pol > 1 || lanes->data[i].pos > (csi2->phy->max_data_lanes + 1))
-
-WARNING: line over 80 characters
-#1759: drivers/staging/media/omap4iss/iss_csiphy.c:191:
-+	if (lanes->clk.pol > 1 || lanes->clk.pos > (csi2->phy->max_data_lanes + 1))
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
