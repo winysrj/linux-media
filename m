@@ -1,64 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:59066 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751617AbaBGRVB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 12:21:01 -0500
-Message-Id: <9b3c3c2c982f31b026fd1516a2b608026d55b1e9.1391792986.git.moinejf@free.fr>
-In-Reply-To: <cover.1391792986.git.moinejf@free.fr>
-References: <cover.1391792986.git.moinejf@free.fr>
-From: Jean-Francois Moine <moinejf@free.fr>
-Date: Fri, 7 Feb 2014 16:55:00 +0100
-Subject: [PATCH v3 1/2] drivers/base: permit base components to omit the
- bind/unbind ops
-To: Russell King <rmk+kernel@arm.linux.org.uk>,
-	devel@driverdev.osuosl.org
-Cc: alsa-devel@alsa-project.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
+Received: from smtprelay01.ispgateway.de ([80.67.31.35]:34162 "EHLO
+	smtprelay01.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755763AbaBKUvJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 15:51:09 -0500
+Message-ID: <52FA87CD.2030206@doerges.net>
+Date: Tue, 11 Feb 2014 21:27:57 +0100
+From: =?UTF-8?B?VGlsbCBEw7ZyZ2Vz?= <till@doerges.net>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: PATCH: Added device (0ccd:00b4) to DVB_USB_RTL28XXU media driver
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some simple components don't need to do any specific action on
-bind to / unbind from a master component.
+Hi all,
 
-This patch permits such components to omit the bind/unbind
-operations.
+I've got the following DAB USB stick that also works fine with the DVB_USB_RTL28XXU
+driver after I added its USB ID:
 
-Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
----
- drivers/base/component.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+--- snip ---
+user@box:~> lsusb -d 0ccd:00b4
+Bus 001 Device 009: ID 0ccd:00b4 TerraTec Electronic GmbH
+--- snap ---
 
-diff --git a/drivers/base/component.c b/drivers/base/component.c
-index c53efe6..0a39d7a 100644
---- a/drivers/base/component.c
-+++ b/drivers/base/component.c
-@@ -225,7 +225,8 @@ static void component_unbind(struct component *component,
- {
- 	WARN_ON(!component->bound);
- 
--	component->ops->unbind(component->dev, master->dev, data);
-+	if (component->ops)
-+		component->ops->unbind(component->dev, master->dev, data);
- 	component->bound = false;
- 
- 	/* Release all resources claimed in the binding of this component */
-@@ -274,7 +275,11 @@ static int component_bind(struct component *component, struct master *master,
- 	dev_dbg(master->dev, "binding %s (ops %ps)\n",
- 		dev_name(component->dev), component->ops);
- 
--	ret = component->ops->bind(component->dev, master->dev, data);
-+	if (component->ops)
-+		ret = component->ops->bind(component->dev, master->dev, data);
-+	else
-+		ret = 0;
-+
- 	if (!ret) {
- 		component->bound = true;
- 
--- 
-1.9.rc1
 
+I tried it on a recent openSUSE 13.1 with this kernel/architecture
+
+--- snip ---
+user@box:~> uname -a
+Linux box 3.11.10-7-desktop #1 SMP PREEMPT Mon Feb 3 09:41:24 UTC 2014 (750023e)
+x86_64 x86_64 x86_64 GNU/Linux
+--- snap ---
+
+
+The patches itself are trivial:
+
+--- ./drivers/media/dvb-core/dvb-usb-ids.h.orig 2014-02-09 22:36:35.266625484 +0100
++++ ./drivers/media/dvb-core/dvb-usb-ids.h      2014-02-09 22:38:00.128199957 +0100
+@@ -256,6 +256,7 @@
+ #define USB_PID_TERRATEC_T5                            0x10a1
+ #define USB_PID_NOXON_DAB_STICK                                0x00b3
+ #define USB_PID_NOXON_DAB_STICK_REV2                   0x00e0
++#define USB_PID_NOXON_DAB_STICK_REV3                   0x00b4
+ #define USB_PID_PINNACLE_EXPRESSCARD_320CX             0x022e
+ #define USB_PID_PINNACLE_PCTV2000E                     0x022c
+ #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH              0x0228
+
+
+--- ./drivers/media/usb/dvb-usb-v2/rtl28xxu.c.orig      2014-02-03 10:41:24.000000000
++0100
++++ ./drivers/media/usb/dvb-usb-v2/rtl28xxu.c   2014-02-09 22:37:53.464154845 +0100
+@@ -1362,6 +1362,8 @@ static const struct usb_device_id rtl28x
+                &rtl2832u_props, "TerraTec NOXON DAB Stick", NULL) },
+        { DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK_REV2,
+                &rtl2832u_props, "TerraTec NOXON DAB Stick (rev 2)", NULL) },
++       { DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK_REV3,
++               &rtl2832u_props, "TerraTec NOXON DAB Stick (rev 3)", NULL) },
+        { DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_TREKSTOR_TERRES_2_0,
+                &rtl2832u_props, "Trekstor DVB-T Stick Terres 2.0", NULL) },
+        { DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1101,
+
+HTH -- Till
