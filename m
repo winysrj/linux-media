@@ -1,129 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3926 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750937AbaBDI4x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 03:56:53 -0500
-Message-ID: <52F0AB35.4080601@xs4all.nl>
-Date: Tue, 04 Feb 2014 09:56:21 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:51258 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752471AbaBKCFP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 21:05:15 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-CC: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 7/9] vb2: add reinit_streaming op.
-References: <1391093491-23077-1-git-send-email-hverkuil@xs4all.nl> <1391093491-23077-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391093491-23077-8-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [REVIEW PATCH 04/16] e4000: implement PLL lock v4l control
+Date: Tue, 11 Feb 2014 04:04:47 +0200
+Message-Id: <1392084299-16549-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1392084299-16549-1-git-send-email-crope@iki.fi>
+References: <1392084299-16549-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/30/2014 03:51 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This new op is called after stop_streaming() or after a failed call to
-> start_streaming(). The driver needs to dequeue any pending active buffers
-> it got from the buf_queue() callback.
-> 
-> The reason this op was added is that stop_streaming() traditionally dequeued
-> any pending active buffers after stopping the DMA engine. However,
-> stop_streaming() is never called if start_streaming() fails, even though any
-> prequeued buffers have been passed on to the driver. In that case those
-> pending active buffers may still be in the driver's active buffer list,
-> which can cause all sorts of problems if they are not removed.
-> 
-> By splitting stop_streaming into stop_streaming (i.e. stop the DMA engine)
-> and reinit_streaming (i.e. reinitialize the buffer lists) this problem is
-> solved. After calling reinit_streaming() the vb2 core will also call
-> vb2_buffer_done() for any remaining active buffers.
+Implement PLL lock control to get PLL lock flag status from tuner
+synthesizer.
 
-No need to review patches 7+8: this is going to change. I had a useful discussion
-with Pawel regarding this and we came up with a better solution.
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/e4000.c      | 53 ++++++++++++++++++++++++++++++++++++++-
+ drivers/media/tuners/e4000_priv.h |  2 ++
+ 2 files changed, 54 insertions(+), 1 deletion(-)
 
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 13 +++++++++++--
->  include/media/videobuf2-core.h           |  9 +++++++--
->  2 files changed, 18 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index a3b4b4c..3030ef6 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -395,9 +395,9 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
->  		if (unbalanced || debug) {
->  			pr_info("vb2: counters for queue %p:%s\n", q,
->  				unbalanced ? " UNBALANCED!" : "");
-> -			pr_info("vb2:     setup: %u start_streaming: %u stop_streaming: %u\n",
-> +			pr_info("vb2:     setup: %u start_streaming: %u stop_streaming: %u reinit_streaming: %u\n",
->  				q->cnt_queue_setup, q->cnt_start_streaming,
-> -				q->cnt_stop_streaming);
-> +				q->cnt_stop_streaming, q->cnt_reinit_streaming);
->  			pr_info("vb2:     wait_prepare: %u wait_finish: %u\n",
->  				q->cnt_wait_prepare, q->cnt_wait_finish);
->  		}
-> @@ -406,6 +406,7 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
->  		q->cnt_wait_finish = 0;
->  		q->cnt_start_streaming = 0;
->  		q->cnt_stop_streaming = 0;
-> +		q->cnt_reinit_streaming = 0;
->  	}
->  	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
->  		struct vb2_buffer *vb = q->bufs[buffer];
-> @@ -1900,7 +1901,15 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->  	 */
->  	if (q->streaming)
->  		call_qop(q, stop_streaming, q);
-> +
->  	q->streaming = 0;
-> +	if (atomic_read(&q->queued_count)) {
-> +		call_qop(q, reinit_streaming, q);
-> +
-> +		for (i = 0; i < q->num_buffers; ++i)
-> +			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-> +				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ERROR);
-> +	}
->  
->  	/*
->  	 * Remove all buffers from videobuf's list...
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 82b7f0f..b40dfbc 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -294,8 +294,11 @@ struct vb2_buffer {
->   *			buffer is queued.
->   * @stop_streaming:	called when 'streaming' state must be disabled; driver
->   *			should stop any DMA transactions or wait until they
-> - *			finish and give back all buffers it got from buf_queue()
-> - *			callback; may use vb2_wait_for_all_buffers() function
-> + *			finish; may use vb2_wait_for_all_buffers() function.
-> + * @reinit_streaming:	called after stop_streaming() or after a failed call to
-> + *			start_streaming(). The driver needs to dequeue any
-> + *			pending active buffers it got from the buf_queue()
-> + *			callback.
->   * @buf_queue:		passes buffer vb to the driver; driver may start
->   *			hardware operation on this buffer; driver should give
->   *			the buffer back by calling vb2_buffer_done() function;
-> @@ -318,6 +321,7 @@ struct vb2_ops {
->  
->  	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
->  	int (*stop_streaming)(struct vb2_queue *q);
-> +	void (*reinit_streaming)(struct vb2_queue *q);
->  
->  	void (*buf_queue)(struct vb2_buffer *vb);
->  };
-> @@ -408,6 +412,7 @@ struct vb2_queue {
->  	u32				cnt_wait_finish;
->  	u32				cnt_start_streaming;
->  	u32				cnt_stop_streaming;
-> +	u32				cnt_reinit_streaming;
->  #endif
->  };
->  
-> 
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index 019dc62..662e19a1 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -181,6 +181,8 @@ static int e4000_init(struct dvb_frontend *fe)
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
++	priv->active = true;
++
+ 	return 0;
+ err:
+ 	if (fe->ops.i2c_gate_ctrl)
+@@ -197,6 +199,8 @@ static int e4000_sleep(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+ 
++	priv->active = false;
++
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+@@ -512,6 +516,50 @@ err:
+ 	return ret;
+ }
+ 
++static int e4000_pll_lock(struct dvb_frontend *fe)
++{
++	struct e4000_priv *priv = fe->tuner_priv;
++	int ret;
++	u8 u8tmp;
++
++	if (priv->active == false)
++		return 0;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	ret = e4000_rd_reg(priv, 0x07, &u8tmp);
++	if (ret)
++		goto err;
++
++	priv->pll_lock->val = (u8tmp & 0x01);
++err:
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	if (ret)
++		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
++
++	return ret;
++}
++
++static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct e4000_priv *priv =
++			container_of(ctrl->handler, struct e4000_priv, hdl);
++	int ret;
++
++	switch (ctrl->id) {
++	case  V4L2_CID_PLL_LOCK:
++		ret = e4000_pll_lock(priv->fe);
++		break;
++	default:
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
+ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct e4000_priv *priv =
+@@ -550,6 +598,7 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+ }
+ 
+ static const struct v4l2_ctrl_ops e4000_ctrl_ops = {
++	.g_volatile_ctrl = e4000_g_volatile_ctrl,
+ 	.s_ctrl = e4000_s_ctrl,
+ };
+ 
+@@ -616,7 +665,7 @@ static int e4000_probe(struct i2c_client *client,
+ 		goto err;
+ 
+ 	/* Register controls */
+-	v4l2_ctrl_handler_init(&priv->hdl, 8);
++	v4l2_ctrl_handler_init(&priv->hdl, 9);
+ 	priv->bandwidth_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+ 			V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
+ 	priv->bandwidth = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+@@ -637,6 +686,8 @@ static int e4000_probe(struct i2c_client *client,
+ 	priv->if_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+ 			V4L2_CID_IF_GAIN, 0, 54, 1, 0);
+ 	v4l2_ctrl_auto_cluster(2, &priv->if_gain_auto, 0, false);
++	priv->pll_lock = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
++			V4L2_CID_PLL_LOCK,  0, 1, 1, 0);
+ 	if (priv->hdl.error) {
+ 		ret = priv->hdl.error;
+ 		dev_err(&priv->client->dev, "Could not initialize controls\n");
+diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
+index 8cc27b3..d41dbcc 100644
+--- a/drivers/media/tuners/e4000_priv.h
++++ b/drivers/media/tuners/e4000_priv.h
+@@ -28,6 +28,7 @@ struct e4000_priv {
+ 	struct i2c_client *client;
+ 	u32 clock;
+ 	struct dvb_frontend *fe;
++	bool active;
+ 
+ 	/* Controls */
+ 	struct v4l2_ctrl_handler hdl;
+@@ -39,6 +40,7 @@ struct e4000_priv {
+ 	struct v4l2_ctrl *mixer_gain;
+ 	struct v4l2_ctrl *if_gain_auto;
+ 	struct v4l2_ctrl *if_gain;
++	struct v4l2_ctrl *pll_lock;
+ };
+ 
+ struct e4000_pll {
+-- 
+1.8.5.3
 
