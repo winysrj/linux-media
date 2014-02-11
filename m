@@ -1,101 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784AbaBEQmG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 38/47] adv7604: Remove deprecated video-level DV timings operations
-Date: Wed,  5 Feb 2014 17:42:29 +0100
-Message-Id: <1391618558-5580-39-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:57191 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218AbaBKUcu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 15:32:50 -0500
+Received: by mail-wi0-f182.google.com with SMTP id f8so5296961wiw.3
+        for <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 12:32:49 -0800 (PST)
+Message-ID: <1392150757.3378.14.camel@canaries32-MCP7A>
+Subject: Re: [PATCH 2/2] af9035: Add remaining it913x dual ids to af9035.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Date: Tue, 11 Feb 2014 20:32:37 +0000
+In-Reply-To: <52FA6113.300@iki.fi>
+References: <1391951046.13992.15.camel@canaries32-MCP7A>
+	 <52FA6113.300@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
+On Tue, 2014-02-11 at 19:42 +0200, Antti Palosaari wrote:
+> Moikka Malcolm!
+> Thanks for the patch serie.
+> 
+> You removed all IDs from it913x driver. There is possibility to just 
+> remove / comment out:
+> 	MODULE_DEVICE_TABLE(usb, it913x_id_table);
+> which prevents loading that driver automatically, but leaves possibility 
+> to load it manually if user wants to fallback. I am fine either way you 
+> decide to do it, just a propose.
+Hi Antti
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/adv7604.c | 35 +++++++++--------------------------
- 1 file changed, 9 insertions(+), 26 deletions(-)
+I am going post a patches to remove it.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 0925fe8..4815063 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1537,16 +1537,20 @@ static int adv7604_enum_dv_timings(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int __adv7604_dv_timings_cap(struct v4l2_subdev *sd,
--			struct v4l2_dv_timings_cap *cap,
--			unsigned int pad)
-+static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
-+			struct v4l2_dv_timings_cap *cap)
- {
-+	struct adv7604_state *state = to_state(sd);
-+
-+	if (cap->pad >= state->source_pad)
-+		return -EINVAL;
-+
- 	cap->type = V4L2_DV_BT_656_1120;
- 	cap->bt.max_width = 1920;
- 	cap->bt.max_height = 1200;
- 	cap->bt.min_pixelclock = 25000000;
- 
--	switch (pad) {
-+	switch (cap->pad) {
- 	case ADV7604_PAD_HDMI_PORT_A:
- 	case ADV7604_PAD_HDMI_PORT_B:
- 	case ADV7604_PAD_HDMI_PORT_C:
-@@ -1567,25 +1571,6 @@ static int __adv7604_dv_timings_cap(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
--			struct v4l2_dv_timings_cap *cap)
--{
--	struct adv7604_state *state = to_state(sd);
--
--	return __adv7604_dv_timings_cap(sd, cap, state->selected_input);
--}
--
--static int adv7604_pad_dv_timings_cap(struct v4l2_subdev *sd,
--			struct v4l2_dv_timings_cap *cap)
--{
--	struct adv7604_state *state = to_state(sd);
--
--	if (cap->pad >= state->source_pad)
--		return -EINVAL;
--
--	return __adv7604_dv_timings_cap(sd, cap, cap->pad);
--}
--
- /* Fill the optional fields .standards and .flags in struct v4l2_dv_timings
-    if the format is listed in adv7604_timings[] */
- static void adv7604_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
-@@ -2430,8 +2415,6 @@ static const struct v4l2_subdev_video_ops adv7604_video_ops = {
- 	.s_dv_timings = adv7604_s_dv_timings,
- 	.g_dv_timings = adv7604_g_dv_timings,
- 	.query_dv_timings = adv7604_query_dv_timings,
--	.enum_dv_timings = adv7604_enum_dv_timings,
--	.dv_timings_cap = adv7604_dv_timings_cap,
- };
- 
- static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
-@@ -2440,7 +2423,7 @@ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
- 	.set_fmt = adv7604_set_format,
- 	.get_edid = adv7604_get_edid,
- 	.set_edid = adv7604_set_edid,
--	.dv_timings_cap = adv7604_pad_dv_timings_cap,
-+	.dv_timings_cap = adv7604_dv_timings_cap,
- 	.enum_dv_timings = adv7604_enum_dv_timings,
- };
- 
--- 
-1.8.3.2
+The only reason why an user would want to fall back is
+the use dvb-usb-it9137-01.fw firmware with USB_VID_KWORLD_2.
+
+I left the USB_VID_KWORLD_2 ids in the driver.
+
+I haven't found any issues with dvb-usb-it9135-01.fw
+
+USB_VID_KWORLD_2 users could have trouble updating older kernels via
+media_build.
+
+Perhaps there should be a warning message in af9035 that users need to
+change firmware.
+
+Regards
+
+
+Malcolm
 
