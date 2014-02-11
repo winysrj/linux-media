@@ -1,129 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3328 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753042AbaBQJ66 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:58:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:49562 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752487AbaBKCFP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Feb 2014 21:05:15 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 15/35] v4l2-ctrls: type_ops can handle matrix elements.
-Date: Mon, 17 Feb 2014 10:57:30 +0100
-Message-Id: <1392631070-41868-16-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 13/16] rtl2832_sdr: expose e4000 controls to user
+Date: Tue, 11 Feb 2014 04:04:56 +0200
+Message-Id: <1392084299-16549-14-git-send-email-crope@iki.fi>
+In-Reply-To: <1392084299-16549-1-git-send-email-crope@iki.fi>
+References: <1392084299-16549-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+E4000 tuner driver provides now some controls. Expose those to
+userland.
 
-Extend the control type operations to handle matrix elements.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 40 ++++++++++++++++++++----------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index f76716e..7dc997d 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1140,14 +1140,16 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
- 	case V4L2_CTRL_TYPE_BUTTON:
- 		return false;
- 	case V4L2_CTRL_TYPE_STRING:
-+		idx *= ctrl->elem_size;
- 		/* strings are always 0-terminated */
--		return !strcmp(ptr1.p_char, ptr2.p_char);
-+		return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		return *ptr1.p_s64 == *ptr2.p_s64;
-+		return ptr1.p_s64[idx] == ptr2.p_s64[idx];
- 	default:
--		if (ctrl->is_ptr)
--			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
--		return *ptr1.p_s32 == *ptr2.p_s32;
-+		if (ctrl->is_int)
-+			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
-+		idx *= ctrl->elem_size;
-+		return !memcmp(ptr1.p + idx, ptr2.p + idx, ctrl->elem_size);
- 	}
- }
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 9265424..18f8c56 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -25,6 +25,7 @@
+ #include "dvb_frontend.h"
+ #include "rtl2832_sdr.h"
+ #include "dvb_usb.h"
++#include "e4000.h"
  
-@@ -1156,18 +1158,19 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
- {
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
--		memset(ptr.p_char, ' ', ctrl->minimum);
--		ptr.p_char[ctrl->minimum] = '\0';
-+		idx *= ctrl->elem_size;
-+		memset(ptr.p_char + idx, ' ', ctrl->minimum);
-+		ptr.p_char[idx + ctrl->minimum] = '\0';
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+@@ -1347,6 +1348,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	struct rtl2832_sdr_state *s;
+ 	const struct v4l2_ctrl_ops *ops = &rtl2832_sdr_ctrl_ops;
+ 	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
++	struct v4l2_ctrl_handler *hdl;
+ 
+ 	s = kzalloc(sizeof(struct rtl2832_sdr_state), GFP_KERNEL);
+ 	if (s == NULL) {
+@@ -1386,10 +1388,10 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 	/* Register controls */
+ 	switch (s->cfg->tuner) {
+ 	case RTL2832_TUNER_E4000:
+-		v4l2_ctrl_handler_init(&s->hdl, 2);
+-		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
+-		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
+-		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
++		hdl = e4000_get_ctrl_handler(fe);
++		v4l2_ctrl_handler_init(&s->hdl, 0);
++		if (hdl)
++			v4l2_ctrl_add_handler(&s->hdl, hdl, NULL);
  		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		*ptr.p_s64 = ctrl->default_value;
-+		ptr.p_s64[idx] = ctrl->default_value;
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
- 	case V4L2_CTRL_TYPE_BOOLEAN:
--		*ptr.p_s32 = ctrl->default_value;
-+		ptr.p_s32[idx] = ctrl->default_value;
- 		break;
- 	default:
- 		break;
-@@ -1230,36 +1233,37 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER:
--		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
-+		return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
-+		return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
- 
- 	case V4L2_CTRL_TYPE_BOOLEAN:
--		*ptr.p_s32 = !!*ptr.p_s32;
-+		ptr.p_s32[idx] = !!ptr.p_s32[idx];
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_MENU:
- 	case V4L2_CTRL_TYPE_INTEGER_MENU:
--		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
-+		if (ptr.p_s32[idx] < ctrl->minimum || ptr.p_s32[idx] > ctrl->maximum)
- 			return -ERANGE;
--		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
-+		if (ctrl->menu_skip_mask & (1 << ptr.p_s32[idx]))
- 			return -EINVAL;
- 		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
--		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
-+		    ctrl->qmenu[ptr.p_s32[idx]][0] == '\0')
- 			return -EINVAL;
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_BITMASK:
--		*ptr.p_s32 &= ctrl->maximum;
-+		ptr.p_s32[idx] &= ctrl->maximum;
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_BUTTON:
- 	case V4L2_CTRL_TYPE_CTRL_CLASS:
--		*ptr.p_s32 = 0;
-+		ptr.p_s32[idx] = 0;
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(ptr.p_char);
-+		idx *= ctrl->elem_size;
-+		len = strlen(ptr.p_char + idx);
- 		if (len < ctrl->minimum)
- 			return -ERANGE;
- 		if ((len - ctrl->minimum) % ctrl->step)
+ 	case RTL2832_TUNER_R820T:
+ 		v4l2_ctrl_handler_init(&s->hdl, 2);
 -- 
-1.8.4.rc3
+1.8.5.3
 
