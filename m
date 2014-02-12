@@ -1,117 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f182.google.com ([209.85.128.182]:34267 "EHLO
-	mail-ve0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752347AbaB1B2J (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3502 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751914AbaBLNa2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Feb 2014 20:28:09 -0500
+	Wed, 12 Feb 2014 08:30:28 -0500
+Message-ID: <52FB7692.1080004@xs4all.nl>
+Date: Wed, 12 Feb 2014 14:26:42 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <2514111.qYAaEZbJqk@radagast>
-References: <CAL_JsqLL6MbwajCUAm+NJk=ofL5OHq8b0zwO3LFb-TKY6UtVMQ@mail.gmail.com>
-	<1391788155-29191-1-git-send-email-james.hogan@imgtec.com>
-	<2514111.qYAaEZbJqk@radagast>
-Date: Thu, 27 Feb 2014 19:28:08 -0600
-Message-ID: <CAL_JsqJpbUzEUpUxtFe4JeZ=EtCfaQHsyPt3TqH8AJkGNRnTvw@mail.gmail.com>
-Subject: Re: [PATCH v3 06/15] dt: binding: add binding for ImgTec IR block
-From: Rob Herring <robherring2@gmail.com>
-To: James Hogan <james.hogan@imgtec.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Rob Landley <rob@landley.net>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	Tomasz Figa <tomasz.figa@gmail.com>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 24/34] v4l2-ctrls/videodev2.h: add u8 and u16
+ types.
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl> <1392022019-5519-25-git-send-email-hverkuil@xs4all.nl> <CAPybu_2TkODSMUCdSQ8Q1wu=Mr-gmaC_ZQQBiatOPYw=gGcu2g@mail.gmail.com> <52FB5910.9040101@xs4all.nl> <CAPybu_0Kw8-Rq2-oNmwBpF36N6HLg3vZ9CaywLsTQp+9Ym5Z8w@mail.gmail.com> <52FB6BB3.1060300@xs4all.nl> <CAPybu_0ufQP-vZ5_LsO1btXrsT1rsLUNzbOTQLi_QCcWV1hvJA@mail.gmail.com>
+In-Reply-To: <CAPybu_0ufQP-vZ5_LsO1btXrsT1rsLUNzbOTQLi_QCcWV1hvJA@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 27, 2014 at 4:52 PM, James Hogan <james.hogan@imgtec.com> wrote:
-> Hi Rob, Mark + DT maintainers,
->
-> On Friday 07 February 2014 15:49:15 James Hogan wrote:
->> Add device tree binding for ImgTec Consumer Infrared block, specifically
->> major revision 1 of the hardware.
+On 02/12/14 14:13, Ricardo Ribalda Delgado wrote:
+> Hello Hans
+> 
+> Thanks for you promptly response
+> 
+> On Wed, Feb 12, 2014 at 1:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 02/12/14 13:11, Ricardo Ribalda Delgado wrote:
+>>> Hi Hans
+>>>
+>>> Thanks for your reply
+>>>
+>>> On Wed, Feb 12, 2014 at 12:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> Hi Ricardo,
+>>>>
+>>>> On 02/12/14 11:44, Ricardo Ribalda Delgado wrote:
+>>>>> Hello Hans
+>>>>>
+>>>>> In the case of U8 and U16 data types. Why dont you fill the elem_size
+>>>>> automatically in v4l2_ctrl and request the driver to fill the field?
+>>>>
+>>>> When you create the control the control framework has to know the element
+>>>> size beforehand as it will use that to allocate the memory containing the
+>>>> control's value. The control framework is aware of the 'old' control types
+>>>> and will fill in the elem_size accordingly, but it cannot do that in the
+>>>> general case for these complex types. I guess it could be filled in by the
+>>>> framework for the more common types (U8, U16) but I felt it was more
+>>>> consistent to just require drivers to fill it in manually, rather than have
+>>>> it set for some types but not for others.
+>>>>
+>>>>>
+>>>>> Other option would be not declaring the basic data types (U8, U16,
+>>>>> U32...) and use elem_size. Ie. If type==V4L2_CTRL_COMPLEX_TYPES, then
+>>>>> the type is basic and elem_size is the size of the type. If the type
+>>>>>> V4L2_CTRL_COMPLEX_TYPES the type is not basic.
+>>>>
+>>>> You still need to know the type. Applications have to be able to check for
+>>>> the type, the element size by itself doesn't tell you how to interpret the
+>>>> data, you need the type identifier as well.
+>>>
+>>> I think that the driver is setting twice the same info. I see no gain
+>>> in declaring U8, U16 types etc if we still have to set the element
+>>> size. This is why I believe that we should only declare the "structs".
 >>
->> Signed-off-by: James Hogan <james.hogan@imgtec.com>
->> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
->> Cc: linux-media@vger.kernel.org
->> Cc: Rob Herring <robh+dt@kernel.org>
->> Cc: Pawel Moll <pawel.moll@arm.com>
->> Cc: Mark Rutland <mark.rutland@arm.com>
->> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
->> Cc: Kumar Gala <galak@codeaurora.org>
->> Cc: devicetree@vger.kernel.org
->> Cc: Rob Landley <rob@landley.net>
->> Cc: linux-doc@vger.kernel.org
->> Cc: Tomasz Figa <tomasz.figa@gmail.com>
->> ---
->> v3:
->> - Rename compatible string to "img,ir-rev1" (Rob Herring).
->> - Specify ordering of clocks explicitly (Rob Herring).
->
-> I'd appreciate if somebody could give this another glance after the two
-> changes listed above and Ack it (I'll probably be posting a v4 patchset
-> tomorrow).
+>> Just to make sure I understand you: for simple types like U8/U16 you want
+>> the control framework to fill in elem_size, for more complex types (structs)
+>> you want the driver to fill in elem_size?
+> 
+> I dont like that the type contains the size of the element, and then I
+> have to provide the size again. (Hungarian notation)
+> 
+> Instead, I think it is better:
+> 
+> Defines ONLY this two types for simple types:
+> V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER and
+> V4L2_CTRL_COMPLEX_TYPE_UNSIGNED_INTEGER and use elem_size to determine
+> the size.
 
-Looks fine.
+It sounds great, but it isn't in practice because this will produce awful
+code like this:
 
-Acked-by: Rob Herring <robh@kernel.org>
+switch (type) {
+case V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER:
+	switch (elem_size) {
+	case 1: // it's a u8!
+		break;
+	case 2: // it's a u16!
+		break;
+	}
+etc.
+}
 
+It makes for very awkward code, both in the kernel and in applications.
+
+> And then one define per "structured types"  ie:
+> V4L2_CTRL_COMPLEX_TYPE_POINT V4L2_CTRL_COMPLEX_TYPE_IRRATIONAL.. with
+> elem_size determining the size.
+> 
+> But if you dont like that idea, as second preference  then I think
+> elem_size should be filled by the subsystem for simple types.
+
+I think having the framework fill in elem_size for the basic types such
+as u8 and u16 does make sense. These are already handled by the standard
+number validators, so we should probably have the elem_size set as well.
+
+Regards,
+
+	Hans
+
+> 
+> 
+> Thanks!
 >>
->> v2:
->> - Future proof compatible string from "img,ir" to "img,ir1", where the 1
->>   corresponds to the major revision number of the hardware (Tomasz
->>   Figa).
->> - Added clock-names property and three specific clock names described in
->>   the manual, only one of which is used by the current driver (Tomasz
->>   Figa).
->> ---
->>  .../devicetree/bindings/media/img-ir-rev1.txt      | 34
->> ++++++++++++++++++++++ 1 file changed, 34 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/img-ir-rev1.txt
+>>> what about something like: V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER +
+>>> size, V4L2_CTRL_COMPLEX_TYPES_UNSIGNED_INTEGER + size.... instead of
+>>> V4L2_CTRL_COMPLEX_TYPES_U8, V4L2_CTRL_COMPLEX_TYPES_U16,
+>>> V4L2_CTRL_COMPLEX_TYPES_U32, V4L2_CTRL_COMPLEX_TYPES_S8 ....
+>>>
+>>> Btw, I am trying to implement a dead pixel control on the top of you
+>>> api. Shall I wait until you patchset is merged or shall I send the
+>>> patches right away?
 >>
->> diff --git a/Documentation/devicetree/bindings/media/img-ir-rev1.txt
->> b/Documentation/devicetree/bindings/media/img-ir-rev1.txt new file mode
->> 100644
->> index 000000000000..5434ce61b925
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/img-ir-rev1.txt
->> @@ -0,0 +1,34 @@
->> +* ImgTec Infrared (IR) decoder version 1
->> +
->> +This binding is for Imagination Technologies' Infrared decoder block,
->> +specifically major revision 1.
->> +
->> +Required properties:
->> +- compatible:                Should be "img,ir-rev1"
->> +- reg:                       Physical base address of the controller and length of
->> +                     memory mapped region.
->> +- interrupts:                The interrupt specifier to the cpu.
->> +
->> +Optional properties:
->> +- clocks:            List of clock specifiers as described in standard
->> +                     clock bindings.
->> +                     Up to 3 clocks may be specified in the following order:
->> +                     1st:    Core clock (defaults to 32.768KHz if omitted).
->> +                     2nd:    System side (fast) clock.
->> +                     3rd:    Power modulation clock.
->> +- clock-names:               List of clock names corresponding to the clocks
->> +                     specified in the clocks property.
->> +                     Accepted clock names are:
->> +                     "core": Core clock.
->> +                     "sys":  System clock.
->> +                     "mod":  Power modulation clock.
->> +
->> +Example:
->> +
->> +     ir@02006200 {
->> +             compatible = "img,ir-rev1";
->> +             reg = <0x02006200 0x100>;
->> +             interrupts = <29 4>;
->> +             clocks = <&clk_32khz>;
->> +             clock-names =  "core";
->> +     };
+>> You're free to experiment, but I am not going to ask Mauro to pull additional
+>> patches as long as this initial patch set isn't merged.
+>>
+>> Regards,
+>>
+>>         Hans
+> 
+> 
+> 
+> 
+> 
+
