@@ -1,59 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3410 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753AbaBJIsJ (ORCPT
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:45116 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963AbaBLMMS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:48:09 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 33/34] solo6x10: fix 'dma from stack' warning.
-Date: Mon, 10 Feb 2014 09:46:58 +0100
-Message-Id: <1392022019-5519-34-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 12 Feb 2014 07:12:18 -0500
+Received: by mail-ob0-f182.google.com with SMTP id wm4so10502925obc.27
+        for <linux-media@vger.kernel.org>; Wed, 12 Feb 2014 04:12:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <52FB5910.9040101@xs4all.nl>
 References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+ <1392022019-5519-25-git-send-email-hverkuil@xs4all.nl> <CAPybu_2TkODSMUCdSQ8Q1wu=Mr-gmaC_ZQQBiatOPYw=gGcu2g@mail.gmail.com>
+ <52FB5910.9040101@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 12 Feb 2014 13:11:57 +0100
+Message-ID: <CAPybu_0Kw8-Rq2-oNmwBpF36N6HLg3vZ9CaywLsTQp+9Ym5Z8w@mail.gmail.com>
+Subject: Re: [REVIEWv2 PATCH 24/34] v4l2-ctrls/videodev2.h: add u8 and u16 types.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/solo6x10/solo6x10-disp.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Thanks for your reply
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-disp.c b/drivers/staging/media/solo6x10/solo6x10-disp.c
-index 44d98b8..b529a96 100644
---- a/drivers/staging/media/solo6x10/solo6x10-disp.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-disp.c
-@@ -213,19 +213,21 @@ int solo_set_motion_threshold(struct solo_dev *solo_dev, u8 ch, u16 val)
- int solo_set_motion_block(struct solo_dev *solo_dev, u8 ch,
- 		const u16 *thresholds)
- {
-+	const unsigned size = sizeof(u16) * 64;
- 	u32 off = SOLO_MOT_FLAG_AREA + ch * SOLO_MOT_THRESH_SIZE * 2;
--	u16 buf[64];
-+	u16 *buf;
- 	int x, y;
- 	int ret = 0;
- 
--	memset(buf, 0, sizeof(buf));
-+	buf = kzalloc(size, GFP_KERNEL);
- 	for (y = 0; y < SOLO_MOTION_SZ; y++) {
- 		for (x = 0; x < SOLO_MOTION_SZ; x++)
- 			buf[x] = cpu_to_le16(thresholds[y * SOLO_MOTION_SZ + x]);
- 		ret |= solo_p2m_dma(solo_dev, 1, buf,
--			SOLO_MOTION_EXT_ADDR(solo_dev) + off + y * sizeof(buf),
--			sizeof(buf), 0, 0);
-+			SOLO_MOTION_EXT_ADDR(solo_dev) + off + y * size,
-+			size, 0, 0);
- 	}
-+	kfree(buf);
- 	return ret;
- }
- 
+On Wed, Feb 12, 2014 at 12:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Ricardo,
+>
+> On 02/12/14 11:44, Ricardo Ribalda Delgado wrote:
+>> Hello Hans
+>>
+>> In the case of U8 and U16 data types. Why dont you fill the elem_size
+>> automatically in v4l2_ctrl and request the driver to fill the field?
+>
+> When you create the control the control framework has to know the element
+> size beforehand as it will use that to allocate the memory containing the
+> control's value. The control framework is aware of the 'old' control types
+> and will fill in the elem_size accordingly, but it cannot do that in the
+> general case for these complex types. I guess it could be filled in by the
+> framework for the more common types (U8, U16) but I felt it was more
+> consistent to just require drivers to fill it in manually, rather than have
+> it set for some types but not for others.
+>
+>>
+>> Other option would be not declaring the basic data types (U8, U16,
+>> U32...) and use elem_size. Ie. If type==V4L2_CTRL_COMPLEX_TYPES, then
+>> the type is basic and elem_size is the size of the type. If the type
+>>> V4L2_CTRL_COMPLEX_TYPES the type is not basic.
+>
+> You still need to know the type. Applications have to be able to check for
+> the type, the element size by itself doesn't tell you how to interpret the
+> data, you need the type identifier as well.
+
+I think that the driver is setting twice the same info. I see no gain
+in declaring U8, U16 types etc if we still have to set the element
+size. This is why I believe that we should only declare the "structs".
+
+what about something like: V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER +
+size, V4L2_CTRL_COMPLEX_TYPES_UNSIGNED_INTEGER + size.... instead of
+V4L2_CTRL_COMPLEX_TYPES_U8, V4L2_CTRL_COMPLEX_TYPES_U16,
+V4L2_CTRL_COMPLEX_TYPES_U32, V4L2_CTRL_COMPLEX_TYPES_S8 ....
+
+Btw, I am trying to implement a dead pixel control on the top of you
+api. Shall I wait until you patchset is merged or shall I send the
+patches right away?
+
+
+Thanks!!!!
+
+>
+> Regards,
+>
+>         Hans
+>
+>>
+>> Thanks!
+>>
+>> On Mon, Feb 10, 2014 at 9:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> These are needed by the upcoming patches for the motion detection
+>>> matrices.
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>  drivers/media/v4l2-core/v4l2-ctrls.c | 24 ++++++++++++++++++++++++
+>>>  include/media/v4l2-ctrls.h           |  4 ++++
+>>>  include/uapi/linux/videodev2.h       |  4 ++++
+>>>  3 files changed, 32 insertions(+)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>>> index c81ebcf..0b200dd 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>>> @@ -1145,6 +1145,10 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+>>>                 return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
+>>>         case V4L2_CTRL_TYPE_INTEGER64:
+>>>                 return ptr1.p_s64[idx] == ptr2.p_s64[idx];
+>>> +       case V4L2_CTRL_TYPE_U8:
+>>> +               return ptr1.p_u8[idx] == ptr2.p_u8[idx];
+>>> +       case V4L2_CTRL_TYPE_U16:
+>>> +               return ptr1.p_u16[idx] == ptr2.p_u16[idx];
+>>>         default:
+>>>                 if (ctrl->is_int)
+>>>                         return ptr1.p_s32[idx] == ptr2.p_s32[idx];
+>>> @@ -1172,6 +1176,12 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+>>>         case V4L2_CTRL_TYPE_BOOLEAN:
+>>>                 ptr.p_s32[idx] = ctrl->default_value;
+>>>                 break;
+>>> +       case V4L2_CTRL_TYPE_U8:
+>>> +               ptr.p_u8[idx] = ctrl->default_value;
+>>> +               break;
+>>> +       case V4L2_CTRL_TYPE_U16:
+>>> +               ptr.p_u16[idx] = ctrl->default_value;
+>>> +               break;
+>>>         default:
+>>>                 idx *= ctrl->elem_size;
+>>>                 memset(ptr.p + idx, 0, ctrl->elem_size);
+>>> @@ -1208,6 +1218,12 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+>>>         case V4L2_CTRL_TYPE_STRING:
+>>>                 pr_cont("%s", ptr.p_char);
+>>>                 break;
+>>> +       case V4L2_CTRL_TYPE_U8:
+>>> +               pr_cont("%u", (unsigned)*ptr.p_u8);
+>>> +               break;
+>>> +       case V4L2_CTRL_TYPE_U16:
+>>> +               pr_cont("%u", (unsigned)*ptr.p_u16);
+>>> +               break;
+>>>         default:
+>>>                 pr_cont("unknown type %d", ctrl->type);
+>>>                 break;
+>>> @@ -1238,6 +1254,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+>>>                 return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
+>>>         case V4L2_CTRL_TYPE_INTEGER64:
+>>>                 return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
+>>> +       case V4L2_CTRL_TYPE_U8:
+>>> +               return ROUND_TO_RANGE(ptr.p_u8[idx], u8, ctrl);
+>>> +       case V4L2_CTRL_TYPE_U16:
+>>> +               return ROUND_TO_RANGE(ptr.p_u16[idx], u16, ctrl);
+>>>
+>>>         case V4L2_CTRL_TYPE_BOOLEAN:
+>>>                 ptr.p_s32[idx] = !!ptr.p_s32[idx];
+>>> @@ -1469,6 +1489,8 @@ static int check_range(enum v4l2_ctrl_type type,
+>>>                 if (step != 1 || max > 1 || min < 0)
+>>>                         return -ERANGE;
+>>>                 /* fall through */
+>>> +       case V4L2_CTRL_TYPE_U8:
+>>> +       case V4L2_CTRL_TYPE_U16:
+>>>         case V4L2_CTRL_TYPE_INTEGER:
+>>>         case V4L2_CTRL_TYPE_INTEGER64:
+>>>                 if (step == 0 || min > max || def < min || def > max)
+>>> @@ -3119,6 +3141,8 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+>>>         case V4L2_CTRL_TYPE_MENU:
+>>>         case V4L2_CTRL_TYPE_INTEGER_MENU:
+>>>         case V4L2_CTRL_TYPE_BITMASK:
+>>> +       case V4L2_CTRL_TYPE_U8:
+>>> +       case V4L2_CTRL_TYPE_U16:
+>>>                 if (ctrl->is_matrix)
+>>>                         return -EINVAL;
+>>>                 ret = check_range(ctrl->type, min, max, step, def);
+>>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+>>> index 7d72328..2ccad5f 100644
+>>> --- a/include/media/v4l2-ctrls.h
+>>> +++ b/include/media/v4l2-ctrls.h
+>>> @@ -39,12 +39,16 @@ struct poll_table_struct;
+>>>  /** union v4l2_ctrl_ptr - A pointer to a control value.
+>>>   * @p_s32:     Pointer to a 32-bit signed value.
+>>>   * @p_s64:     Pointer to a 64-bit signed value.
+>>> + * @p_u8:      Pointer to a 8-bit unsigned value.
+>>> + * @p_u16:     Pointer to a 16-bit unsigned value.
+>>>   * @p_char:    Pointer to a string.
+>>>   * @p:         Pointer to a complex value.
+>>>   */
+>>>  union v4l2_ctrl_ptr {
+>>>         s32 *p_s32;
+>>>         s64 *p_s64;
+>>> +       u8 *p_u8;
+>>> +       u16 *p_u16;
+>>>         char *p_char;
+>>>         void *p;
+>>>  };
+>>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>>> index 858a6f3..8b70f51 100644
+>>> --- a/include/uapi/linux/videodev2.h
+>>> +++ b/include/uapi/linux/videodev2.h
+>>> @@ -1228,6 +1228,8 @@ struct v4l2_ext_control {
+>>>                 __s32 value;
+>>>                 __s64 value64;
+>>>                 char *string;
+>>> +               __u8 *p_u8;
+>>> +               __u16 *p_u16;
+>>>                 void *p;
+>>>         };
+>>>  } __attribute__ ((packed));
+>>> @@ -1257,6 +1259,8 @@ enum v4l2_ctrl_type {
+>>>
+>>>         /* Complex types are >= 0x0100 */
+>>>         V4L2_CTRL_COMPLEX_TYPES      = 0x0100,
+>>> +       V4L2_CTRL_TYPE_U8            = 0x0100,
+>>> +       V4L2_CTRL_TYPE_U16           = 0x0101,
+>>>  };
+>>>
+>>>  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+>>> --
+>>> 1.8.5.2
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>
+>
+
+
+
 -- 
-1.8.5.2
-
+Ricardo Ribalda
