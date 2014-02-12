@@ -1,55 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4726 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880AbaBMJv1 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45530 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751386AbaBLJMg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 04:51:27 -0500
-Message-ID: <52FC94C0.5000904@xs4all.nl>
-Date: Thu, 13 Feb 2014 10:47:44 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 43/47] adv7604: Control hot-plug detect through a GPIO
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-44-git-send-email-laurent.pinchart@ideasonboard.com> <52F9F6DB.1080700@xs4all.nl> <1637754.DCKyOCpBtn@avalon>
-In-Reply-To: <1637754.DCKyOCpBtn@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 12 Feb 2014 04:12:36 -0500
+Message-ID: <1392196314.5536.15.camel@pizza.hi.pengutronix.de>
+Subject: Re: [PATCH v2] [media] of: move graph helpers from
+ drivers/media/v4l2-core to drivers/media
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Date: Wed, 12 Feb 2014 10:11:54 +0100
+In-Reply-To: <20140212065306.36a03e82.m.chehab@samsung.com>
+References: <1392154905-12007-1-git-send-email-p.zabel@pengutronix.de>
+	 <20140212065306.36a03e82.m.chehab@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/11/14 13:03, Laurent Pinchart wrote:
-> Hi Hans,
+Hi Mauro,
+
+Am Mittwoch, den 12.02.2014, 06:53 +0900 schrieb Mauro Carvalho Chehab:
+[...]
+> > diff --git a/include/media/of_graph.h b/include/media/of_graph.h
+> > new file mode 100644
+> > index 0000000..3bbeb60
+> > --- /dev/null
+> > +++ b/include/media/of_graph.h
+> > @@ -0,0 +1,46 @@
+> > +/*
+> > + * OF graph binding parsing helpers
+> > + *
+> > + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+> > + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > + *
+> > + * Copyright (C) 2012 Renesas Electronics Corp.
+> > + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of version 2 of the GNU General Public License as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +#ifndef __LINUX_OF_GRAPH_H
+> > +#define __LINUX_OF_GRAPH_H
+> > +
+> > +#ifdef CONFIG_OF
 > 
-> On Tuesday 11 February 2014 11:09:31 Hans Verkuil wrote:
->> On 02/05/14 17:42, Laurent Pinchart wrote:
->>> Replace the ADV7604-specific hotplug notifier with a GPIO to control the
->>> HPD pin directly instead of going through the bridge driver.
->>
->> Hmm, that's not going to work for me. I don't have a GPIO pin here, instead
->> it is a bit in a register that I have to set.
-> 
-> But that bit controls a GPIO, doesn't it ? In that case it should be exposed 
-> as a GPIO controller.
+> As a matter of consistency, it would be better to test here for
+> CONFIG_OF_GRAPH instead, to reflect the same symbol that enables such
+> functions as used on Kconfig/Makefile.
 
-I feel unhappy about losing this notifier for two reasons: first adding a GPIO
-controller just to toggle a bit adds 40 lines to my driver, and that doesn't
-sit well with me. It's basically completely unnecessary overhead.
+Maybe I'm trying to be too clever for my own good, but my reasoning was
+as follows:
 
-The second reason is that in some cases you want to do something in addition
-to just toggling the hotplug pin. In particular for CEC support this could be
-quite useful.
+Suppose I newly use the of_graph_ helpers in a subsystem that does not
+yet select OF_GRAPH. In that case I'd rather get linking errors earlier
+rather than stubbed out functions that silently fail to parse the DT
+later.
 
-In fact, if the adv7604 supports the ARC feature (Audio Return Channel), then
-this is really needed because in that case the hotplug toggling would have
-to be done via CEC CDC commands. However, while this webpage claims that the
-ARC is supported, I can't find any other information about that.
+Since there is
+config VIDEO_DEV
+	select OF_GRAPH if OF
+already and the same should be added for other users of device tree
+graphs, I think stubbing out the functions only if OF is disabled should
+be enough.
 
-http://www.analog.com/en/audiovideo-products/analoghdmidvi-interfaces/adv7604/products/product.html
+regards
+Philipp
 
-Lars-Peter, do you know anything about ARC support in the adv7604?
-
-Regards,
-
-	Hans
