@@ -1,78 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55983 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752877AbaBYRJQ (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:55997 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751167AbaBLOJF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 12:09:16 -0500
-Date: Tue, 25 Feb 2014 19:08:42 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	k.debski@samsung.com
-Subject: Re: [PATCH v5 7/7] v4l: Document timestamp buffer flag behaviour
-Message-ID: <20140225170842.GF15635@valkosipuli.retiisi.org.uk>
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
- <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi>
- <5309DF58.9030004@xs4all.nl>
+	Wed, 12 Feb 2014 09:09:05 -0500
+Message-ID: <52FB7FAE.8000101@cisco.com>
+Date: Wed, 12 Feb 2014 15:05:34 +0100
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5309DF58.9030004@xs4all.nl>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 24/34] v4l2-ctrls/videodev2.h: add u8 and u16
+ types.
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl> <1392022019-5519-25-git-send-email-hverkuil@xs4all.nl> <CAPybu_2TkODSMUCdSQ8Q1wu=Mr-gmaC_ZQQBiatOPYw=gGcu2g@mail.gmail.com> <52FB5910.9040101@xs4all.nl> <CAPybu_0Kw8-Rq2-oNmwBpF36N6HLg3vZ9CaywLsTQp+9Ym5Z8w@mail.gmail.com> <52FB6BB3.1060300@xs4all.nl> <CAPybu_0ufQP-vZ5_LsO1btXrsT1rsLUNzbOTQLi_QCcWV1hvJA@mail.gmail.com> <52FB7692.1080004@xs4all.nl> <CAPybu_2Zs+jLT1q+28vbQBU0Lv6NheCPuy9jTSOVcVXv+myMWA@mail.gmail.com>
+In-Reply-To: <CAPybu_2Zs+jLT1q+28vbQBU0Lv6NheCPuy9jTSOVcVXv+myMWA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Sun, Feb 23, 2014 at 12:45:28PM +0100, Hans Verkuil wrote:
-> On 02/15/2014 09:53 PM, Sakari Ailus wrote:
-> > Timestamp buffer flags are constant at the moment. Document them so that 1)
-> > they're always valid and 2) not changed by the drivers. This leaves room to
-> > extend the functionality later on if needed.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  Documentation/DocBook/media/v4l/io.xml |   10 ++++++++++
-> >  1 file changed, 10 insertions(+)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> > index fbd0c6e..4f76565 100644
-> > --- a/Documentation/DocBook/media/v4l/io.xml
-> > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > @@ -653,6 +653,16 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
-> >  In that case, struct <structname>v4l2_buffer</structname> contains an array of
-> >  plane structures.</para>
-> >  
-> > +    <para>Dequeued video buffers come with timestamps. These
-> > +    timestamps can be taken from different clocks and at different
-> > +    part of the frame, depending on the driver. Please see flags in
-> > +    the masks <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
-> > +    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
-> > +    linkend="buffer-flags">. These flags are guaranteed to be always
-> > +    valid and will not be changed by the driver autonomously. Changes
-> > +    in these flags may take place due as a side effect of
-> > +    &VIDIOC-S-INPUT; or &VIDIOC-S-OUTPUT; however.</para>
+
+On 02/12/14 14:40, Ricardo Ribalda Delgado wrote:
+> Hello Hans
 > 
-> There is one exception to this: if the timestamps are copied from the output
-> buffer to the capture buffer (TIMESTAMP_COPY), then it can change theoretically
-> for every buffer since it entirely depends on what is being sent to it. The
-> value comes from userspace and you simply don't have any control over that.
+> 
+> 
+> On Wed, Feb 12, 2014 at 2:26 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 02/12/14 14:13, Ricardo Ribalda Delgado wrote:
+>>> Hello Hans
+>>>
+>>> Thanks for you promptly response
+>>>
+>>> On Wed, Feb 12, 2014 at 1:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> On 02/12/14 13:11, Ricardo Ribalda Delgado wrote:
+>>>>> Hi Hans
+>>>>>
+>>>>> Thanks for your reply
+>>>>>
+>>>>> On Wed, Feb 12, 2014 at 12:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>> Hi Ricardo,
+>>>>>>
+>>>>>> On 02/12/14 11:44, Ricardo Ribalda Delgado wrote:
+>>>>>>> Hello Hans
+>>>>>>>
+>>>>>>> In the case of U8 and U16 data types. Why dont you fill the elem_size
+>>>>>>> automatically in v4l2_ctrl and request the driver to fill the field?
+>>>>>>
+>>>>>> When you create the control the control framework has to know the element
+>>>>>> size beforehand as it will use that to allocate the memory containing the
+>>>>>> control's value. The control framework is aware of the 'old' control types
+>>>>>> and will fill in the elem_size accordingly, but it cannot do that in the
+>>>>>> general case for these complex types. I guess it could be filled in by the
+>>>>>> framework for the more common types (U8, U16) but I felt it was more
+>>>>>> consistent to just require drivers to fill it in manually, rather than have
+>>>>>> it set for some types but not for others.
+>>>>>>
+>>>>>>>
+>>>>>>> Other option would be not declaring the basic data types (U8, U16,
+>>>>>>> U32...) and use elem_size. Ie. If type==V4L2_CTRL_COMPLEX_TYPES, then
+>>>>>>> the type is basic and elem_size is the size of the type. If the type
+>>>>>>>> V4L2_CTRL_COMPLEX_TYPES the type is not basic.
+>>>>>>
+>>>>>> You still need to know the type. Applications have to be able to check for
+>>>>>> the type, the element size by itself doesn't tell you how to interpret the
+>>>>>> data, you need the type identifier as well.
+>>>>>
+>>>>> I think that the driver is setting twice the same info. I see no gain
+>>>>> in declaring U8, U16 types etc if we still have to set the element
+>>>>> size. This is why I believe that we should only declare the "structs".
+>>>>
+>>>> Just to make sure I understand you: for simple types like U8/U16 you want
+>>>> the control framework to fill in elem_size, for more complex types (structs)
+>>>> you want the driver to fill in elem_size?
+>>>
+>>> I dont like that the type contains the size of the element, and then I
+>>> have to provide the size again. (Hungarian notation)
+>>>
+>>> Instead, I think it is better:
+>>>
+>>> Defines ONLY this two types for simple types:
+>>> V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER and
+>>> V4L2_CTRL_COMPLEX_TYPE_UNSIGNED_INTEGER and use elem_size to determine
+>>> the size.
+>>
+>> It sounds great, but it isn't in practice because this will produce awful
+>> code like this:
+>>
+>> switch (type) {
+>> case V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER:
+>>         switch (elem_size) {
+>>         case 1: // it's a u8!
+>>                 break;
+>>         case 2: // it's a u16!
+>>                 break;
+>>         }
+>> etc.
+>> }
+> 
+> I slightly disagree here. Your proposal will produce this code:
+> 
+> 
+> case V4L2_CTRL_TYPE_U8:
+> ptr.p_u8[idx] = ctrl->default_value;
+> break;
+> case V4L2_CTRL_TYPE_U16:
+> ptr.p_u16[idx] = ctrl->default_value;
+> break;
+> case V4L2_CTRL_TYPE_U32:
+> ptr.p_s32[idx] = ctrl->default_value;
+> break;
+> case V4L2_CTRL_TYPE_U64:
+> ptr.p_s64[idx] = ctrl->default_value;
+> break;
+> case V4L2_CTRL_TYPE_S8:
+> ptr.p_s8[idx] = ctrl->default_value;
+> break;
+> case V4L2_CTRL_TYPE_S16:
+> ptr.p_s16[idx] = ctrl->default_value;
+> break;
+> case V4L2_CTRL_TYPE_S32:
+> ptr.p_s32[idx] = ctrl->default_value;
+> break;
+> case V4L2_CTRL_TYPE_S64:
+> ptr.p_s64[idx] = ctrl->default_value;
+> break;
+> 
+> instead of:
+> 
+> 
+> case V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER:
+> case V4L2_CTRL_COMPLEX_TYPE_UNSIGNED_INTEGER:
+> memcpy(&ptr.p[idx],&ctrl->default_value,ctrl->elem_size)
 
-Yes; I agree.
+Well, no. default_value is a 64-bit value that you can't just memcpy to
+a u8 (certainly not on a big-endian system). It's basically why I split
+it up, otherwise I would have used the same trick instead of writing it
+out for every type.
 
-And a good point as well --- the timestamp source flags currently come from
-__fill_v4l2_buffer() which takes them from q->timestamp. This isn't right
-for m2m devices.
+Regards,
 
-I'll fix and resend (3rd patch most likely).
-
-> I'm stress testing vb2 in lots of different ways, including timestamp handling.
-> It's not a pretty sight, I'm afraid. Expect a looong list of patches in the
-> coming week.
-
-:-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
