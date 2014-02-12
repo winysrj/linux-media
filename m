@@ -1,168 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4030 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807AbaBKKNK (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3906 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751001AbaBLH5V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 05:13:10 -0500
-Message-ID: <52F9F6DB.1080700@xs4all.nl>
-Date: Tue, 11 Feb 2014 11:09:31 +0100
+	Wed, 12 Feb 2014 02:57:21 -0500
+Message-ID: <52FB292C.7040109@xs4all.nl>
+Date: Wed, 12 Feb 2014 08:56:28 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 43/47] adv7604: Control hot-plug detect through a GPIO
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-44-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-44-git-send-email-laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+CC: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 35/34] DocBook media: clarify how the matrix maps
+ to the grid.
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl> <1392022019-5519-35-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392022019-5519-35-git-send-email-hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/14 17:42, Laurent Pinchart wrote:
-> Replace the ADV7604-specific hotplug notifier with a GPIO to control the
-> HPD pin directly instead of going through the bridge driver.
+(This patch is an addition to the "Add support for complex controls, use in solo/go7007"
+patch series)
 
-Hmm, that's not going to work for me. I don't have a GPIO pin here, instead
-it is a bit in a register that I have to set.
+Make it explicit that matrix element (0, 0) maps to the top-left cell
+of the grid.
 
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/i2c/adv7604.c | 47 +++++++++++++++++++++++++++++++++++++++++----
->  include/media/adv7604.h     |  5 ++++-
->  2 files changed, 47 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 369cb1e..2f38071 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -28,6 +28,7 @@
->   */
->  
->  #include <linux/delay.h>
-> +#include <linux/gpio.h>
->  #include <linux/i2c.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> @@ -608,6 +609,23 @@ static inline int edid_write_block(struct v4l2_subdev *sd,
->  	return err;
->  }
->  
-> +static void adv7604_set_hpd(struct adv7604_state *state, unsigned int hpd)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < state->info->num_dv_ports; ++i) {
-> +		unsigned int enable = hpd & BIT(i);
-> +
-> +		if (IS_ERR_VALUE(state->pdata.hpd_gpio[i]))
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-IS_ERR_VALUE: that's normally used for pointers, not integers. I would
-much prefer something simple like 'bool hpd_use_gpio[4]'.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 5f3e138..4749216 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5102,7 +5102,8 @@ description of this control class.</entry>
+ 	  </row>
+ 	  <row><entry spanname="descr">Sets the motion detection thresholds for each cell in the grid.
+ 	  To be used with the <constant>V4L2_DETECT_MD_MODE_THRESHOLD_GRID</constant>
+-	  motion detection mode.</entry>
++	  motion detection mode. Matrix element (0, 0) represents the cell at the top-left of the
++	  grid.</entry>
+           </row>
+           <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_DETECT_MD_REGION_GRID</constant>&nbsp;</entry>
+@@ -5110,7 +5111,8 @@ description of this control class.</entry>
+ 	  </row>
+ 	  <row><entry spanname="descr">Sets the motion detection region value for each cell in the grid.
+ 	  To be used with the <constant>V4L2_DETECT_MD_MODE_REGION_GRID</constant>
+-	  motion detection mode.</entry>
++	  motion detection mode. Matrix element (0, 0) represents the cell at the top-left of the
++	  grid.</entry>
+           </row>
+         </tbody>
+       </tgroup>
+-- 
+1.8.5.2
 
-Regards,
-
-	Hans
-
-> +			continue;
-> +
-> +		if (state->pdata.hpd_gpio_low[i])
-> +			enable = !enable;
-> +
-> +		gpio_set_value_cansleep(state->pdata.hpd_gpio[i], enable);
-> +	}
-> +}
-> +
->  static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
->  {
->  	struct delayed_work *dwork = to_delayed_work(work);
-> @@ -617,7 +635,7 @@ static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
->  
->  	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
->  
-> -	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
-> +	adv7604_set_hpd(state, state->edid.present);
->  }
->  
->  static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
-> @@ -2022,7 +2040,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
->  	struct adv7604_state *state = to_state(sd);
->  	const struct adv7604_chip_info *info = state->info;
->  	int spa_loc;
-> -	int tmp = 0;
->  	int err;
->  	int i;
->  
-> @@ -2033,7 +2050,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
->  	if (edid->blocks == 0) {
->  		/* Disable hotplug and I2C access to EDID RAM from DDC port */
->  		state->edid.present &= ~(1 << edid->pad);
-> -		v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
-> +		adv7604_set_hpd(state, state->edid.present);
->  		rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, state->edid.present);
->  
->  		/* Fall back to a 16:9 aspect ratio */
-> @@ -2059,7 +2076,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
->  
->  	/* Disable hotplug and I2C access to EDID RAM from DDC port */
->  	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
-> -	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
-> +	adv7604_set_hpd(state, 0);
->  	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, 0x00);
->  
->  	spa_loc = get_edid_spa_location(edid->edid);
-> @@ -2655,6 +2672,28 @@ static int adv7604_probe(struct i2c_client *client,
->  		return -ENODEV;
->  	}
->  	state->pdata = *pdata;
-> +
-> +	/* Request GPIOs. */
-> +	for (i = 0; i < state->info->num_dv_ports; ++i) {
-> +		char name[5];
-> +
-> +		if (IS_ERR_VALUE(state->pdata.hpd_gpio[i]))
-> +			continue;
-> +
-> +		sprintf(name, "hpd%u", i);
-> +		err = devm_gpio_request_one(&client->dev,
-> +					    state->pdata.hpd_gpio[i],
-> +					    state->pdata.hpd_gpio_low[i] ?
-> +					    GPIOF_OUT_INIT_HIGH :
-> +					    GPIOF_OUT_INIT_LOW,
-> +					    name);
-> +		if (err < 0) {
-> +			v4l_err(client, "Failed to request HPD %u GPIO (%u)\n",
-> +				i, state->pdata.hpd_gpio[i]);
-> +			return err;
-> +		}
-> +	}
-> +
->  	state->timings = cea640x480;
->  	state->format = adv7604_format_info(state, V4L2_MBUS_FMT_YUYV8_2X8);
->  
-> diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-> index 4da678c..dddb0cb 100644
-> --- a/include/media/adv7604.h
-> +++ b/include/media/adv7604.h
-> @@ -90,6 +90,10 @@ struct adv7604_platform_data {
->  	/* DIS_CABLE_DET_RST: 1 if the 5V pins are unused and unconnected */
->  	unsigned disable_cable_det_rst:1;
->  
-> +	/* Hot-Plug Detect control GPIOs */
-> +	int hpd_gpio[4];
-> +	bool hpd_gpio_low[4];
-> +
->  	/* Analog input muxing mode */
->  	enum adv7604_ain_sel ain_sel;
->  
-> @@ -133,7 +137,6 @@ struct adv7604_platform_data {
->  #define V4L2_CID_ADV_RX_FREE_RUN_COLOR		(V4L2_CID_DV_CLASS_BASE + 0x1002)
->  
->  /* notify events */
-> -#define ADV7604_HOTPLUG		1
->  #define ADV7604_FMT_CHANGE	2
->  
->  #endif
-> 
 
