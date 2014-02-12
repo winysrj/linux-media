@@ -1,104 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43729 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933226AbaBAOYt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 09:24:49 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [PATCH 03/17] r820t: add manual gain controls
-Date: Sat,  1 Feb 2014 16:24:20 +0200
-Message-Id: <1391264674-4395-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
-References: <1391264674-4395-1-git-send-email-crope@iki.fi>
+Received: from smtprelay02.ispgateway.de ([80.67.31.29]:35785 "EHLO
+	smtprelay02.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751533AbaBLBQM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Feb 2014 20:16:12 -0500
+Message-ID: <52FACB55.2030200@doerges.net>
+Date: Wed, 12 Feb 2014 02:16:05 +0100
+From: =?UTF-8?B?VGlsbCBEw7ZyZ2Vz?= <till@doerges.net>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: PATCH: Added device (0ccd:00b4) to DVB_USB_RTL28XXU media driver
+References: <52FA87CD.2030206@doerges.net> <52FA8DB9.3070300@iki.fi>
+In-Reply-To: <52FA8DB9.3070300@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add gain control for LNA, Mixer and IF. Expose controls via DVB
-frontend .set_config callback.
+Hi Antti,
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/r820t.c | 38 ++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/r820t.h |  7 +++++++
- 2 files changed, 45 insertions(+)
+thanks for the quick response.
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index d9ee43f..5a926a3 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -1251,6 +1251,43 @@ static int r820t_set_gain_mode(struct r820t_priv *priv,
- }
- #endif
- 
-+static int r820t_set_config(struct dvb_frontend *fe, void *priv_cfg)
-+{
-+	struct r820t_priv *priv = fe->tuner_priv;
-+	struct r820t_ctrl *ctrl = priv_cfg;
-+	int rc;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	if (ctrl->lna_gain == INT_MIN)
-+		rc = r820t_write_reg_mask(priv, 0x05, 0x00, 0x10);
-+	else
-+		rc = r820t_write_reg_mask(priv, 0x05,
-+				0x10 | ctrl->lna_gain, 0x1f);
-+	if (rc < 0)
-+		goto err;
-+
-+	if (ctrl->mixer_gain == INT_MIN)
-+		rc = r820t_write_reg_mask(priv, 0x07, 0x10, 0x10);
-+	else
-+		rc = r820t_write_reg_mask(priv, 0x07,
-+				0x00 | ctrl->mixer_gain, 0x1f);
-+	if (rc < 0)
-+		goto err;
-+
-+	if (ctrl->if_gain == INT_MIN)
-+		rc = r820t_write_reg_mask(priv, 0x0c, 0x10, 0x10);
-+	else
-+		rc = r820t_write_reg_mask(priv, 0x0c,
-+				0x00 | ctrl->if_gain, 0x1f);
-+err:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	return rc;
-+}
-+
- static int generic_set_freq(struct dvb_frontend *fe,
- 			    u32 freq /* in HZ */,
- 			    unsigned bw,
-@@ -2275,6 +2312,7 @@ static const struct dvb_tuner_ops r820t_tuner_ops = {
- 	.release = r820t_release,
- 	.sleep = r820t_sleep,
- 	.set_params = r820t_set_params,
-+	.set_config = r820t_set_config,
- 	.set_analog_params = r820t_set_analog_freq,
- 	.get_if_frequency = r820t_get_if_frequency,
- 	.get_rf_strength = r820t_signal,
-diff --git a/drivers/media/tuners/r820t.h b/drivers/media/tuners/r820t.h
-index 48af354..42c0d8e 100644
---- a/drivers/media/tuners/r820t.h
-+++ b/drivers/media/tuners/r820t.h
-@@ -42,6 +42,13 @@ struct r820t_config {
- 	bool use_predetect;
- };
- 
-+/* set INT_MIN for automode */
-+struct r820t_ctrl {
-+	int lna_gain;
-+	int mixer_gain;
-+	int if_gain;
-+};
-+
- #if IS_ENABLED(CONFIG_MEDIA_TUNER_R820T)
- struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
- 				  struct i2c_adapter *i2c,
--- 
-1.8.5.3
+Am 11.02.2014 21:53, schrieb Antti Palosaari:
+
+> Thanks for the 'patch' :)
+> I am not sure how I should handle that as the code itself is valid, but patch is not
+> as it should.
+> 
+> If you could make a proper patch, using git commit & git format-patch, it will be
+> nice. But as I understand it could be quite much of learning many things, I am
+> willing to take that and apply half manually. I still need you signed-off-by tag as
+> documented [1]. Please reply with signed-off-by or even better if you could make
+> formally correct patch.
+> 
+> [1] https://www.kernel.org/doc/Documentation/SubmittingPatches
+
+I actually read that document before, but apparently I missed the git part (and I
+don't have a git checkout of the kernel sources). So if you can help me out, that's
+greatly appreciated. :-)
+
+Signed-off-by: Till Dörges <till@doerges.net>
+
+Thanks -- Till
+
+> On 11.02.2014 22:27, Till Dörges wrote:
+>> Hi all,
+>>
+>> I've got the following DAB USB stick that also works fine with the DVB_USB_RTL28XXU
+>> driver after I added its USB ID:
+>>
+>> --- snip ---
+>> user@box:~> lsusb -d 0ccd:00b4
+>> Bus 001 Device 009: ID 0ccd:00b4 TerraTec Electronic GmbH
+>> --- snap ---
+>>
+>>
+>> I tried it on a recent openSUSE 13.1 with this kernel/architecture
+>>
+>> --- snip ---
+>> user@box:~> uname -a
+>> Linux box 3.11.10-7-desktop #1 SMP PREEMPT Mon Feb 3 09:41:24 UTC 2014 (750023e)
+>> x86_64 x86_64 x86_64 GNU/Linux
+>> --- snap ---
+>>
+>>
+>> The patches itself are trivial:
+>>
+>> --- ./drivers/media/dvb-core/dvb-usb-ids.h.orig 2014-02-09 22:36:35.266625484 +0100
+>> +++ ./drivers/media/dvb-core/dvb-usb-ids.h      2014-02-09 22:38:00.128199957 +0100
+>> @@ -256,6 +256,7 @@
+>>   #define USB_PID_TERRATEC_T5                            0x10a1
+>>   #define USB_PID_NOXON_DAB_STICK                                0x00b3
+>>   #define USB_PID_NOXON_DAB_STICK_REV2                   0x00e0
+>> +#define USB_PID_NOXON_DAB_STICK_REV3                   0x00b4
+>>   #define USB_PID_PINNACLE_EXPRESSCARD_320CX             0x022e
+>>   #define USB_PID_PINNACLE_PCTV2000E                     0x022c
+>>   #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH              0x0228
+>>
+>>
+>> --- ./drivers/media/usb/dvb-usb-v2/rtl28xxu.c.orig      2014-02-03 10:41:24.000000000
+>> +0100
+>> +++ ./drivers/media/usb/dvb-usb-v2/rtl28xxu.c   2014-02-09 22:37:53.464154845 +0100
+>> @@ -1362,6 +1362,8 @@ static const struct usb_device_id rtl28x
+>>                  &rtl2832u_props, "TerraTec NOXON DAB Stick", NULL) },
+>>          { DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK_REV2,
+>>                  &rtl2832u_props, "TerraTec NOXON DAB Stick (rev 2)", NULL) },
+>> +       { DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK_REV3,
+>> +               &rtl2832u_props, "TerraTec NOXON DAB Stick (rev 3)", NULL) },
+>>          { DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_TREKSTOR_TERRES_2_0,
+>>                  &rtl2832u_props, "Trekstor DVB-T Stick Terres 2.0", NULL) },
+>>          { DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1101,
+>>
+>> HTH -- Till
+>>
+> 
+> 
 
