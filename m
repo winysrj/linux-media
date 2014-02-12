@@ -1,164 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39993 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755760AbaBFQoQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 11:44:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Philipp Zabel <pza@pengutronix.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH] [media] uvcvideo: Enable VIDIOC_CREATE_BUFS
-Date: Thu, 06 Feb 2014 17:45:13 +0100
-Message-ID: <1514592.PnacnYGL3t@avalon>
-In-Reply-To: <52F1EEDA.6040700@xs4all.nl>
-References: <1391012032-19600-1-git-send-email-p.zabel@pengutronix.de> <52F17208.9010500@gmail.com> <52F1EEDA.6040700@xs4all.nl>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3387 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751891AbaBLMoB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 07:44:01 -0500
+Message-ID: <52FB6BB3.1060300@xs4all.nl>
+Date: Wed, 12 Feb 2014 13:40:19 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 24/34] v4l2-ctrls/videodev2.h: add u8 and u16
+ types.
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl> <1392022019-5519-25-git-send-email-hverkuil@xs4all.nl> <CAPybu_2TkODSMUCdSQ8Q1wu=Mr-gmaC_ZQQBiatOPYw=gGcu2g@mail.gmail.com> <52FB5910.9040101@xs4all.nl> <CAPybu_0Kw8-Rq2-oNmwBpF36N6HLg3vZ9CaywLsTQp+9Ym5Z8w@mail.gmail.com>
+In-Reply-To: <CAPybu_0Kw8-Rq2-oNmwBpF36N6HLg3vZ9CaywLsTQp+9Ym5Z8w@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Wednesday 05 February 2014 08:57:14 Hans Verkuil wrote:
-> On 02/05/2014 12:04 AM, Sylwester Nawrocki wrote:
-> > On 02/03/2014 10:03 AM, Hans Verkuil wrote:
-> >> On 02/02/2014 02:04 PM, Philipp Zabel wrote:
-> >>> On Sun, Feb 02, 2014 at 11:21:13AM +0100, Laurent Pinchart wrote:
-> >>>> On Friday 31 January 2014 09:43:00 Hans Verkuil wrote:
-> >>>>> I think you might want to add a check in uvc_queue_setup to verify the
-> >>>>> fmt that create_bufs passes. The spec says that: "Unsupported formats
-> >>>>> will result in an error". In this case I guess that the format
-> >>>>> basically should match the current selected format.
-> >>>>> 
-> >>>>> I'm unhappy with the current implementations of create_bufs (see also
-> >>>>> this patch:
-> >>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg70796.html)
-> >>>>> .
-> >>>>> 
-> >>>>> Nobody is actually checking the format today, which isn't good.
-> >>>>> 
-> >>>>> The fact that the spec says that the fmt field isn't changed by the
-> >>>>> driver isn't helping as it invalidated my patch from above, although
-> >>>>> that can be fixed.
-> >>>>> 
-> >>>>> I need to think about this some more, but for this particular case you
-> >>>>> can just do a memcmp of the v4l2_pix_format against the currently
-> >>>>> selected format and return an error if they differ. Unless you want to
-> >>>>> support different buffer sizes as well?
-> >>>> 
-> >>>> Isn't the whole point of VIDIOC_CREATE_BUFS being able to create
-> >>>> buffers of different resolutions than the current active resolution ?
-> >> 
-> >> Or just additional buffers with the same resolution (or really, the same
-> >> size).
-> >> 
-> >>> For that to work the driver in question would need to keep track of
-> >>> per-buffer format and resolution, and not only of per-queue format and
-> >>> resolution.
-> >>> 
-> >>> For now, would something like the following be enough? Unfortunately the
-> >>> uvc driver doesn't keep a v4l2_format around that we could just memcmp
-> >>> against:
-> >>> 
-> >>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> >>> b/drivers/media/usb/uvc/uvc_v4l2.c index fa58131..7fa469b 100644
-> >>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> >>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> >>> @@ -1003,10 +1003,26 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> >>> unsigned int cmd, void *arg)>>> 
-> >>>   	case VIDIOC_CREATE_BUFS:
-> >>>   	{
-> >>>   		struct v4l2_create_buffers *cb = arg;
-> >>> +		struct v4l2_pix_format *pix;
-> >>> +		struct uvc_format *format;
-> >>> +		struct uvc_frame *frame;
-> >>> 
-> >>>   		if (!uvc_has_privileges(handle))
-> >>>   			return -EBUSY;
-> >>> 
-> >>> +		format = stream->cur_format;
-> >>> +		frame = stream->cur_frame;
-> >>> +		pix =&cb->format.fmt.pix;
-> >>> +
-> >>> +		if (pix->pixelformat != format->fcc ||
-> >>> +		    pix->width != frame->wWidth ||
-> >>> +		    pix->height != frame->wHeight ||
-> >>> +		    pix->field != V4L2_FIELD_NONE ||
-> >>> +		    pix->bytesperline != format->bpp * frame->wWidth / 8 ||
-> >>> +		    pix->sizeimage != stream->ctrl.dwMaxVideoFrameSize ||
-> >>> +		    pix->colorspace != format->colorspace)
-> >> 
-> >> I would drop the field and colorspace checks (those do not really affect
-> >> any size calculations), other than that it looks good.
-> > 
-> > That seems completely wrong to me, AFAICT the VIDIOC_CREATE_BUFS was
-> > designed so that the driver is supposed to allow any format which is
-> > supported by the hardware. What has currently selected format to do with
-> > the format passed to VIDIOC_CREATE_BUFS ? It should be allowed to create
-> > buffers of any size (implied by the passed v4l2_pix_format). It is
-> > supposed to be checked if a buffer meets constraints of current
-> > configuration of the hardware at QBUF, not at VIDIOC_CREATE_BUFS time.
-> > User space may well allocate buffers when one image format is set, keep
-> > them aside and then just before queueing them to the driver may set the
-> > format to a different one, so the hardware set up matches buffers
-> > allocated with VIDIOC_CREATE_BUFS.
-> > 
-> > What's the point of having VIDIOC_CREATE_BUFS when you are doing checks
-> > like above ? Unless I'm missing something that is completely wrong. :)
-> > Adjusting cb->format.fmt.pix as in VIDIOC_TRY_FORMAT seems more
-> > appropriate thing to do.
+On 02/12/14 13:11, Ricardo Ribalda Delgado wrote:
+> Hi Hans
 > 
-> OK, I agree that the code above is wrong. So ignore that.
+> Thanks for your reply
 > 
-> What should CREATE_BUFS do when it is called?
+> On Wed, Feb 12, 2014 at 12:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Ricardo,
+>>
+>> On 02/12/14 11:44, Ricardo Ribalda Delgado wrote:
+>>> Hello Hans
+>>>
+>>> In the case of U8 and U16 data types. Why dont you fill the elem_size
+>>> automatically in v4l2_ctrl and request the driver to fill the field?
+>>
+>> When you create the control the control framework has to know the element
+>> size beforehand as it will use that to allocate the memory containing the
+>> control's value. The control framework is aware of the 'old' control types
+>> and will fill in the elem_size accordingly, but it cannot do that in the
+>> general case for these complex types. I guess it could be filled in by the
+>> framework for the more common types (U8, U16) but I felt it was more
+>> consistent to just require drivers to fill it in manually, rather than have
+>> it set for some types but not for others.
+>>
+>>>
+>>> Other option would be not declaring the basic data types (U8, U16,
+>>> U32...) and use elem_size. Ie. If type==V4L2_CTRL_COMPLEX_TYPES, then
+>>> the type is basic and elem_size is the size of the type. If the type
+>>>> V4L2_CTRL_COMPLEX_TYPES the type is not basic.
+>>
+>> You still need to know the type. Applications have to be able to check for
+>> the type, the element size by itself doesn't tell you how to interpret the
+>> data, you need the type identifier as well.
 > 
-> Should I go back to this patch:
-> http://www.spinics.net/lists/linux-media/msg72171.html
+> I think that the driver is setting twice the same info. I see no gain
+> in declaring U8, U16 types etc if we still have to set the element
+> size. This is why I believe that we should only declare the "structs".
+
+Just to make sure I understand you: for simple types like U8/U16 you want
+the control framework to fill in elem_size, for more complex types (structs)
+you want the driver to fill in elem_size?
+ 
+> what about something like: V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER +
+> size, V4L2_CTRL_COMPLEX_TYPES_UNSIGNED_INTEGER + size.... instead of
+> V4L2_CTRL_COMPLEX_TYPES_U8, V4L2_CTRL_COMPLEX_TYPES_U16,
+> V4L2_CTRL_COMPLEX_TYPES_U32, V4L2_CTRL_COMPLEX_TYPES_S8 ....
 > 
-> It will at least ensure that the fmt is consistent. It is however not quite
-> according to the spec since invalid formats are generally 'reformatted' by
-> TRY_FMT to something valid, and the spec says invalid formats should return
-> an error. It is possible to do something more advanced here, though: you
-> could make a copy of v4l2_format, call TRY_FMT on it, and check if there
-> are any differences with what was passed in. If there are, return an
-> error.
-> 
-> It's a bit of work, but probably better to do it in the core rather than
-> depend on drivers to do it (since they won't :-) ).
-> 
-> If queue_setup can rely on fmt to be a valid format, then sizeimage can
-> just be used as the buffer size.
+> Btw, I am trying to implement a dead pixel control on the top of you
+> api. Shall I wait until you patchset is merged or shall I send the
+> patches right away?
 
-It sounds good in the general case, but I wonder whether we wouldn't have 
-cases where TRY_FMT can mangle the format in a way that depends on controls 
-for instance. In that case applications wouldn't be able to create buffers for 
-a format that will be valid later but isn't now.
+You're free to experiment, but I am not going to ask Mauro to pull additional
+patches as long as this initial patch set isn't merged.
 
-I suppose this is really a more generic problem of formats and controls 
-interactions, which are ill-defined at the moment.
-
-> With regards to checking constraints on QBUF: I see a problem there. For
-> a regular buffer it can be checked in buf_prepare, but what if a buffer
-> is already prepared using VIDIOC_PREPARE_BUF, then the format is changed
-> and you call VIDIOC_QBUF with that prepared buffer? Then there is no
-> callback where you can check this since the buf_prepare call has already
-> happened.
-
-Maybe we shouldn't allow format changes when buffers have been prepared ? We 
-might then need a way to unprepare a buffer... That sounds a bit hackish 
-though. Another solution would be to unprepare all buffers when the format is 
-changed, but that sounds even worse.
-
-Maybe we should document the queue operations interactions with format setup 
-and start from there.
-
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
