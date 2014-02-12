@@ -1,100 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:40165 "EHLO mga09.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:46651 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751396AbaBELsS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Feb 2014 06:48:18 -0500
-Date: Wed, 5 Feb 2014 19:47:46 +0800
-From: Fengguang Wu <fengguang.wu@intel.com>
-To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [media:v4l_for_linus 91/499] WARNING: usleep_range should not use
- min == max args; see Documentation/timers/timers-howto.txt
-Message-ID: <20140205114746.GB27938@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	id S1752341AbaBLTqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 14:46:32 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Malcolm Priestley <tvboxspy@gmail.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 1/4] af9035: Move it913x single devices to af9035
+Date: Wed, 12 Feb 2014 21:46:15 +0200
+Message-Id: <1392234378-20959-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Malcolm Priestley <tvboxspy@gmail.com>
 
-Hi Sergio,
+The generic v1 and v2 devices have been all tested.
 
-FYI, there are new warnings show up in
+IDs tested
+USB_PID_ITETECH_IT9135 v1 & v2
+USB_PID_ITETECH_IT9135_9005 v1
+USB_PID_ITETECH_IT9135_9006 v2
 
-tree:   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-head:   6c3df5da67f1f53df78c7e20cd53a481dc28eade
-commit: b4a0477c0b87c5b7a20a84df8cf81311d1efb226 [91/499] [media] v4l: omap4iss: Add support for OMAP4 camera interface - CSI receivers
-:::::: branch date: 2 days ago
-:::::: commit date: 8 weeks ago
+Current Issues
+There is no signal  on
+USB_PID_ITETECH_IT9135 v2
 
-scripts/checkpatch.pl 0001-media-v4l-omap4iss-Add-support-for-OMAP4-camera-inte.patch
-# many are suggestions rather than must-fix
+No SNR reported all devices.
 
-WARNING: usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt
-#548: drivers/staging/media/omap4iss/iss_csi2.c:516:
-+			usleep_range(100, 100);
+All single devices tune and scan fine.
 
-WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#552: drivers/staging/media/omap4iss/iss_csi2.c:520:
-+		printk(KERN_ERR "CSI2: Soft reset try count exceeded!\n");
+All remotes tested okay.
 
-WARNING: usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt
-#566: drivers/staging/media/omap4iss/iss_csi2.c:534:
-+		usleep_range(100, 100);
+Dual device failed to register second adapter
+USB_PID_KWORLD_UB499_2T_T09
+It is not clear what the problem is at the moment.
 
-WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#570: drivers/staging/media/omap4iss/iss_csi2.c:538:
-+		printk(KERN_ERR
+So only single IDs are transferred in this patch.
 
-WARNING: quoted string split across lines
-#789: drivers/staging/media/omap4iss/iss_csi2.c:757:
-+		dev_dbg(iss->dev, "CSI2: ComplexIO Error IRQ "
-+			"%x\n", cpxio1_irqstatus);
-
-WARNING: quoted string split across lines
-#799: drivers/staging/media/omap4iss/iss_csi2.c:767:
-+		dev_dbg(iss->dev, "CSI2 Err:"
-+			" OCP:%d,"
-
-WARNING: quoted string split across lines
-#800: drivers/staging/media/omap4iss/iss_csi2.c:768:
-+			" OCP:%d,"
-+			" Short_pack:%d,"
-
-WARNING: quoted string split across lines
-#801: drivers/staging/media/omap4iss/iss_csi2.c:769:
-+			" Short_pack:%d,"
-+			" ECC:%d,"
-
-WARNING: quoted string split across lines
-#802: drivers/staging/media/omap4iss/iss_csi2.c:770:
-+			" ECC:%d,"
-+			" CPXIO:%d,"
-
-WARNING: quoted string split across lines
-#803: drivers/staging/media/omap4iss/iss_csi2.c:771:
-+			" CPXIO:%d,"
-+			" FIFO_OVF:%d,"
-
-WARNING: quoted string split across lines
-#804: drivers/staging/media/omap4iss/iss_csi2.c:772:
-+			" FIFO_OVF:%d,"
-+			"\n",
-
-WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#1649: drivers/staging/media/omap4iss/iss_csiphy.c:81:
-+		printk(KERN_ERR "CSI2 CIO set power failed!\n");
-
-WARNING: line over 80 characters
-#1749: drivers/staging/media/omap4iss/iss_csiphy.c:181:
-+		if (lanes->data[i].pol > 1 || lanes->data[i].pos > (csi2->phy->max_data_lanes + 1))
-
-WARNING: line over 80 characters
-#1759: drivers/staging/media/omap4iss/iss_csiphy.c:191:
-+	if (lanes->clk.pol > 1 || lanes->clk.pos > (csi2->phy->max_data_lanes + 1))
-
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/usb/dvb-usb-v2/af9035.c | 22 ++++++++++++++++------
+ drivers/media/usb/dvb-usb-v2/it913x.c | 24 ------------------------
+ 2 files changed, 16 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 8ede8ea..3825c2f 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1528,12 +1528,22 @@ static const struct usb_device_id af9035_id_table[] = {
+ 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
+ 		&af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
+ 	/* IT9135 devices */
+-#if 0
+-	{ DVB_USB_DEVICE(0x048d, 0x9135,
+-		&af9035_props, "IT9135 reference design", NULL) },
+-	{ DVB_USB_DEVICE(0x048d, 0x9006,
+-		&af9035_props, "IT9135 reference design", NULL) },
+-#endif
++	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
++		&af9035_props, "ITE 9135 Generic", RC_MAP_IT913X_V1) },
++	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9005,
++		&af9035_props, "ITE 9135(9005) Generic", RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9006,
++		&af9035_props, "ITE 9135(9006) Generic", RC_MAP_IT913X_V1) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_1835,
++		&af9035_props, "Avermedia A835B(1835)", RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_2835,
++		&af9035_props, "Avermedia A835B(2835)", RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_3835,
++		&af9035_props, "Avermedia A835B(3835)", RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
++		&af9035_props, "Avermedia A835B(4835)",	RC_MAP_IT913X_V2) },
++	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
++		&af9035_props, "Avermedia H335", RC_MAP_IT913X_V2) },
+ 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
+ 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
+ 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
+diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
+index fe95a58..78bf8fd 100644
+--- a/drivers/media/usb/dvb-usb-v2/it913x.c
++++ b/drivers/media/usb/dvb-usb-v2/it913x.c
+@@ -772,36 +772,12 @@ static const struct usb_device_id it913x_id_table[] = {
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB499_2T_T09,
+ 		&it913x_properties, "Kworld UB499-2T T09(IT9137)",
+ 			RC_MAP_IT913X_V1) },
+-	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
+-		&it913x_properties, "ITE 9135 Generic",
+-			RC_MAP_IT913X_V1) },
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV22_IT9137,
+ 		&it913x_properties, "Sveon STV22 Dual DVB-T HDTV(IT9137)",
+ 			RC_MAP_IT913X_V1) },
+-	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9005,
+-		&it913x_properties, "ITE 9135(9005) Generic",
+-			RC_MAP_IT913X_V2) },
+-	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9006,
+-		&it913x_properties, "ITE 9135(9006) Generic",
+-			RC_MAP_IT913X_V1) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_1835,
+-		&it913x_properties, "Avermedia A835B(1835)",
+-			RC_MAP_IT913X_V2) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_2835,
+-		&it913x_properties, "Avermedia A835B(2835)",
+-			RC_MAP_IT913X_V2) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_3835,
+-		&it913x_properties, "Avermedia A835B(3835)",
+-			RC_MAP_IT913X_V2) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
+-		&it913x_properties, "Avermedia A835B(4835)",
+-			RC_MAP_IT913X_V2) },
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
+ 		&it913x_properties, "Digital Dual TV Receiver CTVDIGDUAL_V2",
+ 			RC_MAP_IT913X_V1) },
+-	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
+-		&it913x_properties, "Avermedia H335",
+-			RC_MAP_IT913X_V2) },
+ 	{}		/* Terminating entry */
+ };
+ 
+-- 
+1.8.5.3
+
