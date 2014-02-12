@@ -1,188 +1,407 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46487 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909AbaBKMCy (ORCPT
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:64036 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753761AbaBLUGB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 07:02:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 43/47] adv7604: Control hot-plug detect through a GPIO
-Date: Tue, 11 Feb 2014 13:03:57 +0100
-Message-ID: <1637754.DCKyOCpBtn@avalon>
-In-Reply-To: <52F9F6DB.1080700@xs4all.nl>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-44-git-send-email-laurent.pinchart@ideasonboard.com> <52F9F6DB.1080700@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 12 Feb 2014 15:06:01 -0500
+From: Bryan Wu <cooloney@gmail.com>
+To: g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, linux-tegra@vger.kernel.org
+Subject: [PATCH v2] media: soc-camera: OF cameras
+Date: Wed, 12 Feb 2014 12:05:52 -0800
+Message-Id: <1392235552-28134-1-git-send-email-pengw@nvidia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-On Tuesday 11 February 2014 11:09:31 Hans Verkuil wrote:
-> On 02/05/14 17:42, Laurent Pinchart wrote:
-> > Replace the ADV7604-specific hotplug notifier with a GPIO to control the
-> > HPD pin directly instead of going through the bridge driver.
-> 
-> Hmm, that's not going to work for me. I don't have a GPIO pin here, instead
-> it is a bit in a register that I have to set.
+With OF we aren't getting platform data any more. To minimise changes we
+create all the missing data ourselves, including compulsory struct
+soc_camera_link objects. Host-client linking is now done, based on the OF
+data. Media bus numbers also have to be assigned dynamically.
 
-But that bit controls a GPIO, doesn't it ? In that case it should be exposed 
-as a GPIO controller.
+OF probing reuses the V4L2 Async API which is used by async non-OF probing.
 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/i2c/adv7604.c | 47 ++++++++++++++++++++++++++++++++++++----
-> >  include/media/adv7604.h     |  5 ++++-
-> >  2 files changed, 47 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> > index 369cb1e..2f38071 100644
-> > --- a/drivers/media/i2c/adv7604.c
-> > +++ b/drivers/media/i2c/adv7604.c
-> > @@ -28,6 +28,7 @@
-> >   */
-> >  
-> >  #include <linux/delay.h>
-> > +#include <linux/gpio.h>
-> >  #include <linux/i2c.h>
-> >  #include <linux/kernel.h>
-> >  #include <linux/module.h>
-> > @@ -608,6 +609,23 @@ static inline int edid_write_block(struct v4l2_subdev
-> > *sd,
-> >  	return err;
-> >  }
-> > 
-> > +static void adv7604_set_hpd(struct adv7604_state *state, unsigned int
-> > hpd)
-> > +{
-> > +	unsigned int i;
-> > +
-> > +	for (i = 0; i < state->info->num_dv_ports; ++i) {
-> > +		unsigned int enable = hpd & BIT(i);
-> > +
-> > +		if (IS_ERR_VALUE(state->pdata.hpd_gpio[i]))
-> 
-> IS_ERR_VALUE: that's normally used for pointers, not integers. I would
-> much prefer something simple like 'bool hpd_use_gpio[4]'.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Bryan Wu <pengw@nvidia.com>
+---
+v2:
+ - move to use V4L2 Async API
+ - cleanup some coding style issue
+ - allocate struct soc_camera_desc sdesc on stack
+ - cleanup unbalanced mutex operation
 
-I've reworked this to use the gpiod_* API, I'll post v2 when the whole set 
-will be reviewed.
+ drivers/media/platform/soc_camera/soc_camera.c | 232 ++++++++++++++++++++++++-
+ include/media/soc_camera.h                     |   5 +
+ 2 files changed, 233 insertions(+), 4 deletions(-)
 
-> > +			continue;
-> > +
-> > +		if (state->pdata.hpd_gpio_low[i])
-> > +			enable = !enable;
-> > +
-> > +		gpio_set_value_cansleep(state->pdata.hpd_gpio[i], enable);
-> > +	}
-> > +}
-> > +
-> > 
-> >  static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
-> >  {
-> >  	struct delayed_work *dwork = to_delayed_work(work);
-> > @@ -617,7 +635,7 @@ static void adv7604_delayed_work_enable_hotplug(struct
-> > work_struct *work)> 
-> >  	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
-> > 
-> > -	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state-
->edid.present);
-> > +	adv7604_set_hpd(state, state->edid.present);
-> >  }
-> >  
-> >  static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
-> > @@ -2022,7 +2040,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd,
-> > struct v4l2_subdev_edid *edi> 
-> >  	struct adv7604_state *state = to_state(sd);
-> >  	const struct adv7604_chip_info *info = state->info;
-> >  	int spa_loc;
-> > -	int tmp = 0;
-> >  	int err;
-> >  	int i;
-> > 
-> > @@ -2033,7 +2050,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd,
-> > struct v4l2_subdev_edid *edi> 
-> >  	if (edid->blocks == 0) {
-> >  		/* Disable hotplug and I2C access to EDID RAM from DDC port */
-> >  		state->edid.present &= ~(1 << edid->pad);
-> > -		v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state-
->edid.present);
-> > +		adv7604_set_hpd(state, state->edid.present);
-> >  		rep_write_clr_set(sd, info->edid_enable_reg, 0x0f,
-> >  		state->edid.present);
-> >  		/* Fall back to a 16:9 aspect ratio */
-> > @@ -2059,7 +2076,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd,
-> > struct v4l2_subdev_edid *edi
-> >  	/* Disable hotplug and I2C access to EDID RAM from DDC port */
-> >  	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
-> > 
-> > -	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
-> > +	adv7604_set_hpd(state, 0);
-> > 
-> >  	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, 0x00);
-> >  	
-> >  	spa_loc = get_edid_spa_location(edid->edid);
-> > @@ -2655,6 +2672,28 @@ static int adv7604_probe(struct i2c_client *client,
-> >  		return -ENODEV;
-> >  	}
-> >  	state->pdata = *pdata;
-> > +
-> > +	/* Request GPIOs. */
-> > +	for (i = 0; i < state->info->num_dv_ports; ++i) {
-> > +		char name[5];
-> > +
-> > +		if (IS_ERR_VALUE(state->pdata.hpd_gpio[i]))
-> > +			continue;
-> > +
-> > +		sprintf(name, "hpd%u", i);
-> > +		err = devm_gpio_request_one(&client->dev,
-> > +					    state->pdata.hpd_gpio[i],
-> > +					    state->pdata.hpd_gpio_low[i] ?
-> > +					    GPIOF_OUT_INIT_HIGH :
-> > +					    GPIOF_OUT_INIT_LOW,
-> > +					    name);
-> > +		if (err < 0) {
-> > +			v4l_err(client, "Failed to request HPD %u GPIO (%u)\n",
-> > +				i, state->pdata.hpd_gpio[i]);
-> > +			return err;
-> > +		}
-> > +	}
-> > +
-> > 
-> >  	state->timings = cea640x480;
-> >  	state->format = adv7604_format_info(state, V4L2_MBUS_FMT_YUYV8_2X8);
-> > diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-> > index 4da678c..dddb0cb 100644
-> > --- a/include/media/adv7604.h
-> > +++ b/include/media/adv7604.h
-> > @@ -90,6 +90,10 @@ struct adv7604_platform_data {
-> >  	/* DIS_CABLE_DET_RST: 1 if the 5V pins are unused and unconnected */
-> >  	unsigned disable_cable_det_rst:1;
-> > 
-> > +	/* Hot-Plug Detect control GPIOs */
-> > +	int hpd_gpio[4];
-> > +	bool hpd_gpio_low[4];
-> > +
-> >  	/* Analog input muxing mode */
-> >  	enum adv7604_ain_sel ain_sel;
-> > 
-> > @@ -133,7 +137,6 @@ struct adv7604_platform_data {
-> > 
-> >  #define V4L2_CID_ADV_RX_FREE_RUN_COLOR		(V4L2_CID_DV_CLASS_BASE + 
-0x1002)
-> >  
-> >  /* notify events */
-> > -#define ADV7604_HOTPLUG		1
-> >  #define ADV7604_FMT_CHANGE	2
-> >  
-> >  #endif
-
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 4b8c024..ffe1254 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -23,6 +23,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/regulator/consumer.h>
+@@ -36,6 +37,7 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-of.h>
+ #include <media/videobuf-core.h>
+ #include <media/videobuf2-core.h>
+ 
+@@ -49,6 +51,7 @@
+ 	 vb2_is_streaming(&(icd)->vb2_vidq))
+ 
+ #define MAP_MAX_NUM 32
++static DECLARE_BITMAP(host_map, MAP_MAX_NUM);
+ static DECLARE_BITMAP(device_map, MAP_MAX_NUM);
+ static LIST_HEAD(hosts);
+ static LIST_HEAD(devices);
+@@ -65,6 +68,17 @@ struct soc_camera_async_client {
+ 	struct list_head list;		/* needed for clean up */
+ };
+ 
++struct soc_camera_of_client {
++	struct soc_camera_desc *sdesc;
++	struct soc_camera_async_client sasc;
++	struct v4l2_of_endpoint node;
++	struct dev_archdata archdata;
++	struct device_node *link_node;
++	union {
++		struct i2c_board_info i2c_info;
++	};
++};
++
+ static int soc_camera_video_start(struct soc_camera_device *icd);
+ static int video_dev_create(struct soc_camera_device *icd);
+ 
+@@ -1336,6 +1350,10 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+ 		return -EPROBE_DEFER;
+ 	}
+ 
++	/* OF probing skips following I2C init */
++	if (shd->host_wait)
++		return 0;
++
+ 	ici = to_soc_camera_host(icd->parent);
+ 	adap = i2c_get_adapter(shd->i2c_adapter_id);
+ 	if (!adap) {
+@@ -1573,10 +1591,180 @@ static void scan_async_host(struct soc_camera_host *ici)
+ 		asd += ici->asd_sizes[j];
+ 	}
+ }
++
++static void soc_camera_of_i2c_ifill(struct soc_camera_of_client *sofc,
++				    struct i2c_client *client)
++{
++	struct i2c_board_info *info = &sofc->i2c_info;
++	struct soc_camera_desc *sdesc = sofc->sdesc;
++
++	/* on OF I2C devices platform_data == NULL */
++	info->flags = client->flags;
++	info->addr = client->addr;
++	info->irq = client->irq;
++	info->archdata = &sofc->archdata;
++
++	/* archdata is always empty on OF I2C devices */
++	strlcpy(info->type, client->name, sizeof(info->type));
++
++	sdesc->host_desc.i2c_adapter_id = client->adapter->nr;
++}
++
++static void soc_camera_of_i2c_info(struct device_node *node,
++				   struct soc_camera_of_client *sofc)
++{
++	struct i2c_client *client;
++	struct soc_camera_desc *sdesc = sofc->sdesc;
++	struct i2c_board_info *info = &sofc->i2c_info;
++	struct device_node *port, *sensor, *bus;
++
++	port = v4l2_of_get_remote_port(node);
++	if (!port)
++		return;
++
++	/* Check the bus */
++	sensor = of_get_parent(port);
++	bus = of_get_parent(sensor);
++
++	if (of_node_cmp(bus->name, "i2c")) {
++		of_node_put(port);
++		of_node_put(sensor);
++		of_node_put(bus);
++		return;
++	}
++
++	info->of_node = sensor;
++	sdesc->host_desc.board_info = info;
++
++	client = of_find_i2c_device_by_node(sensor);
++	/*
++	 * of_i2c_register_devices() took a reference to the OF node, it is not
++	 * dropped, when the I2C device is removed, so, we don't need an
++	 * additional reference.
++	 */
++	of_node_put(sensor);
++	if (client) {
++		soc_camera_of_i2c_ifill(sofc, client);
++		sofc->link_node = sensor;
++		put_device(&client->dev);
++	}
++
++	/* client hasn't attached to I2C yet */
++}
++
++static struct soc_camera_of_client *soc_camera_of_alloc_client(const struct soc_camera_host *ici,
++							       struct device_node *node)
++{
++	struct soc_camera_of_client *sofc;
++	struct v4l2_async_subdev *sensor;
++	struct soc_camera_desc sdesc = { .host_desc.host_wait = true,};
++	int i, ret;
++
++	sofc = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sofc), GFP_KERNEL);
++	if (!sofc)
++		return NULL;
++
++	/* Allocate v4l2_async_subdev by ourselves */
++	sensor = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sensor), GFP_KERNEL);
++	if (!sensor)
++		return NULL;
++	sofc->sasc.sensor = sensor;
++
++	mutex_lock(&list_lock);
++	i = find_first_zero_bit(device_map, MAP_MAX_NUM);
++	if (i < MAP_MAX_NUM)
++		set_bit(i, device_map);
++	mutex_unlock(&list_lock);
++	if (i >= MAP_MAX_NUM)
++		return NULL;
++	sofc->sasc.pdev = platform_device_alloc("soc-camera-pdrv", i);
++	if (!sofc->sasc.pdev)
++		return NULL;
++
++	sdesc.host_desc.node = &sofc->node;
++	sdesc.host_desc.bus_id = ici->nr;
++
++	ret = platform_device_add_data(sofc->sasc.pdev, &sdesc, sizeof(sdesc));
++	if (ret < 0)
++		return NULL;
++	sofc->sdesc = sofc->sasc.pdev->dev.platform_data;
++
++	soc_camera_of_i2c_info(node, sofc);
++
++	return sofc;
++}
++
++static void scan_of_host(struct soc_camera_host *ici)
++{
++	struct soc_camera_of_client *sofc;
++	struct soc_camera_async_client *sasc;
++	struct v4l2_async_subdev *asd;
++	struct soc_camera_device *icd;
++	struct device_node *node = NULL;
++
++	for (;;) {
++		int ret;
++
++		node = v4l2_of_get_next_endpoint(ici->v4l2_dev.dev->of_node,
++					       node);
++		if (!node)
++			break;
++
++		sofc = soc_camera_of_alloc_client(ici, node);
++		if (!sofc) {
++			dev_err(ici->v4l2_dev.dev,
++				"%s(): failed to create a client device\n",
++				__func__);
++			of_node_put(node);
++			break;
++		}
++		v4l2_of_parse_endpoint(node, &sofc->node);
++
++		sasc = &sofc->sasc;
++		ret = platform_device_add(sasc->pdev);
++		if (ret < 0) {
++			/* Useless thing, but keep trying */
++			platform_device_put(sasc->pdev);
++			of_node_put(node);
++			continue;
++		}
++
++		/* soc_camera_pdrv_probe() probed successfully */
++		icd = platform_get_drvdata(sasc->pdev);
++		if (!icd) {
++			/* Cannot be... */
++			platform_device_put(sasc->pdev);
++			of_node_put(node);
++			continue;
++		}
++
++		asd = sasc->sensor;
++		asd->match_type = V4L2_ASYNC_MATCH_OF;
++		asd->match.of.node = sofc->link_node;
++
++		sasc->notifier.subdevs = &asd;
++		sasc->notifier.num_subdevs = 1;
++		sasc->notifier.bound = soc_camera_async_bound;
++		sasc->notifier.unbind = soc_camera_async_unbind;
++		sasc->notifier.complete = soc_camera_async_complete;
++
++		icd->parent = ici->v4l2_dev.dev;
++
++		ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
++		if (!ret)
++			break;
++
++		/*
++		 * We could destroy the icd in there error case here, but the
++		 * non-OF version doesn't do that, so, we can keep it around too
++		 */
++	}
++}
+ #else
+ #define soc_camera_i2c_init(icd, sdesc)	(-ENODEV)
+ #define soc_camera_i2c_free(icd)	do {} while (0)
+ #define scan_async_host(ici)		do {} while (0)
++#define scan_of_host(ici)		do {} while (0)
+ #endif
+ 
+ /* Called during host-driver probe */
+@@ -1689,6 +1877,7 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+ {
+ 	struct soc_camera_desc *sdesc = to_soc_camera_desc(icd);
+ 	struct video_device *vdev = icd->vdev;
++	struct v4l2_of_endpoint *node = sdesc->host_desc.node;
+ 
+ 	v4l2_ctrl_handler_free(&icd->ctrl_handler);
+ 	if (vdev) {
+@@ -1719,6 +1908,17 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+ 	if (icd->sasc)
+ 		platform_device_unregister(icd->sasc->pdev);
+ 
++	if (node) {
++		struct soc_camera_of_client *sofc = container_of(node,
++					struct soc_camera_of_client, node);
++		/* Don't dead-lock: remove the device here under the lock */
++		clear_bit(sofc->sasc.pdev->id, device_map);
++		list_del(&icd->list);
++		if (sofc->link_node)
++			of_node_put(sofc->link_node);
++		platform_device_unregister(sofc->sasc.pdev);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1813,17 +2013,34 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+ 		ici->ops->enum_framesizes = default_enum_framesizes;
+ 
+ 	mutex_lock(&list_lock);
+-	list_for_each_entry(ix, &hosts, list) {
+-		if (ix->nr == ici->nr) {
++	if (ici->nr == (unsigned char)-1) {
++		/* E.g. OF host: dynamic number */
++		/* TODO: consider using IDR */
++		ici->nr = find_first_zero_bit(host_map, MAP_MAX_NUM);
++		if (ici->nr >= MAP_MAX_NUM) {
+ 			ret = -EBUSY;
+ 			goto edevreg;
+ 		}
++	} else {
++		if (ici->nr >= MAP_MAX_NUM) {
++			ret = -EINVAL;
++			goto edevreg;
++		}
++
++		list_for_each_entry(ix, &hosts, list) {
++			if (ix->nr == ici->nr) {
++				ret = -EBUSY;
++				goto edevreg;
++			}
++		}
+ 	}
+ 
+ 	ret = v4l2_device_register(ici->v4l2_dev.dev, &ici->v4l2_dev);
+ 	if (ret < 0)
+ 		goto edevreg;
+ 
++	set_bit(ici->nr, host_map);
++
+ 	list_add_tail(&ici->list, &hosts);
+ 	mutex_unlock(&list_lock);
+ 
+@@ -1837,9 +2054,11 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+ 		 * dynamically!
+ 		 */
+ 		scan_async_host(ici);
+-	else
++	else if (!ici->v4l2_dev.dev->of_node)
+ 		/* Legacy: static platform devices from board data */
+ 		scan_add_host(ici);
++	else	/* Scan subdevices from OF info */
++		scan_of_host(ici);
+ 
+ 	return 0;
+ 
+@@ -1857,6 +2076,8 @@ void soc_camera_host_unregister(struct soc_camera_host *ici)
+ 	LIST_HEAD(notifiers);
+ 
+ 	mutex_lock(&list_lock);
++
++	clear_bit(ici->nr, host_map);
+ 	list_del(&ici->list);
+ 	list_for_each_entry(icd, &devices, list)
+ 		if (icd->iface == ici->nr && icd->sasc) {
+@@ -1875,7 +2096,10 @@ void soc_camera_host_unregister(struct soc_camera_host *ici)
+ 	mutex_lock(&list_lock);
+ 
+ 	list_for_each_entry_safe(icd, tmp, &devices, list)
+-		if (icd->iface == ici->nr)
++		if (icd->iface == ici->nr &&
++		    icd->parent == ici->v4l2_dev.dev &&
++		    (to_soc_camera_control(icd) ||
++			icd->sdesc->host_desc.host_wait))
+ 			soc_camera_remove(icd);
+ 
+ 	mutex_unlock(&list_lock);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 865246b..06b03b1 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -138,6 +138,7 @@ struct soc_camera_host_ops {
+ 
+ struct i2c_board_info;
+ struct regulator_bulk_data;
++struct v4l2_of_endpoint;
+ 
+ struct soc_camera_subdev_desc {
+ 	/* Per camera SOCAM_SENSOR_* bus flags */
+@@ -177,7 +178,9 @@ struct soc_camera_host_desc {
+ 	int bus_id;
+ 	int i2c_adapter_id;
+ 	struct i2c_board_info *board_info;
++	struct v4l2_of_endpoint *node;
+ 	const char *module_name;
++	bool host_wait;
+ 
+ 	/*
+ 	 * For non-I2C devices platform has to provide methods to add a device
+@@ -242,7 +245,9 @@ struct soc_camera_link {
+ 	int bus_id;
+ 	int i2c_adapter_id;
+ 	struct i2c_board_info *board_info;
++	struct v4l2_of_endpoint *node;
+ 	const char *module_name;
++	bool host_wait;
+ 
+ 	/*
+ 	 * For non-I2C devices platform has to provide methods to add a device
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
