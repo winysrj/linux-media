@@ -1,82 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:61691 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752352AbaBYNko (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42061 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751015AbaBLJ0N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 08:40:44 -0500
-Received: by mail-la0-f41.google.com with SMTP id gl10so4232903lab.28
-        for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 05:40:43 -0800 (PST)
-Message-ID: <530C9D58.5080909@cogentembedded.com>
-Date: Tue, 25 Feb 2014 17:40:40 +0400
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-MIME-Version: 1.0
-To: Phil Edworthy <phil.edworthy@renesas.com>
-CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Valentine Barshak <valentine.barshak@cogentembedded.com>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Wed, 12 Feb 2014 04:26:13 -0500
+Message-ID: <1392197154.5536.26.camel@pizza.hi.pengutronix.de>
+Subject: Re: [PATCH v2] [media] of: move graph helpers from
+ drivers/media/v4l2-core to drivers/media
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Add support for 10-bit
- YUV cameras
-References: <2516843.7QqJLHtUZT@avalon> <1393319427-14515-1-git-send-email-phil.edworthy@renesas.com>
-In-Reply-To: <1393319427-14515-1-git-send-email-phil.edworthy@renesas.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Date: Wed, 12 Feb 2014 10:25:54 +0100
+In-Reply-To: <52FB1FA8.2070903@ti.com>
+References: <1392154905-12007-1-git-send-email-p.zabel@pengutronix.de>
+	 <52FB1FA8.2070903@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/25/2014 01:10 PM, Phil Edworthy wrote:
-> Signed-off-by: Phil Edworthy<phil.edworthy@renesas.com>
-Acked-by: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
+Hi Tomi,
 
-(Valentine can't do the review atm)
+Am Mittwoch, den 12.02.2014, 09:15 +0200 schrieb Tomi Valkeinen:
+> Hi,
+> 
+> On 11/02/14 23:41, Philipp Zabel wrote:
+> > From: Philipp Zabel <philipp.zabel@gmail.com>
+> > 
+> > This patch moves the parsing helpers used to parse connected graphs
+> > in the device tree, like the video interface bindings documented in
+> > Documentation/devicetree/bindings/media/video-interfaces.txt, from
+> > drivers/media/v4l2-core to drivers/media.
+> > 
+> > This allows to reuse the same parser code from outside the V4L2
+> > framework, most importantly from display drivers.
+> > The functions v4l2_of_get_next_endpoint, v4l2_of_get_remote_port,
+> > and v4l2_of_get_remote_port_parent are moved. They are renamed to
+> > of_graph_get_next_endpoint, of_graph_get_remote_port, and
+> > of_graph_get_remote_port_parent, respectively.
+> > Since there are not that many current users, switch all of them
+> > to the new functions right away.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> I don't think the graphs or the parsing code has anything video
+> specific. It could well be used for anything, whenever there's need to
+> describe connections between devices which are not handled by the normal
+> child-parent relationships. So the code could well reside in some
+> generic place, in my opinion.
+> 
+> Also, I have no problem with having it in drivers/media, but
+> drivers/video should work also. We already have other, generic, video
+> related things there like hdmi infoframes and display timings.
 
-> ---
-> v2:
->    - Fix silly mistake with missing break.
->
->   drivers/media/platform/soc_camera/rcar_vin.c |    9 +++++++++
->   1 file changed, 9 insertions(+)
->
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 3b1c05a..702dc47 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -68,6 +68,8 @@
->   #define VNMC_YCAL		(1<<  19)
->   #define VNMC_INF_YUV8_BT656	(0<<  16)
->   #define VNMC_INF_YUV8_BT601	(1<<  16)
-> +#define VNMC_INF_YUV10_BT656	(2<<  16)
-> +#define VNMC_INF_YUV10_BT601	(3<<  16)
->   #define VNMC_INF_YUV16		(5<<  16)
->   #define VNMC_VUP		(1<<  10)
->   #define VNMC_IM_ODD		(0<<  3)
-> @@ -275,6 +277,12 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->   		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
->   		vnmc |= priv->pdata->flags&  RCAR_VIN_BT656 ?
->   			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
-> +		break;
-> +	case V4L2_MBUS_FMT_YUYV10_2X10:
-> +		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
-> +		vnmc |= priv->pdata->flags&  RCAR_VIN_BT656 ?
-> +			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
-> +		break;
->   	default:
->   		break;
->   	}
-> @@ -1003,6 +1011,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
->   	switch (code) {
->   	case V4L2_MBUS_FMT_YUYV8_1X16:
->   	case V4L2_MBUS_FMT_YUYV8_2X8:
-> +	case V4L2_MBUS_FMT_YUYV10_2X10:
->   		if (cam->extra_fmt)
->   			break;
->
-Regards,
-Vladimir
+I agree. In case anybody wants to use this for audio in the future,
+media already sounds more generic than video.
 
+> And last, it's fine to move the funcs as-is in the first place, but I
+> think they should be improved a bit before non-v4l2 users use them.
+
+The get_remote_port(_parent) are fine, I think.
+
+> There are a couple of things I tried to accomplish with the omapdss
+> specific versions in
+> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html:
+>
+> - Iterating ports and endpoints separately. If a node has multiple
+> ports, I would think that the driver needs to know which port and
+> endpoint combination is the current one during iteration. It's not
+> enough to just get the endpoint.
+
+Yes, I'd already have a use-case for that in enumerating the
+encoders/panels connected to a single display interface (port).
+
+On the other hand if you just want to enumerate components from the
+device tree, iterating over all endpoints of all ports is useful, too.
+
+> - Simplify cases when there's just one port and one endpoint, in which
+> case the port node can be omitted from the DT data.
+
+Also, I'd like to drop the prev reference in get_next_endpoint, then a
+for_each_endpoint macro could be made from that.
+
+regards
+Philipp
 
