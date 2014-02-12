@@ -1,42 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f41.google.com ([209.85.213.41]:39109 "EHLO
-	mail-yh0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751939AbaBMUcP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 15:32:15 -0500
-Received: by mail-yh0-f41.google.com with SMTP id f73so10839821yha.0
-        for <linux-media@vger.kernel.org>; Thu, 13 Feb 2014 12:32:15 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20140213195224.GA10691@amd.pavel.ucw.cz>
-References: <20140213195224.GA10691@amd.pavel.ucw.cz>
-Date: Thu, 13 Feb 2014 15:32:14 -0500
-Message-ID: <CALzAhNVC1KRuhMks_2YUSF1e8iVEfsyvKZmphyXMqpJ+0d228Q@mail.gmail.com>
-Subject: Re: Video capture in FPGA -- simple hardware to emulate?
-From: Steven Toth <stoth@kernellabs.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Linux-Media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:60675 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752729AbaBLR7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 12:59:54 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH FOR 3.14] em28xx-dvb: fix PCTV 461e tuner I2C binding
+Date: Wed, 12 Feb 2014 19:59:37 +0200
+Message-Id: <1392227977-24528-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 13, 2014 at 2:52 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
->
-> I'm working on project that will need doing video capture from
-> FPGA. That means I can define interface between kernel and hardware.
->
-> Is there suitable, simple hardware we should emulate in the FPGA? I
-> took a look, and pxa_camera seems to be one of the simple ones...
+Add missing m88ts2022 module reference counts as removing that module
+is not allowed when it is used by em28xx-dvb module. That same module
+was not unregistered correctly, fix it too.
 
-Thats actually a pretty open-ended question. You might get better
-advice if you describe your hardware platform in a little more detail.
+Error cases validated by returning errors from m88ds3103, m88ts2022
+and a8293 probe().
 
-Are you using a USB or PCIe controller to talk to the fpga, or does
-the fpga contain embedded IP cores for USB or PCIe?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
 
-- Steve
-
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index a0a669e..defac24 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1374,6 +1374,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		{
+ 			/* demod I2C adapter */
+ 			struct i2c_adapter *i2c_adapter;
++			struct i2c_client *client;
+ 			struct i2c_board_info info;
+ 			struct m88ts2022_config m88ts2022_config = {
+ 				.clock = 27000000,
+@@ -1396,7 +1397,19 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			info.addr = 0x60;
+ 			info.platform_data = &m88ts2022_config;
+ 			request_module("m88ts2022");
+-			dvb->i2c_client_tuner = i2c_new_device(i2c_adapter, &info);
++			client = i2c_new_device(i2c_adapter, &info);
++			if (client == NULL || client->dev.driver == NULL) {
++				dvb_frontend_detach(dvb->fe[0]);
++				result = -ENODEV;
++				goto out_free;
++			}
++
++			if (!try_module_get(client->dev.driver->owner)) {
++				i2c_unregister_device(client);
++				dvb_frontend_detach(dvb->fe[0]);
++				result = -ENODEV;
++				goto out_free;
++			}
+ 
+ 			/* delegate signal strength measurement to tuner */
+ 			dvb->fe[0]->ops.read_signal_strength =
+@@ -1406,10 +1419,14 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			if (!dvb_attach(a8293_attach, dvb->fe[0],
+ 					&dev->i2c_adap[dev->def_i2c_bus],
+ 					&em28xx_a8293_config)) {
++				module_put(client->dev.driver->owner);
++				i2c_unregister_device(client);
+ 				dvb_frontend_detach(dvb->fe[0]);
+ 				result = -ENODEV;
+ 				goto out_free;
+ 			}
++
++			dvb->i2c_client_tuner = client;
+ 		}
+ 		break;
+ 	default:
+@@ -1471,6 +1488,7 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 
+ 	if (dev->dvb) {
+ 		struct em28xx_dvb *dvb = dev->dvb;
++		struct i2c_client *client = dvb->i2c_client_tuner;
+ 
+ 		em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
+ 
+@@ -1483,7 +1501,12 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 				prevent_sleep(&dvb->fe[1]->ops);
+ 		}
+ 
+-		i2c_release_client(dvb->i2c_client_tuner);
++		/* remove I2C tuner */
++		if (client) {
++			module_put(client->dev.driver->owner);
++			i2c_unregister_device(client);
++		}
++
+ 		em28xx_unregister_dvb(dvb);
+ 		kfree(dvb);
+ 		dev->dvb = NULL;
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.8.5.3
+
