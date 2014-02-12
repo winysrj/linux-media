@@ -1,82 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41430 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755276AbaBRMp4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 07:45:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Tony Lindgren <tony@atomide.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH 1/5] ARM: omap2: cm-t35: Add regulators and clock for camera sensor
-Date: Tue, 18 Feb 2014 13:47:04 +0100
-Message-ID: <9621770.WFqvfViqR7@avalon>
-In-Reply-To: <1392069284-18024-2-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1392069284-18024-1-git-send-email-laurent.pinchart@ideasonboard.com> <1392069284-18024-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:57196 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753640AbaBLTms (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 14:42:48 -0500
+Message-ID: <52FBCEB6.8010007@iki.fi>
+Date: Wed, 12 Feb 2014 21:42:46 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: LMML <linux-media@vger.kernel.org>
+CC: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [GIT PULL] tda10071 changes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro, Tony,
+The following changes since commit 37e59f876bc710d67a30b660826a5e83e07101ce:
 
-On Monday 10 February 2014 22:54:40 Laurent Pinchart wrote:
-> The camera sensor will soon require regulators and clocks. Register
-> fixed regulators for its VAA and VDD power supplies and a fixed rate
-> clock for its master clock.
+   [media, edac] Change my email address (2014-02-07 08:03:07 -0200)
 
-This patch is a prerequisite for a set of 4 patches that need to go through 
-the linux-media tree. It would simpler if it could go through the same tree as 
-well. Given that arch/arm/mach-omap2/board-cm-t35.c has seen very little 
-activity recently I believe the risk of conflict is pretty low. Tony, would 
-that be fine with you ?
+are available in the git repository at:
 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  arch/arm/mach-omap2/board-cm-t35.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/board-cm-t35.c
-> b/arch/arm/mach-omap2/board-cm-t35.c index 8dd0ec8..018353d 100644
-> --- a/arch/arm/mach-omap2/board-cm-t35.c
-> +++ b/arch/arm/mach-omap2/board-cm-t35.c
-> @@ -16,6 +16,8 @@
->   *
->   */
-> 
-> +#include <linux/clk-provider.h>
-> +#include <linux/clkdev.h>
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/platform_device.h>
-> @@ -542,8 +544,22 @@ static struct isp_platform_data cm_t35_isp_pdata = {
->  	.subdevs = cm_t35_isp_subdevs,
->  };
-> 
-> +static struct regulator_consumer_supply cm_t35_camera_supplies[] = {
-> +	REGULATOR_SUPPLY("vaa", "3-005d"),
-> +	REGULATOR_SUPPLY("vdd", "3-005d"),
-> +};
-> +
->  static void __init cm_t35_init_camera(void)
->  {
-> +	struct clk *clk;
-> +
-> +	clk = clk_register_fixed_rate(NULL, "mt9t001-clkin", NULL, CLK_IS_ROOT,
-> +				      48000000);
-> +	clk_register_clkdev(clk, NULL, "3-005d");
-> +
-> +	regulator_register_fixed(2, cm_t35_camera_supplies,
-> +				 ARRAY_SIZE(cm_t35_camera_supplies));
-> +
->  	if (omap3_init_camera(&cm_t35_isp_pdata) < 0)
->  		pr_warn("CM-T3x: Failed registering camera device!\n");
->  }
+   git://linuxtv.org/anttip/media_tree.git tda10071
+
+for you to fetch changes up to a47dd5674fda7c48d693cd785f48f92fcc20b8c9:
+
+   tda10071: coding style issues (2014-02-12 20:17:33 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (2):
+       tda10071: do not check tuner PLL lock on read_status()
+       tda10071: coding style issues
+
+Dan Carpenter (1):
+       tda10071: remove a duplicative test
+
+  drivers/media/dvb-frontends/tda10071.c | 68 
+++++++++++++++++++++++++++++++++++++--------------------------------
+  drivers/media/dvb-frontends/tda10071.h |  2 +-
+  2 files changed, 37 insertions(+), 33 deletions(-)
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
