@@ -1,147 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58645 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013AbaBGT02 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 14:26:28 -0500
-Date: Fri, 7 Feb 2014 11:27:38 -0800
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Colin Cross <ccross@android.com>
-Cc: Rob Clark <robdclark@gmail.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	David Airlie <airlied@linux.ie>,
-	Inki Dae <inki.dae@samsung.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	"open list:DMA BUFFER SHARIN..." <linux-media@vger.kernel.org>,
-	"open list:DMA BUFFER SHARIN..." <dri-devel@lists.freedesktop.org>,
-	"open list:DMA BUFFER SHARIN..." <linaro-mm-sig@lists.linaro.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-arm-kernel@lists.infradead.org>,
-	"moderated list:ARM/S5P EXYNOS AR..."
-	<linux-samsung-soc@vger.kernel.org>
-Subject: Re: [PATCH] dma-buf: avoid using IS_ERR_OR_NULL
-Message-ID: <20140207192738.GA18771@kroah.com>
-References: <1387586630-1954-1-git-send-email-ccross@android.com>
- <CAF6AEGuQSWOw6KWVo-uorJ+8M3-kLzYHdOOfdHWUDi=SkzUUVA@mail.gmail.com>
- <20140207164313.GA32655@kroah.com>
- <CAMbhsRQXUZH_n13X78HEvXuF58T-ubAXnEXXPa7Za9L-KEduMQ@mail.gmail.com>
+Received: from gateway16.websitewelcome.com ([69.56.239.11]:41668 "EHLO
+	gateway16.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753750AbaBLUwM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 15:52:12 -0500
+Received: from gator3086.hostgator.com (ns6171.hostgator.com [50.87.144.121])
+	by gateway16.websitewelcome.com (Postfix) with ESMTP id 19FC7668B7EEB
+	for <linux-media@vger.kernel.org>; Wed, 12 Feb 2014 14:18:02 -0600 (CST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMbhsRQXUZH_n13X78HEvXuF58T-ubAXnEXXPa7Za9L-KEduMQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Wed, 12 Feb 2014 14:18:01 -0600
+From: Dean Anderson <linux-dev@sensoray.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] s2255drv: upgrade to videobuf2
+In-Reply-To: <52FB9CE3.9010409@xs4all.nl>
+References: <1392159384-30088-1-git-send-email-linux-dev@sensoray.com>
+ <cd5a631056e9d46cea6f70e6231c0c33@sensoray.com> <52FAAD23.2010606@xs4all.nl>
+ <3b3175b374d23eafaf8ea226e9312d68@sensoray.com> <52FB9CE3.9010409@xs4all.nl>
+Message-ID: <a30029d59915dde68c4cea161b062c38@sensoray.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 07, 2014 at 09:22:37AM -0800, Colin Cross wrote:
-> On Fri, Feb 7, 2014 at 8:43 AM, Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org> wrote:
-> > On Sat, Dec 21, 2013 at 07:42:17AM -0500, Rob Clark wrote:
-> >> On Fri, Dec 20, 2013 at 7:43 PM, Colin Cross <ccross@android.com> wrote:
-> >> > dma_buf_map_attachment and dma_buf_vmap can return NULL or
-> >> > ERR_PTR on a error.  This encourages a common buggy pattern in
-> >> > callers:
-> >> >         sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-> >> >         if (IS_ERR_OR_NULL(sgt))
-> >> >                 return PTR_ERR(sgt);
-> >> >
-> >> > This causes the caller to return 0 on an error.  IS_ERR_OR_NULL
-> >> > is almost always a sign of poorly-defined error handling.
-> >> >
-> >> > This patch converts dma_buf_map_attachment to always return
-> >> > ERR_PTR, and fixes the callers that incorrectly handled NULL.
-> >> > There are a few more callers that were not checking for NULL
-> >> > at all, which would have dereferenced a NULL pointer later.
-> >> > There are also a few more callers that correctly handled NULL
-> >> > and ERR_PTR differently, I left those alone but they could also
-> >> > be modified to delete the NULL check.
-> >> >
-> >> > This patch also converts dma_buf_vmap to always return NULL.
-> >> > All the callers to dma_buf_vmap only check for NULL, and would
-> >> > have dereferenced an ERR_PTR and panic'd if one was ever
-> >> > returned. This is not consistent with the rest of the dma buf
-> >> > APIs, but matches the expectations of all of the callers.
-> >> >
-> >> > Signed-off-by: Colin Cross <ccross@android.com>
-> >> > ---
-> >> >  drivers/base/dma-buf.c                         | 18 +++++++++++-------
-> >> >  drivers/gpu/drm/drm_prime.c                    |  2 +-
-> >> >  drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |  2 +-
-> >> >  drivers/media/v4l2-core/videobuf2-dma-contig.c |  2 +-
-> >> >  4 files changed, 14 insertions(+), 10 deletions(-)
-> >> >
-> >> > diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> >> > index 1e16cbd61da2..cfe1d8bc7bb8 100644
-> >> > --- a/drivers/base/dma-buf.c
-> >> > +++ b/drivers/base/dma-buf.c
-> >> > @@ -251,9 +251,8 @@ EXPORT_SYMBOL_GPL(dma_buf_put);
-> >> >   * @dmabuf:    [in]    buffer to attach device to.
-> >> >   * @dev:       [in]    device to be attached.
-> >> >   *
-> >> > - * Returns struct dma_buf_attachment * for this attachment; may return negative
-> >> > - * error codes.
-> >> > - *
-> >> > + * Returns struct dma_buf_attachment * for this attachment; returns ERR_PTR on
-> >> > + * error.
-> >> >   */
-> >> >  struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-> >> >                                           struct device *dev)
-> >> > @@ -319,9 +318,8 @@ EXPORT_SYMBOL_GPL(dma_buf_detach);
-> >> >   * @attach:    [in]    attachment whose scatterlist is to be returned
-> >> >   * @direction: [in]    direction of DMA transfer
-> >> >   *
-> >> > - * Returns sg_table containing the scatterlist to be returned; may return NULL
-> >> > - * or ERR_PTR.
-> >> > - *
-> >> > + * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
-> >> > + * on error.
-> >> >   */
-> >> >  struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
-> >> >                                         enum dma_data_direction direction)
-> >> > @@ -334,6 +332,8 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
-> >> >                 return ERR_PTR(-EINVAL);
-> >> >
-> >> >         sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
-> >> > +       if (!sg_table)
-> >> > +               sg_table = ERR_PTR(-ENOMEM);
-> >> >
-> >> >         return sg_table;
-> >> >  }
-> >> > @@ -544,6 +544,8 @@ EXPORT_SYMBOL_GPL(dma_buf_mmap);
-> >> >   * These calls are optional in drivers. The intended use for them
-> >> >   * is for mapping objects linear in kernel space for high use objects.
-> >> >   * Please attempt to use kmap/kunmap before thinking about these interfaces.
-> >> > + *
-> >> > + * Returns NULL on error.
-> >> >   */
-> >> >  void *dma_buf_vmap(struct dma_buf *dmabuf)
-> >> >  {
-> >> > @@ -566,7 +568,9 @@ void *dma_buf_vmap(struct dma_buf *dmabuf)
-> >> >         BUG_ON(dmabuf->vmap_ptr);
-> >> >
-> >> >         ptr = dmabuf->ops->vmap(dmabuf);
-> >> > -       if (IS_ERR_OR_NULL(ptr))
-> >> > +       if (WARN_ON_ONCE(IS_ERR(ptr)))
-> >>
-> >> since vmap is optional, the WARN_ON might be a bit strong..  although
-> >> it would be a bit strange for an exporter to supply a vmap fxn which
-> >> always returned NULL, not sure about that.  Just thought I'd mention
-> >> it in case anyone else had an opinion about that.
-> >
-> > Yeah, I don't like this, it could cause unnecessary reports of problems.
+Updated:  Only error is readbuffers now.  I'll fix it and submit a v2 
+patch with 0 errors.
+
+FYI, the fix for the readbuffers v4l2-compliance fail will be setting 
+v4l2_streamparm.capture.readbuffers to the minimum buffer value.
+
+Thanks,
+
+
+On 2014-02-12 10:10, Hans Verkuil wrote:
+> On 02/12/14 17:01, Dean Anderson wrote:
+>> "./utils/v4l2-compliance/v4l2-compliance -s"
+>> 
+>> Driver Info:
+>>     Driver name   : s2255
+>>     Card type     : s2255
+>>     Bus info      : usb-0000:00:1a.7-3.6
+>>     Driver version: 3.13.0
+>>     Capabilities  : 0x84000001
+>>         Video Capture
+>>         Streaming
+>>         Device Capabilities
+>>     Device Caps   : 0x04000001
+>>         Video Capture
+>>         Streaming
+>> 
+>> Compliance test for device /dev/video0 (not using libv4l2):
+>> 
+>> Required ioctls:
+>>     test VIDIOC_QUERYCAP: OK
+>> 
+>> Allow for multiple opens:
+>>     test second video open: OK
+>>     test VIDIOC_QUERYCAP: OK
+>>     test VIDIOC_G/S_PRIORITY: OK
+>> 
+>> Debug ioctls:
+>>     test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>>     test VIDIOC_LOG_STATUS: OK
+>> 
+>> Input ioctls:
+>>     test VIDIOC_G/S_TUNER: OK (Not Supported)
+>>     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>     test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>>     test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>>     test VIDIOC_G/S/ENUMINPUT: OK
+>>     test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>>     Inputs: 1 Audio Inputs: 0 Tuners: 0
+>> 
+>> Output ioctls:
+>>     test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>>     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>     test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>>     test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>>     test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>>     Outputs: 0 Audio Outputs: 0 Modulators: 0
+>> 
+>> Control ioctls:
+>>     test VIDIOC_QUERYCTRL/MENU: OK
+>>     test VIDIOC_G/S_CTRL: OK
+>>     test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>>     test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>>         warn: v4l2-test-controls.cpp(753): The VIDIOC_G_JPEGCOMP 
+>> ioctl is deprecated!
+>>         warn: v4l2-test-controls.cpp(770): The VIDIOC_S_JPEGCOMP 
+>> ioctl is deprecated!
+>>     test VIDIOC_G/S_JPEGCOMP: OK
+>>     Standard Controls: 7 Private Controls: 1
+>> 
+>> Input/Output configuration ioctls:
+>>     test VIDIOC_ENUM/G/S/QUERY_STD: OK
+>>     test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>>     test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>> 
+>> Format ioctls:
+>>     test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>>     test VIDIOC_G/S_PARM: OK
+>>     test VIDIOC_G_FBUF: OK (Not Supported)
+>>     test VIDIOC_G_FMT: OK
+>>         warn: v4l2-test-formats.cpp(599): TRY_FMT cannot handle an 
+>> invalid pixelformat.
+>>         warn: v4l2-test-formats.cpp(600): This may or may not be a 
+>> problem. For more information see:
+>>         warn: v4l2-test-formats.cpp(601): 
+>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>>     test VIDIOC_TRY_FMT: OK
+>>         warn: v4l2-test-formats.cpp(786): S_FMT cannot handle an 
+>> invalid pixelformat.
+>>         warn: v4l2-test-formats.cpp(787): This may or may not be a 
+>> problem. For more information see:
+>>         warn: v4l2-test-formats.cpp(788): 
+>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>>     test VIDIOC_S_FMT: OK
+>>     test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>> 
+>> Codec ioctls:
+>>     test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>     test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>     test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>> 
+>> Buffer ioctls:
+>>         warn: v4l2-test-buffers.cpp(343): VIDIOC_CREATE_BUFS not 
+>> supported
+>>     test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>         fail: v4l2-test-buffers.cpp(379): ret < 0 && errno != EINVAL
 > 
-> The WARN_ON_ONCE is only if the vmap op returns ERR_PTR, not if it
-> returns NULL.  This is designed to catch vmap ops that don't follow
-> the spec, so I would call them necessary reports, but I can take it
-> out if you still disagree.
-
-Ah, ok, that makes more sense.  I'll queue this up.
-
-thanks,
-
-greg k-h
+> You added read() support, but did not add V4L2_CAP_READWRITE to 
+> querycap.
+> 
+> The following errors are a knock-on effect of that since the driver
+> is still in read() mode so attempts to call REQBUFS will fail.
+> 
+> I should see if I can improve that in v4l2-compliance.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>     test read/write: FAIL
+>>         fail: v4l2-test-buffers.cpp(537): can_stream
+>>     test MMAP: FAIL
+>>         fail: v4l2-test-buffers.cpp(641): can_stream
+>>     test USERPTR: FAIL
+>> 
+>> Total: 39, Succeeded: 36, Failed: 3, Warnings: 9
