@@ -1,95 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51457 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933205AbaBAOYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Feb 2014 09:24:48 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 11/17] DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
-Date: Sat,  1 Feb 2014 16:24:28 +0200
-Message-Id: <1391264674-4395-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1391264674-4395-1-git-send-email-crope@iki.fi>
-References: <1391264674-4395-1-git-send-email-crope@iki.fi>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:37608 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751933AbaBLNfY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 08:35:24 -0500
+Date: Wed, 12 Feb 2014 22:35:15 +0900
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [PATCH v2] [media] of: move graph helpers from
+ drivers/media/v4l2-core to drivers/media
+Message-id: <20140212223515.71a445f4.m.chehab@samsung.com>
+In-reply-to: <1392196314.5536.15.camel@pizza.hi.pengutronix.de>
+References: <1392154905-12007-1-git-send-email-p.zabel@pengutronix.de>
+ <20140212065306.36a03e82.m.chehab@samsung.com>
+ <1392196314.5536.15.camel@pizza.hi.pengutronix.de>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document V4L2_SDR_FMT_CU8 SDR format.
-It is complex unsigned 8-bit IQ sample. Used by software defined
-radio devices.
+Em Wed, 12 Feb 2014 10:11:54 +0100
+Philipp Zabel <p.zabel@pengutronix.de> escreveu:
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/pixfmt-sdr-cu08.xml          | 44 ++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +
- 2 files changed, 46 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+> Hi Mauro,
+> 
+> Am Mittwoch, den 12.02.2014, 06:53 +0900 schrieb Mauro Carvalho Chehab:
+> [...]
+> > > diff --git a/include/media/of_graph.h b/include/media/of_graph.h
+> > > new file mode 100644
+> > > index 0000000..3bbeb60
+> > > --- /dev/null
+> > > +++ b/include/media/of_graph.h
+> > > @@ -0,0 +1,46 @@
+> > > +/*
+> > > + * OF graph binding parsing helpers
+> > > + *
+> > > + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+> > > + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > > + *
+> > > + * Copyright (C) 2012 Renesas Electronics Corp.
+> > > + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > + *
+> > > + * This program is free software; you can redistribute it and/or modify
+> > > + * it under the terms of version 2 of the GNU General Public License as
+> > > + * published by the Free Software Foundation.
+> > > + */
+> > > +#ifndef __LINUX_OF_GRAPH_H
+> > > +#define __LINUX_OF_GRAPH_H
+> > > +
+> > > +#ifdef CONFIG_OF
+> > 
+> > As a matter of consistency, it would be better to test here for
+> > CONFIG_OF_GRAPH instead, to reflect the same symbol that enables such
+> > functions as used on Kconfig/Makefile.
+> 
+> Maybe I'm trying to be too clever for my own good, but my reasoning was
+> as follows:
+> 
+> Suppose I newly use the of_graph_ helpers in a subsystem that does not
+> yet select OF_GRAPH. In that case I'd rather get linking errors earlier
+> rather than stubbed out functions that silently fail to parse the DT
+> later.
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
-new file mode 100644
-index 0000000..2d80104
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
-@@ -0,0 +1,44 @@
-+<refentry id="V4L2-SDR-FMT-CU08">
-+  <refmeta>
-+    <refentrytitle>V4L2_SDR_FMT_CU8 ('CU08')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+    <refnamediv>
-+      <refname>
-+        <constant>V4L2_SDR_FMT_CU8</constant>
-+      </refname>
-+      <refpurpose>Complex unsigned 8-bit IQ sample</refpurpose>
-+    </refnamediv>
-+    <refsect1>
-+      <title>Description</title>
-+      <para>
-+This format contains sequence of complex number samples. Each complex number
-+consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
-+represented as a 8 bit unsigned number. I value comes first and Q value after
-+that.
-+      </para>
-+    <example>
-+      <title><constant>V4L2_SDR_FMT_CU8</constant> 1 sample</title>
-+      <formalpara>
-+        <title>Byte Order.</title>
-+        <para>Each cell is one byte.
-+          <informaltable frame="none">
-+            <tgroup cols="2" align="center">
-+              <colspec align="left" colwidth="2*" />
-+              <tbody valign="top">
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;0:</entry>
-+                  <entry>I'<subscript>0</subscript></entry>
-+                </row>
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;1:</entry>
-+                  <entry>Q'<subscript>0</subscript></entry>
-+                </row>
-+              </tbody>
-+            </tgroup>
-+          </informaltable>
-+        </para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index f586d34..40adcb8 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -817,6 +817,8 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
-     <para>These formats are used for <link linkend="sdr">SDR Capture</link>
- interface only.</para>
- 
-+    &sub-sdr-cu08;
-+
-   </section>
- 
-   <section id="pixfmt-reserved">
--- 
-1.8.5.3
+I see your point, but, imagining that someone pushed a patch using those
+symbols upstream, that would break compilation and git bisection, with 
+will hurt everyone, and not only the very few of us that would actually
+need the OF_GRAPH symbol for an specific driver.
 
+Also, such push would mean that someone forgot to do his homework and
+to test if the committed functionality is actually working.
+
+So, it seems more fair that the one that did the mistake will be the one
+that will suffer the consequences for his errors instead of applying a
+penalty to everybody's else ;)
+
+> Since there is
+> config VIDEO_DEV
+> 	select OF_GRAPH if OF
+> already and the same should be added for other users of device tree
+> graphs, I think stubbing out the functions only if OF is disabled should
+> be enough.
+
+Well, if you want to be sure that the graph will always be there if OF, then
+you could do, instead:
+
+config OF_GRAPH
+	bool
+	default OF
+
+(that would actually make OF_GRAPH just an alias to OF - so we could just
+use OF instead).
+
+In any case, I think that we should use the same config name at Makefile, 
+Kconfig and of_graph.h (either OF_GRAPH or just OF).
+
+Regards,
+Mauro
