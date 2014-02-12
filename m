@@ -1,50 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38122 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751744AbaBJQVf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:21:35 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
+Received: from cpsmtpb-ews06.kpnxchange.com ([213.75.39.9]:65521 "EHLO
+	cpsmtpb-ews06.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750932AbaBLKIv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 05:08:51 -0500
+Message-ID: <1392199729.23759.20.camel@x220>
+Subject: [PATCH] [media] s5p-fimc: Remove reference to outdated macro
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Rob Landley <rob@landley.net>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [REVIEW PATCH 6/6] DocBook: media: document PLL lock control
-Date: Mon, 10 Feb 2014 18:21:19 +0200
-Message-Id: <1392049279-13495-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1392049279-13495-1-git-send-email-crope@iki.fi>
-References: <1392049279-13495-1-git-send-email-crope@iki.fi>
+Cc: Richard Weinberger <richard@nod.at>, linux-media@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Wed, 12 Feb 2014 11:08:49 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document PLL lock V4L2 control. It is read only RF tuner control
-which is used to inform if tuner is receiving frequency or not.
+The Kconfig symbol S5P_SETUP_MIPIPHY was removed in v3.13. Remove a
+reference to its macro from a list of Kconfig options.
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 ---
- Documentation/DocBook/media/v4l/controls.xml | 9 +++++++++
- 1 file changed, 9 insertions(+)
+See commit e66f233dc7f7 ("ARM: Samsung: Remove the MIPI PHY setup
+code"). Should one or more options be added to replace
+S5P_SETUP_MIPIPHY? I couldn't say. It's safe to remove this one anyway.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 345b6e5..e6d4b50 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -5077,6 +5077,15 @@ intermediate frequency output or baseband output. Used when
- <constant>V4L2_CID_IF_GAIN_AUTO</constant> is not set. The range and step are
- driver-specific.</entry>
-             </row>
-+            <row>
-+              <entry spanname="id"><constant>V4L2_CID_PLL_LOCK</constant>&nbsp;</entry>
-+              <entry>boolean</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">Is synthesizer PLL locked? RF tuner is
-+receiving given frequency when that control is set. This is a read-only control.
-+</entry>
-+            </row>
-           </tbody>
-         </tgroup>
-       </table>
+ Documentation/video4linux/fimc.txt | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/video4linux/fimc.txt b/Documentation/video4linux/fimc.txt
+index e51f1b5..7d6e160 100644
+--- a/Documentation/video4linux/fimc.txt
++++ b/Documentation/video4linux/fimc.txt
+@@ -151,9 +151,8 @@ CONFIG_S5P_DEV_FIMC1  \
+ CONFIG_S5P_DEV_FIMC2  |    optional
+ CONFIG_S5P_DEV_FIMC3  |
+ CONFIG_S5P_SETUP_FIMC /
+-CONFIG_S5P_SETUP_MIPIPHY \
+-CONFIG_S5P_DEV_CSIS0     | optional for MIPI-CSI interface
+-CONFIG_S5P_DEV_CSIS1     /
++CONFIG_S5P_DEV_CSIS0  \    optional for MIPI-CSI interface
++CONFIG_S5P_DEV_CSIS1  /
+ 
+ Except that, relevant s5p_device_fimc? should be registered in the machine code
+ in addition to a "s5p-fimc-md" platform device to which the media device driver
 -- 
 1.8.5.3
 
