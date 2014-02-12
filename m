@@ -1,53 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from webmail.veltechuniv.edu.in ([202.71.145.3]:57988 "EHLO
-	server.veltechuniv.edu.in" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751065AbaBNOul (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 09:50:41 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:34892 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752784AbaBLSIq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 13:08:46 -0500
+Received: from [82.128.187.60] (helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1WDeEm-0006f9-Ta
+	for linux-media@vger.kernel.org; Wed, 12 Feb 2014 20:08:44 +0200
+Message-ID: <52FBB8AC.9010600@iki.fi>
+Date: Wed, 12 Feb 2014 20:08:44 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Date: Fri, 14 Feb 2014 18:06:49 +0530
-From: "Dr.William Davies" <purchase@veltechuniv.edu.in>
-To: undisclosed-recipients:;
-Subject: Re: Instructions to release your payment.
-Reply-To: williamdavies54@yahoo.co.uk
-Message-ID: <05850bfa675129882bc42edd957194c7@127.0.0.1>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset=UTF-8
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL 3.14] em28xx-dvb m88ts2022 tuner binding fix
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Attention
+The following changes since commit 37e59f876bc710d67a30b660826a5e83e07101ce:
 
-Sir,
+   [media, edac] Change my email address (2014-02-07 08:03:07 -0200)
 
-Following an application brought, seeking the release of your due payment
-through British bank, I am directed to inform you that the application has
-been approved and Natwest bank of London has been mandated to make transfer
-of your payment to the bank account you will nominate. Please kindly reply
-for immediate release of your US$6.2 Million to you nominates account.
+are available in the git repository at:
 
-Sir, for the avoidance of doubts, reconfirm the following information to
-me to enable us forward same to Natwest bank to contact you for your
-payment.
+   git://linuxtv.org/anttip/media_tree.git pctv_461e_fix
 
-Name:
+for you to fetch changes up to 6d56b487e83787e7c532ba8f45de8f71a93aab76:
 
-Address:
+   em28xx-dvb: fix PCTV 461e tuner I2C binding (2014-02-12 20:05:05 +0200)
 
-Tel/Fax No.:
+----------------------------------------------------------------
+Antti Palosaari (1):
+       em28xx-dvb: fix PCTV 461e tuner I2C binding
 
-Nationality:
+  drivers/media/usb/em28xx/em28xx-dvb.c | 27 +++++++++++++++++++++++++--
+  1 file changed, 25 insertions(+), 2 deletions(-)
 
-Occupation:
 
-Date of birth: 
-
-As soon as I received the above information, I will forward them to
-Natwest bank to contact you for your approved payment. Please see in the
-attachment, letter I wrote to Natwest bank informing them of the
-transaction
-
-Yours faithfully
-
-Dr.William Davies
-Chairman,British Banking Regulatory Board.
+-- 
+http://palosaari.fi/
