@@ -1,52 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34051 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752690AbaBJQMu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:12:50 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [REVIEW PATCH 1/8] xc2028: silence compiler warnings
-Date: Mon, 10 Feb 2014 18:12:26 +0200
-Message-Id: <1392048753-13292-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1392048753-13292-1-git-send-email-crope@iki.fi>
-References: <1392048753-13292-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1838 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752407AbaBLQNu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 11:13:50 -0500
+Message-ID: <52FB9CE3.9010409@xs4all.nl>
+Date: Wed, 12 Feb 2014 17:10:11 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
+To: Dean Anderson <linux-dev@sensoray.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] s2255drv: upgrade to videobuf2
+References: <1392159384-30088-1-git-send-email-linux-dev@sensoray.com> <cd5a631056e9d46cea6f70e6231c0c33@sensoray.com> <52FAAD23.2010606@xs4all.nl> <3b3175b374d23eafaf8ea226e9312d68@sensoray.com>
+In-Reply-To: <3b3175b374d23eafaf8ea226e9312d68@sensoray.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is now new tuner types which are not handled on that switch-case.
-Print error if unknown tuner type is meet.
+On 02/12/14 17:01, Dean Anderson wrote:
+> "./utils/v4l2-compliance/v4l2-compliance -s"
+> 
+> Driver Info:
+>     Driver name   : s2255
+>     Card type     : s2255
+>     Bus info      : usb-0000:00:1a.7-3.6
+>     Driver version: 3.13.0
+>     Capabilities  : 0x84000001
+>         Video Capture
+>         Streaming
+>         Device Capabilities
+>     Device Caps   : 0x04000001
+>         Video Capture
+>         Streaming
+> 
+> Compliance test for device /dev/video0 (not using libv4l2):
+> 
+> Required ioctls:
+>     test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>     test second video open: OK
+>     test VIDIOC_QUERYCAP: OK
+>     test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+>     test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>     test VIDIOC_LOG_STATUS: OK
+> 
+> Input ioctls:
+>     test VIDIOC_G/S_TUNER: OK (Not Supported)
+>     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>     test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>     test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>     test VIDIOC_G/S/ENUMINPUT: OK
+>     test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>     Inputs: 1 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>     test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>     test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>     test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>     test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>     test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>     Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Control ioctls:
+>     test VIDIOC_QUERYCTRL/MENU: OK
+>     test VIDIOC_G/S_CTRL: OK
+>     test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>     test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>         warn: v4l2-test-controls.cpp(753): The VIDIOC_G_JPEGCOMP ioctl is deprecated!
+>         warn: v4l2-test-controls.cpp(770): The VIDIOC_S_JPEGCOMP ioctl is deprecated!
+>     test VIDIOC_G/S_JPEGCOMP: OK
+>     Standard Controls: 7 Private Controls: 1
+> 
+> Input/Output configuration ioctls:
+>     test VIDIOC_ENUM/G/S/QUERY_STD: OK
+>     test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>     test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+> 
+> Format ioctls:
+>     test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>     test VIDIOC_G/S_PARM: OK
+>     test VIDIOC_G_FBUF: OK (Not Supported)
+>     test VIDIOC_G_FMT: OK
+>         warn: v4l2-test-formats.cpp(599): TRY_FMT cannot handle an invalid pixelformat.
+>         warn: v4l2-test-formats.cpp(600): This may or may not be a problem. For more information see:
+>         warn: v4l2-test-formats.cpp(601): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>     test VIDIOC_TRY_FMT: OK
+>         warn: v4l2-test-formats.cpp(786): S_FMT cannot handle an invalid pixelformat.
+>         warn: v4l2-test-formats.cpp(787): This may or may not be a problem. For more information see:
+>         warn: v4l2-test-formats.cpp(788): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>     test VIDIOC_S_FMT: OK
+>     test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> 
+> Codec ioctls:
+>     test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>     test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>     test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+> Buffer ioctls:
+>         warn: v4l2-test-buffers.cpp(343): VIDIOC_CREATE_BUFS not supported
+>     test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>         fail: v4l2-test-buffers.cpp(379): ret < 0 && errno != EINVAL
 
-drivers/media/tuners/tuner-xc2028.c: In function ‘generic_set_freq’:
-drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_ADC’ not handled in switch [-Wswitch]
-  switch (new_type) {
-  ^
-drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_RF’ not handled in switch [-Wswitch]
+You added read() support, but did not add V4L2_CAP_READWRITE to querycap.
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/tuner-xc2028.c | 3 +++
- 1 file changed, 3 insertions(+)
+The following errors are a knock-on effect of that since the driver
+is still in read() mode so attempts to call REQBUFS will fail.
 
-diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-index cca508d..76a8165 100644
---- a/drivers/media/tuners/tuner-xc2028.c
-+++ b/drivers/media/tuners/tuner-xc2028.c
-@@ -1107,6 +1107,9 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
- 				offset += 200000;
- 		}
- #endif
-+	default:
-+		tuner_err("Unsupported tuner type %d.\n", new_type);
-+		break;
- 	}
- 
- 	div = (freq - offset + DIV / 2) / DIV;
--- 
-1.8.5.3
+I should see if I can improve that in v4l2-compliance.
+
+Regards,
+
+	Hans
+
+>     test read/write: FAIL
+>         fail: v4l2-test-buffers.cpp(537): can_stream
+>     test MMAP: FAIL
+>         fail: v4l2-test-buffers.cpp(641): can_stream
+>     test USERPTR: FAIL
+> 
+> Total: 39, Succeeded: 36, Failed: 3, Warnings: 9
 
