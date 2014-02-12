@@ -1,57 +1,560 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35492 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850AbaBCLEn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Feb 2014 06:04:43 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1302 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751065AbaBLLkL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 06:40:11 -0500
+Message-ID: <52FB5CBB.1040400@xs4all.nl>
+Date: Wed, 12 Feb 2014 12:36:27 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] uvcvideo: Check format and frame size in VIDIOC_CREATE_BUFS
-Date: Mon,  3 Feb 2014 12:04:37 +0100
-Message-Id: <1391425477-3889-1-git-send-email-p.zabel@pengutronix.de>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 08/34] v4l2-ctrls: create type_ops.
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl> <1392022019-5519-9-git-send-email-hverkuil@xs4all.nl> <CAPybu_29Gbp0czd5tY91pewQDrGseYke6FusZQOnLWyDV+AF6g@mail.gmail.com>
+In-Reply-To: <CAPybu_29Gbp0czd5tY91pewQDrGseYke6FusZQOnLWyDV+AF6g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Verify that create_bufs requests buffers with the currently selected
-format and frame size, return an error otherwise.
+On 02/12/14 11:55, Ricardo Ribalda Delgado wrote:
+> Hello Hans
+> 
+> If we have a matrix control with a huge number of elements (ie, the
+> number of pixels), a control validation will imply over ahuge number
+> of function calls.
+> 
+> In the case of the matrix you are always validating/init all the
+> values of of the array. Why dont we modify the type_ops so they
+> operate on the whole matrix (remove the idx from the function).
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/usb/uvc/uvc_v4l2.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+I actually considered that, but rejected it (for now) because I want
+to see a realistic use-case first. If you get such large matrices, then
+you have to ask yourself whether the control framework is the right
+approach anyway, and if it is, whether you want to do these validations
+in the first place.
 
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 2cea127..fae61a2 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -1003,10 +1003,24 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_CREATE_BUFS:
- 	{
- 		struct v4l2_create_buffers *cb = arg;
-+		struct v4l2_pix_format *pix;
-+		struct uvc_format *format;
-+		struct uvc_frame *frame;
- 
- 		if (!uvc_has_privileges(handle))
- 			return -EBUSY;
- 
-+		format = stream->cur_format;
-+		frame = stream->cur_frame;
-+		pix = &cb->format.fmt.pix;
-+
-+		if (pix->pixelformat != format->fcc ||
-+		    pix->width != frame->wWidth ||
-+		    pix->height != frame->wHeight ||
-+		    pix->bytesperline != format->bpp * frame->wWidth / 8 ||
-+		    pix->sizeimage != stream->ctrl.dwMaxVideoFrameSize)
-+			return -EINVAL;
-+
- 		return uvc_create_buffers(&stream->queue, cb);
- 	}
- 
--- 
-1.8.5.3
+Also note that validations typically will still have to be done on a
+per-element basis (so pushing down the loop over all elements into the
+validation function will have little effect) and ditto for the more
+complex comparisons. Only if you are able to do something like memcmp
+to compare two matrices will it become beneficial to optimize this.
+
+I see this as a possible future performance enhancement and before doing
+that I need to see a good use-case and also see some performence measurements.
+
+> Anyway we should modify
+> 
+> for (idx = 0; idx < ctrl->rows * ctrl->cols; idx++)
+>                ctrl_changed |= !ctrl->type_ops->equal(ctrl, idx,
+> ctrl->stores[0], ctrl->new);
+> 
+> to
+> 
+> for (idx = 0; idx < ctrl->rows * ctrl->cols; idx++)
+>                if (!ctrl->type_ops->equal(ctrl, idx, ctrl->stores[0],
+> ctrl->new))
+>                                 break
+> 
+> if (idx==ctrl->rows * ctrl->col)
+>  ctrol_changed=true;
+> 
+> Saving us some calls when we already know that the control has changed.
+
+Oops! Absolutely, thanks for pointing this out.  That's a left-over from
+older code.
+
+I'll post a patch for this.
+
+Regards,
+
+	Hans
+
+> 
+> 
+> Thanks!
+> 
+> 
+> ps: consider all my code pseudocode :P
+> 
+> 
+> On Mon, Feb 10, 2014 at 9:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Since complex controls can have non-standard types we need to be able to do
+>> type-specific checks etc. In order to make that easy type operations are added.
+>> There are four operations:
+>>
+>> - equal: check if two values are equal
+>> - init: initialize a value
+>> - log: log the value
+>> - validate: validate a new value
+>>
+>> This patch uses the v4l2_ctrl_ptr union for the first time.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-ctrls.c | 267 ++++++++++++++++++++++-------------
+>>  include/media/v4l2-ctrls.h           |  21 +++
+>>  2 files changed, 190 insertions(+), 98 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index 67e5d1e..988a2bd8 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -1132,6 +1132,149 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+>>                         v4l2_event_queue_fh(sev->fh, &ev);
+>>  }
+>>
+>> +static bool std_equal(const struct v4l2_ctrl *ctrl,
+>> +                     union v4l2_ctrl_ptr ptr1,
+>> +                     union v4l2_ctrl_ptr ptr2)
+>> +{
+>> +       switch (ctrl->type) {
+>> +       case V4L2_CTRL_TYPE_BUTTON:
+>> +               return false;
+>> +       case V4L2_CTRL_TYPE_STRING:
+>> +               /* strings are always 0-terminated */
+>> +               return !strcmp(ptr1.p_char, ptr2.p_char);
+>> +       case V4L2_CTRL_TYPE_INTEGER64:
+>> +               return *ptr1.p_s64 == *ptr2.p_s64;
+>> +       default:
+>> +               if (ctrl->is_ptr)
+>> +                       return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
+>> +               return *ptr1.p_s32 == *ptr2.p_s32;
+>> +       }
+>> +}
+>> +
+>> +static void std_init(const struct v4l2_ctrl *ctrl,
+>> +                    union v4l2_ctrl_ptr ptr)
+>> +{
+>> +       switch (ctrl->type) {
+>> +       case V4L2_CTRL_TYPE_STRING:
+>> +               memset(ptr.p_char, ' ', ctrl->minimum);
+>> +               ptr.p_char[ctrl->minimum] = '\0';
+>> +               break;
+>> +       case V4L2_CTRL_TYPE_INTEGER64:
+>> +               *ptr.p_s64 = ctrl->default_value;
+>> +               break;
+>> +       case V4L2_CTRL_TYPE_INTEGER:
+>> +       case V4L2_CTRL_TYPE_INTEGER_MENU:
+>> +       case V4L2_CTRL_TYPE_MENU:
+>> +       case V4L2_CTRL_TYPE_BITMASK:
+>> +       case V4L2_CTRL_TYPE_BOOLEAN:
+>> +               *ptr.p_s32 = ctrl->default_value;
+>> +               break;
+>> +       default:
+>> +               break;
+>> +       }
+>> +}
+>> +
+>> +static void std_log(const struct v4l2_ctrl *ctrl)
+>> +{
+>> +       union v4l2_ctrl_ptr ptr = ctrl->stores[0];
+>> +
+>> +       switch (ctrl->type) {
+>> +       case V4L2_CTRL_TYPE_INTEGER:
+>> +               pr_cont("%d", *ptr.p_s32);
+>> +               break;
+>> +       case V4L2_CTRL_TYPE_BOOLEAN:
+>> +               pr_cont("%s", *ptr.p_s32 ? "true" : "false");
+>> +               break;
+>> +       case V4L2_CTRL_TYPE_MENU:
+>> +               pr_cont("%s", ctrl->qmenu[*ptr.p_s32]);
+>> +               break;
+>> +       case V4L2_CTRL_TYPE_INTEGER_MENU:
+>> +               pr_cont("%lld", ctrl->qmenu_int[*ptr.p_s32]);
+>> +               break;
+>> +       case V4L2_CTRL_TYPE_BITMASK:
+>> +               pr_cont("0x%08x", *ptr.p_s32);
+>> +               break;
+>> +       case V4L2_CTRL_TYPE_INTEGER64:
+>> +               pr_cont("%lld", *ptr.p_s64);
+>> +               break;
+>> +       case V4L2_CTRL_TYPE_STRING:
+>> +               pr_cont("%s", ptr.p_char);
+>> +               break;
+>> +       default:
+>> +               pr_cont("unknown type %d", ctrl->type);
+>> +               break;
+>> +       }
+>> +}
+>> +
+>> +/* Round towards the closest legal value */
+>> +#define ROUND_TO_RANGE(val, offset_type, ctrl)                 \
+>> +({                                                             \
+>> +       offset_type offset;                                     \
+>> +       val += (ctrl)->step / 2;                                \
+>> +       val = clamp_t(typeof(val), val,                         \
+>> +                     (ctrl)->minimum, (ctrl)->maximum);        \
+>> +       offset = (val) - (ctrl)->minimum;                       \
+>> +       offset = (ctrl)->step * (offset / (ctrl)->step);        \
+>> +       val = (ctrl)->minimum + offset;                         \
+>> +       0;                                                      \
+>> +})
+>> +
+>> +/* Validate a new control */
+>> +static int std_validate(const struct v4l2_ctrl *ctrl,
+>> +                       union v4l2_ctrl_ptr ptr)
+>> +{
+>> +       size_t len;
+>> +
+>> +       switch (ctrl->type) {
+>> +       case V4L2_CTRL_TYPE_INTEGER:
+>> +               return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
+>> +       case V4L2_CTRL_TYPE_INTEGER64:
+>> +               return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
+>> +
+>> +       case V4L2_CTRL_TYPE_BOOLEAN:
+>> +               *ptr.p_s32 = !!*ptr.p_s32;
+>> +               return 0;
+>> +
+>> +       case V4L2_CTRL_TYPE_MENU:
+>> +       case V4L2_CTRL_TYPE_INTEGER_MENU:
+>> +               if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
+>> +                       return -ERANGE;
+>> +               if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
+>> +                       return -EINVAL;
+>> +               if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+>> +                   ctrl->qmenu[*ptr.p_s32][0] == '\0')
+>> +                       return -EINVAL;
+>> +               return 0;
+>> +
+>> +       case V4L2_CTRL_TYPE_BITMASK:
+>> +               *ptr.p_s32 &= ctrl->maximum;
+>> +               return 0;
+>> +
+>> +       case V4L2_CTRL_TYPE_BUTTON:
+>> +       case V4L2_CTRL_TYPE_CTRL_CLASS:
+>> +               *ptr.p_s32 = 0;
+>> +               return 0;
+>> +
+>> +       case V4L2_CTRL_TYPE_STRING:
+>> +               len = strlen(ptr.p_char);
+>> +               if (len < ctrl->minimum)
+>> +                       return -ERANGE;
+>> +               if ((len - ctrl->minimum) % ctrl->step)
+>> +                       return -ERANGE;
+>> +               return 0;
+>> +
+>> +       default:
+>> +               return -EINVAL;
+>> +       }
+>> +}
+>> +
+>> +static const struct v4l2_ctrl_type_ops std_type_ops = {
+>> +       .equal = std_equal,
+>> +       .init = std_init,
+>> +       .log = std_log,
+>> +       .validate = std_validate,
+>> +};
+>> +
+>>  /* Helper function: copy the current control value back to the caller */
+>>  static int cur_to_user(struct v4l2_ext_control *c,
+>>                        struct v4l2_ctrl *ctrl)
+>> @@ -1315,21 +1458,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
+>>
+>>                 if (ctrl == NULL)
+>>                         continue;
+>> -               switch (ctrl->type) {
+>> -               case V4L2_CTRL_TYPE_BUTTON:
+>> -                       /* Button controls are always 'different' */
+>> -                       return 1;
+>> -               case V4L2_CTRL_TYPE_STRING:
+>> -                       /* strings are always 0-terminated */
+>> -                       diff = strcmp(ctrl->string, ctrl->cur.string);
+>> -                       break;
+>> -               case V4L2_CTRL_TYPE_INTEGER64:
+>> -                       diff = ctrl->val64 != ctrl->cur.val64;
+>> -                       break;
+>> -               default:
+>> -                       diff = ctrl->val != ctrl->cur.val;
+>> -                       break;
+>> -               }
+>> +               diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
+>>         }
+>>         return diff;
+>>  }
+>> @@ -1370,65 +1499,30 @@ static int check_range(enum v4l2_ctrl_type type,
+>>         }
+>>  }
+>>
+>> -/* Round towards the closest legal value */
+>> -#define ROUND_TO_RANGE(val, offset_type, ctrl)                 \
+>> -({                                                             \
+>> -       offset_type offset;                                     \
+>> -       val += (ctrl)->step / 2;                                \
+>> -       val = clamp_t(typeof(val), val,                         \
+>> -                     (ctrl)->minimum, (ctrl)->maximum);        \
+>> -       offset = (val) - (ctrl)->minimum;                       \
+>> -       offset = (ctrl)->step * (offset / (ctrl)->step);        \
+>> -       val = (ctrl)->minimum + offset;                         \
+>> -       0;                                                      \
+>> -})
+>> -
+>>  /* Validate a new control */
+>>  static int validate_new(const struct v4l2_ctrl *ctrl,
+>>                         struct v4l2_ext_control *c)
+>>  {
+>> -       size_t len;
+>> +       union v4l2_ctrl_ptr ptr;
+>>
+>>         switch (ctrl->type) {
+>>         case V4L2_CTRL_TYPE_INTEGER:
+>> -               return ROUND_TO_RANGE(*(s32 *)&c->value, u32, ctrl);
+>> -       case V4L2_CTRL_TYPE_INTEGER64:
+>> -               return ROUND_TO_RANGE(*(s64 *)&c->value64, u64, ctrl);
+>> -
+>> -       case V4L2_CTRL_TYPE_BOOLEAN:
+>> -               c->value = !!c->value;
+>> -               return 0;
+>> -
+>> -       case V4L2_CTRL_TYPE_MENU:
+>>         case V4L2_CTRL_TYPE_INTEGER_MENU:
+>> -               if (c->value < ctrl->minimum || c->value > ctrl->maximum)
+>> -                       return -ERANGE;
+>> -               if (ctrl->menu_skip_mask & (1 << c->value))
+>> -                       return -EINVAL;
+>> -               if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+>> -                   ctrl->qmenu[c->value][0] == '\0')
+>> -                       return -EINVAL;
+>> -               return 0;
+>> -
+>> +       case V4L2_CTRL_TYPE_MENU:
+>>         case V4L2_CTRL_TYPE_BITMASK:
+>> -               c->value &= ctrl->maximum;
+>> -               return 0;
+>> -
+>> +       case V4L2_CTRL_TYPE_BOOLEAN:
+>>         case V4L2_CTRL_TYPE_BUTTON:
+>>         case V4L2_CTRL_TYPE_CTRL_CLASS:
+>> -               c->value = 0;
+>> -               return 0;
+>> +               ptr.p_s32 = &c->value;
+>> +               return ctrl->type_ops->validate(ctrl, ptr);
+>>
+>> -       case V4L2_CTRL_TYPE_STRING:
+>> -               len = strlen(c->string);
+>> -               if (len < ctrl->minimum)
+>> -                       return -ERANGE;
+>> -               if ((len - ctrl->minimum) % ctrl->step)
+>> -                       return -ERANGE;
+>> -               return 0;
+>> +       case V4L2_CTRL_TYPE_INTEGER64:
+>> +               ptr.p_s64 = &c->value64;
+>> +               return ctrl->type_ops->validate(ctrl, ptr);
+>>
+>>         default:
+>> -               return -EINVAL;
+>> +               ptr.p = c->p;
+>> +               return ctrl->type_ops->validate(ctrl, ptr);
+>>         }
+>>  }
+>>
+>> @@ -1645,6 +1739,7 @@ unlock:
+>>  /* Add a new control */
+>>  static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+>>                         const struct v4l2_ctrl_ops *ops,
+>> +                       const struct v4l2_ctrl_type_ops *type_ops,
+>>                         u32 id, const char *name, const char *unit,
+>>                         enum v4l2_ctrl_type type,
+>>                         s64 min, s64 max, u64 step, s64 def,
+>> @@ -1656,6 +1751,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+>>         unsigned sz_extra;
+>>         void *data;
+>>         int err;
+>> +       int s;
+>>
+>>         if (hdl->error)
+>>                 return NULL;
+>> @@ -1715,6 +1811,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+>>         INIT_LIST_HEAD(&ctrl->ev_subs);
+>>         ctrl->handler = hdl;
+>>         ctrl->ops = ops;
+>> +       ctrl->type_ops = type_ops ? type_ops : &std_type_ops;
+>>         ctrl->id = id;
+>>         ctrl->name = name;
+>>         ctrl->unit = unit;
+>> @@ -1736,19 +1833,16 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+>>         ctrl->cur.val = ctrl->val = def;
+>>         data = &ctrl->stores[1];
+>>
+>> -       if (ctrl->is_string) {
+>> -               ctrl->string = ctrl->new.p_char = data;
+>> -               ctrl->stores[0].p_char = data + elem_size;
+>> -
+>> -               if (ctrl->minimum)
+>> -                       memset(ctrl->cur.string, ' ', ctrl->minimum);
+>> -       } else if (ctrl->is_ptr) {
+>> +       if (ctrl->is_ptr) {
+>>                 ctrl->p = ctrl->new.p = data;
+>>                 ctrl->stores[0].p = data + elem_size;
+>>         } else {
+>>                 ctrl->new.p = &ctrl->val;
+>>                 ctrl->stores[0].p = &ctrl->cur.val;
+>>         }
+>> +       for (s = -1; s <= 0; s++)
+>> +               ctrl->type_ops->init(ctrl, ctrl->stores[s]);
+>> +
+>>         if (handler_new_ref(hdl, ctrl)) {
+>>                 kfree(ctrl);
+>>                 return NULL;
+>> @@ -1793,7 +1887,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+>>                 return NULL;
+>>         }
+>>
+>> -       ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
+>> +       ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
+>>                         type, min, max,
+>>                         is_menu ? cfg->menu_skip_mask : step,
+>>                         def, cfg->elem_size,
+>> @@ -1821,7 +1915,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+>>                 handler_set_err(hdl, -EINVAL);
+>>                 return NULL;
+>>         }
+>> -       return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
+>> +       return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+>>                              min, max, step, def, 0,
+>>                              flags, NULL, NULL, NULL);
+>>  }
+>> @@ -1855,7 +1949,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+>>                 handler_set_err(hdl, -EINVAL);
+>>                 return NULL;
+>>         }
+>> -       return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
+>> +       return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+>>                              0, max, mask, def, 0,
+>>                              flags, qmenu, qmenu_int, NULL);
+>>  }
+>> @@ -1888,7 +1982,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+>>                 handler_set_err(hdl, -EINVAL);
+>>                 return NULL;
+>>         }
+>> -       return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
+>> +       return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+>> +                            0, max, mask, def,
+>>                              0, flags, qmenu, NULL, NULL);
+>>
+>>  }
+>> @@ -1913,7 +2008,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+>>                 handler_set_err(hdl, -EINVAL);
+>>                 return NULL;
+>>         }
+>> -       return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
+>> +       return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+>>                              0, max, 0, def, 0,
+>>                              flags, NULL, qmenu_int, NULL);
+>>  }
+>> @@ -2096,32 +2191,8 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
+>>
+>>         pr_info("%s%s%s: ", prefix, colon, ctrl->name);
+>>
+>> -       switch (ctrl->type) {
+>> -       case V4L2_CTRL_TYPE_INTEGER:
+>> -               pr_cont("%d", ctrl->cur.val);
+>> -               break;
+>> -       case V4L2_CTRL_TYPE_BOOLEAN:
+>> -               pr_cont("%s", ctrl->cur.val ? "true" : "false");
+>> -               break;
+>> -       case V4L2_CTRL_TYPE_MENU:
+>> -               pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
+>> -               break;
+>> -       case V4L2_CTRL_TYPE_INTEGER_MENU:
+>> -               pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
+>> -               break;
+>> -       case V4L2_CTRL_TYPE_BITMASK:
+>> -               pr_cont("0x%08x", ctrl->cur.val);
+>> -               break;
+>> -       case V4L2_CTRL_TYPE_INTEGER64:
+>> -               pr_cont("%lld", ctrl->cur.val64);
+>> -               break;
+>> -       case V4L2_CTRL_TYPE_STRING:
+>> -               pr_cont("%s", ctrl->cur.string);
+>> -               break;
+>> -       default:
+>> -               pr_cont("unknown type %d", ctrl->type);
+>> -               break;
+>> -       }
+>> +       ctrl->type_ops->log(ctrl);
+>> +
+>>         if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
+>>                            V4L2_CTRL_FLAG_GRABBED |
+>>                            V4L2_CTRL_FLAG_VOLATILE)) {
+>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+>> index 515c1ba..aaf7333 100644
+>> --- a/include/media/v4l2-ctrls.h
+>> +++ b/include/media/v4l2-ctrls.h
+>> @@ -67,6 +67,23 @@ struct v4l2_ctrl_ops {
+>>         int (*s_ctrl)(struct v4l2_ctrl *ctrl);
+>>  };
+>>
+>> +/** struct v4l2_ctrl_type_ops - The control type operations that the driver has to provide.
+>> +  * @equal: return true if both values are equal.
+>> +  * @init: initialize the value.
+>> +  * @log: log the value.
+>> +  * @validate: validate the value. Return 0 on success and a negative value otherwise.
+>> +  */
+>> +struct v4l2_ctrl_type_ops {
+>> +       bool (*equal)(const struct v4l2_ctrl *ctrl,
+>> +                     union v4l2_ctrl_ptr ptr1,
+>> +                     union v4l2_ctrl_ptr ptr2);
+>> +       void (*init)(const struct v4l2_ctrl *ctrl,
+>> +                    union v4l2_ctrl_ptr ptr);
+>> +       void (*log)(const struct v4l2_ctrl *ctrl);
+>> +       int (*validate)(const struct v4l2_ctrl *ctrl,
+>> +                       union v4l2_ctrl_ptr ptr);
+>> +};
+>> +
+>>  typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+>>
+>>  /** struct v4l2_ctrl - The control structure.
+>> @@ -102,6 +119,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+>>    *            value, then the whole cluster is in manual mode. Drivers should
+>>    *            never set this flag directly.
+>>    * @ops:      The control ops.
+>> +  * @type_ops: The control type ops.
+>>    * @id:       The control ID.
+>>    * @name:     The control name.
+>>    * @unit:     The control's unit. May be NULL.
+>> @@ -151,6 +169,7 @@ struct v4l2_ctrl {
+>>         unsigned int manual_mode_value:8;
+>>
+>>         const struct v4l2_ctrl_ops *ops;
+>> +       const struct v4l2_ctrl_type_ops *type_ops;
+>>         u32 id;
+>>         const char *name;
+>>         const char *unit;
+>> @@ -234,6 +253,7 @@ struct v4l2_ctrl_handler {
+>>
+>>  /** struct v4l2_ctrl_config - Control configuration structure.
+>>    * @ops:      The control ops.
+>> +  * @type_ops: The control type ops. Only needed for complex controls.
+>>    * @id:       The control ID.
+>>    * @name:     The control name.
+>>    * @unit:     The control's unit.
+>> @@ -259,6 +279,7 @@ struct v4l2_ctrl_handler {
+>>    */
+>>  struct v4l2_ctrl_config {
+>>         const struct v4l2_ctrl_ops *ops;
+>> +       const struct v4l2_ctrl_type_ops *type_ops;
+>>         u32 id;
+>>         const char *name;
+>>         const char *unit;
+>> --
+>> 1.8.5.2
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
 
