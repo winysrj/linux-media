@@ -1,44 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f47.google.com ([209.85.213.47]:36591 "EHLO
-	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694AbaBKTra (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 14:47:30 -0500
-Received: by mail-yh0-f47.google.com with SMTP id c41so7256424yho.20
-        for <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 11:47:30 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAGj5WxA5FOyXvZd5Lc9YuVqMt=NJDfFSstwqcOLFUmPB-t17zQ@mail.gmail.com>
-References: <CAGj5WxCajB0ORTQ_rz9wv+ec9bXE1A9tM_MGP3qb0eyaxhC5ew@mail.gmail.com>
-	<CAHFNz9KzKdC0xvq7nM6yF0DGQ3pCq7tUr0et-cvf6Wk5Htarxg@mail.gmail.com>
-	<CALzAhNW=uCLsu4sdrGyycxRoOdaRTFNM8yVj=Y+ahSZrWqrABg@mail.gmail.com>
-	<CAHFNz9+Z9oBwezNURpOhoCn3Rk-HWHdZSh7CK7SopkPPv7Z6Qg@mail.gmail.com>
-	<CALzAhNXs0dH-HoF792PQL_XqnO5OYzRmG2a3f8gt5CmB9JO0aQ@mail.gmail.com>
-	<CAHFNz9KyEm=2GreevUzrdwWun8V3vzrgHE9yU389i59aKt=-uw@mail.gmail.com>
-	<CAGj5WxA5FOyXvZd5Lc9YuVqMt=NJDfFSstwqcOLFUmPB-t17zQ@mail.gmail.com>
-Date: Wed, 12 Feb 2014 01:17:29 +0530
-Message-ID: <CAHFNz9KkAhGA+X1cxztCeujc=02vo4z5-vE1OBE_BUuKUZozNQ@mail.gmail.com>
-Subject: Re: Upstreaming SAA716x driver to the media_tree
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Luis Alves <ljalvs@gmail.com>
-Cc: Steven Toth <stoth@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Andreas Regel <andreas.regel@gmx.de>,
-	Chris Lee <updatelee@gmail.com>, crazycat69@narod.ru,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mga11.intel.com ([192.55.52.93]:7962 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750726AbaBLJCN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 04:02:13 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	Daniel Jeong <gshark.jeong@gmail.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 3/3] lm3560: prevent memory leak in case of pdata absence
+Date: Wed, 12 Feb 2014 11:02:07 +0200
+Message-Id: <1392195727-1494-3-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1392195727-1494-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1392195727-1494-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 11, 2014 at 7:14 PM, Luis Alves <ljalvs@gmail.com> wrote:
-> Hi,
->
-> Any update on this?
+If we have no pdata defined and driver fails to register we leak memory.
+Converting to devm_kzalloc prevents this to happen.
 
-I need to address the issues Mauro pointed out, prior to the merge.
-Will address the issues during the next week. Have been a bit busy
-restoring the system at my end after a crash.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/media/i2c/lm3560.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Regards,
+diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+index 93e5227..c23de59 100644
+--- a/drivers/media/i2c/lm3560.c
++++ b/drivers/media/i2c/lm3560.c
+@@ -416,8 +416,7 @@ static int lm3560_probe(struct i2c_client *client,
+ 
+ 	/* if there is no platform data, use chip default value */
+ 	if (pdata == NULL) {
+-		pdata =
+-		    kzalloc(sizeof(struct lm3560_platform_data), GFP_KERNEL);
++		pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+ 		if (pdata == NULL)
+ 			return -ENODEV;
+ 		pdata->peak = LM3560_PEAK_3600mA;
+-- 
+1.9.0.rc3
 
-Manu
