@@ -1,34 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:57996 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751572AbaBGRUp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 12:20:45 -0500
-Message-Id: <cover.1391792986.git.moinejf@free.fr>
-From: Jean-Francois Moine <moinejf@free.fr>
-Date: Fri, 7 Feb 2014 18:09:46 +0100
-Subject: [PATCH v3 0/2] *** SUBJECT HERE ***
-To: Russell King <rmk+kernel@arm.linux.org.uk>,
-	devel@driverdev.osuosl.org
-Cc: alsa-devel@alsa-project.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2345 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055AbaBMDfp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Feb 2014 22:35:45 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1D3Zgih049880
+	for <linux-media@vger.kernel.org>; Thu, 13 Feb 2014 04:35:44 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id D43372A00A8
+	for <linux-media@vger.kernel.org>; Thu, 13 Feb 2014 04:35:13 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140213033513.D43372A00A8@tschai.lan>
+Date: Thu, 13 Feb 2014 04:35:13 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-*** BLURB HERE ***
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Jean-Francois Moine (2):
-  drivers/base: permit base components to omit the bind/unbind ops
-  drivers/base: declare phandle DT nodes as components
+Results of the daily build of media_tree:
 
- drivers/base/component.c | 21 +++++++++++++++++++--
- drivers/base/core.c      | 18 ++++++++++++++++++
- include/linux/of.h       |  2 ++
- 3 files changed, 39 insertions(+), 2 deletions(-)
+date:		Thu Feb 13 04:00:26 CET 2014
+git branch:	test
+git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
--- 
-1.9.rc1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
