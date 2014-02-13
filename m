@@ -1,152 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:50924 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753091AbaBXRhV (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1277 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753696AbaBMJlU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Feb 2014 12:37:21 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v5 09/10] ARM: dts: Add rear camera nodes for Exynos4412 TRATS2
- board
-Date: Mon, 24 Feb 2014 18:35:21 +0100
-Message-id: <1393263322-28215-10-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1393263322-28215-1-git-send-email-s.nawrocki@samsung.com>
-References: <1393263322-28215-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 13 Feb 2014 04:41:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 04/10] vb2: call buf_finish from __dqbuf
+Date: Thu, 13 Feb 2014 10:40:44 +0100
+Message-Id: <1392284450-41019-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enables the rear facing camera (s5c73m3) on TRATS2 board
-by adding the I2C0 bus controller, s5c73m3 sensor, MIPI CSI-2 receiver
-and the sensor's voltage regulator supply nodes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
-Changes since v4:
-  - removed changes related to s5k6a3 sensor.
----
- arch/arm/boot/dts/exynos4412-trats2.dts |   81 +++++++++++++++++++++++++++++--
- 1 file changed, 78 insertions(+), 3 deletions(-)
+This ensures that it is also called from queue_cancel, which also calls
+__dqbuf(). Without this change any time queue_cancel is called while
+streaming the buf_finish op will not be called and any driver cleanup
+will not happen.
 
-diff --git a/arch/arm/boot/dts/exynos4412-trats2.dts b/arch/arm/boot/dts/exynos4412-trats2.dts
-index 4f851cc..0c6afbe 100644
---- a/arch/arm/boot/dts/exynos4412-trats2.dts
-+++ b/arch/arm/boot/dts/exynos4412-trats2.dts
-@@ -71,7 +71,33 @@
- 			enable-active-high;
- 		};
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1f037de..3756378 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1762,6 +1762,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+ 		return;
  
--		/* More to come */
-+		cam_af_reg: voltage-regulator-2 {
-+			compatible = "regulator-fixed";
-+			regulator-name = "CAM_AF";
-+			regulator-min-microvolt = <2800000>;
-+			regulator-max-microvolt = <2800000>;
-+			gpio = <&gpm0 4 0>;
-+			enable-active-high;
-+		};
++	call_vb_qop(vb, buf_finish, vb);
 +
-+		cam_isp_core_reg: voltage-regulator-3 {
-+			compatible = "regulator-fixed";
-+			regulator-name = "CAM_ISP_CORE_1.2V_EN";
-+			regulator-min-microvolt = <1200000>;
-+			regulator-max-microvolt = <1200000>;
-+			gpio = <&gpm0 3 0>;
-+			enable-active-high;
-+			regulator-always-on;
-+		};
-+
-+		lcd_vdd3_reg: voltage-regulator-4 {
-+			compatible = "regulator-fixed";
-+			regulator-name = "LCD_VDD_2.2V";
-+			regulator-min-microvolt = <2200000>;
-+			regulator-max-microvolt = <2200000>;
-+			gpio = <&gpc0 1 0>;
-+			enable-active-high;
-+		};
- 	};
+ 	vb->state = VB2_BUF_STATE_DEQUEUED;
  
- 	gpio-keys {
-@@ -106,6 +132,38 @@
- 		};
- 	};
+ 	/* unmap DMABUF buffer */
+@@ -1787,8 +1789,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	if (ret < 0)
+ 		return ret;
  
-+	i2c_0: i2c@13860000 {
-+		samsung,i2c-sda-delay = <100>;
-+		samsung,i2c-slave-addr = <0x10>;
-+		samsung,i2c-max-bus-freq = <400000>;
-+		pinctrl-0 = <&i2c0_bus>;
-+		pinctrl-names = "default";
-+		status = "okay";
-+
-+		s5c73m3@3c {
-+			compatible = "samsung,s5c73m3";
-+			reg = <0x3c>;
-+			standby-gpios = <&gpm0 1 1>;   /* ISP_STANDBY */
-+			xshutdown-gpios = <&gpf1 3 1>; /* ISP_RESET */
-+			vdd-int-supply = <&buck9_reg>;
-+			vddio-cis-supply = <&ldo9_reg>;
-+			vdda-supply = <&ldo17_reg>;
-+			vddio-host-supply = <&ldo18_reg>;
-+			vdd-af-supply = <&cam_af_reg>;
-+			vdd-reg-supply = <&cam_io_reg>;
-+			clock-frequency = <24000000>;
-+			/* CAM_A_CLKOUT */
-+			clocks = <&camera 0>;
-+			clock-names = "cis_extclk";
-+			port {
-+				s5c73m3_ep: endpoint {
-+					remote-endpoint = <&csis0_ep>;
-+					data-lanes = <1 2 3 4>;
-+				};
-+			};
-+		};
-+	};
-+
- 	i2c@13890000 {
- 		samsung,i2c-sda-delay = <100>;
- 		samsung,i2c-slave-addr = <0x10>;
-@@ -511,8 +569,8 @@
- 		};
- 	};
- 
--	camera {
--		pinctrl-0 = <&cam_port_b_clk_active>;
-+	camera: camera {
-+		pinctrl-0 = <&cam_port_a_clk_active &cam_port_b_clk_active>;
- 		pinctrl-names = "default";
- 		status = "okay";
- 
-@@ -532,6 +590,23 @@
- 			status = "okay";
- 		};
- 
-+		csis_0: csis@11880000 {
-+			status = "okay";
-+			vddcore-supply = <&ldo8_reg>;
-+			vddio-supply = <&ldo10_reg>;
-+			clock-frequency = <176000000>;
-+
-+			/* Camera C (3) MIPI CSI-2 (CSIS0) */
-+			port@3 {
-+				reg = <3>;
-+				csis0_ep: endpoint {
-+					remote-endpoint = <&s5c73m3_ep>;
-+					data-lanes = <1 2 3 4>;
-+					samsung,csis-hs-settle = <12>;
-+				};
-+			};
-+		};
-+
- 		csis_1: csis@11890000 {
- 			vddcore-supply = <&ldo8_reg>;
- 			vddio-supply = <&ldo10_reg>;
+-	call_vb_qop(vb, buf_finish, vb);
+-
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DONE:
+ 		dprintk(3, "dqbuf: Returning done buffer\n");
 -- 
-1.7.9.5
+1.8.4.rc3
 
