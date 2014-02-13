@@ -1,114 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:64549 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754814AbaBKVAU (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2424 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753589AbaBMJlT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 16:00:20 -0500
-Date: Tue, 11 Feb 2014 22:00:04 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robherring2@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-In-Reply-To: <20140212024119.7fc96f30.m.chehab@samsung.com>
-Message-ID: <Pine.LNX.4.64.1402112158230.521@axis700.grange>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
- <CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
- <20140211145248.GI26684@n2100.arm.linux.org.uk> <8648675.AIXYyYlgXy@avalon>
- <1392136617.6943.33.camel@pizza.hi.pengutronix.de> <52FA5C5A.1090008@samsung.com>
- <20140212024119.7fc96f30.m.chehab@samsung.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Thu, 13 Feb 2014 04:41:19 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com
+Subject: [RFCv3 PATCH 00/10] vb2: fixes, balancing callbacks
+Date: Thu, 13 Feb 2014 10:40:40 +0100
+Message-Id: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 12 Feb 2014, Mauro Carvalho Chehab wrote:
+This patch series is v3 of the previous series:
 
-> Em Tue, 11 Feb 2014 18:22:34 +0100
-> Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
-> 
-> > (adding Guennadi to Cc)
-> > 
-> > On 11/02/14 17:36, Philipp Zabel wrote:
-> > > Am Dienstag, den 11.02.2014, 16:23 +0100 schrieb Laurent Pinchart:
-> > >> Hi Russell,
-> > >>
-> > >> On Tuesday 11 February 2014 14:52:48 Russell King - ARM Linux wrote:
-> > >>> On Tue, Feb 11, 2014 at 07:56:33AM -0600, Rob Herring wrote:
-> > >>>> On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel wrote:
-> > >>>>> This allows to reuse the same parser code from outside the V4L2
-> > >>>>> framework, most importantly from display drivers. There have been
-> > >>>>> patches that duplicate the code (and I am going to send one of my own),
-> > >>>>> such as
-> > >>>>> http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
-> > >>>>> and others that parse the same binding in a different way:
-> > >>>>> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
-> > >>>>>
-> > >>>>> I think that all common video interface parsing helpers should be moved
-> > >>>>> to a single place, outside of the specific subsystems, so that it can
-> > >>>>> be reused by all drivers.
-> > >>>>
-> > >>>> Perhaps that should be done rather than moving to drivers/of now and
-> > >>>> then again to somewhere else.
-> > >>>
-> > >>> Do you have a better suggestion where it should move to?
-> > >>>
-> > >>> drivers/gpu/drm - no, because v4l2 wants to use it
-> > >>> drivers/media/video - no, because DRM drivers want to use it
-> > >>> drivers/video - no, because v4l2 and drm drivers want to use it
-> > >>
-> > >> Just pointing out a missing location (which might be rejected due to similar 
-> > >> concerns), there's also drivers/media, which isn't V4L-specific.
-> > > 
-> > > Since drivers/Makefile has media/ in obj-y, moving the graph helpers to
-> > > drivers/media should technically work.
-> > > 
-> > >>> Maybe drivers/of-graph/ ?  Or maybe it's just as good a place to move it
-> > >>> into drivers/of ?
-> > > 
-> > > include/media/of_graph.h,
-> > > drivers/media/of_graph.c?
-> > 
-> > drivers/media sounds like a good alternative to me.
-> 
-> From my side, I'm ok with putting them at drivers/media. You may add my acked-by
-> for such change:
-> 
-> Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+http://www.spinics.net/lists/linux-media/msg72465.html
 
-Cannot see any problems with this
+The only difference is that the dropped buf_finish return code check
+in patch 4 was moved to patch 2, otherwise the compile would break after
+applying patch 2. Thanks to Pawel Osciak for pointing that out to me.
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+This patch series fixes a series of bugs in vb2. Recently I have been
+converting the saa7134 driver to vb2 and as part of that work I discovered
+that the op calls were not properly balanced, which caused saa7134 to
+fail.
 
-Thanks
-Guennadi
+Based on that I did more debugging and I found lots of different issues
+with vb2 when it comes to balancing ops. This patch series fixes them.
+Many thanks to Pawel Osciak for a good brainstorm session.
 
-> > I would just remove also v4l2_of_{parse/get}* and update the users
-> > to call of_graph_* directly, there should not be many of them.
-> > 
-> > --
-> > Thanks,
-> > Sylwester
-> 
-> -- 
-> 
-> Cheers,
-> Mauro
-> 
+Patch 1 adds debugging code to check for unbalanced calls. I used this
+when testing since without this it is very hard to verify correctness.
+It is currently turned on when CONFIG_VIDEO_ADV_DEBUG is set, but perhaps
+this should be placed under a vb2 specific debug option?
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The next patch changes the buf_finish return type to void. It must not
+fail, and you can't do anything useful if it does anyway.
+
+Note that I really would like to do the same for stop_streaming. The
+stop_streaming error is currently ignored, and there are some drivers
+that can actually return an error (waiting for an interruptible mutex
+for example). Opinions are welcome.
+
+Patch 3 just improves some comments.
+
+Patches 4 and 5 fix several unbalanced ops.
+
+Patch 6 fixes a regression (must go to 3.14!).
+
+Patch 7 just renames queue_count to owned_by_drv_count. The old name
+suggests the number of buffers in the queue_list, but that's not what
+it is. Since the next patch will actually add a real count for the
+number of buffers in the queue_list I decided to just rename this,
+thus freeing up the name 'queue_count'.
+
+Patch 8 fixes a bug in the handling of start_streaming: before that op
+is called any prequeued buffers are handed over to the driver. But if
+start_streaming returns an error, then those buffers are not reclaimed.
+Since start_streaming failed, q->streaming is 0, so stop_streaming isn't
+called either.
+
+There are two reasons for an error in start_streaming: either a real
+error when setting up the DMA engine occurred or there were not enough
+buffers queued for the DMA engine to start (start_streaming returns
+-ENOBUFS in that case). It makes sense to require that drivers return
+queued buffers back to vb2 in case of an error, but not if they also 
+have to do that in case of insufficient buffers. So this patch replaces
+the -ENOBUFS mechanism by a vb2_queue field that tells vb2 what the
+minimum number of buffers is.
+
+Now if start_streaming returns an error the vb2 core will check if there
+are still buffers owned by the driver and if so produce a warning and
+reclaim those buffers. The same is done when the vb2_queue is freed.
+
+This ensures that the prepare/finish memops are correctly called and
+the state of all the buffers is consistent.
+
+Patch 9 fixes vivi for this start_streaming issue. Note that there are
+many drivers that do not clean up properly in case of an error during
+start_streaming.
+
+The final patch attempts to fix another issue: I noticed that in the few
+drivers that implement VIDIOC_CREATE_BUFS the v4l2_format is just used as-is,
+i.e. no checks are done whether the contents of the struct makes sense or not.
+
+This patch adds a number of sanity check to see if the buffer size related
+values make sense.
+
+I have been testing these vb2 changes with vivi (vmalloc based), saa7134 and
+an out-of-tree PCI driver (dma-sg based), with the mmap/userptr and read/write
+streaming modes. I hope to test this also for a dma-contig based driver.
+I have no way of testing with dmabuf, though. Does anyone know of a simple
+way to obtain dmabufs from somewhere so they can be passed to a v4l driver?
+It would be great to add a --stream-dmabuf option for v4l2-ctl.
+
+I have to admit that I was a bit disappointed by all these vb2 issues...
+
+Regards,
+
+	Hans
+
+
