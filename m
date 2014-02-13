@@ -1,65 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2604 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751770AbaBJQM3 (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4130 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753792AbaBMJl0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:12:29 -0500
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1AGCPb7071331
-	for <linux-media@vger.kernel.org>; Mon, 10 Feb 2014 17:12:27 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3DBF42A00A8
-	for <linux-media@vger.kernel.org>; Mon, 10 Feb 2014 17:12:00 +0100 (CET)
-Message-ID: <52F8FA50.6080805@xs4all.nl>
-Date: Mon, 10 Feb 2014 17:12:00 +0100
+	Thu, 13 Feb 2014 04:41:26 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.14] vb2: fix PREPARE_BUF regression.
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 09/10] vivi: correctly cleanup after a start_streaming failure.
+Date: Thu, 13 Feb 2014 10:40:49 +0100
+Message-Id: <1392284450-41019-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix an incorrect test in vb2_internal_qbuf() where only DEQUEUED buffers
-are allowed. But PREPARED buffers are also OK.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Introduced by commit 4138111a27859dcc56a5592c804dd16bb12a23d1
-("vb2: simplify qbuf/prepare_buf by removing callback").
+If start_streaming fails then any queued buffers must be given back
+to the vb2 core.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/media/platform/vivi.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 5a5fb7f..d7a4f60 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1420,11 +1420,6 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		return ret;
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 2d4e73b..6085e2f 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -901,8 +901,19 @@ static void buffer_queue(struct vb2_buffer *vb)
+ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
++	int err;
++
+ 	dprintk(dev, 1, "%s\n", __func__);
+-	return vivi_start_generating(dev);
++	err = vivi_start_generating(dev);
++	if (err) {
++		struct vivi_buffer *buf, *tmp;
++
++		list_for_each_entry_safe(buf, tmp, &dev->vidq.active, list) {
++			list_del(&buf->list);
++			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
++		}
++	}
++	return err;
+ }
  
- 	vb = q->bufs[b->index];
--	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
--		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
--			vb->state);
--		return -EINVAL;
--	}
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
-@@ -1438,7 +1433,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		dprintk(1, "qbuf: buffer still being prepared\n");
- 		return -EINVAL;
- 	default:
--		dprintk(1, "qbuf: buffer already in use\n");
-+		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
-+			vb->state);
- 		return -EINVAL;
- 	}
- 
+ /* abort streaming and wait for last buffer */
 -- 
 1.8.4.rc3
 
