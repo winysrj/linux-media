@@ -1,90 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1785 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751074AbaBQJ6k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:58:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:33875 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751694AbaBMS6e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Feb 2014 13:58:34 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 04/35] videodev2.h: add initial support for complex controls.
-Date: Mon, 17 Feb 2014 10:57:19 +0100
-Message-Id: <1392631070-41868-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] af9033: implement PID filter
+Date: Thu, 13 Feb 2014 20:58:17 +0200
+Message-Id: <1392317898-22040-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Implement PID filter and export it via symbol.
 
-Complex controls are controls that can be used for compound and array
-types. This allows for more complex data structures to be used with the
-control framework.
-
-Such controls always have the V4L2_CTRL_FLAG_HIDDEN flag set. Note that
-'simple' controls can also set that flag.
-
-The existing V4L2_CTRL_FLAG_NEXT_CTRL flag will only enumerate controls
-that do not have the HIDDEN flag, so a new V4L2_CTRL_FLAG_NEXT_HIDDEN flag
-is added to enumerate hidden controls. Set both flags to enumerate any
-controls (hidden or not).
-
-Complex control types will start at V4L2_CTRL_COMPLEX_TYPES. In addition, any
-control that uses the new 'p' field or the existing 'string' field will have
-flag V4L2_CTRL_FLAG_IS_PTR set.
-
-While not strictly necessary, adding that flag makes life for applications
-a lot simpler. If the flag is not set, then the control value is set
-through the value or value64 fields of struct v4l2_ext_control, otherwise
-a pointer points to the value.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- include/uapi/linux/videodev2.h | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/af9033.c | 53 ++++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/af9033.h | 19 +++++++++++++
+ 2 files changed, 72 insertions(+)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 6ae7bbe..4d7782a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1228,6 +1228,7 @@ struct v4l2_ext_control {
- 		__s32 value;
- 		__s64 value64;
- 		char *string;
-+		void *p;
- 	};
- } __attribute__ ((packed));
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 65728c2..5a1c508 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -989,6 +989,59 @@ err:
+ 	return ret;
+ }
  
-@@ -1252,7 +1253,10 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
- 	V4L2_CTRL_TYPE_STRING        = 7,
- 	V4L2_CTRL_TYPE_BITMASK       = 8,
--	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
-+	V4L2_CTRL_TYPE_INTEGER_MENU  = 9,
++int af9033_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
++{
++	struct af9033_state *state = fe->demodulator_priv;
++	int ret;
 +
-+	/* Complex types are >= 0x0100 */
-+	V4L2_CTRL_COMPLEX_TYPES	     = 0x0100,
- };
++	dev_dbg(&state->i2c->dev, "%s: onoff=%d\n", __func__, onoff);
++
++	ret = af9033_wr_reg_mask(state, 0x80f993, onoff, 0x01);
++	if (ret < 0)
++		goto err;
++
++	return 0;
++
++err:
++	dev_dbg(&state->i2c->dev, "%s: failed=%d\n", __func__, ret);
++
++	return ret;
++}
++EXPORT_SYMBOL(af9033_pid_filter_ctrl);
++
++int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid, int onoff)
++{
++	struct af9033_state *state = fe->demodulator_priv;
++	int ret;
++	u8 wbuf[2] = {(pid >> 0) & 0xff, (pid >> 8) & 0xff};
++
++	dev_dbg(&state->i2c->dev, "%s: index=%d pid=%04x onoff=%d\n",
++			__func__, index, pid, onoff);
++
++	if (pid > 0x1fff)
++		return 0;
++
++	ret = af9033_wr_regs(state, 0x80f996, wbuf, 2);
++	if (ret < 0)
++		goto err;
++
++	ret = af9033_wr_reg(state, 0x80f994, onoff);
++	if (ret < 0)
++		goto err;
++
++	ret = af9033_wr_reg(state, 0x80f995, index);
++	if (ret < 0)
++		goto err;
++
++	return 0;
++
++err:
++	dev_dbg(&state->i2c->dev, "%s: failed=%d\n", __func__, ret);
++
++	return ret;
++}
++EXPORT_SYMBOL(af9033_pid_filter);
++
+ static struct dvb_frontend_ops af9033_ops;
  
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
-@@ -1288,9 +1292,12 @@ struct v4l2_querymenu {
- #define V4L2_CTRL_FLAG_SLIDER 		0x0020
- #define V4L2_CTRL_FLAG_WRITE_ONLY 	0x0040
- #define V4L2_CTRL_FLAG_VOLATILE		0x0080
-+#define V4L2_CTRL_FLAG_HIDDEN		0x0100
-+#define V4L2_CTRL_FLAG_IS_PTR		0x0200
+ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+diff --git a/drivers/media/dvb-frontends/af9033.h b/drivers/media/dvb-frontends/af9033.h
+index c286e8f..de245f9 100644
+--- a/drivers/media/dvb-frontends/af9033.h
++++ b/drivers/media/dvb-frontends/af9033.h
+@@ -81,6 +81,11 @@ struct af9033_config {
+ #if IS_ENABLED(CONFIG_DVB_AF9033)
+ extern struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+ 	struct i2c_adapter *i2c);
++
++extern int af9033_pid_filter_ctrl(struct dvb_frontend *fe, int onoff);
++
++extern int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid,
++	int onoff);
+ #else
+ static inline struct dvb_frontend *af9033_attach(
+ 	const struct af9033_config *config, struct i2c_adapter *i2c)
+@@ -88,6 +93,20 @@ static inline struct dvb_frontend *af9033_attach(
+ 	pr_warn("%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
++
++static inline int af9033_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
++{
++	pr_warn("%s: driver disabled by Kconfig\n", __func__);
++	return -ENODEV;
++}
++
++static inline int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid,
++	int onoff)
++{
++	pr_warn("%s: driver disabled by Kconfig\n", __func__);
++	return -ENODEV;
++}
++
+ #endif
  
--/*  Query flag, to be ORed with the control ID */
-+/*  Query flags, to be ORed with the control ID */
- #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
-+#define V4L2_CTRL_FLAG_NEXT_HIDDEN	0x40000000
- 
- /*  User-class control IDs defined by V4L2 */
- #define V4L2_CID_MAX_CTRLS		1024
+ #endif /* AF9033_H */
 -- 
-1.8.4.rc3
+1.8.5.3
 
