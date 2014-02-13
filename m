@@ -1,16 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3469 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754003AbaBMJla (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3858 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753910AbaBMJld (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 04:41:30 -0500
+	Thu, 13 Feb 2014 04:41:33 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 05/10] vb2: fix buf_init/buf_cleanup call sequences
-Date: Thu, 13 Feb 2014 10:40:45 +0100
-Message-Id: <1392284450-41019-6-git-send-email-hverkuil@xs4all.nl>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: [RFCv3 PATCH 06/10] vb2: fix read/write regression
+Date: Thu, 13 Feb 2014 10:40:46 +0100
+Message-Id: <1392284450-41019-7-git-send-email-hverkuil@xs4all.nl>
 In-Reply-To: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
 References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -18,217 +19,71 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ensure that these ops are properly balanced.
+Commit 88e268702bfba78448abd20a31129458707383aa ("vb2: Improve file I/O
+emulation to handle buffers in any order") broke read/write support if
+the size of the buffer being read/written is less than the size of the
+image.
 
-There two scenarios:
+When the commit was tested originally I used qv4l2, which call read()
+with exactly the size of the image. But if you try 'cat /dev/video0'
+then it will fail and typically hang after reading two buffers.
 
-1) for MMAP buf_init is called when the buffers are created and buf_cleanup
-   must be called when the queue is finally freed. This scenario was always
-   working.
-
-2) for USERPTR and DMABUF it is more complicated. When a buffer is queued
-   the code checks if all planes of this buffer have been acquired before.
-   If that's the case, then only buf_prepare has to be called. Otherwise
-   buf_clean needs to be called if the buffer was acquired before, then,
-   once all changed planes have been (re)acquired, buf_init has to be
-   called again followed by buf_prepare. Should buf_prepare fail, then
-   buf_cleanup must be called again because all planes will be released
-   in case of an error.
-
-Finally, in __vb2_queue_free we have to check if the buffer was actually
-acquired before calling buf_cleanup. While that it always true for MMAP
-mode, it is not necessarily true for the other modes. E.g. if you just
-call REQBUFS and close the filehandle, then buffers were ever queued and
-so no buf_init was ever called.
+This patch fixes the behavior by adding a new buf_index field that
+contains the index of the field currently being filled/read, or it
+is num_buffers in which case a new buffer needs to be dequeued.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Andy Walls <awalls@md.metrocast.net>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 100 +++++++++++++++++++++----------
- 1 file changed, 67 insertions(+), 33 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 3756378..7766bf5 100644
+index 7766bf5..a3b4b4c 100644
 --- a/drivers/media/v4l2-core/videobuf2-core.c
 +++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -373,8 +373,10 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 	/* Call driver-provided cleanup function for each buffer, if provided */
- 	for (buffer = q->num_buffers - buffers; buffer < q->num_buffers;
- 	     ++buffer) {
--		if (q->bufs[buffer])
--			call_vb_qop(q->bufs[buffer], buf_cleanup, q->bufs[buffer]);
-+		struct vb2_buffer *vb = q->bufs[buffer];
-+
-+		if (vb && vb->planes[0].mem_priv)
-+			call_vb_qop(vb, buf_cleanup, vb);
- 	}
- 
- 	/* Release video buffer memory */
-@@ -1161,6 +1163,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	unsigned int plane;
- 	int ret;
- 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	bool reacquired = vb->planes[0].mem_priv == NULL;
- 
- 	/* Copy relevant information provided by the userspace */
- 	__fill_vb2_buffer(vb, b, planes);
-@@ -1186,12 +1189,16 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+@@ -2418,6 +2418,7 @@ struct vb2_fileio_data {
+ 	struct v4l2_requestbuffers req;
+ 	struct v4l2_buffer b;
+ 	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
++	unsigned int buf_index;
+ 	unsigned int index;
+ 	unsigned int q_count;
+ 	unsigned int dq_count;
+@@ -2519,6 +2520,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 			fileio->bufs[i].queued = 1;
  		}
- 
- 		/* Release previously acquired memory if present */
--		if (vb->planes[plane].mem_priv)
-+		if (vb->planes[plane].mem_priv) {
-+			if (!reacquired) {
-+				reacquired = true;
-+				call_vb_qop(vb, buf_cleanup, vb);
-+			}
- 			call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
-+		}
- 
- 		vb->planes[plane].mem_priv = NULL;
--		vb->v4l2_planes[plane].m.userptr = 0;
--		vb->v4l2_planes[plane].length = 0;
-+		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_memop(vb, get_userptr, q->alloc_ctx[plane],
-@@ -1208,23 +1215,34 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		fileio->index = q->num_buffers;
++		fileio->buf_index = q->num_buffers;
  	}
  
  	/*
--	 * Call driver-specific initialization on the newly acquired buffer,
--	 * if provided.
--	 */
--	ret = call_vb_qop(vb, buf_init, vb);
--	if (ret) {
--		dprintk(1, "qbuf: buffer initialization failed\n");
--		fail_vb_qop(vb, buf_init);
--		goto err;
--	}
--
--	/*
- 	 * Now that everything is in order, copy relevant information
- 	 * provided by userspace.
+@@ -2597,7 +2599,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	/*
+ 	 * Check if we need to dequeue the buffer.
  	 */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
- 		vb->v4l2_planes[plane] = planes[plane];
+-	index = fileio->index;
++	index = fileio->buf_index;
+ 	if (index >= q->num_buffers) {
+ 		/*
+ 		 * Call vb2_dqbuf to get buffer back.
+@@ -2611,7 +2613,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 			return ret;
+ 		fileio->dq_count += 1;
  
-+	if (reacquired) {
-+		/*
-+		 * One or more planes changed, so we must call buf_init to do
-+		 * the driver-specific initialization on the newly acquired
-+		 * buffer, if provided.
-+		 */
-+		ret = call_vb_qop(vb, buf_init, vb);
-+		if (ret) {
-+			dprintk(1, "qbuf: buffer initialization failed\n");
-+			fail_vb_qop(vb, buf_init);
-+			goto err;
-+		}
-+	}
-+
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret) {
-+		dprintk(1, "qbuf: buffer preparation failed\n");
-+		fail_vb_qop(vb, buf_prepare);
-+		call_vb_qop(vb, buf_cleanup, vb);
-+		goto err;
-+	}
-+
- 	return 0;
- err:
- 	/* In case of errors, release planes that were already acquired */
-@@ -1244,8 +1262,13 @@ err:
-  */
- static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
-+	int ret;
-+
- 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
--	return 0;
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret)
-+		fail_vb_qop(vb, buf_prepare);
-+	return ret;
- }
+-		index = fileio->b.index;
++		fileio->buf_index = index = fileio->b.index;
+ 		buf = &fileio->bufs[index];
  
- /**
-@@ -1259,6 +1282,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	unsigned int plane;
- 	int ret;
- 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+	bool reacquired = vb->planes[0].mem_priv == NULL;
- 
- 	/* Copy relevant information provided by the userspace */
- 	__fill_vb2_buffer(vb, b, planes);
-@@ -1294,6 +1318,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 
- 		dprintk(1, "qbuf: buffer for plane %d changed\n", plane);
- 
-+		if (!reacquired) {
-+			reacquired = true;
-+			call_vb_qop(vb, buf_cleanup, vb);
-+		}
-+
- 		/* Release previously acquired memory if present */
- 		__vb2_plane_dmabuf_put(vb, &vb->planes[plane]);
- 		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
-@@ -1329,23 +1358,33 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		/*
+@@ -2689,6 +2691,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		fileio->q_count += 1;
+ 		if (fileio->index < q->num_buffers)
+ 			fileio->index++;
++		fileio->buf_index = fileio->index;
  	}
  
  	/*
--	 * Call driver-specific initialization on the newly acquired buffer,
--	 * if provided.
--	 */
--	ret = call_vb_qop(vb, buf_init, vb);
--	if (ret) {
--		dprintk(1, "qbuf: buffer initialization failed\n");
--		fail_vb_qop(vb, buf_init);
--		goto err;
--	}
--
--	/*
- 	 * Now that everything is in order, copy relevant information
- 	 * provided by userspace.
- 	 */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
- 		vb->v4l2_planes[plane] = planes[plane];
- 
-+	if (reacquired) {
-+		/*
-+		 * Call driver-specific initialization on the newly acquired buffer,
-+		 * if provided.
-+		 */
-+		ret = call_vb_qop(vb, buf_init, vb);
-+		if (ret) {
-+			dprintk(1, "qbuf: buffer initialization failed\n");
-+			fail_vb_qop(vb, buf_init);
-+			goto err;
-+		}
-+	}
-+
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret) {
-+		dprintk(1, "qbuf: buffer preparation failed\n");
-+		fail_vb_qop(vb, buf_prepare);
-+		call_vb_qop(vb, buf_cleanup, vb);
-+		goto err;
-+	}
-+
- 	return 0;
- err:
- 	/* In case of errors, release planes that were already acquired */
-@@ -1420,11 +1459,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = -EINVAL;
- 	}
- 
--	if (!ret) {
--		ret = call_vb_qop(vb, buf_prepare, vb);
--		if (ret)
--			fail_vb_qop(vb, buf_prepare);
--	}
- 	if (ret)
- 		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
- 	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
 -- 
 1.8.4.rc3
 
