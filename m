@@ -1,69 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3901 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752041AbaBNKlr (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3424 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753579AbaBMJla (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 05:41:47 -0500
+	Thu, 13 Feb 2014 04:41:30 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 08/11] vb2: q->num_buffers was updated too soon
-Date: Fri, 14 Feb 2014 11:41:09 +0100
-Message-Id: <1392374472-18393-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [RFCv3 PATCH 07/10] vb2: rename queued_count to owned_by_drv_count
+Date: Thu, 13 Feb 2014 10:40:47 +0100
+Message-Id: <1392284450-41019-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-In __reqbufs() and __create_bufs() the q->num_buffers field was updated
-with the number of newly allocated buffers, but right after that those are
-freed again if some error had occurred before. Move the line updating
-num_buffers to *after* that error check.
+'queued_count' is a bit vague since it is not clear to which queue it
+refers to: the vb2 internal list of buffers or the driver-owned list
+of buffers.
+
+Rename to make it explicit.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
+ include/media/videobuf2-core.h           |  4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index ad3db83..96c5ac6 100644
+index a3b4b4c..6af76ee 100644
 --- a/drivers/media/v4l2-core/videobuf2-core.c
 +++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -848,13 +848,13 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 		 */
+@@ -1071,7 +1071,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	vb->state = state;
+ 	list_add_tail(&vb->done_entry, &q->done_list);
+-	atomic_dec(&q->queued_count);
++	atomic_dec(&q->owned_by_drv_count);
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
+ 
+ 	/* Inform any processes that may be waiting for buffers */
+@@ -1402,7 +1402,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 	unsigned int plane;
+ 
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+-	atomic_inc(&q->queued_count);
++	atomic_inc(&q->owned_by_drv_count);
+ 
+ 	/* sync buffers */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+@@ -1554,7 +1554,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	int ret;
+ 
+ 	/* Tell the driver to start streaming */
+-	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
++	ret = call_qop(q, start_streaming, q, atomic_read(&q->owned_by_drv_count));
+ 	if (ret)
+ 		fail_qop(q, start_streaming);
+ 
+@@ -1779,7 +1779,7 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
  	}
  
--	q->num_buffers = allocated_buffers;
--
- 	if (ret < 0) {
- 		__vb2_queue_free(q, allocated_buffers);
- 		return ret;
- 	}
+ 	if (!q->retry_start_streaming)
+-		wait_event(q->done_wq, !atomic_read(&q->queued_count));
++		wait_event(q->done_wq, !atomic_read(&q->owned_by_drv_count));
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+@@ -1911,7 +1911,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	 * has not already dequeued before initiating cancel.
+ 	 */
+ 	INIT_LIST_HEAD(&q->done_list);
+-	atomic_set(&q->queued_count, 0);
++	atomic_set(&q->owned_by_drv_count, 0);
+ 	wake_up_all(&q->done_wq);
  
-+	q->num_buffers = allocated_buffers;
-+
  	/*
- 	 * Return the number of successfully allocated buffers
- 	 * to the userspace.
-@@ -957,13 +957,13 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
- 		 */
- 	}
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 82b7f0f..adaffed 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -353,7 +353,7 @@ struct v4l2_fh;
+  * @bufs:	videobuf buffer structures
+  * @num_buffers: number of allocated/used buffers
+  * @queued_list: list of buffers currently queued from userspace
+- * @queued_count: number of buffers owned by the driver
++ * @owned_by_drv_count: number of buffers owned by the driver
+  * @done_list:	list of buffers ready to be dequeued to userspace
+  * @done_lock:	lock to protect done_list list
+  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
+@@ -385,7 +385,7 @@ struct vb2_queue {
  
--	q->num_buffers += allocated_buffers;
--
- 	if (ret < 0) {
- 		__vb2_queue_free(q, allocated_buffers);
- 		return -ENOMEM;
- 	}
+ 	struct list_head		queued_list;
  
-+	q->num_buffers += allocated_buffers;
-+
- 	/*
- 	 * Return the number of successfully allocated buffers
- 	 * to the userspace.
+-	atomic_t			queued_count;
++	atomic_t			owned_by_drv_count;
+ 	struct list_head		done_list;
+ 	spinlock_t			done_lock;
+ 	wait_queue_head_t		done_wq;
 -- 
 1.8.4.rc3
 
