@@ -1,88 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35228 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:41745 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751013AbaBGXFl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 18:05:41 -0500
-Message-ID: <52F566BF.3080909@iki.fi>
-Date: Sat, 08 Feb 2014 01:05:35 +0200
+	id S1753060AbaBNOgn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Feb 2014 09:36:43 -0500
+Message-ID: <52FE29F9.3000702@iki.fi>
+Date: Fri, 14 Feb 2014 16:36:41 +0200
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: kbuild test robot <fengguang.wu@intel.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: Re: [linuxtv-media:sdr 488/499] drivers/media/tuners/tuner-xc2028.c:1037:2:
- warning: enumeration value 'V4L2_TUNER_ADC' not handled in switch
-References: <52f4f331.fX8f2CStgBpu2FQK%fengguang.wu@intel.com>
-In-Reply-To: <52f4f331.fX8f2CStgBpu2FQK%fengguang.wu@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 3/6] v4l: reorganize RF tuner control ID numbers
+References: <1392049026-13398-1-git-send-email-crope@iki.fi> <1392049026-13398-4-git-send-email-crope@iki.fi> <52FE263E.9010408@xs4all.nl>
+In-Reply-To: <52FE263E.9010408@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka
-That is already fixed. I will pull next set of SDR patches next week.
-https://patchwork.linuxtv.org/patch/21887/
+On 14.02.2014 16:20, Hans Verkuil wrote:
+> Hi Antti,
+>
+> On 02/10/2014 05:17 PM, Antti Palosaari wrote:
+>> It appears that controls are ordered by ID number. Change order of
+>> controls by reorganizing assigned IDs now as we can. It is not
+>> reasonable possible after the API is released. Leave some spare
+>> space between IDs too for future extensions.
+>
+> Am I missing something? I see no reason for this patch or for adding the
+> spare space.
+
+"It appears that controls are ordered by ID number"
+
+I used app called v4l2ucp and at least it seems to organize those 
+controls by ID. Is there some way to say application how those are 
+organized?
 
 regards
 Antti
 
 
-On 07.02.2014 16:52, kbuild test robot wrote:
-> tree:   git://linuxtv.org/media_tree.git sdr
-> head:   11532660e6f5b6b3a74a03f999d878f35d2cc668
-> commit: 6b200814f9eaac45ad816da459e31534b576c37b [488/499] [media] v4l: add new tuner types for SDR
-> config: make ARCH=powerpc allmodconfig
 >
-> All warnings:
+> Regards,
 >
->     drivers/media/tuners/tuner-xc2028.c: In function 'generic_set_freq':
->>> drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value 'V4L2_TUNER_ADC' not handled in switch [-Wswitch]
->       switch (new_type) {
->       ^
->>> drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value 'V4L2_TUNER_RF' not handled in switch [-Wswitch]
+> 	Hans
 >
-> vim +/V4L2_TUNER_ADC +1037 drivers/media/tuners/tuner-xc2028.c
->
-> 7e28adb2 drivers/media/video/tuner-xc2028.c         Harvey Harrison       2008-04-08  1021  	tuner_dbg("%s called\n", __func__);
-> 215b95ba drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-23  1022
-> de3fe21b drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-24  1023  	mutex_lock(&priv->lock);
-> de3fe21b drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-24  1024
-> 2ce4b3aa drivers/media/video/tuner-xc2028.c         Chris Pascoe          2007-11-19  1025  	tuner_dbg("should set frequency %d kHz\n", freq / 1000);
-> 6cb45879 drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-02  1026
-> 66c2d53d drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-25  1027  	if (check_firmware(fe, type, std, int_freq) < 0)
-> 3b20532c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-09-27  1028  		goto ret;
-> 2e4160ca drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-07-18  1029
-> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1030  	/* On some cases xc2028 can disable video output, if
-> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1031  	 * very weak signals are received. By sending a soft
-> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1032  	 * reset, this is re-enabled. So, it is better to always
-> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1033  	 * send a soft reset before changing channels, to be sure
-> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1034  	 * that xc2028 will be in a safe state.
-> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1035  	 * Maybe this might also be needed for DTV.
-> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1036  	 */
-> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31 @1037  	switch (new_type) {
-> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1038  	case V4L2_TUNER_ANALOG_TV:
-> 2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1039  		rc = send_seq(priv, {0x00, 0x00});
-> 0a863975 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2009-06-01  1040
-> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1041  		/* Analog mode requires offset = 0 */
-> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1042  		break;
-> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1043  	case V4L2_TUNER_RADIO:
-> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1044  		/* Radio mode requires offset = 0 */
-> fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1045  		break;
->
-> :::::: The code at line 1037 was first introduced by commit
-> :::::: fd34cb08babcd898c6b0e30cd7d507ffa62685a1 [media] tuner/xc2028: Fix frequency offset for radio mode
->
-> :::::: TO: Mauro Carvalho Chehab <mchehab@redhat.com>
-> :::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
->
-> ---
-> 0-DAY kernel build testing backend              Open Source Technology Center
-> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   include/uapi/linux/v4l2-controls.h | 16 ++++++++--------
+>>   1 file changed, 8 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+>> index 3cf68a6..cc488c3 100644
+>> --- a/include/uapi/linux/v4l2-controls.h
+>> +++ b/include/uapi/linux/v4l2-controls.h
+>> @@ -899,13 +899,13 @@ enum v4l2_deemphasis {
+>>   #define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
+>>   #define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
+>>
+>> -#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
+>> -#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
+>> -#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
+>> -#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
+>> -#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
+>> -#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
+>> -#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
+>> -#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
+>> +#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
+>> +#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
+>> +#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
+>> +#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
+>> +#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
+>> +#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 52)
+>> +#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 61)
+>> +#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
+>>
+>>   #endif
+>>
 >
 
 
