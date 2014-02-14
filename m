@@ -1,50 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3882 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752174AbaB1Rmh (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1990 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751636AbaBNOcJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 12:42:37 -0500
+	Fri, 14 Feb 2014 09:32:09 -0500
+Message-ID: <52FE28BA.4040404@xs4all.nl>
+Date: Fri, 14 Feb 2014 15:31:22 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: [REVIEWv3 PATCH 00/17] vb2: fixes, balancing callbacks (PART 1)
-Date: Fri, 28 Feb 2014 18:41:58 +0100
-Message-Id: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 2/6] v4l: add RF tuner channel bandwidth control
+References: <1392049026-13398-1-git-send-email-crope@iki.fi> <1392049026-13398-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1392049026-13398-3-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This third version incorporates the comments I received, and I also made
-some additional changes.
+On 02/10/2014 05:17 PM, Antti Palosaari wrote:
+> Modern silicon RF tuners has one or more adjustable filters on
+> signal path, in order to filter noise from desired radio channel.
+> 
+> Add channel bandwidth control to tell the driver which is radio
+> channel width we want receive. Filters could be then adjusted by
+> the driver or hardware, using RF frequency and channel bandwidth
+> as a base of filter calculations.
+> 
+> On automatic mode (normal mode), bandwidth is calculated from sampling
+> rate or tuning info got from userspace. That new control gives
+> possibility to set manual mode and let user have more control for
+> filters.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
+>  include/uapi/linux/v4l2-controls.h   | 2 ++
+>  2 files changed, 6 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index d201f61..e44722b 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
+>  	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
+>  	case V4L2_CID_IF_GAIN:			return "IF Gain";
+> +	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
+> +	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
+>  	default:
+>  		return NULL;
+>  	}
+> @@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_LNA_GAIN_AUTO:
+>  	case V4L2_CID_MIXER_GAIN_AUTO:
+>  	case V4L2_CID_IF_GAIN_AUTO:
+> +	case V4L2_CID_BANDWIDTH_AUTO:
+>  		*type = V4L2_CTRL_TYPE_BOOLEAN;
+>  		*min = 0;
+>  		*max = *step = 1;
+> @@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_LNA_GAIN:
+>  	case V4L2_CID_MIXER_GAIN:
+>  	case V4L2_CID_IF_GAIN:
+> +	case V4L2_CID_BANDWIDTH:
+>  		*flags |= V4L2_CTRL_FLAG_SLIDER;
+>  		break;
+>  	case V4L2_CID_PAN_RELATIVE:
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 076fa34..3cf68a6 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -905,5 +905,7 @@ enum v4l2_deemphasis {
+>  #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
+>  #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
+>  #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
+> +#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
+> +#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
 
-Changes since REVIEWv2:
+This definitely needs a prefix. Bandwidth can refer to so many things that
+we have to be clear here.
 
-- the patches regarding the buf_finish changes were reorganized. Laurent
-  pointed out a bug in patch 07/15 that is fixed here by adding the
-  buf_finish call to __queue_cancel instead of messing around with __dqbuf.
-  Basically the original patches 5-7 have been replaced by new ones that
-  do things in a much more understandable order.
+	Hans
 
-- patch 12/15 was partially wrong. The __reqbufs change was correct,
-  but calling the finish memop wasn't. That is something that will be
-  necessary later when we add dmabuf support for vb2-dma-sg, but for
-  now it is simply wrong. It had crept in inadvertently so I just dropped
-  that part of the patch.
-
-- I've added patch 15/17: while it doesn't seem to lead to a real bug,
-  it is fishy nevertheless. Just don't call buf_finish until the buffer
-  is in the right state.
-
-- I've also added patch 17/17 because without it the v4l2-compliance
-  tool bails out early and never gets to the streaming tests.
-
-Ignore patches 1-3: the first is already merged in 3.14, and 2 and 3
-are about to be merged in 3.14. But you need them for some follow-up
-patches.
-
-Regards,
-
-        Hans
-
-
+>  
+>  #endif
+> 
 
