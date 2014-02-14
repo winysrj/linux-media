@@ -1,111 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3035 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932080AbaBADeC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jan 2014 22:34:02 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s113XwmS036612
-	for <linux-media@vger.kernel.org>; Sat, 1 Feb 2014 04:34:00 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 4B4EA2A00A4
-	for <linux-media@vger.kernel.org>; Sat,  1 Feb 2014 04:33:46 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140201033346.4B4EA2A00A4@tschai.lan>
-Date: Sat,  1 Feb 2014 04:33:46 +0100 (CET)
+Received: from mail.kapsi.fi ([217.30.184.167]:59144 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751059AbaBNOoP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Feb 2014 09:44:15 -0500
+Message-ID: <52FE2BBC.2080307@iki.fi>
+Date: Fri, 14 Feb 2014 16:44:12 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 1/6] v4l: add RF tuner gain controls
+References: <1392049026-13398-1-git-send-email-crope@iki.fi> <1392049026-13398-2-git-send-email-crope@iki.fi> <52FE2892.307@xs4all.nl>
+In-Reply-To: <52FE2892.307@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 14.02.2014 16:30, Hans Verkuil wrote:
+> On 02/10/2014 05:17 PM, Antti Palosaari wrote:
+>> Modern silicon RF tuners used nowadays has many controllable gain
+>> stages on signal path. Usually, but not always, there is at least
+>> 3 gain stages. Also on some cases there could be multiple gain
+>> stages within the ones specified here. However, I think that having
+>> these three controllable gain stages offers enough fine-tuning for
+>> real use cases.
+>>
+>> 1) LNA gain. That is first gain just after antenna input.
+>> 2) Mixer gain. It is located quite middle of the signal path, where
+>> RF signal is down-converted to IF/BB.
+>> 3) IF gain. That is last gain in order to adjust output signal level
+>> to optimal level for receiving party (usually demodulator ADC).
+>>
+>> Each gain stage could be set rather often both manual or automatic
+>> (AGC) mode. Due to that add separate controls for controlling
+>> operation mode.
+>>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/v4l2-core/v4l2-ctrls.c | 15 +++++++++++++++
+>>   include/uapi/linux/v4l2-controls.h   | 11 +++++++++++
+>>   2 files changed, 26 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index 6ff002b..d201f61 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -857,6 +857,14 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>   	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
+>>   	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+>>   	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+>> +
+>> +	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
+>> +	case V4L2_CID_LNA_GAIN_AUTO:		return "LNA Gain, Auto";
+>> +	case V4L2_CID_LNA_GAIN:			return "LNA Gain";
+>> +	case V4L2_CID_MIXER_GAIN_AUTO:		return "Mixer Gain, Auto";
+>> +	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
+>> +	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
+>> +	case V4L2_CID_IF_GAIN:			return "IF Gain";
+>>   	default:
+>>   		return NULL;
+>>   	}
+>> @@ -906,6 +914,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>   	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+>>   	case V4L2_CID_IMAGE_STABILIZATION:
+>>   	case V4L2_CID_RDS_RECEPTION:
+>> +	case V4L2_CID_LNA_GAIN_AUTO:
+>> +	case V4L2_CID_MIXER_GAIN_AUTO:
+>> +	case V4L2_CID_IF_GAIN_AUTO:
+>>   		*type = V4L2_CTRL_TYPE_BOOLEAN;
+>>   		*min = 0;
+>>   		*max = *step = 1;
+>> @@ -991,6 +1002,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>   	case V4L2_CID_IMAGE_PROC_CLASS:
+>>   	case V4L2_CID_DV_CLASS:
+>>   	case V4L2_CID_FM_RX_CLASS:
+>> +	case V4L2_CID_RF_TUNER_CLASS:
+>>   		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+>>   		/* You can neither read not write these */
+>>   		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+>> @@ -1063,6 +1075,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>   	case V4L2_CID_PILOT_TONE_FREQUENCY:
+>>   	case V4L2_CID_TUNE_POWER_LEVEL:
+>>   	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+>> +	case V4L2_CID_LNA_GAIN:
+>> +	case V4L2_CID_MIXER_GAIN:
+>> +	case V4L2_CID_IF_GAIN:
+>>   		*flags |= V4L2_CTRL_FLAG_SLIDER;
+>>   		break;
+>>   	case V4L2_CID_PAN_RELATIVE:
+>> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+>> index 2cbe605..076fa34 100644
+>> --- a/include/uapi/linux/v4l2-controls.h
+>> +++ b/include/uapi/linux/v4l2-controls.h
+>> @@ -60,6 +60,7 @@
+>>   #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
+>>   #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
+>>   #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
+>> +#define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
+>>
+>>   /* User-class control IDs */
+>>
+>> @@ -895,4 +896,14 @@ enum v4l2_deemphasis {
+>>
+>>   #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
+>>
+>> +#define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
+>> +#define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
+>> +
+>> +#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
+>> +#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
+>> +#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
+>> +#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
+>> +#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
+>> +#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
+>
+> I would prefer to give these control defines a prefix:
+>
+> V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO (or possibly V4L2_CID_RF_TNR_...)
+>
+> 'MIXER_GAIN' by itself does not make it clear it relates to a tuner, it
+> might just as well refer to audio mixing or video mixing.
+>
+> Thinking this over I am wondering whether these controls might not fit
+> just as well with the FM_RX class. Yeah, I know, the 'FM' part is a bit
+> unfortunate in that context, but it is about radio receivers as well.
+>
+> Unless there is a good reason to keep these controls in their own class?
 
-Results of the daily build of media_tree:
+Those controls in FM RX class are way layer or two upper level. Controls 
+in FM RX are from the demulation whilst the controls I added to RF tuner 
+are from RF tuner and are suitable for every device having RF tuner, 
+like radio, television, GPS, etc.
 
-date:		Sat Feb  1 04:00:32 CET 2014
-git branch:	test
-git hash:	587d1b06e07b4a079453c74ba9edf17d21931049
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+regards
+Antti
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
