@@ -1,152 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:60460 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750937AbaBDJCI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Feb 2014 04:02:08 -0500
-Date: Tue, 04 Feb 2014 17:02:02 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Federico Simoncelli <fsimonce@redhat.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:master 499/499]
- drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol
- 'usbtv_id_table' was not declared. Should it be static?
-Message-ID: <52f0ac8a.aIXONk2PY1rBXEn8%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="=_52f0ac8a.7ZNwzhrlGIS3BXOCezLjaawGm1ma5pjgVNBuRPTdZRMRT5iz"
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2389 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752041AbaBNKls (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Feb 2014 05:41:48 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 07/11] vb2: rename queued_count to owned_by_drv_count
+Date: Fri, 14 Feb 2014 11:41:08 +0100
+Message-Id: <1392374472-18393-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---=_52f0ac8a.7ZNwzhrlGIS3BXOCezLjaawGm1ma5pjgVNBuRPTdZRMRT5iz
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+'queued_count' is a bit vague since it is not clear to which queue it
+refers to: the vb2 internal list of buffers or the driver-owned list
+of buffers.
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   a3550ea665acd1922df8275379028c1634675629
-commit: a3550ea665acd1922df8275379028c1634675629 [499/499] [media] usbtv: split core and video implementation
-reproduce: make C=1 CF=-D__CHECK_ENDIAN__
+Rename to make it explicit.
 
-
-sparse warnings: (new ones prefixed by >>)
-
->> drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table' was not declared. Should it be static?
->> drivers/media/usb/usbtv/usbtv-core.c:129:19: sparse: symbol 'usbtv_usb_driver' was not declared. Should it be static?
---
->> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
->> drivers/media/usb/usbtv/usbtv-video.c:565:23: sparse: symbol 'usbtv_ioctl_ops' was not declared. Should it be static?
->> drivers/media/usb/usbtv/usbtv-video.c:587:29: sparse: symbol 'usbtv_fops' was not declared. Should it be static?
->> drivers/media/usb/usbtv/usbtv-video.c:648:16: sparse: symbol 'usbtv_vb2_ops' was not declared. Should it be static?
-
-Please consider folding the attached diff :-)
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
 ---
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+ drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
+ include/media/videobuf2-core.h           |  4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
---=_52f0ac8a.7ZNwzhrlGIS3BXOCezLjaawGm1ma5pjgVNBuRPTdZRMRT5iz
-Content-Type: text/x-diff;
- charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="make-it-static-a3550ea665acd1922df8275379028c1634675629.diff"
-
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: [PATCH linuxtv-media] usbtv: usbtv_id_table[] can be static
-TO: Federico Simoncelli <fsimonce@redhat.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-CC: linux-media@vger.kernel.org 
-CC: linux-kernel@vger.kernel.org 
-
-CC: Federico Simoncelli <fsimonce@redhat.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
----
- usbtv-core.c  |    4 ++--
- usbtv-video.c |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
-index e89e48b..2dd47e0 100644
---- a/drivers/media/usb/usbtv/usbtv-core.c
-+++ b/drivers/media/usb/usbtv/usbtv-core.c
-@@ -116,7 +116,7 @@ static void usbtv_disconnect(struct usb_interface *intf)
- 	v4l2_device_put(&usbtv->v4l2_dev);
- }
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 72cac8c..ad3db83 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1071,7 +1071,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	vb->state = state;
+ 	list_add_tail(&vb->done_entry, &q->done_list);
+-	atomic_dec(&q->queued_count);
++	atomic_dec(&q->owned_by_drv_count);
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
  
--struct usb_device_id usbtv_id_table[] = {
-+static struct usb_device_id usbtv_id_table[] = {
- 	{ USB_DEVICE(0x1b71, 0x3002) },
- 	{}
- };
-@@ -126,7 +126,7 @@ MODULE_AUTHOR("Lubomir Rintel");
- MODULE_DESCRIPTION("Fushicai USBTV007 Video Grabber Driver");
- MODULE_LICENSE("Dual BSD/GPL");
+ 	/* Inform any processes that may be waiting for buffers */
+@@ -1402,7 +1402,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 	unsigned int plane;
  
--struct usb_driver usbtv_usb_driver = {
-+static struct usb_driver usbtv_usb_driver = {
- 	.name = "usbtv",
- 	.id_table = usbtv_id_table,
- 	.probe = usbtv_probe,
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index 496bc2e..029ea7c 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -562,7 +562,7 @@ static int usbtv_s_input(struct file *file, void *priv, unsigned int i)
- 	return usbtv_select_input(usbtv, i);
- }
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+-	atomic_inc(&q->queued_count);
++	atomic_inc(&q->owned_by_drv_count);
  
--struct v4l2_ioctl_ops usbtv_ioctl_ops = {
-+static struct v4l2_ioctl_ops usbtv_ioctl_ops = {
- 	.vidioc_querycap = usbtv_querycap,
- 	.vidioc_enum_input = usbtv_enum_input,
- 	.vidioc_enum_fmt_vid_cap = usbtv_enum_fmt_vid_cap,
-@@ -584,7 +584,7 @@ struct v4l2_ioctl_ops usbtv_ioctl_ops = {
- 	.vidioc_streamoff = vb2_ioctl_streamoff,
- };
+ 	/* sync buffers */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+@@ -1554,7 +1554,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	int ret;
  
--struct v4l2_file_operations usbtv_fops = {
-+static struct v4l2_file_operations usbtv_fops = {
- 	.owner = THIS_MODULE,
- 	.unlocked_ioctl = video_ioctl2,
- 	.mmap = vb2_fop_mmap,
-@@ -645,7 +645,7 @@ static int usbtv_stop_streaming(struct vb2_queue *vq)
+ 	/* Tell the driver to start streaming */
+-	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
++	ret = call_qop(q, start_streaming, q, atomic_read(&q->owned_by_drv_count));
+ 	if (ret)
+ 		fail_qop(q, start_streaming);
+ 
+@@ -1779,7 +1779,7 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
+ 	}
+ 
+ 	if (!q->retry_start_streaming)
+-		wait_event(q->done_wq, !atomic_read(&q->queued_count));
++		wait_event(q->done_wq, !atomic_read(&q->owned_by_drv_count));
  	return 0;
  }
+ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+@@ -1911,7 +1911,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	 * has not already dequeued before initiating cancel.
+ 	 */
+ 	INIT_LIST_HEAD(&q->done_list);
+-	atomic_set(&q->queued_count, 0);
++	atomic_set(&q->owned_by_drv_count, 0);
+ 	wake_up_all(&q->done_wq);
  
--struct vb2_ops usbtv_vb2_ops = {
-+static struct vb2_ops usbtv_vb2_ops = {
- 	.queue_setup = usbtv_queue_setup,
- 	.buf_queue = usbtv_buf_queue,
- 	.start_streaming = usbtv_start_streaming,
+ 	/*
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 82b7f0f..adaffed 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -353,7 +353,7 @@ struct v4l2_fh;
+  * @bufs:	videobuf buffer structures
+  * @num_buffers: number of allocated/used buffers
+  * @queued_list: list of buffers currently queued from userspace
+- * @queued_count: number of buffers owned by the driver
++ * @owned_by_drv_count: number of buffers owned by the driver
+  * @done_list:	list of buffers ready to be dequeued to userspace
+  * @done_lock:	lock to protect done_list list
+  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
+@@ -385,7 +385,7 @@ struct vb2_queue {
+ 
+ 	struct list_head		queued_list;
+ 
+-	atomic_t			queued_count;
++	atomic_t			owned_by_drv_count;
+ 	struct list_head		done_list;
+ 	spinlock_t			done_lock;
+ 	wait_queue_head_t		done_wq;
+-- 
+1.8.4.rc3
 
---=_52f0ac8a.7ZNwzhrlGIS3BXOCezLjaawGm1ma5pjgVNBuRPTdZRMRT5iz--
