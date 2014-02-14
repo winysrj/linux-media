@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35102 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752672AbaBJQMt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:12:49 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 2/8] rtl28xxu: add module parameter to disable IR
-Date: Mon, 10 Feb 2014 18:12:27 +0200
-Message-Id: <1392048753-13292-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1392048753-13292-1-git-send-email-crope@iki.fi>
-References: <1392048753-13292-1-git-send-email-crope@iki.fi>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:37165 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750862AbaBNJqB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Feb 2014 04:46:01 -0500
+From: Daniel Jeong <gshark.jeong@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Jeong <gshark.jeong@gmail.com>,
+	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
+Subject: [RFC v3,2/3] controls.xml : add addtional Flash fault bits
+Date: Fri, 14 Feb 2014 18:45:51 +0900
+Message-Id: <1392371151-32644-1-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Disable IR interrupts in order to avoid SDR sample loss.
-IR interrupts causes some extra load for device and it seems
-be one reason to loss samples when sampling rate is high.
+Add addtional falult bits for FLASH
+V4L2_FLASH_FAULT_UNDER_VOLTAGE	: UVLO
+V4L2_FLASH_FAULT_INPUT_VOLTAGE	: input voltage is adjusted by IVFM
+V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE : NTC Trip point is crossed.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/DocBook/media/v4l/controls.xml |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index fda5c64..7de3e54 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -35,6 +35,9 @@
- #include "tua9001.h"
- #include "r820t.h"
- 
-+static int rtl28xxu_disable_rc;
-+module_param_named(disable_rc, rtl28xxu_disable_rc, int, 0644);
-+MODULE_PARM_DESC(disable_rc, "disable RTL2832U remote controller");
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- static int rtl28xxu_ctrl_msg(struct dvb_usb_device *d, struct rtl28xxu_req *req)
-@@ -1322,6 +1325,10 @@ err:
- static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
- 		struct dvb_usb_rc *rc)
- {
-+	/* disable IR interrupts in order to avoid SDR sample loss */
-+	if (rtl28xxu_disable_rc)
-+		return rtl28xx_wr_reg(d, IR_RX_IE, 0x00);
-+
- 	/* load empty to enable rc */
- 	if (!rc->map_name)
- 		rc->map_name = RC_MAP_EMPTY;
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a5a3188..8121f7e 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4370,6 +4370,22 @@ interface and may change in the future.</para>
+     		  <entry>The flash controller has detected a short or open
+     		  circuit condition on the indicator LED.</entry>
+     		</row>
++    		<row>
++    		  <entry><constant>V4L2_FLASH_FAULT_UNDER_VOLTAGE</constant></entry>
++    		  <entry>Flash controller voltage to the flash LED
++    		  has been below the minimum limit specific to the flash
++    		  controller.</entry>
++    		</row>
++    		<row>
++    		  <entry><constant>V4L2_FLASH_FAULT_INPUT_VOLTAGE</constant></entry>
++    		  <entry>The flash controller has detected adjustment of input
++    		  voltage by Input Volage Flash Monitor(IVFM).</entry>
++    		</row>
++    		<row>
++    		  <entry><constant>V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE</constant></entry>
++    		  <entry>The flash controller has detected that TEMP input has
++    		  crossed NTC Trip Voltage.</entry>
++    		</row>
+     	      </tbody>
+     	    </entrytbl>
+     	  </row>
 -- 
-1.8.5.3
+1.7.9.5
 
