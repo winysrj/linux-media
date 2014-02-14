@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:54792 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108AbaBKBye (ORCPT
+Received: from webmail.veltechuniv.edu.in ([202.71.145.3]:57988 "EHLO
+	server.veltechuniv.edu.in" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751065AbaBNOul (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 20:54:34 -0500
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0N0T0093P6MX23A0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 11 Feb 2014 10:54:33 +0900 (KST)
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, dheitmueller@kernellabs.com
-Subject: [PATCH] au0828: fix i2c clock speed for DViCO FusionHDTV7
-Date: Tue, 11 Feb 2014 10:54:34 +0900
-Message-id: <1392083674-18940-1-git-send-email-jy0922.shim@samsung.com>
+	Fri, 14 Feb 2014 09:50:41 -0500
+MIME-Version: 1.0
+Date: Fri, 14 Feb 2014 18:06:49 +0530
+From: "Dr.William Davies" <purchase@veltechuniv.edu.in>
+To: undisclosed-recipients:;
+Subject: Re: Instructions to release your payment.
+Reply-To: williamdavies54@yahoo.co.uk
+Message-ID: <05850bfa675129882bc42edd957194c7@127.0.0.1>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DViCO FusionHDTV7 device that use au0828 can fail to communicate with
-xc5000 using i2c interface because of high i2c clock speed - i2c clock
-stretching bug. It causes to fail xc5000 firmware loading normally at
-the current driver.
+Attention
 
-Already this problem fixed as changing to low i2c clock speed at
-HVR-950q device, also DViCO FusionHDTV7 device can solve it as using low
-i2c clock speed - 20KHz.
+Sir,
 
-Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
----
- drivers/media/usb/au0828/au0828-cards.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Following an application brought, seeking the release of your due payment
+through British bank, I am directed to inform you that the application has
+been approved and Natwest bank of London has been mandated to make transfer
+of your payment to the bank account you will nominate. Please kindly reply
+for immediate release of your US$6.2 Million to you nominates account.
 
-diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
-index dd32dec..6b569f4 100644
---- a/drivers/media/usb/au0828/au0828-cards.c
-+++ b/drivers/media/usb/au0828/au0828-cards.c
-@@ -108,7 +108,7 @@ struct au0828_board au0828_boards[] = {
- 		.name	= "DViCO FusionHDTV USB",
- 		.tuner_type = UNSET,
- 		.tuner_addr = ADDR_UNSET,
--		.i2c_clk_divider = AU0828_I2C_CLK_250KHZ,
-+		.i2c_clk_divider = AU0828_I2C_CLK_20KHZ,
- 	},
- 	[AU0828_BOARD_HAUPPAUGE_WOODBURY] = {
- 		.name = "Hauppauge Woodbury",
--- 
-1.8.1.2
+Sir, for the avoidance of doubts, reconfirm the following information to
+me to enable us forward same to Natwest bank to contact you for your
+payment.
 
+Name:
+
+Address:
+
+Tel/Fax No.:
+
+Nationality:
+
+Occupation:
+
+Date of birth: 
+
+As soon as I received the above information, I will forward them to
+Natwest bank to contact you for your approved payment. Please see in the
+attachment, letter I wrote to Natwest bank informing them of the
+transaction
+
+Yours faithfully
+
+Dr.William Davies
+Chairman,British Banking Regulatory Board.
