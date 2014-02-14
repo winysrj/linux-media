@@ -1,62 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:55258 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258AbaBENQy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 08:16:54 -0500
-Received: by mail-wi0-f174.google.com with SMTP id f8so556011wiw.7
-        for <linux-media@vger.kernel.org>; Wed, 05 Feb 2014 05:16:52 -0800 (PST)
-Received: from [192.168.254.97] (host81-159-51-114.range81-159.btcentralplus.com. [81.159.51.114])
-        by mx.google.com with ESMTPSA id ua8sm61365285wjc.4.2014.02.05.05.16.51
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Wed, 05 Feb 2014 05:16:51 -0800 (PST)
-Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
-References: <20140122135036.GA14871@minime.bse> <52E00AD0.2020402@googlemail.com> <20140123132741.GA15756@minime.bse> <52E1273F.90207@googlemail.com> <20140125152339.GA18168@minime.bse> <52E4EFBB.7070504@googlemail.com> <20140126125552.GA26918@minime.bse> <52E5366A.807@googlemail.com> <20140127032044.GA27541@minime.bse> <52E6C7A4.8050708@googlemail.com> <20140128020242.GA31019@minime.bse>
-From: Robert Longbottom <rongblor@googlemail.com>
-Content-Type: text/plain;
-	charset=utf-8
-In-Reply-To: <20140128020242.GA31019@minime.bse>
-Message-Id: <5679652F-05AC-44B8-AE0B-A107E38F2433@googlemail.com>
-Date: Wed, 5 Feb 2014 13:16:53 +0000
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (1.0)
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1625 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751822AbaBNOba (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Feb 2014 09:31:30 -0500
+Message-ID: <52FE2892.307@xs4all.nl>
+Date: Fri, 14 Feb 2014 15:30:42 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 1/6] v4l: add RF tuner gain controls
+References: <1392049026-13398-1-git-send-email-crope@iki.fi> <1392049026-13398-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1392049026-13398-2-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 28 Jan 2014, at 02:02 AM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
-
-> On Mon, Jan 27, 2014 at 08:55:00PM +0000, Robert Longbottom wrote:
->>> As for the CPLD, there is not much we can do. I count 23 GPIOs going
->>> to that chip. And we don't know if some of these are outputs of the
->>> CPLD, making it a bit risky to just randomly drive values on those
->>> pins.
->> 
->> Is that because it might do some damage to the card, or to the host
->> computer, or both?
+On 02/10/2014 05:17 PM, Antti Palosaari wrote:
+> Modern silicon RF tuners used nowadays has many controllable gain
+> stages on signal path. Usually, but not always, there is at least
+> 3 gain stages. Also on some cases there could be multiple gain
+> stages within the ones specified here. However, I think that having
+> these three controllable gain stages offers enough fine-tuning for
+> real use cases.
 > 
-> If there is damage, it will most likely be restricted to the card.
+> 1) LNA gain. That is first gain just after antenna input.
+> 2) Mixer gain. It is located quite middle of the signal path, where
+> RF signal is down-converted to IF/BB.
+> 3) IF gain. That is last gain in order to adjust output signal level
+> to optimal level for receiving party (usually demodulator ADC).
 > 
->> Or is it just too hard to make random guesses at
->> what it should be doing?
+> Each gain stage could be set rather often both manual or automatic
+> (AGC) mode. Due to that add separate controls for controlling
+> operation mode.
 > 
-> When we cycle through all combinations in one minute, there are about
-> a hundred PCI cycles per combination left for the chip to be granted
-> access to the bus. I expect most of the pins to provide a priority
-> or weighting value for each BT878A, so there should be many combinations
-> that do something.
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 15 +++++++++++++++
+>  include/uapi/linux/v4l2-controls.h   | 11 +++++++++++
+>  2 files changed, 26 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 6ff002b..d201f61 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -857,6 +857,14 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
+>  	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+>  	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+> +
+> +	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
+> +	case V4L2_CID_LNA_GAIN_AUTO:		return "LNA Gain, Auto";
+> +	case V4L2_CID_LNA_GAIN:			return "LNA Gain";
+> +	case V4L2_CID_MIXER_GAIN_AUTO:		return "Mixer Gain, Auto";
+> +	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
+> +	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
+> +	case V4L2_CID_IF_GAIN:			return "IF Gain";
+>  	default:
+>  		return NULL;
+>  	}
+> @@ -906,6 +914,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+>  	case V4L2_CID_IMAGE_STABILIZATION:
+>  	case V4L2_CID_RDS_RECEPTION:
+> +	case V4L2_CID_LNA_GAIN_AUTO:
+> +	case V4L2_CID_MIXER_GAIN_AUTO:
+> +	case V4L2_CID_IF_GAIN_AUTO:
+>  		*type = V4L2_CTRL_TYPE_BOOLEAN;
+>  		*min = 0;
+>  		*max = *step = 1;
+> @@ -991,6 +1002,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_IMAGE_PROC_CLASS:
+>  	case V4L2_CID_DV_CLASS:
+>  	case V4L2_CID_FM_RX_CLASS:
+> +	case V4L2_CID_RF_TUNER_CLASS:
+>  		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+>  		/* You can neither read not write these */
+>  		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+> @@ -1063,6 +1075,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_PILOT_TONE_FREQUENCY:
+>  	case V4L2_CID_TUNE_POWER_LEVEL:
+>  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+> +	case V4L2_CID_LNA_GAIN:
+> +	case V4L2_CID_MIXER_GAIN:
+> +	case V4L2_CID_IF_GAIN:
+>  		*flags |= V4L2_CTRL_FLAG_SLIDER;
+>  		break;
+>  	case V4L2_CID_PAN_RELATIVE:
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 2cbe605..076fa34 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -60,6 +60,7 @@
+>  #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
+>  #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
+>  #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
+> +#define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
+>  
+>  /* User-class control IDs */
+>  
+> @@ -895,4 +896,14 @@ enum v4l2_deemphasis {
+>  
+>  #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
+>  
+> +#define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
+> +#define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
+> +
+> +#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
+> +#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
+> +#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
+> +#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
+> +#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
+> +#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
 
-How difficult is it for me to do this?  And is it obvious when it works? I have an old pc that I can put the card in that doesn't matter. And given I can't get the card to work in windows or Linux its not much use to me as it is, so if it breaks then so be it. 
+I would prefer to give these control defines a prefix:
 
-I've not done any Linux driver development, but I'm happy enough compiling stuff for the most part. 
+V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO (or possibly V4L2_CID_RF_TNR_...)
 
-> Maybe the seller is nice person and provides the contents of the CD for
-> free.
+'MIXER_GAIN' by itself does not make it clear it relates to a tuner, it
+might just as well refer to audio mixing or video mixing.
 
-I tried contacting the seller via eBay, but no response so far, so I'm guessing he's not interested, which is a shame. 
+Thinking this over I am wondering whether these controls might not fit
+just as well with the FM_RX class. Yeah, I know, the 'FM' part is a bit
+unfortunate in that context, but it is about radio receivers as well.
 
-Cheers,
-Rob. 
+Unless there is a good reason to keep these controls in their own class?
+
+Regards,
+
+	Hans
+
+> +
+>  #endif
+> 
 
