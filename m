@@ -1,132 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:24019 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752666AbaBGN5t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 08:57:49 -0500
-Date: Fri, 07 Feb 2014 11:57:43 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.14-rc2] media fixes
-Message-id: <20140207115743.477b8e91@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57329 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695AbaBNAET (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Feb 2014 19:04:19 -0500
+Date: Fri, 14 Feb 2014 01:04:18 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Steven Toth <stoth@kernellabs.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: Video capture in FPGA -- simple hardware to emulate?
+Message-ID: <20140214000418.GA29848@xo-6d-61-c0.localdomain>
+References: <20140213195224.GA10691@amd.pavel.ucw.cz>
+ <CALzAhNVC1KRuhMks_2YUSF1e8iVEfsyvKZmphyXMqpJ+0d228Q@mail.gmail.com>
+ <Pine.LNX.4.64.1402132223480.24792@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1402132223480.24792@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hi!
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media 
+> > > I'm working on project that will need doing video capture from
+> > > FPGA. That means I can define interface between kernel and hardware.
+> > >
+> > > Is there suitable, simple hardware we should emulate in the FPGA? I
+> > > took a look, and pxa_camera seems to be one of the simple ones...
+> 
+> Too bad this one
+> 
+> http://opencores.org/project,100
 
-For a series of small fixes. Mostly driver ones. There is one core
-regression fix on a patch that was meant to fix some race issues on
-vb2, but that actually caused more harm than good. So, we're just
-reverting it for now.
+Too bad indeed, that would certainly help.
 
-Thanks!
-Mauro
+> is only in planning... Maybe you could collaborate with them?
 
-The following changes since commit 38dbfb59d1175ef458d006556061adeaa8751b72:
+I will not be the one doing hardware, and that might be too much to ask...
 
-  Linus 3.14-rc1 (2014-02-02 16:42:13 -0800)
+> > Thats actually a pretty open-ended question. You might get better
+> > advice if you describe your hardware platform in a little more detail.
+> 
+> +1. As usually you have to begin with what you need. Will it be using an 
+> external DMA engine or will it have one built into it? If you've got a 
+> DMAC core already, it will define your V4L2 dma operations choice - 
+> contiguous or SG, unless, as Steven mentioned, you go over USB. Then you 
+> decide what sensor interface you need - parallel or CSI, etc.
 
-are available in the git repository at:
+I don't know about the sensor interface -- it will likely change in future.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media 
+There is no PCI or USB involved.
 
-for you to fetch changes up to 57f0547fbc1e925f5e58c76f311a6632c3f37740:
+The simplest device I could imagine would be just fixed location in memory,
+where FPGA puts the RGB values (or YUV or something). Now... that would have
+issues with teared frames. But perhaps if FPGA cycled between 5 such buffers,
+and notified CPU using interrupts when buffer is filled, that would work 
+"well enough"? (There would be teared frames where other designs drop frames,
+but that could be acceptable.)
 
-  [media] adv7842: Composite free-run platfrom-data fix (2014-02-04 06:46:10 -0200)
+OTOH nobody is doing that, so it is probably bad idea for some reason...?
 
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      [media] go7007-loader: fix usb_dev leak
+> > Are you using a USB or PCIe controller to talk to the fpga, or does
+> > the fpga contain embedded IP cores for USB or PCIe?
 
-Andi Shyti (2):
-      [media] cx24117: remove dead code in always 'false' if statement
-      [media] cx24117: use a valid dev pointer for dev_err printout
-
-Andrzej Hajda (1):
-      [media] s5k5baf: allow to handle arbitrary long i2c sequences
-
-Antti Palosaari (1):
-      [media] af9035: add ID [2040:f900] Hauppauge WinTV-MiniStick 2
-
-Dave Jones (2):
-      [media] mxl111sf: Fix unintentional garbage stack read
-      [media] mxl111sf: Fix compile when CONFIG_DVB_USB_MXL111SF is unset
-
-Hans Verkuil (1):
-      [media] Revert "[media] videobuf_vm_{open,close} race fixes"
-
-Jacek Anaszewski (1):
-      [media] s5p-jpeg: Fix wrong NV12 format parameters
-
-Levente Kurusa (1):
-      [media] media: bt8xx: add missing put_device call
-
-Martin Bugge (2):
-      [media] v4l2-dv-timings: fix GTF calculation
-      [media] adv7842: Composite free-run platfrom-data fix
-
-Masanari Iida (1):
-      [media] hdpvr: Fix memory leak in debug
-
-Mauro Carvalho Chehab (1):
-      Merge tag 'v3.14-rc1' into patchwork
-
-Michael Krufky (1):
-      [media] update Michael Krufky's email address
-
-Ricardo Ribalda (1):
-      [media] vb2: Check if there are buffers before streamon
-
-Sylwester Nawrocki (3):
-      [media] exynos4-is: Fix error paths in probe() for !pm_runtime_enabled()
-      [media] exynos4-is: Compile in fimc runtime PM callbacks conditionally
-      [media] exynos4-is: Compile in fimc-lite runtime PM callbacks conditionally
-
- Documentation/dvb/contributors.txt            |  2 +-
- drivers/media/dvb-frontends/cx24117.c         | 10 +--------
- drivers/media/dvb-frontends/nxt200x.c         |  2 +-
- drivers/media/i2c/adv7842.c                   |  2 +-
- drivers/media/i2c/s5k5baf.c                   | 30 +++++++++++++++++----------
- drivers/media/pci/bt8xx/bttv-cards.c          |  2 +-
- drivers/media/pci/bt8xx/bttv-gpio.c           |  2 +-
- drivers/media/pci/saa7134/saa7134-cards.c     |  2 +-
- drivers/media/platform/exynos4-is/fimc-core.c |  5 ++++-
- drivers/media/platform/exynos4-is/fimc-lite.c |  7 +++++--
- drivers/media/platform/s5p-jpeg/jpeg-core.c   |  8 +++----
- drivers/media/usb/dvb-usb-v2/af9035.c         |  2 ++
- drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c |  4 ++--
- drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h |  2 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-gpio.c  |  2 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-gpio.h  |  2 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c   |  2 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.h   |  2 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-phy.c   |  2 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-phy.h   |  2 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-reg.h   |  2 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c |  4 ++--
- drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h |  4 ++--
- drivers/media/usb/dvb-usb-v2/mxl111sf.c       |  6 +++---
- drivers/media/usb/dvb-usb-v2/mxl111sf.h       |  2 +-
- drivers/media/usb/hdpvr/hdpvr-core.c          |  4 +++-
- drivers/media/v4l2-core/v4l2-dv-timings.c     |  1 +
- drivers/media/v4l2-core/videobuf-dma-contig.c | 12 +++++------
- drivers/media/v4l2-core/videobuf-dma-sg.c     | 10 ++++-----
- drivers/media/v4l2-core/videobuf-vmalloc.c    | 10 ++++-----
- drivers/media/v4l2-core/videobuf2-core.c      |  5 +++++
- drivers/staging/media/go7007/go7007-loader.c  |  4 +++-
- 32 files changed, 84 insertions(+), 72 deletions(-)
-
-
-
+There should be no USB/PCIe involved.
+									Pavel
 -- 
-
-Cheers,
-Mauro
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
