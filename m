@@ -1,116 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38717 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751951AbaBIIt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:59 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 37/86] v4l: add RF tuner gain controls
-Date: Sun,  9 Feb 2014 10:48:42 +0200
-Message-Id: <1391935771-18670-38-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from mail-yh0-f44.google.com ([209.85.213.44]:49732 "EHLO
+	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750932AbaBNBbf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Feb 2014 20:31:35 -0500
+Received: by mail-yh0-f44.google.com with SMTP id f73so11049293yha.31
+        for <linux-media@vger.kernel.org>; Thu, 13 Feb 2014 17:31:34 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1392284450-41019-3-git-send-email-hverkuil@xs4all.nl>
+References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl> <1392284450-41019-3-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Fri, 14 Feb 2014 10:30:54 +0900
+Message-ID: <CAMm-=zDKRjbgYTZUQB7yOkAXXtxhoK+46jNntS1ZU175wqZM7Q@mail.gmail.com>
+Subject: Re: [RFCv3 PATCH 02/10] vb2: change result code of buf_finish to void.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modern silicon RF tuners used nowadays has many controllable gain
-stages on signal path. Usually, but not always, there is at least
-3 gain stages. Also on some cases there could be multiple gain
-stages within the ones specified here. However, I think that having
-these three controllable gain stages offers enough fine-tuning for
-real use cases.
+Thanks!
 
-1) LNA gain. That is first gain just after antenna input.
-2) Mixer gain. It is located quite middle of the signal path, where
-RF signal is down-converted to IF/BB.
-3) IF gain. That is last gain in order to adjust output signal level
-to optimal level for receiving party (usually demodulator ADC).
+vb2 parts:
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
-Each gain stage could be set rather often both manual or automatic
-(AGC) mode. Due to that add separate controls for controlling
-operation mode.
+others:
+Reviewed-by: Pawel Osciak <pawel@osciak.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 15 +++++++++++++++
- include/uapi/linux/v4l2-controls.h   | 11 +++++++++++
- 2 files changed, 26 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 6ff002b..d201f61 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -857,6 +857,14 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
- 	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
-+
-+	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
-+	case V4L2_CID_LNA_GAIN_AUTO:		return "LNA Gain, Auto";
-+	case V4L2_CID_LNA_GAIN:			return "LNA Gain";
-+	case V4L2_CID_MIXER_GAIN_AUTO:		return "Mixer Gain, Auto";
-+	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
-+	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
-+	case V4L2_CID_IF_GAIN:			return "IF Gain";
- 	default:
- 		return NULL;
- 	}
-@@ -906,6 +914,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
- 	case V4L2_CID_RDS_RECEPTION:
-+	case V4L2_CID_LNA_GAIN_AUTO:
-+	case V4L2_CID_MIXER_GAIN_AUTO:
-+	case V4L2_CID_IF_GAIN_AUTO:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -991,6 +1002,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_IMAGE_PROC_CLASS:
- 	case V4L2_CID_DV_CLASS:
- 	case V4L2_CID_FM_RX_CLASS:
-+	case V4L2_CID_RF_TUNER_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -1063,6 +1075,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_FREQUENCY:
- 	case V4L2_CID_TUNE_POWER_LEVEL:
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-+	case V4L2_CID_LNA_GAIN:
-+	case V4L2_CID_MIXER_GAIN:
-+	case V4L2_CID_IF_GAIN:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2cbe605..076fa34 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -60,6 +60,7 @@
- #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
- #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
-+#define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
- 
- /* User-class control IDs */
- 
-@@ -895,4 +896,14 @@ enum v4l2_deemphasis {
- 
- #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
- 
-+#define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
-+#define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
-+
-+#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
-+#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
-+#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
-+#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
-+#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
-+#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
-+
- #endif
--- 
-1.8.5.3
-
+On Thu, Feb 13, 2014 at 6:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> The buf_finish op should always work, so change the return type to void.
+> Update the few drivers that use it. Note that buf_finish can be called
+> both when the DMA is streaming and when it isn't (during queue_cancel).
+> Update drivers to check that where appropriate.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/parport/bw-qcam.c                 |  6 ++++--
+>  drivers/media/pci/sta2x11/sta2x11_vip.c         |  7 +++----
+>  drivers/media/platform/marvell-ccic/mcam-core.c |  3 +--
+>  drivers/media/usb/pwc/pwc-if.c                  | 16 +++++++++-------
+>  drivers/media/usb/uvc/uvc_queue.c               |  6 +++---
+>  drivers/media/v4l2-core/videobuf2-core.c        |  6 +-----
+>  drivers/staging/media/go7007/go7007-v4l2.c      |  3 +--
+>  include/media/videobuf2-core.h                  |  2 +-
+>  8 files changed, 23 insertions(+), 26 deletions(-)
+>
+> diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
+> index d12bd33..8d69bfb 100644
+> --- a/drivers/media/parport/bw-qcam.c
+> +++ b/drivers/media/parport/bw-qcam.c
+> @@ -667,13 +667,16 @@ static void buffer_queue(struct vb2_buffer *vb)
+>         vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+>  }
+>
+> -static int buffer_finish(struct vb2_buffer *vb)
+> +static void buffer_finish(struct vb2_buffer *vb)
+>  {
+>         struct qcam *qcam = vb2_get_drv_priv(vb->vb2_queue);
+>         void *vbuf = vb2_plane_vaddr(vb, 0);
+>         int size = vb->vb2_queue->plane_sizes[0];
+>         int len;
+>
+> +       if (!vb2_is_streaming(vb->vb2_queue))
+> +               return;
+> +
+>         mutex_lock(&qcam->lock);
+>         parport_claim_or_block(qcam->pdev);
+>
+> @@ -691,7 +694,6 @@ static int buffer_finish(struct vb2_buffer *vb)
+>         if (len != size)
+>                 vb->state = VB2_BUF_STATE_ERROR;
+>         vb2_set_plane_payload(vb, 0, len);
+> -       return 0;
+>  }
+>
+>  static struct vb2_ops qcam_video_qops = {
+> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+> index e5cfb6c..bb11443 100644
+> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+> @@ -327,7 +327,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+>         }
+>         spin_unlock(&vip->lock);
+>  }
+> -static int buffer_finish(struct vb2_buffer *vb)
+> +static void buffer_finish(struct vb2_buffer *vb)
+>  {
+>         struct sta2x11_vip *vip = vb2_get_drv_priv(vb->vb2_queue);
+>         struct vip_buffer *vip_buf = to_vip_buffer(vb);
+> @@ -337,9 +337,8 @@ static int buffer_finish(struct vb2_buffer *vb)
+>         list_del_init(&vip_buf->list);
+>         spin_unlock(&vip->lock);
+>
+> -       vip_active_buf_next(vip);
+> -
+> -       return 0;
+> +       if (vb2_is_streaming(vb->vb2_queue))
+> +               vip_active_buf_next(vip);
+>  }
+>
+>  static int start_streaming(struct vb2_queue *vq, unsigned int count)
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+> index 32fab30..8b34c48 100644
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+> @@ -1238,7 +1238,7 @@ static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
+>         return 0;
+>  }
+>
+> -static int mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
+> +static void mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
+>  {
+>         struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
+>         struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
+> @@ -1246,7 +1246,6 @@ static int mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
+>         if (sg_table)
+>                 dma_unmap_sg(cam->dev, sg_table->sgl,
+>                                 sg_table->nents, DMA_FROM_DEVICE);
+> -       return 0;
+>  }
+>
+>  static void mcam_vb_sg_buf_cleanup(struct vb2_buffer *vb)
+> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+> index abf365a..b9c9f10 100644
+> --- a/drivers/media/usb/pwc/pwc-if.c
+> +++ b/drivers/media/usb/pwc/pwc-if.c
+> @@ -614,17 +614,19 @@ static int buffer_prepare(struct vb2_buffer *vb)
+>         return 0;
+>  }
+>
+> -static int buffer_finish(struct vb2_buffer *vb)
+> +static void buffer_finish(struct vb2_buffer *vb)
+>  {
+>         struct pwc_device *pdev = vb2_get_drv_priv(vb->vb2_queue);
+>         struct pwc_frame_buf *buf = container_of(vb, struct pwc_frame_buf, vb);
+>
+> -       /*
+> -        * Application has called dqbuf and is getting back a buffer we've
+> -        * filled, take the pwc data we've stored in buf->data and decompress
+> -        * it into a usable format, storing the result in the vb2_buffer
+> -        */
+> -       return pwc_decompress(pdev, buf);
+> +       if (vb->state == VB2_BUF_STATE_DONE) {
+> +               /*
+> +                * Application has called dqbuf and is getting back a buffer we've
+> +                * filled, take the pwc data we've stored in buf->data and decompress
+> +                * it into a usable format, storing the result in the vb2_buffer
+> +                */
+> +               pwc_decompress(pdev, buf);
+> +       }
+>  }
+>
+>  static void buffer_cleanup(struct vb2_buffer *vb)
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+> index cd962be..db5984e 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -104,15 +104,15 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
+>         spin_unlock_irqrestore(&queue->irqlock, flags);
+>  }
+>
+> -static int uvc_buffer_finish(struct vb2_buffer *vb)
+> +static void uvc_buffer_finish(struct vb2_buffer *vb)
+>  {
+>         struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+>         struct uvc_streaming *stream =
+>                         container_of(queue, struct uvc_streaming, queue);
+>         struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
+>
+> -       uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+> -       return 0;
+> +       if (vb2_is_streaming(vb->vb2_queue))
+> +               uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+>  }
+>
+>  static void uvc_wait_prepare(struct vb2_queue *vq)
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 07b58bd..1f037de 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1787,11 +1787,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+>         if (ret < 0)
+>                 return ret;
+>
+> -       ret = call_vb_qop(vb, buf_finish, vb);
+> -       if (ret) {
+> -               dprintk(1, "dqbuf: buffer finish failed\n");
+> -               return ret;
+> -       }
+> +       call_vb_qop(vb, buf_finish, vb);
+>
+>         switch (vb->state) {
+>         case VB2_BUF_STATE_DONE:
+> diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+> index edc52e2..3a01576 100644
+> --- a/drivers/staging/media/go7007/go7007-v4l2.c
+> +++ b/drivers/staging/media/go7007/go7007-v4l2.c
+> @@ -470,7 +470,7 @@ static int go7007_buf_prepare(struct vb2_buffer *vb)
+>         return 0;
+>  }
+>
+> -static int go7007_buf_finish(struct vb2_buffer *vb)
+> +static void go7007_buf_finish(struct vb2_buffer *vb)
+>  {
+>         struct vb2_queue *vq = vb->vb2_queue;
+>         struct go7007 *go = vb2_get_drv_priv(vq);
+> @@ -483,7 +483,6 @@ static int go7007_buf_finish(struct vb2_buffer *vb)
+>                         V4L2_BUF_FLAG_PFRAME);
+>         buf->flags |= frame_type_flag;
+>         buf->field = V4L2_FIELD_NONE;
+> -       return 0;
+>  }
+>
+>  static int go7007_start_streaming(struct vb2_queue *q, unsigned int count)
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index f04eb28..f443ce0 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -311,7 +311,7 @@ struct vb2_ops {
+>
+>         int (*buf_init)(struct vb2_buffer *vb);
+>         int (*buf_prepare)(struct vb2_buffer *vb);
+> -       int (*buf_finish)(struct vb2_buffer *vb);
+> +       void (*buf_finish)(struct vb2_buffer *vb);
+>         void (*buf_cleanup)(struct vb2_buffer *vb);
+>
+>         int (*start_streaming)(struct vb2_queue *q, unsigned int count);
+> --
+> 1.8.4.rc3
+>
