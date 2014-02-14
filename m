@@ -1,103 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:23050 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526AbaBEVVZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 16:21:25 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N0J0061XKNNEF50@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Feb 2014 16:21:23 -0500 (EST)
-Date: Wed, 05 Feb 2014 19:21:17 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti =?UTF-8?B?U2VwcMOkbMOk?= <a.seppala@gmail.com>
-Cc: James Hogan <james.hogan@imgtec.com>, Sean Young <sean@mess.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jwilson@redhat.com>
-Subject: Re: [RFC PATCH 0/4] rc: Adding support for sysfs wakeup scancodes
-Message-id: <20140205192117.5a053aa3@samsung.com>
-In-reply-to: <CAKv9HNbfixr2746_4FewodYjOHO1G+TDgs9quyNeX87-KuBpbw@mail.gmail.com>
-References: <20140115173559.7e53239a@samsung.com>
- <1390246787-15616-1-git-send-email-a.seppala@gmail.com>
- <20140121122826.GA25490@pequod.mess.org>
- <CAKv9HNZzRq=0FnBH0CD0SCz9Jsa5QzY0-Y0envMBtgrxsQ+XBA@mail.gmail.com>
- <20140122162953.GA1665@pequod.mess.org>
- <CAKv9HNbVQwAcG98S3_Mj4A6zo8Ae2fLT6vn4LOYW1UMrwQku7Q@mail.gmail.com>
- <20140122210024.GA3223@pequod.mess.org> <20140122200142.002a39c2@samsung.com>
- <CAKv9HNY7==4H2ZDrmaX+1BcarRAJd7zUE491oQ2ZJZXezpwOAw@mail.gmail.com>
- <20140204155441.438c7a3c@samsung.com>
- <CAKv9HNbYJ5FsQas=03u8pXCyiF5VSUfsOR46McukeisqVHme+g@mail.gmail.com>
- <52F206D5.9060601@imgtec.com> <52F2077E.5040901@imgtec.com>
- <CAKv9HNbfixr2746_4FewodYjOHO1G+TDgs9quyNeX87-KuBpbw@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1425 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751959AbaBNKlq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Feb 2014 05:41:46 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 05/11] vb2: fix buf_init/buf_cleanup call sequences
+Date: Fri, 14 Feb 2014 11:41:06 +0100
+Message-Id: <1392374472-18393-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 05 Feb 2014 20:16:04 +0200
-Antti Seppälä <a.seppala@gmail.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On 5 February 2014 11:42, James Hogan <james.hogan@imgtec.com> wrote:
-> > On 05/02/14 09:39, James Hogan wrote:
-> >> Hi Antti,
-> >>
-> >> On 05/02/14 07:03, Antti Seppälä wrote:
-> >>> To wake up with nuvoton-cir we need to program several raw ir
-> >>> pulse/space lengths to the hardware and not a scancode. James's
-> >>> approach doesn't support this.
-> >>
-> >> Do the raw pulse/space lengths your hardware requires correspond to a
-> >> single IR packet (mapping to a single scancode)?
-> >>
-> >> If so then my API is simply at a higher level of abstraction. I think
-> >> this has the following advantages:
-> >> * userspace sees a consistent interface at the same level of abstraction
-> >> as it already has access to from input subsystem (i.e. scancodes). I.e.
-> >> it doesn't need to care which IR device is in use, whether it does
-> >> raw/hardware decode, or the details of the timings of the current protocol.
-> >> * it supports hardware decoders which filter on the demodulated data
-> >> rather than the raw pulse/space lengths.
-> >>
-> >> Of course to support this we'd need some per-protocol code to convert a
-> >> scancode back to pulse/space lengths. I'd like to think that code could
-> >> be generic, maybe as helper functions which multiple drivers could use,
-> >> which could also handle corner cases of the API in a consistent way
-> >> (e.g. user providing filter mask covering multiple scancodes, which
-> >> presumably pulse/space).
-> >
-> > hmm, I didn't complete that sentence :(.
-> > I meant:
-> > ..., which presumably pulse/space can't really represent very easily).
-> >
-> > Cheers
-> > James
-> >
-> >>
-> >> I see I've just crossed emails with Mauro who has just suggested
-> >> something similar. I agree that his (2) is the more elegant option.
-> >>
-> 
-> Yes, in nuvoton the ir pulses correspond to a scancode (or part of a scancode)
-> 
-> After giving it some thought I agree that using scancodes is the most
-> elegant way for specifying wakeup commands. Too bad that nuvoton does
-> not work with scancodes.
-> I pretty much agree with Mauro that the right solution would be to
-> write an IR encoder and use it to convert the given scancode back to a
-> format understood by nuvoton.
+Ensure that these ops are properly balanced.
 
-Ok, as we all agreed, I'll merge the remaining patches from James.
+There are two scenarios:
 
-> Writing IR encoders for all the protocols and an encoder selector
-> functionality is quite labourous and sadly I don't have time for that
-> anytime soon. If anyone wants to step up I'd be more than happy to
-> help though :)
+1) for MMAP buf_init is called when the buffers are created and buf_cleanup
+   must be called when the queue is finally freed. This scenario was always
+   working.
 
-I suspect that writing one IR encoder should not be hard, as there
-are already some on LIRC userspace.
+2) for USERPTR and DMABUF it is more complicated. When a buffer is queued
+   the code checks if all planes of this buffer have been acquired before.
+   If that's the case, then only buf_prepare has to be called. Otherwise
+   buf_cleanup needs to be called if the buffer was acquired before, then,
+   once all changed planes have been (re)acquired, buf_init has to be
+   called followed by buf_prepare. Should buf_prepare fail, then buf_cleanup
+   must be called on the newly acquired planes to release them in.
 
-I would love to have some time to write at least a few IR encoders,
-but, unfortunately, I would not have any time soon.
+Finally, in __vb2_queue_free we have to check if the buffer was actually
+acquired before calling buf_cleanup. While that it always true for MMAP
+mode, it is not necessarily true for the other modes. E.g. if you just
+call REQBUFS and close the file handle, then buffers were never queued and
+so no buf_init was ever called.
 
-Regards,
-Mauro
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 100 +++++++++++++++++++++----------
+ 1 file changed, 67 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 3756378..7766bf5 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -373,8 +373,10 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+ 	/* Call driver-provided cleanup function for each buffer, if provided */
+ 	for (buffer = q->num_buffers - buffers; buffer < q->num_buffers;
+ 	     ++buffer) {
+-		if (q->bufs[buffer])
+-			call_vb_qop(q->bufs[buffer], buf_cleanup, q->bufs[buffer]);
++		struct vb2_buffer *vb = q->bufs[buffer];
++
++		if (vb && vb->planes[0].mem_priv)
++			call_vb_qop(vb, buf_cleanup, vb);
+ 	}
+ 
+ 	/* Release video buffer memory */
+@@ -1161,6 +1163,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	unsigned int plane;
+ 	int ret;
+ 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++	bool reacquired = vb->planes[0].mem_priv == NULL;
+ 
+ 	/* Copy relevant information provided by the userspace */
+ 	__fill_vb2_buffer(vb, b, planes);
+@@ -1186,12 +1189,16 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		}
+ 
+ 		/* Release previously acquired memory if present */
+-		if (vb->planes[plane].mem_priv)
++		if (vb->planes[plane].mem_priv) {
++			if (!reacquired) {
++				reacquired = true;
++				call_vb_qop(vb, buf_cleanup, vb);
++			}
+ 			call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
++		}
+ 
+ 		vb->planes[plane].mem_priv = NULL;
+-		vb->v4l2_planes[plane].m.userptr = 0;
+-		vb->v4l2_planes[plane].length = 0;
++		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
+ 
+ 		/* Acquire each plane's memory */
+ 		mem_priv = call_memop(vb, get_userptr, q->alloc_ctx[plane],
+@@ -1208,23 +1215,34 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	}
+ 
+ 	/*
+-	 * Call driver-specific initialization on the newly acquired buffer,
+-	 * if provided.
+-	 */
+-	ret = call_vb_qop(vb, buf_init, vb);
+-	if (ret) {
+-		dprintk(1, "qbuf: buffer initialization failed\n");
+-		fail_vb_qop(vb, buf_init);
+-		goto err;
+-	}
+-
+-	/*
+ 	 * Now that everything is in order, copy relevant information
+ 	 * provided by userspace.
+ 	 */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+ 		vb->v4l2_planes[plane] = planes[plane];
+ 
++	if (reacquired) {
++		/*
++		 * One or more planes changed, so we must call buf_init to do
++		 * the driver-specific initialization on the newly acquired
++		 * buffer, if provided.
++		 */
++		ret = call_vb_qop(vb, buf_init, vb);
++		if (ret) {
++			dprintk(1, "qbuf: buffer initialization failed\n");
++			fail_vb_qop(vb, buf_init);
++			goto err;
++		}
++	}
++
++	ret = call_vb_qop(vb, buf_prepare, vb);
++	if (ret) {
++		dprintk(1, "qbuf: buffer preparation failed\n");
++		fail_vb_qop(vb, buf_prepare);
++		call_vb_qop(vb, buf_cleanup, vb);
++		goto err;
++	}
++
+ 	return 0;
+ err:
+ 	/* In case of errors, release planes that were already acquired */
+@@ -1244,8 +1262,13 @@ err:
+  */
+ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
++	int ret;
++
+ 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
+-	return 0;
++	ret = call_vb_qop(vb, buf_prepare, vb);
++	if (ret)
++		fail_vb_qop(vb, buf_prepare);
++	return ret;
+ }
+ 
+ /**
+@@ -1259,6 +1282,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	unsigned int plane;
+ 	int ret;
+ 	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++	bool reacquired = vb->planes[0].mem_priv == NULL;
+ 
+ 	/* Copy relevant information provided by the userspace */
+ 	__fill_vb2_buffer(vb, b, planes);
+@@ -1294,6 +1318,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 		dprintk(1, "qbuf: buffer for plane %d changed\n", plane);
+ 
++		if (!reacquired) {
++			reacquired = true;
++			call_vb_qop(vb, buf_cleanup, vb);
++		}
++
+ 		/* Release previously acquired memory if present */
+ 		__vb2_plane_dmabuf_put(vb, &vb->planes[plane]);
+ 		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
+@@ -1329,23 +1358,33 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	}
+ 
+ 	/*
+-	 * Call driver-specific initialization on the newly acquired buffer,
+-	 * if provided.
+-	 */
+-	ret = call_vb_qop(vb, buf_init, vb);
+-	if (ret) {
+-		dprintk(1, "qbuf: buffer initialization failed\n");
+-		fail_vb_qop(vb, buf_init);
+-		goto err;
+-	}
+-
+-	/*
+ 	 * Now that everything is in order, copy relevant information
+ 	 * provided by userspace.
+ 	 */
+ 	for (plane = 0; plane < vb->num_planes; ++plane)
+ 		vb->v4l2_planes[plane] = planes[plane];
+ 
++	if (reacquired) {
++		/*
++		 * Call driver-specific initialization on the newly acquired buffer,
++		 * if provided.
++		 */
++		ret = call_vb_qop(vb, buf_init, vb);
++		if (ret) {
++			dprintk(1, "qbuf: buffer initialization failed\n");
++			fail_vb_qop(vb, buf_init);
++			goto err;
++		}
++	}
++
++	ret = call_vb_qop(vb, buf_prepare, vb);
++	if (ret) {
++		dprintk(1, "qbuf: buffer preparation failed\n");
++		fail_vb_qop(vb, buf_prepare);
++		call_vb_qop(vb, buf_cleanup, vb);
++		goto err;
++	}
++
+ 	return 0;
+ err:
+ 	/* In case of errors, release planes that were already acquired */
+@@ -1420,11 +1459,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = -EINVAL;
+ 	}
+ 
+-	if (!ret) {
+-		ret = call_vb_qop(vb, buf_prepare, vb);
+-		if (ret)
+-			fail_vb_qop(vb, buf_prepare);
+-	}
+ 	if (ret)
+ 		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
+ 	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
+-- 
+1.8.4.rc3
+
