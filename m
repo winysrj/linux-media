@@ -1,167 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4422 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751583AbaBTUhL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46706 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753679AbaBOUvg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 15:37:11 -0500
-Message-ID: <53066763.3070000@xs4all.nl>
-Date: Thu, 20 Feb 2014 21:36:51 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-CC: laurent.pinchart@ideasonboard.com, k.debski@samsung.com
-Subject: Re: [PATCH v5.1 3/7] v4l: Add timestamp source flags, mask and document
- them
-References: <20140217232931.GW15635@valkosipuli.retiisi.org.uk> <1392925276-20412-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1392925276-20412-1-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sat, 15 Feb 2014 15:51:36 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
+	hverkuil@xs4all.nl, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v5 2/7] v4l: Use full 32 bits for buffer flags
+Date: Sat, 15 Feb 2014 22:53:00 +0200
+Message-Id: <1392497585-5084-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/20/2014 08:41 PM, Sakari Ailus wrote:
-> Some devices do not produce timestamps that correspond to the end of the
-> frame. The user space should be informed on the matter. This patch achieves
-> that by adding buffer flags (and a mask) for timestamp sources since more
-> possible timestamping points are expected than just two.
-> 
-> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of the
-> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end of
-> frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure (next
-> value).
+The buffer flags field is 32 bits but the defined only used 16. This is
+fine, but as more than 16 bits will be used in the very near future, define
+them as 32-bit numbers for consistency.
 
-Sorry, but I still have two small notes:
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/io.xml |   30 ++++++++++++-------------
+ include/uapi/linux/videodev2.h         |   38 +++++++++++++++++++-------------
+ 2 files changed, 38 insertions(+), 30 deletions(-)
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
-> since v5:
-> - Add a note on software generated timestamp inaccuracy.
-> 
->  Documentation/DocBook/media/v4l/io.xml   |   38 +++++++++++++++++++++++++-----
->  drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
->  include/media/videobuf2-core.h           |    2 ++
->  include/uapi/linux/videodev2.h           |    4 ++++
->  4 files changed, 41 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 46d24b3..22b87bc 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -653,12 +653,6 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
->  In that case, struct <structname>v4l2_buffer</structname> contains an array of
->  plane structures.</para>
->  
-> -      <para>For timestamp types that are sampled from the system clock
-> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
-> -taken after the complete frame has been received (or transmitted in
-> -case of video output devices). For other kinds of
-> -timestamps this may vary depending on the driver.</para>
-> -
->      <table frame="none" pgwide="1" id="v4l2-buffer">
->        <title>struct <structname>v4l2_buffer</structname></title>
->        <tgroup cols="4">
-> @@ -1119,6 +1113,38 @@ in which case caches have not been used.</entry>
->  	    <entry>The CAPTURE buffer timestamp has been taken from the
->  	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
-> +	    <entry>0x00070000</entry>
-> +	    <entry>Mask for timestamp sources below. The timestamp source
-> +	    defines the point of time the timestamp is taken in relation to
-> +	    the frame. Logical and operation between the
-> +	    <structfield>flags</structfield> field and
-> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
-> +	    value of the timestamp source.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
-> +	    <entry>0x00000000</entry>
-> +	    <entry>End Of Frame. The buffer timestamp has been taken
-> +	    when the last pixel of the frame has been received or the
-> +	    last pixel of the frame has been transmitted. In practice,
-> +	    software generated timestamps will typically be read from
-> +	    the clock a small amount of time after the last pixel has
-> +	    been received, depending on the system and other activity
-
-s/been received/been received or transmitted/
-
-> +	    in it.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
-> +	    <entry>0x00010000</entry>
-> +	    <entry>Start Of Exposure. The buffer timestamp has been
-> +	    taken when the exposure of the frame has begun. In
-> +	    practice, software generated timestamps will typically be
-> +	    read from the clock a small amount of time after the last
-> +	    pixel has been received, depending on the system and other
-> +	    activity in it. This is only valid for buffer type
-> +	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
-
-I would move the last sentence up to just before "In practice...". The
-way it is now it looks like an afterthought.
-
-I am also not sure whether the whole "In practice" sentence is valid
-here. Certainly the bit about "the last pixel" isn't since this is the
-"SOE" case and not the End Of Frame. In the case of the UVC driver (and that's
-the only one using this timestamp source) the timestamps come from the
-hardware as I understand it, so the "software generated" bit doesn't
-apply.
-
-I would actually be inclined to drop it altogether for this particular
-timestamp source. But it's up to Laurent.
-
-Regards,
-
-	Hans
-
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 5a5fb7f..6e314b0 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2195,7 +2195,9 @@ int vb2_queue_init(struct vb2_queue *q)
->  	    WARN_ON(!q->io_modes)	  ||
->  	    WARN_ON(!q->ops->queue_setup) ||
->  	    WARN_ON(!q->ops->buf_queue)   ||
-> -	    WARN_ON(q->timestamp_type & ~V4L2_BUF_FLAG_TIMESTAMP_MASK))
-> +	    WARN_ON(q->timestamp_type &
-> +		    ~(V4L2_BUF_FLAG_TIMESTAMP_MASK |
-> +		      V4L2_BUF_FLAG_TSTAMP_SRC_MASK)))
->  		return -EINVAL;
->  
->  	/* Warn that the driver should choose an appropriate timestamp type */
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index bef53ce..b6b992d 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -312,6 +312,8 @@ struct v4l2_fh;
->   * @buf_struct_size: size of the driver-specific buffer structure;
->   *		"0" indicates the driver doesn't want to use a custom buffer
->   *		structure type, so sizeof(struct vb2_buffer) will is used
-> + * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_* and
-> + *		V4L2_BUF_FLAGS_TSTAMP_SRC_*
->   * @gfp_flags:	additional gfp flags used when allocating the buffers.
->   *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
->   *		to force the buffer allocation to a specific memory zone.
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index e9ee444..82e8661 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -695,6 +695,10 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
->  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
->  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
-> +/* Timestamp sources. */
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
->  
->  /**
->   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
-> 
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 8facac4..46d24b3 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -984,7 +984,7 @@ should set this to 0.</entry>
+ 	<tbody valign="top">
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_MAPPED</constant></entry>
+-	    <entry>0x0001</entry>
++	    <entry>0x00000001</entry>
+ 	    <entry>The buffer resides in device memory and has been mapped
+ into the application's address space, see <xref linkend="mmap" /> for details.
+ Drivers set or clear this flag when the
+@@ -994,7 +994,7 @@ Drivers set or clear this flag when the
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_QUEUED</constant></entry>
+-	    <entry>0x0002</entry>
++	    <entry>0x00000002</entry>
+ 	  <entry>Internally drivers maintain two buffer queues, an
+ incoming and outgoing queue. When this flag is set, the buffer is
+ currently on the incoming queue. It automatically moves to the
+@@ -1007,7 +1007,7 @@ cleared.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_DONE</constant></entry>
+-	    <entry>0x0004</entry>
++	    <entry>0x00000004</entry>
+ 	    <entry>When this flag is set, the buffer is currently on
+ the outgoing queue, ready to be dequeued from the driver. Drivers set
+ or clear this flag when the <constant>VIDIOC_QUERYBUF</constant> ioctl
+@@ -1021,7 +1021,7 @@ state, in the application domain to say so.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_ERROR</constant></entry>
+-	    <entry>0x0040</entry>
++	    <entry>0x00000040</entry>
+ 	    <entry>When this flag is set, the buffer has been dequeued
+ 	    successfully, although the data might have been corrupted.
+ 	    This is recoverable, streaming may continue as normal and
+@@ -1031,7 +1031,7 @@ state, in the application domain to say so.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_KEYFRAME</constant></entry>
+-	    <entry>0x0008</entry>
++	    <entry>0x00000008</entry>
+ 	  <entry>Drivers set or clear this flag when calling the
+ <constant>VIDIOC_DQBUF</constant> ioctl. It may be set by video
+ capture devices when the buffer contains a compressed image which is a
+@@ -1039,27 +1039,27 @@ key frame (or field), &ie; can be decompressed on its own.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_PFRAME</constant></entry>
+-	    <entry>0x0010</entry>
++	    <entry>0x00000010</entry>
+ 	    <entry>Similar to <constant>V4L2_BUF_FLAG_KEYFRAME</constant>
+ this flags predicted frames or fields which contain only differences to a
+ previous key frame.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_BFRAME</constant></entry>
+-	    <entry>0x0020</entry>
++	    <entry>0x00000020</entry>
+ 	    <entry>Similar to <constant>V4L2_BUF_FLAG_PFRAME</constant>
+ 	this is a bidirectional predicted frame or field. [ooc tbd]</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMECODE</constant></entry>
+-	    <entry>0x0100</entry>
++	    <entry>0x00000100</entry>
+ 	    <entry>The <structfield>timecode</structfield> field is valid.
+ Drivers set or clear this flag when the <constant>VIDIOC_DQBUF</constant>
+ ioctl is called.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_PREPARED</constant></entry>
+-	    <entry>0x0400</entry>
++	    <entry>0x00000400</entry>
+ 	    <entry>The buffer has been prepared for I/O and can be queued by the
+ application. Drivers set or clear this flag when the
+ <link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link>, <link
+@@ -1069,7 +1069,7 @@ application. Drivers set or clear this flag when the
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
+-	    <entry>0x0800</entry>
++	    <entry>0x00000800</entry>
+ 	    <entry>Caches do not have to be invalidated for this buffer.
+ Typically applications shall use this flag if the data captured in the buffer
+ is not going to be touched by the CPU, instead the buffer will, probably, be
+@@ -1078,7 +1078,7 @@ passed on to a DMA-capable hardware unit for further processing or output.
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
+-	    <entry>0x1000</entry>
++	    <entry>0x00001000</entry>
+ 	    <entry>Caches do not have to be cleaned for this buffer.
+ Typically applications shall use this flag for output buffers if the data
+ in this buffer has not been created by the CPU but by some DMA-capable unit,
+@@ -1086,7 +1086,7 @@ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
+-	    <entry>0xe000</entry>
++	    <entry>0x0000e000</entry>
+ 	    <entry>Mask for timestamp types below. To test the
+ 	    timestamp type, mask out bits not belonging to timestamp
+ 	    type by performing a logical and operation with buffer
+@@ -1094,7 +1094,7 @@ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN</constant></entry>
+-	    <entry>0x0000</entry>
++	    <entry>0x00000000</entry>
+ 	    <entry>Unknown timestamp type. This type is used by
+ 	    drivers before Linux 3.9 and may be either monotonic (see
+ 	    below) or realtime (wall clock). Monotonic clock has been
+@@ -1107,7 +1107,7 @@ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC</constant></entry>
+-	    <entry>0x2000</entry>
++	    <entry>0x00002000</entry>
+ 	    <entry>The buffer timestamp has been taken from the
+ 	    <constant>CLOCK_MONOTONIC</constant> clock. To access the
+ 	    same clock outside V4L2, use
+@@ -1115,7 +1115,7 @@ in which case caches have not been used.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_COPY</constant></entry>
+-	    <entry>0x4000</entry>
++	    <entry>0x00004000</entry>
+ 	    <entry>The CAPTURE buffer timestamp has been taken from the
+ 	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
+ 	  </row>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 6ae7bbe..e9ee444 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -669,24 +669,32 @@ struct v4l2_buffer {
+ };
+ 
+ /*  Flags for 'flags' field */
+-#define V4L2_BUF_FLAG_MAPPED	0x0001  /* Buffer is mapped (flag) */
+-#define V4L2_BUF_FLAG_QUEUED	0x0002	/* Buffer is queued for processing */
+-#define V4L2_BUF_FLAG_DONE	0x0004	/* Buffer is ready */
+-#define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
+-#define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
+-#define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
++/* Buffer is mapped (flag) */
++#define V4L2_BUF_FLAG_MAPPED			0x00000001
++/* Buffer is queued for processing */
++#define V4L2_BUF_FLAG_QUEUED			0x00000002
++/* Buffer is ready */
++#define V4L2_BUF_FLAG_DONE			0x00000004
++/* Image is a keyframe (I-frame) */
++#define V4L2_BUF_FLAG_KEYFRAME			0x00000008
++/* Image is a P-frame */
++#define V4L2_BUF_FLAG_PFRAME			0x00000010
++/* Image is a B-frame */
++#define V4L2_BUF_FLAG_BFRAME			0x00000020
+ /* Buffer is ready, but the data contained within is corrupted. */
+-#define V4L2_BUF_FLAG_ERROR	0x0040
+-#define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+-#define V4L2_BUF_FLAG_PREPARED	0x0400	/* Buffer is prepared for queuing */
++#define V4L2_BUF_FLAG_ERROR			0x00000040
++/* timecode field is valid */
++#define V4L2_BUF_FLAG_TIMECODE			0x00000100
++/* Buffer is prepared for queuing */
++#define V4L2_BUF_FLAG_PREPARED			0x00000400
+ /* Cache handling flags */
+-#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+-#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
++#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
++#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
+ /* Timestamp type */
+-#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
+-#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
+-#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
+-#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
++#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
++#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
++#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
++#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-- 
+1.7.10.4
 
