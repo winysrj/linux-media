@@ -1,46 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46570 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753879AbaB0AWV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:22:21 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 10/13] DocBook: media: document V4L2_CTRL_CLASS_RF_TUNER
-Date: Thu, 27 Feb 2014 02:22:05 +0200
-Message-Id: <1393460528-11684-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
-References: <1393460528-11684-1-git-send-email-crope@iki.fi>
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:51855 "EHLO
+	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753443AbaBORQb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Feb 2014 12:16:31 -0500
+Date: Sat, 15 Feb 2014 09:16:19 -0800
+From: Josh Triplett <josh@joshtriplett.org>
+To: Levente Kurusa <levex@linux.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	OSUOSL Drivers <devel@driverdev.osuosl.org>,
+	Linux Media <linux-media@vger.kernel.org>,
+	Lisa Nguyen <lisa@xenapiadmin.com>,
+	Archana kumari <archanakumari959@gmail.com>,
+	David Binderman <dcb314@hotmail.com>
+Subject: Re: [PATCH] staging: davinci_vpfe: fix error check
+Message-ID: <20140215171619.GA22985@leaf>
+References: <1392459431-28203-1-git-send-email-levex@linux.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1392459431-28203-1-git-send-email-levex@linux.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is class for RF tuner specific controls, like gain controls,
-filters, signal strength.
+On Sat, Feb 15, 2014 at 11:17:11AM +0100, Levente Kurusa wrote:
+> The check would check the pointer, which is never less than 0.
+> According to the error message, the correct check would be
+> to check the return value of ipipe_mode. Check that instead.
+> 
+> Reported-by: David Binderman <dcb314@hotmail.com>
+> Signed-off-by: Levente Kurusa <levex@linux.com>
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index b3bb957..e9f6735 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -327,7 +327,12 @@ These controls are described in <xref
- These controls are described in <xref
- 		linkend="fm-rx-controls" />.</entry>
- 	  </row>
--
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_CLASS_RF_TUNER</constant></entry>
-+	    <entry>0xa20000</entry>
-+	    <entry>The class containing RF tuner controls.
-+These controls are described in <xref linkend="rf-tuner-controls" />.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
--- 
-1.8.5.3
-
+>  drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+> index 2d36b60..b2daf5e 100644
+> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+> @@ -267,7 +267,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
+>  	}
+>  
+>  	ipipe_mode = get_ipipe_mode(ipipe);
+> -	if (ipipe < 0) {
+> +	if (ipipe_mode < 0) {
+>  		pr_err("Failed to get ipipe mode");
+>  		return -EINVAL;
+>  	}
+> -- 
+> 1.8.3.1
+> 
