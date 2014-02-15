@@ -1,44 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51065 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751592AbaBWWEc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Feb 2014 17:04:32 -0500
-Message-ID: <530A706A.9030903@redhat.com>
-Date: Sun, 23 Feb 2014 23:04:26 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>, moinejf@free.fr
-CC: linux-media@vger.kernel.org
-Subject: Re: [media] gspca - topro: New subdriver for Topro webcams
-References: <20140130121408.GB17753@elgon.mountain>
-In-Reply-To: <20140130121408.GB17753@elgon.mountain>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44776 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752134AbaBOBSz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Feb 2014 20:18:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Peter Meerwald <pmeerw@pmeerw.net>, sakari.ailus@iki.fi
+Subject: [PATCH 1/2] omap3isp: Don't try to locate external subdev for mem-to-mem pipelines
+Date: Sat, 15 Feb 2014 02:19:54 +0100
+Message-Id: <1392427195-2017-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1392427195-2017-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1392427195-2017-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Memory-to-memory pipelines have no external subdev, we shouldn't try to
+locate one and validate its configuration. The driver currently works by
+chance due to another bug that results in failure to locate the external
+subdev being ignored.
 
-On 01/30/2014 01:14 PM, Dan Carpenter wrote:
-> Hello Jean-François Moine,
-> 
-> The patch 8f12b1ab2fac: "[media] gspca - topro: New subdriver for
-> Topro webcams" from Sep 22, 2011, leads to the following
-> static checker warning:
-> 	drivers/media/usb/gspca/topro.c:4642
-> 	sd_pkt_scan() warn: check 'data[]' for negative offsets s32min"
-> 
-> drivers/media/usb/gspca/topro.c
->   4632                  data++;
-> 
-> Should there be an "if (len < 8) return;" here?
+This gets rid of the "omap3isp omap3isp: can't find source, failing now"
+error message in the kernel log when operating on a memory-to-memory
+pipeline.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispvideo.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thanks for the report, there were indeed several missing length
-checks in the packet parsing code in topro.c
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 856fdf5..313fd13 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -888,6 +888,10 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+ 	unsigned int i;
+ 	int ret = 0;
+ 
++	/* Memory-to-memory pipelines have no external subdev. */
++	if (pipe->input != NULL)
++		return 0;
++
+ 	for (i = 0; i < ARRAY_SIZE(ents); i++) {
+ 		/* Is the entity part of the pipeline? */
+ 		if (!(pipe->entities & (1 << ents[i]->id)))
+-- 
+1.8.3.2
 
-I've added a patch fixing this to my gspca tree for 3.15 .
-
-Regards,
-
-Hans
