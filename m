@@ -1,127 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2291 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055AbaBQJ66 (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1310 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752819AbaBOMEP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:58:58 -0500
+	Sat, 15 Feb 2014 07:04:15 -0500
+Message-ID: <52FF579A.30400@xs4all.nl>
+Date: Sat, 15 Feb 2014 13:03:38 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 20/35] DocBook media: update VIDIOC_G/S/TRY_EXT_CTRLS.
-Date: Mon, 17 Feb 2014 10:57:35 +0100
-Message-Id: <1392631070-41868-21-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [REVIEWv2 PATCH 37/34] v4l2-ctrls: set elem_size for all types handled
+ by std_type_ops
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Document the support for the new complex type controls.
+It makes sense to have elem_size prefilled for types that the control
+framework knows about.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 43 ++++++++++++++++++----
- 1 file changed, 35 insertions(+), 8 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index b3bb957..d946d6b 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -72,23 +72,30 @@ initialize the <structfield>id</structfield>,
- <structfield>size</structfield> and <structfield>reserved2</structfield> fields
- of each &v4l2-ext-control; and call the
- <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
--must also set the <structfield>string</structfield> field.</para>
-+must also set the <structfield>string</structfield> field. Controls
-+of complex types (<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set)
-+must set the <structfield>p</structfield> field.</para>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 23febc4..bc30c50 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1821,12 +1821,25 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		rows = 1;
+ 	is_matrix = cols > 1 || rows > 1;
  
-     <para>If the <structfield>size</structfield> is too small to
- receive the control result (only relevant for pointer-type controls
- like strings), then the driver will set <structfield>size</structfield>
- to a valid value and return an &ENOSPC;. You should re-allocate the
--string memory to this new size and try again. It is possible that the
--same issue occurs again if the string has grown in the meantime. It is
-+memory to this new size and try again. For the string type it is possible that
-+the same issue occurs again if the string has grown in the meantime. It is
- recommended to call &VIDIOC-QUERYCTRL; first and use
- <structfield>maximum</structfield>+1 as the new <structfield>size</structfield>
- value. It is guaranteed that that is sufficient memory.
- </para>
+-	if (type == V4L2_CTRL_TYPE_INTEGER64)
++	/* Prefill elem_size for all types handled by std_type_ops */
++	switch (type) {
++	case V4L2_CTRL_TYPE_INTEGER64:
+ 		elem_size = sizeof(s64);
+-	else if (type == V4L2_CTRL_TYPE_STRING)
++		break;
++	case V4L2_CTRL_TYPE_STRING:
+ 		elem_size = max + 1;
+-	else if (type < V4L2_CTRL_COMPLEX_TYPES)
+-		elem_size = sizeof(s32);
++		break;
++	case V4L2_CTRL_TYPE_U8:
++		elem_size = sizeof(u8);
++		break;
++	case V4L2_CTRL_TYPE_U16:
++		elem_size = sizeof(u16);
++		break;
++	default:
++		if (type < V4L2_CTRL_COMPLEX_TYPES)
++			elem_size = sizeof(s32);
++		break;
++	}
+ 	tot_ctrl_size = elem_size * cols * rows;
  
-+    <para>Matrices are set and retrieved row-by-row. You cannot set a partial
-+matrix, all elements have to be set or retrieved. The total size is calculated
-+as <structfield>rows</structfield> * <structfield>cols</structfield> * <structfield>elem_size</structfield>.
-+These values can be obtained by calling &VIDIOC-QUERY-EXT-CTRL;.</para>
-+
-     <para>To change the value of a set of controls applications
- initialize the <structfield>id</structfield>, <structfield>size</structfield>,
- <structfield>reserved2</structfield> and
--<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
-+<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
- call the <constant>VIDIOC_S_EXT_CTRLS</constant> ioctl. The controls
- will only be set if <emphasis>all</emphasis> control values are
- valid.</para>
-@@ -96,11 +103,17 @@ valid.</para>
-     <para>To check if a set of controls have correct values applications
- initialize the <structfield>id</structfield>, <structfield>size</structfield>,
- <structfield>reserved2</structfield> and
--<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
-+<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
- call the <constant>VIDIOC_TRY_EXT_CTRLS</constant> ioctl. It is up to
- the driver whether wrong values are automatically adjusted to a valid
- value or if an error is returned.</para>
- 
-+    <para>For matrices it is possible to only set or check only the first
-+<constant>X</constant> elements by setting size to <constant>X * elem_size</constant>,
-+where <structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
-+Matrix elements are set row-by-row. Matrix elements that are not explicitly
-+set will be initialized to their default value.</para>
-+
-     <para>When the <structfield>id</structfield> or
- <structfield>ctrl_class</structfield> is invalid drivers return an
- &EINVAL;. When the value is out of bounds drivers can choose to take
-@@ -158,19 +171,33 @@ applications must set the array to zero.</entry>
- 	    <entry></entry>
- 	    <entry>__s32</entry>
- 	    <entry><structfield>value</structfield></entry>
--	    <entry>New value or current value.</entry>
-+	    <entry>New value or current value. Valid if this control is not of
-+type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
-+<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>__s64</entry>
- 	    <entry><structfield>value64</structfield></entry>
--	    <entry>New value or current value.</entry>
-+	    <entry>New value or current value. Valid if this control is of
-+type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
-+<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
- 	  </row>
- 	  <row>
- 	    <entry></entry>
- 	    <entry>char *</entry>
- 	    <entry><structfield>string</structfield></entry>
--	    <entry>A pointer to a string.</entry>
-+	    <entry>A pointer to a string. Valid if this control is of
-+type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>void *</entry>
-+	    <entry><structfield>p</structfield></entry>
-+	    <entry>A pointer to a complex type which can be a matrix and/or a
-+complex type (the control's type is >= <constant>V4L2_CTRL_COMPLEX_TYPES</constant>).
-+Valid if <constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set for this control.
-+</entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
+ 	/* Sanity checks */
 -- 
-1.8.4.rc3
+1.8.5.2
 
