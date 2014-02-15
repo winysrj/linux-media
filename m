@@ -1,52 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:54505 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751224AbaBZHEW (ORCPT
+Received: from fallback6.mail.ru ([94.100.176.134]:51326 "EHLO
+	fallback6.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753398AbaBOQfi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 02:04:22 -0500
-From: Daniel Jeong <gshark.jeong@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Jeong <gshark.jeong@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
-Subject: [RFC v6 0/3] add new Dual LED FLASH LM3646
-Date: Wed, 26 Feb 2014 16:04:08 +0900
-Message-Id: <1393398251-5383-1-git-send-email-gshark.jeong@gmail.com>
+	Sat, 15 Feb 2014 11:35:38 -0500
+Received: from smtp48.i.mail.ru (smtp48.i.mail.ru [94.100.177.108])
+	by fallback6.mail.ru (mPOP.Fallback_MX) with ESMTP id 1EB523182DE0
+	for <linux-media@vger.kernel.org>; Sat, 15 Feb 2014 20:35:34 +0400 (MSK)
+From: Alexander Shiyan <shc_work@mail.ru>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH] media: dvb-frontends/stb6100.c: Fix buffer length check
+Date: Sat, 15 Feb 2014 20:35:15 +0400
+Message-Id: <1392482115-18045-1-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- This patch is to add new dual led flash, lm3646.
- LM3646 is the product of ti and it has two 1.5A sync. boost 
- converter with dual white current source.
- 2 files are created and 4 files are modified.
- And 3 patch files are created and sent.
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+---
+ drivers/media/dvb-frontends/stb6100.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- v6 - change log
-   Changed description in DocBook.
-
- v5 - change log
-   Added control register caching to avoid redundant i2c access.
-   Removed dt to create a seperate patch.
-   Changed description in DocBook.
-
-Daniel Jeong (3):
-  [RFC] v4l2-controls.h:
-  [RFC] DocBook:Media:v4l:controls.xml
-  [RFC] media: i2c: add new dual LED Flash driver, lm3646
-
- Documentation/DocBook/media/v4l/controls.xml |   18 ++
- drivers/media/i2c/Kconfig                    |    9 +
- drivers/media/i2c/Makefile                   |    1 +
- drivers/media/i2c/lm3646.c                   |  419 ++++++++++++++++++++++++++
- include/media/lm3646.h                       |   87 ++++++
- include/uapi/linux/v4l2-controls.h           |    3 +
- 6 files changed, 537 insertions(+)
- create mode 100644 drivers/media/i2c/lm3646.c
- create mode 100644 include/media/lm3646.h
-
+diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
+index cea175d..4ef8a5c 100644
+--- a/drivers/media/dvb-frontends/stb6100.c
++++ b/drivers/media/dvb-frontends/stb6100.c
+@@ -193,7 +193,7 @@ static int stb6100_write_reg_range(struct stb6100_state *state, u8 buf[], int st
+ 		.len	= len + 1
+ 	};
+ 
+-	if (1 + len > sizeof(buf)) {
++	if (1 + len > sizeof(cmdbuf)) {
+ 		printk(KERN_WARNING
+ 		       "%s: i2c wr: len=%d is too big!\n",
+ 		       KBUILD_MODNAME, len);
 -- 
-1.7.9.5
+1.8.3.2
 
