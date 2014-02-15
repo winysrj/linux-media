@@ -1,47 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5.pb.cz ([109.72.0.115]:44129 "EHLO smtp5.pb.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751781AbaBXIkN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Feb 2014 03:40:13 -0500
-Received: from [192.168.1.15] (unknown [109.72.4.22])
-	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by smtp5.pb.cz (Postfix) with ESMTPS id 62B2580C67
-	for <linux-media@vger.kernel.org>; Mon, 24 Feb 2014 09:40:10 +0100 (CET)
-Message-ID: <530B056A.7050501@mizera.cz>
-Date: Mon, 24 Feb 2014 09:40:10 +0100
-From: kapetr@mizera.cz
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4472 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752847AbaBOMUe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Feb 2014 07:20:34 -0500
+Message-ID: <52FF5B6C.8040303@xs4all.nl>
+Date: Sat, 15 Feb 2014 13:19:56 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: af9035 vs. it913x
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Subject: [REVIEWv2 PATCH 40/34] solo6x10: check dma_map_sg() return value
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The dma_map_sg() function can fail, so check for the return value.
 
-old it913x had support reporting of signal strength on IT9135 v2.
-af9035 driver does not. Could that be corrected ?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index ccdf0f3..fa5e8ab 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -479,8 +479,9 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
+ 	vb2_set_plane_payload(vb, 0, vop_jpeg_size(vh) + solo_enc->jpeg_len);
+ 
+ 	/* may discard all previous data in vbuf->sgl */
+-	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+-			DMA_FROM_DEVICE);
++	if (!dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
++			DMA_FROM_DEVICE))
++		return -ENOMEM;
+ 	ret = solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf,
+ 			     vop_jpeg_offset(vh) - SOLO_JPEG_EXT_ADDR(solo_dev),
+ 			     frame_size, SOLO_JPEG_EXT_ADDR(solo_dev),
+@@ -525,8 +526,9 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
+ 		& ~(DMA_ALIGN - 1);
+ 
+ 	/* may discard all previous data in vbuf->sgl */
+-	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+-			DMA_FROM_DEVICE);
++	if (!dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
++			DMA_FROM_DEVICE))
++		return -ENOMEM;
+ 	ret = solo_send_desc(solo_enc, skip, vbuf, frame_off, frame_size,
+ 			SOLO_MP4E_EXT_ADDR(solo_dev),
+ 			SOLO_MP4E_EXT_SIZE(solo_dev));
+-- 
+1.8.4.rc3
 
 
-And I would like to know:
-How to get and build drivers from source with patches which are 
-presented in this forum.
-
-E.g. - driver it913x is now obsolete and IT9135 is now moved to driver 
-af9035. OK.
-But when I download:
-
-git clone --depth=1 git://linuxtv.org/media_build.git
-
-as described here:
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-
-There are these changes/patches not included.
-Is somewhere more actual  media_build.git to clone an build ?
-
-
-Thanks
-
---kapetr
