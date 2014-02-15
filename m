@@ -1,62 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752723AbaBEQlx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:53 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46701 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753833AbaBOUvk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Feb 2014 15:51:40 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: [PATCH 15/47] media: davinci: vpif: Switch to pad-level DV operations
-Date: Wed,  5 Feb 2014 17:42:06 +0100
-Message-Id: <1391618558-5580-16-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
+	hverkuil@xs4all.nl
+Subject: [PATCH v5 0/7] Fix buffer timestamp documentation, add new timestamp flags
+Date: Sat, 15 Feb 2014 22:52:58 +0200
+Message-Id: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video-level enum_dv_timings and dv_timings_cap operations are
-deprecated in favor of the pad-level versions. All subdev drivers
-implement the pad-level versions, switch to them.
+Hi all,
 
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 4 +++-
- drivers/media/platform/davinci/vpif_display.c | 4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+This is the fifth version of the set after a long break. v4 (including
+v4.[12]) can be found here:
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 735ec47..d0081eb 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1723,7 +1723,9 @@ vpif_enum_dv_timings(struct file *file, void *priv,
- 	struct channel_obj *ch = fh->channel;
- 	int ret;
- 
--	ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
-+	timings->pad = 0;
-+
-+	ret = v4l2_subdev_call(ch->sd, pad, enum_dv_timings, timings);
- 	if (ret == -ENOIOCTLCMD || ret == -ENODEV)
- 		return -EINVAL;
- 	return ret;
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 9d115cd..20979c4 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1380,7 +1380,9 @@ vpif_enum_dv_timings(struct file *file, void *priv,
- 	struct channel_obj *ch = fh->channel;
- 	int ret;
- 
--	ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
-+	timings->pad = 0;
-+
-+	ret = v4l2_subdev_call(ch->sd, pad, enum_dv_timings, timings);
- 	if (ret == -ENOIOCTLCMD || ret == -ENODEV)
- 		return -EINVAL;
- 	return ret;
+<URL:http://www.spinics.net/lists/linux-media/msg67445.html>
+
+since v4.2:
+
+- In a few places in documentation it was stated that setting timestamp for
+  output devices will affect the time the frame is displayed. The patch now
+  removes that statement. Patch 1/7.
+
+- SOF timestamp was changed into SOE timestamp to signify start of exposure.
+  This corresponds to what the UVC devices do according to the spec. SOE is
+  only valid for CAPTURE queues. 
+
+- Timestamp is always copied from source to destination, not the other way
+  around. Drivers affected were exynos-gsc, m2m-deinterlace and mx2_emmaprp.
+  Patch 5/7. Kamil: could you check especially this one, please?
+
+- Timestamp source flags are copied but not the timestamp type (which, well,
+  is always "COPY". Change all m2m drivers to do so.
+
 -- 
-1.8.3.2
+Kind regards,
+Sakari
 
