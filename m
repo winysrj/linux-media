@@ -1,90 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41972 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755957AbaBRO0s (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2934 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751606AbaBODfY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 09:26:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 3/3] uvcvideo: Enable VIDIOC_CREATE_BUFS
-Date: Tue, 18 Feb 2014 15:27:49 +0100
-Message-Id: <1392733669-5281-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1392733669-5281-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1392733669-5281-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 14 Feb 2014 22:35:24 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1F3ZKAW098999
+	for <linux-media@vger.kernel.org>; Sat, 15 Feb 2014 04:35:22 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id D52F22A00A8
+	for <linux-media@vger.kernel.org>; Sat, 15 Feb 2014 04:34:49 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140215033449.D52F22A00A8@tschai.lan>
+Date: Sat, 15 Feb 2014 04:34:49 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch enables the ioctl to create additional buffers on the
-videobuf2 capture queue.
+Results of the daily build of media_tree:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_queue.c | 12 ++++++++++++
- drivers/media/usb/uvc/uvc_v4l2.c  | 10 ++++++++++
- drivers/media/usb/uvc/uvcvideo.h  |  2 ++
- 3 files changed, 24 insertions(+)
+date:		Sat Feb 15 04:00:21 CET 2014
+git branch:	test
+git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index d46dd70..ff7be97 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -198,6 +198,18 @@ int uvc_query_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
- 	return ret;
- }
- 
-+int uvc_create_buffers(struct uvc_video_queue *queue,
-+		       struct v4l2_create_buffers *cb)
-+{
-+	int ret;
-+
-+	mutex_lock(&queue->mutex);
-+	ret = vb2_create_bufs(&queue->queue, cb);
-+	mutex_unlock(&queue->mutex);
-+
-+	return ret;
-+}
-+
- int uvc_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
- {
- 	int ret;
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 3afff92..fa58131 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -1000,6 +1000,16 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		return uvc_query_buffer(&stream->queue, buf);
- 	}
- 
-+	case VIDIOC_CREATE_BUFS:
-+	{
-+		struct v4l2_create_buffers *cb = arg;
-+
-+		if (!uvc_has_privileges(handle))
-+			return -EBUSY;
-+
-+		return uvc_create_buffers(&stream->queue, cb);
-+	}
-+
- 	case VIDIOC_QBUF:
- 		if (!uvc_has_privileges(handle))
- 			return -EBUSY;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 6173632..143d5e5 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -614,6 +614,8 @@ extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
- extern void uvc_free_buffers(struct uvc_video_queue *queue);
- extern int uvc_query_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf);
-+extern int uvc_create_buffers(struct uvc_video_queue *queue,
-+		struct v4l2_create_buffers *v4l2_cb);
- extern int uvc_queue_buffer(struct uvc_video_queue *queue,
- 		struct v4l2_buffer *v4l2_buf);
- extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
--- 
-1.8.3.2
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
