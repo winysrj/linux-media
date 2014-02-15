@@ -1,56 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1281 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751824AbaBNKlj (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44780 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752474AbaBOBS5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 05:41:39 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 14 Feb 2014 20:18:57 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 04/11] vb2: call buf_finish from __dqbuf
-Date: Fri, 14 Feb 2014 11:41:05 +0100
-Message-Id: <1392374472-18393-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Peter Meerwald <pmeerw@pmeerw.net>, sakari.ailus@iki.fi
+Subject: [PATCH 2/2] omap3isp: Don't ignore failure to locate external subdev
+Date: Sat, 15 Feb 2014 02:19:55 +0100
+Message-Id: <1392427195-2017-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1392427195-2017-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1392427195-2017-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+A failure to locate the external subdev for a non memory-to-memory
+pipeline is a fatal error, don't ignore it.
 
-This ensures that it is also called from queue_cancel, which also calls
-__dqbuf(). Without this change any time queue_cancel is called while
-streaming the buf_finish op will not be called and any driver cleanup
-will not happen.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
+ drivers/media/platform/omap3isp/ispvideo.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 1f037de..3756378 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1762,6 +1762,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
- 		return;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 313fd13..a62cf0b 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -886,7 +886,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+ 	struct v4l2_ext_controls ctrls;
+ 	struct v4l2_ext_control ctrl;
+ 	unsigned int i;
+-	int ret = 0;
++	int ret;
  
-+	call_vb_qop(vb, buf_finish, vb);
-+
- 	vb->state = VB2_BUF_STATE_DEQUEUED;
+ 	/* Memory-to-memory pipelines have no external subdev. */
+ 	if (pipe->input != NULL)
+@@ -909,7 +909,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
  
- 	/* unmap DMABUF buffer */
-@@ -1787,8 +1789,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 	if (ret < 0)
- 		return ret;
+ 	if (!source) {
+ 		dev_warn(isp->dev, "can't find source, failing now\n");
+-		return ret;
++		return -EINVAL;
+ 	}
  
--	call_vb_qop(vb, buf_finish, vb);
--
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DONE:
- 		dprintk(3, "dqbuf: Returning done buffer\n");
+ 	if (media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
 -- 
-1.8.4.rc3
+1.8.3.2
 
