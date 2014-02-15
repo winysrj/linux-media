@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2746 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159AbaBYKQY (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3462 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752819AbaBOME4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:16:24 -0500
+	Sat, 15 Feb 2014 07:04:56 -0500
+Message-ID: <52FF57C3.60200@xs4all.nl>
+Date: Sat, 15 Feb 2014 13:04:19 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 09/13] mem2mem_testdev: set priv to 0
-Date: Tue, 25 Feb 2014 11:15:59 +0100
-Message-Id: <1393323363-30058-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [REVIEWv2 PATCH 38/34] solo/go7007: drop elem_size: now set by control
+ framework
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-v4l2_compliance fix.
+The control framework will fill in elem_size for the standard types
+the framework knows about, so no longer set these explicitly.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/mem2mem_testdev.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/staging/media/go7007/go7007-v4l2.c         | 1 -
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-index 886d475..0745d1a 100644
---- a/drivers/media/platform/mem2mem_testdev.c
-+++ b/drivers/media/platform/mem2mem_testdev.c
-@@ -529,6 +529,7 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct m2mtest_fmt *fmt)
- 	f->fmt.pix.width &= ~DIM_ALIGN_MASK;
- 	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
- 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+	f->fmt.pix.priv = 0;
- 
- 	return 0;
- }
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index 4cf78d2..ad41483 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -1038,7 +1038,6 @@ static const struct v4l2_ctrl_config go7007_mb_regions_ctrl = {
+ 	.id = V4L2_CID_DETECT_MD_REGION_GRID,
+ 	.rows = 576 / 16,
+ 	.cols = 720 / 16,
+-	.elem_size = 1,
+ 	.max = 3,
+ 	.step = 1,
+ };
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index 3b994d7..ccdf0f3 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -1237,7 +1237,6 @@ static const struct v4l2_ctrl_config solo_md_thresholds = {
+ 	.rows = SOLO_MOTION_SZ,
+ 	.cols = SOLO_MOTION_SZ,
+ 	.def = SOLO_DEF_MOT_THRESH,
+-	.elem_size = 2,
+ 	.max = 65535,
+ 	.step = 1,
+ };
 -- 
-1.9.0
+1.8.5.2
 
