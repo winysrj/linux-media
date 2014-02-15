@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45744 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46711 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752139AbaBGWtU (ORCPT
+	by vger.kernel.org with ESMTP id S1753731AbaBOUvg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 17:49:20 -0500
+	Sat, 15 Feb 2014 15:51:36 -0500
 From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATCH v4.2 3/4] v4l: Add timestamp source flags, mask and document them
-Date: Sat,  8 Feb 2014 00:52:27 +0200
-Message-Id: <1391813548-818-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1393149.6OyBNhdFTt@avalon>
-References: <1393149.6OyBNhdFTt@avalon>
+Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
+	hverkuil@xs4all.nl, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v5 3/7] v4l: Add timestamp source flags, mask and document them
+Date: Sat, 15 Feb 2014 22:53:01 +0200
+Message-Id: <1392497585-5084-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -28,21 +28,17 @@ value).
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
-since v4.1:
-- Replace SOF flag by SOE flag
-- Add mask for timestamp sources
-
- Documentation/DocBook/media/v4l/io.xml |   28 ++++++++++++++++++++++------
- drivers/media/usb/uvc/uvc_queue.c      |    3 ++-
- include/media/videobuf2-core.h         |    2 ++
- include/uapi/linux/videodev2.h         |    4 ++++
- 4 files changed, 30 insertions(+), 7 deletions(-)
+ Documentation/DocBook/media/v4l/io.xml   |   31 ++++++++++++++++++++++++------
+ drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+ include/media/videobuf2-core.h           |    2 ++
+ include/uapi/linux/videodev2.h           |    4 ++++
+ 4 files changed, 34 insertions(+), 7 deletions(-)
 
 diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 2c155cc..451626f 100644
+index 46d24b3..fbd0c6e 100644
 --- a/Documentation/DocBook/media/v4l/io.xml
 +++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -654,12 +654,6 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+@@ -653,12 +653,6 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
  In that case, struct <structname>v4l2_buffer</structname> contains an array of
  plane structures.</para>
  
@@ -55,7 +51,7 @@ index 2c155cc..451626f 100644
      <table frame="none" pgwide="1" id="v4l2-buffer">
        <title>struct <structname>v4l2_buffer</structname></title>
        <tgroup cols="4">
-@@ -1120,6 +1114,28 @@ in which case caches have not been used.</entry>
+@@ -1119,6 +1113,31 @@ in which case caches have not been used.</entry>
  	    <entry>The CAPTURE buffer timestamp has been taken from the
  	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
  	  </row>
@@ -72,32 +68,36 @@ index 2c155cc..451626f 100644
 +	  <row>
 +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
 +	    <entry>0x00000000</entry>
-+	    <entry>"End of frame." The buffer timestamp has been taken when
-+	    the last pixel of the frame has been received.</entry>
++	    <entry>"End of frame." The buffer timestamp has been taken
++	    when the last pixel of the frame has been received or the
++	    last pixel of the frame has been transmitted.</entry>
 +	  </row>
 +	  <row>
 +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
 +	    <entry>0x00010000</entry>
 +	    <entry>"Start of exposure." The buffer timestamp has been taken
-+	    when the exposure of the frame has begun.</entry>
++	    when the exposure of the frame has begun. This is only
++	    valid for buffer type
++	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
 +	  </row>
  	</tbody>
        </tgroup>
      </table>
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index cd962be..a9292d2 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -149,7 +149,8 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
- 	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
- 	queue->queue.ops = &uvc_queue_qops;
- 	queue->queue.mem_ops = &vb2_vmalloc_memops;
--	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
-+		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
- 	ret = vb2_queue_init(&queue->queue);
- 	if (ret)
- 		return ret;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5a5fb7f..6e314b0 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2195,7 +2195,9 @@ int vb2_queue_init(struct vb2_queue *q)
+ 	    WARN_ON(!q->io_modes)	  ||
+ 	    WARN_ON(!q->ops->queue_setup) ||
+ 	    WARN_ON(!q->ops->buf_queue)   ||
+-	    WARN_ON(q->timestamp_type & ~V4L2_BUF_FLAG_TIMESTAMP_MASK))
++	    WARN_ON(q->timestamp_type &
++		    ~(V4L2_BUF_FLAG_TIMESTAMP_MASK |
++		      V4L2_BUF_FLAG_TSTAMP_SRC_MASK)))
+ 		return -EINVAL;
+ 
+ 	/* Warn that the driver should choose an appropriate timestamp type */
 diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
 index bef53ce..b6b992d 100644
 --- a/include/media/videobuf2-core.h
