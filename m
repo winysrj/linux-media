@@ -1,219 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:40911 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886AbaBQQiS (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44782 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753258AbaBOBS7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 11:38:18 -0500
+	Fri, 14 Feb 2014 20:18:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	sakari.ailus@iki.fi
+Subject: Re: OMAP3 ISP capabilities, resizer
+Date: Sat, 15 Feb 2014 02:20:03 +0100
+Message-ID: <1820490.0WrQgPlyuR@avalon>
+In-Reply-To: <alpine.DEB.2.01.1402121601100.6337@pmeerw.net>
+References: <alpine.DEB.2.01.1402121601100.6337@pmeerw.net>
 MIME-Version: 1.0
-In-Reply-To: <20140217155832.20337.83163.stgit@patser>
-References: <20140217155056.20337.25254.stgit@patser>
-	<20140217155832.20337.83163.stgit@patser>
-Date: Mon, 17 Feb 2014 11:38:17 -0500
-Message-ID: <CAF6AEGtnQAAM-p=Q83Ha=9_PyzaXF9omhY4O1UOv=4+45xvUXg@mail.gmail.com>
-Subject: Re: [PATCH 6/6] dma-buf: add poll support, v2
-From: Rob Clark <robdclark@gmail.com>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-arch@vger.kernel.org, Colin Cross <ccross@google.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 17, 2014 at 10:58 AM, Maarten Lankhorst
-<maarten.lankhorst@canonical.com> wrote:
-> Thanks to Fengguang Wu for spotting a missing static cast.
->
-> v2:
-> - Kill unused variable need_shared.
->
-> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Hi Peter,
+
+On Wednesday 12 February 2014 16:19:55 Peter Meerwald wrote:
+> Hello,
+> 
+> some more findings:
+> 
+> * the driver bug seen below was observed with kernel 3.7 and is already
+> fixed in more recent kernels, likely with commit 864a121274,
+> [media] v4l: Don't warn during link validation when encountering a V4L2
+> devnode
+
+Correct. I tend to forget about bugs that have been fixed ;-)
+
+> * there still is a a confusing warning:
+>   omap3isp omap3isp: can't find source, failing now
+> which may be addressed by the patch here https://linuxtv.org/patch/15200/,
+> but has not been applied
+
+The patch won't apply anymore. I've just submitted two other patches (you've 
+been CCed) to fix the problem, could you please test them ?
+
+> * I have a test program, http://pmeerw.net/scaler.c, which exercises the
+> OMAP3 ISP resizer standalone with the pipeline given below; it crashes the
+> system quite reliably on 3.7 and recent kernels :(
+> 
+> the reason for the crash is that the ISP resizer can still be busy and
+> doesn't like to be turned off then; a little sleep before
+> omap3isp_sbl_disable() helps (or waiting for the ISP resize to become
+> idle, see the patch below)
+> 
+> I'm not sure what omap3isp_module_sync_idle() is supposed to do, it
+> immediately returns since we are in SINGLESHOT mode and
+> isp_pipeline_ready() is false
+
+The function is supposed to wait until the module becomes idle. I'm not sure 
+why we don't call it for memory-to-memory pipelines, I need to investigate 
+that. Sakari, do you remember what we've done there ?
+
+> with below patch I am happily resizing...
+> 
+> // snip, RFC
+> From: Peter Meerwald <p.meerwald@bct-electronic.com>
+> Date: Wed, 12 Feb 2014 15:59:20 +0100
+> Subject: [PATCH] omap3isp: Wait for resizer to become idle before
+> disabling
+> 
 > ---
->  drivers/base/dma-buf.c  |  101 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/dma-buf.h |   12 ++++++
->  2 files changed, 113 insertions(+)
->
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index 85e792c2c909..77ea621ab59d 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -30,6 +30,7 @@
->  #include <linux/export.h>
->  #include <linux/debugfs.h>
->  #include <linux/seq_file.h>
-> +#include <linux/poll.h>
->  #include <linux/reservation.h>
->
->  static inline int is_dma_buf_file(struct file *);
-> @@ -52,6 +53,13 @@ static int dma_buf_release(struct inode *inode, struct file *file)
->
->         BUG_ON(dmabuf->vmapping_counter);
->
-> +       /*
-> +        * Any fences that a dma-buf poll can wait on should be signaled
-> +        * before releasing dma-buf. This is the responsibility of each
-> +        * driver that uses the reservation objects.
-
-minor nit.. but wouldn't hurt to mention in the comment that if you
-hit this BUG_ON it is because someone isn't holding a ref to the
-dmabuf while there is a pending fence
-
-> +        */
-> +       BUG_ON(dmabuf->cb_shared.active || dmabuf->cb_excl.active);
+>  drivers/media/platform/omap3isp/ispresizer.c |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispresizer.c
+> b/drivers/media/platform/omap3isp/ispresizer.c
+> index d11fb26..fea98f7 100644
+> --- a/drivers/media/platform/omap3isp/ispresizer.c
+> +++ b/drivers/media/platform/omap3isp/ispresizer.c
+> @@ -1145,6 +1145,7 @@ static int resizer_set_stream(struct v4l2_subdev *sd,
+> int enable) struct isp_video *video_out = &res->video_out;
+>         struct isp_device *isp = to_isp_device(res);
+>         struct device *dev = to_device(res);
+> +       unsigned long timeout = 0;
+> 
+>         if (res->state == ISP_PIPELINE_STREAM_STOPPED) {
+>                 if (enable == ISP_PIPELINE_STREAM_STOPPED)
+> @@ -1176,6 +1177,15 @@ static int resizer_set_stream(struct v4l2_subdev *sd,
+> int enable) if (omap3isp_module_sync_idle(&sd->entity, &res->wait,
+> &res->stopping))
+>                         dev_dbg(dev, "%s: module stop timeout.\n",
+> sd->name);
 > +
->         dmabuf->ops->release(dmabuf);
->
->         mutex_lock(&db_list.lock);
-> @@ -108,10 +116,99 @@ static loff_t dma_buf_llseek(struct file *file, loff_t offset, int whence)
->         return base + offset;
->  }
->
-> +static void dma_buf_poll_cb(struct fence *fence, struct fence_cb *cb)
-> +{
-> +       struct dma_buf_poll_cb_t *dcb = (struct dma_buf_poll_cb_t*) cb;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&dcb->poll->lock, flags);
-> +       wake_up_locked_poll(dcb->poll, dcb->active);
-> +       dcb->active = 0;
-> +       spin_unlock_irqrestore(&dcb->poll->lock, flags);
-> +}
-> +
-> +static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
-> +{
-> +       struct dma_buf *dmabuf;
-> +       struct reservation_object *resv;
-> +       unsigned long events;
-> +
-> +       dmabuf = file->private_data;
-> +       if (!dmabuf || !dmabuf->resv)
-> +               return POLLERR;
-> +
-> +       resv = dmabuf->resv;
-> +
-> +       poll_wait(file, &dmabuf->poll, poll);
-> +
-> +       events = poll_requested_events(poll) & (POLLIN | POLLOUT);
-> +       if (!events)
-> +               return 0;
-> +
-> +       ww_mutex_lock(&resv->lock, NULL);
-> +
-> +       if (resv->fence_excl && (!(events & POLLOUT) || resv->fence_shared_count == 0)) {
-> +               struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_excl;
-> +               unsigned long pevents = POLLIN;
-> +
-> +               if (resv->fence_shared_count == 0)
-> +                       pevents |= POLLOUT;
-> +
-> +               spin_lock_irq(&dmabuf->poll.lock);
-> +               if (dcb->active) {
-> +                       dcb->active |= pevents;
-> +                       events &= ~pevents;
-> +               } else
-> +                       dcb->active = pevents;
-> +               spin_unlock_irq(&dmabuf->poll.lock);
-> +
-> +               if (events & pevents) {
-> +                       if (!fence_add_callback(resv->fence_excl,
-> +                                               &dcb->cb, dma_buf_poll_cb))
-> +                               events &= ~pevents;
-> +                       else
-> +                       // No callback queued, wake up any additional waiters.
-
-couple spots w/ c++ comments, which I assume you didn't mean to leave?
-
-Anyways, other than those minor things,
-
-Reviewed-by: Rob Clark <robdclark@gmail.com>
-
-> +                               dma_buf_poll_cb(NULL, &dcb->cb);
-> +               }
-> +       }
-> +
-> +       if ((events & POLLOUT) && resv->fence_shared_count > 0) {
-> +               struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_shared;
-> +               int i;
-> +
-> +               /* Only queue a new callback if no event has fired yet */
-> +               spin_lock_irq(&dmabuf->poll.lock);
-> +               if (dcb->active)
-> +                       events &= ~POLLOUT;
-> +               else
-> +                       dcb->active = POLLOUT;
-> +               spin_unlock_irq(&dmabuf->poll.lock);
-> +
-> +               if (!(events & POLLOUT))
-> +                       goto out;
-> +
-> +               for (i = 0; i < resv->fence_shared_count; ++i)
-> +                       if (!fence_add_callback(resv->fence_shared[i],
-> +                                               &dcb->cb, dma_buf_poll_cb)) {
-> +                               events &= ~POLLOUT;
-> +                               break;
+> +               while (omap3isp_resizer_busy(res)) {
+> +                       if (timeout++ > 1000) {
+> +                               dev_alert(isp->dev, "ISP resizer does not
+> become idle\n");
+> +                               return -ETIMEDOUT;
 > +                       }
+> +                       udelay(100);
+> +               }
 > +
-> +               // No callback queued, wake up any additional waiters.
-> +               if (i == resv->fence_shared_count)
-> +                       dma_buf_poll_cb(NULL, &dcb->cb);
-> +       }
-> +
-> +out:
-> +       ww_mutex_unlock(&resv->lock);
-> +       return events;
-> +}
-> +
->  static const struct file_operations dma_buf_fops = {
->         .release        = dma_buf_release,
->         .mmap           = dma_buf_mmap_internal,
->         .llseek         = dma_buf_llseek,
-> +       .poll           = dma_buf_poll,
->  };
->
->  /*
-> @@ -171,6 +268,10 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
->         dmabuf->ops = ops;
->         dmabuf->size = size;
->         dmabuf->exp_name = exp_name;
-> +       init_waitqueue_head(&dmabuf->poll);
-> +       dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
-> +       dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
-> +
->         if (!resv) {
->                 resv = (struct reservation_object*)&dmabuf[1];
->                 reservation_object_init(resv);
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index 34cfbac52c03..e1df18f584ef 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -30,6 +30,8 @@
->  #include <linux/list.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/fs.h>
-> +#include <linux/fence.h>
-> +#include <linux/wait.h>
->
->  struct device;
->  struct dma_buf;
-> @@ -130,6 +132,16 @@ struct dma_buf {
->         struct list_head list_node;
->         void *priv;
->         struct reservation_object *resv;
-> +
-> +       /* poll support */
-> +       wait_queue_head_t poll;
-> +
-> +       struct dma_buf_poll_cb_t {
-> +               struct fence_cb cb;
-> +               wait_queue_head_t *poll;
-> +
-> +               unsigned long active;
-> +       } cb_excl, cb_shared;
->  };
->
->  /**
->
+
+Let's try to avoid busy loops if possible. Does it help if you comment out the 
+condition at the top of omap3isp_module_sync_idle() ?
+
+>                 omap3isp_sbl_disable(isp, OMAP3_ISP_SBL_RESIZER_READ |
+>                                 OMAP3_ISP_SBL_RESIZER_WRITE);
+>                 omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_RESIZER);
+
+-- 
+Regards,
+
+Laurent Pinchart
+
