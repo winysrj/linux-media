@@ -1,80 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43438 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752918AbaB0AWU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:22:20 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 02/13] v4l: add RF tuner channel bandwidth control
-Date: Thu, 27 Feb 2014 02:21:57 +0200
-Message-Id: <1393460528-11684-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
-References: <1393460528-11684-1-git-send-email-crope@iki.fi>
+Received: from mail-la0-f48.google.com ([209.85.215.48]:36775 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752508AbaBPQqr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Feb 2014 11:46:47 -0500
+Received: by mail-la0-f48.google.com with SMTP id mc6so10595228lab.35
+        for <linux-media@vger.kernel.org>; Sun, 16 Feb 2014 08:46:46 -0800 (PST)
+From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Subject: [RFCv2 PATCH 2/3] ir-rc5-sz: Add ir encoding support
+Date: Sun, 16 Feb 2014 18:45:54 +0200
+Message-Id: <1392569155-27659-3-git-send-email-a.seppala@gmail.com>
+In-Reply-To: <1392569155-27659-1-git-send-email-a.seppala@gmail.com>
+References: <CAKv9HNbh39=QjyHggge3w-ke658ndCnPP+0EqPL9iUFrf3+imQ@mail.gmail.com>
+ <1392569155-27659-1-git-send-email-a.seppala@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modern silicon RF tuners has one or more adjustable filters on
-signal path, in order to filter noise from desired radio channel.
+The encoding in rc5-sz first inserts a pulse and then simply utilizes the
+generic Manchester encoder available in rc-core.
 
-Add channel bandwidth control to tell the driver which is radio
-channel width we want receive. Filters could be then adjusted by
-the driver or hardware, using RF frequency and channel bandwidth
-as a base of filter calculations.
-
-On automatic mode (normal mode), bandwidth is calculated from sampling
-rate or tuning info got from userspace. That new control gives
-possibility to set manual mode and let user have more control for
-filters.
-
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- include/uapi/linux/v4l2-controls.h   | 2 ++
- 2 files changed, 6 insertions(+)
+ drivers/media/rc/ir-rc5-sz-decoder.c | 39 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 7c6305c..07400dc 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN:	return "Mixer Gain";
- 	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:	return "IF Gain, Auto";
- 	case V4L2_CID_RF_TUNER_IF_GAIN:		return "IF Gain";
-+	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:	return "Bandwidth, Auto";
-+	case V4L2_CID_RF_TUNER_BANDWIDTH:	return "Bandwidth";
- 	default:
- 		return NULL;
- 	}
-@@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_RF_TUNER_LNA_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO:
- 	case V4L2_CID_RF_TUNER_IF_GAIN_AUTO:
-+	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_RF_TUNER_LNA_GAIN:
- 	case V4L2_CID_RF_TUNER_MIXER_GAIN:
- 	case V4L2_CID_RF_TUNER_IF_GAIN:
-+	case V4L2_CID_RF_TUNER_BANDWIDTH:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 817e2df..2f6b5fb 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -905,5 +905,7 @@ enum v4l2_deemphasis {
- #define V4L2_CID_RF_TUNER_MIXER_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
- #define V4L2_CID_RF_TUNER_IF_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
- #define V4L2_CID_RF_TUNER_IF_GAIN		(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
-+#define V4L2_CID_RF_TUNER_BANDWIDTH_AUTO	(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
-+#define V4L2_CID_RF_TUNER_BANDWIDTH		(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
+diff --git a/drivers/media/rc/ir-rc5-sz-decoder.c b/drivers/media/rc/ir-rc5-sz-decoder.c
+index 984e5b9..dff609e 100644
+--- a/drivers/media/rc/ir-rc5-sz-decoder.c
++++ b/drivers/media/rc/ir-rc5-sz-decoder.c
+@@ -127,9 +127,48 @@ out:
+ 	return -EINVAL;
+ }
  
- #endif
++static struct ir_raw_timings_manchester ir_rc5_sz_timings = {
++	.pulse_space_start	= 0,
++	.clock			= RC5_UNIT,
++	.trailer_space		= RC5_UNIT * 10,
++};
++
++/*
++ * ir_rc5_sz_encode() - Encode a scancode as a stream of raw events
++ *
++ * @protocols:  allowed protocols
++ * @scancode:   scancode filter describing scancode (helps distinguish between
++ *              protocol subtypes when scancode is ambiguous)
++ * @events:     array of raw ir events to write into
++ * @max:        maximum size of @events
++ *
++ * This function returns -EINVAL if the scancode filter is invalid or matches
++ * multiple scancodes. Otherwise the number of ir_raw_events generated is
++ * returned.
++ */
++static int ir_rc5_sz_encode(u64 protocols,
++			    const struct rc_scancode_filter *scancode,
++			    struct ir_raw_event *events, unsigned int max)
++{
++	int ret;
++	struct ir_raw_event *e = events;
++
++	if (scancode->mask != 0xffff)
++		return -EINVAL;
++
++	/* RC5-SZ scancode is raw enough for manchester as it is */
++	ret = ir_raw_gen_manchester(&e, max, &ir_rc5_sz_timings, RC5_SZ_NBITS,
++				    scancode->data);
++	if (ret < 0)
++		return ret;
++
++	return e - events;
++}
++
+ static struct ir_raw_handler rc5_sz_handler = {
+ 	.protocols	= RC_BIT_RC5_SZ,
+ 	.decode		= ir_rc5_sz_decode,
++	.encode		= ir_rc5_sz_encode,
+ };
+ 
+ static int __init ir_rc5_sz_decode_init(void)
 -- 
-1.8.5.3
+1.8.3.2
 
