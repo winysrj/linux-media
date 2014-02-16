@@ -1,95 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57010 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751854AbaBGVLM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 16:11:12 -0500
-Message-ID: <52F54BEE.3080603@iki.fi>
-Date: Fri, 07 Feb 2014 23:11:10 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:52826 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752896AbaBPQqu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Feb 2014 11:46:50 -0500
+Received: by mail-la0-f46.google.com with SMTP id b8so10587433lan.33
+        for <linux-media@vger.kernel.org>; Sun, 16 Feb 2014 08:46:49 -0800 (PST)
+From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Subject: [RFCv2 PATCH 3/3] nuvoton-cir: Add support for writing wakeup samples via sysfs filter callback
+Date: Sun, 16 Feb 2014 18:45:55 +0200
+Message-Id: <1392569155-27659-4-git-send-email-a.seppala@gmail.com>
+In-Reply-To: <1392569155-27659-1-git-send-email-a.seppala@gmail.com>
+References: <CAKv9HNbh39=QjyHggge3w-ke658ndCnPP+0EqPL9iUFrf3+imQ@mail.gmail.com>
+ <1392569155-27659-1-git-send-email-a.seppala@gmail.com>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>,
-	David Jedelsky <david.jedelsky@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] stb0899: Fix DVB-S2 support for TechniSat SkyStar
- 2 HD CI USB ID 14f7:0002
-References: <1391679907-17876-1-git-send-email-david.jedelsky@gmail.com>	<CAHFNz9KKjjbuRFS=TZtB4e2FuC5-UMyVN-yTrAeRbVCqdmVkwg@mail.gmail.com>	<CAOEt8JJD9oiLu-AtjDt4G7440nrjzz8zAVW_LBp7neZySL=qCQ@mail.gmail.com> <CAHFNz9KROonr3kfv_mYqHHC7diqqgEa1zuaXOG2QcbRO-_kKRQ@mail.gmail.com>
-In-Reply-To: <CAHFNz9KROonr3kfv_mYqHHC7diqqgEa1zuaXOG2QcbRO-_kKRQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07.02.2014 22:54, Manu Abraham wrote:
-> On Sat, Feb 8, 2014 at 1:19 AM, David Jedelsky <david.jedelsky@gmail.com> wrote:
->>> That changes I2C functionality from STOP + START to repeated START.
->>> Current functionality looks also very weird, as there is 5 messages sent,
->>> all with STOP condition. I am not surprised if actually bug is still in
->>> adapter... Somehow it should be first resolved how those messages are send,
->>> with repeated START or STOP. And fix I2C client or adapter or both.
->>>
->>> regards
->>> Antti
->>
->>
->>
->> Manu, Antti,
->>
->> Thank you for your response. I agree that the code is somewhat peculiar and
->> it could be worthy to review it using documentation before I leave it as bug
->> in my hw. Unfortunately I don't own appropriate documentation. If you can
->> supply it I can look at it.
->
-> I can assure you that the STB0899 driver works well for S2 with most
-> USB bridges and PCI bridges, which brings me to the fact that the issue
-> does not exist with the STB0899 driver.
->
-> Regarding the documentation, I don't have any wrt to the USB bridge, but
-> only for the demodulator, tuner. But my hands are tied on that front, due to
-> NDA's and agreements.
->
-> Looking further in my hardware museum, I did find a
-> Technisat Skystar USB2 HD CI REV 2.0
->
-> The information on a white sticker on the PCB states:
-> Model AD-SB301, Project ID: 6027
-> DVB-S2, CI, USB Box (on-line update)
-> H/W Ver: A1, PID/VID: 14F7 / 0002
->
-> manufactured and sent to me by Azurewave.
->
-> It has a broken ferrite cored inductor on it, which appears to be on the
-> power line to the demodulator/tuner.
->
-> The PID/VID looks exactly the same as yours. If you have a firmware bug,
-> maybe it helps to update the firmware online ? (I guess the windows driver
-> uses some stock Cypress driver, from what I can imagine ?)
->
-> I had similar problems as you state, when I worked with a prototype version
-> of the Mantis PCI chipset where it had some issues regarding repeated
-> starts. I can't really remember the exact issue back then, but I do remember
-> the issue being tuner related as well, since the write to the tuner would reach
-> the very first tuner register alone. The communications to the tuner are
-> through a repeater on the demodulator.
->
-> This issue was addressed with an ECO Metal fix for the PCI bridge, but that
-> did eventually result in a newer chip though.
->
-> The problem could likely be similar with your USB bridge. Maybe it is a
-> driver bug too .. I haven't looked deeply at the az6027 driver.
+Nuvoton-cir utilizes the encoding capabilities of rc-core to convert
+scancodes from user space to pulse/space format understood by the
+underlying hardware.
 
-It is almost 100% sure I2C adapter or client bug. az6027 driver i2c 
-adapter seems to have some weird looking things, it behaves differently 
-according I2C slave address used. If I didn't read code wrong, in that 
-case it does to branch "if (msg[i].addr == 0xd0)". And looking that 
-logic reveals it supports only 2 I2C transfers:
-for reg read: START + write + REPEATED START + read + STOP
-for reg write: START + write + STOP
+Converted samples are then written to the wakeup fifo along with other
+necessary configuration to enable wake up functionality.
 
-So that read operation (START + read + STOP) used by STB0899 is not 
-implemented at all.
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 119 +++++++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/nuvoton-cir.h |   1 +
+ include/media/rc-core.h        |   1 +
+ 3 files changed, 121 insertions(+)
 
-regards
-Antti
-
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index b41e52e..8be81b5 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -527,6 +527,124 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+ 	return 0;
+ }
+ 
++static int nvt_write_wakeup_codes(struct rc_dev *dev,
++				  const u8 *wakeup_sample_buf, int count)
++{
++	int i = 0;
++	u8 reg, reg_learn_mode;
++	unsigned long flags;
++	struct nvt_dev *nvt = dev->priv;
++
++	nvt_dbg_wake("writing wakeup samples");
++
++	reg = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
++	reg_learn_mode = reg & ~CIR_WAKE_IRCON_MODE0;
++	reg_learn_mode |= CIR_WAKE_IRCON_MODE1;
++
++	/* Lock the learn area to prevent racing with wake-isr */
++	spin_lock_irqsave(&nvt->nvt_lock, flags);
++
++	/* Enable fifo writes */
++	nvt_cir_wake_reg_write(nvt, reg_learn_mode, CIR_WAKE_IRCON);
++
++	/* Clear cir wake rx fifo */
++	nvt_clear_cir_wake_fifo(nvt);
++
++	if (count > WAKE_FIFO_LEN) {
++		nvt_dbg_wake("HW FIFO too small for all wake samples");
++		count = WAKE_FIFO_LEN;
++	}
++
++	if (count)
++		pr_info("Wake samples (%d) =", count);
++	else
++		pr_info("Wake sample fifo cleared");
++
++	/* Write wake samples to fifo */
++	for (i = 0; i < count; i++) {
++		pr_cont(" %02x", wakeup_sample_buf[i]);
++		nvt_cir_wake_reg_write(nvt, wakeup_sample_buf[i],
++				       CIR_WAKE_WR_FIFO_DATA);
++	}
++	pr_cont("\n");
++
++	/* Switch cir to wakeup mode and disable fifo writing */
++	nvt_cir_wake_reg_write(nvt, reg, CIR_WAKE_IRCON);
++
++	/* Set number of bytes needed for wake */
++	nvt_cir_wake_reg_write(nvt, count ? count :
++			       CIR_WAKE_FIFO_CMP_BYTES,
++			       CIR_WAKE_FIFO_CMP_DEEP);
++
++	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
++
++	return 0;
++}
++
++static int nvt_ir_raw_set_filter(struct rc_dev *dev, enum rc_filter_type type,
++				 struct rc_scancode_filter *sc_filter)
++{
++	u8 *reg_buf;
++	u8 buf_val;
++	int i, ret, count;
++	unsigned int val;
++	const unsigned int BUF_SIZE = 127;
++	struct ir_raw_event *raw;
++
++	/* Other types are not valid for nuvoton */
++	if (type != RC_FILTER_WAKEUP)
++		return -EINVAL;
++
++	/* Require both mask and data to be set before actually committing */
++	if (!sc_filter->mask || !sc_filter->data)
++		return 0;
++
++	raw = kmalloc(BUF_SIZE * sizeof(*raw), GFP_KERNEL);
++	if (!raw)
++		return -ENOMEM;
++
++	ret = ir_raw_encode_scancode(dev->enabled_protocols, sc_filter, raw,
++				     BUF_SIZE);
++	if (ret < 0)
++		goto out_raw;
++
++	reg_buf = kmalloc(sizeof(*reg_buf) * BUF_SIZE, GFP_KERNEL);
++	if (!reg_buf) {
++		ret = -ENOMEM;
++		goto out_raw;
++	}
++
++	/* Inspect the ir samples */
++	for (i = 0, count = 0; i <= ret && count < BUF_SIZE; ++i) {
++		val = NS_TO_US((raw[i]).duration) / SAMPLE_PERIOD;
++
++		/* Split too large values into several smaller ones */
++		while (val > 0 && count < BUF_SIZE) {
++
++			/* Skip last value for better comparison tolerance */
++			if (i == ret && val < BUF_LEN_MASK)
++				break;
++
++			/* Clamp values to BUF_LEN_MASK at most */
++			buf_val = (val > BUF_LEN_MASK) ? BUF_LEN_MASK : val;
++
++			reg_buf[count] = buf_val;
++			val -= buf_val;
++			if ((raw[i]).pulse)
++				reg_buf[count] |= BUF_PULSE_BIT;
++			count++;
++		}
++	}
++
++	ret = nvt_write_wakeup_codes(dev, reg_buf, count);
++
++	kfree(reg_buf);
++out_raw:
++	kfree(raw);
++
++	return ret;
++}
++
+ /*
+  * nvt_tx_ir
+  *
+@@ -1043,6 +1161,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 	rdev->close = nvt_close;
+ 	rdev->tx_ir = nvt_tx_ir;
+ 	rdev->s_tx_carrier = nvt_set_tx_carrier;
++	rdev->s_filter = nvt_ir_raw_set_filter;
+ 	rdev->input_name = "Nuvoton w836x7hg Infrared Remote Transceiver";
+ 	rdev->input_phys = "nuvoton/cir0";
+ 	rdev->input_id.bustype = BUS_HOST;
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index e1cf23c..9d0e161 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -63,6 +63,7 @@ static int debug;
+  */
+ #define TX_BUF_LEN 256
+ #define RX_BUF_LEN 32
++#define WAKE_FIFO_LEN 67
+ 
+ struct nvt_dev {
+ 	struct pnp_dev *pdev;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 81cddd3..6b12a1b 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -227,6 +227,7 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
+ #define US_TO_NS(usec)		((usec) * 1000)
+ #define MS_TO_US(msec)		((msec) * 1000)
+ #define MS_TO_NS(msec)		((msec) * 1000 * 1000)
++#define NS_TO_US(nsec)		DIV_ROUND_UP(nsec, 1000L)
+ 
+ void ir_raw_event_handle(struct rc_dev *dev);
+ int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
 -- 
-http://palosaari.fi/
+1.8.3.2
+
