@@ -1,97 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2935 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751771AbaBGJdC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 04:33:02 -0500
-Message-ID: <52F4A82C.7010104@xs4all.nl>
-Date: Fri, 07 Feb 2014 10:32:28 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-CC: linux-kernel@vger.kernel.org,
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:52041 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141AbaBPKQ1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Feb 2014 05:16:27 -0500
+Received: by mail-lb0-f174.google.com with SMTP id l4so10359411lbv.5
+        for <linux-media@vger.kernel.org>; Sun, 16 Feb 2014 02:16:25 -0800 (PST)
+From: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH, RFC 07/30] [media] radio-cadet: avoid interruptible_sleep_on
- race
-References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <1388664474-1710039-8-git-send-email-arnd@arndb.de> <52D90A2F.2030903@xs4all.nl> <201401171528.02016.arnd@arndb.de>
-In-Reply-To: <201401171528.02016.arnd@arndb.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Subject: [PATCH] nuvoton-cir: Activate PNP device when probing
+Date: Sun, 16 Feb 2014 12:16:02 +0200
+Message-Id: <1392545762-14205-1-git-send-email-a.seppala@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd!
+On certain motherboards (mainly Intel NUC series) bios keeps the
+Nuvoton CIR device disabled at boot.
 
-On 01/17/2014 03:28 PM, Arnd Bergmann wrote:
-> On Friday 17 January 2014, Hans Verkuil wrote:
->>> @@ -323,25 +324,32 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
->>>       struct cadet *dev = video_drvdata(file);
->>>       unsigned char readbuf[RDS_BUFFER];
->>>       int i = 0;
->>> +     DEFINE_WAIT(wait);
->>>  
->>>       mutex_lock(&dev->lock);
->>>       if (dev->rdsstat == 0)
->>>               cadet_start_rds(dev);
->>> -     if (dev->rdsin == dev->rdsout) {
->>> +     while (1) {
->>> +             prepare_to_wait(&dev->read_queue, &wait, TASK_INTERRUPTIBLE);
->>> +             if (dev->rdsin != dev->rdsout)
->>> +                     break;
->>> +
->>>               if (file->f_flags & O_NONBLOCK) {
->>>                       i = -EWOULDBLOCK;
->>>                       goto unlock;
->>>               }
->>>               mutex_unlock(&dev->lock);
->>> -             interruptible_sleep_on(&dev->read_queue);
->>> +             schedule();
->>>               mutex_lock(&dev->lock);
->>>       }
->>> +
->>
->> This seems overly complicated. Isn't it enough to replace interruptible_sleep_on
->> by 'wait_event_interruptible(&dev->read_queue, dev->rdsin != dev->rdsout);'?
->>
->> Or am I missing something subtle?
-> 
-> The existing code sleeps with &dev->lock released because the cadet_handler()
-> function needs to grab (and release) the same lock before it can wake up
-> the reader thread.
-> 
-> Doing the simple wait_event_interruptible() would result in a deadlock here.
+This patch adds a call to kernel PNP layer to activate the device if it
+is not already activated. This will improve the chances of the PNP probe
+actually succeeding on Intel NUC platforms.
 
-I don't see it. I propose this patch:
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index b41e52e..b81325d 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -985,6 +985,12 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 		goto exit_free_dev_rdev;
+ 
+ 	ret = -ENODEV;
++	/* activate pnp device */
++	if (pnp_activate_dev(pdev) < 0) {
++		dev_err(&pdev->dev, "Could not activate PNP device!\n");
++		goto exit_free_dev_rdev;
++	}
++
+ 	/* validate pnp resources */
+ 	if (!pnp_port_valid(pdev, 0) ||
+ 	    pnp_port_len(pdev, 0) < CIR_IOREG_LENGTH) {
+-- 
+1.8.3.2
 
-diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
-index 545c04c..2f658c6 100644
---- a/drivers/media/radio/radio-cadet.c
-+++ b/drivers/media/radio/radio-cadet.c
-@@ -327,13 +327,15 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
- 	mutex_lock(&dev->lock);
- 	if (dev->rdsstat == 0)
- 		cadet_start_rds(dev);
--	if (dev->rdsin == dev->rdsout) {
-+	while (dev->rdsin == dev->rdsout) {
- 		if (file->f_flags & O_NONBLOCK) {
- 			i = -EWOULDBLOCK;
- 			goto unlock;
- 		}
- 		mutex_unlock(&dev->lock);
--		interruptible_sleep_on(&dev->read_queue);
-+		if (wait_event_interruptible(&dev->read_queue,
-+					     dev->rdsin != dev->rdsout))
-+			return -EINTR;
- 		mutex_lock(&dev->lock);
- 	}
- 	while (i < count && dev->rdsin != dev->rdsout)
-
-Tested with my radio-cadet card.
-
-This looks good to me. If I am still missing something, let me know!
-
-Regards,
-
-	Hans
