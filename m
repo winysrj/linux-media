@@ -1,59 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:57419 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752070AbaBQNGl (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2774 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752567AbaBPDfs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 08:06:41 -0500
-Received: by mail-oa0-f51.google.com with SMTP id h16so17711583oag.10
-        for <linux-media@vger.kernel.org>; Mon, 17 Feb 2014 05:06:40 -0800 (PST)
-MIME-Version: 1.0
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Mon, 17 Feb 2014 18:36:18 +0530
-Message-ID: <CAO_48GGdNgSAyw2d9OdvbuK8DATPYYtJvuFwnDJmPTqX7XNvow@mail.gmail.com>
-Subject: [GIT PULL]: dma-buf updates for 3.14
-To: Linus Torvalds <torvalds@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	linux-media@vger.kernel.org
-Cc: akpm@linux-foundation.org, Daniel Vetter <daniel@ffwll.ch>,
-	Arnd Bergmann <arnd@arndb.de>, Dave Airlie <airlied@linux.ie>,
-	Tom Gall <tom.gall@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 15 Feb 2014 22:35:48 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1G3Zjwv045933
+	for <linux-media@vger.kernel.org>; Sun, 16 Feb 2014 04:35:47 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id A57352A00A8
+	for <linux-media@vger.kernel.org>; Sun, 16 Feb 2014 04:35:12 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140216033512.A57352A00A8@tschai.lan>
+Date: Sun, 16 Feb 2014 04:35:12 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Here's another tiny pull request for dma-buf framework updates; just
-some debugfs output updates. (There's another patch related to
-dma-buf, but it'll get upstreamed via Greg-kh's pull request).
+Results of the daily build of media_tree:
 
-Could you please pull?
+date:		Sun Feb 16 04:00:29 CET 2014
+git branch:	test
+git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-The following changes since commit 45f7fdc2ffb9d5af4dab593843e89da70d1259e3:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-  Merge branch 'merge' of
-git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc (2014-02-11
-22:28:47 -0800)
+Detailed results are available here:
 
-are available in the git repository at:
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/sumits/dma-buf.git
-tags/dma-buf-for-3.14
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-for you to fetch changes up to c0b00a525c127d0055c1df6283300e17f601a1a1:
+The Media Infrastructure API from this daily build is here:
 
-  dma-buf: update debugfs output (2014-02-13 10:08:52 +0530)
-
-----------------------------------------------------------------
-Small dma-buf pull request for 3.14
-
-----------------------------------------------------------------
-Sumit Semwal (1):
-      dma-buf: update debugfs output
-
- drivers/base/dma-buf.c  | 25 ++++++++++++-------------
- include/linux/dma-buf.h |  2 +-
- 2 files changed, 13 insertions(+), 14 deletions(-)
+http://www.xs4all.nl/~hverkuil/spec/media.html
