@@ -1,46 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40634 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752540AbaBJQRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:17:19 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 4/6] v4l: uapi: add SDR formats CU8 and CU16LE
-Date: Mon, 10 Feb 2014 18:17:04 +0200
-Message-Id: <1392049026-13398-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1392049026-13398-1-git-send-email-crope@iki.fi>
-References: <1392049026-13398-1-git-send-email-crope@iki.fi>
+Received: from mail-oa0-f51.google.com ([209.85.219.51]:57419 "EHLO
+	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752070AbaBQNGl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 08:06:41 -0500
+Received: by mail-oa0-f51.google.com with SMTP id h16so17711583oag.10
+        for <linux-media@vger.kernel.org>; Mon, 17 Feb 2014 05:06:40 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Mon, 17 Feb 2014 18:36:18 +0530
+Message-ID: <CAO_48GGdNgSAyw2d9OdvbuK8DATPYYtJvuFwnDJmPTqX7XNvow@mail.gmail.com>
+Subject: [GIT PULL]: dma-buf updates for 3.14
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	linux-media@vger.kernel.org
+Cc: akpm@linux-foundation.org, Daniel Vetter <daniel@ffwll.ch>,
+	Arnd Bergmann <arnd@arndb.de>, Dave Airlie <airlied@linux.ie>,
+	Tom Gall <tom.gall@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2_SDR_FMT_CU8 — Complex unsigned 8-bit IQ sample
-V4L2_SDR_FMT_CU16LE — Complex unsigned 16-bit little endian IQ sample
+Hi Linus,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- include/uapi/linux/videodev2.h | 4 ++++
- 1 file changed, 4 insertions(+)
+Here's another tiny pull request for dma-buf framework updates; just
+some debugfs output updates. (There's another patch related to
+dma-buf, but it'll get upstreamed via Greg-kh's pull request).
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 27fedfe..3411215 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -436,6 +436,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
- #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
- 
-+/* SDR formats - used only for Software Defined Radio devices */
-+#define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
-+#define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
-+
- /*
-  *	F O R M A T   E N U M E R A T I O N
-  */
--- 
-1.8.5.3
+Could you please pull?
 
+The following changes since commit 45f7fdc2ffb9d5af4dab593843e89da70d1259e3:
+
+  Merge branch 'merge' of
+git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc (2014-02-11
+22:28:47 -0800)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/sumits/dma-buf.git
+tags/dma-buf-for-3.14
+
+for you to fetch changes up to c0b00a525c127d0055c1df6283300e17f601a1a1:
+
+  dma-buf: update debugfs output (2014-02-13 10:08:52 +0530)
+
+----------------------------------------------------------------
+Small dma-buf pull request for 3.14
+
+----------------------------------------------------------------
+Sumit Semwal (1):
+      dma-buf: update debugfs output
+
+ drivers/base/dma-buf.c  | 25 ++++++++++++-------------
+ include/linux/dma-buf.h |  2 +-
+ 2 files changed, 13 insertions(+), 14 deletions(-)
