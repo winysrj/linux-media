@@ -1,354 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:50964 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052AbaBKNiJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 08:38:09 -0500
-Received: from minime.bse ([77.20.120.199]) by mail.gmx.com (mrgmx003) with
- ESMTPSA (Nemesis) id 0MHX0m-1WC7bX1O72-003Kmb for
- <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 14:38:07 +0100
-Date: Tue, 11 Feb 2014 14:38:05 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Robert Longbottom <rongblor@googlemail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Conexant PCI-8604PW 4 channel BNC Video capture card (bttv)
-Message-ID: <20140211133805.GA26402@minime.bse>
-References: <20140123132741.GA15756@minime.bse>
- <52E1273F.90207@googlemail.com>
- <20140125152339.GA18168@minime.bse>
- <52E4EFBB.7070504@googlemail.com>
- <20140126125552.GA26918@minime.bse>
- <52E5366A.807@googlemail.com>
- <20140127032044.GA27541@minime.bse>
- <52E6C7A4.8050708@googlemail.com>
- <20140128020242.GA31019@minime.bse>
- <5679652F-05AC-44B8-AE0B-A107E38F2433@googlemail.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1939 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751277AbaBQIrU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 03:47:20 -0500
+Message-ID: <5301CC63.7030303@xs4all.nl>
+Date: Mon, 17 Feb 2014 09:46:27 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="17pEHd4RhPHOinZp"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5679652F-05AC-44B8-AE0B-A107E38F2433@googlemail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	k.debski@samsung.com
+Subject: Re: [PATCH v5 2/7] v4l: Use full 32 bits for buffer flags
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <1392497585-5084-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1392497585-5084-3-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-On Wed, Feb 05, 2014 at 01:16:53PM +0000, Robert Longbottom wrote:
-> On 28 Jan 2014, at 02:02 AM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
-> > When we cycle through all combinations in one minute, there are about
-> > a hundred PCI cycles per combination left for the chip to be granted
-> > access to the bus. I expect most of the pins to provide a priority
-> > or weighting value for each BT878A, so there should be many combinations
-> > that do something.
+On 02/15/2014 09:53 PM, Sakari Ailus wrote:
+> The buffer flags field is 32 bits but the defined only used 16. This is
+> fine, but as more than 16 bits will be used in the very near future, define
+> them as 32-bit numbers for consistency.
 > 
-> How difficult is it for me to do this?  And is it obvious when it works?
-> I have an old pc that I can put the card in that doesn't matter. And given
-> I can't get the card to work in windows or Linux its not much use to me as
-> it is, so if it breaks then so be it. 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> ---
+>  Documentation/DocBook/media/v4l/io.xml |   30 ++++++++++++-------------
+>  include/uapi/linux/videodev2.h         |   38 +++++++++++++++++++-------------
+>  2 files changed, 38 insertions(+), 30 deletions(-)
 > 
-> I've not done any Linux driver development, but I'm happy enough compiling
-> stuff for the most part.
+> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> index 8facac4..46d24b3 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -984,7 +984,7 @@ should set this to 0.</entry>
+>  	<tbody valign="top">
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_MAPPED</constant></entry>
+> -	    <entry>0x0001</entry>
+> +	    <entry>0x00000001</entry>
+>  	    <entry>The buffer resides in device memory and has been mapped
+>  into the application's address space, see <xref linkend="mmap" /> for details.
+>  Drivers set or clear this flag when the
+> @@ -994,7 +994,7 @@ Drivers set or clear this flag when the
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_QUEUED</constant></entry>
+> -	    <entry>0x0002</entry>
+> +	    <entry>0x00000002</entry>
+>  	  <entry>Internally drivers maintain two buffer queues, an
+>  incoming and outgoing queue. When this flag is set, the buffer is
+>  currently on the incoming queue. It automatically moves to the
+> @@ -1007,7 +1007,7 @@ cleared.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_DONE</constant></entry>
+> -	    <entry>0x0004</entry>
+> +	    <entry>0x00000004</entry>
+>  	    <entry>When this flag is set, the buffer is currently on
+>  the outgoing queue, ready to be dequeued from the driver. Drivers set
+>  or clear this flag when the <constant>VIDIOC_QUERYBUF</constant> ioctl
+> @@ -1021,7 +1021,7 @@ state, in the application domain to say so.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_ERROR</constant></entry>
+> -	    <entry>0x0040</entry>
+> +	    <entry>0x00000040</entry>
+>  	    <entry>When this flag is set, the buffer has been dequeued
+>  	    successfully, although the data might have been corrupted.
+>  	    This is recoverable, streaming may continue as normal and
+> @@ -1031,7 +1031,7 @@ state, in the application domain to say so.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_KEYFRAME</constant></entry>
+> -	    <entry>0x0008</entry>
+> +	    <entry>0x00000008</entry>
+>  	  <entry>Drivers set or clear this flag when calling the
+>  <constant>VIDIOC_DQBUF</constant> ioctl. It may be set by video
+>  capture devices when the buffer contains a compressed image which is a
+> @@ -1039,27 +1039,27 @@ key frame (or field), &ie; can be decompressed on its own.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_PFRAME</constant></entry>
+> -	    <entry>0x0010</entry>
+> +	    <entry>0x00000010</entry>
+>  	    <entry>Similar to <constant>V4L2_BUF_FLAG_KEYFRAME</constant>
+>  this flags predicted frames or fields which contain only differences to a
+>  previous key frame.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_BFRAME</constant></entry>
+> -	    <entry>0x0020</entry>
+> +	    <entry>0x00000020</entry>
+>  	    <entry>Similar to <constant>V4L2_BUF_FLAG_PFRAME</constant>
+>  	this is a bidirectional predicted frame or field. [ooc tbd]</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_TIMECODE</constant></entry>
+> -	    <entry>0x0100</entry>
+> +	    <entry>0x00000100</entry>
+>  	    <entry>The <structfield>timecode</structfield> field is valid.
+>  Drivers set or clear this flag when the <constant>VIDIOC_DQBUF</constant>
+>  ioctl is called.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_PREPARED</constant></entry>
+> -	    <entry>0x0400</entry>
+> +	    <entry>0x00000400</entry>
+>  	    <entry>The buffer has been prepared for I/O and can be queued by the
+>  application. Drivers set or clear this flag when the
+>  <link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link>, <link
+> @@ -1069,7 +1069,7 @@ application. Drivers set or clear this flag when the
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
+> -	    <entry>0x0800</entry>
+> +	    <entry>0x00000800</entry>
+>  	    <entry>Caches do not have to be invalidated for this buffer.
+>  Typically applications shall use this flag if the data captured in the buffer
+>  is not going to be touched by the CPU, instead the buffer will, probably, be
+> @@ -1078,7 +1078,7 @@ passed on to a DMA-capable hardware unit for further processing or output.
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
+> -	    <entry>0x1000</entry>
+> +	    <entry>0x00001000</entry>
+>  	    <entry>Caches do not have to be cleaned for this buffer.
+>  Typically applications shall use this flag for output buffers if the data
+>  in this buffer has not been created by the CPU but by some DMA-capable unit,
+> @@ -1086,7 +1086,7 @@ in which case caches have not been used.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
+> -	    <entry>0xe000</entry>
+> +	    <entry>0x0000e000</entry>
+>  	    <entry>Mask for timestamp types below. To test the
+>  	    timestamp type, mask out bits not belonging to timestamp
+>  	    type by performing a logical and operation with buffer
+> @@ -1094,7 +1094,7 @@ in which case caches have not been used.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN</constant></entry>
+> -	    <entry>0x0000</entry>
+> +	    <entry>0x00000000</entry>
+>  	    <entry>Unknown timestamp type. This type is used by
+>  	    drivers before Linux 3.9 and may be either monotonic (see
+>  	    below) or realtime (wall clock). Monotonic clock has been
+> @@ -1107,7 +1107,7 @@ in which case caches have not been used.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC</constant></entry>
+> -	    <entry>0x2000</entry>
+> +	    <entry>0x00002000</entry>
+>  	    <entry>The buffer timestamp has been taken from the
+>  	    <constant>CLOCK_MONOTONIC</constant> clock. To access the
+>  	    same clock outside V4L2, use
+> @@ -1115,7 +1115,7 @@ in which case caches have not been used.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_COPY</constant></entry>
+> -	    <entry>0x4000</entry>
+> +	    <entry>0x00004000</entry>
+>  	    <entry>The CAPTURE buffer timestamp has been taken from the
+>  	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
+>  	  </row>
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 6ae7bbe..e9ee444 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -669,24 +669,32 @@ struct v4l2_buffer {
+>  };
+>  
+>  /*  Flags for 'flags' field */
+> -#define V4L2_BUF_FLAG_MAPPED	0x0001  /* Buffer is mapped (flag) */
+> -#define V4L2_BUF_FLAG_QUEUED	0x0002	/* Buffer is queued for processing */
+> -#define V4L2_BUF_FLAG_DONE	0x0004	/* Buffer is ready */
+> -#define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
+> -#define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
+> -#define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
+> +/* Buffer is mapped (flag) */
+> +#define V4L2_BUF_FLAG_MAPPED			0x00000001
+> +/* Buffer is queued for processing */
+> +#define V4L2_BUF_FLAG_QUEUED			0x00000002
+> +/* Buffer is ready */
+> +#define V4L2_BUF_FLAG_DONE			0x00000004
+> +/* Image is a keyframe (I-frame) */
+> +#define V4L2_BUF_FLAG_KEYFRAME			0x00000008
+> +/* Image is a P-frame */
+> +#define V4L2_BUF_FLAG_PFRAME			0x00000010
+> +/* Image is a B-frame */
+> +#define V4L2_BUF_FLAG_BFRAME			0x00000020
+>  /* Buffer is ready, but the data contained within is corrupted. */
+> -#define V4L2_BUF_FLAG_ERROR	0x0040
+> -#define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+> -#define V4L2_BUF_FLAG_PREPARED	0x0400	/* Buffer is prepared for queuing */
+> +#define V4L2_BUF_FLAG_ERROR			0x00000040
+> +/* timecode field is valid */
+> +#define V4L2_BUF_FLAG_TIMECODE			0x00000100
+> +/* Buffer is prepared for queuing */
+> +#define V4L2_BUF_FLAG_PREPARED			0x00000400
+>  /* Cache handling flags */
+> -#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+> -#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
+> +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
+> +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
+>  /* Timestamp type */
+> -#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
+> -#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
+> -#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
+> -#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
+> +#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
+> +#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
+> +#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
+> +#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
+>  
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+> 
 
-Try the attached program. It must be linked with -lrt. It will set all 24
-GPIOs of that one chip to output. The output file contains one nibble
-per GPIO combination with each bit representing one of the BT878.
-
-In my tests with a single BT878 the 10us delay sometimes was not enough
-for the RISC PC to advance. It should be enough to recognize a pattern,
-though.
-
-  Daniel
-
-
-DMA from userspace... I feel dirty...
-
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="trybt8xxgpio.c"
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <signal.h>
-#include <time.h>
-#include <sched.h>
-#include <string.h>
-#include <limits.h>
-#include <dirent.h>
-
-#ifndef MAP_32BIT
-#if defined(__x86_64__) || defined(__i386__)
-#define MAP_32BIT 0x40
-#else
-#define MAP_32BIT 0
-#endif
-#endif
-
-#define BT848_RISC_JUMP	(0x07 << 28)
-
-static char path[PATH_MAX] = "/sys/bus/pci/devices/", *fname;
-
-static long get_attr(const char *attr)
-{
-	char name[80], buf[20] = {0};
-	int fd;
-
-	strcpy(fname, attr);
-	fd = open(path, O_RDONLY);
-	if (fd == -1) {
-		perror("open");
-		return -1;
-	}
-	read(fd, buf, sizeof(buf) - 1);
-	close(fd);
-	return strtol(buf, NULL, 0);
-}
-
-static int find_card(void)
-{
-	int i = strlen(path), j, n = 0;
-	DIR *d = opendir(path), *d2;
-	struct dirent *e;
-	char *busdev, lastgood[PATH_MAX];
-
-	if (!d)
-		return 0;
-	while ((e = readdir(d))) {
-		if (e->d_name[0] == '.')
-			continue;
-		strcpy(path + i, e->d_name);
-		strcat(path, "/");
-		fname = path + strlen(path);
-		if (get_attr("vendor") != 0x3388)
-			continue;
-		if (get_attr("device") != 0x0021)
-			continue;
-		strcpy(fname, "pci_bus");
-		d2 = opendir(path);
-		if (!d2)
-			continue;
-		while (e = readdir(d2)) {
-			if (e->d_name[0] == '.')
-				continue;
-			strcpy(path + i, e->d_name);
-			break;
-		}
-		closedir(d2);
-		if (!e)
-			continue;
-		fname = path + strlen(path) + 6;
-		for (j = 0xC; j <= 0xF; j++) {
-			sprintf(fname - 6, ":%02x.0/", j);
-			if (access(path, F_OK))
-				break;
-			if (get_attr("vendor") != 0x109e)
-				break;
-			if (get_attr("device") != 0x036e)
-				break;
-		}
-		if (j < 0x10)
-			continue;
-		fname[0] = 0;
-		strcpy(lastgood, path);
-		n++;
-	}
-	closedir(d);
-	if (!n)
-		fputs("card not found\n", stderr);
-	else if (n > 1)
-		fputs("multiple cards found, can't decide which to test\n",
-		      stderr);
-	else {
-		strcpy(path, lastgood);
-		fname = path + strlen(path);
-		strcpy(fname, "resource0");
-		fname -= 4;
-	}
-	return n == 1;
-}
-
-static void *get_page(uint32_t *phys)
-{
-	long l = sysconf(_SC_PAGESIZE);
-	void *m;
-	int fd;
-	uintptr_t v;
-	uint64_t p;
-
-	m = mmap(NULL, l, PROT_READ|PROT_WRITE,
-		 MAP_PRIVATE|MAP_ANONYMOUS|MAP_32BIT|MAP_LOCKED, -1, 0);
-	if (m == MAP_FAILED)
-		return NULL;
-	v = (uintptr_t)m;
-	if (v % l)
-		return NULL;
-	v /= l;
-
-	fd = open("/proc/self/pagemap", O_RDONLY);
-	if (fd == -1)
-		return NULL;
-	if (pread(fd, &p, sizeof(p), v * sizeof(p)) != sizeof(p))
-		return NULL;
-	close(fd);
-	if ((p >> 62) != 2)
-		return NULL;
-	p = (p & ((1LL << 55) - 1)) << ((p >> 55) & 0x3f);
-	if (p >> 32)
-		return NULL;
-	*phys = p;
-	return m;
-}
-
-static unsigned int loops;
-
-static void delay(void)
-{
-	unsigned int n;
-	for(n = loops; n--;)
-		asm volatile("");
-}
-
-static void calibrate_delay(void)
-{
-	struct sched_param p = { .sched_priority = 1 };
-	struct timespec pre, post;
-	unsigned long long ll;
-
-	printf("Calibrating delay loop...\n");
-	sched_setscheduler(0, SCHED_FIFO, &p);
-	clock_gettime(CLOCK_MONOTONIC, &pre);
-
-	loops = 100000000;
-	delay();
-
-	clock_gettime(CLOCK_MONOTONIC, &post);
-	p.sched_priority = 0;
-	sched_setscheduler(0, SCHED_OTHER, &p);
-
-	ll =  post.tv_sec - pre.tv_sec;
-	ll *= 1000000000;
-	ll += post.tv_nsec;
-	ll -= pre.tv_nsec;
-	if (ll > 10000)
-		loops = loops * 10000ULL / ll;
-
-	printf("Using %u loops for 10us\n", loops);
-}
-
-static uint32_t *bt[4];
-static uint8_t result[(1 << 24) / 2];
-
-static uint32_t *openbt8xx(char dev)
-{
-	void *p;
-	int fd;
-
-	*fname = dev;
-	fd = open(path, O_RDWR|O_SYNC);
-	if (fd == -1)
-		return NULL;
-	p = mmap(NULL, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	if (p == MAP_FAILED)
-		return NULL;
-	return p;
-}
-
-static void stoprisc(int sig)
-{
-	int i;
-	for (i = 4; i--;)
-		bt[i][0x10C/4] = 0;
-	if (sig)
-		_exit(1);
-}
-
-static void usage(const char *self)
-{
-	fprintf(stderr, "$ %s <outfile>\n", self);
-}
-
-int main(int argc, char **argv)
-{
-	uint32_t *riscv, riscp;
-	uint32_t gpio, n;
-	int i, v, fd;
-
-	if (!argv[1]) {
-		usage(argv[0]);
-		return 1;
-	}
-
-	fd = open(argv[1], O_WRONLY|O_CREAT|O_TRUNC, 0666);
-
-	riscv = get_page(&riscp);
-	if (!riscv)
-		return 1;
-	riscv[0] = BT848_RISC_JUMP;
-	riscv[1] = riscp + 8;
-	riscv[2] = BT848_RISC_JUMP;
-	riscv[3] = riscp + 8;
-	if (!find_card())
-		return 1;
-	for (i = 4; i--;) {
-		bt[i] = openbt8xx('c' + i);
-		if (!bt[i]) {
-			fputs("Failed to open MMIO region\n", stderr);
-			return 1;
-		}
-	}
-
-	calibrate_delay();
-
-	signal(SIGTERM, stoprisc);
-	signal(SIGINT, stoprisc);
-	signal(SIGQUIT, stoprisc);
-	signal(SIGABRT, stoprisc);
-	signal(SIGHUP, stoprisc);
-	for (i = 4; i--;) {
-		bt[i][0x10C/4] = 0;
-		bt[i][0xDC/4] = 0;
-		bt[i][0x114/4] = riscp;
-	}
-	bt[1][0x118/4] = 0xffffff;
-
-	v = 0;
-	for (n = 1 << 24; n--;) {
-		// use Gray code to avoid actions based on intermediate values
-		gpio = n ^ (n >> 1);
-		bt[1][0x200/4] = gpio;
-		for (i = 4; i--;)
-			bt[i][0x10C/4] = 3;
-		delay();
-		if (!(n & 0x0fffff))
-			printf("%u%% left\n", (n * 100) >> 24);
-		for (i = 4; i--;) {
-			if (bt[i][0x120/4] != riscp) {
-				bt[i][0x10C/4] = 0;
-				v += 1 << i;
-			}
-		}
-		if (gpio & 1)
-			v <<= 4;
-		result[gpio >> 1] |= v;
-		v = 0;
-	}
-	stoprisc(0);
-	write(fd, result, sizeof(result));
-	gpio = 0;
-	for(n = sizeof(result); n--;) {
-		if (result[n] & 0xf0)
-			gpio++;
-		if (result[n] & 0x0f)
-			gpio++;
-	}
-	printf("Found %u combinations with RISC instuction fetches\n", gpio);
-	return 0;
-}
-
---17pEHd4RhPHOinZp--
