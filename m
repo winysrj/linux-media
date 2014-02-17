@@ -1,55 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1268 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751714AbaBJKCW (ORCPT
+Received: from adelie.canonical.com ([91.189.90.139]:49641 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838AbaBQP6a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 05:02:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH for 3.14 1/2] si4713: fix Kconfig dependencies
-Date: Mon, 10 Feb 2014 11:01:48 +0100
-Message-Id: <1392026509-48039-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392026509-48039-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392026509-48039-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 17 Feb 2014 10:58:30 -0500
+Subject: [PATCH 5/6] reservation: add support for fences to enable
+ cross-device synchronisation
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, ccross@google.com,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	dri-devel@lists.freedesktop.org, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Date: Mon, 17 Feb 2014 16:58:26 +0100
+Message-ID: <20140217155725.20337.52848.stgit@patser>
+In-Reply-To: <20140217155056.20337.25254.stgit@patser>
+References: <20140217155056.20337.25254.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-The SI4713 select should be I2C_SI4713 and the USB driver needs to depend on
-I2C as well.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Paul Bolle <pebolle@tiscali.nl>
-Reported-by: Richard Weinberger <richard@nod.at>
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 ---
- drivers/media/radio/si4713/Kconfig | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/reservation.h |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/radio/si4713/Kconfig b/drivers/media/radio/si4713/Kconfig
-index a7c3ba8..9c8b887 100644
---- a/drivers/media/radio/si4713/Kconfig
-+++ b/drivers/media/radio/si4713/Kconfig
-@@ -1,7 +1,7 @@
- config USB_SI4713
- 	tristate "Silicon Labs Si4713 FM Radio Transmitter support with USB"
--	depends on USB && RADIO_SI4713
--	select SI4713
-+	depends on USB && I2C && RADIO_SI4713
-+	select I2C_SI4713
- 	---help---
- 	  This is a driver for USB devices with the Silicon Labs SI4713
- 	  chip. Currently these devices are known to work.
-@@ -16,7 +16,7 @@ config USB_SI4713
- config PLATFORM_SI4713
- 	tristate "Silicon Labs Si4713 FM Radio Transmitter support with I2C"
- 	depends on I2C && RADIO_SI4713
--	select SI4713
-+	select I2C_SI4713
- 	---help---
- 	  This is a driver for I2C devices with the Silicon Labs SI4713
- 	  chip.
--- 
-1.8.5.2
+diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+index 813dae960ebd..92c4851b5a39 100644
+--- a/include/linux/reservation.h
++++ b/include/linux/reservation.h
+@@ -6,7 +6,7 @@
+  * Copyright (C) 2012 Texas Instruments
+  *
+  * Authors:
+- * Rob Clark <rob.clark@linaro.org>
++ * Rob Clark <robdclark@gmail.com>
+  * Maarten Lankhorst <maarten.lankhorst@canonical.com>
+  * Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+  *
+@@ -40,22 +40,38 @@
+ #define _LINUX_RESERVATION_H
+ 
+ #include <linux/ww_mutex.h>
++#include <linux/fence.h>
+ 
+ extern struct ww_class reservation_ww_class;
+ 
+ struct reservation_object {
+ 	struct ww_mutex lock;
++
++	struct fence *fence_excl;
++	struct fence **fence_shared;
++	u32 fence_shared_count, fence_shared_max;
+ };
+ 
+ static inline void
+ reservation_object_init(struct reservation_object *obj)
+ {
+ 	ww_mutex_init(&obj->lock, &reservation_ww_class);
++
++	obj->fence_shared_count = obj->fence_shared_max = 0;
++	obj->fence_shared = NULL;
++	obj->fence_excl = NULL;
+ }
+ 
+ static inline void
+ reservation_object_fini(struct reservation_object *obj)
+ {
++	int i;
++
++	if (obj->fence_excl)
++		fence_put(obj->fence_excl);
++	for (i = 0; i < obj->fence_shared_count; ++i)
++		fence_put(obj->fence_shared[i]);
++
+ 	ww_mutex_destroy(&obj->lock);
+ }
+ 
 
