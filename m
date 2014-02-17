@@ -1,51 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1544 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750735AbaBYKLU (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4950 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074AbaBQJ6l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:11:20 -0500
+	Mon, 17 Feb 2014 04:58:41 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 18/20] vb2: reject output buffers with V4L2_FIELD_ALTERNATE
-Date: Tue, 25 Feb 2014 11:04:23 +0100
-Message-Id: <1393322665-29889-19-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [REVIEWv3 PATCH 03/35] v4l2-ctrls: use pr_info/cont instead of printk.
+Date: Mon, 17 Feb 2014 10:57:18 +0100
+Message-Id: <1392631070-41868-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is not allowed by the spec and does in fact not make any sense.
-Return -EINVAL if this is the case.
+Codingstyle fix.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index db95dcb..face6e9 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1555,6 +1555,15 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 			__func__, ret);
- 		return ret;
- 	}
-+	if (V4L2_TYPE_IS_OUTPUT(q->type) && b->field == V4L2_FIELD_ALTERNATE) {
-+		/*
-+		 * If field is ALTERNATE, then we return an error.
-+		 * If the format's field is ALTERNATE, then the buffer's field
-+		 * should be either TOP or BOTTOM, but using ALTERNATE here as
-+		 * well makes no sense.
-+		 */
-+		return -EINVAL;
-+	}
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 72ffe76..df8ed0a 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2045,45 +2045,45 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
+ 	if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
+ 		return;
  
- 	vb->state = VB2_BUF_STATE_PREPARING;
- 	vb->v4l2_buf.timestamp.tv_sec = 0;
+-	printk(KERN_INFO "%s%s%s: ", prefix, colon, ctrl->name);
++	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+-		printk(KERN_CONT "%d", ctrl->cur.val);
++		pr_cont("%d", ctrl->cur.val);
+ 		break;
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		printk(KERN_CONT "%s", ctrl->cur.val ? "true" : "false");
++		pr_cont("%s", ctrl->cur.val ? "true" : "false");
+ 		break;
+ 	case V4L2_CTRL_TYPE_MENU:
+-		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
++		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
++		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
+ 		break;
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		printk(KERN_CONT "0x%08x", ctrl->cur.val);
++		pr_cont("0x%08x", ctrl->cur.val);
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		printk(KERN_CONT "%lld", ctrl->cur.val64);
++		pr_cont("%lld", ctrl->cur.val64);
+ 		break;
+ 	case V4L2_CTRL_TYPE_STRING:
+-		printk(KERN_CONT "%s", ctrl->cur.string);
++		pr_cont("%s", ctrl->cur.string);
+ 		break;
+ 	default:
+-		printk(KERN_CONT "unknown type %d", ctrl->type);
++		pr_cont("unknown type %d", ctrl->type);
+ 		break;
+ 	}
+ 	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
+ 			   V4L2_CTRL_FLAG_GRABBED |
+ 			   V4L2_CTRL_FLAG_VOLATILE)) {
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
+-			printk(KERN_CONT " inactive");
++			pr_cont(" inactive");
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_GRABBED)
+-			printk(KERN_CONT " grabbed");
++			pr_cont(" grabbed");
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE)
+-			printk(KERN_CONT " volatile");
++			pr_cont(" volatile");
+ 	}
+-	printk(KERN_CONT "\n");
++	pr_cont("\n");
+ }
+ 
+ /* Log all controls owned by the handler */
 -- 
-1.9.0
+1.8.4.rc3
 
