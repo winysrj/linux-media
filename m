@@ -1,204 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4347 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753091AbaBYKE4 (ORCPT
+Received: from adelie.canonical.com ([91.189.90.139]:49684 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752252AbaBQP6l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:04:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 19/20] vb2: add vb2_fileio_is_active and check it more often
-Date: Tue, 25 Feb 2014 11:04:24 +0100
-Message-Id: <1393322665-29889-20-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 17 Feb 2014 10:58:41 -0500
+Subject: [PATCH 6/6] dma-buf: add poll support, v2
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, ccross@google.com,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	dri-devel@lists.freedesktop.org, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Date: Mon, 17 Feb 2014 16:58:37 +0100
+Message-ID: <20140217155832.20337.83163.stgit@patser>
+In-Reply-To: <20140217155056.20337.25254.stgit@patser>
+References: <20140217155056.20337.25254.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks to Fengguang Wu for spotting a missing static cast.
 
-Added a vb2_fileio_is_active inline function that returns true if fileio
-is in progress. Use it in the source. Check for this too in mmap() (you
-don't want apps mmap()ing buffers used by fileio) and expbuf() (same reason).
+v2:
+- Kill unused variable need_shared.
 
-In addition drivers should be able to check for this in queue_setup() to
-return an error if an attempt is made to read() or write() with
-V4L2_FIELD_ALTERNATE being configured. This is illegal (there is no way
-to pass the TOP/BOTTOM information around using file I/O).
-
-However, in order to be able to check for this the init_fileio function
-needs to set q->fileio early on, before the buffers are allocated. So switch
-to using internal functions (__reqbufs, vb2_internal_qbuf and
-vb2_internal_streamon) to skip the fileio check. Well, that's why the internal
-functions were created...
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 35 ++++++++++++++++++++------------
- include/media/videobuf2-core.h           | 17 ++++++++++++++++
- 2 files changed, 39 insertions(+), 13 deletions(-)
+ drivers/base/dma-buf.c  |  101 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h |   12 ++++++
+ 2 files changed, 113 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index face6e9..8ea78d6 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -747,7 +747,7 @@ static int __verify_memory_type(struct vb2_queue *q,
- 	 * create_bufs is called with count == 0, but count == 0 should still
- 	 * do the memory and type validation.
- 	 */
--	if (q->fileio) {
-+	if (vb2_fileio_is_active(q)) {
- 		dprintk(1, "reqbufs: file io in progress\n");
- 		return -EBUSY;
- 	}
-@@ -1658,7 +1658,7 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	struct vb2_buffer *vb;
- 	int ret;
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index 85e792c2c909..77ea621ab59d 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -30,6 +30,7 @@
+ #include <linux/export.h>
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
++#include <linux/poll.h>
+ #include <linux/reservation.h>
  
--	if (q->fileio) {
-+	if (vb2_fileio_is_active(q)) {
- 		dprintk(1, "%s(): file io in progress\n", __func__);
- 		return -EBUSY;
- 	}
-@@ -1827,7 +1827,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-  */
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
--	if (q->fileio) {
-+	if (vb2_fileio_is_active(q)) {
- 		dprintk(1, "%s(): file io in progress\n", __func__);
- 		return -EBUSY;
- 	}
-@@ -2047,7 +2047,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
-  */
- int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
- {
--	if (q->fileio) {
-+	if (vb2_fileio_is_active(q)) {
- 		dprintk(1, "dqbuf: file io in progress\n");
- 		return -EBUSY;
- 	}
-@@ -2173,7 +2173,7 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
-  */
- int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
- {
--	if (q->fileio) {
-+	if (vb2_fileio_is_active(q)) {
- 		dprintk(1, "streamon: file io in progress\n");
- 		return -EBUSY;
- 	}
-@@ -2220,7 +2220,7 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
-  */
- int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
- {
--	if (q->fileio) {
-+	if (vb2_fileio_is_active(q)) {
- 		dprintk(1, "streamoff: file io in progress\n");
- 		return -EBUSY;
- 	}
-@@ -2305,6 +2305,11 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
- 		return -EINVAL;
- 	}
+ static inline int is_dma_buf_file(struct file *);
+@@ -52,6 +53,13 @@ static int dma_buf_release(struct inode *inode, struct file *file)
  
-+	if (vb2_fileio_is_active(q)) {
-+		dprintk(1, "expbuf: file io in progress\n");
-+		return -EBUSY;
-+	}
+ 	BUG_ON(dmabuf->vmapping_counter);
+ 
++	/*
++	 * Any fences that a dma-buf poll can wait on should be signaled
++	 * before releasing dma-buf. This is the responsibility of each
++	 * driver that uses the reservation objects.
++	 */
++	BUG_ON(dmabuf->cb_shared.active || dmabuf->cb_excl.active);
 +
- 	vb_plane = &vb->planes[eb->plane];
+ 	dmabuf->ops->release(dmabuf);
  
- 	dbuf = call_memop(vb, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
-@@ -2381,6 +2386,10 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
- 			return -EINVAL;
- 		}
- 	}
-+	if (vb2_fileio_is_active(q)) {
-+		dprintk(1, "mmap: file io in progress\n");
-+		return -EBUSY;
-+	}
- 
- 	/*
- 	 * Find the plane corresponding to the offset passed by userspace.
-@@ -2695,7 +2704,8 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	fileio->req.count = count;
- 	fileio->req.memory = V4L2_MEMORY_MMAP;
- 	fileio->req.type = q->type;
--	ret = vb2_reqbufs(q, &fileio->req);
-+	q->fileio = fileio;
-+	ret = __reqbufs(q, &fileio->req);
- 	if (ret)
- 		goto err_kfree;
- 
-@@ -2741,7 +2751,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 			}
- 			b->memory = q->memory;
- 			b->index = i;
--			ret = vb2_qbuf(q, b);
-+			ret = vb2_internal_qbuf(q, b);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -2757,19 +2767,18 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	/*
- 	 * Start streaming.
- 	 */
--	ret = vb2_streamon(q, q->type);
-+	ret = vb2_internal_streamon(q, q->type);
- 	if (ret)
- 		goto err_reqbufs;
- 
--	q->fileio = fileio;
--
- 	return ret;
- 
- err_reqbufs:
- 	fileio->req.count = 0;
--	vb2_reqbufs(q, &fileio->req);
-+	__reqbufs(q, &fileio->req);
- 
- err_kfree:
-+	q->fileio = NULL;
- 	kfree(fileio);
- 	return ret;
- }
-@@ -3200,7 +3209,7 @@ unsigned int vb2_fop_poll(struct file *file, poll_table *wait)
- 
- 	/* Try to be smart: only lock if polling might start fileio,
- 	   otherwise locking will only introduce unwanted delays. */
--	if (q->num_buffers == 0 && q->fileio == NULL) {
-+	if (q->num_buffers == 0 && !vb2_fileio_is_active(q)) {
- 		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
- 				(req_events & (POLLIN | POLLRDNORM)))
- 			must_lock = true;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index df5e75a..e242f35 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -470,6 +470,23 @@ static inline bool vb2_is_streaming(struct vb2_queue *q)
+ 	mutex_lock(&db_list.lock);
+@@ -108,10 +116,99 @@ static loff_t dma_buf_llseek(struct file *file, loff_t offset, int whence)
+ 	return base + offset;
  }
  
- /**
-+ * vb2_fileio_is_active() - return true if fileio is active.
-+ * @q:		videobuf queue
-+ *
-+ * This returns true if read() or write() is used to stream the data
-+ * as opposed to stream I/O. This is almost never an important distinction,
-+ * except in rare cases. One such case is that using read() or write() to
-+ * stream a format using V4L2_FIELD_ALTERNATE is not allowed since there
-+ * is no way you can pass the field information of each buffer to/from
-+ * userspace. A driver that supports this field format should check for
-+ * this in the queue_setup op and reject it if this function returns true.
-+ */
-+static inline bool vb2_fileio_is_active(struct vb2_queue *q)
++static void dma_buf_poll_cb(struct fence *fence, struct fence_cb *cb)
 +{
-+	return q->fileio;
++	struct dma_buf_poll_cb_t *dcb = (struct dma_buf_poll_cb_t*) cb;
++	unsigned long flags;
++
++	spin_lock_irqsave(&dcb->poll->lock, flags);
++	wake_up_locked_poll(dcb->poll, dcb->active);
++	dcb->active = 0;
++	spin_unlock_irqrestore(&dcb->poll->lock, flags);
 +}
 +
-+/**
-  * vb2_is_busy() - return busy status of the queue
-  * @q:		videobuf queue
-  *
--- 
-1.9.0
++static unsigned int dma_buf_poll(struct file *file, poll_table *poll)
++{
++	struct dma_buf *dmabuf;
++	struct reservation_object *resv;
++	unsigned long events;
++
++	dmabuf = file->private_data;
++	if (!dmabuf || !dmabuf->resv)
++		return POLLERR;
++
++	resv = dmabuf->resv;
++
++	poll_wait(file, &dmabuf->poll, poll);
++
++	events = poll_requested_events(poll) & (POLLIN | POLLOUT);
++	if (!events)
++		return 0;
++
++	ww_mutex_lock(&resv->lock, NULL);
++
++	if (resv->fence_excl && (!(events & POLLOUT) || resv->fence_shared_count == 0)) {
++		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_excl;
++		unsigned long pevents = POLLIN;
++
++		if (resv->fence_shared_count == 0)
++			pevents |= POLLOUT;
++
++		spin_lock_irq(&dmabuf->poll.lock);
++		if (dcb->active) {
++			dcb->active |= pevents;
++			events &= ~pevents;
++		} else
++			dcb->active = pevents;
++		spin_unlock_irq(&dmabuf->poll.lock);
++
++		if (events & pevents) {
++			if (!fence_add_callback(resv->fence_excl,
++						&dcb->cb, dma_buf_poll_cb))
++				events &= ~pevents;
++			else
++			// No callback queued, wake up any additional waiters.
++				dma_buf_poll_cb(NULL, &dcb->cb);
++		}
++	}
++
++	if ((events & POLLOUT) && resv->fence_shared_count > 0) {
++		struct dma_buf_poll_cb_t *dcb = &dmabuf->cb_shared;
++		int i;
++
++		/* Only queue a new callback if no event has fired yet */
++		spin_lock_irq(&dmabuf->poll.lock);
++		if (dcb->active)
++			events &= ~POLLOUT;
++		else
++			dcb->active = POLLOUT;
++		spin_unlock_irq(&dmabuf->poll.lock);
++
++		if (!(events & POLLOUT))
++			goto out;
++
++		for (i = 0; i < resv->fence_shared_count; ++i)
++			if (!fence_add_callback(resv->fence_shared[i],
++						&dcb->cb, dma_buf_poll_cb)) {
++				events &= ~POLLOUT;
++				break;
++			}
++
++		// No callback queued, wake up any additional waiters.
++		if (i == resv->fence_shared_count)
++			dma_buf_poll_cb(NULL, &dcb->cb);
++	}
++
++out:
++	ww_mutex_unlock(&resv->lock);
++	return events;
++}
++
+ static const struct file_operations dma_buf_fops = {
+ 	.release	= dma_buf_release,
+ 	.mmap		= dma_buf_mmap_internal,
+ 	.llseek		= dma_buf_llseek,
++	.poll		= dma_buf_poll,
+ };
+ 
+ /*
+@@ -171,6 +268,10 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
+ 	dmabuf->ops = ops;
+ 	dmabuf->size = size;
+ 	dmabuf->exp_name = exp_name;
++	init_waitqueue_head(&dmabuf->poll);
++	dmabuf->cb_excl.poll = dmabuf->cb_shared.poll = &dmabuf->poll;
++	dmabuf->cb_excl.active = dmabuf->cb_shared.active = 0;
++
+ 	if (!resv) {
+ 		resv = (struct reservation_object*)&dmabuf[1];
+ 		reservation_object_init(resv);
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index 34cfbac52c03..e1df18f584ef 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -30,6 +30,8 @@
+ #include <linux/list.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/fs.h>
++#include <linux/fence.h>
++#include <linux/wait.h>
+ 
+ struct device;
+ struct dma_buf;
+@@ -130,6 +132,16 @@ struct dma_buf {
+ 	struct list_head list_node;
+ 	void *priv;
+ 	struct reservation_object *resv;
++
++	/* poll support */
++	wait_queue_head_t poll;
++
++	struct dma_buf_poll_cb_t {
++		struct fence_cb cb;
++		wait_queue_head_t *poll;
++
++		unsigned long active;
++	} cb_excl, cb_shared;
+ };
+ 
+ /**
 
