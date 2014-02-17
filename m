@@ -1,48 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.sigma-star.at ([95.130.255.111]:62421 "EHLO
-	mail.sigma-star.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751965AbaBISsi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 13:48:38 -0500
-From: Richard Weinberger <richard@nod.at>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org (open list:MEDIA INPUT INFRA...),
-	linux-kernel@vger.kernel.org (open list)
-Cc: Richard Weinberger <richard@nod.at>
-Subject: [PATCH 19/28] Remove SI4713
-Date: Sun,  9 Feb 2014 19:47:57 +0100
-Message-Id: <1391971686-9517-20-git-send-email-richard@nod.at>
-In-Reply-To: <1391971686-9517-1-git-send-email-richard@nod.at>
-References: <1391971686-9517-1-git-send-email-richard@nod.at>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1634 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752905AbaBQJ6z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 04:58:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 05/35] videodev2.h: add struct v4l2_query_ext_ctrl and VIDIOC_QUERY_EXT_CTRL.
+Date: Mon, 17 Feb 2014 10:57:20 +0100
+Message-Id: <1392631070-41868-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The symbol is an orphan, get rid of it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
+Add a new struct and ioctl to extend the amount of information you can
+get for a control.
+
+It gives back a unit string, the range is now a s64 type, and the matrix
+and element size can be reported through cols/rows/elem_size.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/radio/si4713/Kconfig | 2 --
- 1 file changed, 2 deletions(-)
+ include/uapi/linux/videodev2.h | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/drivers/media/radio/si4713/Kconfig b/drivers/media/radio/si4713/Kconfig
-index a7c3ba8..ed51ed0 100644
---- a/drivers/media/radio/si4713/Kconfig
-+++ b/drivers/media/radio/si4713/Kconfig
-@@ -1,7 +1,6 @@
- config USB_SI4713
- 	tristate "Silicon Labs Si4713 FM Radio Transmitter support with USB"
- 	depends on USB && RADIO_SI4713
--	select SI4713
- 	---help---
- 	  This is a driver for USB devices with the Silicon Labs SI4713
- 	  chip. Currently these devices are known to work.
-@@ -16,7 +15,6 @@ config USB_SI4713
- config PLATFORM_SI4713
- 	tristate "Silicon Labs Si4713 FM Radio Transmitter support with I2C"
- 	depends on I2C && RADIO_SI4713
--	select SI4713
- 	---help---
- 	  This is a driver for I2C devices with the Silicon Labs SI4713
- 	  chip.
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 4d7782a..858a6f3 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1272,6 +1272,35 @@ struct v4l2_queryctrl {
+ 	__u32		     reserved[2];
+ };
+ 
++/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
++struct v4l2_query_ext_ctrl {
++	__u32		     id;
++	__u32		     type;
++	char		     name[32];
++	char		     unit[32];
++	union {
++		__s64 val;
++		__u32 reserved[4];
++	} min;
++	union {
++		__s64 val;
++		__u32 reserved[4];
++	} max;
++	union {
++		__u64 val;
++		__u32 reserved[4];
++	} step;
++	union {
++		__s64 val;
++		__u32 reserved[4];
++	} def;
++	__u32                flags;
++	__u32                cols;
++	__u32                rows;
++	__u32                elem_size;
++	__u32		     reserved[17];
++};
++
+ /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
+ struct v4l2_querymenu {
+ 	__u32		id;
+@@ -1965,6 +1994,8 @@ struct v4l2_create_buffers {
+    Never use these in applications! */
+ #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+ 
++#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
 -- 
-1.8.4.2
+1.8.4.rc3
 
