@@ -1,187 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752816AbaBEQlq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:46 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 02/47] v4l: Add UYVY10_2X10 and VYUY10_2X10 media bus pixel codes
-Date: Wed,  5 Feb 2014 17:41:53 +0100
-Message-Id: <1391618558-5580-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:60560 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751962AbaBQQyh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 11:54:37 -0500
+MIME-Version: 1.0
+In-Reply-To: <20140217155725.20337.52848.stgit@patser>
+References: <20140217155056.20337.25254.stgit@patser>
+	<20140217155725.20337.52848.stgit@patser>
+Date: Mon, 17 Feb 2014 11:54:37 -0500
+Message-ID: <CAF6AEGu6wMTg6HBgO3jjq+-muzOmN_BD0r9u26m=FWJWLJXyhA@mail.gmail.com>
+Subject: Re: [PATCH 5/6] reservation: add support for fences to enable
+ cross-device synchronisation
+From: Rob Clark <robdclark@gmail.com>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-arch@vger.kernel.org, Colin Cross <ccross@google.com>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 128 +++++++++++++++++++++
- include/uapi/linux/v4l2-mediabus.h                 |   4 +-
- 2 files changed, 131 insertions(+), 1 deletion(-)
+On Mon, Feb 17, 2014 at 10:58 AM, Maarten Lankhorst
+<maarten.lankhorst@canonical.com> wrote:
+> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 7331ce1..6fb58de 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -1898,6 +1898,134 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-UYVY10-2X10">
-+	      <entry>V4L2_MBUS_FMT_UYVY10_2X10</entry>
-+	      <entry>0x2018</entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-VYUY10-2X10">
-+	      <entry>V4L2_MBUS_FMT_VYUY10_2X10</entry>
-+	      <entry>0x2019</entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="V4L2-MBUS-FMT-YUYV10-2X10">
- 	      <entry>V4L2_MBUS_FMT_YUYV10_2X10</entry>
- 	      <entry>0x200b</entry>
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index b5c3aab..20a99b1 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
- 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
- 
--	/* YUV (including grey) - next is 0x2018 */
-+	/* YUV (including grey) - next is 0x201a */
- 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
- 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
- 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-@@ -64,6 +64,8 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
- 	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
- 	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
-+	V4L2_MBUS_FMT_UYVY10_2X10 = 0x2018,
-+	V4L2_MBUS_FMT_VYUY10_2X10 = 0x2019,
- 	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
- 	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
- 	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
--- 
-1.8.3.2
+Reviewed-by: Rob Clark <robdclark@gmail.com>
 
+
+> ---
+>  include/linux/reservation.h |   18 +++++++++++++++++-
+>  1 file changed, 17 insertions(+), 1 deletion(-)
+>
+> diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+> index 813dae960ebd..92c4851b5a39 100644
+> --- a/include/linux/reservation.h
+> +++ b/include/linux/reservation.h
+> @@ -6,7 +6,7 @@
+>   * Copyright (C) 2012 Texas Instruments
+>   *
+>   * Authors:
+> - * Rob Clark <rob.clark@linaro.org>
+> + * Rob Clark <robdclark@gmail.com>
+>   * Maarten Lankhorst <maarten.lankhorst@canonical.com>
+>   * Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+>   *
+> @@ -40,22 +40,38 @@
+>  #define _LINUX_RESERVATION_H
+>
+>  #include <linux/ww_mutex.h>
+> +#include <linux/fence.h>
+>
+>  extern struct ww_class reservation_ww_class;
+>
+>  struct reservation_object {
+>         struct ww_mutex lock;
+> +
+> +       struct fence *fence_excl;
+> +       struct fence **fence_shared;
+> +       u32 fence_shared_count, fence_shared_max;
+>  };
+>
+>  static inline void
+>  reservation_object_init(struct reservation_object *obj)
+>  {
+>         ww_mutex_init(&obj->lock, &reservation_ww_class);
+> +
+> +       obj->fence_shared_count = obj->fence_shared_max = 0;
+> +       obj->fence_shared = NULL;
+> +       obj->fence_excl = NULL;
+>  }
+>
+>  static inline void
+>  reservation_object_fini(struct reservation_object *obj)
+>  {
+> +       int i;
+> +
+> +       if (obj->fence_excl)
+> +               fence_put(obj->fence_excl);
+> +       for (i = 0; i < obj->fence_shared_count; ++i)
+> +               fence_put(obj->fence_shared[i]);
+> +
+>         ww_mutex_destroy(&obj->lock);
+>  }
+>
+>
