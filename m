@@ -1,59 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:57661 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756747AbaBFT76 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 14:59:58 -0500
-Received: by mail-we0-f172.google.com with SMTP id p61so1690659wes.17
-        for <linux-media@vger.kernel.org>; Thu, 06 Feb 2014 11:59:56 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>
-Subject: [RFC 0/4] rc: ir-raw: Add encode, implement NEC encode
-Date: Thu,  6 Feb 2014 19:59:19 +0000
-Message-Id: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4724 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753177AbaBQJ7H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 04:59:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 34/35] solo6x10: check dma_map_sg() return value
+Date: Mon, 17 Feb 2014 10:57:49 +0100
+Message-Id: <1392631070-41868-35-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A recent discussion about proposed interfaces for setting up the
-hardware wakeup filter lead to the conclusion that it could help to have
-the generic capability to encode and modulate scancodes into raw IR
-events so that drivers for hardware with a low level wake filter (on the
-level of pulse/space durations) can still easily implement the higher
-level scancode interface that is proposed.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patchset is just a quick experiment to suggest how it might work.
-I'm not familiar with the hardware that could use it so it could well be
-a bit misdesigned in places (e.g. what sort of buffer length would the
-hardware have, do we need to support any kind of partial encoding, can
-the hardware/driver easily take care of allowing for a margin of
-error?).
+The dma_map_sg() function can fail, so check for the return value.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-The first patch adds an encode callback to the existing raw ir handler
-struct and a helper function to encode a scancode for a given protocol.
-
-The third patch implements encode for NEC. The modulation is abstracted
-to use functions in patch 2 (pulse-distance is used by multiple
-protocols).
-
-Finally for debug purposes patch 4 modifies img-ir-raw to loop back the
-encoded data when a filter is altered. Should be pretty easy to apply
-similarly to any raw ir driver to try it out.
-
-James Hogan (4):
-  rc: ir-raw: add scancode encoder callback
-  rc: ir-raw: add modulation helpers
-  rc: ir-nec-decoder: add encode capability
-  DEBUG: rc: img-ir: raw: Add loopback on s_filter
-
- drivers/media/rc/img-ir/img-ir-raw.c | 30 ++++++++++++
- drivers/media/rc/ir-nec-decoder.c    | 91 ++++++++++++++++++++++++++++++++++++
- drivers/media/rc/ir-raw.c            | 70 +++++++++++++++++++++++++++
- drivers/media/rc/rc-core-priv.h      | 46 ++++++++++++++++++
- include/media/rc-core.h              |  3 ++
- 5 files changed, 240 insertions(+)
-
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index ccdf0f3..fa5e8ab 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -479,8 +479,9 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
+ 	vb2_set_plane_payload(vb, 0, vop_jpeg_size(vh) + solo_enc->jpeg_len);
+ 
+ 	/* may discard all previous data in vbuf->sgl */
+-	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+-			DMA_FROM_DEVICE);
++	if (!dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
++			DMA_FROM_DEVICE))
++		return -ENOMEM;
+ 	ret = solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf,
+ 			     vop_jpeg_offset(vh) - SOLO_JPEG_EXT_ADDR(solo_dev),
+ 			     frame_size, SOLO_JPEG_EXT_ADDR(solo_dev),
+@@ -525,8 +526,9 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
+ 		& ~(DMA_ALIGN - 1);
+ 
+ 	/* may discard all previous data in vbuf->sgl */
+-	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+-			DMA_FROM_DEVICE);
++	if (!dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
++			DMA_FROM_DEVICE))
++		return -ENOMEM;
+ 	ret = solo_send_desc(solo_enc, skip, vbuf, frame_off, frame_size,
+ 			SOLO_MP4E_EXT_ADDR(solo_dev),
+ 			SOLO_MP4E_EXT_SIZE(solo_dev));
 -- 
-1.8.3.2
+1.8.4.rc3
 
