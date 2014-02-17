@@ -1,113 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:61339 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928AbaBYNIh (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2086 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752986AbaBQJ64 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 08:08:37 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N1J003F7Z6C1F60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Feb 2014 13:08:36 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sakari Ailus' <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
- <1392497585-5084-6-git-send-email-sakari.ailus@iki.fi>
-In-reply-to: <1392497585-5084-6-git-send-email-sakari.ailus@iki.fi>
-Subject: RE: [PATCH v5 5/7] exynos-gsc, m2m-deinterlace,
- mx2_emmaprp: Copy v4l2_buffer data from src to dst
-Date: Tue, 25 Feb 2014 14:08:33 +0100
-Message-id: <12f801cf322a$b06e5630$114b0290$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Mon, 17 Feb 2014 04:58:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 11/35] v4l2-ctrls: prepare for matrix support: add cols & rows fields.
+Date: Mon, 17 Feb 2014 10:57:26 +0100
+Message-Id: <1392631070-41868-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-> Sent: Saturday, February 15, 2014 9:53 PM
-> 
-> The timestamp and timecode fields were copied from destination to
-> source, not the other way around as they should. Fix it.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Add cols and rows fields to the core control structures in preparation
+for matrix support.
 
-Acked-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 26 +++++++++++++++++---------
+ include/media/v4l2-ctrls.h           |  6 ++++++
+ 2 files changed, 23 insertions(+), 9 deletions(-)
 
-> ---
->  drivers/media/platform/exynos-gsc/gsc-m2m.c |    4 ++--
->  drivers/media/platform/m2m-deinterlace.c    |    4 ++--
->  drivers/media/platform/mx2_emmaprp.c        |    4 ++--
->  3 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> index 810c3e1..62c84d5 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> +++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> @@ -88,8 +88,8 @@ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int
-> vb_state)
->  	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
-> 
->  	if (src_vb && dst_vb) {
-> -		src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
-> -		src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
-> +		dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-> +		dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
-
-It is such a silly mistake that I had to think for a while why
-could it be copied the other way. I suppose this happens when
-coding in a hurry :( Thank you for spotting this.
-
-> 
->  		v4l2_m2m_buf_done(src_vb, vb_state);
->  		v4l2_m2m_buf_done(dst_vb, vb_state);
-> diff --git a/drivers/media/platform/m2m-deinterlace.c
-> b/drivers/media/platform/m2m-deinterlace.c
-> index 6bb86b5..1f272d3 100644
-> --- a/drivers/media/platform/m2m-deinterlace.c
-> +++ b/drivers/media/platform/m2m-deinterlace.c
-> @@ -207,8 +207,8 @@ static void dma_callback(void *data)
->  	src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
->  	dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
-> 
-> -	src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
-> -	src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
-> +	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-> +	dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
-> 
->  	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
->  	v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE); diff --git
-> a/drivers/media/platform/mx2_emmaprp.c
-> b/drivers/media/platform/mx2_emmaprp.c
-> index c690435..91056ac0 100644
-> --- a/drivers/media/platform/mx2_emmaprp.c
-> +++ b/drivers/media/platform/mx2_emmaprp.c
-> @@ -377,8 +377,8 @@ static irqreturn_t emmaprp_irq(int irq_emma, void
-> *data)
->  			src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
->  			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
-> 
-> -			src_vb->v4l2_buf.timestamp = dst_vb-
-> >v4l2_buf.timestamp;
-> -			src_vb->v4l2_buf.timecode = dst_vb-
-> >v4l2_buf.timecode;
-> +			dst_vb->v4l2_buf.timestamp = src_vb-
-> >v4l2_buf.timestamp;
-> +			dst_vb->v4l2_buf.timecode = src_vb-
-> >v4l2_buf.timecode;
-> 
->  			spin_lock_irqsave(&pcdev->irqlock, flags);
->  			v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
-> --
-> 1.7.10.4
-
-Best wishes,
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index ad8e5e4..a136cdc 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1731,7 +1731,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			u32 id, const char *name, const char *unit,
+ 			enum v4l2_ctrl_type type,
+ 			s64 min, s64 max, u64 step, s64 def,
+-			u32 elem_size,
++			u32 cols, u32 rows, u32 elem_size,
+ 			u32 flags, const char * const *qmenu,
+ 			const s64 *qmenu_int, void *priv)
+ {
+@@ -1744,6 +1744,11 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	if (hdl->error)
+ 		return NULL;
+ 
++	if (cols == 0)
++		cols = 1;
++	if (rows == 0)
++		rows = 1;
++
+ 	if (type == V4L2_CTRL_TYPE_INTEGER64)
+ 		elem_size = sizeof(s64);
+ 	else if (type == V4L2_CTRL_TYPE_STRING)
+@@ -1803,6 +1808,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->is_string = type == V4L2_CTRL_TYPE_STRING;
+ 	ctrl->is_ptr = type >= V4L2_CTRL_COMPLEX_TYPES || ctrl->is_string;
+ 	ctrl->is_int = !ctrl->is_ptr && type != V4L2_CTRL_TYPE_INTEGER64;
++	ctrl->cols = cols;
++	ctrl->rows = rows;
+ 	ctrl->elem_size = elem_size;
+ 	if (type == V4L2_CTRL_TYPE_MENU)
+ 		ctrl->qmenu = qmenu;
+@@ -1868,8 +1875,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 
+ 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
+ 			type, min, max,
+-			is_menu ? cfg->menu_skip_mask : step,
+-			def, cfg->elem_size,
++			is_menu ? cfg->menu_skip_mask : step, def,
++			cfg->cols, cfg->rows, cfg->elem_size,
+ 			flags, qmenu, qmenu_int, priv);
+ 	if (ctrl)
+ 		ctrl->is_private = cfg->is_private;
+@@ -1895,7 +1902,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     min, max, step, def, 0,
++			     min, max, step, def, 0, 0, 0,
+ 			     flags, NULL, NULL, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std);
+@@ -1929,7 +1936,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     0, max, mask, def, 0,
++			     0, max, mask, def, 0, 0, 0,
+ 			     flags, qmenu, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
+@@ -1962,8 +1969,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     0, max, mask, def,
+-			     0, flags, qmenu, NULL, NULL);
++			     0, max, mask, def, 0, 0, 0,
++			     flags, qmenu, NULL, NULL);
+ 
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu_items);
+@@ -1988,7 +1995,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+-			     0, max, 0, def, 0,
++			     0, max, 0, def, 0, 0, 0,
+ 			     flags, NULL, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
+@@ -2334,7 +2341,8 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
+ 	qc->min.val = ctrl->minimum;
+ 	qc->max.val = ctrl->maximum;
+ 	qc->def.val = ctrl->default_value;
+-	qc->cols = qc->rows = 1;
++	qc->cols = ctrl->cols;
++	qc->rows = ctrl->rows;
+ 	if (ctrl->type == V4L2_CTRL_TYPE_MENU
+ 	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
+ 		qc->step.val = 1;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 5a39877..9eeb9d9 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -129,6 +129,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+   * @minimum:	The control's minimum value.
+   * @maximum:	The control's maximum value.
+   * @default_value: The control's default value.
++  * @rows:	The number of rows in the matrix.
++  * @cols:	The number of columns in the matrix.
+   * @step:	The control's step value for non-menu controls.
+   * @elem_size:	The size in bytes of the control.
+   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
+@@ -178,6 +180,7 @@ struct v4l2_ctrl {
+ 	const char *unit;
+ 	enum v4l2_ctrl_type type;
+ 	s64 minimum, maximum, default_value;
++	u32 rows, cols;
+ 	u32 elem_size;
+ 	union {
+ 		u64 step;
+@@ -265,6 +268,8 @@ struct v4l2_ctrl_handler {
+   * @max:	The control's maximum value.
+   * @step:	The control's step value for non-menu controls.
+   * @def: 	The control's default value.
++  * @rows:	The number of rows in the matrix.
++  * @cols:	The number of columns in the matrix.
+   * @elem_size:	The size in bytes of the control.
+   * @flags:	The control's flags.
+   * @menu_skip_mask: The control's skip mask for menu controls. This makes it
+@@ -291,6 +296,7 @@ struct v4l2_ctrl_config {
+ 	s64 max;
+ 	u64 step;
+ 	s64 def;
++	u32 rows, cols;
+ 	u32 elem_size;
+ 	u32 flags;
+ 	u64 menu_skip_mask;
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+1.8.4.rc3
 
