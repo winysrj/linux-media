@@ -1,64 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:55603 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751416AbaBGRUL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 12:20:11 -0500
-Message-Id: <9b3c3c2c982f31b026fd1516a2b608026d55b1e9.1391793068.git.moinejf@free.fr>
-In-Reply-To: <cover.1391793068.git.moinejf@free.fr>
-References: <cover.1391793068.git.moinejf@free.fr>
-From: Jean-Francois Moine <moinejf@free.fr>
-Date: Fri, 7 Feb 2014 16:55:00 +0100
-Subject: [PATCH RFC 1/2] drivers/base: permit base components to omit the
- bind/unbind ops
-To: Russell King <rmk+kernel@arm.linux.org.uk>,
-	devel@driverdev.osuosl.org
-Cc: alsa-devel@alsa-project.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org, Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53711 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751221AbaBQXdI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 18:33:08 -0500
+Date: Tue, 18 Feb 2014 01:33:05 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, k.debski@samsung.com
+Subject: Re: [PATCH v5 7/7] v4l: Document timestamp buffer flag behaviour
+Message-ID: <20140217233305.GY15635@valkosipuli.retiisi.org.uk>
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
+ <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi>
+ <52FFD60B.4080308@xs4all.nl>
+ <1640658.PZi431b47s@avalon>
+ <5301CBAA.80103@xs4all.nl>
+ <20140217233203.GX15635@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140217233203.GX15635@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some simple components don't need to do any specific action on
-bind to / unbind from a master component.
+On Tue, Feb 18, 2014 at 01:32:03AM +0200, Sakari Ailus wrote:
+> On Mon, Feb 17, 2014 at 09:43:22AM +0100, Hans Verkuil wrote:
+> > >>> +    the masks <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
+> > >>> +    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
+> > >>> +    linkend="buffer-flags">. These flags are guaranteed to be always
+> > >>> +    valid and will not be changed by the driver autonomously.
+> > > 
+> > > This sentence sounds a bit confusing to me. What about
+> > > 
+> > > "These flags are always valid and are constant across all buffers during the 
+> > > whole video stream."
+> > 
+> > I like this.
+> 
+> I'll put that to the next version.
 
-This patch permits such components to omit the bind/unbind
-operations.
+Well, after removing the second "are ". :-)
 
-Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
----
- drivers/base/component.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/base/component.c b/drivers/base/component.c
-index c53efe6..0a39d7a 100644
---- a/drivers/base/component.c
-+++ b/drivers/base/component.c
-@@ -225,7 +225,8 @@ static void component_unbind(struct component *component,
- {
- 	WARN_ON(!component->bound);
- 
--	component->ops->unbind(component->dev, master->dev, data);
-+	if (component->ops)
-+		component->ops->unbind(component->dev, master->dev, data);
- 	component->bound = false;
- 
- 	/* Release all resources claimed in the binding of this component */
-@@ -274,7 +275,11 @@ static int component_bind(struct component *component, struct master *master,
- 	dev_dbg(master->dev, "binding %s (ops %ps)\n",
- 		dev_name(component->dev), component->ops);
- 
--	ret = component->ops->bind(component->dev, master->dev, data);
-+	if (component->ops)
-+		ret = component->ops->bind(component->dev, master->dev, data);
-+	else
-+		ret = 0;
-+
- 	if (!ret) {
- 		component->bound = true;
- 
 -- 
-1.9.rc1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
