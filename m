@@ -1,46 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48658 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751379AbaBIJEI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 04:04:08 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [REVIEW PATCH 52/86] DocBook: media: document V4L2_CTRL_CLASS_RF_TUNER
-Date: Sun,  9 Feb 2014 10:48:57 +0200
-Message-Id: <1391935771-18670-53-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2898 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164AbaBQIoX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 03:44:23 -0500
+Message-ID: <5301CBAA.80103@xs4all.nl>
+Date: Mon, 17 Feb 2014 09:43:22 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH v5 7/7] v4l: Document timestamp buffer flag behaviour
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi> <52FFD60B.4080308@xs4all.nl> <1640658.PZi431b47s@avalon>
+In-Reply-To: <1640658.PZi431b47s@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is class for RF tuner specific controls, like gain controls,
-filters, signal strength.
+On 02/17/2014 01:56 AM, Laurent Pinchart wrote:
+> Hello,
+> 
+> On Saturday 15 February 2014 22:03:07 Hans Verkuil wrote:
+>> On 02/15/2014 09:53 PM, Sakari Ailus wrote:
+>>> Timestamp buffer flags are constant at the moment. Document them so that
+>>> 1) they're always valid and 2) not changed by the drivers. This leaves
+>>> room to extend the functionality later on if needed.
+>>>
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>>> ---
+>>>
+>>>  Documentation/DocBook/media/v4l/io.xml |   10 ++++++++++
+>>>  1 file changed, 10 insertions(+)
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/io.xml
+>>> b/Documentation/DocBook/media/v4l/io.xml index fbd0c6e..4f76565 100644
+>>> --- a/Documentation/DocBook/media/v4l/io.xml
+>>> +++ b/Documentation/DocBook/media/v4l/io.xml
+>>> @@ -653,6 +653,16 @@ plane, are stored in struct
+>>> <structname>v4l2_plane</structname> instead.> 
+>>>  In that case, struct <structname>v4l2_buffer</structname> contains an
+>>>  array of plane structures.</para>
+>>>
+>>> +    <para>Dequeued video buffers come with timestamps. These
+>>> +    timestamps can be taken from different clocks and at different
+>>> +    part of the frame, depending on the driver. Please see flags in
+>>
+>> s/part/parts/
+>>
+>> But I think I would write it somewhat differently:
+>>
+>> "The driver decides at which part of the frame and with which clock
+>> the timestamp is taken."
+>>
+>>> +    the masks <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
+>>> +    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
+>>> +    linkend="buffer-flags">. These flags are guaranteed to be always
+>>> +    valid and will not be changed by the driver autonomously.
+> 
+> This sentence sounds a bit confusing to me. What about
+> 
+> "These flags are always valid and are constant across all buffers during the 
+> whole video stream."
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+I like this.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index b3bb957..e9f6735 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -327,7 +327,12 @@ These controls are described in <xref
- These controls are described in <xref
- 		linkend="fm-rx-controls" />.</entry>
- 	  </row>
--
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_CLASS_RF_TUNER</constant></entry>
-+	    <entry>0xa20000</entry>
-+	    <entry>The class containing RF tuner controls.
-+These controls are described in <xref linkend="rf-tuner-controls" />.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
--- 
-1.8.5.3
+Regards,
 
+	Hans
