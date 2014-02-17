@@ -1,295 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f171.google.com ([209.85.160.171]:39959 "EHLO
-	mail-yk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242AbaBNEky (ORCPT
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:45991 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753776AbaBQR1Q convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 23:40:54 -0500
-Received: by mail-yk0-f171.google.com with SMTP id q9so21898973ykb.2
-        for <linux-media@vger.kernel.org>; Thu, 13 Feb 2014 20:40:49 -0800 (PST)
+	Mon, 17 Feb 2014 12:27:16 -0500
 MIME-Version: 1.0
-In-Reply-To: <1392284450-41019-6-git-send-email-hverkuil@xs4all.nl>
-References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl> <1392284450-41019-6-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Fri, 14 Feb 2014 13:40:08 +0900
-Message-ID: <CAMm-=zDGWYNFa79iyRC59r6R2FE-9fLTH=G++MR3TZepKTU1Ew@mail.gmail.com>
-Subject: Re: [RFCv3 PATCH 05/10] vb2: fix buf_init/buf_cleanup call sequences
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
+In-Reply-To: <53023F3E.3080107@vodafone.de>
+References: <20140217155056.20337.25254.stgit@patser>
+	<20140217155556.20337.37589.stgit@patser>
+	<53023F3E.3080107@vodafone.de>
+Date: Mon, 17 Feb 2014 12:27:13 -0500
+Message-ID: <CAF6AEGtHSg=qESbGE8LZsQPrRfHnrSQOjpEAVKeZ5o9k07ZNcA@mail.gmail.com>
+Subject: Re: [PATCH 2/6] seqno-fence: Hardware dma-buf implementation of
+ fencing (v4)
+From: Rob Clark <robdclark@gmail.com>
+To: =?ISO-8859-1?Q?Christian_K=F6nig?= <deathsimple@vodafone.de>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-arch@vger.kernel.org,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Colin Cross <ccross@google.com>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 13, 2014 at 6:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Feb 17, 2014 at 11:56 AM, Christian König
+<deathsimple@vodafone.de> wrote:
+> Am 17.02.2014 16:56, schrieb Maarten Lankhorst:
 >
-> Ensure that these ops are properly balanced.
+>> This type of fence can be used with hardware synchronization for simple
+>> hardware that can block execution until the condition
+>> (dma_buf[offset] - value) >= 0 has been met.
 >
-> There two scenarios:
+>
+> Can't we make that just "dma_buf[offset] != 0" instead? As far as I know
+> this way it would match the definition M$ uses in their WDDM specification
+> and so make it much more likely that hardware supports it.
 
-s/There two/There are two/
+well 'buf[offset] >= value' at least means the same slot can be used
+for multiple operations (with increasing values of 'value').. not sure
+if that is something people care about.
 
->
-> 1) for MMAP buf_init is called when the buffers are created and buf_cleanup
->    must be called when the queue is finally freed. This scenario was always
->    working.
->
-> 2) for USERPTR and DMABUF it is more complicated. When a buffer is queued
->    the code checks if all planes of this buffer have been acquired before.
->    If that's the case, then only buf_prepare has to be called. Otherwise
->    buf_clean needs to be called if the buffer was acquired before, then,
-
-s/buf_clean/buf_cleanup/
-
->    once all changed planes have been (re)acquired, buf_init has to be
->    called again followed by buf_prepare. Should buf_prepare fail, then
-
-s/again//
-
-I know what you mean, but there is only one call to buf_init in this
-particular sequence.
-
->    buf_cleanup must be called again because all planes will be released
-
-s/again because all planes will be released/on the newly acquired
-planes to release them/
-
->    in case of an error.
->
-> Finally, in __vb2_queue_free we have to check if the buffer was actually
-> acquired before calling buf_cleanup. While that it always true for MMAP
-> mode, it is not necessarily true for the other modes. E.g. if you just
-> call REQBUFS and close the filehandle, then buffers were ever queued and
-
-s/ever/never/
-s/filehandle/file handle/
-
-> so no buf_init was ever called.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 100 +++++++++++++++++++++----------
->  1 file changed, 67 insertions(+), 33 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 3756378..7766bf5 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -373,8 +373,10 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
->         /* Call driver-provided cleanup function for each buffer, if provided */
->         for (buffer = q->num_buffers - buffers; buffer < q->num_buffers;
->              ++buffer) {
-> -               if (q->bufs[buffer])
-> -                       call_vb_qop(q->bufs[buffer], buf_cleanup, q->bufs[buffer]);
-> +               struct vb2_buffer *vb = q->bufs[buffer];
-> +
-> +               if (vb && vb->planes[0].mem_priv)
-> +                       call_vb_qop(vb, buf_cleanup, vb);
->         }
->
->         /* Release video buffer memory */
-> @@ -1161,6 +1163,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->         unsigned int plane;
->         int ret;
->         int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-> +       bool reacquired = vb->planes[0].mem_priv == NULL;
-
-This requires a comment I feel. In general, I'm not especially happy
-with the fact that we are making mem_priv != NULL equivalent to
-buf_init() called and succeeded. It is true right now, but it'll be
-very hard to make the association without previously seeing this very
-patch I feel.
-
-I don't see a perfect way to do this, but I'm strongly leaning towards
-having a bool inited in the vb2_buffer. Really.
-
->
->         /* Copy relevant information provided by the userspace */
->         __fill_vb2_buffer(vb, b, planes);
-> @@ -1186,12 +1189,16 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 }
->
->                 /* Release previously acquired memory if present */
-> -               if (vb->planes[plane].mem_priv)
-> +               if (vb->planes[plane].mem_priv) {
-> +                       if (!reacquired) {
-> +                               reacquired = true;
-> +                               call_vb_qop(vb, buf_cleanup, vb);
-> +                       }
->                         call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
-> +               }
->
->                 vb->planes[plane].mem_priv = NULL;
-> -               vb->v4l2_planes[plane].m.userptr = 0;
-> -               vb->v4l2_planes[plane].length = 0;
-> +               memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
->
->                 /* Acquire each plane's memory */
->                 mem_priv = call_memop(vb, get_userptr, q->alloc_ctx[plane],
-> @@ -1208,23 +1215,34 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->         }
->
->         /*
-> -        * Call driver-specific initialization on the newly acquired buffer,
-> -        * if provided.
-> -        */
-> -       ret = call_vb_qop(vb, buf_init, vb);
-> -       if (ret) {
-> -               dprintk(1, "qbuf: buffer initialization failed\n");
-> -               fail_vb_qop(vb, buf_init);
-> -               goto err;
-> -       }
-> -
-> -       /*
->          * Now that everything is in order, copy relevant information
->          * provided by userspace.
->          */
->         for (plane = 0; plane < vb->num_planes; ++plane)
->                 vb->v4l2_planes[plane] = planes[plane];
->
-> +       if (reacquired) {l
-> +               /*
-> +                * One or more planes changed, so we must call buf_init to do
-> +                * the driver-specific initialization on the newly acquired
-> +                * buffer, if provided.
-> +                */
-> +               ret = call_vb_qop(vb, buf_init, vb);
-> +               if (ret) {
-> +                       dprintk(1, "qbuf: buffer initialization failed\n");
-> +                       fail_vb_qop(vb, buf_init);
-> +                       goto err;
-> +               }
-> +       }
-> +
-> +       ret = call_vb_qop(vb, buf_prepare, vb);
-> +       if (ret) {
-> +               dprintk(1, "qbuf: buffer preparation failed\n");
-> +               fail_vb_qop(vb, buf_prepare);
-> +               call_vb_qop(vb, buf_cleanup, vb);
-> +               goto err;
-> +       }
-> +
->         return 0;
->  err:
->         /* In case of errors, release planes that were already acquired */
-> @@ -1244,8 +1262,13 @@ err:
->   */
->  static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->  {
-> +       int ret;
-> +
->         __fill_vb2_buffer(vb, b, vb->v4l2_planes);
-> -       return 0;
-> +       ret = call_vb_qop(vb, buf_prepare, vb);
-> +       if (ret)
-> +               fail_vb_qop(vb, buf_prepare);
-> +       return ret;
->  }
->
->  /**
-> @@ -1259,6 +1282,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->         unsigned int plane;
->         int ret;
->         int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-> +       bool reacquired = vb->planes[0].mem_priv == NULL;
->
->         /* Copy relevant information provided by the userspace */
->         __fill_vb2_buffer(vb, b, planes);
-> @@ -1294,6 +1318,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->
->                 dprintk(1, "qbuf: buffer for plane %d changed\n", plane);
->
-> +               if (!reacquired) {
-> +                       reacquired = true;
-> +                       call_vb_qop(vb, buf_cleanup, vb);
-> +               }
-> +
->                 /* Release previously acquired memory if present */
->                 __vb2_plane_dmabuf_put(vb, &vb->planes[plane]);
->                 memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
-> @@ -1329,23 +1358,33 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->         }
->
->         /*
-> -        * Call driver-specific initialization on the newly acquired buffer,
-> -        * if provided.
-> -        */
-> -       ret = call_vb_qop(vb, buf_init, vb);
-> -       if (ret) {
-> -               dprintk(1, "qbuf: buffer initialization failed\n");
-> -               fail_vb_qop(vb, buf_init);
-> -               goto err;
-> -       }
-> -
-> -       /*
->          * Now that everything is in order, copy relevant information
->          * provided by userspace.
->          */
->         for (plane = 0; plane < vb->num_planes; ++plane)
->                 vb->v4l2_planes[plane] = planes[plane];
->
-> +       if (reacquired) {
-
-This sequence until 'return 0" is an exact same code as in
-__qbuf_userptr. Could we extract this?
-I'm thinking that we could do this:
-
-- rename __qbuf_userptr and __qbuf_dmabuf to __acquire_userptr/dmabuf
-and have them return whether reacquired
-- extract the sequence above and call buf_prepare from __buf_prepare
-for userptr and dmabuf after calling __acquire_*
-- get rid of qbuf_dmabuf, instead just call buf_prepare from
-__buf_prepare directly like for useptr and dmabuf
-
-> +               /*
-> +                * Call driver-specific initialization on the newly acquired buffer,
-> +                * if provided.
-> +                */
-> +               ret = call_vb_qop(vb, buf_init, vb);
-> +               if (ret) {
-> +                       dprintk(1, "qbuf: buffer initialization failed\n");
-> +                       fail_vb_qop(vb, buf_init);
-> +                       goto err;
-> +               }
-> +       }
-> +
-> +       ret = call_vb_qop(vb, buf_prepare, vb);
-> +       if (ret) {
-> +               dprintk(1, "qbuf: buffer preparation failed\n");
-> +               fail_vb_qop(vb, buf_prepare);
-> +               call_vb_qop(vb, buf_cleanup, vb);
-
-Should we explicitly set mem_priv to NULL here? This is one the issues
-I have with using mem_priv, it's hard to reason if it's ok to do
-buf_cleanup and expect mem_priv to be NULL here always.
-Could we please add that inited bool into vb2_buffer to make it simpler?
-
-> +               goto err;
-> +       }
-> +
->         return 0;
->  err:
->         /* In case of errors, release planes that were already acquired */
-> @@ -1420,11 +1459,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 ret = -EINVAL;
->         }
->
-> -       if (!ret) {
-> -               ret = call_vb_qop(vb, buf_prepare, vb);
-> -               if (ret)
-> -                       fail_vb_qop(vb, buf_prepare);
-> -       }
->         if (ret)
->                 dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
->         vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
-> --
-> 1.8.4.rc3
->
+>=value seems to be possible with adreno and radeon.  I'm not really sure about others (although I presume it as least supported for nv desktop stuff).  For hw that cannot do >=value, we can either have a different fence implementation which uses the !=0 approach.  Or change seqno-fence implementation later if needed.  But if someone has hw that can do !=0 but not >=value, speak up now ;-)
 
 
+> Apart from that I still don't like the idea of leaking a drivers IRQ context
+> outside of the driver, but without a proper GPU scheduler there probably
+> isn't much alternative.
 
--- 
-Best regards,
-Pawel Osciak
+I guess it will be not uncommon scenario for gpu device to just need
+to kick display device to write a few registers for a page flip..
+probably best not to schedule a worker just for this (unless the
+signalled device otherwise needs to).  I think it is better in this
+case to give the signalee some rope to hang themselves, and make it
+the responsibility of the callback to kick things off to a worker if
+needed.
+
+BR,
+-R
+
+> Christian.
+>
+>>
+>> A software fallback still has to be provided in case the fence is used
+>> with a device that doesn't support this mechanism. It is useful to expose
+>> this for graphics cards that have an op to support this.
+>>
+>> Some cards like i915 can export those, but don't have an option to wait,
+>> so they need the software fallback.
+>>
+>> I extended the original patch by Rob Clark.
+>>
+>> v1: Original
+>> v2: Renamed from bikeshed to seqno, moved into dma-fence.c since
+>>      not much was left of the file. Lots of documentation added.
+>> v3: Use fence_ops instead of custom callbacks. Moved to own file
+>>      to avoid circular dependency between dma-buf.h and fence.h
+>> v4: Add spinlock pointer to seqno_fence_init
+>>
+>> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+>> ---
+>>   Documentation/DocBook/device-drivers.tmpl |    1
+>>   drivers/base/fence.c                      |   50 +++++++++++++
+>>   include/linux/seqno-fence.h               |  109
+>> +++++++++++++++++++++++++++++
+>>   3 files changed, 160 insertions(+)
+>>   create mode 100644 include/linux/seqno-fence.h
+>>
+>> diff --git a/Documentation/DocBook/device-drivers.tmpl
+>> b/Documentation/DocBook/device-drivers.tmpl
+>> index 7a0c9ddb4818..8c85c20942c2 100644
+>> --- a/Documentation/DocBook/device-drivers.tmpl
+>> +++ b/Documentation/DocBook/device-drivers.tmpl
+>> @@ -131,6 +131,7 @@ X!Edrivers/base/interface.c
+>>   !Edrivers/base/dma-buf.c
+>>   !Edrivers/base/fence.c
+>>   !Iinclude/linux/fence.h
+>> +!Iinclude/linux/seqno-fence.h
+>>   !Edrivers/base/reservation.c
+>>   !Iinclude/linux/reservation.h
+>>   !Edrivers/base/dma-coherent.c
+>> diff --git a/drivers/base/fence.c b/drivers/base/fence.c
+>> index 12df2bf62034..cd0937127a89 100644
+>> --- a/drivers/base/fence.c
+>> +++ b/drivers/base/fence.c
+>> @@ -25,6 +25,7 @@
+>>   #include <linux/export.h>
+>>   #include <linux/atomic.h>
+>>   #include <linux/fence.h>
+>> +#include <linux/seqno-fence.h>
+>>     #define CREATE_TRACE_POINTS
+>>   #include <trace/events/fence.h>
+>> @@ -413,3 +414,52 @@ __fence_init(struct fence *fence, const struct
+>> fence_ops *ops,
+>>         trace_fence_init(fence);
+>>   }
+>>   EXPORT_SYMBOL(__fence_init);
+>> +
+>> +static const char *seqno_fence_get_driver_name(struct fence *fence) {
+>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+>> +       return seqno_fence->ops->get_driver_name(fence);
+>> +}
+>> +
+>> +static const char *seqno_fence_get_timeline_name(struct fence *fence) {
+>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+>> +       return seqno_fence->ops->get_timeline_name(fence);
+>> +}
+>> +
+>> +static bool seqno_enable_signaling(struct fence *fence)
+>> +{
+>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+>> +       return seqno_fence->ops->enable_signaling(fence);
+>> +}
+>> +
+>> +static bool seqno_signaled(struct fence *fence)
+>> +{
+>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+>> +       return seqno_fence->ops->signaled &&
+>> seqno_fence->ops->signaled(fence);
+>> +}
+>> +
+>> +static void seqno_release(struct fence *fence)
+>> +{
+>> +       struct seqno_fence *f = to_seqno_fence(fence);
+>> +
+>> +       dma_buf_put(f->sync_buf);
+>> +       if (f->ops->release)
+>> +               f->ops->release(fence);
+>> +       else
+>> +               kfree(f);
+>> +}
+>> +
+>> +static long seqno_wait(struct fence *fence, bool intr, signed long
+>> timeout)
+>> +{
+>> +       struct seqno_fence *f = to_seqno_fence(fence);
+>> +       return f->ops->wait(fence, intr, timeout);
+>> +}
+>> +
+>> +const struct fence_ops seqno_fence_ops = {
+>> +       .get_driver_name = seqno_fence_get_driver_name,
+>> +       .get_timeline_name = seqno_fence_get_timeline_name,
+>> +       .enable_signaling = seqno_enable_signaling,
+>> +       .signaled = seqno_signaled,
+>> +       .wait = seqno_wait,
+>> +       .release = seqno_release,
+>> +};
+>> +EXPORT_SYMBOL(seqno_fence_ops);
+>> diff --git a/include/linux/seqno-fence.h b/include/linux/seqno-fence.h
+>> new file mode 100644
+>> index 000000000000..952f7909128c
+>> --- /dev/null
+>> +++ b/include/linux/seqno-fence.h
+>> @@ -0,0 +1,109 @@
+>> +/*
+>> + * seqno-fence, using a dma-buf to synchronize fencing
+>> + *
+>> + * Copyright (C) 2012 Texas Instruments
+>> + * Copyright (C) 2012 Canonical Ltd
+>> + * Authors:
+>> + * Rob Clark <robdclark@gmail.com>
+>> + *   Maarten Lankhorst <maarten.lankhorst@canonical.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> it
+>> + * under the terms of the GNU General Public License version 2 as
+>> published by
+>> + * the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful, but
+>> WITHOUT
+>> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+>> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+>> for
+>> + * more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public License
+>> along with
+>> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+>> + */
+>> +
+>> +#ifndef __LINUX_SEQNO_FENCE_H
+>> +#define __LINUX_SEQNO_FENCE_H
+>> +
+>> +#include <linux/fence.h>
+>> +#include <linux/dma-buf.h>
+>> +
+>> +struct seqno_fence {
+>> +       struct fence base;
+>> +
+>> +       const struct fence_ops *ops;
+>> +       struct dma_buf *sync_buf;
+>> +       uint32_t seqno_ofs;
+>> +};
+>> +
+>> +extern const struct fence_ops seqno_fence_ops;
+>> +
+>> +/**
+>> + * to_seqno_fence - cast a fence to a seqno_fence
+>> + * @fence: fence to cast to a seqno_fence
+>> + *
+>> + * Returns NULL if the fence is not a seqno_fence,
+>> + * or the seqno_fence otherwise.
+>> + */
+>> +static inline struct seqno_fence *
+>> +to_seqno_fence(struct fence *fence)
+>> +{
+>> +       if (fence->ops != &seqno_fence_ops)
+>> +               return NULL;
+>> +       return container_of(fence, struct seqno_fence, base);
+>> +}
+>> +
+>> +/**
+>> + * seqno_fence_init - initialize a seqno fence
+>> + * @fence: seqno_fence to initialize
+>> + * @lock: pointer to spinlock to use for fence
+>> + * @sync_buf: buffer containing the memory location to signal on
+>> + * @context: the execution context this fence is a part of
+>> + * @seqno_ofs: the offset within @sync_buf
+>> + * @seqno: the sequence # to signal on
+>> + * @ops: the fence_ops for operations on this seqno fence
+>> + *
+>> + * This function initializes a struct seqno_fence with passed parameters,
+>> + * and takes a reference on sync_buf which is released on fence
+>> destruction.
+>> + *
+>> + * A seqno_fence is a dma_fence which can complete in software when
+>> + * enable_signaling is called, but it also completes when
+>> + * (s32)((sync_buf)[seqno_ofs] - seqno) >= 0 is true
+>> + *
+>> + * The seqno_fence will take a refcount on the sync_buf until it's
+>> + * destroyed, but actual lifetime of sync_buf may be longer if one of the
+>> + * callers take a reference to it.
+>> + *
+>> + * Certain hardware have instructions to insert this type of wait
+>> condition
+>> + * in the command stream, so no intervention from software would be
+>> needed.
+>> + * This type of fence can be destroyed before completed, however a
+>> reference
+>> + * on the sync_buf dma-buf can be taken. It is encouraged to re-use the
+>> same
+>> + * dma-buf for sync_buf, since mapping or unmapping the sync_buf to the
+>> + * device's vm can be expensive.
+>> + *
+>> + * It is recommended for creators of seqno_fence to call fence_signal
+>> + * before destruction. This will prevent possible issues from wraparound
+>> at
+>> + * time of issue vs time of check, since users can check
+>> fence_is_signaled
+>> + * before submitting instructions for the hardware to wait on the fence.
+>> + * However, when ops.enable_signaling is not called, it doesn't have to
+>> be
+>> + * done as soon as possible, just before there's any real danger of seqno
+>> + * wraparound.
+>> + */
+>> +static inline void
+>> +seqno_fence_init(struct seqno_fence *fence, spinlock_t *lock,
+>> +                struct dma_buf *sync_buf,  uint32_t context, uint32_t
+>> seqno_ofs,
+>> +                uint32_t seqno, const struct fence_ops *ops)
+>> +{
+>> +       BUG_ON(!fence || !sync_buf || !ops);
+>> +       BUG_ON(!ops->wait || !ops->enable_signaling ||
+>> !ops->get_driver_name || !ops->get_timeline_name);
+>> +
+>> +       /*
+>> +        * ops is used in __fence_init for get_driver_name, so needs to be
+>> +        * initialized first
+>> +        */
+>> +       fence->ops = ops;
+>> +       __fence_init(&fence->base, &seqno_fence_ops, lock, context,
+>> seqno);
+>> +       get_dma_buf(sync_buf);
+>> +       fence->sync_buf = sync_buf;
+>> +       fence->seqno_ofs = seqno_ofs;
+>> +}
+>> +
+>> +#endif /* __LINUX_SEQNO_FENCE_H */
+>>
+>> _______________________________________________
+>> dri-devel mailing list
+>> dri-devel@lists.freedesktop.org
+>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
