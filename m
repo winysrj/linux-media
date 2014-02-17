@@ -1,28 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44642 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751192AbaBIAmj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Feb 2014 19:42:39 -0500
-Message-ID: <52F6CEFC.3020307@iki.fi>
-Date: Sun, 09 Feb 2014 02:42:36 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from aserp1040.oracle.com ([141.146.126.69]:22396 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753200AbaBQUEb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 15:04:31 -0500
+Date: Mon, 17 Feb 2014 23:04:19 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] em28xx-cards: don't print a misleading message
+Message-ID: <20140217200419.GB9845@elgon.mountain>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>, kapetr@mizera.cz
-CC: linux-media@vger.kernel.org
-Subject: Re: video from USB DVB-T get  damaged after some time
-References: <52F50E0B.1060507@mizera.cz> <52F56971.8060104@iki.fi>		 <52F6429E.6070704@mizera.cz> <1391872102.3386.10.camel@canaries32-MCP7A>	 <52F678DC.2040307@mizera.cz> <1391891765.2408.13.camel@canaries32-MCP7A>
-In-Reply-To: <1391891765.2408.13.camel@canaries32-MCP7A>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
-I am going to extract new firmware. I dumped init tables out from 
-Windows driver version 12.07.06.1. Is there any newer?
+There were some missing curly braces so it always says that the transfer
+mode changed even if it didn't.  Also the indenting uses spaces instead
+of tabs.
 
-regards
-Antti
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
--- 
-http://palosaari.fi/
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 4d97a76cc3b0..e8eedd35eea5 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3329,10 +3329,11 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 
+ 	/* Select USB transfer types to use */
+ 	if (has_video) {
+-	    if (!dev->analog_ep_isoc || (try_bulk && dev->analog_ep_bulk))
+-		dev->analog_xfer_bulk = 1;
+-		em28xx_info("analog set to %s mode.\n",
+-			    dev->analog_xfer_bulk ? "bulk" : "isoc");
++		if (!dev->analog_ep_isoc || (try_bulk && dev->analog_ep_bulk)) {
++			dev->analog_xfer_bulk = 1;
++			em28xx_info("analog set to %s mode.\n",
++				    dev->analog_xfer_bulk ? "bulk" : "isoc");
++		}
+ 	}
+ 	if (has_dvb) {
+ 	    if (!dev->dvb_ep_isoc || (try_bulk && dev->dvb_ep_bulk))
