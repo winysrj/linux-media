@@ -1,38 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm33.bullet.mail.ne1.yahoo.com ([98.138.229.26]:41723 "EHLO
-	nm33.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755493AbaBTTdX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 14:33:23 -0500
-Message-ID: <1392924626.38711.YahooMailNeo@web120304.mail.ne1.yahoo.com>
-Date: Thu, 20 Feb 2014 11:30:26 -0800 (PST)
-From: Chris Rankin <rankincj@yahoo.com>
-Reply-To: Chris Rankin <rankincj@yahoo.com>
-Subject: PWC webcam and setpwc tool no longer working with 3.12.11 kernel
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:2658 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221AbaBQJwm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 04:52:42 -0500
+Received: from [10.61.171.94] ([10.61.171.94])
+	(authenticated bits=0)
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id s1H9qeKX017115
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 17 Feb 2014 09:52:40 GMT
+Message-ID: <5301DBC6.9000609@cisco.com>
+Date: Mon, 17 Feb 2014 10:52:06 +0100
+From: Hans Verkuil <hansverk@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] saa6752hs depends on CRC32
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
 
-
-Hi,
-
-I have an old Logitech webcam, with USB IDs 046d:08b3. When I try to use this camera now, I see this error in the dmesg log:
-
-[ 2883.852464] pwc: isoc_init() submit_urb 0 failed with error -28
-
-
-This error is apparently ENOSPC, which made me suspect that I was trying to use a mode that would require compression. However, when I tried using setpwc to configure the camera's options I received more errors:
-$ setpwc -c 3
-setpwc v1.3, (C) 2003-2006 by folkert@vanheusden.com
-Error while doing ioctl VIDIOCPWCSCQUAL: Inappropriate ioctl for device
-
-
-Has the kernel-to-userspace interface for PWC devices changed? Because how else could this IOCTL be "inappropriate"? Is there an alternative to setpwc, please?
-
-Thanks,
-Chris
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 4aa9c53..8a357ea 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -659,6 +659,7 @@ comment "Audio/Video compression chips"
+ config VIDEO_SAA6752HS
+ 	tristate "Philips SAA6752HS MPEG-2 Audio/Video Encoder"
+ 	depends on VIDEO_V4L2 && I2C
++	select CRC32
+ 	---help---
+ 	  Support for the Philips SAA6752HS MPEG-2 video and MPEG-audio/AC-3
+ 	  audio encoder with multiplexer.
