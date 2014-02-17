@@ -1,164 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f53.google.com ([209.85.213.53]:45488 "EHLO
-	mail-yh0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932AbaBNBdi (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3433 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753131AbaBQJ7F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 20:33:38 -0500
-Received: by mail-yh0-f53.google.com with SMTP id v1so11038936yhn.12
-        for <linux-media@vger.kernel.org>; Thu, 13 Feb 2014 17:33:38 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1392284450-41019-4-git-send-email-hverkuil@xs4all.nl>
-References: <1392284450-41019-1-git-send-email-hverkuil@xs4all.nl> <1392284450-41019-4-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Fri, 14 Feb 2014 10:32:58 +0900
-Message-ID: <CAMm-=zAixs9jP8gAdCcLguC=eej=vx3GKPuwXXNJsXo=ieBE1w@mail.gmail.com>
-Subject: Re: [RFCv3 PATCH 03/10] vb2: add note that buf_finish can be called
- with !vb2_is_streaming()
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mon, 17 Feb 2014 04:59:05 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [REVIEWv3 PATCH 32/35] solo6x10: implement the motion detection event.
+Date: Mon, 17 Feb 2014 10:57:47 +0100
+Message-Id: <1392631070-41868-33-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Hans.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+Use the new motion detection event.
 
-On Thu, Feb 13, 2014 at 6:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Drivers need to be aware that buf_finish can be called when there is no
-> streaming going on, so make a note of that.
->
-> Also add a bunch of missing periods at the end of sentences.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/media/videobuf2-core.h | 44 ++++++++++++++++++++++--------------------
->  1 file changed, 23 insertions(+), 21 deletions(-)
->
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index f443ce0..82b7f0f 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -34,49 +34,49 @@ struct vb2_fileio_data;
->   *             usually will result in the allocator freeing the buffer (if
->   *             no other users of this buffer are present); the buf_priv
->   *             argument is the allocator private per-buffer structure
-> - *             previously returned from the alloc callback
-> + *             previously returned from the alloc callback.
->   * @get_userptr: acquire userspace memory for a hardware operation; used for
->   *              USERPTR memory types; vaddr is the address passed to the
->   *              videobuf layer when queuing a video buffer of USERPTR type;
->   *              should return an allocator private per-buffer structure
->   *              associated with the buffer on success, NULL on failure;
->   *              the returned private structure will then be passed as buf_priv
-> - *              argument to other ops in this structure
-> + *              argument to other ops in this structure.
->   * @put_userptr: inform the allocator that a USERPTR buffer will no longer
-> - *              be used
-> + *              be used.
->   * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
->   *                used for DMABUF memory types; alloc_ctx is the alloc context
->   *                dbuf is the shared dma_buf; returns NULL on failure;
->   *                allocator private per-buffer structure on success;
-> - *                this needs to be used for further accesses to the buffer
-> + *                this needs to be used for further accesses to the buffer.
->   * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
->   *                buffer is no longer used; the buf_priv argument is the
->   *                allocator private per-buffer structure previously returned
-> - *                from the attach_dmabuf callback
-> + *                from the attach_dmabuf callback.
->   * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
->   *             of dmabuf is informed that this driver is going to use the
-> - *             dmabuf
-> + *             dmabuf.
->   * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-> - *               that this driver is done using the dmabuf for now
-> + *               that this driver is done using the dmabuf for now.
->   * @prepare:   called every time the buffer is passed from userspace to the
-> - *             driver, useful for cache synchronisation, optional
-> + *             driver, useful for cache synchronisation, optional.
->   * @finish:    called every time the buffer is passed back from the driver
-> - *             to the userspace, also optional
-> + *             to the userspace, also optional.
->   * @vaddr:     return a kernel virtual address to a given memory buffer
->   *             associated with the passed private structure or NULL if no
-> - *             such mapping exists
-> + *             such mapping exists.
->   * @cookie:    return allocator specific cookie for a given memory buffer
->   *             associated with the passed private structure or NULL if not
-> - *             available
-> + *             available.
->   * @num_users: return the current number of users of a memory buffer;
->   *             return 1 if the videobuf layer (or actually the driver using
-> - *             it) is the only user
-> + *             it) is the only user.
->   * @mmap:      setup a userspace mapping for a given memory buffer under
-> - *             the provided virtual memory region
-> + *             the provided virtual memory region.
->   *
->   * Required ops for USERPTR types: get_userptr, put_userptr.
->   * Required ops for MMAP types: alloc, put, num_users, mmap.
-> - * Required ops for read/write access types: alloc, put, num_users, vaddr
-> + * Required ops for read/write access types: alloc, put, num_users, vaddr.
->   * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
->   *                               unmap_dmabuf.
->   */
-> @@ -258,27 +258,29 @@ struct vb2_buffer {
->   * @wait_prepare:      release any locks taken while calling vb2 functions;
->   *                     it is called before an ioctl needs to wait for a new
->   *                     buffer to arrive; required to avoid a deadlock in
-> - *                     blocking access type
-> + *                     blocking access type.
->   * @wait_finish:       reacquire all locks released in the previous callback;
->   *                     required to continue operation after sleeping while
-> - *                     waiting for a new buffer to arrive
-> + *                     waiting for a new buffer to arrive.
->   * @buf_init:          called once after allocating a buffer (in MMAP case)
->   *                     or after acquiring a new USERPTR buffer; drivers may
->   *                     perform additional buffer-related initialization;
->   *                     initialization failure (return != 0) will prevent
-> - *                     queue setup from completing successfully; optional
-> + *                     queue setup from completing successfully; optional.
->   * @buf_prepare:       called every time the buffer is queued from userspace
->   *                     and from the VIDIOC_PREPARE_BUF ioctl; drivers may
->   *                     perform any initialization required before each hardware
->   *                     operation in this callback; drivers that support
->   *                     VIDIOC_CREATE_BUFS must also validate the buffer size;
->   *                     if an error is returned, the buffer will not be queued
-> - *                     in driver; optional
-> + *                     in driver; optional.
->   * @buf_finish:                called before every dequeue of the buffer back to
->   *                     userspace; drivers may perform any operations required
-> - *                     before userspace accesses the buffer; optional
-> + *                     before userspace accesses the buffer; optional. Note:
-> + *                     this op can be called as well when vb2_is_streaming()
-> + *                     returns false!
->   * @buf_cleanup:       called once before the buffer is freed; drivers may
-> - *                     perform any additional cleanup; optional
-> + *                     perform any additional cleanup; optional.
->   * @start_streaming:   called once to enter 'streaming' state; the driver may
->   *                     receive buffers with @buf_queue callback before
->   *                     @start_streaming is called; the driver gets the number
-> @@ -299,7 +301,7 @@ struct vb2_buffer {
->   *                     the buffer back by calling vb2_buffer_done() function;
->   *                     it is allways called after calling STREAMON ioctl;
->   *                     might be called before start_streaming callback if user
-> - *                     pre-queued buffers before calling STREAMON
-> + *                     pre-queued buffers before calling STREAMON.
->   */
->  struct vb2_ops {
->         int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
-> --
-> 1.8.4.rc3
->
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 68 ++++++++++++++++++----
+ drivers/staging/media/solo6x10/solo6x10.h          |  7 +--
+ 2 files changed, 60 insertions(+), 15 deletions(-)
 
-
-
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index a56a687..ccdf0f3 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -243,6 +243,8 @@ static int solo_enc_on(struct solo_enc_dev *solo_enc)
+ 	if (solo_enc->bw_weight > solo_dev->enc_bw_remain)
+ 		return -EBUSY;
+ 	solo_enc->sequence = 0;
++	solo_enc->motion_last_state = false;
++	solo_enc->frames_since_last_motion = 0;
+ 	solo_dev->enc_bw_remain -= solo_enc->bw_weight;
+ 
+ 	if (solo_enc->type == SOLO_ENC_TYPE_EXT)
+@@ -544,15 +546,6 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
+ 	const vop_header *vh = enc_buf->vh;
+ 	int ret;
+ 
+-	/* Check for motion flags */
+-	vb->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_MOTION_ON |
+-				V4L2_BUF_FLAG_MOTION_DETECTED);
+-	if (solo_is_motion_on(solo_enc)) {
+-		vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_ON;
+-		if (enc_buf->motion)
+-			vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_DETECTED;
+-	}
+-
+ 	switch (solo_enc->fmt) {
+ 	case V4L2_PIX_FMT_MPEG4:
+ 	case V4L2_PIX_FMT_H264:
+@@ -564,9 +557,49 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
+ 	}
+ 
+ 	if (!ret) {
++		bool send_event = false;
++
+ 		vb->v4l2_buf.sequence = solo_enc->sequence++;
+ 		vb->v4l2_buf.timestamp.tv_sec = vop_sec(vh);
+ 		vb->v4l2_buf.timestamp.tv_usec = vop_usec(vh);
++
++		/* Check for motion flags */
++		if (solo_is_motion_on(solo_enc)) {
++			/* It takes a few frames for the hardware to detect
++			 * motion. Once it does it clears the motion detection
++			 * register and it takes again a few frames before
++			 * motion is seen. This means in practice that when the
++			 * motion field is 1, it will go back to 0 for the next
++			 * frame. This leads to motion detection event being
++			 * sent all the time, which is not what we want.
++			 * Instead wait a few frames before deciding that the
++			 * motion has halted. After some experimentation it
++			 * turns out that waiting for 5 frames works well.
++			 */
++			if (enc_buf->motion == 0 &&
++			    solo_enc->motion_last_state &&
++			    solo_enc->frames_since_last_motion++ > 5)
++				send_event = true;
++			else if (enc_buf->motion) {
++				solo_enc->frames_since_last_motion = 0;
++				send_event = !solo_enc->motion_last_state;
++			}
++		}
++
++		if (send_event) {
++			struct v4l2_event ev = {
++				.type = V4L2_EVENT_MOTION_DET,
++				.u.motion_det = {
++					.flags = V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ,
++					.frame_sequence = vb->v4l2_buf.sequence,
++					.region_mask = enc_buf->motion ? 1 : 0,
++				},
++			};
++
++			solo_enc->motion_last_state = enc_buf->motion;
++			solo_enc->frames_since_last_motion = 0;
++			v4l2_event_queue(solo_enc->vfd, &ev);
++		}
+ 	}
+ 
+ 	vb2_buffer_done(vb, ret ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+@@ -1118,6 +1151,21 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return 0;
+ }
+ 
++static int solo_subscribe_event(struct v4l2_fh *fh,
++				const struct v4l2_event_subscription *sub)
++{
++
++	switch (sub->type) {
++	case V4L2_EVENT_CTRL:
++		return v4l2_ctrl_subscribe_event(fh, sub);
++	case V4L2_EVENT_MOTION_DET:
++		/* Allow for up to 30 events (1 second for NTSC) to be
++		 * stored. */
++		return v4l2_event_subscribe(fh, sub, 30, NULL);
++	}
++	return -EINVAL;
++}
++
+ static const struct v4l2_file_operations solo_enc_fops = {
+ 	.owner			= THIS_MODULE,
+ 	.open			= v4l2_fh_open,
+@@ -1156,7 +1204,7 @@ static const struct v4l2_ioctl_ops solo_enc_ioctl_ops = {
+ 	.vidioc_g_parm			= solo_g_parm,
+ 	/* Logging and events */
+ 	.vidioc_log_status		= v4l2_ctrl_log_status,
+-	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
++	.vidioc_subscribe_event		= solo_subscribe_event,
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
+index 19cb56b..35f9486 100644
+--- a/drivers/staging/media/solo6x10/solo6x10.h
++++ b/drivers/staging/media/solo6x10/solo6x10.h
+@@ -96,11 +96,6 @@
+ 
+ #define SOLO_DEFAULT_QP			3
+ 
+-#ifndef V4L2_BUF_FLAG_MOTION_ON
+-#define V4L2_BUF_FLAG_MOTION_ON		0x10000
+-#define V4L2_BUF_FLAG_MOTION_DETECTED	0x20000
+-#endif
+-
+ #define SOLO_CID_CUSTOM_BASE		(V4L2_CID_USER_BASE | 0xf000)
+ #define V4L2_CID_MOTION_TRACE		(SOLO_CID_CUSTOM_BASE+2)
+ #define V4L2_CID_OSD_TEXT		(SOLO_CID_CUSTOM_BASE+3)
+@@ -168,6 +163,8 @@ struct solo_enc_dev {
+ 	u16			motion_thresh;
+ 	bool			motion_global;
+ 	bool			motion_enabled;
++	bool			motion_last_state;
++	u8			frames_since_last_motion;
+ 	u16			width;
+ 	u16			height;
+ 
 -- 
-Best regards,
-Pawel Osciak
+1.8.4.rc3
+
