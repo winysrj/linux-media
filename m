@@ -1,45 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:46738 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183AbaBZAa5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 19:30:57 -0500
-Received: by mail-ee0-f45.google.com with SMTP id d17so72984eek.18
-        for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 16:30:55 -0800 (PST)
-From: Jan Vcelak <jv@fcelda.cz>
-To: crope@iki.fi, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] rtl28xxu: add USB ID for Genius TVGo DVB-T03
-Date: Wed, 26 Feb 2014 01:30:45 +0100
-Message-Id: <1393374645-4568-1-git-send-email-jv@fcelda.cz>
+Received: from smtp206.alice.it ([82.57.200.102]:24709 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751527AbaBQJTg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 04:19:36 -0500
+Date: Mon, 17 Feb 2014 10:13:53 +0100
+From: Antonio Ospite <ao2@ao2.it>
+To: Mark Pupilli <mpupilli@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: GSPCA ov534 payload error
+Message-Id: <20140217101353.b292ff6d2e90749394ab6dc3@ao2.it>
+In-Reply-To: <CAF93UxJ_+K6gP4DzcS0mc0VG5Te32uNFjCVeXX7n+v8H4QoZAw@mail.gmail.com>
+References: <CAF93UxJ_+K6gP4DzcS0mc0VG5Te32uNFjCVeXX7n+v8H4QoZAw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-0458:707f KYE Systems Corp. (Mouse Systems) TVGo DVB-T03 [RTL2832]
+On Sat, 8 Feb 2014 17:22:11 +0000
+Mark Pupilli <mpupilli@gmail.com> wrote:
 
-The USB dongle uses RTL2832U demodulator and FC0012 tuner.
+> Hi,
+> 
+> I have successfully been using the PS3 eye camera on a beagleboard-xm
+> with kernel 2.6.32. I have upgraded to kernel 3.13.1 and can no longer
+> stream from the camera. I am using unicap to access the camera which
+> never returns any frames.
+>
 
-Signed-off-by: Jan Vcelak <jv@fcelda.cz>
----
+Never used unicap but the camera works fine here on a amd64 with kernel
+3.12, 3.13.1 and 3.14-rc2, I tried it with luvcview, qv4l2, guvcview and
+gstreamer (gst-launch-1.0 v4l2src device=/dev/video0 ! autovideosink)
 
-The patch adds support for the Genius TVGo DVB-T03 USB dongle.
+> I enabled debugging for the gspca_main module and saw that it is
+> repeatedly getting payload errors:
+> 
+> root@(none): $ dmesg | grep -A 50 -B10 "stream on"
+[...]
+> [  801.278930] ov534 2-2.3:1.0: stream on OK YUYV 640x480ov534
+> 2-2.3:1.0: bulk irq
+> [  801.284210] ov534 2-2.3:1.0: packet l:12ov534 2-2.3:1.0: payload error
+> [  801.285919] ov534 2-2.3:1.0: bulk irqov534 2-2.3:1.0: packet l:8768
+> [  801.286041] ov534 2-2.3:1.0: add t:1 l:2036ov534 2-2.3:1.0: add t:2 l:2036
+> [  801.286468] ov534 2-2.3:1.0: add t:2 l:2036ov534 2-2.3:1.0: add t:2 l:2036
+> [  801.286834] ov534 2-2.3:1.0: add t:2 l:564ov534 2-2.3:1.0: bulk irq
+> [  801.287139] ov534 2-2.3:1.0: packet l:12ov534 2-2.3:1.0: payload error
+> ...
+> 
+> Is this likely to be a problem with the gspca ov534 driver or with the
+> USB subsystem?
+>
 
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 ++
- 1 file changed, 2 insertions(+)
+Oscillating packet sizes (l:12, l:8768, l:564), looks more like an USB
+issue.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index fda5c64..bb051c9 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1432,6 +1432,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 
- 	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
- 		&rtl2832u_props, "Astrometa DVB-T2", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_KYE, 0x707f,
-+		&rtl2832u_props, "Genius TVGo DVB-T03", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
+Ciao,
+   Antonio
+
 -- 
-1.8.5.3
+Antonio Ospite
+http://ao2.it
 
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
