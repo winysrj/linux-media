@@ -1,2439 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:33222 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752322AbaBYVuW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 16:50:22 -0500
-Date: Tue, 25 Feb 2014 13:49:56 -0800
-From: Sarah Sharp <sarah.a.sharp@intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, "Ryan, Mark D" <mark.d.ryan@intel.com>
-Subject: Dell XPS 12 USB camera bulk mode issues
-Message-ID: <20140225214956.GC4035@xanatos>
+Received: from pegasos-out.vodafone.de ([80.84.1.38]:41806 "HELO
+	pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754274AbaBQREH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 12:04:07 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by pegasos-out.vodafone.de (Rohrpostix1  Daemon) with ESMTP id 88F5A260C64
+	for <linux-media@vger.kernel.org>; Mon, 17 Feb 2014 17:56:52 +0100 (CET)
+Received: from pegasos-out.vodafone.de ([127.0.0.1])
+	by localhost (rohrpostix1.prod.vfnet.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id sAQoQMOat-WD for <linux-media@vger.kernel.org>;
+	Mon, 17 Feb 2014 17:56:46 +0100 (CET)
+Message-ID: <53023F3E.3080107@vodafone.de>
+Date: Mon, 17 Feb 2014 17:56:30 +0100
+From: =?ISO-8859-1?Q?Christian_K=F6nig?= <deathsimple@vodafone.de>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="x+6KMIRAuhnl3hBn"
-Content-Disposition: inline
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-kernel@vger.kernel.org
+CC: linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, ccross@google.com,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/6] seqno-fence: Hardware dma-buf implementation of fencing
+ (v4)
+References: <20140217155056.20337.25254.stgit@patser> <20140217155556.20337.37589.stgit@patser>
+In-Reply-To: <20140217155556.20337.37589.stgit@patser>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am 17.02.2014 16:56, schrieb Maarten Lankhorst:
+> This type of fence can be used with hardware synchronization for simple
+> hardware that can block execution until the condition
+> (dma_buf[offset] - value) >= 0 has been met.
 
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Can't we make that just "dma_buf[offset] != 0" instead? As far as I know 
+this way it would match the definition M$ uses in their WDDM 
+specification and so make it much more likely that hardware supports it.
 
-Hi Laurent and Mauro,
+Apart from that I still don't like the idea of leaking a drivers IRQ 
+context outside of the driver, but without a proper GPU scheduler there 
+probably isn't much alternative.
 
-Mark has running into issues with the Realtek integrated webcam on a
-Dell XPS 12 system that uses bulk endpoints.  The webcam shows visible
-glitches with certain resolutions (stripes of frame missing, distorted
-images, purple and green colors, blank image, or missing the bottom half
-of the image).
+Christian.
 
-The webcam works fine in Windows.  The webcam works fine in Linux if we
-upgrade the firmware to make the camera use isochronous endpoints rather
-than bulk endpoints.  This makes us suspect an issue with bulk mode.
+>
+> A software fallback still has to be provided in case the fence is used
+> with a device that doesn't support this mechanism. It is useful to expose
+> this for graphics cards that have an op to support this.
+>
+> Some cards like i915 can export those, but don't have an option to wait,
+> so they need the software fallback.
+>
+> I extended the original patch by Rob Clark.
+>
+> v1: Original
+> v2: Renamed from bikeshed to seqno, moved into dma-fence.c since
+>      not much was left of the file. Lots of documentation added.
+> v3: Use fence_ops instead of custom callbacks. Moved to own file
+>      to avoid circular dependency between dma-buf.h and fence.h
+> v4: Add spinlock pointer to seqno_fence_init
+>
+> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> ---
+>   Documentation/DocBook/device-drivers.tmpl |    1
+>   drivers/base/fence.c                      |   50 +++++++++++++
+>   include/linux/seqno-fence.h               |  109 +++++++++++++++++++++++++++++
+>   3 files changed, 160 insertions(+)
+>   create mode 100644 include/linux/seqno-fence.h
+>
+> diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+> index 7a0c9ddb4818..8c85c20942c2 100644
+> --- a/Documentation/DocBook/device-drivers.tmpl
+> +++ b/Documentation/DocBook/device-drivers.tmpl
+> @@ -131,6 +131,7 @@ X!Edrivers/base/interface.c
+>   !Edrivers/base/dma-buf.c
+>   !Edrivers/base/fence.c
+>   !Iinclude/linux/fence.h
+> +!Iinclude/linux/seqno-fence.h
+>   !Edrivers/base/reservation.c
+>   !Iinclude/linux/reservation.h
+>   !Edrivers/base/dma-coherent.c
+> diff --git a/drivers/base/fence.c b/drivers/base/fence.c
+> index 12df2bf62034..cd0937127a89 100644
+> --- a/drivers/base/fence.c
+> +++ b/drivers/base/fence.c
+> @@ -25,6 +25,7 @@
+>   #include <linux/export.h>
+>   #include <linux/atomic.h>
+>   #include <linux/fence.h>
+> +#include <linux/seqno-fence.h>
+>   
+>   #define CREATE_TRACE_POINTS
+>   #include <trace/events/fence.h>
+> @@ -413,3 +414,52 @@ __fence_init(struct fence *fence, const struct fence_ops *ops,
+>   	trace_fence_init(fence);
+>   }
+>   EXPORT_SYMBOL(__fence_init);
+> +
+> +static const char *seqno_fence_get_driver_name(struct fence *fence) {
+> +	struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+> +	return seqno_fence->ops->get_driver_name(fence);
+> +}
+> +
+> +static const char *seqno_fence_get_timeline_name(struct fence *fence) {
+> +	struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+> +	return seqno_fence->ops->get_timeline_name(fence);
+> +}
+> +
+> +static bool seqno_enable_signaling(struct fence *fence)
+> +{
+> +	struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+> +	return seqno_fence->ops->enable_signaling(fence);
+> +}
+> +
+> +static bool seqno_signaled(struct fence *fence)
+> +{
+> +	struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+> +	return seqno_fence->ops->signaled && seqno_fence->ops->signaled(fence);
+> +}
+> +
+> +static void seqno_release(struct fence *fence)
+> +{
+> +	struct seqno_fence *f = to_seqno_fence(fence);
+> +
+> +	dma_buf_put(f->sync_buf);
+> +	if (f->ops->release)
+> +		f->ops->release(fence);
+> +	else
+> +		kfree(f);
+> +}
+> +
+> +static long seqno_wait(struct fence *fence, bool intr, signed long timeout)
+> +{
+> +	struct seqno_fence *f = to_seqno_fence(fence);
+> +	return f->ops->wait(fence, intr, timeout);
+> +}
+> +
+> +const struct fence_ops seqno_fence_ops = {
+> +	.get_driver_name = seqno_fence_get_driver_name,
+> +	.get_timeline_name = seqno_fence_get_timeline_name,
+> +	.enable_signaling = seqno_enable_signaling,
+> +	.signaled = seqno_signaled,
+> +	.wait = seqno_wait,
+> +	.release = seqno_release,
+> +};
+> +EXPORT_SYMBOL(seqno_fence_ops);
+> diff --git a/include/linux/seqno-fence.h b/include/linux/seqno-fence.h
+> new file mode 100644
+> index 000000000000..952f7909128c
+> --- /dev/null
+> +++ b/include/linux/seqno-fence.h
+> @@ -0,0 +1,109 @@
+> +/*
+> + * seqno-fence, using a dma-buf to synchronize fencing
+> + *
+> + * Copyright (C) 2012 Texas Instruments
+> + * Copyright (C) 2012 Canonical Ltd
+> + * Authors:
+> + * Rob Clark <robdclark@gmail.com>
+> + *   Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#ifndef __LINUX_SEQNO_FENCE_H
+> +#define __LINUX_SEQNO_FENCE_H
+> +
+> +#include <linux/fence.h>
+> +#include <linux/dma-buf.h>
+> +
+> +struct seqno_fence {
+> +	struct fence base;
+> +
+> +	const struct fence_ops *ops;
+> +	struct dma_buf *sync_buf;
+> +	uint32_t seqno_ofs;
+> +};
+> +
+> +extern const struct fence_ops seqno_fence_ops;
+> +
+> +/**
+> + * to_seqno_fence - cast a fence to a seqno_fence
+> + * @fence: fence to cast to a seqno_fence
+> + *
+> + * Returns NULL if the fence is not a seqno_fence,
+> + * or the seqno_fence otherwise.
+> + */
+> +static inline struct seqno_fence *
+> +to_seqno_fence(struct fence *fence)
+> +{
+> +	if (fence->ops != &seqno_fence_ops)
+> +		return NULL;
+> +	return container_of(fence, struct seqno_fence, base);
+> +}
+> +
+> +/**
+> + * seqno_fence_init - initialize a seqno fence
+> + * @fence: seqno_fence to initialize
+> + * @lock: pointer to spinlock to use for fence
+> + * @sync_buf: buffer containing the memory location to signal on
+> + * @context: the execution context this fence is a part of
+> + * @seqno_ofs: the offset within @sync_buf
+> + * @seqno: the sequence # to signal on
+> + * @ops: the fence_ops for operations on this seqno fence
+> + *
+> + * This function initializes a struct seqno_fence with passed parameters,
+> + * and takes a reference on sync_buf which is released on fence destruction.
+> + *
+> + * A seqno_fence is a dma_fence which can complete in software when
+> + * enable_signaling is called, but it also completes when
+> + * (s32)((sync_buf)[seqno_ofs] - seqno) >= 0 is true
+> + *
+> + * The seqno_fence will take a refcount on the sync_buf until it's
+> + * destroyed, but actual lifetime of sync_buf may be longer if one of the
+> + * callers take a reference to it.
+> + *
+> + * Certain hardware have instructions to insert this type of wait condition
+> + * in the command stream, so no intervention from software would be needed.
+> + * This type of fence can be destroyed before completed, however a reference
+> + * on the sync_buf dma-buf can be taken. It is encouraged to re-use the same
+> + * dma-buf for sync_buf, since mapping or unmapping the sync_buf to the
+> + * device's vm can be expensive.
+> + *
+> + * It is recommended for creators of seqno_fence to call fence_signal
+> + * before destruction. This will prevent possible issues from wraparound at
+> + * time of issue vs time of check, since users can check fence_is_signaled
+> + * before submitting instructions for the hardware to wait on the fence.
+> + * However, when ops.enable_signaling is not called, it doesn't have to be
+> + * done as soon as possible, just before there's any real danger of seqno
+> + * wraparound.
+> + */
+> +static inline void
+> +seqno_fence_init(struct seqno_fence *fence, spinlock_t *lock,
+> +		 struct dma_buf *sync_buf,  uint32_t context, uint32_t seqno_ofs,
+> +		 uint32_t seqno, const struct fence_ops *ops)
+> +{
+> +	BUG_ON(!fence || !sync_buf || !ops);
+> +	BUG_ON(!ops->wait || !ops->enable_signaling || !ops->get_driver_name || !ops->get_timeline_name);
+> +
+> +	/*
+> +	 * ops is used in __fence_init for get_driver_name, so needs to be
+> +	 * initialized first
+> +	 */
+> +	fence->ops = ops;
+> +	__fence_init(&fence->base, &seqno_fence_ops, lock, context, seqno);
+> +	get_dma_buf(sync_buf);
+> +	fence->sync_buf = sync_buf;
+> +	fence->seqno_ofs = seqno_ofs;
+> +}
+> +
+> +#endif /* __LINUX_SEQNO_FENCE_H */
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
 
-How is the Linux support for bulk mode cameras?  If it's supposed to
-work, could we be dealing with a camera that doesn't conform to the bulk
-mode USB video class spec?
-
-
-Details:
---------
-
-I tested using Ubuntu with a 3.14-rc4 kernel with guvcview.
-
-Resolutions that work:
-
-YUYV, resolutions:
-640x480
-160x120
-352x288
-848x480
-960x540
-MJPG, resolutions:
-160x120
-320x240
-352x288
-
-Resolutions that fail:
-
-YUYV, resolutions:
-320x180
-320x240
-424x240
-640x360
-MJPG, resolutions:
-640x480
-320x180
-424x240
-640x360
-848x480
-960x540
-RGB3, any resolution. (In fact, this seems to hang guvcview with
-messages like "VIDIOC_DQBUF - Unable to dequeue buffer")
-
-Didn't thoroughly test BGR3, YU12, YV12.  Those capture modes also
-sometimes hang guvcview.
-
-Attached is the lsusb output for the device, along with two usbmon
-captures.  One shows the device working as MJPG at a 320x240 resolution,
-and the other shows the device failing as MJPG at a 320x180 resolution.
-
-Please let me know if anything jumps out at you.  For further debugging,
-please work with Mark.
-
-Sarah Sharp
-
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="realtek-webcam-lsusb.txt"
-
-
-Bus 001 Device 004: ID 0bda:5602 Realtek Semiconductor Corp. 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.01
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  idVendor           0x0bda Realtek Semiconductor Corp.
-  idProduct          0x5602 
-  bcdDevice           36.04
-  iManufacturer           3 Generic
-  iProduct                1 Integrated Webcam
-  iSerial                 2 NULL
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength         1058
-    bNumInterfaces          2
-    bConfigurationValue     1
-    iConfiguration          4 USB Camera
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    ** UNRECOGNIZED:  28 ff 42 49 53 54 00 01 06 06 10 00 00 00 00 00 01 07 f4 01 02 08 f4 01 03 09 f4 01 04 0a f4 01 05 0b f4 01 06 0c e8 03
-    Interface Association:
-      bLength                 8
-      bDescriptorType        11
-      bFirstInterface         0
-      bInterfaceCount         2
-      bFunctionClass         14 Video
-      bFunctionSubClass       3 Video Interface Collection
-      bFunctionProtocol       0 
-      iFunction               5 Integrated Webcam
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      1 Video Control
-      bInterfaceProtocol      0 
-      iInterface              5 Integrated Webcam
-      VideoControl Interface Descriptor:
-        bLength                13
-        bDescriptorType        36
-        bDescriptorSubtype      1 (HEADER)
-        bcdUVC               1.00
-        wTotalLength          107
-        dwClockFrequency       15.000000MHz
-        bInCollection           1
-        baInterfaceNr( 0)       1
-      VideoControl Interface Descriptor:
-        bLength                18
-        bDescriptorType        36
-        bDescriptorSubtype      2 (INPUT_TERMINAL)
-        bTerminalID             1
-        wTerminalType      0x0201 Camera Sensor
-        bAssocTerminal          0
-        iTerminal               0 
-        wObjectiveFocalLengthMin      0
-        wObjectiveFocalLengthMax      0
-        wOcularFocalLength            0
-        bControlSize                  3
-        bmControls           0x00000002
-          Auto-Exposure Mode
-      VideoControl Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      5 (PROCESSING_UNIT)
-      Warning: Descriptor too short
-        bUnitID                 2
-        bSourceID               1
-        wMaxMultiplier          0
-        bControlSize            2
-        bmControls     0x0000157f
-          Brightness
-          Contrast
-          Hue
-          Saturation
-          Sharpness
-          Gamma
-          White Balance Temperature
-          Backlight Compensation
-          Power Line Frequency
-          White Balance Temperature, Auto
-        iProcessing             0 
-        bmVideoStandards     0x 9
-          None
-          SECAM - 625/50
-      VideoControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
-        bTerminalID             3
-        wTerminalType      0x0101 USB Streaming
-        bAssocTerminal          0
-        bSourceID               4
-        iTerminal               0 
-      VideoControl Interface Descriptor:
-        bLength                27
-        bDescriptorType        36
-        bDescriptorSubtype      6 (EXTENSION_UNIT)
-        bUnitID                 4
-        guidExtensionCode         {8ca72912-b447-9440-b0ce-db07386fb938}
-        bNumControl             2
-        bNrPins                 1
-        baSourceID( 0)          7
-        bControlSize            2
-        bmControls( 0)       0x00
-        bmControls( 1)       0x06
-        iExtension              0 
-      VideoControl Interface Descriptor:
-        bLength                29
-        bDescriptorType        36
-        bDescriptorSubtype      6 (EXTENSION_UNIT)
-        bUnitID                 7
-        guidExtensionCode         {c385b80f-c268-4745-90f7-8f47579d95fc}
-        bNumControl             0
-        bNrPins                 1
-        baSourceID( 0)          2
-        bControlSize            4
-        bmControls( 0)       0x0f
-        bmControls( 1)       0x00
-        bmControls( 2)       0x00
-        bmControls( 3)       0x00
-        iExtension              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               6
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-        INTERFACE CLASS:  0f 24 01 02 59 03 81 00 03 02 01 00 01 00 00
-        INTERFACE CLASS:  1b 24 04 01 0a 59 55 59 32 00 00 10 00 80 00 00 aa 00 38 9b 71 10 01 00 00 00 00
-        INTERFACE CLASS:  22 24 05 01 00 80 02 e0 01 00 00 65 04 00 00 ca 08 00 60 09 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 05 02 00 a0 00 78 00 00 50 46 00 00 a0 8c 00 00 96 00 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 05 03 00 40 01 b4 00 00 f0 d2 00 00 e0 a5 01 00 c2 01 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 05 04 00 40 01 f0 00 00 40 19 01 00 80 32 02 00 58 02 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 05 05 00 60 01 20 01 00 40 73 01 00 80 e6 02 00 18 03 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 05 06 00 a8 01 f0 00 00 a8 74 01 00 50 e9 02 00 1b 03 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 05 07 00 80 02 68 01 00 c0 4b 03 00 80 97 06 00 08 07 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  26 24 05 08 00 50 03 e0 01 00 c0 e1 03 00 80 c3 07 00 6c 0c 00 20 a1 07 00 03 20 a1 07 00 2a 2c 0a 00 40 42 0f 00
-        INTERFACE CLASS:  26 24 05 09 00 c0 03 1c 02 00 a0 f1 04 00 40 e3 09 00 d2 0f 00 20 a1 07 00 03 20 a1 07 00 2a 2c 0a 00 40 42 0f 00
-        INTERFACE CLASS:  1e 24 05 0a 00 00 05 d0 02 00 00 ca 08 00 00 ca 08 00 20 1c 00 40 42 0f 00 01 40 42 0f 00
-        INTERFACE CLASS:  36 24 03 00 0c 00 05 20 03 00 05 d0 02 a0 00 78 00 b0 00 90 00 40 01 f0 00 60 01 20 01 80 02 e0 01 c0 03 1c 02 50 03 e0 01 80 02 68 01 a8 01 f0 00 40 01 b4 00 00
-        INTERFACE CLASS:  06 24 0d 01 01 04
-        INTERFACE CLASS:  0b 24 06 02 0a 01 01 00 00 00 00
-        INTERFACE CLASS:  22 24 07 01 00 80 02 e0 01 00 00 65 04 00 00 ca 08 00 60 09 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 07 02 00 a0 00 78 00 00 50 46 00 00 a0 8c 00 00 96 00 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 07 03 00 40 01 b4 00 00 f0 d2 00 00 e0 a5 01 00 c2 01 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 07 04 00 40 01 f0 00 00 40 19 01 00 80 32 02 00 58 02 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 07 05 00 60 01 20 01 00 40 73 01 00 80 e6 02 00 18 03 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 07 06 00 a8 01 f0 00 00 a8 74 01 00 50 e9 02 00 1b 03 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 07 07 00 80 02 68 01 00 c0 4b 03 00 80 97 06 00 08 07 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 07 08 00 50 03 e0 01 00 a0 d2 05 00 40 a5 0b 00 6c 0c 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 07 09 00 c0 03 1c 02 00 70 6a 07 00 e0 d4 0e 00 d2 0f 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  22 24 07 0a 00 00 05 d0 02 00 00 2f 0d 00 00 5e 1a 00 20 1c 00 15 16 05 00 02 15 16 05 00 2a 2c 0a 00
-        INTERFACE CLASS:  36 24 03 00 0c 00 05 20 03 00 05 d0 02 a0 00 78 00 b0 00 90 00 40 01 f0 00 60 01 20 01 80 02 e0 01 c0 03 1c 02 50 03 e0 01 80 02 68 01 a8 01 f0 00 40 01 b4 00 00
-        INTERFACE CLASS:  06 24 0d 01 01 04
-Device Status:     0x0000
-  (Bus Powered)
-
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="usbmon-fails-mjpg-320x180.txt"
-
-ffff88011a6b9d80 2557063806 S Bo:2:002:2 -115 31 = 55534243 0a4c0000 00700000 00000a2a 002244dc 58000038 00000000 000000
-ffff88011a6b9d80 2557063899 C Bo:2:002:2 0 31 >
-ffff8800d2d2c480 2557063987 S Bo:2:002:2 -115 28672 = c03b3998 00000001 00065ce6 02300021 00000000 00000000 00000000 00000000
-ffff8800d2d2c480 2557064134 C Bo:2:002:2 0 28672 >
-ffff88011a6b9d80 2557064183 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2557064208 C Bi:2:002:1 0 13 = 55534253 0a4c0000 00000000 00
-ffff88011a6b9d80 2557064433 S Bo:2:002:2 -115 31 = 55534243 0b4c0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2557064496 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2557064547 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2557064583 C Bi:2:002:1 0 13 = 55534253 0b4c0000 00000000 00
-ffff88011a6b9d80 2557064685 S Bo:2:002:2 -115 31 = 55534243 0c4c0000 00100000 00000a2a 002244dc 90000008 00000000 000000
-ffff88011a6b9d80 2557064728 C Bo:2:002:2 0 31 >
-ffff8800d2e0c6c0 2557064784 S Bo:2:002:2 -115 4096 = c03b3998 00000002 00065ce6 00000000 00000000 00000000 00000000 00000000
-ffff8800d2e0c6c0 2557064819 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2557064858 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2557064878 C Bi:2:002:1 0 13 = 55534253 0c4c0000 00000000 00
-ffff88011a6b9d80 2557065009 S Bo:2:002:2 -115 31 = 55534243 0d4c0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2557065042 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2557065080 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2557065112 C Bi:2:002:1 0 13 = 55534253 0d4c0000 00000000 00
-ffff880031a95900 2558355628 S Ii:1:004:3 -115:32 16 <
-ffff880031a95900 2558358796 C Ii:1:004:3 -2:32 0
-ffff880031a95900 2558360396 S Ii:1:004:3 -115:32 16 <
-ffff8800d2d2c9c0 2558368888 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000203 15160500 00000000 00000000 00000000 00000000 0000
-ffff8800d2d2c9c0 2558369309 C Co:1:004:0 0 26 >
-ffff8800d2d2c9c0 2558369370 S Ci:1:004:0 s a1 82 0100 0001 001a 26 <
-ffff8800d2d2c9c0 2558370989 C Ci:1:004:0 0 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800d2b1e9c0 2558371081 S Ci:1:004:0 s a1 83 0100 0001 001a 26 <
-ffff8800d2b1e9c0 2558371475 C Ci:1:004:0 0 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800d2b1e9c0 2558371534 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000203 15160500 00000000 00000000 00000000 00000000 0000
-ffff8800d2b1e9c0 2558371888 C Co:1:004:0 0 26 >
-ffff8800d2b1e9c0 2558371956 S Ci:1:004:0 s a1 81 0100 0001 001a 26 <
-ffff8800d2b1e9c0 2558373570 C Ci:1:004:0 0 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800d2b1e9c0 2558373695 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000203 15160500 00000000 00000000 00000000 00000000 0000
-ffff8800d2b1e9c0 2558374052 C Co:1:004:0 0 26 >
-ffff8800d2b1e9c0 2558374110 S Ci:1:004:0 s a1 82 0100 0001 001a 26 <
-ffff8800d2b1e9c0 2558375725 C Ci:1:004:0 0 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800d2b1e9c0 2558375822 S Ci:1:004:0 s a1 83 0100 0001 001a 26 <
-ffff8800d2b1e9c0 2558376181 C Ci:1:004:0 0 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800322a43c0 2558376252 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000203 15160500 00000000 00000000 00000000 00000000 0000
-ffff8800322a43c0 2558376640 C Co:1:004:0 0 26 >
-ffff8800322a43c0 2558376709 S Ci:1:004:0 s a1 81 0100 0001 001a 26 <
-ffff8800322a43c0 2558378387 C Ci:1:004:0 0 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800322a43c0 2558378583 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800322a43c0 2558378991 C Co:1:004:0 0 26 >
-ffff8800322a43c0 2558379072 S Ci:1:004:0 s a1 82 0100 0001 001a 26 <
-ffff8800322a43c0 2558380662 C Ci:1:004:0 0 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800322a43c0 2558380742 S Ci:1:004:0 s a1 83 0100 0001 001a 26 <
-ffff8800322a43c0 2558381135 C Ci:1:004:0 0 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800322a43c0 2558381195 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800322a43c0 2558381643 C Co:1:004:0 0 26 >
-ffff8800322a43c0 2558381724 S Ci:1:004:0 s a1 81 0100 0001 001a 26 <
-ffff8800322a43c0 2558383311 C Ci:1:004:0 0 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800322a43c0 2558384244 S Ci:1:004:0 s a1 81 0600 0200 0002 2 <
-ffff8800322a43c0 2558384681 C Ci:1:004:0 0 2 = 0000
-ffff8800322a43c0 2558384744 S Ci:1:004:0 s a1 81 0a00 0200 0002 2 <
-ffff8800322a43c0 2558385167 C Ci:1:004:0 0 2 = f811
-ffff8800d3035a80 2558402971 S Ci:1:004:0 s a1 81 0600 0200 0002 2 <
-ffff8800d3035a80 2558403420 C Ci:1:004:0 0 2 = 0000
-ffff8800d2e0c540 2558411934 S Ci:1:004:0 s a1 81 0a00 0200 0002 2 <
-ffff8800d2e0c540 2558412391 C Ci:1:004:0 0 2 = f811
-ffff8800d2e0c540 2558416852 S Co:1:004:0 s 21 01 0200 0001 001a 26 = 01000203 15160500 00000000 00000000 200000c2 010000a8 0000
-ffff8800d2e0c540 2558417243 C Co:1:004:0 0 26 >
-ffff8800d2e0c540 2558417302 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2558417311 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2558417314 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2558417316 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2558417319 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2558916894 C Bi:1:004:1 0 12858 = 58595a63 64656667 68696a73 74757677 78797a82 83848586 8788898a 92939495
-ffff8800d2e0c540 2558916922 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2558916934 C Bi:1:004:1 0 14 = 0c8f7e61 101445f8 17144003 ffd9
-ffff8800d2e0ccc0 2558916942 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2558950429 C Bi:1:004:1 0 13334 = 0c8cb210 18147994 1f146203 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2558950456 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2558950468 C Bi:1:004:1 0 14 = 0c8eb210 181472aa 1f146203 ffd9
-ffff8800d2e0c480 2558950494 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2558984059 C Bi:1:004:1 0 13388 = 0c8de5bf 1f14a546 27148303 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2558984095 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2558984109 C Bi:1:004:1 0 14 = 0c8fe5bf 1f144b55 27148303 ffd9
-ffff8800d2e0c540 2558984141 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559017625 C Bi:1:004:1 0 13344 = 0c8c186f 271480f1 2e14a503 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2559017661 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559017676 C Bi:1:004:1 0 14 = 0c8e186f 27147907 2f14a503 ffd9
-ffff8800d2e0c240 2559017709 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559051204 C Bi:1:004:1 0 13342 = 0c8d4c1e 2f14afa3 3614c603 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2559051240 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559051253 C Bi:1:004:1 0 14 = 0c8f4c1e 2f1455b2 3614c703 ffd9
-ffff8800d2e0c780 2559051288 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559084786 C Bi:1:004:1 0 13338 = 0c8c7fcd 3614d955 3e14e803 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2559084819 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559084831 C Bi:1:004:1 0 14 = 0c8e7fcd 36147f64 3e14e803 ffd9
-ffff8800d2e0ccc0 2559084861 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559118335 C Bi:1:004:1 0 13350 = 0c8db27c 3e14b000 46140904 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2559118365 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559118378 C Bi:1:004:1 0 14 = 0c8fb27c 3e14a916 46140a04 ffd9
-ffff8800d2e0c480 2559118410 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559151934 C Bi:1:004:1 0 13316 = 0c8ce62b 4614e2b2 4d142b04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2559151961 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559151970 C Bi:1:004:1 0 14 = 0c8ee62b 461488c1 4d142b04 ffd9
-ffff8800d2e0c540 2559151994 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559185507 C Bi:1:004:1 0 13362 = 0c8d19db 4d140f65 55144d04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2559185528 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559185537 C Bi:1:004:1 0 14 = 0c8f19db 4d14b573 55144d04 ffd9
-ffff8800d2e0c240 2559185558 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559219084 C Bi:1:004:1 0 13394 = 0c8c4c8a 5514e60f 5d146e04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2559219118 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559219136 C Bi:1:004:1 0 14 = 0c8e4c8a 55148c1e 5d146e04 ffd9
-ffff8800d2e0c780 2559219168 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559252642 C Bi:1:004:1 0 13362 = 0c8d8039 5d1411c2 64149004 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2559252674 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559252687 C Bi:1:004:1 0 14 = 0c8f8039 5d14b7d0 64149004 ffd9
-ffff8800d2e0ccc0 2559252718 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559286223 C Bi:1:004:1 0 13348 = 0c8cb3e8 6414ec6c 6c14b104 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2559286259 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559286272 C Bi:1:004:1 0 14 = 0c8eb3e8 6414e582 6c14b204 ffd9
-ffff8800d2e0c480 2559286308 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559319789 C Bi:1:004:1 0 13388 = 0c8de697 6c141c1f 7414d304 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2559319824 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559319836 C Bi:1:004:1 0 14 = 0c8fe697 6c14c22d 7414d304 ffd9
-ffff8800d2e0c540 2559319869 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559353375 C Bi:1:004:1 0 13392 = 0c8c1a47 7414fbc9 7b14f404 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2559353410 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559353423 C Bi:1:004:1 0 14 = 0c8e1a47 7414f4df 7b14f504 ffd9
-ffff8800d2e0c240 2559353460 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559386933 C Bi:1:004:1 0 13362 = 0c8d4df6 7b14297c 83141605 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2559386968 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559386981 C Bi:1:004:1 0 14 = 0c8f4df6 7b14cf8a 83141605 ffd9
-ffff8800d2e0c780 2559387016 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559420485 C Bi:1:004:1 0 13364 = 0c8c80a5 8314592e 8b143805 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2559420518 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559420533 C Bi:1:004:1 0 14 = 0c8e80a5 8314ff3c 8b143805 ffd9
-ffff8800d2e0ccc0 2559420568 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559454096 C Bi:1:004:1 0 13446 = 0c8db454 8b1438d9 92145905 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2559454129 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559454142 C Bi:1:004:1 0 14 = 0c8fb454 8b1431ef 92145a05 ffd9
-ffff8800d2e0c480 2559454174 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559487670 C Bi:1:004:1 0 13390 = 0c8ce703 9314698b 9a147b05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2559487706 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559487718 C Bi:1:004:1 0 14 = 0c8ee703 93140f9a 9a147b05 ffd9
-ffff8800d2e0c540 2559487755 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559521250 C Bi:1:004:1 0 13414 = 0c8d1ab3 9a144236 a2149c05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2559521283 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559521296 C Bi:1:004:1 0 14 = 0c8f1ab3 9a143b4c a2149d05 ffd9
-ffff8800d2e0c240 2559521333 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559554779 C Bi:1:004:1 0 13456 = 0c8c4e62 a21470e8 a914be05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2559554810 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559554822 C Bi:1:004:1 0 14 = 0c8e4e62 a21416f7 a914be05 ffd9
-ffff8800d2e0c780 2559554851 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559588389 C Bi:1:004:1 0 13362 = 0c8d8111 aa14a29a b114e005 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2559588422 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559588434 C Bi:1:004:1 0 14 = 0c8f8111 aa1448a9 b114e005 ffd9
-ffff8800d2e0ccc0 2559588465 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559621954 C Bi:1:004:1 0 13452 = 0c8cb4c0 b1148245 b9140106 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2559621989 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559622001 C Bi:1:004:1 0 14 = 0c8eb4c0 b1142854 b9140106 ffd9
-ffff8800d2e0c480 2559622035 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559655559 C Bi:1:004:1 0 13418 = 0c8de86f b914b3f7 c0142306 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2559655590 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559655603 C Bi:1:004:1 0 14 = 0c8fe86f b9145906 c1142306 ffd9
-ffff8800d2e0c540 2559655640 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559689084 C Bi:1:004:1 0 13332 = 0c8c1b1f c1148ca2 c8144406 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2559689116 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559689130 C Bi:1:004:1 0 14 = 0c8e1b1f c11485b8 c8144506 ffd9
-ffff8800d2e0c240 2559689165 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559722680 C Bi:1:004:1 0 13422 = 0c8d4ece c814c654 d0146606 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2559722713 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559722725 C Bi:1:004:1 0 14 = 0c8f4ece c8146c63 d0146606 ffd9
-ffff8800d2e0c780 2559722757 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559756275 C Bi:1:004:1 0 13416 = 0c8c827d d014fc06 d8148706 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2559756310 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559756323 C Bi:1:004:1 0 14 = 0c8e827d d014a215 d8148806 ffd9
-ffff8800d2e0ccc0 2559756357 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559789795 C Bi:1:004:1 0 13384 = 0c8db52c d814dbb1 df14a906 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2559789825 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559789839 C Bi:1:004:1 0 14 = 0c8fb52c d81481c0 df14a906 ffd9
-ffff8800d2e0c480 2559789874 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559823419 C Bi:1:004:1 0 13366 = 0c8ce8db df141064 e714cb06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2559823454 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559823466 C Bi:1:004:1 0 14 = 0c8ee8db df14b672 e714cb06 ffd9
-ffff8800d2e0c540 2559823500 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559856972 C Bi:1:004:1 0 13362 = 0c8d1c8b e714ef0e ef14ec06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2559857007 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559857019 C Bi:1:004:1 0 14 = 0c8f1c8b e714e824 ef14ec06 ffd9
-ffff8800d2e0c240 2559857052 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559890559 C Bi:1:004:1 0 13422 = 0c8c4f3a ef1420c1 f6140e07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2559890594 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559890607 C Bi:1:004:1 0 14 = 0c8e4f3a ef14c6cf f6140e07 ffd9
-ffff8800d2e0c780 2559890640 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559924129 C Bi:1:004:1 0 13438 = 0c8d82e9 f6145273 fe142f07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2559924160 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2559924175 C Bi:1:004:1 0 14 = 0c8f82e9 f614f881 fe143007 ffd9
-ffff8800d2e0ccc0 2559924206 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2559957703 C Bi:1:004:1 0 13364 = 0c8cb698 fe142e1e 06155107 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2559957737 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2559957749 C Bi:1:004:1 0 14 = 0c8eb698 fe14d42c 06155107 ffd9
-ffff8800d2e0c480 2559957780 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2559991269 C Bi:1:004:1 0 13396 = 0c8de947 06155fd0 0d157207 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2559991304 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2559991316 C Bi:1:004:1 0 14 = 0c8fe947 061505df 0d157307 ffd9
-ffff8800d2e0c540 2559991349 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560024830 C Bi:1:004:1 0 13334 = 0c8c1cf7 0d153e7b 15159407 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2560024861 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560024873 C Bi:1:004:1 0 14 = 0c8e1cf7 0d153791 15159407 ffd9
-ffff8800d2e0c240 2560024904 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560058413 C Bi:1:004:1 0 13342 = 0c8d50a6 15156c2d 1d15b607 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2560058448 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560058461 C Bi:1:004:1 0 14 = 0c8f50a6 1515123c 1d15b607 ffd9
-ffff8800d2e0c780 2560058492 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560092004 C Bi:1:004:1 0 13330 = 0c8c8355 1d154dd8 2415d707 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2560092038 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560092051 C Bi:1:004:1 0 14 = 0c8e8355 1d1546ee 2415d707 ffd9
-ffff8800d2e0ccc0 2560092085 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560125559 C Bi:1:004:1 0 13408 = 0c8db604 25157e8a 2c15f907 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2560125589 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560125602 C Bi:1:004:1 0 14 = 0c8fb604 25152499 2c15f907 ffd9
-ffff8800d2e0c480 2560125630 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560159145 C Bi:1:004:1 0 13444 = 0c8ceab3 2c15ac3c 34151a00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2560159179 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560159192 C Bi:1:004:1 0 14 = 0c8eeab3 2c15524b 34151b00 ffd9
-ffff8800d2e0c540 2560159225 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560192740 C Bi:1:004:1 0 13422 = 0c8d1d63 34158ce7 3b153c00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2560192774 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560192786 C Bi:1:004:1 0 14 = 0c8f1d63 341585fd 3b153c00 ffd9
-ffff8800d2e0c240 2560192818 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560226289 C Bi:1:004:1 0 13404 = 0c8c5012 3c15bc99 43155d00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2560226324 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560226342 C Bi:1:004:1 0 14 = 0c8e5012 3c1563a8 43155e00 ffd9
-ffff8800d2e0c780 2560226378 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560259895 C Bi:1:004:1 0 13400 = 0c8d84c1 4315ea4b 4b157f00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2560259929 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560259942 C Bi:1:004:1 0 14 = 0c8f84c1 4315905a 4b157f00 ffd9
-ffff8800d2e0ccc0 2560259973 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560293430 C Bi:1:004:1 0 13372 = 0c8cb770 4b15cbf6 5215a100 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2560293463 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560293475 C Bi:1:004:1 0 14 = 0c8eb770 4b157105 5315a100 ffd9
-ffff8800d2e0c480 2560293504 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560327008 C Bi:1:004:1 0 13436 = 0c8dea1f 5315fba8 5a15c200 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2560327041 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560327053 C Bi:1:004:1 0 14 = 0c8fea1f 5315a1b7 5a15c200 ffd9
-ffff8800d2e0c540 2560327082 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560360561 C Bi:1:004:1 0 13406 = 0c8c1ecf 5a15d653 6215e400 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2560360592 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560360604 C Bi:1:004:1 0 14 = 0c8e1ecf 5a157d62 6215e400 ffd9
-ffff8800d2e0c240 2560360635 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560394165 C Bi:1:004:1 0 13422 = 0c8d517e 62150406 6a150501 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2560394199 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560394211 C Bi:1:004:1 0 14 = 0c8f517e 6215aa14 6a150601 ffd9
-ffff8800d2e0c780 2560394244 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560427745 C Bi:1:004:1 0 13366 = 0c8c842d 6a15e2b0 71152701 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2560427779 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560427792 C Bi:1:004:1 0 14 = 0c8e842d 6a15dbc6 71152701 ffd9
-ffff8800d2e0ccc0 2560427822 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560461307 C Bi:1:004:1 0 13406 = 0c8db8dc 71151263 79154801 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2560461338 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560461350 C Bi:1:004:1 0 14 = 0c8fb8dc 7115b871 79154901 ffd9
-ffff8800d2e0c480 2560461381 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560494876 C Bi:1:004:1 0 13402 = 0c8ceb8b 79154615 81156a01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2560494906 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560494918 C Bi:1:004:1 0 14 = 0c8eeb8b 7915ec23 81156a01 ffd9
-ffff8800d2e0c540 2560494946 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560528455 C Bi:1:004:1 0 13372 = 0c8d1e3b 811524c0 88158c01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2560528489 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560528502 C Bi:1:004:1 0 14 = 0c8f1e3b 8115cace 88158c01 ffd9
-ffff8800d2e0c240 2560528532 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560562036 C Bi:1:004:1 0 13384 = 0c8c52ea 88155a72 9015ad01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2560562070 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560562082 C Bi:1:004:1 0 14 = 0c8e52ea 88150081 9015ad01 ffd9
-ffff8800d2e0c780 2560562111 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560595604 C Bi:1:004:1 0 13420 = 0c8d8599 90153b1d 9815cf01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2560595641 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560595657 C Bi:1:004:1 0 14 = 0c8f8599 90153433 9815cf01 ffd9
-ffff8800d2e0ccc0 2560595695 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560629183 C Bi:1:004:1 0 13336 = 0c8cb848 98156ccf 9f15f001 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2560629217 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560629229 C Bi:1:004:1 0 14 = 0c8eb848 981513de 9f15f101 ffd9
-ffff8800d2e0c480 2560629262 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560662769 C Bi:1:004:1 0 13354 = 0c8decf7 9f159e81 a7151202 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2560662797 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560662806 C Bi:1:004:1 0 14 = 0c8fecf7 9f154490 a7151202 ffd9
-ffff8800d2e0c540 2560662831 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560696338 C Bi:1:004:1 0 13392 = 0c8c1fa7 a7157a2c af153302 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2560696368 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560696383 C Bi:1:004:1 0 14 = 0c8e1fa7 a715203b af153402 ffd9
-ffff8800d2e0c240 2560696415 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560729914 C Bi:1:004:1 0 13416 = 0c8d5256 af15a8de b6155502 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2560729941 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560729952 C Bi:1:004:1 0 14 = 0c8f5256 af154eed b6155502 ffd9
-ffff8800d2e0c780 2560729976 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560763481 C Bi:1:004:1 0 13370 = 0c8c8605 b7158089 be157702 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2560763516 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560763530 C Bi:1:004:1 0 14 = 0c8e8605 b715799f be157702 ffd9
-ffff8800d2e0ccc0 2560763561 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560797043 C Bi:1:004:1 0 13382 = 0c8db9b4 be15b33b c6159802 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2560797075 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560797087 C Bi:1:004:1 0 14 = 0c8fb9b4 be15594a c6159802 ffd9
-ffff8800d2e0c480 2560797121 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560830583 C Bi:1:004:1 0 13390 = 0c8cec63 c61591e6 cd15ba02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2560830616 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560830634 C Bi:1:004:1 0 14 = 0c8eec63 c6158afc cd15ba02 ffd9
-ffff8800d2e0c540 2560830664 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560864151 C Bi:1:004:1 0 13360 = 0c8d2013 ce15c798 d515db02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2560864173 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560864184 C Bi:1:004:1 0 14 = 0c8f2013 ce156da7 d515dc02 ffd9
-ffff8800d2e0c240 2560864203 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560897711 C Bi:1:004:1 0 13426 = 0c8c53c2 d515fc4a dd15fd02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2560897729 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560897738 C Bi:1:004:1 0 14 = 0c8e53c2 d515a259 dd15fd02 ffd9
-ffff8800d2e0c780 2560897755 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560931321 C Bi:1:004:1 0 13422 = 0c8d8671 dd15dcf5 e4151e03 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2560931343 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2560931352 C Bi:1:004:1 0 14 = 0c8f8671 dd15d50b e5151f03 ffd9
-ffff8800d2e0ccc0 2560931372 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2560964896 C Bi:1:004:1 0 13438 = 0c8cba20 e5150ca8 ec154003 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2560964927 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2560964940 C Bi:1:004:1 0 14 = 0c8eba20 e515b2b6 ec154003 ffd9
-ffff8800d2e0c480 2560964967 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2560998499 C Bi:1:004:1 0 13416 = 0c8dedcf ec15e952 f4156203 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2560998533 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2560998546 C Bi:1:004:1 0 14 = 0c8fedcf ec15e268 f4156203 ffd9
-ffff8800d2e0c540 2560998576 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561032058 C Bi:1:004:1 0 13418 = 0c8c207f f4151805 fc158303 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2561032090 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561032103 C Bi:1:004:1 0 14 = 0c8e207f f415be13 fc158303 ffd9
-ffff8800d2e0c240 2561032135 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561065642 C Bi:1:004:1 0 13334 = 0c8d542e fc1545b7 0316a503 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2561065676 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561065688 C Bi:1:004:1 0 14 = 0c8f542e fc15ebc5 0316a503 ffd9
-ffff8800d2e0c780 2561065718 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561099224 C Bi:1:004:1 0 13366 = 0c8c87dd 03161d62 0b16c603 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2561099259 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561099272 C Bi:1:004:1 0 14 = 0c8e87dd 03161678 0b16c703 ffd9
-ffff8800d2e0ccc0 2561099312 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561132788 C Bi:1:004:1 0 13380 = 0c8dba8c 0b164d14 1316e803 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2561132820 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561132833 C Bi:1:004:1 0 14 = 0c8fba8c 0b16f322 1316e803 ffd9
-ffff8800d2e0c480 2561132863 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561166377 C Bi:1:004:1 0 13432 = 0c8cee3b 131629bf 1a160904 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2561166412 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561166424 C Bi:1:004:1 0 14 = 0c8eee3b 131622d5 1a160a04 ffd9
-ffff8800d2e0c540 2561166457 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561199935 C Bi:1:004:1 0 13344 = 0c8d21eb 1a165671 22162b04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2561199968 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561199980 C Bi:1:004:1 0 14 = 0c8f21eb 1a16fc7f 22162b04 ffd9
-ffff8800d2e0c240 2561200009 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561233503 C Bi:1:004:1 0 13422 = 0c8c549a 22168923 2a164d04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2561233536 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561233549 C Bi:1:004:1 0 14 = 0c8e549a 22162f32 2a164d04 ffd9
-ffff8800d2e0c780 2561233578 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561267075 C Bi:1:004:1 0 13394 = 0c8d8849 2a166ace 31166e04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2561267107 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561267120 C Bi:1:004:1 0 14 = 0c8f8849 2a1611dd 31166e04 ffd9
-ffff8800d2e0ccc0 2561267149 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561300665 C Bi:1:004:1 0 13408 = 0c8cbbf8 31169c80 39169004 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2561300699 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561300712 C Bi:1:004:1 0 14 = 0c8ebbf8 3116428f 39169004 ffd9
-ffff8800d2e0c480 2561300743 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561334242 C Bi:1:004:1 0 13424 = 0c8deea7 3916772b 4116b104 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2561334277 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561334289 C Bi:1:004:1 0 14 = 0c8feea7 39167041 4116b204 ffd9
-ffff8800d2e0c540 2561334330 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561367816 C Bi:1:004:1 0 13432 = 0c8c2257 4116a5dd 4816d304 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2561367850 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561367862 C Bi:1:004:1 0 14 = 0c8e2257 41164bec 4816d304 ffd9
-ffff8800d2e0c240 2561367894 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561401392 C Bi:1:004:1 0 13384 = 0c8d5506 4916d78f 5016f504 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2561401425 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561401439 C Bi:1:004:1 0 14 = 0c8f5506 49167e9e 5016f504 ffd9
-ffff8800d2e0c780 2561401472 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561434938 C Bi:1:004:1 0 13408 = 0c8c88b5 5016b63a 58161605 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2561434969 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561434983 C Bi:1:004:1 0 14 = 0c8e88b5 50165c49 58161605 ffd9
-ffff8800d2e0ccc0 2561435013 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561468536 C Bi:1:004:1 0 13388 = 0c8dbc64 5816e7ec 5f163805 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2561468569 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561468581 C Bi:1:004:1 0 14 = 0c8fbc64 58168dfb 5f163805 ffd9
-ffff8800d2e0c480 2561468610 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561502111 C Bi:1:004:1 0 13334 = 0c8cef13 6016c497 67165905 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2561502144 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561502156 C Bi:1:004:1 0 14 = 0c8eef13 6016bdad 67165a05 ffd9
-ffff8800d2e0c540 2561502186 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561535665 C Bi:1:004:1 0 13338 = 0c8d22c3 6716f149 6f167b05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2561535695 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561535708 C Bi:1:004:1 0 14 = 0c8f22c3 67169758 6f167b05 ffd9
-ffff8800d2e0c240 2561535738 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561569267 C Bi:1:004:1 0 13442 = 0c8c5672 6f1624fc 76169c05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2561569300 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561569312 C Bi:1:004:1 0 14 = 0c8e5672 6f16ca0a 77169d05 ffd9
-ffff8800d2e0c780 2561569342 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561602825 C Bi:1:004:1 0 13380 = 0c8d8921 771604a7 7e16be05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2561602858 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561602873 C Bi:1:004:1 0 14 = 0c8f8921 7716aab5 7e16be05 ffd9
-ffff8800d2e0ccc0 2561602908 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561636395 C Bi:1:004:1 0 13392 = 0c8cbcd0 7e163559 8616e005 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2561636430 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561636443 C Bi:1:004:1 0 14 = 0c8ebcd0 7e16db67 8616e005 ffd9
-ffff8800d2e0c480 2561636474 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561669974 C Bi:1:004:1 0 13392 = 0c8df07f 86161204 8e160106 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2561670008 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561670021 C Bi:1:004:1 0 14 = 0c8ff07f 86160b1a 8e160106 ffd9
-ffff8800d2e0c540 2561670052 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561703548 C Bi:1:004:1 0 13434 = 0c8c232f 8e1643b6 95162306 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2561703583 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561703595 C Bi:1:004:1 0 14 = 0c8e232f 8e16e9c4 95162306 ffd9
-ffff8800d2e0c240 2561703628 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561737128 C Bi:1:004:1 0 13422 = 0c8d56de 95162561 9d164406 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2561737164 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561737177 C Bi:1:004:1 0 14 = 0c8f56de 95161e77 9d164506 ffd9
-ffff8800d2e0c780 2561737209 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561770683 C Bi:1:004:1 0 13416 = 0c8c8a8d 9d165713 a5166606 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2561770717 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561770729 C Bi:1:004:1 0 14 = 0c8e8a8d 9d16fd21 a5166606 ffd9
-ffff8800d2e0ccc0 2561770758 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561804272 C Bi:1:004:1 0 13364 = 0c8dbd3c a51688c5 ac168706 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2561804307 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561804320 C Bi:1:004:1 0 14 = 0c8fbd3c a5162fd4 ac168806 ffd9
-ffff8800d2e0c480 2561804352 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561837810 C Bi:1:004:1 0 13448 = 0c8cf0eb ac166670 b416a906 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2561837831 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561837841 C Bi:1:004:1 0 14 = 0c8ef0eb ac165f86 b416a906 ffd9
-ffff8800d2e0c540 2561837860 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561871406 C Bi:1:004:1 0 13368 = 0c8d249b b4169522 bc16cb06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2561871428 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561871435 C Bi:1:004:1 0 14 = 0c8f249b b4163b31 bc16cb06 ffd9
-ffff8800d2e0c240 2561871453 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561904989 C Bi:1:004:1 0 13390 = 0c8c574a bc1671cd c316ec06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2561905011 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2561905020 C Bi:1:004:1 0 14 = 0c8e574a bc166ae3 c316ec06 ffd9
-ffff8800d2e0c780 2561905039 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2561938548 C Bi:1:004:1 0 13328 = 0c8d8af9 c316a67f cb160e07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2561938569 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2561938577 C Bi:1:004:1 0 14 = 0c8f8af9 c3164c8e cb160e07 ffd9
-ffff8800d2e0ccc0 2561938595 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2561972083 C Bi:1:004:1 0 13356 = 0c8cbea8 cb16d931 d3162f07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2561972099 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2561972106 C Bi:1:004:1 0 14 = 0c8ebea8 cb167f40 d3163007 ffd9
-ffff8800d2e0c480 2561972121 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562005703 C Bi:1:004:1 0 13402 = 0c8df157 d316badc da165107 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2562005739 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562005751 C Bi:1:004:1 0 14 = 0c8ff157 d31660eb da165107 ffd9
-ffff8800d2e0c540 2562005780 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562039259 C Bi:1:004:1 0 13370 = 0c8c2407 db16f18e e2167207 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2562039288 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562039301 C Bi:1:004:1 0 14 = 0c8e2407 db16979d e2167307 ffd9
-ffff8800d2e0c240 2562039331 S Bi:1:004:1 -115 16384 <
-ffff88011a6b9d80 2562064455 S Bo:2:002:2 -115 31 = 55534243 0e4c0000 00b00000 00000a2a 002244dc 98000058 00000000 000000
-ffff88011a6b9d80 2562064521 C Bo:2:002:2 0 31 >
-ffff88003240e0c0 2562064600 S Bo:2:002:2 -115 45056 = c03b3998 00000001 00065ce7 03300273 00000000 00000000 00000000 00000000
-ffff88003240e0c0 2562064815 C Bo:2:002:2 0 45056 >
-ffff88011a6b9d80 2562064868 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2562064895 C Bi:2:002:1 0 13 = 55534253 0e4c0000 00000000 00
-ffff88011a6b9d80 2562065121 S Bo:2:002:2 -115 31 = 55534243 0f4c0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2562065154 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2562065186 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2562065222 C Bi:2:002:1 0 13 = 55534253 0f4c0000 00000000 00
-ffff88011a6b9d80 2562065343 S Bo:2:002:2 -115 31 = 55534243 104c0000 00100000 00000a2a 002244dc f0000008 00000000 000000
-ffff88011a6b9d80 2562065407 C Bo:2:002:2 0 31 >
-ffff8800d2b1ea80 2562065461 S Bo:2:002:2 -115 4096 = c03b3998 00000002 00065ce7 00000000 00000000 00000000 00000000 00000000
-ffff8800d2b1ea80 2562065504 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2562065548 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2562065579 C Bi:2:002:1 0 13 = 55534253 104c0000 00000000 00
-ffff88011a6b9d80 2562065695 S Bo:2:002:2 -115 31 = 55534243 114c0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2562065725 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2562065761 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2562065791 C Bi:2:002:1 0 13 = 55534253 114c0000 00000000 00
-ffff8800d2e0c480 2562072861 C Bi:1:004:1 0 13378 = 0c8d58b6 e216cd39 ea169407 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2562072889 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562072901 C Bi:1:004:1 0 14 = 0c8f58b6 e216c64f ea169407 ffd9
-ffff8800d2e0c780 2562072925 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562106433 C Bi:1:004:1 0 13394 = 0c8c8b65 ea16fbeb f116b607 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2562106467 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562106481 C Bi:1:004:1 0 14 = 0c8e8b65 ea16a1fa f116b607 ffd9
-ffff8800d2e0ccc0 2562106511 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562140021 C Bi:1:004:1 0 13394 = 0c8dbe14 f2162f9e f916d707 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2562140054 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562140067 C Bi:1:004:1 0 14 = 0c8fbe14 f216d6ac f916d707 ffd9
-ffff8800d2e0c480 2562140096 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562173562 C Bi:1:004:1 0 13458 = 0c8cf2c3 f9161349 0117f907 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2562173590 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562173602 C Bi:1:004:1 0 14 = 0c8ef2c3 f916b957 0117f907 ffd9
-ffff8800d2e0c540 2562173629 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562207167 C Bi:1:004:1 0 13468 = 0c8d2573 01174ffb 08171a00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2562207202 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562207215 C Bi:1:004:1 0 14 = 0c8f2573 0117f509 09171b00 ffd9
-ffff8800d2e0c240 2562207250 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562240707 C Bi:1:004:1 0 13392 = 0c8c5822 091739a6 10173c00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2562240739 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562240753 C Bi:1:004:1 0 14 = 0c8e5822 091733bc 10173c00 ffd9
-ffff8800d2e0c780 2562240788 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562274306 C Bi:1:004:1 0 13406 = 0c8d8cd1 10177558 18175d00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2562274339 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562274351 C Bi:1:004:1 0 14 = 0c8f8cd1 10171c67 18175e00 ffd9
-ffff8800d2e0ccc0 2562274383 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562307865 C Bi:1:004:1 0 13468 = 0c8cbf80 18175d03 20177f00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2562307898 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562307910 C Bi:1:004:1 0 14 = 0c8ebf80 18175719 20177f00 ffd9
-ffff8800d2e0c480 2562307944 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562341456 C Bi:1:004:1 0 13454 = 0c8df22f 20178eb5 2717a100 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2562341491 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562341503 C Bi:1:004:1 0 14 = 0c8ff22f 201734c4 2717a100 ffd9
-ffff8800d2e0c540 2562341533 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562375016 C Bi:1:004:1 0 13392 = 0c8c26df 2717bf67 2f17c200 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2562375049 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562375061 C Bi:1:004:1 0 14 = 0c8e26df 27176576 2f17c200 ffd9
-ffff8800d2e0c240 2562375090 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562408572 C Bi:1:004:1 0 13414 = 0c8d598e 2f179912 3717e400 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2562408603 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562408615 C Bi:1:004:1 0 14 = 0c8f598e 2f179228 3717e400 ffd9
-ffff8800d2e0c780 2562408639 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562442166 C Bi:1:004:1 0 13456 = 0c8c8c3d 3717cec4 3e170501 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2562442200 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562442213 C Bi:1:004:1 0 14 = 0c8e8c3d 371774d3 3e170601 ffd9
-ffff8800d2e0ccc0 2562442245 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562475774 C Bi:1:004:1 0 13392 = 0c8dc0ec 3e170377 46172701 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2562475806 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562475818 C Bi:1:004:1 0 14 = 0c8fc0ec 3e17a985 46172701 ffd9
-ffff8800d2e0c480 2562475848 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562509310 C Bi:1:004:1 0 13494 = 0c8cf39b 4617e321 4e174801 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2562509338 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562509349 C Bi:1:004:1 0 14 = 0c8ef39b 46178930 4e174901 ffd9
-ffff8800d2e0c540 2562509377 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562542893 C Bi:1:004:1 0 13396 = 0c8d264b 4e1715d4 55176a01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2562542925 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562542937 C Bi:1:004:1 0 14 = 0c8f264b 4e17bbe2 55176a01 ffd9
-ffff8800d2e0c240 2562542974 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562576453 C Bi:1:004:1 0 13438 = 0c8c5afa 5517f37e 5d178c01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2562576486 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562576498 C Bi:1:004:1 0 14 = 0c8e5afa 5517998d 5d178c01 ffd9
-ffff8800d2e0c780 2562576528 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562610042 C Bi:1:004:1 0 13424 = 0c8d8da9 5d172431 6517ad01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2562610089 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562610111 C Bi:1:004:1 0 14 = 0c8f8da9 5d17ca3f 6517ad01 ffd9
-ffff8800d2e0ccc0 2562610159 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562643633 C Bi:1:004:1 0 13376 = 0c8cc058 651708dc 6c17cf01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2562643667 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562643680 C Bi:1:004:1 0 14 = 0c8ec058 651701f2 6c17cf01 ffd9
-ffff8800d2e0c480 2562643714 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562677176 C Bi:1:004:1 0 13426 = 0c8df407 6d173e8e 7417f001 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2562677210 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562677223 C Bi:1:004:1 0 14 = 0c8ff407 6d17e49c 7417f101 ffd9
-ffff8800d2e0c540 2562677259 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562710750 C Bi:1:004:1 0 13436 = 0c8c27b7 74177440 7c171202 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2562710783 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562710795 C Bi:1:004:1 0 14 = 0c8e27b7 74171a4f 7c171202 ffd9
-ffff8800d2e0c240 2562710825 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562744300 C Bi:1:004:1 0 13338 = 0c8d5a66 7c1754eb 83173302 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2562744331 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562744345 C Bi:1:004:1 0 14 = 0c8f5a66 7c17faf9 83173402 ffd9
-ffff8800d2e0c780 2562744378 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562777915 C Bi:1:004:1 0 13378 = 0c8c8e15 8417859d 8b175502 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2562777950 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562777962 C Bi:1:004:1 0 14 = 0c8e8e15 84172cac 8b175502 ffd9
-ffff8800d2e0ccc0 2562777993 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562811493 C Bi:1:004:1 0 13422 = 0c8dc1c4 8b176348 93177702 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2562811531 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562811546 C Bi:1:004:1 0 14 = 0c8fc1c4 8b175c5e 93177702 ffd9
-ffff8800d2e0c480 2562811586 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562845023 C Bi:1:004:1 0 13438 = 0c8cf473 931794fa 9a179802 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2562845054 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562845066 C Bi:1:004:1 0 14 = 0c8ef473 93173a09 9b179802 ffd9
-ffff8800d2e0c540 2562845093 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562878572 C Bi:1:004:1 0 13446 = 0c8d2823 9b1771a5 a217ba02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2562878597 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562878609 C Bi:1:004:1 0 14 = 0c8f2823 9b176abb a217ba02 ffd9
-ffff8800d2e0c240 2562878631 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562912184 C Bi:1:004:1 0 13390 = 0c8c5bd2 a217a057 aa17db02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2562912215 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2562912227 C Bi:1:004:1 0 14 = 0c8e5bd2 a2174666 aa17dc02 ffd9
-ffff8800d2e0c780 2562912257 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2562945755 C Bi:1:004:1 0 13444 = 0c8d8e81 aa17ce09 b217fd02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2562945788 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2562945801 C Bi:1:004:1 0 14 = 0c8f8e81 aa177418 b217fd02 ffd9
-ffff8800d2e0ccc0 2562945829 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2562979335 C Bi:1:004:1 0 13428 = 0c8cc230 b217a8b4 b9171e03 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2562979367 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2562979380 C Bi:1:004:1 0 14 = 0c8ec230 b217a2ca b9171f03 ffd9
-ffff8800d2e0c480 2562979410 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563012920 C Bi:1:004:1 0 13396 = 0c8df5df b917d666 c1174003 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2563012953 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563012967 C Bi:1:004:1 0 14 = 0c8ff5df b9177c75 c1174003 ffd9
-ffff8800d2e0c540 2563012998 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563046488 C Bi:1:004:1 0 13434 = 0c8c288f c117af11 c9176203 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2563046518 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563046531 C Bi:1:004:1 0 14 = 0c8e288f c117a827 c9176203 ffd9
-ffff8800d2e0c240 2563046559 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563080081 C Bi:1:004:1 0 13374 = 0c8d5c3e c917e3c3 d0178303 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2563080115 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563080128 C Bi:1:004:1 0 14 = 0c8f5c3e c91789d2 d0178303 ffd9
-ffff8800d2e0c780 2563080159 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563113627 C Bi:1:004:1 0 13354 = 0c8c8fed d0171676 d817a503 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2563113658 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563113672 C Bi:1:004:1 0 14 = 0c8e8fed d017bc84 d817a503 ffd9
-ffff8800d2e0ccc0 2563113702 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563147210 C Bi:1:004:1 0 13426 = 0c8dc29c d817f520 e017c603 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2563147243 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563147257 C Bi:1:004:1 0 14 = 0c8fc29c d817ee36 e017c703 ffd9
-ffff8800d2e0c480 2563147290 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563180786 C Bi:1:004:1 0 13368 = 0c8cf64b e01725d3 e717e803 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2563180819 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563180834 C Bi:1:004:1 0 14 = 0c8ef64b e017cce1 e717e803 ffd9
-ffff8800d2e0c540 2563180866 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563214373 C Bi:1:004:1 0 13426 = 0c8d29fb e717017e ef170904 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2563214406 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563214417 C Bi:1:004:1 0 14 = 0c8f29fb e717fa93 ef170a04 ffd9
-ffff8800d2e0c240 2563214446 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563247956 C Bi:1:004:1 0 13442 = 0c8c5caa ef172e30 f7172b04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2563247991 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563248004 C Bi:1:004:1 0 14 = 0c8e5caa ef17d43e f7172b04 ffd9
-ffff8800d2e0c780 2563248033 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563281502 C Bi:1:004:1 0 13412 = 0c8d9059 f7175be2 fe174d04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2563281534 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563281547 C Bi:1:004:1 0 14 = 0c8f9059 f71701f1 fe174d04 ffd9
-ffff8800d2e0ccc0 2563281574 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563315097 C Bi:1:004:1 0 13402 = 0c8cc308 ff17388d 06186e04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2563315126 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563315139 C Bi:1:004:1 0 14 = 0c8ec308 ff1731a3 06186f04 ffd9
-ffff8800d2e0c480 2563315167 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563348651 C Bi:1:004:1 0 13442 = 0c8df6b7 06186c3f 0e189004 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2563348685 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563348698 C Bi:1:004:1 0 14 = 0c8ff6b7 0618124e 0e189004 ffd9
-ffff8800d2e0c540 2563348728 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563382258 C Bi:1:004:1 0 13402 = 0c8c2a67 0e189ff1 1518b104 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2563382291 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563382303 C Bi:1:004:1 0 14 = 0c8e2a67 0e184500 1618b204 ffd9
-ffff8800d2e0c240 2563382333 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563415816 C Bi:1:004:1 0 13350 = 0c8d5d16 16187d9c 1d18d304 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2563415850 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563415863 C Bi:1:004:1 0 14 = 0c8f5d16 161823ab 1d18d304 ffd9
-ffff8800d2e0c780 2563415894 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563449379 C Bi:1:004:1 0 13394 = 0c8c90c5 1d18ac4e 2518f504 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2563449414 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563449430 C Bi:1:004:1 0 14 = 0c8e90c5 1d18525d 2518f504 ffd9
-ffff8800d2e0ccc0 2563449459 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563482956 C Bi:1:004:1 0 13422 = 0c8dc474 251887f9 2c181605 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2563482990 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563483003 C Bi:1:004:1 0 14 = 0c8fc474 25182d08 2d181605 ffd9
-ffff8800d2e0c480 2563483033 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563516541 C Bi:1:004:1 0 13370 = 0c8cf723 2d18b4ab 34183805 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2563516576 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563516589 C Bi:1:004:1 0 14 = 0c8ef723 2d185aba 34183805 ffd9
-ffff8800d2e0c540 2563516621 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563550082 C Bi:1:004:1 0 13402 = 0c8d2ad3 34189556 3c185905 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2563550113 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563550127 C Bi:1:004:1 0 14 = 0c8f2ad3 34188e6c 3c185a05 ffd9
-ffff8800d2e0c240 2563550158 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563583682 C Bi:1:004:1 0 13358 = 0c8c5e82 3c18cb08 44187b05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2563583714 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563583726 C Bi:1:004:1 0 14 = 0c8e5e82 3c187117 44187b05 ffd9
-ffff8800d2e0c780 2563583755 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563617272 C Bi:1:004:1 0 13400 = 0c8d9131 441800bb 4b189c05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2563617304 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563617316 C Bi:1:004:1 0 14 = 0c8f9131 4418a6c9 4b189d05 ffd9
-ffff8800d2e0ccc0 2563617349 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563650826 C Bi:1:004:1 0 13392 = 0c8cc4e0 4b18e165 5318be05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2563650860 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563650872 C Bi:1:004:1 0 14 = 0c8ec4e0 4b188774 5318be05 ffd9
-ffff8800d2e0c480 2563650903 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563684411 C Bi:1:004:1 0 13336 = 0c8df88f 53181318 5b18e005 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2563684443 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563684457 C Bi:1:004:1 0 14 = 0c8ff88f 5318b926 5b18e005 ffd9
-ffff8800d2e0c540 2563684486 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563717975 C Bi:1:004:1 0 13420 = 0c8c2b3f 5b18f2c2 62180106 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2563718010 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563718023 C Bi:1:004:1 0 14 = 0c8e2b3f 5b18ebd8 62180106 ffd9
-ffff8800d2e0c240 2563718059 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563751563 C Bi:1:004:1 0 13380 = 0c8d5eee 62182375 6a182306 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2563751598 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563751610 C Bi:1:004:1 0 14 = 0c8f5eee 6218c983 6a182306 ffd9
-ffff8800d2e0c780 2563751639 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563785126 C Bi:1:004:1 0 13414 = 0c8c929d 6a180120 72184406 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2563785158 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563785172 C Bi:1:004:1 0 14 = 0c8e929d 6a18fa35 72184506 ffd9
-ffff8800d2e0ccc0 2563785202 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563818704 C Bi:1:004:1 0 13426 = 0c8dc54c 721832d2 79186606 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2563818738 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563818750 C Bi:1:004:1 0 14 = 0c8fc54c 7218d8e0 79186606 ffd9
-ffff8800d2e0c480 2563818779 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563852254 C Bi:1:004:1 0 13452 = 0c8cf8fb 79186384 81188706 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2563852285 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563852298 C Bi:1:004:1 0 14 = 0c8ef8fb 79180993 81188806 ffd9
-ffff8800d2e0c540 2563852328 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563885853 C Bi:1:004:1 0 13448 = 0c8d2cab 81183e2f 8918a906 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2563885889 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563885901 C Bi:1:004:1 0 14 = 0c8f2cab 81183745 8918a906 ffd9
-ffff8800d2e0c240 2563885932 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563919443 C Bi:1:004:1 0 13398 = 0c8c5f5a 89186fe1 9018cb06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2563919479 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2563919492 C Bi:1:004:1 0 14 = 0c8e5f5a 891816f0 9018cb06 ffd9
-ffff8800d2e0c780 2563919523 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2563952967 C Bi:1:004:1 0 13410 = 0c8d9209 9118508c 9818ec06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2563953007 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2563953030 C Bi:1:004:1 0 14 = 0c8f9209 911849a2 9818ec06 ffd9
-ffff8800d2e0ccc0 2563953076 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2563986581 C Bi:1:004:1 0 13386 = 0c8cc6b8 9818833e a0180e07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2563986615 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2563986627 C Bi:1:004:1 0 14 = 0c8ec6b8 9818294d a0180e07 ffd9
-ffff8800d2e0c480 2563986658 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564020148 C Bi:1:004:1 0 13384 = 0c8df967 a018bff0 a7182f07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2564020182 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564020194 C Bi:1:004:1 0 14 = 0c8ff967 a01865ff a7183007 ffd9
-ffff8800d2e0c540 2564020227 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564053721 C Bi:1:004:1 0 13352 = 0c8c2c17 a818a79b af185107 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2564053754 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564053766 C Bi:1:004:1 0 14 = 0c8e2c17 a818a0b1 af185107 ffd9
-ffff8800d2e0c240 2564053795 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564087288 C Bi:1:004:1 0 13382 = 0c8d60c6 af18e24d b7187207 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2564087322 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564087334 C Bi:1:004:1 0 14 = 0c8f60c6 af18885c b7187307 ffd9
-ffff8800d2e0c780 2564087368 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564120893 C Bi:1:004:1 0 13344 = 0c8c9375 b7181b00 bf189407 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2564120934 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564120952 C Bi:1:004:1 0 14 = 0c8e9375 b718c10e bf189407 ffd9
-ffff8800d2e0ccc0 2564120982 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564154432 C Bi:1:004:1 0 13420 = 0c8dc624 bf18f7aa c618b607 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2564154464 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564154477 C Bi:1:004:1 0 14 = 0c8fc624 bf189db9 c618b607 ffd9
-ffff8800d2e0c480 2564154508 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564188029 C Bi:1:004:1 0 13430 = 0c8cfad3 c6182b5d ce18d707 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2564188064 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564188077 C Bi:1:004:1 0 14 = 0c8efad3 c618d16b ce18d707 ffd9
-ffff8800d2e0c540 2564188110 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564221580 C Bi:1:004:1 0 13354 = 0c8d2d83 ce180e08 d618f907 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2564221614 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564221627 C Bi:1:004:1 0 14 = 0c8f2d83 ce18b416 d618f907 ffd9
-ffff8800d2e0c240 2564221661 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564255163 C Bi:1:004:1 0 13386 = 0c8c6032 d61843ba dd181a00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2564255196 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564255208 C Bi:1:004:1 0 14 = 0c8e6032 d618eac8 dd181b00 ffd9
-ffff8800d2e0c780 2564255240 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564288741 C Bi:1:004:1 0 13386 = 0c8d94e1 dd182665 e5183c00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2564288775 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564288787 C Bi:1:004:1 0 14 = 0c8f94e1 dd181f7b e5183c00 ffd9
-ffff8800d2e0ccc0 2564288820 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564322324 C Bi:1:004:1 0 13302 = 0c8cc790 e5185c17 ed185d00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2564322357 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564322370 C Bi:1:004:1 0 14 = 0c8ec790 e5180226 ed185e00 ffd9
-ffff8800d2e0c480 2564322403 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564355883 C Bi:1:004:1 0 13392 = 0c8dfa3f ed183dc2 f4187f00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2564355917 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564355930 C Bi:1:004:1 0 14 = 0c8ffa3f ed1836d8 f4187f00 ffd9
-ffff8800d2e0c540 2564355960 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564389455 C Bi:1:004:1 0 13368 = 0c8c2eef f4187174 fc18a100 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2564389489 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564389501 C Bi:1:004:1 0 14 = 0c8e2eef f4181783 fc18a100 ffd9
-ffff8800d2e0c240 2564389533 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564422999 C Bi:1:004:1 0 13394 = 0c8d619e fc18a326 0419c200 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2564423032 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564423045 C Bi:1:004:1 0 14 = 0c8f619e fc184935 0419c200 ffd9
-ffff8800d2e0c780 2564423074 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564456602 C Bi:1:004:1 0 13384 = 0c8c944d 041982d1 0b19e400 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2564456638 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564456651 C Bi:1:004:1 0 14 = 0c8e944d 04197be7 0b19e400 ffd9
-ffff8800d2e0ccc0 2564456683 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564490187 C Bi:1:004:1 0 13396 = 0c8dc8fc 0b19b383 13190501 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2564490221 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564490236 C Bi:1:004:1 0 14 = 0c8fc8fc 0b195992 13190601 ffd9
-ffff8800d2e0c480 2564490268 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564523720 C Bi:1:004:1 0 13402 = 0c8cfbab 1319922e 1b192701 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2564523757 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564523775 C Bi:1:004:1 0 14 = 0c8efbab 13198b44 1b192701 ffd9
-ffff8800d2e0c540 2564523806 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564557331 C Bi:1:004:1 0 13378 = 0c8d2e5b 1b19c2e0 22194801 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2564557368 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564557380 C Bi:1:004:1 0 14 = 0c8f2e5b 1b1968ef 22194901 ffd9
-ffff8800d2e0c240 2564557413 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564590898 C Bi:1:004:1 0 13380 = 0c8c620a 2319f192 2a196a01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2564590933 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564590947 C Bi:1:004:1 0 14 = 0c8e620a 231997a1 2a196a01 ffd9
-ffff8800d2e0c780 2564590979 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564624494 C Bi:1:004:1 0 13416 = 0c8d95b9 2a19cd3d 32198c01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2564624529 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564624542 C Bi:1:004:1 0 14 = 0c8f95b9 2a19c653 32198c01 ffd9
-ffff8800d2e0ccc0 2564624574 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564658071 C Bi:1:004:1 0 13384 = 0c8cc868 3219fcef 3919ad01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2564658102 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564658116 C Bi:1:004:1 0 14 = 0c8ec868 3219a2fe 3919ad01 ffd9
-ffff8800d2e0c480 2564658151 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564691624 C Bi:1:004:1 0 13358 = 0c8dfc17 3a19de9a 4119cf01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2564691659 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564691671 C Bi:1:004:1 0 14 = 0c8ffc17 3a19d7b0 4119cf01 ffd9
-ffff8800d2e0c540 2564691701 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564725185 C Bi:1:004:1 0 13386 = 0c8c2fc7 4119134d 4919f001 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2564725217 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564725230 C Bi:1:004:1 0 14 = 0c8e2fc7 4119ba5b 4919f101 ffd9
-ffff8800d2e0c240 2564725260 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564758750 C Bi:1:004:1 0 13404 = 0c8d6276 491947ff 50191202 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2564758780 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564758794 C Bi:1:004:1 0 14 = 0c8f6276 4919ed0d 51191202 ffd9
-ffff8800d2e0c780 2564758826 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564792353 C Bi:1:004:1 0 13392 = 0c8c9625 511927aa 58193302 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2564792388 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564792400 C Bi:1:004:1 0 14 = 0c8e9625 511921c0 58193402 ffd9
-ffff8800d2e0ccc0 2564792433 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564825914 C Bi:1:004:1 0 13386 = 0c8dc9d4 58195b5c 60195502 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2564825962 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564825981 C Bi:1:004:1 0 14 = 0c8fc9d4 5819016b 60195502 ffd9
-ffff8800d2e0c480 2564826023 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564859509 C Bi:1:004:1 0 13346 = 0c8cfc83 60193a07 68197702 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2564859545 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564859558 C Bi:1:004:1 0 14 = 0c8efc83 6019331d 68197702 ffd9
-ffff8800d2e0c540 2564859589 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564893062 C Bi:1:004:1 0 13368 = 0c8d3033 68196ab9 6f199802 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2564893097 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564893109 C Bi:1:004:1 0 14 = 0c8f3033 681910c8 6f199802 ffd9
-ffff8800d2e0c240 2564893140 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564926648 C Bi:1:004:1 0 13428 = 0c8c63e2 6f19996b 7719ba02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2564926684 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2564926697 C Bi:1:004:1 0 14 = 0c8e63e2 6f193f7a 7719ba02 ffd9
-ffff8800d2e0c780 2564926734 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2564960200 C Bi:1:004:1 0 13406 = 0c8d9691 77197516 7f19db02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2564960230 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2564960242 C Bi:1:004:1 0 14 = 0c8f9691 77191b25 7f19dc02 ffd9
-ffff8800d2e0ccc0 2564960272 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2564993792 C Bi:1:004:1 0 13380 = 0c8cca40 7f19a3c8 8619fd02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2564993827 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2564993840 C Bi:1:004:1 0 14 = 0c8eca40 7f1949d7 8619fd02 ffd9
-ffff8800d2e0c480 2564993872 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565027350 C Bi:1:004:1 0 13350 = 0c8dfdef 86197d73 8e191e03 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2565027384 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565027397 C Bi:1:004:1 0 14 = 0c8ffdef 86197689 8e191f03 ffd9
-ffff8800d2e0c540 2565027429 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565060915 C Bi:1:004:1 0 13380 = 0c8c309f 8e19a925 96194003 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2565060945 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565060957 C Bi:1:004:1 0 14 = 0c8e309f 8e194f34 96194003 ffd9
-ffff8800d2e0c240 2565060988 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565094499 C Bi:1:004:1 0 13366 = 0c8d644e 961989d0 9d196203 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2565094532 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565094544 C Bi:1:004:1 0 14 = 0c8f644e 961982e6 9d196203 ffd9
-ffff8800d2e0c780 2565094573 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565128077 C Bi:1:004:1 0 13336 = 0c8c97fd 9d19bd82 a5198303 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2565128110 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565128122 C Bi:1:004:1 0 14 = 0c8e97fd 9d196391 a5198303 ffd9
-ffff8800d2e0ccc0 2565128151 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565161647 C Bi:1:004:1 0 13444 = 0c8dcaac a519f134 ad19a503 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2565161676 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565161689 C Bi:1:004:1 0 14 = 0c8fcaac a5199743 ad19a503 ffd9
-ffff8800d2e0c480 2565161717 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565195223 C Bi:1:004:1 0 13408 = 0c8cfe5b ad19d1df b419c603 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2565195256 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565195268 C Bi:1:004:1 0 14 = 0c8efe5b ad19caf5 b419c703 ffd9
-ffff8800d2e0c540 2565195300 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565228812 C Bi:1:004:1 0 13402 = 0c8d310b b5190492 bc19e803 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2565228846 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565228858 C Bi:1:004:1 0 14 = 0c8f310b b519aaa0 bc19e803 ffd9
-ffff8800d2e0c240 2565228888 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565262390 C Bi:1:004:1 0 13372 = 0c8c64ba bc193544 c4190a04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2565262426 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565262440 C Bi:1:004:1 0 14 = 0c8e64ba bc19db52 c4190a04 ffd9
-ffff8800d2e0c780 2565262471 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565295957 C Bi:1:004:1 0 13416 = 0c8d9869 c41913ef cb192b04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2565295991 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565296004 C Bi:1:004:1 0 14 = 0c8f9869 c419b9fd cb192b04 ffd9
-ffff8800d2e0ccc0 2565296034 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565329541 C Bi:1:004:1 0 13364 = 0c8ccb18 cc1942a1 d3194d04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2565329575 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565329588 C Bi:1:004:1 0 14 = 0c8ecb18 cc19e8af d3194d04 ffd9
-ffff8800d2e0c480 2565329618 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565363099 C Bi:1:004:1 0 13414 = 0c8dfec7 d3191e4c db196e04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2565363132 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565363144 C Bi:1:004:1 0 14 = 0c8ffec7 d3191762 db196f04 ffd9
-ffff8800d2e0c540 2565363179 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565396648 C Bi:1:004:1 0 13456 = 0c8c3277 db194cfe e2199004 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2565396677 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565396689 C Bi:1:004:1 0 14 = 0c8e3277 db19f20c e3199004 ffd9
-ffff8800d2e0c240 2565396718 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565430249 C Bi:1:004:1 0 13412 = 0c8d6526 e31925a9 ea19b104 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2565430283 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565430295 C Bi:1:004:1 0 14 = 0c8f6526 e3191fbf ea19b204 ffd9
-ffff8800d2e0c780 2565430325 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565463837 C Bi:1:004:1 0 13360 = 0c8c98d5 ea19535b f219d304 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2565463870 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565463883 C Bi:1:004:1 0 14 = 0c8e98d5 ea19f969 f219d304 ffd9
-ffff8800d2e0ccc0 2565463914 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565497382 C Bi:1:004:1 0 13362 = 0c8dcc84 f219880d fa19f504 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2565497414 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565497426 C Bi:1:004:1 0 14 = 0c8fcc84 f2192e1c fa19f504 ffd9
-ffff8800d2e0c480 2565497455 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565530989 C Bi:1:004:1 0 13400 = 0c8cff33 fa1969b8 011a1605 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2565531023 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565531035 C Bi:1:004:1 0 14 = 0c8eff33 fa1962ce 011a1605 ffd9
-ffff8800d2e0c540 2565531067 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565564539 C Bi:1:004:1 0 13412 = 0c8d32e3 011a9d6a 091a3805 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2565564572 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565564587 C Bi:1:004:1 0 14 = 0c8f32e3 011a4379 091a3805 ffd9
-ffff8800d2e0c240 2565564621 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565598128 C Bi:1:004:1 0 13380 = 0c8c6692 091a7c15 111a5905 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2565598162 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565598174 C Bi:1:004:1 0 14 = 0c8e6692 091a752b 111a5a05 ffd9
-ffff8800d2e0c780 2565598206 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565631692 C Bi:1:004:1 0 13380 = 0c8d9941 111aaec7 181a7b05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2565631726 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565631738 C Bi:1:004:1 0 14 = 0c8f9941 111a54d6 181a7b05 ffd9
-ffff8800d2e0ccc0 2565631769 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565665271 C Bi:1:004:1 0 13394 = 0c8cccf0 181ade79 201a9c05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2565665307 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565665322 C Bi:1:004:1 0 14 = 0c8eccf0 181a8588 201a9d05 ffd9
-ffff8800d2e0c480 2565665355 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565698831 C Bi:1:004:1 0 13388 = 0c8d00a0 201aba24 281abe05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2565698866 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565698879 C Bi:1:004:1 0 14 = 0c8f00a0 201a6033 281abe05 ffd9
-ffff8800d2e0c540 2565698910 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565732417 C Bi:1:004:1 0 13334 = 0c8c334f 281af2d6 2f1ae005 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2565732451 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565732463 C Bi:1:004:1 0 14 = 0c8e334f 281a98e5 2f1ae005 ffd9
-ffff8800d2e0c240 2565732493 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565765998 C Bi:1:004:1 0 13338 = 0c8d66fe 2f1ad781 371a0106 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2565766034 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565766049 C Bi:1:004:1 0 14 = 0c8f66fe 2f1ad097 371a0106 ffd9
-ffff8800d2e0c780 2565766084 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565799540 C Bi:1:004:1 0 13378 = 0c8c9aad 371a0d34 3f1a2306 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2565799570 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565799584 C Bi:1:004:1 0 14 = 0c8e9aad 371ab342 3f1a2306 ffd9
-ffff8800d2e0ccc0 2565799612 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565833143 C Bi:1:004:1 0 13318 = 0c8dcd5c 3f1a43e6 461a4406 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2565833175 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565833187 C Bi:1:004:1 0 14 = 0c8fcd5c 3f1ae9f4 461a4506 ffd9
-ffff8800d2e0c480 2565833216 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565866704 C Bi:1:004:1 0 13420 = 0c8c000c 471a1d91 4e1a6606 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2565866736 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565866751 C Bi:1:004:1 0 14 = 0c8e000c 471ac39f 4e1a6606 ffd9
-ffff8800d2e0c540 2565866785 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565900288 C Bi:1:004:1 0 13380 = 0c8d34bb 4e1a4a43 561a8706 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2565900320 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2565900332 C Bi:1:004:1 0 14 = 0c8f34bb 4e1af051 561a8806 ffd9
-ffff8800d2e0c240 2565900362 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2565933848 C Bi:1:004:1 0 13394 = 0c8c676a 561a27ee 5d1aa906 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2565933882 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2565933894 C Bi:1:004:1 0 14 = 0c8e676a 561a2004 5e1aa906 ffd9
-ffff8800d2e0c780 2565933922 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2565967441 C Bi:1:004:1 0 13446 = 0c8d9a19 5e1a5ca0 651acb06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2565967473 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2565967485 C Bi:1:004:1 0 14 = 0c8f9a19 5e1a02af 651acb06 ffd9
-ffff8800d2e0ccc0 2565967514 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566000982 C Bi:1:004:1 0 13398 = 0c8ccec8 651a3d4b 6d1aec06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2566001012 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566001024 C Bi:1:004:1 0 14 = 0c8ecec8 651a3661 6d1aec06 ffd9
-ffff8800d2e0c480 2566001051 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566034578 C Bi:1:004:1 0 13388 = 0c8d0178 6d1a71fd 741a0e07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2566034611 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566034623 C Bi:1:004:1 0 14 = 0c8f0178 6d1a170c 751a0e07 ffd9
-ffff8800d2e0c540 2566034652 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566068153 C Bi:1:004:1 0 13384 = 0c8c3427 751aa4af 7c1a2f07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2566068186 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566068198 C Bi:1:004:1 0 14 = 0c8e3427 751a4bbe 7c1a3007 ffd9
-ffff8800d2e0c240 2566068230 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566101707 C Bi:1:004:1 0 13378 = 0c8d68d6 7c1a835a 841a5107 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2566101737 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566101750 C Bi:1:004:1 0 14 = 0c8f68d6 7c1a7d70 841a5107 ffd9
-ffff8800d2e0c780 2566101778 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566135309 C Bi:1:004:1 0 13402 = 0c8c9b85 841aba0c 8c1a7207 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2566135341 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566135353 C Bi:1:004:1 0 14 = 0c8e9b85 841a601b 8c1a7307 ffd9
-ffff8800d2e0ccc0 2566135383 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566168896 C Bi:1:004:1 0 13418 = 0c8dce34 8c1aebbe 931a9407 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2566168929 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566168941 C Bi:1:004:1 0 14 = 0c8fce34 8c1a91cd 931a9407 ffd9
-ffff8800d2e0c480 2566168970 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566202437 C Bi:1:004:1 0 13424 = 0c8c02e4 931ac969 9b1ab607 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2566202468 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566202481 C Bi:1:004:1 0 14 = 0c8e02e4 931a6f78 9b1ab607 ffd9
-ffff8800d2e0c540 2566202509 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566236020 C Bi:1:004:1 0 13388 = 0c8d3593 9b1afa1b a31ad707 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2566236053 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566236065 C Bi:1:004:1 0 14 = 0c8f3593 9b1aa02a a31ad707 ffd9
-ffff8800d2e0c240 2566236094 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566269602 C Bi:1:004:1 0 13418 = 0c8c6842 a31ad6c6 aa1af907 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2566269636 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566269649 C Bi:1:004:1 0 14 = 0c8e6842 a31acfdc aa1af907 ffd9
-ffff8800d2e0c780 2566269678 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566303160 C Bi:1:004:1 0 13410 = 0c8d9cf1 aa1a0d79 b21a1a00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2566303192 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566303205 C Bi:1:004:1 0 14 = 0c8f9cf1 aa1ab387 b21a1b00 ffd9
-ffff8800d2e0ccc0 2566303237 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566336773 C Bi:1:004:1 0 13410 = 0c8ccfa0 b21a432b ba1a3c00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2566336808 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566336821 C Bi:1:004:1 0 14 = 0c8ecfa0 b21aea39 ba1a3c00 ffd9
-ffff8800d2e0c480 2566336853 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566370309 C Bi:1:004:1 0 13358 = 0c8d0250 ba1a26d6 c11a5d00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2566370342 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566370354 C Bi:1:004:1 0 14 = 0c8f0250 ba1acce4 c11a5e00 ffd9
-ffff8800d2e0c540 2566370385 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566403877 C Bi:1:004:1 0 13394 = 0c8c36ff c11a5988 c91a7f00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2566403906 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566403918 C Bi:1:004:1 0 14 = 0c8e36ff c11aff96 c91a7f00 ffd9
-ffff8800d2e0c240 2566403946 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566437457 C Bi:1:004:1 0 13392 = 0c8d69ae c91a4233 d11aa100 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2566437492 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566437505 C Bi:1:004:1 0 14 = 0c8f69ae c91ae841 d11aa100 ffd9
-ffff8800d2e0c780 2566437536 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566471038 C Bi:1:004:1 0 13370 = 0c8c9c5d d11a75e5 d81ac200 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2566471071 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566471084 C Bi:1:004:1 0 14 = 0c8e9c5d d11a1bf4 d81ac200 ffd9
-ffff8800d2e0ccc0 2566471113 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566504611 C Bi:1:004:1 0 13392 = 0c8dd00c d91a5490 e01ae400 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2566504647 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566504662 C Bi:1:004:1 0 14 = 0c8fd00c d91a4da6 e01ae400 ffd9
-ffff8800d2e0c480 2566504694 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566538189 C Bi:1:004:1 0 13346 = 0c8c03bc e01a8742 e81a0501 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2566538225 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566538237 C Bi:1:004:1 0 14 = 0c8e03bc e01a2d51 e81a0601 ffd9
-ffff8800d2e0c540 2566538271 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566571777 C Bi:1:004:1 0 13372 = 0c8d366b e81ab9f4 ef1a2701 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2566571811 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566571823 C Bi:1:004:1 0 14 = 0c8f366b e81a5f03 f01a2701 ffd9
-ffff8800d2e0c240 2566571854 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566605332 C Bi:1:004:1 0 13370 = 0c8c6a1a f01a979f f71a4801 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2566605372 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566605388 C Bi:1:004:1 0 14 = 0c8e6a1a f01a3dae f71a4901 ffd9
-ffff8800d2e0c780 2566605426 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566638920 C Bi:1:004:1 0 13412 = 0c8d9dc9 f71ac851 ff1a6a01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2566638955 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566638967 C Bi:1:004:1 0 14 = 0c8f9dc9 f71a6e60 ff1a6a01 ffd9
-ffff8800d2e0ccc0 2566638999 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566672492 C Bi:1:004:1 0 13410 = 0c8cd078 ff1aa5fc 061b8c01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2566672524 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566672537 C Bi:1:004:1 0 14 = 0c8ed078 ff1a9e12 071b8c01 ffd9
-ffff8800d2e0c480 2566672566 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566706060 C Bi:1:004:1 0 13418 = 0c8d0428 071bd4ae 0e1bad01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2566706093 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566706105 C Bi:1:004:1 0 14 = 0c8f0428 071b7abd 0e1bad01 ffd9
-ffff8800d2e0c540 2566706134 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566739590 C Bi:1:004:1 0 13332 = 0c8c37d7 0e1bb759 161bcf01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2566739620 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566739634 C Bi:1:004:1 0 14 = 0c8e37d7 0e1bb06f 161bcf01 ffd9
-ffff8800d2e0c240 2566739665 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566773207 C Bi:1:004:1 0 13392 = 0c8d6a86 161beb0b 1e1bf001 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2566773242 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566773254 C Bi:1:004:1 0 14 = 0c8f6a86 161b911a 1e1bf101 ffd9
-ffff8800d2e0c780 2566773286 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566806794 C Bi:1:004:1 0 13430 = 0c8c9e35 1e1b1ebe 251b1202 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2566806829 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566806841 C Bi:1:004:1 0 14 = 0c8e9e35 1e1bc4cc 251b1202 ffd9
-ffff8800d2e0ccc0 2566806872 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566840337 C Bi:1:004:1 0 13376 = 0c8dd1e4 251bfe68 2d1b3302 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2566840373 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566840387 C Bi:1:004:1 0 14 = 0c8fd1e4 251bf77e 2d1b3402 ffd9
-ffff8800d2e0c480 2566840418 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566873938 C Bi:1:004:1 0 13400 = 0c8c0494 2d1b301b 351b5502 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2566873973 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566873986 C Bi:1:004:1 0 14 = 0c8e0494 2d1bd629 351b5502 ffd9
-ffff8800d2e0c540 2566874017 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566907530 C Bi:1:004:1 0 13432 = 0c8d3843 351b62cd 3c1b7702 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2566907564 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2566907577 C Bi:1:004:1 0 14 = 0c8f3843 351b08dc 3c1b7702 ffd9
-ffff8800d2e0c240 2566907608 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2566941045 C Bi:1:004:1 0 13370 = 0c8c6bf2 3c1b4078 441b9802 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2566941076 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2566941089 C Bi:1:004:1 0 14 = 0c8e6bf2 3c1be686 441b9802 ffd9
-ffff8800d2e0c780 2566941119 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2566974645 C Bi:1:004:1 0 13410 = 0c8d9ea1 441b712a 4c1bba02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2566974678 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2566974690 C Bi:1:004:1 0 14 = 0c8f9ea1 441b1739 4c1bba02 ffd9
-ffff8800d2e0ccc0 2566974719 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567008233 C Bi:1:004:1 0 13410 = 0c8cd250 4c1b4dd5 531bdb02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2567008269 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567008282 C Bi:1:004:1 0 14 = 0c8ed250 4c1b46eb 531bdc02 ffd9
-ffff8800d2e0c480 2567008321 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567041774 C Bi:1:004:1 0 13478 = 0c8d0500 541b7c87 5b1bfd02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2567041804 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567041817 C Bi:1:004:1 0 14 = 0c8f0500 541b2396 5b1bfd02 ffd9
-ffff8800d2e0c540 2567041848 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567075379 C Bi:1:004:1 0 13426 = 0c8c38af 5b1b6132 631b1e03 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2567075412 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567075425 C Bi:1:004:1 0 14 = 0c8e38af 5b1b5a48 631b1f03 ffd9
-ffff8800d2e0c240 2567075458 S Bi:1:004:1 -115 16384 <
-ffff88011a6b9d80 2567075971 S Bo:2:002:2 -115 31 = 55534243 124c0000 00300000 00000a2a 002244dc f8000018 00000000 000000
-ffff88011a6b9d80 2567076014 C Bo:2:002:2 0 31 >
-ffff8800d2d2cc00 2567076375 S Bo:2:002:2 -115 12288 = c03b3998 00000001 00065ce8 02300021 00000000 00000000 00000000 00000000
-ffff8800d2d2cc00 2567076469 C Bo:2:002:2 0 12288 >
-ffff88011a6b9d80 2567076525 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2567076552 C Bi:2:002:1 0 13 = 55534253 124c0000 00000000 00
-ffff88011a6b9d80 2567076843 S Bo:2:002:2 -115 31 = 55534243 134c0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2567076883 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2567077221 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2567077270 C Bi:2:002:1 0 13 = 55534253 134c0000 00000000 00
-ffff88011a6b9d80 2567077380 S Bo:2:002:2 -115 31 = 55534243 144c0000 00100000 00000a2a 002244dd 10000008 00000000 000000
-ffff88011a6b9d80 2567077416 C Bo:2:002:2 0 31 >
-ffff88003240e480 2567077468 S Bo:2:002:2 -115 4096 = c03b3998 00000002 00065ce8 00000000 00000000 00000000 00000000 00000000
-ffff88003240e480 2567077502 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2567077542 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2567077565 C Bi:2:002:1 0 13 = 55534253 144c0000 00000000 00
-ffff88011a6b9d80 2567077702 S Bo:2:002:2 -115 31 = 55534243 154c0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2567077726 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2567077756 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2567077790 C Bi:2:002:1 0 13 = 55534253 154c0000 00000000 00
-ffff8800d2e0c480 2567108938 C Bi:1:004:1 0 13430 = 0c8d6c5e 631b90e4 6a1b4003 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2567108973 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567108985 C Bi:1:004:1 0 14 = 0c8f6c5e 631b36f3 6a1b4003 ffd9
-ffff8800d2e0c780 2567109016 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567142504 C Bi:1:004:1 0 13394 = 0c8c9f0d 6b1bc096 721b6203 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2567142533 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567142546 C Bi:1:004:1 0 14 = 0c8e9f0d 6b1b66a5 721b6203 ffd9
-ffff8800d2e0ccc0 2567142575 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567176080 C Bi:1:004:1 0 13426 = 0c8dd2bc 721b9b41 7a1b8303 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2567176113 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567176125 C Bi:1:004:1 0 14 = 0c8fd2bc 721b4150 7a1b8303 ffd9
-ffff8800d2e0c480 2567176155 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567209669 C Bi:1:004:1 0 13418 = 0c8c066c 7a1bc9f3 811ba503 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2567209704 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567209717 C Bi:1:004:1 0 14 = 0c8e066c 7a1b7002 821ba503 ffd9
-ffff8800d2e0c540 2567209754 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567243235 C Bi:1:004:1 0 13372 = 0c8d391b 821bad9e 891bc603 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2567243265 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567243278 C Bi:1:004:1 0 14 = 0c8f391b 821ba6b4 891bc703 ffd9
-ffff8800d2e0c240 2567243310 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567276813 C Bi:1:004:1 0 13418 = 0c8c6cca 891be250 911be803 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2567276850 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567276862 C Bi:1:004:1 0 14 = 0c8e6cca 891b885f 911be803 ffd9
-ffff8800d2e0c780 2567276895 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567310397 C Bi:1:004:1 0 13416 = 0c8da079 911b1703 991b0a04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2567310430 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567310442 C Bi:1:004:1 0 14 = 0c8fa079 911bbd11 991b0a04 ffd9
-ffff8800d2e0ccc0 2567310474 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567343962 C Bi:1:004:1 0 13420 = 0c8cd328 991bf7ad a01b2b04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2567343996 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567344009 C Bi:1:004:1 0 14 = 0c8ed328 991b9dbc a01b2b04 ffd9
-ffff8800d2e0c480 2567344039 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567377544 C Bi:1:004:1 0 13336 = 0c8d06d8 a01b2a60 a81b4d04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2567377580 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567377593 C Bi:1:004:1 0 14 = 0c8f06d8 a01bd06e a81b4d04 ffd9
-ffff8800d2e0c540 2567377625 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567411102 C Bi:1:004:1 0 13434 = 0c8c3a87 a81b090b b01b6e04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2567411135 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567411148 C Bi:1:004:1 0 14 = 0c8e3a87 a81b0221 b01b6f04 ffd9
-ffff8800d2e0c240 2567411182 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567444691 C Bi:1:004:1 0 13418 = 0c8d6d36 b01b3abd b71b9004 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2567444726 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567444742 C Bi:1:004:1 0 14 = 0c8f6d36 b01be0cb b71b9004 ffd9
-ffff8800d2e0c780 2567444776 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567478273 C Bi:1:004:1 0 13412 = 0c8ca0e5 b71b6b6f bf1bb104 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2567478306 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567478319 C Bi:1:004:1 0 14 = 0c8ea0e5 b71b117e bf1bb204 ffd9
-ffff8800d2e0ccc0 2567478349 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567511835 C Bi:1:004:1 0 13410 = 0c8dd494 bf1b491a c71bd304 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2567511869 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567511881 C Bi:1:004:1 0 14 = 0c8fd494 bf1bef28 c71bd304 ffd9
-ffff8800d2e0c480 2567511910 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567545417 C Bi:1:004:1 0 13382 = 0c8c0744 c71b7acc ce1bf504 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2567545451 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567545464 C Bi:1:004:1 0 14 = 0c8e0744 c71b21db ce1bf504 ffd9
-ffff8800d2e0c540 2567545494 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567578977 C Bi:1:004:1 0 13464 = 0c8d3af3 ce1b5777 d61b1605 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2567579007 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567579019 C Bi:1:004:1 0 14 = 0c8f3af3 ce1b508d d61b1605 ffd9
-ffff8800d2e0c240 2567579048 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567612562 C Bi:1:004:1 0 13430 = 0c8c6ea2 d61b8629 de1b3805 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2567612596 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567612609 C Bi:1:004:1 0 14 = 0c8e6ea2 d61b2c38 de1b3805 ffd9
-ffff8800d2e0c780 2567612638 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567646127 C Bi:1:004:1 0 13400 = 0c8da151 de1b69d4 e51b5905 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2567646160 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567646172 C Bi:1:004:1 0 14 = 0c8fa151 de1b62ea e51b5a05 ffd9
-ffff8800d2e0ccc0 2567646203 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567679697 C Bi:1:004:1 0 13370 = 0c8cd400 e61b9f86 ed1b7b05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2567679734 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567679750 C Bi:1:004:1 0 14 = 0c8ed400 e61b4595 ed1b7b05 ffd9
-ffff8800d2e0c480 2567679784 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567713263 C Bi:1:004:1 0 13416 = 0c8d08b0 ed1bd438 f51b9c05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2567713297 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567713309 C Bi:1:004:1 0 14 = 0c8f08b0 ed1b7a47 f51b9d05 ffd9
-ffff8800d2e0c540 2567713341 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567746852 C Bi:1:004:1 0 13382 = 0c8c3b5f f51bb6e3 fc1bbe05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2567746884 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567746896 C Bi:1:004:1 0 14 = 0c8e3b5f f51bb0f9 fc1bbe05 ffd9
-ffff8800d2e0c240 2567746924 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567780415 C Bi:1:004:1 0 13432 = 0c8d6e0e fd1beb95 041ce005 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2567780448 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567780460 C Bi:1:004:1 0 14 = 0c8f6e0e fd1b91a4 041ce005 ffd9
-ffff8800d2e0c780 2567780489 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567814020 C Bi:1:004:1 0 13392 = 0c8ca2bd 041c1f48 0c1c0106 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2567814057 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567814076 C Bi:1:004:1 0 14 = 0c8ea2bd 041cc556 0c1c0106 ffd9
-ffff8800d2e0ccc0 2567814110 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567847543 C Bi:1:004:1 0 13420 = 0c8dd56c 0c1c00f3 131c2306 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2567847573 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567847585 C Bi:1:004:1 0 14 = 0c8fd56c 0c1ca601 141c2306 ffd9
-ffff8800d2e0c480 2567847614 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567881145 C Bi:1:004:1 0 13390 = 0c8c081c 141c33a5 1b1c4406 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2567881178 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567881190 C Bi:1:004:1 0 14 = 0c8e081c 141cd9b3 1b1c4506 ffd9
-ffff8800d2e0c540 2567881221 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567914705 C Bi:1:004:1 0 13398 = 0c8d3ccb 1b1c1250 231c6606 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2567914737 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2567914749 C Bi:1:004:1 0 14 = 0c8f3ccb 1b1cb85e 231c6606 ffd9
-ffff8800d2e0c240 2567914778 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2567948296 C Bi:1:004:1 0 13406 = 0c8c6f7a 231c4302 2b1c8706 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2567948334 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2567948348 C Bi:1:004:1 0 14 = 0c8e6f7a 231cea10 2b1c8806 ffd9
-ffff8800d2e0c780 2567948383 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2567981849 C Bi:1:004:1 0 13398 = 0c8da229 2b1c22ad 321ca906 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2567981881 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2567981893 C Bi:1:004:1 0 14 = 0c8fa229 2b1c1cc3 321ca906 ffd9
-ffff8800d2e0ccc0 2567981922 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2568015445 C Bi:1:004:1 0 13400 = 0c8cd6d8 321c555f 3a1ccb06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2568015478 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2568015492 C Bi:1:004:1 0 14 = 0c8ed6d8 321cfb6d 3a1ccb06 ffd9
-ffff8800d2e0c480 2568015523 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2568049021 C Bi:1:004:1 0 13388 = 0c8d0988 3a1c8711 421cec06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2568049054 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2568049066 C Bi:1:004:1 0 14 = 0c8f0988 3a1c2d20 421cec06 ffd9
-ffff8800d2e0c540 2568049096 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2568082561 C Bi:1:004:1 0 13352 = 0c8c3c37 421c65bc 491c0e07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2568082591 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2568082604 C Bi:1:004:1 0 14 = 0c8e3c37 421c0bcb 491c0e07 ffd9
-ffff8800d2e0c240 2568082632 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2568116167 C Bi:1:004:1 0 13416 = 0c8d70e6 491c9d6e 511c2f07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2568116199 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2568116212 C Bi:1:004:1 0 14 = 0c8f70e6 491c437d 511c3007 ffd9
-ffff8800d2e0c780 2568116242 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2568149728 C Bi:1:004:1 0 13412 = 0c8ca395 511c8119 591c5107 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2568149762 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2568149775 C Bi:1:004:1 0 14 = 0c8ea395 511c7a2f 591c5107 ffd9
-ffff8800d2e0ccc0 2568149806 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2568183298 C Bi:1:004:1 0 13388 = 0c8dd644 591cb8cb 601c7207 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2568183334 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2568183350 C Bi:1:004:1 0 14 = 0c8fd644 591c5eda 601c7307 ffd9
-ffff8800d2e0c480 2568183386 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2568216895 C Bi:1:004:1 0 13352 = 0c8c0af4 601cee7d 681c9407 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2568216928 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2568216940 C Bi:1:004:1 0 14 = 0c8e0af4 601c948c 681c9407 ffd9
-ffff8800d2e0c540 2568216969 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2568250458 C Bi:1:004:1 0 13402 = 0c8d3da3 681cca28 701cb607 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2568250492 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2568250503 C Bi:1:004:1 0 14 = 0c8f3da3 681c7037 701cb607 ffd9
-ffff8800d2e0c240 2568250534 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2568284025 C Bi:1:004:1 0 13364 = 0c8c7052 701cffda 771cd707 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2568284058 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2568284071 C Bi:1:004:1 0 14 = 0c8e7052 701ca5e9 771cd707 ffd9
-ffff8800d2e0c780 2568284100 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2568317586 C Bi:1:004:1 0 13378 = 0c8da401 781ce085 7f1cf907 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2568317620 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2568317635 C Bi:1:004:1 0 14 = 0c8fa401 781cd99b 7f1cf907 ffd9
-ffff8800d2e0ccc0 2568317666 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2568351165 C Bi:1:004:1 0 13426 = 0c8cd7b0 7f1c1338 871c1a00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2568351199 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2568351212 C Bi:1:004:1 0 14 = 0c8ed7b0 7f1cb946 871c1b00 ffd9
-ffff8800d2e0c480 2568351245 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2568384749 C Bi:1:004:1 0 13416 = 0c8d0a60 871c45ea 8e1c3c00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2568384791 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2568384812 C Bi:1:004:1 0 14 = 0c8f0a60 871cebf8 8e1c3c00 ffd9
-ffff8800d2e0c540 2568384855 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2568418334 C Bi:1:004:1 0 13368 = 0c8c3e0f 8f1c2495 961c5d00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2568418368 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2568418380 C Bi:1:004:1 0 14 = 0c8e3e0f 8f1ccaa3 961c5e00 ffd9
-ffff8800d2e0c240 2568418413 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2568451872 C Bi:1:004:1 0 13424 = 0c8d71be 961c5547 9e1c7f00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2568451904 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2568451917 C Bi:1:004:1 0 14 = 0c8f71be 961cfb55 9e1c7f00 ffd9
-ffff8800d2e0c780 2568451948 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2568485460 C Bi:1:004:1 0 13466 = 0c8ca46d 9e1c33f2 a51ca100 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2568485494 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2568485507 C Bi:1:004:1 0 14 = 0c8ea46d 9e1cd900 a61ca100 ffd9
-ffff8800d2e0ccc0 2568485539 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2568519041 C Bi:1:004:1 0 13310 = 0c8dd81c a61c63a4 ad1cc200 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2568519088 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2568519110 C Bi:1:004:1 0 14 = 0c8fd81c a61c09b3 ad1cc200 ffd9
-ffff8800d2e0c480 2568519153 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2568552630 C Bi:1:004:1 0 13390 = 0c8c0bcc ad1c3f4f b51ce400 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2568552664 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2568552676 C Bi:1:004:1 0 14 = 0c8e0bcc ad1c3865 b51ce400 ffd9
-ffff8800d2e0c540 2568552705 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2568586185 C Bi:1:004:1 0 13432 = 0c8d3e7b b51c7701 bd1c0501 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0ccc0 2568586218 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2568586229 C Bi:1:004:1 0 14 = 0c8f3e7b b51c1d10 bd1c0601 ffd9
-ffff8800d2e0c240 2568586271 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2568619770 C Bi:1:004:1 0 13386 = 0c8c722a bd1caeb3 c41c2701 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2568619804 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2568619816 C Bi:1:004:1 0 14 = 0c8e722a bd1c55c2 c41c2701 ffd9
-ffff8800d2e0c780 2568619845 S Bi:1:004:1 -115 16384 <
-ffff88011a6b9d80 2568646206 S Bo:2:002:2 -115 31 = 55534243 164c0000 00100000 00000a2a 001dadcb d8000008 00000000 000000
-ffff88011a6b9d80 2568646244 C Bo:2:002:2 0 31 >
-ffff8800d2d2cc00 2568646279 S Bo:2:002:2 -115 4096 = 23206775 76637669 65772063 6f6e6669 67757261 74696f6e 2066696c 6520666f
-ffff8800d2d2cc00 2568646313 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2568646448 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2568646467 C Bi:2:002:1 0 13 = 55534253 164c0000 00000000 00
-ffff88011a6b9d80 2568651476 S Bo:2:002:2 -115 31 = 55534243 174c0000 00a00000 00000a2a 002244dd 18000050 00000000 000000
-ffff88011a6b9d80 2568651505 C Bo:2:002:2 0 31 >
-ffff8800d2d2cc00 2568651950 S Bo:2:002:2 -115 40960 = c03b3998 00000001 00065ce9 03300273 00000000 00000000 00000000 00000000
-ffff8800d2d2cc00 2568652126 C Bo:2:002:2 0 40960 >
-ffff88011a6b9d80 2568652154 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2568652171 C Bi:2:002:1 0 13 = 55534253 174c0000 00000000 00
-ffff88011a6b9d80 2568652383 S Bo:2:002:2 -115 31 = 55534243 184c0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2568652403 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2568652497 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2568652514 C Bi:2:002:1 0 13 = 55534253 184c0000 00000000 00
-ffff88011a6b9d80 2568652640 S Bo:2:002:2 -115 31 = 55534243 194c0000 00100000 00000a2a 002244dd 68000008 00000000 000000
-ffff88011a6b9d80 2568652658 C Bo:2:002:2 0 31 >
-ffff88003240e480 2568652754 S Bo:2:002:2 -115 4096 = c03b3998 00000002 00065ce9 00000000 00000000 00000000 00000000 00000000
-ffff88003240e480 2568652784 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2568652849 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2568652866 C Bi:2:002:1 0 13 = 55534253 194c0000 00000000 00
-ffff88011a6b9d80 2568652973 S Bo:2:002:2 -115 31 = 55534243 1a4c0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2568652996 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2568653013 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2568653060 C Bi:2:002:1 0 13 = 55534253 1a4c0000 00000000 00
-ffff8800d2e0c540 2568653261 C Bi:1:004:1 0 13380 = 0c8da5d9 c41c925e cc1c4801 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c540 2568653272 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0ccc0 2568653277 C Bi:1:004:1 0 14 = 0c8fa5d9 c41c386d cc1c4901 ffd9
-ffff8800d2e0ccc0 2568653283 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c540 2568656244 C Bi:1:004:1 -2 0
-ffff8800d2e0ccc0 2568656407 C Bi:1:004:1 -2 0
-ffff8800d2e0c240 2568656547 C Bi:1:004:1 -2 0
-ffff8800d2e0c480 2568656686 C Bi:1:004:1 -2 0
-ffff8800d2e0c780 2568656826 C Bi:1:004:1 -2 0
-ffff8800d2d2cc00 2568657598 S Co:1:004:0 s 01 0b 0000 0001 0000 0
-ffff8800d2d2cc00 2568668684 C Co:1:004:0 0 0
-ffff880031a95900 2568669866 C Ii:1:004:3 -2:32 0
-ffff88011a6b9d80 2570247952 S Bo:2:002:2 -115 31 = 55534243 1b4c0000 00100100 00000a2a 0000045d 10000088 00000000 000000
-ffff88011a6b9d80 2570248013 C Bo:2:002:2 0 31 >
-ffff8800d2d2c840 2570248074 S Bo:2:002:2 -115 69632 = 30393620 3e0a6666 66663838 30313161 36623964 38302032 35343032 30333430
-ffff8800d2d2c840 2570248388 C Bo:2:002:2 0 69632 >
-ffff88011a6b9d80 2570248451 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2570248479 C Bi:2:002:1 0 13 = 55534253 1b4c0000 00000000 00
-ffff88011a6b9d80 2570248650 S Bo:2:002:2 -115 31 = 55534243 1c4c0000 00100000 00000a2a 0000045d 08000008 00000000 000000
-ffff88011a6b9d80 2570248684 C Bo:2:002:2 0 31 >
-ffff8800d2d2c840 2570248729 S Bo:2:002:2 -115 4096 = 30336463 30382035 33303366 63303120 66666438 66666462 20303034 33303030
-ffff8800d2d2c840 2570248770 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2570248850 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2570248880 C Bi:2:002:1 0 13 = 55534253 1c4c0000 00000000 00
-ffff88011a6b9d80 2570248989 S Bo:2:002:2 -115 31 = 55534243 1d4c0000 00400000 00000a2a 00000474 00000020 00000000 000000
-ffff88011a6b9d80 2570249041 C Bo:2:002:2 0 31 >
-ffff8800d2d2c840 2570249091 S Bo:2:002:2 -115 16384 = 7b3f1300 00000000 20030000 00000000 b13f1300 00000000 20030000 00000000
-ffff8800d2d2c840 2570249187 C Bo:2:002:2 0 16384 >
-ffff88011a6b9d80 2570249279 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2570249309 C Bi:2:002:1 0 13 = 55534253 1d4c0000 00000000 00
-ffff88011a6b9d80 2570249474 S Bo:2:002:2 -115 31 = 55534243 1e4c0000 00e00100 00000a2a 000004c0 c00000f0 00000000 000000
-ffff88011a6b9d80 2570249508 C Bo:2:002:2 0 31 >
-ffff88003240e180 2570249554 S Bo:2:002:2 -115 122880 = 20666530 32316234 36203036 30336164 30302066 6664390a 66666666 38383030
-ffff88003240e180 2570250149 C Bo:2:002:2 0 122880 >
-ffff88011a6b9d80 2570250265 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2570250306 C Bi:2:002:1 0 13 = 55534253 1e4c0000 00000000 00
-ffff88011a6b9d80 2570250487 S Bo:2:002:2 -115 31 = 55534243 1f4c0000 00d00000 00000a2a 000004c1 b0000068 00000000 000000
-ffff88011a6b9d80 2570250526 C Bo:2:002:2 0 31 >
-ffff8800d2e0c6c0 2570250571 S Bo:2:002:2 -115 53248 = 64326530 63323430 20323536 33323134 34313720 43204269 3a313a30 30343a31
-ffff8800d2e0c6c0 2570250847 C Bo:2:002:2 0 53248 >
-ffff88011a6b9d80 2570250905 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2570250926 C Bi:2:002:1 0 13 = 55534253 1f4c0000 00000000 00
-ffff88011a6b9d80 2570251045 S Bo:2:002:2 -115 31 = 55534243 204c0000 00600000 00000a2a 000ad44c d0000030 00000000 000000
-ffff88011a6b9d80 2570251077 C Bo:2:002:2 0 31 >
-ffff8800d2b1e180 2570251139 S Bo:2:002:2 -115 24576 = b06a1100 00000000 20030000 00000000 e66a1100 00000000 20030000 00000000
-ffff8800d2b1e180 2570251264 C Bo:2:002:2 0 24576 >
-ffff88011a6b9d80 2570251323 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2570251350 C Bi:2:002:1 0 13 = 55534253 204c0000 00000000 00
-
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="usbmon-works-mjpg-320x240.txt"
-
-ffff88011a6b9d80 2500135922 S Bo:2:002:2 -115 31 = 55534243 ad4b0000 00100100 00000a2a 00000654 48000088 00000000 000000
-ffff88011a6b9d80 2500135990 C Bo:2:002:2 0 31 >
-ffff8800d2d2c9c0 2500136049 S Bo:2:002:2 -115 69632 = 30373420 28646d61 29203078 30303030 3030202d 20727376 645b305d 0a466562
-ffff8800d2d2c9c0 2500136360 C Bo:2:002:2 0 69632 >
-ffff88011a6b9d80 2500136447 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500136478 C Bi:2:002:1 0 13 = 55534253 ad4b0000 00000000 00
-ffff88011a6b9d80 2500136651 S Bo:2:002:2 -115 31 = 55534243 ae4b0000 00200100 00000a2a 0000052d c0000090 00000000 000000
-ffff88011a6b9d80 2500136686 C Bo:2:002:2 0 31 >
-ffff8800d2d2c540 2500136747 S Bo:2:002:2 -115 73728 = 20403331 65346230 30382028 646d6129 20307830 30303030 30202d20 74745f69
-ffff8800d2d2c540 2500137063 C Bo:2:002:2 0 73728 >
-ffff88011a6b9d80 2500137114 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500137139 C Bi:2:002:1 0 13 = 55534253 ae4b0000 00000000 00
-ffff88011a6b9d80 2500137269 S Bo:2:002:2 -115 31 = 55534243 af4b0000 00100100 00000a2a 00000150 88000088 00000000 000000
-ffff88011a6b9d80 2500137302 C Bo:2:002:2 0 31 >
-ffff8800d2ac0f00 2500137379 S Bo:2:002:2 -115 69632 = 30303030 202d2065 705f696e 666f0a46 65622032 35203133 3a32323a 3434206d
-ffff8800d2ac0f00 2500137732 C Bo:2:002:2 0 69632 >
-ffff88011a6b9d80 2500137820 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500137878 C Bi:2:002:1 0 13 = 55534253 af4b0000 00000000 00
-ffff88011a6b9d80 2500138087 S Bo:2:002:2 -115 31 = 55534243 b04b0000 00100000 00000a2a 00000457 28000008 00000000 000000
-ffff88011a6b9d80 2500138134 C Bo:2:002:2 0 31 >
-ffff8800d2d2c540 2500138184 S Bo:2:002:2 -115 4096 = 19b71500 00000000 00690000 00000000 64b71500 00000000 00690000 00000000
-ffff8800d2d2c540 2500138232 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2500138274 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500138314 C Bi:2:002:1 0 13 = 55534253 b04b0000 00000000 00
-ffff88011a6b9d80 2500138471 S Bo:2:002:2 -115 31 = 55534243 b14b0000 00100100 00000a2a 00000462 b0000088 00000000 000000
-ffff88011a6b9d80 2500138513 C Bo:2:002:2 0 31 >
-ffff8800d2ac0f00 2500138563 S Bo:2:002:2 -115 69632 = 37373034 345d2078 6863695f 68636420 30303030 3a30303a 31342e30 3a204066
-ffff8800d2ac0f00 2500138884 C Bo:2:002:2 0 69632 >
-ffff88011a6b9d80 2500138966 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500139005 C Bi:2:002:1 0 13 = 55534253 b14b0000 00000000 00
-ffff88011a6b9d80 2500139139 S Bo:2:002:2 -115 31 = 55534243 b24b0000 00200000 00000a2a 000004a2 d8000010 00000000 000000
-ffff88011a6b9d80 2500139190 C Bo:2:002:2 0 31 >
-ffff8800322a4840 2500139237 S Bo:2:002:2 -115 8192 = 312f3330 2c20312f 31352c20 0a7b2064 69736372 6574653a 20776964 7468203d
-ffff8800322a4840 2500139331 C Bo:2:002:2 0 8192 >
-ffff88011a6b9d80 2500139420 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500139457 C Bi:2:002:1 0 13 = 55534253 b24b0000 00000000 00
-ffff88011a6b9d80 2500139619 S Bo:2:002:2 -115 31 = 55534243 b34b0000 00100000 00000a2a 000ad44c 80000008 00000000 000000
-ffff88011a6b9d80 2500139670 C Bo:2:002:2 0 31 >
-ffff8800d2d2c540 2500139734 S Bo:2:002:2 -115 4096 = cd490e00 00000000 20030000 00000000 024a0e00 00000000 20030000 00000000
-ffff8800d2d2c540 2500139781 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2500139864 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500139891 C Bi:2:002:1 0 13 = 55534253 b34b0000 00000000 00
-ffff88011a6b9d80 2500140000 S Bo:2:002:2 -115 31 = 55534243 b44b0000 00100000 00000a2a 000ad48f 38000008 00000000 000000
-ffff88011a6b9d80 2500140039 C Bo:2:002:2 0 31 >
-ffff8800d2d2c540 2500140085 S Bo:2:002:2 -115 4096 = 30303020 30313030 30303030 0a666666 66383830 30643261 37633330 30203432
-ffff8800d2d2c540 2500140135 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2500140171 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500140203 C Bi:2:002:1 0 13 = 55534253 b44b0000 00000000 00
-ffff88011a6b9d80 2500140302 S Bo:2:002:2 -115 31 = 55534243 b54b0000 00300000 00000a2a 000ad4ff 00000018 00000000 000000
-ffff88011a6b9d80 2500140335 C Bo:2:002:2 0 31 >
-ffff8800d2d2c540 2500140380 S Bo:2:002:2 -115 12288 = d5d00e00 00000000 20000000 00000000 56d10e00 00000000 20000000 00000000
-ffff8800d2d2c540 2500140445 C Bo:2:002:2 0 12288 >
-ffff88011a6b9d80 2500140487 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500140514 C Bi:2:002:1 0 13 = 55534253 b54b0000 00000000 00
-ffff88011a6b9d80 2500140612 S Bo:2:002:2 -115 31 = 55534243 b64b0000 00100000 00000a2a 001dab29 30000008 00000000 000000
-ffff88011a6b9d80 2500140645 C Bo:2:002:2 0 31 >
-ffff8800d330d480 2500140693 S Bo:2:002:2 -115 4096 = 6f626a65 63742061 74207061 7468202f 6f72672f 61796174 616e612f 62616d66
-ffff8800d330d480 2500140725 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2500140757 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2500140776 C Bi:2:002:1 0 13 = 55534253 b64b0000 00000000 00
-ffff880031a95900 2501499513 S Ii:1:004:3 -115:32 16 <
-ffff880031a95900 2501501239 C Ii:1:004:3 -2:32 0
-ffff880031a95900 2501502938 S Ii:1:004:3 -115:32 16 <
-ffff8800d2a7cf00 2501515788 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000204 15160500 00000000 00000000 00000000 00000000 0000
-ffff8800d2a7cf00 2501516191 C Co:1:004:0 0 26 >
-ffff8800d2a7cf00 2501516289 S Ci:1:004:0 s a1 82 0100 0001 001a 26 <
-ffff8800d2a7cf00 2501517855 C Ci:1:004:0 0 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2a7cf00 2501517977 S Ci:1:004:0 s a1 83 0100 0001 001a 26 <
-ffff8800d2a7cf00 2501518356 C Ci:1:004:0 0 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2a7cf00 2501518432 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000204 15160500 00000000 00000000 00000000 00000000 0000
-ffff8800d2a7cf00 2501518867 C Co:1:004:0 0 26 >
-ffff8800d2a7cf00 2501519025 S Ci:1:004:0 s a1 81 0100 0001 001a 26 <
-ffff8800d2a7cf00 2501520570 C Ci:1:004:0 0 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2d2c540 2501520710 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000204 15160500 00000000 00000000 00000000 00000000 0000
-ffff8800d2d2c540 2501521080 C Co:1:004:0 0 26 >
-ffff8800d2d2c540 2501521136 S Ci:1:004:0 s a1 82 0100 0001 001a 26 <
-ffff8800d2d2c540 2501522810 C Ci:1:004:0 0 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2d2c540 2501522857 S Ci:1:004:0 s a1 83 0100 0001 001a 26 <
-ffff8800d2d2c540 2501523236 C Ci:1:004:0 0 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2ac0780 2501523291 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000204 15160500 00000000 00000000 00000000 00000000 0000
-ffff8800d2ac0780 2501523641 C Co:1:004:0 0 26 >
-ffff8800d2ac0780 2501523690 S Ci:1:004:0 s a1 81 0100 0001 001a 26 <
-ffff8800d2ac0780 2501525363 C Ci:1:004:0 0 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2ac0780 2501525511 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2ac0780 2501525894 C Co:1:004:0 0 26 >
-ffff8800d2ac0780 2501525944 S Ci:1:004:0 s a1 82 0100 0001 001a 26 <
-ffff8800d2ac0780 2501527557 C Ci:1:004:0 0 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2ac0780 2501527604 S Ci:1:004:0 s a1 83 0100 0001 001a 26 <
-ffff8800d2ac0780 2501527986 C Ci:1:004:0 0 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2ac0780 2501528032 S Co:1:004:0 s 21 01 0100 0001 001a 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d2ac0780 2501528410 C Co:1:004:0 0 26 >
-ffff8800d2ac0780 2501528446 S Ci:1:004:0 s a1 81 0100 0001 001a 26 <
-ffff8800d2ac0780 2501530074 C Ci:1:004:0 0 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff880031bf9f00 2501531138 S Ci:1:004:0 s a1 81 0600 0200 0002 2 <
-ffff880031bf9f00 2501531637 C Ci:1:004:0 0 2 = 0000
-ffff880031bf9f00 2501531675 S Ci:1:004:0 s a1 81 0a00 0200 0002 2 <
-ffff880031bf9f00 2501532120 C Ci:1:004:0 0 2 = f811
-ffff8800d2e0c0c0 2501555935 S Ci:1:004:0 s a1 81 0600 0200 0002 2 <
-ffff8800d2e0c0c0 2501556390 C Ci:1:004:0 0 2 = 0000
-ffff8800d5071300 2501565353 S Ci:1:004:0 s a1 81 0a00 0200 0002 2 <
-ffff8800d5071300 2501565827 C Ci:1:004:0 0 2 = f811
-ffff8800d5071300 2501570251 S Co:1:004:0 s 21 01 0200 0001 001a 26 = 01000204 15160500 00000000 00000000 20000058 020000a8 0000
-ffff8800d5071300 2501570655 C Co:1:004:0 0 26 >
-ffff8800d5071300 2501570734 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2501570746 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2501570750 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2501570753 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2501570757 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502077282 C Bi:1:004:1 0 16262 = 58595a63 64656667 68696a73 74757677 78797a82 83848586 8788898a 92939495
-ffff8800d5071300 2502077319 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502077335 C Bi:1:004:1 0 14 = 0c8fcfbc 3ee1275c 46e13905 ffd9
-ffff8800d5071b40 2502077344 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502110840 C Bi:1:004:1 0 16384 = 0c8c026c 46e15af8 4de15a05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2502110878 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502110891 C Bi:1:004:1 0 378 = bed94ee3 bba0acab b5460d1d 5422ea34 d995a878 89df558a ded9f309 5c11fdea
-ffff8800d2e0c480 2502110896 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502110903 C Bi:1:004:1 0 14 = 0c8e026c 46e1530e 4ee15a05 ffd9
-ffff8800d2e0c240 2502110934 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502144416 C Bi:1:004:1 0 16384 = 0c8d361b 4ee187aa 55e17c05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2502144450 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502144464 C Bi:1:004:1 0 422 = 20e50ab9 2bdc038c 75aaf652 71e53393 bcd3ec78 e788fc53 fd917105 b5a29dc4
-ffff8800d5071b40 2502144469 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502144476 C Bi:1:004:1 0 14 = 0c8f361b 4ee12eb9 55e17c05 ffd9
-ffff8800d2e0c780 2502144520 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502177986 C Bi:1:004:1 0 16384 = 0c8c68ca 55e16455 5de19d05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2502178020 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502178033 C Bi:1:004:1 0 426 = 24700957 72b65739 c2900f7a a549b8a4 65397be9 f63c63c4 7e27feca b9822883
-ffff8800d2e0c240 2502178038 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502178045 C Bi:1:004:1 0 14 = 0c8e68ca 55e15d6b 5de19d05 ffd9
-ffff8800d5071300 2502178076 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502211548 C Bi:1:004:1 0 16384 = 0c8d9c79 5de19107 65e1bf05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2502211582 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502211599 C Bi:1:004:1 0 442 = f8f3e37d 33e217c4 47f12f86 f575934e 16d1db82 50a484ae 7a038f5a 5ece4e06
-ffff8800d2e0c780 2502211606 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502211613 C Bi:1:004:1 0 14 = 0c8f9c79 5de18a1d 65e1bf05 ffd9
-ffff8800d2e0c480 2502211643 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502245132 C Bi:1:004:1 0 16384 = 0c8ccf28 65e16ab2 6ce1e005 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2502245168 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502245183 C Bi:1:004:1 0 444 = 2340aa46 e6e5fb0e 2bdbbe39 f8e348f8 95e3f7f1 4685a9b8 b036c906 d9176c84
-ffff8800d5071300 2502245187 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502245196 C Bi:1:004:1 0 14 = 0c8ecf28 65e163c8 6ce1e105 ffd9
-ffff8800d5071b40 2502245228 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502278713 C Bi:1:004:1 0 16384 = 0c8d03d8 6ce19e64 74e10206 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2502278747 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502278760 C Bi:1:004:1 0 458 = f246a01c 727738e0 57bcfc7d f1a69fe3 ff0088d2 788bc33a c2cfa70b 68e00db5
-ffff8800d2e0c480 2502278765 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502278772 C Bi:1:004:1 0 14 = 0c8f03d8 6ce1977a 74e10206 ffd9
-ffff8800d2e0c240 2502278803 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502312296 C Bi:1:004:1 0 16384 = 0c8c3687 74e1cd16 7ce12306 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2502312331 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502312345 C Bi:1:004:1 0 438 = f7c6763e 3ff88927 883c33ac acfa69b5 8e00db59 1895cf45 38e39a6e 949c6c67
-ffff8800d5071b40 2502312351 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502312358 C Bi:1:004:1 0 14 = 0c8e3687 74e17325 7ce12406 ffd9
-ffff8800d2e0c780 2502312390 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502345862 C Bi:1:004:1 0 16384 = 0c8d6a36 7ce1a9c1 83e14506 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2502345898 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502345912 C Bi:1:004:1 0 348 = 15b5b366 264e73de b3ae4bab 3a86ef9c 7a57cfcb 7e63da8a f76c73d7 f7372929
-ffff8800d2e0c240 2502345916 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502345924 C Bi:1:004:1 0 14 = 0c8f6a36 7ce1a2d7 83e14506 ffd9
-ffff8800d5071300 2502345955 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502379444 C Bi:1:004:1 0 16384 = 0c8c9ce5 83e1d573 8be16706 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2502379480 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502379493 C Bi:1:004:1 0 374 = e92632b8 597939e0 0acb116a 10d8e9a1 07377333 50f12b36 a715adb3 6e89d704
-ffff8800d2e0c780 2502379498 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502379504 C Bi:1:004:1 0 14 = 0c8e9ce5 83e1ce89 8be16706 ffd9
-ffff8800d2e0c480 2502379532 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502413004 C Bi:1:004:1 0 16384 = 0c8dd094 8be1af1e 93e18806 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2502413039 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502413052 C Bi:1:004:1 0 400 = acd213f3 4d21dcd8 f415c6ea 7e2213de b49e6362 6393db15 9e265eca 3aee6f42
-ffff8800d5071300 2502413057 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502413065 C Bi:1:004:1 0 14 = 0c8fd094 8be1a834 93e18806 ffd9
-ffff8800d5071b40 2502413095 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502446588 C Bi:1:004:1 0 16384 = 0c8c0344 93e1dbd0 9ae1aa06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2502446623 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502446640 C Bi:1:004:1 0 384 = 95b96c7a 66b8dd53 c43e65f1 99a47db2 f273c62a 31095185 b73a6827 525732af
-ffff8800d2e0c480 2502446645 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502446654 C Bi:1:004:1 0 14 = 0c8e0344 93e1d4e6 9ae1aa06 ffd9
-ffff8800d2e0c240 2502446685 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502480147 C Bi:1:004:1 0 16384 = 0c8d37f3 9ae1b37b a2e1cb06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2502480179 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502480194 C Bi:1:004:1 0 506 = 7da7e8c6 fed54b0f 3aceea39 030071b8 0ddbb1f8 544e9b4e c8a73499 e9dfb256
-ffff8800d5071b40 2502480199 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502480206 C Bi:1:004:1 0 14 = 0c8f37f3 9ae1ac91 a2e1cc06 ffd9
-ffff8800d2e0c780 2502480237 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502513738 C Bi:1:004:1 0 16384 = 0c8c6aa2 a2e1e22d aae1ed06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2502513782 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502513804 C Bi:1:004:1 0 404 = 8f1ef14f 89ff00b2 ee2de2b6 fbcc7e69 9cee6fa0 ae3353f1 0f9d7ed2 f9ac44bc
-ffff8800d2e0c240 2502513811 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502513825 C Bi:1:004:1 0 14 = 0c8e6aa2 a2e1db43 aae1ed06 ffd9
-ffff8800d5071300 2502513860 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502547314 C Bi:1:004:1 0 16384 = 0c8d9e51 aae110e0 b1e10e07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2502547350 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502547363 C Bi:1:004:1 0 482 = 8a258670 b7996aa2 67a87ec8 ba7ddf81 3e39e81e 3bf1b5a5 f697a369 0b732497
-ffff8800d2e0c780 2502547368 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502547375 C Bi:1:004:1 0 14 = 0c8f9e51 aae109f6 b1e10f07 ffd9
-ffff8800d2e0c480 2502547407 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502580886 C Bi:1:004:1 0 16384 = 0c8cd000 b2e1ef8a b9e13007 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2502580927 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502580948 C Bi:1:004:1 0 392 = 9b3c10da 7ca09f9e 4ce5bf3a e3b51d7f 7df349e6 3ed9705b 3c0acab5 a8c6d63a
-ffff8800d5071300 2502580957 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502580972 C Bi:1:004:1 0 14 = 0c8ed000 b2e1e8a0 b9e13007 ffd9
-ffff8800d5071b40 2502581011 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502614463 C Bi:1:004:1 0 16384 = 0c8d04b0 b9e11a3d c1e15207 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2502614496 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502614509 C Bi:1:004:1 0 444 = 0f8e3e3d d23e24fc 4093c4da 16a4eb61 f668e00b 226c932b 9e7af19c d5fb16e3
-ffff8800d2e0c480 2502614514 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502614521 C Bi:1:004:1 0 14 = 0c8f04b0 b9e11353 c1e15207 ffd9
-ffff8800d2e0c240 2502614548 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502648037 C Bi:1:004:1 0 16384 = 0c8c375f c1e1fde7 c8e17307 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2502648080 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502648102 C Bi:1:004:1 0 416 = 07529212 b9e403d8 e6854e4e 362272f7 d3ec78ff 0089fc52 da65c411 5ae4331f
-ffff8800d5071b40 2502648109 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502648121 C Bi:1:004:1 0 14 = 0c8e375f c1e1f7fd c8e17307 ffd9
-ffff8800d2e0c780 2502648157 S Bi:1:004:1 -115 16384 <
-ffff88011a6b9d80 2502672687 S Bo:2:002:2 -115 31 = 55534243 b74b0000 00700100 00000a2a 002244d8 080000b8 00000000 000000
-ffff88011a6b9d80 2502672754 C Bo:2:002:2 0 31 >
-ffff8800d2d2c0c0 2502672839 S Bo:2:002:2 -115 94208 = c03b3998 00000001 00065cdd 03300011 00000000 00000000 00000000 00000000
-ffff8800d2d2c0c0 2502673232 C Bo:2:002:2 0 94208 >
-ffff88011a6b9d80 2502673281 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2502673307 C Bi:2:002:1 0 13 = 55534253 b74b0000 00000000 00
-ffff88011a6b9d80 2502673592 S Bo:2:002:2 -115 31 = 55534243 b84b0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2502673629 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2502673684 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2502673706 C Bi:2:002:1 0 13 = 55534253 b84b0000 00000000 00
-ffff88011a6b9d80 2502673831 S Bo:2:002:2 -115 31 = 55534243 b94b0000 00100000 00000a2a 002244d8 c0000008 00000000 000000
-ffff88011a6b9d80 2502673864 C Bo:2:002:2 0 31 >
-ffff8800d2ac0780 2502673914 S Bo:2:002:2 -115 4096 = c03b3998 00000002 00065cdd 00000000 00000000 00000000 00000000 00000000
-ffff8800d2ac0780 2502673951 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2502673988 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2502674009 C Bi:2:002:1 0 13 = 55534253 b94b0000 00000000 00
-ffff88011a6b9d80 2502674135 S Bo:2:002:2 -115 31 = 55534243 ba4b0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2502674168 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2502674203 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2502674232 C Bi:2:002:1 0 13 = 55534253 ba4b0000 00000000 00
-ffff8800d2e0c480 2502681611 C Bi:1:004:1 0 16384 = 0c8d6b0e c9e1329a d0e19507 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2502681648 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502681662 C Bi:1:004:1 0 426 = 2b1fb3a5 b88e750b 21299e78 240eb551 a4e51b3d 0ce52e69 a9763c8b c53e286d
-ffff8800d2e0c240 2502681666 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502681674 C Bi:1:004:1 0 14 = 0c8f6b0e c9e12bb0 d0e19507 ffd9
-ffff8800d5071300 2502681704 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502715131 C Bi:1:004:1 0 16384 = 0c8c9ebd d0e1614c d8e1b607 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2502715171 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502715192 C Bi:1:004:1 0 472 = ec7a7fec a1a55e7c 36f8d5a0 7c44f1bd 8ddd868f a47da5dd e48f1217 7b792350
-ffff8800d2e0c780 2502715202 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502715213 C Bi:1:004:1 0 14 = 0c8e9ebd d0e1075b d8e1b707 ffd9
-ffff8800d2e0c480 2502715251 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502748752 C Bi:1:004:1 0 16384 = 0c8dd26c d8e140f7 dfe1d807 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2502748785 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502748800 C Bi:1:004:1 0 406 = 73c819e0 1cd37094 a36339cb de4fb1e4 1e26f14b 6973410c 048dcdf3 4ac72df4
-ffff8800d5071300 2502748804 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502748812 C Bi:1:004:1 0 14 = 0c8fd26c d8e1390d e0e1d807 ffd9
-ffff8800d5071b40 2502748839 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502782273 C Bi:1:004:1 0 16384 = 0c8c041c e0e16ea9 e7e1f907 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2502782308 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502782326 C Bi:1:004:1 0 460 = 6ff1ab40 f88be38b 1bdd3f45 d1fed0ee f2c5890b b5bc91a0 084ee3cb 8e718e3a
-ffff8800d2e0c480 2502782333 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502782343 C Bi:1:004:1 0 14 = 0c8e041c e0e167bf e7e1fa07 ffd9
-ffff8800d2e0c240 2502782378 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502815904 C Bi:1:004:1 0 16384 = 0c8d38cb e7e14754 efe11b00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2502815939 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502815953 C Bi:1:004:1 0 506 = 6cd7ba7e 8e6fad55 9809acee a3915803 8c81bb38 fc2a2787 e5ea69ed 0f4efd96
-ffff8800d5071b40 2502815957 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502815964 C Bi:1:004:1 0 14 = 0c8f38cb e7e1406a efe11b00 ffd9
-ffff8800d2e0c780 2502815995 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502849431 C Bi:1:004:1 0 16384 = 0c8c6b7a efe17606 f7e13d00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2502849455 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502849468 C Bi:1:004:1 0 448 = e5dede48 d004fbc7 971db1c5 7b6fc6bf 885a3fc4 cf1f49e2 7d12f668 ecbecf1c
-ffff8800d2e0c240 2502849472 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502849479 C Bi:1:004:1 0 14 = 0c8e6b7a efe16f1c f7e13d00 ffd9
-ffff8800d5071300 2502849497 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502883034 C Bi:1:004:1 0 16384 = 0c8d9f29 f7e1a1b8 fee15e00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2502883071 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502883084 C Bi:1:004:1 0 536 = b7c3ef10 ea9a8cda 7db7882c 9de3e9f6 8b9680bf a00ac339 aab2fc2c f881f647
-ffff8800d2e0c780 2502883088 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502883095 C Bi:1:004:1 0 14 = 0c8f9f29 f7e147c7 fee15e00 ffd9
-ffff8800d2e0c480 2502883126 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502916629 C Bi:1:004:1 0 16384 = 0c8cd2d8 fee17d63 06e28000 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2502916665 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502916679 C Bi:1:004:1 0 406 = f0481d68 545b8d9e c61295e5 ccba1e4f e2cf1449 a7490416 8c23563f bc933963
-ffff8800d5071300 2502916683 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502916692 C Bi:1:004:1 0 14 = 0c8ed2d8 fee17679 06e28000 ffd9
-ffff8800d5071b40 2502916719 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502950152 C Bi:1:004:1 0 16384 = 0c8d0688 06e2b115 0ee2a100 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2502950183 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2502950197 C Bi:1:004:1 0 486 = 830071b8 2825b1ef 8a99d0b6 a8bf6967 667a9fec ada3dffc 31f8cda0 7c46f1bd
-ffff8800d2e0c480 2502950202 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2502950209 C Bi:1:004:1 0 14 = 0c8f0688 06e2aa2b 0ee2a200 ffd9
-ffff8800d2e0c240 2502950239 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2502983777 C Bi:1:004:1 0 16384 = 0c8c3837 0ee28ec0 15e2c300 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2502983810 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2502983824 C Bi:1:004:1 0 544 = 2b463631 a7372934 f6e87450 7c3dd7f5 3d4a5d3a d3c41652 327dd371 72d06f3d
-ffff8800d5071b40 2502983828 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2502983835 C Bi:1:004:1 0 14 = 0c8e3837 0ee287d6 15e2c300 ffd9
-ffff8800d2e0c780 2502983863 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503017340 C Bi:1:004:1 0 16384 = 0c8d6ce6 15e2ba72 1de2e400 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2503017375 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503017388 C Bi:1:004:1 0 498 = 4b6732cc 18038dc1 412d8f7c 529d0e4b 6a6ae56d 19ea3fb2 9e8d7ff0 cfe33681
-ffff8800d2e0c240 2503017392 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503017400 C Bi:1:004:1 0 14 = 0c8f6ce6 15e2b388 1de2e500 ffd9
-ffff8800d5071300 2503017434 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503050916 C Bi:1:004:1 0 16384 = 0c8c9f95 1de2eb24 25e20601 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2503050952 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503050965 C Bi:1:004:1 0 598 = 4eeb040f 148a61fe eb193ee6 dcf278c9 ce3e9e6e de18d56d 3c451e80 8c2799dc
-ffff8800d2e0c780 2503050970 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503050976 C Bi:1:004:1 0 14 = 0c8e9f95 1de29133 25e20601 ffd9
-ffff8800d2e0c480 2503051010 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503084466 C Bi:1:004:1 0 16384 = 0c8dd344 25e2c6cf 2ce22801 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2503084497 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503084511 C Bi:1:004:1 0 490 = 90b25a30 9f760e32 15496c7b e2a6541c 52bf52e3 3b9ea9fb 276977df 0e7e34e8
-ffff8800d5071300 2503084515 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503084524 C Bi:1:004:1 0 14 = 0c8fd344 25e2bfe5 2ce22801 ffd9
-ffff8800d5071b40 2503084554 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503118068 C Bi:1:004:1 0 16384 = 0c8c06f4 2ce2f281 34e24901 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2503118103 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503118116 C Bi:1:004:1 0 554 = 49981079 dcbb7923 1cd77ce9 f2c52b6a 614ea4a5 26bee3a4 1f0f358b dd4e4d3e
-ffff8800d2e0c480 2503118121 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503118128 C Bi:1:004:1 0 14 = 0c8e06f4 2ce2eb97 34e24a01 ffd9
-ffff8800d2e0c240 2503118160 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503151651 C Bi:1:004:1 0 16384 = 0c8d3aa3 34e2cb2c 3ce26b01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2503151684 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503151698 C Bi:1:004:1 0 474 = fd95f46b ff0085ff 0019741f 893e38b0 b9b2d1f4 8172e73b 4caeef04 91a809bb
-ffff8800d5071b40 2503151703 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503151709 C Bi:1:004:1 0 14 = 0c8f3aa3 34e2c442 3ce26b01 ffd9
-ffff8800d2e0c780 2503151737 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503185216 C Bi:1:004:1 0 16384 = 0c8c6c52 3ce2ffde 43e28c01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2503185252 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503185265 C Bi:1:004:1 0 480 = 12370504 b638eb8a 97454515 ed2e7a8f eca7a45f 7c33f8cd a07c48f1 bd8ddd86
-ffff8800d2e0c240 2503185269 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503185277 C Bi:1:004:1 0 14 = 0c8e6c52 3ce2f8f4 43e28d01 ffd9
-ffff8800d5071300 2503185309 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503218794 C Bi:1:004:1 0 16384 = 0c8da001 44e23191 4be2ae01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2503218830 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503218843 C Bi:1:004:1 0 478 = 3a128dae 5f3a67a8 feca1a55 efc39f8d 3a07c44f 1c58dee9 fa368e2e 5dde58b1
-ffff8800d2e0c780 2503218848 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503218854 C Bi:1:004:1 0 14 = 0c8fa001 44e2d79f 4be2ae01 ffd9
-ffff8800d2e0c480 2503218884 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503252360 C Bi:1:004:1 0 16384 = 0c8cd3b0 4be20d3c 53e2cf01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2503252394 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503252409 C Bi:1:004:1 0 506 = 2a2f1ccf 6ad7d63a 2497d6a0 b626b3b9 49558024 6e0036ec 71e9513a 1e65b9db
-ffff8800d5071300 2503252413 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503252421 C Bi:1:004:1 0 14 = 0c8ed3b0 4be20652 53e2d001 ffd9
-ffff8800d5071b40 2503252453 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503285938 C Bi:1:004:1 0 16384 = 0c8d0760 53e23dee 5ae2f101 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2503285974 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503285988 C Bi:1:004:1 0 514 = 86cfa6e1 fafbd571 f08fc737 36ad7d65 a2c97d6c acc04d67 72928600 e37019dd
-ffff8800d2e0c480 2503285993 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503286000 C Bi:1:004:1 0 14 = 0c8f0760 53e23604 5be2f101 ffd9
-ffff8800d2e0c240 2503286030 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503319478 C Bi:1:004:1 0 16384 = 0c8c3a0f 5be21b99 62e21302 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2503319509 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503319526 C Bi:1:004:1 0 472 = 4e73d47f 64dd2ef7 e1d7c6cf 0ffc41f1 c595ee9d a2e91f69 79249a22 1cbb5bc9
-ffff8800d5071b40 2503319531 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503319538 C Bi:1:004:1 0 14 = 0c8e3a0f 5be214af 62e21302 ffd9
-ffff8800d2e0c780 2503319566 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503353091 C Bi:1:004:1 0 16384 = 0c8d6ebe 62e2494b 6ae23402 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2503353126 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503353139 C Bi:1:004:1 0 492 = 16db2d94 cb30600e 370504b6 38eb8a27 4396c57b 448f50fd 93b4bbcf 871f1b34
-ffff8800d2e0c240 2503353144 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503353152 C Bi:1:004:1 0 14 = 0c8f6ebe 62e24261 6ae23502 ffd9
-ffff8800d5071300 2503353183 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503386646 C Bi:1:004:1 0 16384 = 0c8ca06d 6ae220f6 71e25602 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2503386680 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503386693 C Bi:1:004:1 0 546 = 28d8c29d 56e4efb7 43a53f0c 35196f9e d7fe120b 3b702357 59754f32 cd5c1cf4
-ffff8800d2e0c780 2503386698 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503386705 C Bi:1:004:1 0 14 = 0c8ea06d 6ae2190c 72e25602 ffd9
-ffff8800d2e0c480 2503386735 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503420239 C Bi:1:004:1 0 16384 = 0c8dd41c 72e251a8 79e27702 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2503420272 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503420286 C Bi:1:004:1 0 480 = 294a872a 5e65b9ab d8f4ff00 d9334abc f873f1af 41f885e3 8b1bcd3b 46d205cb
-ffff8800d5071300 2503420291 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503420299 C Bi:1:004:1 0 14 = 0c8fd41c 72e24abe 79e27802 ffd9
-ffff8800d5071b40 2503420334 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503453779 C Bi:1:004:1 0 16384 = 0c8c07cc 79e27e5a 81e29902 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2503453812 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503453826 C Bi:1:004:1 0 484 = c13896d2 559f760e 3705525b 1c75c513 a3caaefa 95cf73d4 3f64bd32 f7e1dfc6
-ffff8800d2e0c480 2503453830 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503453838 C Bi:1:004:1 0 14 = 0c8e07cc 79e22469 81e29902 ffd9
-ffff8800d2e0c240 2503453866 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503487390 C Bi:1:004:1 0 16384 = 0c8d3b7b 81e25c05 89e2ba02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2503487424 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503487438 C Bi:1:004:1 0 518 = 32f66ac0 938c6e1d 3dfdeab0 f845e39b 8b46bdb0 d11efad5 4b01359d ca4a1803
-ffff8800d5071b40 2503487442 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503487449 C Bi:1:004:1 0 14 = 0c8f3b7b 81e2551b 89e2bb02 ffd9
-ffff8800d2e0c780 2503487480 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503520949 C Bi:1:004:1 0 16384 = 0c8c6e2a 89e28cb7 90e2dc02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2503520981 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503520998 C Bi:1:004:1 0 518 = f4c6f1f4 fceaba7c 21f1ddc5 b1beb0d1 24bdb505 b1359dd4 72ab0070 580ddbb1
-ffff8800d2e0c240 2503521004 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503521011 C Bi:1:004:1 0 14 = 0c8e6e2a 89e286cd 90e2dc02 ffd9
-ffff8800d5071300 2503521045 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503554524 C Bi:1:004:1 0 16384 = 0c8da2d9 90e27162 98e2fe02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2503554560 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503554574 C Bi:1:004:1 0 514 = 301866aa 4bf0a3c7 cf6cd7d6 da15d5ed b64e25b3 9927de01 c6e0a096 c7be2b39
-ffff8800d2e0c780 2503554578 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503554585 C Bi:1:004:1 0 14 = 0c8fa2d9 90e26a78 98e2fe02 ffd9
-ffff8800d2e0c480 2503554617 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503588079 C Bi:1:004:1 0 16384 = 0c8cd488 98e2a514 a0e21f03 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2503588113 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503588128 C Bi:1:004:1 0 538 = 4c7e196a 371a8496 2be23b28 02207593 5367b356 073d370f 6fd6ab7f c2a1f1e5
-ffff8800d5071300 2503588133 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503588141 C Bi:1:004:1 0 14 = 0c8ed488 98e29e2a a0e22003 ffd9
-ffff8800d5071b40 2503588172 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503621667 C Bi:1:004:1 0 16384 = 0c8d0838 a0e2d6c6 a7e24103 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2503621700 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503621713 C Bi:1:004:1 0 506 = 7c757768 da869fa3 b5fda866 026b4ba8 e40c14e0 90376719 1e959ce8 f2f52dcb
-ffff8800d2e0c480 2503621718 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503621725 C Bi:1:004:1 0 14 = 0c8f0838 a0e27cd5 a7e24103 ffd9
-ffff8800d2e0c240 2503621755 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503655255 C Bi:1:004:1 0 16384 = 0c8c3be7 a7e2b271 afe26203 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2503655288 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503655303 C Bi:1:004:1 0 448 = e5dede48 d004fbc7 971dbb57 b5fc6df1 fe93f133 c7b278a3 44bf9a2b 236d1c02
-ffff8800d5071b40 2503655308 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503655314 C Bi:1:004:1 0 14 = 0c8e3be7 a7e2ab87 afe26303 ffd9
-ffff8800d2e0c780 2503655346 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503688812 C Bi:1:004:1 0 16384 = 0c8d6f96 afe2df23 b7e28403 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2503688845 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503688858 C Bi:1:004:1 0 528 = f86ba95d ea325927 88ac2258 94389352 91ecc303 e81867ff 00d7557f e151f8f2
-ffff8800d2e0c240 2503688862 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503688870 C Bi:1:004:1 0 14 = 0c8f6f96 afe2d839 b7e28403 ffd9
-ffff8800d5071300 2503688899 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503722401 C Bi:1:004:1 0 16384 = 0c8ca245 b7e2bfce bee2a503 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2503722437 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503722450 C Bi:1:004:1 0 560 = a03302b8 c92b8009 c0c9fc0d 7a5569f2 462ada98 53a92949 ae8749ff 000ac752
-ffff8800d2e0c780 2503722455 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503722461 C Bi:1:004:1 0 14 = 0c8ea245 b7e2b8e4 bee2a603 ffd9
-ffff8800d2e0c480 2503722493 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503755930 C Bi:1:004:1 0 16384 = 0c8dd6f4 bee2f080 c6e2c703 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2503755969 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503755985 C Bi:1:004:1 0 540 = c918c6da 98d2a8e7 377f91d2 7fc2b0d4 27bc92d0 7886cedc 222b87d5 37d987ce
-ffff8800d5071300 2503755991 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503755999 C Bi:1:004:1 0 14 = 0c8fd6f4 bee2e996 c6e2c703 ffd9
-ffff8800d5071b40 2503756030 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503789533 C Bi:1:004:1 0 16384 = 0c8c08a4 c6e21f33 cee2e903 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2503789567 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503789580 C Bi:1:004:1 0 522 = 03893536 7b30c0f4 c6f19fc7 deab0f84 7e3c9ed0 ded86892 df5aee60 26b2b849
-ffff8800d2e0c480 2503789584 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503789591 C Bi:1:004:1 0 14 = 0c8e08a4 c6e2c541 cee2e903 ffd9
-ffff8800d2e0c240 2503789619 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503823099 C Bi:1:004:1 0 16384 = 0c8d3c53 cee2f8dd d5e20a04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2503823130 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503823147 C Bi:1:004:1 0 484 = 1d4b6e7a 87ec93a5 5d7c3df8 dba17c40 f1c59df6 99a368c2 e5e49278 183177b7
-ffff8800d5071b40 2503823152 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503823159 C Bi:1:004:1 0 14 = 0c8f3c53 cee2f1f3 d5e20b04 ffd9
-ffff8800d2e0c780 2503823191 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503856671 C Bi:1:004:1 0 16384 = 0c8c6f02 d6e22a90 dde22c04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2503856705 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503856719 C Bi:1:004:1 0 530 = 1e22b285 1115d64d 50bd9ab0 39c6378e 9efef554 7c22f1d5 c5b1beb0 d066beb6
-ffff8800d2e0c240 2503856724 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503856732 C Bi:1:004:1 0 14 = 0c8e6f02 d6e223a6 dde22c04 ffd9
-ffff8800d5071300 2503856762 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503890237 C Bi:1:004:1 0 16384 = 0c8da3b1 dde2073b e5e24d04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2503890269 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503890283 C Bi:1:004:1 0 426 = 51a1df4b 1597d9d2 dc473205 90edcf3d 4819cd35 46525cac ca53bcf9 9743c97c
-ffff8800d2e0c780 2503890288 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503890295 C Bi:1:004:1 0 14 = 0c8fa3b1 dde20051 e5e24e04 ffd9
-ffff8800d2e0c480 2503890326 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503923840 C Bi:1:004:1 0 16384 = 0c8cd660 e5e237ed ece26f04 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2503923873 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503923887 C Bi:1:004:1 0 572 = 755f32cc 34c0a919 25700138 193f81af 42ad2e48 25d4e7a7 5252934f 6e87487e
-ffff8800d5071300 2503923892 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503923900 C Bi:1:004:1 0 14 = 0c8ed660 e5e23003 ede26f04 ffd9
-ffff8800d5071b40 2503923928 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503957421 C Bi:1:004:1 0 16384 = 0c8d0a10 ede2669f f4e29104 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2503957457 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2503957471 C Bi:1:004:1 0 538 = 2e2fdecb fe122b3b 7088ae24 d50bd9ab 6738c6f1 d3dfdeab 2fc21f1d 5c5ab5f6
-ffff8800d2e0c480 2503957476 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2503957483 C Bi:1:004:1 0 14 = 0c8f0a10 ede20cae f4e29104 ffd9
-ffff8800d2e0c240 2503957512 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2503990983 C Bi:1:004:1 0 16384 = 0c8c3cbf f4e2434a fce2b204 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2503991017 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2503991031 C Bi:1:004:1 0 556 = 4946318d b530a551 b93bedd0 e95be185 f497cf66 3c416902 ac6b2093 530f64af
-ffff8800d5071b40 2503991035 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2503991042 C Bi:1:004:1 0 14 = 0c8e3cbf f4e23c60 fce2b204 ffd9
-ffff8800d2e0c780 2503991070 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504024563 C Bi:1:004:1 0 16384 = 0c8d706e fce276fc 03e3d404 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2504024596 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504024609 C Bi:1:004:1 0 516 = 32cd5f3e 9bc7ebef 5593e10f 8eeeed8d ee9da3b5 fda82c04 d67771c8 ac01c120
-ffff8800d2e0c240 2504024614 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504024621 C Bi:1:004:1 0 14 = 0c8f706e fce26f12 04e3d404 ffd9
-ffff8800d5071300 2504024649 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504058127 C Bi:1:004:1 0 16384 = 0c8ca31d 04e353a7 0be3f504 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2504058161 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504058174 C Bi:1:004:1 0 552 = 2b8c92bc 027039fc 0d7a5529 28c52ea7 3d2a8e53 77dba1d2 37c32d42 6d424b3f
-ffff8800d2e0c780 2504058178 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504058185 C Bi:1:004:1 0 14 = 0c8ea31d 04e34cbd 0be3f604 ffd9
-ffff8800d2e0c480 2504058215 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504091698 C Bi:1:004:1 0 16384 = 0c8dd7cc 0be38259 13e31705 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2504091730 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504091745 C Bi:1:004:1 0 520 = b2a20712 6a9bec83 83d31b87 4f7aab1f c20f1cdd db35ee99 a335fdb2 96c4d677
-ffff8800d5071300 2504091749 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504091758 C Bi:1:004:1 0 14 = 0c8fd7cc 0be37b6f 13e31705 ffd9
-ffff8800d5071b40 2504091785 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504125279 C Bi:1:004:1 0 16384 = 0c8c0a7c 13e3b60b 1be33805 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2504125316 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504125333 C Bi:1:004:1 0 566 = b40d302b 8c92b800 9c0c9fc0 d7a15697 2c546d66 654a7294 9df6e874 adf0befe
-ffff8800d2e0c480 2504125340 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504125348 C Bi:1:004:1 0 14 = 0c8e0a7c 13e35c1a 1be33905 ffd9
-ffff8800d2e0c240 2504125386 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504158844 C Bi:1:004:1 0 16384 = 0c8d3e2b 1be39db6 22e35a05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2504158878 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504158893 C Bi:1:004:1 0 580 = ff008463 53b5f11a 6808c2e2 7770a24b 30d282bd 495e0138 1927e86b d1ab4395
-ffff8800d5071b40 2504158897 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504158904 C Bi:1:004:1 0 14 = 0c8f3e2b 1be396cc 22e35a05 ffd9
-ffff8800d2e0c780 2504158939 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504192424 C Bi:1:004:1 0 16384 = 0c8c70da 22e3cd68 2ae37c05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2504192456 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504192470 C Bi:1:004:1 0 502 = 1756ad7b a7e8c6fe d8330135 9ddc722b 00719037 671f866b 2952e576 b9a39d9d
-ffff8800d2e0c240 2504192475 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504192482 C Bi:1:004:1 0 14 = 0c8e70da 22e3c67e 2ae37c05 ffd9
-ffff8800d5071300 2504192514 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504226003 C Bi:1:004:1 0 16384 = 0c8da489 2ae3aa13 32e39d05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2504226036 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504226049 C Bi:1:004:1 0 476 = fc36f8d3 a17c45f1 c58dde9f a3e902e5 d9a58ff7 8cef6f24 6a026771 e5fae31c
-ffff8800d2e0c780 2504226054 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504226060 C Bi:1:004:1 0 14 = 0c8fa489 2ae3a329 32e39d05 ffd9
-ffff8800d2e0c480 2504226092 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504259584 C Bi:1:004:1 0 16384 = 0c8cd738 32e3d8c5 39e3bf05 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2504259619 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504259634 C Bi:1:004:1 0 510 = 5ee9fa33 5fda82c0 4d677492 2b05382c 06ece33e d533a363 472e53d4 3f64fd22
-ffff8800d5071300 2504259639 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504259647 C Bi:1:004:1 0 14 = 0c8ed738 32e3d1db 39e3bf05 ffd9
-ffff8800d5071b40 2504259679 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504293146 C Bi:1:004:1 0 16384 = 0c8d0be8 39e3ba70 41e3e005 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2504293180 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504293193 C Bi:1:004:1 0 500 = dfdb296c 4d67751c aac01c6e 0376ec67 daa6a52e 5d2fb96e 7a9e9dfb 266937df
-ffff8800d2e0c480 2504293198 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504293205 C Bi:1:004:1 0 14 = 0c8f0be8 39e3b386 41e3e105 ffd9
-ffff8800d2e0c240 2504293237 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504326699 C Bi:1:004:1 0 16384 = 0c8c3e97 41e3ed22 49e30206 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2504326739 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504326761 C Bi:1:004:1 0 522 = 7b35707d 3703c7bf bd578fe0 df8e6f2d 0dfe9ba5 47a8db06 61e75a5e c6ea7070
-ffff8800d5071b40 2504326770 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504326782 C Bi:1:004:1 0 14 = 0c8e3e97 41e3e638 49e30206 ffd9
-ffff8800d2e0c780 2504326814 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504360291 C Bi:1:004:1 0 16384 = 0c8d7246 49e31dd5 50e32306 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2504360325 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504360339 C Bi:1:004:1 0 536 = 527dba1d 337c31bf 92f64b5f edfb5b75 440e25d4 c3d9ab82 78c6e1d3 deab45f0
-ffff8800d2e0c240 2504360343 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504360351 C Bi:1:004:1 0 14 = 0c8f7246 49e3c3e3 50e32406 ffd9
-ffff8800d5071300 2504360386 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504393877 C Bi:1:004:1 0 16384 = 0c8ca4f5 50e3f97f 58e34506 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2504393913 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504393925 C Bi:1:004:1 0 536 = b743a54f 869aa5d5 f4966be2 3d3e1088 1b7ea523 da2b039c 6370ff00 39aaa3e1
-ffff8800d2e0c780 2504393930 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504393937 C Bi:1:004:1 0 14 = 0c8ea4f5 50e3f295 58e34506 ffd9
-ffff8800d2e0c480 2504393967 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504427419 C Bi:1:004:1 0 16384 = 0c8dd8a4 58e32832 60e36706 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2504427449 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504427461 C Bi:1:004:1 0 518 = a8acb26a 7becd5c1 cf4dc3a7 bfbd574f 83fe3abc b76bdd37 473a85ba 96c4d677
-ffff8800d5071300 2504427465 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504427472 C Bi:1:004:1 0 14 = 0c8fd8a4 58e32148 60e36706 ffd9
-ffff8800d5071b40 2504427499 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504461023 C Bi:1:004:1 0 16384 = 0c8c0b54 60e302dd 67e38806 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2504461056 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504461069 C Bi:1:004:1 0 570 = df699657 0a24b356 9b20f259 4704e073 f857a152 8f245773 2a551b93 4f6e874e
-ffff8800d2e0c480 2504461074 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504461080 C Bi:1:004:1 0 14 = 0c8e0b54 60e3fbf2 67e38806 ffd9
-ffff8800d2e0c240 2504461111 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504494572 C Bi:1:004:1 0 16384 = 0c8d3f03 68e3358f 6fe3aa06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2504494604 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504494619 C Bi:1:004:1 0 570 = 5f32d034 c08ea4ae 064e073f 857a1569 72c62ada 98529b94 9a7b743a 6ff8565a
-ffff8800d5071b40 2504494623 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504494630 C Bi:1:004:1 0 14 = 0c8f3f03 68e32ea5 6fe3aa06 ffd9
-ffff8800d2e0c780 2504494661 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504528164 C Bi:1:004:1 0 16384 = 0c8c72b2 6fe36741 77e3cb06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2504528201 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504528217 C Bi:1:004:1 0 534 = a1d1ff00 c2b3d4ee 35092c93 c43650aa 20712ea6 cf66ac0f a6e1d3de aaafc22f
-ffff8800d2e0c240 2504528222 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504528232 C Bi:1:004:1 0 14 = 0c8e72b2 6fe30d50 77e3cc06 ffd9
-ffff8800d5071300 2504528269 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504561756 C Bi:1:004:1 0 16384 = 0c8da661 77e348ec 7ee3ed06 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2504561792 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504561806 C Bi:1:004:1 0 606 = 8a601fc2 c64cedc7 723049ce 3e9e6cde 18d4e0f1 0c5e1f8e 417124ae 0799681a
-ffff8800d2e0c780 2504561810 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504561818 C Bi:1:004:1 0 14 = 0c8fa661 77e34102 7fe3ed06 ffd9
-ffff8800d2e0c480 2504561858 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504595304 C Bi:1:004:1 0 16384 = 0c8cd810 7fe3819e 86e30e07 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2504595327 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504595337 C Bi:1:004:1 0 560 = 057a965e 0138193f 857a3528 b8c23a6a 73d39be6 77dba1d2 ff00c2b0 be9b5096
-ffff8800d5071300 2504595341 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504595346 C Bi:1:004:1 0 14 = 0c8ed810 7fe37ab4 86e30f07 ffd9
-ffff8800d5071b40 2504595366 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504628887 C Bi:1:004:1 0 16384 = 0c8d0cc0 86e36649 8ee33007 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2504628918 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504628931 C Bi:1:004:1 0 474 = b4bbaf00 7c71d07c 7de37b2b dd2f46d1 d6e64926 b9b7653b dede48d0 05fbcdf3
-ffff8800d2e0c480 2504628936 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504628943 C Bi:1:004:1 0 14 = 0c8f0cc0 86e35f5f 8ee33007 ffd9
-ffff8800d2e0c240 2504628970 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504662466 C Bi:1:004:1 0 16384 = 0c8c3f6f 8ee39bfb 95e35207 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2504662503 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504662517 C Bi:1:004:1 0 516 = b874f7f7 aab1fc20 f1d5ddab 5ee9da2b 6a16ea5b 12d9dd24 8180382c 06ece3f0
-ffff8800d5071b40 2504662522 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504662528 C Bi:1:004:1 0 14 = 0c8e3f6f 8ee39411 96e35207 ffd9
-ffff8800d2e0c780 2504662558 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504696026 C Bi:1:004:1 0 16384 = 0c8d731e 96e3d4ad 9de37307 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2504696060 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504696075 C Bi:1:004:1 0 520 = e3dfdeab c7f07fc7 379035e6 99a40bfb 752dfbeb 3bc8e456 0a70587c d9c7e19f
-ffff8800d2e0c240 2504696079 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504696086 C Bi:1:004:1 0 14 = 0c8f731e 96e37abc 9de37307 ffd9
-ffff8800d5071300 2504696115 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504729576 C Bi:1:004:1 0 16384 = 0c8ca6cd 9de3b458 a5e39507 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2504729612 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504729627 C Bi:1:004:1 0 534 = 1586a371 7ef67ff0 90d95baa 207126a8 5ecd5b39 e9b874f7 f7aae9f0 87c79736
-ffff8800d2e0c780 2504729632 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504729639 C Bi:1:004:1 0 14 = 0c8ea6cd 9de3ad6e a5e39507 ffd9
-ffff8800d2e0c480 2504729667 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504763191 C Bi:1:004:1 0 16384 = 0c8dda7c a5e3e60a ade3b607 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2504763227 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504763242 C Bi:1:004:1 0 582 = 4b6f11c7 e1f522e2 691c2892 cc34c0af 52cb8009 c0c9fc0d 7a3568f2 c62ada9c
-ffff8800d5071300 2504763246 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504763254 C Bi:1:004:1 0 14 = 0c8fda7c a5e3df20 ade3b707 ffd9
-ffff8800d5071b40 2504763287 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504796767 C Bi:1:004:1 0 16384 = 0c8c0c2c ade3c2b5 b4e3d807 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2504796804 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504796818 C Bi:1:004:1 0 532 = 696ab1a0 75975459 2cc38248 c8dc3a74 e7deab27 c1ef1cdd dbb5ee9b a48d42d8
-ffff8800d2e0c480 2504796823 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504796830 C Bi:1:004:1 0 14 = 0c8e0c2c ade3bbcb b4e3d807 ffd9
-ffff8800d2e0c240 2504796859 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504830348 C Bi:1:004:1 0 16384 = 0c8d40db b4e3f167 bce3f907 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2504830383 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504830398 C Bi:1:004:1 0 594 = c64fbbb7 b918c9ce 2bcdcf85 f54b6f12 47a02309 e6770be6 5a069815 ea4af427
-ffff8800d5071b40 2504830402 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504830409 C Bi:1:004:1 0 14 = 0c8f40db b4e3ea7d bce3fa07 ffd9
-ffff8800d2e0c780 2504830439 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504863887 C Bi:1:004:1 0 16384 = 0c8c738a bce31e1a c4e31b00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2504863925 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504863947 C Bi:1:004:1 0 594 = 4aa61fee b193ee6d ee78279c 7d3cd8f8 5f55b5f1 1c7a046c 2799dc2f 99661a60
-ffff8800d2e0c240 2504863952 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504863959 C Bi:1:004:1 0 14 = 0c8e738a bce3c428 c4e31b00 ffd9
-ffff8800d5071300 2504863992 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504897453 C Bi:1:004:1 0 16384 = 0c8da739 c4e3f7c4 cbe33d00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2504897481 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504897493 C Bi:1:004:1 0 514 = 9bec83e4 9e9b874f 7f7aae9f 07fc7579 6cd7ba66 8e750b60 cc04d657 51ca1829
-ffff8800d2e0c780 2504897498 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504897505 C Bi:1:004:1 0 14 = 0c8fa739 c4e3f0da cbe33d00 ffd9
-ffff8800d2e0c480 2504897528 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504931047 C Bi:1:004:1 0 16384 = 0c8cdae8 cbe32977 d3e35e00 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2504931076 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504931088 C Bi:1:004:1 0 546 = 7dba1d2b 7c2cbc92 f64b53af da5b0445 75935457 b35704e3 8dc3a7bf bd578be0
-ffff8800d5071300 2504931092 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504931100 C Bi:1:004:1 0 14 = 0c8edae8 cbe3228d d3e35f00 ffd9
-ffff8800d5071b40 2504931128 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504964597 C Bi:1:004:1 0 16384 = 0c8d0e98 d3e31222 dbe38000 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2504964640 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2504964656 C Bi:1:004:1 0 558 = 770be659 8330208c 92bd09c0 e7f035df 52972452 b6a634aa 37269edd 0e90fc30
-ffff8800d2e0c480 2504964660 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2504964669 C Bi:1:004:1 0 14 = 0c8f0e98 d3e30b38 dbe38000 ffd9
-ffff8800d2e0c240 2504964698 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2504998182 C Bi:1:004:1 0 16384 = 0c8c4047 dbe34cd4 e2e3a100 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2504998210 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2504998222 C Bi:1:004:1 0 556 = 5df5a8da 315d4c29 5494a6ff 0003a36f 8617f35f cb667c45 676c2345 6126a7e6
-ffff8800d5071b40 2504998226 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2504998234 C Bi:1:004:1 0 14 = 0c8e4047 dbe345ea e2e3a200 ffd9
-ffff8800d2e0c780 2504998258 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2505031744 C Bi:1:004:1 0 16384 = 0c8d74f6 e2e3287f eae3c300 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2505031771 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505031784 C Bi:1:004:1 0 584 = 939c7d3c dbfe117d 52dbc451 e831c9f6 896470a2 5b306505 7a92bd33 8193f857
-ffff8800d2e0c240 2505031788 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505031795 C Bi:1:004:1 0 14 = 0c8f74f6 e2e32195 eae3c300 ffd9
-ffff8800d5071300 2505031822 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2505065339 C Bi:1:004:1 0 16384 = 0c8ca7a5 eae35731 f2e3e400 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2505065370 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2505065385 C Bi:1:004:1 0 542 = 7a556529 34ce91be 175f497b 2da1d7ed 2d82c6ac b26a9bec c3824f4d c3a7bfbd
-ffff8800d2e0c780 2505065390 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2505065397 C Bi:1:004:1 0 14 = 0c8ea7a5 eae35147 f2e3e500 ffd9
-ffff8800d2e0c480 2505065436 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505098877 C Bi:1:004:1 0 16384 = 0c8ddb54 f2e38ce3 f9e30601 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2505098914 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505098932 C Bi:1:004:1 0 570 = 4f33b85f 32cc34a0 ae324af0 09c0e7f0 35e855a5 68ad2ccc 29d49393 bec749ff
-ffff8800d5071300 2505098938 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2505098949 C Bi:1:004:1 0 14 = 0c8fdb54 f2e332f2 f9e30601 ffd9
-ffff8800d5071b40 2505098979 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2505132506 C Bi:1:004:1 0 16384 = 0c8c0e04 fae36c8e 01e42801 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2505132544 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2505132561 C Bi:1:004:1 0 568 = 0a24b456 9415ea4a f009c0c9 edd2bd4a d47d9c23 a5998d2a b2949f6e 874cff00
-ffff8800d2e0c480 2505132569 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505132579 C Bi:1:004:1 0 14 = 0c8e0e04 fae365a4 01e42801 ffd9
-ffff8800d2e0c240 2505132611 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505166057 C Bi:1:004:1 0 16384 = 0c8d42b3 01e49f40 09e44901 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2505166094 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2505166118 C Bi:1:004:1 0 608 = a93e1cdf 7fc24572 ff00f097 de4ccb0c 52412a18 3fbae64c eddbdc8c 64f4fa79
-ffff8800d5071b40 2505166123 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2505166130 C Bi:1:004:1 0 14 = 0c8f42b3 01e49856 09e44a01 ffd9
-ffff8800d2e0c780 2505166163 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2505199652 C Bi:1:004:1 0 16384 = 0c8c7462 09e47feb 10e46b01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2505199686 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505199699 C Bi:1:004:1 0 602 = 8ee5c78b ef27658a 3920910d b8fe172e 4edc7723 1939c579 a8f0b6a9 1f88a2d0
-ffff8800d2e0c240 2505199704 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505199711 C Bi:1:004:1 0 14 = 0c8e7462 09e47801 11e46b01 ffd9
-ffff8800d5071300 2505199739 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2505233215 C Bi:1:004:1 0 16384 = 0c8da811 11e4b09d 18e48c01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2505233249 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2505233263 C Bi:1:004:1 0 538 = 5e7db25b 69b5b8ac a3540eb3 6a904968 8e338e09 c8c74e7d ea08be0d 78d6fed9
-ffff8800d2e0c780 2505233268 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2505233274 C Bi:1:004:1 0 14 = 0c8fa811 11e4a9b3 18e48d01 ffd9
-ffff8800d2e0c480 2505233306 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505266792 C Bi:1:004:1 0 16384 = 0c8cdbc0 18e4e14f 20e4ae01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2505266825 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505266839 C Bi:1:004:1 0 544 = 8e727dba 1d41f84f 7a6f65b7 9b5b86ca 3550c93e a90c96a8 e338e09c 8c74e7de
-ffff8800d5071300 2505266843 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2505266852 C Bi:1:004:1 0 14 = 0c8edbc0 18e4875e 20e4ae01 ffd9
-ffff8800d5071b40 2505266880 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2505300382 C Bi:1:004:1 0 16384 = 0c8d0f70 20e4bdfa 27e4cf01 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2505300418 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2505300431 C Bi:1:004:1 0 608 = 469478be f2761124 d0489f67 1fc2fe66 76e3a923 1939c74e 9e6abe14 d4d3c451
-ffff8800d2e0c480 2505300436 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505300443 C Bi:1:004:1 0 14 = 0c8f0f70 20e4b610 28e4d001 ffd9
-ffff8800d2e0c240 2505300475 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505333940 C Bi:1:004:1 0 16384 = 0c8c421f 28e4ebac 2fe4f101 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2505333977 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2505333991 C Bi:1:004:1 0 644 = 68eeee66 9253b551 49258fa0 14a14fde d07ca91e 93a1785f e1d2fc35 be83c4e2
-ffff8800d5071b40 2505333996 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2505334005 C Bi:1:004:1 0 14 = 0c8e421f 28e4e5c2 2fe4f101 ffd9
-ffff8800d2e0c780 2505334042 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2505367528 C Bi:1:004:1 0 16384 = 0c8d76ce 2fe4c657 37e41302 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2505367561 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505367574 C Bi:1:004:1 0 596 = 7f3338db dc8c64e7 1d2bcd47 85b528bc 47168113 1b992570 15ed0190 15ea48ce
-ffff8800d2e0c240 2505367579 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505367586 C Bi:1:004:1 0 14 = 0c8f76ce 2fe4bf6d 37e41302 ffd9
-ffff8800d5071300 2505367614 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2505401056 C Bi:1:004:1 0 16384 = 0c8ca87d 37e4fa09 3fe43402 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071b40 2505401104 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2505401129 C Bi:1:004:1 0 504 = b7cb012d adec6ca4 038c8cb0 38fc334a 542db0dd 4517667a 87ecbbe1 ed4be13f
-ffff8800d2e0c780 2505401138 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2505401147 C Bi:1:004:1 0 14 = 0c8ea87d 37e4f41f 3fe43502 ffd9
-ffff8800d2e0c480 2505401179 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505434672 C Bi:1:004:1 0 16384 = 0c8ddc2c 3fe42fbc 46e45602 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c240 2505434708 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505434723 C Bi:1:004:1 0 568 = c8155ed1 4c9b97a9 61d33819 3dba577d 6a4e092b 6a634a6e 526ba743 a83f0a6e
-ffff8800d5071300 2505434727 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2505434737 C Bi:1:004:1 0 14 = 0c8fdc2c 3fe4d5ca 46e45602 ffd9
-ffff8800d5071b40 2505434769 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2505468238 C Bi:1:004:1 0 16384 = 0c8c0fdc 46e40e67 4ee47702 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c780 2505468275 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c480 2505468289 C Bi:1:004:1 0 630 = e5c4b248 70aaa492 4fd28e45 37642b24 7a4e87e1 3f875ff0 adef57c4 93483c5d
-ffff8800d2e0c480 2505468294 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505468301 C Bi:1:004:1 0 14 = 0c8e0fdc 46e4077d 4ee47802 ffd9
-ffff8800d2e0c240 2505468335 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505501816 C Bi:1:004:1 0 16384 = 0c8d438b 4ee44019 56e49902 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d5071300 2505501850 S Bi:1:004:1 -115 16384 <
-ffff8800d5071b40 2505501863 C Bi:1:004:1 0 548 = e5277dba 1d3b7c2d be92f66b 7935fb7b 458903ac 9aaa3d9a b827191b 81e3a73e
-ffff8800d5071b40 2505501868 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c780 2505501875 C Bi:1:004:1 0 14 = 0c8f438b 4ee4392f 56e49902 ffd9
-ffff8800d2e0c780 2505501925 S Bi:1:004:1 -115 16384 <
-ffff88011a6b9d80 2505531044 S Bo:2:002:2 -115 31 = 55534243 bb4b0000 00100000 00000a2a 001dadcb d0000008 00000000 000000
-ffff88011a6b9d80 2505531090 C Bo:2:002:2 0 31 >
-ffff8800d2ac0780 2505531120 S Bo:2:002:2 -115 4096 = 23206775 76637669 65772063 6f6e6669 67757261 74696f6e 2066696c 6520666f
-ffff8800d2ac0780 2505531159 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2505531186 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2505531202 C Bi:2:002:1 0 13 = 55534253 bb4b0000 00000000 00
-ffff8800d2e0c480 2505535315 C Bi:1:004:1 0 16384 = 0c8c763a 56e41dc4 5de4ba02 ffd8ffdb 00430003 02020202 02030202 02030303
-ffff8800d2e0c480 2505535335 S Bi:1:004:1 -115 16384 <
-ffff8800d2e0c240 2505535344 C Bi:1:004:1 0 596 = 22983fba e64cedc7 723049ce 3e9e6a7c 2ba9c1e2 18bc3f13 0b996470 049660ca
-ffff8800d2e0c240 2505535347 S Bi:1:004:1 -115 16384 <
-ffff8800d5071300 2505535352 C Bi:1:004:1 0 14 = 0c8e763a 56e416da 5de4bb02 ffd9
-ffff8800d5071300 2505535359 S Bi:1:004:1 -115 16384 <
-ffff88011a6b9d80 2505535541 S Bo:2:002:2 -115 31 = 55534243 bc4b0000 00a00000 00000a2a 002244d8 c8000050 00000000 000000
-ffff88011a6b9d80 2505535564 C Bo:2:002:2 0 31 >
-ffff8800d2d2c480 2505535616 S Bo:2:002:2 -115 40960 = c03b3998 00000001 00065cde 02300021 00000000 00000000 00000000 00000000
-ffff8800d2d2c480 2505535783 C Bo:2:002:2 0 40960 >
-ffff88011a6b9d80 2505536099 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2505536121 C Bi:2:002:1 0 13 = 55534253 bc4b0000 00000000 00
-ffff88011a6b9d80 2505536438 S Bo:2:002:2 -115 31 = 55534243 bd4b0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2505536458 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2505536584 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2505536603 C Bi:2:002:1 0 13 = 55534253 bd4b0000 00000000 00
-ffff88011a6b9d80 2505536749 S Bo:2:002:2 -115 31 = 55534243 be4b0000 00100000 00000a2a 002244d9 18000008 00000000 000000
-ffff88011a6b9d80 2505536767 C Bo:2:002:2 0 31 >
-ffff8800d2d2c480 2505536872 S Bo:2:002:2 -115 4096 = c03b3998 00000002 00065cde 00000000 00000000 00000000 00000000 00000000
-ffff8800d2d2c480 2505536903 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2505536987 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2505537005 C Bi:2:002:1 0 13 = 55534253 be4b0000 00000000 00
-ffff88011a6b9d80 2505537135 S Bo:2:002:2 -115 31 = 55534243 bf4b0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2505537153 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2505537250 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2505537266 C Bi:2:002:1 0 13 = 55534253 bf4b0000 00000000 00
-ffff8800d5071300 2505538314 C Bi:1:004:1 -2 0
-ffff8800d5071b40 2505538478 C Bi:1:004:1 -2 0
-ffff8800d2e0c780 2505538580 C Bi:1:004:1 -2 0
-ffff8800d2e0c480 2505538728 C Bi:1:004:1 -2 0
-ffff8800d2e0c240 2505538883 C Bi:1:004:1 -2 0
-ffff8800d2a7c240 2505539556 S Co:1:004:0 s 01 0b 0000 0001 0000 0
-ffff8800d2a7c240 2505555619 C Co:1:004:0 0 0
-ffff880031a95900 2505556055 C Ii:1:004:3 -2:32 0
-ffff88011a6b9d80 2511047894 S Bo:2:002:2 -115 31 = 55534243 c04b0000 00d00000 00000a2a 002244d9 20000068 00000000 000000
-ffff88011a6b9d80 2511047971 C Bo:2:002:2 0 31 >
-ffff8800d2a7c6c0 2511048049 S Bo:2:002:2 -115 53248 = c03b3998 00000001 00065cdf 03300273 00000000 00000000 00000000 00000000
-ffff8800d2a7c6c0 2511048283 C Bo:2:002:2 0 53248 >
-ffff88011a6b9d80 2511048360 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2511048390 C Bi:2:002:1 0 13 = 55534253 c04b0000 00000000 00
-ffff88011a6b9d80 2511048705 S Bo:2:002:2 -115 31 = 55534243 c14b0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2511048740 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2511048773 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2511048818 C Bi:2:002:1 0 13 = 55534253 c14b0000 00000000 00
-ffff88011a6b9d80 2511048947 S Bo:2:002:2 -115 31 = 55534243 c24b0000 00100000 00000a2a 002244d9 88000008 00000000 000000
-ffff88011a6b9d80 2511048979 C Bo:2:002:2 0 31 >
-ffff8800d2ac0f00 2511049035 S Bo:2:002:2 -115 4096 = c03b3998 00000002 00065cdf 00000000 00000000 00000000 00000000 00000000
-ffff8800d2ac0f00 2511049072 C Bo:2:002:2 0 4096 >
-ffff88011a6b9d80 2511049133 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2511049164 C Bi:2:002:1 0 13 = 55534253 c24b0000 00000000 00
-ffff88011a6b9d80 2511049279 S Bo:2:002:2 -115 31 = 55534243 c34b0000 00000000 00000a35 00000000 00000000 00000000 000000
-ffff88011a6b9d80 2511049313 C Bo:2:002:2 0 31 >
-ffff88011a6b9d80 2511049350 S Bi:2:002:1 -115 13 <
-ffff88011a6b9d80 2511049375 C Bi:2:002:1 0 13 = 55534253 c34b0000 00000000 00
-
---x+6KMIRAuhnl3hBn--
