@@ -1,55 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:57191 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218AbaBKUcu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53701 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751221AbaBQXcG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 15:32:50 -0500
-Received: by mail-wi0-f182.google.com with SMTP id f8so5296961wiw.3
-        for <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 12:32:49 -0800 (PST)
-Message-ID: <1392150757.3378.14.camel@canaries32-MCP7A>
-Subject: Re: [PATCH 2/2] af9035: Add remaining it913x dual ids to af9035.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Date: Tue, 11 Feb 2014 20:32:37 +0000
-In-Reply-To: <52FA6113.300@iki.fi>
-References: <1391951046.13992.15.camel@canaries32-MCP7A>
-	 <52FA6113.300@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 17 Feb 2014 18:32:06 -0500
+Date: Tue, 18 Feb 2014 01:32:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, k.debski@samsung.com
+Subject: Re: [PATCH v5 7/7] v4l: Document timestamp buffer flag behaviour
+Message-ID: <20140217233203.GX15635@valkosipuli.retiisi.org.uk>
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
+ <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi>
+ <52FFD60B.4080308@xs4all.nl>
+ <1640658.PZi431b47s@avalon>
+ <5301CBAA.80103@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5301CBAA.80103@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2014-02-11 at 19:42 +0200, Antti Palosaari wrote:
-> Moikka Malcolm!
-> Thanks for the patch serie.
+On Mon, Feb 17, 2014 at 09:43:22AM +0100, Hans Verkuil wrote:
+> >>> +    the masks <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
+> >>> +    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
+> >>> +    linkend="buffer-flags">. These flags are guaranteed to be always
+> >>> +    valid and will not be changed by the driver autonomously.
+> > 
+> > This sentence sounds a bit confusing to me. What about
+> > 
+> > "These flags are always valid and are constant across all buffers during the 
+> > whole video stream."
 > 
-> You removed all IDs from it913x driver. There is possibility to just 
-> remove / comment out:
-> 	MODULE_DEVICE_TABLE(usb, it913x_id_table);
-> which prevents loading that driver automatically, but leaves possibility 
-> to load it manually if user wants to fallback. I am fine either way you 
-> decide to do it, just a propose.
-Hi Antti
+> I like this.
 
-I am going post a patches to remove it.
+I'll put that to the next version.
 
-The only reason why an user would want to fall back is
-the use dvb-usb-it9137-01.fw firmware with USB_VID_KWORLD_2.
-
-I left the USB_VID_KWORLD_2 ids in the driver.
-
-I haven't found any issues with dvb-usb-it9135-01.fw
-
-USB_VID_KWORLD_2 users could have trouble updating older kernels via
-media_build.
-
-Perhaps there should be a warning message in af9035 that users need to
-change firmware.
-
-Regards
-
-
-Malcolm
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
