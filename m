@@ -1,660 +1,753 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3520 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084AbaBJIsG (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1639 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752645AbaBQKIu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:48:06 -0500
+	Mon, 17 Feb 2014 05:08:50 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
 	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 12/34] v4l2-ctrls: replace cur by a union v4l2_ctrl_ptr.
-Date: Mon, 10 Feb 2014 09:46:37 +0100
-Message-Id: <1392022019-5519-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 35/35] go7007: add motion detection support.
+Date: Mon, 17 Feb 2014 10:57:50 +0100
+Message-Id: <1392631070-41868-36-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Instead of having to maintain the 'cur' union this patch replaces it by
-a v4l2_ctrl_ptr union to be consistent with the future configuration stores,
-which also use that union. The number of drivers that use 'cur' is fairly small,
-so it is easy enough to convert them all.
+This patch adds motion detection support to the go7007 driver using the new
+motion detection controls, events.
 
-Unfortunately, the union for the new value cannot be dropped as easily
-since it is used pretty much everywhere.
+The global motion detection works fine, but the regional motion detection
+support probably needs more work. There seems to be some interaction between
+regions that makes setting correct thresholds difficult. The exact meaning of
+the thresholds isn't entirely clear either.
 
-As a consequence of these changes the v4l2_ctrl struct changes as well.
-
-It was this:
-
-	union { };		 // anonymous union for the 'new' value
-	union { } cur;		 // union for the 'cur' value
-	union v4l2_ctrl_ptr new; // v4l2_ctrl_ptr to the new value (anonymous union)
-	union v4l2_ctrl_ptr stores[]; // v4l2_ctrl_ptr to the cur union
-
-where the stores array contains just one v4l2_ctrl_ptr union when it is
-allocated.
-
-It changes to this:
-
-	union { };		 // anonymous union for the 'new' value
-	union v4l2_ctrl_ptr *stores; // set to &cur
-	union v4l2_ctrl_ptr new; // v4l2_ctrl_ptr to the new value (anonymous union)
-	union v4l2_ctrl_ptr cur; // v4l2_ctrl_ptr for the cur value
-
-The end result is the same: stores[0] is a pointer to the current value,
-stores[-1] is a pointer to the new value, and the 'cur' field is still
-there as well, except that the cur field is now a pointer union to the
-actual value, so cur.val is now *cur.p_s32.
+I do not have any documentation, the only information I have is the custom code
+in the driver and a modet.c application.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/video4linux/v4l2-controls.txt   |  4 ++--
- drivers/media/common/cx2341x.c                |  4 ++--
- drivers/media/i2c/adp1653.c                   | 10 +++++-----
- drivers/media/i2c/as3645a.c                   | 22 ++++++++++-----------
- drivers/media/i2c/lm3560.c                    |  2 +-
- drivers/media/i2c/m5mols/m5mols_controls.c    |  6 +++---
- drivers/media/i2c/msp3400-driver.c            |  4 ++--
- drivers/media/i2c/mt9p031.c                   |  4 ++--
- drivers/media/i2c/mt9t001.c                   |  4 ++--
- drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c     |  6 +++---
- drivers/media/i2c/smiapp/smiapp-core.c        | 12 ++++++------
- drivers/media/pci/cx18/cx18-av-core.c         |  2 +-
- drivers/media/pci/cx18/cx18-driver.c          | 10 +++++-----
- drivers/media/platform/exynos4-is/fimc-core.c |  6 +++---
- drivers/media/platform/vivi.c                 | 28 +++++++++++++--------------
- drivers/media/radio/radio-isa.c               |  2 +-
- drivers/media/radio/radio-sf16fmr2.c          |  4 ++--
- drivers/media/usb/gspca/conex.c               |  8 ++++----
- drivers/media/usb/gspca/sn9c20x.c             |  4 ++--
- drivers/media/usb/gspca/topro.c               |  4 ++--
- drivers/media/v4l2-core/v4l2-ctrls.c          | 16 +++++++--------
- include/media/v4l2-ctrls.h                    |  9 ++-------
- 22 files changed, 83 insertions(+), 88 deletions(-)
+ drivers/staging/media/go7007/go7007-driver.c  | 127 +++++++---
+ drivers/staging/media/go7007/go7007-fw.c      |  28 ++-
+ drivers/staging/media/go7007/go7007-priv.h    |  16 ++
+ drivers/staging/media/go7007/go7007-v4l2.c    | 318 ++++++++++++++++++--------
+ drivers/staging/media/go7007/go7007.h         |  40 ----
+ drivers/staging/media/go7007/saa7134-go7007.c |   1 -
+ 6 files changed, 346 insertions(+), 184 deletions(-)
+ delete mode 100644 drivers/staging/media/go7007/go7007.h
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index 06cf3ac..1c353c2 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -362,8 +362,8 @@ will result in a deadlock since these helpers lock the handler as well.
- You can also take the handler lock yourself:
+diff --git a/drivers/staging/media/go7007/go7007-driver.c b/drivers/staging/media/go7007/go7007-driver.c
+index 6f1beca..c200601 100644
+--- a/drivers/staging/media/go7007/go7007-driver.c
++++ b/drivers/staging/media/go7007/go7007-driver.c
+@@ -32,6 +32,7 @@
+ #include <linux/videodev2.h>
+ #include <media/tuner.h>
+ #include <media/v4l2-common.h>
++#include <media/v4l2-event.h>
  
- 	mutex_lock(&state->ctrl_handler.lock);
--	printk(KERN_INFO "String value is '%s'\n", ctrl1->cur.string);
--	printk(KERN_INFO "Integer value is '%s'\n", ctrl2->cur.val);
-+	pr_info("String value is '%s'\n", ctrl1->cur.p_char);
-+	pr_info("Integer value is '%d'\n", *ctrl2->cur.p_s32);
- 	mutex_unlock(&state->ctrl_handler.lock);
+ #include "go7007-priv.h"
  
- 
-diff --git a/drivers/media/common/cx2341x.c b/drivers/media/common/cx2341x.c
-index 103ef6b..909d334 100644
---- a/drivers/media/common/cx2341x.c
-+++ b/drivers/media/common/cx2341x.c
-@@ -1261,10 +1261,10 @@ static int cx2341x_hdl_api(struct cx2341x_handler *hdl,
- 	return hdl->func(hdl->priv, cmd, args, 0, data);
- }
- 
--/* ctrl->handler->lock is held, so it is safe to access cur.val */
-+/* ctrl->handler->lock is held, so it is safe to access *cur.p_s32 */
- static inline int cx2341x_neq(struct v4l2_ctrl *ctrl)
+@@ -332,20 +333,33 @@ EXPORT_SYMBOL(go7007_register_encoder);
+ int go7007_start_encoder(struct go7007 *go)
  {
--	return ctrl && ctrl->val != ctrl->cur.val;
-+	return ctrl && ctrl->val != *ctrl->cur.p_s32;
- }
+ 	u8 *fw;
+-	int fw_len, rv = 0, i;
++	int fw_len, rv = 0, i, x, y;
+ 	u16 intr_val, intr_data;
  
- static int cx2341x_try_ctrl(struct v4l2_ctrl *ctrl)
-diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-index 873fe19..7d478dc 100644
---- a/drivers/media/i2c/adp1653.c
-+++ b/drivers/media/i2c/adp1653.c
-@@ -158,16 +158,16 @@ static int adp1653_get_ctrl(struct v4l2_ctrl *ctrl)
- 	if (IS_ERR_VALUE(rval))
- 		return rval;
- 
--	ctrl->cur.val = 0;
-+	*ctrl->cur.p_s32 = 0;
- 
- 	if (flash->fault & ADP1653_REG_FAULT_FLT_SCP)
--		ctrl->cur.val |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
-+		*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
- 	if (flash->fault & ADP1653_REG_FAULT_FLT_OT)
--		ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
-+		*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
- 	if (flash->fault & ADP1653_REG_FAULT_FLT_TMR)
--		ctrl->cur.val |= V4L2_FLASH_FAULT_TIMEOUT;
-+		*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_TIMEOUT;
- 	if (flash->fault & ADP1653_REG_FAULT_FLT_OV)
--		ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
-+		*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
- 
- 	flash->fault = 0;
- 
-diff --git a/drivers/media/i2c/as3645a.c b/drivers/media/i2c/as3645a.c
-index 301084b..4c6041c 100644
---- a/drivers/media/i2c/as3645a.c
-+++ b/drivers/media/i2c/as3645a.c
-@@ -334,24 +334,24 @@ static int as3645a_get_ctrl(struct v4l2_ctrl *ctrl)
- 		if (value < 0)
- 			return value;
- 
--		ctrl->cur.val = 0;
-+		*ctrl->cur.p_s32 = 0;
- 		if (value & AS_FAULT_INFO_SHORT_CIRCUIT)
--			ctrl->cur.val |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
-+			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
- 		if (value & AS_FAULT_INFO_OVER_TEMPERATURE)
--			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
-+			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
- 		if (value & AS_FAULT_INFO_TIMEOUT)
--			ctrl->cur.val |= V4L2_FLASH_FAULT_TIMEOUT;
-+			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_TIMEOUT;
- 		if (value & AS_FAULT_INFO_OVER_VOLTAGE)
--			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
-+			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
- 		if (value & AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT)
--			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_CURRENT;
-+			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_OVER_CURRENT;
- 		if (value & AS_FAULT_INFO_INDICATOR_LED)
--			ctrl->cur.val |= V4L2_FLASH_FAULT_INDICATOR;
-+			*ctrl->cur.p_s32 |= V4L2_FLASH_FAULT_INDICATOR;
- 		break;
- 
- 	case V4L2_CID_FLASH_STROBE_STATUS:
- 		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH) {
--			ctrl->cur.val = 0;
-+			*ctrl->cur.p_s32 = 0;
- 			break;
- 		}
- 
-@@ -359,11 +359,11 @@ static int as3645a_get_ctrl(struct v4l2_ctrl *ctrl)
- 		if (value < 0)
- 			return value;
- 
--		ctrl->cur.val = value;
-+		*ctrl->cur.p_s32 = value;
- 		break;
- 	}
- 
--	dev_dbg(&client->dev, "G_CTRL %08x:%d\n", ctrl->id, ctrl->cur.val);
-+	dev_dbg(&client->dev, "G_CTRL %08x:%d\n", ctrl->id, *ctrl->cur.p_s32);
- 
- 	return 0;
- }
-@@ -458,7 +458,7 @@ static int as3645a_set_ctrl(struct v4l2_ctrl *ctrl)
- 		if (ret < 0)
- 			return ret;
- 
--		if ((ctrl->val == 0) == (ctrl->cur.val == 0))
-+		if ((ctrl->val == 0) == (*ctrl->cur.p_s32 == 0))
- 			break;
- 
- 		return as3645a_set_output(flash, false);
-diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
-index d98ca3a..edfe746 100644
---- a/drivers/media/i2c/lm3560.c
-+++ b/drivers/media/i2c/lm3560.c
-@@ -188,7 +188,7 @@ static int lm3560_get_ctrl(struct v4l2_ctrl *ctrl, enum lm3560_led_id led_no)
- 			fault |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
- 		if (reg_val & FAULT_TIMEOUT)
- 			fault |= V4L2_FLASH_FAULT_TIMEOUT;
--		ctrl->cur.val = fault;
-+		*ctrl->cur.p_s32 = fault;
- 	}
- 
- out:
-diff --git a/drivers/media/i2c/m5mols/m5mols_controls.c b/drivers/media/i2c/m5mols/m5mols_controls.c
-index a60931e..7851d1f 100644
---- a/drivers/media/i2c/m5mols/m5mols_controls.c
-+++ b/drivers/media/i2c/m5mols/m5mols_controls.c
-@@ -191,7 +191,7 @@ static int m5mols_3a_lock(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
- 	bool af_lock = ctrl->val & V4L2_LOCK_FOCUS;
- 	int ret = 0;
- 
--	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_EXPOSURE) {
-+	if ((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_EXPOSURE) {
- 		bool ae_lock = ctrl->val & V4L2_LOCK_EXPOSURE;
- 
- 		ret = m5mols_write(&info->sd, AE_LOCK, ae_lock ?
-@@ -200,7 +200,7 @@ static int m5mols_3a_lock(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
- 			return ret;
- 	}
- 
--	if (((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_WHITE_BALANCE)
-+	if (((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_WHITE_BALANCE)
- 	    && info->auto_wb->val) {
- 		bool awb_lock = ctrl->val & V4L2_LOCK_WHITE_BALANCE;
- 
-@@ -213,7 +213,7 @@ static int m5mols_3a_lock(struct m5mols_info *info, struct v4l2_ctrl *ctrl)
- 	if (!info->ver.af || !af_lock)
- 		return ret;
- 
--	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_FOCUS)
-+	if ((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_FOCUS)
- 		ret = m5mols_write(&info->sd, AF_EXECUTE, REG_AF_STOP);
- 
- 	return ret;
-diff --git a/drivers/media/i2c/msp3400-driver.c b/drivers/media/i2c/msp3400-driver.c
-index 8190fec..151016d 100644
---- a/drivers/media/i2c/msp3400-driver.c
-+++ b/drivers/media/i2c/msp3400-driver.c
-@@ -411,8 +411,8 @@ void msp_update_volume(struct msp_state *state)
- {
- 	/* Force an update of the volume/mute cluster */
- 	v4l2_ctrl_lock(state->volume);
--	state->volume->val = state->volume->cur.val;
--	state->muted->val = state->muted->cur.val;
-+	state->volume->val = *state->volume->cur.p_s32;
-+	state->muted->val = *state->muted->cur.p_s32;
- 	msp_s_ctrl(state->volume);
- 	v4l2_ctrl_unlock(state->volume);
- }
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index e5ddf47..28c17e0 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -670,12 +670,12 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_TEST_PATTERN:
- 		if (!ctrl->val) {
- 			/* Restore the black level compensation settings. */
--			if (mt9p031->blc_auto->cur.val != 0) {
-+			if (*mt9p031->blc_auto->cur.p_s32 != 0) {
- 				ret = mt9p031_s_ctrl(mt9p031->blc_auto);
- 				if (ret < 0)
- 					return ret;
+ 	go->modet_enable = 0;
+-	if (!go->dvd_mode)
+-		for (i = 0; i < 4; ++i) {
+-			if (go->modet[i].enable) {
+-				go->modet_enable = 1;
+-				continue;
++	for (i = 0; i < 4; i++)
++		go->modet[i].enable = 0;
++
++	switch (v4l2_ctrl_g_ctrl(go->modet_mode)) {
++	case V4L2_DETECT_MD_MODE_GLOBAL:
++		memset(go->modet_map, 0, sizeof(go->modet_map));
++		go->modet[0].enable = 1;
++		go->modet_enable = 1;
++		break;
++	case V4L2_DETECT_MD_MODE_REGION_GRID:
++		for (y = 0; y < go->height / 16; y++) {
++			for (x = 0; x < go->width / 16; x++) {
++				int idx = y * go->width / 16 + x;
++
++				go->modet[go->modet_map[idx]].enable = 1;
  			}
--			if (mt9p031->blc_offset->cur.val != 0) {
-+			if (*mt9p031->blc_offset->cur.p_s32 != 0) {
- 				ret = mt9p031_s_ctrl(mt9p031->blc_offset);
- 				if (ret < 0)
- 					return ret;
-diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
-index d41c70e..6aca05b 100644
---- a/drivers/media/i2c/mt9t001.c
-+++ b/drivers/media/i2c/mt9t001.c
-@@ -447,7 +447,7 @@ static int mt9t001_s_ctrl(struct v4l2_ctrl *ctrl)
- 		for (i = 0, count = 0; i < 4; ++i) {
- 			struct v4l2_ctrl *gain = mt9t001->gains[i];
- 
--			if (gain->val != gain->cur.val)
-+			if (gain->val != *gain->cur.p_s32)
- 				count++;
+-			go->modet[i].pixel_threshold = 32767;
+-			go->modet[i].motion_threshold = 32767;
+-			go->modet[i].mb_threshold = 32767;
  		}
++		go->modet_enable = 1;
++		break;
++	}
++
++	if (go->dvd_mode)
++		go->modet_enable = 0;
  
-@@ -461,7 +461,7 @@ static int mt9t001_s_ctrl(struct v4l2_ctrl *ctrl)
- 		for (i = 0; i < 4; ++i) {
- 			struct v4l2_ctrl *gain = mt9t001->gains[i];
- 
--			if (gain->val == gain->cur.val)
-+			if (gain->val == *gain->cur.p_s32)
- 				continue;
- 
- 			value = mt9t001_gain_value(&gain->val);
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c b/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
-index 8001cde..cb6da84 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
-@@ -195,14 +195,14 @@ static int s5c73m3_3a_lock(struct s5c73m3 *state, struct v4l2_ctrl *ctrl)
- 	bool af_lock = ctrl->val & V4L2_LOCK_FOCUS;
- 	int ret = 0;
- 
--	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_EXPOSURE) {
-+	if ((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_EXPOSURE) {
- 		ret = s5c73m3_isp_command(state, COMM_AE_CON,
- 				ae_lock ? COMM_AE_STOP : COMM_AE_START);
- 		if (ret)
- 			return ret;
+ 	if (go7007_construct_fw_image(go, &fw, &fw_len) < 0)
+ 		return -1;
+@@ -383,44 +397,89 @@ static inline void store_byte(struct go7007_buffer *vb, u8 byte)
  	}
- 
--	if (((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_WHITE_BALANCE)
-+	if (((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_WHITE_BALANCE)
- 	    && state->ctrls.auto_wb->val) {
- 		ret = s5c73m3_isp_command(state, COMM_AWB_CON,
- 			awb_lock ? COMM_AWB_STOP : COMM_AWB_START);
-@@ -210,7 +210,7 @@ static int s5c73m3_3a_lock(struct s5c73m3 *state, struct v4l2_ctrl *ctrl)
- 			return ret;
- 	}
- 
--	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_FOCUS)
-+	if ((ctrl->val ^ *ctrl->cur.p_s32) & V4L2_LOCK_FOCUS)
- 		ret = s5c73m3_af_run(state, ~af_lock);
- 
- 	return ret;
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 8741cae..d87c5e8 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -297,8 +297,8 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
- 	if (rval < 0)
- 		return rval;
- 
--	sensor->pixel_rate_parray->cur.val64 = pll->vt_pix_clk_freq_hz;
--	sensor->pixel_rate_csi->cur.val64 = pll->pixel_rate_csi;
-+	*sensor->pixel_rate_parray->cur.p_s64 = pll->vt_pix_clk_freq_hz;
-+	*sensor->pixel_rate_csi->cur.p_s64 = pll->pixel_rate_csi;
- 
- 	return 0;
- }
-@@ -324,8 +324,8 @@ static void __smiapp_update_exposure_limits(struct smiapp_sensor *sensor)
- 		ctrl->default_value = max;
- 	if (ctrl->val > max)
- 		ctrl->val = max;
--	if (ctrl->cur.val > max)
--		ctrl->cur.val = max;
-+	if (*ctrl->cur.p_s32 > max)
-+		*ctrl->cur.p_s32 = max;
  }
  
++static void go7007_set_motion_regions(struct go7007 *go, struct go7007_buffer *vb,
++		u32 motion_regions)
++{
++	if (motion_regions != go->modet_event_status) {
++		struct v4l2_event ev = {
++			.type = V4L2_EVENT_MOTION_DET,
++			.u.motion_det = {
++				.flags = V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ,
++				.frame_sequence = vb->vb.v4l2_buf.sequence,
++				.region_mask = motion_regions,
++			},
++		};
++
++		v4l2_event_queue(&go->vdev, &ev);
++		go->modet_event_status = motion_regions;
++	}
++}
++
  /*
-@@ -796,7 +796,7 @@ static void smiapp_update_blanking(struct smiapp_sensor *sensor)
- 			      vblank->minimum, vblank->maximum);
- 	vblank->default_value = vblank->minimum;
- 	vblank->val = vblank->val;
--	vblank->cur.val = vblank->val;
-+	*vblank->cur.p_s32 = vblank->val;
- 
- 	hblank->minimum =
- 		max_t(int,
-@@ -811,7 +811,7 @@ static void smiapp_update_blanking(struct smiapp_sensor *sensor)
- 			      hblank->minimum, hblank->maximum);
- 	hblank->default_value = hblank->minimum;
- 	hblank->val = hblank->val;
--	hblank->cur.val = hblank->val;
-+	*hblank->cur.p_s32 = hblank->val;
- 
- 	__smiapp_update_exposure_limits(sensor);
- }
-diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
-index c4890a4..d230a9b 100644
---- a/drivers/media/pci/cx18/cx18-av-core.c
-+++ b/drivers/media/pci/cx18/cx18-av-core.c
-@@ -262,7 +262,7 @@ static void cx18_av_initialize(struct v4l2_subdev *sd)
- 		cx18_av_write(cx, 0x8d4, 20);
- 	}
- 	default_volume = (((228 - default_volume) >> 1) + 23) << 9;
--	state->volume->cur.val = state->volume->default_value = default_volume;
-+	*state->volume->cur.p_s32 = state->volume->default_value = default_volume;
- 	v4l2_ctrl_handler_setup(&state->hdl);
- }
- 
-diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
-index 716bdc5..e4d0740 100644
---- a/drivers/media/pci/cx18/cx18-driver.c
-+++ b/drivers/media/pci/cx18/cx18-driver.c
-@@ -756,11 +756,11 @@ static int cx18_init_struct1(struct cx18 *cx)
- 		return ret;
- 	cx->v4l2_dev.ctrl_handler = &cx->cxhdl.hdl;
- 
--	cx->temporal_strength = cx->cxhdl.video_temporal_filter->cur.val;
--	cx->spatial_strength = cx->cxhdl.video_spatial_filter->cur.val;
--	cx->filter_mode = cx->cxhdl.video_spatial_filter_mode->cur.val |
--		(cx->cxhdl.video_temporal_filter_mode->cur.val << 1) |
--		(cx->cxhdl.video_median_filter_type->cur.val << 2);
-+	cx->temporal_strength = *cx->cxhdl.video_temporal_filter->cur.p_s32;
-+	cx->spatial_strength = *cx->cxhdl.video_spatial_filter->cur.p_s32;
-+	cx->filter_mode = *cx->cxhdl.video_spatial_filter_mode->cur.p_s32 |
-+		(*cx->cxhdl.video_temporal_filter_mode->cur.p_s32 << 1) |
-+		(*cx->cxhdl.video_median_filter_type->cur.p_s32 << 2);
- 
- 	init_waitqueue_head(&cx->cap_w);
- 	init_waitqueue_head(&cx->mb_apu_waitq);
-diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
-index a7dfd07..d399699 100644
---- a/drivers/media/platform/exynos4-is/fimc-core.c
-+++ b/drivers/media/platform/exynos4-is/fimc-core.c
-@@ -664,7 +664,7 @@ void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active)
- 		v4l2_ctrl_activate(ctrls->alpha, active && has_alpha);
- 
- 	if (active) {
--		fimc_set_color_effect(ctx, ctrls->colorfx->cur.val);
-+		fimc_set_color_effect(ctx, *ctrls->colorfx->cur.p_s32);
- 		ctx->rotation = ctrls->rotate->val;
- 		ctx->hflip    = ctrls->hflip->val;
- 		ctx->vflip    = ctrls->vflip->val;
-@@ -689,8 +689,8 @@ void fimc_alpha_ctrl_update(struct fimc_ctx *ctx)
- 	v4l2_ctrl_lock(ctrl);
- 	ctrl->maximum = fimc_get_alpha_mask(ctx->d_frame.fmt);
- 
--	if (ctrl->cur.val > ctrl->maximum)
--		ctrl->cur.val = ctrl->maximum;
-+	if (*ctrl->cur.p_s32 > ctrl->maximum)
-+		*ctrl->cur.p_s32 = ctrl->maximum;
- 
- 	v4l2_ctrl_unlock(ctrl);
- }
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index 3c92ce3..7b9e887 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -642,28 +642,28 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- 	gain = v4l2_ctrl_g_ctrl(dev->gain);
- 	mutex_lock(dev->ctrl_handler.lock);
- 	snprintf(str, sizeof(str), " brightness %3d, contrast %3d, saturation %3d, hue %d ",
--			dev->brightness->cur.val,
--			dev->contrast->cur.val,
--			dev->saturation->cur.val,
--			dev->hue->cur.val);
-+			*dev->brightness->cur.p_s32,
-+			*dev->contrast->cur.p_s32,
-+			*dev->saturation->cur.p_s32,
-+			*dev->hue->cur.p_s32);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	snprintf(str, sizeof(str), " autogain %d, gain %3d, volume %3d, alpha 0x%02x ",
--			dev->autogain->cur.val, gain, dev->volume->cur.val,
--			dev->alpha->cur.val);
-+			*dev->autogain->cur.p_s32, gain, *dev->volume->cur.p_s32,
-+			*dev->alpha->cur.p_s32);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	snprintf(str, sizeof(str), " int32 %d, int64 %lld, bitmask %08x ",
--			dev->int32->cur.val,
--			dev->int64->cur.val64,
--			dev->bitmask->cur.val);
-+			*dev->int32->cur.p_s32,
-+			*dev->int64->cur.p_s64,
-+			*dev->bitmask->cur.p_s32);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	snprintf(str, sizeof(str), " boolean %d, menu %s, string \"%s\" ",
--			dev->boolean->cur.val,
--			dev->menu->qmenu[dev->menu->cur.val],
--			dev->string->cur.string);
-+			*dev->boolean->cur.p_s32,
-+			dev->menu->qmenu[*dev->menu->cur.p_s32],
-+			dev->string->cur.p_char);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	snprintf(str, sizeof(str), " integer_menu %lld, value %d ",
--			dev->int_menu->qmenu_int[dev->int_menu->cur.val],
--			dev->int_menu->cur.val);
-+			dev->int_menu->qmenu_int[*dev->int_menu->cur.p_s32],
-+			*dev->int_menu->cur.p_s32);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	mutex_unlock(dev->ctrl_handler.lock);
- 	if (dev->button_pressed) {
-diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
-index 6ff3508..46d188d 100644
---- a/drivers/media/radio/radio-isa.c
-+++ b/drivers/media/radio/radio-isa.c
-@@ -294,7 +294,7 @@ static int radio_isa_common_remove(struct radio_isa_card *isa,
+- * Deliver the last video buffer and get a new one to start writing to.
++ * Determine regions with motion and send a motion detection event
++ * in case of changes.
+  */
+-static struct go7007_buffer *frame_boundary(struct go7007 *go, struct go7007_buffer *vb)
++static void go7007_motion_regions(struct go7007 *go, struct go7007_buffer *vb)
  {
- 	const struct radio_isa_ops *ops = isa->drv->ops;
+-	struct go7007_buffer *vb_tmp = NULL;
+ 	u32 *bytesused = &vb->vb.v4l2_planes[0].bytesused;
++	unsigned motion[4] = { 0, 0, 0, 0 };
++	u32 motion_regions = 0;
++	unsigned stride = (go->width + 7) >> 3;
++	unsigned x, y;
+ 	int i;
  
--	ops->s_mute_volume(isa, true, isa->volume ? isa->volume->cur.val : 0);
-+	ops->s_mute_volume(isa, true, isa->volume ? *isa->volume->cur.p_s32 : 0);
- 	video_unregister_device(&isa->vdev);
- 	v4l2_ctrl_handler_free(&isa->hdl);
- 	v4l2_device_unregister(&isa->v4l2_dev);
-diff --git a/drivers/media/radio/radio-sf16fmr2.c b/drivers/media/radio/radio-sf16fmr2.c
-index 93d864e..e393130 100644
---- a/drivers/media/radio/radio-sf16fmr2.c
-+++ b/drivers/media/radio/radio-sf16fmr2.c
-@@ -154,11 +154,11 @@ static int fmr2_s_ctrl(struct v4l2_ctrl *ctrl)
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_VOLUME:
- 		volume = ctrl->val;
--		balance = fmr2->balance->cur.val;
-+		balance = *fmr2->balance->cur.p_s32;
- 		break;
- 	case V4L2_CID_AUDIO_BALANCE:
- 		balance = ctrl->val;
--		volume = fmr2->volume->cur.val;
-+		volume = *fmr2->volume->cur.p_s32;
- 		break;
- 	default:
- 		return -EINVAL;
-diff --git a/drivers/media/usb/gspca/conex.c b/drivers/media/usb/gspca/conex.c
-index 2e15c80..e8cfaf3 100644
---- a/drivers/media/usb/gspca/conex.c
-+++ b/drivers/media/usb/gspca/conex.c
-@@ -887,14 +887,14 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		setbrightness(gspca_dev, ctrl->val, sd->sat->cur.val);
-+		setbrightness(gspca_dev, ctrl->val, *sd->sat->cur.p_s32);
- 		break;
- 	case V4L2_CID_CONTRAST:
--		setcontrast(gspca_dev, ctrl->val, sd->sat->cur.val);
-+		setcontrast(gspca_dev, ctrl->val, *sd->sat->cur.p_s32);
- 		break;
- 	case V4L2_CID_SATURATION:
--		setbrightness(gspca_dev, sd->brightness->cur.val, ctrl->val);
--		setcontrast(gspca_dev, sd->contrast->cur.val, ctrl->val);
-+		setbrightness(gspca_dev, *sd->brightness->cur.p_s32, ctrl->val);
-+		setcontrast(gspca_dev, *sd->contrast->cur.p_s32, ctrl->val);
- 		break;
- 	}
- 	return gspca_dev->usb_err;
-diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
-index 2a38621..22d93c3 100644
---- a/drivers/media/usb/gspca/sn9c20x.c
-+++ b/drivers/media/usb/gspca/sn9c20x.c
-@@ -2218,7 +2218,7 @@ static void transfer_check(struct gspca_dev *gspca_dev,
- 			/* Note: we are in interrupt context, so we can't
- 			   use v4l2_ctrl_g/s_ctrl here. Access the value
- 			   directly instead. */
--			s32 curqual = sd->jpegqual->cur.val;
-+			s32 curqual = *sd->jpegqual->cur.p_s32;
- 			sd->nchg = 0;
- 			new_qual += curqual;
- 			if (new_qual < sd->jpegqual->minimum)
-@@ -2226,7 +2226,7 @@ static void transfer_check(struct gspca_dev *gspca_dev,
- 			else if (new_qual > sd->jpegqual->maximum)
- 				new_qual = sd->jpegqual->maximum;
- 			if (new_qual != curqual) {
--				sd->jpegqual->cur.val = new_qual;
-+				*sd->jpegqual->cur.p_s32 = new_qual;
- 				queue_work(sd->work_thread, &sd->work);
- 			}
+-	if (vb) {
+-		if (vb->modet_active) {
+-			if (*bytesused + 216 < GO7007_BUF_SIZE) {
+-				for (i = 0; i < 216; ++i)
+-					store_byte(vb, go->active_map[i]);
+-				*bytesused -= 216;
+-			} else
+-				vb->modet_active = 0;
++	for (i = 0; i < 216; ++i)
++		store_byte(vb, go->active_map[i]);
++	for (y = 0; y < go->height / 16; y++) {
++		for (x = 0; x < go->width / 16; x++) {
++			if (!(go->active_map[y * stride + (x >> 3)] & (1 << (x & 7))))
++				continue;
++			motion[go->modet_map[y * (go->width / 16) + x]]++;
  		}
-diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
-index 640c2fe..4abe03b 100644
---- a/drivers/media/usb/gspca/topro.c
-+++ b/drivers/media/usb/gspca/topro.c
-@@ -3976,8 +3976,8 @@ static int sd_setgain(struct gspca_dev *gspca_dev)
- 	s32 val = gspca_dev->gain->val;
- 
- 	if (sd->sensor == SENSOR_CX0342) {
--		s32 old = gspca_dev->gain->cur.val ?
--					gspca_dev->gain->cur.val : 1;
-+		s32 old = *gspca_dev->gain->cur.p_s32 ?
-+					*gspca_dev->gain->cur.p_s32 : 1;
- 
- 		sd->blue->val = sd->blue->val * val / old;
- 		if (sd->blue->val > 4095)
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 7dcccbf..9f8af88 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -47,7 +47,7 @@ struct v4l2_ctrl_helper {
-    mode. */
- static bool is_cur_manual(const struct v4l2_ctrl *master)
- {
--	return master->is_auto && master->cur.val == master->manual_mode_value;
-+	return master->is_auto && *master->cur.p_s32 == master->manual_mode_value;
+-		vb->vb.v4l2_buf.sequence = go->next_seq++;
+-		v4l2_get_timestamp(&vb->vb.v4l2_buf.timestamp);
+-		vb_tmp = vb;
++	}
++	motion_regions = ((motion[0] > 0) << 0) |
++			 ((motion[1] > 0) << 1) |
++			 ((motion[2] > 0) << 2) |
++			 ((motion[3] > 0) << 3);
++	*bytesused -= 216;
++	go7007_set_motion_regions(go, vb, motion_regions);
++}
++
++/*
++ * Deliver the last video buffer and get a new one to start writing to.
++ */
++static struct go7007_buffer *frame_boundary(struct go7007 *go, struct go7007_buffer *vb)
++{
++	u32 *bytesused = &vb->vb.v4l2_planes[0].bytesused;
++	struct go7007_buffer *vb_tmp = NULL;
++
++	if (vb == NULL) {
+ 		spin_lock(&go->spinlock);
+-		list_del(&vb->list);
+-		if (list_empty(&go->vidq_active))
+-			vb = NULL;
+-		else
+-			vb = list_first_entry(&go->vidq_active, struct go7007_buffer, list);
+-		go->active_buf = vb;
++		if (!list_empty(&go->vidq_active))
++			vb = go->active_buf =
++				list_first_entry(&go->vidq_active, struct go7007_buffer, list);
+ 		spin_unlock(&go->spinlock);
+-		vb2_buffer_done(&vb_tmp->vb, VB2_BUF_STATE_DONE);
++		go->next_seq++;
+ 		return vb;
+ 	}
++
++	vb->vb.v4l2_buf.sequence = go->next_seq++;
++	if (vb->modet_active && *bytesused + 216 < GO7007_BUF_SIZE)
++		go7007_motion_regions(go, vb);
++	else
++		go7007_set_motion_regions(go, vb, 0);
++
++	v4l2_get_timestamp(&vb->vb.v4l2_buf.timestamp);
++	vb_tmp = vb;
+ 	spin_lock(&go->spinlock);
+-	if (!list_empty(&go->vidq_active))
+-		vb = go->active_buf =
+-			list_first_entry(&go->vidq_active, struct go7007_buffer, list);
++	list_del(&vb->list);
++	if (list_empty(&go->vidq_active))
++		vb = NULL;
++	else
++		vb = list_first_entry(&go->vidq_active, struct go7007_buffer, list);
++	go->active_buf = vb;
+ 	spin_unlock(&go->spinlock);
+-	go->next_seq++;
++	vb2_buffer_done(&vb_tmp->vb, VB2_BUF_STATE_DONE);
+ 	return vb;
  }
  
- /* Same as above, but this checks the against the new value instead of the
-@@ -1106,7 +1106,7 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
- 	if (ctrl->is_ptr)
- 		ev->u.ctrl.value64 = 0;
- 	else
--		ev->u.ctrl.value64 = ctrl->cur.val64;
-+		ev->u.ctrl.value64 = *ctrl->cur.p_s64;
- 	ev->u.ctrl.minimum = ctrl->minimum;
- 	ev->u.ctrl.maximum = ctrl->maximum;
- 	if (ctrl->type == V4L2_CTRL_TYPE_MENU
-@@ -1786,13 +1786,13 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
+diff --git a/drivers/staging/media/go7007/go7007-fw.c b/drivers/staging/media/go7007/go7007-fw.c
+index 814ce08..f60640b 100644
+--- a/drivers/staging/media/go7007/go7007-fw.c
++++ b/drivers/staging/media/go7007/go7007-fw.c
+@@ -1432,22 +1432,26 @@ static int audio_to_package(struct go7007 *go, __le16 *code, int space)
+ 
+ static int modet_to_package(struct go7007 *go, __le16 *code, int space)
+ {
++	bool has_modet0 = go->modet[0].enable;
++	bool has_modet1 = go->modet[1].enable;
++	bool has_modet2 = go->modet[2].enable;
++	bool has_modet3 = go->modet[3].enable;
+ 	int ret, mb, i, addr, cnt = 0;
+ 	u16 pack[32];
+ 	u16 thresholds[] = {
+ 		0x200e,		0,
+-		0xbf82,		go->modet[0].pixel_threshold,
+-		0xbf83,		go->modet[1].pixel_threshold,
+-		0xbf84,		go->modet[2].pixel_threshold,
+-		0xbf85,		go->modet[3].pixel_threshold,
+-		0xbf86,		go->modet[0].motion_threshold,
+-		0xbf87,		go->modet[1].motion_threshold,
+-		0xbf88,		go->modet[2].motion_threshold,
+-		0xbf89,		go->modet[3].motion_threshold,
+-		0xbf8a,		go->modet[0].mb_threshold,
+-		0xbf8b,		go->modet[1].mb_threshold,
+-		0xbf8c,		go->modet[2].mb_threshold,
+-		0xbf8d,		go->modet[3].mb_threshold,
++		0xbf82,		has_modet0 ? go->modet[0].pixel_threshold : 32767,
++		0xbf83,		has_modet1 ? go->modet[1].pixel_threshold : 32767,
++		0xbf84,		has_modet2 ? go->modet[2].pixel_threshold : 32767,
++		0xbf85,		has_modet3 ? go->modet[3].pixel_threshold : 32767,
++		0xbf86,		has_modet0 ? go->modet[0].motion_threshold : 32767,
++		0xbf87,		has_modet1 ? go->modet[1].motion_threshold : 32767,
++		0xbf88,		has_modet2 ? go->modet[2].motion_threshold : 32767,
++		0xbf89,		has_modet3 ? go->modet[3].motion_threshold : 32767,
++		0xbf8a,		has_modet0 ? go->modet[0].mb_threshold : 32767,
++		0xbf8b,		has_modet1 ? go->modet[1].mb_threshold : 32767,
++		0xbf8c,		has_modet2 ? go->modet[2].mb_threshold : 32767,
++		0xbf8d,		has_modet3 ? go->modet[3].mb_threshold : 32767,
+ 		0xbf8e,		0,
+ 		0xbf8f,		0,
+ 		0,		0,
+diff --git a/drivers/staging/media/go7007/go7007-priv.h b/drivers/staging/media/go7007/go7007-priv.h
+index 6e16af7..a8aefed 100644
+--- a/drivers/staging/media/go7007/go7007-priv.h
++++ b/drivers/staging/media/go7007/go7007-priv.h
+@@ -75,6 +75,20 @@ struct go7007;
+ #define GO7007_AUDIO_I2S_MASTER		(1<<16)
+ #define GO7007_AUDIO_OKI_MODE		(1<<17)
+ 
++#define GO7007_CID_CUSTOM_BASE		(V4L2_CID_DETECT_CLASS_BASE + 0x1000)
++#define V4L2_CID_PIXEL_THRESHOLD0	(GO7007_CID_CUSTOM_BASE+1)
++#define V4L2_CID_MOTION_THRESHOLD0	(GO7007_CID_CUSTOM_BASE+2)
++#define V4L2_CID_MB_THRESHOLD0		(GO7007_CID_CUSTOM_BASE+3)
++#define V4L2_CID_PIXEL_THRESHOLD1	(GO7007_CID_CUSTOM_BASE+4)
++#define V4L2_CID_MOTION_THRESHOLD1	(GO7007_CID_CUSTOM_BASE+5)
++#define V4L2_CID_MB_THRESHOLD1		(GO7007_CID_CUSTOM_BASE+6)
++#define V4L2_CID_PIXEL_THRESHOLD2	(GO7007_CID_CUSTOM_BASE+7)
++#define V4L2_CID_MOTION_THRESHOLD2	(GO7007_CID_CUSTOM_BASE+8)
++#define V4L2_CID_MB_THRESHOLD2		(GO7007_CID_CUSTOM_BASE+9)
++#define V4L2_CID_PIXEL_THRESHOLD3	(GO7007_CID_CUSTOM_BASE+10)
++#define V4L2_CID_MOTION_THRESHOLD3	(GO7007_CID_CUSTOM_BASE+11)
++#define V4L2_CID_MB_THRESHOLD3		(GO7007_CID_CUSTOM_BASE+12)
++
+ struct go7007_board_info {
+ 	unsigned int flags;
+ 	int hpi_buffer_cap;
+@@ -168,6 +182,7 @@ struct go7007 {
+ 	struct v4l2_ctrl *mpeg_video_aspect_ratio;
+ 	struct v4l2_ctrl *mpeg_video_b_frames;
+ 	struct v4l2_ctrl *mpeg_video_rep_seqheader;
++	struct v4l2_ctrl *modet_mode;
+ 	enum { STATUS_INIT, STATUS_ONLINE, STATUS_SHUTDOWN } status;
+ 	spinlock_t spinlock;
+ 	struct mutex hw_lock;
+@@ -216,6 +231,7 @@ struct go7007 {
+ 	} modet[4];
+ 	unsigned char modet_map[1624];
+ 	unsigned char active_map[216];
++	u32 modet_event_status;
+ 
+ 	/* Video streaming */
+ 	struct mutex queue_lock;
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index edc52e2..ad41483 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -36,7 +36,6 @@
+ #include <media/videobuf2-vmalloc.h>
+ #include <media/saa7115.h>
+ 
+-#include "go7007.h"
+ #include "go7007-priv.h"
+ 
+ #define call_all(dev, o, f, args...) \
+@@ -189,7 +188,7 @@ static void set_formatting(struct go7007 *go)
+ static int set_capture_size(struct go7007 *go, struct v4l2_format *fmt, int try)
+ {
+ 	int sensor_height = 0, sensor_width = 0;
+-	int width, height, i;
++	int width, height;
+ 
+ 	if (fmt != NULL && !valid_pixelformat(fmt->fmt.pix.pixelformat))
+ 		return -EINVAL;
+@@ -253,10 +252,6 @@ static int set_capture_size(struct go7007 *go, struct v4l2_format *fmt, int try)
+ 	go->height = height;
+ 	go->encoder_h_offset = go->board_info->sensor_h_offset;
+ 	go->encoder_v_offset = go->board_info->sensor_v_offset;
+-	for (i = 0; i < 4; ++i)
+-		go->modet[i].enable = 0;
+-	for (i = 0; i < 1624; ++i)
+-		go->modet_map[i] = 0;
+ 
+ 	if (go->board_info->sensor_flags & GO7007_SENSOR_SCALING) {
+ 		struct v4l2_mbus_framefmt mbus_fmt;
+@@ -286,64 +281,6 @@ static int set_capture_size(struct go7007 *go, struct v4l2_format *fmt, int try)
+ 	return 0;
+ }
+ 
+-#if 0
+-static int clip_to_modet_map(struct go7007 *go, int region,
+-		struct v4l2_clip *clip_list)
+-{
+-	struct v4l2_clip clip, *clip_ptr;
+-	int x, y, mbnum;
+-
+-	/* Check if coordinates are OK and if any macroblocks are already
+-	 * used by other regions (besides 0) */
+-	clip_ptr = clip_list;
+-	while (clip_ptr) {
+-		if (copy_from_user(&clip, clip_ptr, sizeof(clip)))
+-			return -EFAULT;
+-		if (clip.c.left < 0 || (clip.c.left & 0xF) ||
+-				clip.c.width <= 0 || (clip.c.width & 0xF))
+-			return -EINVAL;
+-		if (clip.c.left + clip.c.width > go->width)
+-			return -EINVAL;
+-		if (clip.c.top < 0 || (clip.c.top & 0xF) ||
+-				clip.c.height <= 0 || (clip.c.height & 0xF))
+-			return -EINVAL;
+-		if (clip.c.top + clip.c.height > go->height)
+-			return -EINVAL;
+-		for (y = 0; y < clip.c.height; y += 16)
+-			for (x = 0; x < clip.c.width; x += 16) {
+-				mbnum = (go->width >> 4) *
+-						((clip.c.top + y) >> 4) +
+-					((clip.c.left + x) >> 4);
+-				if (go->modet_map[mbnum] != 0 &&
+-						go->modet_map[mbnum] != region)
+-					return -EBUSY;
+-			}
+-		clip_ptr = clip.next;
+-	}
+-
+-	/* Clear old region macroblocks */
+-	for (mbnum = 0; mbnum < 1624; ++mbnum)
+-		if (go->modet_map[mbnum] == region)
+-			go->modet_map[mbnum] = 0;
+-
+-	/* Claim macroblocks in this list */
+-	clip_ptr = clip_list;
+-	while (clip_ptr) {
+-		if (copy_from_user(&clip, clip_ptr, sizeof(clip)))
+-			return -EFAULT;
+-		for (y = 0; y < clip.c.height; y += 16)
+-			for (x = 0; x < clip.c.width; x += 16) {
+-				mbnum = (go->width >> 4) *
+-						((clip.c.top + y) >> 4) +
+-					((clip.c.left + x) >> 4);
+-				go->modet_map[mbnum] = region;
+-			}
+-		clip_ptr = clip.next;
+-	}
+-	return 0;
+-}
+-#endif
+-
+ static int vidioc_querycap(struct file *file, void  *priv,
+ 					struct v4l2_capability *cap)
+ {
+@@ -495,6 +432,7 @@ static int go7007_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	mutex_lock(&go->hw_lock);
+ 	go->next_seq = 0;
+ 	go->active_buf = NULL;
++	go->modet_event_status = 0;
+ 	q->streaming = 1;
+ 	if (go7007_start_encoder(go) < 0)
+ 		ret = -EIO;
+@@ -848,41 +786,76 @@ static int vidioc_log_status(struct file *file, void *priv)
+ 	return call_all(&go->v4l2_dev, core, log_status);
+ }
+ 
+-/* FIXME:
+-	Those ioctls are private, and not needed, since several standard
+-	extended controls already provide streaming control.
+-	So, those ioctls should be converted into vidioc_g_ext_ctrls()
+-	and vidioc_s_ext_ctrls()
+- */
+-
+-#if 0
+-	case GO7007IOC_S_MD_PARAMS:
+-	{
+-		struct go7007_md_params *mdp = arg;
++static int vidioc_subscribe_event(struct v4l2_fh *fh,
++				const struct v4l2_event_subscription *sub)
++{
+ 
+-		if (mdp->region > 3)
+-			return -EINVAL;
+-		if (mdp->trigger > 0) {
+-			go->modet[mdp->region].pixel_threshold =
+-					mdp->pixel_threshold >> 1;
+-			go->modet[mdp->region].motion_threshold =
+-					mdp->motion_threshold >> 1;
+-			go->modet[mdp->region].mb_threshold =
+-					mdp->trigger >> 1;
+-			go->modet[mdp->region].enable = 1;
+-		} else
+-			go->modet[mdp->region].enable = 0;
+-		/* fall-through */
++	switch (sub->type) {
++	case V4L2_EVENT_CTRL:
++		return v4l2_ctrl_subscribe_event(fh, sub);
++	case V4L2_EVENT_MOTION_DET:
++		/* Allow for up to 30 events (1 second for NTSC) to be
++		 * stored. */
++		return v4l2_event_subscribe(fh, sub, 30, NULL);
  	}
+-	case GO7007IOC_S_MD_REGION:
+-	{
+-		struct go7007_md_region *region = arg;
++	return -EINVAL;
++}
  
--	sz_extra = sizeof(union v4l2_ctrl_ptr);
-+	sz_extra = elem_size;
- 	if (type == V4L2_CTRL_TYPE_BUTTON)
- 		flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
- 	else if (type == V4L2_CTRL_TYPE_CTRL_CLASS)
- 		flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 	else if (type == V4L2_CTRL_TYPE_STRING || type >= V4L2_CTRL_COMPLEX_TYPES)
--		sz_extra += 2 * elem_size;
-+		sz_extra += elem_size;
- 
- 	ctrl = kzalloc(sizeof(*ctrl) + sz_extra, GFP_KERNEL);
- 	if (ctrl == NULL) {
-@@ -1825,7 +1825,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
- 		ctrl->qmenu_int = qmenu_int;
- 	ctrl->priv = priv;
--	ctrl->cur.val = ctrl->val = def;
-+	ctrl->stores = &ctrl->cur;
- 	data = &ctrl->stores[1];
- 
- 	if (ctrl->is_ptr) {
-@@ -1833,7 +1833,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->stores[0].p = data + elem_size;
- 	} else {
- 		ctrl->new.p = &ctrl->val;
--		ctrl->stores[0].p = &ctrl->cur.val;
-+		ctrl->stores[0].p = data;
+-		if (region->region < 1 || region->region > 3)
+-			return -EINVAL;
+-		return clip_to_modet_map(go, region->region, region->clips);
++
++static int go7007_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct go7007 *go =
++		container_of(ctrl->handler, struct go7007, hdl);
++	unsigned y;
++	u8 *mt;
++
++	switch (ctrl->id) {
++	case V4L2_CID_PIXEL_THRESHOLD0:
++		go->modet[0].pixel_threshold = ctrl->val;
++		break;
++	case V4L2_CID_MOTION_THRESHOLD0:
++		go->modet[0].motion_threshold = ctrl->val;
++		break;
++	case V4L2_CID_MB_THRESHOLD0:
++		go->modet[0].mb_threshold = ctrl->val;
++		break;
++	case V4L2_CID_PIXEL_THRESHOLD1:
++		go->modet[1].pixel_threshold = ctrl->val;
++		break;
++	case V4L2_CID_MOTION_THRESHOLD1:
++		go->modet[1].motion_threshold = ctrl->val;
++		break;
++	case V4L2_CID_MB_THRESHOLD1:
++		go->modet[1].mb_threshold = ctrl->val;
++		break;
++	case V4L2_CID_PIXEL_THRESHOLD2:
++		go->modet[2].pixel_threshold = ctrl->val;
++		break;
++	case V4L2_CID_MOTION_THRESHOLD2:
++		go->modet[2].motion_threshold = ctrl->val;
++		break;
++	case V4L2_CID_MB_THRESHOLD2:
++		go->modet[2].mb_threshold = ctrl->val;
++		break;
++	case V4L2_CID_PIXEL_THRESHOLD3:
++		go->modet[3].pixel_threshold = ctrl->val;
++		break;
++	case V4L2_CID_MOTION_THRESHOLD3:
++		go->modet[3].motion_threshold = ctrl->val;
++		break;
++	case V4L2_CID_MB_THRESHOLD3:
++		go->modet[3].mb_threshold = ctrl->val;
++		break;
++	case V4L2_CID_DETECT_MD_REGION_GRID:
++		mt = go->modet_map;
++		for (y = 0; y < go->height / 16; y++, mt += go->width / 16)
++			memcpy(mt, ctrl->new.p_u8 + y * (720 / 16), go->width / 16);
++		break;
++	default:
++		return -EINVAL;
  	}
- 	for (s = -1; s <= 0; s++)
- 		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
-@@ -3096,10 +3096,10 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
- 	ctrl->maximum = max;
- 	ctrl->step = step;
- 	ctrl->default_value = def;
--	c.value = ctrl->cur.val;
-+	c.value = *ctrl->cur.p_s32;
- 	if (validate_new(ctrl, &c))
- 		c.value = def;
--	if (c.value != ctrl->cur.val)
-+	if (c.value != *ctrl->cur.p_s32)
- 		ret = set_ctrl(NULL, ctrl, &c, V4L2_EVENT_CTRL_CH_RANGE);
- 	else
- 		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 9eeb9d9..4f66393 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -198,14 +198,9 @@ struct v4l2_ctrl {
- 		char *string;
- 		void *p;
- 	};
--	union {
--		s32 val;
--		s64 val64;
--		char *string;
--		void *p;
--	} cur;
-+	union v4l2_ctrl_ptr *stores;
- 	union v4l2_ctrl_ptr new;
--	union v4l2_ctrl_ptr stores[];
-+	union v4l2_ctrl_ptr cur;
+-#endif
++	return 0;
++}
+ 
+ static struct v4l2_file_operations go7007_fops = {
+ 	.owner		= THIS_MODULE,
+@@ -924,7 +897,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_enum_framesizes   = vidioc_enum_framesizes,
+ 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
+ 	.vidioc_log_status        = vidioc_log_status,
+-	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
++	.vidioc_subscribe_event   = vidioc_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
  };
  
- /** struct v4l2_ctrl_ref - The control reference.
+@@ -936,12 +909,145 @@ static struct video_device go7007_template = {
+ 	.tvnorms	= V4L2_STD_ALL,
+ };
+ 
++static const struct v4l2_ctrl_ops go7007_ctrl_ops = {
++	.s_ctrl = go7007_s_ctrl,
++};
++
++static const struct v4l2_ctrl_config go7007_pixel_threshold0_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_PIXEL_THRESHOLD0,
++	.name = "Pixel Threshold Region 0",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 20,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_motion_threshold0_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_MOTION_THRESHOLD0,
++	.name = "Motion Threshold Region 0",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 80,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_mb_threshold0_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_MB_THRESHOLD0,
++	.name = "MB Threshold Region 0",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 200,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_pixel_threshold1_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_PIXEL_THRESHOLD1,
++	.name = "Pixel Threshold Region 1",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 20,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_motion_threshold1_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_MOTION_THRESHOLD1,
++	.name = "Motion Threshold Region 1",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 80,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_mb_threshold1_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_MB_THRESHOLD1,
++	.name = "MB Threshold Region 1",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 200,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_pixel_threshold2_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_PIXEL_THRESHOLD2,
++	.name = "Pixel Threshold Region 2",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 20,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_motion_threshold2_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_MOTION_THRESHOLD2,
++	.name = "Motion Threshold Region 2",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 80,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_mb_threshold2_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_MB_THRESHOLD2,
++	.name = "MB Threshold Region 2",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 200,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_pixel_threshold3_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_PIXEL_THRESHOLD3,
++	.name = "Pixel Threshold Region 3",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 20,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_motion_threshold3_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_MOTION_THRESHOLD3,
++	.name = "Motion Threshold Region 3",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 80,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_mb_threshold3_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_MB_THRESHOLD3,
++	.name = "MB Threshold Region 3",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.def = 200,
++	.max = 32767,
++	.step = 1,
++};
++
++static const struct v4l2_ctrl_config go7007_mb_regions_ctrl = {
++	.ops = &go7007_ctrl_ops,
++	.id = V4L2_CID_DETECT_MD_REGION_GRID,
++	.rows = 576 / 16,
++	.cols = 720 / 16,
++	.max = 3,
++	.step = 1,
++};
++
+ int go7007_v4l2_ctrl_init(struct go7007 *go)
+ {
+ 	struct v4l2_ctrl_handler *hdl = &go->hdl;
+ 	struct v4l2_ctrl *ctrl;
+ 
+-	v4l2_ctrl_handler_init(hdl, 13);
++	v4l2_ctrl_handler_init(hdl, 22);
+ 	go->mpeg_video_gop_size = v4l2_ctrl_new_std(hdl, NULL,
+ 			V4L2_CID_MPEG_VIDEO_GOP_SIZE, 0, 34, 1, 15);
+ 	go->mpeg_video_gop_closure = v4l2_ctrl_new_std(hdl, NULL,
+@@ -964,6 +1070,24 @@ int go7007_v4l2_ctrl_init(struct go7007 *go)
+ 			V4L2_JPEG_ACTIVE_MARKER_DQT | V4L2_JPEG_ACTIVE_MARKER_DHT);
+ 	if (ctrl)
+ 		ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++	v4l2_ctrl_new_custom(hdl, &go7007_pixel_threshold0_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_motion_threshold0_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_mb_threshold0_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_pixel_threshold1_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_motion_threshold1_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_mb_threshold1_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_pixel_threshold2_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_motion_threshold2_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_mb_threshold2_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_pixel_threshold3_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_motion_threshold3_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_mb_threshold3_ctrl, NULL);
++	v4l2_ctrl_new_custom(hdl, &go7007_mb_regions_ctrl, NULL);
++	go->modet_mode = v4l2_ctrl_new_std_menu(hdl, NULL,
++			V4L2_CID_DETECT_MD_MODE,
++			V4L2_DETECT_MD_MODE_REGION_GRID,
++			1 << V4L2_DETECT_MD_MODE_THRESHOLD_GRID,
++			V4L2_DETECT_MD_MODE_DISABLED);
+ 	if (hdl->error) {
+ 		int rv = hdl->error;
+ 
+diff --git a/drivers/staging/media/go7007/go7007.h b/drivers/staging/media/go7007/go7007.h
+deleted file mode 100644
+index 54b9897..0000000
+--- a/drivers/staging/media/go7007/go7007.h
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/*
+- * Copyright (C) 2005-2006 Micronas USA Inc.
+- *
+- * Permission is hereby granted, free of charge, to any person obtaining a
+- * copy of this software and the associated README documentation file (the
+- * "Software"), to deal in the Software without restriction, including
+- * without limitation the rights to use, copy, modify, merge, publish,
+- * distribute, sublicense, and/or sell copies of the Software, and to
+- * permit persons to whom the Software is furnished to do so.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+- */
+-
+-struct go7007_md_params {
+-	__u16 region;
+-	__u16 trigger;
+-	__u16 pixel_threshold;
+-	__u16 motion_threshold;
+-	__u32 reserved[8];
+-};
+-
+-struct go7007_md_region {
+-	__u16 region;
+-	__u16 flags;
+-	struct v4l2_clip *clips;
+-	__u32 reserved[8];
+-};
+-
+-#define	GO7007IOC_S_MD_PARAMS	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, \
+-					struct go7007_md_params)
+-#define	GO7007IOC_G_MD_PARAMS	_IOR('V', BASE_VIDIOC_PRIVATE + 7, \
+-					struct go7007_md_params)
+-#define	GO7007IOC_S_MD_REGION	_IOW('V', BASE_VIDIOC_PRIVATE + 8, \
+-					struct go7007_md_region)
+diff --git a/drivers/staging/media/go7007/saa7134-go7007.c b/drivers/staging/media/go7007/saa7134-go7007.c
+index 6e2ca33..8300856 100644
+--- a/drivers/staging/media/go7007/saa7134-go7007.c
++++ b/drivers/staging/media/go7007/saa7134-go7007.c
+@@ -33,7 +33,6 @@
+ 
+ #include "saa7134.h"
+ #include "saa7134-reg.h"
+-#include "go7007.h"
+ #include "go7007-priv.h"
+ 
+ /*#define GO7007_HPI_DEBUG*/
 -- 
-1.8.5.2
+1.8.4.rc3
 
