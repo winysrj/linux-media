@@ -1,65 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52967 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753559AbaBKUlz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 15:41:55 -0500
-Message-ID: <52FA8B10.9060009@iki.fi>
-Date: Tue, 11 Feb 2014 22:41:52 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] af9035: Add remaining it913x dual ids to af9035.
-References: <1391951046.13992.15.camel@canaries32-MCP7A>	 <52FA6113.300@iki.fi> <1392150757.3378.14.camel@canaries32-MCP7A>
-In-Reply-To: <1392150757.3378.14.camel@canaries32-MCP7A>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3328 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753042AbaBQJ66 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 04:58:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 15/35] v4l2-ctrls: type_ops can handle matrix elements.
+Date: Mon, 17 Feb 2014 10:57:30 +0100
+Message-Id: <1392631070-41868-16-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.02.2014 22:32, Malcolm Priestley wrote:
-> On Tue, 2014-02-11 at 19:42 +0200, Antti Palosaari wrote:
->> Moikka Malcolm!
->> Thanks for the patch serie.
->>
->> You removed all IDs from it913x driver. There is possibility to just
->> remove / comment out:
->> 	MODULE_DEVICE_TABLE(usb, it913x_id_table);
->> which prevents loading that driver automatically, but leaves possibility
->> to load it manually if user wants to fallback. I am fine either way you
->> decide to do it, just a propose.
-> Hi Antti
->
-> I am going post a patches to remove it.
->
-> The only reason why an user would want to fall back is
-> the use dvb-usb-it9137-01.fw firmware with USB_VID_KWORLD_2.
->
-> I left the USB_VID_KWORLD_2 ids in the driver.
->
-> I haven't found any issues with dvb-usb-it9135-01.fw
->
-> USB_VID_KWORLD_2 users could have trouble updating older kernels via
-> media_build.
->
-> Perhaps there should be a warning message in af9035 that users need to
-> change firmware.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Is that KẂorld device dual model (I guess yes, because of it9137)? Is it 
-version 1 (AX) or version 2 (BX) chip?
+Extend the control type operations to handle matrix elements.
 
-If it is dual with version 1 chips, it is similar than that:
-http://blog.palosaari.fi/2013/06/naked-hardware-9-terratec-cinergy-t.html
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 40 ++++++++++++++++++++----------------
+ 1 file changed, 22 insertions(+), 18 deletions(-)
 
-I suspect firmware is same for both it9135 or it9137 and only difference 
-between chips is pins to connect slave demodulator.
-
-Maybe difference is just firmware version and it is likely older (as I 
-extracted one it9135 ver. 1 fw from latest windows driver). Have to 
-check that.
-
-regards
-Antti
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index f76716e..7dc997d 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1140,14 +1140,16 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+ 	case V4L2_CTRL_TYPE_BUTTON:
+ 		return false;
+ 	case V4L2_CTRL_TYPE_STRING:
++		idx *= ctrl->elem_size;
+ 		/* strings are always 0-terminated */
+-		return !strcmp(ptr1.p_char, ptr2.p_char);
++		return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		return *ptr1.p_s64 == *ptr2.p_s64;
++		return ptr1.p_s64[idx] == ptr2.p_s64[idx];
+ 	default:
+-		if (ctrl->is_ptr)
+-			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
+-		return *ptr1.p_s32 == *ptr2.p_s32;
++		if (ctrl->is_int)
++			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
++		idx *= ctrl->elem_size;
++		return !memcmp(ptr1.p + idx, ptr2.p + idx, ctrl->elem_size);
+ 	}
+ }
+ 
+@@ -1156,18 +1158,19 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+ {
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_STRING:
+-		memset(ptr.p_char, ' ', ctrl->minimum);
+-		ptr.p_char[ctrl->minimum] = '\0';
++		idx *= ctrl->elem_size;
++		memset(ptr.p_char + idx, ' ', ctrl->minimum);
++		ptr.p_char[idx + ctrl->minimum] = '\0';
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		*ptr.p_s64 = ctrl->default_value;
++		ptr.p_s64[idx] = ctrl->default_value;
+ 		break;
+ 	case V4L2_CTRL_TYPE_INTEGER:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		*ptr.p_s32 = ctrl->default_value;
++		ptr.p_s32[idx] = ctrl->default_value;
+ 		break;
+ 	default:
+ 		break;
+@@ -1230,36 +1233,37 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER:
+-		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
++		return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+-		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
++		return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
+ 
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+-		*ptr.p_s32 = !!*ptr.p_s32;
++		ptr.p_s32[idx] = !!ptr.p_s32[idx];
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
++		if (ptr.p_s32[idx] < ctrl->minimum || ptr.p_s32[idx] > ctrl->maximum)
+ 			return -ERANGE;
+-		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
++		if (ctrl->menu_skip_mask & (1 << ptr.p_s32[idx]))
+ 			return -EINVAL;
+ 		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+-		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
++		    ctrl->qmenu[ptr.p_s32[idx]][0] == '\0')
+ 			return -EINVAL;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_BITMASK:
+-		*ptr.p_s32 &= ctrl->maximum;
++		ptr.p_s32[idx] &= ctrl->maximum;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_BUTTON:
+ 	case V4L2_CTRL_TYPE_CTRL_CLASS:
+-		*ptr.p_s32 = 0;
++		ptr.p_s32[idx] = 0;
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_STRING:
+-		len = strlen(ptr.p_char);
++		idx *= ctrl->elem_size;
++		len = strlen(ptr.p_char + idx);
+ 		if (len < ctrl->minimum)
+ 			return -ERANGE;
+ 		if ((len - ctrl->minimum) % ctrl->step)
 -- 
-http://palosaari.fi/
+1.8.4.rc3
+
