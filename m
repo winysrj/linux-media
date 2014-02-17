@@ -1,112 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42038 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756275AbaBROg0 (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4334 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751567AbaBQLo6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 09:36:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Edgar Thier <info@edgarthier.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Added bayer 8-bit patterns to uvcvideo
-Date: Tue, 18 Feb 2014 15:37:34 +0100
-Message-ID: <232139127.sJD4YvNJ9E@avalon>
-In-Reply-To: <CAENiEt-OA==jH_tA4HBP68RW3vGga99dpuFE+Zx7=QNYBqeC5A@mail.gmail.com>
-References: <CAENiEt-OA==jH_tA4HBP68RW3vGga99dpuFE+Zx7=QNYBqeC5A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 17 Feb 2014 06:44:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 1/3] v4l2-subdev.h: add g_tvnorms video op
+Date: Mon, 17 Feb 2014 12:44:12 +0100
+Message-Id: <1392637454-29179-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392637454-29179-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392637454-29179-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Edgar,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch.
+While there was already a g_tvnorms_output video op, it's counterpart for
+video capture was missing. Add it.
 
-On Monday 20 January 2014 09:11:28 Edgar Thier wrote:
-> Add bayer 8-bit GUIDs to uvcvideo and
-> associate them with the corresponding V4L2 pixel formats.
-> 
-> Signed-off-by: Edgar Thier <info@edgarthier.net>
+This is necessary for generic bridge drivers like soc-camera to set the
+video_device tvnorms field correctly. Otherwise ENUMSTD cannot work.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/v4l2-subdev.h | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Out of curiosity, could you please send me the lsusb -v output of the camera 
-you need this for ?
-
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 22 +++++++++++++++++++++-
->  drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
->  2 files changed, 33 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c
-> index c3bb250..84da426 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -108,11 +108,31 @@ static struct uvc_format_desc uvc_fmts[] = {
->          .fcc        = V4L2_PIX_FMT_Y16,
->      },
->      {
-> -        .name        = "RGB Bayer",
-> +        .name        = "RGB Bayer (bggr)",
->          .guid        = UVC_GUID_FORMAT_BY8,
->          .fcc        = V4L2_PIX_FMT_SBGGR8,
-
-It looks like your mailer has corrupted the patch by replacing tabs with 
-spaces. Could you please fix that and resubmit ? While you're at it, could you 
-please prefix the commit subject with "uvcvideo: " ?
-
->      },
->      {
-> +        .name        = "RGB Bayer (bggr)",
-> +        .guid        = UVC_GUID_FORMAT_BY8_BA81,
-> +        .fcc        = V4L2_PIX_FMT_SBGGR8,
-> +    },
-> +    {
-> +        .name        = "RGB Bayer (grbg)",
-> +        .guid        = UVC_GUID_FORMAT_BY8_GRBG,
-> +        .fcc        = V4L2_PIX_FMT_SGRBG8,
-> +    },
-> +    {
-> +        .name        = "RGB Bayer (gbrg)",
-> +        .guid        = UVC_GUID_FORMAT_BY8_GBRG,
-> +        .fcc        = V4L2_PIX_FMT_SGBRG8,
-> +    },
-> +    {
-> +        .name        = "RGB Bayer (rggb)",
-> +        .guid        = UVC_GUID_FORMAT_BY8_RGGB,
-> +        .fcc        = V4L2_PIX_FMT_SRGGB8,
-> +    },
-> +    {
->          .name        = "RGB565",
->          .guid        = UVC_GUID_FORMAT_RGBP,
->          .fcc        = V4L2_PIX_FMT_RGB565,
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 9e35982..57357d9 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -94,6 +94,18 @@
->  #define UVC_GUID_FORMAT_BY8 \
->      { 'B',  'Y',  '8',  ' ', 0x00, 0x00, 0x10, 0x00, \
->       0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> +#define UVC_GUID_FORMAT_BY8_BA81 \
-> +    { 'B',  'A',  '8',  '1', 0x00, 0x00, 0x10, 0x00, \
-> +     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> +#define UVC_GUID_FORMAT_BY8_GRBG \
-> +    { 'G',  'R',  'B',  'G', 0x00, 0x00, 0x10, 0x00, \
-> +     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> +#define UVC_GUID_FORMAT_BY8_GBRG \
-> +    { 'G',  'B',  'R',  'G', 0x00, 0x00, 0x10, 0x00, \
-> +     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> +#define UVC_GUID_FORMAT_BY8_RGGB \
-> +    { 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
-> +     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
->  #define UVC_GUID_FORMAT_RGBP \
->      { 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
->       0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d67210a..787d078 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -264,8 +264,11 @@ struct v4l2_mbus_frame_desc {
+    g_std_output: get current standard for video OUTPUT devices. This is ignored
+ 	by video input devices.
+ 
+-   g_tvnorms_output: get v4l2_std_id with all standards supported by video
+-	OUTPUT device. This is ignored by video input devices.
++   g_tvnorms: get v4l2_std_id with all standards supported by the video
++	CAPTURE device. This is ignored by video output devices.
++
++   g_tvnorms_output: get v4l2_std_id with all standards supported by the video
++	OUTPUT device. This is ignored by video capture devices.
+ 
+    s_crystal_freq: sets the frequency of the crystal used to generate the
+ 	clocks in Hz. An extra flags field allows device specific configuration
+@@ -308,6 +311,7 @@ struct v4l2_subdev_video_ops {
+ 	int (*s_std_output)(struct v4l2_subdev *sd, v4l2_std_id std);
+ 	int (*g_std_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+ 	int (*querystd)(struct v4l2_subdev *sd, v4l2_std_id *std);
++	int (*g_tvnorms)(struct v4l2_subdev *sd, v4l2_std_id *std);
+ 	int (*g_tvnorms_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+ 	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
+ 	int (*s_stream)(struct v4l2_subdev *sd, int enable);
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.2
 
