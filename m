@@ -1,69 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:19262 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751363AbaBTTk6 (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4222 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752107AbaBQJ66 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 14:40:58 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v4 00/10] Add device tree support for Exynos4 SoC camera
- subsystem
-Date: Thu, 20 Feb 2014 20:40:27 +0100
-Message-id: <1392925237-31394-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
-References: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 17 Feb 2014 04:58:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 17/35] v4l2-ctrls: return elem_size instead of strlen
+Date: Mon, 17 Feb 2014 10:57:32 +0100
+Message-Id: <1392631070-41868-18-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series adds devicetree support for the front and rear camera of
-the Exynos4412 SoC Trats2 board. It converts related drivers to use
-the v4l2-async API. The SoC output clocks are provided to external image
-image sensors through the common clock API.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'd appreciate a DT binding maintainer reviewed patches 2/11, 3/11.
-With an Ack I could finally push these things upstream.
+When getting a string and the size given by the application is too
+short return the max length the string can have (elem_size) instead
+of the string length + 1. That makes more sense.
 
-Sylwester Nawrocki (10):
-  Documentation: dt: Add DT binding documentation for S5K6A3 image
-    sensor
-  Documentation: dt: Add DT binding documentation for S5C73M3 camera
-  Documentation: devicetree: Update Samsung FIMC DT binding
-  V4L: Add driver for s5k6a3 image sensor
-  V4L: s5c73m3: Add device tree support
-  exynos4-is: Use external s5k6a3 sensor driver
-  exynos4-is: Add clock provider for the SCLK_CAM clock outputs
-  exynos4-is: Add support for asynchronous subdevices registration
-  ARM: dts: Add rear camera nodes for Exynos4412 TRATS2 board
-  ARM: dts: exynos4: Update clk provider part of the camera subsystem
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- .../devicetree/bindings/media/samsung-fimc.txt     |   36 +-
- .../devicetree/bindings/media/samsung-s5c73m3.txt  |   97 +++++
- .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++
- arch/arm/boot/dts/exynos4.dtsi                     |    6 +-
- arch/arm/boot/dts/exynos4412-trats2.dts            |   86 ++++-
- drivers/media/i2c/Kconfig                          |    8 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  207 ++++++++---
- drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
- drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
- drivers/media/i2c/s5k6a3.c                         |  388 ++++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
- drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +-------------
- drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +--
- drivers/media/platform/exynos4-is/fimc-is.c        |   97 ++---
- drivers/media/platform/exynos4-is/fimc-is.h        |    4 +-
- drivers/media/platform/exynos4-is/media-dev.c      |  329 ++++++++++++-----
- drivers/media/platform/exynos4-is/media-dev.h      |   32 +-
- 18 files changed, 1127 insertions(+), 543 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
- create mode 100644 drivers/media/i2c/s5k6a3.c
-
---
-1.7.9.5
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index adc1c53..c55cabb 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1298,7 +1298,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
+ 	case V4L2_CTRL_TYPE_STRING:
+ 		len = strlen(ptr.p_char);
+ 		if (c->size < len + 1) {
+-			c->size = len + 1;
++			c->size = ctrl->elem_size;
+ 			return -ENOSPC;
+ 		}
+ 		return copy_to_user(c->string, ptr.p_char, len + 1) ?
+-- 
+1.8.4.rc3
 
