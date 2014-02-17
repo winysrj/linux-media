@@ -1,119 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57914 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751610AbaBIGGX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 01:06:23 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 1/5] libdvbv5: better handle ATSC/Annex B
-Date: Sun,  9 Feb 2014 08:05:50 +0200
-Message-Id: <1391925954-25975-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1391925954-25975-1-git-send-email-crope@iki.fi>
-References: <1391925954-25975-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2299 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753202AbaBQJrB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 04:47:01 -0500
+Message-ID: <5301DA57.1070905@xs4all.nl>
+Date: Mon, 17 Feb 2014 10:45:59 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	ismael.luceno@corp.bluecherry.net, pete@sensoray.com
+Subject: Re: [REVIEWv2 PATCH 00/34] Add support for complex controls, use
+ in solo/go7007
+References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl> <20140216201414.GS15635@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20140216201414.GS15635@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+On 02/16/2014 09:14 PM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Mon, Feb 10, 2014 at 09:46:25AM +0100, Hans Verkuil wrote:
+>> This patch series adds support for complex controls (aka 'Properties') to
+> 
+> While the patchset extends the concept of extended controls by adding more
+> data types, they should not be called "properties" since they are not. The
+> defining aspect of "properties" is to be able to specify to which entity,
+> sub-device, pad, video buffer queue, flash led etc. object the said property
+> is related to. This is mostly orthogonal to what kind of data types the
+> property could have.
 
-As DVBv3 is confusing with regards to ATSC and ClearQAM (DVB-C
-annex B), userpace apps also only differenciate between ATSC and
-ClearQAM via modulation.
+For all practical purposes controls are properties. They are properties of
+v4l2_subdev, v4l2_device, video_device or v4l2_fh. While we cannot at the moment
+assign controls to other v4l2 objects, there is nothing that prevents us from
+doing so.
 
-However, when using DVBv5, may be using the delivery system
-in order to enforce one or the other.
+> 
+> There's just a single 32-bit reserved field in struct v4l2_ext_control so
+> extending the current extended controls (S/G/TRY) interface is not an option
+> to support properties. A new ABI (but not necessarily even if probably an
+> API as well) would be needed in any case.
 
-In any case, the DVB API should clearly identify between ATSC
-and ClearQAM.
+Why? I would use that remaining field: the top X bits define the object type
+(e.g. PAD) and the lower bits are the object ID (pad number).
 
-So, make the API to better handle it, fixing the delivery
-system if needed, when reading or write a file.
+> 
+> So for the time being I'd wish we continue to use the name "controls" even
+> if the control type is not one of the traditional ones.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- lib/libdvbv5/dvb-file.c | 33 ++++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+The cover letter is the only place where the term 'property' is used, mostly
+to link into the 'property' discussion we had in the past. But it is a bad idea
+to use the that term because they are traditionally called control in V4L2 land.
 
-diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
-index 1c33a90..e0cef34 100644
---- a/lib/libdvbv5/dvb-file.c
-+++ b/lib/libdvbv5/dvb-file.c
-@@ -88,6 +88,32 @@ int retrieve_entry_prop(struct dvb_entry *entry,
- 	return -1;
- }
- 
-+static void adjust_delsys(struct dvb_entry *entry)
-+{
-+	uint32_t delsys = SYS_UNDEFINED;
-+
-+	retrieve_entry_prop(entry, DTV_DELIVERY_SYSTEM, &delsys);
-+	switch (delsys) {
-+	case SYS_ATSC:
-+	case SYS_DVBC_ANNEX_B: {
-+		uint32_t modulation = VSB_8;
-+
-+		retrieve_entry_prop(entry, DTV_MODULATION, &modulation);
-+		switch (modulation) {
-+		case VSB_8:
-+		case VSB_16:
-+			delsys = SYS_ATSC;
-+			break;
-+		default:
-+			delsys = SYS_DVBC_ANNEX_B;
-+			break;
-+		}
-+		store_entry_prop(entry, DTV_DELIVERY_SYSTEM, delsys);
-+		break;
-+	}
-+	} /* switch */
-+}
-+
- /*
-  * Generic parse function for all formats each channel is contained into
-  * just one line.
-@@ -242,7 +268,7 @@ struct dvb_file *parse_format_oneline(const char *fname,
- 			entry->props[entry->n_props].cmd = DTV_INVERSION;
- 			entry->props[entry->n_props++].u.data = INVERSION_AUTO;
- 		}
--
-+		adjust_delsys(entry);
- 	} while (1);
- 	fclose(fd);
- 	free(buf);
-@@ -330,6 +356,7 @@ int write_format_oneline(const char *fname,
- 				 delsys);
- 			goto error;
- 		}
-+		adjust_delsys(entry);
- 		if (parse_file->has_delsys_id) {
- 			fprintf(fp, "%s", formats[i].id);
- 			first = 0;
-@@ -596,6 +623,7 @@ struct dvb_file *read_dvb_file(const char *fname)
- 				dvb_file->first_entry = calloc(sizeof(*entry), 1);
- 				entry = dvb_file->first_entry;
- 			} else {
-+				adjust_delsys(entry);
- 				entry->next = calloc(sizeof(*entry), 1);
- 				entry = entry->next;
- 			}
-@@ -644,6 +672,8 @@ struct dvb_file *read_dvb_file(const char *fname)
- 			}
- 		}
- 	} while (1);
-+	if (entry)
-+		adjust_delsys(entry);
- 	fclose(fd);
- 	return dvb_file;
- 
-@@ -668,6 +698,7 @@ int write_dvb_file(const char *fname, struct dvb_file *dvb_file)
- 	}
- 
- 	for (entry = dvb_file->first_entry; entry != NULL; entry = entry->next) {
-+		adjust_delsys(entry);
- 		if (entry->channel) {
- 			fprintf(fp, "[%s]\n", entry->channel);
- 			if (entry->vchannel)
--- 
-1.8.5.3
+Mixing those names is just very confusing.
 
+Regards,
+
+	Hans
