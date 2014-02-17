@@ -1,138 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1625 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751822AbaBNOba (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58535 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751477AbaBQAul (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 09:31:30 -0500
-Message-ID: <52FE2892.307@xs4all.nl>
-Date: Fri, 14 Feb 2014 15:30:42 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 16 Feb 2014 19:50:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH v5 4/7] uvcvideo: Tell the user space we're using start-of-exposure timestamps
+Date: Mon, 17 Feb 2014 01:51:47 +0100
+Message-ID: <10394831.kaUQ4S9NO6@avalon>
+In-Reply-To: <1392497585-5084-5-git-send-email-sakari.ailus@iki.fi>
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <1392497585-5084-5-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 1/6] v4l: add RF tuner gain controls
-References: <1392049026-13398-1-git-send-email-crope@iki.fi> <1392049026-13398-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1392049026-13398-2-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/10/2014 05:17 PM, Antti Palosaari wrote:
-> Modern silicon RF tuners used nowadays has many controllable gain
-> stages on signal path. Usually, but not always, there is at least
-> 3 gain stages. Also on some cases there could be multiple gain
-> stages within the ones specified here. However, I think that having
-> these three controllable gain stages offers enough fine-tuning for
-> real use cases.
+Hi Sakari,
+
+Thank you for the patch.
+
+On Saturday 15 February 2014 22:53:02 Sakari Ailus wrote:
+> The UVC device provided timestamps are taken from the clock once the
+> exposure of the frame has begun, not when the reception of the frame would
+> have been finished as almost anywhere else. Show this to the user space by
+> using V4L2_BUF_FLAG_TSTAMP_SRC_SOE buffer flag.
 > 
-> 1) LNA gain. That is first gain just after antenna input.
-> 2) Mixer gain. It is located quite middle of the signal path, where
-> RF signal is down-converted to IF/BB.
-> 3) IF gain. That is last gain in order to adjust output signal level
-> to optimal level for receiving party (usually demodulator ADC).
-> 
-> Each gain stage could be set rather often both manual or automatic
-> (AGC) mode. Due to that add separate controls for controlling
-> operation mode.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+Strictly speaking that's not entirely true, as some devices don't bother 
+reporting a hardware timestamp. However, in practice, most devices should 
+behave correctly, so that flag is definitely better.
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 > ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 15 +++++++++++++++
->  include/uapi/linux/v4l2-controls.h   | 11 +++++++++++
->  2 files changed, 26 insertions(+)
+>  drivers/media/usb/uvc/uvc_queue.c |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 6ff002b..d201f61 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -857,6 +857,14 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
->  	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
->  	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
-> +
-> +	case V4L2_CID_RF_TUNER_CLASS:		return "RF Tuner Controls";
-> +	case V4L2_CID_LNA_GAIN_AUTO:		return "LNA Gain, Auto";
-> +	case V4L2_CID_LNA_GAIN:			return "LNA Gain";
-> +	case V4L2_CID_MIXER_GAIN_AUTO:		return "Mixer Gain, Auto";
-> +	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
-> +	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
-> +	case V4L2_CID_IF_GAIN:			return "IF Gain";
->  	default:
->  		return NULL;
->  	}
-> @@ -906,6 +914,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_WIDE_DYNAMIC_RANGE:
->  	case V4L2_CID_IMAGE_STABILIZATION:
->  	case V4L2_CID_RDS_RECEPTION:
-> +	case V4L2_CID_LNA_GAIN_AUTO:
-> +	case V4L2_CID_MIXER_GAIN_AUTO:
-> +	case V4L2_CID_IF_GAIN_AUTO:
->  		*type = V4L2_CTRL_TYPE_BOOLEAN;
->  		*min = 0;
->  		*max = *step = 1;
-> @@ -991,6 +1002,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_IMAGE_PROC_CLASS:
->  	case V4L2_CID_DV_CLASS:
->  	case V4L2_CID_FM_RX_CLASS:
-> +	case V4L2_CID_RF_TUNER_CLASS:
->  		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
->  		/* You can neither read not write these */
->  		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-> @@ -1063,6 +1075,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_PILOT_TONE_FREQUENCY:
->  	case V4L2_CID_TUNE_POWER_LEVEL:
->  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-> +	case V4L2_CID_LNA_GAIN:
-> +	case V4L2_CID_MIXER_GAIN:
-> +	case V4L2_CID_IF_GAIN:
->  		*flags |= V4L2_CTRL_FLAG_SLIDER;
->  		break;
->  	case V4L2_CID_PAN_RELATIVE:
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 2cbe605..076fa34 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -60,6 +60,7 @@
->  #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
->  #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
->  #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
-> +#define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
->  
->  /* User-class control IDs */
->  
-> @@ -895,4 +896,14 @@ enum v4l2_deemphasis {
->  
->  #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
->  
-> +#define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
-> +#define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
-> +
-> +#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
-> +#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
-> +#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
-> +#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
-> +#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
-> +#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index cd962be..a9292d2 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -149,7 +149,8 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum
+> v4l2_buf_type type, queue->queue.buf_struct_size = sizeof(struct
+> uvc_buffer);
+>  	queue->queue.ops = &uvc_queue_qops;
+>  	queue->queue.mem_ops = &vb2_vmalloc_memops;
+> -	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	queue->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+> +		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
+>  	ret = vb2_queue_init(&queue->queue);
+>  	if (ret)
+>  		return ret;
 
-I would prefer to give these control defines a prefix:
-
-V4L2_CID_RF_TUNER_MIXER_GAIN_AUTO (or possibly V4L2_CID_RF_TNR_...)
-
-'MIXER_GAIN' by itself does not make it clear it relates to a tuner, it
-might just as well refer to audio mixing or video mixing.
-
-Thinking this over I am wondering whether these controls might not fit
-just as well with the FM_RX class. Yeah, I know, the 'FM' part is a bit
-unfortunate in that context, but it is about radio receivers as well.
-
-Unless there is a good reason to keep these controls in their own class?
-
+-- 
 Regards,
 
-	Hans
-
-> +
->  #endif
-> 
+Laurent Pinchart
 
