@@ -1,130 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:55007 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756994AbaBFUAA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 15:00:00 -0500
-Received: by mail-wi0-f181.google.com with SMTP id hi5so185848wib.8
-        for <linux-media@vger.kernel.org>; Thu, 06 Feb 2014 11:59:59 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james.hogan@imgtec.com>
-Subject: [RFC 2/4] rc: ir-raw: add modulation helpers
-Date: Thu,  6 Feb 2014 19:59:21 +0000
-Message-Id: <1391716763-2689-3-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
-References: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2419 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753126AbaBQJ7B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 04:59:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 24/35] v4l2-ctrls/videodev2.h: add u8 and u16 types.
+Date: Mon, 17 Feb 2014 10:57:39 +0100
+Message-Id: <1392631070-41868-25-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add IR encoding helpers, particularly for pulse-distance modulation as
-used by the NEC protocol.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
+These are needed by the upcoming patches for the motion detection
+matrices.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/rc/ir-raw.c       | 33 +++++++++++++++++++++++++++++++
- drivers/media/rc/rc-core-priv.h | 44 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 77 insertions(+)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 45 ++++++++++++++++++++++++++++++++----
+ include/media/v4l2-ctrls.h           |  4 ++++
+ include/uapi/linux/videodev2.h       |  4 ++++
+ 3 files changed, 49 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
-index 9aea407..ae7b445 100644
---- a/drivers/media/rc/ir-raw.c
-+++ b/drivers/media/rc/ir-raw.c
-@@ -240,6 +240,39 @@ ir_raw_get_allowed_protocols(void)
- 	return protocols;
- }
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 1886b79..ca4271b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1145,6 +1145,10 @@ static bool std_equal(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return !strcmp(ptr1.p_char + idx, ptr2.p_char + idx);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return ptr1.p_s64[idx] == ptr2.p_s64[idx];
++	case V4L2_CTRL_TYPE_U8:
++		return ptr1.p_u8[idx] == ptr2.p_u8[idx];
++	case V4L2_CTRL_TYPE_U16:
++		return ptr1.p_u16[idx] == ptr2.p_u16[idx];
+ 	default:
+ 		if (ctrl->is_int)
+ 			return ptr1.p_s32[idx] == ptr2.p_s32[idx];
+@@ -1172,6 +1176,12 @@ static void std_init(const struct v4l2_ctrl *ctrl, u32 idx,
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+ 		ptr.p_s32[idx] = ctrl->default_value;
+ 		break;
++	case V4L2_CTRL_TYPE_U8:
++		ptr.p_u8[idx] = ctrl->default_value;
++		break;
++	case V4L2_CTRL_TYPE_U16:
++		ptr.p_u16[idx] = ctrl->default_value;
++		break;
+ 	default:
+ 		idx *= ctrl->elem_size;
+ 		memset(ptr.p + idx, 0, ctrl->elem_size);
+@@ -1208,6 +1218,12 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ 	case V4L2_CTRL_TYPE_STRING:
+ 		pr_cont("%s", ptr.p_char);
+ 		break;
++	case V4L2_CTRL_TYPE_U8:
++		pr_cont("%u", (unsigned)*ptr.p_u8);
++		break;
++	case V4L2_CTRL_TYPE_U16:
++		pr_cont("%u", (unsigned)*ptr.p_u16);
++		break;
+ 	default:
+ 		pr_cont("unknown type %d", ctrl->type);
+ 		break;
+@@ -1238,6 +1254,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 		return ROUND_TO_RANGE(ptr.p_s32[idx], u32, ctrl);
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		return ROUND_TO_RANGE(ptr.p_s64[idx], u64, ctrl);
++	case V4L2_CTRL_TYPE_U8:
++		return ROUND_TO_RANGE(ptr.p_u8[idx], u8, ctrl);
++	case V4L2_CTRL_TYPE_U16:
++		return ROUND_TO_RANGE(ptr.p_u16[idx], u16, ctrl);
  
-+int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
-+		  const struct ir_raw_timings_pd *timings,
-+		  unsigned int n, unsigned int data)
-+{
-+	int i;
-+
-+	i = 2 + n*2;
-+	if (timings->header_pulse)
-+		i += 2;
-+	if (max < i)
-+		return -EINVAL;
-+
-+	if (timings->header_pulse)
-+		ir_raw_gen_pulse_space(ev, timings->header_pulse,
-+				       timings->header_space);
-+
-+	if (timings->msb_first) {
-+		for (i = n - 1; i >= 0; --i)
-+			ir_raw_gen_pulse_space(ev, timings->bit_pulse,
-+					timings->bit_space[(data >> i) & 1]);
-+	} else {
-+		for (i = 0; i < n; ++i, data >>= 1)
-+			ir_raw_gen_pulse_space(ev, timings->bit_pulse,
-+					timings->bit_space[data & 1]);
+ 	case V4L2_CTRL_TYPE_BOOLEAN:
+ 		ptr.p_s32[idx] = !!ptr.p_s32[idx];
+@@ -1470,6 +1490,8 @@ static int check_range(enum v4l2_ctrl_type type,
+ 		if (step != 1 || max > 1 || min < 0)
+ 			return -ERANGE;
+ 		/* fall through */
++	case V4L2_CTRL_TYPE_U8:
++	case V4L2_CTRL_TYPE_U16:
+ 	case V4L2_CTRL_TYPE_INTEGER:
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		if (step == 0 || min > max || def < min || def > max)
+@@ -1768,12 +1790,25 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		rows = 1;
+ 	is_matrix = cols > 1 || rows > 1;
+ 
+-	if (type == V4L2_CTRL_TYPE_INTEGER64)
++	/* Prefill elem_size for all types handled by std_type_ops */
++	switch (type) {
++	case V4L2_CTRL_TYPE_INTEGER64:
+ 		elem_size = sizeof(s64);
+-	else if (type == V4L2_CTRL_TYPE_STRING)
++		break;
++	case V4L2_CTRL_TYPE_STRING:
+ 		elem_size = max + 1;
+-	else if (type < V4L2_CTRL_COMPLEX_TYPES)
+-		elem_size = sizeof(s32);
++		break;
++	case V4L2_CTRL_TYPE_U8:
++		elem_size = sizeof(u8);
++		break;
++	case V4L2_CTRL_TYPE_U16:
++		elem_size = sizeof(u16);
++		break;
++	default:
++		if (type < V4L2_CTRL_COMPLEX_TYPES)
++			elem_size = sizeof(s32);
++		break;
 +	}
-+
-+	ir_raw_gen_pulse_space(ev, timings->trailer_pulse,
-+			       timings->trailer_space);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(ir_raw_gen_pd);
-+
- /**
-  * ir_raw_encode_scancode() - Encode a scancode as raw events
-  *
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index dfbaad0..a77ad96 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -153,6 +153,50 @@ static inline bool is_timing_event(struct ir_raw_event ev)
- #define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
- #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+ 	tot_ctrl_size = elem_size * cols * rows;
  
-+/* functions for IR encoders */
-+
-+static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
-+					      unsigned int pulse,
-+					      u32 duration)
-+{
-+	init_ir_raw_event(ev);
-+	ev->duration = duration;
-+	ev->pulse = pulse;
-+}
-+
-+static inline void ir_raw_gen_pulse_space(struct ir_raw_event **ev,
-+					  unsigned int pulse_width,
-+					  unsigned int space_width)
-+{
-+	init_ir_raw_event_duration((*ev)++, 1, pulse_width);
-+	init_ir_raw_event_duration((*ev)++, 0, space_width);
-+}
-+
-+/**
-+ * struct ir_raw_timings_pd - pulse-distance modulation timings
-+ * @header_pulse:	duration of header pulse in ns (0 for none)
-+ * @header_space:	duration of header space in ns
-+ * @bit_pulse:		duration of bit pulse in ns
-+ * @bit_space:		duration of bit space (for logic 0 and 1) in ns
-+ * @trailer_pulse:	duration of trailer pulse in ns
-+ * @trailer_space:	duration of trailer space in ns
-+ * @msb_first:		1 if most significant bit is sent first
-+ */
-+struct ir_raw_timings_pd
-+{
-+	unsigned int header_pulse;
-+	unsigned int header_space;
-+	unsigned int bit_pulse;
-+	unsigned int bit_space[2];
-+	unsigned int trailer_pulse;
-+	unsigned int trailer_space;
-+	unsigned int msb_first:1;
-+};
-+
-+int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
-+		  const struct ir_raw_timings_pd *timings,
-+		  unsigned int n, unsigned int data);
-+
- /*
-  * Routines from rc-raw.c to be used internally and by decoders
+ 	/* Sanity checks */
+@@ -3114,6 +3149,8 @@ int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 	case V4L2_CTRL_TYPE_MENU:
+ 	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 	case V4L2_CTRL_TYPE_BITMASK:
++	case V4L2_CTRL_TYPE_U8:
++	case V4L2_CTRL_TYPE_U16:
+ 		if (ctrl->is_matrix)
+ 			return -EINVAL;
+ 		ret = check_range(ctrl->type, min, max, step, def);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 7d72328..2ccad5f 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -39,12 +39,16 @@ struct poll_table_struct;
+ /** union v4l2_ctrl_ptr - A pointer to a control value.
+  * @p_s32:	Pointer to a 32-bit signed value.
+  * @p_s64:	Pointer to a 64-bit signed value.
++ * @p_u8:	Pointer to a 8-bit unsigned value.
++ * @p_u16:	Pointer to a 16-bit unsigned value.
+  * @p_char:	Pointer to a string.
+  * @p:		Pointer to a complex value.
   */
+ union v4l2_ctrl_ptr {
+ 	s32 *p_s32;
+ 	s64 *p_s64;
++	u8 *p_u8;
++	u16 *p_u16;
+ 	char *p_char;
+ 	void *p;
+ };
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 858a6f3..8b70f51 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1228,6 +1228,8 @@ struct v4l2_ext_control {
+ 		__s32 value;
+ 		__s64 value64;
+ 		char *string;
++		__u8 *p_u8;
++		__u16 *p_u16;
+ 		void *p;
+ 	};
+ } __attribute__ ((packed));
+@@ -1257,6 +1259,8 @@ enum v4l2_ctrl_type {
+ 
+ 	/* Complex types are >= 0x0100 */
+ 	V4L2_CTRL_COMPLEX_TYPES	     = 0x0100,
++	V4L2_CTRL_TYPE_U8	     = 0x0100,
++	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
 -- 
-1.8.3.2
+1.8.4.rc3
 
