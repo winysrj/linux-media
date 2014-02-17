@@ -1,60 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:45627 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751274AbaBDNXY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 08:23:24 -0500
-Date: Tue, 4 Feb 2014 13:22:56 +0000
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Rob Landley <rob@landley.net>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH 34/52] devices.txt: add video4linux device for Software
- Defined Radio
-Message-ID: <20140204132256.7e829f9a@www.etchedpixels.co.uk>
-In-Reply-To: <20140204111903.5c2e928e@samsung.com>
-References: <20140204111903.5c2e928e@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3944 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750951AbaBQIzt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Feb 2014 03:55:49 -0500
+Message-ID: <5301CE5D.7020002@xs4all.nl>
+Date: Mon, 17 Feb 2014 09:54:53 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	k.debski@samsung.com
+Subject: Re: [PATCH v5 3/7] v4l: Add timestamp source flags, mask and document
+ them
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <1392497585-5084-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1392497585-5084-4-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 04 Feb 2014 11:19:03 -0200
-Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
+Hi Sakari,
 
-> Alan/Greg/Andrew/Rob,
-> 
-> Not sure who is currently maintaining Documentation/devices.txt.
-> 
-> We're needing to add support of a new type of V4L2 devices there.
-> 
-> Could you please ack with the following patch? If this one is ok, I intend
-> to send via my tree together with the patch series that implements support
-> for it, if you agree.
-> 
-> Thank you!
-> Mauro
-> 
-> Forwarded message:
-> 
-> Date: Sat, 25 Jan 2014 19:10:28 +0200
-> From: Antti Palosaari <crope@iki.fi>
-> To: linux-media@vger.kernel.org
-> Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-> Subject: [PATCH 34/52] devices.txt: add video4linux device for Software Defined Radio
-> 
-> 
-> Add new video4linux device named /dev/swradio for Software Defined
-> Radio use. V4L device minor numbers are allocated dynamically
-> nowadays, but there is still configuration option for old fixed style.
-> Add note to mention that configuration option too.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Some minor comments:
 
-Acked-by: Alan Cox <alan@linux.intel.com>
+On 02/15/2014 09:53 PM, Sakari Ailus wrote:
+> Some devices do not produce timestamps that correspond to the end of the
+> frame. The user space should be informed on the matter. This patch achieves
+> that by adding buffer flags (and a mask) for timestamp sources since more
+> possible timestamping points are expected than just two.
+> 
+> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of the
+> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end of
+> frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure (next
+> value).
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/io.xml   |   31 ++++++++++++++++++++++++------
+>  drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+>  include/media/videobuf2-core.h           |    2 ++
+>  include/uapi/linux/videodev2.h           |    4 ++++
+>  4 files changed, 34 insertions(+), 7 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> index 46d24b3..fbd0c6e 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -653,12 +653,6 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+>  In that case, struct <structname>v4l2_buffer</structname> contains an array of
+>  plane structures.</para>
+>  
+> -      <para>For timestamp types that are sampled from the system clock
+> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
+> -taken after the complete frame has been received (or transmitted in
+> -case of video output devices). For other kinds of
+> -timestamps this may vary depending on the driver.</para>
+> -
+>      <table frame="none" pgwide="1" id="v4l2-buffer">
+>        <title>struct <structname>v4l2_buffer</structname></title>
+>        <tgroup cols="4">
+> @@ -1119,6 +1113,31 @@ in which case caches have not been used.</entry>
+>  	    <entry>The CAPTURE buffer timestamp has been taken from the
+>  	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
+> +	    <entry>0x00070000</entry>
+> +	    <entry>Mask for timestamp sources below. The timestamp source
+> +	    defines the point of time the timestamp is taken in relation to
+> +	    the frame. Logical and operation between the
+> +	    <structfield>flags</structfield> field and
+> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
+> +	    value of the timestamp source.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
+> +	    <entry>0x00000000</entry>
+> +	    <entry>"End of frame." The buffer timestamp has been taken
+
+More a typographical thing than anything else: I prefer this:
+
+"End Of Frame": the buffer...
+
+The capitalization links back to the EOF abbreviation more directly.
+
+> +	    when the last pixel of the frame has been received or the
+
+I would say: "after the last pixel of the frame has been received or after the"
+
+The "when" word suggests that it is exactly "when", which is not true in
+practice.
+
+> +	    last pixel of the frame has been transmitted.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
+> +	    <entry>0x00010000</entry>
+> +	    <entry>"Start of exposure." The buffer timestamp has been taken
+
+Start Of Exposure: the buffer...
+
+> +	    when the exposure of the frame has begun. This is only
+
+Should 'when' be replaced with 'after' here as well? I think Laurent has to decide
+that.
+
+Regards,
+
+	Hans
+
+> +	    valid for buffer type
+> +	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 5a5fb7f..6e314b0 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2195,7 +2195,9 @@ int vb2_queue_init(struct vb2_queue *q)
+>  	    WARN_ON(!q->io_modes)	  ||
+>  	    WARN_ON(!q->ops->queue_setup) ||
+>  	    WARN_ON(!q->ops->buf_queue)   ||
+> -	    WARN_ON(q->timestamp_type & ~V4L2_BUF_FLAG_TIMESTAMP_MASK))
+> +	    WARN_ON(q->timestamp_type &
+> +		    ~(V4L2_BUF_FLAG_TIMESTAMP_MASK |
+> +		      V4L2_BUF_FLAG_TSTAMP_SRC_MASK)))
+>  		return -EINVAL;
+>  
+>  	/* Warn that the driver should choose an appropriate timestamp type */
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index bef53ce..b6b992d 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -312,6 +312,8 @@ struct v4l2_fh;
+>   * @buf_struct_size: size of the driver-specific buffer structure;
+>   *		"0" indicates the driver doesn't want to use a custom buffer
+>   *		structure type, so sizeof(struct vb2_buffer) will is used
+> + * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_* and
+> + *		V4L2_BUF_FLAGS_TSTAMP_SRC_*
+>   * @gfp_flags:	additional gfp flags used when allocating the buffers.
+>   *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
+>   *		to force the buffer allocation to a specific memory zone.
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index e9ee444..82e8661 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -695,6 +695,10 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
+>  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
+>  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
+> +/* Timestamp sources. */
+> +#define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
+> +#define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
+> +#define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+>  
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+> 
+
