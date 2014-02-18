@@ -1,421 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:38433 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751558AbaBRSku (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 13:40:50 -0500
+Received: from ns.pmeerw.net ([87.118.82.44]:36305 "EHLO pmeerw.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753340AbaBRIIm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Feb 2014 03:08:42 -0500
+Date: Tue, 18 Feb 2014 09:08:41 +0100 (CET)
+From: Peter Meerwald <pmeerw@pmeerw.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	sakari.ailus@iki.fi
+Subject: Re: OMAP3 ISP capabilities, resizer
+In-Reply-To: <1820490.0WrQgPlyuR@avalon>
+Message-ID: <alpine.DEB.2.01.1402180854190.17228@pmeerw.net>
+References: <alpine.DEB.2.01.1402121601100.6337@pmeerw.net> <1820490.0WrQgPlyuR@avalon>
 MIME-Version: 1.0
-In-Reply-To: <1392235552-28134-1-git-send-email-pengw@nvidia.com>
-References: <1392235552-28134-1-git-send-email-pengw@nvidia.com>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Tue, 18 Feb 2014 10:40:28 -0800
-Message-ID: <CAK5ve-LGkvxyPJK1YXMXc-4DV6TOM6RcpHthjmt3RLaCEnWVhg@mail.gmail.com>
-Subject: Re: [PATCH v2] media: soc-camera: OF cameras
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-tegra <linux-tegra@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 12, 2014 at 12:05 PM, Bryan Wu <cooloney@gmail.com> wrote:
-> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->
-> With OF we aren't getting platform data any more. To minimise changes we
-> create all the missing data ourselves, including compulsory struct
-> soc_camera_link objects. Host-client linking is now done, based on the OF
-> data. Media bus numbers also have to be assigned dynamically.
->
-> OF probing reuses the V4L2 Async API which is used by async non-OF probing.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Hello,
 
-Hi Guennadi,
+> > * I have a test program, http://pmeerw.net/scaler.c, which exercises the
+> > OMAP3 ISP resizer standalone with the pipeline given below; it crashes the
+> > system quite reliably on 3.7 and recent kernels :(
+> > 
+> > the reason for the crash is that the ISP resizer can still be busy and
+> > doesn't like to be turned off then; a little sleep before
+> > omap3isp_sbl_disable() helps (or waiting for the ISP resize to become
+> > idle, see the patch below)
+> > 
+> > I'm not sure what omap3isp_module_sync_idle() is supposed to do, it
+> > immediately returns since we are in SINGLESHOT mode and
+> > isp_pipeline_ready() is false
+> 
+> The function is supposed to wait until the module becomes idle. I'm not sure 
+> why we don't call it for memory-to-memory pipelines, I need to investigate 
+> that. Sakari, do you remember what we've done there ?
+>
+> > with below patch I am happily resizing...
+> > 
+> > // snip, RFC
+> > From: Peter Meerwald <p.meerwald@bct-electronic.com>
+> > Date: Wed, 12 Feb 2014 15:59:20 +0100
+> > Subject: [PATCH] omap3isp: Wait for resizer to become idle before
+> > disabling
+> > 
+> > ---
+> >  drivers/media/platform/omap3isp/ispresizer.c |   10 ++++++++++
+> >  1 file changed, 10 insertions(+)
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/ispresizer.c
+> > b/drivers/media/platform/omap3isp/ispresizer.c
+> > index d11fb26..fea98f7 100644
+> > --- a/drivers/media/platform/omap3isp/ispresizer.c
+> > +++ b/drivers/media/platform/omap3isp/ispresizer.c
+> > @@ -1145,6 +1145,7 @@ static int resizer_set_stream(struct v4l2_subdev *sd,
+> > int enable) struct isp_video *video_out = &res->video_out;
+> >         struct isp_device *isp = to_isp_device(res);
+> >         struct device *dev = to_device(res);
+> > +       unsigned long timeout = 0;
+> > 
+> >         if (res->state == ISP_PIPELINE_STREAM_STOPPED) {
+> >                 if (enable == ISP_PIPELINE_STREAM_STOPPED)
+> > @@ -1176,6 +1177,15 @@ static int resizer_set_stream(struct v4l2_subdev *sd,
+> > int enable) if (omap3isp_module_sync_idle(&sd->entity, &res->wait,
+> > &res->stopping))
+> >                         dev_dbg(dev, "%s: module stop timeout.\n",
+> > sd->name);
+> > +
+> > +               while (omap3isp_resizer_busy(res)) {
+> > +                       if (timeout++ > 1000) {
+> > +                               dev_alert(isp->dev, "ISP resizer does not
+> > become idle\n");
+> > +                               return -ETIMEDOUT;
+> > +                       }
+> > +                       udelay(100);
+> > +               }
+> > +
+> 
+> Let's try to avoid busy loops if possible. Does it help if you comment out the 
+> condition at the top of omap3isp_module_sync_idle() ?
+> 
+> >                 omap3isp_sbl_disable(isp, OMAP3_ISP_SBL_RESIZER_READ |
+> >                                 OMAP3_ISP_SBL_RESIZER_WRITE);
+> >                 omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_RESIZER);
 
-Do you have chance to review my v2 patch?
+tried without the check at the top of omap3isp_module_sync_idle()
 
-Thanks,
--Bryan
+I am not sure yet when and how many interrupts occur in memory-to-memory 
+(singleshot) mode... and the code might be racy:
 
-> Signed-off-by: Bryan Wu <pengw@nvidia.com>
-> ---
-> v2:
->  - move to use V4L2 Async API
->  - cleanup some coding style issue
->  - allocate struct soc_camera_desc sdesc on stack
->  - cleanup unbalanced mutex operation
->
->  drivers/media/platform/soc_camera/soc_camera.c | 232 ++++++++++++++++++++++++-
->  include/media/soc_camera.h                     |   5 +
->  2 files changed, 233 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index 4b8c024..ffe1254 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -23,6 +23,7 @@
->  #include <linux/list.h>
->  #include <linux/module.h>
->  #include <linux/mutex.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/regulator/consumer.h>
-> @@ -36,6 +37,7 @@
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-ioctl.h>
->  #include <media/v4l2-dev.h>
-> +#include <media/v4l2-of.h>
->  #include <media/videobuf-core.h>
->  #include <media/videobuf2-core.h>
->
-> @@ -49,6 +51,7 @@
->          vb2_is_streaming(&(icd)->vb2_vidq))
->
->  #define MAP_MAX_NUM 32
-> +static DECLARE_BITMAP(host_map, MAP_MAX_NUM);
->  static DECLARE_BITMAP(device_map, MAP_MAX_NUM);
->  static LIST_HEAD(hosts);
->  static LIST_HEAD(devices);
-> @@ -65,6 +68,17 @@ struct soc_camera_async_client {
->         struct list_head list;          /* needed for clean up */
->  };
->
-> +struct soc_camera_of_client {
-> +       struct soc_camera_desc *sdesc;
-> +       struct soc_camera_async_client sasc;
-> +       struct v4l2_of_endpoint node;
-> +       struct dev_archdata archdata;
-> +       struct device_node *link_node;
-> +       union {
-> +               struct i2c_board_info i2c_info;
-> +       };
-> +};
-> +
->  static int soc_camera_video_start(struct soc_camera_device *icd);
->  static int video_dev_create(struct soc_camera_device *icd);
->
-> @@ -1336,6 +1350,10 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
->                 return -EPROBE_DEFER;
->         }
->
-> +       /* OF probing skips following I2C init */
-> +       if (shd->host_wait)
-> +               return 0;
-> +
->         ici = to_soc_camera_host(icd->parent);
->         adap = i2c_get_adapter(shd->i2c_adapter_id);
->         if (!adap) {
-> @@ -1573,10 +1591,180 @@ static void scan_async_host(struct soc_camera_host *ici)
->                 asd += ici->asd_sizes[j];
->         }
->  }
-> +
-> +static void soc_camera_of_i2c_ifill(struct soc_camera_of_client *sofc,
-> +                                   struct i2c_client *client)
-> +{
-> +       struct i2c_board_info *info = &sofc->i2c_info;
-> +       struct soc_camera_desc *sdesc = sofc->sdesc;
-> +
-> +       /* on OF I2C devices platform_data == NULL */
-> +       info->flags = client->flags;
-> +       info->addr = client->addr;
-> +       info->irq = client->irq;
-> +       info->archdata = &sofc->archdata;
-> +
-> +       /* archdata is always empty on OF I2C devices */
-> +       strlcpy(info->type, client->name, sizeof(info->type));
-> +
-> +       sdesc->host_desc.i2c_adapter_id = client->adapter->nr;
-> +}
-> +
-> +static void soc_camera_of_i2c_info(struct device_node *node,
-> +                                  struct soc_camera_of_client *sofc)
-> +{
-> +       struct i2c_client *client;
-> +       struct soc_camera_desc *sdesc = sofc->sdesc;
-> +       struct i2c_board_info *info = &sofc->i2c_info;
-> +       struct device_node *port, *sensor, *bus;
-> +
-> +       port = v4l2_of_get_remote_port(node);
-> +       if (!port)
-> +               return;
-> +
-> +       /* Check the bus */
-> +       sensor = of_get_parent(port);
-> +       bus = of_get_parent(sensor);
-> +
-> +       if (of_node_cmp(bus->name, "i2c")) {
-> +               of_node_put(port);
-> +               of_node_put(sensor);
-> +               of_node_put(bus);
-> +               return;
-> +       }
-> +
-> +       info->of_node = sensor;
-> +       sdesc->host_desc.board_info = info;
-> +
-> +       client = of_find_i2c_device_by_node(sensor);
-> +       /*
-> +        * of_i2c_register_devices() took a reference to the OF node, it is not
-> +        * dropped, when the I2C device is removed, so, we don't need an
-> +        * additional reference.
-> +        */
-> +       of_node_put(sensor);
-> +       if (client) {
-> +               soc_camera_of_i2c_ifill(sofc, client);
-> +               sofc->link_node = sensor;
-> +               put_device(&client->dev);
-> +       }
-> +
-> +       /* client hasn't attached to I2C yet */
-> +}
-> +
-> +static struct soc_camera_of_client *soc_camera_of_alloc_client(const struct soc_camera_host *ici,
-> +                                                              struct device_node *node)
-> +{
-> +       struct soc_camera_of_client *sofc;
-> +       struct v4l2_async_subdev *sensor;
-> +       struct soc_camera_desc sdesc = { .host_desc.host_wait = true,};
-> +       int i, ret;
-> +
-> +       sofc = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sofc), GFP_KERNEL);
-> +       if (!sofc)
-> +               return NULL;
-> +
-> +       /* Allocate v4l2_async_subdev by ourselves */
-> +       sensor = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sensor), GFP_KERNEL);
-> +       if (!sensor)
-> +               return NULL;
-> +       sofc->sasc.sensor = sensor;
-> +
-> +       mutex_lock(&list_lock);
-> +       i = find_first_zero_bit(device_map, MAP_MAX_NUM);
-> +       if (i < MAP_MAX_NUM)
-> +               set_bit(i, device_map);
-> +       mutex_unlock(&list_lock);
-> +       if (i >= MAP_MAX_NUM)
-> +               return NULL;
-> +       sofc->sasc.pdev = platform_device_alloc("soc-camera-pdrv", i);
-> +       if (!sofc->sasc.pdev)
-> +               return NULL;
-> +
-> +       sdesc.host_desc.node = &sofc->node;
-> +       sdesc.host_desc.bus_id = ici->nr;
-> +
-> +       ret = platform_device_add_data(sofc->sasc.pdev, &sdesc, sizeof(sdesc));
-> +       if (ret < 0)
-> +               return NULL;
-> +       sofc->sdesc = sofc->sasc.pdev->dev.platform_data;
-> +
-> +       soc_camera_of_i2c_info(node, sofc);
-> +
-> +       return sofc;
-> +}
-> +
-> +static void scan_of_host(struct soc_camera_host *ici)
-> +{
-> +       struct soc_camera_of_client *sofc;
-> +       struct soc_camera_async_client *sasc;
-> +       struct v4l2_async_subdev *asd;
-> +       struct soc_camera_device *icd;
-> +       struct device_node *node = NULL;
-> +
-> +       for (;;) {
-> +               int ret;
-> +
-> +               node = v4l2_of_get_next_endpoint(ici->v4l2_dev.dev->of_node,
-> +                                              node);
-> +               if (!node)
-> +                       break;
-> +
-> +               sofc = soc_camera_of_alloc_client(ici, node);
-> +               if (!sofc) {
-> +                       dev_err(ici->v4l2_dev.dev,
-> +                               "%s(): failed to create a client device\n",
-> +                               __func__);
-> +                       of_node_put(node);
-> +                       break;
-> +               }
-> +               v4l2_of_parse_endpoint(node, &sofc->node);
-> +
-> +               sasc = &sofc->sasc;
-> +               ret = platform_device_add(sasc->pdev);
-> +               if (ret < 0) {
-> +                       /* Useless thing, but keep trying */
-> +                       platform_device_put(sasc->pdev);
-> +                       of_node_put(node);
-> +                       continue;
-> +               }
-> +
-> +               /* soc_camera_pdrv_probe() probed successfully */
-> +               icd = platform_get_drvdata(sasc->pdev);
-> +               if (!icd) {
-> +                       /* Cannot be... */
-> +                       platform_device_put(sasc->pdev);
-> +                       of_node_put(node);
-> +                       continue;
-> +               }
-> +
-> +               asd = sasc->sensor;
-> +               asd->match_type = V4L2_ASYNC_MATCH_OF;
-> +               asd->match.of.node = sofc->link_node;
-> +
-> +               sasc->notifier.subdevs = &asd;
-> +               sasc->notifier.num_subdevs = 1;
-> +               sasc->notifier.bound = soc_camera_async_bound;
-> +               sasc->notifier.unbind = soc_camera_async_unbind;
-> +               sasc->notifier.complete = soc_camera_async_complete;
-> +
-> +               icd->parent = ici->v4l2_dev.dev;
-> +
-> +               ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
-> +               if (!ret)
-> +                       break;
-> +
-> +               /*
-> +                * We could destroy the icd in there error case here, but the
-> +                * non-OF version doesn't do that, so, we can keep it around too
-> +                */
-> +       }
-> +}
->  #else
->  #define soc_camera_i2c_init(icd, sdesc)        (-ENODEV)
->  #define soc_camera_i2c_free(icd)       do {} while (0)
->  #define scan_async_host(ici)           do {} while (0)
-> +#define scan_of_host(ici)              do {} while (0)
->  #endif
->
->  /* Called during host-driver probe */
-> @@ -1689,6 +1877,7 @@ static int soc_camera_remove(struct soc_camera_device *icd)
->  {
->         struct soc_camera_desc *sdesc = to_soc_camera_desc(icd);
->         struct video_device *vdev = icd->vdev;
-> +       struct v4l2_of_endpoint *node = sdesc->host_desc.node;
->
->         v4l2_ctrl_handler_free(&icd->ctrl_handler);
->         if (vdev) {
-> @@ -1719,6 +1908,17 @@ static int soc_camera_remove(struct soc_camera_device *icd)
->         if (icd->sasc)
->                 platform_device_unregister(icd->sasc->pdev);
->
-> +       if (node) {
-> +               struct soc_camera_of_client *sofc = container_of(node,
-> +                                       struct soc_camera_of_client, node);
-> +               /* Don't dead-lock: remove the device here under the lock */
-> +               clear_bit(sofc->sasc.pdev->id, device_map);
-> +               list_del(&icd->list);
-> +               if (sofc->link_node)
-> +                       of_node_put(sofc->link_node);
-> +               platform_device_unregister(sofc->sasc.pdev);
-> +       }
-> +
->         return 0;
->  }
->
-> @@ -1813,17 +2013,34 @@ int soc_camera_host_register(struct soc_camera_host *ici)
->                 ici->ops->enum_framesizes = default_enum_framesizes;
->
->         mutex_lock(&list_lock);
-> -       list_for_each_entry(ix, &hosts, list) {
-> -               if (ix->nr == ici->nr) {
-> +       if (ici->nr == (unsigned char)-1) {
-> +               /* E.g. OF host: dynamic number */
-> +               /* TODO: consider using IDR */
-> +               ici->nr = find_first_zero_bit(host_map, MAP_MAX_NUM);
-> +               if (ici->nr >= MAP_MAX_NUM) {
->                         ret = -EBUSY;
->                         goto edevreg;
->                 }
-> +       } else {
-> +               if (ici->nr >= MAP_MAX_NUM) {
-> +                       ret = -EINVAL;
-> +                       goto edevreg;
-> +               }
-> +
-> +               list_for_each_entry(ix, &hosts, list) {
-> +                       if (ix->nr == ici->nr) {
-> +                               ret = -EBUSY;
-> +                               goto edevreg;
-> +                       }
-> +               }
->         }
->
->         ret = v4l2_device_register(ici->v4l2_dev.dev, &ici->v4l2_dev);
->         if (ret < 0)
->                 goto edevreg;
->
-> +       set_bit(ici->nr, host_map);
-> +
->         list_add_tail(&ici->list, &hosts);
->         mutex_unlock(&list_lock);
->
-> @@ -1837,9 +2054,11 @@ int soc_camera_host_register(struct soc_camera_host *ici)
->                  * dynamically!
->                  */
->                 scan_async_host(ici);
-> -       else
-> +       else if (!ici->v4l2_dev.dev->of_node)
->                 /* Legacy: static platform devices from board data */
->                 scan_add_host(ici);
-> +       else    /* Scan subdevices from OF info */
-> +               scan_of_host(ici);
->
->         return 0;
->
-> @@ -1857,6 +2076,8 @@ void soc_camera_host_unregister(struct soc_camera_host *ici)
->         LIST_HEAD(notifiers);
->
->         mutex_lock(&list_lock);
-> +
-> +       clear_bit(ici->nr, host_map);
->         list_del(&ici->list);
->         list_for_each_entry(icd, &devices, list)
->                 if (icd->iface == ici->nr && icd->sasc) {
-> @@ -1875,7 +2096,10 @@ void soc_camera_host_unregister(struct soc_camera_host *ici)
->         mutex_lock(&list_lock);
->
->         list_for_each_entry_safe(icd, tmp, &devices, list)
-> -               if (icd->iface == ici->nr)
-> +               if (icd->iface == ici->nr &&
-> +                   icd->parent == ici->v4l2_dev.dev &&
-> +                   (to_soc_camera_control(icd) ||
-> +                       icd->sdesc->host_desc.host_wait))
->                         soc_camera_remove(icd);
->
->         mutex_unlock(&list_lock);
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index 865246b..06b03b1 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -138,6 +138,7 @@ struct soc_camera_host_ops {
->
->  struct i2c_board_info;
->  struct regulator_bulk_data;
-> +struct v4l2_of_endpoint;
->
->  struct soc_camera_subdev_desc {
->         /* Per camera SOCAM_SENSOR_* bus flags */
-> @@ -177,7 +178,9 @@ struct soc_camera_host_desc {
->         int bus_id;
->         int i2c_adapter_id;
->         struct i2c_board_info *board_info;
-> +       struct v4l2_of_endpoint *node;
->         const char *module_name;
-> +       bool host_wait;
->
->         /*
->          * For non-I2C devices platform has to provide methods to add a device
-> @@ -242,7 +245,9 @@ struct soc_camera_link {
->         int bus_id;
->         int i2c_adapter_id;
->         struct i2c_board_info *board_info;
-> +       struct v4l2_of_endpoint *node;
->         const char *module_name;
-> +       bool host_wait;
->
->         /*
->          * For non-I2C devices platform has to provide methods to add a device
-> --
-> 1.8.3.2
->
+if the resizer is done, we don't want to wait for another interrupt which 
+might never happen;
+
+if the resizer is not done (how do we know?), we need to test that and 
+set the stopping flag so that omap3isp_module_sync_is_stopping() wakes us 
+when done
+
+omap3isp_module_sync_idle():
+
+	if (pipe->stream_state == ISP_PIPELINE_STREAM_STOPPED ||
+	    (0 && pipe->stream_state == ISP_PIPELINE_STREAM_SINGLESHOT &&
+	     !isp_pipeline_ready(pipe)))
+		return 0;
+
+isp_pipeline_ready() seems to be the wrong check for resizer done;
+the final interrupt could occur here, before setting 'stopping'
+
+	/*
+	 * atomic_set() doesn't include memory barrier on ARM platform for SMP
+	 * scenario. We'll call it here to avoid race conditions.
+	 */
+	atomic_set(stopping, 1);
+
+
+regards, p.
+
+-- 
+
+Peter Meerwald
++43-664-2444418 (mobile)
