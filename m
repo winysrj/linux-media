@@ -1,69 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta04.emeryville.ca.mail.comcast.net ([76.96.30.40]:58943 "EHLO
-	qmta04.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752466AbaB1VXH (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42038 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756275AbaBROg0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 16:23:07 -0500
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, shuahkhan@gmail.com
-Subject: [PATCH 1/3] media/drx39xyj: fix pr_dbg undefined compile errors when DJH_DEBUG is defined
-Date: Fri, 28 Feb 2014 14:23:00 -0700
-Message-Id: <88f91cfa309e47267d31f9ce176f839f6e309d95.1393621530.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1393621530.git.shuah.kh@samsung.com>
-References: <cover.1393621530.git.shuah.kh@samsung.com>
-In-Reply-To: <cover.1393621530.git.shuah.kh@samsung.com>
-References: <cover.1393621530.git.shuah.kh@samsung.com>
+	Tue, 18 Feb 2014 09:36:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Edgar Thier <info@edgarthier.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Added bayer 8-bit patterns to uvcvideo
+Date: Tue, 18 Feb 2014 15:37:34 +0100
+Message-ID: <232139127.sJD4YvNJ9E@avalon>
+In-Reply-To: <CAENiEt-OA==jH_tA4HBP68RW3vGga99dpuFE+Zx7=QNYBqeC5A@mail.gmail.com>
+References: <CAENiEt-OA==jH_tA4HBP68RW3vGga99dpuFE+Zx7=QNYBqeC5A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drxj.c fails to compile with the following errors when DJH_DEBUG
-is defined.
+Hi Edgar,
 
-drivers/media/dvb-frontends/drx39xyj/drxj.c:1567:2: error: implicit declaration of function ‘pr_dbg’ [-Werror=implicit-function-declaration]
-  pr_dbg("drx3933 i2c operation addr=%x i2c=%p, wc=%x rc=%x\n",
-  ^
+Thank you for the patch.
 
-Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Monday 20 January 2014 09:11:28 Edgar Thier wrote:
+> Add bayer 8-bit GUIDs to uvcvideo and
+> associate them with the corresponding V4L2 pixel formats.
+> 
+> Signed-off-by: Edgar Thier <info@edgarthier.net>
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index ed68c52..a78af4e 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -1562,7 +1562,7 @@ int drxbsp_i2c_write_read(struct i2c_device_addr *w_dev_addr,
- 		 .flags = I2C_M_RD, .buf = r_data, .len = r_count},
- 	};
- 
--	pr_dbg("drx3933 i2c operation addr=%x i2c=%p, wc=%x rc=%x\n",
-+	pr_debug("drx3933 i2c operation addr=%x i2c=%p, wc=%x rc=%x\n",
- 	       w_dev_addr->i2c_addr, state->i2c, w_count, r_count);
- 
- 	if (i2c_transfer(state->i2c, msg, 2) != 2) {
-@@ -20640,7 +20640,7 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
- 	for (i = 0; i < 2000; i++) {
- 		fe_status_t status;
- 		drx39xxj_read_status(fe, &status);
--		pr_dbg("i=%d status=%d\n", i, status);
-+		pr_debug("i=%d status=%d\n", i, status);
- 		msleep(100);
- 		i += 100;
- 	}
-@@ -20663,7 +20663,7 @@ static int drx39xxj_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 	int result;
- 
- #ifdef DJH_DEBUG
--	pr_dbg("i2c gate call: enable=%d state=%d\n", enable,
-+	pr_debug("i2c gate call: enable=%d state=%d\n", enable,
- 	       state->i2c_gate_open);
- #endif
- 
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Out of curiosity, could you please send me the lsusb -v output of the camera 
+you need this for ?
+
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 22 +++++++++++++++++++++-
+>  drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
+>  2 files changed, 33 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c
+> index c3bb250..84da426 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -108,11 +108,31 @@ static struct uvc_format_desc uvc_fmts[] = {
+>          .fcc        = V4L2_PIX_FMT_Y16,
+>      },
+>      {
+> -        .name        = "RGB Bayer",
+> +        .name        = "RGB Bayer (bggr)",
+>          .guid        = UVC_GUID_FORMAT_BY8,
+>          .fcc        = V4L2_PIX_FMT_SBGGR8,
+
+It looks like your mailer has corrupted the patch by replacing tabs with 
+spaces. Could you please fix that and resubmit ? While you're at it, could you 
+please prefix the commit subject with "uvcvideo: " ?
+
+>      },
+>      {
+> +        .name        = "RGB Bayer (bggr)",
+> +        .guid        = UVC_GUID_FORMAT_BY8_BA81,
+> +        .fcc        = V4L2_PIX_FMT_SBGGR8,
+> +    },
+> +    {
+> +        .name        = "RGB Bayer (grbg)",
+> +        .guid        = UVC_GUID_FORMAT_BY8_GRBG,
+> +        .fcc        = V4L2_PIX_FMT_SGRBG8,
+> +    },
+> +    {
+> +        .name        = "RGB Bayer (gbrg)",
+> +        .guid        = UVC_GUID_FORMAT_BY8_GBRG,
+> +        .fcc        = V4L2_PIX_FMT_SGBRG8,
+> +    },
+> +    {
+> +        .name        = "RGB Bayer (rggb)",
+> +        .guid        = UVC_GUID_FORMAT_BY8_RGGB,
+> +        .fcc        = V4L2_PIX_FMT_SRGGB8,
+> +    },
+> +    {
+>          .name        = "RGB565",
+>          .guid        = UVC_GUID_FORMAT_RGBP,
+>          .fcc        = V4L2_PIX_FMT_RGB565,
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index 9e35982..57357d9 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -94,6 +94,18 @@
+>  #define UVC_GUID_FORMAT_BY8 \
+>      { 'B',  'Y',  '8',  ' ', 0x00, 0x00, 0x10, 0x00, \
+>       0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> +#define UVC_GUID_FORMAT_BY8_BA81 \
+> +    { 'B',  'A',  '8',  '1', 0x00, 0x00, 0x10, 0x00, \
+> +     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> +#define UVC_GUID_FORMAT_BY8_GRBG \
+> +    { 'G',  'R',  'B',  'G', 0x00, 0x00, 0x10, 0x00, \
+> +     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> +#define UVC_GUID_FORMAT_BY8_GBRG \
+> +    { 'G',  'B',  'R',  'G', 0x00, 0x00, 0x10, 0x00, \
+> +     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+> +#define UVC_GUID_FORMAT_BY8_RGGB \
+> +    { 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
+> +     0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+>  #define UVC_GUID_FORMAT_RGBP \
+>      { 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
+>       0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
