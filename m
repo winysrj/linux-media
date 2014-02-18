@@ -1,66 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42359 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753193AbaBEQl7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:59 -0500
+	with ESMTP id S1756283AbaBRPdW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Feb 2014 10:33:22 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 30/47] adv7604: Don't put info string arrays on the stack
-Date: Wed,  5 Feb 2014 17:42:21 +0100
-Message-Id: <1391618558-5580-31-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 3/3] uvcvideo: Enable VIDIOC_CREATE_BUFS
+Date: Tue, 18 Feb 2014 16:34:16 +0100
+Message-Id: <1392737656-16177-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1392737656-16177-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1392737656-16177-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lars-Peter Clausen <lars@metafoo.de>
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-We do not want to modify the info string arrays ever, so no need to
-waste stack space for them. While we are at it also make them const.
+This patch enables the ioctl to create additional buffers on the
+videobuf2 capture queue.
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+[laurent.pinchart@ideasonboard.com: Acquire privileges instead of just
+checking them in VIDIOC_CREATE_BUFS implementation]
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/i2c/adv7604.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/usb/uvc/uvc_queue.c | 12 ++++++++++++
+ drivers/media/usb/uvc/uvc_v4l2.c  | 11 +++++++++++
+ drivers/media/usb/uvc/uvcvideo.h  |  2 ++
+ 3 files changed, 25 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 98ac383..cfcbb6d 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1886,13 +1886,13 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
- 	struct stdi_readback stdi;
- 	u8 reg_io_0x02 = io_read(sd, 0x02);
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index d46dd70..ff7be97 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -198,6 +198,18 @@ int uvc_query_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
+ 	return ret;
+ }
  
--	char *csc_coeff_sel_rb[16] = {
-+	static const char * const csc_coeff_sel_rb[16] = {
- 		"bypassed", "YPbPr601 -> RGB", "reserved", "YPbPr709 -> RGB",
- 		"reserved", "RGB -> YPbPr601", "reserved", "RGB -> YPbPr709",
- 		"reserved", "YPbPr709 -> YPbPr601", "YPbPr601 -> YPbPr709",
- 		"reserved", "reserved", "reserved", "reserved", "manual"
- 	};
--	char *input_color_space_txt[16] = {
-+	static const char * const input_color_space_txt[16] = {
- 		"RGB limited range (16-235)", "RGB full range (0-255)",
- 		"YCbCr Bt.601 (16-235)", "YCbCr Bt.709 (16-235)",
- 		"xvYCC Bt.601", "xvYCC Bt.709",
-@@ -1900,12 +1900,12 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
- 		"invalid", "invalid", "invalid", "invalid", "invalid",
- 		"invalid", "invalid", "automatic"
- 	};
--	char *rgb_quantization_range_txt[] = {
-+	static const char * const rgb_quantization_range_txt[] = {
- 		"Automatic",
- 		"RGB limited range (16-235)",
- 		"RGB full range (0-255)",
- 	};
--	char *deep_color_mode_txt[4] = {
-+	static const char * const deep_color_mode_txt[4] = {
- 		"8-bits per channel",
- 		"10-bits per channel",
- 		"12-bits per channel",
++int uvc_create_buffers(struct uvc_video_queue *queue,
++		       struct v4l2_create_buffers *cb)
++{
++	int ret;
++
++	mutex_lock(&queue->mutex);
++	ret = vb2_create_bufs(&queue->queue, cb);
++	mutex_unlock(&queue->mutex);
++
++	return ret;
++}
++
+ int uvc_queue_buffer(struct uvc_video_queue *queue, struct v4l2_buffer *buf)
+ {
+ 	int ret;
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 3afff92..378ae02 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -1000,6 +1000,17 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return uvc_query_buffer(&stream->queue, buf);
+ 	}
+ 
++	case VIDIOC_CREATE_BUFS:
++	{
++		struct v4l2_create_buffers *cb = arg;
++
++		ret = uvc_acquire_privileges(handle);
++		if (ret < 0)
++			return ret;
++
++		return uvc_create_buffers(&stream->queue, cb);
++	}
++
+ 	case VIDIOC_QBUF:
+ 		if (!uvc_has_privileges(handle))
+ 			return -EBUSY;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 6173632..143d5e5 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -614,6 +614,8 @@ extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
+ extern void uvc_free_buffers(struct uvc_video_queue *queue);
+ extern int uvc_query_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf);
++extern int uvc_create_buffers(struct uvc_video_queue *queue,
++		struct v4l2_create_buffers *v4l2_cb);
+ extern int uvc_queue_buffer(struct uvc_video_queue *queue,
+ 		struct v4l2_buffer *v4l2_buf);
+ extern int uvc_dequeue_buffer(struct uvc_video_queue *queue,
 -- 
 1.8.3.2
 
