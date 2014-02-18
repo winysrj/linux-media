@@ -1,54 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3234 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751777AbaBTKZY (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41295 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754288AbaBRMTQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 05:25:24 -0500
-Message-ID: <5305D7FA.9090402@xs4all.nl>
-Date: Thu, 20 Feb 2014 11:24:58 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 18 Feb 2014 07:19:16 -0500
+Received: from avalon.localnet (unknown [91.178.144.128])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 670FB35A46
+	for <linux-media@vger.kernel.org>; Tue, 18 Feb 2014 13:18:15 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.15] OMAP3 ISP fixes
+Date: Tue, 18 Feb 2014 13:20:24 +0100
+Message-ID: <1505895.hMaJzqaOi5@avalon>
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Cong Ding <dinggnu@gmail.com>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] stv0900: remove an unneeded check
-References: <20140206092402.GA31780@elgon.mountain>
-In-Reply-To: <20140206092402.GA31780@elgon.mountain>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/06/14 10:24, Dan Carpenter wrote:
-> No need to check "lock" twice here.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Hi Mauro,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The following changes since commit 37e59f876bc710d67a30b660826a5e83e07101ce:
 
+  [media, edac] Change my email address (2014-02-07 08:03:07 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap3isp/next
+
+for you to fetch changes up to 58ee8629ebc528b629dac36e5e5c67dffeecd2fa:
+
+  omap3isp: Don't ignore failure to locate external subdev (2014-02-18 
+13:18:52 +0100)
+
+----------------------------------------------------------------
+Florian Vaussard (1):
+      omap3isp: preview: Fix the crop margins
+
+Laurent Pinchart (2):
+      omap3isp: Don't try to locate external subdev for mem-to-mem pipelines
+      omap3isp: Don't ignore failure to locate external subdev
+
+ drivers/media/platform/omap3isp/isppreview.c | 9 +++++++++
+ drivers/media/platform/omap3isp/ispvideo.c   | 8 ++++++--
+ 2 files changed, 15 insertions(+), 2 deletions(-)
+
+-- 
 Regards,
 
-	Hans
-
-> 
-> diff --git a/drivers/media/dvb-frontends/stv0900_sw.c b/drivers/media/dvb-frontends/stv0900_sw.c
-> index 0a40edfad739..4ce1d260b3eb 100644
-> --- a/drivers/media/dvb-frontends/stv0900_sw.c
-> +++ b/drivers/media/dvb-frontends/stv0900_sw.c
-> @@ -1081,7 +1081,7 @@ static int stv0900_wait_for_lock(struct stv0900_internal *intp,
->  	lock = stv0900_get_demod_lock(intp, demod, dmd_timeout);
->  
->  	if (lock)
-> -		lock = lock && stv0900_get_fec_lock(intp, demod, fec_timeout);
-> +		lock = stv0900_get_fec_lock(intp, demod, fec_timeout);
->  
->  	if (lock) {
->  		lock = 0;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Laurent Pinchart
 
