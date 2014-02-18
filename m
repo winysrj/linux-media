@@ -1,80 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52543 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751379AbaBIJEC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 04:04:02 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [REVIEW PATCH 54/86] v4l: add RF tuner channel bandwidth control
-Date: Sun,  9 Feb 2014 10:48:59 +0200
-Message-Id: <1391935771-18670-55-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33131 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932084AbaBRNmI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Feb 2014 08:42:08 -0500
+Message-ID: <1392730903.3606.35.camel@pizza.hi.pengutronix.de>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Date: Tue, 18 Feb 2014 14:41:43 +0100
+In-Reply-To: <20140217181451.7EB7FC4044D@trevor.secretlab.ca>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
+	 < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
+	 <20140217181451.7EB7FC4044D@trevor.secretlab.ca>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modern silicon RF tuners has one or more adjustable filters on
-signal path, in order to filter noise from desired radio channel.
+Hi Grant,
 
-Add channel bandwidth control to tell the driver which is radio
-channel width we want receive. Filters could be then adjusted by
-the driver or hardware, using RF frequency and channel bandwidth
-as a base of filter calculations.
+Am Montag, den 17.02.2014, 18:14 +0000 schrieb Grant Likely:
+> On Tue, 11 Feb 2014 07:56:33 -0600, Rob Herring <robherring2@gmail.com> wrote:
+> > On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > > From: Philipp Zabel <philipp.zabel@gmail.com>
+> > >
+> > > This patch moves the parsing helpers used to parse connected graphs
+> > > in the device tree, like the video interface bindings documented in
+> > > Documentation/devicetree/bindings/media/video-interfaces.txt, from
+> > > drivers/media/v4l2-core to drivers/of.
+> > 
+> > This is the opposite direction things have been moving...
+> > 
+> > > This allows to reuse the same parser code from outside the V4L2 framework,
+> > > most importantly from display drivers. There have been patches that duplicate
+> > > the code (and I am going to send one of my own), such as
+> > > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
+> > > and others that parse the same binding in a different way:
+> > > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
+> > >
+> > > I think that all common video interface parsing helpers should be moved to a
+> > > single place, outside of the specific subsystems, so that it can be reused
+> > > by all drivers.
+> > 
+> > Perhaps that should be done rather than moving to drivers/of now and
+> > then again to somewhere else.
+> 
+> This is just parsing helpers though, isn't it? I have no problem pulling
+> helper functions into drivers/of if they are usable by multiple
+> subsystems. I don't really understand the model being used though. I
+> would appreciate a description of the usage model for these functions
+> for poor folks like me who can't keep track of what is going on in
+> subsystems.
 
-On automatic mode (normal mode), bandwidth is calculated from sampling
-rate or tuning info got from userspace. That new control gives
-possibility to set manual mode and let user have more control for
-filters.
+I have taken the liberty to put you on Cc: for the i.MX drm series that
+I'd like to use these helpers in. The patch in question is
+"[RFC PATCH v3 3/9] staging: imx-drm-core: Use OF graph to find
+components and connections between encoder and crtcs"
+(http://www.spinics.net/lists/arm-kernel/msg308542.html).
+It currently uses local copies (s/of_graph/imx_drm_of/) of the
+get_next_endpoint, get_remote_port, and get_remote_port_parent
+functions to obtain all necessary components for the componentized
+imx-drm device, and to map the connections between crtcs (display
+interface ports) and encoders.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- include/uapi/linux/v4l2-controls.h   | 2 ++
- 2 files changed, 6 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index d201f61..e44722b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
- 	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
- 	case V4L2_CID_IF_GAIN:			return "IF Gain";
-+	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
-+	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
- 	default:
- 		return NULL;
- 	}
-@@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_LNA_GAIN_AUTO:
- 	case V4L2_CID_MIXER_GAIN_AUTO:
- 	case V4L2_CID_IF_GAIN_AUTO:
-+	case V4L2_CID_BANDWIDTH_AUTO:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_LNA_GAIN:
- 	case V4L2_CID_MIXER_GAIN:
- 	case V4L2_CID_IF_GAIN:
-+	case V4L2_CID_BANDWIDTH:
- 		*flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 076fa34..3cf68a6 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -905,5 +905,7 @@ enum v4l2_deemphasis {
- #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
- #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
- #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
-+#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
-+#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
- 
- #endif
--- 
-1.8.5.3
+regards
+Philipp
 
