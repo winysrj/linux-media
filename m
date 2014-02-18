@@ -1,50 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44780 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474AbaBOBS5 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50078 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751809AbaBRHGr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 20:18:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Peter Meerwald <pmeerw@pmeerw.net>, sakari.ailus@iki.fi
-Subject: [PATCH 2/2] omap3isp: Don't ignore failure to locate external subdev
-Date: Sat, 15 Feb 2014 02:19:55 +0100
-Message-Id: <1392427195-2017-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1392427195-2017-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1392427195-2017-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 18 Feb 2014 02:06:47 -0500
+Date: Tue, 18 Feb 2014 08:06:24 +0100
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <robherring2@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+Message-ID: <20140218070624.GP17250@pengutronix.de>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
+ <CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
+ <20140217181451.7EB7FC4044D@trevor.secretlab.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140217181451.7EB7FC4044D@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A failure to locate the external subdev for a non memory-to-memory
-pipeline is a fatal error, don't ignore it.
+Hi Grant,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispvideo.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On Mon, Feb 17, 2014 at 06:14:51PM +0000, Grant Likely wrote:
+> On Tue, 11 Feb 2014 07:56:33 -0600, Rob Herring <robherring2@gmail.com> wrote:
+> > On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > > From: Philipp Zabel <philipp.zabel@gmail.com>
+> > >
+> > > This patch moves the parsing helpers used to parse connected graphs
+> > > in the device tree, like the video interface bindings documented in
+> > > Documentation/devicetree/bindings/media/video-interfaces.txt, from
+> > > drivers/media/v4l2-core to drivers/of.
+> > 
+> > This is the opposite direction things have been moving...
+> > 
+> > > This allows to reuse the same parser code from outside the V4L2 framework,
+> > > most importantly from display drivers. There have been patches that duplicate
+> > > the code (and I am going to send one of my own), such as
+> > > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
+> > > and others that parse the same binding in a different way:
+> > > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
+> > >
+> > > I think that all common video interface parsing helpers should be moved to a
+> > > single place, outside of the specific subsystems, so that it can be reused
+> > > by all drivers.
+> > 
+> > Perhaps that should be done rather than moving to drivers/of now and
+> > then again to somewhere else.
+> 
+> This is just parsing helpers though, isn't it? I have no problem pulling
+> helper functions into drivers/of if they are usable by multiple
+> subsystems. I don't really understand the model being used though. I
+> would appreciate a description of the usage model for these functions
+> for poor folks like me who can't keep track of what is going on in
+> subsystems.
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 313fd13..a62cf0b 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -886,7 +886,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
- 	struct v4l2_ext_controls ctrls;
- 	struct v4l2_ext_control ctrl;
- 	unsigned int i;
--	int ret = 0;
-+	int ret;
- 
- 	/* Memory-to-memory pipelines have no external subdev. */
- 	if (pipe->input != NULL)
-@@ -909,7 +909,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
- 
- 	if (!source) {
- 		dev_warn(isp->dev, "can't find source, failing now\n");
--		return ret;
-+		return -EINVAL;
- 	}
- 
- 	if (media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
+You can find it under Documentation/devicetree/bindings/media/video-interfaces.txt
+
+Sascha
+
 -- 
-1.8.3.2
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
