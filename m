@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45614 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750891AbaB0Aaj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:30:39 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 00/16] SDR API - Realtek RTL2832 SDR driver
-Date: Thu, 27 Feb 2014 02:30:09 +0200
-Message-Id: <1393461025-11857-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42011 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755063AbaBROay (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Feb 2014 09:30:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Josh Triplett <josh@joshtriplett.org>,
+	Levente Kurusa <levex@linux.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Linux Media <linux-media@vger.kernel.org>,
+	Lisa Nguyen <lisa@xenapiadmin.com>,
+	Archana kumari <archanakumari959@gmail.com>,
+	David Binderman <dcb314@hotmail.com>
+Subject: Re: [PATCH] staging: davinci_vpfe: fix error check
+Date: Tue, 18 Feb 2014 15:32:03 +0100
+Message-ID: <7270574.TJsfU1PaQa@avalon>
+In-Reply-To: <20140215171619.GA22985@leaf>
+References: <1392459431-28203-1-git-send-email-levex@linux.com> <20140215171619.GA22985@leaf>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That set adds support for Realtek RTL2832 SDR. There is many new
-interesting things, like DVB tuner which is converted to Regmap API.
+Hi Prabhakar,
 
-Antti
+(Removing Greg, Mauro and the devel@driverdev.osuosl.org list to avoid 
+spamming them)
 
-Antti Palosaari (16):
-  e4000: convert DVB tuner to I2C driver model
-  e4000: implement controls via v4l2 control framework
-  e4000: fix PLL calc to allow higher frequencies
-  e4000: implement PLL lock v4l control
-  e4000: get rid of DVB i2c_gate_ctrl()
-  e4000: convert to Regmap API
-  e4000: rename some variables
-  rtl2832_sdr: Realtek RTL2832 SDR driver module
-  rtl28xxu: constify demod config structs
-  rtl28xxu: attach SDR extension module
-  rtl28xxu: fix switch-case style issue
-  rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
-  rtl2832_sdr: expose e4000 controls to user
-  r820t: add manual gain controls
-  rtl2832_sdr: expose R820T controls to user
-  MAINTAINERS: add rtl2832_sdr driver
+On Saturday 15 February 2014 09:16:19 Josh Triplett wrote:
+> On Sat, Feb 15, 2014 at 11:17:11AM +0100, Levente Kurusa wrote:
+> > The check would check the pointer, which is never less than 0.
+> > According to the error message, the correct check would be
+> > to check the return value of ipipe_mode. Check that instead.
+> > 
+> > Reported-by: David Binderman <dcb314@hotmail.com>
+> > Signed-off-by: Levente Kurusa <levex@linux.com>
+> 
+> Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 
- MAINTAINERS                                      |   10 +
- drivers/media/tuners/Kconfig                     |    1 +
- drivers/media/tuners/e4000.c                     |  598 +++++----
- drivers/media/tuners/e4000.h                     |   21 +-
- drivers/media/tuners/e4000_priv.h                |   86 +-
- drivers/media/tuners/r820t.c                     |  137 +-
- drivers/media/tuners/r820t.h                     |   10 +
- drivers/media/usb/dvb-usb-v2/Makefile            |    1 +
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c          |   90 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h          |    2 +
- drivers/staging/media/Kconfig                    |    2 +
- drivers/staging/media/Makefile                   |    2 +
- drivers/staging/media/rtl2832u_sdr/Kconfig       |    7 +
- drivers/staging/media/rtl2832u_sdr/Makefile      |    6 +
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 1476 ++++++++++++++++++++++
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h |   51 +
- 16 files changed, 2234 insertions(+), 266 deletions(-)
- create mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
- create mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
- create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
- create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
+Could you please handle this patch ?
+
+> >  drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+> > b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c index
+> > 2d36b60..b2daf5e 100644
+> > --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+> > +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+> > @@ -267,7 +267,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
+> > 
+> >  	}
+> >  	
+> >  	ipipe_mode = get_ipipe_mode(ipipe);
+> > -	if (ipipe < 0) {
+> > +	if (ipipe_mode < 0) {
+> >  		pr_err("Failed to get ipipe mode");
+> >  		return -EINVAL;
+> >  	}
 
 -- 
-1.8.5.3
+Regards,
+
+Laurent Pinchart
 
