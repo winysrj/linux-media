@@ -1,41 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:39584 "EHLO pmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753259AbaBLQHM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 11:07:12 -0500
-Date: Wed, 12 Feb 2014 17:07:11 +0100 (CET)
-From: Peter Meerwald <pmeerw@pmeerw.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: OMAP3 ISP capabilities
-In-Reply-To: <17190750.bpa3L6qe94@avalon>
-Message-ID: <alpine.DEB.2.01.1402121650200.6337@pmeerw.net>
-References: <alpine.DEB.2.01.1402111543380.6474@pmeerw.net> <17190750.bpa3L6qe94@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41969 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755760AbaBRO0r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Feb 2014 09:26:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 0/3] uvcvideo VIDIOC_CREATE_BUFS support
+Date: Tue, 18 Feb 2014 15:27:46 +0100
+Message-Id: <1392733669-5281-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent,
+Hi Philipp,
 
-> > (3) it should be possible to use the ISP resizer input / output
-> > (memory-to-memory) independently; it there any example code doing this?
- 
-> I haven't written any sample code as such for memory-to-memory operation. I 
-> usually use the following media-ctl and yavta commands to test memory-to-
-> memory resizing :
+Here's a patch set that enables VIDIOC_CREATE_BUFS support in the uvcvideo
+driver. It's based on the patch you've submitted (3/3), with two additional
+cleanup patches to simplify the queue_setup implementation and supporting
+allocation of buffers larger than the current frame size.
 
-> yavta -f YUYV -s 2048x1536 -n 4 --capture=100 \
-> 	`media-ctl -e "OMAP3 ISP resizer input"` > resizer-input.log 2>&1 &
-> yavta -f YUYV -s 1024x768 -n 4 --capture=100 \
-> 	`./media-ctl -e "OMAP3 ISP resizer output"` > resizer-output.log 2>&1 &
+As you've submitted patch 3/3 I assume you have a use case, could you then
+please test the patch set to make sure 1/3 and 2/3 don't break anything ?
 
-thanks for the suggestion; I didn't understand yavta/v4l enough to see how 
-it can feed data to the ISP resizer input
+Laurent Pinchart (2):
+  uvcvideo: Remove duplicate check for number of buffers in queue_setup
+  uvcvideo: Support allocating buffers larger than the current frame
+    size
 
-p.
+Philipp Zabel (1):
+  uvcvideo: Enable VIDIOC_CREATE_BUFS
+
+ drivers/media/usb/uvc/uvc_queue.c | 20 +++++++++++++++++---
+ drivers/media/usb/uvc/uvc_v4l2.c  | 10 ++++++++++
+ drivers/media/usb/uvc/uvcvideo.h  |  4 ++--
+ 3 files changed, 29 insertions(+), 5 deletions(-)
 
 -- 
+Regards,
 
-Peter Meerwald
-+43-664-2444418 (mobile)
+Laurent Pinchart
+
