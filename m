@@ -1,99 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784AbaBEQmB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:01 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 32/47] adv7604: Cache register contents when reading multiple bits
-Date: Wed,  5 Feb 2014 17:42:23 +0100
-Message-Id: <1391618558-5580-33-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:50586 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756312AbaBRPBC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Feb 2014 10:01:02 -0500
+Date: Tue, 18 Feb 2014 18:00:45 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] gspca_stv06xx: remove an unneeded check
+Message-ID: <20140218150044.GC6914@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When extracting multiple bits from a single register read the register
-once and extract the bits on the read value.
+"err" is zero here so we don't need to check again.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/adv7604.c | 33 ++++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 13 deletions(-)
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 3d6876d..2a044d1 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1207,6 +1207,8 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
+diff --git a/drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c b/drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c
+index bf3e5c317a26..e60cbb3aa609 100644
+--- a/drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c
++++ b/drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c
+@@ -178,7 +178,7 @@ static int vv6410_stop(struct sd *sd)
  
- static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
- {
-+	u8 polarity;
-+
- 	if (no_lock_stdi(sd) || no_lock_sspd(sd)) {
- 		v4l2_dbg(2, debug, sd, "%s: STDI and/or SSPD not locked\n", __func__);
- 		return -1;
-@@ -1219,11 +1221,12 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
- 	stdi->interlaced = io_read(sd, 0x12) & 0x10;
+ 	PDEBUG(D_STREAM, "Halting stream");
  
- 	/* read SSPD */
--	if ((cp_read(sd, 0xb5) & 0x03) == 0x01) {
--		stdi->hs_pol = ((cp_read(sd, 0xb5) & 0x10) ?
--				((cp_read(sd, 0xb5) & 0x08) ? '+' : '-') : 'x');
--		stdi->vs_pol = ((cp_read(sd, 0xb5) & 0x40) ?
--				((cp_read(sd, 0xb5) & 0x20) ? '+' : '-') : 'x');
-+	polarity = cp_read(sd, 0xb5);
-+	if ((polarity & 0x03) == 0x01) {
-+		stdi->hs_pol = polarity & 0x10
-+			     ? (polarity & 0x08 ? '+' : '-') : 'x';
-+		stdi->vs_pol = polarity & 0x40
-+			     ? (polarity & 0x20 ? '+' : '-') : 'x';
- 	} else {
- 		stdi->hs_pol = 'x';
- 		stdi->vs_pol = 'x';
-@@ -1885,6 +1888,8 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
- 	struct v4l2_dv_timings timings;
- 	struct stdi_readback stdi;
- 	u8 reg_io_0x02 = io_read(sd, 0x02);
-+	u8 edid_enabled;
-+	u8 cable_det;
+-	return (err < 0) ? err : 0;
++	return 0;
+ }
  
- 	static const char * const csc_coeff_sel_rb[16] = {
- 		"bypassed", "YPbPr601 -> RGB", "reserved", "YPbPr709 -> RGB",
-@@ -1914,20 +1919,22 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
- 
- 	v4l2_info(sd, "-----Chip status-----\n");
- 	v4l2_info(sd, "Chip power: %s\n", no_power(sd) ? "off" : "on");
-+	edid_enabled = rep_read(sd, 0x7d);
- 	v4l2_info(sd, "EDID enabled port A: %s, B: %s, C: %s, D: %s\n",
--			((rep_read(sd, 0x7d) & 0x01) ? "Yes" : "No"),
--			((rep_read(sd, 0x7d) & 0x02) ? "Yes" : "No"),
--			((rep_read(sd, 0x7d) & 0x04) ? "Yes" : "No"),
--			((rep_read(sd, 0x7d) & 0x08) ? "Yes" : "No"));
-+			((edid_enabled & 0x01) ? "Yes" : "No"),
-+			((edid_enabled & 0x02) ? "Yes" : "No"),
-+			((edid_enabled & 0x04) ? "Yes" : "No"),
-+			((edid_enabled & 0x08) ? "Yes" : "No"));
- 	v4l2_info(sd, "CEC: %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
- 			"enabled" : "disabled");
- 
- 	v4l2_info(sd, "-----Signal status-----\n");
-+	cable_det = io_read(sd, 0x6f);
- 	v4l2_info(sd, "Cable detected (+5V power) port A: %s, B: %s, C: %s, D: %s\n",
--			((io_read(sd, 0x6f) & 0x10) ? "Yes" : "No"),
--			((io_read(sd, 0x6f) & 0x08) ? "Yes" : "No"),
--			((io_read(sd, 0x6f) & 0x04) ? "Yes" : "No"),
--			((io_read(sd, 0x6f) & 0x02) ? "Yes" : "No"));
-+			((cable_det & 0x10) ? "Yes" : "No"),
-+			((cable_det & 0x08) ? "Yes" : "No"),
-+			((cable_det & 0x04) ? "Yes" : "No"),
-+			((cable_det & 0x02) ? "Yes" : "No"));
- 	v4l2_info(sd, "TMDS signal detected: %s\n",
- 			no_signal_tmds(sd) ? "false" : "true");
- 	v4l2_info(sd, "TMDS signal locked: %s\n",
--- 
-1.8.3.2
-
+ static int vv6410_dump(struct sd *sd)
