@@ -1,117 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59495 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752811AbaBEQlp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:47247 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755528AbaBRPnQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Feb 2014 10:43:16 -0500
+Message-id: <53037F8F.3050302@samsung.com>
+Date: Tue, 18 Feb 2014 16:43:11 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	devicetree@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
 	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: [PATCH 00/47] ADV7611 support
-Date: Wed,  5 Feb 2014 17:41:51 +0100
-Message-Id: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mark Rutland <mark.rutland@arm.com>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH] V4L: s5k6a3: Add DT binding documentation
+References: <1387747620-24676-1-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1387747620-24676-1-git-send-email-s.nawrocki@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 22/12/13 22:27, Sylwester Nawrocki wrote:
+> This patch adds DT binding documentation for the Samsung S5K6A3(YX)
+> raw image sensor.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+> This patch adds missing documentation [1] for the "samsung,s5k6a3"
+> compatible. Rob, can you please merge it through your tree if it 
+> looks OK ?
 
-This patch set implements support for the ADV7611 in the adv7604 driver. It
-also comes up with new features such as output format configuration through
-pad format operations, hot-plug detect control through GPIO and DT support.
+Anyone cares to Ack this patch so it can be merged through the media
+tree ?
 
-Patches 06/47 to 27/47 replace the subdev video DV timings query cap and enum
-operations with pad-level equivalents. I've split driver changes in one patch
-per driver to make review easier, but I can squash them together if desired.
-
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-
-Lars-Peter Clausen (4):
-  adv7604: Add missing include to linux/types.h
-  adv7604: Add support for asynchronous probing
-  adv7604: Don't put info string arrays on the stack
-  adv7604: Add adv7611 support
-
-Laurent Pinchart (43):
-  v4l: of: Support empty port nodes
-  v4l: Add UYVY10_2X10 and VYUY10_2X10 media bus pixel codes
-  v4l: Add UYVY10_1X20 and VYUY10_1X20 media bus pixel codes
-  v4l: Add 12-bit YUV 4:2:0 media bus pixel codes
-  v4l: Add 12-bit YUV 4:2:2 media bus pixel codes
-  v4l: Add pad-level DV timings subdev operations
-  ad9389b: Add pad-level DV timings operations
-  adv7511: Add pad-level DV timings operations
-  adv7842: Add pad-level DV timings operations
-  s5p-tv: hdmi: Add pad-level DV timings operations
-  s5p-tv: hdmiphy: Add pad-level DV timings operations
-  ths8200: Add pad-level DV timings operations
-  tvp7002: Add pad-level DV timings operations
-  media: bfin_capture: Switch to pad-level DV operations
-  media: davinci: vpif: Switch to pad-level DV operations
-  media: staging: davinci: vpfe: Switch to pad-level DV operations
-  s5p-tv: mixer: Switch to pad-level DV operations
-  ad9389b: Remove deprecated video-level DV timings operations
-  adv7511: Remove deprecated video-level DV timings operations
-  adv7842: Remove deprecated video-level DV timings operations
-  s5p-tv: hdmi: Remove deprecated video-level DV timings operations
-  s5p-tv: hdmiphy: Remove deprecated video-level DV timings operation
-  ths8200: Remove deprecated video-level DV timings operations
-  tvp7002: Remove deprecated video-level DV timings operations
-  v4l: subdev: Remove deprecated video-level DV timings operations
-  v4l: Improve readability by not wrapping ioctl number #define's
-  v4l: Add support for DV timings ioctls on subdev nodes
-  adv7604: Add 16-bit read functions for CP and HDMI
-  adv7604: Cache register contents when reading multiple bits
-  adv7604: Remove subdev control handlers
-  adv7604: Add sink pads
-  adv7604: Make output format configurable through pad format operations
-  adv7604: Add pad-level DV timings support
-  adv7604: Remove deprecated video-level DV timings operations
-  adv7604: Inline the to_sd function
-  adv7604: Store I2C addresses and clients in arrays
-  adv7604: Replace *_and_or() functions with *_clr_set()
-  adv7604: Sort headers alphabetically
-  adv7604: Control hot-plug detect through a GPIO
-  adv7604: Specify the default input through platform data
-  adv7604: Add DT support
-  adv7604: Add LLC polarity configuration
-  adv7604: Add endpoint properties to DT bindings
-
- Documentation/DocBook/media/v4l/subdev-formats.xml |  760 ++++++++++
- .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    |   27 +-
- .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   |   27 +-
- .../devicetree/bindings/media/i2c/adv7604.txt      |   69 +
- drivers/media/i2c/ad9389b.c                        |   67 +-
- drivers/media/i2c/adv7511.c                        |   69 +-
- drivers/media/i2c/adv7604.c                        | 1465 ++++++++++++++------
- drivers/media/i2c/adv7842.c                        |   10 +-
- drivers/media/i2c/ths8200.c                        |   10 +
- drivers/media/i2c/tvp7002.c                        |    5 +-
- drivers/media/platform/blackfin/bfin_capture.c     |    4 +-
- drivers/media/platform/davinci/vpif_capture.c      |    4 +-
- drivers/media/platform/davinci/vpif_display.c      |    4 +-
- drivers/media/platform/s5p-tv/hdmi_drv.c           |   14 +-
- drivers/media/platform/s5p-tv/hdmiphy_drv.c        |    9 +-
- drivers/media/platform/s5p-tv/mixer_video.c        |    8 +-
- drivers/media/v4l2-core/v4l2-of.c                  |   52 +-
- drivers/media/v4l2-core/v4l2-subdev.c              |   15 +
- drivers/staging/media/davinci_vpfe/vpfe_video.c    |    4 +-
- include/media/adv7604.h                            |  109 +-
- include/media/v4l2-subdev.h                        |    8 +-
- include/uapi/linux/v4l2-mediabus.h                 |   14 +-
- include/uapi/linux/v4l2-subdev.h                   |   38 +-
- include/uapi/linux/videodev2.h                     |    8 +-
- 24 files changed, 2164 insertions(+), 636 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7604.txt
-
--- 
-Regards,
-
-Laurent Pinchart
+> Thanks,
+> Sylwester
+> 
+> [1] http://www.spinics.net/lists/devicetree/msg10693.html
+> 
+> Changes since v3 (https://linuxtv.org/patch/20429):
+>  - rephrased 'clocks' and 'clock-names' properties' description.
+> ---
+>  .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++++++++++++++++++++
+>  1 files changed, 33 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+> new file mode 100644
+> index 0000000..cce01e8
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+> @@ -0,0 +1,33 @@
+> +Samsung S5K6A3(YX) raw image sensor
+> +---------------------------------
+> +
+> +S5K6A3(YX) is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
+> +and CCI (I2C compatible) control bus.
+> +
+> +Required properties:
+> +
+> +- compatible	: "samsung,s5k6a3";
+> +- reg		: I2C slave address of the sensor;
+> +- svdda-supply	: core voltage supply;
+> +- svddio-supply	: I/O voltage supply;
+> +- afvdd-supply	: AF (actuator) voltage supply;
+> +- gpios		: specifier of a GPIO connected to the RESET pin;
+> +- clocks	: should contain list of phandle and clock specifier pairs
+> +		  according to common clock bindings for the clocks described
+> +		  in the clock-names property;
+> +- clock-names	: should contain "extclk" entry for the sensor's EXTCLK clock;
+> +
+> +Optional properties:
+> +
+> +- clock-frequency : the frequency at which the "extclk" clock should be
+> +		    configured to operate, in Hz; if this property is not
+> +		    specified default 24 MHz value will be used.
+> +
+> +The common video interfaces bindings (see video-interfaces.txt) should be
+> +used to specify link to the image data receiver. The S5K6A3(YX) device
+> +node should contain one 'port' child node with an 'endpoint' subnode.
+> +
+> +Following properties are valid for the endpoint node:
+> +
+> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+> +  video-interfaces.txt.  The sensor supports only one data lane.
 
