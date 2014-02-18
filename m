@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1310 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752819AbaBOMEP (ORCPT
+Received: from mail-we0-f177.google.com ([74.125.82.177]:57765 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751137AbaBRQ0c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Feb 2014 07:04:15 -0500
-Message-ID: <52FF579A.30400@xs4all.nl>
-Date: Sat, 15 Feb 2014 13:03:38 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [REVIEWv2 PATCH 37/34] v4l2-ctrls: set elem_size for all types handled
- by std_type_ops
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Feb 2014 11:26:32 -0500
+Received: by mail-we0-f177.google.com with SMTP id t61so11669866wes.22
+        for <linux-media@vger.kernel.org>; Tue, 18 Feb 2014 08:26:31 -0800 (PST)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Rob Herring <robherring2@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <20140218070624.GP17250@pengutronix.de>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com> < 20140217181451.7EB7FC4044D@trevor.secretlab.ca> <20140218070624.GP17250@ pengutronix.de>
+Date: Tue, 18 Feb 2014 16:26:27 +0000
+Message-Id: <20140218162627.32BA4C40517@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It makes sense to have elem_size prefilled for types that the control
-framework knows about.
+On Tue, 18 Feb 2014 08:06:24 +0100, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> Hi Grant,
+> 
+> On Mon, Feb 17, 2014 at 06:14:51PM +0000, Grant Likely wrote:
+> > On Tue, 11 Feb 2014 07:56:33 -0600, Rob Herring <robherring2@gmail.com> wrote:
+> > > On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> > > > From: Philipp Zabel <philipp.zabel@gmail.com>
+> > > >
+> > > > This patch moves the parsing helpers used to parse connected graphs
+> > > > in the device tree, like the video interface bindings documented in
+> > > > Documentation/devicetree/bindings/media/video-interfaces.txt, from
+> > > > drivers/media/v4l2-core to drivers/of.
+> > > 
+> > > This is the opposite direction things have been moving...
+> > > 
+> > > > This allows to reuse the same parser code from outside the V4L2 framework,
+> > > > most importantly from display drivers. There have been patches that duplicate
+> > > > the code (and I am going to send one of my own), such as
+> > > > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
+> > > > and others that parse the same binding in a different way:
+> > > > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
+> > > >
+> > > > I think that all common video interface parsing helpers should be moved to a
+> > > > single place, outside of the specific subsystems, so that it can be reused
+> > > > by all drivers.
+> > > 
+> > > Perhaps that should be done rather than moving to drivers/of now and
+> > > then again to somewhere else.
+> > 
+> > This is just parsing helpers though, isn't it? I have no problem pulling
+> > helper functions into drivers/of if they are usable by multiple
+> > subsystems. I don't really understand the model being used though. I
+> > would appreciate a description of the usage model for these functions
+> > for poor folks like me who can't keep track of what is going on in
+> > subsystems.
+> 
+> You can find it under Documentation/devicetree/bindings/media/video-interfaces.txt
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+Okay, I think I'm okay with moving the helpers, but I will make one
+requirement. I would like to have a short binding document describing
+the pattern being used. The document above talks a lot about video
+specific issues, but the helpers appear to be specifically about the
+tree walking properties of the API.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 23febc4..bc30c50 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1821,12 +1821,25 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		rows = 1;
- 	is_matrix = cols > 1 || rows > 1;
- 
--	if (type == V4L2_CTRL_TYPE_INTEGER64)
-+	/* Prefill elem_size for all types handled by std_type_ops */
-+	switch (type) {
-+	case V4L2_CTRL_TYPE_INTEGER64:
- 		elem_size = sizeof(s64);
--	else if (type == V4L2_CTRL_TYPE_STRING)
-+		break;
-+	case V4L2_CTRL_TYPE_STRING:
- 		elem_size = max + 1;
--	else if (type < V4L2_CTRL_COMPLEX_TYPES)
--		elem_size = sizeof(s32);
-+		break;
-+	case V4L2_CTRL_TYPE_U8:
-+		elem_size = sizeof(u8);
-+		break;
-+	case V4L2_CTRL_TYPE_U16:
-+		elem_size = sizeof(u16);
-+		break;
-+	default:
-+		if (type < V4L2_CTRL_COMPLEX_TYPES)
-+			elem_size = sizeof(s32);
-+		break;
-+	}
- 	tot_ctrl_size = elem_size * cols * rows;
- 
- 	/* Sanity checks */
--- 
-1.8.5.2
-
+g.
