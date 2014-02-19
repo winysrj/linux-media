@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41971 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755956AbaBRO0s (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35034 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752375AbaBSXQG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 09:26:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/3] uvcvideo: Support allocating buffers larger than the current frame size
-Date: Tue, 18 Feb 2014 15:27:48 +0100
-Message-Id: <1392733669-5281-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1392733669-5281-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1392733669-5281-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 19 Feb 2014 18:16:06 -0500
+Date: Thu, 20 Feb 2014 01:15:21 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.chehab@samsung.com,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 22/35] DocBook media: update control section.
+Message-ID: <20140219231521.GA15635@valkosipuli.retiisi.org.uk>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+ <1392631070-41868-23-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1392631070-41868-23-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The queue_setup handler takes an optional format argument that can be
-used to allocate buffers for a format different than the current format.
-The uvcvideo driver doesn't support changing the format when buffers
-have been allocated, but there's no reason not to support allocating
-buffers larger than the minimum size.
+Hi Hans,
 
-When the format argument isn't NULL verify that the requested image size
-is large enough for the current format and use it for the buffer size.
+On Mon, Feb 17, 2014 at 10:57:37AM +0100, Hans Verkuil wrote:
+...
+> @@ -501,6 +511,32 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+>      </example>
+>  
+>      <example>
+> +      <title>Enumerating all user controls (alternative)</title>
+> +	<programlisting>
+> +memset(&amp;queryctrl, 0, sizeof(queryctrl));
+> +
+> +queryctrl.id = V4L2_CTRL_CLASS_USER | V4L2_CTRL_FLAG_NEXT_CTRL;
+> +while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+> +	if (V4L2_CTRL_ID2CLASS(queryctrl.id) != V4L2_CTRL_CLASS_USER)
+> +		break;
+> +	if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
+> +		continue;
+> +
+> +	printf("Control %s\n", queryctrl.name);
+> +
+> +	if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+> +		enumerate_menu();
+> +
+> +	queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+> +}
+> +if (errno != EINVAL) {
+> +	perror("VIDIOC_QUERYCTRL");
+> +	exit(EXIT_FAILURE);
+> +}
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_queue.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+This is wrong; errno is guaranteed to be valid only if there's been an
+error.
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 254bc34..d46dd70 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -48,9 +48,14 @@ static int uvc_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 	struct uvc_streaming *stream =
- 			container_of(queue, struct uvc_streaming, queue);
- 
-+	/* Make sure the image size is large enough. */
-+	if (fmt && fmt->fmt.pix.sizeimage < stream->ctrl.dwMaxVideoFrameSize)
-+		return -EINVAL;
-+
- 	*nplanes = 1;
- 
--	sizes[0] = stream->ctrl.dwMaxVideoFrameSize;
-+	sizes[0] = fmt ? fmt->fmt.pix.sizeimage
-+		 : stream->ctrl.dwMaxVideoFrameSize;
- 
- 	return 0;
- }
 -- 
-1.8.3.2
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
