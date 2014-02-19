@@ -1,94 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1330 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753275AbaBYKQS (ORCPT
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:44072 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752149AbaBSHJ0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:16:18 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 01/13] v4l2-ioctl: add CREATE_BUFS sanity checks.
-Date: Tue, 25 Feb 2014 11:15:51 +0100
-Message-Id: <1393323363-30058-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 19 Feb 2014 02:09:26 -0500
+Message-ID: <530458A1.8060609@gmail.com>
+Date: Wed, 19 Feb 2014 16:09:21 +0900
+From: Daniel Jeong <gshark.jeong@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-doc@vger.kernel.org
+Subject: Re: [RFC v3,2/3] controls.xml : add addtional Flash fault bits
+References: <1392371151-32644-1-git-send-email-gshark.jeong@gmail.com> <20140217094143.GU15635@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20140217094143.GU15635@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sakari.
 
-Many drivers do not check anything. At least make sure that the various
-buffer size related fields are not obviously wrong.
+Thank you for you comments.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 52 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 50 insertions(+), 2 deletions(-)
+> Hi Daniel,
+>
+> Thanks for the update.
+>
+> Daniel Jeong wrote:
+>> Add addtional falult bits for FLASH
+>> V4L2_FLASH_FAULT_UNDER_VOLTAGE	: UVLO
+>> V4L2_FLASH_FAULT_INPUT_VOLTAGE	: input voltage is adjusted by IVFM
+>> V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE : NTC Trip point is crossed.
+>>
+>> Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+>> ---
+>>   Documentation/DocBook/media/v4l/controls.xml |   16 ++++++++++++++++
+>>   1 file changed, 16 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index a5a3188..8121f7e 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -4370,6 +4370,22 @@ interface and may change in the future.</para>
+>>       		  <entry>The flash controller has detected a short or open
+>>       		  circuit condition on the indicator LED.</entry>
+>>       		</row>
+>> +    		<row>
+>> +    		  <entry><constant>V4L2_FLASH_FAULT_UNDER_VOLTAGE</constant></entry>
+>> +    		  <entry>Flash controller voltage to the flash LED
+>> +    		  has been below the minimum limit specific to the flash
+>> +    		  controller.</entry>
+>> +    		</row>
+>> +    		<row>
+>> +    		  <entry><constant>V4L2_FLASH_FAULT_INPUT_VOLTAGE</constant></entry>
+>> +    		  <entry>The flash controller has detected adjustment of input
+>> +    		  voltage by Input Volage Flash Monitor(IVFM).</entry>
+> Volage -> Voltage; space before "(".
+>
+> I still feel uncomfortable with the reference to the IVFM. That appears
+> clearely an implementation specific term.
+>
+> You previously mentioned the flash current may be adjusted by the flash
+> controller. It should be mentioned here.
+>
+> Is it possible to read the adjusted value from the chip?
+>
+Unfornatley it is NOT possible.
+Usually thresholds can be selected,for example 2.9V, 3.0V, 3.1V, and 3.2V.
+Chip adjusts the current value if the input voltage cross the thresholds.
+We just read this flault flag from chip. So we need this.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 707aef7..69a1948 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1444,9 +1444,57 @@ static int v4l_create_bufs(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
- 	struct v4l2_create_buffers *create = arg;
--	int ret = check_fmt(file, create->format.type);
-+	const struct v4l2_format *fmt = &create->format;
-+	const struct v4l2_pix_format *pix = &fmt->fmt.pix;
-+	const struct v4l2_pix_format_mplane *mp = &fmt->fmt.pix_mp;
-+	const struct v4l2_plane_pix_format *p;
-+	int ret = check_fmt(file, fmt->type);
-+	unsigned i;
-+
-+	if (ret)
-+		return ret;
- 
--	return ret ? ret : ops->vidioc_create_bufs(file, fh, create);
-+	/* Sanity checks */
-+	switch (fmt->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		if (pix->sizeimage == 0 || pix->width == 0 || pix->height == 0)
-+			return -EINVAL;
-+		/* Note: bytesperline is 0 for compressed formats */
-+		if (pix->bytesperline &&
-+		    pix->height * pix->bytesperline > pix->sizeimage)
-+			return -EINVAL;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (mp->num_planes == 0 || mp->width == 0 || mp->height == 0)
-+			return -EINVAL;
-+		for (i = 0; i < mp->num_planes; i++) {
-+			p = &mp->plane_fmt[i];
-+
-+			if (p->sizeimage == 0)
-+				return -EINVAL;
-+			/* Note: bytesperline is 0 for compressed formats */
-+			if (p->bytesperline &&
-+			    p->bytesperline * mp->height > p->sizeimage)
-+				return -EINVAL;
-+		}
-+		break;
-+	case V4L2_BUF_TYPE_VBI_CAPTURE:
-+	case V4L2_BUF_TYPE_VBI_OUTPUT:
-+		if (fmt->fmt.vbi.count[0] + fmt->fmt.vbi.count[1] == 0)
-+			return -EINVAL;
-+		break;
-+	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
-+	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-+		if (fmt->fmt.sliced.io_size == 0)
-+			return -EINVAL;
-+		break;
-+	default:
-+		/* Overlay formats are invalid */
-+		return -EINVAL;
-+	}
-+	return ops->vidioc_create_bufs(file, fh, create);
- }
- 
- static int v4l_prepare_buf(const struct v4l2_ioctl_ops *ops,
--- 
-1.9.0
+I will describe more next patch.
+
+>> +    		</row>
+>> +    		<row>
+>> +    		  <entry><constant>V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE</constant></entry>
+>> +    		  <entry>The flash controller has detected that TEMP input has
+>> +    		  crossed NTC Trip Voltage.</entry>
+> Even if the NTC resistor might be the actual implementation, I wouldn't
+> refer to it here. There could be a real temperature sensor, for instance.
+
+I will fix it.
+
+>> +    		</row>
+>>       	      </tbody>
+>>       	    </entrytbl>
+>>       	  </row>
+>>
 
