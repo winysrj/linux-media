@@ -1,248 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3290 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851AbaBJIr7 (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:19270 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753587AbaBTTlD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:47:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 09/34] v4l2-ctrls: rewrite copy routines to operate on union v4l2_ctrl_ptr.
-Date: Mon, 10 Feb 2014 09:46:34 +0100
-Message-Id: <1392022019-5519-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 20 Feb 2014 14:41:03 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 01/10] Documentation: dt: Add DT binding documentation for
+ S5K6A3 image sensor
+Date: Thu, 20 Feb 2014 20:40:28 +0100
+Message-id: <1392925237-31394-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
+References: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds binding documentation for the Samsung S5K6A3(YX)
+raw image sensor.
 
-In order to implement matrix support and (for the future) configuration stores
-we need to have more generic copy routines. The v4l2_ctrl_ptr union was designed
-for this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 129 +++++++++++++++--------------------
- 1 file changed, 56 insertions(+), 73 deletions(-)
+Changes since v3:
+  -none.
+Changes since v2:
+ - rephrased 'clocks' and 'clock-names' properties' description;
+---
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 988a2bd8..b945008 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1275,48 +1275,64 @@ static const struct v4l2_ctrl_type_ops std_type_ops = {
- 	.validate = std_validate,
- };
- 
--/* Helper function: copy the current control value back to the caller */
--static int cur_to_user(struct v4l2_ext_control *c,
--		       struct v4l2_ctrl *ctrl)
-+/* Helper function: copy the given control value back to the caller */
-+static int ptr_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl,
-+		       union v4l2_ctrl_ptr ptr)
- {
- 	u32 len;
- 
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->p, ctrl->cur.p, ctrl->elem_size);
-+		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(ctrl->cur.string);
-+		len = strlen(ptr.p_char);
- 		if (c->size < len + 1) {
- 			c->size = len + 1;
- 			return -ENOSPC;
- 		}
--		return copy_to_user(c->string, ctrl->cur.string,
--						len + 1) ? -EFAULT : 0;
-+		return copy_to_user(c->string, ptr.p_char, len + 1) ?
-+								-EFAULT : 0;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		c->value64 = ctrl->cur.val64;
-+		c->value64 = *ptr.p_s64;
- 		break;
- 	default:
--		c->value = ctrl->cur.val;
-+		c->value = *ptr.p_s32;
- 		break;
- 	}
- 	return 0;
- }
- 
--/* Helper function: copy the caller-provider value as the new control value */
--static int user_to_new(struct v4l2_ext_control *c,
-+/* Helper function: copy the current control value back to the caller */
-+static int cur_to_user(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
- {
-+	return ptr_to_user(c, ctrl, ctrl->stores[0]);
-+}
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+new file mode 100644
+index 0000000..cce01e8
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+@@ -0,0 +1,33 @@
++Samsung S5K6A3(YX) raw image sensor
++---------------------------------
 +
-+/* Helper function: copy the new control value back to the caller */
-+static int new_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl)
-+{
-+	return ptr_to_user(c, ctrl, ctrl->new);
-+}
++S5K6A3(YX) is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
++and CCI (I2C compatible) control bus.
 +
-+/* Helper function: copy the caller-provider value to the given control value */
-+static int user_to_ptr(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl,
-+		       union v4l2_ctrl_ptr ptr)
-+{
- 	int ret;
- 	u32 size;
- 
- 	ctrl->is_new = 1;
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_from_user(ctrl->p, c->p, ctrl->elem_size);
-+		return copy_from_user(ptr.p, c->p, ctrl->elem_size);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		ctrl->val64 = c->value64;
-+		*ptr.p_s64 = c->value64;
- 		break;
- 	case V4L2_CTRL_TYPE_STRING:
- 		size = c->size;
-@@ -1324,83 +1340,64 @@ static int user_to_new(struct v4l2_ext_control *c,
- 			return -ERANGE;
- 		if (size > ctrl->maximum + 1)
- 			size = ctrl->maximum + 1;
--		ret = copy_from_user(ctrl->string, c->string, size);
-+		ret = copy_from_user(ptr.p_char, c->string, size);
- 		if (!ret) {
--			char last = ctrl->string[size - 1];
-+			char last = ptr.p_char[size - 1];
- 
--			ctrl->string[size - 1] = 0;
-+			ptr.p_char[size - 1] = 0;
- 			/* If the string was longer than ctrl->maximum,
- 			   then return an error. */
--			if (strlen(ctrl->string) == ctrl->maximum && last)
-+			if (strlen(ptr.p_char) == ctrl->maximum && last)
- 				return -ERANGE;
- 		}
- 		return ret ? -EFAULT : 0;
- 	default:
--		ctrl->val = c->value;
-+		*ptr.p_s32 = c->value;
- 		break;
- 	}
- 	return 0;
- }
- 
--/* Helper function: copy the new control value back to the caller */
--static int new_to_user(struct v4l2_ext_control *c,
-+/* Helper function: copy the caller-provider value as the new control value */
-+static int user_to_new(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
- {
--	u32 len;
--
--	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->p, ctrl->p, ctrl->elem_size);
-+	return user_to_ptr(c, ctrl, ctrl->new);
-+}
- 
-+/* Copy the one value to another. */
-+static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
-+		       union v4l2_ctrl_ptr from, union v4l2_ctrl_ptr to)
-+{
-+	if (ctrl == NULL)
-+		return;
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(ctrl->string);
--		if (c->size < len + 1) {
--			c->size = ctrl->maximum + 1;
--			return -ENOSPC;
--		}
--		return copy_to_user(c->string, ctrl->string,
--						len + 1) ? -EFAULT : 0;
-+		/* strings are always 0-terminated */
-+		strcpy(to.p_char, from.p_char);
-+		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		c->value64 = ctrl->val64;
-+		*to.p_s64 = *from.p_s64;
- 		break;
- 	default:
--		c->value = ctrl->val;
-+		if (ctrl->is_ptr)
-+			memcpy(to.p, from.p, ctrl->elem_size);
-+		else
-+			*to.p_s32 = *from.p_s32;
- 		break;
- 	}
--	return 0;
- }
- 
- /* Copy the new value to the current value. */
- static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
- {
--	bool changed = false;
-+	bool changed;
- 
- 	if (ctrl == NULL)
- 		return;
-+	changed = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
-+	ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
- 
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_BUTTON:
--		changed = true;
--		break;
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		changed = strcmp(ctrl->string, ctrl->cur.string);
--		strcpy(ctrl->cur.string, ctrl->string);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		changed = ctrl->val64 != ctrl->cur.val64;
--		ctrl->cur.val64 = ctrl->val64;
--		break;
--	default:
--		if (ctrl->is_ptr) {
--			changed = memcmp(ctrl->p, ctrl->cur.p, ctrl->elem_size);
--			memcpy(ctrl->cur.p, ctrl->p, ctrl->elem_size);
--		} else {
--			changed = ctrl->val != ctrl->cur.val;
--			ctrl->cur.val = ctrl->val;
--		}
--		break;
--	}
- 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
- 		/* Note: CH_FLAGS is only set for auto clusters. */
- 		ctrl->flags &=
-@@ -1429,21 +1426,7 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- {
- 	if (ctrl == NULL)
- 		return;
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		strcpy(ctrl->string, ctrl->cur.string);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		ctrl->val64 = ctrl->cur.val64;
--		break;
--	default:
--		if (ctrl->is_ptr)
--			memcpy(ctrl->p, ctrl->cur.p, ctrl->elem_size);
--		else
--			ctrl->val = ctrl->cur.val;
--		break;
--	}
-+	ptr_to_ptr(ctrl, ctrl->stores[0], ctrl->new);
- }
- 
- /* Return non-zero if one or more of the controls in the cluster has a new
++Required properties:
++
++- compatible	: "samsung,s5k6a3";
++- reg		: I2C slave address of the sensor;
++- svdda-supply	: core voltage supply;
++- svddio-supply	: I/O voltage supply;
++- afvdd-supply	: AF (actuator) voltage supply;
++- gpios		: specifier of a GPIO connected to the RESET pin;
++- clocks	: should contain list of phandle and clock specifier pairs
++		  according to common clock bindings for the clocks described
++		  in the clock-names property;
++- clock-names	: should contain "extclk" entry for the sensor's EXTCLK clock;
++
++Optional properties:
++
++- clock-frequency : the frequency at which the "extclk" clock should be
++		    configured to operate, in Hz; if this property is not
++		    specified default 24 MHz value will be used.
++
++The common video interfaces bindings (see video-interfaces.txt) should be
++used to specify link to the image data receiver. The S5K6A3(YX) device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Following properties are valid for the endpoint node:
++
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++  video-interfaces.txt.  The sensor supports only one data lane.
 -- 
-1.8.5.2
+1.7.9.5
 
