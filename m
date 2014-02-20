@@ -1,181 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55485 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751655AbaB0RWS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38410 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751363AbaBTTky (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Feb 2014 12:22:18 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v5 2/7] Documentation: of: Document graph bindings
-Date: Thu, 27 Feb 2014 18:35:35 +0100
-Message-Id: <1393522540-22887-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
-References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 20 Feb 2014 14:40:54 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com
+Subject: [PATCH v5.1 7/7] v4l: Document timestamp buffer flag behaviour
+Date: Thu, 20 Feb 2014 21:42:56 +0200
+Message-Id: <1392925376-20562-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20140217233305.GY15635@valkosipuli.retiisi.org.uk>
+References: <20140217233305.GY15635@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The device tree graph bindings as used by V4L2 and documented in
-Documentation/device-tree/bindings/media/video-interfaces.txt contain
-generic parts that are not media specific but could be useful for any
-subsystem with data flow between multiple devices. This document
-describe the generic bindings.
+Timestamp buffer flags are constant at the moment. Document them so that 1)
+they're always valid and 2) not changed by the drivers. This leaves room to
+extend the functionality later on if needed.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
-Changes since v4:
- - Differentiate from graphs made by simple phandle links
- - Do not mention data flow except in video-interfaces example
- - 
----
- Documentation/devicetree/bindings/graph.txt | 129 ++++++++++++++++++++++++++++
- 1 file changed, 129 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/graph.txt
+since v5:
+- Clarify timestamp source flag behaviour.
 
-diff --git a/Documentation/devicetree/bindings/graph.txt b/Documentation/devicetree/bindings/graph.txt
-new file mode 100644
-index 0000000..554865b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/graph.txt
-@@ -0,0 +1,129 @@
-+Common bindings for device graphs
+ Documentation/DocBook/media/v4l/io.xml |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 22b87bc..a69e12a 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -653,6 +653,16 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+ In that case, struct <structname>v4l2_buffer</structname> contains an array of
+ plane structures.</para>
+ 
++    <para>Dequeued video buffers come with timestamps. The driver
++    decides at which part of the frame and with which clock the
++    timestamp is taken. Please see flags in the masks
++    <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
++    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
++    linkend="buffer-flags">. These flags are always valid and constant
++    across all buffers during the whole video stream. Changes in these
++    flags may take place as a side effect of &VIDIOC-S-INPUT; or
++    &VIDIOC-S-OUTPUT; however.</para>
 +
-+General concept
-+---------------
-+
-+The hierarchical organisation of the device tree is well suited to describe
-+control flow to devices, but there can be more complex connections between
-+devices that work together to form a logical compound device, following an
-+arbitrarily complex graph.
-+There already is a simple directed graph between devices tree nodes using
-+phandle properties pointing to other nodes to describe connections that
-+can not be inferred from device tree parent-child relationships. The device
-+tree graph bindings described herein abstract more complex devices that can
-+have multiple specifiable ports, each of which can be linked to one or more
-+ports of other devices.
-+
-+These common bindings do not contain any information about the direction of
-+type of the connections, they just map their existence. Specific properties
-+may be described by specialized bindings depending on the type of connection.
-+
-+To see how this binding applies to video pipelines, for example, see
-+Documentation/device-tree/bindings/media/video-interfaces.txt.
-+Here the ports describe data interfaces, and the links between them are
-+the connecting data buses. A single port with multiple connections can
-+correspond to multiple devices being connected to the same physical bus.
-+
-+Organisation of ports and endpoints
-+-----------------------------------
-+
-+Ports are described by child 'port' nodes contained in the device node.
-+Each port node contains an 'endpoint' subnode for each remote device port
-+connected to this port. If a single port is connected to more than one
-+remote device, an 'endpoint' child node must be provided for each link.
-+If more than one port is present in a device node or there is more than one
-+endpoint at a port, or a port node needs to be associated with a selected
-+hardware interface, a common scheme using '#address-cells', '#size-cells'
-+and 'reg' properties is used number the nodes.
-+
-+device {
-+        ...
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+
-+        port@0 {
-+	        #address-cells = <1>;
-+	        #size-cells = <0>;
-+		reg = <0>;
-+
-+                endpoint@0 {
-+			reg = <0>;
-+			...
-+		};
-+                endpoint@1 {
-+			reg = <1>;
-+			...
-+		};
-+        };
-+
-+        port@1 {
-+		reg = <1>;
-+
-+		endpoint { ... };
-+	};
-+};
-+
-+All 'port' nodes can be grouped under an optional 'ports' node, which
-+allows to specify #address-cells, #size-cells properties for the 'port'
-+nodes independently from any other child device nodes a device might
-+have.
-+
-+device {
-+        ...
-+        ports {
-+                #address-cells = <1>;
-+                #size-cells = <0>;
-+
-+                port@0 {
-+                        ...
-+                        endpoint@0 { ... };
-+                        endpoint@1 { ... };
-+                };
-+
-+                port@1 { ... };
-+        };
-+};
-+
-+Links between endpoints
-+-----------------------
-+
-+Each endpoint should contain a 'remote-endpoint' phandle property that points
-+to the corresponding endpoint in the port of the remote device. In turn, the
-+remote endpoint should contain a 'remote-endpoint' property. If it has one,
-+it must not point to another than the local endpoint. Two endpoints with their
-+'remote-endpoint' phandles pointing at each other form a link between the
-+containing ports.
-+
-+device_1 {
-+        port {
-+                device_1_output: endpoint {
-+                        remote-endpoint = <&device_2_input>;
-+                };
-+        };
-+};
-+
-+device_1 {
-+        port {
-+                device_2_input: endpoint {
-+                        remote-endpoint = <&device_1_output>;
-+                };
-+        };
-+};
-+
-+
-+Required properties
-+-------------------
-+
-+If there is more than one 'port' or more than one 'endpoint' node or 'reg'
-+property is present in port and/or endpoint nodes the following properties
-+are required in a relevant parent node:
-+
-+ - #address-cells : number of cells required to define port/endpoint
-+                    identifier, should be 1.
-+ - #size-cells    : should be zero.
-+
-+Optional endpoint properties
-+----------------------------
-+
-+- remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
-+
+     <table frame="none" pgwide="1" id="v4l2-buffer">
+       <title>struct <structname>v4l2_buffer</structname></title>
+       <tgroup cols="4">
 -- 
-1.8.5.3
+1.7.10.4
 
