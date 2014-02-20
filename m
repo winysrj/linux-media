@@ -1,91 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f172.google.com ([209.85.216.172]:44459 "EHLO
-	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752696AbaBJTpb convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59582 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752306AbaBTX3I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 14:45:31 -0500
-Received: by mail-qc0-f172.google.com with SMTP id c9so11447238qcz.3
-        for <linux-media@vger.kernel.org>; Mon, 10 Feb 2014 11:45:31 -0800 (PST)
+	Thu, 20 Feb 2014 18:29:08 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH v5.1 3/7] v4l: Add timestamp source flags, mask and document them
+Date: Fri, 21 Feb 2014 00:30:21 +0100
+Message-ID: <1806212.4rVLkqN7y6@avalon>
+In-Reply-To: <53066763.3070000@xs4all.nl>
+References: <20140217232931.GW15635@valkosipuli.retiisi.org.uk> <1392925276-20412-1-git-send-email-sakari.ailus@iki.fi> <53066763.3070000@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <52F8A2AD.8040403@imgtec.com>
-References: <1391716763-2689-1-git-send-email-james.hogan@imgtec.com>
-	<CAKv9HNYxY0isLt+uZvDZJJ=PX0SF93RsFeS6PsRMMk5gqtu8kQ@mail.gmail.com>
-	<52F8A2AD.8040403@imgtec.com>
-Date: Mon, 10 Feb 2014 21:45:30 +0200
-Message-ID: <CAKv9HNYobfHS=BhxR6Wya=jB3fAR3bvRFfmkQJt9R7hB0PSwPg@mail.gmail.com>
-Subject: Re: [RFC 0/4] rc: ir-raw: Add encode, implement NEC encode
-From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
-To: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10 February 2014 11:58, James Hogan <james.hogan@imgtec.com> wrote:
-> Hi Antti,
->
-> On 08/02/14 11:30, Antti Seppälä wrote:
->>> The first patch adds an encode callback to the existing raw ir handler
->>> struct and a helper function to encode a scancode for a given protocol.
->>>
->>
->> The mechanism used here to encode works fine as long as there is only
->> one protocol selected. If there are several which all support encoding
->> then there's no easy way to tell which one will be used to do the
->> actual encoding.
->
-> True, I suppose it needs a wakeup_protocol sysfs file for that really (I
-> can't imagine a need or method to wake on multiple protocols, a
-> demodulating hardware decoder like img-ir can only have one set of
-> timings at a time, and a raw hardware decoder like nuvoton would seem
-> unlikely to have multiple wake match buffers - and if it did the sysfs
-> interface would probably need extending to take multiple
-> single-protocol/filter sets anyway).
->
-> This should probably be done prior to the new sysfs interface reaching
-> mainline, so that userland can always be expected to write the protocol
-> prior to the wakeup filter (rather than userland expecting the wake
-> protocol to follow the current protocol).
->
+Hi Hans,
 
-I agree. I think the new sysfs file could pretty much use the existing
-show/store_protocols() with the modification that only one protocol
-can be active at a time.
+On Thursday 20 February 2014 21:36:51 Hans Verkuil wrote:
+> On 02/20/2014 08:41 PM, Sakari Ailus wrote:
+> > Some devices do not produce timestamps that correspond to the end of the
+> > frame. The user space should be informed on the matter. This patch
+> > achieves
+> > that by adding buffer flags (and a mask) for timestamp sources since more
+> > possible timestamping points are expected than just two.
+> > 
+> > A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of the
+> > eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end
+> > of frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure
+> > (next value).
+> 
+> Sorry, but I still have two small notes:
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> > since v5:
+> > - Add a note on software generated timestamp inaccuracy.
+> > 
+> >  Documentation/DocBook/media/v4l/io.xml   |   38 +++++++++++++++++++++----
+> >  drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+> >  include/media/videobuf2-core.h           |    2 ++
+> >  include/uapi/linux/videodev2.h           |    4 ++++
+> >  4 files changed, 41 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > b/Documentation/DocBook/media/v4l/io.xml index 46d24b3..22b87bc 100644
+> > --- a/Documentation/DocBook/media/v4l/io.xml
+> > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > @@ -653,12 +653,6 @@ plane, are stored in struct
+> > <structname>v4l2_plane</structname> instead.> 
+> >  In that case, struct <structname>v4l2_buffer</structname> contains an
+> >  array of plane structures.</para>
+> > 
+> > -      <para>For timestamp types that are sampled from the system clock
+> > -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp
+> > is
+> > -taken after the complete frame has been received (or transmitted in
+> > -case of video output devices). For other kinds of
+> > -timestamps this may vary depending on the driver.</para>
+> > -
+> > 
+> >      <table frame="none" pgwide="1" id="v4l2-buffer">
+> >      
+> >        <title>struct <structname>v4l2_buffer</structname></title>
+> >        <tgroup cols="4">
+> > 
+> > @@ -1119,6 +1113,38 @@ in which case caches have not been used.</entry>
+> >  	    <entry>The CAPTURE buffer timestamp has been taken from the
+> >  	    corresponding OUTPUT buffer. This flag applies only to mem2mem
+> >  	    devices.</entry>
+> >  	  </row>
+> > +	  <row>
+> > +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
+> > +	    <entry>0x00070000</entry>
+> > +	    <entry>Mask for timestamp sources below. The timestamp source
+> > +	    defines the point of time the timestamp is taken in relation to
+> > +	    the frame. Logical and operation between the
+> > +	    <structfield>flags</structfield> field and
+> > +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
+> > +	    value of the timestamp source.</entry>
+> > +	  </row>
+> > +	  <row>
+> > +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
+> > +	    <entry>0x00000000</entry>
+> > +	    <entry>End Of Frame. The buffer timestamp has been taken
+> > +	    when the last pixel of the frame has been received or the
+> > +	    last pixel of the frame has been transmitted. In practice,
+> > +	    software generated timestamps will typically be read from
+> > +	    the clock a small amount of time after the last pixel has
+> > +	    been received, depending on the system and other activity
+> 
+> s/been received/been received or transmitted/
+> 
+> > +	    in it.</entry>
+> > +	  </row>
+> > +	  <row>
+> > +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
+> > +	    <entry>0x00010000</entry>
+> > +	    <entry>Start Of Exposure. The buffer timestamp has been
+> > +	    taken when the exposure of the frame has begun. In
+> > +	    practice, software generated timestamps will typically be
+> > +	    read from the clock a small amount of time after the last
+> > +	    pixel has been received, depending on the system and other
+> > +	    activity in it. This is only valid for buffer type
+> > +	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
+> 
+> I would move the last sentence up to just before "In practice...". The
+> way it is now it looks like an afterthought.
+> 
+> I am also not sure whether the whole "In practice" sentence is valid
+> here. Certainly the bit about "the last pixel" isn't since this is the
+> "SOE" case and not the End Of Frame. In the case of the UVC driver (and
+> that's the only one using this timestamp source) the timestamps come from
+> the hardware as I understand it, so the "software generated" bit doesn't
+> apply.
+> 
+> I would actually be inclined to drop it altogether for this particular
+> timestamp source. But it's up to Laurent.
 
->>> Finally for debug purposes patch 4 modifies img-ir-raw to loop back the
->>> encoded data when a filter is altered. Should be pretty easy to apply
->>> similarly to any raw ir driver to try it out.
->>>
->>
->> I believe we have rc-loopback driver for exactly this purpose. Could
->> you use it instead? Also adding the scancode filter to it would
->> demonstrate its usage.
->
-> True I could have done, I used img-ir simply out of convenience and
-> familiarity :). Would it make sense to generate an input event when
-> setting the filter though, or perhaps since the whole point of the
-> loopback driver is presumably debug it doesn't matter?
->
+What do you mean, drop what altogether ?
 
-Well the purpose of rc-loopback is to provide means to write scripts
-for debugging and the driver already loops tx back to rx. I just
-thought that it would fit nicely to loop the encoded filter back as
-well. It doesn't really matter though. Maybe some printk of the ir
-samples will also suffice.
+> > +	  </row>
+> >  	</tbody>
+> >        </tgroup>
+> >      </table>
 
-> To actually add filtering support to loopback would require either:
-> * raw-decoder/rc-core level scancode filtering for raw ir drivers
-> * OR loopback driver to encode like nuvoton and fuzzy match the IR signals.
->
+-- 
+Regards,
 
-Rc-core level scancode filtering shouldn't be too hard to do right? If
-such would exist then it would provide a software fallback to other rc
-devices where hardware filtering isn't available. I'd love to see the
-sysfs filter and filter_mask files to have an effect on my nuvoton too
-:)
+Laurent Pinchart
 
-But maybe we'll first need to try to get the wakeup finished.
-
--Antti
