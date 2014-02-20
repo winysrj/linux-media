@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2630 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753122AbaBYJsy (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:60914 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755187AbaBTTlk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 04:48:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv1 PATCH 13/14] vb2: replace BUG by WARN_ON
-Date: Tue, 25 Feb 2014 10:48:26 +0100
-Message-Id: <1393321707-9749-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 20 Feb 2014 14:41:40 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 10/10] ARM: dts: exynos4: Update clk provider part of the
+ camera subsystem
+Date: Thu, 20 Feb 2014 20:40:37 +0100
+Message-id: <1392925237-31394-12-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
+References: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Remove unused /camera/clock-controller node and required clock properties
+to the camera node. This is required for a clock provider that will be
+referenced by image sensor devices.
 
-No need to oops for this, WARN_ON is good enough.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/exynos4.dtsi |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 93b7969..2c3a7f2 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2531,9 +2531,9 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	/*
- 	 * Sanity check
- 	 */
--	if ((read && !(q->io_modes & VB2_READ)) ||
--	   (!read && !(q->io_modes & VB2_WRITE)))
--		BUG();
-+	if (WARN_ON((read && !(q->io_modes & VB2_READ)) ||
-+		    (!read && !(q->io_modes & VB2_WRITE))))
-+		return -EINVAL;
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index 08452e1..d1ee347 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -109,12 +109,10 @@
+ 		status = "disabled";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
++		#clock-cells = <1>;
++		clock-output-names = "cam_mclk_a", "cam_mclk_b";
+ 		ranges;
  
- 	/*
- 	 * Check if device supports mapping buffers to kernel virtual space.
+-		clock_cam: clock-controller {
+-			 #clock-cells = <1>;
+-		};
+-
+ 		fimc_0: fimc@11800000 {
+ 			compatible = "samsung,exynos4210-fimc";
+ 			reg = <0x11800000 0x1000>;
 -- 
-1.9.0
+1.7.9.5
 
