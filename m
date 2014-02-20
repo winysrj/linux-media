@@ -1,130 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40711 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751469AbaBIIt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:58 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 26/86] rtl2832_sdr: return NULL on rtl2832_sdr_attach failure
-Date: Sun,  9 Feb 2014 10:48:31 +0200
-Message-Id: <1391935771-18670-27-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from mailout1.samsung.com ([203.254.224.24]:19262 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363AbaBTTk6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Feb 2014 14:40:58 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 00/10] Add device tree support for Exynos4 SoC camera
+ subsystem
+Date: Thu, 20 Feb 2014 20:40:27 +0100
+Message-id: <1392925237-31394-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
+References: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dvb_attach() expects NULL on attach failure.
-Do some style changes also while we are here.
+This series adds devicetree support for the front and rear camera of
+the Exynos4412 SoC Trats2 board. It converts related drivers to use
+the v4l2-async API. The SoC output clocks are provided to external image
+image sensors through the common clock API.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 50 ++++++++++++------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+I'd appreciate a DT binding maintainer reviewed patches 2/11, 3/11.
+With an Ack I could finally push these things upstream.
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index a26125c..1cc7bf7 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -1250,31 +1250,31 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	struct rtl2832_sdr_state *s;
- 	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
- 	static const struct v4l2_ctrl_config ctrl_tuner_bw = {
--		.ops	= &rtl2832_sdr_ctrl_ops,
--		.id	= RTL2832_SDR_CID_TUNER_BW,
--		.type	= V4L2_CTRL_TYPE_INTEGER,
--		.name	= "Tuner BW",
--		.min	=  200000,
--		.max	= 8000000,
-+		.ops    = &rtl2832_sdr_ctrl_ops,
-+		.id     = RTL2832_SDR_CID_TUNER_BW,
-+		.type   = V4L2_CTRL_TYPE_INTEGER,
-+		.name   = "Tuner BW",
-+		.min    =  200000,
-+		.max    = 8000000,
- 		.def    =  600000,
--		.step	= 1,
-+		.step   = 1,
- 	};
- 	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
--		.ops	= &rtl2832_sdr_ctrl_ops,
--		.id	= RTL2832_SDR_CID_TUNER_GAIN,
--		.type	= V4L2_CTRL_TYPE_INTEGER,
--		.name	= "Tuner Gain",
--		.min	= 0,
--		.max	= 102,
-+		.ops    = &rtl2832_sdr_ctrl_ops,
-+		.id     = RTL2832_SDR_CID_TUNER_GAIN,
-+		.type   = V4L2_CTRL_TYPE_INTEGER,
-+		.name   = "Tuner Gain",
-+		.min    = 0,
-+		.max    = 102,
- 		.def    = 0,
--		.step	= 1,
-+		.step   = 1,
- 	};
- 
- 	s = kzalloc(sizeof(struct rtl2832_sdr_state), GFP_KERNEL);
- 	if (s == NULL) {
- 		dev_err(&d->udev->dev,
- 				"Could not allocate memory for rtl2832_sdr_state\n");
--		return ERR_PTR(-ENOMEM);
-+		return NULL;
- 	}
- 
- 	/* setup the state */
-@@ -1298,18 +1298,11 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	s->vb_queue.mem_ops = &vb2_vmalloc_memops;
- 	s->vb_queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	ret = vb2_queue_init(&s->vb_queue);
--	if (ret < 0) {
-+	if (ret) {
- 		dev_err(&s->udev->dev, "Could not initialize vb2 queue\n");
- 		goto err_free_mem;
- 	}
- 
--	/* Init video_device structure */
--	s->vdev = rtl2832_sdr_template;
--	s->vdev.queue = &s->vb_queue;
--	s->vdev.queue->lock = &s->vb_queue_lock;
--	set_bit(V4L2_FL_USE_FH_PRIO, &s->vdev.flags);
--	video_set_drvdata(&s->vdev, s);
--
- 	/* Register controls */
- 	v4l2_ctrl_handler_init(&s->ctrl_handler, 2);
- 	s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_bw, NULL);
-@@ -1320,6 +1313,13 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 		goto err_free_controls;
- 	}
- 
-+	/* Init video_device structure */
-+	s->vdev = rtl2832_sdr_template;
-+	s->vdev.queue = &s->vb_queue;
-+	s->vdev.queue->lock = &s->vb_queue_lock;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &s->vdev.flags);
-+	video_set_drvdata(&s->vdev, s);
-+
- 	/* Register the v4l2_device structure */
- 	s->v4l2_dev.release = rtl2832_sdr_video_release;
- 	ret = v4l2_device_register(&s->udev->dev, &s->v4l2_dev);
-@@ -1335,7 +1335,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	s->vdev.vfl_dir = VFL_DIR_RX;
- 
- 	ret = video_register_device(&s->vdev, VFL_TYPE_SDR, -1);
--	if (ret < 0) {
-+	if (ret) {
- 		dev_err(&s->udev->dev,
- 				"Failed to register as video device (%d)\n",
- 				ret);
-@@ -1357,7 +1357,7 @@ err_free_controls:
- 	v4l2_ctrl_handler_free(&s->ctrl_handler);
- err_free_mem:
- 	kfree(s);
--	return ERR_PTR(ret);
-+	return NULL;
- }
- EXPORT_SYMBOL(rtl2832_sdr_attach);
- 
--- 
-1.8.5.3
+Sylwester Nawrocki (10):
+  Documentation: dt: Add DT binding documentation for S5K6A3 image
+    sensor
+  Documentation: dt: Add DT binding documentation for S5C73M3 camera
+  Documentation: devicetree: Update Samsung FIMC DT binding
+  V4L: Add driver for s5k6a3 image sensor
+  V4L: s5c73m3: Add device tree support
+  exynos4-is: Use external s5k6a3 sensor driver
+  exynos4-is: Add clock provider for the SCLK_CAM clock outputs
+  exynos4-is: Add support for asynchronous subdevices registration
+  ARM: dts: Add rear camera nodes for Exynos4412 TRATS2 board
+  ARM: dts: exynos4: Update clk provider part of the camera subsystem
+
+ .../devicetree/bindings/media/samsung-fimc.txt     |   36 +-
+ .../devicetree/bindings/media/samsung-s5c73m3.txt  |   97 +++++
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++
+ arch/arm/boot/dts/exynos4.dtsi                     |    6 +-
+ arch/arm/boot/dts/exynos4412-trats2.dts            |   86 ++++-
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  207 ++++++++---
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
+ drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
+ drivers/media/i2c/s5k6a3.c                         |  388 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +-------------
+ drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +--
+ drivers/media/platform/exynos4-is/fimc-is.c        |   97 ++---
+ drivers/media/platform/exynos4-is/fimc-is.h        |    4 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |  329 ++++++++++++-----
+ drivers/media/platform/exynos4-is/media-dev.h      |   32 +-
+ 18 files changed, 1127 insertions(+), 543 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+ create mode 100644 drivers/media/i2c/s5k6a3.c
+
+--
+1.7.9.5
 
