@@ -1,224 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:40880 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932198AbaBDUKh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 15:10:37 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N0H00IB8MPN3G90@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 04 Feb 2014 15:10:35 -0500 (EST)
-Date: Tue, 04 Feb 2014 18:10:29 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Received: from mail-ea0-f178.google.com ([209.85.215.178]:52696 "EHLO
+	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751350AbaBTVLA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Feb 2014 16:11:00 -0500
+Received: by mail-ea0-f178.google.com with SMTP id a15so1198473eae.9
+        for <linux-media@vger.kernel.org>; Thu, 20 Feb 2014 13:10:57 -0800 (PST)
+Message-ID: <53066F5E.7020202@gmail.com>
+Date: Thu, 20 Feb 2014 22:10:54 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/1] v4l: subdev: Allow 32-bit compat IOCTLs
-Message-id: <20140204181029.60a22db2@samsung.com>
-In-reply-to: <52EBDED0.7020007@xs4all.nl>
-References: <52EBCA3D.2040106@xs4all.nl>
- <1391184952-22223-1-git-send-email-sakari.ailus@linux.intel.com>
- <52EBDED0.7020007@xs4all.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, k.debski@samsung.com
+Subject: Re: [PATCH v5.1 3/7] v4l: Add timestamp source flags, mask and document
+ them
+References: <20140217232931.GW15635@valkosipuli.retiisi.org.uk> <1392925276-20412-1-git-send-email-sakari.ailus@iki.fi> <53066763.3070000@xs4all.nl>
+In-Reply-To: <53066763.3070000@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 31 Jan 2014 18:35:12 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Sakari,
 
-> Hi Sakari,
-> 
-> On 01/31/2014 05:15 PM, Sakari Ailus wrote:
-> > I thought this was already working but apparently not. Allow 32-bit compat
-> > IOCTLs on 64-bit systems.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 12 ++++++++++++
-> >  1 file changed, 12 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > index 8f7a6a4..1fce944 100644
-> > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > @@ -1087,6 +1087,18 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
-> >  	case VIDIOC_QUERY_DV_TIMINGS:
-> >  	case VIDIOC_DV_TIMINGS_CAP:
-> >  	case VIDIOC_ENUM_FREQ_BANDS:
-> > +		/* Sub-device IOCTLs */
-> > +	case VIDIOC_SUBDEV_G_FMT:
-> > +	case VIDIOC_SUBDEV_S_FMT:
-> > +	case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
-> > +	case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
-> > +	case VIDIOC_SUBDEV_ENUM_MBUS_CODE:
-> > +	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE:
-> > +	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL:
-> > +	case VIDIOC_SUBDEV_G_CROP:
-> > +	case VIDIOC_SUBDEV_S_CROP:
-> > +	case VIDIOC_SUBDEV_G_SELECTION:
-> > +	case VIDIOC_SUBDEV_S_SELECTION:
-> >  	case VIDIOC_SUBDEV_G_EDID32:
-> >  	case VIDIOC_SUBDEV_S_EDID32:
-> >  		ret = do_video_ioctl(file, cmd, arg);
-> > 
-> 
-> Can you test with contrib/test/ioctl-test? Compile with:
-> 
-> gcc -o ioctl-test -m32 -I ../../include/ ioctl-test.c
-> 
-> Make sure you use the latest v4l-utils version and run autoreconf -vfi
-> and configure first.
-> 
-> BTW, I noticed that VIDIOC_DBG_G_CHIP_INFO is missing as well.
-> 
-> Hmm, this is just asking for problems. 
-> 
-> How about this patch:
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 8f7a6a4..cd9da4ce 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -1001,108 +1001,19 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
->  long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
->  {
->  	struct video_device *vdev = video_devdata(file);
-> -	long ret = -ENOIOCTLCMD;
-> +	long ret = -ENOTTY;
->  
->  	if (!file->f_op->unlocked_ioctl)
->  		return ret;
->  
-> -	switch (cmd) {
-> -	case VIDIOC_QUERYCAP:
-> -	case VIDIOC_RESERVED:
-> -	case VIDIOC_ENUM_FMT:
-> -	case VIDIOC_G_FMT32:
-> -	case VIDIOC_S_FMT32:
-> -	case VIDIOC_REQBUFS:
-> -	case VIDIOC_QUERYBUF32:
-> -	case VIDIOC_G_FBUF32:
-> -	case VIDIOC_S_FBUF32:
-> -	case VIDIOC_OVERLAY32:
-> -	case VIDIOC_QBUF32:
-> -	case VIDIOC_EXPBUF:
-> -	case VIDIOC_DQBUF32:
-> -	case VIDIOC_STREAMON32:
-> -	case VIDIOC_STREAMOFF32:
-> -	case VIDIOC_G_PARM:
-> -	case VIDIOC_S_PARM:
-> -	case VIDIOC_G_STD:
-> -	case VIDIOC_S_STD:
-> -	case VIDIOC_ENUMSTD32:
-> -	case VIDIOC_ENUMINPUT32:
-> -	case VIDIOC_G_CTRL:
-> -	case VIDIOC_S_CTRL:
-> -	case VIDIOC_G_TUNER:
-> -	case VIDIOC_S_TUNER:
-> -	case VIDIOC_G_AUDIO:
-> -	case VIDIOC_S_AUDIO:
-> -	case VIDIOC_QUERYCTRL:
-> -	case VIDIOC_QUERYMENU:
-> -	case VIDIOC_G_INPUT32:
-> -	case VIDIOC_S_INPUT32:
-> -	case VIDIOC_G_OUTPUT32:
-> -	case VIDIOC_S_OUTPUT32:
-> -	case VIDIOC_ENUMOUTPUT:
-> -	case VIDIOC_G_AUDOUT:
-> -	case VIDIOC_S_AUDOUT:
-> -	case VIDIOC_G_MODULATOR:
-> -	case VIDIOC_S_MODULATOR:
-> -	case VIDIOC_S_FREQUENCY:
-> -	case VIDIOC_G_FREQUENCY:
-> -	case VIDIOC_CROPCAP:
-> -	case VIDIOC_G_CROP:
-> -	case VIDIOC_S_CROP:
-> -	case VIDIOC_G_SELECTION:
-> -	case VIDIOC_S_SELECTION:
-> -	case VIDIOC_G_JPEGCOMP:
-> -	case VIDIOC_S_JPEGCOMP:
-> -	case VIDIOC_QUERYSTD:
-> -	case VIDIOC_TRY_FMT32:
-> -	case VIDIOC_ENUMAUDIO:
-> -	case VIDIOC_ENUMAUDOUT:
-> -	case VIDIOC_G_PRIORITY:
-> -	case VIDIOC_S_PRIORITY:
-> -	case VIDIOC_G_SLICED_VBI_CAP:
-> -	case VIDIOC_LOG_STATUS:
-> -	case VIDIOC_G_EXT_CTRLS32:
-> -	case VIDIOC_S_EXT_CTRLS32:
-> -	case VIDIOC_TRY_EXT_CTRLS32:
-> -	case VIDIOC_ENUM_FRAMESIZES:
-> -	case VIDIOC_ENUM_FRAMEINTERVALS:
-> -	case VIDIOC_G_ENC_INDEX:
-> -	case VIDIOC_ENCODER_CMD:
-> -	case VIDIOC_TRY_ENCODER_CMD:
-> -	case VIDIOC_DECODER_CMD:
-> -	case VIDIOC_TRY_DECODER_CMD:
-> -	case VIDIOC_DBG_S_REGISTER:
-> -	case VIDIOC_DBG_G_REGISTER:
-> -	case VIDIOC_S_HW_FREQ_SEEK:
-> -	case VIDIOC_S_DV_TIMINGS:
-> -	case VIDIOC_G_DV_TIMINGS:
-> -	case VIDIOC_DQEVENT:
-> -	case VIDIOC_DQEVENT32:
-> -	case VIDIOC_SUBSCRIBE_EVENT:
-> -	case VIDIOC_UNSUBSCRIBE_EVENT:
-> -	case VIDIOC_CREATE_BUFS32:
-> -	case VIDIOC_PREPARE_BUF32:
-> -	case VIDIOC_ENUM_DV_TIMINGS:
-> -	case VIDIOC_QUERY_DV_TIMINGS:
-> -	case VIDIOC_DV_TIMINGS_CAP:
-> -	case VIDIOC_ENUM_FREQ_BANDS:
-> -	case VIDIOC_SUBDEV_G_EDID32:
-> -	case VIDIOC_SUBDEV_S_EDID32:
-> +	if (_IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
->  		ret = do_video_ioctl(file, cmd, arg);
+On 02/20/2014 09:36 PM, Hans Verkuil wrote:
+> On 02/20/2014 08:41 PM, Sakari Ailus wrote:
+>> Some devices do not produce timestamps that correspond to the end of the
+>> frame. The user space should be informed on the matter. This patch achieves
+>> that by adding buffer flags (and a mask) for timestamp sources since more
+>> possible timestamping points are expected than just two.
+>>
+>> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of the
+>> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end of
+>> frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure (next
+>> value).
+>
+> Sorry, but I still have two small notes:
+>
+>> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+>> ---
+>> since v5:
+>> - Add a note on software generated timestamp inaccuracy.
+>>
+>>   Documentation/DocBook/media/v4l/io.xml   |   38 +++++++++++++++++++++++++-----
+>>   drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+>>   include/media/videobuf2-core.h           |    2 ++
+>>   include/uapi/linux/videodev2.h           |    4 ++++
+>>   4 files changed, 41 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+>> index 46d24b3..22b87bc 100644
+>> --- a/Documentation/DocBook/media/v4l/io.xml
+>> +++ b/Documentation/DocBook/media/v4l/io.xml
+>> @@ -653,12 +653,6 @@ plane, are stored in struct<structname>v4l2_plane</structname>  instead.
+>>   In that case, struct<structname>v4l2_buffer</structname>  contains an array of
+>>   plane structures.</para>
+>>
+>> -<para>For timestamp types that are sampled from the system clock
+>> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
+>> -taken after the complete frame has been received (or transmitted in
+>> -case of video output devices). For other kinds of
+>> -timestamps this may vary depending on the driver.</para>
+>> -
+>>       <table frame="none" pgwide="1" id="v4l2-buffer">
+>>         <title>struct<structname>v4l2_buffer</structname></title>
+>>         <tgroup cols="4">
+>> @@ -1119,6 +1113,38 @@ in which case caches have not been used.</entry>
+>>   	<entry>The CAPTURE buffer timestamp has been taken from the
+>>   	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
+>>   	</row>
+>> +	<row>
+>> +	<entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
+>> +	<entry>0x00070000</entry>
+>> +	<entry>Mask for timestamp sources below. The timestamp source
+>> +	    defines the point of time the timestamp is taken in relation to
+>> +	    the frame. Logical and operation between the
 
-I liked this approach. 
+Perhaps s/and/AND ?
 
-> -		break;
-> +	else if (vdev->fops->compat_ioctl32)
-> +		ret = vdev->fops->compat_ioctl32(file, cmd, arg);
->  
-> -	default:
-> -		if (vdev->fops->compat_ioctl32)
-> -			ret = vdev->fops->compat_ioctl32(file, cmd, arg);
-> -
-> -		if (ret == -ENOIOCTLCMD)
-> -			printk(KERN_WARNING "compat_ioctl32: "
-> -				"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
-> -				_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd),
-> -				cmd);
-> -		break;
-> -	}
-> +	if (ret == -ENOTTY)
-> +		pr_warn("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
-> +			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+>> +	<structfield>flags</structfield>  field and
+>> +	<constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant>  produces the
+>> +	    value of the timestamp source.</entry>
+>> +	</row>
+>> +	<row>
+>> +	<entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
+>> +	<entry>0x00000000</entry>
+>> +	<entry>End Of Frame. The buffer timestamp has been taken
+>> +	    when the last pixel of the frame has been received or the
+>> +	    last pixel of the frame has been transmitted. In practice,
+>> +	    software generated timestamps will typically be read from
+>> +	    the clock a small amount of time after the last pixel has
+>> +	    been received, depending on the system and other activity
+>
+> s/been received/been received or transmitted/
+>
+>> +	    in it.</entry>
+>> +	</row>
+>> +	<row>
+>> +	<entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
 
-I would use, instead, pr_dbg().
+V4L2_BUF_FLAG_TSTAMP_SRC_SOF (Start Of Frame) wouldn't fit here ?
 
->  	return ret;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_compat_ioctl32);
-> 
-> Note the ENOIOCTLCMD to ENOTTY changes: ENOTTY should be returned if the ioctl is
-> not supported. Although v4l2-subdev seems to return ENOIOCTLCMD as well :-(
-> 
+>> +	<entry>0x00010000</entry>
+>> +	<entry>Start Of Exposure. The buffer timestamp has been
+>> +	    taken when the exposure of the frame has begun. In
+>> +	    practice, software generated timestamps will typically be
+>> +	    read from the clock a small amount of time after the last
+>> +	    pixel has been received, depending on the system and other
+>> +	    activity in it. This is only valid for buffer type
+>> +	<constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
+>
+> I would move the last sentence up to just before "In practice...". The
+> way it is now it looks like an afterthought.
+>
+> I am also not sure whether the whole "In practice" sentence is valid
+> here. Certainly the bit about "the last pixel" isn't since this is the
+> "SOE" case and not the End Of Frame. In the case of the UVC driver (and that's
+> the only one using this timestamp source) the timestamps come from the
+> hardware as I understand it, so the "software generated" bit doesn't
+> apply.
+
+I agree, not it looks like a copy & paste from the "End Of Frame"
+paragraph. I guess for SOE it should have been, e.g.
+
+"...read from the clock a small amount of time after the _first_
+     pixel has been received" ?
+
+> I would actually be inclined to drop it altogether for this particular
+> timestamp source. But it's up to Laurent.
+
+Yup, the "a small amount of time" concept seems a bit vague here.
+It's not clear how long period it could be and the tolerance would like
+very across the hardware.
+
 > Regards,
-> 
+>
 > 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>> +	</row>
+>>   	</tbody>
+>>         </tgroup>
+>>       </table>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index 5a5fb7f..6e314b0 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -2195,7 +2195,9 @@ int vb2_queue_init(struct vb2_queue *q)
+>>   	    WARN_ON(!q->io_modes)	  ||
+>>   	    WARN_ON(!q->ops->queue_setup) ||
+>>   	    WARN_ON(!q->ops->buf_queue)   ||
+>> -	    WARN_ON(q->timestamp_type&  ~V4L2_BUF_FLAG_TIMESTAMP_MASK))
+>> +	    WARN_ON(q->timestamp_type&
+>> +		    ~(V4L2_BUF_FLAG_TIMESTAMP_MASK |
+>> +		      V4L2_BUF_FLAG_TSTAMP_SRC_MASK)))
+>>   		return -EINVAL;
+>>
+>>   	/* Warn that the driver should choose an appropriate timestamp type */
+>> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+>> index bef53ce..b6b992d 100644
+>> --- a/include/media/videobuf2-core.h
+>> +++ b/include/media/videobuf2-core.h
+>> @@ -312,6 +312,8 @@ struct v4l2_fh;
+>>    * @buf_struct_size: size of the driver-specific buffer structure;
+>>    *		"0" indicates the driver doesn't want to use a custom buffer
+>>    *		structure type, so sizeof(struct vb2_buffer) will is used
+>> + * @timestamp_type: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_* and
 
+nit: s/Timestamp/timestamp ?
 
--- 
+>> + *		V4L2_BUF_FLAGS_TSTAMP_SRC_*
+>>    * @gfp_flags:	additional gfp flags used when allocating the buffers.
+>>    *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
+>>    *		to force the buffer allocation to a specific memory zone.
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index e9ee444..82e8661 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -695,6 +695,10 @@ struct v4l2_buffer {
+>>   #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
+>>   #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
+>>   #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
+>> +/* Timestamp sources. */
+>> +#define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
+>> +#define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
+>> +#define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+>>
+>>   /**
+>>    * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
 
-Cheers,
-Mauro
+--
+Regards,
+Sylwester
