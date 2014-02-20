@@ -1,66 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1096 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752629AbaBDKIL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 05:08:11 -0500
-Message-ID: <52F0BB3E.2060601@xs4all.nl>
-Date: Tue, 04 Feb 2014 11:04:46 +0100
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3010 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751622AbaBTKYr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Feb 2014 05:24:47 -0500
+Message-ID: <5305D7D5.8080906@xs4all.nl>
+Date: Thu, 20 Feb 2014 11:24:21 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Dean Anderson <linux-dev@sensoray.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] s2255drv: port to videobuf2
-References: <1391189745-11398-1-git-send-email-linux-dev@sensoray.com> <52EF66A4.30401@xs4all.nl> <4019df5ff7ddbc7945122a7a571ed57b@sensoray.com>
-In-Reply-To: <4019df5ff7ddbc7945122a7a571ed57b@sensoray.com>
-Content-Type: text/plain; charset=UTF-8
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] stv090x: remove indent levels
+References: <20140206092800.GB31780@elgon.mountain>
+In-Reply-To: <20140206092800.GB31780@elgon.mountain>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dean,
+Hi Dan,
 
-On 02/03/14 18:06, Dean Anderson wrote:
-> On 2014-02-03 03:51, Hans Verkuil wrote:
->> Hi Dean,
->>
->> Some specific comments below, but first two general comments:
->>
->> It is easier to review if at least the removal of the old s2255_fh struct
->> was done as a separate patch. It's always good to try and keep the changes
->> in patches as small as possible. The actual vb2 conversion is always a
->> 'big bang' patch, that's unavoidable, but it's easier if it isn't mixed in
->> with other changes that are not directly related to the vb2 conversion.
+This can be improved even more:
+
+On 02/06/14 10:28, Dan Carpenter wrote:
+> 1) We can flip the "if (!lock)" check to "if (lock) return lock;" and
+>    then remove a big chunk of indenting.
+> 2) There is a redundant "if (!lock)" which we can remove since we
+>    already know that lock is zero.  This removes another indent level.
 > 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 > 
-> I figured removal of s2255_fh was a natural part of the videobuf2 conversion process, but I can break it up.
+> diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
+> index 23e872f84742..76ee559577dd 100644
+> --- a/drivers/media/dvb-frontends/stv090x.c
+> +++ b/drivers/media/dvb-frontends/stv090x.c
+> @@ -2146,7 +2146,7 @@ static int stv090x_get_coldlock(struct stv090x_state *state, s32 timeout_dmd)
+>  
+>  	u32 reg;
+>  	s32 car_step, steps, cur_step, dir, freq, timeout_lock;
+> -	int lock = 0;
+> +	int lock;
+>  
+>  	if (state->srate >= 10000000)
+>  		timeout_lock = timeout_dmd / 3;
+> @@ -2154,97 +2154,96 @@ static int stv090x_get_coldlock(struct stv090x_state *state, s32 timeout_dmd)
+>  		timeout_lock = timeout_dmd / 2;
+>  
+>  	lock = stv090x_get_dmdlock(state, timeout_lock); /* cold start wait */
+> -	if (!lock) {
+> -		if (state->srate >= 10000000) {
+> -			if (stv090x_chk_tmg(state)) {
+> -				if (STV090x_WRITE_DEMOD(state, DMDISTATE, 0x1f) < 0)
+> -					goto err;
+> -				if (STV090x_WRITE_DEMOD(state, DMDISTATE, 0x15) < 0)
+> -					goto err;
+> -				lock = stv090x_get_dmdlock(state, timeout_dmd);
+> -			} else {
+> -				lock = 0;
+> -			}
+> +	if (lock)
+> +		return lock;
+> +
+> +	if (state->srate >= 10000000) {
+> +		if (stv090x_chk_tmg(state)) {
+> +			if (STV090x_WRITE_DEMOD(state, DMDISTATE, 0x1f) < 0)
+> +				goto err;
+> +			if (STV090x_WRITE_DEMOD(state, DMDISTATE, 0x15) < 0)
+> +				goto err;
+> +			lock = stv090x_get_dmdlock(state, timeout_dmd);
 
-It's more like the first phase of a vb2 conversion. It really is wrong
-for videobuf as well, so it makes sense to do that first.
+You can just return here...
 
-> I also did change some formatting and naming changes (s2255_channel to s2255_vc) that can be postponed.
+>  		} else {
+> -			if (state->srate <= 4000000)
+> -				car_step = 1000;
+> -			else if (state->srate <= 7000000)
+> -				car_step = 2000;
+> -			else if (state->srate <= 10000000)
+> -				car_step = 3000;
+> +			lock = 0;
 
-Just put it in a separate patch either before or after the patch that does
-the vb2 conversion.
-
-> 
->>
->> And did you also run the v4l2-compliance utility for this driver? That's
->> useful to check that everything it still correct.
-> 
-> Thanks for the comments.  I'll do a v2 soon with v4l2-compliance fully tested too.
-
-Rather than the standard v4l2-compliance from v4l-utils, can you use this
-from my own tree:
-
-http://git.linuxtv.org/hverkuil/v4l-utils.git/shortlog/refs/heads/streaming
-
-I've started work to add tests for streaming to v4l2-compliance. While not
-complete it should cover what the s2255 driver needs. I'm very interested
-in what it finds (or, as the case might be, what it doesn't find).
-
-In order to do the streaming tests you have to run it with option -s.
+and here. That way everything inside 'else' can be move one indent to the
+left as well.
 
 Regards,
 
 	Hans
+
+> +		}
+> +	} else {
+> +		if (state->srate <= 4000000)
+> +			car_step = 1000;
+> +		else if (state->srate <= 7000000)
+> +			car_step = 2000;
+> +		else if (state->srate <= 10000000)
+> +			car_step = 3000;
+> +		else
+> +			car_step = 5000;
+> +
+> +		steps  = (state->search_range / 1000) / car_step;
+> +		steps /= 2;
+> +		steps  = 2 * (steps + 1);
+> +		if (steps < 0)
+> +			steps = 2;
+> +		else if (steps > 12)
+> +			steps = 12;
+> +
+> +		cur_step = 1;
+> +		dir = 1;
+> +
+> +		freq = state->frequency;
+> +		state->tuner_bw = stv090x_car_width(state->srate, state->rolloff) + state->srate;
+> +		while ((cur_step <= steps) && (!lock)) {
+> +			if (dir > 0)
+> +				freq += cur_step * car_step;
+>  			else
+> -				car_step = 5000;
+> -
+> -			steps  = (state->search_range / 1000) / car_step;
+> -			steps /= 2;
+> -			steps  = 2 * (steps + 1);
+> -			if (steps < 0)
+> -				steps = 2;
+> -			else if (steps > 12)
+> -				steps = 12;
+> -
+> -			cur_step = 1;
+> -			dir = 1;
+> -
+> -			if (!lock) {
+> -				freq = state->frequency;
+> -				state->tuner_bw = stv090x_car_width(state->srate, state->rolloff) + state->srate;
+> -				while ((cur_step <= steps) && (!lock)) {
+> -					if (dir > 0)
+> -						freq += cur_step * car_step;
+> -					else
+> -						freq -= cur_step * car_step;
+> -
+> -					/* Setup tuner */
+> -					if (stv090x_i2c_gate_ctrl(state, 1) < 0)
+> -						goto err;
+> +				freq -= cur_step * car_step;
+>  
+> -					if (state->config->tuner_set_frequency) {
+> -						if (state->config->tuner_set_frequency(fe, freq) < 0)
+> -							goto err_gateoff;
+> -					}
+> +			/* Setup tuner */
+> +			if (stv090x_i2c_gate_ctrl(state, 1) < 0)
+> +				goto err;
+>  
+> -					if (state->config->tuner_set_bandwidth) {
+> -						if (state->config->tuner_set_bandwidth(fe, state->tuner_bw) < 0)
+> -							goto err_gateoff;
+> -					}
+> +			if (state->config->tuner_set_frequency) {
+> +				if (state->config->tuner_set_frequency(fe, freq) < 0)
+> +					goto err_gateoff;
+> +			}
+>  
+> -					if (stv090x_i2c_gate_ctrl(state, 0) < 0)
+> -						goto err;
+> +			if (state->config->tuner_set_bandwidth) {
+> +				if (state->config->tuner_set_bandwidth(fe, state->tuner_bw) < 0)
+> +					goto err_gateoff;
+> +			}
+>  
+> -					msleep(50);
+> +			if (stv090x_i2c_gate_ctrl(state, 0) < 0)
+> +				goto err;
+>  
+> -					if (stv090x_i2c_gate_ctrl(state, 1) < 0)
+> -						goto err;
+> +			msleep(50);
+>  
+> -					if (state->config->tuner_get_status) {
+> -						if (state->config->tuner_get_status(fe, &reg) < 0)
+> -							goto err_gateoff;
+> -					}
+> +			if (stv090x_i2c_gate_ctrl(state, 1) < 0)
+> +				goto err;
+>  
+> -					if (reg)
+> -						dprintk(FE_DEBUG, 1, "Tuner phase locked");
+> -					else
+> -						dprintk(FE_DEBUG, 1, "Tuner unlocked");
+> +			if (state->config->tuner_get_status) {
+> +				if (state->config->tuner_get_status(fe, &reg) < 0)
+> +					goto err_gateoff;
+> +			}
+>  
+> -					if (stv090x_i2c_gate_ctrl(state, 0) < 0)
+> -						goto err;
+> +			if (reg)
+> +				dprintk(FE_DEBUG, 1, "Tuner phase locked");
+> +			else
+> +				dprintk(FE_DEBUG, 1, "Tuner unlocked");
+>  
+> -					STV090x_WRITE_DEMOD(state, DMDISTATE, 0x1c);
+> -					if (STV090x_WRITE_DEMOD(state, CFRINIT1, 0x00) < 0)
+> -						goto err;
+> -					if (STV090x_WRITE_DEMOD(state, CFRINIT0, 0x00) < 0)
+> -						goto err;
+> -					if (STV090x_WRITE_DEMOD(state, DMDISTATE, 0x1f) < 0)
+> -						goto err;
+> -					if (STV090x_WRITE_DEMOD(state, DMDISTATE, 0x15) < 0)
+> -						goto err;
+> -					lock = stv090x_get_dmdlock(state, (timeout_dmd / 3));
+> +			if (stv090x_i2c_gate_ctrl(state, 0) < 0)
+> +				goto err;
+>  
+> -					dir *= -1;
+> -					cur_step++;
+> -				}
+> -			}
+> +			STV090x_WRITE_DEMOD(state, DMDISTATE, 0x1c);
+> +			if (STV090x_WRITE_DEMOD(state, CFRINIT1, 0x00) < 0)
+> +				goto err;
+> +			if (STV090x_WRITE_DEMOD(state, CFRINIT0, 0x00) < 0)
+> +				goto err;
+> +			if (STV090x_WRITE_DEMOD(state, DMDISTATE, 0x1f) < 0)
+> +				goto err;
+> +			if (STV090x_WRITE_DEMOD(state, DMDISTATE, 0x15) < 0)
+> +				goto err;
+> +			lock = stv090x_get_dmdlock(state, (timeout_dmd / 3));
+> +
+> +			dir *= -1;
+> +			cur_step++;
+>  		}
+>  	}
+>  
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
