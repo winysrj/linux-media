@@ -1,113 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2774 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752567AbaBPDfs (ORCPT
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:35993 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254AbaBTJeg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Feb 2014 22:35:48 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1G3Zjwv045933
-	for <linux-media@vger.kernel.org>; Sun, 16 Feb 2014 04:35:47 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id A57352A00A8
-	for <linux-media@vger.kernel.org>; Sun, 16 Feb 2014 04:35:12 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 20 Feb 2014 04:34:36 -0500
+Received: by mail-ea0-f181.google.com with SMTP id k10so774441eaj.12
+        for <linux-media@vger.kernel.org>; Thu, 20 Feb 2014 01:34:34 -0800 (PST)
+Received: from [192.168.1.100] (93-45-234-219.ip104.fastwebnet.it. [93.45.234.219])
+        by mx.google.com with ESMTPSA id k41sm11469172een.19.2014.02.20.01.34.32
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Thu, 20 Feb 2014 01:34:33 -0800 (PST)
+Message-ID: <5305CC27.1080609@gmail.com>
+Date: Thu, 20 Feb 2014 10:34:31 +0100
+From: Caterpillar <caterpillar86@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140216033512.A57352A00A8@tschai.lan>
-Date: Sun, 16 Feb 2014 04:35:12 +0100 (CET)
+Subject: Re: tvtime and Pinnacle PCTV 72e
+References: <5305CB65.5000706@gmail.com>
+In-Reply-To: <5305CB65.5000706@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Ops I made some mistaked in pasting the URLs, heredown the fixed versions
 
-Results of the daily build of media_tree:
+lspci http://pastebin.com/Q2bdZiSq 
+ls /dev/ http://pastebin.com/vGYaD1mY
+lsusb http://pastebin.com/gFSKZcME
+lsmod http://pastebin.com/QpYUai90
+tree /dev/dvb http://pastebin.com/Sf0vewWc
+dmesg|grep DiB http://pastebin.com/a7M0HwRA
+dmesg|grep Pinnacle http://pastebin.com/zzDcKfN4
+dmesg|tail http://pastebin.com/gsimDTAd
 
-date:		Sun Feb 16 04:00:29 CET 2014
-git branch:	test
-git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
