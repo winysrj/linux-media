@@ -1,194 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59497 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752829AbaBYO6u (ORCPT
+Received: from mail-yh0-f48.google.com ([209.85.213.48]:60744 "EHLO
+	mail-yh0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754132AbaBTMvn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 09:58:50 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 2/3] [media] of: move common endpoint parsing to drivers/of
-Date: Tue, 25 Feb 2014 15:58:23 +0100
-Message-Id: <1393340304-19005-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 20 Feb 2014 07:51:43 -0500
+MIME-Version: 1.0
+In-Reply-To: <20140220092559.GX26722@mwanda>
+References: <20140206092800.GB31780@elgon.mountain>
+	<CAHFNz9LMU0X2YsqniY+6VOS_mM-jUfAvP2sF5MFNdwWWwEVgsw@mail.gmail.com>
+	<20140218085651.GL26722@mwanda>
+	<CAHFNz9LUP4UVROk5RWW_-=LQ5=gC8__zD67aLxNq7bHUMgipCQ@mail.gmail.com>
+	<20140219074455.GQ26722@mwanda>
+	<CAHFNz9K=0TRLDq1q=2+sYknSw6CeGreeEWPSZbfYvsxUNLXJeA@mail.gmail.com>
+	<20140220092559.GX26722@mwanda>
+Date: Thu, 20 Feb 2014 18:15:53 +0530
+Message-ID: <CAHFNz9KfeWxYQDB7ykzXBQsLBYwD9zOoUT5vrNfLXFnBU9ZVxw@mail.gmail.com>
+Subject: Re: [patch] [media] stv090x: remove indent levels
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a new struct of_endpoint which is then embedded in struct
-v4l2_of_endpoint and contains the endpoint properties that are not V4L2
-specific, or in fact not even media specific: port number, endpoint id,
-local device tree node and remote endpoint phandle.
-of_graph_parse_endpoint parses those properties and is used by
-v4l2_of_parse_endpoint, which just adds the V4L2 MBUS information
-to the containing v4l2_of_endpoint structure.
+On Thu, Feb 20, 2014 at 2:55 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> Guys, what Manu is saying is purest nonsense.  The "lock" variable is a
+> stack variable, it's not a "demodulator Read-modify-Write register".
+> The implications of changing "if (!lock)" to "if (lock)" are simple and
+> obvious.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/v4l2-core/v4l2-of.c | 16 +++-------------
- drivers/of/of_graph.c             | 32 ++++++++++++++++++++++++++++++++
- include/linux/of_graph.h          | 20 ++++++++++++++++++++
- include/media/v4l2-of.h           |  9 +++------
- 4 files changed, 58 insertions(+), 19 deletions(-)
+Sorry, you mistook. By demodulator Read-modify-Write register,
+I do really mean a register on the demodulator. If you do miss
+a read when flipping a logic, it does indeed make a large difference.
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index f919db3..222ed58 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -127,17 +127,9 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint)
- {
--	struct device_node *port_node = of_get_parent(node);
--
--	memset(endpoint, 0, offsetof(struct v4l2_of_endpoint, head));
--
--	endpoint->local_node = node;
--	/*
--	 * It doesn't matter whether the two calls below succeed.
--	 * If they don't then the default value 0 is used.
--	 */
--	of_property_read_u32(port_node, "reg", &endpoint->port);
--	of_property_read_u32(node, "reg", &endpoint->id);
-+	of_graph_parse_endpoint(node, &endpoint->ep);
-+	endpoint->bus_type = 0;
-+	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
- 
- 	v4l2_of_parse_csi_bus(node, endpoint);
- 	/*
-@@ -147,8 +139,6 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
- 	if (endpoint->bus.mipi_csi2.flags == 0)
- 		v4l2_of_parse_parallel_bus(node, endpoint);
- 
--	of_node_put(port_node);
--
- 	return 0;
- }
- EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-diff --git a/drivers/of/of_graph.c b/drivers/of/of_graph.c
-index 267d8f7..d0f1683 100644
---- a/drivers/of/of_graph.c
-+++ b/drivers/of/of_graph.c
-@@ -15,6 +15,38 @@
- #include <linux/of.h>
- #include <linux/of_graph.h>
- #include <linux/types.h>
-+#include <media/of_graph.h>
-+
-+/**
-+ * of_graph_parse_endpoint() - parse common endpoint node properties
-+ * @node: pointer to endpoint device_node
-+ * @endpoint: pointer to the OF endpoint data structure
-+ *
-+ * All properties are optional. If none are found, we don't set any flags.
-+ * This means the port has a static configuration and no properties have
-+ * to be specified explicitly.
-+ * The caller should hold a reference to @node.
-+ */
-+int of_graph_parse_endpoint(const struct device_node *node,
-+			    struct of_endpoint *endpoint)
-+{
-+	struct device_node *port_node = of_get_parent(node);
-+
-+	memset(endpoint, 0, sizeof(*endpoint));
-+
-+	endpoint->local_node = node;
-+	/*
-+	 * It doesn't matter whether the two calls below succeed.
-+	 * If they don't then the default value 0 is used.
-+	 */
-+	of_property_read_u32(port_node, "reg", &endpoint->port);
-+	of_property_read_u32(node, "reg", &endpoint->id);
-+
-+	of_node_put(port_node);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(of_graph_parse_endpoint);
- 
- /**
-  * of_graph_get_next_endpoint() - get next endpoint node
-diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-index 3bbeb60..2b233db 100644
---- a/include/linux/of_graph.h
-+++ b/include/linux/of_graph.h
-@@ -14,7 +14,21 @@
- #ifndef __LINUX_OF_GRAPH_H
- #define __LINUX_OF_GRAPH_H
- 
-+/**
-+ * struct of_endpoint - the OF graph endpoint data structure
-+ * @port: identifier (value of reg property) of a port this endpoint belongs to
-+ * @id: identifier (value of reg property) of this endpoint
-+ * @local_node: pointer to device_node of this endpoint
-+ */
-+struct of_endpoint {
-+	unsigned int port;
-+	unsigned int id;
-+	const struct device_node *local_node;
-+};
-+
- #ifdef CONFIG_OF
-+int of_graph_parse_endpoint(const struct device_node *node,
-+				struct of_endpoint *endpoint);
- struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 					struct device_node *previous);
- struct device_node *of_graph_get_remote_port_parent(
-@@ -22,6 +36,12 @@ struct device_node *of_graph_get_remote_port_parent(
- struct device_node *of_graph_get_remote_port(const struct device_node *node);
- #else
- 
-+static inline int of_graph_parse_endpoint(const struct device_node *node,
-+					struct of_endpoint *endpoint);
-+{
-+	return -ENOSYS;
-+}
-+
- static inline struct device_node *of_graph_get_next_endpoint(
- 					const struct device_node *parent,
- 					struct device_node *previous)
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-index 3a49735..2229a0e 100644
---- a/include/media/v4l2-of.h
-+++ b/include/media/v4l2-of.h
-@@ -19,6 +19,7 @@
- #include <linux/errno.h>
- #include <linux/of_graph.h>
- 
-+#include <media/of_graph.h>
- #include <media/v4l2-mediabus.h>
- 
- struct device_node;
-@@ -51,17 +52,13 @@ struct v4l2_of_bus_parallel {
- 
- /**
-  * struct v4l2_of_endpoint - the endpoint data structure
-- * @port: identifier (value of reg property) of a port this endpoint belongs to
-- * @id: identifier (value of reg property) of this endpoint
-- * @local_node: pointer to device_node of this endpoint
-+ * @ep: struct of_endpoint containing port, id, and local of_node
-  * @bus_type: bus type
-  * @bus: bus configuration data structure
-  * @head: list head for this structure
-  */
- struct v4l2_of_endpoint {
--	unsigned int port;
--	unsigned int id;
--	const struct device_node *local_node;
-+	struct of_endpoint ep;
- 	enum v4l2_mbus_type bus_type;
- 	union {
- 		struct v4l2_of_bus_parallel parallel;
--- 
-1.8.5.3
 
+>
+> He's not reviewing patches, he's just NAKing them.  It's not helpful.
+>
+
+Uh !?
+
+I said "Ok, will have a look at it later, the second lock test might
+be superfluous,
+which will fix your static checker as well."
+
+Where's the NAK in there ?
+
+Just said that, I prefer a simplified version, rather than that logic flip.
+
+Regards,
+
+Manu
