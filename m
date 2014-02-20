@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46974 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751435AbaBII4A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:56:00 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [REVIEW PATCH 53/86] xc2028: silence compiler warnings
-Date: Sun,  9 Feb 2014 10:48:58 +0200
-Message-Id: <1391935771-18670-54-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:27582 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363AbaBTTkz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Feb 2014 14:40:55 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 00/10] Add device tree support for Exynos4 SoC camera
+ subsystem
+Date: Thu, 20 Feb 2014 20:40:26 +0100
+Message-id: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is now new tuner types which are not handled on that switch-case.
-Print error if unknown tuner type is meet.
+This series adds devicetree support for the front and rear camera of
+the Exynos4412 SoC Trats2 board. It converts related drivers to use
+the v4l2-async API. The SoC output clocks are provided to external image
+image sensors through the common clock API.
 
-drivers/media/tuners/tuner-xc2028.c: In function ‘generic_set_freq’:
-drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_ADC’ not handled in switch [-Wswitch]
-  switch (new_type) {
-  ^
-drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_RF’ not handled in switch [-Wswitch]
+I'd appreciate a DT binding maintainer reviewed patches 2/10, 3/10.
+With an Ack I could finally push these things upstream.
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/tuner-xc2028.c | 3 +++
- 1 file changed, 3 insertions(+)
+Sylwester Nawrocki (10):
+  Documentation: dt: Add DT binding documentation for S5K6A3 image
+    sensor
+  Documentation: dt: Add DT binding documentation for S5C73M3 camera
+  Documentation: devicetree: Update Samsung FIMC DT binding
+  V4L: Add driver for s5k6a3 image sensor
+  V4L: s5c73m3: Add device tree support
+  exynos4-is: Use external s5k6a3 sensor driver
+  exynos4-is: Add clock provider for the SCLK_CAM clock outputs
+  exynos4-is: Add support for asynchronous subdevices registration
+  ARM: dts: Add rear camera nodes for Exynos4412 TRATS2 board
+  ARM: dts: exynos4: Update clk provider part of the camera subsystem
 
-diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-index cca508d..76a8165 100644
---- a/drivers/media/tuners/tuner-xc2028.c
-+++ b/drivers/media/tuners/tuner-xc2028.c
-@@ -1107,6 +1107,9 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
- 				offset += 200000;
- 		}
- #endif
-+	default:
-+		tuner_err("Unsupported tuner type %d.\n", new_type);
-+		break;
- 	}
- 
- 	div = (freq - offset + DIV / 2) / DIV;
--- 
-1.8.5.3
+ .../devicetree/bindings/media/samsung-fimc.txt     |   36 +-
+ .../devicetree/bindings/media/samsung-s5c73m3.txt  |   97 +++++
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++
+ arch/arm/boot/dts/exynos4.dtsi                     |    6 +-
+ arch/arm/boot/dts/exynos4412-trats2.dts            |   86 ++++-
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  207 ++++++++---
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
+ drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
+ drivers/media/i2c/s5k6a3.c                         |  388 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +-------------
+ drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +--
+ drivers/media/platform/exynos4-is/fimc-is.c        |   97 ++---
+ drivers/media/platform/exynos4-is/fimc-is.h        |    4 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |  329 ++++++++++++-----
+ drivers/media/platform/exynos4-is/media-dev.h      |   32 +-
+ 18 files changed, 1127 insertions(+), 543 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+ create mode 100644 drivers/media/i2c/s5k6a3.c
+
+--
+1.7.9.5
 
