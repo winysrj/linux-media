@@ -1,79 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41061 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:54984 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751740AbaBIItz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:55 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 06/86] rtl2832_sdr: implement sampling rate
-Date: Sun,  9 Feb 2014 10:48:11 +0200
-Message-Id: <1391935771-18670-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+	id S1754575AbaBUJq7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Feb 2014 04:46:59 -0500
+Message-ID: <5307208B.8030908@redhat.com>
+Date: Fri, 21 Feb 2014 10:46:51 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Chris Rankin <rankincj@yahoo.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: PWC webcam and setpwc tool no longer working with 3.12.11 kernel
+References: <1392924626.38711.YahooMailNeo@web120304.mail.ne1.yahoo.com>
+In-Reply-To: <1392924626.38711.YahooMailNeo@web120304.mail.ne1.yahoo.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now it is possible to set desired sampling rate via v4l2 controls.
+Hi,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+On 02/20/2014 08:30 PM, Chris Rankin wrote:
+> 
+> 
+> Hi,
+> 
+> I have an old Logitech webcam, with USB IDs 046d:08b3. When I try to use this camera now, I see this error in the dmesg log:
+> 
+> [ 2883.852464] pwc: isoc_init() submit_urb 0 failed with error -28
+> 
+> 
+> This error is apparently ENOSPC, which made me suspect that I was trying to use a mode that would require compression.
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index c4b72c1..0e12e1a 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -38,6 +38,8 @@
- #include <media/v4l2-event.h>
- #include <media/videobuf2-vmalloc.h>
- 
-+#include <linux/math64.h>
-+
- /* TODO: These should be moved to V4L2 API */
- #define RTL2832_SDR_CID_SAMPLING_MODE       ((V4L2_CID_USER_BASE | 0xf000) +  0)
- #define RTL2832_SDR_CID_SAMPLING_RATE       ((V4L2_CID_USER_BASE | 0xf000) +  1)
-@@ -643,7 +645,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 	struct dvb_frontend *fe = s->fe;
- 	int ret;
- 	unsigned int f_sr, f_if;
--	u8 buf[3], tmp;
-+	u8 buf[4], tmp;
- 	u64 u64tmp;
- 	u32 u32tmp;
- 
-@@ -696,8 +698,17 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 	if (ret)
- 		goto err;
- 
--	ret = rtl2832_sdr_wr_regs(s, 0x19f, "\x03\x84", 2);
--	ret = rtl2832_sdr_wr_regs(s, 0x1a1, "\x00\x00", 2);
-+	/* program sampling rate (resampling down) */
-+	u32tmp = div_u64(s->cfg->xtal * 0x400000ULL, f_sr * 4U);
-+	u32tmp <<= 2;
-+	buf[0] = (u32tmp >> 24) & 0xff;
-+	buf[1] = (u32tmp >> 16) & 0xff;
-+	buf[2] = (u32tmp >>  8) & 0xff;
-+	buf[3] = (u32tmp >>  0) & 0xff;
-+	ret = rtl2832_sdr_wr_regs(s, 0x19f, buf, 4);
-+	if (ret)
-+		goto err;
-+
- 	ret = rtl2832_sdr_wr_regs(s, 0x11c, "\xca", 1);
- 	ret = rtl2832_sdr_wr_regs(s, 0x11d, "\xdc", 1);
- 	ret = rtl2832_sdr_wr_regs(s, 0x11e, "\xd7", 1);
-@@ -1090,8 +1101,8 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 		.id	= RTL2832_SDR_CID_SAMPLING_RATE,
- 		.type	= V4L2_CTRL_TYPE_INTEGER64,
- 		.name	= "Sampling Rate",
--		.min	=  500000,
--		.max	= 4000000,
-+		.min	=  900001,
-+		.max	= 2800000,
- 		.def    = 2048000,
- 		.step	= 1,
- 	};
--- 
-1.8.5.3
+ENOSPC actually means that the data the cam is trying to send is too big for the available
+bandwidth. So if anything you need to enable compression, but if compression is supported
+then it will get enabled by default.
 
+This is likely caused by the camera being plugged into a usb-bus which already is used
+by other reserved-bandwidth devices such as mice, keyboard, usb soundcards, etc.
+
+See which bus the cam is on in lsusb, and try plugging it into a different port until
+it shows up on a different bus.
+
+If possible USB-3 ports are preferred over USB-2 ports or connecting through an USB-2
+hub. USB-2's USB-1 emulation has some issues, which means we cannot use full USB-1 bandwidth
+there.
+
+> However, when I tried using setpwc to configure the camera's options I received more errors:
+> $ setpwc -c 3
+> setpwc v1.3, (C) 2003-2006 by folkert@vanheusden.com
+> Error while doing ioctl VIDIOCPWCSCQUAL: Inappropriate ioctl for device
+> 
+> 
+> Has the kernel-to-userspace interface for PWC devices changed? Because how else could this IOCTL be "inappropriate"? Is there an alternative to setpwc, please?
+
+Yes, the pwc driver was the only driver using its own custom ioctls instead of standard
+v4l2 controls for many settings. The old ioctls have been deprecated for a while already
+and have recently been removed.
+
+You can control the camera with the v4l2-ctl app which is part of v4l-utils, or if you
+want something graphical with qv4l2 which is also part of v4l-utils. More in general
+any v4l controls app using the standard API-s should work, ie gtk-v4l or v4l2ucp should
+work fine too.
+
+Regards,
+
+Hans
