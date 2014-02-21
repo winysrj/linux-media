@@ -1,118 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:40454 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936563AbaBDXEo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 18:04:44 -0500
-Received: by mail-ea0-f176.google.com with SMTP id h14so4695332eaj.35
-        for <linux-media@vger.kernel.org>; Tue, 04 Feb 2014 15:04:42 -0800 (PST)
-Message-ID: <52F17208.9010500@gmail.com>
-Date: Wed, 05 Feb 2014 00:04:40 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40391 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754428AbaBUJbf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Feb 2014 04:31:35 -0500
+Message-ID: <53071CFA.5060503@iki.fi>
+Date: Fri, 21 Feb 2014 11:31:38 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Philipp Zabel <pza@pengutronix.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH] [media] uvcvideo: Enable VIDIOC_CREATE_BUFS
-References: <1391012032-19600-1-git-send-email-p.zabel@pengutronix.de> <1474634.xnVfC2yuQa@avalon> <52EB6214.9030806@xs4all.nl> <3803281.g9jSrV8SES@avalon> <20140202130430.GA15734@pengutronix.de> <52EF5B6B.7030103@xs4all.nl>
-In-Reply-To: <52EF5B6B.7030103@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+CC: laurent.pinchart@ideasonboard.com, k.debski@samsung.com
+Subject: Re: [PATCH v5.1 3/7] v4l: Add timestamp source flags, mask and document
+ them
+References: <20140217232931.GW15635@valkosipuli.retiisi.org.uk> <1392925276-20412-1-git-send-email-sakari.ailus@iki.fi> <53066763.3070000@xs4all.nl>
+In-Reply-To: <53066763.3070000@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans,
 
-On 02/03/2014 10:03 AM, Hans Verkuil wrote:
-> Hi Philipp, Laurent,
->
-> On 02/02/2014 02:04 PM, Philipp Zabel wrote:
->> On Sun, Feb 02, 2014 at 11:21:13AM +0100, Laurent Pinchart wrote:
->>> Hi Hans,
->>>
->>> On Friday 31 January 2014 09:43:00 Hans Verkuil wrote:
->>>> I think you might want to add a check in uvc_queue_setup to verify the
->>>> fmt that create_bufs passes. The spec says that: "Unsupported formats
->>>> will result in an error". In this case I guess that the format basically
->>>> should match the current selected format.
->>>>
->>>> I'm unhappy with the current implementations of create_bufs (see also this
->>>> patch:
->>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg70796.html).
->>>>
->>>> Nobody is actually checking the format today, which isn't good.
->>>>
->>>> The fact that the spec says that the fmt field isn't changed by the driver
->>>> isn't helping as it invalidated my patch from above, although that can be
->>>> fixed.
->>>>
->>>> I need to think about this some more, but for this particular case you can
->>>> just do a memcmp of the v4l2_pix_format against the currently selected
->>>> format and return an error if they differ. Unless you want to support
->>>> different buffer sizes as well?
->>>
->>> Isn't the whole point of VIDIOC_CREATE_BUFS being able to create buffers of
->>> different resolutions than the current active resolution ?
->
-> Or just additional buffers with the same resolution (or really, the same size).
->
->> For that to work the driver in question would need to keep track of per-buffer
->> format and resolution, and not only of per-queue format and resolution.
+Hans Verkuil wrote:
+> On 02/20/2014 08:41 PM, Sakari Ailus wrote:
+>> Some devices do not produce timestamps that correspond to the end of the
+>> frame. The user space should be informed on the matter. This patch achieves
+>> that by adding buffer flags (and a mask) for timestamp sources since more
+>> possible timestamping points are expected than just two.
 >>
->> For now, would something like the following be enough? Unfortunately the uvc
->> driver doesn't keep a v4l2_format around that we could just memcmp against:
->>
->> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
->> index fa58131..7fa469b 100644
->> --- a/drivers/media/usb/uvc/uvc_v4l2.c
->> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
->> @@ -1003,10 +1003,26 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->>   	case VIDIOC_CREATE_BUFS:
->>   	{
->>   		struct v4l2_create_buffers *cb = arg;
->> +		struct v4l2_pix_format *pix;
->> +		struct uvc_format *format;
->> +		struct uvc_frame *frame;
->>
->>   		if (!uvc_has_privileges(handle))
->>   			return -EBUSY;
->>
->> +		format = stream->cur_format;
->> +		frame = stream->cur_frame;
->> +		pix =&cb->format.fmt.pix;
->> +
->> +		if (pix->pixelformat != format->fcc ||
->> +		    pix->width != frame->wWidth ||
->> +		    pix->height != frame->wHeight ||
->> +		    pix->field != V4L2_FIELD_NONE ||
->> +		    pix->bytesperline != format->bpp * frame->wWidth / 8 ||
->> +		    pix->sizeimage != stream->ctrl.dwMaxVideoFrameSize ||
->> +		    pix->colorspace != format->colorspace)
+>> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of the
+>> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end of
+>> frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure (next
+>> value).
 >
-> I would drop the field and colorspace checks (those do not really affect
-> any size calculations), other than that it looks good.
+> Sorry, but I still have two small notes:
+>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> ---
+>> since v5:
+>> - Add a note on software generated timestamp inaccuracy.
+>>
+>>   Documentation/DocBook/media/v4l/io.xml   |   38 +++++++++++++++++++++++++-----
+>>   drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+>>   include/media/videobuf2-core.h           |    2 ++
+>>   include/uapi/linux/videodev2.h           |    4 ++++
+>>   4 files changed, 41 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+>> index 46d24b3..22b87bc 100644
+>> --- a/Documentation/DocBook/media/v4l/io.xml
+>> +++ b/Documentation/DocBook/media/v4l/io.xml
+>> @@ -653,12 +653,6 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+>>   In that case, struct <structname>v4l2_buffer</structname> contains an array of
+>>   plane structures.</para>
+>>
+>> -      <para>For timestamp types that are sampled from the system clock
+>> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
+>> -taken after the complete frame has been received (or transmitted in
+>> -case of video output devices). For other kinds of
+>> -timestamps this may vary depending on the driver.</para>
+>> -
+>>       <table frame="none" pgwide="1" id="v4l2-buffer">
+>>         <title>struct <structname>v4l2_buffer</structname></title>
+>>         <tgroup cols="4">
+>> @@ -1119,6 +1113,38 @@ in which case caches have not been used.</entry>
+>>   	    <entry>The CAPTURE buffer timestamp has been taken from the
+>>   	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
+>>   	  </row>
+>> +	  <row>
+>> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
+>> +	    <entry>0x00070000</entry>
+>> +	    <entry>Mask for timestamp sources below. The timestamp source
+>> +	    defines the point of time the timestamp is taken in relation to
+>> +	    the frame. Logical and operation between the
+>> +	    <structfield>flags</structfield> field and
+>> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
+>> +	    value of the timestamp source.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
+>> +	    <entry>0x00000000</entry>
+>> +	    <entry>End Of Frame. The buffer timestamp has been taken
+>> +	    when the last pixel of the frame has been received or the
+>> +	    last pixel of the frame has been transmitted. In practice,
+>> +	    software generated timestamps will typically be read from
+>> +	    the clock a small amount of time after the last pixel has
+>> +	    been received, depending on the system and other activity
+>
+> s/been received/been received or transmitted/
 
-That seems completely wrong to me, AFAICT the VIDIOC_CREATE_BUFS was 
-designed
-so that the driver is supposed to allow any format which is supported by the
-hardware.
-What has currently selected format to do with the format passed to
-VIDIOC_CREATE_BUFS ? It should be allowed to create buffers of any size
-(implied by the passed v4l2_pix_format). It is supposed to be checked if
-a buffer meets constraints of current configuration of
-the hardware at QBUF, not at VIDIOC_CREATE_BUFS time. User space may well
-allocate buffers when one image format is set, keep them aside and then
-just before queueing them to the driver may set the format to a different
-one, so the hardware set up matches buffers allocated with 
-VIDIOC_CREATE_BUFS.
+I'll fix that.
 
-What's the point of having VIDIOC_CREATE_BUFS when you are doing checks
-like above ? Unless I'm missing something that is completely wrong. :)
-Adjusting cb->format.fmt.pix as in VIDIOC_TRY_FORMAT seems more appropriate
-thing to do.
+>> +	    in it.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
+>> +	    <entry>0x00010000</entry>
+>> +	    <entry>Start Of Exposure. The buffer timestamp has been
+>> +	    taken when the exposure of the frame has begun. In
+>> +	    practice, software generated timestamps will typically be
+>> +	    read from the clock a small amount of time after the last
+>> +	    pixel has been received, depending on the system and other
+>> +	    activity in it. This is only valid for buffer type
+>> +	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
+>
+> I would move the last sentence up to just before "In practice...". The
+> way it is now it looks like an afterthought.
 
-Thanks,
-Sylwester
+Same here.
+
+> I am also not sure whether the whole "In practice" sentence is valid
+> here. Certainly the bit about "the last pixel" isn't since this is the
+> "SOE" case and not the End Of Frame. In the case of the UVC driver (and that's
+> the only one using this timestamp source) the timestamps come from the
+> hardware as I understand it, so the "software generated" bit doesn't
+> apply.
+
+Indeed. I don't know how the timestamp is even produced by the hardware. 
+It's possible to calculate it (decrementing the readout time + exposure 
+time from the end of frame timestamp) and that's what the devices 
+supposedly do. The pre-frame exposure time isn't available to the host, 
+so the end of frame timestamp cannot be calculated by the host from the 
+camera generated timestamp.
+
+However the link to the host is USB which has a lot more latency than 
+almost anything else which makes even hardware generated timestamps a 
+little imprecise.
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
