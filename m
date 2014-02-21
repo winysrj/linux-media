@@ -1,54 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753168AbaBEQlz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 21/47] s5p-tv: hdmi: Remove deprecated video-level DV timings operations
-Date: Wed,  5 Feb 2014 17:42:12 +0100
-Message-Id: <1391618558-5580-22-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:40582 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754740AbaBUMHh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Feb 2014 07:07:37 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/3] media: omap3isp: trivial cleanup
+Date: Fri, 21 Feb 2014 17:37:20 +0530
+Message-Id: <1392984443-16694-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/s5p-tv/hdmi_drv.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+This patch series include fixing some typos and
+removal of unwanted comments. 
 
-diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
-index 3db496c..754740f 100644
---- a/drivers/media/platform/s5p-tv/hdmi_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
-@@ -693,7 +693,7 @@ static int hdmi_dv_timings_cap(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	/* Let the phy fill in the pixelclock range */
--	v4l2_subdev_call(hdev->phy_sd, video, dv_timings_cap, cap);
-+	v4l2_subdev_call(hdev->phy_sd, pad, dv_timings_cap, cap);
- 	cap->type = V4L2_DV_BT_656_1120;
- 	cap->bt.min_width = 720;
- 	cap->bt.max_width = 1920;
-@@ -712,8 +712,6 @@ static const struct v4l2_subdev_core_ops hdmi_sd_core_ops = {
- static const struct v4l2_subdev_video_ops hdmi_sd_video_ops = {
- 	.s_dv_timings = hdmi_s_dv_timings,
- 	.g_dv_timings = hdmi_g_dv_timings,
--	.enum_dv_timings = hdmi_enum_dv_timings,
--	.dv_timings_cap = hdmi_dv_timings_cap,
- 	.g_mbus_fmt = hdmi_g_mbus_fmt,
- 	.s_stream = hdmi_s_stream,
- };
+Lad, Prabhakar (3):
+  media: omap3isp: fix typos
+  media: omap3isp: ispccdc: remove unwanted comments
+  media: omap3isp: rename the variable names in description
+
+ drivers/media/platform/omap3isp/isp.c        |    2 +-
+ drivers/media/platform/omap3isp/isp.h        |   12 ++++++------
+ drivers/media/platform/omap3isp/ispccdc.c    |   10 +++++-----
+ drivers/media/platform/omap3isp/ispccdc.h    |    6 ------
+ drivers/media/platform/omap3isp/ispccp2.c    |    6 +++---
+ drivers/media/platform/omap3isp/isphist.c    |    4 ++--
+ drivers/media/platform/omap3isp/isppreview.c |   13 +++++++------
+ drivers/media/platform/omap3isp/ispqueue.c   |    2 +-
+ drivers/media/platform/omap3isp/ispresizer.c |    6 +++---
+ drivers/media/platform/omap3isp/ispresizer.h |    4 ++--
+ drivers/media/platform/omap3isp/ispstat.c    |    4 ++--
+ drivers/media/platform/omap3isp/ispvideo.c   |    4 ++--
+ 12 files changed, 34 insertions(+), 39 deletions(-)
+
 -- 
-1.8.3.2
+1.7.9.5
 
