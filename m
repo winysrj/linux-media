@@ -1,118 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:32209 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753146AbaBYMRS (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4376 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750852AbaBUHRs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 07:17:18 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N1J00277X3V6480@mailout2.w2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Feb 2014 07:23:55 -0500 (EST)
-Date: Tue, 25 Feb 2014 09:17:13 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Peter Fassberg <pf@leissner.se>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Problem with PCTV Systems nanoStick T2 290e and frontends
-Message-id: <20140225091713.10a4975a@samsung.com>
-In-reply-to: <alpine.BSF.2.00.1402250918400.31790@nic-i.leissner.se>
-References: <201402242314.s1ONEjtD003815@mailgate.leissner.se>
- <alpine.BSF.2.00.1402250918400.31790@nic-i.leissner.se>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Fri, 21 Feb 2014 02:17:48 -0500
+Message-ID: <5306FD7F.6070207@xs4all.nl>
+Date: Fri, 21 Feb 2014 08:17:19 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH v5.1 3/7] v4l: Add timestamp source flags, mask and document
+ them
+References: <20140217232931.GW15635@valkosipuli.retiisi.org.uk> <1392925276-20412-1-git-send-email-sakari.ailus@iki.fi> <53066763.3070000@xs4all.nl> <1806212.4rVLkqN7y6@avalon>
+In-Reply-To: <1806212.4rVLkqN7y6@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Feb 2014 09:22:28 +0100 (SNT)
-Peter Fassberg <pf@leissner.se> escreveu:
+On 02/21/2014 12:30 AM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Thursday 20 February 2014 21:36:51 Hans Verkuil wrote:
+>> On 02/20/2014 08:41 PM, Sakari Ailus wrote:
+>>> Some devices do not produce timestamps that correspond to the end of the
+>>> frame. The user space should be informed on the matter. This patch
+>>> achieves
+>>> that by adding buffer flags (and a mask) for timestamp sources since more
+>>> possible timestamping points are expected than just two.
+>>>
+>>> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of the
+>>> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end
+>>> of frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure
+>>> (next value).
+>>
+>> Sorry, but I still have two small notes:
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>>> ---
+>>> since v5:
+>>> - Add a note on software generated timestamp inaccuracy.
+>>>
+>>>  Documentation/DocBook/media/v4l/io.xml   |   38 +++++++++++++++++++++----
+>>>  drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+>>>  include/media/videobuf2-core.h           |    2 ++
+>>>  include/uapi/linux/videodev2.h           |    4 ++++
+>>>  4 files changed, 41 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/io.xml
+>>> b/Documentation/DocBook/media/v4l/io.xml index 46d24b3..22b87bc 100644
+>>> --- a/Documentation/DocBook/media/v4l/io.xml
+>>> +++ b/Documentation/DocBook/media/v4l/io.xml
+>>> @@ -653,12 +653,6 @@ plane, are stored in struct
+>>> <structname>v4l2_plane</structname> instead.> 
+>>>  In that case, struct <structname>v4l2_buffer</structname> contains an
+>>>  array of plane structures.</para>
+>>>
+>>> -      <para>For timestamp types that are sampled from the system clock
+>>> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp
+>>> is
+>>> -taken after the complete frame has been received (or transmitted in
+>>> -case of video output devices). For other kinds of
+>>> -timestamps this may vary depending on the driver.</para>
+>>> -
+>>>
+>>>      <table frame="none" pgwide="1" id="v4l2-buffer">
+>>>      
+>>>        <title>struct <structname>v4l2_buffer</structname></title>
+>>>        <tgroup cols="4">
+>>>
+>>> @@ -1119,6 +1113,38 @@ in which case caches have not been used.</entry>
+>>>  	    <entry>The CAPTURE buffer timestamp has been taken from the
+>>>  	    corresponding OUTPUT buffer. This flag applies only to mem2mem
+>>>  	    devices.</entry>
+>>>  	  </row>
+>>> +	  <row>
+>>> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
+>>> +	    <entry>0x00070000</entry>
+>>> +	    <entry>Mask for timestamp sources below. The timestamp source
+>>> +	    defines the point of time the timestamp is taken in relation to
+>>> +	    the frame. Logical and operation between the
+>>> +	    <structfield>flags</structfield> field and
+>>> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
+>>> +	    value of the timestamp source.</entry>
+>>> +	  </row>
+>>> +	  <row>
+>>> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
+>>> +	    <entry>0x00000000</entry>
+>>> +	    <entry>End Of Frame. The buffer timestamp has been taken
+>>> +	    when the last pixel of the frame has been received or the
+>>> +	    last pixel of the frame has been transmitted. In practice,
+>>> +	    software generated timestamps will typically be read from
+>>> +	    the clock a small amount of time after the last pixel has
+>>> +	    been received, depending on the system and other activity
+>>
+>> s/been received/been received or transmitted/
+>>
+>>> +	    in it.</entry>
+>>> +	  </row>
+>>> +	  <row>
+>>> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
+>>> +	    <entry>0x00010000</entry>
+>>> +	    <entry>Start Of Exposure. The buffer timestamp has been
+>>> +	    taken when the exposure of the frame has begun. In
+>>> +	    practice, software generated timestamps will typically be
+>>> +	    read from the clock a small amount of time after the last
+>>> +	    pixel has been received, depending on the system and other
+>>> +	    activity in it. This is only valid for buffer type
+>>> +	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
+>>
+>> I would move the last sentence up to just before "In practice...". The
+>> way it is now it looks like an afterthought.
+>>
+>> I am also not sure whether the whole "In practice" sentence is valid
+>> here. Certainly the bit about "the last pixel" isn't since this is the
+>> "SOE" case and not the End Of Frame. In the case of the UVC driver (and
+>> that's the only one using this timestamp source) the timestamps come from
+>> the hardware as I understand it, so the "software generated" bit doesn't
+>> apply.
+>>
+>> I would actually be inclined to drop it altogether for this particular
+>> timestamp source. But it's up to Laurent.
+> 
+> What do you mean, drop what altogether ?
 
-> 
-> Hi!
-> 
-> I have an PCTV Systems nanoStick T2 290e.
-> 
-> It shows up very differently with different kernels, and it seems to work better (DVB-C support) in an OLDER kernel.
-> 
-> Old kernel is using em28xx and showing two frontends (as stated on the wiki docs). New kernel is using em28174
-
-The driver is the same. The printed messages were improved: they now
-prints the exact chipset name (em28174, on your case), instead of
-em28xx (where "xx" is an alias for "whatever").
-
-> and showing only a DVB-T frontend.
-
-Is this device capable of streaming with both DVB-C and DVB-T at the same
-time? E. g., does it have two separate frontend chips?
-
-If not, then the driver is actually detecting the device right,
-and it is likely exporting just one frontend with is capable of either
-work with DVB-T or DVB-C (with is configurable via the DVBv5 API).
-
-If you're using an application that only implements the legacy DVBv3 API,
-then you can use the "dvb-fe-tool" tool (part of v4l-utils) to manually
-switch between DVB-T2, DVB-T and DVB-C modes.
-
-> 
-> Is there a way to force the new kernel to use em28xx instead?
-> 
-> 
-> Excerpt from log:
-> 
-> Using Linux debian 3.2.0-4-amd64 #1 SMP Debian 3.2.54-2 x86_64 GNU/Linux:
-> 
-> [   90.006701] em28xx: New device PCTV Systems PCTV 290e @ 480 Mbps (2013:024f, interface 0, class 0)
-> [   90.007281] em28xx #0: chip ID is em28174
-> [   90.333600] em28xx #0: Identified as PCTV nanoStick T2 290e (card=78)
-> [   90.377066] em28xx #0: v4l2 driver version 0.1.3
-> [   90.447548] em28xx #0: V4L2 video device registered as video0
-> [   90.447584] usbcore: registered new interface driver em28xx
-> [   90.447586] em28xx driver loaded
-> [   90.520717] tda18271 0-0060: creating new instance
-> [   90.551187] TDA18271HD/C2 detected @ 0-0060
-> [   91.341140] tda18271 0-0060: attaching existing instance
-> [   91.341145] DVB: registering new adapter (em28xx #0)
-> [   91.341150] DVB: registering adapter 0 frontend 0 (Sony CXD2820R (DVB-T/T2))...
-> [   91.342477] DVB: registering adapter 0 frontend 1 (Sony CXD2820R (DVB-C))...
-
-Yeah, from this log, it is clear that your device has only one frontend:
-Sony CXD2820R. This frontend could be used for DVB-T/T2/C, but not at the
-same time.
-
-> [   91.345700] em28xx #0: Successfully loaded em28xx-dvb
-> [   91.345706] Em28xx: Initialized (Em28xx dvb Extension) extension
-> 
-> 
-> And from Linux debian 3.12-1-amd64 #1 SMP Debian 3.12.9-1 (2014-02-01) x86_64 GNU/Linux:
-> 
-> [207774.334552] em28xx: New device PCTV Systems PCTV 290e @ 480 Mbps (2013:024f, interface 0, class 0)
-> [207774.334557] em28xx: DVB interface 0 found: isoc
-> [207774.335059] em28xx: chip ID is em28174
-> [207774.734814] em28174 #0: Identified as PCTV nanoStick T2 290e (card=78)
-> [207774.734821] em28174 #0: v4l2 driver version 0.2.0
-> [207774.814336] em28174 #0: V4L2 video device registered as video0
-> [207774.814341] em28174 #0: dvb set to isoc mode.
-> [207774.823844] usbcore: registered new interface driver em28xx
-> [207774.895574] tda18271 1-0060: creating new instance
-> [207774.926952] TDA18271HD/C2 detected @ 1-0060
-> [207775.290440] DVB: registering new adapter (em28174 #0)
-> [207775.290453] usb 1-1: DVB: registering adapter 0 frontend 0 (Sony CXD2820R)...
-
-And the Sony frontend now is properly mapped as just one device.
-
-> [207775.294597] em28174 #0: Successfully loaded em28xx-dvb
-> [207775.294602] Em28xx: Initialized (Em28xx dvb Extension) extension
-> 
-> Linux debian 3.12-1-amd64 #1 SMP Debian 3.12.9-1 (2014-02-01) x86_64 GNU/Linux
-> 
-> 
-> Best regards,
-> 
-> -- Peter
-> 
+The "In practice ... activity in it." sentence.
 
 Regards,
--- 
 
-Cheers,
-Mauro
+	Hans
+
+> 
+>>> +	  </row>
+>>>  	</tbody>
+>>>        </tgroup>
+>>>      </table>
+> 
+
