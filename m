@@ -1,54 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta01.emeryville.ca.mail.comcast.net ([76.96.30.16]:37894 "EHLO
-	qmta01.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753057AbaBVA4c (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:12385 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755927AbaBURw7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 19:56:32 -0500
-From: Shuah Khan <shuah.kh@samsung.com>
-To: m.chehab@samsung.com
-Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, shuahkhan@gmail.com
-Subject: [RFC] [PATCH 0/6] media: em28xx - power management support em28xx
-Date: Fri, 21 Feb 2014 17:50:12 -0700
-Message-Id: <cover.1393027856.git.shuah.kh@samsung.com>
+	Fri, 21 Feb 2014 12:52:59 -0500
+Message-id: <53079272.5090800@samsung.com>
+Date: Fri, 21 Feb 2014 18:52:50 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"robh+dt@kernel.org" <robh+dt@kernel.org>,
+	"galak@codeaurora.org" <galak@codeaurora.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"kgene.kim@samsung.com" <kgene.kim@samsung.com>,
+	"a.hajda@samsung.com" <a.hajda@samsung.com>
+Subject: Re: [PATCH v4 02/10] Documentation: dt: Add DT binding documentation
+ for S5C73M3 camera
+References: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
+ <1392925237-31394-4-git-send-email-s.nawrocki@samsung.com>
+ <20140221154240.GE20449@e106331-lin.cambridge.arm.com>
+In-reply-to: <20140221154240.GE20449@e106331-lin.cambridge.arm.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add power management support to em28xx usb driver. This driver works in
-conjunction with extensions for each of the functions on the USB device
-for video/audio/dvb/remote functionality that is present on media USB
-devices it supports. During suspend and resume each of these extensions
-will have to do their part in suspending the components they control.
+On 21/02/14 16:42, Mark Rutland wrote:
+[...]
+>> +++ b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+>> @@ -0,0 +1,97 @@
+>> +Samsung S5C73M3 8Mp camera ISP
+>> +------------------------------
+>> +
+>> +The S5C73M3 camera ISP supports MIPI CSI-2 and parallel (ITU-R BT.656) video
+>> +data busses. The I2C bus is the main control bus and additionally the SPI bus
+>> +is used, mostly for transferring the firmware to and from the device. Two
+>> +slave device nodes corresponding to these control bus interfaces are required
+>> +and should be placed under respective bus controller nodes.
+> 
+> So this has both an I2C interface and an SPI interface that are used at
+> the same time?
 
-Adding suspend and resume hooks to the existing struct em28xx_ops will
-enable the extensions the ability to implement suspend and resume hooks
-to be called from em28xx driver. The overall approach is as follows:
+Yes, both are needed. AFAIU SPI is added so the firmware upload is faster.
 
--- add suspend and resume hooks to em28xx_ops
--- add suspend and resume routines to em28xx-core to invoke suspend
-   and resume hooks for all registered extensions.
--- change em28xx dvb, audio, input, and video extensions to implement
-   em28xx_ops: suspend and resume hooks. These hooks do what is necessary
-   to suspend and resume the devices they control.
+>> +I2C slave device node
+>> +---------------------
+>> +
+>> +Required properties:
+>> +
+>> +- compatible	    : "samsung,s5c73m3";
+>> +- reg		    : I2C slave address of the sensor;
+>> +- vdd-int-supply    : digital power supply (1.2V);
+>> +- vdda-supply	    : analog power supply (1.2V);
+>> +- vdd-reg-supply    : regulator input power supply (2.8V);
+>> +- vddio-host-supply : host I/O power supply (1.8V to 2.8V);
+>> +- vddio-cis-supply  : CIS I/O power supply (1.2V to 1.8V);
+>> +- vdd-af-supply     : lens power supply (2.8V);
+>> +- xshutdown-gpios   : specifier of GPIO connected to the XSHUTDOWN pin;
+>> +- standby-gpios     : specifier of GPIO connected to the STANDBY pin;
+>> +- clocks	    : should contain list of phandle and clock specifier pairs
+>> +		      according to common clock bindings for the clocks described
+>> +		      in the clock-names property;
+>> +- clock-names	    : should contain "cis_extclk" entry for the CIS_EXTCLK clock;
+>> +
+>> +Optional properties:
+>> +
+>> +- clock-frequency   : the frequency at which the "cis_extclk" clock should be
+>> +		      configured to operate, in Hz; if this property is not
+>> +		      specified default 24 MHz value will be used.
+>> +
+>> +The common video interfaces bindings (see video-interfaces.txt) should be used
+>> +to specify link from the S5C73M3 to an external image data receiver. The S5C73M3
+>> +device node should contain one 'port' child node with an 'endpoint' subnode for
+>> +this purpose. The data link from a raw image sensor to the S5C73M3 can be
+>> +similarly specified, but it is optional since the S5C73M3 ISP and a raw image
+>> +sensor are usually inseparable and form a hybrid module.
+>> +
+>> +Following properties are valid for the endpoint node(s):
+>> +
+>> +endpoint subnode
+>> +----------------
+>> +
+>> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+>> +  video-interfaces.txt. This sensor doesn't support data lane remapping
+>> +  and physical lane indexes in subsequent elements of the array should
+>> +  be only consecutive ascending values.
+>> +
+>> +SPI device node
+>> +---------------
+>> +
+>> +Required properties:
+>> +
+>> +- compatible	    : "samsung,s5c73m3";
+> 
+> It might make sense to explicitly link these two nodes somehow, in case
+> multiple instances appear somewhere. However, that can come later in the
+> case of a multi-instance device, and isn't necessary now.
 
-Shuah Khan (6):
-  media: em28xx - add suspend/resume to em28xx_ops
-  media: em28xx-audio - implement em28xx_ops: suspend/resume hooks
-  media: em28xx-dvb - implement em28xx_ops: suspend/resume hooks
-  media: em28xx-input - implement em28xx_ops: suspend/resume hooks
-  media: em28xx-video - implement em28xx_ops: suspend/resume hooks
-  media: em28xx - implement em28xx_usb_driver suspend, resume,
-    reset_resume hooks
+I guess a phandle at the I2C slave device node, pointing to the SPI node
+and/or the other way around would do. I don't expect these devices to be 
+used in multiple instances though and would prefer to address that when
+necessary.
 
- drivers/media/usb/em28xx/em28xx-audio.c | 30 +++++++++++++++++
- drivers/media/usb/em28xx/em28xx-cards.c | 26 +++++++++++++++
- drivers/media/usb/em28xx/em28xx-core.c  | 28 ++++++++++++++++
- drivers/media/usb/em28xx/em28xx-dvb.c   | 57 +++++++++++++++++++++++++++++++++
- drivers/media/usb/em28xx/em28xx-input.c | 35 ++++++++++++++++++++
- drivers/media/usb/em28xx/em28xx-video.c | 28 ++++++++++++++++
- drivers/media/usb/em28xx/em28xx.h       |  4 +++
- 7 files changed, 208 insertions(+)
+We could try and create a root node for this device with an interesting 
+structure, if we wanted to go much into details. But it could get a bit 
+complicated given the scheme the I2C/SPI bus binding are structured now.
+Presumably that's something that could be handled later with a different 
+compatible string if required.
 
--- 
-1.8.3.2
+>> +For more details see description of the SPI busses bindings
+>> +(../spi/spi-bus.txt) and bindings of a specific bus controller.
+>> +
+>> +Example:
+>> +
+>> +i2c@138A000000 {
+>> +	...
+>> +	s5c73m3@3c {
+>> +		compatible = "samsung,s5c73m3";
+>> +		reg = <0x3c>;
+>> +		vdd-int-supply = <&buck9_reg>;
+>> +		vdda-supply = <&ldo17_reg>;
+>> +		vdd-reg-supply = <&cam_io_reg>;
+>> +		vddio-host-supply = <&ldo18_reg>;
+>> +		vddio-cis-supply = <&ldo9_reg>;
+>> +		vdd-af-supply = <&cam_af_reg>;
+>> +		clock-frequency = <24000000>;
+>> +		clocks = <&clk 0>;
+>> +		clock-names = "cis_extclk";
+>> +		reset-gpios = <&gpf1 3 1>;
+>> +		standby-gpios = <&gpm0 1 1>;
+>> +		port {
+>> +			s5c73m3_ep: endpoint {
+>> +				remote-endpoint = <&csis0_ep>;
+>> +				data-lanes = <1 2 3 4>;
+>> +			};
+>> +		};
+>> +	};
+>> +};
+>> +
+>> +spi@1392000 {
+>> +	...
+>> +	s5c73m3_spi: s5c73m3 {
+> 
+> Nit: this should have a 0 unit-address to match the reg.
 
+OK, I'll correct that.
+
+>> +		compatible = "samsung,s5c73m3";
+>> +		reg = <0>;
+>> +		...
+>> +	};
+>> +};
+> 
+> Otherwise I don't see anything problematic about the binding.
+> 
+> Acked-by: Mark Rutland <mark.rutland@arm.com>
+
+Thanks for the review.
+
+--
+Regards,
+Sylwester
