@@ -1,96 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49137 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752151AbaBJQVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:21:34 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 2/6] DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
-Date: Mon, 10 Feb 2014 18:21:15 +0200
-Message-Id: <1392049279-13495-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1392049279-13495-1-git-send-email-crope@iki.fi>
-References: <1392049279-13495-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2687 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754468AbaBUJQi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Feb 2014 04:16:38 -0500
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1L9GZ7t046602
+	for <linux-media@vger.kernel.org>; Fri, 21 Feb 2014 10:16:37 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E03FF2A01A7
+	for <linux-media@vger.kernel.org>; Fri, 21 Feb 2014 10:16:32 +0100 (CET)
+Message-ID: <53071970.3030408@xs4all.nl>
+Date: Fri, 21 Feb 2014 10:16:32 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] v4l2-ctrls: replace BUG_ON by WARN_ON
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document V4L2_SDR_FMT_CU16LE format.
-It is complex unsigned 16-bit little endian IQ sample. Used by
-software defined radio devices.
+BUG_ON is unnecessarily strict.
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        | 46 ++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
- 2 files changed, 47 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+ drivers/media/v4l2-core/v4l2-ctrls.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-new file mode 100644
-index 0000000..26288ff
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-@@ -0,0 +1,46 @@
-+<refentry id="V4L2-SDR-FMT-CU16LE">
-+  <refmeta>
-+    <refentrytitle>V4L2_SDR_FMT_CU16LE ('CU16')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+    <refnamediv>
-+      <refname>
-+        <constant>V4L2_SDR_FMT_CU16LE</constant>
-+      </refname>
-+      <refpurpose>Complex unsigned 16-bit little endian IQ sample</refpurpose>
-+    </refnamediv>
-+    <refsect1>
-+      <title>Description</title>
-+      <para>
-+This format contains sequence of complex number samples. Each complex number
-+consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
-+represented as a 16 bit unsigned little endian number. I value comes first
-+and Q value after that.
-+      </para>
-+    <example>
-+      <title><constant>V4L2_SDR_FMT_CU16LE</constant> 1 sample</title>
-+      <formalpara>
-+        <title>Byte Order.</title>
-+        <para>Each cell is one byte.
-+          <informaltable frame="none">
-+            <tgroup cols="3" align="center">
-+              <colspec align="left" colwidth="2*" />
-+              <tbody valign="top">
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;0:</entry>
-+                  <entry>I'<subscript>0[7:0]</subscript></entry>
-+                  <entry>I'<subscript>0[15:8]</subscript></entry>
-+                </row>
-+                <row>
-+                  <entry>start&nbsp;+&nbsp;2:</entry>
-+                  <entry>Q'<subscript>0[7:0]</subscript></entry>
-+                  <entry>Q'<subscript>0[15:8]</subscript></entry>
-+                </row>
-+              </tbody>
-+            </tgroup>
-+          </informaltable>
-+        </para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 40adcb8..f535d9b 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -818,6 +818,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
- interface only.</para>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 6ff002b..35d551d 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1921,7 +1921,8 @@ void v4l2_ctrl_cluster(unsigned ncontrols, struct v4l2_ctrl **controls)
+ 	int i;
  
-     &sub-sdr-cu08;
-+    &sub-sdr-cu16le;
+ 	/* The first control is the master control and it must not be NULL */
+-	BUG_ON(ncontrols == 0 || controls[0] == NULL);
++	if (WARN_ON(ncontrols == 0 || controls[0] == NULL))
++		return;
  
-   </section>
- 
+ 	for (i = 0; i < ncontrols; i++) {
+ 		if (controls[i]) {
 -- 
-1.8.5.3
+1.9.0
 
