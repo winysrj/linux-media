@@ -1,39 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:29227 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbaBTJ0R (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35226 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754003AbaBUL5s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 04:26:17 -0500
-Date: Thu, 20 Feb 2014 12:25:59 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] stv090x: remove indent levels
-Message-ID: <20140220092559.GX26722@mwanda>
-References: <20140206092800.GB31780@elgon.mountain>
- <CAHFNz9LMU0X2YsqniY+6VOS_mM-jUfAvP2sF5MFNdwWWwEVgsw@mail.gmail.com>
- <20140218085651.GL26722@mwanda>
- <CAHFNz9LUP4UVROk5RWW_-=LQ5=gC8__zD67aLxNq7bHUMgipCQ@mail.gmail.com>
- <20140219074455.GQ26722@mwanda>
- <CAHFNz9K=0TRLDq1q=2+sYknSw6CeGreeEWPSZbfYvsxUNLXJeA@mail.gmail.com>
+	Fri, 21 Feb 2014 06:57:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH v5.1 3/7] v4l: Add timestamp source flags, mask and document them
+Date: Fri, 21 Feb 2014 12:58:58 +0100
+Message-ID: <1627498.vqEXNhvDry@avalon>
+In-Reply-To: <53071CFA.5060503@iki.fi>
+References: <20140217232931.GW15635@valkosipuli.retiisi.org.uk> <53066763.3070000@xs4all.nl> <53071CFA.5060503@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHFNz9K=0TRLDq1q=2+sYknSw6CeGreeEWPSZbfYvsxUNLXJeA@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guys, what Manu is saying is purest nonsense.  The "lock" variable is a
-stack variable, it's not a "demodulator Read-modify-Write register".
-The implications of changing "if (!lock)" to "if (lock)" are simple and
-obvious.
+Hi Sakari,
 
-He's not reviewing patches, he's just NAKing them.  It's not helpful.
+On Friday 21 February 2014 11:31:38 Sakari Ailus wrote:
+> Hans Verkuil wrote:
+> > On 02/20/2014 08:41 PM, Sakari Ailus wrote:
+> >> Some devices do not produce timestamps that correspond to the end of the
+> >> frame. The user space should be informed on the matter. This patch
+> >> achieves that by adding buffer flags (and a mask) for timestamp sources
+> >> since more possible timestamping points are expected than just two.
+> >> 
+> >> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of
+> >> the
+> >> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end
+> >> of frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure
+> >> (next value).
+> > 
+> > Sorry, but I still have two small notes:
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> >> ---
+> >> since v5:
+> >> - Add a note on software generated timestamp inaccuracy.
+> >> 
+> >>   Documentation/DocBook/media/v4l/io.xml   |   38
+> >>   +++++++++++++++++++++++++-----
+> >>   drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+> >>   include/media/videobuf2-core.h           |    2 ++
+> >>   include/uapi/linux/videodev2.h           |    4 ++++
+> >>   4 files changed, 41 insertions(+), 7 deletions(-)
+> >> 
+> >> diff --git a/Documentation/DocBook/media/v4l/io.xml
+> >> b/Documentation/DocBook/media/v4l/io.xml index 46d24b3..22b87bc 100644
+> >> --- a/Documentation/DocBook/media/v4l/io.xml
+> >> +++ b/Documentation/DocBook/media/v4l/io.xml
+> >> @@ -653,12 +653,6 @@ plane, are stored in struct
+> >> <structname>v4l2_plane</structname> instead.>> 
+> >>   In that case, struct <structname>v4l2_buffer</structname> contains an
+> >>   array of plane structures.</para>
+> >> 
+> >> -      <para>For timestamp types that are sampled from the system clock
+> >> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp
+> >> is
+> >> -taken after the complete frame has been received (or transmitted in
+> >> -case of video output devices). For other kinds of
+> >> -timestamps this may vary depending on the driver.</para>
+> >> -
+> >> 
+> >>       <table frame="none" pgwide="1" id="v4l2-buffer">
+> >>       
+> >>         <title>struct <structname>v4l2_buffer</structname></title>
+> >>         <tgroup cols="4">
+> >> 
+> >> @@ -1119,6 +1113,38 @@ in which case caches have not been used.</entry>
+> >> 
+> >>   	    <entry>The CAPTURE buffer timestamp has been taken from the
+> >>   	    corresponding OUTPUT buffer. This flag applies only to mem2mem
+> >>   	    devices.</entry>>>   	  
+> >>   	  </row>
+> >> 
+> >> +	  <row>
+> >> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
+> >> +	    <entry>0x00070000</entry>
+> >> +	    <entry>Mask for timestamp sources below. The timestamp source
+> >> +	    defines the point of time the timestamp is taken in relation to
+> >> +	    the frame. Logical and operation between the
+> >> +	    <structfield>flags</structfield> field and
+> >> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
+> >> +	    value of the timestamp source.</entry>
+> >> +	  </row>
+> >> +	  <row>
+> >> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
+> >> +	    <entry>0x00000000</entry>
+> >> +	    <entry>End Of Frame. The buffer timestamp has been taken
+> >> +	    when the last pixel of the frame has been received or the
+> >> +	    last pixel of the frame has been transmitted. In practice,
+> >> +	    software generated timestamps will typically be read from
+> >> +	    the clock a small amount of time after the last pixel has
+> >> +	    been received, depending on the system and other activity
+> > 
+> > s/been received/been received or transmitted/
+> 
+> I'll fix that.
+> 
+> >> +	    in it.</entry>
+> >> +	  </row>
+> >> +	  <row>
+> >> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
+> >> +	    <entry>0x00010000</entry>
+> >> +	    <entry>Start Of Exposure. The buffer timestamp has been
+> >> +	    taken when the exposure of the frame has begun. In
+> >> +	    practice, software generated timestamps will typically be
+> >> +	    read from the clock a small amount of time after the last
+> >> +	    pixel has been received, depending on the system and other
+> >> +	    activity in it. This is only valid for buffer type
+> >> +	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>.</entry>
+> > 
+> > I would move the last sentence up to just before "In practice...". The
+> > way it is now it looks like an afterthought.
+> 
+> Same here.
+> 
+> > I am also not sure whether the whole "In practice" sentence is valid
+> > here. Certainly the bit about "the last pixel" isn't since this is the
+> > "SOE" case and not the End Of Frame. In the case of the UVC driver (and
+> > that's the only one using this timestamp source) the timestamps come from
+> > the hardware as I understand it, so the "software generated" bit doesn't
+> > apply.
+> 
+> Indeed. I don't know how the timestamp is even produced by the hardware.
 
-regards,
-dan carpenter
+In practice I don't know either, as that's hidden in the device firmware. The 
+UVC specification just describes the timestamp as "The source clock time in 
+native device clock units when the raw frame capture begins."
+
+Let's face it, I'm pretty sure many devices don't care much and will send a 
+time stamp that's taken at some other, possibly semi-random, time.
+
+> It's possible to calculate it (decrementing the readout time + exposure
+> time from the end of frame timestamp) and that's what the devices
+> supposedly do. The pre-frame exposure time isn't available to the host,
+> so the end of frame timestamp cannot be calculated by the host from the
+> camera generated timestamp.
+> 
+> However the link to the host is USB which has a lot more latency than
+> almost anything else which makes even hardware generated timestamps a
+> little imprecise.
+
+Why so ? There will be a jitter in frame arrival, but the hardware timestamp 
+should be accurate (at least if properly generated by the camera firmware).
+
+-- 
+Regards,
+
+Laurent Pinchart
 
