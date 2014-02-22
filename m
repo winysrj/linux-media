@@ -1,84 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52349 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752429AbaBJQMt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 11:12:49 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 3/8] rtl2832: remove unused if_dvbt config parameter
-Date: Mon, 10 Feb 2014 18:12:28 +0200
-Message-Id: <1392048753-13292-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1392048753-13292-1-git-send-email-crope@iki.fi>
-References: <1392048753-13292-1-git-send-email-crope@iki.fi>
+Received: from qmta06.emeryville.ca.mail.comcast.net ([76.96.30.56]:56648 "EHLO
+	qmta06.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753057AbaBVA4o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Feb 2014 19:56:44 -0500
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, shuahkhan@gmail.com
+Subject: [RFC] [PATCH 1/6] media: em28xx - add suspend/resume to em28xx_ops
+Date: Fri, 21 Feb 2014 17:50:13 -0700
+Message-Id: <b948a58520578080c7252e8cd9780356589d2581.1393027856.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1393027856.git.shuah.kh@samsung.com>
+References: <cover.1393027856.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1393027856.git.shuah.kh@samsung.com>
+References: <cover.1393027856.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All used tuners has get_if_frequency() callback and that parameter
-is not needed and will not needed as all upcoming tuner drivers
-should implement get_if_frequency().
+em28xx usb driver will have to suspend and resume its extensions. Adding
+suspend and resume to em28xx_ops gives extensions the ability to install
+suspend and resume that can be invoked from em28xx_usb driver suspend()
+and resume() interfaces.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Approach:
+Add power management support to em28xx usb driver. This driver works in
+conjunction with extensions for each of the functions on the USB device
+for video/audio/dvb/remote functionality that is present on media USB
+devices it supports. During suspend and resume each of these extensions
+will have to do their part in suspending the components they control.
+
+Adding suspend and resume hooks to the existing struct em28xx_ops will
+enable the extensions the ability to implement suspend and resume hooks
+to be called from em28xx driver. The overall approach is as follows:
+
+-- add suspend and resume hooks to em28xx_ops
+-- add suspend and resume routines to em28xx-core to invoke suspend
+   and resume hooks for all registered extensions.
+-- change em28xx dvb, audio, input, and video extensions to implement
+   em28xx_ops: suspend and resume hooks. These hooks do what is necessary
+   to suspend and resume the devices they control.
+
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
 ---
- drivers/media/dvb-frontends/rtl2832.c   | 6 ------
- drivers/media/dvb-frontends/rtl2832.h   | 7 -------
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 --
- 3 files changed, 15 deletions(-)
+ drivers/media/usb/em28xx/em28xx-core.c | 28 ++++++++++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx.h      |  4 ++++
+ 2 files changed, 32 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index ff73da9..61d4ecb 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -514,12 +514,6 @@ static int rtl2832_init(struct dvb_frontend *fe)
- 			goto err;
- 	}
- 
--	if (!fe->ops.tuner_ops.get_if_frequency) {
--		ret = rtl2832_set_if(fe, priv->cfg.if_dvbt);
--		if (ret)
--			goto err;
--	}
--
- 	/*
- 	 * r820t NIM code does a software reset here at the demod -
- 	 * may not be needed, as there's already a software reset at set_params()
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index 2cfbb6a..e543081 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -38,13 +38,6 @@ struct rtl2832_config {
- 	u32 xtal;
- 
- 	/*
--	 * IFs for all used modes.
--	 * Hz
--	 * 4570000, 4571429, 36000000, 36125000, 36166667, 44000000
--	 */
--	u32 if_dvbt;
--
--	/*
- 	 * tuner
- 	 * XXX: This must be keep sync with dvb_usb_rtl28xxu demod driver.
- 	 */
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 7de3e54..52eb5db 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -589,14 +589,12 @@ err:
- static struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
--	.if_dvbt = 0,
- 	.tuner = TUNER_RTL2832_FC0012
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 898fb9b..6de41c6 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -1106,3 +1106,31 @@ void em28xx_close_extension(struct em28xx *dev)
+ 	list_del(&dev->devlist);
+ 	mutex_unlock(&em28xx_devlist_mutex);
+ }
++
++int em28xx_suspend_extension(struct em28xx *dev)
++{
++	const struct em28xx_ops *ops = NULL;
++
++	em28xx_info("Suspending extensions");
++	mutex_lock(&em28xx_devlist_mutex);
++	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
++		if (ops->suspend)
++			ops->suspend(dev);
++	}
++	mutex_unlock(&em28xx_devlist_mutex);
++	return 0;
++}
++
++int em28xx_resume_extension(struct em28xx *dev)
++{
++	const struct em28xx_ops *ops = NULL;
++
++	em28xx_info("Resuming extensions");
++	mutex_lock(&em28xx_devlist_mutex);
++	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
++		if (ops->resume)
++			ops->resume(dev);
++	}
++	mutex_unlock(&em28xx_devlist_mutex);
++	return 0;
++}
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 32d8a4b..9b02f15 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -713,6 +713,8 @@ struct em28xx_ops {
+ 	int id;
+ 	int (*init)(struct em28xx *);
+ 	int (*fini)(struct em28xx *);
++	int (*suspend)(struct em28xx *);
++	int (*resume)(struct em28xx *);
  };
  
- static struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
--	.if_dvbt = 0,
- 	.tuner = TUNER_RTL2832_FC0013
- };
+ /* Provided by em28xx-i2c.c */
+@@ -758,6 +760,8 @@ int em28xx_register_extension(struct em28xx_ops *dev);
+ void em28xx_unregister_extension(struct em28xx_ops *dev);
+ void em28xx_init_extension(struct em28xx *dev);
+ void em28xx_close_extension(struct em28xx *dev);
++int em28xx_suspend_extension(struct em28xx *dev);
++int em28xx_resume_extension(struct em28xx *dev);
  
+ /* Provided by em28xx-cards.c */
+ extern struct em28xx_board em28xx_boards[];
 -- 
-1.8.5.3
+1.8.3.2
 
