@@ -1,130 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752992AbaBEQlt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 07/47] ad9389b: Add pad-level DV timings operations
-Date: Wed,  5 Feb 2014 17:41:58 +0100
-Message-Id: <1391618558-5580-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from qmta07.emeryville.ca.mail.comcast.net ([76.96.30.64]:58613 "EHLO
+	qmta07.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753798AbaBVA4z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Feb 2014 19:56:55 -0500
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, shuahkhan@gmail.com
+Subject: [RFC] [PATCH 6/6] media: em28xx - implement em28xx_usb_driver suspend, resume, reset_resume hooks
+Date: Fri, 21 Feb 2014 17:50:18 -0700
+Message-Id: <219e3a1f5f419eb027972b5a79b2aacd78aecce9.1393027856.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1393027856.git.shuah.kh@samsung.com>
+References: <cover.1393027856.git.shuah.kh@samsung.com>
+In-Reply-To: <cover.1393027856.git.shuah.kh@samsung.com>
+References: <cover.1393027856.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated.
-Implement the pad-level version of those operations to prepare for the
-removal of the video version.
+Implement em28xx_usb_driver suspend, resume, and reset_resume hooks.
+These hooks will invoke em28xx core em28xx_suspend_extension() and
+em28xx_resume_extension() to suspend and resume registered extensions.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Approach:
+Add power management support to em28xx usb driver. This driver works in
+conjunction with extensions for each of the functions on the USB device
+for video/audio/dvb/remote functionality that is present on media USB
+devices it supports. During suspend and resume each of these extensions
+will have to do their part in suspending the components they control.
+
+Adding suspend and resume hooks to the existing struct em28xx_ops will
+enable the extensions the ability to implement suspend and resume hooks
+to be called from em28xx driver. The overall approach is as follows:
+
+-- add suspend and resume hooks to em28xx_ops
+-- add suspend and resume routines to em28xx-core to invoke suspend
+   and resume hooks for all registered extensions.
+-- change em28xx dvb, audio, input, and video extensions to implement
+   em28xx_ops: suspend and resume hooks. These hooks do what is necessary
+   to suspend and resume the devices they control.
+
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
 ---
- drivers/media/i2c/ad9389b.c | 69 ++++++++++++++++++++++++++-------------------
- 1 file changed, 40 insertions(+), 29 deletions(-)
+ drivers/media/usb/em28xx/em28xx-cards.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 83225d6..44c037d 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -571,35 +571,6 @@ static const struct v4l2_subdev_core_ops ad9389b_core_ops = {
- 	.interrupt_service_routine = ad9389b_isr,
- };
- 
--/* ------------------------------ PAD OPS ------------------------------ */
--
--static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
--{
--	struct ad9389b_state *state = get_ad9389b_state(sd);
--
--	if (edid->pad != 0)
--		return -EINVAL;
--	if (edid->blocks == 0 || edid->blocks > 256)
--		return -EINVAL;
--	if (!edid->edid)
--		return -EINVAL;
--	if (!state->edid.segments) {
--		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
--		return -ENODATA;
--	}
--	if (edid->start_block >= state->edid.segments * 2)
--		return -E2BIG;
--	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
--		edid->blocks = state->edid.segments * 2 - edid->start_block;
--	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
--	       128 * edid->blocks);
--	return 0;
--}
--
--static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
--	.get_edid = ad9389b_get_edid,
--};
--
- /* ------------------------------ VIDEO OPS ------------------------------ */
- 
- /* Enable/disable ad9389b output */
-@@ -678,6 +649,9 @@ static int ad9389b_g_dv_timings(struct v4l2_subdev *sd,
- static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
- 				   struct v4l2_enum_dv_timings *timings)
- {
-+	if (timings->pad != 0)
-+		return -EINVAL;
-+
- 	return v4l2_enum_dv_timings_cap(timings, &ad9389b_timings_cap,
- 			NULL, NULL);
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 2401240..2e68f51 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3395,10 +3395,36 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 	}
  }
-@@ -685,6 +659,9 @@ static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
- static int ad9389b_dv_timings_cap(struct v4l2_subdev *sd,
- 				  struct v4l2_dv_timings_cap *cap)
- {
-+	if (cap->pad != 0)
-+		return -EINVAL;
-+
- 	*cap = ad9389b_timings_cap;
- 	return 0;
- }
-@@ -697,6 +674,40 @@ static const struct v4l2_subdev_video_ops ad9389b_video_ops = {
- 	.dv_timings_cap = ad9389b_dv_timings_cap,
- };
  
-+/* ------------------------------ PAD OPS ------------------------------ */
-+
-+static int ad9389b_get_edid(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_edid *edid)
++static int em28xx_usb_suspend(struct usb_interface *interface,
++				pm_message_t message)
 +{
-+	struct ad9389b_state *state = get_ad9389b_state(sd);
++	struct em28xx *dev;
 +
-+	if (edid->pad != 0)
-+		return -EINVAL;
-+	if (edid->blocks == 0 || edid->blocks > 256)
-+		return -EINVAL;
-+	if (!edid->edid)
-+		return -EINVAL;
-+	if (!state->edid.segments) {
-+		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
-+		return -ENODATA;
-+	}
-+	if (edid->start_block >= state->edid.segments * 2)
-+		return -E2BIG;
-+	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
-+		edid->blocks = state->edid.segments * 2 - edid->start_block;
-+	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
-+	       128 * edid->blocks);
++	dev = usb_get_intfdata(interface);
++	if (!dev)
++		return 0;
++	em28xx_suspend_extension(dev);
 +	return 0;
 +}
 +
-+static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
-+	.get_edid = ad9389b_get_edid,
-+	.enum_dv_timings = ad9389b_enum_dv_timings,
-+	.dv_timings_cap = ad9389b_dv_timings_cap,
-+};
++static int em28xx_usb_resume(struct usb_interface *interface)
++{
++	struct em28xx *dev;
 +
-+/* ------------------------------ AUDIO OPS ------------------------------ */
++	dev = usb_get_intfdata(interface);
++	if (!dev)
++		return 0;
++	em28xx_resume_extension(dev);
++	return 0;
++}
 +
- static int ad9389b_s_audio_stream(struct v4l2_subdev *sd, int enable)
- {
- 	v4l2_dbg(1, debug, sd, "%s: %sable\n", __func__, (enable ? "en" : "dis"));
+ static struct usb_driver em28xx_usb_driver = {
+ 	.name = "em28xx",
+ 	.probe = em28xx_usb_probe,
+ 	.disconnect = em28xx_usb_disconnect,
++	.suspend = em28xx_usb_suspend,
++	.resume = em28xx_usb_resume,
++	.reset_resume = em28xx_usb_resume,
+ 	.id_table = em28xx_id_table,
+ };
+ 
 -- 
 1.8.3.2
 
