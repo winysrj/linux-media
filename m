@@ -1,109 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:43293 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751414AbaBKRge convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1585 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751173AbaBVDhY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 12:36:34 -0500
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1402110732070.24582@axis700.grange>
-References: <1391807504-8946-1-git-send-email-pengw@nvidia.com>
- <Pine.LNX.4.64.1402092122250.7755@axis700.grange> <CAK5ve-L5y+X+hLBrP_XTuv_fEU46mXB1P_Xoin+upboutT-8gQ@mail.gmail.com>
- <Pine.LNX.4.64.1402110732070.24582@axis700.grange>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Tue, 11 Feb 2014 09:36:12 -0800
-Message-ID: <CAK5ve-Kct71b4jZ_c9Jq3-tLozSBBH7FxgZUy2VSV1VUUefsZA@mail.gmail.com>
-Subject: Re: [PATCH] media: soc-camera: support deferred probing of clients
- and OF cameras
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-tegra <linux-tegra@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 21 Feb 2014 22:37:24 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1M3bK5a001205
+	for <linux-media@vger.kernel.org>; Sat, 22 Feb 2014 04:37:22 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id BE0022A01A7
+	for <linux-media@vger.kernel.org>; Sat, 22 Feb 2014 04:37:16 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140222033716.BE0022A01A7@tschai.lan>
+Date: Sat, 22 Feb 2014 04:37:16 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 10, 2014 at 10:37 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Bryan,
->
-> On Mon, 10 Feb 2014, Bryan Wu wrote:
->
->> On Sun, Feb 9, 2014 at 2:20 PM, Guennadi Liakhovetski
->> <g.liakhovetski@gmx.de> wrote:
->> > Hi Bryan,
->> >
->> > Thanks for reiterating this patch!
->> >
->>
->> Sure, my pleasure. I basically assembled your patches together and
->> change them to use latest V4L2 soc_camera API.
->>
->> > On Fri, 7 Feb 2014, Bryan Wu wrote:
->
-> [snip]
->
->> >> @@ -67,6 +81,8 @@ struct soc_camera_async_client {
->> >>
->> >>  static int soc_camera_video_start(struct soc_camera_device *icd);
->> >>  static int video_dev_create(struct soc_camera_device *icd);
->> >> +static void soc_camera_of_i2c_info(struct device_node *node,
->> >> +                               struct soc_camera_of_client *sofc);
->> >
->> > If you have to resubmit this patch, plase, make sure the second line of
->> > the above declaration is aligned af usual - under the first character
->> > _after_ the opening bracket.
->> >
->>
->> No problem, I will update this.
->> Hmmm, something weird on my side. I did put the second line starting
->> under the first character after the opening bracket. But in git show
->> and git format-patch I got this
->> ---
->> static int soc_camera_video_start(struct soc_camera_device *icd);
->>  static int video_dev_create(struct soc_camera_device *icd);
->> +static void soc_camera_of_i2c_info(struct device_node *node,
->> +                                  struct soc_camera_of_client *sofc);
->> ---
->>
->> But I think that's what you want, right?
->
-> Don't know - now aöö TABs above are replaced with spaces, so, cannot say.
->
-> [snip]
->
->> >> +{
->> >> +     struct soc_camera_of_client *sofc;
->> >> +     struct soc_camera_desc *sdesc;
->> >
->> > I'm really grateful, that you decided to use my original patch and
->> > preserve my authorship! But then, I think, it'd be also better to avoid
->> > unnecessary changes to it. What was wrong with allocation of *sofc in the
->> > definition line?
->> >
->>
->> Oh, this is really I want to bring up. It's a very subtle bug here.
->>
->> If we use local variable sofc instead of zalloc, fields of sofc have
->> undetermined None NULL value.
->
-> No. If you initialise some members of a struct in its definition line, the
-> rest will be initialised to 0 / NULL. I.e. in
->
->         struct foo y = {.x = 1,};
->
-> all other fields of y will be initialised to 0.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I see, but original one is soc_camera_link which is simple in this
-case. right now we move to soc_camera_desc. I think following line is
-not very straight forward in a local function.
+Results of the daily build of media_tree:
 
-struct soc_camera_desc sdesc = { .host_desc = { .host_wait = true,},};
+date:		Sat Feb 22 04:00:35 CET 2014
+git branch:	test
+git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-What about
-a) struct soc_camera_desc sdesc and use memset to all 0.
-b) use kzalloc() and kfree() in this function.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-I think b) is more straight forward and easy to understand.
+Detailed results are available here:
 
-Thanks,
--Bryan
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
