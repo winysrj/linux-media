@@ -1,107 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3888 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753140AbaBQJ7D (ORCPT
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:59047 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790AbaBVW0s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:59:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 26/35] v4l2-ctrls: fix comments
-Date: Mon, 17 Feb 2014 10:57:41 +0100
-Message-Id: <1392631070-41868-27-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 22 Feb 2014 17:26:48 -0500
+Message-ID: <5309241B.5000702@gmail.com>
+Date: Sat, 22 Feb 2014 23:26:35 +0100
+From: Tomasz Figa <tomasz.figa@gmail.com>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Mark Rutland <mark.rutland@arm.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"robh+dt@kernel.org" <robh+dt@kernel.org>,
+	"galak@codeaurora.org" <galak@codeaurora.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"kgene.kim@samsung.com" <kgene.kim@samsung.com>,
+	"a.hajda@samsung.com" <a.hajda@samsung.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Tomasz Figa <t.figa@samsung.com>
+Subject: Re: [PATCH v4 03/10] Documentation: devicetree: Update Samsung FIMC
+ DT binding
+References: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com> <1392925237-31394-5-git-send-email-s.nawrocki@samsung.com> <20140221155023.GF20449@e106331-lin.cambridge.arm.com> <53091E72.3090107@gmail.com>
+In-Reply-To: <53091E72.3090107@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+[Ccing Mike]
 
-Various comments referred to videodev2.h, but the control definitions have
-been moved to v4l2-controls.h.
+On 22.02.2014 23:02, Sylwester Nawrocki wrote:
+> On 02/21/2014 04:50 PM, Mark Rutland wrote:
+>> On Thu, Feb 20, 2014 at 07:40:30PM +0000, Sylwester Nawrocki wrote:
+>>> +- #clock-cells: from the common clock bindings
+>>> (../clock/clock-bindings.txt),
+>>> +  must be 1. A clock provider is associated with the 'camera' node
+>>> and it should
+>>> +  be referenced by external sensors that use clocks provided by the
+>>> SoC on
+>>> +  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a
+>>> clock.
+>>> +  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks
+>>> respectively.
+>>> +
+>>> +- clock-output-names: from the common clock bindings, should contain
+>>> names of
+>>> +  clocks registered by the camera subsystem corresponding to
+>>> CAM_A_CLKOUT,
+>>> +  CAM_B_CLKOUT output clocks, in this order. Parent clock of these
+>>> clocks are
+>>> +  specified be first two entries of the clock-names property.
+>>
+>> Do you need this?
+>
+> All right, that might have been a bad idea, it mixes names of clocks
+> registered
+> by the main clock controller with names of clock input lines at the device.
+> It's a mistake I have been usually sensitive to and now made it myself. :/
+>
+> My intention was to maintain the clock tree, since the camera block doesn't
+> generate the clock itself, it merely passes through the clocks from the
+> SoC main
+> clock controller (CMU). So clk parents need to be properly set and since
+> there
+> is no clock-output-names property at the CMU DT node,
+> of_clk_get_parent_name()
+> cannot be used.
+>
+> So presumably the DT binding would be only specifying that the sclk_cam0,
+> sclk_cam1 clock input entries are associated with output clocks named as
+> in clock-output-names property.
+>
+> And the driver could either:
+>   1) hard code those (well defined) CMU clock (clk parent) names,
 
-Also add the same reminder message to each class of controls.
+I don't think this would be a good idea, as those CMU clock names may 
+vary between SoCs.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+>   2) clk_get() its input clock, retrieve name with __clk_get_name() and
+> pass
+>     it as parent name to clk_register() - it sounds a bit hacky though.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index ca4271b..2a73360 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -592,7 +592,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- {
- 	switch (id) {
- 	/* USER controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_USER_CLASS:		return "User Controls";
- 	case V4L2_CID_BRIGHTNESS:		return "Brightness";
- 	case V4L2_CID_CONTRAST:			return "Contrast";
-@@ -752,7 +752,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
- 
- 	/* CAMERA controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
- 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
- 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
-@@ -786,8 +786,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
- 	case V4L2_CID_AUTO_FOCUS_RANGE:		return "Auto Focus, Range";
- 
--	/* FM Radio Modulator control */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* FM Radio Modulator controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
- 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
- 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
-@@ -810,6 +810,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
- 
- 	/* Flash controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_FLASH_CLASS:		return "Flash Controls";
- 	case V4L2_CID_FLASH_LED_MODE:		return "LED Mode";
- 	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe Source";
-@@ -825,7 +826,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
- 
- 	/* JPEG encoder controls */
--	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_JPEG_CLASS:		return "JPEG Compression Controls";
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:	return "Chroma Subsampling";
- 	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
-@@ -833,18 +834,21 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
- 
- 	/* Image source controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image Source Controls";
- 	case V4L2_CID_VBLANK:			return "Vertical Blanking";
- 	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
- 	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
- 
- 	/* Image processing controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
- 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
- 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
- 	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
- 
- 	/* DV controls */
-+	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_DV_CLASS:			return "Digital Video Controls";
- 	case V4L2_CID_DV_TX_HOTPLUG:		return "Hotplug Present";
- 	case V4L2_CID_DV_TX_RXSENSE:		return "RxSense Present";
--- 
-1.8.4.rc3
+This looks fine, at least until proper interface is added to CCF. Exynos 
+audio subsystem clock driver does exactly the same.
 
+However, the right thing would be to make it possible to use pointers to 
+struct clk instead of strings to list parent(s). This could be done by 
+adding .parents field (struct clk **) to clk_init_data struct and make 
+clk_register() use it if available.
+
+>
+> The output clock names could be also well defined by the binding per the
+> IP's
+> compatible. Nevertheless using clock-output-names seems cleaner to me than
+> defining character strings in the driver.
+>
+> What do you think ?
+
+<RANT>
+
+Personally, I don't like clock-output-names at all. The idea of having a 
+global namespace for all clock providers looks flawed to me. This 
+property only tries to work around the not-quite-right design by giving 
+device tree the right to force CCF to use particular internal clock 
+identifiers and avoid collisions if two providers happen to have the 
+same internal clock names.
+
+I believe there should be completely no need for clock-output-names, 
+(other than a textual label for debugging purposes, analogically to 
+regulator-name). If one clock provider needs a clock from another, then 
+you should list it using clock bindings in node of the former, not rely 
+on some static name assignments.
+
+Then, after eliminating the need to use static names anymore, the 
+namespace could be split into per-provider namespaces and we would have 
+no collision issue anymore.
+
+Of course it's probably to late already for such changes, as there are 
+already systems relying on clock-output-names (i.e. without inter-IP 
+clock dependencies listed using clock bindings) and we would have to 
+keep backwards compatibility anyway...
+
+</RANT>
+
+Best regards,
+Tomasz
