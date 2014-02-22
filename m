@@ -1,48 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40184 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751831AbaBIJET (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 04:04:19 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 60/86] MAINTAINERS: add msi3101 driver
-Date: Sun,  9 Feb 2014 10:49:05 +0200
-Message-Id: <1391935771-18670-61-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from qmta01.emeryville.ca.mail.comcast.net ([76.96.30.16]:37894 "EHLO
+	qmta01.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753057AbaBVA4c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Feb 2014 19:56:32 -0500
+From: Shuah Khan <shuah.kh@samsung.com>
+To: m.chehab@samsung.com
+Cc: Shuah Khan <shuah.kh@samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, shuahkhan@gmail.com
+Subject: [RFC] [PATCH 0/6] media: em28xx - power management support em28xx
+Date: Fri, 21 Feb 2014 17:50:12 -0700
+Message-Id: <cover.1393027856.git.shuah.kh@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mirics MSi2500 (MSi3101) SDR ADC + USB interface driver. Currently
-in staging as SDR API is not ready.
+Add power management support to em28xx usb driver. This driver works in
+conjunction with extensions for each of the functions on the USB device
+for video/audio/dvb/remote functionality that is present on media USB
+devices it supports. During suspend and resume each of these extensions
+will have to do their part in suspending the components they control.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- MAINTAINERS | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Adding suspend and resume hooks to the existing struct em28xx_ops will
+enable the extensions the ability to implement suspend and resume hooks
+to be called from em28xx driver. The overall approach is as follows:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 15ebabb..f03772a 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5767,6 +5767,16 @@ T:	git git://linuxtv.org/anttip/media_tree.git
- S:	Maintained
- F:	drivers/staging/media/msi3101/msi001*
- 
-+MSI3101 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/staging/media/msi3101/sdr-msi3101*
-+
- MT9M032 APTINA SENSOR DRIVER
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
+-- add suspend and resume hooks to em28xx_ops
+-- add suspend and resume routines to em28xx-core to invoke suspend
+   and resume hooks for all registered extensions.
+-- change em28xx dvb, audio, input, and video extensions to implement
+   em28xx_ops: suspend and resume hooks. These hooks do what is necessary
+   to suspend and resume the devices they control.
+
+Shuah Khan (6):
+  media: em28xx - add suspend/resume to em28xx_ops
+  media: em28xx-audio - implement em28xx_ops: suspend/resume hooks
+  media: em28xx-dvb - implement em28xx_ops: suspend/resume hooks
+  media: em28xx-input - implement em28xx_ops: suspend/resume hooks
+  media: em28xx-video - implement em28xx_ops: suspend/resume hooks
+  media: em28xx - implement em28xx_usb_driver suspend, resume,
+    reset_resume hooks
+
+ drivers/media/usb/em28xx/em28xx-audio.c | 30 +++++++++++++++++
+ drivers/media/usb/em28xx/em28xx-cards.c | 26 +++++++++++++++
+ drivers/media/usb/em28xx/em28xx-core.c  | 28 ++++++++++++++++
+ drivers/media/usb/em28xx/em28xx-dvb.c   | 57 +++++++++++++++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx-input.c | 35 ++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx-video.c | 28 ++++++++++++++++
+ drivers/media/usb/em28xx/em28xx.h       |  4 +++
+ 7 files changed, 208 insertions(+)
+
 -- 
-1.8.5.3
+1.8.3.2
 
