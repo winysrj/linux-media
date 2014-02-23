@@ -1,113 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4078 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751080AbaBTDh0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Feb 2014 22:37:26 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1K3bMLW003429
-	for <linux-media@vger.kernel.org>; Thu, 20 Feb 2014 04:37:24 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id A475E2A01A7
-	for <linux-media@vger.kernel.org>; Thu, 20 Feb 2014 04:37:21 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140220033721.A475E2A01A7@tschai.lan>
-Date: Thu, 20 Feb 2014 04:37:21 +0100 (CET)
+Received: from mx1.redhat.com ([209.132.183.28]:46382 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752931AbaBWVpo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Feb 2014 16:45:44 -0500
+Message-ID: <530A6BFB.8060001@redhat.com>
+Date: Sun, 23 Feb 2014 22:45:31 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Antonio Ospite <ospite@studenti.unina.it>,
+	linux-media@vger.kernel.org
+CC: m.chehab@samsung.com, Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 1/2] gspca_kinect: fix kinect_read() error path
+References: <20131230165625.814796d9e041d2261e1d078a@studenti.unina.it> <1388421706-8366-1-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1388421706-8366-1-git-send-email-ospite@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+Thanks I've added both to my gspca tree for 3.15
 
-date:		Thu Feb 20 04:00:24 CET 2014
-git branch:	test
-git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+Regards,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Hans
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+On 12/30/2013 05:41 PM, Antonio Ospite wrote:
+> The error checking code relative to the invocations of kinect_read()
+> does not return the actual return code of the function just called, it
+> returns "res" which still contains the value of the last invocation of
+> a previous kinect_write().
+> 
+> Return the proper value, and while at it also report with -EREMOTEIO the
+> case of a partial transfer.
+> 
+> Reported-by: Julia Lawall <julia.lawall@lip6.fr>
+> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+> ---
+>  drivers/media/usb/gspca/kinect.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
+> index 3773a8a..48084736 100644
+> --- a/drivers/media/usb/gspca/kinect.c
+> +++ b/drivers/media/usb/gspca/kinect.c
+> @@ -158,7 +158,7 @@ static int send_cmd(struct gspca_dev *gspca_dev, uint16_t cmd, void *cmdbuf,
+>  	PDEBUG(D_USBO, "Control reply: %d", res);
+>  	if (actual_len < sizeof(*rhdr)) {
+>  		pr_err("send_cmd: Input control transfer failed (%d)\n", res);
+> -		return res;
+> +		return actual_len < 0 ? actual_len : -EREMOTEIO;
+>  	}
+>  	actual_len -= sizeof(*rhdr);
+>  
+> 
