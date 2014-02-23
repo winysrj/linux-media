@@ -1,141 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51887 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751891AbaBIIt5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:57 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2220 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973AbaBWDhH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Feb 2014 22:37:07 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1N3b3HU040926
+	for <linux-media@vger.kernel.org>; Sun, 23 Feb 2014 04:37:05 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 7AE672A01A7
+	for <linux-media@vger.kernel.org>; Sun, 23 Feb 2014 04:36:58 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 17/86] msi3101: move format 336 conversion to libv4lconvert
-Date: Sun,  9 Feb 2014 10:48:22 +0200
-Message-Id: <1391935771-18670-18-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140223033658.7AE672A01A7@tschai.lan>
+Date: Sun, 23 Feb 2014 04:36:58 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move format 384 conversion to libv4lconvert as a fourcc "DS12".
-It is 12-bit sample pairs packed to 3 bytes.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-msi3101: move format 336 conversion 336 to libv4l
+Results of the daily build of media_tree:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 66 +++++++++++------------------
- 1 file changed, 24 insertions(+), 42 deletions(-)
+date:		Sun Feb 23 04:00:17 CET 2014
+git branch:	test
+git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 37fea45..7c1dc43 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -386,6 +386,7 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
- #define MSI3101_CID_TUNER_GAIN            ((V4L2_CID_USER_BASE | 0xf000) + 13)
- 
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
-+#define V4L2_PIX_FMT_SDR_S12     v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
- #define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
- 
- /* stream formats */
-@@ -399,10 +400,12 @@ static struct msi3101_format formats[] = {
- 	{
- 		.name		= "I/Q 8-bit signed",
- 		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
--	},
--	{
-+	}, {
- 		.name		= "I/Q 10+2-bit signed",
- 		.pixelformat	= V4L2_PIX_FMT_SDR_MSI2500_384,
-+	}, {
-+		.name		= "I/Q 12-bit signed",
-+		.pixelformat	= V4L2_PIX_FMT_SDR_S12,
- 	},
- };
- 
-@@ -643,40 +646,21 @@ static int msi3101_convert_stream_384(struct msi3101_state *s, u8 *dst,
- }
- 
- /*
-- * Converts signed 12-bit integer into 32-bit IEEE floating point
-- * representation.
-+ * +===========================================================================
-+ * |   00-1023 | USB packet type '336'
-+ * +===========================================================================
-+ * |   00-  03 | sequence number of first sample in that USB packet
-+ * +---------------------------------------------------------------------------
-+ * |   04-  15 | garbage
-+ * +---------------------------------------------------------------------------
-+ * |   16-1023 | samples
-+ * +---------------------------------------------------------------------------
-+ * signed 12-bit sample
-  */
--static u32 msi3101_convert_sample_336(struct msi3101_state *s, u16 x)
--{
--	u32 msb, exponent, fraction, sign;
--
--	/* Zero is special */
--	if (!x)
--		return 0;
--
--	/* Negative / positive value */
--	if (x & (1 << 11)) {
--		x = -x;
--		x &= 0x7ff; /* result is 11 bit ... + sign */
--		sign = 1 << 31;
--	} else {
--		sign = 0 << 31;
--	}
--
--	/* Get location of the most significant bit */
--	msb = __fls(x);
--
--	fraction = ror32(x, (msb - I2F_FRAC_BITS) & 0x1f) & I2F_MASK;
--	exponent = (127 + msb) << I2F_FRAC_BITS;
--
--	return (fraction + exponent) | sign;
--}
--
--static int msi3101_convert_stream_336(struct msi3101_state *s, u32 *dst,
-+static int msi3101_convert_stream_336(struct msi3101_state *s, u8 *dst,
- 		u8 *src, unsigned int src_len)
- {
--	int i, j, i_max, dst_len = 0;
--	u16 sample[2];
-+	int i, i_max, dst_len = 0;
- 	u32 sample_num[3];
- 
- 	/* There could be 1-3 1024 bytes URB frames */
-@@ -697,17 +681,12 @@ static int msi3101_convert_stream_336(struct msi3101_state *s, u32 *dst,
- 		 */
- 		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
- 
-+		/* 336 x I+Q samples */
- 		src += 16;
--		for (j = 0; j < 1008; j += 3) {
--			sample[0] = (src[j + 0] & 0xff) >> 0 | (src[j + 1] & 0x0f) << 8;
--			sample[1] = (src[j + 1] & 0xf0) >> 4 | (src[j + 2] & 0xff) << 4;
--
--			*dst++ = msi3101_convert_sample_336(s, sample[0]);
--			*dst++ = msi3101_convert_sample_336(s, sample[1]);
--		}
--		/* 336 x I+Q 32bit float samples */
--		dst_len += 336 * 2 * 4;
-+		memcpy(dst, src, 1008);
- 		src += 1008;
-+		dst += 1008;
-+		dst_len += 1008;
- 	}
- 
- 	/* calculate samping rate and output it in 10 seconds intervals */
-@@ -1187,6 +1166,9 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
- 	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_MSI2500_384) {
- 		s->convert_stream = msi3101_convert_stream_384;
- 		reg7 = 0x0000a507;
-+	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_S12) {
-+		s->convert_stream = msi3101_convert_stream_336;
-+		reg7 = 0x00008507;
- 	}
- 
- 	/*
--- 
-1.8.5.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
