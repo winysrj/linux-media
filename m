@@ -1,83 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4170 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076AbaBQJ66 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:58:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 18/35] v4l2-ctrl: fix error return of copy_to/from_user.
-Date: Mon, 17 Feb 2014 10:57:33 +0100
-Message-Id: <1392631070-41868-19-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mta05.bitpro.no ([92.42.64.202]:56574 "EHLO mta05.bitpro.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751214AbaBWMTf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Feb 2014 07:19:35 -0500
+Message-ID: <5309E4DB.4060306@bitfrost.no>
+Date: Sun, 23 Feb 2014 13:08:59 +0100
+From: Hans Petter Selasky <hps@bitfrost.no>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, hdegoede@redhat.com
+Subject: Re: [APP-BUG] UVC camera not working with skype
+References: <5309E460.6020301@bitfrost.no>
+In-Reply-To: <5309E460.6020301@bitfrost.no>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 02/23/14 13:06, Hans Petter Selasky wrote:
+> Hi,
+>
+> I have debugged why a USB video class camera doesn't work with skype.
+>
+> Skype finds the device and opens /dev/video0.
 
-copy_to/from_user returns the number of bytes not copied, it does not
-return a 'normal' linux error code.
+Forgot: Skype v4.2.0.13
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index c55cabb..1886b79 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1292,7 +1292,8 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 	u32 len;
- 
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->p, ptr.p, c->size);
-+		return copy_to_user(c->p, ptr.p, c->size) ?
-+		       -EFAULT : 0;
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
-@@ -1302,7 +1303,7 @@ static int ptr_to_user(struct v4l2_ext_control *c,
- 			return -ENOSPC;
- 		}
- 		return copy_to_user(c->string, ptr.p_char, len + 1) ?
--								-EFAULT : 0;
-+		       -EFAULT : 0;
- 	case V4L2_CTRL_TYPE_INTEGER64:
- 		c->value64 = *ptr.p_s64;
- 		break;
-@@ -1339,7 +1340,7 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 	if (ctrl->is_ptr && !ctrl->is_string) {
- 		unsigned idx;
- 
--		ret = copy_from_user(ptr.p, c->p, c->size);
-+		ret = copy_from_user(ptr.p, c->p, c->size) ? -EFAULT : 0;
- 		if (ret || !ctrl->is_matrix)
- 			return ret;
- 		for (idx = c->size / ctrl->elem_size;
-@@ -1358,7 +1359,7 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 			return -ERANGE;
- 		if (size > ctrl->maximum + 1)
- 			size = ctrl->maximum + 1;
--		ret = copy_from_user(ptr.p_char, c->string, size);
-+		ret = copy_from_user(ptr.p_char, c->string, size) ? -EFAULT : 0;
- 		if (!ret) {
- 			char last = ptr.p_char[size - 1];
- 
-@@ -1368,7 +1369,7 @@ static int user_to_ptr(struct v4l2_ext_control *c,
- 			if (strlen(ptr.p_char) == ctrl->maximum && last)
- 				return -ERANGE;
- 		}
--		return ret ? -EFAULT : 0;
-+		return ret;
- 	default:
- 		*ptr.p_s32 = c->value;
- 		break;
--- 
-1.8.4.rc3
+--HPS
 
