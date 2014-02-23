@@ -1,85 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58516 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752073AbaBXSg6 (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4563 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750716AbaBWIhF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Feb 2014 13:36:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Phil Edworthy <phil.edworthy@renesas.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Valentine Barshak <valentine.barshak@cogentembedded.com>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add support for 10-bit YUV cameras
-Date: Mon, 24 Feb 2014 19:38:14 +0100
-Message-ID: <2516843.7QqJLHtUZT@avalon>
-In-Reply-To: <1393256945-12781-1-git-send-email-phil.edworthy@renesas.com>
-References: <1393256945-12781-1-git-send-email-phil.edworthy@renesas.com>
+	Sun, 23 Feb 2014 03:37:05 -0500
+Message-ID: <5309B317.3060603@xs4all.nl>
+Date: Sun, 23 Feb 2014 09:36:39 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+CC: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv4 PATCH 08/11] vb2: q->num_buffers was updated too soon
+References: <1392374472-18393-1-git-send-email-hverkuil@xs4all.nl> <1392374472-18393-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1392374472-18393-9-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Phil,
-
-Thank you for the patch.
-
-On Monday 24 February 2014 15:49:05 Phil Edworthy wrote:
-> Signed-off-by: Phil Edworthy <phil.edworthy@renesas.com>
-> ---
->  drivers/media/platform/soc_camera/rcar_vin.c |    7 +++++++
->  1 file changed, 7 insertions(+)
+On 02/14/2014 11:41 AM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
-> b/drivers/media/platform/soc_camera/rcar_vin.c index 3b1c05a..9929375
-> 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -68,6 +68,8 @@
->  #define VNMC_YCAL		(1 << 19)
->  #define VNMC_INF_YUV8_BT656	(0 << 16)
->  #define VNMC_INF_YUV8_BT601	(1 << 16)
-> +#define VNMC_INF_YUV10_BT656	(2 << 16)
-> +#define VNMC_INF_YUV10_BT601	(3 << 16)
->  #define VNMC_INF_YUV16		(5 << 16)
->  #define VNMC_VUP		(1 << 10)
->  #define VNMC_IM_ODD		(0 << 3)
-> @@ -275,6 +277,10 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
->  		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
->  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+> In __reqbufs() and __create_bufs() the q->num_buffers field was updated
+> with the number of newly allocated buffers, but right after that those are
+> freed again if some error had occurred before. Move the line updating
+> num_buffers to *after* that error check.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Aren't you missing a break here ?
+NACK: this is actually correct behavior since __vb2_queue_free() subtracts
+'allocated_buffers' from q->num_buffers. A comment mentioning this might be
+useful, though.
 
-> +	case V4L2_MBUS_FMT_YUYV10_2X10:
-> +		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
-> +		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
-> +			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
-
-You should add one here as well. Although not strictly necessary, it would 
-help to avoid making the same mistake again.
-
-The rest looks good to me, but I'm not familiar with the hardware, so I'll let 
-Valentine have the last word.
-
->  	default:
->  		break;
->  	}
-> @@ -1003,6 +1009,7 @@ static int rcar_vin_get_formats(struct
-> soc_camera_device *icd, unsigned int idx, switch (code) {
->  	case V4L2_MBUS_FMT_YUYV8_1X16:
->  	case V4L2_MBUS_FMT_YUYV8_2X8:
-> +	case V4L2_MBUS_FMT_YUYV10_2X10:
->  		if (cam->extra_fmt)
->  			break;
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index ad3db83..96c5ac6 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -848,13 +848,13 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+>  		 */
+>  	}
+>  
+> -	q->num_buffers = allocated_buffers;
+> -
+>  	if (ret < 0) {
+>  		__vb2_queue_free(q, allocated_buffers);
+>  		return ret;
+>  	}
+>  
+> +	q->num_buffers = allocated_buffers;
+> +
+>  	/*
+>  	 * Return the number of successfully allocated buffers
+>  	 * to the userspace.
+> @@ -957,13 +957,13 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+>  		 */
+>  	}
+>  
+> -	q->num_buffers += allocated_buffers;
+> -
+>  	if (ret < 0) {
+>  		__vb2_queue_free(q, allocated_buffers);
+>  		return -ENOMEM;
+>  	}
+>  
+> +	q->num_buffers += allocated_buffers;
+> +
+>  	/*
+>  	 * Return the number of successfully allocated buffers
+>  	 * to the userspace.
+> 
 
