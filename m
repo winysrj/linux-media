@@ -1,71 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2898 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164AbaBQIoX (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52253 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbaBWWKC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 03:44:23 -0500
-Message-ID: <5301CBAA.80103@xs4all.nl>
-Date: Mon, 17 Feb 2014 09:43:22 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 23 Feb 2014 17:10:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	sakari.ailus@iki.fi
+Subject: Re: [PATCH] omap3isp: Fix kerneldoc for _module_sync_is_stopping and isp_isr()
+Date: Sun, 23 Feb 2014 23:11:17 +0100
+Message-ID: <1603681.R3i3XynjN4@avalon>
+In-Reply-To: <1393175335-15984-1-git-send-email-pmeerw@pmeerw.net>
+References: <1393175335-15984-1-git-send-email-pmeerw@pmeerw.net>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	k.debski@samsung.com
-Subject: Re: [PATCH v5 7/7] v4l: Document timestamp buffer flag behaviour
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi> <52FFD60B.4080308@xs4all.nl> <1640658.PZi431b47s@avalon>
-In-Reply-To: <1640658.PZi431b47s@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/17/2014 01:56 AM, Laurent Pinchart wrote:
-> Hello,
-> 
-> On Saturday 15 February 2014 22:03:07 Hans Verkuil wrote:
->> On 02/15/2014 09:53 PM, Sakari Ailus wrote:
->>> Timestamp buffer flags are constant at the moment. Document them so that
->>> 1) they're always valid and 2) not changed by the drivers. This leaves
->>> room to extend the functionality later on if needed.
->>>
->>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->>> ---
->>>
->>>  Documentation/DocBook/media/v4l/io.xml |   10 ++++++++++
->>>  1 file changed, 10 insertions(+)
->>>
->>> diff --git a/Documentation/DocBook/media/v4l/io.xml
->>> b/Documentation/DocBook/media/v4l/io.xml index fbd0c6e..4f76565 100644
->>> --- a/Documentation/DocBook/media/v4l/io.xml
->>> +++ b/Documentation/DocBook/media/v4l/io.xml
->>> @@ -653,6 +653,16 @@ plane, are stored in struct
->>> <structname>v4l2_plane</structname> instead.> 
->>>  In that case, struct <structname>v4l2_buffer</structname> contains an
->>>  array of plane structures.</para>
->>>
->>> +    <para>Dequeued video buffers come with timestamps. These
->>> +    timestamps can be taken from different clocks and at different
->>> +    part of the frame, depending on the driver. Please see flags in
->>
->> s/part/parts/
->>
->> But I think I would write it somewhat differently:
->>
->> "The driver decides at which part of the frame and with which clock
->> the timestamp is taken."
->>
->>> +    the masks <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
->>> +    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
->>> +    linkend="buffer-flags">. These flags are guaranteed to be always
->>> +    valid and will not be changed by the driver autonomously.
-> 
-> This sentence sounds a bit confusing to me. What about
-> 
-> "These flags are always valid and are constant across all buffers during the 
-> whole video stream."
+Hi Peter,
 
-I like this.
+Thank you for the patch.
 
+On Sunday 23 February 2014 18:08:55 Peter Meerwald wrote:
+> Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 5807185..d60a4b7 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -588,9 +588,6 @@ static void isp_isr_sbl(struct isp_device *isp)
+>   * @_isp: Pointer to the OMAP3 ISP device
+>   *
+>   * Handles the corresponding callback if plugged in.
+> - *
+> - * Returns IRQ_HANDLED when IRQ was correctly handled, or IRQ_NONE when the
+> - * IRQ wasn't handled.
+
+While I don't object to this change, doesn't it deserve a brief explanation in 
+the commit message ?
+
+>   */
+>  static irqreturn_t isp_isr(int irq, void *_isp)
+>  {
+> @@ -1420,7 +1417,7 @@ int omap3isp_module_sync_idle(struct media_entity *me,
+> wait_queue_head_t *wait, }
+> 
+>  /*
+> - * omap3isp_module_sync_is_stopped - Helper to verify if module was
+> stopping + * omap3isp_module_sync_is_stopping - Helper to verify if module
+> was stopping * @wait: ISP submodule's wait queue for streamoff/interrupt
+> synchronization * @stopping: flag which tells module wants to stop
+>   *
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
