@@ -1,47 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59321 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753077AbaB0Aal (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:30:41 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 11/16] rtl28xxu: fix switch-case style issue
-Date: Thu, 27 Feb 2014 02:30:20 +0200
-Message-Id: <1393461025-11857-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1393461025-11857-1-git-send-email-crope@iki.fi>
-References: <1393461025-11857-1-git-send-email-crope@iki.fi>
+Received: from mail-vc0-f170.google.com ([209.85.220.170]:48903 "EHLO
+	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786AbaBXFb4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Feb 2014 00:31:56 -0500
+MIME-Version: 1.0
+In-Reply-To: <53060055.2010408@free-electrons.com>
+References: <CA+V-a8tn54CcaFEBMM48GMnTuG=OhQtxm7=od_4OZm6Xo_S9qA@mail.gmail.com>
+ <1386584182-5400-1-git-send-email-michael.opdenacker@free-electrons.com>
+ <4210530.AR5GZgidVz@avalon> <53060055.2010408@free-electrons.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 24 Feb 2014 11:01:35 +0530
+Message-ID: <CA+V-a8s2RFiqENVk2mR4dQ92ZhvB93BcyMLy0cX3eZkns5HRaQ@mail.gmail.com>
+Subject: Re: [PATCH][RESEND] [media] davinci: vpfe: remove deprecated IRQF_DISABLED
+To: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	devel@driverdev.osuosl.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use break, not return, for every case.
+Hi Michael,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On Thu, Feb 20, 2014 at 6:47 PM, Michael Opdenacker
+<michael.opdenacker@free-electrons.com> wrote:
+> Hi Laurent,
+>
+> On 02/20/2014 12:36 PM, Laurent Pinchart wrote:
+>> Hi Michael,
+>>
+>> What's the status of this patch ? Do expect Prabhakar to pick it up, or do you
+>> plan to push all your IRQF_DISABLED removal patches in one go ?
+> It's true a good number of my patches haven't been picked up yet, even
+> after multiple resends.
+>
+> I was planning to ask the community tomorrow about what to do to finally
+> get rid of IRQF_DISABLED. Effectively, pushing all the remaining changes
+> in one go (or removing the definition of IRQF_DISABLED) may be the final
+> solution.
+>
+> I hope to be able to answer your question by the end of the week.
+>
+gentle ping. should I pick it up ?
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 73348bf..afafe92 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -906,7 +906,6 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		/* attach SDR */
- 		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
- 				&rtl28xxu_rtl2832_fc0012_config);
--		return 0;
- 		break;
- 	case TUNER_RTL2832_FC0013:
- 		fe = dvb_attach(fc0013_attach, adap->fe[0],
-@@ -919,7 +918,7 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		/* attach SDR */
- 		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
- 				&rtl28xxu_rtl2832_fc0013_config);
--		return 0;
-+		break;
- 	case TUNER_RTL2832_E4000: {
- 			struct e4000_config e4000_config = {
- 				.fe = adap->fe[0],
--- 
-1.8.5.3
-
+Regards,
+--Prabhakar Lad
