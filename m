@@ -1,379 +1,489 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pegasos-out.vodafone.de ([80.84.1.38]:54330 "HELO
-	pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752894AbaBQSmB convert rfc822-to-8bit (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:26214 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752934AbaBXRg7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 13:42:01 -0500
-Message-ID: <530257E3.2060508@vodafone.de>
-Date: Mon, 17 Feb 2014 19:41:39 +0100
-From: =?ISO-8859-1?Q?Christian_K=F6nig?= <deathsimple@vodafone.de>
-MIME-Version: 1.0
-To: Rob Clark <robdclark@gmail.com>
-CC: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-arch@vger.kernel.org,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Colin Cross <ccross@google.com>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/6] seqno-fence: Hardware dma-buf implementation of fencing
- (v4)
-References: <20140217155056.20337.25254.stgit@patser>	<20140217155556.20337.37589.stgit@patser>	<53023F3E.3080107@vodafone.de>	<CAF6AEGtHSg=qESbGE8LZsQPrRfHnrSQOjpEAVKeZ5o9k07ZNcA@mail.gmail.com>	<530248B1.2090405@vodafone.de> <CAF6AEGtk1dGdFg2wk-ofRQmaxEnnEOQBOg=JNaPRVapQqsML+w@mail.gmail.com>
-In-Reply-To: <CAF6AEGtk1dGdFg2wk-ofRQmaxEnnEOQBOg=JNaPRVapQqsML+w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8BIT
+	Mon, 24 Feb 2014 12:36:59 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v5 04/10] V4L: Add driver for s5k6a3 image sensor
+Date: Mon, 24 Feb 2014 18:35:16 +0100
+Message-id: <1393263322-28215-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1393263322-28215-1-git-send-email-s.nawrocki@samsung.com>
+References: <1393263322-28215-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 17.02.2014 19:24, schrieb Rob Clark:
-> On Mon, Feb 17, 2014 at 12:36 PM, Christian König
-> <deathsimple@vodafone.de> wrote:
->> Am 17.02.2014 18:27, schrieb Rob Clark:
->>
->>> On Mon, Feb 17, 2014 at 11:56 AM, Christian König
->>> <deathsimple@vodafone.de> wrote:
->>>> Am 17.02.2014 16:56, schrieb Maarten Lankhorst:
->>>>
->>>>> This type of fence can be used with hardware synchronization for simple
->>>>> hardware that can block execution until the condition
->>>>> (dma_buf[offset] - value) >= 0 has been met.
->>>>
->>>> Can't we make that just "dma_buf[offset] != 0" instead? As far as I know
->>>> this way it would match the definition M$ uses in their WDDM
->>>> specification
->>>> and so make it much more likely that hardware supports it.
->>> well 'buf[offset] >= value' at least means the same slot can be used
->>> for multiple operations (with increasing values of 'value').. not sure
->>> if that is something people care about.
->>>
->>>> =value seems to be possible with adreno and radeon.  I'm not really sure
->>>> about others (although I presume it as least supported for nv desktop
->>>> stuff).  For hw that cannot do >=value, we can either have a different fence
->>>> implementation which uses the !=0 approach.  Or change seqno-fence
->>>> implementation later if needed.  But if someone has hw that can do !=0 but
->>>> not >=value, speak up now ;-)
->>
->> Here! Radeon can only do >=value on the DMA and 3D engine, but not with UVD
->> or VCE. And for the 3D engine it means draining the pipe, which isn't really
->> a good idea.
-> hmm, ok.. forgot you have a few extra rings compared to me.  Is UVD
-> re-ordering from decode-order to display-order for you in hw?  If not,
-> I guess you need sw intervention anyways when a frame is done for
-> frame re-ordering, so maybe hw->hw sync doesn't really matter as much
-> as compared to gpu/3d->display.  For dma<->3d interactions, seems like
-> you would care more about hw<->hw sync, but I guess you aren't likely
-> to use GPU A to do a resolve blit for GPU B..
+This patch adds subdev driver for Samsung S5K6A3 raw image sensor.
+As it is intended at the moment to be used only with the Exynos
+FIMC-IS (camera ISP) subsystem it is pretty minimal subdev driver.
+It doesn't do any I2C communication since the sensor is controlled
+by the ISP and its own firmware.
+This driver, if needed, can be updated in future into a regular
+subdev driver where the main CPU communicates with the sensor
+directly.
 
-No UVD isn't reordering, but since frame reordering is predictable you 
-usually end up with pipelining everything to the hardware. E.g. you send 
-the decode commands in decode order to the UVD block and if you have 
-overlay active one of the frames are going to be the first to display 
-and then you want to wait for it on the display side.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Changes since v4:
+  - none.
 
-> For 3D ring, I assume you probably want a CP_WAIT_FOR_IDLE before a
-> CP_MEM_WRITE to update fence value in memory (for the one signalling
-> the fence).  But why would you need that before a CP_WAIT_REG_MEM (for
-> the one waiting for the fence)?  I don't exactly have documentation
-> for adreno version of CP_WAIT_REG_{MEM,EQ,GTE}..  but PFP and ME
-> appear to be same instruction set as r600, so I'm pretty sure they
-> should have similar capabilities.. CP_WAIT_REG_MEM appears to be same
-> but with 32bit gpu addresses vs 64b.
+Changes since v3:
+ - clk_get() called moved from s_power() to driver probe() callback.
 
-You shouldn't use any of the CP commands for engine synchronization 
-(neither for wait nor for signal). The PFP and ME are just the top of a 
-quite deep pipeline and when you use any of the CP_WAIT functions you 
-block them for something and that's draining the pipeline.
+Changes since v1:
+ - added missing pm_runtime_disable(),
+ - removed subdev name overriding,
+ - s/S5K6A3_DEF_PIX/S5K6A3_DEFAULT_,
+ - merged patch adding v4l2-async API support,
+ - clock-frequency property is now optional and a default frequency
+   value will be used when it is missing, rather than bailing out,
+ - reset GPIO made mandatory as it is required for proper power
+   on/off sequences and all known boards use it,
+ - maximum image size is now 1412x1412 pixels, as specified in
+   in the S5K6A3YX datasheet.
+ - regulator_enable()/disable() used instead of the regulator bulk
+   API to ensure proper regulators enable/disable sequences.
 
-With the semaphore and fence commands the values are just attached as 
-prerequisite to the draw command, e.g. the CP setups the draw 
-environment and issues the command, but the actual execution of it is 
-delayed until the "!= 0" condition hits. And in the meantime the CP 
-already prepares the next draw operation.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/i2c/Kconfig  |    8 +
+ drivers/media/i2c/Makefile |    1 +
+ drivers/media/i2c/s5k6a3.c |  388 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 397 insertions(+)
+ create mode 100644 drivers/media/i2c/s5k6a3.c
 
-But at least for compute queues wait semaphore aren't the perfect 
-solution either. What you need then is a GPU scheduler that uses a 
-kernel task for setting up the command submission for you when all 
-prerequisites are meet.
-
-Christian.
-
-> BR,
-> -R
->
->> Christian.
->>
->>
->>>> Apart from that I still don't like the idea of leaking a drivers IRQ
->>>> context
->>>> outside of the driver, but without a proper GPU scheduler there probably
->>>> isn't much alternative.
->>> I guess it will be not uncommon scenario for gpu device to just need
->>> to kick display device to write a few registers for a page flip..
->>> probably best not to schedule a worker just for this (unless the
->>> signalled device otherwise needs to).  I think it is better in this
->>> case to give the signalee some rope to hang themselves, and make it
->>> the responsibility of the callback to kick things off to a worker if
->>> needed.
->>>
->>> BR,
->>> -R
->>>
->>>> Christian.
->>>>
->>>>> A software fallback still has to be provided in case the fence is used
->>>>> with a device that doesn't support this mechanism. It is useful to
->>>>> expose
->>>>> this for graphics cards that have an op to support this.
->>>>>
->>>>> Some cards like i915 can export those, but don't have an option to wait,
->>>>> so they need the software fallback.
->>>>>
->>>>> I extended the original patch by Rob Clark.
->>>>>
->>>>> v1: Original
->>>>> v2: Renamed from bikeshed to seqno, moved into dma-fence.c since
->>>>>        not much was left of the file. Lots of documentation added.
->>>>> v3: Use fence_ops instead of custom callbacks. Moved to own file
->>>>>        to avoid circular dependency between dma-buf.h and fence.h
->>>>> v4: Add spinlock pointer to seqno_fence_init
->>>>>
->>>>> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
->>>>> ---
->>>>>     Documentation/DocBook/device-drivers.tmpl |    1
->>>>>     drivers/base/fence.c                      |   50 +++++++++++++
->>>>>     include/linux/seqno-fence.h               |  109
->>>>> +++++++++++++++++++++++++++++
->>>>>     3 files changed, 160 insertions(+)
->>>>>     create mode 100644 include/linux/seqno-fence.h
->>>>>
->>>>> diff --git a/Documentation/DocBook/device-drivers.tmpl
->>>>> b/Documentation/DocBook/device-drivers.tmpl
->>>>> index 7a0c9ddb4818..8c85c20942c2 100644
->>>>> --- a/Documentation/DocBook/device-drivers.tmpl
->>>>> +++ b/Documentation/DocBook/device-drivers.tmpl
->>>>> @@ -131,6 +131,7 @@ X!Edrivers/base/interface.c
->>>>>     !Edrivers/base/dma-buf.c
->>>>>     !Edrivers/base/fence.c
->>>>>     !Iinclude/linux/fence.h
->>>>> +!Iinclude/linux/seqno-fence.h
->>>>>     !Edrivers/base/reservation.c
->>>>>     !Iinclude/linux/reservation.h
->>>>>     !Edrivers/base/dma-coherent.c
->>>>> diff --git a/drivers/base/fence.c b/drivers/base/fence.c
->>>>> index 12df2bf62034..cd0937127a89 100644
->>>>> --- a/drivers/base/fence.c
->>>>> +++ b/drivers/base/fence.c
->>>>> @@ -25,6 +25,7 @@
->>>>>     #include <linux/export.h>
->>>>>     #include <linux/atomic.h>
->>>>>     #include <linux/fence.h>
->>>>> +#include <linux/seqno-fence.h>
->>>>>       #define CREATE_TRACE_POINTS
->>>>>     #include <trace/events/fence.h>
->>>>> @@ -413,3 +414,52 @@ __fence_init(struct fence *fence, const struct
->>>>> fence_ops *ops,
->>>>>           trace_fence_init(fence);
->>>>>     }
->>>>>     EXPORT_SYMBOL(__fence_init);
->>>>> +
->>>>> +static const char *seqno_fence_get_driver_name(struct fence *fence) {
->>>>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
->>>>> +       return seqno_fence->ops->get_driver_name(fence);
->>>>> +}
->>>>> +
->>>>> +static const char *seqno_fence_get_timeline_name(struct fence *fence) {
->>>>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
->>>>> +       return seqno_fence->ops->get_timeline_name(fence);
->>>>> +}
->>>>> +
->>>>> +static bool seqno_enable_signaling(struct fence *fence)
->>>>> +{
->>>>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
->>>>> +       return seqno_fence->ops->enable_signaling(fence);
->>>>> +}
->>>>> +
->>>>> +static bool seqno_signaled(struct fence *fence)
->>>>> +{
->>>>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
->>>>> +       return seqno_fence->ops->signaled &&
->>>>> seqno_fence->ops->signaled(fence);
->>>>> +}
->>>>> +
->>>>> +static void seqno_release(struct fence *fence)
->>>>> +{
->>>>> +       struct seqno_fence *f = to_seqno_fence(fence);
->>>>> +
->>>>> +       dma_buf_put(f->sync_buf);
->>>>> +       if (f->ops->release)
->>>>> +               f->ops->release(fence);
->>>>> +       else
->>>>> +               kfree(f);
->>>>> +}
->>>>> +
->>>>> +static long seqno_wait(struct fence *fence, bool intr, signed long
->>>>> timeout)
->>>>> +{
->>>>> +       struct seqno_fence *f = to_seqno_fence(fence);
->>>>> +       return f->ops->wait(fence, intr, timeout);
->>>>> +}
->>>>> +
->>>>> +const struct fence_ops seqno_fence_ops = {
->>>>> +       .get_driver_name = seqno_fence_get_driver_name,
->>>>> +       .get_timeline_name = seqno_fence_get_timeline_name,
->>>>> +       .enable_signaling = seqno_enable_signaling,
->>>>> +       .signaled = seqno_signaled,
->>>>> +       .wait = seqno_wait,
->>>>> +       .release = seqno_release,
->>>>> +};
->>>>> +EXPORT_SYMBOL(seqno_fence_ops);
->>>>> diff --git a/include/linux/seqno-fence.h b/include/linux/seqno-fence.h
->>>>> new file mode 100644
->>>>> index 000000000000..952f7909128c
->>>>> --- /dev/null
->>>>> +++ b/include/linux/seqno-fence.h
->>>>> @@ -0,0 +1,109 @@
->>>>> +/*
->>>>> + * seqno-fence, using a dma-buf to synchronize fencing
->>>>> + *
->>>>> + * Copyright (C) 2012 Texas Instruments
->>>>> + * Copyright (C) 2012 Canonical Ltd
->>>>> + * Authors:
->>>>> + * Rob Clark <robdclark@gmail.com>
->>>>> + *   Maarten Lankhorst <maarten.lankhorst@canonical.com>
->>>>> + *
->>>>> + * This program is free software; you can redistribute it and/or modify
->>>>> it
->>>>> + * under the terms of the GNU General Public License version 2 as
->>>>> published by
->>>>> + * the Free Software Foundation.
->>>>> + *
->>>>> + * This program is distributed in the hope that it will be useful, but
->>>>> WITHOUT
->>>>> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
->>>>> or
->>>>> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
->>>>> License
->>>>> for
->>>>> + * more details.
->>>>> + *
->>>>> + * You should have received a copy of the GNU General Public License
->>>>> along with
->>>>> + * this program.  If not, see <http://www.gnu.org/licenses/>.
->>>>> + */
->>>>> +
->>>>> +#ifndef __LINUX_SEQNO_FENCE_H
->>>>> +#define __LINUX_SEQNO_FENCE_H
->>>>> +
->>>>> +#include <linux/fence.h>
->>>>> +#include <linux/dma-buf.h>
->>>>> +
->>>>> +struct seqno_fence {
->>>>> +       struct fence base;
->>>>> +
->>>>> +       const struct fence_ops *ops;
->>>>> +       struct dma_buf *sync_buf;
->>>>> +       uint32_t seqno_ofs;
->>>>> +};
->>>>> +
->>>>> +extern const struct fence_ops seqno_fence_ops;
->>>>> +
->>>>> +/**
->>>>> + * to_seqno_fence - cast a fence to a seqno_fence
->>>>> + * @fence: fence to cast to a seqno_fence
->>>>> + *
->>>>> + * Returns NULL if the fence is not a seqno_fence,
->>>>> + * or the seqno_fence otherwise.
->>>>> + */
->>>>> +static inline struct seqno_fence *
->>>>> +to_seqno_fence(struct fence *fence)
->>>>> +{
->>>>> +       if (fence->ops != &seqno_fence_ops)
->>>>> +               return NULL;
->>>>> +       return container_of(fence, struct seqno_fence, base);
->>>>> +}
->>>>> +
->>>>> +/**
->>>>> + * seqno_fence_init - initialize a seqno fence
->>>>> + * @fence: seqno_fence to initialize
->>>>> + * @lock: pointer to spinlock to use for fence
->>>>> + * @sync_buf: buffer containing the memory location to signal on
->>>>> + * @context: the execution context this fence is a part of
->>>>> + * @seqno_ofs: the offset within @sync_buf
->>>>> + * @seqno: the sequence # to signal on
->>>>> + * @ops: the fence_ops for operations on this seqno fence
->>>>> + *
->>>>> + * This function initializes a struct seqno_fence with passed
->>>>> parameters,
->>>>> + * and takes a reference on sync_buf which is released on fence
->>>>> destruction.
->>>>> + *
->>>>> + * A seqno_fence is a dma_fence which can complete in software when
->>>>> + * enable_signaling is called, but it also completes when
->>>>> + * (s32)((sync_buf)[seqno_ofs] - seqno) >= 0 is true
->>>>> + *
->>>>> + * The seqno_fence will take a refcount on the sync_buf until it's
->>>>> + * destroyed, but actual lifetime of sync_buf may be longer if one of
->>>>> the
->>>>> + * callers take a reference to it.
->>>>> + *
->>>>> + * Certain hardware have instructions to insert this type of wait
->>>>> condition
->>>>> + * in the command stream, so no intervention from software would be
->>>>> needed.
->>>>> + * This type of fence can be destroyed before completed, however a
->>>>> reference
->>>>> + * on the sync_buf dma-buf can be taken. It is encouraged to re-use the
->>>>> same
->>>>> + * dma-buf for sync_buf, since mapping or unmapping the sync_buf to the
->>>>> + * device's vm can be expensive.
->>>>> + *
->>>>> + * It is recommended for creators of seqno_fence to call fence_signal
->>>>> + * before destruction. This will prevent possible issues from
->>>>> wraparound
->>>>> at
->>>>> + * time of issue vs time of check, since users can check
->>>>> fence_is_signaled
->>>>> + * before submitting instructions for the hardware to wait on the
->>>>> fence.
->>>>> + * However, when ops.enable_signaling is not called, it doesn't have to
->>>>> be
->>>>> + * done as soon as possible, just before there's any real danger of
->>>>> seqno
->>>>> + * wraparound.
->>>>> + */
->>>>> +static inline void
->>>>> +seqno_fence_init(struct seqno_fence *fence, spinlock_t *lock,
->>>>> +                struct dma_buf *sync_buf,  uint32_t context, uint32_t
->>>>> seqno_ofs,
->>>>> +                uint32_t seqno, const struct fence_ops *ops)
->>>>> +{
->>>>> +       BUG_ON(!fence || !sync_buf || !ops);
->>>>> +       BUG_ON(!ops->wait || !ops->enable_signaling ||
->>>>> !ops->get_driver_name || !ops->get_timeline_name);
->>>>> +
->>>>> +       /*
->>>>> +        * ops is used in __fence_init for get_driver_name, so needs to
->>>>> be
->>>>> +        * initialized first
->>>>> +        */
->>>>> +       fence->ops = ops;
->>>>> +       __fence_init(&fence->base, &seqno_fence_ops, lock, context,
->>>>> seqno);
->>>>> +       get_dma_buf(sync_buf);
->>>>> +       fence->sync_buf = sync_buf;
->>>>> +       fence->seqno_ofs = seqno_ofs;
->>>>> +}
->>>>> +
->>>>> +#endif /* __LINUX_SEQNO_FENCE_H */
->>>>>
->>>>> _______________________________________________
->>>>> dri-devel mailing list
->>>>> dri-devel@lists.freedesktop.org
->>>>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
->>>>
->>>> _______________________________________________
->>>> dri-devel mailing list
->>>> dri-devel@lists.freedesktop.org
->>>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
->>
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 4aa9c531..ac2d5b7 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -579,6 +579,14 @@ config VIDEO_S5K6AA
+ 	  This is a V4L2 sensor-level driver for Samsung S5K6AA(FX) 1.3M
+ 	  camera sensor with an embedded SoC image signal processor.
+ 
++config VIDEO_S5K6A3
++	tristate "Samsung S5K6A3 sensor support"
++	depends on MEDIA_CAMERA_SUPPORT
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
++	---help---
++	  This is a V4L2 sensor-level driver for Samsung S5K6A3 raw
++	  camera sensor.
++
+ config VIDEO_S5K4ECGX
+         tristate "Samsung S5K4ECGX sensor support"
+         depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 48888ae..ab5aa34 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -66,6 +66,7 @@ obj-$(CONFIG_VIDEO_MT9V032) += mt9v032.o
+ obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
+ obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
+ obj-$(CONFIG_VIDEO_S5K6AA)	+= s5k6aa.o
++obj-$(CONFIG_VIDEO_S5K6A3)	+= s5k6a3.o
+ obj-$(CONFIG_VIDEO_S5K4ECGX)	+= s5k4ecgx.o
+ obj-$(CONFIG_VIDEO_S5K5BAF)	+= s5k5baf.o
+ obj-$(CONFIG_VIDEO_S5C73M3)	+= s5c73m3/
+diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
+new file mode 100644
+index 0000000..d0b52cd
+--- /dev/null
++++ b/drivers/media/i2c/s5k6a3.c
+@@ -0,0 +1,388 @@
++/*
++ * Samsung S5K6A3 image sensor driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/errno.h>
++#include <linux/gpio.h>
++#include <linux/i2c.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of_gpio.h>
++#include <linux/pm_runtime.h>
++#include <linux/regulator/consumer.h>
++#include <linux/slab.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-async.h>
++#include <media/v4l2-subdev.h>
++
++#define S5K6A3_SENSOR_MAX_WIDTH		1412
++#define S5K6A3_SENSOR_MAX_HEIGHT	1412
++#define S5K6A3_SENSOR_MIN_WIDTH		32
++#define S5K6A3_SENSOR_MIN_HEIGHT	32
++
++#define S5K6A3_DEFAULT_WIDTH		1296
++#define S5K6A3_DEFAULT_HEIGHT		732
++
++#define S5K6A3_DRV_NAME			"S5K6A3"
++#define S5K6A3_CLK_NAME			"extclk"
++#define S5K6A3_DEFAULT_CLK_FREQ		24000000U
++
++enum {
++	S5K6A3_SUPP_VDDA,
++	S5K6A3_SUPP_VDDIO,
++	S5K6A3_SUPP_AFVDD,
++	S5K6A3_NUM_SUPPLIES,
++};
++
++/**
++ * struct s5k6a3 - fimc-is sensor data structure
++ * @dev: pointer to this I2C client device structure
++ * @subdev: the image sensor's v4l2 subdev
++ * @pad: subdev media source pad
++ * @supplies: image sensor's voltage regulator supplies
++ * @gpio_reset: GPIO connected to the sensor's reset pin
++ * @lock: mutex protecting the structure's members below
++ * @format: media bus format at the sensor's source pad
++ */
++struct s5k6a3 {
++	struct device *dev;
++	struct v4l2_subdev subdev;
++	struct media_pad pad;
++	struct regulator_bulk_data supplies[S5K6A3_NUM_SUPPLIES];
++	int gpio_reset;
++	struct mutex lock;
++	struct v4l2_mbus_framefmt format;
++	struct clk *clock;
++	u32 clock_frequency;
++	int power_count;
++};
++
++static const char * const s5k6a3_supply_names[] = {
++	[S5K6A3_SUPP_VDDA]	= "svdda",
++	[S5K6A3_SUPP_VDDIO]	= "svddio",
++	[S5K6A3_SUPP_AFVDD]	= "afvdd",
++};
++
++static inline struct s5k6a3 *sd_to_s5k6a3(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct s5k6a3, subdev);
++}
++
++static const struct v4l2_mbus_framefmt s5k6a3_formats[] = {
++	{
++		.code = V4L2_MBUS_FMT_SGRBG10_1X10,
++		.colorspace = V4L2_COLORSPACE_SRGB,
++		.field = V4L2_FIELD_NONE,
++	}
++};
++
++static const struct v4l2_mbus_framefmt *find_sensor_format(
++	struct v4l2_mbus_framefmt *mf)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(s5k6a3_formats); i++)
++		if (mf->code == s5k6a3_formats[i].code)
++			return &s5k6a3_formats[i];
++
++	return &s5k6a3_formats[0];
++}
++
++static int s5k6a3_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_mbus_code_enum *code)
++{
++	if (code->index >= ARRAY_SIZE(s5k6a3_formats))
++		return -EINVAL;
++
++	code->code = s5k6a3_formats[code->index].code;
++	return 0;
++}
++
++static void s5k6a3_try_format(struct v4l2_mbus_framefmt *mf)
++{
++	const struct v4l2_mbus_framefmt *fmt;
++
++	fmt = find_sensor_format(mf);
++	mf->code = fmt->code;
++	v4l_bound_align_image(&mf->width, S5K6A3_SENSOR_MIN_WIDTH,
++			      S5K6A3_SENSOR_MAX_WIDTH, 0,
++			      &mf->height, S5K6A3_SENSOR_MIN_HEIGHT,
++			      S5K6A3_SENSOR_MAX_HEIGHT, 0, 0);
++}
++
++static struct v4l2_mbus_framefmt *__s5k6a3_get_format(
++		struct s5k6a3 *sensor, struct v4l2_subdev_fh *fh,
++		u32 pad, enum v4l2_subdev_format_whence which)
++{
++	if (which == V4L2_SUBDEV_FORMAT_TRY)
++		return fh ? v4l2_subdev_get_try_format(fh, pad) : NULL;
++
++	return &sensor->format;
++}
++
++static int s5k6a3_set_fmt(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_format *fmt)
++{
++	struct s5k6a3 *sensor = sd_to_s5k6a3(sd);
++	struct v4l2_mbus_framefmt *mf;
++
++	s5k6a3_try_format(&fmt->format);
++
++	mf = __s5k6a3_get_format(sensor, fh, fmt->pad, fmt->which);
++	if (mf) {
++		mutex_lock(&sensor->lock);
++		if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++			*mf = fmt->format;
++		mutex_unlock(&sensor->lock);
++	}
++	return 0;
++}
++
++static int s5k6a3_get_fmt(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_format *fmt)
++{
++	struct s5k6a3 *sensor = sd_to_s5k6a3(sd);
++	struct v4l2_mbus_framefmt *mf;
++
++	mf = __s5k6a3_get_format(sensor, fh, fmt->pad, fmt->which);
++
++	mutex_lock(&sensor->lock);
++	fmt->format = *mf;
++	mutex_unlock(&sensor->lock);
++	return 0;
++}
++
++static struct v4l2_subdev_pad_ops s5k6a3_pad_ops = {
++	.enum_mbus_code	= s5k6a3_enum_mbus_code,
++	.get_fmt	= s5k6a3_get_fmt,
++	.set_fmt	= s5k6a3_set_fmt,
++};
++
++static int s5k6a3_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh, 0);
++
++	*format		= s5k6a3_formats[0];
++	format->width	= S5K6A3_DEFAULT_WIDTH;
++	format->height	= S5K6A3_DEFAULT_HEIGHT;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops s5k6a3_sd_internal_ops = {
++	.open = s5k6a3_open,
++};
++
++static int __s5k6a3_power_on(struct s5k6a3 *sensor)
++{
++	int i = S5K6A3_SUPP_VDDA;
++	int ret;
++
++	ret = clk_set_rate(sensor->clock, sensor->clock_frequency);
++	if (ret < 0)
++		return ret;
++
++	ret = pm_runtime_get(sensor->dev);
++	if (ret < 0)
++		return ret;
++
++	ret = regulator_enable(sensor->supplies[i].consumer);
++	if (ret < 0)
++		goto error_rpm_put;
++
++	ret = clk_prepare_enable(sensor->clock);
++	if (ret < 0)
++		goto error_reg_dis;
++
++	for (i++; i < S5K6A3_NUM_SUPPLIES; i++) {
++		ret = regulator_enable(sensor->supplies[i].consumer);
++		if (ret < 0)
++			goto error_reg_dis;
++	}
++
++	gpio_set_value(sensor->gpio_reset, 1);
++	usleep_range(600, 800);
++	gpio_set_value(sensor->gpio_reset, 0);
++	usleep_range(600, 800);
++	gpio_set_value(sensor->gpio_reset, 1);
++
++	/* Delay needed for the sensor initialization */
++	msleep(20);
++	return 0;
++
++error_reg_dis:
++	for (--i; i >= 0; --i)
++		regulator_disable(sensor->supplies[i].consumer);
++error_rpm_put:
++	pm_runtime_put(sensor->dev);
++	return ret;
++}
++
++static int __s5k6a3_power_off(struct s5k6a3 *sensor)
++{
++	int i;
++
++	gpio_set_value(sensor->gpio_reset, 0);
++
++	for (i = S5K6A3_NUM_SUPPLIES - 1; i >= 0; i--)
++		regulator_disable(sensor->supplies[i].consumer);
++
++	clk_disable_unprepare(sensor->clock);
++	pm_runtime_put(sensor->dev);
++	return 0;
++}
++
++static int s5k6a3_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct s5k6a3 *sensor = sd_to_s5k6a3(sd);
++	int ret = 0;
++
++	mutex_lock(&sensor->lock);
++
++	if (sensor->power_count == !on) {
++		if (on)
++			ret = __s5k6a3_power_on(sensor);
++		else
++			ret = __s5k6a3_power_off(sensor);
++
++		if (ret == 0)
++			sensor->power_count += on ? 1 : -1;
++	}
++
++	mutex_unlock(&sensor->lock);
++	return ret;
++}
++
++static struct v4l2_subdev_core_ops s5k6a3_core_ops = {
++	.s_power = s5k6a3_s_power,
++};
++
++static struct v4l2_subdev_ops s5k6a3_subdev_ops = {
++	.core = &s5k6a3_core_ops,
++	.pad = &s5k6a3_pad_ops,
++};
++
++static int s5k6a3_probe(struct i2c_client *client,
++				const struct i2c_device_id *id)
++{
++	struct device *dev = &client->dev;
++	struct s5k6a3 *sensor;
++	struct v4l2_subdev *sd;
++	int gpio, i, ret;
++
++	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
++	if (!sensor)
++		return -ENOMEM;
++
++	mutex_init(&sensor->lock);
++	sensor->gpio_reset = -EINVAL;
++	sensor->clock = ERR_PTR(-EINVAL);
++	sensor->dev = dev;
++
++	sensor->clock = devm_clk_get(sensor->dev, S5K6A3_CLK_NAME);
++	if (IS_ERR(sensor->clock))
++		return PTR_ERR(sensor->clock);
++
++	gpio = of_get_gpio_flags(dev->of_node, 0, NULL);
++	if (!gpio_is_valid(gpio))
++		return gpio;
++
++	ret = devm_gpio_request_one(dev, gpio, GPIOF_OUT_INIT_LOW,
++						S5K6A3_DRV_NAME);
++	if (ret < 0)
++		return ret;
++
++	sensor->gpio_reset = gpio;
++
++	if (of_property_read_u32(dev->of_node, "clock-frequency",
++				 &sensor->clock_frequency)) {
++		sensor->clock_frequency = S5K6A3_DEFAULT_CLK_FREQ;
++		dev_info(dev, "using default %u Hz clock frequency\n",
++					sensor->clock_frequency);
++	}
++
++	for (i = 0; i < S5K6A3_NUM_SUPPLIES; i++)
++		sensor->supplies[i].supply = s5k6a3_supply_names[i];
++
++	ret = devm_regulator_bulk_get(&client->dev, S5K6A3_NUM_SUPPLIES,
++				      sensor->supplies);
++	if (ret < 0)
++		return ret;
++
++	sd = &sensor->subdev;
++	v4l2_i2c_subdev_init(sd, client, &s5k6a3_subdev_ops);
++	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++	sensor->format.code = s5k6a3_formats[0].code;
++	sensor->format.width = S5K6A3_DEFAULT_WIDTH;
++	sensor->format.height = S5K6A3_DEFAULT_HEIGHT;
++
++	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_init(&sd->entity, 1, &sensor->pad, 0);
++	if (ret < 0)
++		return ret;
++
++	pm_runtime_no_callbacks(dev);
++	pm_runtime_enable(dev);
++
++	ret = v4l2_async_register_subdev(sd);
++
++	if (ret < 0) {
++		pm_runtime_disable(&client->dev);
++		media_entity_cleanup(&sd->entity);
++	}
++
++	return ret;
++}
++
++static int s5k6a3_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++
++	pm_runtime_disable(&client->dev);
++	v4l2_async_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	return 0;
++}
++
++static const struct i2c_device_id s5k6a3_ids[] = {
++	{ }
++};
++
++#ifdef CONFIG_OF
++static const struct of_device_id s5k6a3_of_match[] = {
++	{ .compatible = "samsung,s5k6a3" },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, s5k6a3_of_match);
++#endif
++
++static struct i2c_driver s5k6a3_driver = {
++	.driver = {
++		.of_match_table	= of_match_ptr(s5k6a3_of_match),
++		.name		= S5K6A3_DRV_NAME,
++		.owner		= THIS_MODULE,
++	},
++	.probe		= s5k6a3_probe,
++	.remove		= s5k6a3_remove,
++	.id_table	= s5k6a3_ids,
++};
++
++module_i2c_driver(s5k6a3_driver);
++
++MODULE_DESCRIPTION("S5K6A3 image sensor subdev driver");
++MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
++MODULE_LICENSE("GPL v2");
+-- 
+1.7.9.5
 
