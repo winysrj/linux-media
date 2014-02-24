@@ -1,117 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:59967 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751199AbaBLNOB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 08:14:01 -0500
-Received: by mail-ob0-f176.google.com with SMTP id gq1so10344689obb.7
-        for <linux-media@vger.kernel.org>; Wed, 12 Feb 2014 05:14:00 -0800 (PST)
+Received: from co9ehsobe002.messaging.microsoft.com ([207.46.163.25]:31055
+	"EHLO co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751318AbaBXCPM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Feb 2014 21:15:12 -0500
+Date: Mon, 24 Feb 2014 10:15:30 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Denis Carikli <denis@eukrea.com>
+CC: Eric =?iso-8859-1?Q?B=E9nard?= <eric@eukrea.com>,
+	Troy Kisky <troy.kisky@boundarydevices.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCHv7][ 1/7] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel
+ format.
+Message-ID: <20140224021529.GD25011@S2101-09.ap.freescale.net>
+References: <1392991205-25371-1-git-send-email-denis@eukrea.com>
 MIME-Version: 1.0
-In-Reply-To: <52FB6BB3.1060300@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
- <1392022019-5519-25-git-send-email-hverkuil@xs4all.nl> <CAPybu_2TkODSMUCdSQ8Q1wu=Mr-gmaC_ZQQBiatOPYw=gGcu2g@mail.gmail.com>
- <52FB5910.9040101@xs4all.nl> <CAPybu_0Kw8-Rq2-oNmwBpF36N6HLg3vZ9CaywLsTQp+9Ym5Z8w@mail.gmail.com>
- <52FB6BB3.1060300@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 12 Feb 2014 14:13:40 +0100
-Message-ID: <CAPybu_0ufQP-vZ5_LsO1btXrsT1rsLUNzbOTQLi_QCcWV1hvJA@mail.gmail.com>
-Subject: Re: [REVIEWv2 PATCH 24/34] v4l2-ctrls/videodev2.h: add u8 and u16 types.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Disposition: inline
+In-Reply-To: <1392991205-25371-1-git-send-email-denis@eukrea.com>
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+On Fri, Feb 21, 2014 at 02:59:58PM +0100, Denis Carikli wrote:
+> That new macro is needed by the imx_drm staging driver
+>   for supporting the QVGA display of the eukrea-cpuimx51 board.
+> 
+> Cc: Eric Bénard <eric@eukrea.com>
+> CC: Troy Kisky <troy.kisky@boundarydevices.com>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Denis Carikli <denis@eukrea.com>
+> Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks for you promptly response
+Denis,
 
-On Wed, Feb 12, 2014 at 1:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/12/14 13:11, Ricardo Ribalda Delgado wrote:
->> Hi Hans
->>
->> Thanks for your reply
->>
->> On Wed, Feb 12, 2014 at 12:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> Hi Ricardo,
->>>
->>> On 02/12/14 11:44, Ricardo Ribalda Delgado wrote:
->>>> Hello Hans
->>>>
->>>> In the case of U8 and U16 data types. Why dont you fill the elem_size
->>>> automatically in v4l2_ctrl and request the driver to fill the field?
->>>
->>> When you create the control the control framework has to know the element
->>> size beforehand as it will use that to allocate the memory containing the
->>> control's value. The control framework is aware of the 'old' control types
->>> and will fill in the elem_size accordingly, but it cannot do that in the
->>> general case for these complex types. I guess it could be filled in by the
->>> framework for the more common types (U8, U16) but I felt it was more
->>> consistent to just require drivers to fill it in manually, rather than have
->>> it set for some types but not for others.
->>>
->>>>
->>>> Other option would be not declaring the basic data types (U8, U16,
->>>> U32...) and use elem_size. Ie. If type==V4L2_CTRL_COMPLEX_TYPES, then
->>>> the type is basic and elem_size is the size of the type. If the type
->>>>> V4L2_CTRL_COMPLEX_TYPES the type is not basic.
->>>
->>> You still need to know the type. Applications have to be able to check for
->>> the type, the element size by itself doesn't tell you how to interpret the
->>> data, you need the type identifier as well.
->>
->> I think that the driver is setting twice the same info. I see no gain
->> in declaring U8, U16 types etc if we still have to set the element
->> size. This is why I believe that we should only declare the "structs".
->
-> Just to make sure I understand you: for simple types like U8/U16 you want
-> the control framework to fill in elem_size, for more complex types (structs)
-> you want the driver to fill in elem_size?
+I'm only responsible for taking arch/arm/boot/dts/imx* changes, and
+other changes should be sent to subsystem maintainers.
 
-I dont like that the type contains the size of the element, and then I
-have to provide the size again. (Hungarian notation)
+Shawn
 
-Instead, I think it is better:
+> ---
+> ChangeLog v6->v7:
+> - Shrinked even more the Cc list.
+> ChangeLog v5->v6:
+> - Remove people not concerned by this patch from the Cc list.
+> 
+> ChangeLog v3->v4:
+> - Added Laurent Pinchart's Ack.
+> 
+> ChangeLog v2->v3:
+> - Added some interested people in the Cc list.
+> - Added Mauro Carvalho Chehab's Ack.
+> - Added documentation.
+> ---
+>  .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   78 ++++++++++++++++++++
+>  include/uapi/linux/videodev2.h                     |    1 +
+>  2 files changed, 79 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> index 166c8d6..f6a3e84 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> @@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+>  	    <entry></entry>
+>  	    <entry></entry>
+>  	  </row>
+> +	  <row id="V4L2-PIX-FMT-RGB666">
+> +	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
+> +	    <entry>'RGBH'</entry>
+> +	    <entry></entry>
+> +	    <entry>r<subscript>5</subscript></entry>
+> +	    <entry>r<subscript>4</subscript></entry>
+> +	    <entry>r<subscript>3</subscript></entry>
+> +	    <entry>r<subscript>2</subscript></entry>
+> +	    <entry>r<subscript>1</subscript></entry>
+> +	    <entry>r<subscript>0</subscript></entry>
+> +	    <entry>g<subscript>5</subscript></entry>
+> +	    <entry>g<subscript>4</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>g<subscript>3</subscript></entry>
+> +	    <entry>g<subscript>2</subscript></entry>
+> +	    <entry>g<subscript>1</subscript></entry>
+> +	    <entry>g<subscript>0</subscript></entry>
+> +	    <entry>b<subscript>5</subscript></entry>
+> +	    <entry>b<subscript>4</subscript></entry>
+> +	    <entry>b<subscript>3</subscript></entry>
+> +	    <entry>b<subscript>2</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>b<subscript>1</subscript></entry>
+> +	    <entry>b<subscript>0</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	  </row>
+>  	  <row id="V4L2-PIX-FMT-BGR24">
+>  	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+>  	    <entry>'BGR3'</entry>
+> @@ -781,6 +820,45 @@ defined in error. Drivers may interpret them as in <xref
+>  	    <entry></entry>
+>  	    <entry></entry>
+>  	  </row>
+> +	  <row><!-- id="V4L2-PIX-FMT-RGB666" -->
+> +	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
+> +	    <entry>'RGBH'</entry>
+> +	    <entry></entry>
+> +	    <entry>r<subscript>5</subscript></entry>
+> +	    <entry>r<subscript>4</subscript></entry>
+> +	    <entry>r<subscript>3</subscript></entry>
+> +	    <entry>r<subscript>2</subscript></entry>
+> +	    <entry>r<subscript>1</subscript></entry>
+> +	    <entry>r<subscript>0</subscript></entry>
+> +	    <entry>g<subscript>5</subscript></entry>
+> +	    <entry>g<subscript>4</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>g<subscript>3</subscript></entry>
+> +	    <entry>g<subscript>2</subscript></entry>
+> +	    <entry>g<subscript>1</subscript></entry>
+> +	    <entry>g<subscript>0</subscript></entry>
+> +	    <entry>b<subscript>5</subscript></entry>
+> +	    <entry>b<subscript>4</subscript></entry>
+> +	    <entry>b<subscript>3</subscript></entry>
+> +	    <entry>b<subscript>2</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry>b<subscript>1</subscript></entry>
+> +	    <entry>b<subscript>0</subscript></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	    <entry></entry>
+> +	  </row>
+>  	  <row><!-- id="V4L2-PIX-FMT-BGR24" -->
+>  	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+>  	    <entry>'BGR3'</entry>
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 6ae7bbe..3051d67 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -294,6 +294,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+>  #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+>  #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
+> +#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
+>  #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+>  #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
+>  #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
+> -- 
+> 1.7.9.5
+> 
 
-Defines ONLY this two types for simple types:
-V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER and
-V4L2_CTRL_COMPLEX_TYPE_UNSIGNED_INTEGER and use elem_size to determine
-the size.
-
-And then one define per "structured types"  ie:
-V4L2_CTRL_COMPLEX_TYPE_POINT V4L2_CTRL_COMPLEX_TYPE_IRRATIONAL.. with
-elem_size determining the size.
-
-But if you dont like that idea, as second preference  then I think
-elem_size should be filled by the subsystem for simple types.
-
-
-Thanks!
->
->> what about something like: V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER +
->> size, V4L2_CTRL_COMPLEX_TYPES_UNSIGNED_INTEGER + size.... instead of
->> V4L2_CTRL_COMPLEX_TYPES_U8, V4L2_CTRL_COMPLEX_TYPES_U16,
->> V4L2_CTRL_COMPLEX_TYPES_U32, V4L2_CTRL_COMPLEX_TYPES_S8 ....
->>
->> Btw, I am trying to implement a dead pixel control on the top of you
->> api. Shall I wait until you patchset is merged or shall I send the
->> patches right away?
->
-> You're free to experiment, but I am not going to ask Mauro to pull additional
-> patches as long as this initial patch set isn't merged.
->
-> Regards,
->
->         Hans
-
-
-
-
-
--- 
-Ricardo Ribalda
