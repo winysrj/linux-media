@@ -1,183 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46723 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753776AbaBOUvi (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1233 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751538AbaBXDhR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Feb 2014 15:51:38 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Sun, 23 Feb 2014 22:37:17 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1O3bD8f036713
+	for <linux-media@vger.kernel.org>; Mon, 24 Feb 2014 04:37:15 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 731E12A022E
+	for <linux-media@vger.kernel.org>; Mon, 24 Feb 2014 04:37:12 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
-	hverkuil@xs4all.nl, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v5 6/7] v4l: Copy timestamp source flags to destination on m2m devices
-Date: Sat, 15 Feb 2014 22:53:04 +0200
-Message-Id: <1392497585-5084-7-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140224033712.731E12A022E@tschai.lan>
+Date: Mon, 24 Feb 2014 04:37:12 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Copy the flags containing the timestamp source from source buffer flags to
-the destination buffer flags on memory-to-memory devices. This is analogous
-to copying the timestamp field from source to destination.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/platform/coda.c                |    3 +++
- drivers/media/platform/exynos-gsc/gsc-m2m.c  |    4 ++++
- drivers/media/platform/exynos4-is/fimc-m2m.c |    3 +++
- drivers/media/platform/m2m-deinterlace.c     |    3 +++
- drivers/media/platform/mem2mem_testdev.c     |    3 +++
- drivers/media/platform/mx2_emmaprp.c         |    5 +++++
- drivers/media/platform/s5p-g2d/g2d.c         |    3 +++
- drivers/media/platform/s5p-jpeg/jpeg-core.c  |    3 +++
- drivers/media/platform/s5p-mfc/s5p_mfc.c     |    5 +++++
- drivers/media/platform/ti-vpe/vpe.c          |    2 ++
- 10 files changed, 34 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 61f3dbc..fe6dee6 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -2829,6 +2829,9 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 	}
- 
- 	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
-+	dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_buf->v4l2_buf.flags |=
-+		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
- 
- 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 62c84d5..4260ea5 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -90,6 +90,10 @@ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
- 	if (src_vb && dst_vb) {
- 		dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
- 		dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
-+		dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+		dst_vb->v4l2_buf.flags |=
-+			src_vb->v4l2_buf.flags
-+			& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 		v4l2_m2m_buf_done(src_vb, vb_state);
- 		v4l2_m2m_buf_done(dst_vb, vb_state);
-diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
-index 9da95bd..a4249a1 100644
---- a/drivers/media/platform/exynos4-is/fimc-m2m.c
-+++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
-@@ -134,6 +134,9 @@ static void fimc_device_run(void *priv)
- 		goto dma_unlock;
- 
- 	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+	dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_vb->v4l2_buf.flags |=
-+		src_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	/* Reconfigure hardware if the context has changed. */
- 	if (fimc->m2m.ctx != ctx) {
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index 1f272d3..79ffdab 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -208,6 +208,9 @@ static void dma_callback(void *data)
- 	dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
- 
- 	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+	dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_vb->v4l2_buf.flags |=
-+		src_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 	dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
- 
- 	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-index 08e2437..b91da7f 100644
---- a/drivers/media/platform/mem2mem_testdev.c
-+++ b/drivers/media/platform/mem2mem_testdev.c
-@@ -239,6 +239,9 @@ static int device_process(struct m2mtest_ctx *ctx,
- 	memcpy(&out_vb->v4l2_buf.timestamp,
- 			&in_vb->v4l2_buf.timestamp,
- 			sizeof(struct timeval));
-+	out_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	out_vb->v4l2_buf.flags |=
-+		in_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	switch (ctx->mode) {
- 	case MEM2MEM_HFLIP | MEM2MEM_VFLIP:
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index 91056ac0..0f59082 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -378,6 +378,11 @@ static irqreturn_t emmaprp_irq(int irq_emma, void *data)
- 			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
- 
- 			dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+			dst_vb->v4l2_buf.flags &=
-+				~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+			dst_vb->v4l2_buf.flags |=
-+				src_vb->v4l2_buf.flags
-+				& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 			dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
- 
- 			spin_lock_irqsave(&pcdev->irqlock, flags);
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index 0fcf7d7..48fe6ea 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -560,6 +560,9 @@ static irqreturn_t g2d_isr(int irq, void *prv)
- 
- 	dst->v4l2_buf.timecode = src->v4l2_buf.timecode;
- 	dst->v4l2_buf.timestamp = src->v4l2_buf.timestamp;
-+	dst->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst->v4l2_buf.flags |=
-+		src->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
- 	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index a1c78c8..7b10120 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1766,6 +1766,9 @@ static irqreturn_t s5p_jpeg_irq(int irq, void *dev_id)
- 
- 	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
- 	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
-+	dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_buf->v4l2_buf.flags |=
-+		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	v4l2_m2m_buf_done(src_buf, state);
- 	if (curr_ctx->mode == S5P_JPEG_ENCODE)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index e2aac59..702ca1b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -232,6 +232,11 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 						src_buf->b->v4l2_buf.timecode;
- 			dst_buf->b->v4l2_buf.timestamp =
- 						src_buf->b->v4l2_buf.timestamp;
-+			dst_buf->b->v4l2_buf.flags &=
-+				~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+			dst_buf->b->v4l2_buf.flags |=
-+				src_buf->b->v4l2_buf.flags
-+				& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 			switch (frame_type) {
- 			case S5P_FIMV_DECODE_FRAME_I_FRAME:
- 				dst_buf->b->v4l2_buf.flags |=
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 1296c53..d67c467 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1278,6 +1278,8 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 	d_buf = &d_vb->v4l2_buf;
- 
- 	d_buf->timestamp = s_buf->timestamp;
-+	d_buf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	d_buf->flags |= s_buf->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 	if (s_buf->flags & V4L2_BUF_FLAG_TIMECODE) {
- 		d_buf->flags |= V4L2_BUF_FLAG_TIMECODE;
- 		d_buf->timecode = s_buf->timecode;
--- 
-1.7.10.4
+date:		Mon Feb 24 04:00:23 CET 2014
+git branch:	test
+git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
