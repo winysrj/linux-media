@@ -1,55 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50386 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58516 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754031AbaBSRaz (ORCPT
+	with ESMTP id S1752073AbaBXSg6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Feb 2014 12:30:55 -0500
-Received: from avalon.localnet (unknown [91.178.208.133])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id C50F435A46
-	for <linux-media@vger.kernel.org>; Wed, 19 Feb 2014 18:29:53 +0100 (CET)
+	Mon, 24 Feb 2014 13:36:58 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.15] Sensor drivers patches
-Date: Wed, 19 Feb 2014 18:32:05 +0100
-Message-ID: <19619219.WJ2Q48EY87@avalon>
+To: Phil Edworthy <phil.edworthy@renesas.com>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Valentine Barshak <valentine.barshak@cogentembedded.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add support for 10-bit YUV cameras
+Date: Mon, 24 Feb 2014 19:38:14 +0100
+Message-ID: <2516843.7QqJLHtUZT@avalon>
+In-Reply-To: <1393256945-12781-1-git-send-email-phil.edworthy@renesas.com>
+References: <1393256945-12781-1-git-send-email-phil.edworthy@renesas.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Phil,
 
-The following changes since commit 37e59f876bc710d67a30b660826a5e83e07101ce:
+Thank you for the patch.
 
-  [media, edac] Change my email address (2014-02-07 08:03:07 -0200)
+On Monday 24 February 2014 15:49:05 Phil Edworthy wrote:
+> Signed-off-by: Phil Edworthy <phil.edworthy@renesas.com>
+> ---
+>  drivers/media/platform/soc_camera/rcar_vin.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+> b/drivers/media/platform/soc_camera/rcar_vin.c index 3b1c05a..9929375
+> 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -68,6 +68,8 @@
+>  #define VNMC_YCAL		(1 << 19)
+>  #define VNMC_INF_YUV8_BT656	(0 << 16)
+>  #define VNMC_INF_YUV8_BT601	(1 << 16)
+> +#define VNMC_INF_YUV10_BT656	(2 << 16)
+> +#define VNMC_INF_YUV10_BT601	(3 << 16)
+>  #define VNMC_INF_YUV16		(5 << 16)
+>  #define VNMC_VUP		(1 << 10)
+>  #define VNMC_IM_ODD		(0 << 3)
+> @@ -275,6 +277,10 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+>  		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
+>  			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
 
-are available in the git repository at:
+Aren't you missing a break here ?
 
-  git://linuxtv.org/pinchartl/media.git sensors/next
+> +	case V4L2_MBUS_FMT_YUYV10_2X10:
+> +		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+> +		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
+> +			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
 
-for you to fetch changes up to d57241e3cbde76b39d940570dbbfe12d6a70bcc6:
+You should add one here as well. Although not strictly necessary, it would 
+help to avoid making the same mistake again.
 
-  mt9v032: Check return value of clk_prepare_enable/clk_set_rate (2014-02-19 
-18:29:33 +0100)
+The rest looks good to me, but I'm not familiar with the hardware, so I'll let 
+Valentine have the last word.
 
-----------------------------------------------------------------
-Lad, Prabhakar (2):
-      mt9p031: Check return value of clk_prepare_enable/clk_set_rate
-      mt9v032: Check return value of clk_prepare_enable/clk_set_rate
-
-Laurent Pinchart (5):
-      ARM: omap2: cm-t35: Add regulators and clock for camera sensor
-      mt9t001: Add regulator support
-      mt9t001: Add clock support
-      mt9p031: Fix typo in comment
-      mt9p031: Add support for PLL bypass
-
- arch/arm/mach-omap2/board-cm-t35.c |  16 ++++
- drivers/media/i2c/mt9p031.c        |  49 +++++++++-
- drivers/media/i2c/mt9t001.c        | 229 ++++++++++++++++++++++++++++--------
- drivers/media/i2c/mt9v032.c        |  10 +-
- 4 files changed, 248 insertions(+), 56 deletions(-)
+>  	default:
+>  		break;
+>  	}
+> @@ -1003,6 +1009,7 @@ static int rcar_vin_get_formats(struct
+> soc_camera_device *icd, unsigned int idx, switch (code) {
+>  	case V4L2_MBUS_FMT_YUYV8_1X16:
+>  	case V4L2_MBUS_FMT_YUYV8_2X8:
+> +	case V4L2_MBUS_FMT_YUYV10_2X10:
+>  		if (cam->extra_fmt)
+>  			break;
 
 -- 
 Regards,
