@@ -1,113 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4583 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560AbaBSDgG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 22:36:06 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1J3a2T6005408
-	for <linux-media@vger.kernel.org>; Wed, 19 Feb 2014 04:36:04 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id E79A02A00AA
-	for <linux-media@vger.kernel.org>; Wed, 19 Feb 2014 04:35:25 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from smtp5.pb.cz ([109.72.0.115]:44129 "EHLO smtp5.pb.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751781AbaBXIkN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Feb 2014 03:40:13 -0500
+Received: from [192.168.1.15] (unknown [109.72.4.22])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by smtp5.pb.cz (Postfix) with ESMTPS id 62B2580C67
+	for <linux-media@vger.kernel.org>; Mon, 24 Feb 2014 09:40:10 +0100 (CET)
+Message-ID: <530B056A.7050501@mizera.cz>
+Date: Mon, 24 Feb 2014 09:40:10 +0100
+From: kapetr@mizera.cz
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140219033525.E79A02A00AA@tschai.lan>
-Date: Wed, 19 Feb 2014 04:35:25 +0100 (CET)
+Subject: af9035 vs. it913x
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of media_tree:
+old it913x had support reporting of signal strength on IT9135 v2.
+af9035 driver does not. Could that be corrected ?
 
-date:		Wed Feb 19 04:00:35 CET 2014
-git branch:	test
-git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+And I would like to know:
+How to get and build drivers from source with patches which are 
+presented in this forum.
 
-Detailed results are available here:
+E.g. - driver it913x is now obsolete and IT9135 is now moved to driver 
+af9035. OK.
+But when I download:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+git clone --depth=1 git://linuxtv.org/media_build.git
 
-Full logs are available here:
+as described here:
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+There are these changes/patches not included.
+Is somewhere more actual  media_build.git to clone an build ?
 
-The Media Infrastructure API from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks
+
+--kapetr
