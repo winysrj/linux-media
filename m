@@ -1,169 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:12385 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755927AbaBURw7 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22406 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752446AbaBXQNy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 12:52:59 -0500
-Message-id: <53079272.5090800@samsung.com>
-Date: Fri, 21 Feb 2014 18:52:50 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Mon, 24 Feb 2014 11:13:54 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N1I00HDSD33A7C0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 Feb 2014 16:13:51 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sakari Ailus' <sakari.ailus@iki.fi>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
+ <1392497585-5084-3-git-send-email-sakari.ailus@iki.fi>
+ <5309E05E.4030108@xs4all.nl> <530B668D.6010903@iki.fi>
+In-reply-to: <530B668D.6010903@iki.fi>
+Subject: RE: [PATCH v5 2/7] v4l: Use full 32 bits for buffer flags
+Date: Mon, 24 Feb 2014 17:13:49 +0100
+Message-id: <125b01cf317b$67b61b80$37225280$%debski@samsung.com>
 MIME-version: 1.0
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"robh+dt@kernel.org" <robh+dt@kernel.org>,
-	"galak@codeaurora.org" <galak@codeaurora.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"kgene.kim@samsung.com" <kgene.kim@samsung.com>,
-	"a.hajda@samsung.com" <a.hajda@samsung.com>
-Subject: Re: [PATCH v4 02/10] Documentation: dt: Add DT binding documentation
- for S5C73M3 camera
-References: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com>
- <1392925237-31394-4-git-send-email-s.nawrocki@samsung.com>
- <20140221154240.GE20449@e106331-lin.cambridge.arm.com>
-In-reply-to: <20140221154240.GE20449@e106331-lin.cambridge.arm.com>
-Content-type: text/plain; charset=ISO-8859-1
+Content-type: text/plain; charset=us-ascii
 Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21/02/14 16:42, Mark Rutland wrote:
-[...]
->> +++ b/Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
->> @@ -0,0 +1,97 @@
->> +Samsung S5C73M3 8Mp camera ISP
->> +------------------------------
->> +
->> +The S5C73M3 camera ISP supports MIPI CSI-2 and parallel (ITU-R BT.656) video
->> +data busses. The I2C bus is the main control bus and additionally the SPI bus
->> +is used, mostly for transferring the firmware to and from the device. Two
->> +slave device nodes corresponding to these control bus interfaces are required
->> +and should be placed under respective bus controller nodes.
+Hi,
+
+> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> Sent: Monday, February 24, 2014 4:35 PM
 > 
-> So this has both an I2C interface and an SPI interface that are used at
-> the same time?
-
-Yes, both are needed. AFAIU SPI is added so the firmware upload is faster.
-
->> +I2C slave device node
->> +---------------------
->> +
->> +Required properties:
->> +
->> +- compatible	    : "samsung,s5c73m3";
->> +- reg		    : I2C slave address of the sensor;
->> +- vdd-int-supply    : digital power supply (1.2V);
->> +- vdda-supply	    : analog power supply (1.2V);
->> +- vdd-reg-supply    : regulator input power supply (2.8V);
->> +- vddio-host-supply : host I/O power supply (1.8V to 2.8V);
->> +- vddio-cis-supply  : CIS I/O power supply (1.2V to 1.8V);
->> +- vdd-af-supply     : lens power supply (2.8V);
->> +- xshutdown-gpios   : specifier of GPIO connected to the XSHUTDOWN pin;
->> +- standby-gpios     : specifier of GPIO connected to the STANDBY pin;
->> +- clocks	    : should contain list of phandle and clock specifier pairs
->> +		      according to common clock bindings for the clocks described
->> +		      in the clock-names property;
->> +- clock-names	    : should contain "cis_extclk" entry for the CIS_EXTCLK clock;
->> +
->> +Optional properties:
->> +
->> +- clock-frequency   : the frequency at which the "cis_extclk" clock should be
->> +		      configured to operate, in Hz; if this property is not
->> +		      specified default 24 MHz value will be used.
->> +
->> +The common video interfaces bindings (see video-interfaces.txt) should be used
->> +to specify link from the S5C73M3 to an external image data receiver. The S5C73M3
->> +device node should contain one 'port' child node with an 'endpoint' subnode for
->> +this purpose. The data link from a raw image sensor to the S5C73M3 can be
->> +similarly specified, but it is optional since the S5C73M3 ISP and a raw image
->> +sensor are usually inseparable and form a hybrid module.
->> +
->> +Following properties are valid for the endpoint node(s):
->> +
->> +endpoint subnode
->> +----------------
->> +
->> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
->> +  video-interfaces.txt. This sensor doesn't support data lane remapping
->> +  and physical lane indexes in subsequent elements of the array should
->> +  be only consecutive ascending values.
->> +
->> +SPI device node
->> +---------------
->> +
->> +Required properties:
->> +
->> +- compatible	    : "samsung,s5c73m3";
+> Hans Verkuil wrote:
+> > On 02/15/2014 09:53 PM, Sakari Ailus wrote:
+> >> The buffer flags field is 32 bits but the defined only used 16. This
+> >> is fine, but as more than 16 bits will be used in the very near
+> >> future, define them as 32-bit numbers for consistency.
+> >>
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> >> ---
+> >>  Documentation/DocBook/media/v4l/io.xml |   30 ++++++++++++---------
+> ----
+> >>  include/uapi/linux/videodev2.h         |   38 +++++++++++++++++++--
+> -----------
+> >>  2 files changed, 38 insertions(+), 30 deletions(-)
+> >>
+> >> diff --git a/Documentation/DocBook/media/v4l/io.xml
+> >> b/Documentation/DocBook/media/v4l/io.xml
+> >> index 8facac4..46d24b3 100644
+> >> --- a/Documentation/DocBook/media/v4l/io.xml
+> >> +++ b/Documentation/DocBook/media/v4l/io.xml
+> >
+> > <snip>
+> >
+> >> @@ -1115,7 +1115,7 @@ in which case caches have not been
+> used.</entry>
+> >>  	  </row>
+> >>  	  <row>
+> >>
+> <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_COPY</constant></entry>
+> >> -	    <entry>0x4000</entry>
+> >> +	    <entry>0x00004000</entry>
+> >>  	    <entry>The CAPTURE buffer timestamp has been taken from the
+> >>  	    corresponding OUTPUT buffer. This flag applies only to
+> mem2mem devices.</entry>
+> >>  	  </row>
+> >
+> > Should we add here that if TIMESTAMP_COPY is set and the TIMECODE
+> flag
+> > is set, then drivers should copy the TIMECODE struct as well? This is
+> > happening already in various drivers and I think that is appropriate.
+> > Although to be honest nobody is actually using the timecode struct,
+> > but we plan to hijack that for hardware timestamps in the future
+> anyway.
 > 
-> It might make sense to explicitly link these two nodes somehow, in case
-> multiple instances appear somewhere. However, that can come later in the
-> case of a multi-instance device, and isn't necessary now.
+> Is there a single driver which uses the timecode field? The fact is
+> that many m2m drivers copy it but that's probably mostly copying what
+> one of them happened to do by accident. :-)
 
-I guess a phandle at the I2C slave device node, pointing to the SPI node
-and/or the other way around would do. I don't expect these devices to be 
-used in multiple instances though and would prefer to address that when
-necessary.
+Let's focus on not breaking m2m drivers with timestamp patches this time.
+I'm sure it was a matter of accident with the initial timestamp patches.
 
-We could try and create a root node for this device with an interesting 
-structure, if we wanted to go much into details. But it could get a bit 
-complicated given the scheme the I2C/SPI bus binding are structured now.
-Presumably that's something that could be handled later with a different 
-compatible string if required.
+I agree with Hans here, not sure about hijacking it in the future, though.
 
->> +For more details see description of the SPI busses bindings
->> +(../spi/spi-bus.txt) and bindings of a specific bus controller.
->> +
->> +Example:
->> +
->> +i2c@138A000000 {
->> +	...
->> +	s5c73m3@3c {
->> +		compatible = "samsung,s5c73m3";
->> +		reg = <0x3c>;
->> +		vdd-int-supply = <&buck9_reg>;
->> +		vdda-supply = <&ldo17_reg>;
->> +		vdd-reg-supply = <&cam_io_reg>;
->> +		vddio-host-supply = <&ldo18_reg>;
->> +		vddio-cis-supply = <&ldo9_reg>;
->> +		vdd-af-supply = <&cam_af_reg>;
->> +		clock-frequency = <24000000>;
->> +		clocks = <&clk 0>;
->> +		clock-names = "cis_extclk";
->> +		reset-gpios = <&gpf1 3 1>;
->> +		standby-gpios = <&gpm0 1 1>;
->> +		port {
->> +			s5c73m3_ep: endpoint {
->> +				remote-endpoint = <&csis0_ep>;
->> +				data-lanes = <1 2 3 4>;
->> +			};
->> +		};
->> +	};
->> +};
->> +
->> +spi@1392000 {
->> +	...
->> +	s5c73m3_spi: s5c73m3 {
-> 
-> Nit: this should have a 0 unit-address to match the reg.
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-OK, I'll correct that.
-
->> +		compatible = "samsung,s5c73m3";
->> +		reg = <0>;
->> +		...
->> +	};
->> +};
-> 
-> Otherwise I don't see anything problematic about the binding.
-> 
-> Acked-by: Mark Rutland <mark.rutland@arm.com>
-
-Thanks for the review.
-
---
-Regards,
-Sylwester
