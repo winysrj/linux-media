@@ -1,63 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56182 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751782AbaBIItz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:55 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 07/86] rtl2832_sdr: initial support for FC0012 tuner
-Date: Sun,  9 Feb 2014 10:48:12 +0200
-Message-Id: <1391935771-18670-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from adelie.canonical.com ([91.189.90.139]:52328 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752888AbaBXQ2m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Feb 2014 11:28:42 -0500
+Subject: [PATCH 0/6] dma-buf synchronization patches (updated)
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, ccross@google.com,
+	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
+	dri-devel@lists.freedesktop.org, daniel@ffwll.ch,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Date: Mon, 24 Feb 2014 17:28:35 +0100
+Message-ID: <20140224162607.20485.70967.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use tuner via internal DVB API.
+The following series implements fence and converts dma-buf and
+android sync to use it. Patch 5 and 6 add support for polling
+to dma-buf, blocking until all fences are signaled.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Patches that received some minor updates:
+- seqno fence (wait condition member added)
+- android (whitespace changes and a comment removed)
+- add poll support to dma-buf (added comment)
+
 ---
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 0e12e1a..c088957 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -753,6 +753,12 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x14", 1);
-+	} else if (s->cfg->tuner == RTL2832_TUNER_FC0012) {
-+		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x2c", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x16", 1);
- 	} else {
- 		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x30", 1);
-@@ -782,6 +788,19 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 		ret = rtl2832_sdr_wr_regs(s, 0x019, "\x21", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x116, "\x00\x00", 2);
- 		ret = rtl2832_sdr_wr_regs(s, 0x118, "\x00", 1);
-+	} else if (s->cfg->tuner == RTL2832_TUNER_FC0012) {
-+		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xe9\xbf", 2);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1d9, "\x00", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1db, "\x00", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1dd, "\x11", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1de, "\xef", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1d8, "\x0c", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1e6, "\x02", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x1d7, "\x09", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x008, "\xcd", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x14", 1);
-+		ret = rtl2832_sdr_wr_regs(s, 0x101, "\x10", 1);
- 	} else {
- 		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xd4", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
+Maarten Lankhorst (6):
+      fence: dma-buf cross-device synchronization (v17)
+      seqno-fence: Hardware dma-buf implementation of fencing (v5)
+      dma-buf: use reservation objects
+      android: convert sync to fence api, v5
+      reservation: add support for fences to enable cross-device synchronisation
+      dma-buf: add poll support, v3
+
+
+ Documentation/DocBook/device-drivers.tmpl      |    3 
+ drivers/base/Kconfig                           |    9 
+ drivers/base/Makefile                          |    2 
+ drivers/base/dma-buf.c                         |  130 +++
+ drivers/base/fence.c                           |  467 ++++++++++++
+ drivers/gpu/drm/drm_prime.c                    |    8 
+ drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |    2 
+ drivers/gpu/drm/i915/i915_gem_dmabuf.c         |    2 
+ drivers/gpu/drm/nouveau/nouveau_drm.c          |    1 
+ drivers/gpu/drm/nouveau/nouveau_gem.h          |    1 
+ drivers/gpu/drm/nouveau/nouveau_prime.c        |    7 
+ drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |    2 
+ drivers/gpu/drm/radeon/radeon_drv.c            |    2 
+ drivers/gpu/drm/radeon/radeon_prime.c          |    8 
+ drivers/gpu/drm/ttm/ttm_object.c               |    2 
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |    2 
+ drivers/staging/android/Kconfig                |    1 
+ drivers/staging/android/Makefile               |    2 
+ drivers/staging/android/ion/ion.c              |    2 
+ drivers/staging/android/sw_sync.c              |    4 
+ drivers/staging/android/sync.c                 |  903 ++++++++----------------
+ drivers/staging/android/sync.h                 |   82 +-
+ drivers/staging/android/sync_debug.c           |  247 +++++++
+ drivers/staging/android/trace/sync.h           |   12 
+ include/drm/drmP.h                             |    2 
+ include/linux/dma-buf.h                        |   21 -
+ include/linux/fence.h                          |  329 +++++++++
+ include/linux/reservation.h                    |   20 +
+ include/linux/seqno-fence.h                    |  119 +++
+ include/trace/events/fence.h                   |  125 +++
+ 30 files changed, 1863 insertions(+), 654 deletions(-)
+ create mode 100644 drivers/base/fence.c
+ create mode 100644 drivers/staging/android/sync_debug.c
+ create mode 100644 include/linux/fence.h
+ create mode 100644 include/linux/seqno-fence.h
+ create mode 100644 include/trace/events/fence.h
+
 -- 
-1.8.5.3
-
+Signature
