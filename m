@@ -1,72 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1150 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085AbaBJI4I (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3540 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752530AbaBYMxX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:56:08 -0500
+	Tue, 25 Feb 2014 07:53:23 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 29/34] v4l2: add a motion detection event.
-Date: Mon, 10 Feb 2014 09:46:54 +0100
-Message-Id: <1392022019-5519-30-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 13/15] vb2: replace BUG by WARN_ON
+Date: Tue, 25 Feb 2014 13:52:53 +0100
+Message-Id: <1393332775-44067-14-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add a new MOTION_DET event to signal when motion is detected.
+No need to oops for this, WARN_ON is good enough.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/uapi/linux/videodev2.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 8b70f51..4cbfb16 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1773,6 +1773,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_MOTION_DET			5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 3815f9c..68f3def 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2536,9 +2536,9 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	/*
+ 	 * Sanity check
+ 	 */
+-	if ((read && !(q->io_modes & VB2_READ)) ||
+-	   (!read && !(q->io_modes & VB2_WRITE)))
+-		BUG();
++	if (WARN_ON((read && !(q->io_modes & VB2_READ)) ||
++		    (!read && !(q->io_modes & VB2_WRITE))))
++		return -EINVAL;
  
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -1804,12 +1805,28 @@ struct v4l2_event_frame_sync {
- 	__u32 frame_sequence;
- };
- 
-+#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
-+
-+/**
-+ * struct v4l2_event_motion_det - motion detection event
-+ * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
-+ *                     frame_sequence field is valid.
-+ * @frame_sequence:    the frame sequence number associated with this event.
-+ * @region_mask:       which regions detected motion.
-+ */
-+struct v4l2_event_motion_det {
-+	__u32 flags;
-+	__u32 frame_sequence;
-+	__u32 region_mask;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
- 		struct v4l2_event_vsync		vsync;
- 		struct v4l2_event_ctrl		ctrl;
- 		struct v4l2_event_frame_sync	frame_sync;
-+		struct v4l2_event_motion_det	motion_det;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
+ 	/*
+ 	 * Check if device supports mapping buffers to kernel virtual space.
 -- 
-1.8.5.2
+1.9.0
 
