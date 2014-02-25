@@ -1,104 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40949 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751987AbaBIIuD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:50:03 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [REVIEW PATCH 42/86] r820t: add manual gain controls
-Date: Sun,  9 Feb 2014 10:48:47 +0200
-Message-Id: <1391935771-18670-43-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:61691 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352AbaBYNko (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 08:40:44 -0500
+Received: by mail-la0-f41.google.com with SMTP id gl10so4232903lab.28
+        for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 05:40:43 -0800 (PST)
+Message-ID: <530C9D58.5080909@cogentembedded.com>
+Date: Tue, 25 Feb 2014 17:40:40 +0400
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+MIME-Version: 1.0
+To: Phil Edworthy <phil.edworthy@renesas.com>
+CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Valentine Barshak <valentine.barshak@cogentembedded.com>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2] media: soc_camera: rcar_vin: Add support for 10-bit
+ YUV cameras
+References: <2516843.7QqJLHtUZT@avalon> <1393319427-14515-1-git-send-email-phil.edworthy@renesas.com>
+In-Reply-To: <1393319427-14515-1-git-send-email-phil.edworthy@renesas.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add gain control for LNA, Mixer and IF. Expose controls via DVB
-frontend .set_config callback.
+On 02/25/2014 01:10 PM, Phil Edworthy wrote:
+> Signed-off-by: Phil Edworthy<phil.edworthy@renesas.com>
+Acked-by: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/r820t.c | 38 ++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/r820t.h |  7 +++++++
- 2 files changed, 45 insertions(+)
+(Valentine can't do the review atm)
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index 319adc4..231c614 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -1251,6 +1251,43 @@ static int r820t_set_gain_mode(struct r820t_priv *priv,
- }
- #endif
- 
-+static int r820t_set_config(struct dvb_frontend *fe, void *priv_cfg)
-+{
-+	struct r820t_priv *priv = fe->tuner_priv;
-+	struct r820t_ctrl *ctrl = priv_cfg;
-+	int rc;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	if (ctrl->lna_gain == INT_MIN)
-+		rc = r820t_write_reg_mask(priv, 0x05, 0x00, 0x10);
-+	else
-+		rc = r820t_write_reg_mask(priv, 0x05,
-+				0x10 | ctrl->lna_gain, 0x1f);
-+	if (rc < 0)
-+		goto err;
-+
-+	if (ctrl->mixer_gain == INT_MIN)
-+		rc = r820t_write_reg_mask(priv, 0x07, 0x10, 0x10);
-+	else
-+		rc = r820t_write_reg_mask(priv, 0x07,
-+				0x00 | ctrl->mixer_gain, 0x1f);
-+	if (rc < 0)
-+		goto err;
-+
-+	if (ctrl->if_gain == INT_MIN)
-+		rc = r820t_write_reg_mask(priv, 0x0c, 0x10, 0x10);
-+	else
-+		rc = r820t_write_reg_mask(priv, 0x0c,
-+				0x00 | ctrl->if_gain, 0x1f);
-+err:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	return rc;
-+}
-+
- static int generic_set_freq(struct dvb_frontend *fe,
- 			    u32 freq /* in HZ */,
- 			    unsigned bw,
-@@ -2275,6 +2312,7 @@ static const struct dvb_tuner_ops r820t_tuner_ops = {
- 	.release = r820t_release,
- 	.sleep = r820t_sleep,
- 	.set_params = r820t_set_params,
-+	.set_config = r820t_set_config,
- 	.set_analog_params = r820t_set_analog_freq,
- 	.get_if_frequency = r820t_get_if_frequency,
- 	.get_rf_strength = r820t_signal,
-diff --git a/drivers/media/tuners/r820t.h b/drivers/media/tuners/r820t.h
-index 48af354..42c0d8e 100644
---- a/drivers/media/tuners/r820t.h
-+++ b/drivers/media/tuners/r820t.h
-@@ -42,6 +42,13 @@ struct r820t_config {
- 	bool use_predetect;
- };
- 
-+/* set INT_MIN for automode */
-+struct r820t_ctrl {
-+	int lna_gain;
-+	int mixer_gain;
-+	int if_gain;
-+};
-+
- #if IS_ENABLED(CONFIG_MEDIA_TUNER_R820T)
- struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
- 				  struct i2c_adapter *i2c,
--- 
-1.8.5.3
+> ---
+> v2:
+>    - Fix silly mistake with missing break.
+>
+>   drivers/media/platform/soc_camera/rcar_vin.c |    9 +++++++++
+>   1 file changed, 9 insertions(+)
+>
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 3b1c05a..702dc47 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -68,6 +68,8 @@
+>   #define VNMC_YCAL		(1<<  19)
+>   #define VNMC_INF_YUV8_BT656	(0<<  16)
+>   #define VNMC_INF_YUV8_BT601	(1<<  16)
+> +#define VNMC_INF_YUV10_BT656	(2<<  16)
+> +#define VNMC_INF_YUV10_BT601	(3<<  16)
+>   #define VNMC_INF_YUV16		(5<<  16)
+>   #define VNMC_VUP		(1<<  10)
+>   #define VNMC_IM_ODD		(0<<  3)
+> @@ -275,6 +277,12 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>   		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+>   		vnmc |= priv->pdata->flags&  RCAR_VIN_BT656 ?
+>   			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+> +		break;
+> +	case V4L2_MBUS_FMT_YUYV10_2X10:
+> +		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+> +		vnmc |= priv->pdata->flags&  RCAR_VIN_BT656 ?
+> +			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+> +		break;
+>   	default:
+>   		break;
+>   	}
+> @@ -1003,6 +1011,7 @@ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+>   	switch (code) {
+>   	case V4L2_MBUS_FMT_YUYV8_1X16:
+>   	case V4L2_MBUS_FMT_YUYV8_2X8:
+> +	case V4L2_MBUS_FMT_YUYV10_2X10:
+>   		if (cam->extra_fmt)
+>   			break;
+>
+Regards,
+Vladimir
+
 
