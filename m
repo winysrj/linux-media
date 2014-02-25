@@ -1,201 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:35195 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712AbaB1VJB (ORCPT
+Received: from mail-ve0-f169.google.com ([209.85.128.169]:51830 "EHLO
+	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751000AbaBYGAS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 16:09:01 -0500
-Message-ID: <5310FAE8.5090305@gmail.com>
-Date: Fri, 28 Feb 2014 22:08:56 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 25 Feb 2014 01:00:18 -0500
+Received: by mail-ve0-f169.google.com with SMTP id c14so3452297vea.14
+        for <linux-media@vger.kernel.org>; Mon, 24 Feb 2014 22:00:17 -0800 (PST)
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v5 2/7] Documentation: of: Document graph bindings
-References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de> <1393522540-22887-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1393522540-22887-3-git-send-email-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CA+V-a8tq8AV+8dr07gE2nXywRnk1EY0VLxQ1ONZdv4hx6gEscQ@mail.gmail.com>
+References: <CA+V-a8tq8AV+8dr07gE2nXywRnk1EY0VLxQ1ONZdv4hx6gEscQ@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 25 Feb 2014 11:29:57 +0530
+Message-ID: <CA+V-a8uH4A5vHs7ggaYtqMX+E3QJztWRgHGBtLP=27cEXAkRFg@mail.gmail.com>
+Subject: Re: [GIT PULL FOR v3.15] Davinci VPFE Patches
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hi Mauro
 
-Just couple minor comments...
-
-On 02/27/2014 06:35 PM, Philipp Zabel wrote:
-> The device tree graph bindings as used by V4L2 and documented in
-> Documentation/device-tree/bindings/media/video-interfaces.txt contain
-> generic parts that are not media specific but could be useful for any
-> subsystem with data flow between multiple devices. This document
-> describe the generic bindings.
-
-s/describe/describes/
-
-> Signed-off-by: Philipp Zabel<p.zabel@pengutronix.de>
-> ---
-> Changes since v4:
->   - Differentiate from graphs made by simple phandle links
->   - Do not mention data flow except in video-interfaces example
->   -
-> ---
->   Documentation/devicetree/bindings/graph.txt | 129 ++++++++++++++++++++++++++++
->   1 file changed, 129 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/graph.txt
+On Thu, Feb 20, 2014 at 12:21 PM, Prabhakar Lad
+<prabhakar.csengg@gmail.com> wrote:
+> Hi Mauro,
 >
-> diff --git a/Documentation/devicetree/bindings/graph.txt b/Documentation/devicetree/bindings/graph.txt
-> new file mode 100644
-> index 0000000..554865b
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/graph.txt
-> @@ -0,0 +1,129 @@
-> +Common bindings for device graphs
-> +
-> +General concept
-> +---------------
-> +
-> +The hierarchical organisation of the device tree is well suited to describe
-> +control flow to devices, but there can be more complex connections between
-> +devices that work together to form a logical compound device, following an
-> +arbitrarily complex graph.
-> +There already is a simple directed graph between devices tree nodes using
-> +phandle properties pointing to other nodes to describe connections that
-> +can not be inferred from device tree parent-child relationships. The device
-> +tree graph bindings described herein abstract more complex devices that can
-> +have multiple specifiable ports, each of which can be linked to one or more
-> +ports of other devices.
-> +
-> +These common bindings do not contain any information about the direction of
+> Please pull the following patch for davinci vpfe driver.
+>
+I have included one more patch from Michael, with a fresh pull request.
 
-s/of/or/ ?
+Thanks,
+--Prabhakar Lad
 
-> +type of the connections, they just map their existence. Specific properties
-> +may be described by specialized bindings depending on the type of connection.
-> +
-> +To see how this binding applies to video pipelines, for example, see
-> +Documentation/device-tree/bindings/media/video-interfaces.txt.
-> +Here the ports describe data interfaces, and the links between them are
-> +the connecting data buses. A single port with multiple connections can
-> +correspond to multiple devices being connected to the same physical bus.
-> +
-> +Organisation of ports and endpoints
-> +-----------------------------------
-> +
-> +Ports are described by child 'port' nodes contained in the device node.
-> +Each port node contains an 'endpoint' subnode for each remote device port
-> +connected to this port. If a single port is connected to more than one
-> +remote device, an 'endpoint' child node must be provided for each link.
-> +If more than one port is present in a device node or there is more than one
-> +endpoint at a port, or a port node needs to be associated with a selected
-> +hardware interface, a common scheme using '#address-cells', '#size-cells'
-> +and 'reg' properties is used number the nodes.
-> +
-> +device {
-> +        ...
-> +        #address-cells =<1>;
-> +        #size-cells =<0>;
-> +
-> +        port@0 {
-> +	        #address-cells =<1>;
-> +	        #size-cells =<0>;
-> +		reg =<0>;
-> +
-> +                endpoint@0 {
-> +			reg =<0>;
-> +			...
-> +		};
-> +                endpoint@1 {
-> +			reg =<1>;
-> +			...
-> +		};
-> +        };
-> +
-> +        port@1 {
-> +		reg =<1>;
-> +
-> +		endpoint { ... };
-> +	};
-> +};
-> +
-> +All 'port' nodes can be grouped under an optional 'ports' node, which
-> +allows to specify #address-cells, #size-cells properties for the 'port'
-> +nodes independently from any other child device nodes a device might
-> +have.
-> +
-> +device {
-> +        ...
-> +        ports {
-> +                #address-cells =<1>;
-> +                #size-cells =<0>;
-> +
-> +                port@0 {
-> +                        ...
-> +                        endpoint@0 { ... };
-> +                        endpoint@1 { ... };
-> +                };
-> +
-> +                port@1 { ... };
-> +        };
-> +};
-> +
-> +Links between endpoints
-> +-----------------------
-> +
-> +Each endpoint should contain a 'remote-endpoint' phandle property that points
-> +to the corresponding endpoint in the port of the remote device. In turn, the
-> +remote endpoint should contain a 'remote-endpoint' property. If it has one,
-> +it must not point to another than the local endpoint. Two endpoints with their
-> +'remote-endpoint' phandles pointing at each other form a link between the
-> +containing ports.
-> +
-> +device_1 {
-> +        port {
-> +                device_1_output: endpoint {
-> +                        remote-endpoint =<&device_2_input>;
-> +                };
-> +        };
-> +};
-> +
-> +device_1 {
+The following changes since commit efab6b6a6ea9364ececb955f69a9d3ffc6b782a1:
 
-s/device_1/device_2/
-But it might be better to use dashes instead of underscores
-for the node names.
+  [media] vivi: queue_setup improvements (2014-02-24 10:59:15 -0300)
 
-> +        port {
-> +                device_2_input: endpoint {
-> +                        remote-endpoint =<&device_1_output>;
-> +                };
-> +        };
-> +};
-> +
-> +
-> +Required properties
-> +-------------------
-> +
-> +If there is more than one 'port' or more than one 'endpoint' node or 'reg'
-> +property is present in port and/or endpoint nodes the following properties
-> +are required in a relevant parent node:
-> +
-> + - #address-cells : number of cells required to define port/endpoint
-> +                    identifier, should be 1.
-> + - #size-cells    : should be zero.
-> +
-> +Optional endpoint properties
-> +----------------------------
-> +
-> +- remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
-> +
+are available in the git repository at:
 
---
-Regards,
-Sylwester
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for_mauro
+
+for you to fetch changes up to b744c55dd23bf61072ae7743e656d515c645f9ff:
+
+  davinci: vpfe: remove deprecated IRQF_DISABLED (2014-02-25 11:11:14 +0530)
+
+----------------------------------------------------------------
+Levente Kurusa (1):
+      staging: davinci_vpfe: fix error check
+
+Michael Opdenacker (1):
+      davinci: vpfe: remove deprecated IRQF_DISABLED
+
+ .../staging/media/davinci_vpfe/dm365_ipipe_hw.c    |    2 +-
+ .../staging/media/davinci_vpfe/vpfe_mc_capture.c   |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
