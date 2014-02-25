@@ -1,51 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48038 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751784AbaBIItz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:55 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2479 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132AbaBYKEw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 05:04:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 08/86] rtl2832_sdr: initial support for FC0013 tuner
-Date: Sun,  9 Feb 2014 10:48:13 +0200
-Message-Id: <1391935771-18670-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 07/20] vb2: call memop prepare before the buf_prepare op is called
+Date: Tue, 25 Feb 2014 11:04:12 +0100
+Message-Id: <1393322665-29889-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use tuner via internal DVB API.
-It is about same tuner than FC0012 and uses just same settings.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The prepare memop now returns an error, so we need to be able to handle that.
+In addition, prepare has to be called before buf_prepare since in the dma-sg
+case buf_prepare expects that the dma memory is mapped and it can use the
+sg_table.
+
+So call the prepare memop before calling buf_prepare and clean up the memory
+in case of an error.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 67 +++++++++++++++++++++++++++++---
+ 1 file changed, 61 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index c088957..2c84654 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -753,7 +753,8 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x105, "\xbe", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x1c8, "\x14", 1);
--	} else if (s->cfg->tuner == RTL2832_TUNER_FC0012) {
-+	} else if (s->cfg->tuner == RTL2832_TUNER_FC0012 ||
-+			s->cfg->tuner == RTL2832_TUNER_FC0013) {
- 		ret = rtl2832_sdr_wr_regs(s, 0x103, "\x5a", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x1c7, "\x2c", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x104, "\xcc", 1);
-@@ -788,7 +789,8 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 		ret = rtl2832_sdr_wr_regs(s, 0x019, "\x21", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x116, "\x00\x00", 2);
- 		ret = rtl2832_sdr_wr_regs(s, 0x118, "\x00", 1);
--	} else if (s->cfg->tuner == RTL2832_TUNER_FC0012) {
-+	} else if (s->cfg->tuner == RTL2832_TUNER_FC0012 ||
-+			s->cfg->tuner == RTL2832_TUNER_FC0013) {
- 		ret = rtl2832_sdr_wr_regs(s, 0x011, "\xe9\xbf", 2);
- 		ret = rtl2832_sdr_wr_regs(s, 0x1e5, "\xf0", 1);
- 		ret = rtl2832_sdr_wr_regs(s, 0x1d9, "\x00", 1);
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index bb36fe5..0e0d2a8 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1207,6 +1207,39 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
+ }
+ 
++/*
++ * __buf_prepare_memory() - prepare (sync) a vb2_buffer so it can be enqueued
++ */
++static int __buf_prepare_memory(struct vb2_buffer *vb)
++{
++	unsigned int plane;
++	int err;
++
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		err = call_memop(vb, prepare, vb->planes[plane].mem_priv);
++		if (err) {
++			fail_memop(vb, prepare);
++			for (; plane; plane--)
++				call_memop(vb, finish, vb->planes[plane - 1].mem_priv);
++			return err;
++		}
++	}
++	return 0;
++}
++
++/*
++ * __buf_finish_memory() - finish (unsync) a vb2_buffer
++ */
++static void __buf_finish_memory(struct vb2_buffer *vb)
++{
++	unsigned int plane;
++
++	/* unsync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(vb, finish, vb->planes[plane].mem_priv);
++}
++
+ /**
+  * __qbuf_userptr() - handle qbuf of a USERPTR buffer
+  */
+@@ -1290,10 +1323,18 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		}
+ 	}
+ 
++	ret = __buf_prepare_memory(vb);
++	if (ret) {
++		call_vb_qop(vb, buf_cleanup, vb);
++		dprintk(1, "qbuf: buffer memory preparation failed\n");
++		goto err;
++	}
++
+ 	ret = call_vb_qop(vb, buf_prepare, vb);
+ 	if (ret) {
+ 		dprintk(1, "qbuf: buffer preparation failed\n");
+ 		fail_vb_qop(vb, buf_prepare);
++		__buf_finish_memory(vb);
+ 		call_vb_qop(vb, buf_cleanup, vb);
+ 		goto err;
+ 	}
+@@ -1320,9 +1361,20 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	int ret;
+ 
+ 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
++
++	ret = __buf_prepare_memory(vb);
++	if (ret) {
++		call_vb_qop(vb, buf_cleanup, vb);
++		dprintk(1, "qbuf: buffer memory preparation failed\n");
++		return ret;
++	}
++
+ 	ret = call_vb_qop(vb, buf_prepare, vb);
+-	if (ret)
++	if (ret) {
++		dprintk(1, "%s: buffer preparation failed\n", __func__);
+ 		fail_vb_qop(vb, buf_prepare);
++		__buf_finish_memory(vb);
++	}
+ 	return ret;
+ }
+ 
+@@ -1431,10 +1483,18 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		}
+ 	}
+ 
++	ret = __buf_prepare_memory(vb);
++	if (ret) {
++		call_vb_qop(vb, buf_cleanup, vb);
++		dprintk(1, "qbuf: buffer memory preparation failed\n");
++		goto err;
++	}
++
+ 	ret = call_vb_qop(vb, buf_prepare, vb);
+ 	if (ret) {
+ 		dprintk(1, "qbuf: buffer preparation failed\n");
+ 		fail_vb_qop(vb, buf_prepare);
++		__buf_finish_memory(vb);
+ 		call_vb_qop(vb, buf_cleanup, vb);
+ 		goto err;
+ 	}
+@@ -1453,15 +1513,10 @@ err:
+ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	unsigned int plane;
+ 
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->owned_by_drv_count);
+ 
+-	/* sync buffers */
+-	for (plane = 0; plane < vb->num_planes; ++plane)
+-		call_memop(vb, prepare, vb->planes[plane].mem_priv);
+-
+ 	call_vb_qop(vb, buf_queue, vb);
+ }
+ 
 -- 
-1.8.5.3
+1.9.0
 
