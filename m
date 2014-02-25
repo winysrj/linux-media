@@ -1,147 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1306 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755386AbaBGMUK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 07:20:10 -0500
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4068 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752929AbaBYJsr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 04:48:47 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: edubezval@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 3/7] si4713: add the missing RDS functionality.
-Date: Fri,  7 Feb 2014 13:19:36 +0100
-Message-Id: <1391775580-29907-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
-References: <1391775580-29907-1-git-send-email-hverkuil@xs4all.nl>
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv1 PATCH 03/14] vb2: fix PREPARE_BUF regression
+Date: Tue, 25 Feb 2014 10:48:16 +0100
+Message-Id: <1393321707-9749-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Fix an incorrect test in vb2_internal_qbuf() where only DEQUEUED buffers
+are allowed. But PREPARED buffers are also OK.
 
-Not all the RDS features of the si4713 were supported. Add
-the missing bits to fully support the hardware capabilities.
+Introduced by commit 4138111a27859dcc56a5592c804dd16bb12a23d1
+("vb2: simplify qbuf/prepare_buf by removing callback").
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Eduardo Valentin <edubezval@gmail.com>
 ---
- drivers/media/radio/si4713/si4713.c | 64 ++++++++++++++++++++++++++++++++++++-
- drivers/media/radio/si4713/si4713.h |  9 ++++++
- 2 files changed, 72 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index 07d5153..741db93 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -957,6 +957,41 @@ static int si4713_choose_econtrol_action(struct si4713_device *sdev, u32 id,
- 		*bit = 5;
- 		*mask = 0x1F << 5;
- 		break;
-+	case V4L2_CID_RDS_TX_DYNAMIC_PTY:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 15;
-+		*mask = 1 << 15;
-+		break;
-+	case V4L2_CID_RDS_TX_COMPRESSED:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 14;
-+		*mask = 1 << 14;
-+		break;
-+	case V4L2_CID_RDS_TX_ARTIFICIAL_HEAD:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 13;
-+		*mask = 1 << 13;
-+		break;
-+	case V4L2_CID_RDS_TX_MONO_STEREO:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 12;
-+		*mask = 1 << 12;
-+		break;
-+	case V4L2_CID_RDS_TX_TRAFFIC_PROGRAM:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 10;
-+		*mask = 1 << 10;
-+		break;
-+	case V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 4;
-+		*mask = 1 << 4;
-+		break;
-+	case V4L2_CID_RDS_TX_MUSIC_SPEECH:
-+		*property = SI4713_TX_RDS_PS_MISC;
-+		*bit = 3;
-+		*mask = 1 << 3;
-+		break;
- 	case V4L2_CID_AUDIO_LIMITER_ENABLED:
- 		*property = SI4713_TX_ACOMP_ENABLE;
- 		*bit = 1;
-@@ -1122,6 +1157,15 @@ static int si4713_s_ctrl(struct v4l2_ctrl *ctrl)
- 			}
- 			break;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f1a2857c..909f367 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1420,11 +1420,6 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return ret;
  
-+		case V4L2_CID_RDS_TX_ALT_FREQ_ENABLE:
-+		case V4L2_CID_RDS_TX_ALT_FREQ:
-+			if (sdev->rds_alt_freq_enable->val)
-+				val = sdev->rds_alt_freq->val / 100 - 876 + 0xe101;
-+			else
-+				val = 0xe0e0;
-+			ret = si4713_write_property(sdev, SI4713_TX_RDS_PS_AF, val);
-+			break;
-+
- 		default:
- 			ret = si4713_choose_econtrol_action(sdev, ctrl->id, &bit,
- 					&mask, &property, &mul, &table, &size);
-@@ -1410,6 +1454,24 @@ static int si4713_probe(struct i2c_client *client,
- 			V4L2_CID_RDS_TX_PI, 0, 0xffff, 1, DEFAULT_RDS_PI);
- 	sdev->rds_pty = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
- 			V4L2_CID_RDS_TX_PTY, 0, 31, 1, DEFAULT_RDS_PTY);
-+	sdev->rds_compressed = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_COMPRESSED, 0, 1, 1, 0);
-+	sdev->rds_art_head = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_ARTIFICIAL_HEAD, 0, 1, 1, 0);
-+	sdev->rds_stereo = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_MONO_STEREO, 0, 1, 1, 1);
-+	sdev->rds_tp = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_TRAFFIC_PROGRAM, 0, 1, 1, 0);
-+	sdev->rds_ta = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_TRAFFIC_ANNOUNCEMENT, 0, 1, 1, 0);
-+	sdev->rds_ms = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_MUSIC_SPEECH, 0, 1, 1, 1);
-+	sdev->rds_dyn_pty = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_DYNAMIC_PTY, 0, 1, 1, 0);
-+	sdev->rds_alt_freq_enable = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_ALT_FREQ_ENABLE, 0, 1, 1, 0);
-+	sdev->rds_alt_freq = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
-+			V4L2_CID_RDS_TX_ALT_FREQ, 87600, 107900, 100, 87600);
- 	sdev->rds_deviation = v4l2_ctrl_new_std(hdl, &si4713_ctrl_ops,
- 			V4L2_CID_RDS_TX_DEVIATION, 0, MAX_RDS_DEVIATION,
- 			10, DEFAULT_RDS_DEVIATION);
-@@ -1476,7 +1538,7 @@ static int si4713_probe(struct i2c_client *client,
- 		rval = hdl->error;
- 		goto free_ctrls;
+ 	vb = q->bufs[b->index];
+-	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+-		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
+-			vb->state);
+-		return -EINVAL;
+-	}
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
+@@ -1438,7 +1433,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		dprintk(1, "qbuf: buffer still being prepared\n");
+ 		return -EINVAL;
+ 	default:
+-		dprintk(1, "qbuf: buffer already in use\n");
++		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
++			vb->state);
+ 		return -EINVAL;
  	}
--	v4l2_ctrl_cluster(20, &sdev->mute);
-+	v4l2_ctrl_cluster(29, &sdev->mute);
- 	sdev->sd.ctrl_handler = hdl;
  
- 	if (client->irq) {
-diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
-index 4837cf6..3bee6a5 100644
---- a/drivers/media/radio/si4713/si4713.h
-+++ b/drivers/media/radio/si4713/si4713.h
-@@ -211,6 +211,15 @@ struct si4713_device {
- 		struct v4l2_ctrl *rds_pi;
- 		struct v4l2_ctrl *rds_deviation;
- 		struct v4l2_ctrl *rds_pty;
-+		struct v4l2_ctrl *rds_compressed;
-+		struct v4l2_ctrl *rds_art_head;
-+		struct v4l2_ctrl *rds_stereo;
-+		struct v4l2_ctrl *rds_ta;
-+		struct v4l2_ctrl *rds_tp;
-+		struct v4l2_ctrl *rds_ms;
-+		struct v4l2_ctrl *rds_dyn_pty;
-+		struct v4l2_ctrl *rds_alt_freq_enable;
-+		struct v4l2_ctrl *rds_alt_freq;
- 		struct v4l2_ctrl *compression_enabled;
- 		struct v4l2_ctrl *compression_threshold;
- 		struct v4l2_ctrl *compression_gain;
 -- 
-1.8.5.2
+1.9.0
 
