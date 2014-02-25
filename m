@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:40871 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751511AbaBIJV5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 04:21:57 -0500
-Date: Sun, 9 Feb 2014 10:22:19 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Clark <robdclark@gmail.com>
-Cc: devel@driverdev.osuosl.org, dri-devel@lists.freedesktop.org,
-	Takashi Iwai <tiwai@suse.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH RFC 0/2] drivers/base: simplify simple DT-based
- components
-Message-ID: <20140209102219.3ab40b5e@armhf>
-In-Reply-To: <20140207202351.GH26684@n2100.arm.linux.org.uk>
-References: <cover.1391793068.git.moinejf@free.fr>
-	<20140207202351.GH26684@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4083 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752936AbaBYKQY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 05:16:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 10/13] mem2mem_testdev: add USERPTR support.
+Date: Tue, 25 Feb 2014 11:16:00 +0100
+Message-Id: <1393323363-30058-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 7 Feb 2014 20:23:51 +0000
-Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Here's my changes to the TDA998x driver to add support for the component
-> helper.  The TDA998x driver retains support for the old way so that
-> drivers can be transitioned.  For any one DRM "card" the transition to
+There is no reason why we shouldn't enable this here.
 
-I rewrote the tda998x as a simple encoder+connector (i.e. not a
-slave_encoder) with your component helper, and the code is much clearer
-and simpler: the DRM driver has nothing to do except to know that the
-tda998x is a component and to set the possible_crtcs.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/mem2mem_testdev.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-AFAIK, only the tilcdc drm driver is using the tda998x as a
-slave_encoder. It does a (encoder+connector) conversion to
-(slave_encoder). Then, in your changes in the TDA998x, you do a
-(slave_encoder) translation to (encoder+connector).
-This seems rather complicated!
-
-I think it would be easier to use your component helper and rewrite
-(remove?) tilcdc_slave.c.
-
-> And yes, I'm thinking that maybe moving compare_of() into the component
-> support so that drivers can share this generic function may be a good
-> idea.
-
-This function exists already in drivers/of/platform.c as
-of_dev_node_match(). It just needs to be exported.
-
+diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+index 0745d1a..8ca828a 100644
+--- a/drivers/media/platform/mem2mem_testdev.c
++++ b/drivers/media/platform/mem2mem_testdev.c
+@@ -779,7 +779,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+ 	int ret;
+ 
+ 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
++	src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 	src_vq->drv_priv = ctx;
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->ops = &m2mtest_qops;
+@@ -792,7 +792,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+ 		return ret;
+ 
+ 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
++	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 	dst_vq->drv_priv = ctx;
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->ops = &m2mtest_qops;
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.9.0
+
