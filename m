@@ -1,113 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3582 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775AbaBGDfh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 22:35:37 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id s173ZXx5019729
-	for <linux-media@vger.kernel.org>; Fri, 7 Feb 2014 04:35:36 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 7A7682A00A6
-	for <linux-media@vger.kernel.org>; Fri,  7 Feb 2014 04:35:13 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140207033513.7A7682A00A6@tschai.lan>
-Date: Fri,  7 Feb 2014 04:35:13 +0100 (CET)
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:51633 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352AbaBYNkL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 08:40:11 -0500
+Received: by mail-lb0-f174.google.com with SMTP id l4so3275098lbv.19
+        for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 05:40:10 -0800 (PST)
+Message-ID: <530C9D37.8070909@cogentembedded.com>
+Date: Tue, 25 Feb 2014 17:40:07 +0400
+From: Valentine <valentine.barshak@cogentembedded.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Phil Edworthy <phil.edworthy@renesas.com>
+CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add support for 10-bit YUV
+ cameras
+References: <1393256945-12781-1-git-send-email-phil.edworthy@renesas.com> <2516843.7QqJLHtUZT@avalon>
+In-Reply-To: <2516843.7QqJLHtUZT@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 02/24/2014 10:38 PM, Laurent Pinchart wrote:
+> Hi Phil,
+>
+> Thank you for the patch.
+>
+> On Monday 24 February 2014 15:49:05 Phil Edworthy wrote:
+>> Signed-off-by: Phil Edworthy <phil.edworthy@renesas.com>
+>> ---
+>>   drivers/media/platform/soc_camera/rcar_vin.c |    7 +++++++
+>>   1 file changed, 7 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+>> b/drivers/media/platform/soc_camera/rcar_vin.c index 3b1c05a..9929375
+>> 100644
+>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>> @@ -68,6 +68,8 @@
+>>   #define VNMC_YCAL		(1 << 19)
+>>   #define VNMC_INF_YUV8_BT656	(0 << 16)
+>>   #define VNMC_INF_YUV8_BT601	(1 << 16)
+>> +#define VNMC_INF_YUV10_BT656	(2 << 16)
+>> +#define VNMC_INF_YUV10_BT601	(3 << 16)
+>>   #define VNMC_INF_YUV16		(5 << 16)
+>>   #define VNMC_VUP		(1 << 10)
+>>   #define VNMC_IM_ODD		(0 << 3)
+>> @@ -275,6 +277,10 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>>   		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+>>   		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
+>>   			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+>
+> Aren't you missing a break here ?
+>
+>> +	case V4L2_MBUS_FMT_YUYV10_2X10:
+>> +		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+>> +		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
+>> +			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+>
+> You should add one here as well. Although not strictly necessary, it would
+> help to avoid making the same mistake again.
+>
+> The rest looks good to me, but I'm not familiar with the hardware, so I'll let
+> Valentine have the last word.
 
-Results of the daily build of media_tree:
+Thanks, looks good to me.
 
-date:		Fri Feb  7 04:00:25 CET 2014
-git branch:	test
-git hash:	261cb200e7227820cd0056435d7c1a3a9c476766
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+>
+>>   	default:
+>>   		break;
+>>   	}
+>> @@ -1003,6 +1009,7 @@ static int rcar_vin_get_formats(struct
+>> soc_camera_device *icd, unsigned int idx, switch (code) {
+>>   	case V4L2_MBUS_FMT_YUYV8_1X16:
+>>   	case V4L2_MBUS_FMT_YUYV8_2X8:
+>> +	case V4L2_MBUS_FMT_YUYV10_2X10:
+>>   		if (cam->extra_fmt)
+>>   			break;
+>
 
-linux-git-Module.symvers: ERRORS
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
