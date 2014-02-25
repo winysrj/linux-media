@@ -1,117 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753229AbaBEQmL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:11 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3053 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148AbaBYKEy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 05:04:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 47/47] adv7604: Add endpoint properties to DT bindings
-Date: Wed,  5 Feb 2014 17:42:38 +0100
-Message-Id: <1391618558-5580-48-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 06/20] vb2: memop prepare: return errors
+Date: Tue, 25 Feb 2014 11:04:11 +0100
+Message-Id: <1393322665-29889-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the hsync-active, vsync-active and pclk-sample
-properties to the DT bindings and control BT.656 mode implicitly.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+For vb2-dma-sg the dma_map_sg function can return an error. This means that
+the prepare memop also needs to change so an error can be returned.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../devicetree/bindings/media/i2c/adv7604.txt      | 13 +++++++++
- drivers/media/i2c/adv7604.c                        | 31 ++++++++++++++++++++--
- 2 files changed, 42 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++--
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 4 ++--
+ include/media/videobuf2-core.h                 | 2 +-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index 0845c50..2b62c06 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -30,6 +30,19 @@ Optional Properties:
-   - adi,disable-cable-reset: Boolean property. When set disables the HDMI
-     receiver automatic reset when the HDMI cable is unplugged.
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 1e994a9..604f2f4 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -108,16 +108,17 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
+ 	return atomic_read(&buf->refcount);
+ }
  
-+Optional Endpoint Properties:
-+
-+  The following three properties are defined in video-interfaces.txt and are
-+  valid for source endpoints only.
-+
-+  - hsync-active: Horizontal synchronization polarity. Defaults to active low.
-+  - vsync-active: Vertical synchronization polarity. Defaults to active low.
-+  - pclk-sample: Pixel clock polarity. Defaults to output on the falling edge.
-+
-+  If none of hsync-active, vsync-active and pclk-sample is specified the
-+  endpoint will use embedded BT.656 synchronization.
-+
-+
- Example:
- 
- 	hdmi_receiver@4c {
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 064e57e..c5bc8bf 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -42,6 +42,7 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-dv-timings.h>
-+#include <media/v4l2-of.h>
- 
- static int debug;
- module_param(debug, int, 0644);
-@@ -2659,13 +2660,41 @@ MODULE_DEVICE_TABLE(of, adv7604_of_id);
- 
- static int adv7604_parse_dt(struct adv7604_state *state)
+-static void vb2_dc_prepare(void *buf_priv)
++static int vb2_dc_prepare(void *buf_priv)
  {
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct device_node *endpoint;
- 	struct device_node *np;
-+	unsigned int flags;
- 	unsigned int i;
- 	int ret;
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 	struct sg_table *sgt = buf->dma_sgt;
  
- 	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
- 	state->info = of_match_node(adv7604_of_id, np)->data;
+ 	/* DMABUF exporter will flush the cache for us */
+ 	if (!sgt || buf->db_attach)
+-		return;
++		return 0;
  
-+	/* Parse the endpoint. */
-+	endpoint = v4l2_of_get_next_endpoint(np, NULL);
-+	if (!endpoint)
-+		return -EINVAL;
-+
-+	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	of_node_put(endpoint);
-+
-+	flags = bus_cfg.bus.parallel.flags;
-+
-+	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+		state->pdata.inv_hs_pol = 1;
-+
-+	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+		state->pdata.inv_vs_pol = 1;
-+
-+	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		state->pdata.inv_llc_pol = 1;
-+
-+	if (bus_cfg.bus_type == V4L2_MBUS_BT656) {
-+		state->pdata.insert_av_codes = 1;
-+		state->pdata.op_656_range = 1;
-+	}
-+
-+	/* Parse device-specific properties. */
- 	state->pdata.disable_pwrdnb =
- 		of_property_read_bool(np, "adi,disable-power-down");
- 	state->pdata.disable_cable_det_rst =
-@@ -2706,9 +2735,7 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+ 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++	return 0;
+ }
  
- 	/* HACK: Hardcode the remaining platform data fields. */
- 	state->pdata.blank_data = 1;
--	state->pdata.op_656_range = 1;
- 	state->pdata.alt_data_sat = 1;
--	state->pdata.insert_av_codes = 1;
- 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
+ static void vb2_dc_finish(void *buf_priv)
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index c7e0eca..c54df54 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -170,12 +170,12 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 	}
+ }
  
- 	return 0;
+-static void vb2_dma_sg_prepare(void *buf_priv)
++static int vb2_dma_sg_prepare(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+ 	struct sg_table *sgt = &buf->sg_table;
+ 
+-	dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++	return dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir) ? 0 : -EIO;
+ }
+ 
+ static void vb2_dma_sg_finish(void *buf_priv)
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 4b7fed0..a0dedc1 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -90,7 +90,7 @@ struct vb2_mem_ops {
+ 					unsigned long size, int write);
+ 	void		(*put_userptr)(void *buf_priv);
+ 
+-	void		(*prepare)(void *buf_priv);
++	int		(*prepare)(void *buf_priv);
+ 	void		(*finish)(void *buf_priv);
+ 
+ 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
 -- 
-1.8.3.2
+1.9.0
 
