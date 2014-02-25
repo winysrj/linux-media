@@ -1,39 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rosa.stappers.it ([77.72.145.78]:50596 "EHLO rosa.stappers.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751461AbaBHN6P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Feb 2014 08:58:15 -0500
-Date: Sat, 8 Feb 2014 14:58:14 +0100
-From: Geert Stappers <stappers@stappers.it>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2749 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753157AbaBYJsy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 04:48:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Luis Alves <ljalvs@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: SOB
-Message-ID: <20140208135814.GL14208@rosa.stappers.it>
-References: <1391852281-18291-1-git-send-email-crope@iki.fi>
- <1391852281-18291-4-git-send-email-crope@iki.fi>
- <52F5FD58.2050506@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <52F5FD58.2050506@iki.fi>
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv1 PATCH 07/14] vb2: call buf_finish from __dqbuf
+Date: Tue, 25 Feb 2014 10:48:20 +0100
+Message-Id: <1393321707-9749-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Feb 08, 2014 at 11:48:08AM +0200, Antti Palosaari wrote:
-> On 08.02.2014 11:37, Antti Palosaari wrote:
-> >From: Luis Alves <ljalvs@gmail.com>
-> >
-> >Signed-off-by: Antti Palosaari <crope@iki.fi>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Luis,
-> Could you send your SOB?
-> 
+This ensures that it is also called from queue_cancel, which also calls
+__dqbuf(). Without this change any time queue_cancel is called while
+streaming the buf_finish op will not be called and any driver cleanup
+will not happen.
 
-What is a SOB on this mailinglist?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 59bfd85..b5142e5 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1758,6 +1758,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+ 		return;
+ 
++	call_vb_qop(vb, buf_finish, vb);
++
+ 	vb->state = VB2_BUF_STATE_DEQUEUED;
+ 
+ 	/* unmap DMABUF buffer */
+@@ -1783,8 +1785,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	call_vb_qop(vb, buf_finish, vb);
+-
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DONE:
+ 		dprintk(3, "dqbuf: Returning done buffer\n");
+-- 
+1.9.0
 
-My visit to http://en.wikipedia.org/wiki/SOB was not conclusive.
-
-
-Cheers
-Geert Stappers
