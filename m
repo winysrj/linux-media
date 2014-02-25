@@ -1,120 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45588 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752564AbaBLRfH (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3154 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753091AbaBYKEo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 12:35:07 -0500
-Message-ID: <1392226480.5536.61.camel@pizza.hi.pengutronix.de>
-Subject: Re: [PATCH v2] [media] of: move graph helpers from
- drivers/media/v4l2-core to drivers/media
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Date: Wed, 12 Feb 2014 18:34:40 +0100
-In-Reply-To: <20140212223515.71a445f4.m.chehab@samsung.com>
-References: <1392154905-12007-1-git-send-email-p.zabel@pengutronix.de>
-	 <20140212065306.36a03e82.m.chehab@samsung.com>
-	 <1392196314.5536.15.camel@pizza.hi.pengutronix.de>
-	 <20140212223515.71a445f4.m.chehab@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 25 Feb 2014 05:04:44 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 03/20] vb2: if bytesused is 0, then fill with output buffer length
+Date: Tue, 25 Feb 2014 11:04:08 +0100
+Message-Id: <1393322665-29889-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Am Mittwoch, den 12.02.2014, 22:35 +0900 schrieb Mauro Carvalho Chehab:
-> Em Wed, 12 Feb 2014 10:11:54 +0100
-> Philipp Zabel <p.zabel@pengutronix.de> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > Am Mittwoch, den 12.02.2014, 06:53 +0900 schrieb Mauro Carvalho Chehab:
-> > [...]
-> > > > diff --git a/include/media/of_graph.h b/include/media/of_graph.h
-> > > > new file mode 100644
-> > > > index 0000000..3bbeb60
-> > > > --- /dev/null
-> > > > +++ b/include/media/of_graph.h
-> > > > @@ -0,0 +1,46 @@
-> > > > +/*
-> > > > + * OF graph binding parsing helpers
-> > > > + *
-> > > > + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-> > > > + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > > > + *
-> > > > + * Copyright (C) 2012 Renesas Electronics Corp.
-> > > > + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > + *
-> > > > + * This program is free software; you can redistribute it and/or modify
-> > > > + * it under the terms of version 2 of the GNU General Public License as
-> > > > + * published by the Free Software Foundation.
-> > > > + */
-> > > > +#ifndef __LINUX_OF_GRAPH_H
-> > > > +#define __LINUX_OF_GRAPH_H
-> > > > +
-> > > > +#ifdef CONFIG_OF
-> > > 
-> > > As a matter of consistency, it would be better to test here for
-> > > CONFIG_OF_GRAPH instead, to reflect the same symbol that enables such
-> > > functions as used on Kconfig/Makefile.
-> > 
-> > Maybe I'm trying to be too clever for my own good, but my reasoning was
-> > as follows:
-> > 
-> > Suppose I newly use the of_graph_ helpers in a subsystem that does not
-> > yet select OF_GRAPH. In that case I'd rather get linking errors earlier
-> > rather than stubbed out functions that silently fail to parse the DT
-> > later.
-> 
-> I see your point, but, imagining that someone pushed a patch using those
-> symbols upstream, that would break compilation and git bisection, with 
-> will hurt everyone, and not only the very few of us that would actually
-> need the OF_GRAPH symbol for an specific driver.
-> 
-> Also, such push would mean that someone forgot to do his homework and
-> to test if the committed functionality is actually working.
-> 
-> So, it seems more fair that the one that did the mistake will be the one
-> that will suffer the consequences for his errors instead of applying a
-> penalty to everybody's else ;)
+The application should really always fill in bytesused for output
+buffers, unfortunately the vb2 framework never checked for that.
 
-point taken.
+So for single planar formats replace a bytesused of 0 by the length
+of the buffer, and for multiplanar format do the same if bytesused is
+0 for ALL planes.
 
-> > Since there is
-> > config VIDEO_DEV
-> > 	select OF_GRAPH if OF
-> > already and the same should be added for other users of device tree
-> > graphs, I think stubbing out the functions only if OF is disabled should
-> > be enough.
-> 
-> Well, if you want to be sure that the graph will always be there if OF, then
-> you could do, instead:
-> 
-> config OF_GRAPH
-> 	bool
-> 	default OF
-> 
-> (that would actually make OF_GRAPH just an alias to OF - so we could just
-> use OF instead).
-> 
-> In any case, I think that we should use the same config name at Makefile, 
-> Kconfig and of_graph.h (either OF_GRAPH or just OF).
+This seems to be what the user really intended if v4l2_buffer was
+just memset to 0.
 
-If nobody states a strong preference, I'll just get rid of the
-CONFIG_OF_GRAPH option altogether and use CONFIG_OF directly.
+I'm afraid that just checking for this and returning an error would
+break too many applications. Quite a few drivers never check for bytesused
+at all and just use the buffer length instead.
 
-regards
-Philipp
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 32 +++++++++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f9ced55..8070ccc 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1124,19 +1124,35 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 			memset(v4l2_planes[plane].reserved, 0,
+ 			       sizeof(v4l2_planes[plane].reserved));
+ 			v4l2_planes[plane].data_offset = 0;
++			v4l2_planes[plane].bytesused = 0;
+ 		}
+ 
+ 		/* Fill in driver-provided information for OUTPUT types */
+ 		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
++			bool bytesused_is_used;
++
++			/* Check if bytesused == 0 for all planes */
++			for (plane = 0; plane < vb->num_planes; ++plane)
++				if (b->m.planes[plane].bytesused)
++					break;
++			bytesused_is_used = plane < vb->num_planes;
++
+ 			/*
+ 			 * Will have to go up to b->length when API starts
+ 			 * accepting variable number of planes.
++			 *
++			 * If bytesused_is_used is false, then fall back to the
++			 * full buffer size. In that case userspace clearly
++			 * never bothered to set it and it's a safe assumption
++			 * that they really meant to use the full plane sizes.
+ 			 */
+ 			for (plane = 0; plane < vb->num_planes; ++plane) {
+-				v4l2_planes[plane].bytesused =
+-					b->m.planes[plane].bytesused;
+-				v4l2_planes[plane].data_offset =
+-					b->m.planes[plane].data_offset;
++				struct v4l2_plane *pdst = &v4l2_planes[plane];
++				struct v4l2_plane *psrc = &b->m.planes[plane];
++
++				pdst->bytesused = bytesused_is_used ?
++					psrc->bytesused : psrc->length;
++				pdst->data_offset = psrc->data_offset;
+ 			}
+ 		}
+ 
+@@ -1162,9 +1178,15 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 		 * so fill in relevant v4l2_buffer struct fields instead.
+ 		 * In videobuf we use our internal V4l2_planes struct for
+ 		 * single-planar buffers as well, for simplicity.
++		 *
++		 * If bytesused == 0, then fall back to the full buffer size
++		 * as that's a sensible default.
+ 		 */
+ 		if (V4L2_TYPE_IS_OUTPUT(b->type))
+-			v4l2_planes[0].bytesused = b->bytesused;
++			v4l2_planes[0].bytesused =
++				b->bytesused ? b->bytesused : b->length;
++		else
++			v4l2_planes[0].bytesused = 0;
+ 		/* Single-planar buffers never use data_offset */
+ 		v4l2_planes[0].data_offset = 0;
+ 
+-- 
+1.9.0
 
