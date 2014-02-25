@@ -1,79 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60112 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932286AbaBDTlW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Feb 2014 14:41:22 -0500
-Message-ID: <52F1425C.6030604@iki.fi>
-Date: Tue, 04 Feb 2014 21:41:16 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 2/4] e4000: implement controls via v4l2 control framework
-References: <1391478000-24239-1-git-send-email-crope@iki.fi> <1391478000-24239-3-git-send-email-crope@iki.fi> <52F134BD.2050201@xs4all.nl>
-In-Reply-To: <52F134BD.2050201@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2042 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753120AbaBYKEp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 05:04:45 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 02/20] vb2: fix handling of data_offset and v4l2_plane.reserved[]
+Date: Tue, 25 Feb 2014 11:04:07 +0100
+Message-Id: <1393322665-29889-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moi Hans
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 04.02.2014 20:43, Hans Verkuil wrote:
-> On 02/04/2014 02:39 AM, Antti Palosaari wrote:
->> Implement gain and bandwidth controls using v4l2 control framework.
->> Pointer to control handler is provided by exported symbol.
->>
->> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
->> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
->> ---
->>   drivers/media/tuners/e4000.c      | 142 +++++++++++++++++++++++++++++++++++++-
->>   drivers/media/tuners/e4000.h      |  14 ++++
->>   drivers/media/tuners/e4000_priv.h |  12 ++++
->>   3 files changed, 167 insertions(+), 1 deletion(-)
+The videobuf2-core did not zero the reserved array of v4l2_plane as it
+should.
 
->> +static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
->> +{
->> +	struct e4000_priv *priv =
->> +			container_of(ctrl->handler, struct e4000_priv, hdl);
->> +	struct dvb_frontend *fe = priv->fe;
->> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->> +	int ret;
->> +	dev_dbg(&priv->client->dev,
->> +			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
->> +			__func__, ctrl->id, ctrl->name, ctrl->val,
->> +			ctrl->minimum, ctrl->maximum, ctrl->step);
->> +
->> +	switch (ctrl->id) {
->> +	case V4L2_CID_BANDWIDTH_AUTO:
->> +	case V4L2_CID_BANDWIDTH:
->> +		c->bandwidth_hz = priv->bandwidth->val;
->> +		ret = e4000_set_params(priv->fe);
->> +		break;
->> +	case  V4L2_CID_LNA_GAIN_AUTO:
->> +	case  V4L2_CID_LNA_GAIN:
->> +	case  V4L2_CID_MIXER_GAIN_AUTO:
->> +	case  V4L2_CID_MIXER_GAIN:
->> +	case  V4L2_CID_IF_GAIN_AUTO:
->> +	case  V4L2_CID_IF_GAIN:
->> +		ret = e4000_set_gain(priv->fe);
->
-> That won't work. You need to handle each gain cluster separately. The control
-> framework processes the controls one cluster at a time and takes a lock on the
-> master control before calling s_ctrl. The ctrl->val field is only valid inside
-> s_ctrl for the controls in the cluster, not for other controls. For other
-> controls only the ctrl->cur.val field is valid.
+More serious is the fact that data_offset was not handled correctly:
 
-hmm, actually it worked fine on my tests - but I think see your point. 
-It likely woks as my app sets one control per call, but if you try to 
-set multiple controls then it go out of sync I think.
+- for capture devices it was never zeroed, which meant that it was
+  uninitialized. Unless the driver sets it it was a completely random
+  number.
 
-I am going to split that gain function to three pieces then.
+- __qbuf_dmabuf had a completely incorrect length check that included
+  data_offset.
 
-regards
-Antti
+- in the single-planar case data_offset was never correctly set to 0.
+  The single-planar API doesn't support data_offset, so setting it
+  to 0 is the right thing to do.
 
+All these issues were found with v4l2-compliance.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 2c3a7f2..f9ced55 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1120,6 +1120,12 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 	unsigned int plane;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
++		for (plane = 0; plane < vb->num_planes; ++plane) {
++			memset(v4l2_planes[plane].reserved, 0,
++			       sizeof(v4l2_planes[plane].reserved));
++			v4l2_planes[plane].data_offset = 0;
++		}
++
+ 		/* Fill in driver-provided information for OUTPUT types */
+ 		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+ 			/*
+@@ -1148,8 +1154,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 					b->m.planes[plane].m.fd;
+ 				v4l2_planes[plane].length =
+ 					b->m.planes[plane].length;
+-				v4l2_planes[plane].data_offset =
+-					b->m.planes[plane].data_offset;
+ 			}
+ 		}
+ 	} else {
+@@ -1159,10 +1163,10 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 		 * In videobuf we use our internal V4l2_planes struct for
+ 		 * single-planar buffers as well, for simplicity.
+ 		 */
+-		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
++		if (V4L2_TYPE_IS_OUTPUT(b->type))
+ 			v4l2_planes[0].bytesused = b->bytesused;
+-			v4l2_planes[0].data_offset = 0;
+-		}
++		/* Single-planar buffers never use data_offset */
++		v4l2_planes[0].data_offset = 0;
+ 
+ 		if (b->memory == V4L2_MEMORY_USERPTR) {
+ 			v4l2_planes[0].m.userptr = b->m.userptr;
+@@ -1172,9 +1176,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 		if (b->memory == V4L2_MEMORY_DMABUF) {
+ 			v4l2_planes[0].m.fd = b->m.fd;
+ 			v4l2_planes[0].length = b->length;
+-			v4l2_planes[0].data_offset = 0;
+ 		}
+-
+ 	}
+ 
+ 	vb->v4l2_buf.field = b->field;
+@@ -1331,8 +1333,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		if (planes[plane].length == 0)
+ 			planes[plane].length = dbuf->size;
+ 
+-		if (planes[plane].length < planes[plane].data_offset +
+-		    q->plane_sizes[plane]) {
++		if (planes[plane].length < q->plane_sizes[plane]) {
+ 			dprintk(1, "qbuf: invalid dmabuf length for plane %d\n",
+ 				plane);
+ 			ret = -EINVAL;
 -- 
-http://palosaari.fi/
+1.9.0
+
