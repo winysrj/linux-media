@@ -1,54 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3894 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbaBKH4Y (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1383 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753125AbaBYKQR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 02:56:24 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1B7uLxr078958
-	for <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 08:56:23 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5745B2A00A8
-	for <linux-media@vger.kernel.org>; Tue, 11 Feb 2014 08:55:55 +0100 (CET)
-Message-ID: <52F9D78B.4010201@xs4all.nl>
-Date: Tue, 11 Feb 2014 08:55:55 +0100
+	Tue, 25 Feb 2014 05:16:17 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [ANN] Added streaming tests for v4l2-compliance
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 02/13] v4l2-ioctl: clips, clipcount and bitmap should not be zeroed.
+Date: Tue, 25 Feb 2014 11:15:52 +0100
+Message-Id: <1393323363-30058-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I've just committed and pushed my latest changes to v4l2-compliance. It adds
-initial support for testing the I/O streaming ioctls. It's currently limited
-to standard VIDEO_CAPTURE, so no output, m2m or multiplanar support.
+Otherwise you cannot get the current clip and bitmap information from
+an overlay.
 
-You need to add the -s flag in order to test this, and you may have to set the
-correct input and frequency as well since the streaming tests assume you have
-a proper video signal on the input.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-It already found this regression:
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 69a1948..82bf164 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1062,6 +1062,30 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 
++	/*
++	 * fmt can't be cleared for these overlay types due to the 'clips'
++	 * 'clipcount' and 'bitmap' pointers in struct v4l2_window.
++	 * Those are provided by the user. So handle these two overlay types
++	 * first, and then just do a simple memset for the other types.
++	 */
++	switch (p->type) {
++	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY: {
++		struct v4l2_clip *clips = p->fmt.win.clips;
++		u32 clipcount = p->fmt.win.clipcount;
++		void *bitmap = p->fmt.win.bitmap;
++
++		memset(&p->fmt, 0, sizeof(p->fmt));
++		p->fmt.win.clips = clips;
++		p->fmt.win.clipcount = clipcount;
++		p->fmt.win.bitmap = bitmap;
++		break;
++	}
++	default:
++		memset(&p->fmt, 0, sizeof(p->fmt));
++		break;
++	}
++
+ 	switch (p->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap))
+@@ -2029,7 +2053,7 @@ struct v4l2_ioctl_info {
+ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_QUERYCAP, v4l_querycap, v4l_print_querycap, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
+-	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, INFO_FL_CLEAR(v4l2_format, type)),
++	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_FMT, v4l_s_fmt, v4l_print_format, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_REQBUFS, v4l_reqbufs, v4l_print_requestbuffers, INFO_FL_PRIO | INFO_FL_QUEUE),
+ 	IOCTL_INFO_FNC(VIDIOC_QUERYBUF, v4l_querybuf, v4l_print_buffer, INFO_FL_QUEUE | INFO_FL_CLEAR(v4l2_buffer, length)),
+-- 
+1.9.0
 
-http://www.spinics.net/lists/linux-media/msg72824.html
-
-So any driver that supports VIDIOC_PREPARE_BUF will have to apply that patch
-first, otherwise it will definitely fail to work.
-
-By no means am I doing full coverage testing, but at least the main things
-are now covered.
-
-Particularly tests for nasty things (wrong pointers, buffers too small, closing
-filehandles mid-streaming, stuff like that) need to be added. That's never tested
-normally so stress tests like that will be very useful.
-
-Feedback and ideas are welcome!
-
-Regards,
-
-	Hans
