@@ -1,245 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753207AbaBEQmE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:42:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 35/47] adv7604: Add sink pads
-Date: Wed,  5 Feb 2014 17:42:26 +0100
-Message-Id: <1391618558-5580-36-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:10460 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752539AbaBYNI5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 08:08:57 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N1J00ELFZ6VPH60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Feb 2014 13:08:55 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sakari Ailus' <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
+ <1392497585-5084-7-git-send-email-sakari.ailus@iki.fi>
+In-reply-to: <1392497585-5084-7-git-send-email-sakari.ailus@iki.fi>
+Subject: RE: [PATCH v5 6/7] v4l: Copy timestamp source flags to destination on
+ m2m devices
+Date: Tue, 25 Feb 2014 14:08:53 +0100
+Message-id: <12f901cf322a$bc642a50$352c7ef0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ADV7604 has sink pads for its HDMI and analog inputs. Report them.
+Hi Sakari,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/adv7604.c | 71 ++++++++++++++++++++++++++++-----------------
- include/media/adv7604.h     | 14 ---------
- 2 files changed, 45 insertions(+), 40 deletions(-)
+> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> Sent: Saturday, February 15, 2014 9:53 PM
+> 
+> Copy the flags containing the timestamp source from source buffer flags
+> to the destination buffer flags on memory-to-memory devices. This is
+> analogous to copying the timestamp field from source to destination.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 05e7e1a..da32ce9 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -97,13 +97,25 @@ struct adv7604_chip_info {
-  *
-  **********************************************************************
-  */
-+enum adv7604_pad {
-+	ADV7604_PAD_HDMI_PORT_A = 0,
-+	ADV7604_PAD_HDMI_PORT_B = 1,
-+	ADV7604_PAD_HDMI_PORT_C = 2,
-+	ADV7604_PAD_HDMI_PORT_D = 3,
-+	ADV7604_PAD_VGA_RGB = 4,
-+	ADV7604_PAD_VGA_COMP = 5,
-+	/* The source pad is either 1 (ADV7611) or 6 (ADV7604) */
-+	ADV7604_PAD_MAX = 7,
-+};
-+
- struct adv7604_state {
- 	const struct adv7604_chip_info *info;
- 	struct adv7604_platform_data pdata;
- 	struct v4l2_subdev sd;
--	struct media_pad pad;
-+	struct media_pad pads[ADV7604_PAD_MAX];
-+	unsigned int source_pad;
- 	struct v4l2_ctrl_handler hdl;
--	enum adv7604_input_port selected_input;
-+	enum adv7604_pad selected_input;
- 	struct v4l2_dv_timings timings;
- 	struct {
- 		u8 edid[256];
-@@ -775,18 +787,18 @@ static inline bool is_analog_input(struct v4l2_subdev *sd)
- {
- 	struct adv7604_state *state = to_state(sd);
+This patch looks good to me.
  
--	return state->selected_input == ADV7604_INPUT_VGA_RGB ||
--	       state->selected_input == ADV7604_INPUT_VGA_COMP;
-+	return state->selected_input == ADV7604_PAD_VGA_RGB ||
-+	       state->selected_input == ADV7604_PAD_VGA_COMP;
- }
- 
- static inline bool is_digital_input(struct v4l2_subdev *sd)
- {
- 	struct adv7604_state *state = to_state(sd);
- 
--	return state->selected_input == ADV7604_INPUT_HDMI_PORT_A ||
--	       state->selected_input == ADV7604_INPUT_HDMI_PORT_B ||
--	       state->selected_input == ADV7604_INPUT_HDMI_PORT_C ||
--	       state->selected_input == ADV7604_INPUT_HDMI_PORT_D;
-+	return state->selected_input == ADV7604_PAD_HDMI_PORT_A ||
-+	       state->selected_input == ADV7604_PAD_HDMI_PORT_B ||
-+	       state->selected_input == ADV7604_PAD_HDMI_PORT_C ||
-+	       state->selected_input == ADV7604_PAD_HDMI_PORT_D;
- }
- 
- /* ----------------------------------------------------------------------- */
-@@ -1066,14 +1078,14 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 
- 	switch (state->rgb_quantization_range) {
- 	case V4L2_DV_RGB_RANGE_AUTO:
--		if (state->selected_input == ADV7604_INPUT_VGA_RGB) {
-+		if (state->selected_input == ADV7604_PAD_VGA_RGB) {
- 			/* Receiving analog RGB signal
- 			 * Set RGB full range (0-255) */
- 			io_write_and_or(sd, 0x02, 0x0f, 0x10);
- 			break;
- 		}
- 
--		if (state->selected_input == ADV7604_INPUT_VGA_COMP) {
-+		if (state->selected_input == ADV7604_PAD_VGA_COMP) {
- 			/* Receiving analog YPbPr signal
- 			 * Set automode */
- 			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
-@@ -1106,7 +1118,7 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 		}
- 		break;
- 	case V4L2_DV_RGB_RANGE_LIMITED:
--		if (state->selected_input == ADV7604_INPUT_VGA_COMP) {
-+		if (state->selected_input == ADV7604_PAD_VGA_COMP) {
- 			/* YCrCb limited range (16-235) */
- 			io_write_and_or(sd, 0x02, 0x0f, 0x20);
- 			break;
-@@ -1117,7 +1129,7 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 
- 		break;
- 	case V4L2_DV_RGB_RANGE_FULL:
--		if (state->selected_input == ADV7604_INPUT_VGA_COMP) {
-+		if (state->selected_input == ADV7604_PAD_VGA_COMP) {
- 			/* YCrCb full range (0-255) */
- 			io_write_and_or(sd, 0x02, 0x0f, 0x60);
- 			break;
-@@ -1806,7 +1818,7 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	struct adv7604_state *state = to_state(sd);
- 	u8 *data = NULL;
- 
--	if (edid->pad > ADV7604_EDID_PORT_D)
-+	if (edid->pad > ADV7604_PAD_HDMI_PORT_D)
- 		return -EINVAL;
- 	if (edid->blocks == 0)
- 		return -EINVAL;
-@@ -1823,10 +1835,10 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 		edid->blocks = state->edid.blocks;
- 
- 	switch (edid->pad) {
--	case ADV7604_EDID_PORT_A:
--	case ADV7604_EDID_PORT_B:
--	case ADV7604_EDID_PORT_C:
--	case ADV7604_EDID_PORT_D:
-+	case ADV7604_PAD_HDMI_PORT_A:
-+	case ADV7604_PAD_HDMI_PORT_B:
-+	case ADV7604_PAD_HDMI_PORT_C:
-+	case ADV7604_PAD_HDMI_PORT_D:
- 		if (state->edid.present & (1 << edid->pad))
- 			data = state->edid.edid;
- 		break;
-@@ -1880,7 +1892,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	int err;
- 	int i;
- 
--	if (edid->pad > ADV7604_EDID_PORT_D)
-+	if (edid->pad > ADV7604_PAD_HDMI_PORT_D)
- 		return -EINVAL;
- 	if (edid->start_block != 0)
- 		return -EINVAL;
-@@ -1921,19 +1933,19 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 		spa_loc = 0xc0; /* Default value [REF_02, p. 116] */
- 
- 	switch (edid->pad) {
--	case ADV7604_EDID_PORT_A:
-+	case ADV7604_PAD_HDMI_PORT_A:
- 		state->spa_port_a[0] = edid->edid[spa_loc];
- 		state->spa_port_a[1] = edid->edid[spa_loc + 1];
- 		break;
--	case ADV7604_EDID_PORT_B:
-+	case ADV7604_PAD_HDMI_PORT_B:
- 		rep_write(sd, 0x70, edid->edid[spa_loc]);
- 		rep_write(sd, 0x71, edid->edid[spa_loc + 1]);
- 		break;
--	case ADV7604_EDID_PORT_C:
-+	case ADV7604_PAD_HDMI_PORT_C:
- 		rep_write(sd, 0x72, edid->edid[spa_loc]);
- 		rep_write(sd, 0x73, edid->edid[spa_loc + 1]);
- 		break;
--	case ADV7604_EDID_PORT_D:
-+	case ADV7604_PAD_HDMI_PORT_D:
- 		rep_write(sd, 0x74, edid->edid[spa_loc]);
- 		rep_write(sd, 0x75, edid->edid[spa_loc + 1]);
- 		break;
-@@ -2433,7 +2445,7 @@ static const struct adv7604_chip_info adv7604_chip_info[] = {
- 	[ADV7604] = {
- 		.type = ADV7604,
- 		.has_afe = true,
--		.max_port = ADV7604_INPUT_VGA_COMP,
-+		.max_port = ADV7604_PAD_VGA_COMP,
- 		.num_dv_ports = 4,
- 		.edid_enable_reg = 0x77,
- 		.edid_status_reg = 0x7d,
-@@ -2464,7 +2476,7 @@ static const struct adv7604_chip_info adv7604_chip_info[] = {
- 	[ADV7611] = {
- 		.type = ADV7611,
- 		.has_afe = false,
--		.max_port = ADV7604_INPUT_HDMI_PORT_A,
-+		.max_port = ADV7604_PAD_HDMI_PORT_A,
- 		.num_dv_ports = 1,
- 		.edid_enable_reg = 0x74,
- 		.edid_status_reg = 0x76,
-@@ -2498,6 +2510,7 @@ static int adv7604_probe(struct i2c_client *client,
- 	struct adv7604_platform_data *pdata = client->dev.platform_data;
- 	struct v4l2_ctrl_handler *hdl;
- 	struct v4l2_subdev *sd;
-+	unsigned int i;
- 	u16 val;
- 	int err;
- 
-@@ -2643,8 +2656,14 @@ static int adv7604_probe(struct i2c_client *client,
- 	INIT_DELAYED_WORK(&state->delayed_work_enable_hotplug,
- 			adv7604_delayed_work_enable_hotplug);
- 
--	state->pad.flags = MEDIA_PAD_FL_SOURCE;
--	err = media_entity_init(&sd->entity, 1, &state->pad, 0);
-+	state->source_pad = state->info->num_dv_ports
-+			  + (state->info->has_afe ? 2 : 0);
-+	for (i = 0; i < state->source_pad; ++i)
-+		state->pads[i].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[state->source_pad].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	err = media_entity_init(&sd->entity, state->source_pad + 1,
-+				state->pads, 0);
- 	if (err)
- 		goto err_work_queues;
- 
-diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-index b2500bae..22811d3 100644
---- a/include/media/adv7604.h
-+++ b/include/media/adv7604.h
-@@ -155,20 +155,6 @@ struct adv7604_platform_data {
- 	u8 i2c_vdp;
- };
- 
--enum adv7604_input_port {
--	ADV7604_INPUT_HDMI_PORT_A,
--	ADV7604_INPUT_HDMI_PORT_B,
--	ADV7604_INPUT_HDMI_PORT_C,
--	ADV7604_INPUT_HDMI_PORT_D,
--	ADV7604_INPUT_VGA_RGB,
--	ADV7604_INPUT_VGA_COMP,
--};
--
--#define ADV7604_EDID_PORT_A 0
--#define ADV7604_EDID_PORT_B 1
--#define ADV7604_EDID_PORT_C 2
--#define ADV7604_EDID_PORT_D 3
--
- #define V4L2_CID_ADV_RX_ANALOG_SAMPLING_PHASE	(V4L2_CID_DV_CLASS_BASE + 0x1000)
- #define V4L2_CID_ADV_RX_FREE_RUN_COLOR_MANUAL	(V4L2_CID_DV_CLASS_BASE + 0x1001)
- #define V4L2_CID_ADV_RX_FREE_RUN_COLOR		(V4L2_CID_DV_CLASS_BASE + 0x1002)
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+Acked-by: Kamil Debski <k.debski@samsung.com>
+
+> ---
+>  drivers/media/platform/coda.c                |    3 +++
+>  drivers/media/platform/exynos-gsc/gsc-m2m.c  |    4 ++++
+>  drivers/media/platform/exynos4-is/fimc-m2m.c |    3 +++
+>  drivers/media/platform/m2m-deinterlace.c     |    3 +++
+>  drivers/media/platform/mem2mem_testdev.c     |    3 +++
+>  drivers/media/platform/mx2_emmaprp.c         |    5 +++++
+>  drivers/media/platform/s5p-g2d/g2d.c         |    3 +++
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c  |    3 +++
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c     |    5 +++++
+>  drivers/media/platform/ti-vpe/vpe.c          |    2 ++
+>  10 files changed, 34 insertions(+)
+> 
+> diff --git a/drivers/media/platform/coda.c
+> b/drivers/media/platform/coda.c index 61f3dbc..fe6dee6 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -2829,6 +2829,9 @@ static void coda_finish_encode(struct coda_ctx
+> *ctx)
+>  	}
+> 
+>  	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
+> +	dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +	dst_buf->v4l2_buf.flags |=
+> +		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+>  	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
+> 
+>  	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE); diff --git
+> a/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> index 62c84d5..4260ea5 100644
+> --- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> +++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> @@ -90,6 +90,10 @@ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int
+> vb_state)
+>  	if (src_vb && dst_vb) {
+>  		dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
+>  		dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
+> +		dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +		dst_vb->v4l2_buf.flags |=
+> +			src_vb->v4l2_buf.flags
+> +			& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> 
+>  		v4l2_m2m_buf_done(src_vb, vb_state);
+>  		v4l2_m2m_buf_done(dst_vb, vb_state);
+> diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c
+> b/drivers/media/platform/exynos4-is/fimc-m2m.c
+> index 9da95bd..a4249a1 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-m2m.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+> @@ -134,6 +134,9 @@ static void fimc_device_run(void *priv)
+>  		goto dma_unlock;
+> 
+>  	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
+> +	dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +	dst_vb->v4l2_buf.flags |=
+> +		src_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> 
+>  	/* Reconfigure hardware if the context has changed. */
+>  	if (fimc->m2m.ctx != ctx) {
+> diff --git a/drivers/media/platform/m2m-deinterlace.c
+> b/drivers/media/platform/m2m-deinterlace.c
+> index 1f272d3..79ffdab 100644
+> --- a/drivers/media/platform/m2m-deinterlace.c
+> +++ b/drivers/media/platform/m2m-deinterlace.c
+> @@ -208,6 +208,9 @@ static void dma_callback(void *data)
+>  	dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
+> 
+>  	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
+> +	dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +	dst_vb->v4l2_buf.flags |=
+> +		src_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+>  	dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
+> 
+>  	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE); diff --git
+> a/drivers/media/platform/mem2mem_testdev.c
+> b/drivers/media/platform/mem2mem_testdev.c
+> index 08e2437..b91da7f 100644
+> --- a/drivers/media/platform/mem2mem_testdev.c
+> +++ b/drivers/media/platform/mem2mem_testdev.c
+> @@ -239,6 +239,9 @@ static int device_process(struct m2mtest_ctx *ctx,
+>  	memcpy(&out_vb->v4l2_buf.timestamp,
+>  			&in_vb->v4l2_buf.timestamp,
+>  			sizeof(struct timeval));
+> +	out_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +	out_vb->v4l2_buf.flags |=
+> +		in_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> 
+>  	switch (ctx->mode) {
+>  	case MEM2MEM_HFLIP | MEM2MEM_VFLIP:
+> diff --git a/drivers/media/platform/mx2_emmaprp.c
+> b/drivers/media/platform/mx2_emmaprp.c
+> index 91056ac0..0f59082 100644
+> --- a/drivers/media/platform/mx2_emmaprp.c
+> +++ b/drivers/media/platform/mx2_emmaprp.c
+> @@ -378,6 +378,11 @@ static irqreturn_t emmaprp_irq(int irq_emma, void
+> *data)
+>  			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
+> 
+>  			dst_vb->v4l2_buf.timestamp = src_vb-
+> >v4l2_buf.timestamp;
+> +			dst_vb->v4l2_buf.flags &=
+> +				~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +			dst_vb->v4l2_buf.flags |=
+> +				src_vb->v4l2_buf.flags
+> +				& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+>  			dst_vb->v4l2_buf.timecode = src_vb-
+> >v4l2_buf.timecode;
+> 
+>  			spin_lock_irqsave(&pcdev->irqlock, flags); diff
+--git
+> a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-
+> g2d/g2d.c
+> index 0fcf7d7..48fe6ea 100644
+> --- a/drivers/media/platform/s5p-g2d/g2d.c
+> +++ b/drivers/media/platform/s5p-g2d/g2d.c
+> @@ -560,6 +560,9 @@ static irqreturn_t g2d_isr(int irq, void *prv)
+> 
+>  	dst->v4l2_buf.timecode = src->v4l2_buf.timecode;
+>  	dst->v4l2_buf.timestamp = src->v4l2_buf.timestamp;
+> +	dst->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +	dst->v4l2_buf.flags |=
+> +		src->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> 
+>  	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
+>  	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE); diff --git
+> a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> index a1c78c8..7b10120 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+> @@ -1766,6 +1766,9 @@ static irqreturn_t s5p_jpeg_irq(int irq, void
+> *dev_id)
+> 
+>  	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
+>  	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
+> +	dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +	dst_buf->v4l2_buf.flags |=
+> +		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> 
+>  	v4l2_m2m_buf_done(src_buf, state);
+>  	if (curr_ctx->mode == S5P_JPEG_ENCODE) diff --git
+> a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index e2aac59..702ca1b 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -232,6 +232,11 @@ static void s5p_mfc_handle_frame_copy_time(struct
+> s5p_mfc_ctx *ctx)
+>
+src_buf->b->v4l2_buf.timecode;
+>  			dst_buf->b->v4l2_buf.timestamp =
+>
+src_buf->b->v4l2_buf.timestamp;
+> +			dst_buf->b->v4l2_buf.flags &=
+> +				~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +			dst_buf->b->v4l2_buf.flags |=
+> +				src_buf->b->v4l2_buf.flags
+> +				& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+>  			switch (frame_type) {
+>  			case S5P_FIMV_DECODE_FRAME_I_FRAME:
+>  				dst_buf->b->v4l2_buf.flags |=
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c
+> b/drivers/media/platform/ti-vpe/vpe.c
+> index 1296c53..d67c467 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -1278,6 +1278,8 @@ static irqreturn_t vpe_irq(int irq_vpe, void
+> *data)
+>  	d_buf = &d_vb->v4l2_buf;
+> 
+>  	d_buf->timestamp = s_buf->timestamp;
+> +	d_buf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +	d_buf->flags |= s_buf->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+>  	if (s_buf->flags & V4L2_BUF_FLAG_TIMECODE) {
+>  		d_buf->flags |= V4L2_BUF_FLAG_TIMECODE;
+>  		d_buf->timecode = s_buf->timecode;
+> --
+> 1.7.10.4
+
+Best wishes,
 -- 
-1.8.3.2
+Kamil Debski
+Samsung R&D Institute Poland
+
 
