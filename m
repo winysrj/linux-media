@@ -1,249 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2599 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752288AbaBQJ6t (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3414 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752227AbaBYMxW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 04:58:49 -0500
+	Tue, 25 Feb 2014 07:53:22 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 09/35] v4l2-ctrls: rewrite copy routines to operate on union v4l2_ctrl_ptr.
-Date: Mon, 17 Feb 2014 10:57:24 +0100
-Message-Id: <1392631070-41868-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [REVIEWv2 PATCH 14/15] vb2: fix streamoff handling if streamon wasn't called.
+Date: Tue, 25 Feb 2014 13:52:54 +0100
+Message-Id: <1393332775-44067-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-In order to implement matrix support and (for the future) configuration stores
-we need to have more generic copy routines. The v4l2_ctrl_ptr union was designed
-for this.
+If you request buffers, then queue buffers and then call STREAMOFF
+those buffers are not returned to their dequeued state because streamoff
+will just return if q->streaming was 0.
+
+This means that afterwards you can never QBUF that same buffer again unless
+you do STREAMON, REQBUFS or close the filehandle first.
+
+It is clear that if you do STREAMOFF even if no STREAMON was called before,
+you still want to have all buffers returned to their proper dequeued state.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 129 +++++++++++++++--------------------
- 1 file changed, 56 insertions(+), 73 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index fa737a5..4fc2a92 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1275,48 +1275,64 @@ static const struct v4l2_ctrl_type_ops std_type_ops = {
- 	.validate = std_validate,
- };
- 
--/* Helper function: copy the current control value back to the caller */
--static int cur_to_user(struct v4l2_ext_control *c,
--		       struct v4l2_ctrl *ctrl)
-+/* Helper function: copy the given control value back to the caller */
-+static int ptr_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl,
-+		       union v4l2_ctrl_ptr ptr)
- {
- 	u32 len;
- 
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->p, ctrl->cur.p, ctrl->elem_size);
-+		return copy_to_user(c->p, ptr.p, ctrl->elem_size);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(ctrl->cur.string);
-+		len = strlen(ptr.p_char);
- 		if (c->size < len + 1) {
- 			c->size = len + 1;
- 			return -ENOSPC;
- 		}
--		return copy_to_user(c->string, ctrl->cur.string,
--						len + 1) ? -EFAULT : 0;
-+		return copy_to_user(c->string, ptr.p_char, len + 1) ?
-+								-EFAULT : 0;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		c->value64 = ctrl->cur.val64;
-+		c->value64 = *ptr.p_s64;
- 		break;
- 	default:
--		c->value = ctrl->cur.val;
-+		c->value = *ptr.p_s32;
- 		break;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 68f3def..4af6457 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2067,14 +2067,14 @@ static int vb2_internal_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
+ 		return -EINVAL;
  	}
- 	return 0;
- }
  
--/* Helper function: copy the caller-provider value as the new control value */
--static int user_to_new(struct v4l2_ext_control *c,
-+/* Helper function: copy the current control value back to the caller */
-+static int cur_to_user(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
- {
-+	return ptr_to_user(c, ctrl, ctrl->stores[0]);
-+}
-+
-+/* Helper function: copy the new control value back to the caller */
-+static int new_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl)
-+{
-+	return ptr_to_user(c, ctrl, ctrl->new);
-+}
-+
-+/* Helper function: copy the caller-provider value to the given control value */
-+static int user_to_ptr(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl,
-+		       union v4l2_ctrl_ptr ptr)
-+{
- 	int ret;
- 	u32 size;
- 
- 	ctrl->is_new = 1;
- 	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_from_user(ctrl->p, c->p, ctrl->elem_size);
-+		return copy_from_user(ptr.p, c->p, ctrl->elem_size);
- 
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		ctrl->val64 = c->value64;
-+		*ptr.p_s64 = c->value64;
- 		break;
- 	case V4L2_CTRL_TYPE_STRING:
- 		size = c->size;
-@@ -1324,83 +1340,64 @@ static int user_to_new(struct v4l2_ext_control *c,
- 			return -ERANGE;
- 		if (size > ctrl->maximum + 1)
- 			size = ctrl->maximum + 1;
--		ret = copy_from_user(ctrl->string, c->string, size);
-+		ret = copy_from_user(ptr.p_char, c->string, size);
- 		if (!ret) {
--			char last = ctrl->string[size - 1];
-+			char last = ptr.p_char[size - 1];
- 
--			ctrl->string[size - 1] = 0;
-+			ptr.p_char[size - 1] = 0;
- 			/* If the string was longer than ctrl->maximum,
- 			   then return an error. */
--			if (strlen(ctrl->string) == ctrl->maximum && last)
-+			if (strlen(ptr.p_char) == ctrl->maximum && last)
- 				return -ERANGE;
- 		}
- 		return ret ? -EFAULT : 0;
- 	default:
--		ctrl->val = c->value;
-+		*ptr.p_s32 = c->value;
- 		break;
- 	}
- 	return 0;
- }
- 
--/* Helper function: copy the new control value back to the caller */
--static int new_to_user(struct v4l2_ext_control *c,
-+/* Helper function: copy the caller-provider value as the new control value */
-+static int user_to_new(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
- {
--	u32 len;
+-	if (!q->streaming) {
+-		dprintk(3, "streamoff successful: not streaming\n");
+-		return 0;
+-	}
 -
--	if (ctrl->is_ptr && !ctrl->is_string)
--		return copy_to_user(c->p, ctrl->p, ctrl->elem_size);
-+	return user_to_ptr(c, ctrl, ctrl->new);
-+}
+ 	/*
+ 	 * Cancel will pause streaming and remove all buffers from the driver
+ 	 * and videobuf, effectively returning control over them to userspace.
++	 *
++	 * Note that we do this even if q->streaming == 0: if you prepare or
++	 * queue buffers, and then call streamoff without ever having called
++	 * streamon, you would still expect those buffers to be returned to
++	 * their normal dequeued state.
+ 	 */
+ 	__vb2_queue_cancel(q);
  
-+/* Copy the one value to another. */
-+static void ptr_to_ptr(struct v4l2_ctrl *ctrl,
-+		       union v4l2_ctrl_ptr from, union v4l2_ctrl_ptr to)
-+{
-+	if (ctrl == NULL)
-+		return;
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_STRING:
--		len = strlen(ctrl->string);
--		if (c->size < len + 1) {
--			c->size = ctrl->maximum + 1;
--			return -ENOSPC;
--		}
--		return copy_to_user(c->string, ctrl->string,
--						len + 1) ? -EFAULT : 0;
-+		/* strings are always 0-terminated */
-+		strcpy(to.p_char, from.p_char);
-+		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
--		c->value64 = ctrl->val64;
-+		*to.p_s64 = *from.p_s64;
- 		break;
- 	default:
--		c->value = ctrl->val;
-+		if (ctrl->is_ptr)
-+			memcpy(to.p, from.p, ctrl->elem_size);
-+		else
-+			*to.p_s32 = *from.p_s32;
- 		break;
- 	}
--	return 0;
- }
- 
- /* Copy the new value to the current value. */
- static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
- {
--	bool changed = false;
-+	bool changed;
- 
- 	if (ctrl == NULL)
- 		return;
-+	changed = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
-+	ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
- 
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_BUTTON:
--		changed = true;
--		break;
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		changed = strcmp(ctrl->string, ctrl->cur.string);
--		strcpy(ctrl->cur.string, ctrl->string);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		changed = ctrl->val64 != ctrl->cur.val64;
--		ctrl->cur.val64 = ctrl->val64;
--		break;
--	default:
--		if (ctrl->is_ptr) {
--			changed = memcmp(ctrl->p, ctrl->cur.p, ctrl->elem_size);
--			memcpy(ctrl->cur.p, ctrl->p, ctrl->elem_size);
--		} else {
--			changed = ctrl->val != ctrl->cur.val;
--			ctrl->cur.val = ctrl->val;
--		}
--		break;
--	}
- 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
- 		/* Note: CH_FLAGS is only set for auto clusters. */
- 		ctrl->flags &=
-@@ -1429,21 +1426,7 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- {
- 	if (ctrl == NULL)
- 		return;
--	switch (ctrl->type) {
--	case V4L2_CTRL_TYPE_STRING:
--		/* strings are always 0-terminated */
--		strcpy(ctrl->string, ctrl->cur.string);
--		break;
--	case V4L2_CTRL_TYPE_INTEGER64:
--		ctrl->val64 = ctrl->cur.val64;
--		break;
--	default:
--		if (ctrl->is_ptr)
--			memcpy(ctrl->p, ctrl->cur.p, ctrl->elem_size);
--		else
--			ctrl->val = ctrl->cur.val;
--		break;
--	}
-+	ptr_to_ptr(ctrl, ctrl->stores[0], ctrl->new);
- }
- 
- /* Return non-zero if one or more of the controls in the cluster has a new
 -- 
-1.8.4.rc3
+1.9.0
 
