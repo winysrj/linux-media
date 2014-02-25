@@ -1,74 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46466 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014AbaBKL7h (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4860 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753146AbaBYKEy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 06:59:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 35/47] adv7604: Add sink pads
-Date: Tue, 11 Feb 2014 13:00:39 +0100
-Message-ID: <3580605.MqbMpcI5hW@avalon>
-In-Reply-To: <52F9F934.9090202@xs4all.nl>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-36-git-send-email-laurent.pinchart@ideasonboard.com> <52F9F934.9090202@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 25 Feb 2014 05:04:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [RFCv1 PATCH 09/20] vb2-dma-sg: add get_dmabuf
+Date: Tue, 25 Feb 2014 11:04:14 +0100
+Message-Id: <1393322665-29889-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hansverk@cisco.com>
 
-On Tuesday 11 February 2014 11:19:32 Hans Verkuil wrote:
-> On 02/05/14 17:42, Laurent Pinchart wrote:
-> > The ADV7604 has sink pads for its HDMI and analog inputs. Report them.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/i2c/adv7604.c | 71 +++++++++++++++++++++++++---------------
-> >  include/media/adv7604.h     | 14 ---------
-> >  2 files changed, 45 insertions(+), 40 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> > index 05e7e1a..da32ce9 100644
-> > --- a/drivers/media/i2c/adv7604.c
-> > +++ b/drivers/media/i2c/adv7604.c
-> > @@ -97,13 +97,25 @@ struct adv7604_chip_info {
-> > 
-> >   **********************************************************************
-> >   */
-> > 
-> > +enum adv7604_pad {
-> > +	ADV7604_PAD_HDMI_PORT_A = 0,
-> > +	ADV7604_PAD_HDMI_PORT_B = 1,
-> > +	ADV7604_PAD_HDMI_PORT_C = 2,
-> > +	ADV7604_PAD_HDMI_PORT_D = 3,
-> > +	ADV7604_PAD_VGA_RGB = 4,
-> > +	ADV7604_PAD_VGA_COMP = 5,
-> > +	/* The source pad is either 1 (ADV7611) or 6 (ADV7604) */
-> 
-> How about making this explicit:
-> 
-> 	ADV7604_PAD_SOURCE = 6,
-> 	ADV7611_PAD_SOURCE = 1,
+Add DMABUF export support to vb2-dma-sg.
 
-I can do that, but those two constants won't be used in the driver as they 
-computed dynamically.
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c | 170 +++++++++++++++++++++++++++++
+ 1 file changed, 170 insertions(+)
 
-> > +	ADV7604_PAD_MAX = 7,
-> > +};
-> 
-> Wouldn't it make more sense to have this in the header? I would really
-> like to use the symbolic names for these pads in my bridge driver.
-
-That would add a dependency on the adv7604 driver to the bridge driver, isn't 
-the whole point of subdevs to avoid such dependencies ?
-
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 075acbe..3efa27c 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -385,6 +385,175 @@ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ }
+ 
+ /*********************************************/
++/*         DMABUF ops for exporters          */
++/*********************************************/
++
++struct vb2_dma_sg_attachment {
++	struct sg_table sgt;
++	enum dma_data_direction dir;
++};
++
++static int vb2_dma_sg_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
++	struct dma_buf_attachment *dbuf_attach)
++{
++	struct vb2_dma_sg_attachment *attach;
++	unsigned int i;
++	struct scatterlist *rd, *wr;
++	struct sg_table *sgt;
++	struct vb2_dma_sg_buf *buf = dbuf->priv;
++	int ret;
++
++	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
++	if (!attach)
++		return -ENOMEM;
++
++	sgt = &attach->sgt;
++	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
++	 * map the same scatter list to multiple attachments at the same time.
++	 */
++	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
++	if (ret) {
++		kfree(attach);
++		return -ENOMEM;
++	}
++
++	rd = buf->dma_sgt->sgl;
++	wr = sgt->sgl;
++	for (i = 0; i < sgt->orig_nents; ++i) {
++		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
++		rd = sg_next(rd);
++		wr = sg_next(wr);
++	}
++
++	attach->dir = DMA_NONE;
++	dbuf_attach->priv = attach;
++
++	return 0;
++}
++
++static void vb2_dma_sg_dmabuf_ops_detach(struct dma_buf *dbuf,
++	struct dma_buf_attachment *db_attach)
++{
++	struct vb2_dma_sg_attachment *attach = db_attach->priv;
++	struct sg_table *sgt;
++
++	if (!attach)
++		return;
++
++	sgt = &attach->sgt;
++
++	/* release the scatterlist cache */
++	if (attach->dir != DMA_NONE)
++		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++			attach->dir);
++	sg_free_table(sgt);
++	kfree(attach);
++	db_attach->priv = NULL;
++}
++
++static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
++	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
++{
++	struct vb2_dma_sg_attachment *attach = db_attach->priv;
++	/* stealing dmabuf mutex to serialize map/unmap operations */
++	struct mutex *lock = &db_attach->dmabuf->lock;
++	struct sg_table *sgt;
++	int ret;
++
++	mutex_lock(lock);
++
++	sgt = &attach->sgt;
++	/* return previously mapped sg table */
++	if (attach->dir == dir) {
++		mutex_unlock(lock);
++		return sgt;
++	}
++
++	/* release any previous cache */
++	if (attach->dir != DMA_NONE) {
++		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++			attach->dir);
++		attach->dir = DMA_NONE;
++	}
++
++	/* mapping to the client with new direction */
++	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
++	if (ret <= 0) {
++		pr_err("failed to map scatterlist\n");
++		mutex_unlock(lock);
++		return ERR_PTR(-EIO);
++	}
++
++	attach->dir = dir;
++
++	mutex_unlock(lock);
++
++	return sgt;
++}
++
++static void vb2_dma_sg_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
++	struct sg_table *sgt, enum dma_data_direction dir)
++{
++	/* nothing to be done here */
++}
++
++static void vb2_dma_sg_dmabuf_ops_release(struct dma_buf *dbuf)
++{
++	/* drop reference obtained in vb2_dma_sg_get_dmabuf */
++	vb2_dma_sg_put(dbuf->priv);
++}
++
++static void *vb2_dma_sg_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
++{
++	struct vb2_dma_sg_buf *buf = dbuf->priv;
++
++	return buf->vaddr + pgnum * PAGE_SIZE;
++}
++
++static void *vb2_dma_sg_dmabuf_ops_vmap(struct dma_buf *dbuf)
++{
++	struct vb2_dma_sg_buf *buf = dbuf->priv;
++
++	return vb2_dma_sg_vaddr(buf);
++}
++
++static int vb2_dma_sg_dmabuf_ops_mmap(struct dma_buf *dbuf,
++	struct vm_area_struct *vma)
++{
++	return vb2_dma_sg_mmap(dbuf->priv, vma);
++}
++
++static struct dma_buf_ops vb2_dma_sg_dmabuf_ops = {
++	.attach = vb2_dma_sg_dmabuf_ops_attach,
++	.detach = vb2_dma_sg_dmabuf_ops_detach,
++	.map_dma_buf = vb2_dma_sg_dmabuf_ops_map,
++	.unmap_dma_buf = vb2_dma_sg_dmabuf_ops_unmap,
++	.kmap = vb2_dma_sg_dmabuf_ops_kmap,
++	.kmap_atomic = vb2_dma_sg_dmabuf_ops_kmap,
++	.vmap = vb2_dma_sg_dmabuf_ops_vmap,
++	.mmap = vb2_dma_sg_dmabuf_ops_mmap,
++	.release = vb2_dma_sg_dmabuf_ops_release,
++};
++
++static struct dma_buf *vb2_dma_sg_get_dmabuf(void *buf_priv, unsigned long flags)
++{
++	struct vb2_dma_sg_buf *buf = buf_priv;
++	struct dma_buf *dbuf;
++
++	if (WARN_ON(!buf->dma_sgt))
++		return NULL;
++
++	dbuf = dma_buf_export(buf, &vb2_dma_sg_dmabuf_ops, buf->size, flags);
++	if (IS_ERR(dbuf))
++		return NULL;
++
++	/* dmabuf keeps reference to vb2 buffer */
++	atomic_inc(&buf->refcount);
++
++	return dbuf;
++}
++
++/*********************************************/
+ /*       callbacks for DMABUF buffers        */
+ /*********************************************/
+ 
+@@ -494,6 +663,7 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ 	.vaddr		= vb2_dma_sg_vaddr,
+ 	.mmap		= vb2_dma_sg_mmap,
+ 	.num_users	= vb2_dma_sg_num_users,
++	.get_dmabuf	= vb2_dma_sg_get_dmabuf,
+ 	.map_dmabuf	= vb2_dma_sg_map_dmabuf,
+ 	.unmap_dmabuf	= vb2_dma_sg_unmap_dmabuf,
+ 	.attach_dmabuf	= vb2_dma_sg_attach_dmabuf,
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.0
 
