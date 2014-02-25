@@ -1,141 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4333 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227AbaBYMxU (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2562 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752595AbaBYKQX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 07:53:20 -0500
+	Tue, 25 Feb 2014 05:16:23 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [REVIEWv2 PATCH 02/15] vb2: fix read/write regression
-Date: Tue, 25 Feb 2014 13:52:42 +0100
-Message-Id: <1393332775-44067-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
+Cc: m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 12/13] mem2mem_testdev: fix field, sequence and time copying
+Date: Tue, 25 Feb 2014 11:16:02 +0100
+Message-Id: <1393323363-30058-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Commit 88e268702bfba78448abd20a31129458707383aa ("vb2: Improve file I/O
-emulation to handle buffers in any order") broke read/write support if
-the size of the buffer being read/written is less than the size of the
-image.
-
-When the commit was tested originally I used qv4l2, which calls read()
-with exactly the size of the image. But if you try 'cat /dev/video0'
-then it will fail and typically hang after reading two buffers.
-
-This patch fixes the behavior by adding a new cur_index field that
-contains the index of the field currently being filled/read, or it
-is num_buffers in which case a new buffer needs to be dequeued.
-
-The old index field has been renamed to initial_index in order to be
-a bit more descriptive.
-
-This has been tested with both read and write.
+- Set the sequence counters correctly.
+- Copy timestamps, timecode, relevant buffer flags and field from
+  the received buffer to the outgoing buffer.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 46 +++++++++++++++++++++++++++-----
- 1 file changed, 40 insertions(+), 6 deletions(-)
+ drivers/media/platform/mem2mem_testdev.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index a127925..f1a2857c 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2251,6 +2251,22 @@ struct vb2_fileio_buf {
- /**
-  * struct vb2_fileio_data - queue context used by file io emulator
-  *
-+ * @cur_index:	the index of the buffer currently being read from or
-+ *		written to. If equal to q->num_buffers then a new buffer
-+ *		must be dequeued.
-+ * @initial_index: in the read() case all buffers are queued up immediately
-+ *		in __vb2_init_fileio() and __vb2_perform_fileio() just cycles
-+ *		buffers. However, in the write() case no buffers are initially
-+ *		queued, instead whenever a buffer is full it is queued up by
-+ *		__vb2_perform_fileio(). Only once all available buffers have
-+ *		been queued up will __vb2_perform_fileio() start to dequeue
-+ *		buffers. This means that initially __vb2_perform_fileio()
-+ *		needs to know what buffer index to use when it is queuing up
-+ *		the buffers for the first time. That initial index is stored
-+ *		in this field. Once it is equal to q->num_buffers all
-+ *		available buffers have been queued and __vb2_perform_fileio()
-+ *		should start the normal dequeue/queue cycle.
-+ *
-  * vb2 provides a compatibility layer and emulator of file io (read and
-  * write) calls on top of streaming API. For proper operation it required
-  * this structure to save the driver state between each call of the read
-@@ -2260,7 +2276,8 @@ struct vb2_fileio_data {
- 	struct v4l2_requestbuffers req;
- 	struct v4l2_buffer b;
- 	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
--	unsigned int index;
-+	unsigned int cur_index;
-+	unsigned int initial_index;
- 	unsigned int q_count;
- 	unsigned int dq_count;
- 	unsigned int flags;
-@@ -2360,7 +2377,12 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
- 		}
--		fileio->index = q->num_buffers;
-+		/*
-+		 * All buffers have been queued, so mark that by setting
-+		 * initial_index to q->num_buffers
-+		 */
-+		fileio->initial_index = q->num_buffers;
-+		fileio->cur_index = q->num_buffers;
- 	}
+diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+index 2ea27cc..4a25940 100644
+--- a/drivers/media/platform/mem2mem_testdev.c
++++ b/drivers/media/platform/mem2mem_testdev.c
+@@ -112,6 +112,7 @@ struct m2mtest_q_data {
+ 	unsigned int		width;
+ 	unsigned int		height;
+ 	unsigned int		sizeimage;
++	unsigned int		sequence;
+ 	struct m2mtest_fmt	*fmt;
+ };
  
- 	/*
-@@ -2439,7 +2461,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	/*
- 	 * Check if we need to dequeue the buffer.
- 	 */
--	index = fileio->index;
-+	index = fileio->cur_index;
- 	if (index >= q->num_buffers) {
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
-@@ -2453,7 +2475,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 			return ret;
- 		fileio->dq_count += 1;
+@@ -234,9 +235,20 @@ static int device_process(struct m2mtest_ctx *ctx,
+ 	bytes_left = bytesperline - tile_w * MEM2MEM_NUM_TILES;
+ 	w = 0;
  
--		index = fileio->b.index;
-+		fileio->cur_index = index = fileio->b.index;
- 		buf = &fileio->bufs[index];
++	out_vb->v4l2_buf.sequence = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE)->sequence++;
++	in_vb->v4l2_buf.sequence = q_data->sequence++;
+ 	memcpy(&out_vb->v4l2_buf.timestamp,
+ 			&in_vb->v4l2_buf.timestamp,
+ 			sizeof(struct timeval));
++	if (in_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TIMECODE)
++		memcpy(&out_vb->v4l2_buf.timecode, &in_vb->v4l2_buf.timecode,
++			sizeof(struct v4l2_timecode));
++	out_vb->v4l2_buf.field = in_vb->v4l2_buf.field;
++	out_vb->v4l2_buf.flags = in_vb->v4l2_buf.flags &
++		(V4L2_BUF_FLAG_TIMECODE |
++		 V4L2_BUF_FLAG_KEYFRAME |
++		 V4L2_BUF_FLAG_PFRAME |
++		 V4L2_BUF_FLAG_BFRAME);
  
- 		/*
-@@ -2529,8 +2551,20 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		buf->queued = 1;
- 		buf->size = vb2_plane_size(q->bufs[index], 0);
- 		fileio->q_count += 1;
--		if (fileio->index < q->num_buffers)
--			fileio->index++;
-+		/*
-+		 * If we are queuing up buffers for the first time, then
-+		 * increase initial_index by one.
-+		 */
-+		if (fileio->initial_index < q->num_buffers)
-+			fileio->initial_index++;
-+		/*
-+		 * The next buffer to use is either a buffer that's going to be
-+		 * queued for the first time (initial_index < q->num_buffers)
-+		 * or it is equal to q->num_buffers, meaning that the next
-+		 * time we need to dequeue a buffer since we've now queued up
-+		 * all the 'first time' buffers.
-+		 */
-+		fileio->cur_index = fileio->initial_index;
- 	}
+ 	switch (ctx->mode) {
+ 	case MEM2MEM_HFLIP | MEM2MEM_VFLIP:
+@@ -762,9 +774,19 @@ static int m2mtest_buf_prepare(struct vb2_buffer *vb)
+ static void m2mtest_buf_queue(struct vb2_buffer *vb)
+ {
+ 	struct m2mtest_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++
+ 	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
+ }
  
- 	/*
++static int m2mtest_start_streaming(struct vb2_queue *q, unsigned count)
++{
++	struct m2mtest_ctx *ctx = vb2_get_drv_priv(q);
++	struct m2mtest_q_data *q_data = get_q_data(ctx, q->type);
++
++	q_data->sequence = 0;
++	return 0;
++}
++
+ static void m2mtest_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct m2mtest_ctx *ctx = vb2_get_drv_priv(q);
+@@ -788,6 +810,7 @@ static struct vb2_ops m2mtest_qops = {
+ 	.queue_setup	 = m2mtest_queue_setup,
+ 	.buf_prepare	 = m2mtest_buf_prepare,
+ 	.buf_queue	 = m2mtest_buf_queue,
++	.start_streaming = m2mtest_start_streaming,
+ 	.stop_streaming  = m2mtest_stop_streaming,
+ 	.wait_prepare	 = vb2_ops_wait_prepare,
+ 	.wait_finish	 = vb2_ops_wait_finish,
 -- 
 1.9.0
 
