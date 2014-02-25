@@ -1,76 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:49188 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480AbaBQPzk (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1648 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753157AbaBYKEz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 10:55:40 -0500
-Subject: [PATCH 0/6] dma-buf synchronization patches
-To: linux-kernel@vger.kernel.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, ccross@google.com,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	dri-devel@lists.freedesktop.org, daniel@ffwll.ch,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Date: Mon, 17 Feb 2014 16:55:34 +0100
-Message-ID: <20140217155056.20337.25254.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	Tue, 25 Feb 2014 05:04:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 17/20] vb2: set timestamp when using write()
+Date: Tue, 25 Feb 2014 11:04:22 +0100
+Message-Id: <1393322665-29889-18-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following series implements fence and converts dma-buf and
-android sync to use it. Patch 6 and 7 add support for polling
-to dma-buf, blocking until all fences are signaled.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I've dropped the extra patch to copy an export from the core,
-and instead use the public version of it. I've had to fix
-some fallout from the rebase, hopefully everything's clean now,
-and ready for -next.
+When using write() to write data to an output video node the vb2 core
+should set timestamps if V4L2_BUF_FLAG_TIMESTAMP_COPY is set. Nobody
+else is able to provide this information with the write() operation.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Maarten Lankhorst (6):
-      fence: dma-buf cross-device synchronization (v17)
-      seqno-fence: Hardware dma-buf implementation of fencing (v4)
-      dma-buf: use reservation objects
-      android: convert sync to fence api, v3
-      reservation: add support for fences to enable cross-device synchronisation
-      dma-buf: add poll support, v2
+ drivers/media/v4l2-core/videobuf2-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
- Documentation/DocBook/device-drivers.tmpl      |    3 
- drivers/base/Kconfig                           |    9 
- drivers/base/Makefile                          |    2 
- drivers/base/dma-buf.c                         |  123 +++
- drivers/base/fence.c                           |  465 +++++++++++++
- drivers/gpu/drm/drm_prime.c                    |    8 
- drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |    2 
- drivers/gpu/drm/i915/i915_gem_dmabuf.c         |    2 
- drivers/gpu/drm/nouveau/nouveau_drm.c          |    1 
- drivers/gpu/drm/nouveau/nouveau_gem.h          |    1 
- drivers/gpu/drm/nouveau/nouveau_prime.c        |    7 
- drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |    2 
- drivers/gpu/drm/radeon/radeon_drv.c            |    2 
- drivers/gpu/drm/radeon/radeon_prime.c          |    8 
- drivers/gpu/drm/ttm/ttm_object.c               |    2 
- drivers/media/v4l2-core/videobuf2-dma-contig.c |    2 
- drivers/staging/android/Kconfig                |    1 
- drivers/staging/android/Makefile               |    2 
- drivers/staging/android/sw_sync.c              |    4 
- drivers/staging/android/sync.c                 |  892 ++++++++----------------
- drivers/staging/android/sync.h                 |   80 +-
- drivers/staging/android/sync_debug.c           |  245 +++++++
- drivers/staging/android/trace/sync.h           |   12 
- include/drm/drmP.h                             |    2 
- include/linux/dma-buf.h                        |   21 -
- include/linux/fence.h                          |  329 +++++++++
- include/linux/reservation.h                    |   18 
- include/linux/seqno-fence.h                    |  109 +++
- include/trace/events/fence.h                   |  125 +++
- 29 files changed, 1822 insertions(+), 657 deletions(-)
- create mode 100644 drivers/base/fence.c
- create mode 100644 drivers/staging/android/sync_debug.c
- create mode 100644 include/linux/fence.h
- create mode 100644 include/linux/seqno-fence.h
- create mode 100644 include/trace/events/fence.h
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 2ac98ff..db95dcb 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -22,6 +22,7 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
++#include <media/v4l2-common.h>
+ #include <media/videobuf2-core.h>
+ 
+ static int debug;
+@@ -2797,6 +2798,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ {
+ 	struct vb2_fileio_data *fileio;
+ 	struct vb2_fileio_buf *buf;
++	bool set_timestamp = !read &&
++		q->timestamp_type == V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	int ret, index;
+ 
+ 	dprintk(3, "file io: mode %s, offset %ld, count %zd, %sblocking\n",
+@@ -2909,6 +2912,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 			fileio->b.m.planes = &fileio->p;
+ 			fileio->b.length = 1;
+ 		}
++		if (set_timestamp)
++			v4l2_get_timestamp(&fileio->b.timestamp);
+ 		ret = vb2_internal_qbuf(q, &fileio->b);
+ 		dprintk(5, "file io: vb2_dbuf result: %d\n", ret);
+ 		if (ret)
 -- 
-Signature
+1.9.0
+
