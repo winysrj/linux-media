@@ -1,63 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:41056 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751617AbaBHRWM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Feb 2014 12:22:12 -0500
-Received: by mail-vc0-f174.google.com with SMTP id im17so3555835vcb.5
-        for <linux-media@vger.kernel.org>; Sat, 08 Feb 2014 09:22:11 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 8 Feb 2014 17:22:11 +0000
-Message-ID: <CAF93UxJ_+K6gP4DzcS0mc0VG5Te32uNFjCVeXX7n+v8H4QoZAw@mail.gmail.com>
-Subject: GSPCA ov534 payload error
-From: Mark Pupilli <mpupilli@gmail.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2223 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448AbaBYKdM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 05:33:12 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1PAX99l070227
+	for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 11:33:11 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from test-media.192.168.1.1 (test [192.168.1.27])
+	by tschai.lan (Postfix) with ESMTPSA id F12812A0232
+	for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 11:33:06 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [RFCv1 PATCH 0/2] Add viloop and vioverlay drivers
+Date: Tue, 25 Feb 2014 11:33:03 +0100
+Message-Id: <1393324385-44355-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi all,
 
-I have successfully been using the PS3 eye camera on a beagleboard-xm
-with kernel 2.6.32. I have upgraded to kernel 3.13.1 and can no longer
-stream from the camera. I am using unicap to access the camera which
-never returns any frames.
+I wanted to share these two drivers, even though they need more work,
+particular w.r.t. code quality.
 
-I enabled debugging for the gspca_main module and saw that it is
-repeatedly getting payload errors:
+They assume that PART 1 and PART 2 of the vb2 patch series are applied.
 
-root@(none): $ dmesg | grep -A 50 -B10 "stream on"
-[  801.179748] ov534 2-2.3:1.0: SET 01 0000 00f2 0cov534 2-2.3:1.0:
-SET 01 0000 00f3 d0
-[  801.180847] ov534 2-2.3:1.0: SET 01 0000 00f5 37ov534 2-2.3:1.0:
-GET 01 0000 00f6 00
-[  801.199005] ov534 2-2.3:1.0: SET 01 0000 00f2 0cov534 2-2.3:1.0:
-SET 01 0000 00f5 33
-[  801.218994] ov534 2-2.3:1.0: GET 01 0000 00f6 00ov534 2-2.3:1.0:
-SET 01 0000 00f5 f9
-[  801.238861] ov534 2-2.3:1.0: GET 01 0000 00f6 00ov534 2-2.3:1.0:
-GET 01 0000 00f4 d0
-[  801.239349] ov534 2-2.3:1.0: sccb write: 0c d0ov534 2-2.3:1.0: SET
-01 0000 00f2 0c
-[  801.240081] ov534 2-2.3:1.0: SET 01 0000 00f3 d0ov534 2-2.3:1.0:
-SET 01 0000 00f5 37
-[  801.258850] ov534 2-2.3:1.0: GET 01 0000 00f6 00ov534 2-2.3:1.0:
-sccb write: 2b 00
-[  801.258972] ov534 2-2.3:1.0: SET 01 0000 00f2 2bov534 2-2.3:1.0:
-SET 01 0000 00f3 00
-[  801.260040] ov534 2-2.3:1.0: SET 01 0000 00f5 37ov534 2-2.3:1.0:
-GET 01 0000 00f6 00
-[  801.278930] ov534 2-2.3:1.0: stream on OK YUYV 640x480ov534
-2-2.3:1.0: bulk irq
-[  801.284210] ov534 2-2.3:1.0: packet l:12ov534 2-2.3:1.0: payload error
-[  801.285919] ov534 2-2.3:1.0: bulk irqov534 2-2.3:1.0: packet l:8768
-[  801.286041] ov534 2-2.3:1.0: add t:1 l:2036ov534 2-2.3:1.0: add t:2 l:2036
-[  801.286468] ov534 2-2.3:1.0: add t:2 l:2036ov534 2-2.3:1.0: add t:2 l:2036
-[  801.286834] ov534 2-2.3:1.0: add t:2 l:564ov534 2-2.3:1.0: bulk irq
-[  801.287139] ov534 2-2.3:1.0: packet l:12ov534 2-2.3:1.0: payload error
-...
+The viloop driver loops video from one device to another. It will create
+pairs of video devices, the first an output device, the second a capture
+device, and just copy the video data from one device to the other.
 
-Is this likely to be a problem with the gspca ov534 driver or with the
-USB subsystem?
+It can be loaded in multiplanar mode with the multiplanar=1 option.
+It's a clean implementation using all the latest frameworks, in particular
+all streaming memory models are supported as well as EXPBUF.
 
-thanks,
-Mark
+I did look at first at the out-of-tree v4l2-loopback driver, but it was
+quicker to just write my own.
+
+The vioverlay driver is a driver to test overlay support, both capture and
+output overlays. Few drivers support this, so it is very hard to have
+applications test their support for overlays, or to test drivers with overlay
+support.
+
+Overlay may be less and less important, but it is part of the API and you
+need a way to test it.
+
+The vioverlay driver creates a framebuffer, an output video node and a capture
+video node. The output video node is used to pass video to the driver which
+will be used as the video for the video output overlay feature. The capture
+node is used to capture the result of the framebuffer contents mixed in with
+the video output overlay.
+
+Currently clipping and bitmap support is in, but not yet alpha blending and
+chromakeying.
+
+Feedback and ideas are welcome.
+
+Again, I am well aware that these drivers need some more code cleanup work,
+so don't bother commenting on that :-) They've been written in just the past
+3-4 days so they are freshly baked...
+
+Regards,
+
+	Hans
+
