@@ -1,125 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:34867 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497AbaBHQL3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Feb 2014 11:11:29 -0500
-Received: by mail-wg0-f41.google.com with SMTP id n12so1502789wgh.2
-        for <linux-media@vger.kernel.org>; Sat, 08 Feb 2014 08:11:27 -0800 (PST)
-Message-ID: <1391875876.2944.3.camel@canaries32-MCP7A>
-Subject: [PATCH] af9035: Move it913x single devices to af9035
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, kapetr@mizera.cz
-Date: Sat, 08 Feb 2014 16:11:16 +0000
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from guitar.tcltek.co.il ([192.115.133.116]:50482 "EHLO
+	mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752430AbaBYJzU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 04:55:20 -0500
+Date: Tue, 25 Feb 2014 11:55:15 +0200
+From: Baruch Siach <baruch@tkos.co.il>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	mark.rutland@arm.com, linux-samsung-soc@vger.kernel.org,
+	a.hajda@samsung.com, kyungmin.park@samsung.com, robh+dt@kernel.org,
+	galak@codeaurora.org, kgene.kim@samsung.com,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v5 04/10] V4L: Add driver for s5k6a3 image sensor
+Message-ID: <20140225095515.GV4869@tarshish>
+References: <1393263322-28215-1-git-send-email-s.nawrocki@samsung.com>
+ <1393263322-28215-5-git-send-email-s.nawrocki@samsung.com>
+ <20140224193838.GL4869@tarshish>
+ <530C6692.6090307@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <530C6692.6090307@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The generic v1 and v2 devices have been all tested.
+Hi Sylwester,
 
-IDs tested
-USB_PID_ITETECH_IT9135 v1 & v2
-USB_PID_ITETECH_IT9135_9005 v1
-USB_PID_ITETECH_IT9135_9006 v2
+On Tue, Feb 25, 2014 at 10:46:58AM +0100, Sylwester Nawrocki wrote:
+> On 24/02/14 20:38, Baruch Siach wrote:
+> > On Mon, Feb 24, 2014 at 06:35:16PM +0100, Sylwester Nawrocki wrote:
+> >> > This patch adds subdev driver for Samsung S5K6A3 raw image sensor.
+> >> > As it is intended at the moment to be used only with the Exynos
+> >> > FIMC-IS (camera ISP) subsystem it is pretty minimal subdev driver.
+> >> > It doesn't do any I2C communication since the sensor is controlled
+> >> > by the ISP and its own firmware.
+> >> > This driver, if needed, can be updated in future into a regular
+> >> > subdev driver where the main CPU communicates with the sensor
+> >> > directly.
+> >> > 
+> >> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >> > Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >
+> > [...]
+> > 
+> >> > +static int s5k6a3_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> >> > +{
+> >> > +	struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh, 0);
+> >> > +
+> >> > +	*format		= s5k6a3_formats[0];
+> >> > +	format->width	= S5K6A3_DEFAULT_WIDTH;
+> >> > +	format->height	= S5K6A3_DEFAULT_HEIGHT;
+> >> > +
+> >> > +	return 0;
+> >> > +}
+> >> > +
+> >> > +static const struct v4l2_subdev_internal_ops s5k6a3_sd_internal_ops = {
+> >> > +	.open = s5k6a3_open,
+> >> > +};
+> >
+> > Where is this used?
+> 
+> This will be called when user process opens the corresponding /dev/v4l-subdev*
+> device node. More details on the v4l2 sub-device interface can be found at [1],
+> [2]. The device node is created by an aggregate media device driver, once all
+> required sub-devices are registered to it.
+> The above v4l2_subdev_internal_ops::open() implementation is pretty simple,
+> it just sets V4L2_SUBDEV_FORMAT_TRY format to some initial default value.
+> That's a per file handle value, so each process opening a set of sub-devices
+> can try pipeline configuration independently. 
+> 
+> [1] http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html
+> [2] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-subdev-g-fmt.html
 
-Current Issues
-There is no signal  on
-USB_PID_ITETECH_IT9135 v2 
+Thanks for the explanation. However, I've found no reference to the 
+s5k6a3_sd_internal_ops struct in the driver code. There surly has to be at 
+least one reference for the upper layer to access these ops.
 
-No SNR reported all devices.
+baruch
 
-All single devices tune and scan fine.
-
-All remotes tested okay.
-
-Dual device failed to register second adapter
-USB_PID_KWORLD_UB499_2T_T09
-It is not clear what the problem is at the moment.
-
-So only single IDs are transferred in this patch.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 22 ++++++++++++++++------
- drivers/media/usb/dvb-usb-v2/it913x.c | 24 ------------------------
- 2 files changed, 16 insertions(+), 30 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 8ede8ea..3825c2f 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1528,12 +1528,22 @@ static const struct usb_device_id af9035_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
- 		&af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
- 	/* IT9135 devices */
--#if 0
--	{ DVB_USB_DEVICE(0x048d, 0x9135,
--		&af9035_props, "IT9135 reference design", NULL) },
--	{ DVB_USB_DEVICE(0x048d, 0x9006,
--		&af9035_props, "IT9135 reference design", NULL) },
--#endif
-+	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
-+		&af9035_props, "ITE 9135 Generic", RC_MAP_IT913X_V1) },
-+	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9005,
-+		&af9035_props, "ITE 9135(9005) Generic", RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9006,
-+		&af9035_props, "ITE 9135(9006) Generic", RC_MAP_IT913X_V1) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_1835,
-+		&af9035_props, "Avermedia A835B(1835)", RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_2835,
-+		&af9035_props, "Avermedia A835B(2835)", RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_3835,
-+		&af9035_props, "Avermedia A835B(3835)", RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
-+		&af9035_props, "Avermedia A835B(4835)",	RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
-+		&af9035_props, "Avermedia H335", RC_MAP_IT913X_V2) },
- 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
- 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
-diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
-index fe95a58..78bf8fd 100644
---- a/drivers/media/usb/dvb-usb-v2/it913x.c
-+++ b/drivers/media/usb/dvb-usb-v2/it913x.c
-@@ -772,36 +772,12 @@ static const struct usb_device_id it913x_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB499_2T_T09,
- 		&it913x_properties, "Kworld UB499-2T T09(IT9137)",
- 			RC_MAP_IT913X_V1) },
--	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135,
--		&it913x_properties, "ITE 9135 Generic",
--			RC_MAP_IT913X_V1) },
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV22_IT9137,
- 		&it913x_properties, "Sveon STV22 Dual DVB-T HDTV(IT9137)",
- 			RC_MAP_IT913X_V1) },
--	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9005,
--		&it913x_properties, "ITE 9135(9005) Generic",
--			RC_MAP_IT913X_V2) },
--	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135_9006,
--		&it913x_properties, "ITE 9135(9006) Generic",
--			RC_MAP_IT913X_V1) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_1835,
--		&it913x_properties, "Avermedia A835B(1835)",
--			RC_MAP_IT913X_V2) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_2835,
--		&it913x_properties, "Avermedia A835B(2835)",
--			RC_MAP_IT913X_V2) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_3835,
--		&it913x_properties, "Avermedia A835B(3835)",
--			RC_MAP_IT913X_V2) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
--		&it913x_properties, "Avermedia A835B(4835)",
--			RC_MAP_IT913X_V2) },
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
- 		&it913x_properties, "Digital Dual TV Receiver CTVDIGDUAL_V2",
- 			RC_MAP_IT913X_V1) },
--	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
--		&it913x_properties, "Avermedia H335",
--			RC_MAP_IT913X_V2) },
- 	{}		/* Terminating entry */
- };
- 
 -- 
-1.9.rc1
-
+     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
