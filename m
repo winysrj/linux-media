@@ -1,107 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3166 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055AbaBYJsz (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1789 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753168AbaBYKQY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 04:48:55 -0500
+	Tue, 25 Feb 2014 05:16:24 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv1 PATCH 09/14] vb2: rename queued_count to owned_by_drv_count
-Date: Tue, 25 Feb 2014 10:48:22 +0100
-Message-Id: <1393321707-9749-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393321707-9749-1-git-send-email-hverkuil@xs4all.nl>
+Cc: m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 07/13] mem2mem_testdev: use 40ms default transfer time.
+Date: Tue, 25 Feb 2014 11:15:57 +0100
+Message-Id: <1393323363-30058-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393323363-30058-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-'queued_count' is a bit vague since it is not clear to which queue it
-refers to: the vb2 internal list of buffers or the driver-owned list
-of buffers.
-
-Rename to make it explicit.
+The default of 1 second is a bit painful, switch to a 25 Hz framerate.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
- include/media/videobuf2-core.h           |  4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/platform/mem2mem_testdev.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index eefcff7..2a7815c 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1071,7 +1071,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
- 	list_add_tail(&vb->done_entry, &q->done_list);
--	atomic_dec(&q->queued_count);
-+	atomic_dec(&q->owned_by_drv_count);
- 	spin_unlock_irqrestore(&q->done_lock, flags);
+diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+index 08e2437..35b2327 100644
+--- a/drivers/media/platform/mem2mem_testdev.c
++++ b/drivers/media/platform/mem2mem_testdev.c
+@@ -60,9 +60,7 @@ MODULE_PARM_DESC(debug, "activates debug info");
+ #define MEM2MEM_VID_MEM_LIMIT	(16 * 1024 * 1024)
  
- 	/* Inform any processes that may be waiting for buffers */
-@@ -1402,7 +1402,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 	unsigned int plane;
+ /* Default transaction time in msec */
+-#define MEM2MEM_DEF_TRANSTIME	1000
+-/* Default number of buffers per transaction */
+-#define MEM2MEM_DEF_TRANSLEN	1
++#define MEM2MEM_DEF_TRANSTIME	40
+ #define MEM2MEM_COLOR_STEP	(0xff >> 4)
+ #define MEM2MEM_NUM_TILES	8
  
- 	vb->state = VB2_BUF_STATE_ACTIVE;
--	atomic_inc(&q->queued_count);
-+	atomic_inc(&q->owned_by_drv_count);
+@@ -801,10 +799,10 @@ static const struct v4l2_ctrl_config m2mtest_ctrl_trans_time_msec = {
+ 	.id = V4L2_CID_TRANS_TIME_MSEC,
+ 	.name = "Transaction Time (msec)",
+ 	.type = V4L2_CTRL_TYPE_INTEGER,
+-	.def = 1001,
++	.def = MEM2MEM_DEF_TRANSTIME,
+ 	.min = 1,
+ 	.max = 10001,
+-	.step = 100,
++	.step = 1,
+ };
  
- 	/* sync buffers */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
-@@ -1554,7 +1554,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	int ret;
- 
- 	/* Tell the driver to start streaming */
--	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-+	ret = call_qop(q, start_streaming, q, atomic_read(&q->owned_by_drv_count));
- 	if (ret)
- 		fail_qop(q, start_streaming);
- 
-@@ -1775,7 +1775,7 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
- 	}
- 
- 	if (!q->retry_start_streaming)
--		wait_event(q->done_wq, !atomic_read(&q->queued_count));
-+		wait_event(q->done_wq, !atomic_read(&q->owned_by_drv_count));
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
-@@ -1907,7 +1907,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	 * has not already dequeued before initiating cancel.
- 	 */
- 	INIT_LIST_HEAD(&q->done_list);
--	atomic_set(&q->queued_count, 0);
-+	atomic_set(&q->owned_by_drv_count, 0);
- 	wake_up_all(&q->done_wq);
- 
- 	/*
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 82b7f0f..adaffed 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -353,7 +353,7 @@ struct v4l2_fh;
-  * @bufs:	videobuf buffer structures
-  * @num_buffers: number of allocated/used buffers
-  * @queued_list: list of buffers currently queued from userspace
-- * @queued_count: number of buffers owned by the driver
-+ * @owned_by_drv_count: number of buffers owned by the driver
-  * @done_list:	list of buffers ready to be dequeued to userspace
-  * @done_lock:	lock to protect done_list list
-  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
-@@ -385,7 +385,7 @@ struct vb2_queue {
- 
- 	struct list_head		queued_list;
- 
--	atomic_t			queued_count;
-+	atomic_t			owned_by_drv_count;
- 	struct list_head		done_list;
- 	spinlock_t			done_lock;
- 	wait_queue_head_t		done_wq;
+ static const struct v4l2_ctrl_config m2mtest_ctrl_trans_num_bufs = {
 -- 
 1.9.0
 
