@@ -1,59 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3479 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720AbaBEHKq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 02:10:46 -0500
-Message-ID: <52F1E3DC.30507@xs4all.nl>
-Date: Wed, 05 Feb 2014 08:10:20 +0100
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2294 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751463AbaBYMxO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 07:53:14 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Dean Anderson <linux-dev@sensoray.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] s2255drv: file handle cleanup
-References: <1391553393-17672-1-git-send-email-linux-dev@sensoray.com>
-In-Reply-To: <1391553393-17672-1-git-send-email-linux-dev@sensoray.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 03/15] vb2: fix PREPARE_BUF regression
+Date: Tue, 25 Feb 2014 13:52:43 +0100
+Message-Id: <1393332775-44067-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/04/2014 11:36 PM, Dean Anderson wrote:
-> Removes most parameters from s2255_fh.  These elements belong in s2255_ch.
-> In the future, s2255_fh will be removed when videobuf2 is used. videobuf2
-> has convenient and safe functions for locking streaming resources.
-> 
-> The removal of s2255_fh (and s2255_fh->resources) was not done now to
-> avoid using videobuf_queue_is_busy.
-> 
-> videobuf_queue_is busy may be unsafe as noted by the following comment 
-> in videobuf-core.c:
-> "/* Locking: Only usage in bttv unsafe find way to remove */"
-> 
-> Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
-> ---
->  drivers/media/usb/s2255/s2255drv.c |  224 +++++++++++++++++-------------------
->  1 file changed, 105 insertions(+), 119 deletions(-)
-> 
-> diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-> index 2e24aee..3ea1bd5e 100644
-> --- a/drivers/media/usb/s2255/s2255drv.c
-> +++ b/drivers/media/usb/s2255/s2255drv.c
-> @@ -251,6 +251,8 @@ struct s2255_vc {
->  	unsigned int		height;
->  	const struct s2255_fmt	*fmt;
->  	int idx; /* channel number on device, 0-3 */
-> +	struct videobuf_queue	vb_vidq;
-> +	enum v4l2_buf_type	type;
+Fix an incorrect test in vb2_internal_qbuf() where only DEQUEUED buffers
+are allowed. But PREPARED buffers are also OK.
 
-The whole type field can be dropped completely. This driver only support the
-VIDEO_CAPTURE type anyway.
+Introduced by commit 4138111a27859dcc56a5592c804dd16bb12a23d1
+("vb2: simplify qbuf/prepare_buf by removing callback").
 
->  };
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-Thank you for splitting up the large patch into smaller pieces. I plan to
-review them Friday or Monday.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f1a2857c..909f367 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1420,11 +1420,6 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return ret;
+ 
+ 	vb = q->bufs[b->index];
+-	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+-		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
+-			vb->state);
+-		return -EINVAL;
+-	}
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
+@@ -1438,7 +1433,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		dprintk(1, "qbuf: buffer still being prepared\n");
+ 		return -EINVAL;
+ 	default:
+-		dprintk(1, "qbuf: buffer already in use\n");
++		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
++			vb->state);
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+1.9.0
 
