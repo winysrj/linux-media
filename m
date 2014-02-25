@@ -1,158 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:58861 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756373AbaBUOAQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 09:00:16 -0500
-From: Denis Carikli <denis@eukrea.com>
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: Denis Carikli <denis@eukrea.com>,
-	=?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Troy Kisky <troy.kisky@boundarydevices.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCHv7][ 1/7] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
-Date: Fri, 21 Feb 2014 14:59:58 +0100
-Message-Id: <1392991205-25371-1-git-send-email-denis@eukrea.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4547 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753133AbaBYKEs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 05:04:48 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 05/20] vb2-dma-sg: add prepare/finish memops
+Date: Tue, 25 Feb 2014 11:04:10 +0100
+Message-Id: <1393322665-29889-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That new macro is needed by the imx_drm staging driver
-  for supporting the QVGA display of the eukrea-cpuimx51 board.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Cc: Eric Bénard <eric@eukrea.com>
-CC: Troy Kisky <troy.kisky@boundarydevices.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Denis Carikli <denis@eukrea.com>
-Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Now that vb2-dma-sg will sync the buffers for you in the prepare/finish
+memops we can drop that from the drivers that use dma-sg.
+
+For the solo6x10 driver that was a bit more involved because it needs to
+copy JPEG or MPEG headers to the buffer before returning it to userspace,
+and that cannot be done in the old place since the buffer there is still
+setup for DMA access, not for CPU access. However, the buf_finish op is
+the ideal place to do this. By the time buf_finish is called the buffer
+is available for CPU access, so copying to the buffer is fine.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-ChangeLog v6->v7:
-- Shrinked even more the Cc list.
-ChangeLog v5->v6:
-- Remove people not concerned by this patch from the Cc list.
+ drivers/media/platform/marvell-ccic/mcam-core.c    | 18 +-------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c         | 18 ++++++++
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 48 ++++++++++------------
+ 3 files changed, 41 insertions(+), 43 deletions(-)
 
-ChangeLog v3->v4:
-- Added Laurent Pinchart's Ack.
-
-ChangeLog v2->v3:
-- Added some interested people in the Cc list.
-- Added Mauro Carvalho Chehab's Ack.
-- Added documentation.
----
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   78 ++++++++++++++++++++
- include/uapi/linux/videodev2.h                     |    1 +
- 2 files changed, 79 insertions(+)
-
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-index 166c8d6..f6a3e84 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
- 	    <entry></entry>
- 	    <entry></entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-RGB666">
-+	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
-+	    <entry>'RGBH'</entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>5</subscript></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry>g<subscript>5</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>5</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
- 	  <row id="V4L2-PIX-FMT-BGR24">
- 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
- 	    <entry>'BGR3'</entry>
-@@ -781,6 +820,45 @@ defined in error. Drivers may interpret them as in <xref
- 	    <entry></entry>
- 	    <entry></entry>
- 	  </row>
-+	  <row><!-- id="V4L2-PIX-FMT-RGB666" -->
-+	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
-+	    <entry>'RGBH'</entry>
-+	    <entry></entry>
-+	    <entry>r<subscript>5</subscript></entry>
-+	    <entry>r<subscript>4</subscript></entry>
-+	    <entry>r<subscript>3</subscript></entry>
-+	    <entry>r<subscript>2</subscript></entry>
-+	    <entry>r<subscript>1</subscript></entry>
-+	    <entry>r<subscript>0</subscript></entry>
-+	    <entry>g<subscript>5</subscript></entry>
-+	    <entry>g<subscript>4</subscript></entry>
-+	    <entry></entry>
-+	    <entry>g<subscript>3</subscript></entry>
-+	    <entry>g<subscript>2</subscript></entry>
-+	    <entry>g<subscript>1</subscript></entry>
-+	    <entry>g<subscript>0</subscript></entry>
-+	    <entry>b<subscript>5</subscript></entry>
-+	    <entry>b<subscript>4</subscript></entry>
-+	    <entry>b<subscript>3</subscript></entry>
-+	    <entry>b<subscript>2</subscript></entry>
-+	    <entry></entry>
-+	    <entry>b<subscript>1</subscript></entry>
-+	    <entry>b<subscript>0</subscript></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
- 	  <row><!-- id="V4L2-PIX-FMT-BGR24" -->
- 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
- 	    <entry>'BGR3'</entry>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 6ae7bbe..3051d67 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -294,6 +294,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
- #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
- #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
-+#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
- #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
- #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
- #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 99961bf..a21f291 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1221,17 +1221,12 @@ static int mcam_vb_sg_buf_init(struct vb2_buffer *vb)
+ static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
+ {
+ 	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
+-	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
+ 	struct mcam_dma_desc *desc = mvb->dma_desc;
+ 	struct scatterlist *sg;
+ 	int i;
+ 
+-	mvb->dma_desc_nent = dma_map_sg(cam->dev, sg_table->sgl,
+-			sg_table->nents, DMA_FROM_DEVICE);
+-	if (mvb->dma_desc_nent <= 0)
+-		return -EIO;  /* Not sure what's right here */
+-	for_each_sg(sg_table->sgl, sg, mvb->dma_desc_nent, i) {
++	for_each_sg(sg_table->sgl, sg, sg_table->nents, i) {
+ 		desc->dma_addr = sg_dma_address(sg);
+ 		desc->segment_len = sg_dma_len(sg);
+ 		desc++;
+@@ -1239,16 +1234,6 @@ static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
+-static void mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
+-{
+-	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
+-	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
+-
+-	if (sg_table)
+-		dma_unmap_sg(cam->dev, sg_table->sgl,
+-				sg_table->nents, DMA_FROM_DEVICE);
+-}
+-
+ static void mcam_vb_sg_buf_cleanup(struct vb2_buffer *vb)
+ {
+ 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
+@@ -1265,7 +1250,6 @@ static const struct vb2_ops mcam_vb2_sg_ops = {
+ 	.buf_init		= mcam_vb_sg_buf_init,
+ 	.buf_prepare		= mcam_vb_sg_buf_prepare,
+ 	.buf_queue		= mcam_vb_buf_queue,
+-	.buf_finish		= mcam_vb_sg_buf_finish,
+ 	.buf_cleanup		= mcam_vb_sg_buf_cleanup,
+ 	.start_streaming	= mcam_vb_start_streaming,
+ 	.stop_streaming		= mcam_vb_stop_streaming,
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 92b54fa..c7e0eca 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -170,6 +170,22 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 	}
+ }
+ 
++static void vb2_dma_sg_prepare(void *buf_priv)
++{
++	struct vb2_dma_sg_buf *buf = buf_priv;
++	struct sg_table *sgt = &buf->sg_table;
++
++	dma_map_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++}
++
++static void vb2_dma_sg_finish(void *buf_priv)
++{
++	struct vb2_dma_sg_buf *buf = buf_priv;
++	struct sg_table *sgt = &buf->sg_table;
++
++	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++}
++
+ static inline int vma_is_io(struct vm_area_struct *vma)
+ {
+ 	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
+@@ -366,6 +382,8 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
+ 	.put		= vb2_dma_sg_put,
+ 	.get_userptr	= vb2_dma_sg_get_userptr,
+ 	.put_userptr	= vb2_dma_sg_put_userptr,
++	.prepare	= vb2_dma_sg_prepare,
++	.finish		= vb2_dma_sg_finish,
+ 	.vaddr		= vb2_dma_sg_vaddr,
+ 	.mmap		= vb2_dma_sg_mmap,
+ 	.num_users	= vb2_dma_sg_num_users,
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index efa6772..0361f28 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -465,7 +465,6 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+ 	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
+ 	int frame_size;
+-	int ret;
+ 
+ 	vb->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
+ 
+@@ -476,21 +475,10 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
+ 		& ~(DMA_ALIGN - 1);
+ 	vb2_set_plane_payload(vb, 0, vop_jpeg_size(vh) + solo_enc->jpeg_len);
+ 
+-	/* may discard all previous data in vbuf->sgl */
+-	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+-			DMA_FROM_DEVICE);
+-	ret = solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf,
++	return solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf,
+ 			     vop_jpeg_offset(vh) - SOLO_JPEG_EXT_ADDR(solo_dev),
+ 			     frame_size, SOLO_JPEG_EXT_ADDR(solo_dev),
+ 			     SOLO_JPEG_EXT_SIZE(solo_dev));
+-	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+-			DMA_FROM_DEVICE);
+-
+-	/* add the header only after dma_unmap_sg() */
+-	sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
+-			    solo_enc->jpeg_header, solo_enc->jpeg_len);
+-
+-	return ret;
+ }
+ 
+ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
+@@ -500,7 +488,6 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
+ 	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
+ 	int frame_off, frame_size;
+ 	int skip = 0;
+-	int ret;
+ 
+ 	if (vb2_plane_size(vb, 0) < vop_mpeg_size(vh))
+ 		return -EIO;
+@@ -522,20 +509,9 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
+ 	frame_size = (vop_mpeg_size(vh) + skip + (DMA_ALIGN - 1))
+ 		& ~(DMA_ALIGN - 1);
+ 
+-	/* may discard all previous data in vbuf->sgl */
+-	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+-			DMA_FROM_DEVICE);
+-	ret = solo_send_desc(solo_enc, skip, vbuf, frame_off, frame_size,
++	return solo_send_desc(solo_enc, skip, vbuf, frame_off, frame_size,
+ 			SOLO_MP4E_EXT_ADDR(solo_dev),
+ 			SOLO_MP4E_EXT_SIZE(solo_dev));
+-	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+-			DMA_FROM_DEVICE);
+-
+-	/* add the header only after dma_unmap_sg() */
+-	if (!vop_type(vh))
+-		sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
+-				    solo_enc->vop, solo_enc->vop_len);
+-	return ret;
+ }
+ 
+ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
+@@ -753,9 +729,29 @@ static void solo_enc_stop_streaming(struct vb2_queue *q)
+ 	solo_ring_stop(solo_enc->solo_dev);
+ }
+ 
++static void solo_enc_buf_finish(struct vb2_buffer *vb)
++{
++	struct solo_enc_dev *solo_enc = vb2_get_drv_priv(vb->vb2_queue);
++	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
++
++	switch (solo_enc->fmt) {
++	case V4L2_PIX_FMT_MPEG4:
++	case V4L2_PIX_FMT_H264:
++		if (vb->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME)
++			sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
++					solo_enc->vop, solo_enc->vop_len);
++		break;
++	default: /* V4L2_PIX_FMT_MJPEG */
++		sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
++				solo_enc->jpeg_header, solo_enc->jpeg_len);
++		break;
++	}
++}
++
+ static struct vb2_ops solo_enc_video_qops = {
+ 	.queue_setup	= solo_enc_queue_setup,
+ 	.buf_queue	= solo_enc_buf_queue,
++	.buf_finish     = solo_enc_buf_finish,
+ 	.start_streaming = solo_enc_start_streaming,
+ 	.stop_streaming = solo_enc_stop_streaming,
+ 	.wait_prepare	= vb2_ops_wait_prepare,
 -- 
-1.7.9.5
+1.9.0
 
