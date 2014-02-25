@@ -1,79 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39852 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751927AbaBIIt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:58 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1544 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750735AbaBYKLU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 05:11:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 28/86] rtl2832_sdr: clamp ADC frequency to valid range always
-Date: Sun,  9 Feb 2014 10:48:33 +0200
-Message-Id: <1391935771-18670-29-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 18/20] vb2: reject output buffers with V4L2_FIELD_ALTERNATE
+Date: Tue, 25 Feb 2014 11:04:23 +0100
+Message-Id: <1393322665-29889-19-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2 tuner API says incorrect value should be round to nearest
-legal value. Implement it for ADC frequency setting.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+This is not allowed by the spec and does in fact not make any sense.
+Return -EINVAL if this is the case.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 2c9b703..ddacfd2 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -666,7 +666,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 	u64 u64tmp;
- 	u32 u32tmp;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index db95dcb..face6e9 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1555,6 +1555,15 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 			__func__, ret);
+ 		return ret;
+ 	}
++	if (V4L2_TYPE_IS_OUTPUT(q->type) && b->field == V4L2_FIELD_ALTERNATE) {
++		/*
++		 * If field is ALTERNATE, then we return an error.
++		 * If the format's field is ALTERNATE, then the buffer's field
++		 * should be either TOP or BOTTOM, but using ALTERNATE here as
++		 * well makes no sense.
++		 */
++		return -EINVAL;
++	}
  
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+	dev_dbg(&s->udev->dev, "%s: f_adc=%u\n", __func__, s->f_adc);
- 
- 	if (!test_bit(POWER_ON, &s->flags))
- 		return 0;
-@@ -1064,12 +1064,26 @@ static int rtl2832_sdr_s_frequency(struct file *file, void *priv,
- 		const struct v4l2_frequency *f)
- {
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
--	int ret;
-+	int ret, band;
- 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
- 			__func__, f->tuner, f->type, f->frequency);
- 
--	if (f->tuner == 0) {
--		s->f_adc = f->frequency;
-+	/* ADC band midpoints */
-+	#define BAND_ADC_0 ((bands_adc[0].rangehigh + bands_adc[1].rangelow) / 2)
-+	#define BAND_ADC_1 ((bands_adc[1].rangehigh + bands_adc[2].rangelow) / 2)
-+
-+	if (f->tuner == 0 && f->type == V4L2_TUNER_ADC) {
-+		if (f->frequency < BAND_ADC_0)
-+			band = 0;
-+		else if (f->frequency < BAND_ADC_1)
-+			band = 1;
-+		else
-+			band = 2;
-+
-+		s->f_adc = clamp_t(unsigned int, f->frequency,
-+				bands_adc[band].rangelow,
-+				bands_adc[band].rangehigh);
-+
- 		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
- 				__func__, s->f_adc);
- 		ret = rtl2832_sdr_set_adc(s);
-@@ -1287,6 +1301,8 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	s->udev = d->udev;
- 	s->i2c = i2c;
- 	s->cfg = cfg;
-+	s->f_adc = bands_adc[0].rangelow;
-+	s->pixelformat = V4L2_PIX_FMT_SDR_U8;
- 
- 	mutex_init(&s->v4l2_lock);
- 	mutex_init(&s->vb_queue_lock);
+ 	vb->state = VB2_BUF_STATE_PREPARING;
+ 	vb->v4l2_buf.timestamp.tv_sec = 0;
 -- 
-1.8.5.3
+1.9.0
 
