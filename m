@@ -1,113 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1585 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173AbaBVDhY (ORCPT
+Received: from mail-ig0-f178.google.com ([209.85.213.178]:59108 "EHLO
+	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100AbaBZLBW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Feb 2014 22:37:24 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1M3bK5a001205
-	for <linux-media@vger.kernel.org>; Sat, 22 Feb 2014 04:37:22 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id BE0022A01A7
-	for <linux-media@vger.kernel.org>; Sat, 22 Feb 2014 04:37:16 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140222033716.BE0022A01A7@tschai.lan>
-Date: Sat, 22 Feb 2014 04:37:16 +0100 (CET)
+	Wed, 26 Feb 2014 06:01:22 -0500
+Received: by mail-ig0-f178.google.com with SMTP id hl1so1124437igb.5
+        for <linux-media@vger.kernel.org>; Wed, 26 Feb 2014 03:01:21 -0800 (PST)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <1393263389.3091.82.camel@pizza.hi.pengutronix.de>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com> < 20140217181451.7EB7FC4044D@trevor.secretlab.ca> <20140218070624.GP17250@ pengutronix.de> <20140218162627.32BA4C40517@trevor.secretlab.ca> < 1393263389.3091.82.camel@pizza.hi.pengutronix.de>
+Date: Wed, 26 Feb 2014 11:01:14 +0000
+Message-Id: <20140226110114.CF2C7C40A89@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, 24 Feb 2014 18:36:29 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Am Dienstag, den 18.02.2014, 16:26 +0000 schrieb Grant Likely:
+> > > 
+> > > You can find it under Documentation/devicetree/bindings/media/video-interfaces.txt
+> > 
+> > Okay, I think I'm okay with moving the helpers, but I will make one
+> > requirement. I would like to have a short binding document describing
+> > the pattern being used. The document above talks a lot about video
+> > specific issues, but the helpers appear to be specifically about the
+> > tree walking properties of the API.
+> 
+> Reusing the non-video-secific parts of video-interfaces.txt, how about
+> the following:
 
-Results of the daily build of media_tree:
+This is good, but I have some comments. This document describes itself
+as the common way for doing a device graph within the device tree, but
+there is already a well established pattern for device graphs that is
+used by the interrupts-extended, clocks and other bindings. Those are
+all domain-specific bindings, but the core concept is one device uses
+a resource provided by another device. The resource references construct
+a graph independent from the natural FDT node graph. (ie. the interrupts
+binding forms the interrupt graph. Same for the clock binding).
 
-date:		Sat Feb 22 04:00:35 CET 2014
-git branch:	test
-git hash:	37e59f876bc710d67a30b660826a5e83e07101ce
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+So, while this binding does describe a pattern for separate device
+graphs, it is by no means the only common way of doing so.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+I would like the document to acknowledge the difference from the
+phandle+args pattern used elsewhere and a description of when it would
+be appropriate to use this instead of a simpler binding.
 
-Detailed results are available here:
+> 
+> "Common bindings for device graphs"
+> 
+> General concept
+> ---------------
+> 
+> The hierarchical organisation of the device tree is well suited to describe
+> control flow to devices, but data flow between devices that work together to
+> form a logical compound device can follow arbitrarily complex graphs.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+I would argue that this pattern isn't necessarily restricted to data
+flow descriptions. It wants to describe linkage between devices that are
+sufficiently complex that the simple binding doesn't do the job.
 
-Full logs are available here:
+> The device tree graph bindings allow to describe data bus connections between
+> individual devices, that can't be inferred from device tree parent-child
+> relationships. The common bindings do not contain any information about the
+> direction or type of data flow, they just map connections. Specific properties
+> of the connections can be set depending on the type of connection. To see
+> how this binding applies to video pipelines, see for example
+> Documentation/device-tree/bindings/media/video-interfaces.txt.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Even if you don't want to declare the direction of data flow, there does
+need to be some guidance as to how the binding is constructed. Does
+device A point to device B? Or the other way around? Why would someone
+choose one over the other? I don't want to see a situation where A & B
+point to each other. Things get complex if the graph is allowed to be
+cyclical.
 
-The Media Infrastructure API from this daily build is here:
+> Data interfaces on devices are described by their child 'port' nodes. The port
+> node contains an 'endpoint' subnode for each remote device connected to this
+> port via a bus. If a port is connected to more than one remote device on the
+> same bus, an 'endpoint' child node must be provided for each of them. If more
+> than one port is present in a device node or there is more than one endpoint at
+> a port, or port node needs to be associated with a selected hardware interface,
+> a common scheme using '#address-cells', '#size-cells' and 'reg' properties is
+> used.
+> 
+> device {
+> 	...
+> 	#address-cells = <1>;
+> 	#size-cells = <0>;
+> 
+> 	port@0 {
+> 		...
+> 		endpoint@0 { ... };
+> 		endpoint@1 { ... };
+> 	};
+> 
+> 	port@1 { ... };
+> };
+> 
+> All 'port' nodes can be grouped under optional 'ports' node, which allows to
+> specify #address-cells, #size-cells properties independently for the 'port'
+> and 'endpoint' nodes and any child device nodes a device might have.
+> 
+> device {
+> 	...
+> 	ports {
+> 		#address-cells = <1>;
+> 		#size-cells = <0>;
+> 
+> 		port@0 {
+> 			...
+> 			endpoint@0 { ... };
+> 			endpoint@1 { ... };
+> 		};
+> 
+> 		port@1 { ... };
+> 	};
+> };
+> 
+> Each endpoint can contain a 'remote-endpoint' phandle property that points to
+> the corresponding endpoint in the port of the remote device. Two 'endpoint'
+> nodes are linked with each other through their 'remote-endpoint' phandles.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+I really don't like this aspect. It is far too easy to get wrong. Graphs
+should be one direction only.
+
+> 
+> device_1 {
+> 	port {
+> 		device_1_output: endpoint {
+> 			remote-endpoint = <&device_2_input>;
+> 		};
+> 	};
+> };
+> 
+> device_1 {
+> 	port {
+> 		device_2_input: endpoint {
+> 			remote-endpoint = <&device_1_output>;
+> 		};
+> 	};
+> };
+> 
+> 
+> Required properties
+> -------------------
+> 
+> If there is more than one 'port' or more than one 'endpoint' node or 'reg'
+> property is present in port and/or endpoint nodes the following properties
+> are required in a relevant parent node:
+> 
+>  - #address-cells : number of cells required to define port/endpoint
+> 		    identifier, should be 1.
+>  - #size-cells    : should be zero.
+> 
+> Optional endpoint properties
+> ----------------------------
+> 
+> - remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
+> 
+> 
+
