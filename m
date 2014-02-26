@@ -1,48 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f175.google.com ([209.85.213.175]:34651 "EHLO
-	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394AbaBDPC3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 10:02:29 -0500
-Received: by mail-ig0-f175.google.com with SMTP id uq10so8034800igb.2
-        for <linux-media@vger.kernel.org>; Tue, 04 Feb 2014 07:02:28 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CALzAhNVdv+nve4mr0i+p=upD3bprSa5Dvj90Mf7e3ZQfco-bgg@mail.gmail.com>
-References: <CADyej-mND8fuxseQhp0-XeaapPoK8Q9r5bDjcVFndpoay6wLtQ@mail.gmail.com>
-	<CALzAhNVdv+nve4mr0i+p=upD3bprSa5Dvj90Mf7e3ZQfco-bgg@mail.gmail.com>
-Date: Wed, 5 Feb 2014 02:02:28 +1100
-Message-ID: <CADyej-=qfTnJYj0oezJQJyEFx15EqA+930oRkT7S0yug-rYFcw@mail.gmail.com>
-Subject: Re: Help wanted patching saa7164 driver to work with Compro E900F
-From: Daniel Playfair Cal <daniel.playfair.cal@gmail.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:36520 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751845AbaBZOYI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 09:24:08 -0500
+Message-ID: <1393426623.3248.70.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date: Wed, 26 Feb 2014 15:57:03 +0100
+In-Reply-To: <530DE8A9.9050809@ti.com>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
+	 <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
+	 <530DE8A9.9050809@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 5, 2014 at 12:32 AM, Steven Toth <stoth@kernellabs.com> wrote:
-> On Tue, Feb 4, 2014 at 5:29 AM, Daniel Playfair Cal
-.
->
-> Hey Daniel,
->
-> Thanks for showing an interest in the driver.
->
-> I've been trying to source one of these cards for quite a while,
-> occasionally checking amazon etc. I can't seem to find anything in
-> retail on amazon or on ebay.
->
-> Where did you purchase the card?
+Hi Tomi,
 
-Hi Steve
+Am Mittwoch, den 26.02.2014, 15:14 +0200 schrieb Tomi Valkeinen:
+> On 25/02/14 16:58, Philipp Zabel wrote:
+> 
+> > +Optional endpoint properties
+> > +----------------------------
+> > +
+> > +- remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
+> 
+> Why is that optional? What use is an endpoint, if it's not connected to
+> something?
 
-It is a pleasure, I'm finding it very interesting, and it would
-certainly be satisfying if I did get it working. Thankyou for writing
-the driver!
+This allows to include the an empty endpoint template in a SoC dtsi for
+the convenience of board dts writers. Also, the same property is
+currently listed as optional in video-interfaces.txt.
 
-I bought it from either msy.com.au or skycomp.com.au quite a few years
-ago, but I don't see it listed anywhere now in Australia except here
-(http://www.foxcomp.com.au/ProductDetail.asp?ID=10591,
-http://www.ht.com.au/part/AF826-Compro-VideoMate-Vista-E900F-DVB-T-HDTV-receiver-analogue-TV-radio-tuner-video-input-adapter-PCIe/detail.hts).
-I can't see many tv tuners for sale anymore.
+  soc.dtsi:
+	display-controller {
+		port {
+			disp0: endpoint { };
+		};
+	};
 
-Daniel
+  board.dts:
+	#include "soc.dtsi"
+	&disp0 {
+		remote-endpoint = <&panel_input>;
+	};
+	panel {
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&disp0>;
+			};
+		};
+	};
+
+Any board not using that port can just leave the endpoint disconnected.
+
+On the other hand, the same could be achieved with Heiko Stübner's
+conditional nodes dtc patch:
+
+  soc.dtsi:
+	display-controller {
+		port {
+			/delete-unreferenced/ disp0: endpoint { };
+		};
+	};
+
+> Also, if this is being worked on, I'd like to propose the addition of
+> simpler single-endpoint cases which I've been using with OMAP DSS. So if
+> there's just a single endpoint for the device, which is very common, you
+> can have just:
+> 
+> device {
+> 	...
+> 	endpoint { ... };
+> };
+> 
+> However, I guess that the patch just keeps growing and growing, so maybe
+> it's better to add such things later =).
+
+Yes, that looks good. I'd be happy if we could add this in a second step
+as a backwards compatible simplification.
+
+regards
+Philipp
+
