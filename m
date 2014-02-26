@@ -1,41 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59508 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbaBEQlz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 11:41:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:47898 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751224AbaBZHEZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 02:04:25 -0500
+From: Daniel Jeong <gshark.jeong@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 20/47] adv7842: Remove deprecated video-level DV timings operations
-Date: Wed,  5 Feb 2014 17:42:11 +0100
-Message-Id: <1391618558-5580-21-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Daniel Jeong <gshark.jeong@gmail.com>,
+	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
+Subject: [RFC v6 1/3] v4l2-controls.h: add addtional Flash fault bits
+Date: Wed, 26 Feb 2014 16:04:09 +0900
+Message-Id: <1393398251-5383-2-git-send-email-gshark.jeong@gmail.com>
+In-Reply-To: <1393398251-5383-1-git-send-email-gshark.jeong@gmail.com>
+References: <1393398251-5383-1-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
+ Three Flash fault are added.
+ V4L2_FLASH_FAULT_UNDER_VOLTAGE for the case low voltage below the min. limit.
+ V4L2_FLASH_FAULT_INPUT_VOLTAGE	for the case falling input voltage and chip  
+ adjust flash current not occur under voltage event.
+ V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE for the case the temperature exceed
+ the maximun limit
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
 ---
- drivers/media/i2c/adv7842.c | 2 --
- 1 file changed, 2 deletions(-)
+ include/uapi/linux/v4l2-controls.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 78d21fd..7fd9325 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2892,8 +2892,6 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
- 	.s_dv_timings = adv7842_s_dv_timings,
- 	.g_dv_timings = adv7842_g_dv_timings,
- 	.query_dv_timings = adv7842_query_dv_timings,
--	.enum_dv_timings = adv7842_enum_dv_timings,
--	.dv_timings_cap = adv7842_dv_timings_cap,
- 	.enum_mbus_fmt = adv7842_enum_mbus_fmt,
- 	.g_mbus_fmt = adv7842_g_mbus_fmt,
- 	.try_mbus_fmt = adv7842_g_mbus_fmt,
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2cbe605..1d662f6 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -812,6 +812,9 @@ enum v4l2_flash_strobe_source {
+ #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
+ #define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
+ #define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
++#define V4L2_FLASH_FAULT_UNDER_VOLTAGE		(1 << 6)
++#define V4L2_FLASH_FAULT_INPUT_VOLTAGE		(1 << 7)
++#define V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE	(1 << 8)
+ 
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
 -- 
-1.8.3.2
+1.7.9.5
 
