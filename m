@@ -1,56 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:37505 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753133AbaBZSeZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 13:34:25 -0500
-Received: by mail-ee0-f42.google.com with SMTP id d17so788742eek.29
-        for <linux-media@vger.kernel.org>; Wed, 26 Feb 2014 10:34:24 -0800 (PST)
-From: Jan Vcelak <jv@fcelda.cz>
-To: crope@iki.fi, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH v2 2/2] [media] rtl28xxu: add chipset version comments into device list
-Date: Wed, 26 Feb 2014 19:33:40 +0100
-Message-Id: <1393439620-7993-2-git-send-email-jv@fcelda.cz>
-In-Reply-To: <1393439620-7993-1-git-send-email-jv@fcelda.cz>
-References: <530DB488.9030901@iki.fi>
- <1393439620-7993-1-git-send-email-jv@fcelda.cz>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55790 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752543AbaBZNOp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 08:14:45 -0500
+Message-ID: <530DE8A9.9050809@ti.com>
+Date: Wed, 26 Feb 2014 15:14:17 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="P5XuDVSgpRe7oq63NjUpwRNaupJAvQLnT"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jan Vcelak <jv@fcelda.cz>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 3 +++
- 1 file changed, 3 insertions(+)
+--P5XuDVSgpRe7oq63NjUpwRNaupJAvQLnT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index b9eb662..ab1deac 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1382,6 +1382,7 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
- };
- 
- static const struct usb_device_id rtl28xxu_id_table[] = {
-+	/* RTL2831U devices: */
- 	{ DVB_USB_DEVICE(USB_VID_REALTEK, USB_PID_REALTEK_RTL2831U,
- 		&rtl2831u_props, "Realtek RTL2831U reference design", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_WIDEVIEW, USB_PID_FREECOM_DVBT,
-@@ -1389,6 +1390,7 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_WIDEVIEW, USB_PID_FREECOM_DVBT_2,
- 		&rtl2831u_props, "Freecom USB2.0 DVB-T", NULL) },
- 
-+	/* RTL2832U devices: */
- 	{ DVB_USB_DEVICE(USB_VID_REALTEK, 0x2832,
- 		&rtl2832u_props, "Realtek RTL2832U reference design", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_REALTEK, 0x2838,
-@@ -1432,6 +1434,7 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_KYE, 0x707f,
- 		&rtl2832u_props, "Genius TVGo DVB-T03", NULL) },
- 
-+	/* RTL2832P devices: */
- 	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
- 		&rtl2832u_props, "Astrometa DVB-T2", NULL) },
- 	{ }
--- 
-1.8.5.3
+On 25/02/14 16:58, Philipp Zabel wrote:
 
+> +Optional endpoint properties
+> +----------------------------
+> +
+> +- remote-endpoint: phandle to an 'endpoint' subnode of a remote device=
+ node.
+
+Why is that optional? What use is an endpoint, if it's not connected to
+something?
+
+Also, if this is being worked on, I'd like to propose the addition of
+simpler single-endpoint cases which I've been using with OMAP DSS. So if
+there's just a single endpoint for the device, which is very common, you
+can have just:
+
+device {
+	...
+	endpoint { ... };
+};
+
+However, I guess that the patch just keeps growing and growing, so maybe
+it's better to add such things later =3D).
+
+ Tomi
+
+
+
+--P5XuDVSgpRe7oq63NjUpwRNaupJAvQLnT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTDeipAAoJEPo9qoy8lh71kfUQAJhRq4j0qyfE4BGDXs+uIlkO
+TfkI7j8C/6ISwDRsgW84HTsdOUUynHk+Yi2haW++dz+q65vtVbsXwZZEJBig+s7u
+GURZkDuVYaO0Go4RltBAICKvPHyuiPFBw6R75i44pDurmzzGeIFyE4WO6fV0eY5R
+l0arhQwYax78+fAonRiLpQ+qHAPA2eMn7171P6zkQ5DaIb4tN5KcfrzFnZJeLH7M
+LwkgDo2lgixd9h1LjZB3av2WygnXW3HxVv9dZmTsizqoYw0FiQCg8uEnVYhevBBj
+Zni9bftyryKQhTvpvOokvPmFAQWIB/xy2NnM1HHivhv2QsBA/Rp7yi3wLE4Rq1ni
+rGh7Twq9P0l6/IFF0iffI+PoiK8K+mqbZjDrLyLjJsAE008JgILXE93xBubeaY+k
+j5j1Qb08jPqzkKtpCOw2SXTpS2ZSWmWrJHt8x3joAQG4dzB3f5dKbapCi6EJ29Z+
+9ppgINTtERFwnFaZh2onuk+/ogPMjuc/yS5LdU7NHkA5Ze4jqhgcIVguAljugaDX
+dA7lkynRrb2tjAVhsoSygEQklRz5eYNBPd4g8hFx7mAgOeUgMMYxz3lRQ6J+wptv
+/NjtZmn7dFeRjD6/0ru3SOjLwaVYeUPu/C/bQmzwsEoC33fqqbTIvA82m0zf3ROB
+eObjYrE8uzOLi0TTSTC+
+=TZyW
+-----END PGP SIGNATURE-----
+
+--P5XuDVSgpRe7oq63NjUpwRNaupJAvQLnT--
