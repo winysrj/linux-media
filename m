@@ -1,50 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4705 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724AbaBZJ5R (ORCPT
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:35397 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753130AbaBZRgo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 04:57:17 -0500
-Message-ID: <530DBA62.9060900@xs4all.nl>
-Date: Wed, 26 Feb 2014 10:56:50 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
+	Wed, 26 Feb 2014 12:36:44 -0500
+Received: by mail-pb0-f47.google.com with SMTP id up15so1289238pbc.20
+        for <linux-media@vger.kernel.org>; Wed, 26 Feb 2014 09:36:43 -0800 (PST)
+Date: Wed, 26 Feb 2014 09:36:40 -0800
+From: Jens Axboe <axboe@kernel.dk>
 To: Arnd Bergmann <arnd@arndb.de>
-CC: linux-kernel@vger.kernel.org,
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	"James E.J. Bottomley" <JBottomley@parallels.com>,
+	Karsten Keil <isdn@linux-pingi.de>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH, RFC 05/30] [media] omap_vout: avoid sleep_on race
-References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <1388664474-1710039-6-git-send-email-arnd@arndb.de> <52D90490.3080407@xs4all.nl> <201402261003.03076.arnd@arndb.de>
-In-Reply-To: <201402261003.03076.arnd@arndb.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Michael Schmitz <schmitz@biophys.uni-duesseldorf.de>,
+	Peter Zijlstra <peterz@infradead.org>,
+	linux-atm-general@lists.sourceforge.net,
+	linux-media@vger.kernel.org, linux-scsi@vger.kernel.org,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH 00/16] sleep_on removal, second try
+Message-ID: <20140226173640.GA11990@kernel.dk>
+References: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/26/14 10:03, Arnd Bergmann wrote:
-> On Friday 17 January 2014, Hans Verkuil wrote:
->> On 01/02/2014 01:07 PM, Arnd Bergmann wrote:
->>> sleep_on and its variants are broken and going away soon. This changes
->>> the omap vout driver to use interruptible_sleep_on_timeout instead,
->>
->> I assume you mean wait_event_interruptible_timeout here :-)
->>
->> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> If there are no other comments, then I plan to merge this next week.
->>
+On Wed, Feb 26 2014, Arnd Bergmann wrote:
+> It's been a while since the first submission of these patches,
+> but a lot of them have made it into linux-next already, so here
+> is the stuff that is not merged yet, hopefully addressing all
+> the comments.
 > 
-> Hi Hans,
+> Geert and Michael: the I was expecting the ataflop and atari_scsi
+> patches to be merged already, based on earlier discussion.
+> Can you apply them to the linux-m68k tree, or do you prefer
+> them to go through the scsi and block maintainers?
 > 
-> Not sure if you merged the media patches into a local tree, but I see
-> they are not in linux-next at the moment. I'll just re-send them,
-> but please let me know if I can drop them on my end, or better
-> make sure your tree is in linux-next if you have already picked them
-> up.
+> Jens: I did not get any comments for the DAC960 and swim3 patches,
+> I assume they are good to go in. Please merge.
 
-I've picked it up, but it has not yet been merged. Mauro has been
-traveling so not much has been merged recently.
+Picked up 1, 3, 4 of the patches. Thanks Arnd.
 
-Regards,
-
-	Hans
+-- 
+Jens Axboe
 
