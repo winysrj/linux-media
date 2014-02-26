@@ -1,245 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:49301 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752399AbaBQP4Q (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4473 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751723AbaBZDiu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 10:56:16 -0500
-Subject: [PATCH 2/6] seqno-fence: Hardware dma-buf implementation of fencing
- (v4)
-To: linux-kernel@vger.kernel.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, ccross@google.com,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	dri-devel@lists.freedesktop.org, daniel@ffwll.ch,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Date: Mon, 17 Feb 2014 16:56:11 +0100
-Message-ID: <20140217155556.20337.37589.stgit@patser>
-In-Reply-To: <20140217155056.20337.25254.stgit@patser>
-References: <20140217155056.20337.25254.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	Tue, 25 Feb 2014 22:38:50 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1Q3clZh081667
+	for <linux-media@vger.kernel.org>; Wed, 26 Feb 2014 04:38:49 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 8EB072A0232
+	for <linux-media@vger.kernel.org>; Wed, 26 Feb 2014 04:38:43 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140226033843.8EB072A0232@tschai.lan>
+Date: Wed, 26 Feb 2014 04:38:43 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This type of fence can be used with hardware synchronization for simple
-hardware that can block execution until the condition
-(dma_buf[offset] - value) >= 0 has been met.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-A software fallback still has to be provided in case the fence is used
-with a device that doesn't support this mechanism. It is useful to expose
-this for graphics cards that have an op to support this.
+Results of the daily build of media_tree:
 
-Some cards like i915 can export those, but don't have an option to wait,
-so they need the software fallback.
+date:		Wed Feb 26 04:02:10 CET 2014
+git branch:	test
+git hash:	efab6b6a6ea9364ececb955f69a9d3ffc6b782a1
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
-I extended the original patch by Rob Clark.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-v1: Original
-v2: Renamed from bikeshed to seqno, moved into dma-fence.c since
-    not much was left of the file. Lots of documentation added.
-v3: Use fence_ops instead of custom callbacks. Moved to own file
-    to avoid circular dependency between dma-buf.h and fence.h
-v4: Add spinlock pointer to seqno_fence_init
+Detailed results are available here:
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
----
- Documentation/DocBook/device-drivers.tmpl |    1 
- drivers/base/fence.c                      |   50 +++++++++++++
- include/linux/seqno-fence.h               |  109 +++++++++++++++++++++++++++++
- 3 files changed, 160 insertions(+)
- create mode 100644 include/linux/seqno-fence.h
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index 7a0c9ddb4818..8c85c20942c2 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -131,6 +131,7 @@ X!Edrivers/base/interface.c
- !Edrivers/base/dma-buf.c
- !Edrivers/base/fence.c
- !Iinclude/linux/fence.h
-+!Iinclude/linux/seqno-fence.h
- !Edrivers/base/reservation.c
- !Iinclude/linux/reservation.h
- !Edrivers/base/dma-coherent.c
-diff --git a/drivers/base/fence.c b/drivers/base/fence.c
-index 12df2bf62034..cd0937127a89 100644
---- a/drivers/base/fence.c
-+++ b/drivers/base/fence.c
-@@ -25,6 +25,7 @@
- #include <linux/export.h>
- #include <linux/atomic.h>
- #include <linux/fence.h>
-+#include <linux/seqno-fence.h>
- 
- #define CREATE_TRACE_POINTS
- #include <trace/events/fence.h>
-@@ -413,3 +414,52 @@ __fence_init(struct fence *fence, const struct fence_ops *ops,
- 	trace_fence_init(fence);
- }
- EXPORT_SYMBOL(__fence_init);
-+
-+static const char *seqno_fence_get_driver_name(struct fence *fence) {
-+	struct seqno_fence *seqno_fence = to_seqno_fence(fence);
-+	return seqno_fence->ops->get_driver_name(fence);
-+}
-+
-+static const char *seqno_fence_get_timeline_name(struct fence *fence) {
-+	struct seqno_fence *seqno_fence = to_seqno_fence(fence);
-+	return seqno_fence->ops->get_timeline_name(fence);
-+}
-+
-+static bool seqno_enable_signaling(struct fence *fence)
-+{
-+	struct seqno_fence *seqno_fence = to_seqno_fence(fence);
-+	return seqno_fence->ops->enable_signaling(fence);
-+}
-+
-+static bool seqno_signaled(struct fence *fence)
-+{
-+	struct seqno_fence *seqno_fence = to_seqno_fence(fence);
-+	return seqno_fence->ops->signaled && seqno_fence->ops->signaled(fence);
-+}
-+
-+static void seqno_release(struct fence *fence)
-+{
-+	struct seqno_fence *f = to_seqno_fence(fence);
-+
-+	dma_buf_put(f->sync_buf);
-+	if (f->ops->release)
-+		f->ops->release(fence);
-+	else
-+		kfree(f);
-+}
-+
-+static long seqno_wait(struct fence *fence, bool intr, signed long timeout)
-+{
-+	struct seqno_fence *f = to_seqno_fence(fence);
-+	return f->ops->wait(fence, intr, timeout);
-+}
-+
-+const struct fence_ops seqno_fence_ops = {
-+	.get_driver_name = seqno_fence_get_driver_name,
-+	.get_timeline_name = seqno_fence_get_timeline_name,
-+	.enable_signaling = seqno_enable_signaling,
-+	.signaled = seqno_signaled,
-+	.wait = seqno_wait,
-+	.release = seqno_release,
-+};
-+EXPORT_SYMBOL(seqno_fence_ops);
-diff --git a/include/linux/seqno-fence.h b/include/linux/seqno-fence.h
-new file mode 100644
-index 000000000000..952f7909128c
---- /dev/null
-+++ b/include/linux/seqno-fence.h
-@@ -0,0 +1,109 @@
-+/*
-+ * seqno-fence, using a dma-buf to synchronize fencing
-+ *
-+ * Copyright (C) 2012 Texas Instruments
-+ * Copyright (C) 2012 Canonical Ltd
-+ * Authors:
-+ * Rob Clark <robdclark@gmail.com>
-+ *   Maarten Lankhorst <maarten.lankhorst@canonical.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __LINUX_SEQNO_FENCE_H
-+#define __LINUX_SEQNO_FENCE_H
-+
-+#include <linux/fence.h>
-+#include <linux/dma-buf.h>
-+
-+struct seqno_fence {
-+	struct fence base;
-+
-+	const struct fence_ops *ops;
-+	struct dma_buf *sync_buf;
-+	uint32_t seqno_ofs;
-+};
-+
-+extern const struct fence_ops seqno_fence_ops;
-+
-+/**
-+ * to_seqno_fence - cast a fence to a seqno_fence
-+ * @fence: fence to cast to a seqno_fence
-+ *
-+ * Returns NULL if the fence is not a seqno_fence,
-+ * or the seqno_fence otherwise.
-+ */
-+static inline struct seqno_fence *
-+to_seqno_fence(struct fence *fence)
-+{
-+	if (fence->ops != &seqno_fence_ops)
-+		return NULL;
-+	return container_of(fence, struct seqno_fence, base);
-+}
-+
-+/**
-+ * seqno_fence_init - initialize a seqno fence
-+ * @fence: seqno_fence to initialize
-+ * @lock: pointer to spinlock to use for fence
-+ * @sync_buf: buffer containing the memory location to signal on
-+ * @context: the execution context this fence is a part of
-+ * @seqno_ofs: the offset within @sync_buf
-+ * @seqno: the sequence # to signal on
-+ * @ops: the fence_ops for operations on this seqno fence
-+ *
-+ * This function initializes a struct seqno_fence with passed parameters,
-+ * and takes a reference on sync_buf which is released on fence destruction.
-+ *
-+ * A seqno_fence is a dma_fence which can complete in software when
-+ * enable_signaling is called, but it also completes when
-+ * (s32)((sync_buf)[seqno_ofs] - seqno) >= 0 is true
-+ *
-+ * The seqno_fence will take a refcount on the sync_buf until it's
-+ * destroyed, but actual lifetime of sync_buf may be longer if one of the
-+ * callers take a reference to it.
-+ *
-+ * Certain hardware have instructions to insert this type of wait condition
-+ * in the command stream, so no intervention from software would be needed.
-+ * This type of fence can be destroyed before completed, however a reference
-+ * on the sync_buf dma-buf can be taken. It is encouraged to re-use the same
-+ * dma-buf for sync_buf, since mapping or unmapping the sync_buf to the
-+ * device's vm can be expensive.
-+ *
-+ * It is recommended for creators of seqno_fence to call fence_signal
-+ * before destruction. This will prevent possible issues from wraparound at
-+ * time of issue vs time of check, since users can check fence_is_signaled
-+ * before submitting instructions for the hardware to wait on the fence.
-+ * However, when ops.enable_signaling is not called, it doesn't have to be
-+ * done as soon as possible, just before there's any real danger of seqno
-+ * wraparound.
-+ */
-+static inline void
-+seqno_fence_init(struct seqno_fence *fence, spinlock_t *lock,
-+		 struct dma_buf *sync_buf,  uint32_t context, uint32_t seqno_ofs,
-+		 uint32_t seqno, const struct fence_ops *ops)
-+{
-+	BUG_ON(!fence || !sync_buf || !ops);
-+	BUG_ON(!ops->wait || !ops->enable_signaling || !ops->get_driver_name || !ops->get_timeline_name);
-+
-+	/*
-+	 * ops is used in __fence_init for get_driver_name, so needs to be
-+	 * initialized first
-+	 */
-+	fence->ops = ops;
-+	__fence_init(&fence->base, &seqno_fence_ops, lock, context, seqno);
-+	get_dma_buf(sync_buf);
-+	fence->sync_buf = sync_buf;
-+	fence->seqno_ofs = seqno_ofs;
-+}
-+
-+#endif /* __LINUX_SEQNO_FENCE_H */
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
