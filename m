@@ -1,57 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57576 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031AbaBMVb4 (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2637 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752598AbaBZAHw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Feb 2014 16:31:56 -0500
-Date: Thu, 13 Feb 2014 22:31:48 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Steven Toth <stoth@kernellabs.com>
-cc: Pavel Machek <pavel@ucw.cz>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: Video capture in FPGA -- simple hardware to emulate?
-In-Reply-To: <CALzAhNVC1KRuhMks_2YUSF1e8iVEfsyvKZmphyXMqpJ+0d228Q@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1402132223480.24792@axis700.grange>
-References: <20140213195224.GA10691@amd.pavel.ucw.cz>
- <CALzAhNVC1KRuhMks_2YUSF1e8iVEfsyvKZmphyXMqpJ+0d228Q@mail.gmail.com>
+	Tue, 25 Feb 2014 19:07:52 -0500
+Message-ID: <530D303E.1060100@xs4all.nl>
+Date: Wed, 26 Feb 2014 01:07:26 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	k.debski@samsung.com
+Subject: Re: [PATCH v5 7/7] v4l: Document timestamp buffer flag behaviour
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <1392497585-5084-8-git-send-email-sakari.ailus@iki.fi> <5309DF58.9030004@xs4all.nl> <20140225170842.GF15635@valkosipuli.retiisi.org.uk> <530CD2A6.80906@xs4all.nl> <20140226000405.GG15635@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20140226000405.GG15635@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 13 Feb 2014, Steven Toth wrote:
+On 02/26/2014 01:04 AM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Tue, Feb 25, 2014 at 06:28:06PM +0100, Hans Verkuil wrote:
+>> On 02/25/2014 06:08 PM, Sakari Ailus wrote:
+>>> Hi Hans,
+>>>
+>>> On Sun, Feb 23, 2014 at 12:45:28PM +0100, Hans Verkuil wrote:
+>>>> On 02/15/2014 09:53 PM, Sakari Ailus wrote:
+>>>>> Timestamp buffer flags are constant at the moment. Document them so that 1)
+>>>>> they're always valid and 2) not changed by the drivers. This leaves room to
+>>>>> extend the functionality later on if needed.
+>>>>>
+>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>>>>> ---
+>>>>>  Documentation/DocBook/media/v4l/io.xml |   10 ++++++++++
+>>>>>  1 file changed, 10 insertions(+)
+>>>>>
+>>>>> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+>>>>> index fbd0c6e..4f76565 100644
+>>>>> --- a/Documentation/DocBook/media/v4l/io.xml
+>>>>> +++ b/Documentation/DocBook/media/v4l/io.xml
+>>>>> @@ -653,6 +653,16 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+>>>>>  In that case, struct <structname>v4l2_buffer</structname> contains an array of
+>>>>>  plane structures.</para>
+>>>>>  
+>>>>> +    <para>Dequeued video buffers come with timestamps. These
+>>>>> +    timestamps can be taken from different clocks and at different
+>>>>> +    part of the frame, depending on the driver. Please see flags in
+>>>>> +    the masks <constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant> and
+>>>>> +    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> in <xref
+>>>>> +    linkend="buffer-flags">. These flags are guaranteed to be always
+>>>>> +    valid and will not be changed by the driver autonomously. Changes
+>>>>> +    in these flags may take place due as a side effect of
+>>>>> +    &VIDIOC-S-INPUT; or &VIDIOC-S-OUTPUT; however.</para>
+>>>>
+>>>> There is one exception to this: if the timestamps are copied from the output
+>>>> buffer to the capture buffer (TIMESTAMP_COPY), then it can change theoretically
+>>>> for every buffer since it entirely depends on what is being sent to it. The
+>>>> value comes from userspace and you simply don't have any control over that.
+>>>
+>>> Yes; I agree.
+>>>
+>>> And a good point as well --- the timestamp source flags currently come from
+>>> __fill_v4l2_buffer() which takes them from q->timestamp. This isn't right
+>>> for m2m devices.
+>>>
+>>> I'll fix and resend (3rd patch most likely).
+>>
+>> You'll want to reference this patch I posted today:
+>>
+>> [RFCv1 PATCH 16/20] vb2: fix timecode and flags handling for output buffers
+>>
+>> Also available in this git repo:
+>>
+>> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/vb2-part4
+>>
+>> The current implementation in vb2 is actually broken (which is one of the
+>> things fixed by this patch): if you prepare a buffer (VIDIOC_PREPARE_BUF)
+>> and only then call VIDIOC_QBUF with a timestamp, that timestamp will be
+>> lost since it will use the one set by PREPARE_BUF (either that or it is
+>> zeroed, I've forgotten which of the two it was).
+>>
+>> If you want to take that patch and add your own changes to it, then that's
+>> fine by me. It should be pretty much standalone.
+> 
+> I'll keep that as-is and write another to pass the timestamp source flags
+> when needed. Would it be ok if I prepend the patch to the set?
+> 
 
-> On Thu, Feb 13, 2014 at 2:52 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> > Hi!
-> >
-> > I'm working on project that will need doing video capture from
-> > FPGA. That means I can define interface between kernel and hardware.
-> >
-> > Is there suitable, simple hardware we should emulate in the FPGA? I
-> > took a look, and pxa_camera seems to be one of the simple ones...
+Sure, no problem.
 
-Too bad this one
-
-http://opencores.org/project,100
-
-is only in planning... Maybe you could collaborate with them?
-
-> Thats actually a pretty open-ended question. You might get better
-> advice if you describe your hardware platform in a little more detail.
-
-+1. As usually you have to begin with what you need. Will it be using an 
-external DMA engine or will it have one built into it? If you've got a 
-DMAC core already, it will define your V4L2 dma operations choice - 
-contiguous or SG, unless, as Steven mentioned, you go over USB. Then you 
-decide what sensor interface you need - parallel or CSI, etc.
-
-> Are you using a USB or PCIe controller to talk to the fpga, or does
-> the fpga contain embedded IP cores for USB or PCIe?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+	Hans
