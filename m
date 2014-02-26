@@ -1,54 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2313 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268AbaBDMb4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Feb 2014 07:31:56 -0500
-Message-ID: <52F0DCE9.5020109@xs4all.nl>
-Date: Tue, 04 Feb 2014 13:28:25 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57339 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752598AbaBZAJn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Feb 2014 19:09:43 -0500
+Date: Wed, 26 Feb 2014 02:09:40 +0200
+From: 'Sakari Ailus' <sakari.ailus@iki.fi>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH v5 3/7] v4l: Add timestamp source flags, mask and
+ document them
+Message-ID: <20140226000940.GH15635@valkosipuli.retiisi.org.uk>
+References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi>
+ <1392497585-5084-4-git-send-email-sakari.ailus@iki.fi>
+ <12fa01cf322a$d8c35950$8a4a0bf0$%debski@samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 3/6] DocBook media: partial rewrite of "Opening and
- Closing Devices"
-References: <1389100017-42855-1-git-send-email-hverkuil@xs4all.nl> <1389100017-42855-4-git-send-email-hverkuil@xs4all.nl> <20140113132013.06f558a0@samsung.com> <52D4112C.5040902@xs4all.nl> <20140113152350.1ab23491@samsung.com> <52D8F6BB.5010704@xs4all.nl> <20140204102053.7faaa317@samsung.com>
-In-Reply-To: <20140204102053.7faaa317@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <12fa01cf322a$d8c35950$8a4a0bf0$%debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/04/14 13:20, Mauro Carvalho Chehab wrote:
-> Em Fri, 17 Jan 2014 10:24:11 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Tue, Feb 25, 2014 at 02:09:41PM +0100, Kamil Debski wrote:
+> Hi Sakari,
 > 
->>
->> I'll post the revised version of this patch next.
+> > From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> > Sent: Saturday, February 15, 2014 9:53 PM
+> > 
+> > Some devices do not produce timestamps that correspond to the end of
+> > the frame. The user space should be informed on the matter. This patch
+> > achieves that by adding buffer flags (and a mask) for timestamp sources
+> > since more possible timestamping points are expected than just two.
+> > 
+> > A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of
+> > the eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF
+> > for end of frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of
+> > exposure (next value).
+> > 
 > 
-> Weird, I'm not seeing the revised version of this patch posted.
-
-https://patchwork.linuxtv.org/patch/21620/
-
+> Changes in videobuf2-core.c look good.
 > 
-> Anyway, from your original patch:
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 > 
->> +      <para>Today each device node supports just one function, with the
->> +exception of overlay support.</para>
-> 
-> It is still mixing overlay with "function" (where "function" means
-> VBI, radio, video).
+> Acked-by: Kamil Debski <k.debski@samsung.com>
 
-Yes, I want to tackle that separately.
+Many thanks for the reviews, Kamil! :-)
 
-> 
-> I'll drop this one from the series I'm applying. Please review and submit
-> latter a new version of this one to the ML for easier review.
+-- 
+Kind regards,
 
-Please just take this as is. The 'function' terminology was there in the
-original, so it is not something this patch has introduced. Yes, it should be
-changed, but it's something I need to think about some more. This patch may
-not solve everything, but at least it greatly improves it.
-
-Regards,
-
-	Hans
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
