@@ -1,110 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:37608 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933AbaBLNfY (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.130]:62692 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751497AbaBZLCn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 08:35:24 -0500
-Date: Wed, 12 Feb 2014 22:35:15 +0900
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [PATCH v2] [media] of: move graph helpers from
- drivers/media/v4l2-core to drivers/media
-Message-id: <20140212223515.71a445f4.m.chehab@samsung.com>
-In-reply-to: <1392196314.5536.15.camel@pizza.hi.pengutronix.de>
-References: <1392154905-12007-1-git-send-email-p.zabel@pengutronix.de>
- <20140212065306.36a03e82.m.chehab@samsung.com>
- <1392196314.5536.15.camel@pizza.hi.pengutronix.de>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Wed, 26 Feb 2014 06:02:43 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 08/16] [media] arv: fix sleep_on race
+Date: Wed, 26 Feb 2014 12:01:48 +0100
+Message-Id: <1393412516-3762435-9-git-send-email-arnd@arndb.de>
+In-Reply-To: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
+References: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 12 Feb 2014 10:11:54 +0100
-Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+interruptible_sleep_on is racy and going away. In the arv driver that
+race has probably never caused problems since it would require a whole
+video frame to be captured before the read function has a chance to
+go to sleep, but using wait_event_interruptible lets us kill off the
+old interface. In order to do this, we have to slightly adapt the
+meaning of the ar->start_capture field to distinguish between not having
+started a frame and having completed it.
 
-> Hi Mauro,
-> 
-> Am Mittwoch, den 12.02.2014, 06:53 +0900 schrieb Mauro Carvalho Chehab:
-> [...]
-> > > diff --git a/include/media/of_graph.h b/include/media/of_graph.h
-> > > new file mode 100644
-> > > index 0000000..3bbeb60
-> > > --- /dev/null
-> > > +++ b/include/media/of_graph.h
-> > > @@ -0,0 +1,46 @@
-> > > +/*
-> > > + * OF graph binding parsing helpers
-> > > + *
-> > > + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-> > > + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > > + *
-> > > + * Copyright (C) 2012 Renesas Electronics Corp.
-> > > + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or modify
-> > > + * it under the terms of version 2 of the GNU General Public License as
-> > > + * published by the Free Software Foundation.
-> > > + */
-> > > +#ifndef __LINUX_OF_GRAPH_H
-> > > +#define __LINUX_OF_GRAPH_H
-> > > +
-> > > +#ifdef CONFIG_OF
-> > 
-> > As a matter of consistency, it would be better to test here for
-> > CONFIG_OF_GRAPH instead, to reflect the same symbol that enables such
-> > functions as used on Kconfig/Makefile.
-> 
-> Maybe I'm trying to be too clever for my own good, but my reasoning was
-> as follows:
-> 
-> Suppose I newly use the of_graph_ helpers in a subsystem that does not
-> yet select OF_GRAPH. In that case I'd rather get linking errors earlier
-> rather than stubbed out functions that silently fail to parse the DT
-> later.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/platform/arv.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I see your point, but, imagining that someone pushed a patch using those
-symbols upstream, that would break compilation and git bisection, with 
-will hurt everyone, and not only the very few of us that would actually
-need the OF_GRAPH symbol for an specific driver.
+diff --git a/drivers/media/platform/arv.c b/drivers/media/platform/arv.c
+index e346d32d..e9410e4 100644
+--- a/drivers/media/platform/arv.c
++++ b/drivers/media/platform/arv.c
+@@ -109,7 +109,7 @@ extern struct cpuinfo_m32r	boot_cpu_data;
+ struct ar {
+ 	struct v4l2_device v4l2_dev;
+ 	struct video_device vdev;
+-	unsigned int start_capture;	/* duaring capture in INT. mode. */
++	int start_capture;	/* duaring capture in INT. mode. */
+ #if USE_INT
+ 	unsigned char *line_buff;	/* DMA line buffer */
+ #endif
+@@ -307,11 +307,11 @@ static ssize_t ar_read(struct file *file, char *buf, size_t count, loff_t *ppos)
+ 	/*
+ 	 * Okay, kick AR LSI to invoke an interrupt
+ 	 */
+-	ar->start_capture = 0;
++	ar->start_capture = -1;
+ 	ar_outl(arvcr1 | ARVCR1_HIEN, ARVCR1);
+ 	local_irq_restore(flags);
+ 	/* .... AR interrupts .... */
+-	interruptible_sleep_on(&ar->wait);
++	wait_event_interruptible(ar->wait, ar->start_capture == 0);
+ 	if (signal_pending(current)) {
+ 		printk(KERN_ERR "arv: interrupted while get frame data.\n");
+ 		ret = -EINTR;
+-- 
+1.8.3.2
 
-Also, such push would mean that someone forgot to do his homework and
-to test if the committed functionality is actually working.
-
-So, it seems more fair that the one that did the mistake will be the one
-that will suffer the consequences for his errors instead of applying a
-penalty to everybody's else ;)
-
-> Since there is
-> config VIDEO_DEV
-> 	select OF_GRAPH if OF
-> already and the same should be added for other users of device tree
-> graphs, I think stubbing out the functions only if OF is disabled should
-> be enough.
-
-Well, if you want to be sure that the graph will always be there if OF, then
-you could do, instead:
-
-config OF_GRAPH
-	bool
-	default OF
-
-(that would actually make OF_GRAPH just an alias to OF - so we could just
-use OF instead).
-
-In any case, I think that we should use the same config name at Makefile, 
-Kconfig and of_graph.h (either OF_GRAPH or just OF).
-
-Regards,
-Mauro
