@@ -1,98 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f171.google.com ([209.85.215.171]:49205 "EHLO
-	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbaBTJbX (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39721 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752132AbaBZOyr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 04:31:23 -0500
-Received: by mail-ea0-f171.google.com with SMTP id f15so775006eak.30
-        for <linux-media@vger.kernel.org>; Thu, 20 Feb 2014 01:31:21 -0800 (PST)
-Received: from [192.168.1.100] (93-45-234-219.ip104.fastwebnet.it. [93.45.234.219])
-        by mx.google.com with ESMTPSA id j42sm11416265eep.21.2014.02.20.01.31.18
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Thu, 20 Feb 2014 01:31:20 -0800 (PST)
-Message-ID: <5305CB65.5000706@gmail.com>
-Date: Thu, 20 Feb 2014 10:31:17 +0100
-From: Caterpillar <caterpillar86@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: tvtime and Pinnacle PCTV 72e
-Content-Type: text/plain; charset=ISO-8859-15
+	Wed, 26 Feb 2014 09:54:47 -0500
+Message-ID: <1393428297.3248.92.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Date: Wed, 26 Feb 2014 16:24:57 +0100
+In-Reply-To: <20140226113729.A9D5AC40A89@trevor.secretlab.ca>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
+	 < 1393340304-19005-2-git-send-email-p.zabel@pengutronix.de>
+	 <20140226113729.A9D5AC40A89@trevor.secretlab.ca>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi. I am writing to you because I am helping a Fedora user that has
-problems using tvtime with its Pinnacle Systems, Inc. PCTV 72e [DiBcom
-DiB7000PC]
-Before he asked for my help, the user said he managed to work the card
-with its webcam, but not with the DBV-T Pinnacle card (USB).
-He says also to have a PCI DVB-S card installed in the system.
+Hi Grant,
 
-by default settings, if he executes tvtime from bash, he will get
+Am Mittwoch, den 26.02.2014, 11:37 +0000 schrieb Grant Likely:
+[...]
+> >  drivers/media/v4l2-core/v4l2-of.c             | 117 ----------------------
+> >  drivers/of/Makefile                           |   1 +
+> >  drivers/of/of_graph.c                         | 134 ++++++++++++++++++++++++++
+> 
+> Nah. Just put it into drivers/of/base.c. This isn't a separate subsystem
+> and the functions are pretty basic.
 
-|||=========================================||
-$ tvtime
-Running tvtime 1.0.2.
-Reading configuration from /etc/tvtime/tvtime.xml
-Reading configuration from /home/italman71/.tvtime/tvtime.xml
-videoinput: Cannot open capture device /dev/device0: File o directory non esistente
-mixer: find error: Successo
-mixer: Can't open mixer default, mixer volume and mute unavailable.
-mixer: Can't open device default/Line, mixer volume and mute unavailable.
-|||=========================================||
+Ok.
 
-but as you can see from ls /dev/ ( http://pastebin.com/vGYaD1mY ) there
-is not a |/dev/device0 but other interesting devices like video0,
-video1, v4l, dvb
+[...]
+> > +struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+> > +					struct device_node *prev)
+> > +{
+> > +	struct device_node *endpoint;
+> > +	struct device_node *port = NULL;
+> > +
+> > +	if (!parent)
+> > +		return NULL;
+> > +
+> > +	if (!prev) {
+> > +		struct device_node *node;
+> > +		/*
+> > +		 * It's the first call, we have to find a port subnode
+> > +		 * within this node or within an optional 'ports' node.
+> > +		 */
+> > +		node = of_get_child_by_name(parent, "ports");
+> > +		if (node)
+> > +			parent = node;
+> > +
+> > +		port = of_get_child_by_name(parent, "port");
+> 
+> If you've got a "ports" node, then I would expect every single child to
+> be a port. Should not need the _by_name variant.
 
-He did some unsuccessfull tries, for example
-|
+The 'ports' node is optional. It is only needed if the parent node has
+its own #address-cells and #size-cells properties. If the ports are
+direct children of the device node, there might be other nodes than
+ports:
 
-|||=========================================||
-$ tvtime --device /dev/video1
-Running tvtime 1.0.2.
-Reading configuration from /etc/tvtime/tvtime.xml
-Reading configuration from /home/italman71/.tvtime/tvtime.xml
-mixer: find error: Successo
-mixer: Can't open mixer default, mixer volume and mute unavailable.
-mixer: Can't open device default/Line, mixer volume and mute unavailable.
-Thank you for using tvtime.
-||||=========================================||
+	device {
+		#address-cells = <1>;
+		#size-cells = <0>;
 
+		port@0 {
+			endpoint { ... };
+		};
+		port@1 {
+			endpoint { ... };
+		};
 
-it gave to the user a black screen, so I told him to try video0, but it seemed to be the output of computer webcam
-|
-||=========================================||
-||tvtime --device /dev/video0
-Running tvtime 1.0.2.
-Reading configuration from /etc/tvtime/tvtime.xml
-Reading configuration from /home/italman71/.tvtime/tvtime.xml
-videoinput: Driver won't tell us its norm: ioctl non appropriata per il device
-videoinput: Can't get tuner info: ioctl non appropriata per il device
+		some-other-child { ... };
+	};
 
-    Your capture card driver: uvcvideo [UVC Camera (046d:081d)/usb-0000:00:12.2-1/200192]
-    does not support full size studio-quality images required by tvtime.
-    This is true for many low-quality webcams.  Please select a
-    different video device for tvtime to use with the command line
-    option --device.
+	device {
+		#address-cells = <x>;
+		#size-cells = <y>;
 
-mixer: find error: Successo
-mixer: Can't open mixer default, mixer volume and mute unavailable.
-mixer: Can't open device default/Line, mixer volume and mute unavailable.
-Thank you for using tvtime
-=========================================
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
 
+			port@0 {
+				endpoint { ... };
+			};
+			port@1 {
+				endpoint { ... };
+			};
+		};
 
-At this point I don't know what I can do to manage to work the device with tvtime. Do you have any suggestions? Downhere you can find a lot of useful infos collected from the system
+		some-other-child { ... };
+	};
 
-||||lspci http://pastebin.com/Q2bdZiSq| 
-|ls /dev/ http://pastebin.com/vGYaD1mY
-lsusb http://pastebin.com/gFSKZcME
-lsmod http://pastebin.com/QpYUai90tree /dev/dvb http://pastebin.com/Sf0vewWc
-dmesg|grep DiBhttp://pastebin.com/a7M0HwRA
-dmesg|grep Pinnacle http://pastebin.com/zzDcKfN4
-dmesg|tail http://pastebin.com/gsimDTAd
+The helper should find the two endpoints in both cases.
+Tomi suggests an even more compact form for devices with just one port:
 
+	device {
+		endpoint { ... };
 
-Thank you for your time
+		some-other-child { ... };
+	};
+
+> It seems that this function is merely a helper to get all grandchildren
+> of a node (with some very minor constraints). That could be generalized
+> and simplified. If the function takes the "ports" node as an argument
+> instead of the parent, then there is a greater likelyhood that other
+> code can make use of it...
+> 
+> Thinking further. I think the semantics of this whole feature basically
+> boil down to this:
+> 
+> #define for_each_grandchild_of_node(parent, child, grandchild) \
+> 	for_each_child_of_node(parent, child) \
+> 		for_each_child_of_node(child, grandchild)
+> 
+> Correct? Or in this specific case:
+> 
+> 	parent = of_get_child_by_name(np, "ports")
+> 	for_each_grandchild_of_node(parent, child, grandchild) {
+> 		...
+> 	}
+
+Hmm, that would indeed be a bit more generic, but it doesn't handle the
+optional 'ports' subnode and doesn't allow for other child nodes in the
+device node.
+
+> Finally, looking at the actual patch, is any of this actually needed.
+> All of the users updated by this patch only ever handle a single
+> endpoint. Have I read it correctly? Are there any users supporting
+> multiple endpoints?
+
+Yes, mainline currently only contains simple cases. I have posted i.MX6
+patches that use this scheme for the output path:
+  http://www.spinics.net/lists/arm-kernel/msg310817.html
+  http://www.spinics.net/lists/arm-kernel/msg310821.html
+
+> > +
+> > +		if (port) {
+> > +			/* Found a port, get an endpoint. */
+> > +			endpoint = of_get_next_child(port, NULL);
+> > +			of_node_put(port);
+> > +		} else {
+> > +			endpoint = NULL;
+> > +		}
+> > +
+> > +		if (!endpoint)
+> > +			pr_err("%s(): no endpoint nodes specified for %s\n",
+> > +			       __func__, parent->full_name);
+> > +		of_node_put(node);
+> 
+> If you 'return endpoint' here, then the else block can go down a level.
+
+Note that this patch is a straight move of existing code.
+I can follow up with code beautification and ...
+
+> > +	} else {
+> > +		port = of_get_parent(prev);
+> > +		if (!port)
+> > +			/* Hm, has someone given us the root node ?... */
+> > +			return NULL;
+> 
+> WARN_ONCE(). That's a very definite coding failure if that happens.
+
+... with a fix for this.
+
+> > +
+> > +		/* Avoid dropping prev node refcount to 0. */
+> > +		of_node_get(prev);
+> > +		endpoint = of_get_next_child(port, prev);
+> > +		if (endpoint) {
+> > +			of_node_put(port);
+> > +			return endpoint;
+> > +		}
+> > +
+> > +		/* No more endpoints under this port, try the next one. */
+> > +		do {
+> > +			port = of_get_next_child(parent, port);
+> > +			if (!port)
+> > +				return NULL;
+> > +		} while (of_node_cmp(port->name, "port"));
+> > +
+> > +		/* Pick up the first endpoint in this port. */
+> > +		endpoint = of_get_next_child(port, NULL);
+> > +		of_node_put(port);
+> > +	}
+> > +
+> > +	return endpoint;
+> > +}
+> > +EXPORT_SYMBOL(of_graph_get_next_endpoint);
+> > +
+> > +/**
+> > + * of_graph_get_remote_port_parent() - get remote port's parent node
+> > + * @node: pointer to a local endpoint device_node
+> > + *
+> > + * Return: Remote device node associated with remote endpoint node linked
+> > + *	   to @node. Use of_node_put() on it when done.
+> > + */
+> > +struct device_node *of_graph_get_remote_port_parent(
+> > +			       const struct device_node *node)
+> > +{
+> > +	struct device_node *np;
+> > +	unsigned int depth;
+> > +
+> > +	/* Get remote endpoint node. */
+> > +	np = of_parse_phandle(node, "remote-endpoint", 0);
+> > +
+> > +	/* Walk 3 levels up only if there is 'ports' node. */
+> 
+> This needs a some explaining. My reading of the binding pattern is that
+> it will always be a fixed number of levels. Why is this test fuzzy?
+[...]
+
+See above. The ports subnode level is optional. In most cases, the port
+nodes will be direct children of the device node.
+Walking up 3 levels from the endpoint node will return the device if
+there was a ports node. If there is no ports node, we only have to walk
+up two levels.
+
+regards
+Philipp
+
