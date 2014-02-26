@@ -1,113 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4473 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751723AbaBZDiu (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46218 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752811AbaBZPTr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 22:38:50 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1Q3clZh081667
-	for <linux-media@vger.kernel.org>; Wed, 26 Feb 2014 04:38:49 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 8EB072A0232
-	for <linux-media@vger.kernel.org>; Wed, 26 Feb 2014 04:38:43 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20140226033843.8EB072A0232@tschai.lan>
-Date: Wed, 26 Feb 2014 04:38:43 +0100 (CET)
+	Wed, 26 Feb 2014 10:19:47 -0500
+Message-ID: <1393429676.3248.110.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date: Wed, 26 Feb 2014 16:47:56 +0100
+In-Reply-To: <530DFF4C.8080807@ti.com>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
+		 <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
+		 <530DE8A9.9050809@ti.com>
+	 <1393426623.3248.70.camel@paszta.hi.pengutronix.de>
+	 <530DFF4C.8080807@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Am Mittwoch, den 26.02.2014, 16:50 +0200 schrieb Tomi Valkeinen:
+> On 26/02/14 16:57, Philipp Zabel wrote:
+> > Hi Tomi,
+> > 
+> > Am Mittwoch, den 26.02.2014, 15:14 +0200 schrieb Tomi Valkeinen:
+> >> On 25/02/14 16:58, Philipp Zabel wrote:
+> >>
+> >>> +Optional endpoint properties
+> >>> +----------------------------
+> >>> +
+> >>> +- remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
+> >>
+> >> Why is that optional? What use is an endpoint, if it's not connected to
+> >> something?
+> > 
+> > This allows to include the an empty endpoint template in a SoC dtsi for
+> > the convenience of board dts writers. Also, the same property is
+> > currently listed as optional in video-interfaces.txt.
+> > 
+> >   soc.dtsi:
+> > 	display-controller {
+> > 		port {
+> > 			disp0: endpoint { };
+> > 		};
+> > 	};
+> > 
+> >   board.dts:
+> > 	#include "soc.dtsi"
+> > 	&disp0 {
+> > 		remote-endpoint = <&panel_input>;
+> > 	};
+> > 	panel {
+> > 		port {
+> > 			panel_in: endpoint {
+> > 				remote-endpoint = <&disp0>;
+> > 			};
+> > 		};
+> > 	};
+> > 
+> > Any board not using that port can just leave the endpoint disconnected.
+> 
+> Hmm I see. I'm against that.
+> 
+> I think the SoC dtsi should not contain endpoint node, or even port node
+> (at least usually).
 
-Results of the daily build of media_tree:
+Well, at least the port is a physical thing. I see no reason not to have
+it in the dtsi.
 
-date:		Wed Feb 26 04:02:10 CET 2014
-git branch:	test
-git hash:	efab6b6a6ea9364ececb955f69a9d3ffc6b782a1
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+> It doesn't know how many endpoints, if any, a
+> particular board has. That part should be up to the board dts.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+...
 
-Detailed results are available here:
+> I've done this with OMAP as (much simplified):
+> 
+> SoC.dtsi:
+> 
+> dss: dss@58000000 {
+> 	status = "disabled";
+> };
+> 
+> Nothing else (relevant here). The binding documentation states that dss
+> has one port, and information what data is needed for the port and endpoint.
+> 
+> board.dts:
+> 
+> &dss {
+>         status = "ok";
+> 
+>         pinctrl-names = "default";
+>         pinctrl-0 = <&dss_dpi_pins>;
+> 
+>         dpi_out: endpoint {
+> 
+>                 remote-endpoint = <&tfp410_in>;
+>                 data-lines = <24>;
+>         };
+> };
+> 
+> That's using the shortened version without port node.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Ok, that looks compact enough. I still don't see the need to change make
+the remote-endpoint property required to achieve this, though. On the
+other hand, I wouldn't object to making it mandatory either.
 
-Full logs are available here:
+> Of course, it's up to the developer how his dts looks like. But to me it
+> makes sense to require the remote-endpoint property, as the endpoint, or
+> even the port, doesn't make much sense if there's nothing to connect to.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Please let's not make it mandatory for a port node to contain an
+endpoint. For any device with multiple ports we can't use the simplified
+form above, and only adding the (correctly numbered) port in all the
+board device trees would be a pain.
 
-The Media Infrastructure API from this daily build is here:
+regards
+Philipp
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
