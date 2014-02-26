@@ -1,109 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1596 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbaB0MN4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Feb 2014 07:13:56 -0500
-Message-ID: <530F2BE1.7000306@xs4all.nl>
-Date: Thu, 27 Feb 2014 13:13:21 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:58950 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752139AbaBZQwE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 11:52:04 -0500
+Message-ID: <530E1BB2.6000203@iki.fi>
+Date: Wed, 26 Feb 2014 18:52:02 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, pawel@osciak.com,
-	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv2 PATCH 07/15] vb2: call buf_finish from __dqbuf
-References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl> <1393332775-44067-8-git-send-email-hverkuil@xs4all.nl> <30968653.YUuibDDAk4@avalon>
-In-Reply-To: <30968653.YUuibDDAk4@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 13/16] rtl2832_sdr: expose e4000 controls to user
+References: <1392084299-16549-1-git-send-email-crope@iki.fi> <1392084299-16549-14-git-send-email-crope@iki.fi> <52FE3004.7000700@xs4all.nl>
+In-Reply-To: <52FE3004.7000700@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/27/14 12:51, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Tuesday 25 February 2014 13:52:47 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 14.02.2014 17:02, Hans Verkuil wrote:
+> On 02/11/2014 03:04 AM, Antti Palosaari wrote:
+>> E4000 tuner driver provides now some controls. Expose those to
+>> userland.
 >>
->> This ensures that it is also called from queue_cancel, which also calls
->> __dqbuf(). Without this change any time queue_cancel is called while
->> streaming the buf_finish op will not be called and any driver cleanup
->> will not happen.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Pawel Osciak <pawel@osciak.com>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
 >> ---
->>  drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>   drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 10 ++++++----
+>>   1 file changed, 6 insertions(+), 4 deletions(-)
 >>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
->> b/drivers/media/v4l2-core/videobuf2-core.c index 59bfd85..b5142e5 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -1758,6 +1758,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
->>  	if (vb->state == VB2_BUF_STATE_DEQUEUED)
->>  		return;
+>> diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+>> index 9265424..18f8c56 100644
+>> --- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+>> +++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+>> @@ -25,6 +25,7 @@
+>>   #include "dvb_frontend.h"
+>>   #include "rtl2832_sdr.h"
+>>   #include "dvb_usb.h"
+>> +#include "e4000.h"
 >>
->> +	call_vb_qop(vb, buf_finish, vb);
->> +
->>  	vb->state = VB2_BUF_STATE_DEQUEUED;
+>>   #include <media/v4l2-device.h>
+>>   #include <media/v4l2-ioctl.h>
+>> @@ -1347,6 +1348,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+>>   	struct rtl2832_sdr_state *s;
+>>   	const struct v4l2_ctrl_ops *ops = &rtl2832_sdr_ctrl_ops;
+>>   	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
+>> +	struct v4l2_ctrl_handler *hdl;
 >>
->>  	/* unmap DMABUF buffer */
->> @@ -1783,8 +1785,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q,
->> struct v4l2_buffer *b, bool n if (ret < 0)
->>  		return ret;
->>
->> -	call_vb_qop(vb, buf_finish, vb);
->> -
->>  	switch (vb->state) {
->>  	case VB2_BUF_STATE_DONE:
->>  		dprintk(3, "dqbuf: Returning done buffer\n");
-> 
-> This will cause an issue with the uvcvideo driver (and possibly others) if I'm 
-> not mistaken. To give a bit more context, we currently have the following code 
-> in vb2_internal_dqbuf.
-> 
->         ret = call_qop(q, buf_finish, vb);
->         if (ret) {
->                 dprintk(1, "dqbuf: buffer finish failed\n");
->                 return ret;
->         }
-> 
->         switch (vb->state) {
->         case VB2_BUF_STATE_DONE:
->                 dprintk(3, "dqbuf: Returning done buffer\n");
->                 break;
->         case VB2_BUF_STATE_ERROR:
->                 dprintk(3, "dqbuf: Returning done buffer with errors\n");
->                 break;
->         default:
->                 dprintk(1, "dqbuf: Invalid buffer state\n");
->                 return -EINVAL;
->         }
-> 
->         /* Fill buffer information for the userspace */
->         __fill_v4l2_buffer(vb, b);
->         /* Remove from videobuf queue */
->         list_del(&vb->queued_entry);
->         /* go back to dequeued state */
->         __vb2_dqbuf(vb);
-> 
-> You're thus effectively moving the buf_finish call from before 
-> __fill_v4l2_buffer() to after it. As the buf_finish operation in uvcvideo 
-> fills the vb2 timestamp, the timestamp copied to userspace will be wrong.
+>>   	s = kzalloc(sizeof(struct rtl2832_sdr_state), GFP_KERNEL);
+>>   	if (s == NULL) {
+>> @@ -1386,10 +1388,10 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+>>   	/* Register controls */
+>>   	switch (s->cfg->tuner) {
+>>   	case RTL2832_TUNER_E4000:
+>> -		v4l2_ctrl_handler_init(&s->hdl, 2);
+>> -		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH_AUTO, 0, 1, 1, 1);
+>> -		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
+>> -		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
+>> +		hdl = e4000_get_ctrl_handler(fe);
+>> +		v4l2_ctrl_handler_init(&s->hdl, 0);
+>
+> Use the same number as is used in e4000: 8.
+>
+> It's a hint of the number of controls that the handler will contain and it affects
+> the number of buckets used for the hash table. Putting in a 0 will result in a single
+> bucket which means that all controls end up in a single linked list. Changing it to
+> 8 will result in two buckets, which performs a bit better.
 
-Ouch. Good catch. The solution is to move the __vb2_dqbuf() call to before
-the __fill_v4l2_buffer call. But I should see if I can add some test for
-this to vivi/v4l2-compliance as well since that should have been caught.
+OK. I was thinking that if I add handler to handler, I don't need to 
+take into account how many controls the tuner handler has. Before you 
+ask why there is 2 handlers merged, other having 0 controls, I left it 
+that way I can add ADC controls later.
 
-> Other drivers may fill other vb2 fields that need to be copied to userspace as 
-> well. You should also double check that no driver modifies the vb2 state in 
-> the buf_finish operation. Expanding the buf_finish documentation to tell what 
-> drivers are allowed to do could be nice.
+I am now going through that whole SDR patch serie and I will likely post 
+fixed version tonight.
 
-Good point.
+regards
+Antti
 
-Regards,
-
-	Hans
+-- 
+http://palosaari.fi/
