@@ -1,52 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58918 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754289AbaB0AQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 19:16:59 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: [REVIEW PATCH 1/8] xc2028: silence compiler warnings
-Date: Thu, 27 Feb 2014 02:16:03 +0200
-Message-Id: <1393460170-11591-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1393460170-11591-1-git-send-email-crope@iki.fi>
-References: <1393460170-11591-1-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from moutng.kundenserver.de ([212.227.126.130]:54782 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752064AbaBZLCt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 06:02:49 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 07/16] [media] radio-cadet: avoid interruptible_sleep_on race
+Date: Wed, 26 Feb 2014 12:01:47 +0100
+Message-Id: <1393412516-3762435-8-git-send-email-arnd@arndb.de>
+In-Reply-To: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
+References: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is now new tuner types which are not handled on that switch-case.
-Print error if unknown tuner type is meet.
+interruptible_sleep_on is racy and going away. This replaces
+one use in the radio-cadet driver with an wait_event_interruptible
+call that lets us check the condition under the mutex
+but sleep without it.
 
-drivers/media/tuners/tuner-xc2028.c: In function ‘generic_set_freq’:
-drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_ADC’ not handled in switch [-Wswitch]
-  switch (new_type) {
-  ^
-drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_RF’ not handled in switch [-Wswitch]
+The first version of this patch was done by Arnd, but Hans
+came up with a nicer solution.
 
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
 ---
- drivers/media/tuners/tuner-xc2028.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/radio/radio-cadet.c | 46 +++++++++++++++++++++++----------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-index cca508d..76a8165 100644
---- a/drivers/media/tuners/tuner-xc2028.c
-+++ b/drivers/media/tuners/tuner-xc2028.c
-@@ -1107,6 +1107,9 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
- 				offset += 200000;
- 		}
- #endif
-+	default:
-+		tuner_err("Unsupported tuner type %d.\n", new_type);
-+		break;
- 	}
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index 545c04c..d27e8b2 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -270,6 +270,16 @@ reset_rds:
+ 	outb(inb(dev->io + 1) & 0x7f, dev->io + 1);
+ }
  
- 	div = (freq - offset + DIV / 2) / DIV;
++static bool cadet_has_rds_data(struct cadet *dev)
++{
++	bool result;
++	
++	mutex_lock(&dev->lock);
++	result = dev->rdsin != dev->rdsout;
++	mutex_unlock(&dev->lock);
++	return result;
++}
++
+ 
+ static void cadet_handler(unsigned long data)
+ {
+@@ -279,13 +289,12 @@ static void cadet_handler(unsigned long data)
+ 	if (mutex_trylock(&dev->lock)) {
+ 		outb(0x3, dev->io);       /* Select RDS Decoder Control */
+ 		if ((inb(dev->io + 1) & 0x20) != 0)
+-			printk(KERN_CRIT "cadet: RDS fifo overflow\n");
++			pr_err("cadet: RDS fifo overflow\n");
+ 		outb(0x80, dev->io);      /* Select RDS fifo */
++
+ 		while ((inb(dev->io) & 0x80) != 0) {
+ 			dev->rdsbuf[dev->rdsin] = inb(dev->io + 1);
+-			if (dev->rdsin + 1 == dev->rdsout)
+-				printk(KERN_WARNING "cadet: RDS buffer overflow\n");
+-			else
++			if (dev->rdsin + 1 != dev->rdsout)
+ 				dev->rdsin++;
+ 		}
+ 		mutex_unlock(&dev->lock);
+@@ -294,7 +303,7 @@ static void cadet_handler(unsigned long data)
+ 	/*
+ 	 * Service pending read
+ 	 */
+-	if (dev->rdsin != dev->rdsout)
++	if (cadet_has_rds_data(dev))
+ 		wake_up_interruptible(&dev->read_queue);
+ 
+ 	/*
+@@ -327,22 +336,21 @@ static ssize_t cadet_read(struct file *file, char __user *data, size_t count, lo
+ 	mutex_lock(&dev->lock);
+ 	if (dev->rdsstat == 0)
+ 		cadet_start_rds(dev);
+-	if (dev->rdsin == dev->rdsout) {
+-		if (file->f_flags & O_NONBLOCK) {
+-			i = -EWOULDBLOCK;
+-			goto unlock;
+-		}
+-		mutex_unlock(&dev->lock);
+-		interruptible_sleep_on(&dev->read_queue);
+-		mutex_lock(&dev->lock);
+-	}
++	mutex_unlock(&dev->lock);
++
++	if (!cadet_has_rds_data(dev) && (file->f_flags & O_NONBLOCK))
++		return -EWOULDBLOCK;
++	i = wait_event_interruptible(dev->read_queue, cadet_has_rds_data(dev));
++	if (i)
++		return i;
++
++	mutex_lock(&dev->lock);
+ 	while (i < count && dev->rdsin != dev->rdsout)
+ 		readbuf[i++] = dev->rdsbuf[dev->rdsout++];
++	mutex_unlock(&dev->lock);
+ 
+ 	if (i && copy_to_user(data, readbuf, i))
+-		i = -EFAULT;
+-unlock:
+-	mutex_unlock(&dev->lock);
++		return -EFAULT;
+ 	return i;
+ }
+ 
+@@ -352,7 +360,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ {
+ 	strlcpy(v->driver, "ADS Cadet", sizeof(v->driver));
+ 	strlcpy(v->card, "ADS Cadet", sizeof(v->card));
+-	strlcpy(v->bus_info, "ISA", sizeof(v->bus_info));
++	strlcpy(v->bus_info, "ISA:radio-cadet", sizeof(v->bus_info));
+ 	v->device_caps = V4L2_CAP_TUNER | V4L2_CAP_RADIO |
+ 			  V4L2_CAP_READWRITE | V4L2_CAP_RDS_CAPTURE;
+ 	v->capabilities = v->device_caps | V4L2_CAP_DEVICE_CAPS;
+@@ -491,7 +499,7 @@ static unsigned int cadet_poll(struct file *file, struct poll_table_struct *wait
+ 			cadet_start_rds(dev);
+ 		mutex_unlock(&dev->lock);
+ 	}
+-	if (dev->rdsin != dev->rdsout)
++	if (cadet_has_rds_data(dev))
+ 		res |= POLLIN | POLLRDNORM;
+ 	return res;
+ }
 -- 
-1.8.5.3
+1.8.3.2
 
