@@ -1,139 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:45975 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751316AbaBKW0q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 17:26:46 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:38445 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751140AbaBZOIU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 09:08:20 -0500
+Message-ID: <530DF551.6070609@iki.fi>
+Date: Wed, 26 Feb 2014 16:08:17 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1402112151370.521@axis700.grange>
-References: <1391807504-8946-1-git-send-email-pengw@nvidia.com>
- <Pine.LNX.4.64.1402092122250.7755@axis700.grange> <CAK5ve-L5y+X+hLBrP_XTuv_fEU46mXB1P_Xoin+upboutT-8gQ@mail.gmail.com>
- <Pine.LNX.4.64.1402110732070.24582@axis700.grange> <CAK5ve-Kct71b4jZ_c9Jq3-tLozSBBH7FxgZUy2VSV1VUUefsZA@mail.gmail.com>
- <Pine.LNX.4.64.1402112151370.521@axis700.grange>
-From: Bryan Wu <cooloney@gmail.com>
-Date: Tue, 11 Feb 2014 14:26:25 -0800
-Message-ID: <CAK5ve-+ewSKJRggFOjuYooZfLgRq2a8vrFbOEfYmzonmyKGwwQ@mail.gmail.com>
-Subject: Re: [PATCH] media: soc-camera: support deferred probing of clients
- and OF cameras
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-tegra <linux-tegra@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Paavo Leinonen <paavo@leinonen.fi>, linux-media@vger.kernel.org
+Subject: Re: Unsupported Anysee version
+References: <00c401cf29b8$fb50ede0$f1f2c9a0$@leinonen.fi>
+In-Reply-To: <00c401cf29b8$fb50ede0$f1f2c9a0$@leinonen.fi>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 11, 2014 at 12:53 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Tue, 11 Feb 2014, Bryan Wu wrote:
+Moikka Paavo
+
+On 14.02.2014 21:14, Paavo Leinonen wrote:
+> Hi,
 >
->> On Mon, Feb 10, 2014 at 10:37 PM, Guennadi Liakhovetski
->> <g.liakhovetski@gmx.de> wrote:
->> > Hi Bryan,
->> >
->> > On Mon, 10 Feb 2014, Bryan Wu wrote:
->> >
->> >> On Sun, Feb 9, 2014 at 2:20 PM, Guennadi Liakhovetski
->> >> <g.liakhovetski@gmx.de> wrote:
->> >> > Hi Bryan,
->> >> >
->> >> > Thanks for reiterating this patch!
->> >> >
->> >>
->> >> Sure, my pleasure. I basically assembled your patches together and
->> >> change them to use latest V4L2 soc_camera API.
->> >>
->> >> > On Fri, 7 Feb 2014, Bryan Wu wrote:
->> >
->> > [snip]
->> >
->> >> >> @@ -67,6 +81,8 @@ struct soc_camera_async_client {
->> >> >>
->> >> >>  static int soc_camera_video_start(struct soc_camera_device *icd);
->> >> >>  static int video_dev_create(struct soc_camera_device *icd);
->> >> >> +static void soc_camera_of_i2c_info(struct device_node *node,
->> >> >> +                               struct soc_camera_of_client *sofc);
->> >> >
->> >> > If you have to resubmit this patch, plase, make sure the second line of
->> >> > the above declaration is aligned af usual - under the first character
->> >> > _after_ the opening bracket.
->> >> >
->> >>
->> >> No problem, I will update this.
->> >> Hmmm, something weird on my side. I did put the second line starting
->> >> under the first character after the opening bracket. But in git show
->> >> and git format-patch I got this
->> >> ---
->> >> static int soc_camera_video_start(struct soc_camera_device *icd);
->> >>  static int video_dev_create(struct soc_camera_device *icd);
->> >> +static void soc_camera_of_i2c_info(struct device_node *node,
->> >> +                                  struct soc_camera_of_client *sofc);
->> >> ---
->> >>
->> >> But I think that's what you want, right?
->> >
->> > Don't know - now aöö TABs above are replaced with spaces, so, cannot say.
->> >
->> > [snip]
->> >
->> >> >> +{
->> >> >> +     struct soc_camera_of_client *sofc;
->> >> >> +     struct soc_camera_desc *sdesc;
->> >> >
->> >> > I'm really grateful, that you decided to use my original patch and
->> >> > preserve my authorship! But then, I think, it'd be also better to avoid
->> >> > unnecessary changes to it. What was wrong with allocation of *sofc in the
->> >> > definition line?
->> >> >
->> >>
->> >> Oh, this is really I want to bring up. It's a very subtle bug here.
->> >>
->> >> If we use local variable sofc instead of zalloc, fields of sofc have
->> >> undetermined None NULL value.
->> >
->> > No. If you initialise some members of a struct in its definition line, the
->> > rest will be initialised to 0 / NULL. I.e. in
->> >
->> >         struct foo y = {.x = 1,};
->> >
->> > all other fields of y will be initialised to 0.
->>
->> I see, but original one is soc_camera_link which is simple in this
->> case. right now we move to soc_camera_desc. I think following line is
->> not very straight forward in a local function.
->>
->> struct soc_camera_desc sdesc = { .host_desc = { .host_wait = true,},};
+> I plugged in an old Anysee DVB-C and got “Unsupported Anysee version” error.
 >
-> I usually do
+> The box is Fedora 15 running 3.11.10-100.fc18.x86_64 kernel.
 >
-> struct soc_camera_desc sdesc = {.host_desc.host_wait = true,};
+> Can I do something to get it working or help you to support it?
 >
->> What about a) struct soc_camera_desc sdesc and use memset to all 0. b)
->> use kzalloc() and kfree() in this function.
->>
->> I think b) is more straight forward and easy to understand.
+> Note: I’m not 100% sure the Anysee HW is working, but I assume so.
+
+I think that is some old DVB-C only Anysee E30C model, having black 
+case? It should be working ages, unless there is no new hardware revisions.
+
+  * E30 C Plus VID=1c73 PID=861f HW=15 FW=1.2 "anysee-FA(LP)"
+  * PCB: 507FA (rev0.4)
+  * parts: TDA10023, DTOS403IH102B TM, TDA8024
+  * OEA=80 OEB=00 OEC=ff OED=ff OEE=ff
+  * IOA=4d IOB=ff IOC=00 IOD=00 IOE=c0
+  * IOD[5] TDA10023 1=enabled
+  * IOE[0] tuner 1=enabled
+
+
+regards
+Antti
+
+
 >
-> With error handling for a failed kzalloc() - don't think so.
+> -Paavo
+>
+> [75103.843017] usb 2-3: new high-speed USB device number 5 using ehci-pci
+>
+> [75104.593493] usb 2-3: device descriptor read/all, error -71
+>
+> [75105.085016] usb 2-3: new high-speed USB device number 7 using ehci-pci
+>
+> [75106.542413] usb 2-3: config 1 interface 0 altsetting 0 bulk endpoint
+> 0x1 has invalid maxpacket 64
+>
+> [75106.542426] usb 2-3: config 1 interface 0 altsetting 0 bulk endpoint
+> 0x81 has invalid maxpacket 64
+>
+> [75106.542435] usb 2-3: config 1 interface 0 altsetting 1 bulk endpoint
+> 0x1 has invalid maxpacket 64
+>
+> [75106.542445] usb 2-3: config 1 interface 0 altsetting 1 bulk endpoint
+> 0x81 has invalid maxpacket 64
+>
+> [75106.542786] usb 2-3: New USB device found, idVendor=1c73, idProduct=861f
+>
+> [75106.542797] usb 2-3: New USB device strings: Mfr=1, Product=2,
+> SerialNumber=0
+>
+> [75106.542805] usb 2-3: Product: anysee-FA(LP)
+>
+> [75106.542811] usb 2-3: Manufacturer: AMT.CO.KR
+>
+> [75106.543148] usb 2-3: dvb_usb_v2: found a 'Anysee' in warm state
+>
+> [75106.544411] usb 2-3: dvb_usb_anysee: firmware version 1.2 hardware id 15
+>
+> [75106.544460] usb 2-3: dvb_usb_v2: will pass the complete MPEG2
+> transport stream to the software demuxer
+>
+> [75106.544496] DVB: registering new adapter (Anysee)
+>
+> [75106.553168] usb 2-3: dvb_usb_anysee: Unsupported Anysee version.
+> Please report to <linux-media@vger.kernel.org>.
+>
+> [75106.553187] usb 2-3: dvb_usb_v2: 'Anysee' error while loading driver
+> (-19)
+>
+> [75106.554204] usb 2-3: dvb_usb_v2: 'Anysee' successfully deinitialized
+> and disconnected
 >
 
-OK deal. I will update this.
 
-More questions here:
-
-1. Why do we need a notifier for soc_camera_pdrv_probe()?
-I think we can call platform_device_register() which will finish call
-the soc_camera_pdrv_probe() and before we start to call.
-
-icd = platform_get_drvdata(sofc->pdev);
-
-I removed those bus notifier code, it works fine on my platform for probing.
-
-2. How to use v4l2-async API properly?
-I think basically we need to call
-v4l2_async_notifier_register(&ici->v4l2_dev, &sofc->notifier);
-And move the code in soc_camera_i2c_notify() into
-.bound/.unbind/.complete call function.
-I just treat the scan_async_group() as an example.
-
-Thanks,
--Bryan
+-- 
+http://palosaari.fi/
