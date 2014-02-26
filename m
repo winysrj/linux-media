@@ -1,138 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50790 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752108AbaBIJXG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 04:23:06 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 79/86] rtl2832: provide muxed I2C adapter
-Date: Sun,  9 Feb 2014 10:49:24 +0200
-Message-Id: <1391935771-18670-80-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4705 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750724AbaBZJ5R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 04:57:17 -0500
+Message-ID: <530DBA62.9060900@xs4all.nl>
+Date: Wed, 26 Feb 2014 10:56:50 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Arnd Bergmann <arnd@arndb.de>
+CC: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH, RFC 05/30] [media] omap_vout: avoid sleep_on race
+References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <1388664474-1710039-6-git-send-email-arnd@arndb.de> <52D90490.3080407@xs4all.nl> <201402261003.03076.arnd@arndb.de>
+In-Reply-To: <201402261003.03076.arnd@arndb.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RTL2832 provides gated / repeater I2C adapter for tuner.
-Implement it as a muxed I2C adapter.
+On 02/26/14 10:03, Arnd Bergmann wrote:
+> On Friday 17 January 2014, Hans Verkuil wrote:
+>> On 01/02/2014 01:07 PM, Arnd Bergmann wrote:
+>>> sleep_on and its variants are broken and going away soon. This changes
+>>> the omap vout driver to use interruptible_sleep_on_timeout instead,
+>>
+>> I assume you mean wait_event_interruptible_timeout here :-)
+>>
+>> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> If there are no other comments, then I plan to merge this next week.
+>>
+> 
+> Hi Hans,
+> 
+> Not sure if you merged the media patches into a local tree, but I see
+> they are not in linux-next at the moment. I'll just re-send them,
+> but please let me know if I can drop them on my end, or better
+> make sure your tree is in linux-next if you have already picked them
+> up.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/Kconfig        |  2 +-
- drivers/media/dvb-frontends/rtl2832.c      | 26 ++++++++++++++++++++++++++
- drivers/media/dvb-frontends/rtl2832.h      | 13 +++++++++++++
- drivers/media/dvb-frontends/rtl2832_priv.h |  2 ++
- 4 files changed, 42 insertions(+), 1 deletion(-)
+I've picked it up, but it has not yet been merged. Mauro has been
+traveling so not much has been merged recently.
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index dd12a1e..d701488 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -441,7 +441,7 @@ config DVB_RTL2830
- 
- config DVB_RTL2832
- 	tristate "Realtek RTL2832 DVB-T"
--	depends on DVB_CORE && I2C
-+	depends on DVB_CORE && I2C && I2C_MUX
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y when you want to support this frontend.
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 00e63b9..dc46cf0 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -891,9 +891,29 @@ static void rtl2832_release(struct dvb_frontend *fe)
- 	struct rtl2832_priv *priv = fe->demodulator_priv;
- 
- 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
-+	i2c_del_mux_adapter(priv->i2c_adapter);
- 	kfree(priv);
- }
- 
-+static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+{
-+	struct rtl2832_priv *priv = mux_priv;
-+	return rtl2832_i2c_gate_ctrl(&priv->fe, 1);
-+}
-+
-+static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+{
-+	struct rtl2832_priv *priv = mux_priv;
-+	return rtl2832_i2c_gate_ctrl(&priv->fe, 0);
-+}
-+
-+struct i2c_adapter *rtl2832_get_i2c_adapter(struct dvb_frontend *fe)
-+{
-+	struct rtl2832_priv *priv = fe->demodulator_priv;
-+	return priv->i2c_adapter;
-+}
-+EXPORT_SYMBOL(rtl2832_get_i2c_adapter);
-+
- struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
- 	struct i2c_adapter *i2c)
- {
-@@ -918,6 +938,12 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
- 	if (ret)
- 		goto err;
- 
-+	/* create muxed i2c adapter */
-+	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
-+			rtl2832_select, rtl2832_deselect);
-+	if (priv->i2c_adapter == NULL)
-+		goto err;
-+
- 	/* create dvb_frontend */
- 	memcpy(&priv->fe.ops, &rtl2832_ops, sizeof(struct dvb_frontend_ops));
- 	priv->fe.demodulator_priv = priv;
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index fa4e5f6..a9202d7 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -55,7 +55,13 @@ struct dvb_frontend *rtl2832_attach(
- 	const struct rtl2832_config *cfg,
- 	struct i2c_adapter *i2c
- );
-+
-+extern struct i2c_adapter *rtl2832_get_i2c_adapter(
-+	struct dvb_frontend *fe
-+);
-+
- #else
-+
- static inline struct dvb_frontend *rtl2832_attach(
- 	const struct rtl2832_config *config,
- 	struct i2c_adapter *i2c
-@@ -64,6 +70,13 @@ static inline struct dvb_frontend *rtl2832_attach(
- 	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
- }
-+
-+static inline struct i2c_adapter *rtl2832_get_i2c_adapter(
-+	struct dvb_frontend *fe
-+)
-+{
-+	return NULL;
-+}
- #endif
- 
- 
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index 4c845af..ec26c92 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -23,9 +23,11 @@
- 
- #include "dvb_frontend.h"
- #include "rtl2832.h"
-+#include <linux/i2c-mux.h>
- 
- struct rtl2832_priv {
- 	struct i2c_adapter *i2c;
-+	struct i2c_adapter *i2c_adapter;
- 	struct dvb_frontend fe;
- 	struct rtl2832_config cfg;
- 
--- 
-1.8.5.3
+Regards,
+
+	Hans
 
