@@ -1,49 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48076 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751606AbaBIGGX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 01:06:23 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 0/5] v4l2-ctl: add SDR device support
-Date: Sun,  9 Feb 2014 08:05:49 +0200
-Message-Id: <1391925954-25975-1-git-send-email-crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.130]:52065 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751838AbaBZLCp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 06:02:45 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 06/16] [media] usbvision: drop unused define USBVISION_SAY_AND_WAIT
+Date: Wed, 26 Feb 2014 12:01:46 +0100
+Message-Id: <1393412516-3762435-7-git-send-email-arnd@arndb.de>
+In-Reply-To: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
+References: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That is here too:
-http://git.linuxtv.org/anttip/v4l-utils.git/shortlog/refs/heads/sdr
+This define uses the deprecated interruptible_sleep_on_timeout
+function. Since this define is unused anyway we just remove it.
 
-I will pull request it soon.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/usb/usbvision/usbvision.h | 8 --------
+ 1 file changed, 8 deletions(-)
 
-regards
-Antti
-
-Antti Palosaari (4):
-  synch videodev2.h headers with kernel SDR API
-  v4l2-ctl: add tuner support for SDR tuners
-  v4l2-ctl: add support for SDR FMT
-  v4l2-ctl: implement list SDR buffers command
-
-Mauro Carvalho Chehab (1):
-  libdvbv5: better handle ATSC/Annex B
-
- contrib/freebsd/include/linux/videodev2.h |  16 +++++
- include/linux/videodev2.h                 |  16 +++++
- lib/libdvbv5/dvb-file.c                   |  33 +++++++++-
- utils/v4l2-ctl/Makefile.am                |   2 +-
- utils/v4l2-ctl/v4l2-ctl-common.cpp        |   1 +
- utils/v4l2-ctl/v4l2-ctl-sdr.cpp           | 104 ++++++++++++++++++++++++++++++
- utils/v4l2-ctl/v4l2-ctl-streaming.cpp     |   6 ++
- utils/v4l2-ctl/v4l2-ctl-tuner.cpp         |  53 ++++++++++++---
- utils/v4l2-ctl/v4l2-ctl.cpp               |  23 +++++++
- utils/v4l2-ctl/v4l2-ctl.h                 |  13 ++++
- 10 files changed, 255 insertions(+), 12 deletions(-)
- create mode 100644 utils/v4l2-ctl/v4l2-ctl-sdr.cpp
-
+diff --git a/drivers/media/usb/usbvision/usbvision.h b/drivers/media/usb/usbvision/usbvision.h
+index 8a25876..a0c73cf 100644
+--- a/drivers/media/usb/usbvision/usbvision.h
++++ b/drivers/media/usb/usbvision/usbvision.h
+@@ -203,14 +203,6 @@ enum {
+ 	mr = LIMIT_RGB(mm_r); \
+ }
+ 
+-/* Debugging aid */
+-#define USBVISION_SAY_AND_WAIT(what) { \
+-	wait_queue_head_t wq; \
+-	init_waitqueue_head(&wq); \
+-	printk(KERN_INFO "Say: %s\n", what); \
+-	interruptible_sleep_on_timeout(&wq, HZ * 3); \
+-}
+-
+ /*
+  * This macro checks if usbvision is still operational. The 'usbvision'
+  * pointer must be valid, usbvision->dev must be valid, we are not
 -- 
-1.8.5.3
+1.8.3.2
 
