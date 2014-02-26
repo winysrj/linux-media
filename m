@@ -1,195 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f52.google.com ([209.85.219.52]:36972 "EHLO
-	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbaBLNlR (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43625 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072AbaBZNg5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 08:41:17 -0500
-Received: by mail-oa0-f52.google.com with SMTP id i4so11000014oah.11
-        for <linux-media@vger.kernel.org>; Wed, 12 Feb 2014 05:41:16 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <52FB7692.1080004@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
- <1392022019-5519-25-git-send-email-hverkuil@xs4all.nl> <CAPybu_2TkODSMUCdSQ8Q1wu=Mr-gmaC_ZQQBiatOPYw=gGcu2g@mail.gmail.com>
- <52FB5910.9040101@xs4all.nl> <CAPybu_0Kw8-Rq2-oNmwBpF36N6HLg3vZ9CaywLsTQp+9Ym5Z8w@mail.gmail.com>
- <52FB6BB3.1060300@xs4all.nl> <CAPybu_0ufQP-vZ5_LsO1btXrsT1rsLUNzbOTQLi_QCcWV1hvJA@mail.gmail.com>
- <52FB7692.1080004@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 12 Feb 2014 14:40:56 +0100
-Message-ID: <CAPybu_2Zs+jLT1q+28vbQBU0Lv6NheCPuy9jTSOVcVXv+myMWA@mail.gmail.com>
-Subject: Re: [REVIEWv2 PATCH 24/34] v4l2-ctrls/videodev2.h: add u8 and u16 types.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 26 Feb 2014 08:36:57 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Oleksij Rempel <linux@rempel-privat.de>, stable@vger.kernel.org
+Subject: [PATCH v2] uvcvideo: Do not use usb_set_interface on bulk EP
+Date: Wed, 26 Feb 2014 14:38:10 +0100
+Message-Id: <1393421890-4816-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+From: Oleksij Rempel <linux@rempel-privat.de>
 
+The UVC specification uses alternate setting selection to notify devices
+of stream start/stop. This breaks when using bulk-based devices, as the
+video streaming interface has a single alternate setting in that case,
+making video stream start and video stream stop events to appear
+identical to the device. Bulk-based devices are thus not well supported
+by UVC.
 
+The webcam built in the Asus Zenbook UX302LA ignores the set interface
+request and will keep the video stream enabled when the driver tries to
+stop it. If USB autosuspend is enabled the device will then be suspended
+and will crash, requiring a cold reboot.
 
-On Wed, Feb 12, 2014 at 2:26 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/12/14 14:13, Ricardo Ribalda Delgado wrote:
->> Hello Hans
->>
->> Thanks for you promptly response
->>
->> On Wed, Feb 12, 2014 at 1:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On 02/12/14 13:11, Ricardo Ribalda Delgado wrote:
->>>> Hi Hans
->>>>
->>>> Thanks for your reply
->>>>
->>>> On Wed, Feb 12, 2014 at 12:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>> Hi Ricardo,
->>>>>
->>>>> On 02/12/14 11:44, Ricardo Ribalda Delgado wrote:
->>>>>> Hello Hans
->>>>>>
->>>>>> In the case of U8 and U16 data types. Why dont you fill the elem_size
->>>>>> automatically in v4l2_ctrl and request the driver to fill the field?
->>>>>
->>>>> When you create the control the control framework has to know the element
->>>>> size beforehand as it will use that to allocate the memory containing the
->>>>> control's value. The control framework is aware of the 'old' control types
->>>>> and will fill in the elem_size accordingly, but it cannot do that in the
->>>>> general case for these complex types. I guess it could be filled in by the
->>>>> framework for the more common types (U8, U16) but I felt it was more
->>>>> consistent to just require drivers to fill it in manually, rather than have
->>>>> it set for some types but not for others.
->>>>>
->>>>>>
->>>>>> Other option would be not declaring the basic data types (U8, U16,
->>>>>> U32...) and use elem_size. Ie. If type==V4L2_CTRL_COMPLEX_TYPES, then
->>>>>> the type is basic and elem_size is the size of the type. If the type
->>>>>>> V4L2_CTRL_COMPLEX_TYPES the type is not basic.
->>>>>
->>>>> You still need to know the type. Applications have to be able to check for
->>>>> the type, the element size by itself doesn't tell you how to interpret the
->>>>> data, you need the type identifier as well.
->>>>
->>>> I think that the driver is setting twice the same info. I see no gain
->>>> in declaring U8, U16 types etc if we still have to set the element
->>>> size. This is why I believe that we should only declare the "structs".
->>>
->>> Just to make sure I understand you: for simple types like U8/U16 you want
->>> the control framework to fill in elem_size, for more complex types (structs)
->>> you want the driver to fill in elem_size?
->>
->> I dont like that the type contains the size of the element, and then I
->> have to provide the size again. (Hungarian notation)
->>
->> Instead, I think it is better:
->>
->> Defines ONLY this two types for simple types:
->> V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER and
->> V4L2_CTRL_COMPLEX_TYPE_UNSIGNED_INTEGER and use elem_size to determine
->> the size.
->
-> It sounds great, but it isn't in practice because this will produce awful
-> code like this:
->
-> switch (type) {
-> case V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER:
->         switch (elem_size) {
->         case 1: // it's a u8!
->                 break;
->         case 2: // it's a u16!
->                 break;
->         }
-> etc.
-> }
+USB trace capture showed that Windows sends a CLEAR_FEATURE(HALT)
+request to the bulk endpoint when stopping the stream instead of
+selecting alternate setting 0. The camera then behaves correctly, and
+thus seems to require that behaviour.
 
-I slightly disagree here. Your proposal will produce this code:
+Replace selection of alternate setting 0 with clearing of the endpoint
+halt feature at video stream stop for bulk-based devices. Let's refrain
+from blaming Microsoft this time, as it's not clear whether this
+Windows-specific but USB-compliant behaviour was specifically developed
+to handle bulkd-based UVC devices, or if the camera just took advantage
+of it.
 
+CC: stable@vger.kernel.org
+Signed-off-by: Oleksij Rempel <linux@rempel-privat.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_video.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-case V4L2_CTRL_TYPE_U8:
-ptr.p_u8[idx] = ctrl->default_value;
-break;
-case V4L2_CTRL_TYPE_U16:
-ptr.p_u16[idx] = ctrl->default_value;
-break;
-case V4L2_CTRL_TYPE_U32:
-ptr.p_s32[idx] = ctrl->default_value;
-break;
-case V4L2_CTRL_TYPE_U64:
-ptr.p_s64[idx] = ctrl->default_value;
-break;
-case V4L2_CTRL_TYPE_S8:
-ptr.p_s8[idx] = ctrl->default_value;
-break;
-case V4L2_CTRL_TYPE_S16:
-ptr.p_s16[idx] = ctrl->default_value;
-break;
-case V4L2_CTRL_TYPE_S32:
-ptr.p_s32[idx] = ctrl->default_value;
-break;
-case V4L2_CTRL_TYPE_S64:
-ptr.p_s64[idx] = ctrl->default_value;
-break;
-
-instead of:
-
-
-case V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER:
-case V4L2_CTRL_COMPLEX_TYPE_UNSIGNED_INTEGER:
-memcpy(&ptr.p[idx],&ctrl->default_value,ctrl->elem_size)
-
-
-Anyway, this is just a opinion, technically, both solutions are fine,
-and yours is already implemented and reviewed.
-
-Regards!
-
->
-> It makes for very awkward code, both in the kernel and in applications.
->
->> And then one define per "structured types"  ie:
->> V4L2_CTRL_COMPLEX_TYPE_POINT V4L2_CTRL_COMPLEX_TYPE_IRRATIONAL.. with
->> elem_size determining the size.
->>
->> But if you dont like that idea, as second preference  then I think
->> elem_size should be filled by the subsystem for simple types.
->
-> I think having the framework fill in elem_size for the basic types such
-> as u8 and u16 does make sense. These are already handled by the standard
-> number validators, so we should probably have the elem_size set as well.
->
-> Regards,
->
->         Hans
->
->>
->>
->> Thanks!
->>>
->>>> what about something like: V4L2_CTRL_COMPLEX_TYPE_SIGNED_INTEGER +
->>>> size, V4L2_CTRL_COMPLEX_TYPES_UNSIGNED_INTEGER + size.... instead of
->>>> V4L2_CTRL_COMPLEX_TYPES_U8, V4L2_CTRL_COMPLEX_TYPES_U16,
->>>> V4L2_CTRL_COMPLEX_TYPES_U32, V4L2_CTRL_COMPLEX_TYPES_S8 ....
->>>>
->>>> Btw, I am trying to implement a dead pixel control on the top of you
->>>> api. Shall I wait until you patchset is merged or shall I send the
->>>> patches right away?
->>>
->>> You're free to experiment, but I am not going to ask Mauro to pull additional
->>> patches as long as this initial patch set isn't merged.
->>>
->>> Regards,
->>>
->>>         Hans
->>
->>
->>
->>
->>
->
-
-
-
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 103cd4e..8d52baf 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1850,7 +1850,25 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
+ 
+ 	if (!enable) {
+ 		uvc_uninit_video(stream, 1);
+-		usb_set_interface(stream->dev->udev, stream->intfnum, 0);
++		if (stream->intf->num_altsetting > 1) {
++			usb_set_interface(stream->dev->udev,
++					  stream->intfnum, 0);
++		} else {
++			/* UVC doesn't specify how to inform a bulk-based device
++			 * when the video stream is stopped. Windows sends a
++			 * CLEAR_FEATURE(HALT) request to the video streaming
++			 * bulk endpoint, mimic the same behaviour.
++			 */
++			unsigned int epnum = stream->header.bEndpointAddress
++					   & USB_ENDPOINT_NUMBER_MASK;
++			unsigned int dir = stream->header.bEndpointAddress
++					 & USB_ENDPOINT_DIR_MASK;
++			unsigned int pipe;
++
++			pipe = usb_sndbulkpipe(stream->dev->udev, epnum) | dir;
++			usb_clear_halt(stream->dev->udev, pipe);
++		}
++
+ 		uvc_queue_enable(&stream->queue, 0);
+ 		uvc_video_clock_cleanup(stream);
+ 		return 0;
 -- 
-Ricardo Ribalda
+Regards,
+
+Laurent Pinchart
+
