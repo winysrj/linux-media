@@ -1,99 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay02.ispgateway.de ([80.67.31.29]:35785 "EHLO
-	smtprelay02.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751533AbaBLBQM (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:61836 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751215AbaBZVBJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 20:16:12 -0500
-Message-ID: <52FACB55.2030200@doerges.net>
-Date: Wed, 12 Feb 2014 02:16:05 +0100
-From: =?UTF-8?B?VGlsbCBEw7ZyZ2Vz?= <till@doerges.net>
+	Wed, 26 Feb 2014 16:01:09 -0500
+Date: Wed, 26 Feb 2014 22:00:25 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+cc: David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>, devel@driverdev.osuosl.org,
+	dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH RFC 26/46] drivers/base: provide an infrastructure for
+ componentised subsystems
+In-Reply-To: <E1Vypo6-0007FF-Lb@rmk-PC.arm.linux.org.uk>
+Message-ID: <Pine.LNX.4.64.1402262144190.10826@axis700.grange>
+References: <20140102212528.GD7383@n2100.arm.linux.org.uk>
+ <E1Vypo6-0007FF-Lb@rmk-PC.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: PATCH: Added device (0ccd:00b4) to DVB_USB_RTL28XXU media driver
-References: <52FA87CD.2030206@doerges.net> <52FA8DB9.3070300@iki.fi>
-In-Reply-To: <52FA8DB9.3070300@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+Hi Russell
 
-thanks for the quick response.
+(I suspect this my email will be rejected by ALKML too like other my 
+recent emails, but at least other MLs will pick it up and individual CCs 
+too, so, if replying, maybe it would be good to keep my entire reply, all 
+the more that it's going to be very short)
 
-Am 11.02.2014 21:53, schrieb Antti Palosaari:
+On Thu, 2 Jan 2014, Russell King wrote:
 
-> Thanks for the 'patch' :)
-> I am not sure how I should handle that as the code itself is valid, but patch is not
-> as it should.
+> Subsystems such as ALSA, DRM and others require a single card-level
+> device structure to represent a subsystem.  However, firmware tends to
+> describe the individual devices and the connections between them.
 > 
-> If you could make a proper patch, using git commit & git format-patch, it will be
-> nice. But as I understand it could be quite much of learning many things, I am
-> willing to take that and apply half manually. I still need you signed-off-by tag as
-> documented [1]. Please reply with signed-off-by or even better if you could make
-> formally correct patch.
+> Therefore, we need a way to gather up the individual component devices
+> together, and indicate when we have all the component devices.
 > 
-> [1] https://www.kernel.org/doc/Documentation/SubmittingPatches
-
-I actually read that document before, but apparently I missed the git part (and I
-don't have a git checkout of the kernel sources). So if you can help me out, that's
-greatly appreciated. :-)
-
-Signed-off-by: Till Dörges <till@doerges.net>
-
-Thanks -- Till
-
-> On 11.02.2014 22:27, Till Dörges wrote:
->> Hi all,
->>
->> I've got the following DAB USB stick that also works fine with the DVB_USB_RTL28XXU
->> driver after I added its USB ID:
->>
->> --- snip ---
->> user@box:~> lsusb -d 0ccd:00b4
->> Bus 001 Device 009: ID 0ccd:00b4 TerraTec Electronic GmbH
->> --- snap ---
->>
->>
->> I tried it on a recent openSUSE 13.1 with this kernel/architecture
->>
->> --- snip ---
->> user@box:~> uname -a
->> Linux box 3.11.10-7-desktop #1 SMP PREEMPT Mon Feb 3 09:41:24 UTC 2014 (750023e)
->> x86_64 x86_64 x86_64 GNU/Linux
->> --- snap ---
->>
->>
->> The patches itself are trivial:
->>
->> --- ./drivers/media/dvb-core/dvb-usb-ids.h.orig 2014-02-09 22:36:35.266625484 +0100
->> +++ ./drivers/media/dvb-core/dvb-usb-ids.h      2014-02-09 22:38:00.128199957 +0100
->> @@ -256,6 +256,7 @@
->>   #define USB_PID_TERRATEC_T5                            0x10a1
->>   #define USB_PID_NOXON_DAB_STICK                                0x00b3
->>   #define USB_PID_NOXON_DAB_STICK_REV2                   0x00e0
->> +#define USB_PID_NOXON_DAB_STICK_REV3                   0x00b4
->>   #define USB_PID_PINNACLE_EXPRESSCARD_320CX             0x022e
->>   #define USB_PID_PINNACLE_PCTV2000E                     0x022c
->>   #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH              0x0228
->>
->>
->> --- ./drivers/media/usb/dvb-usb-v2/rtl28xxu.c.orig      2014-02-03 10:41:24.000000000
->> +0100
->> +++ ./drivers/media/usb/dvb-usb-v2/rtl28xxu.c   2014-02-09 22:37:53.464154845 +0100
->> @@ -1362,6 +1362,8 @@ static const struct usb_device_id rtl28x
->>                  &rtl2832u_props, "TerraTec NOXON DAB Stick", NULL) },
->>          { DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK_REV2,
->>                  &rtl2832u_props, "TerraTec NOXON DAB Stick (rev 2)", NULL) },
->> +       { DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK_REV3,
->> +               &rtl2832u_props, "TerraTec NOXON DAB Stick (rev 3)", NULL) },
->>          { DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_TREKSTOR_TERRES_2_0,
->>                  &rtl2832u_props, "Trekstor DVB-T Stick Terres 2.0", NULL) },
->>          { DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1101,
->>
->> HTH -- Till
->>
+> We do this in DT by providing a "superdevice" node which specifies
+> the components, eg:
 > 
-> 
+> 	imx-drm {
+> 		compatible = "fsl,drm";
+> 		crtcs = <&ipu1>;
+> 		connectors = <&hdmi>;
+> 	};
 
+It is a pity linux-media wasn't CC'ed and apparently V4L developers didn't 
+notice this and other related patches in a "clean up" series, and now this 
+patch is already in the mainline. But at least I'd like to ask whether the 
+bindings, defined in 
+Documentation/devicetree/bindings/media/video-interfaces.txt and 
+implemented in drivers/media/v4l2-core/v4l2-of.c have been considered for 
+this job, and - if so - why have they been found unsuitable? Wouldn't it 
+have been better to use and - if needed - extend them to cover any 
+deficiencies? Even though the implementation is currently located under 
+drivers/media/v4l2-code/ it's pretty generic and should be easily 
+transferable to a more generic location.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
