@@ -1,90 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1990 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636AbaBNOcJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 09:32:09 -0500
-Message-ID: <52FE28BA.4040404@xs4all.nl>
-Date: Fri, 14 Feb 2014 15:31:22 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 2/6] v4l: add RF tuner channel bandwidth control
-References: <1392049026-13398-1-git-send-email-crope@iki.fi> <1392049026-13398-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1392049026-13398-3-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:55923 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753369AbaB0AWV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:22:21 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 07/13] DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
+Date: Thu, 27 Feb 2014 02:22:02 +0200
+Message-Id: <1393460528-11684-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
+References: <1393460528-11684-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/10/2014 05:17 PM, Antti Palosaari wrote:
-> Modern silicon RF tuners has one or more adjustable filters on
-> signal path, in order to filter noise from desired radio channel.
-> 
-> Add channel bandwidth control to tell the driver which is radio
-> channel width we want receive. Filters could be then adjusted by
-> the driver or hardware, using RF frequency and channel bandwidth
-> as a base of filter calculations.
-> 
-> On automatic mode (normal mode), bandwidth is calculated from sampling
-> rate or tuning info got from userspace. That new control gives
-> possibility to set manual mode and let user have more control for
-> filters.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
->  include/uapi/linux/v4l2-controls.h   | 2 ++
->  2 files changed, 6 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index d201f61..e44722b 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -865,6 +865,8 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MIXER_GAIN:		return "Mixer Gain";
->  	case V4L2_CID_IF_GAIN_AUTO:		return "IF Gain, Auto";
->  	case V4L2_CID_IF_GAIN:			return "IF Gain";
-> +	case V4L2_CID_BANDWIDTH_AUTO:		return "Channel Bandwidth, Auto";
-> +	case V4L2_CID_BANDWIDTH:		return "Channel Bandwidth";
->  	default:
->  		return NULL;
->  	}
-> @@ -917,6 +919,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_LNA_GAIN_AUTO:
->  	case V4L2_CID_MIXER_GAIN_AUTO:
->  	case V4L2_CID_IF_GAIN_AUTO:
-> +	case V4L2_CID_BANDWIDTH_AUTO:
->  		*type = V4L2_CTRL_TYPE_BOOLEAN;
->  		*min = 0;
->  		*max = *step = 1;
-> @@ -1078,6 +1081,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_LNA_GAIN:
->  	case V4L2_CID_MIXER_GAIN:
->  	case V4L2_CID_IF_GAIN:
-> +	case V4L2_CID_BANDWIDTH:
->  		*flags |= V4L2_CTRL_FLAG_SLIDER;
->  		break;
->  	case V4L2_CID_PAN_RELATIVE:
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 076fa34..3cf68a6 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -905,5 +905,7 @@ enum v4l2_deemphasis {
->  #define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
->  #define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
->  #define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
-> +#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
-> +#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
+Document V4L2_SDR_FMT_CU8 SDR format.
+It is complex unsigned 8-bit IQ sample. Used by software defined
+radio devices.
 
-This definitely needs a prefix. Bandwidth can refer to so many things that
-we have to be clear here.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/pixfmt-sdr-cu08.xml          | 44 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  2 +
+ 2 files changed, 46 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
 
-	Hans
-
->  
->  #endif
-> 
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+new file mode 100644
+index 0000000..2d80104
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+@@ -0,0 +1,44 @@
++<refentry id="V4L2-SDR-FMT-CU08">
++  <refmeta>
++    <refentrytitle>V4L2_SDR_FMT_CU8 ('CU08')</refentrytitle>
++    &manvol;
++  </refmeta>
++    <refnamediv>
++      <refname>
++        <constant>V4L2_SDR_FMT_CU8</constant>
++      </refname>
++      <refpurpose>Complex unsigned 8-bit IQ sample</refpurpose>
++    </refnamediv>
++    <refsect1>
++      <title>Description</title>
++      <para>
++This format contains sequence of complex number samples. Each complex number
++consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
++represented as a 8 bit unsigned number. I value comes first and Q value after
++that.
++      </para>
++    <example>
++      <title><constant>V4L2_SDR_FMT_CU8</constant> 1 sample</title>
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="2" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>I'<subscript>0</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;1:</entry>
++                  <entry>Q'<subscript>0</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index f586d34..40adcb8 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -817,6 +817,8 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+     <para>These formats are used for <link linkend="sdr">SDR Capture</link>
+ interface only.</para>
+ 
++    &sub-sdr-cu08;
++
+   </section>
+ 
+   <section id="pixfmt-reserved">
+-- 
+1.8.5.3
 
