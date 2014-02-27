@@ -1,71 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f169.google.com ([209.85.220.169]:56660 "EHLO
-	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751049AbaBKQa6 (ORCPT
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:33068 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750918AbaB0LzO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 11:30:58 -0500
+	Thu, 27 Feb 2014 06:55:14 -0500
 MIME-Version: 1.0
-In-Reply-To: <20140211145248.GI26684@n2100.arm.linux.org.uk>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
-	<CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>
-	<20140211145248.GI26684@n2100.arm.linux.org.uk>
-Date: Tue, 11 Feb 2014 10:30:57 -0600
-Message-ID: <CAL_Jsq+_81fUgio9mwscv__-4P6rUy-nHesnzCCUmdu+amhYPg@mail.gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
- drivers/media/v4l2-core to drivers/of
-From: Rob Herring <robherring2@gmail.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
+In-Reply-To: <2e8474df8cbb7cc583fe1c4e01649835@biophys.uni-duesseldorf.de>
+References: <1393412516-3762435-1-git-send-email-arnd@arndb.de>
+	<2e8474df8cbb7cc583fe1c4e01649835@biophys.uni-duesseldorf.de>
+Date: Thu, 27 Feb 2014 12:55:13 +0100
+Message-ID: <CAMuHMdWvgO=RBp0ctofFqWWyX2V933_RsRLsh83MDdcXnw_1Zg@mail.gmail.com>
+Subject: Re: [PATCH 00/16] sleep_on removal, second try
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Michael Schmitz <schmitz@biophys.uni-duesseldorf.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, scsi <linux-scsi@vger.kernel.org>,
+	Karsten Keil <isdn@linux-pingi.de>,
+	linux-atm-general@lists.sourceforge.net,
+	Andrew Morton <akpm@osdl.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jens Axboe <axboe@kernel.dk>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"James E.J. Bottomley" <JBottomley@parallels.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 11, 2014 at 8:52 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Tue, Feb 11, 2014 at 07:56:33AM -0600, Rob Herring wrote:
->> On Tue, Feb 11, 2014 at 5:45 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
->> > This allows to reuse the same parser code from outside the V4L2 framework,
->> > most importantly from display drivers. There have been patches that duplicate
->> > the code (and I am going to send one of my own), such as
->> > http://lists.freedesktop.org/archives/dri-devel/2013-August/043308.html
->> > and others that parse the same binding in a different way:
->> > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html
->> >
->> > I think that all common video interface parsing helpers should be moved to a
->> > single place, outside of the specific subsystems, so that it can be reused
->> > by all drivers.
+Hi Michael, Arnd,
+
+On Thu, Feb 27, 2014 at 7:37 AM, Michael Schmitz
+<schmitz@biophys.uni-duesseldorf.de> wrote:
+>> It's been a while since the first submission of these patches,
+>> but a lot of them have made it into linux-next already, so here
+>> is the stuff that is not merged yet, hopefully addressing all
+>> the comments.
 >>
->> Perhaps that should be done rather than moving to drivers/of now and
->> then again to somewhere else.
+>> Geert and Michael: the I was expecting the ataflop and atari_scsi
+>> patches to be merged already, based on earlier discussion.
+>> Can you apply them to the linux-m68k tree, or do you prefer
+>> them to go through the scsi and block maintainers?
 >
-> Do you have a better suggestion where it should move to?
+> Not sure what we decided to do - I'd prefer to double-check the latest ones
+> first, but I'd be OK with these to go via m68k.
+>
+> Maybe Geert waits for acks from linux-scsi and linux-block? (The rest of my
+> patches to Atari SCSI still awaits comment there.)
 
-No.
+I was waiting for a final confirmation. I was under the impression some rework
+was needed, and seeing Michael's NAK confirms that.
 
-> drivers/gpu/drm - no, because v4l2 wants to use it
-> drivers/media/video - no, because DRM drivers want to use it
-> drivers/video - no, because v4l2 and drm drivers want to use it
+I'd be glad to take them through the m68k tree (for 3.15), once they have
+received testing and Michael's ACK. Or the block resp. SCSI maintainers can
+take them if they prefer, which apparently already happened for 01/16.
 
-I don't believe it exists currently, so it would need to be created.
-Perhaps adding a layer of directory to combine these. This patch alone
-is not enough to really justify that, but if there's a lot more shared
-code possible then it would be the right direction.
+Gr{oetje,eeting}s,
 
-> Maybe drivers/of-graph/ ?  Or maybe it's just as good a place to move it
-> into drivers/of ?
+                        Geert
 
-I assume you weren't serious, but no for /of-graph. If a better place
-can't be found/made, I'll take it.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Rob
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
