@@ -1,270 +1,311 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:28078 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754030AbaBRI5z (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50260 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752388AbaB0L0B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Feb 2014 03:57:55 -0500
-Date: Tue, 18 Feb 2014 11:56:51 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] stv090x: remove indent levels
-Message-ID: <20140218085651.GL26722@mwanda>
-References: <20140206092800.GB31780@elgon.mountain>
- <CAHFNz9LMU0X2YsqniY+6VOS_mM-jUfAvP2sF5MFNdwWWwEVgsw@mail.gmail.com>
+	Thu, 27 Feb 2014 06:26:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 05/15] vb2: change result code of buf_finish to void
+Date: Thu, 27 Feb 2014 12:27:20 +0100
+Message-ID: <278702033.W4X2VcPyCP@avalon>
+In-Reply-To: <39816237.GvrDE0seIP@avalon>
+References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl> <1393332775-44067-6-git-send-email-hverkuil@xs4all.nl> <39816237.GvrDE0seIP@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="qcHopEYAB45HaUaB"
-Content-Disposition: inline
-In-Reply-To: <CAHFNz9LMU0X2YsqniY+6VOS_mM-jUfAvP2sF5MFNdwWWwEVgsw@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---qcHopEYAB45HaUaB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Feb 18, 2014 at 09:25:36AM +0530, Manu Abraham wrote:
-> Hi Dan,
+On Thursday 27 February 2014 12:23:58 Laurent Pinchart wrote:
+> On Tuesday 25 February 2014 13:52:45 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > The buf_finish op should always work, so change the return type to void.
+> > Update the few drivers that use it. Note that buf_finish can be called
+> > both when the DMA is streaming and when it isn't (during queue_cancel).
 > 
-> On Thu, Feb 6, 2014 at 2:58 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> > 1) We can flip the "if (!lock)" check to "if (lock) return lock;" and
-> >    then remove a big chunk of indenting.
-> > 2) There is a redundant "if (!lock)" which we can remove since we
-> >    already know that lock is zero.  This removes another indent level.
-> 
-> 
-> The stv090x driver is a mature, but slightly complex driver supporting
-> quite some
-> different configurations. Is it that some bug you are trying to fix in there ?
-> I wouldn't prefer unnecessary code churn in such a driver for
-> something as simple
-> as gain in an indentation level.
+> I'm not sure what branch this series is based on, but in the latest linuxtv
+> master branch buf_finish is only called from vb2_internal_dqbuf(), itself
+> only called from vb2_dqbuf() and __vb2_perform_fileio().
 
-I thought the cleanup was jusitification enough, but the real reason I
-wrote this patch is that testing:
+And I should have read the next patches before commenting on this :-)
 
-	if (!lock) {
-		if (!lock) {
+> I would split the patch in two, one patch to change the buf_finish behaviour
+> inside the drivers and update the buf_finish documentation to explain when
+> it can be called in more details, and another one to change its return
+> value to void.
 
-sets off a static checker warning.  That kind of code is puzzling and if
-we don't clean it up then it wastes a lot of reviewer time.
+Let's reorder the patches if you don't mind. I would still split this as 
+described in 5.1 and 5.2. I would then move 5.2 before 5.1, and either squash 
+6 with 5.1 or move 6 before 5.1.
 
-Also when you're reviewing these patches please consider that the
-original code might be buggy and not simply messy.  Perhaps something
-other than "if (!lock) {" was intended?  When I review static checker
-warnings I am looking for bugs and I don't even list cleanup patches
-like this one in my status reports to my employer.  Fixing these is just
-something I do which saves time in the long run.
+> > Update drivers to check that where appropriate.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Acked-by: Pawel Osciak <pawel@osciak.com>
+> > Reviewed-by: Pawel Osciak <pawel@osciak.com>
+> > ---
+> > 
+> >  drivers/media/parport/bw-qcam.c                 |  6 ++++--
+> >  drivers/media/pci/sta2x11/sta2x11_vip.c         |  7 +++----
+> >  drivers/media/platform/marvell-ccic/mcam-core.c |  3 +--
+> >  drivers/media/usb/pwc/pwc-if.c                  | 16 +++++++++-------
+> >  drivers/media/usb/uvc/uvc_queue.c               |  6 +++---
+> >  drivers/media/v4l2-core/videobuf2-core.c        |  6 +-----
+> >  drivers/staging/media/go7007/go7007-v4l2.c      |  3 +--
+> >  include/media/videobuf2-core.h                  |  2 +-
+> >  8 files changed, 23 insertions(+), 26 deletions(-)
+> > 
+> > diff --git a/drivers/media/parport/bw-qcam.c
+> > b/drivers/media/parport/bw-qcam.c index d12bd33..8d69bfb 100644
+> > --- a/drivers/media/parport/bw-qcam.c
+> > +++ b/drivers/media/parport/bw-qcam.c
+> > @@ -667,13 +667,16 @@ static void buffer_queue(struct vb2_buffer *vb)
+> > 
+> >  	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+> >  
+> >  }
+> > 
+> > -static int buffer_finish(struct vb2_buffer *vb)
+> > +static void buffer_finish(struct vb2_buffer *vb)
+> > 
+> >  {
+> >  
+> >  	struct qcam *qcam = vb2_get_drv_priv(vb->vb2_queue);
+> >  	void *vbuf = vb2_plane_vaddr(vb, 0);
+> >  	int size = vb->vb2_queue->plane_sizes[0];
+> >  	int len;
+> > 
+> > +	if (!vb2_is_streaming(vb->vb2_queue))
+> > +		return;
+> > +
+> > 
+> >  	mutex_lock(&qcam->lock);
+> >  	parport_claim_or_block(qcam->pdev);
+> > 
+> > @@ -691,7 +694,6 @@ static int buffer_finish(struct vb2_buffer *vb)
+> > 
+> >  	if (len != size)
+> >  	
+> >  		vb->state = VB2_BUF_STATE_ERROR;
+> >  	
+> >  	vb2_set_plane_payload(vb, 0, len);
+> > 
+> > -	return 0;
+> > 
+> >  }
+> >  
+> >  static struct vb2_ops qcam_video_qops = {
+> > 
+> > diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> > b/drivers/media/pci/sta2x11/sta2x11_vip.c index e5cfb6c..bb11443 100644
+> > --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> > +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+> > @@ -327,7 +327,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+> > 
+> >  	}
+> >  	spin_unlock(&vip->lock);
+> >  
+> >  }
+> > 
+> > -static int buffer_finish(struct vb2_buffer *vb)
+> > +static void buffer_finish(struct vb2_buffer *vb)
+> > 
+> >  {
+> >  
+> >  	struct sta2x11_vip *vip = vb2_get_drv_priv(vb->vb2_queue);
+> >  	struct vip_buffer *vip_buf = to_vip_buffer(vb);
+> > 
+> > @@ -337,9 +337,8 @@ static int buffer_finish(struct vb2_buffer *vb)
+> > 
+> >  	list_del_init(&vip_buf->list);
+> >  	spin_unlock(&vip->lock);
+> > 
+> > -	vip_active_buf_next(vip);
+> > -
+> > -	return 0;
+> > +	if (vb2_is_streaming(vb->vb2_queue))
+> > +		vip_active_buf_next(vip);
+> > 
+> >  }
+> >  
+> >  static int start_streaming(struct vb2_queue *vq, unsigned int count)
+> > 
+> > diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c
+> > b/drivers/media/platform/marvell-ccic/mcam-core.c index 32fab30..8b34c48
+> > 100644
+> > --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+> > +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+> > @@ -1238,7 +1238,7 @@ static int mcam_vb_sg_buf_prepare(struct vb2_buffer
+> > *vb) return 0;
+> > 
+> >  }
+> > 
+> > -static int mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
+> > +static void mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
+> > 
+> >  {
+> >  
+> >  	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
+> >  	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
+> > 
+> > @@ -1246,7 +1246,6 @@ static int mcam_vb_sg_buf_finish(struct vb2_buffer
+> > *vb) if (sg_table)
+> > 
+> >  		dma_unmap_sg(cam->dev, sg_table->sgl,
+> >  		
+> >  				sg_table->nents, DMA_FROM_DEVICE);
+> > 
+> > -	return 0;
+> > 
+> >  }
+> >  
+> >  static void mcam_vb_sg_buf_cleanup(struct vb2_buffer *vb)
+> > 
+> > diff --git a/drivers/media/usb/pwc/pwc-if.c
+> > b/drivers/media/usb/pwc/pwc-if.c index abf365a..b9c9f10 100644
+> > --- a/drivers/media/usb/pwc/pwc-if.c
+> > +++ b/drivers/media/usb/pwc/pwc-if.c
+> > @@ -614,17 +614,19 @@ static int buffer_prepare(struct vb2_buffer *vb)
+> > 
+> >  	return 0;
+> >  
+> >  }
+> > 
+> > -static int buffer_finish(struct vb2_buffer *vb)
+> > +static void buffer_finish(struct vb2_buffer *vb)
+> > 
+> >  {
+> >  
+> >  	struct pwc_device *pdev = vb2_get_drv_priv(vb->vb2_queue);
+> >  	struct pwc_frame_buf *buf = container_of(vb, struct pwc_frame_buf, 
+vb);
+> > 
+> > -	/*
+> > -	 * Application has called dqbuf and is getting back a buffer we've
+> > -	 * filled, take the pwc data we've stored in buf->data and decompress
+> > -	 * it into a usable format, storing the result in the vb2_buffer
+> > -	 */
+> > -	return pwc_decompress(pdev, buf);
+> > +	if (vb->state == VB2_BUF_STATE_DONE) {
+> > +		/*
+> > +		 * Application has called dqbuf and is getting back a buffer 
+we've
+> > +		 * filled, take the pwc data we've stored in buf->data and 
+decompress
+> > +		 * it into a usable format, storing the result in the vb2_buffer
+> > +		 */
+> > +		pwc_decompress(pdev, buf);
+> > +	}
+> > 
+> >  }
+> >  
+> >  static void buffer_cleanup(struct vb2_buffer *vb)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> > b/drivers/media/usb/uvc/uvc_queue.c index cd962be..db5984e 100644
+> > --- a/drivers/media/usb/uvc/uvc_queue.c
+> > +++ b/drivers/media/usb/uvc/uvc_queue.c
+> > @@ -104,15 +104,15 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
+> > 
+> >  	spin_unlock_irqrestore(&queue->irqlock, flags);
+> >  
+> >  }
+> > 
+> > -static int uvc_buffer_finish(struct vb2_buffer *vb)
+> > +static void uvc_buffer_finish(struct vb2_buffer *vb)
+> > 
+> >  {
+> >  
+> >  	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+> >  	struct uvc_streaming *stream =
+> >  	
+> >  			container_of(queue, struct uvc_streaming, queue);
+> >  	
+> >  	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
+> > 
+> > -	uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+> > -	return 0;
+> > +	if (vb2_is_streaming(vb->vb2_queue))
+> > +		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+> > 
+> >  }
+> >  
+> >  static void uvc_wait_prepare(struct vb2_queue *vq)
+> > 
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> > b/drivers/media/v4l2-core/videobuf2-core.c index 8f1578b..59bfd85 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -1783,11 +1783,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q,
+> > struct v4l2_buffer *b, bool n if (ret < 0)
+> > 
+> >  		return ret;
+> > 
+> > -	ret = call_vb_qop(vb, buf_finish, vb);
+> > -	if (ret) {
+> > -		dprintk(1, "dqbuf: buffer finish failed\n");
+> > -		return ret;
+> > -	}
+> > +	call_vb_qop(vb, buf_finish, vb);
+> > 
+> >  	switch (vb->state) {
+> > 
+> >  	case VB2_BUF_STATE_DONE:
+> > diff --git a/drivers/staging/media/go7007/go7007-v4l2.c
+> > b/drivers/staging/media/go7007/go7007-v4l2.c index edc52e2..3a01576 100644
+> > --- a/drivers/staging/media/go7007/go7007-v4l2.c
+> > +++ b/drivers/staging/media/go7007/go7007-v4l2.c
+> > @@ -470,7 +470,7 @@ static int go7007_buf_prepare(struct vb2_buffer *vb)
+> > 
+> >  	return 0;
+> >  
+> >  }
+> > 
+> > -static int go7007_buf_finish(struct vb2_buffer *vb)
+> > +static void go7007_buf_finish(struct vb2_buffer *vb)
+> > 
+> >  {
+> >  
+> >  	struct vb2_queue *vq = vb->vb2_queue;
+> >  	struct go7007 *go = vb2_get_drv_priv(vq);
+> > 
+> > @@ -483,7 +483,6 @@ static int go7007_buf_finish(struct vb2_buffer *vb)
+> > 
+> >  			V4L2_BUF_FLAG_PFRAME);
+> >  	
+> >  	buf->flags |= frame_type_flag;
+> >  	buf->field = V4L2_FIELD_NONE;
+> > 
+> > -	return 0;
+> > 
+> >  }
+> >  
+> >  static int go7007_start_streaming(struct vb2_queue *q, unsigned int
+> >  count)
+> > 
+> > diff --git a/include/media/videobuf2-core.h
+> > b/include/media/videobuf2-core.h index f04eb28..f443ce0 100644
+> > --- a/include/media/videobuf2-core.h
+> > +++ b/include/media/videobuf2-core.h
+> > @@ -311,7 +311,7 @@ struct vb2_ops {
+> > 
+> >  	int (*buf_init)(struct vb2_buffer *vb);
+> >  	int (*buf_prepare)(struct vb2_buffer *vb);
+> > 
+> > -	int (*buf_finish)(struct vb2_buffer *vb);
+> > +	void (*buf_finish)(struct vb2_buffer *vb);
+> > 
+> >  	void (*buf_cleanup)(struct vb2_buffer *vb);
+> >  	
+> >  	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
 
-Btw, I help maintain staging so I review these kinds of patches all the
-time.   I use a script to review these kinds of changes.  It strips out
-the whitespace changes and leaves the interesting bits of the patch.
-I have attached it.
+-- 
+Regards,
 
-cat email.patch | rename_rev.pl
+Laurent Pinchart
 
-regards,
-dan carpenter
-
-
---qcHopEYAB45HaUaB
-Content-Type: text/x-perl; charset=us-ascii
-Content-Disposition: attachment; filename="rename_rev.pl"
-
-#!/usr/bin/perl
-
-# This is a tool to help review variable rename patches. The goal is
-# to strip out the automatic sed renames and the white space changes
-# and leaves the interesting code changes.
-#
-# Example 1: A patch renames openInfo to open_info:
-#     cat diff | rename_review.pl openInfo open_info
-#
-# Example 2: A patch swaps the first two arguments to some_func():
-#     cat diff | rename_review.pl \
-#                    -e 's/some_func\((.*?),(.*?),/some_func\($2, $1,/'
-#
-# Example 3: A patch removes the xkcd_ prefix from some but not all the
-# variables.  Instead of trying to figure out which variables were renamed
-# just remove the prefix from them all:
-#     cat diff | rename_review.pl -ea 's/xkcd_//g'
-#
-# Example 4: A patch renames 20 CamelCase variables.  To review this let's
-# just ignore all case changes and all '_' chars.
-#     cat diff | rename_review -ea 'tr/[A-Z]/[a-z]/' -ea 's/_//g'
-#
-# The other arguments are:
-# -nc removes comments
-# -ns removes '\' chars if they are at the end of the line.
-
-use strict;
-use File::Temp qw/ :mktemp  /;
-
-sub usage() {
-    print "usage: cat diff | $0 old new old new old new...\n";
-    print "   or: cat diff | $0 -e 's/old/new/g'\n";
-    print " -e : execute on old lines\n";
-    print " -ea: execute on all lines\n";
-    print " -nc: no comments\n";
-    print " -nb: no unneeded braces\n";
-    print " -ns: no slashes at the end of a line\n";
-    exit(1);
-}
-my @subs;
-my @cmds;
-my $strip_comments;
-my $strip_braces;
-my $strip_slashes;
-
-sub filter($) {
-    my $_ = shift();
-    my $old = 0;
-    if ($_ =~ /^-/) {
-        $old = 1;
-    }
-    # remove the first char
-    s/^[ +-]//;
-    if ($strip_comments) {
-        s/\/\*.*?\*\///g;
-        s/\/\/.*//;
-    }
-    foreach my $cmd (@cmds) {
-        if ($old || $cmd->[0] =~ /^-ea$/) {
-		eval $cmd->[1];
-	}
-    }
-    foreach my $sub (@subs) {
-	if ($old) {
-		s/$sub->[0]/$sub->[1]/g;
-	}
-    }
-    return $_;
-}
-
-while (my $param1 = shift()) {
-    if ($param1 =~ /^-nc$/) {
-        $strip_comments = 1;
-        next;
-    }
-    if ($param1 =~ /^-nb$/) {
-        $strip_braces = 1;
-        next;
-    }
-    if ($param1 =~ /^-ns$/) {
-        $strip_slashes = 1;
-        next;
-    }
-    my $param2 = shift();
-    if ($param2 =~ /^$/) {
-	usage();
-    }
-    if ($param1 =~ /^-e(a|)$/) {
-        push @cmds, [$param1, $param2];
-	next;
-    }
-    push @subs, [$param1, $param2];
-}
-
-my ($oldfh, $oldfile) = mkstemp("/tmp/oldXXXXX");
-my ($newfh, $newfile) = mkstemp("/tmp/newXXXXX");
-
-while (<>) {
-    if ($_ =~ /^(---|\+\+\+)/) {
-	next;
-    }
-    my $output = filter($_);
-    if ($_ =~ /^-/) {
-	print $oldfh $output;
-	next;
-    }
-    if ($_ =~ /^\+/) {
-	print $newfh $output;
-	next;
-    }
-    print $oldfh $output;
-    print $newfh $output;
-}
-
-my $hunk;
-my $old_txt;
-my $new_txt;
-
-open diff, "diff -uw $oldfile $newfile |";
-while (<diff>) {
-    if ($_ =~ /^(---|\+\+\+)/) {
-	next;
-    }
-
-    if ($_ =~ /^@/) {
-        if ($strip_comments) {
-            $old_txt =~ s/\/\*.*?\*\///g;
-            $new_txt =~ s/\/\*.*?\*\///g;
-        }
-        if ($strip_braces) {
-            $old_txt =~ s/{([^;{]*?);}/$1;/g;
-            $new_txt =~ s/{([^;{]*?);}/$1;/g;
-	    # this is a hack because i don't know how to replace nested
-	    # unneeded curly braces.
-            $old_txt =~ s/{([^;{]*?);}/$1;/g;
-            $new_txt =~ s/{([^;{]*?);}/$1;/g;
-	}
-
-       if ($old_txt ne $new_txt) {
- 	    print $hunk;
-	    print $_;
-	}
-	$hunk = "";
-	$old_txt = "";
-	$new_txt = "";
-	next;
-    }
-
-    $hunk = $hunk . $_;
-
-    if ($strip_slashes) {
-	s/\\$//;
-    }
-
-    if ($_ =~ /^-/) {
-	s/-//;
-	s/[ \t\n]//g;
-	$old_txt = $old_txt . $_;
-	next;
-    }
-    if ($_ =~ /^\+/) {
-	s/\+//;
-	s/[ \t\n]//g;
-	$new_txt = $new_txt . $_;
-	next;
-    }
-    if ($_ =~ /^ /) {
-	s/^ //;
-	s/[ \t\n]//g;
-	$old_txt = $old_txt . $_;
-	$new_txt = $new_txt . $_;
-    }
-}
-if ($old_txt ne $new_txt) {
-    if ($strip_comments) {
-        $old_txt =~ s/\/\*.*?\*\///g;
-        $new_txt =~ s/\/\*.*?\*\///g;
-    }
-    if ($strip_braces) {
-        $old_txt =~ s/{([^;{]*?);}/$1;/g;
-        $new_txt =~ s/{([^;{]*?);}/$1;/g;
-        $old_txt =~ s/{([^;{]*?);}/$1;/g;
-        $new_txt =~ s/{([^;{]*?);}/$1;/g;
-    }
-
-    print $hunk;
-}
-
-unlink($oldfile);
-unlink($newfile);
-
---qcHopEYAB45HaUaB--
