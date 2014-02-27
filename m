@@ -1,70 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3636 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989AbaBNOV1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Feb 2014 09:21:27 -0500
-Message-ID: <52FE263E.9010408@xs4all.nl>
-Date: Fri, 14 Feb 2014 15:20:46 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 3/6] v4l: reorganize RF tuner control ID numbers
-References: <1392049026-13398-1-git-send-email-crope@iki.fi> <1392049026-13398-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1392049026-13398-4-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:41332 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754022AbaB0AWW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:22:22 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 13/13] DocBook: media: add some general info about RF tuners
+Date: Thu, 27 Feb 2014 02:22:08 +0200
+Message-Id: <1393460528-11684-14-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
+References: <1393460528-11684-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+Add some info what is RF tuner in context of V4L RF tuner class.
 
-On 02/10/2014 05:17 PM, Antti Palosaari wrote:
-> It appears that controls are ordered by ID number. Change order of
-> controls by reorganizing assigned IDs now as we can. It is not
-> reasonable possible after the API is released. Leave some spare
-> space between IDs too for future extensions.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-Am I missing something? I see no reason for this patch or for adding the
-spare space.
-
-Regards,
-
-	Hans
-
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  include/uapi/linux/v4l2-controls.h | 16 ++++++++--------
->  1 file changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 3cf68a6..cc488c3 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -899,13 +899,13 @@ enum v4l2_deemphasis {
->  #define V4L2_CID_RF_TUNER_CLASS_BASE		(V4L2_CTRL_CLASS_RF_TUNER | 0x900)
->  #define V4L2_CID_RF_TUNER_CLASS			(V4L2_CTRL_CLASS_RF_TUNER | 1)
->  
-> -#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 1)
-> -#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 2)
-> -#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 3)
-> -#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 4)
-> -#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 5)
-> -#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 6)
-> -#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 7)
-> -#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 8)
-> +#define V4L2_CID_BANDWIDTH_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 11)
-> +#define V4L2_CID_BANDWIDTH			(V4L2_CID_RF_TUNER_CLASS_BASE + 12)
-> +#define V4L2_CID_LNA_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 41)
-> +#define V4L2_CID_LNA_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 42)
-> +#define V4L2_CID_MIXER_GAIN_AUTO		(V4L2_CID_RF_TUNER_CLASS_BASE + 51)
-> +#define V4L2_CID_MIXER_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 52)
-> +#define V4L2_CID_IF_GAIN_AUTO			(V4L2_CID_RF_TUNER_CLASS_BASE + 61)
-> +#define V4L2_CID_IF_GAIN			(V4L2_CID_RF_TUNER_CLASS_BASE + 62)
->  
->  #endif
-> 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 92e3335..9adf630 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4975,8 +4975,27 @@ defines possible values for de-emphasis. Here they are:</entry>
+     <section id="rf-tuner-controls">
+       <title>RF Tuner Control Reference</title>
+ 
+-      <para>The RF Tuner (RF_TUNER) class includes controls for common features
+-of devices having RF tuner.</para>
++      <para>
++The RF Tuner (RF_TUNER) class includes controls for common features of devices
++having RF tuner.
++      </para>
++      <para>
++In this context, RF tuner is radio receiver circuit between antenna and
++demodulator. It receives radio frequency (RF) from the antenna and converts that
++received signal to lower intermediate frequency (IF) or baseband frequency (BB).
++Tuners that could do baseband output are often called Zero-IF tuners. Older
++tuners were typically simple PLL tuners inside a metal box, whilst newer ones
++are highly integrated chips without a metal box "silicon tuners". These controls
++are mostly applicable for new feature rich silicon tuners, just because older
++tuners does not have much adjustable features.
++      </para>
++      <para>
++For more information about RF tuners see
++<ulink url="http://en.wikipedia.org/wiki/Tuner_%28radio%29">Tuner (radio)</ulink>
++and
++<ulink url="http://en.wikipedia.org/wiki/RF_front_end">RF front end</ulink>
++from Wikipedia.
++      </para>
+ 
+       <table pgwide="1" frame="none" id="rf-tuner-control-id">
+         <title>RF_TUNER Control IDs</title>
+-- 
+1.8.5.3
 
