@@ -1,68 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4245 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932072AbaBEHRX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 02:17:23 -0500
-Message-ID: <52F1E56B.50602@xs4all.nl>
-Date: Wed, 05 Feb 2014 08:16:59 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Dean Anderson <linux-dev@sensoray.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] s2255drv: file handle cleanup
-References: <1391553393-17672-1-git-send-email-linux-dev@sensoray.com> <13a909e44a406b9b9e54c6941d853e7f@sensoray.com>
-In-Reply-To: <13a909e44a406b9b9e54c6941d853e7f@sensoray.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:51839 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753595AbaB0AWV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:22:21 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 08/13] DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
+Date: Thu, 27 Feb 2014 02:22:03 +0200
+Message-Id: <1393460528-11684-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
+References: <1393460528-11684-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2014 12:10 AM, Dean Anderson wrote:
-> Hi Hans,
-> 
-> Please ignore and reject this patch. videobuf_queue_vmalloc_init needs 
-> to be in probe, not in open.
-> 
-> Let me know your thoughts on doing videobuf2 before s2255_fh removal so 
-> we don't have to work around or fix videobuf version one's deficiencies.
+Document V4L2_SDR_FMT_CU16LE format.
+It is complex unsigned 16-bit little endian IQ sample. Used by
+software defined radio devices.
 
-What I have done in the past w.r.t. vb2 conversions is to move fields
-out of the fh struct where it is possible without breaking videobuf, then
-when I do the final vb2 conversion I drop the fh struct completely.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/pixfmt-sdr-cu16le.xml        | 46 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |  1 +
+ 2 files changed, 47 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
 
-As you mentioned before, the resources field can't really be dropped
-until the vb2 conversion, but it simplifies matters if the rest is moved
-out first. The end result of a vb2 conversion is great, but the actual
-patch is a pain to review :-)
-
-Now that I am adding streaming tests in v4l2-compliance I am hoping that
-it will be easier to verify correctness in the future, something that
-really hasn't been possible.
-
-Regards,
-
-	Hans
-
-> 
-> Thanks,
-> 
-> 
-> 
-> 
-> On 2014-02-04 16:36, Dean Anderson wrote:
->> Removes most parameters from s2255_fh.  These elements belong in 
->> s2255_ch.
->> In the future, s2255_fh will be removed when videobuf2 is used. 
->> videobuf2
->> has convenient and safe functions for locking streaming resources.
->>
->> The removal of s2255_fh (and s2255_fh->resources) was not done now to
->> avoid using videobuf_queue_is_busy.
->>
->> videobuf_queue_is busy may be unsafe as noted by the following comment
->> in videobuf-core.c:
->> "/* Locking: Only usage in bttv unsafe find way to remove */"
->>
->> Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
->> ---
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+new file mode 100644
+index 0000000..26288ff
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+@@ -0,0 +1,46 @@
++<refentry id="V4L2-SDR-FMT-CU16LE">
++  <refmeta>
++    <refentrytitle>V4L2_SDR_FMT_CU16LE ('CU16')</refentrytitle>
++    &manvol;
++  </refmeta>
++    <refnamediv>
++      <refname>
++        <constant>V4L2_SDR_FMT_CU16LE</constant>
++      </refname>
++      <refpurpose>Complex unsigned 16-bit little endian IQ sample</refpurpose>
++    </refnamediv>
++    <refsect1>
++      <title>Description</title>
++      <para>
++This format contains sequence of complex number samples. Each complex number
++consist two parts, called In-phase and Quadrature (IQ). Both I and Q are
++represented as a 16 bit unsigned little endian number. I value comes first
++and Q value after that.
++      </para>
++    <example>
++      <title><constant>V4L2_SDR_FMT_CU16LE</constant> 1 sample</title>
++      <formalpara>
++        <title>Byte Order.</title>
++        <para>Each cell is one byte.
++          <informaltable frame="none">
++            <tgroup cols="3" align="center">
++              <colspec align="left" colwidth="2*" />
++              <tbody valign="top">
++                <row>
++                  <entry>start&nbsp;+&nbsp;0:</entry>
++                  <entry>I'<subscript>0[7:0]</subscript></entry>
++                  <entry>I'<subscript>0[15:8]</subscript></entry>
++                </row>
++                <row>
++                  <entry>start&nbsp;+&nbsp;2:</entry>
++                  <entry>Q'<subscript>0[7:0]</subscript></entry>
++                  <entry>Q'<subscript>0[15:8]</subscript></entry>
++                </row>
++              </tbody>
++            </tgroup>
++          </informaltable>
++        </para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 40adcb8..f535d9b 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -818,6 +818,7 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+ interface only.</para>
+ 
+     &sub-sdr-cu08;
++    &sub-sdr-cu16le;
+ 
+   </section>
+ 
+-- 
+1.8.5.3
 
