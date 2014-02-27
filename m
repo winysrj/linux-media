@@ -1,65 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:56786 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755693AbaBEWPa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Feb 2014 17:15:30 -0500
-Received: by mail-wi0-f179.google.com with SMTP id hn9so1028015wib.6
-        for <linux-media@vger.kernel.org>; Wed, 05 Feb 2014 14:15:28 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH] rc: ir-raw: Load ir-sharp-decoder module at init
-Date: Wed,  5 Feb 2014 22:15:16 +0000
-Message-Id: <1391638516-23952-1-git-send-email-james.hogan@imgtec.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:55893 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754069AbaB0A6X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:58:23 -0500
+Message-ID: <530E8DAD.3080604@iki.fi>
+Date: Thu, 27 Feb 2014 02:58:21 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jan Vcelak <jv@fcelda.cz>, linux-media@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] [media] rtl28xxu: add chipset version comments
+ into device list
+References: <530DB488.9030901@iki.fi> <1393439620-7993-1-git-send-email-jv@fcelda.cz> <1393439620-7993-2-git-send-email-jv@fcelda.cz>
+In-Reply-To: <1393439620-7993-2-git-send-email-jv@fcelda.cz>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 1d184b0bc13d ([media] media: rc: add raw decoder for Sharp
-protocol) added a new raw IR decoder for the sharp protocol, but didn't
-add the code to load the module at init as is done for other raw
-decoders, so add that code now.
+Applied, thanks!
+Antti
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
-I'm not sure if the media tree gets rebased, but if so this could
-happily be squashed into the sharp decoder commit.
----
- drivers/media/rc/ir-raw.c       | 1 +
- drivers/media/rc/rc-core-priv.h | 7 +++++++
- 2 files changed, 8 insertions(+)
+On 26.02.2014 20:33, Jan Vcelak wrote:
+> Signed-off-by: Jan Vcelak <jv@fcelda.cz>
+> ---
+>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 3 +++
+>   1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> index b9eb662..ab1deac 100644
+> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> @@ -1382,6 +1382,7 @@ static const struct dvb_usb_device_properties rtl2832u_props = {
+>   };
+>
+>   static const struct usb_device_id rtl28xxu_id_table[] = {
+> +	/* RTL2831U devices: */
+>   	{ DVB_USB_DEVICE(USB_VID_REALTEK, USB_PID_REALTEK_RTL2831U,
+>   		&rtl2831u_props, "Realtek RTL2831U reference design", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_WIDEVIEW, USB_PID_FREECOM_DVBT,
+> @@ -1389,6 +1390,7 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+>   	{ DVB_USB_DEVICE(USB_VID_WIDEVIEW, USB_PID_FREECOM_DVBT_2,
+>   		&rtl2831u_props, "Freecom USB2.0 DVB-T", NULL) },
+>
+> +	/* RTL2832U devices: */
+>   	{ DVB_USB_DEVICE(USB_VID_REALTEK, 0x2832,
+>   		&rtl2832u_props, "Realtek RTL2832U reference design", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_REALTEK, 0x2838,
+> @@ -1432,6 +1434,7 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+>   	{ DVB_USB_DEVICE(USB_VID_KYE, 0x707f,
+>   		&rtl2832u_props, "Genius TVGo DVB-T03", NULL) },
+>
+> +	/* RTL2832P devices: */
+>   	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
+>   		&rtl2832u_props, "Astrometa DVB-T2", NULL) },
+>   	{ }
+>
 
-diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
-index 5c42750..79a9cb6 100644
---- a/drivers/media/rc/ir-raw.c
-+++ b/drivers/media/rc/ir-raw.c
-@@ -352,6 +352,7 @@ void ir_raw_init(void)
- 	load_jvc_decode();
- 	load_sony_decode();
- 	load_sanyo_decode();
-+	load_sharp_decode();
- 	load_mce_kbd_decode();
- 	load_lirc_codec();
- 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index c40d666..dc3b0b7 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -210,6 +210,13 @@ static inline void load_sony_decode(void) { }
- static inline void load_sanyo_decode(void) { }
- #endif
- 
-+/* from ir-sharp-decoder.c */
-+#ifdef CONFIG_IR_SHARP_DECODER_MODULE
-+#define load_sharp_decode()	request_module_nowait("ir-sharp-decoder")
-+#else
-+static inline void load_sharp_decode(void) { }
-+#endif
-+
- /* from ir-mce_kbd-decoder.c */
- #ifdef CONFIG_IR_MCE_KBD_DECODER_MODULE
- #define load_mce_kbd_decode()	request_module_nowait("ir-mce_kbd-decoder")
+
 -- 
-1.8.3.2
-
+http://palosaari.fi/
