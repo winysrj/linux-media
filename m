@@ -1,67 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2223 "EHLO
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3970 "EHLO
 	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448AbaBYKdM (ORCPT
+	with ESMTP id S1751360AbaB0OVK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:33:12 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s1PAX99l070227
-	for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 11:33:11 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from test-media.192.168.1.1 (test [192.168.1.27])
-	by tschai.lan (Postfix) with ESMTPSA id F12812A0232
-	for <linux-media@vger.kernel.org>; Tue, 25 Feb 2014 11:33:06 +0100 (CET)
+	Thu, 27 Feb 2014 09:21:10 -0500
+Message-ID: <530F49BA.9070606@xs4all.nl>
+Date: Thu, 27 Feb 2014 15:20:42 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv1 PATCH 0/2] Add viloop and vioverlay drivers
-Date: Tue, 25 Feb 2014 11:33:03 +0100
-Message-Id: <1393324385-44355-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: linaro-mm-sig@lists.linaro.org
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Use of dma_buf_unmap_attachment in interrupt context?
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+A quick question: can dma_buf_unmap_attachment be called from
+interrupt context? It is the dmabuf equivalent to e.g. dma_sync_sg_for_cpu
+or dma_unmap_sg, and those can be called from interrupt context.
 
-I wanted to share these two drivers, even though they need more work,
-particular w.r.t. code quality.
+I cannot see anything specific about this in the sources or dma-buf-sharing.txt.
 
-They assume that PART 1 and PART 2 of the vb2 patch series are applied.
-
-The viloop driver loops video from one device to another. It will create
-pairs of video devices, the first an output device, the second a capture
-device, and just copy the video data from one device to the other.
-
-It can be loaded in multiplanar mode with the multiplanar=1 option.
-It's a clean implementation using all the latest frameworks, in particular
-all streaming memory models are supported as well as EXPBUF.
-
-I did look at first at the out-of-tree v4l2-loopback driver, but it was
-quicker to just write my own.
-
-The vioverlay driver is a driver to test overlay support, both capture and
-output overlays. Few drivers support this, so it is very hard to have
-applications test their support for overlays, or to test drivers with overlay
-support.
-
-Overlay may be less and less important, but it is part of the API and you
-need a way to test it.
-
-The vioverlay driver creates a framebuffer, an output video node and a capture
-video node. The output video node is used to pass video to the driver which
-will be used as the video for the video output overlay feature. The capture
-node is used to capture the result of the framebuffer contents mixed in with
-the video output overlay.
-
-Currently clipping and bitmap support is in, but not yet alpha blending and
-chromakeying.
-
-Feedback and ideas are welcome.
-
-Again, I am well aware that these drivers need some more code cleanup work,
-so don't bother commenting on that :-) They've been written in just the past
-3-4 days so they are freshly baked...
+If it turns out that dma_buf_unmap_attachment can be called from atomic context,
+then that should be documented, I think.
 
 Regards,
 
 	Hans
-
