@@ -1,86 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58278 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752421AbaBXR4H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Feb 2014 12:56:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	k.debski@samsung.com
-Subject: Re: [PATCH v5 2/7] v4l: Use full 32 bits for buffer flags
-Date: Mon, 24 Feb 2014 18:57:21 +0100
-Message-ID: <1429446.JuNhcjlU1Y@avalon>
-In-Reply-To: <530B6D0C.1020900@xs4all.nl>
-References: <1392497585-5084-1-git-send-email-sakari.ailus@iki.fi> <530B668D.6010903@iki.fi> <530B6D0C.1020900@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:56541 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754286AbaB0AZh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:25:37 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 4/6] MAINTAINERS: add msi001 driver
+Date: Thu, 27 Feb 2014 02:25:20 +0200
+Message-Id: <1393460722-11774-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460722-11774-1-git-send-email-crope@iki.fi>
+References: <1393460722-11774-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Mirics MSi001 silicon tuner driver. Currently in staging as SDR API
+is not ready.
 
-On Monday 24 February 2014 17:02:20 Hans Verkuil wrote:
-> On 02/24/2014 04:34 PM, Sakari Ailus wrote:
-> > Hans Verkuil wrote:
-> >> On 02/15/2014 09:53 PM, Sakari Ailus wrote:
-> >>> The buffer flags field is 32 bits but the defined only used 16. This is
-> >>> fine, but as more than 16 bits will be used in the very near future,
-> >>> define them as 32-bit numbers for consistency.
-> >>> 
-> >>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> >>> ---
-> >>> 
-> >>>  Documentation/DocBook/media/v4l/io.xml |   30 ++++++++++++-------------
-> >>>  include/uapi/linux/videodev2.h         |   38 +++++++++++++++----------
-> >>   2 files changed, 38 insertions(+), 30 deletions(-)
-> >>> 
-> >>> diff --git a/Documentation/DocBook/media/v4l/io.xml
-> >>> b/Documentation/DocBook/media/v4l/io.xml index 8facac4..46d24b3 100644
-> >>> --- a/Documentation/DocBook/media/v4l/io.xml
-> >>> +++ b/Documentation/DocBook/media/v4l/io.xml
-> >> 
-> >> <snip>
-> >> 
-> >>> @@ -1115,7 +1115,7 @@ in which case caches have not been used.</entry>
-> >>>  	  </row>
-> >>>  	  <row>
-> >>>  	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_COPY</constant></entry>
-> >>> -	    <entry>0x4000</entry>
-> >>> +	    <entry>0x00004000</entry>
-> >>>  	    <entry>The CAPTURE buffer timestamp has been taken from the
-> >>>  	    corresponding OUTPUT buffer. This flag applies only to mem2mem
-> >>>  	    devices.</entry>
-> >>>  	  </row>
-> >> 
-> >> Should we add here that if TIMESTAMP_COPY is set and the TIMECODE flag is
-> >> set, then drivers should copy the TIMECODE struct as well? This is
-> >> happening already in various drivers and I think that is appropriate.
-> >> Although to be honest nobody is actually using the timecode struct, but
-> >> we plan to hijack that for hardware timestamps in the future anyway.
-> > 
-> > Is there a single driver which uses the timecode field? The fact is that
-> > many m2m drivers copy it but that's probably mostly copying what one of
-> > them happened to do by accident. :-)
-> 
-> No, there are no drivers that use this at the moment (other than for
-> copying). However, it is part of the API and I'd like to close these little
-> holes and define clearly what should be done.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ MAINTAINERS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-What would you think about deprecating the timecode field ? There's no 
-mainline driver using it, I'd rather avoid introducing a dependency on the 
-timecode in M2M applications.
-
-> I think given the purpose of the timecode field it makes sense to copy it.
-> Note that it is the application that might be providing that data, it
-> doesn't have to come from a driver at all.
-> 
-> I've been doing a lot of testing over the weekend and this is one of those
-> little things that are not clearly defined.
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b2cf5cf..15ebabb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5757,6 +5757,16 @@ L:	platform-driver-x86@vger.kernel.org
+ S:	Supported
+ F:	drivers/platform/x86/msi-wmi.c
+ 
++MSI001 MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/staging/media/msi3101/msi001*
++
+ MT9M032 APTINA SENSOR DRIVER
+ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ L:	linux-media@vger.kernel.org
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.3
 
