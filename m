@@ -1,101 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4411 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751919AbaBJIsD (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60494 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752927AbaB0RWZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 03:48:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 10/34] v4l2-ctrls: compare values only once.
-Date: Mon, 10 Feb 2014 09:46:35 +0100
-Message-Id: <1392022019-5519-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
-References: <1392022019-5519-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 27 Feb 2014 12:22:25 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v5 6/7] of: Implement simplified graph binding for single port devices
+Date: Thu, 27 Feb 2014 18:35:39 +0100
+Message-Id: <1393522540-22887-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
+References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+For simple devices with only one port, it can be made implicit.
+The endpoint node can be a direct child of the device node.
 
-When setting a control the control's new value is compared to the current
-value twice: once by new_to_cur(), once by cluster_changed(). Not a big
-deal when dealing with simple values, but it can be a problem when dealing
-with compound types or matrices. So fix this: cluster_changed() sets the
-has_changed flag, which is used by new_to_cur() instead of having to do
-another compare.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 17 +++++++++++------
- include/media/v4l2-ctrls.h           |  3 +++
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ drivers/of/base.c | 24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b945008..87f9a4e 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1395,8 +1395,11 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
- 
- 	if (ctrl == NULL)
- 		return;
--	changed = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
--	ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index ba3cfca..7d9c62b 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2037,8 +2037,13 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 		struct device_node *node;
+ 		/*
+ 		 * It's the first call, we have to find a port subnode
+-		 * within this node or within an optional 'ports' node.
++		 * within this node or within an optional 'ports' node,
++		 * or at least a single endpoint.
+ 		 */
++		endpoint = of_get_child_by_name(parent, "endpoint");
++		if (endpoint)
++			return endpoint;
 +
-+	/* has_changed is set by cluster_changed */
-+	changed = ctrl->has_changed;
-+	if (changed)
-+		ptr_to_ptr(ctrl, ctrl->new, ctrl->stores[0]);
+ 		node = of_get_child_by_name(parent, "ports");
+ 		if (node)
+ 			parent = node;
+@@ -2049,8 +2054,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 			/* Found a port, get an endpoint. */
+ 			endpoint = of_get_next_child(port, NULL);
+ 			of_node_put(port);
+-		} else {
+-			endpoint = NULL;
+ 		}
  
- 	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
- 		/* Note: CH_FLAGS is only set for auto clusters. */
-@@ -1433,17 +1436,19 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
-    value that differs from the current value. */
- static int cluster_changed(struct v4l2_ctrl *master)
- {
--	int diff = 0;
-+	bool changed = false;
- 	int i;
+ 		if (!endpoint)
+@@ -2065,6 +2068,10 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 	if (WARN_ONCE(!port, "%s(): endpoint has no parent node\n",
+ 		      __func__))
+ 		return NULL;
++	if (port == parent) {
++		of_node_put(port);
++		return NULL;
++	}
  
--	for (i = 0; !diff && i < master->ncontrols; i++) {
-+	for (i = 0; i < master->ncontrols; i++) {
- 		struct v4l2_ctrl *ctrl = master->cluster[i];
+ 	/* Avoid dropping prev node refcount to 0. */
+ 	of_node_get(prev);
+@@ -2105,9 +2112,11 @@ struct device_node *of_graph_get_remote_port_parent(
+ 	/* Get remote endpoint node. */
+ 	np = of_parse_phandle(node, "remote-endpoint", 0);
  
- 		if (ctrl == NULL)
- 			continue;
--		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
-+		ctrl->has_changed = !ctrl->type_ops->equal(ctrl,
-+						ctrl->stores[0], ctrl->new);
-+		changed |= ctrl->has_changed;
+-	/* Walk 3 levels up only if there is 'ports' node. */
++	/* Walk 3 levels up only if there is 'ports' node */
+ 	for (depth = 3; depth && np; depth--) {
+ 		np = of_get_next_parent(np);
++		if (depth == 3 && of_node_cmp(np->name, "port"))
++			break;
+ 		if (depth == 2 && of_node_cmp(np->name, "ports"))
+ 			break;
  	}
--	return diff;
-+	return changed;
+@@ -2130,6 +2139,11 @@ struct device_node *of_graph_get_remote_port(const struct device_node *node)
+ 	np = of_parse_phandle(node, "remote-endpoint", 0);
+ 	if (!np)
+ 		return NULL;
+-	return of_get_next_parent(np);
++	np = of_get_next_parent(np);
++	if (of_node_cmp(np->name, "port")) {
++		of_node_put(np);
++		return NULL;
++	}
++	return np;
  }
- 
- /* Control range checking */
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index aaf7333..5a39877 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -96,6 +96,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-   * @is_new:	Set when the user specified a new value for this control. It
-   *		is also set when called from v4l2_ctrl_handler_setup. Drivers
-   *		should never set this flag.
-+  * @has_changed: Set when the current value differs from the new value. Drivers
-+  *		should never use this flag.
-   * @is_private: If set, then this control is private to its handler and it
-   *		will not be added to any other handlers. Drivers can set
-   *		this flag.
-@@ -159,6 +161,7 @@ struct v4l2_ctrl {
- 	unsigned int done:1;
- 
- 	unsigned int is_new:1;
-+	unsigned int has_changed:1;
- 	unsigned int is_private:1;
- 	unsigned int is_auto:1;
- 	unsigned int is_int:1;
+ EXPORT_SYMBOL(of_graph_get_remote_port);
 -- 
-1.8.5.2
+1.8.5.3
 
