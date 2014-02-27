@@ -1,82 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45530 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386AbaBLJMg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 04:12:36 -0500
-Message-ID: <1392196314.5536.15.camel@pizza.hi.pengutronix.de>
-Subject: Re: [PATCH v2] [media] of: move graph helpers from
- drivers/media/v4l2-core to drivers/media
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Date: Wed, 12 Feb 2014 10:11:54 +0100
-In-Reply-To: <20140212065306.36a03e82.m.chehab@samsung.com>
-References: <1392154905-12007-1-git-send-email-p.zabel@pengutronix.de>
-	 <20140212065306.36a03e82.m.chehab@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:58918 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754289AbaB0AQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:16:59 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [REVIEW PATCH 1/8] xc2028: silence compiler warnings
+Date: Thu, 27 Feb 2014 02:16:03 +0200
+Message-Id: <1393460170-11591-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460170-11591-1-git-send-email-crope@iki.fi>
+References: <1393460170-11591-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+There is now new tuner types which are not handled on that switch-case.
+Print error if unknown tuner type is meet.
 
-Am Mittwoch, den 12.02.2014, 06:53 +0900 schrieb Mauro Carvalho Chehab:
-[...]
-> > diff --git a/include/media/of_graph.h b/include/media/of_graph.h
-> > new file mode 100644
-> > index 0000000..3bbeb60
-> > --- /dev/null
-> > +++ b/include/media/of_graph.h
-> > @@ -0,0 +1,46 @@
-> > +/*
-> > + * OF graph binding parsing helpers
-> > + *
-> > + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-> > + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > + *
-> > + * Copyright (C) 2012 Renesas Electronics Corp.
-> > + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of version 2 of the GNU General Public License as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +#ifndef __LINUX_OF_GRAPH_H
-> > +#define __LINUX_OF_GRAPH_H
-> > +
-> > +#ifdef CONFIG_OF
-> 
-> As a matter of consistency, it would be better to test here for
-> CONFIG_OF_GRAPH instead, to reflect the same symbol that enables such
-> functions as used on Kconfig/Makefile.
+drivers/media/tuners/tuner-xc2028.c: In function ‘generic_set_freq’:
+drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_ADC’ not handled in switch [-Wswitch]
+  switch (new_type) {
+  ^
+drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value ‘V4L2_TUNER_RF’ not handled in switch [-Wswitch]
 
-Maybe I'm trying to be too clever for my own good, but my reasoning was
-as follows:
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/tuner-xc2028.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Suppose I newly use the of_graph_ helpers in a subsystem that does not
-yet select OF_GRAPH. In that case I'd rather get linking errors earlier
-rather than stubbed out functions that silently fail to parse the DT
-later.
-
-Since there is
-config VIDEO_DEV
-	select OF_GRAPH if OF
-already and the same should be added for other users of device tree
-graphs, I think stubbing out the functions only if OF is disabled should
-be enough.
-
-regards
-Philipp
+diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+index cca508d..76a8165 100644
+--- a/drivers/media/tuners/tuner-xc2028.c
++++ b/drivers/media/tuners/tuner-xc2028.c
+@@ -1107,6 +1107,9 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 				offset += 200000;
+ 		}
+ #endif
++	default:
++		tuner_err("Unsupported tuner type %d.\n", new_type);
++		break;
+ 	}
+ 
+ 	div = (freq - offset + DIV / 2) / DIV;
+-- 
+1.8.5.3
 
