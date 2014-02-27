@@ -1,44 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:52488 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772AbaBJKGc (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50077 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993AbaB0KvG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 05:06:32 -0500
-Received: by mail-ea0-f172.google.com with SMTP id l9so2426143eaj.17
-        for <linux-media@vger.kernel.org>; Mon, 10 Feb 2014 02:06:31 -0800 (PST)
-Message-ID: <52F8A4A2.9080106@gmail.com>
-Date: Mon, 10 Feb 2014 11:06:26 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
+	Thu, 27 Feb 2014 05:51:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 00/86] SDR tree
-References: <1391935771-18670-1-git-send-email-crope@iki.fi> <52F89F2E.3040902@xs4all.nl>
-In-Reply-To: <52F89F2E.3040902@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 03/15] vb2: fix PREPARE_BUF regression
+Date: Thu, 27 Feb 2014 11:52:20 +0100
+Message-ID: <2857474.2sTDPpVYBC@avalon>
+In-Reply-To: <1393332775-44067-4-git-send-email-hverkuil@xs4all.nl>
+References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl> <1393332775-44067-4-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
-> First of all, would this work for a rtl2838 as well or is this really 2832u
-> specific? I've got a 2838...  If it is 2832u specific, then do you know which
-> product has it? It would be useful for me to have a usb stick with which I can
-> test SDR.
+Thank you for the patch.
 
-regarding this question, 2838 is just another USB Id for rtl2832u
-devices based on reference design. I have one with rtl2832u + e4000
-tuner, so probably your stick is fine for SDR.
+On Tuesday 25 February 2014 13:52:43 Hans Verkuil wrote:
+> Fix an incorrect test in vb2_internal_qbuf() where only DEQUEUED buffers
+> are allowed. But PREPARED buffers are also OK.
+> 
+> Introduced by commit 4138111a27859dcc56a5592c804dd16bb12a23d1
+> ("vb2: simplify qbuf/prepare_buf by removing callback").
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Realtek makes several different demodulators with similar codenames:
-- 2830/2832 DVB-T
-- 2836 DTMB
-- 2840 DVB-C
+I wonder how I've managed to ack the commit that broke this without noticing 
+the problem :-/ Sorry about that.
 
-see here for more info:
-http://www.realtek.com.tw/products/productsView.aspx?Langid=1&PNid=7&PFid=22&Level=3&Conn=2
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index f1a2857c..909f367 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1420,11 +1420,6 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
+> struct v4l2_buffer *b) return ret;
+> 
+>  	vb = q->bufs[b->index];
+> -	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+> -		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
+> -			vb->state);
+> -		return -EINVAL;
+> -	}
+> 
+>  	switch (vb->state) {
+>  	case VB2_BUF_STATE_DEQUEUED:
+> @@ -1438,7 +1433,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q,
+> struct v4l2_buffer *b) dprintk(1, "qbuf: buffer still being prepared\n");
+>  		return -EINVAL;
+>  	default:
+> -		dprintk(1, "qbuf: buffer already in use\n");
+> +		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
+> +			vb->state);
+>  		return -EINVAL;
+>  	}
+
+-- 
 Regards,
-Gianluca
+
+Laurent Pinchart
+
