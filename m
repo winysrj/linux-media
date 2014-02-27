@@ -1,84 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43625 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbaBZNg5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Feb 2014 08:36:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:54133 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754065AbaB0AWW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:22:22 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Oleksij Rempel <linux@rempel-privat.de>, stable@vger.kernel.org
-Subject: [PATCH v2] uvcvideo: Do not use usb_set_interface on bulk EP
-Date: Wed, 26 Feb 2014 14:38:10 +0100
-Message-Id: <1393421890-4816-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [REVIEW PATCH 12/13] DocBook: media: document PLL lock control
+Date: Thu, 27 Feb 2014 02:22:07 +0200
+Message-Id: <1393460528-11684-13-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
+References: <1393460528-11684-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Oleksij Rempel <linux@rempel-privat.de>
+Document PLL lock V4L2 control. It is read only RF tuner control
+which is used to inform if tuner is receiving frequency or not.
 
-The UVC specification uses alternate setting selection to notify devices
-of stream start/stop. This breaks when using bulk-based devices, as the
-video streaming interface has a single alternate setting in that case,
-making video stream start and video stream stop events to appear
-identical to the device. Bulk-based devices are thus not well supported
-by UVC.
-
-The webcam built in the Asus Zenbook UX302LA ignores the set interface
-request and will keep the video stream enabled when the driver tries to
-stop it. If USB autosuspend is enabled the device will then be suspended
-and will crash, requiring a cold reboot.
-
-USB trace capture showed that Windows sends a CLEAR_FEATURE(HALT)
-request to the bulk endpoint when stopping the stream instead of
-selecting alternate setting 0. The camera then behaves correctly, and
-thus seems to require that behaviour.
-
-Replace selection of alternate setting 0 with clearing of the endpoint
-halt feature at video stream stop for bulk-based devices. Let's refrain
-from blaming Microsoft this time, as it's not clear whether this
-Windows-specific but USB-compliant behaviour was specifically developed
-to handle bulkd-based UVC devices, or if the camera just took advantage
-of it.
-
-CC: stable@vger.kernel.org
-Signed-off-by: Oleksij Rempel <linux@rempel-privat.de>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/uvc/uvc_video.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ Documentation/DocBook/media/v4l/controls.xml | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 103cd4e..8d52baf 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1850,7 +1850,25 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
- 
- 	if (!enable) {
- 		uvc_uninit_video(stream, 1);
--		usb_set_interface(stream->dev->udev, stream->intfnum, 0);
-+		if (stream->intf->num_altsetting > 1) {
-+			usb_set_interface(stream->dev->udev,
-+					  stream->intfnum, 0);
-+		} else {
-+			/* UVC doesn't specify how to inform a bulk-based device
-+			 * when the video stream is stopped. Windows sends a
-+			 * CLEAR_FEATURE(HALT) request to the video streaming
-+			 * bulk endpoint, mimic the same behaviour.
-+			 */
-+			unsigned int epnum = stream->header.bEndpointAddress
-+					   & USB_ENDPOINT_NUMBER_MASK;
-+			unsigned int dir = stream->header.bEndpointAddress
-+					 & USB_ENDPOINT_DIR_MASK;
-+			unsigned int pipe;
-+
-+			pipe = usb_sndbulkpipe(stream->dev->udev, epnum) | dir;
-+			usb_clear_halt(stream->dev->udev, pipe);
-+		}
-+
- 		uvc_queue_enable(&stream->queue, 0);
- 		uvc_video_clock_cleanup(stream);
- 		return 0;
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 5550fea..92e3335 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5077,6 +5077,15 @@ intermediate frequency output or baseband output. Used when
+ <constant>V4L2_CID_RF_TUNER_IF_GAIN_AUTO</constant> is not set. The range and step are
+ driver-specific.</entry>
+             </row>
++            <row>
++              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_PLL_LOCK</constant>&nbsp;</entry>
++              <entry>boolean</entry>
++            </row>
++            <row>
++              <entry spanname="descr">Is synthesizer PLL locked? RF tuner is
++receiving given frequency when that control is set. This is a read-only control.
++</entry>
++            </row>
+           </tbody>
+         </tgroup>
+       </table>
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.5.3
 
