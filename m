@@ -1,671 +1,556 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33959 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:47948 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751907AbaBIIt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:58 -0500
+	id S1753978AbaB0AZg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:25:36 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 21/86] rtl2832_sdr: convert to SDR API
-Date: Sun,  9 Feb 2014 10:48:26 +0200
-Message-Id: <1391935771-18670-22-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 2/6] msi001: Mirics MSi001 silicon tuner driver
+Date: Thu, 27 Feb 2014 02:25:18 +0200
+Message-Id: <1393460722-11774-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460722-11774-1-git-send-email-crope@iki.fi>
+References: <1393460722-11774-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was abusing video device API. Use SDR API instead.
+That RF tuner driver is bound via SPI bus model and it implements V4L
+subdev API. I split it out from MSi3101 SDR driver.
+MSi3101 = MSi2500 + MSi001.
 
 Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 387 +++++++++++++----------
- 1 file changed, 223 insertions(+), 164 deletions(-)
+ drivers/staging/media/msi3101/Kconfig  |   4 +
+ drivers/staging/media/msi3101/Makefile |   1 +
+ drivers/staging/media/msi3101/msi001.c | 499 +++++++++++++++++++++++++++++++++
+ 3 files changed, 504 insertions(+)
+ create mode 100644 drivers/staging/media/msi3101/msi001.c
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 4b8c016..a26125c 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -20,12 +20,6 @@
-  * GNU Radio plugin "gr-kernel" for device usage will be on:
-  * http://git.linuxtv.org/anttip/gr-kernel.git
-  *
-- * TODO:
-- * Help is very highly welcome for these + all the others you could imagine:
-- * - move controls to V4L2 API
-- * - use libv4l2 for stream format conversions
-- * - gr-kernel: switch to v4l2_mmap (current read eats a lot of cpu)
-- * - SDRSharp support
-  */
- 
- #include "dvb_frontend.h"
-@@ -38,22 +32,75 @@
- #include <media/v4l2-event.h>
- #include <media/videobuf2-vmalloc.h>
- 
-+#include <linux/jiffies.h>
- #include <linux/math64.h>
- 
- /* TODO: These should be moved to V4L2 API */
--#define RTL2832_SDR_CID_SAMPLING_MODE       ((V4L2_CID_USER_BASE | 0xf000) +  0)
--#define RTL2832_SDR_CID_SAMPLING_RATE       ((V4L2_CID_USER_BASE | 0xf000) +  1)
--#define RTL2832_SDR_CID_SAMPLING_RESOLUTION ((V4L2_CID_USER_BASE | 0xf000) +  2)
--#define RTL2832_SDR_CID_TUNER_RF            ((V4L2_CID_USER_BASE | 0xf000) + 10)
- #define RTL2832_SDR_CID_TUNER_BW            ((V4L2_CID_USER_BASE | 0xf000) + 11)
--#define RTL2832_SDR_CID_TUNER_IF            ((V4L2_CID_USER_BASE | 0xf000) + 12)
- #define RTL2832_SDR_CID_TUNER_GAIN          ((V4L2_CID_USER_BASE | 0xf000) + 13)
- 
--#define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
-+#define V4L2_PIX_FMT_SDR_U8    v4l2_fourcc('D', 'U', '0', '8')
-+#define V4L2_PIX_FMT_SDR_U16LE v4l2_fourcc('D', 'U', '1', '6')
- 
- #define MAX_BULK_BUFS            (10)
- #define BULK_BUFFER_SIZE         (128 * 512)
- 
-+static const struct v4l2_frequency_band bands_adc[] = {
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 0,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =  300000,
-+		.rangehigh  =  300000,
-+	},
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 1,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =  900001,
-+		.rangehigh  = 2800000,
-+	},
-+	{
-+		.tuner = 0,
-+		.type = V4L2_TUNER_ADC,
-+		.index = 2,
-+		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   = 3200000,
-+		.rangehigh  = 3200000,
-+	},
-+};
+diff --git a/drivers/staging/media/msi3101/Kconfig b/drivers/staging/media/msi3101/Kconfig
+index 0c349c8..97d5210 100644
+--- a/drivers/staging/media/msi3101/Kconfig
++++ b/drivers/staging/media/msi3101/Kconfig
+@@ -3,3 +3,7 @@ config USB_MSI3101
+ 	depends on USB && VIDEO_DEV && VIDEO_V4L2
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_VMALLOC
 +
-+static const struct v4l2_frequency_band bands_fm[] = {
++config MEDIA_TUNER_MSI001
++	tristate "Mirics MSi001"
++	depends on VIDEO_V4L2 && SPI
+diff --git a/drivers/staging/media/msi3101/Makefile b/drivers/staging/media/msi3101/Makefile
+index 3730654..daf4f58 100644
+--- a/drivers/staging/media/msi3101/Makefile
++++ b/drivers/staging/media/msi3101/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_USB_MSI3101)             += sdr-msi3101.o
++obj-$(CONFIG_MEDIA_TUNER_MSI001)      += msi001.o
+diff --git a/drivers/staging/media/msi3101/msi001.c b/drivers/staging/media/msi3101/msi001.c
+new file mode 100644
+index 0000000..25feece
+--- /dev/null
++++ b/drivers/staging/media/msi3101/msi001.c
+@@ -0,0 +1,499 @@
++/*
++ * Mirics MSi001 silicon tuner driver
++ *
++ * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
++ * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/gcd.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
++
++static const struct v4l2_frequency_band bands[] = {
 +	{
-+		.tuner = 1,
 +		.type = V4L2_TUNER_RF,
 +		.index = 0,
 +		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
-+		.rangelow   =    50000000,
-+		.rangehigh  =  2000000000,
-+	},
-+};
-+
-+/* stream formats */
-+struct rtl2832_sdr_format {
-+	char	*name;
-+	u32	pixelformat;
-+};
-+
-+static struct rtl2832_sdr_format formats[] = {
-+	{
-+		.name		= "8-bit unsigned",
-+		.pixelformat	= V4L2_PIX_FMT_SDR_U8,
++		.rangelow   =   49000000,
++		.rangehigh  =  263000000,
 +	}, {
-+		.name		= "16-bit unsigned little endian",
-+		.pixelformat	= V4L2_PIX_FMT_SDR_U16LE,
++		.type = V4L2_TUNER_RF,
++		.index = 1,
++		.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++		.rangelow   =  390000000,
++		.rangehigh  =  960000000,
 +	},
 +};
 +
-+static const unsigned int NUM_FORMATS = ARRAY_SIZE(formats);
++struct msi001 {
++	struct spi_device *spi;
++	struct v4l2_subdev sd;
 +
- /* intermediate buffers with raw data from the USB device */
- struct rtl2832_sdr_frame_buf {
- 	struct vb2_buffer vb;   /* common v4l buffer stuff -- must be first */
-@@ -96,18 +143,18 @@ struct rtl2832_sdr_state {
- 	int urbs_initialized;
- 	int urbs_submitted;
- 
-+	unsigned int f_adc, f_tuner;
-+	u32 pixelformat;
++	/* Controls */
++	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl *bandwidth_auto;
++	struct v4l2_ctrl *bandwidth;
++	struct v4l2_ctrl *lna_gain;
++	struct v4l2_ctrl *mixer_gain;
++	struct v4l2_ctrl *if_gain;
 +
- 	/* Controls */
- 	struct v4l2_ctrl_handler ctrl_handler;
--	struct v4l2_ctrl *ctrl_sampling_rate;
--	struct v4l2_ctrl *ctrl_tuner_rf;
- 	struct v4l2_ctrl *ctrl_tuner_bw;
--	struct v4l2_ctrl *ctrl_tuner_if;
- 	struct v4l2_ctrl *ctrl_tuner_gain;
- 
- 	/* for sample rate calc */
- 	unsigned int sample;
- 	unsigned int sample_measured;
--	unsigned long jiffies;
-+	unsigned long jiffies_next;
- };
- 
- /* write multiple hardware registers */
-@@ -292,27 +339,41 @@ leave:
- }
- 
- static unsigned int rtl2832_sdr_convert_stream(struct rtl2832_sdr_state *s,
--		u8 *dst, const u8 *src, unsigned int src_len)
-+		void *dst, const u8 *src, unsigned int src_len)
- {
--	memcpy(dst, src, src_len);
-+	unsigned int dst_len;
++	unsigned int f_tuner;
++};
 +
-+	if (s->pixelformat == V4L2_PIX_FMT_SDR_U8) {
-+		/* native stream, no need to convert */
-+		memcpy(dst, src, src_len);
-+		dst_len = src_len;
-+	} else if (s->pixelformat == V4L2_PIX_FMT_SDR_U16LE) {
-+		/* convert u8 to u16 */
-+		unsigned int i;
-+		u16 *u16dst = dst;
-+		for (i = 0; i < src_len; i++)
-+			*u16dst++ = (src[i] << 8) | (src[i] >> 0);
-+		dst_len = 2 * src_len;
-+	} else {
-+		dst_len = 0;
-+	}
- 
- 	/* calculate samping rate and output it in 10 seconds intervals */
--	if ((s->jiffies + msecs_to_jiffies(10000)) <= jiffies) {
--		unsigned long jiffies_now = jiffies;
--		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies);
-+	if (unlikely(time_is_before_jiffies(s->jiffies_next))) {
-+#define MSECS 10000UL
- 		unsigned int samples = s->sample - s->sample_measured;
--		s->jiffies = jiffies_now;
-+		s->jiffies_next = jiffies + msecs_to_jiffies(MSECS);
- 		s->sample_measured = s->sample;
- 		dev_dbg(&s->udev->dev,
- 				"slen=%d samples=%u msecs=%lu sampling rate=%lu\n",
--				src_len, samples, msecs,
--				samples * 1000UL / msecs);
-+				src_len, samples, MSECS,
-+				samples * 1000UL / MSECS);
- 	}
- 
- 	/* total number of I+Q pairs */
- 	s->sample += src_len / 2;
- 
--	return src_len;
-+	return dst_len;
- }
- 
- /*
-@@ -343,12 +404,12 @@ static void rtl2832_sdr_urb_complete(struct urb *urb)
- 		break;
- 	}
- 
--	if (urb->actual_length > 0) {
-+	if (likely(urb->actual_length > 0)) {
- 		void *ptr;
- 		unsigned int len;
- 		/* get free framebuffer */
- 		fbuf = rtl2832_sdr_get_next_fill_buf(s);
--		if (fbuf == NULL) {
-+		if (unlikely(fbuf == NULL)) {
- 			s->vb_full++;
- 			dev_notice_ratelimited(&s->udev->dev,
- 					"videobuf is full, %d packets dropped\n",
-@@ -544,7 +605,7 @@ static int rtl2832_sdr_querycap(struct file *file, void *fh,
- 	strlcpy(cap->card, s->vdev.name, sizeof(cap->card));
- 	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
- 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
--			V4L2_CAP_READWRITE;
-+			V4L2_CAP_READWRITE | V4L2_CAP_TUNER;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
-@@ -560,7 +621,8 @@ static int rtl2832_sdr_queue_setup(struct vb2_queue *vq,
- 	/* Absolute min and max number of buffers available for mmap() */
- 	*nbuffers = 32;
- 	*nplanes = 1;
--	sizes[0] = PAGE_ALIGN(BULK_BUFFER_SIZE * 4); /* 8 * 512 * 4 = 16384 */
-+	/* 2 = max 16-bit sample returned */
-+	sizes[0] = PAGE_ALIGN(BULK_BUFFER_SIZE * 2);
- 	dev_dbg(&s->udev->dev, "%s: nbuffers=%d sizes[0]=%d\n",
- 			__func__, *nbuffers, sizes[0]);
- 	return 0;
-@@ -609,7 +671,10 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_state *s)
- 	if (!test_bit(POWER_ON, &s->flags))
- 		return 0;
- 
--	f_sr = s->ctrl_sampling_rate->val64;
-+	if (s->f_adc == 0)
-+		return 0;
++static inline struct msi001 *sd_to_msi001(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct msi001, sd);
++}
 +
-+	f_sr = s->f_adc;
- 
- 	ret = rtl2832_sdr_wr_regs(s, 0x13e, "\x00\x00", 2);
- 	ret = rtl2832_sdr_wr_regs(s, 0x115, "\x00", 1);
-@@ -788,17 +853,15 @@ static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
- 	struct dvb_frontend *fe = s->fe;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 
--	unsigned int f_rf = s->ctrl_tuner_rf->val64;
--
- 	/*
--	 * bandwidth (Hz)
-+	 * tuner RF (Hz)
- 	 */
--	unsigned int bandwidth = s->ctrl_tuner_bw->val;
-+	unsigned int f_rf = s->f_tuner;
- 
- 	/*
--	 * intermediate frequency (Hz)
-+	 * bandwidth (Hz)
- 	 */
--	unsigned int f_if = s->ctrl_tuner_if->val;
-+	unsigned int bandwidth = s->ctrl_tuner_bw->val;
- 
- 	/*
- 	 * gain (dB)
-@@ -806,8 +869,11 @@ static int rtl2832_sdr_set_tuner(struct rtl2832_sdr_state *s)
- 	int gain = s->ctrl_tuner_gain->val;
- 
- 	dev_dbg(&s->udev->dev,
--			"%s: f_rf=%u bandwidth=%d f_if=%u gain=%d\n",
--			__func__, f_rf, bandwidth, f_if, gain);
-+			"%s: f_rf=%u bandwidth=%d gain=%d\n",
-+			__func__, f_rf, bandwidth, gain);
++static int msi001_wreg(struct msi001 *s, u32 data)
++{
++	/* Register format: 4 bits addr + 20 bits value */
++	return spi_write(s->spi, &data, 3);
++};
 +
-+	if (f_rf == 0)
-+		return 0;
- 
- 	if (!test_bit(POWER_ON, &s->flags))
- 		return 0;
-@@ -913,123 +979,182 @@ static struct vb2_ops rtl2832_sdr_vb2_ops = {
- 	.wait_finish            = vb2_ops_wait_finish,
- };
- 
--static int rtl2832_sdr_enum_input(struct file *file, void *fh, struct v4l2_input *i)
-+static int rtl2832_sdr_g_tuner(struct file *file, void *priv,
-+		struct v4l2_tuner *v)
- {
--	if (i->index != 0)
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s: index=%d type=%d\n",
-+			__func__, v->index, v->type);
-+
-+	if (v->index == 0) {
-+		strlcpy(v->name, "ADC: Realtek RTL2832", sizeof(v->name));
-+		v->type = V4L2_TUNER_ADC;
-+		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+		v->rangelow =   300000;
-+		v->rangehigh = 3200000;
-+	} else if (v->index == 1) {
-+		strlcpy(v->name, "RF: <unknown>", sizeof(v->name));
-+		v->type = V4L2_TUNER_RF;
-+		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+		v->rangelow =    50000000;
-+		v->rangehigh = 2000000000;
-+	} else {
- 		return -EINVAL;
--
--	strlcpy(i->name, "SDR data", sizeof(i->name));
--	i->type = V4L2_INPUT_TYPE_CAMERA;
-+	}
- 
- 	return 0;
- }
- 
--static int rtl2832_sdr_g_input(struct file *file, void *fh, unsigned int *i)
-+static int rtl2832_sdr_s_tuner(struct file *file, void *priv,
-+		const struct v4l2_tuner *v)
- {
--	*i = 0;
-+	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
- 	return 0;
- }
- 
--static int rtl2832_sdr_s_input(struct file *file, void *fh, unsigned int i)
--{
--	return i ? -EINVAL : 0;
--}
--
--static int vidioc_s_tuner(struct file *file, void *priv,
--		const struct v4l2_tuner *v)
-+static int rtl2832_sdr_enum_freq_bands(struct file *file, void *priv,
-+		struct v4l2_frequency_band *band)
- {
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d index=%d\n",
-+			__func__, band->tuner, band->type, band->index);
-+
-+	if (band->tuner == 0) {
-+		if (band->index >= ARRAY_SIZE(bands_adc))
-+			return -EINVAL;
-+
-+		*band = bands_adc[band->index];
-+	} else if (band->tuner == 1) {
-+		if (band->index >= ARRAY_SIZE(bands_fm))
-+			return -EINVAL;
-+
-+		*band = bands_fm[band->index];
-+	} else {
-+		return -EINVAL;
-+	}
- 
- 	return 0;
- }
- 
--static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *v)
-+static int rtl2832_sdr_g_frequency(struct file *file, void *priv,
-+		struct v4l2_frequency *f)
- {
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s:\n", __func__);
--
--	strcpy(v->name, "SDR RX");
--	v->capability = V4L2_TUNER_CAP_LOW;
-+	int ret  = 0;
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
-+			__func__, f->tuner, f->type);
-+
-+	if (f->tuner == 0)
-+		f->frequency = s->f_adc;
-+	else if (f->tuner == 1)
-+		f->frequency = s->f_tuner;
-+	else
-+		return -EINVAL;
- 
--	return 0;
-+	return ret;
- }
- 
--static int vidioc_s_frequency(struct file *file, void *priv,
-+static int rtl2832_sdr_s_frequency(struct file *file, void *priv,
- 		const struct v4l2_frequency *f)
- {
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
--	dev_dbg(&s->udev->dev, "%s: frequency=%lu Hz (%u)\n",
--			__func__, f->frequency * 625UL / 10UL, f->frequency);
++static int msi001_set_gain(struct msi001 *s, int lna_gain, int mixer_gain,
++		int if_gain)
++{
 +	int ret;
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
-+			__func__, f->tuner, f->type, f->frequency);
- 
--	return v4l2_ctrl_s_ctrl_int64(s->ctrl_tuner_rf,
--			f->frequency * 625UL / 10UL);
-+	if (f->tuner == 0) {
-+		s->f_adc = f->frequency;
-+		dev_dbg(&s->udev->dev, "%s: ADC frequency=%u Hz\n",
-+				__func__, s->f_adc);
-+		ret = rtl2832_sdr_set_adc(s);
-+	} else if (f->tuner == 1) {
-+		s->f_tuner = f->frequency;
-+		dev_dbg(&s->udev->dev, "%s: RF frequency=%u Hz\n",
-+				__func__, f->frequency);
-+		ret = rtl2832_sdr_set_tuner(s);
-+	} else {
-+		return -EINVAL;
-+	}
++	u32 reg;
++	dev_dbg(&s->spi->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
++			lna_gain, mixer_gain, if_gain);
 +
++	reg = 1 << 0;
++	reg |= (59 - if_gain) << 4;
++	reg |= 0 << 10;
++	reg |= (1 - mixer_gain) << 12;
++	reg |= (1 - lna_gain) << 13;
++	reg |= 4 << 14;
++	reg |= 0 << 17;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&s->spi->dev, "%s: failed %d\n", __func__, ret);
 +	return ret;
- }
- 
--static int rtl2832_sdr_enum_fmt_vid_cap(struct file *file, void *priv,
-+static int rtl2832_sdr_enum_fmt_sdr_cap(struct file *file, void *priv,
- 		struct v4l2_fmtdesc *f)
- {
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
--	if (f->index > 0)
-+	if (f->index >= NUM_FORMATS)
- 		return -EINVAL;
- 
--	f->flags = 0;
--	strcpy(f->description, "I/Q 8-bit unsigned");
--	f->pixelformat = V4L2_PIX_FMT_SDR_U8;
-+	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
-+	f->pixelformat = formats[f->index].pixelformat;
- 
- 	return 0;
- }
- 
--static int rtl2832_sdr_g_fmt_vid_cap(struct file *file, void *priv,
-+static int rtl2832_sdr_g_fmt_sdr_cap(struct file *file, void *priv,
- 		struct v4l2_format *f)
- {
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
--	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
- 		return -EINVAL;
- 
--	memset(&f->fmt.pix, 0, sizeof(f->fmt.pix));
--	f->fmt.pix.pixelformat = V4L2_PIX_FMT_SDR_U8;
-+	f->fmt.sdr.pixelformat = s->pixelformat;
- 
- 	return 0;
- }
- 
--static int rtl2832_sdr_s_fmt_vid_cap(struct file *file, void *priv,
-+static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
- 		struct v4l2_format *f)
- {
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
- 	struct vb2_queue *q = &s->vb_queue;
-+	int i;
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
--			(char *)&f->fmt.pix.pixelformat);
-+			(char *)&f->fmt.sdr.pixelformat);
- 
--	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
- 		return -EINVAL;
- 
- 	if (vb2_is_busy(q))
- 		return -EBUSY;
- 
--	memset(&f->fmt.pix, 0, sizeof(f->fmt.pix));
--	f->fmt.pix.pixelformat = V4L2_PIX_FMT_SDR_U8;
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
-+			s->pixelformat = f->fmt.sdr.pixelformat;
-+			return 0;
++};
++
++static int msi001_set_tuner(struct msi001 *s)
++{
++	int ret, i;
++	unsigned int n, m, thresh, frac, vco_step, tmp, f_if1;
++	u32 reg;
++	u64 f_vco, tmp64;
++	u8 mode, filter_mode, lo_div;
++	static const struct {
++		u32 rf;
++		u8 mode;
++		u8 lo_div;
++	} band_lut[] = {
++		{ 50000000, 0xe1, 16}, /* AM_MODE2, antenna 2 */
++		{108000000, 0x42, 32}, /* VHF_MODE */
++		{330000000, 0x44, 16}, /* B3_MODE */
++		{960000000, 0x48,  4}, /* B45_MODE */
++		{      ~0U, 0x50,  2}, /* BL_MODE */
++	};
++	static const struct {
++		u32 freq;
++		u8 filter_mode;
++	} if_freq_lut[] = {
++		{      0, 0x03}, /* Zero IF */
++		{ 450000, 0x02}, /* 450 kHz IF */
++		{1620000, 0x01}, /* 1.62 MHz IF */
++		{2048000, 0x00}, /* 2.048 MHz IF */
++	};
++	static const struct {
++		u32 freq;
++		u8 val;
++	} bandwidth_lut[] = {
++		{ 200000, 0x00}, /* 200 kHz */
++		{ 300000, 0x01}, /* 300 kHz */
++		{ 600000, 0x02}, /* 600 kHz */
++		{1536000, 0x03}, /* 1.536 MHz */
++		{5000000, 0x04}, /* 5 MHz */
++		{6000000, 0x05}, /* 6 MHz */
++		{7000000, 0x06}, /* 7 MHz */
++		{8000000, 0x07}, /* 8 MHz */
++	};
++
++	unsigned int f_rf = s->f_tuner;
++
++	/*
++	 * bandwidth (Hz)
++	 * 200000, 300000, 600000, 1536000, 5000000, 6000000, 7000000, 8000000
++	 */
++	unsigned int bandwidth;
++
++	/*
++	 * intermediate frequency (Hz)
++	 * 0, 450000, 1620000, 2048000
++	 */
++	unsigned int f_if = 0;
++	#define F_REF 24000000
++	#define R_REF 4
++	#define F_OUT_STEP 1
++
++	dev_dbg(&s->spi->dev,
++			"%s: f_rf=%d f_if=%d\n",
++			__func__, f_rf, f_if);
++
++	for (i = 0; i < ARRAY_SIZE(band_lut); i++) {
++		if (f_rf <= band_lut[i].rf) {
++			mode = band_lut[i].mode;
++			lo_div = band_lut[i].lo_div;
++			break;
 +		}
 +	}
 +
-+	f->fmt.sdr.pixelformat = formats[0].pixelformat;
-+	s->pixelformat = formats[0].pixelformat;
- 
- 	return 0;
- }
- 
--static int rtl2832_sdr_try_fmt_vid_cap(struct file *file, void *priv,
-+static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
- 		struct v4l2_format *f)
- {
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
-+	int i;
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
--			(char *)&f->fmt.pix.pixelformat);
-+			(char *)&f->fmt.sdr.pixelformat);
- 
--	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	if (f->type != V4L2_BUF_TYPE_SDR_CAPTURE)
- 		return -EINVAL;
- 
--	memset(&f->fmt.pix, 0, sizeof(f->fmt.pix));
--	f->fmt.pix.pixelformat = V4L2_PIX_FMT_SDR_U8;
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
-+			return 0;
++	if (i == ARRAY_SIZE(band_lut)) {
++		ret = -EINVAL;
++		goto err;
 +	}
 +
-+	f->fmt.sdr.pixelformat = formats[0].pixelformat;
- 
- 	return 0;
- }
-@@ -1037,14 +1162,10 @@ static int rtl2832_sdr_try_fmt_vid_cap(struct file *file, void *priv,
- static const struct v4l2_ioctl_ops rtl2832_sdr_ioctl_ops = {
- 	.vidioc_querycap          = rtl2832_sdr_querycap,
- 
--	.vidioc_enum_fmt_vid_cap  = rtl2832_sdr_enum_fmt_vid_cap,
--	.vidioc_g_fmt_vid_cap     = rtl2832_sdr_g_fmt_vid_cap,
--	.vidioc_s_fmt_vid_cap     = rtl2832_sdr_s_fmt_vid_cap,
--	.vidioc_try_fmt_vid_cap   = rtl2832_sdr_try_fmt_vid_cap,
--
--	.vidioc_enum_input        = rtl2832_sdr_enum_input,
--	.vidioc_g_input           = rtl2832_sdr_g_input,
--	.vidioc_s_input           = rtl2832_sdr_s_input,
-+	.vidioc_enum_fmt_sdr_cap  = rtl2832_sdr_enum_fmt_sdr_cap,
-+	.vidioc_g_fmt_sdr_cap     = rtl2832_sdr_g_fmt_sdr_cap,
-+	.vidioc_s_fmt_sdr_cap     = rtl2832_sdr_s_fmt_sdr_cap,
-+	.vidioc_try_fmt_sdr_cap   = rtl2832_sdr_try_fmt_sdr_cap,
- 
- 	.vidioc_reqbufs           = vb2_ioctl_reqbufs,
- 	.vidioc_create_bufs       = vb2_ioctl_create_bufs,
-@@ -1056,9 +1177,12 @@ static const struct v4l2_ioctl_ops rtl2832_sdr_ioctl_ops = {
- 	.vidioc_streamon          = vb2_ioctl_streamon,
- 	.vidioc_streamoff         = vb2_ioctl_streamoff,
- 
--	.vidioc_g_tuner           = vidioc_g_tuner,
--	.vidioc_s_tuner           = vidioc_s_tuner,
--	.vidioc_s_frequency       = vidioc_s_frequency,
-+	.vidioc_g_tuner           = rtl2832_sdr_g_tuner,
-+	.vidioc_s_tuner           = rtl2832_sdr_s_tuner,
++	/* AM_MODE is upconverted */
++	if ((mode >> 0) & 0x1)
++		f_if1 =  5 * F_REF;
++	else
++		f_if1 =  0;
 +
-+	.vidioc_enum_freq_bands   = rtl2832_sdr_enum_freq_bands,
-+	.vidioc_g_frequency       = rtl2832_sdr_g_frequency,
-+	.vidioc_s_frequency       = rtl2832_sdr_s_frequency,
- 
- 	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-@@ -1076,7 +1200,7 @@ static const struct v4l2_file_operations rtl2832_sdr_fops = {
- };
- 
- static struct video_device rtl2832_sdr_template = {
--	.name                     = "Realtek RTL2832U SDR",
-+	.name                     = "Realtek RTL2832 SDR",
- 	.release                  = video_device_release_empty,
- 	.fops                     = &rtl2832_sdr_fops,
- 	.ioctl_ops                = &rtl2832_sdr_ioctl_ops,
-@@ -1094,14 +1218,7 @@ static int rtl2832_sdr_s_ctrl(struct v4l2_ctrl *ctrl)
- 			ctrl->minimum, ctrl->maximum, ctrl->step);
- 
- 	switch (ctrl->id) {
--	case RTL2832_SDR_CID_SAMPLING_MODE:
--	case RTL2832_SDR_CID_SAMPLING_RATE:
--	case RTL2832_SDR_CID_SAMPLING_RESOLUTION:
--		ret = rtl2832_sdr_set_adc(s);
--		break;
--	case RTL2832_SDR_CID_TUNER_RF:
- 	case RTL2832_SDR_CID_TUNER_BW:
--	case RTL2832_SDR_CID_TUNER_IF:
- 	case RTL2832_SDR_CID_TUNER_GAIN:
- 		ret = rtl2832_sdr_set_tuner(s);
- 		break;
-@@ -1132,49 +1249,6 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	int ret;
- 	struct rtl2832_sdr_state *s;
- 	struct dvb_usb_device *d = i2c_get_adapdata(i2c);
--	static const char * const ctrl_sampling_mode_qmenu_strings[] = {
--		"Quadrature Sampling",
--		NULL,
--	};
--	static const struct v4l2_ctrl_config ctrl_sampling_mode = {
--		.ops	= &rtl2832_sdr_ctrl_ops,
--		.id	= RTL2832_SDR_CID_SAMPLING_MODE,
--		.type   = V4L2_CTRL_TYPE_MENU,
--		.flags  = V4L2_CTRL_FLAG_INACTIVE,
--		.name	= "Sampling Mode",
--		.qmenu  = ctrl_sampling_mode_qmenu_strings,
--	};
--	static const struct v4l2_ctrl_config ctrl_sampling_rate = {
--		.ops	= &rtl2832_sdr_ctrl_ops,
--		.id	= RTL2832_SDR_CID_SAMPLING_RATE,
--		.type	= V4L2_CTRL_TYPE_INTEGER64,
--		.name	= "Sampling Rate",
--		.min	=  900001,
--		.max	= 2800000,
--		.def    = 2048000,
--		.step	= 1,
--	};
--	static const struct v4l2_ctrl_config ctrl_sampling_resolution = {
--		.ops	= &rtl2832_sdr_ctrl_ops,
--		.id	= RTL2832_SDR_CID_SAMPLING_RESOLUTION,
--		.type	= V4L2_CTRL_TYPE_INTEGER,
--		.flags  = V4L2_CTRL_FLAG_INACTIVE,
--		.name	= "Sampling Resolution",
--		.min	= 8,
--		.max	= 8,
--		.def    = 8,
--		.step	= 1,
--	};
--	static const struct v4l2_ctrl_config ctrl_tuner_rf = {
--		.ops	= &rtl2832_sdr_ctrl_ops,
--		.id	= RTL2832_SDR_CID_TUNER_RF,
--		.type   = V4L2_CTRL_TYPE_INTEGER64,
--		.name	= "Tuner RF",
--		.min	=   40000000,
--		.max	= 2000000000,
--		.def    =  100000000,
--		.step	= 1,
--	};
- 	static const struct v4l2_ctrl_config ctrl_tuner_bw = {
- 		.ops	= &rtl2832_sdr_ctrl_ops,
- 		.id	= RTL2832_SDR_CID_TUNER_BW,
-@@ -1185,17 +1259,6 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 		.def    =  600000,
- 		.step	= 1,
- 	};
--	static const struct v4l2_ctrl_config ctrl_tuner_if = {
--		.ops	= &rtl2832_sdr_ctrl_ops,
--		.id	= RTL2832_SDR_CID_TUNER_IF,
--		.type	= V4L2_CTRL_TYPE_INTEGER,
--		.flags  = V4L2_CTRL_FLAG_INACTIVE,
--		.name	= "Tuner IF",
--		.min	= 0,
--		.max	= 10,
--		.def    = 0,
--		.step	= 1,
--	};
- 	static const struct v4l2_ctrl_config ctrl_tuner_gain = {
- 		.ops	= &rtl2832_sdr_ctrl_ops,
- 		.id	= RTL2832_SDR_CID_TUNER_GAIN,
-@@ -1227,7 +1290,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	INIT_LIST_HEAD(&s->queued_bufs);
- 
- 	/* Init videobuf2 queue structure */
--	s->vb_queue.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	s->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
- 	s->vb_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
- 	s->vb_queue.drv_priv = s;
- 	s->vb_queue.buf_struct_size = sizeof(struct rtl2832_sdr_frame_buf);
-@@ -1248,13 +1311,8 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	video_set_drvdata(&s->vdev, s);
- 
- 	/* Register controls */
--	v4l2_ctrl_handler_init(&s->ctrl_handler, 7);
--	v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_sampling_mode, NULL);
--	s->ctrl_sampling_rate = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_sampling_rate, NULL);
--	v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_sampling_resolution, NULL);
--	s->ctrl_tuner_rf = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_rf, NULL);
-+	v4l2_ctrl_handler_init(&s->ctrl_handler, 2);
- 	s->ctrl_tuner_bw = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_bw, NULL);
--	s->ctrl_tuner_if = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_if, NULL);
- 	s->ctrl_tuner_gain = v4l2_ctrl_new_custom(&s->ctrl_handler, &ctrl_tuner_gain, NULL);
- 	if (s->ctrl_handler.error) {
- 		ret = s->ctrl_handler.error;
-@@ -1274,8 +1332,9 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	s->v4l2_dev.ctrl_handler = &s->ctrl_handler;
- 	s->vdev.v4l2_dev = &s->v4l2_dev;
- 	s->vdev.lock = &s->v4l2_lock;
-+	s->vdev.vfl_dir = VFL_DIR_RX;
- 
--	ret = video_register_device(&s->vdev, VFL_TYPE_GRABBER, -1);
-+	ret = video_register_device(&s->vdev, VFL_TYPE_SDR, -1);
- 	if (ret < 0) {
- 		dev_err(&s->udev->dev,
- 				"Failed to register as video device (%d)\n",
++	for (i = 0; i < ARRAY_SIZE(if_freq_lut); i++) {
++		if (f_if == if_freq_lut[i].freq) {
++			filter_mode = if_freq_lut[i].filter_mode;
++			break;
++		}
++	}
++
++	if (i == ARRAY_SIZE(if_freq_lut)) {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	/* filters */
++	bandwidth = s->bandwidth->val;
++	bandwidth = clamp(bandwidth, 200000U, 8000000U);
++
++	for (i = 0; i < ARRAY_SIZE(bandwidth_lut); i++) {
++		if (bandwidth <= bandwidth_lut[i].freq) {
++			bandwidth = bandwidth_lut[i].val;
++			break;
++		}
++	}
++
++	if (i == ARRAY_SIZE(bandwidth_lut)) {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	s->bandwidth->val = bandwidth_lut[i].freq;
++
++	dev_dbg(&s->spi->dev, "%s: bandwidth selected=%d\n",
++			__func__, bandwidth_lut[i].freq);
++
++	f_vco = (f_rf + f_if + f_if1) * lo_div;
++	tmp64 = f_vco;
++	m = do_div(tmp64, F_REF * R_REF);
++	n = (unsigned int) tmp64;
++
++	vco_step = F_OUT_STEP * lo_div;
++	thresh = (F_REF * R_REF) / vco_step;
++	frac = 1ul * thresh * m / (F_REF * R_REF);
++
++	/* Find out greatest common divisor and divide to smaller. */
++	tmp = gcd(thresh, frac);
++	thresh /= tmp;
++	frac /= tmp;
++
++	/* Force divide to reg max. Resolution will be reduced. */
++	tmp = DIV_ROUND_UP(thresh, 4095);
++	thresh = DIV_ROUND_CLOSEST(thresh, tmp);
++	frac = DIV_ROUND_CLOSEST(frac, tmp);
++
++	/* calc real RF set */
++	tmp = 1ul * F_REF * R_REF * n;
++	tmp += 1ul * F_REF * R_REF * frac / thresh;
++	tmp /= lo_div;
++
++	dev_dbg(&s->spi->dev,
++			"%s: rf=%u:%u n=%d thresh=%d frac=%d\n",
++				__func__, f_rf, tmp, n, thresh, frac);
++
++	ret = msi001_wreg(s, 0x00000e);
++	if (ret)
++		goto err;
++
++	ret = msi001_wreg(s, 0x000003);
++	if (ret)
++		goto err;
++
++	reg = 0 << 0;
++	reg |= mode << 4;
++	reg |= filter_mode << 12;
++	reg |= bandwidth << 14;
++	reg |= 0x02 << 17;
++	reg |= 0x00 << 20;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	reg = 5 << 0;
++	reg |= thresh << 4;
++	reg |= 1 << 19;
++	reg |= 1 << 21;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	reg = 2 << 0;
++	reg |= frac << 4;
++	reg |= n << 16;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	ret = msi001_set_gain(s, s->lna_gain->cur.val, s->mixer_gain->cur.val,
++			s->if_gain->cur.val);
++	if (ret)
++		goto err;
++
++	reg = 6 << 0;
++	reg |= 63 << 4;
++	reg |= 4095 << 10;
++	ret = msi001_wreg(s, reg);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&s->spi->dev, "%s: failed %d\n", __func__, ret);
++	return ret;
++};
++
++static int msi001_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	int ret;
++	dev_dbg(&s->spi->dev, "%s: on=%d\n", __func__, on);
++
++	if (on)
++		ret = 0;
++	else
++		ret = msi001_wreg(s, 0x000000);
++
++	return ret;
++}
++
++static const struct v4l2_subdev_core_ops msi001_core_ops = {
++	.s_power                  = msi001_s_power,
++};
++
++static int msi001_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *v)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&s->spi->dev, "%s: index=%d\n", __func__, v->index);
++
++	strlcpy(v->name, "Mirics MSi001", sizeof(v->name));
++	v->type = V4L2_TUNER_RF;
++	v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
++	v->rangelow =    49000000;
++	v->rangehigh =  960000000;
++
++	return 0;
++}
++
++static int msi001_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *v)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&s->spi->dev, "%s: index=%d\n", __func__, v->index);
++	return 0;
++}
++
++static int msi001_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&s->spi->dev, "%s: tuner=%d\n", __func__, f->tuner);
++	f->frequency = s->f_tuner;
++	return 0;
++}
++
++static int msi001_s_frequency(struct v4l2_subdev *sd,
++		const struct v4l2_frequency *f)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	unsigned int band;
++	dev_dbg(&s->spi->dev, "%s: tuner=%d type=%d frequency=%u\n",
++			__func__, f->tuner, f->type, f->frequency);
++
++	if (f->frequency < ((bands[0].rangehigh + bands[1].rangelow) / 2))
++		band = 0;
++	else
++		band = 1;
++	s->f_tuner = clamp_t(unsigned int, f->frequency,
++			bands[band].rangelow, bands[band].rangehigh);
++
++	return msi001_set_tuner(s);
++}
++
++static int msi001_enum_freq_bands(struct v4l2_subdev *sd,
++		struct v4l2_frequency_band *band)
++{
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&s->spi->dev, "%s: tuner=%d type=%d index=%d\n",
++			__func__, band->tuner, band->type, band->index);
++
++	if (band->index >= ARRAY_SIZE(bands))
++		return -EINVAL;
++
++	band->capability = bands[band->index].capability;
++	band->rangelow = bands[band->index].rangelow;
++	band->rangehigh = bands[band->index].rangehigh;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_tuner_ops msi001_tuner_ops = {
++	.g_tuner                  = msi001_g_tuner,
++	.s_tuner                  = msi001_s_tuner,
++	.g_frequency              = msi001_g_frequency,
++	.s_frequency              = msi001_s_frequency,
++	.enum_freq_bands          = msi001_enum_freq_bands,
++};
++
++static const struct v4l2_subdev_ops msi001_ops = {
++	.core                     = &msi001_core_ops,
++	.tuner                    = &msi001_tuner_ops,
++};
++
++static int msi001_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct msi001 *s = container_of(ctrl->handler, struct msi001, hdl);
++
++	int ret;
++	dev_dbg(&s->spi->dev,
++			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
++			__func__, ctrl->id, ctrl->name, ctrl->val,
++			ctrl->minimum, ctrl->maximum, ctrl->step);
++
++	switch (ctrl->id) {
++	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
++	case V4L2_CID_RF_TUNER_BANDWIDTH:
++		ret = msi001_set_tuner(s);
++		break;
++	case  V4L2_CID_RF_TUNER_LNA_GAIN:
++		ret = msi001_set_gain(s, s->lna_gain->val,
++				s->mixer_gain->cur.val, s->if_gain->cur.val);
++		break;
++	case  V4L2_CID_RF_TUNER_MIXER_GAIN:
++		ret = msi001_set_gain(s, s->lna_gain->cur.val,
++				s->mixer_gain->val, s->if_gain->cur.val);
++		break;
++	case  V4L2_CID_RF_TUNER_IF_GAIN:
++		ret = msi001_set_gain(s, s->lna_gain->cur.val,
++				s->mixer_gain->cur.val, s->if_gain->val);
++		break;
++	default:
++		dev_dbg(&s->spi->dev, "%s: unkown control %d\n",
++				__func__, ctrl->id);
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops msi001_ctrl_ops = {
++	.s_ctrl                   = msi001_s_ctrl,
++};
++
++static int msi001_probe(struct spi_device *spi)
++{
++	struct msi001 *s;
++	int ret;
++	dev_dbg(&spi->dev, "%s:\n", __func__);
++
++	s = kzalloc(sizeof(struct msi001), GFP_KERNEL);
++	if (s == NULL) {
++		ret = -ENOMEM;
++		dev_dbg(&spi->dev, "Could not allocate memory for msi001\n");
++		goto err_kfree;
++	}
++
++	s->spi = spi;
++	v4l2_spi_subdev_init(&s->sd, spi, &msi001_ops);
++
++	/* Register controls */
++	v4l2_ctrl_handler_init(&s->hdl, 5);
++	s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
++	s->bandwidth = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_RF_TUNER_BANDWIDTH, 200000, 8000000, 1, 200000);
++	v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
++	s->lna_gain = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_RF_TUNER_LNA_GAIN, 0, 1, 1, 1);
++	s->mixer_gain = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_RF_TUNER_MIXER_GAIN, 0, 1, 1, 1);
++	s->if_gain = v4l2_ctrl_new_std(&s->hdl, &msi001_ctrl_ops,
++			V4L2_CID_RF_TUNER_IF_GAIN, 0, 59, 1, 0);
++	if (s->hdl.error) {
++		ret = s->hdl.error;
++		dev_err(&s->spi->dev, "Could not initialize controls\n");
++		/* control init failed, free handler */
++		goto err_ctrl_handler_free;
++	}
++
++	s->sd.ctrl_handler = &s->hdl;
++	return 0;
++
++err_ctrl_handler_free:
++	v4l2_ctrl_handler_free(&s->hdl);
++err_kfree:
++	kfree(s);
++	return ret;
++}
++
++static int msi001_remove(struct spi_device *spi)
++{
++	struct v4l2_subdev *sd = spi_get_drvdata(spi);
++	struct msi001 *s = sd_to_msi001(sd);
++	dev_dbg(&spi->dev, "%s:\n", __func__);
++
++	/*
++	 * Registered by v4l2_spi_new_subdev() from master driver, but we must
++	 * unregister it from here. Weird.
++	 */
++	v4l2_device_unregister_subdev(&s->sd);
++	v4l2_ctrl_handler_free(&s->hdl);
++	kfree(s);
++	return 0;
++}
++
++static const struct spi_device_id msi001_id[] = {
++	{"msi001", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(spi, msi001_id);
++
++static struct spi_driver msi001_driver = {
++	.driver = {
++		.name	= "msi001",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= msi001_probe,
++	.remove		= msi001_remove,
++	.id_table	= msi001_id,
++};
++module_spi_driver(msi001_driver);
++
++MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
++MODULE_DESCRIPTION("Mirics MSi001");
++MODULE_LICENSE("GPL");
 -- 
 1.8.5.3
 
