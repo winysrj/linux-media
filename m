@@ -1,335 +1,507 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:49354 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753039AbaBQP4k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 10:56:40 -0500
-Subject: [PATCH 3/6] dma-buf: use reservation objects
-To: linux-kernel@vger.kernel.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, ccross@google.com,
-	linaro-mm-sig@lists.linaro.org, robdclark@gmail.com,
-	dri-devel@lists.freedesktop.org, daniel@ffwll.ch,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Date: Mon, 17 Feb 2014 16:56:34 +0100
-Message-ID: <20140217155617.20337.22601.stgit@patser>
-In-Reply-To: <20140217155056.20337.25254.stgit@patser>
-References: <20140217155056.20337.25254.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:46408 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753788AbaB0Aam (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:30:42 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [REVIEW PATCH 06/16] e4000: convert to Regmap API
+Date: Thu, 27 Feb 2014 02:30:15 +0200
+Message-Id: <1393461025-11857-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1393461025-11857-1-git-send-email-crope@iki.fi>
+References: <1393461025-11857-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allows reservation objects to be used in dma-buf. it's required
-for implementing polling support on the fences that belong to a dma-buf.
+That comes possible after driver was converted to kernel I2C model
+(I2C binding & proper I2C client with no gate control hack). All
+nasty low level I2C routines are now covered by regmap.
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com> #drivers/media/v4l2-core/
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/base/dma-buf.c                         |   22 ++++++++++++++++++++--
- drivers/gpu/drm/drm_prime.c                    |    8 +++++++-
- drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |    2 +-
- drivers/gpu/drm/i915/i915_gem_dmabuf.c         |    2 +-
- drivers/gpu/drm/nouveau/nouveau_drm.c          |    1 +
- drivers/gpu/drm/nouveau/nouveau_gem.h          |    1 +
- drivers/gpu/drm/nouveau/nouveau_prime.c        |    7 +++++++
- drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c      |    2 +-
- drivers/gpu/drm/radeon/radeon_drv.c            |    2 ++
- drivers/gpu/drm/radeon/radeon_prime.c          |    8 ++++++++
- drivers/gpu/drm/ttm/ttm_object.c               |    2 +-
- drivers/media/v4l2-core/videobuf2-dma-contig.c |    2 +-
- include/drm/drmP.h                             |    2 ++
- include/linux/dma-buf.h                        |    9 ++++++---
- 14 files changed, 59 insertions(+), 11 deletions(-)
+ drivers/media/tuners/Kconfig      |   1 +
+ drivers/media/tuners/e4000.c      | 212 ++++++++++++--------------------------
+ drivers/media/tuners/e4000_priv.h |   2 +
+ 3 files changed, 68 insertions(+), 147 deletions(-)
 
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 1e16cbd61da2..85e792c2c909 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -25,10 +25,12 @@
- #include <linux/fs.h>
- #include <linux/slab.h>
- #include <linux/dma-buf.h>
-+#include <linux/fence.h>
- #include <linux/anon_inodes.h>
- #include <linux/export.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
-+#include <linux/reservation.h>
+diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
+index ba2e365..a128488 100644
+--- a/drivers/media/tuners/Kconfig
++++ b/drivers/media/tuners/Kconfig
+@@ -204,6 +204,7 @@ config MEDIA_TUNER_TDA18212
+ config MEDIA_TUNER_E4000
+ 	tristate "Elonics E4000 silicon tuner"
+ 	depends on MEDIA_SUPPORT && I2C
++	select REGMAP_I2C
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Elonics E4000 silicon tuner driver.
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index fd38f51..3ac0254 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -21,97 +21,6 @@
+ #include "e4000_priv.h"
+ #include <linux/math64.h>
  
- static inline int is_dma_buf_file(struct file *);
- 
-@@ -56,6 +58,9 @@ static int dma_buf_release(struct inode *inode, struct file *file)
- 	list_del(&dmabuf->list_node);
- 	mutex_unlock(&db_list.lock);
- 
-+	if (dmabuf->resv == (struct reservation_object*)&dmabuf[1])
-+		reservation_object_fini(dmabuf->resv);
-+
- 	kfree(dmabuf);
- 	return 0;
- }
-@@ -128,6 +133,7 @@ static inline int is_dma_buf_file(struct file *file)
-  * @size:	[in]	Size of the buffer
-  * @flags:	[in]	mode flags for the file.
-  * @exp_name:	[in]	name of the exporting module - useful for debugging.
-+ * @resv:	[in]	reservation-object, NULL to allocate default one.
-  *
-  * Returns, on success, a newly created dma_buf object, which wraps the
-  * supplied private data and operations for dma_buf_ops. On either missing
-@@ -135,10 +141,17 @@ static inline int is_dma_buf_file(struct file *file)
-  *
-  */
- struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
--				size_t size, int flags, const char *exp_name)
-+				size_t size, int flags, const char *exp_name,
-+				struct reservation_object *resv)
+-/* Max transfer size done by I2C transfer functions */
+-#define MAX_XFER_SIZE  64
+-
+-/* write multiple registers */
+-static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+-{
+-	int ret;
+-	u8 buf[MAX_XFER_SIZE];
+-	struct i2c_msg msg[1] = {
+-		{
+-			.addr = priv->client->addr,
+-			.flags = 0,
+-			.len = 1 + len,
+-			.buf = buf,
+-		}
+-	};
+-
+-	if (1 + len > sizeof(buf)) {
+-		dev_warn(&priv->client->dev,
+-			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+-			 KBUILD_MODNAME, reg, len);
+-		return -EINVAL;
+-	}
+-
+-	buf[0] = reg;
+-	memcpy(&buf[1], val, len);
+-
+-	ret = i2c_transfer(priv->client->adapter, msg, 1);
+-	if (ret == 1) {
+-		ret = 0;
+-	} else {
+-		dev_warn(&priv->client->dev,
+-				"%s: i2c wr failed=%d reg=%02x len=%d\n",
+-				KBUILD_MODNAME, ret, reg, len);
+-		ret = -EREMOTEIO;
+-	}
+-	return ret;
+-}
+-
+-/* read multiple registers */
+-static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+-{
+-	int ret;
+-	u8 buf[MAX_XFER_SIZE];
+-	struct i2c_msg msg[2] = {
+-		{
+-			.addr = priv->client->addr,
+-			.flags = 0,
+-			.len = 1,
+-			.buf = &reg,
+-		}, {
+-			.addr = priv->client->addr,
+-			.flags = I2C_M_RD,
+-			.len = len,
+-			.buf = buf,
+-		}
+-	};
+-
+-	if (len > sizeof(buf)) {
+-		dev_warn(&priv->client->dev,
+-			 "%s: i2c rd reg=%04x: len=%d is too big!\n",
+-			 KBUILD_MODNAME, reg, len);
+-		return -EINVAL;
+-	}
+-
+-	ret = i2c_transfer(priv->client->adapter, msg, 2);
+-	if (ret == 2) {
+-		memcpy(val, buf, len);
+-		ret = 0;
+-	} else {
+-		dev_warn(&priv->client->dev,
+-				"%s: i2c rd failed=%d reg=%02x len=%d\n",
+-				KBUILD_MODNAME, ret, reg, len);
+-		ret = -EREMOTEIO;
+-	}
+-
+-	return ret;
+-}
+-
+-/* write single register */
+-static int e4000_wr_reg(struct e4000_priv *priv, u8 reg, u8 val)
+-{
+-	return e4000_wr_regs(priv, reg, &val, 1);
+-}
+-
+-/* read single register */
+-static int e4000_rd_reg(struct e4000_priv *priv, u8 reg, u8 *val)
+-{
+-	return e4000_rd_regs(priv, reg, val, 1);
+-}
+-
+ static int e4000_init(struct dvb_frontend *fe)
  {
- 	struct dma_buf *dmabuf;
- 	struct file *file;
-+	size_t alloc_size = sizeof(struct dma_buf);
-+	if (!resv)
-+		alloc_size += sizeof(struct reservation_object);
-+	else
-+		/* prevent &dma_buf[1] == dma_buf->resv */
-+		alloc_size += 1;
+ 	struct e4000_priv *priv = fe->tuner_priv;
+@@ -120,58 +29,58 @@ static int e4000_init(struct dvb_frontend *fe)
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
  
- 	if (WARN_ON(!priv || !ops
- 			  || !ops->map_dma_buf
-@@ -150,7 +163,7 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
- 		return ERR_PTR(-EINVAL);
+ 	/* dummy I2C to ensure I2C wakes up */
+-	ret = e4000_wr_reg(priv, 0x02, 0x40);
++	ret = regmap_write(priv->regmap, 0x02, 0x40);
+ 
+ 	/* reset */
+-	ret = e4000_wr_reg(priv, 0x00, 0x01);
++	ret = regmap_write(priv->regmap, 0x00, 0x01);
+ 	if (ret < 0)
+ 		goto err;
+ 
+ 	/* disable output clock */
+-	ret = e4000_wr_reg(priv, 0x06, 0x00);
++	ret = regmap_write(priv->regmap, 0x06, 0x00);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = e4000_wr_reg(priv, 0x7a, 0x96);
++	ret = regmap_write(priv->regmap, 0x7a, 0x96);
+ 	if (ret < 0)
+ 		goto err;
+ 
+ 	/* configure gains */
+-	ret = e4000_wr_regs(priv, 0x7e, "\x01\xfe", 2);
++	ret = regmap_bulk_write(priv->regmap, 0x7e, "\x01\xfe", 2);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = e4000_wr_reg(priv, 0x82, 0x00);
++	ret = regmap_write(priv->regmap, 0x82, 0x00);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = e4000_wr_reg(priv, 0x24, 0x05);
++	ret = regmap_write(priv->regmap, 0x24, 0x05);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = e4000_wr_regs(priv, 0x87, "\x20\x01", 2);
++	ret = regmap_bulk_write(priv->regmap, 0x87, "\x20\x01", 2);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = e4000_wr_regs(priv, 0x9f, "\x7f\x07", 2);
++	ret = regmap_bulk_write(priv->regmap, 0x9f, "\x7f\x07", 2);
+ 	if (ret < 0)
+ 		goto err;
+ 
+ 	/* DC offset control */
+-	ret = e4000_wr_reg(priv, 0x2d, 0x1f);
++	ret = regmap_write(priv->regmap, 0x2d, 0x1f);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = e4000_wr_regs(priv, 0x70, "\x01\x01", 2);
++	ret = regmap_bulk_write(priv->regmap, 0x70, "\x01\x01", 2);
+ 	if (ret < 0)
+ 		goto err;
+ 
+ 	/* gain control */
+-	ret = e4000_wr_reg(priv, 0x1a, 0x17);
++	ret = regmap_write(priv->regmap, 0x1a, 0x17);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = e4000_wr_reg(priv, 0x1f, 0x1a);
++	ret = regmap_write(priv->regmap, 0x1f, 0x1a);
+ 	if (ret < 0)
+ 		goto err;
+ 
+@@ -192,7 +101,7 @@ static int e4000_sleep(struct dvb_frontend *fe)
+ 
+ 	priv->active = false;
+ 
+-	ret = e4000_wr_reg(priv, 0x00, 0x00);
++	ret = regmap_write(priv->regmap, 0x00, 0x00);
+ 	if (ret < 0)
+ 		goto err;
+ err:
+@@ -216,7 +125,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 			c->bandwidth_hz);
+ 
+ 	/* gain control manual */
+-	ret = e4000_wr_reg(priv, 0x1a, 0x00);
++	ret = regmap_write(priv->regmap, 0x1a, 0x00);
+ 	if (ret < 0)
+ 		goto err;
+ 
+@@ -243,7 +152,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
+ 			__func__, f_vco, buf[0], sigma_delta);
+ 
+-	ret = e4000_wr_regs(priv, 0x09, buf, 5);
++	ret = regmap_bulk_write(priv->regmap, 0x09, buf, 5);
+ 	if (ret < 0)
+ 		goto err;
+ 
+@@ -258,7 +167,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 		goto err;
  	}
  
--	dmabuf = kzalloc(sizeof(struct dma_buf), GFP_KERNEL);
-+	dmabuf = kzalloc(alloc_size, GFP_KERNEL);
- 	if (dmabuf == NULL)
- 		return ERR_PTR(-ENOMEM);
+-	ret = e4000_wr_reg(priv, 0x10, e400_lna_filter_lut[i].val);
++	ret = regmap_write(priv->regmap, 0x10, e400_lna_filter_lut[i].val);
+ 	if (ret < 0)
+ 		goto err;
  
-@@ -158,6 +171,11 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
- 	dmabuf->ops = ops;
- 	dmabuf->size = size;
- 	dmabuf->exp_name = exp_name;
-+	if (!resv) {
-+		resv = (struct reservation_object*)&dmabuf[1];
-+		reservation_object_init(resv);
+@@ -276,7 +185,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	buf[0] = e4000_if_filter_lut[i].reg11_val;
+ 	buf[1] = e4000_if_filter_lut[i].reg12_val;
+ 
+-	ret = e4000_wr_regs(priv, 0x11, buf, 2);
++	ret = regmap_bulk_write(priv->regmap, 0x11, buf, 2);
+ 	if (ret < 0)
+ 		goto err;
+ 
+@@ -291,33 +200,33 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
+ 
+-	ret = e4000_wr_reg(priv, 0x07, e4000_band_lut[i].reg07_val);
++	ret = regmap_write(priv->regmap, 0x07, e4000_band_lut[i].reg07_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = e4000_wr_reg(priv, 0x78, e4000_band_lut[i].reg78_val);
++	ret = regmap_write(priv->regmap, 0x78, e4000_band_lut[i].reg78_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+ 	/* DC offset */
+ 	for (i = 0; i < 4; i++) {
+ 		if (i == 0)
+-			ret = e4000_wr_regs(priv, 0x15, "\x00\x7e\x24", 3);
++			ret = regmap_bulk_write(priv->regmap, 0x15, "\x00\x7e\x24", 3);
+ 		else if (i == 1)
+-			ret = e4000_wr_regs(priv, 0x15, "\x00\x7f", 2);
++			ret = regmap_bulk_write(priv->regmap, 0x15, "\x00\x7f", 2);
+ 		else if (i == 2)
+-			ret = e4000_wr_regs(priv, 0x15, "\x01", 1);
++			ret = regmap_bulk_write(priv->regmap, 0x15, "\x01", 1);
+ 		else
+-			ret = e4000_wr_regs(priv, 0x16, "\x7e", 1);
++			ret = regmap_bulk_write(priv->regmap, 0x16, "\x7e", 1);
+ 
+ 		if (ret < 0)
+ 			goto err;
+ 
+-		ret = e4000_wr_reg(priv, 0x29, 0x01);
++		ret = regmap_write(priv->regmap, 0x29, 0x01);
+ 		if (ret < 0)
+ 			goto err;
+ 
+-		ret = e4000_rd_regs(priv, 0x2a, buf, 3);
++		ret = regmap_bulk_read(priv->regmap, 0x2a, buf, 3);
+ 		if (ret < 0)
+ 			goto err;
+ 
+@@ -328,16 +237,16 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	swap(q_data[2], q_data[3]);
+ 	swap(i_data[2], i_data[3]);
+ 
+-	ret = e4000_wr_regs(priv, 0x50, q_data, 4);
++	ret = regmap_bulk_write(priv->regmap, 0x50, q_data, 4);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = e4000_wr_regs(priv, 0x60, i_data, 4);
++	ret = regmap_bulk_write(priv->regmap, 0x60, i_data, 4);
+ 	if (ret < 0)
+ 		goto err;
+ 
+ 	/* gain control auto */
+-	ret = e4000_wr_reg(priv, 0x1a, 0x17);
++	ret = regmap_write(priv->regmap, 0x1a, 0x17);
+ 	if (ret < 0)
+ 		goto err;
+ err:
+@@ -378,12 +287,12 @@ static int e4000_set_lna_gain(struct dvb_frontend *fe)
+ 	else
+ 		u8tmp = 0x10;
+ 
+-	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
++	ret = regmap_write(priv->regmap, 0x1a, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+ 	if (priv->lna_gain_auto->val == false) {
+-		ret = e4000_wr_reg(priv, 0x14, priv->lna_gain->val);
++		ret = regmap_write(priv->regmap, 0x14, priv->lna_gain->val);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -410,12 +319,12 @@ static int e4000_set_mixer_gain(struct dvb_frontend *fe)
+ 	else
+ 		u8tmp = 0x14;
+ 
+-	ret = e4000_wr_reg(priv, 0x20, u8tmp);
++	ret = regmap_write(priv->regmap, 0x20, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+ 	if (priv->mixer_gain_auto->val == false) {
+-		ret = e4000_wr_reg(priv, 0x15, priv->mixer_gain->val);
++		ret = regmap_write(priv->regmap, 0x15, priv->mixer_gain->val);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -447,14 +356,14 @@ static int e4000_set_if_gain(struct dvb_frontend *fe)
+ 	else
+ 		u8tmp = 0x10;
+ 
+-	ret = e4000_wr_reg(priv, 0x1a, u8tmp);
++	ret = regmap_write(priv->regmap, 0x1a, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+ 	if (priv->if_gain_auto->val == false) {
+ 		buf[0] = e4000_if_gain_lut[priv->if_gain->val].reg16_val;
+ 		buf[1] = e4000_if_gain_lut[priv->if_gain->val].reg17_val;
+-		ret = e4000_wr_regs(priv, 0x16, buf, 2);
++		ret = regmap_bulk_write(priv->regmap, 0x16, buf, 2);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -469,16 +378,13 @@ static int e4000_pll_lock(struct dvb_frontend *fe)
+ {
+ 	struct e4000_priv *priv = fe->tuner_priv;
+ 	int ret;
+-	u8 u8tmp;
++	unsigned int utmp;
+ 
+-	if (priv->active == false)
+-		return 0;
+-
+-	ret = e4000_rd_reg(priv, 0x07, &u8tmp);
+-	if (ret)
++	ret = regmap_read(priv->regmap, 0x07, &utmp);
++	if (ret < 0)
+ 		goto err;
+ 
+-	priv->pll_lock->val = (u8tmp & 0x01);
++	priv->pll_lock->val = (utmp & 0x01);
+ err:
+ 	if (ret)
+ 		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
+@@ -488,15 +394,19 @@ err:
+ 
+ static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct e4000_priv *priv =
+-			container_of(ctrl->handler, struct e4000_priv, hdl);
++	struct e4000_priv *priv = container_of(ctrl->handler, struct e4000_priv, hdl);
+ 	int ret;
+ 
++	if (priv->active == false)
++		return 0;
++
+ 	switch (ctrl->id) {
+ 	case  V4L2_CID_RF_TUNER_PLL_LOCK:
+ 		ret = e4000_pll_lock(priv->fe);
+ 		break;
+ 	default:
++		dev_dbg(&priv->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
++				__func__, ctrl->id, ctrl->name);
+ 		ret = -EINVAL;
+ 	}
+ 
+@@ -505,16 +415,13 @@ static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ 
+ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct e4000_priv *priv =
+-			container_of(ctrl->handler, struct e4000_priv, hdl);
++	struct e4000_priv *priv = container_of(ctrl->handler, struct e4000_priv, hdl);
+ 	struct dvb_frontend *fe = priv->fe;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 
+-	dev_dbg(&priv->client->dev,
+-			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
+-			__func__, ctrl->id, ctrl->name, ctrl->val,
+-			ctrl->minimum, ctrl->maximum, ctrl->step);
++	if (priv->active == false)
++		return 0;
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_RF_TUNER_BANDWIDTH_AUTO:
+@@ -535,6 +442,8 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		ret = e4000_set_if_gain(priv->fe);
+ 		break;
+ 	default:
++		dev_dbg(&priv->client->dev, "%s: unknown ctrl: id=%d name=%s\n",
++				__func__, ctrl->id, ctrl->name);
+ 		ret = -EINVAL;
+ 	}
+ 
+@@ -574,7 +483,12 @@ static int e4000_probe(struct i2c_client *client,
+ 	struct dvb_frontend *fe = cfg->fe;
+ 	struct e4000_priv *priv;
+ 	int ret;
+-	u8 chip_id;
++	unsigned int utmp;
++	static const struct regmap_config regmap_config = {
++		.reg_bits = 8,
++		.val_bits = 8,
++		.max_register = 0xff,
++	};
+ 
+ 	priv = kzalloc(sizeof(struct e4000_priv), GFP_KERNEL);
+ 	if (!priv) {
+@@ -586,22 +500,26 @@ static int e4000_probe(struct i2c_client *client,
+ 	priv->clock = cfg->clock;
+ 	priv->client = client;
+ 	priv->fe = cfg->fe;
++	priv->regmap = devm_regmap_init_i2c(client, &regmap_config);
++	if (IS_ERR(priv->regmap)) {
++		ret = PTR_ERR(priv->regmap);
++		goto err;
 +	}
-+	dmabuf->resv = resv;
  
- 	file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf, flags);
- 	if (IS_ERR(file)) {
-diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
-index 56805c39c906..a13e90245adf 100644
---- a/drivers/gpu/drm/drm_prime.c
-+++ b/drivers/gpu/drm/drm_prime.c
-@@ -318,7 +318,13 @@ static const struct dma_buf_ops drm_gem_prime_dmabuf_ops =  {
- struct dma_buf *drm_gem_prime_export(struct drm_device *dev,
- 				     struct drm_gem_object *obj, int flags)
- {
--	return dma_buf_export(obj, &drm_gem_prime_dmabuf_ops, obj->size, flags);
-+	struct reservation_object *robj = NULL;
-+
-+	if (dev->driver->gem_prime_res_obj)
-+		robj = dev->driver->gem_prime_res_obj(obj);
-+
-+	return dma_buf_export(obj, &drm_gem_prime_dmabuf_ops, obj->size,
-+			      flags, robj);
- }
- EXPORT_SYMBOL(drm_gem_prime_export);
+ 	/* check if the tuner is there */
+-	ret = e4000_rd_reg(priv, 0x02, &chip_id);
++	ret = regmap_read(priv->regmap, 0x02, &utmp);
+ 	if (ret < 0)
+ 		goto err;
  
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-index 59827cc5e770..b5e89f46326e 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
-@@ -187,7 +187,7 @@ struct dma_buf *exynos_dmabuf_prime_export(struct drm_device *drm_dev,
- 	struct exynos_drm_gem_obj *exynos_gem_obj = to_exynos_gem_obj(obj);
+-	dev_dbg(&priv->client->dev,
+-			"%s: chip_id=%02x\n", __func__, chip_id);
++	dev_dbg(&priv->client->dev, "%s: chip id=%02x\n", __func__, utmp);
  
- 	return dma_buf_export(obj, &exynos_dmabuf_ops,
--				exynos_gem_obj->base.size, flags);
-+				exynos_gem_obj->base.size, flags, NULL);
- }
+-	if (chip_id != 0x40) {
++	if (utmp != 0x40) {
+ 		ret = -ENODEV;
+ 		goto err;
+ 	}
  
- struct drm_gem_object *exynos_dmabuf_prime_import(struct drm_device *drm_dev,
-diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-index 9bb533e0d762..ea66f40e95b3 100644
---- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-+++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-@@ -233,7 +233,7 @@ static const struct dma_buf_ops i915_dmabuf_ops =  {
- struct dma_buf *i915_gem_prime_export(struct drm_device *dev,
- 				      struct drm_gem_object *gem_obj, int flags)
- {
--	return dma_buf_export(gem_obj, &i915_dmabuf_ops, gem_obj->size, flags);
-+	return dma_buf_export(gem_obj, &i915_dmabuf_ops, gem_obj->size, flags, NULL);
- }
+ 	/* put sleep as chip seems to be in normal mode by default */
+-	ret = e4000_wr_reg(priv, 0x00, 0x00);
++	ret = regmap_write(priv->regmap, 0x00, 0x00);
+ 	if (ret < 0)
+ 		goto err;
  
- static int i915_gem_object_get_pages_dmabuf(struct drm_i915_gem_object *obj)
-diff --git a/drivers/gpu/drm/nouveau/nouveau_drm.c b/drivers/gpu/drm/nouveau/nouveau_drm.c
-index 78c8e7146d56..2a15c8e8d199 100644
---- a/drivers/gpu/drm/nouveau/nouveau_drm.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_drm.c
-@@ -816,6 +816,7 @@ driver = {
- 	.gem_prime_export = drm_gem_prime_export,
- 	.gem_prime_import = drm_gem_prime_import,
- 	.gem_prime_pin = nouveau_gem_prime_pin,
-+	.gem_prime_res_obj = nouveau_gem_prime_res_obj,
- 	.gem_prime_unpin = nouveau_gem_prime_unpin,
- 	.gem_prime_get_sg_table = nouveau_gem_prime_get_sg_table,
- 	.gem_prime_import_sg_table = nouveau_gem_prime_import_sg_table,
-diff --git a/drivers/gpu/drm/nouveau/nouveau_gem.h b/drivers/gpu/drm/nouveau/nouveau_gem.h
-index 7caca057bc38..ddab762d81fe 100644
---- a/drivers/gpu/drm/nouveau/nouveau_gem.h
-+++ b/drivers/gpu/drm/nouveau/nouveau_gem.h
-@@ -35,6 +35,7 @@ extern int nouveau_gem_ioctl_info(struct drm_device *, void *,
- 				  struct drm_file *);
+diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
+index d41dbcc..40ba176 100644
+--- a/drivers/media/tuners/e4000_priv.h
++++ b/drivers/media/tuners/e4000_priv.h
+@@ -23,9 +23,11 @@
  
- extern int nouveau_gem_prime_pin(struct drm_gem_object *);
-+struct reservation_object *nouveau_gem_prime_res_obj(struct drm_gem_object *);
- extern void nouveau_gem_prime_unpin(struct drm_gem_object *);
- extern struct sg_table *nouveau_gem_prime_get_sg_table(struct drm_gem_object *);
- extern struct drm_gem_object *nouveau_gem_prime_import_sg_table(
-diff --git a/drivers/gpu/drm/nouveau/nouveau_prime.c b/drivers/gpu/drm/nouveau/nouveau_prime.c
-index 51a2cb102b44..1f51008e4d26 100644
---- a/drivers/gpu/drm/nouveau/nouveau_prime.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_prime.c
-@@ -102,3 +102,10 @@ void nouveau_gem_prime_unpin(struct drm_gem_object *obj)
+ #include "e4000.h"
+ #include <media/v4l2-ctrls.h>
++#include <linux/regmap.h>
  
- 	nouveau_bo_unpin(nvbo);
- }
-+
-+struct reservation_object *nouveau_gem_prime_res_obj(struct drm_gem_object *obj)
-+{
-+	struct nouveau_bo *nvbo = nouveau_gem_object(obj);
-+
-+	return nvbo->bo.resv;
-+}
-diff --git a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-index 4fcca8d42796..a2dbfb1737b4 100644
---- a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-+++ b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-@@ -171,7 +171,7 @@ static struct dma_buf_ops omap_dmabuf_ops = {
- struct dma_buf *omap_gem_prime_export(struct drm_device *dev,
- 		struct drm_gem_object *obj, int flags)
- {
--	return dma_buf_export(obj, &omap_dmabuf_ops, obj->size, flags);
-+	return dma_buf_export(obj, &omap_dmabuf_ops, obj->size, flags, NULL);
- }
- 
- struct drm_gem_object *omap_gem_prime_import(struct drm_device *dev,
-diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
-index 84a1bbb75f91..c15c1a1996fc 100644
---- a/drivers/gpu/drm/radeon/radeon_drv.c
-+++ b/drivers/gpu/drm/radeon/radeon_drv.c
-@@ -128,6 +128,7 @@ struct drm_gem_object *radeon_gem_prime_import_sg_table(struct drm_device *dev,
- 							struct sg_table *sg);
- int radeon_gem_prime_pin(struct drm_gem_object *obj);
- void radeon_gem_prime_unpin(struct drm_gem_object *obj);
-+struct reservation_object *radeon_gem_prime_res_obj(struct drm_gem_object *);
- void *radeon_gem_prime_vmap(struct drm_gem_object *obj);
- void radeon_gem_prime_vunmap(struct drm_gem_object *obj, void *vaddr);
- extern long radeon_kms_compat_ioctl(struct file *filp, unsigned int cmd,
-@@ -561,6 +562,7 @@ static struct drm_driver kms_driver = {
- 	.gem_prime_import = drm_gem_prime_import,
- 	.gem_prime_pin = radeon_gem_prime_pin,
- 	.gem_prime_unpin = radeon_gem_prime_unpin,
-+	.gem_prime_res_obj = radeon_gem_prime_res_obj,
- 	.gem_prime_get_sg_table = radeon_gem_prime_get_sg_table,
- 	.gem_prime_import_sg_table = radeon_gem_prime_import_sg_table,
- 	.gem_prime_vmap = radeon_gem_prime_vmap,
-diff --git a/drivers/gpu/drm/radeon/radeon_prime.c b/drivers/gpu/drm/radeon/radeon_prime.c
-index 20074560fc25..28d71070c389 100644
---- a/drivers/gpu/drm/radeon/radeon_prime.c
-+++ b/drivers/gpu/drm/radeon/radeon_prime.c
-@@ -103,3 +103,11 @@ void radeon_gem_prime_unpin(struct drm_gem_object *obj)
- 	radeon_bo_unpin(bo);
- 	radeon_bo_unreserve(bo);
- }
-+
-+
-+struct reservation_object *radeon_gem_prime_res_obj(struct drm_gem_object *obj)
-+{
-+	struct radeon_bo *bo = gem_to_radeon_bo(obj);
-+
-+	return bo->tbo.resv;
-+}
-diff --git a/drivers/gpu/drm/ttm/ttm_object.c b/drivers/gpu/drm/ttm/ttm_object.c
-index 53b51c4e671a..d06f29bd2124 100644
---- a/drivers/gpu/drm/ttm/ttm_object.c
-+++ b/drivers/gpu/drm/ttm/ttm_object.c
-@@ -649,7 +649,7 @@ int ttm_prime_handle_to_fd(struct ttm_object_file *tfile,
- 		}
- 
- 		dma_buf = dma_buf_export(prime, &tdev->ops,
--					 prime->size, flags);
-+					 prime->size, flags, NULL);
- 		if (IS_ERR(dma_buf)) {
- 			ret = PTR_ERR(dma_buf);
- 			ttm_mem_global_free(tdev->mem_glob,
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 33d3871d1e13..93bd2230ab0b 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -404,7 +404,7 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- 	if (WARN_ON(!buf->sgt_base))
- 		return NULL;
- 
--	dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, flags);
-+	dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, flags, NULL);
- 	if (IS_ERR(dbuf))
- 		return NULL;
- 
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index 04a7f31301f8..902d3abdd9f9 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -82,6 +82,7 @@ struct drm_device;
- 
- struct device_node;
- struct videomode;
-+struct reservation_object;
- 
- #include <drm/drm_os_linux.h>
- #include <drm/drm_hashtab.h>
-@@ -959,6 +960,7 @@ struct drm_driver {
- 	/* low-level interface used by drm_gem_prime_{import,export} */
- 	int (*gem_prime_pin)(struct drm_gem_object *obj);
- 	void (*gem_prime_unpin)(struct drm_gem_object *obj);
-+	struct reservation_object *(*gem_prime_res_obj)(struct drm_gem_object *);
- 	struct sg_table *(*gem_prime_get_sg_table)(struct drm_gem_object *obj);
- 	struct drm_gem_object *(*gem_prime_import_sg_table)(
- 				struct drm_device *dev, size_t size,
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index dfac5ed31120..34cfbac52c03 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -115,6 +115,7 @@ struct dma_buf_ops {
-  * @exp_name: name of the exporter; useful for debugging.
-  * @list_node: node for dma_buf accounting and debugging.
-  * @priv: exporter specific private data for this buffer object.
-+ * @resv: reservation object linked to this dma-buf
-  */
- struct dma_buf {
- 	size_t size;
-@@ -128,6 +129,7 @@ struct dma_buf {
- 	const char *exp_name;
- 	struct list_head list_node;
- 	void *priv;
-+	struct reservation_object *resv;
- };
- 
- /**
-@@ -168,10 +170,11 @@ void dma_buf_detach(struct dma_buf *dmabuf,
- 				struct dma_buf_attachment *dmabuf_attach);
- 
- struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
--			       size_t size, int flags, const char *);
-+			       size_t size, int flags, const char *,
-+			       struct reservation_object *);
- 
--#define dma_buf_export(priv, ops, size, flags)	\
--	dma_buf_export_named(priv, ops, size, flags, __FILE__)
-+#define dma_buf_export(priv, ops, size, flags, resv)	\
-+	dma_buf_export_named(priv, ops, size, flags, __FILE__, resv)
- 
- int dma_buf_fd(struct dma_buf *dmabuf, int flags);
- struct dma_buf *dma_buf_get(int fd);
+ struct e4000_priv {
+ 	struct i2c_client *client;
++	struct regmap *regmap;
+ 	u32 clock;
+ 	struct dvb_frontend *fe;
+ 	bool active;
+-- 
+1.8.5.3
 
