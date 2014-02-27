@@ -1,155 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:19363 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537AbaBGOD7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 09:03:59 -0500
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N0M00F8CPQMZ680@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 07 Feb 2014 09:03:58 -0500 (EST)
-Date: Fri, 07 Feb 2014 12:03:53 -0200
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 23/52] v4l: add new tuner types for SDR
-Message-id: <20140207120353.26d71842@samsung.com>
-In-reply-to: <1390669846-8131-24-git-send-email-crope@iki.fi>
-References: <1390669846-8131-1-git-send-email-crope@iki.fi>
- <1390669846-8131-24-git-send-email-crope@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from mail-we0-f171.google.com ([74.125.82.171]:37679 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751580AbaB0Wn5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Feb 2014 17:43:57 -0500
+Received: by mail-we0-f171.google.com with SMTP id u56so3475878wes.16
+        for <linux-media@vger.kernel.org>; Thu, 27 Feb 2014 14:43:55 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Antti =?ISO-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 2/3] ir-rc5-sz: Add ir encoding support
+Date: Thu, 27 Feb 2014 22:43:37 +0000
+Message-ID: <1521244.QqC8qHmuKo@radagast>
+In-Reply-To: <CAKv9HNZ2E00RPno0PX5=V-4gy8kxxP7zgW-NH729Ye1g+Myz=w@mail.gmail.com>
+References: <CAKv9HNYxY0isLt+uZvDZJJ=PX0SF93RsFeS6PsRMMk5gqtu8kQ@mail.gmail.com> <1757001.8sWyckB0oo@radagast> <CAKv9HNZ2E00RPno0PX5=V-4gy8kxxP7zgW-NH729Ye1g+Myz=w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart6735308.c28Pbi8rlf"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 25 Jan 2014 19:10:17 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
 
-> Define tuner types V4L2_TUNER_ADC and V4L2_TUNER_RF for SDR usage.
-> 
-> ADC is used for setting sampling rate (sampling frequency) to SDR
-> device.
-> 
-> Another tuner type, named as V4L2_TUNER_RF, is possible RF tuner.
-> Is is used to down-convert RF frequency to range ADC could sample.
-> Having RF tuner is optional, whilst in practice it is almost always
-> there.
-> 
-> Also add checks to VIDIOC_G_FREQUENCY, VIDIOC_S_FREQUENCY and
-> VIDIOC_ENUM_FREQ_BANDS only allow these two tuner types when device
-> type is SDR (VFL_TYPE_SDR). For VIDIOC_G_FREQUENCY we do not check
-> tuner type, instead override type with V4L2_TUNER_ADC in every
-> case (requested by Hans in order to keep functionality in line with
-> existing tuners and existing API does not specify it).
-> 
-> Prohibit VIDIOC_S_HW_FREQ_SEEK explicitly when device type is SDR,
-> as device cannot do hardware seek without a hardware demodulator.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 39 ++++++++++++++++++++++++++----------
->  include/uapi/linux/videodev2.h       |  2 ++
->  2 files changed, 30 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 707aef7..15ab349 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1291,8 +1291,11 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
->  	struct video_device *vfd = video_devdata(file);
->  	struct v4l2_frequency *p = arg;
->  
-> -	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +	if (vfd->vfl_type == VFL_TYPE_SDR)
-> +		p->type = V4L2_TUNER_ADC;
-> +	else
-> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->  	return ops->vidioc_g_frequency(file, fh, p);
->  }
->  
-> @@ -1303,10 +1306,15 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
->  	const struct v4l2_frequency *p = arg;
->  	enum v4l2_tuner_type type;
->  
-> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> -	if (p->type != type)
-> -		return -EINVAL;
-> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-> +			return -EINVAL;
-> +	} else {
-> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +		if (type != p->type)
-> +			return -EINVAL;
-> +	}
->  	return ops->vidioc_s_frequency(file, fh, p);
->  }
->  
-> @@ -1386,6 +1394,10 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
->  	struct v4l2_hw_freq_seek *p = arg;
->  	enum v4l2_tuner_type type;
->  
-> +	/* s_hw_freq_seek is not supported for SDR for now */
-> +	if (vfd->vfl_type == VFL_TYPE_SDR)
-> +		return -EINVAL;
+--nextPart6735308.c28Pbi8rlf
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-A minor issue: return code here is IMHO wrong. It should be -ENOTTY.
+On Sunday 16 February 2014 19:04:01 Antti Sepp=E4l=E4 wrote:
+> On 12 February 2014 01:39, James Hogan <james.hogan@imgtec.com> wrote=
+:
+> > On Tuesday 11 February 2014 20:14:19 Antti Sepp=E4l=E4 wrote:
+> >> Are you working on the wakeup protocol selector sysfs interface?
+> >=20
+> > I gave it a try yesterday, but it's a bit of a work in progress at =
+the
+> > moment. It's also a bit more effort for img-ir to work properly wit=
+h it,
+> > so I'd probably just limit the allowed wakeup protocols to the enab=
+led
+> > normal protocol at first in img-ir.
+> >=20
+> > Here's what I have (hopefully kmail won't corrupt it), feel free to=
+ take
+> > and improve/fix it. I'm not keen on the invasiveness of the
+> > allowed_protos/enabled_protocols change (which isn't complete), but=
+ it
+> > should probably be abstracted at some point anyway.
+>=20
+> In general the approach here looks good. At least I couldn't figure
+> any easy way to be less intrusive towards drivers/decoders and still
+> support wakeup filters.
 
-It makes sense to add a printk_once() to warn about it, as, if we ever
-need it for SDR, people could lose hours debugging why this is not work
-until finally discovering that the Kernel is blocking such call.
+Thanks for taking a look (and sorry for the delay getting back to this,=
+=20
+holiday and sickness got in the way). FYI I've cleaned up my wakeup_pro=
+tocols=20
+patches a lot and will probably post tomorrow (after rebasing my patche=
+s to=20
+allow me to test img-ir properly with it).
 
-In any case, I'll apply this patch. Please send a fix on a next series.
+Cheers
+James
+--nextPart6735308.c28Pbi8rlf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
-> +
->  	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
->  		V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->  	if (p->type != type)
-> @@ -1885,11 +1897,16 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
->  	enum v4l2_tuner_type type;
->  	int err;
->  
-> -	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> -			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> -
-> -	if (type != p->type)
-> -		return -EINVAL;
-> +	if (vfd->vfl_type == VFL_TYPE_SDR) {
-> +		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-> +			return -EINVAL;
-> +		type = p->type;
-> +	} else {
-> +		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-> +		if (type != p->type)
-> +			return -EINVAL;
-> +	}
->  	if (ops->vidioc_enum_freq_bands)
->  		return ops->vidioc_enum_freq_bands(file, fh, p);
->  	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 6ae7bbe..9dc79d1 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -159,6 +159,8 @@ enum v4l2_tuner_type {
->  	V4L2_TUNER_RADIO	     = 1,
->  	V4L2_TUNER_ANALOG_TV	     = 2,
->  	V4L2_TUNER_DIGITAL_TV	     = 3,
-> +	V4L2_TUNER_ADC               = 4,
-> +	V4L2_TUNER_RF                = 5,
->  };
->  
->  enum v4l2_memory {
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
+iQIcBAABAgAGBQJTD7+jAAoJEKHZs+irPybfCKMP/jSXYCPq+wjy9D4DpFVPRXJc
+AK2kXGdd40zOkEHcoKvwyrUDfFjCXpDDNHXy82KSPLIM9eYdHneRF9PGHIdMqdeV
+/mYaDFNwuYehuPKHm5G1TOAypvINfLgDlzi0encJG5ZvGybLtBGKCSRZaIsrDIq5
+5c4jG8B8d5tJazrGocy2OEWp5BER/q48tVU8ww5PjhopWUf8N/MY7jLRs0k44WDu
+M8HLjCVYEscEJMhwjV0ZAXioxE4360Q2gTXiL1WbEjCICK42nat1u8VB1Ou1vlF1
+uvpwSpSmURMWXNN+CNALXA47e/+ckfX850B1jLso9+BcopGNVn6d5fxYakh4/Wfb
+9XlZhYjqteeKRNxiAPRn7k/NXXMy33LgvAgrl2adOk96A7B3/DX+gTCSZW2qtSDz
+h4uuFVtMoUJtBir6BtKnBfGb6FM/bhsMiNhOn1lVpZDsfvXt1V7RZlY3USGZHHDr
+vsy7D7w1QiNWBxhvvR2nYnCoo1YetzUouP1beMLG4tjnEwI8qPPtKJLrJ9oAZ8zk
+PYlkqxXevBldsgQsdFTDp1EzCD8qHmm+nRNLMw3J9QYTKwa0t8Pg5HODDhCNRi6x
+3T+XM1jZVeOLRt7qq5eLH0goG1pZQpBYtMKefD185zklDJW2dKU8ww3INeBD7u2R
+SllnoHVhP8VYxYahNJSB
+=6RW6
+-----END PGP SIGNATURE-----
 
--- 
+--nextPart6735308.c28Pbi8rlf--
 
-Cheers,
-Mauro
