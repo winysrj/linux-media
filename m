@@ -1,71 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:58159 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736AbaBGOwg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Feb 2014 09:52:36 -0500
-Date: Fri, 07 Feb 2014 22:52:33 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:sdr 488/499]
- drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value
- 'V4L2_TUNER_ADC' not handled in switch
-Message-ID: <52f4f331.fX8f2CStgBpu2FQK%fengguang.wu@intel.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50487 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751048AbaB0MGz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Feb 2014 07:06:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 09/15] vb2: rename queued_count to owned_by_drv_count
+Date: Thu, 27 Feb 2014 13:08:15 +0100
+Message-ID: <6113799.buJEx59e2k@avalon>
+In-Reply-To: <1393332775-44067-10-git-send-email-hverkuil@xs4all.nl>
+References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl> <1393332775-44067-10-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git sdr
-head:   11532660e6f5b6b3a74a03f999d878f35d2cc668
-commit: 6b200814f9eaac45ad816da459e31534b576c37b [488/499] [media] v4l: add new tuner types for SDR
-config: make ARCH=powerpc allmodconfig
+Hi Hans,
 
-All warnings:
+Thank you for the patch.
 
-   drivers/media/tuners/tuner-xc2028.c: In function 'generic_set_freq':
->> drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value 'V4L2_TUNER_ADC' not handled in switch [-Wswitch]
-     switch (new_type) {
-     ^
->> drivers/media/tuners/tuner-xc2028.c:1037:2: warning: enumeration value 'V4L2_TUNER_RF' not handled in switch [-Wswitch]
+On Tuesday 25 February 2014 13:52:49 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> 'queued_count' is a bit vague since it is not clear to which queue it
+> refers to: the vb2 internal list of buffers or the driver-owned list
+> of buffers.
+> 
+> Rename to make it explicit.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pawel Osciak <pawel@osciak.com>
 
-vim +/V4L2_TUNER_ADC +1037 drivers/media/tuners/tuner-xc2028.c
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-7e28adb2 drivers/media/video/tuner-xc2028.c         Harvey Harrison       2008-04-08  1021  	tuner_dbg("%s called\n", __func__);
-215b95ba drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-23  1022  
-de3fe21b drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-24  1023  	mutex_lock(&priv->lock);
-de3fe21b drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-24  1024  
-2ce4b3aa drivers/media/video/tuner-xc2028.c         Chris Pascoe          2007-11-19  1025  	tuner_dbg("should set frequency %d kHz\n", freq / 1000);
-6cb45879 drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-10-02  1026  
-66c2d53d drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-25  1027  	if (check_firmware(fe, type, std, int_freq) < 0)
-3b20532c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-09-27  1028  		goto ret;
-2e4160ca drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-07-18  1029  
-2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1030  	/* On some cases xc2028 can disable video output, if
-2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1031  	 * very weak signals are received. By sending a soft
-2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1032  	 * reset, this is re-enabled. So, it is better to always
-2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1033  	 * send a soft reset before changing channels, to be sure
-2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1034  	 * that xc2028 will be in a safe state.
-2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1035  	 * Maybe this might also be needed for DTV.
-2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1036  	 */
-fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31 @1037  	switch (new_type) {
-fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1038  	case V4L2_TUNER_ANALOG_TV:
-2800ae9c drivers/media/video/tuner-xc2028.c         Mauro Carvalho Chehab 2007-11-22  1039  		rc = send_seq(priv, {0x00, 0x00});
-0a863975 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2009-06-01  1040  
-fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1041  		/* Analog mode requires offset = 0 */
-fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1042  		break;
-fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1043  	case V4L2_TUNER_RADIO:
-fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1044  		/* Radio mode requires offset = 0 */
-fd34cb08 drivers/media/common/tuners/tuner-xc2028.c Mauro Carvalho Chehab 2011-08-31  1045  		break;
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
+>  include/media/videobuf2-core.h           |  4 ++--
+>  2 files changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index eefcff7..2a7815c 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1071,7 +1071,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum
+> vb2_buffer_state state) spin_lock_irqsave(&q->done_lock, flags);
+>  	vb->state = state;
+>  	list_add_tail(&vb->done_entry, &q->done_list);
+> -	atomic_dec(&q->queued_count);
+> +	atomic_dec(&q->owned_by_drv_count);
+>  	spin_unlock_irqrestore(&q->done_lock, flags);
+> 
+>  	/* Inform any processes that may be waiting for buffers */
+> @@ -1402,7 +1402,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+> unsigned int plane;
+> 
+>  	vb->state = VB2_BUF_STATE_ACTIVE;
+> -	atomic_inc(&q->queued_count);
+> +	atomic_inc(&q->owned_by_drv_count);
+> 
+>  	/* sync buffers */
+>  	for (plane = 0; plane < vb->num_planes; ++plane)
+> @@ -1554,7 +1554,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
+>  	int ret;
+> 
+>  	/* Tell the driver to start streaming */
+> -	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
+> +	ret = call_qop(q, start_streaming, q,
+> atomic_read(&q->owned_by_drv_count)); if (ret)
+>  		fail_qop(q, start_streaming);
+> 
+> @@ -1775,7 +1775,7 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
+>  	}
+> 
+>  	if (!q->retry_start_streaming)
+> -		wait_event(q->done_wq, !atomic_read(&q->queued_count));
+> +		wait_event(q->done_wq, !atomic_read(&q->owned_by_drv_count));
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+> @@ -1907,7 +1907,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  	 * has not already dequeued before initiating cancel.
+>  	 */
+>  	INIT_LIST_HEAD(&q->done_list);
+> -	atomic_set(&q->queued_count, 0);
+> +	atomic_set(&q->owned_by_drv_count, 0);
+>  	wake_up_all(&q->done_wq);
+> 
+>  	/*
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 82b7f0f..adaffed 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -353,7 +353,7 @@ struct v4l2_fh;
+>   * @bufs:	videobuf buffer structures
+>   * @num_buffers: number of allocated/used buffers
+>   * @queued_list: list of buffers currently queued from userspace
+> - * @queued_count: number of buffers owned by the driver
+> + * @owned_by_drv_count: number of buffers owned by the driver
+>   * @done_list:	list of buffers ready to be dequeued to userspace
+>   * @done_lock:	lock to protect done_list list
+>   * @done_wq:	waitqueue for processes waiting for buffers ready to be
+> dequeued @@ -385,7 +385,7 @@ struct vb2_queue {
+> 
+>  	struct list_head		queued_list;
+> 
+> -	atomic_t			queued_count;
+> +	atomic_t			owned_by_drv_count;
+>  	struct list_head		done_list;
+>  	spinlock_t			done_lock;
+>  	wait_queue_head_t		done_wq;
 
-:::::: The code at line 1037 was first introduced by commit
-:::::: fd34cb08babcd898c6b0e30cd7d507ffa62685a1 [media] tuner/xc2028: Fix frequency offset for radio mode
+-- 
+Regards,
 
-:::::: TO: Mauro Carvalho Chehab <mchehab@redhat.com>
-:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+Laurent Pinchart
 
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
