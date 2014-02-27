@@ -1,40 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2566 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751548AbaBIRpg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Feb 2014 12:45:36 -0500
-Message-ID: <52F7BE9D.7090007@xs4all.nl>
-Date: Sun, 09 Feb 2014 18:45:01 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Paul Bolle <pebolle@tiscali.nl>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] si4713: Remove "select SI4713"
-References: <1391957777.25424.15.camel@x220> <52F79C37.5030000@xs4all.nl>  <1391959624.25424.29.camel@x220> <52F7B522.1000205@xs4all.nl> <1391967449.5315.7.camel@x220>
-In-Reply-To: <1391967449.5315.7.camel@x220>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:36131 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754270AbaB0AQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:16:59 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 2/8] rtl28xxu: add module parameter to disable IR
+Date: Thu, 27 Feb 2014 02:16:04 +0200
+Message-Id: <1393460170-11591-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460170-11591-1-git-send-email-crope@iki.fi>
+References: <1393460170-11591-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/09/2014 06:37 PM, Paul Bolle wrote:
-> On Sun, 2014-02-09 at 18:04 +0100, Hans Verkuil wrote:
->> The i2c module is loaded by v4l2_i2c_new_subdev_board().
-> 
-> I see. Thanks.
-> 
-> But now I wonder: is I2C_SI4713 useful on itself? Would anyone use
-> si4713.ko without using either radio-usb-si4713.ko or
-> radio-platform-si4713.ko? Because it seems that if what people actually
-> use is radio-usb-si4713.ko or radio-platform-si4713.ko than I2C_SI4713
-> could be made a 'select only' Kconfig symbol (that won't show up in
-> menuconfig), couldn't it?
+Disable IR interrupts in order to avoid SDR sample loss.
+IR interrupts causes some extra load for device and it seems
+be one reason to loss samples when sampling rate is high.
 
-It's possible to create an out-of-tree driver that uses the i2c si4713
-driver. So yes, it should be possible to just select the i2c driver without
-any of the others.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Regards,
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index fda5c64..7de3e54 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -35,6 +35,9 @@
+ #include "tua9001.h"
+ #include "r820t.h"
+ 
++static int rtl28xxu_disable_rc;
++module_param_named(disable_rc, rtl28xxu_disable_rc, int, 0644);
++MODULE_PARM_DESC(disable_rc, "disable RTL2832U remote controller");
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ static int rtl28xxu_ctrl_msg(struct dvb_usb_device *d, struct rtl28xxu_req *req)
+@@ -1322,6 +1325,10 @@ err:
+ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
+ 		struct dvb_usb_rc *rc)
+ {
++	/* disable IR interrupts in order to avoid SDR sample loss */
++	if (rtl28xxu_disable_rc)
++		return rtl28xx_wr_reg(d, IR_RX_IE, 0x00);
++
+ 	/* load empty to enable rc */
+ 	if (!rc->map_name)
+ 		rc->map_name = RC_MAP_EMPTY;
+-- 
+1.8.5.3
 
-	Hans
