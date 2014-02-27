@@ -1,37 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:46114 "EHLO pmeerw.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:32952 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751661AbaBKOyE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Feb 2014 09:54:04 -0500
-Date: Tue, 11 Feb 2014 15:54:00 +0100 (CET)
-From: Peter Meerwald <pmeerw@pmeerw.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: OMAP3 ISP capabilities
-Message-ID: <alpine.DEB.2.01.1402111543380.6474@pmeerw.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	id S1753077AbaB0AWU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:22:20 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 05/13] v4l: add enum_freq_bands support to tuner sub-device
+Date: Thu, 27 Feb 2014 02:22:00 +0200
+Message-Id: <1393460528-11684-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460528-11684-1-git-send-email-crope@iki.fi>
+References: <1393460528-11684-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent,
+Add VIDIOC_ENUM_FREQ_BANDS, enumerate supported frequency bands,
+IOCTL support for sub-device tuners too.
 
-some quick question about the OMAP3 ISP pipeline capabilities:
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ include/media/v4l2-subdev.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-(1) can the OMAP3 ISP CCDC output concurrently to memory AND the resizer 
-in YUV mode? I think the answer is no due to hardware limitation
-
-(2) in RAW mode, I think it should be possible to connect pad 1 of the 
-OMAP3 ISP CCDC to CCDC output and pad 2 to the ISP preview and 
-subsequently to the resizer? so two stream can be read concurrently from 
-video2 and video6?
-
-(3) it should be possible to use the ISP resizer input / output 
-(memory-to-memory) independently; it there any example code doing this?
-
-thanks, regards, p.
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d67210a..4682aad 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -192,6 +192,7 @@ struct v4l2_subdev_tuner_ops {
+ 	int (*s_radio)(struct v4l2_subdev *sd);
+ 	int (*s_frequency)(struct v4l2_subdev *sd, const struct v4l2_frequency *freq);
+ 	int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
++	int (*enum_freq_bands)(struct v4l2_subdev *sd, struct v4l2_frequency_band *band);
+ 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
+ 	int (*s_tuner)(struct v4l2_subdev *sd, const struct v4l2_tuner *vt);
+ 	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
 -- 
+1.8.5.3
 
-Peter Meerwald
-+43-664-2444418 (mobile)
