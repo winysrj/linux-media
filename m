@@ -1,266 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38887 "EHLO mail.kapsi.fi"
+Received: from comal.ext.ti.com ([198.47.26.152]:38234 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751726AbaBIIt4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:56 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 15/86] msi3101: implement FMT IOCTLs
-Date: Sun,  9 Feb 2014 10:48:20 +0200
-Message-Id: <1391935771-18670-16-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+	id S1752106AbaB0Ig4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Feb 2014 03:36:56 -0500
+Message-ID: <530EF914.3000407@ti.com>
+Date: Thu, 27 Feb 2014 10:36:36 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Grant Likely <grant.likely@linaro.org>
+CC: Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
+ to drivers/of
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>	 < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>	 < 20140217181451.7EB7FC4044D@trevor.secretlab.ca>	 <20140218070624.GP17250@ pengutronix.de>	 <20140218162627.32BA4C40517@trevor.secretlab.ca>	 < 1393263389.3091.82.camel@pizza.hi.pengutronix.de>	 <20140226110114.CF2C7C40A89@trevor.secretlab.ca> <1393426129.3248.64.camel@paszta.hi.pengutronix.de>
+In-Reply-To: <1393426129.3248.64.camel@paszta.hi.pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="tbslvQKphTF8vBEECJCkWDMkFG79k2pmB"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_ENUM_FMT, VIDIOC_G_FMT, VIDIOC_S_FMT and VIDIOC_TRY_FMT.
+--tbslvQKphTF8vBEECJCkWDMkFG79k2pmB
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Implement 8-bit signed stream (type '504' samples per USB packet)
-using FMT.
+On 26/02/14 16:48, Philipp Zabel wrote:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 165 +++++++++++++++++++++-------
- 1 file changed, 123 insertions(+), 42 deletions(-)
+>> I would like the document to acknowledge the difference from the
+>> phandle+args pattern used elsewhere and a description of when it would=
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index e208b57..ba68ea9 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -387,6 +387,22 @@ static const struct msi3101_gain msi3101_gain_lut_1000[] = {
- 
- #define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
- 
-+/* stream formats */
-+struct msi3101_format {
-+	char	*name;
-+	u32	pixelformat;
-+};
-+
-+/* format descriptions for capture and preview */
-+static struct msi3101_format formats[] = {
-+	{
-+		.name		= "I/Q 8-bit signed",
-+		.pixelformat	= V4L2_PIX_FMT_SDR_S8,
-+	},
-+};
-+
-+static const int NUM_FORMATS = sizeof(formats) / sizeof(struct msi3101_format);
-+
- /* intermediate buffers with raw data from the USB device */
- struct msi3101_frame_buf {
- 	struct vb2_buffer vb;   /* common v4l buffer stuff -- must be first */
-@@ -409,6 +425,8 @@ struct msi3101_state {
- 	/* Pointer to our usb_device, will be NULL after unplug */
- 	struct usb_device *udev; /* Both mutexes most be hold when setting! */
- 
-+	u32 pixelformat;
-+
- 	unsigned int isoc_errors; /* number of contiguous ISOC errors */
- 	unsigned int vb_full; /* vb is full and packets dropped */
- 
-@@ -447,7 +465,6 @@ leave:
- 	spin_unlock_irqrestore(&s->queued_bufs_lock, flags);
- 	return buf;
- }
--
- /*
-  * +===========================================================================
-  * |   00-1023 | USB packet type '384'
-@@ -504,40 +521,22 @@ leave:
- #define I2F_MASK ((1 << I2F_FRAC_BITS) - 1)
- 
- /*
-- * Converts signed 8-bit integer into 32-bit IEEE floating point
-- * representation.
-+ * +===========================================================================
-+ * |   00-1023 | USB packet type '504'
-+ * +===========================================================================
-+ * |   00-  03 | sequence number of first sample in that USB packet
-+ * +---------------------------------------------------------------------------
-+ * |   04-  15 | garbage
-+ * +---------------------------------------------------------------------------
-+ * |   16-1023 | samples
-+ * +---------------------------------------------------------------------------
-+ * signed 8-bit sample
-+ * 504 * 2 = 1008 samples
-  */
--static u32 msi3101_convert_sample_504(struct msi3101_state *s, u16 x)
--{
--	u32 msb, exponent, fraction, sign;
--
--	/* Zero is special */
--	if (!x)
--		return 0;
--
--	/* Negative / positive value */
--	if (x & (1 << 7)) {
--		x = -x;
--		x &= 0x7f; /* result is 7 bit ... + sign */
--		sign = 1 << 31;
--	} else {
--		sign = 0 << 31;
--	}
--
--	/* Get location of the most significant bit */
--	msb = __fls(x);
--
--	fraction = ror32(x, (msb - I2F_FRAC_BITS) & 0x1f) & I2F_MASK;
--	exponent = (127 + msb) << I2F_FRAC_BITS;
--
--	return (fraction + exponent) | sign;
--}
--
--static int msi3101_convert_stream_504(struct msi3101_state *s, u32 *dst,
-+static int msi3101_convert_stream_504(struct msi3101_state *s, u8 *dst,
- 		u8 *src, unsigned int src_len)
- {
--	int i, j, i_max, dst_len = 0;
--	u16 sample[2];
-+	int i, i_max, dst_len = 0;
- 	u32 sample_num[3];
- 
- 	/* There could be 1-3 1024 bytes URB frames */
-@@ -558,17 +557,12 @@ static int msi3101_convert_stream_504(struct msi3101_state *s, u32 *dst,
- 		 */
- 		dev_dbg_ratelimited(&s->udev->dev, "%*ph\n", 12, &src[4]);
- 
-+		/* 504 x I+Q samples */
- 		src += 16;
--		for (j = 0; j < 1008; j += 2) {
--			sample[0] = src[j + 0];
--			sample[1] = src[j + 1];
--
--			*dst++ = msi3101_convert_sample_504(s, sample[0]);
--			*dst++ = msi3101_convert_sample_504(s, sample[1]);
--		}
--		/* 504 x I+Q 32bit float samples */
--		dst_len += 504 * 2 * 4;
-+		memcpy(dst, src, 1008);
- 		src += 1008;
-+		dst += 1008;
-+		dst_len += 1008;
- 	}
- 
- 	/* calculate samping rate and output it in 10 seconds intervals */
-@@ -1116,7 +1110,6 @@ static int msi3101_querycap(struct file *file, void *fh,
- 	usb_make_path(s->udev, cap->bus_info, sizeof(cap->bus_info));
- 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 			V4L2_CAP_READWRITE;
--	cap->device_caps = V4L2_CAP_TUNER;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
-@@ -1240,6 +1233,11 @@ static int msi3101_set_usb_adc(struct msi3101_state *s)
- 		reg7 = 0x000c9407;
- 	}
- 
-+	if (s->pixelformat == V4L2_PIX_FMT_SDR_S8) {
-+		s->convert_stream = msi3101_convert_stream_504;
-+		reg7 = 0x000c9407;
-+	}
-+
- 	/*
- 	 * Synthesizer config is just a educated guess...
- 	 *
-@@ -1634,6 +1632,84 @@ static int msi3101_s_input(struct file *file, void *fh, unsigned int i)
- 	return i ? -EINVAL : 0;
- }
- 
-+static int msi3101_enum_fmt_vid_cap(struct file *file, void *priv,
-+		struct v4l2_fmtdesc *f)
-+{
-+	struct msi3101_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	if (f->index >= NUM_FORMATS)
-+		return -EINVAL;
-+
-+	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
-+	f->pixelformat = formats[f->index].pixelformat;
-+
-+	return 0;
-+}
-+
-+static int msi3101_g_fmt_vid_cap(struct file *file, void *priv,
-+		struct v4l2_format *f)
-+{
-+	struct msi3101_state *s = video_drvdata(file);
-+	dev_dbg(&s->udev->dev, "%s:\n", __func__);
-+
-+	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	f->fmt.pix.pixelformat = s->pixelformat;
-+
-+	return 0;
-+}
-+
-+static int msi3101_s_fmt_vid_cap(struct file *file, void *priv,
-+		struct v4l2_format *f)
-+{
-+	struct msi3101_state *s = video_drvdata(file);
-+	struct vb2_queue *q = &s->vb_queue;
-+	int i;
-+	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
-+			(char *)&f->fmt.pix.pixelformat);
-+
-+	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	if (vb2_is_busy(q))
-+		return -EBUSY;
-+
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		if (formats[i].pixelformat == f->fmt.pix.pixelformat) {
-+			s->pixelformat = f->fmt.pix.pixelformat;
-+			return 0;
-+		}
-+	}
-+
-+	f->fmt.pix.pixelformat = formats[0].pixelformat;
-+	s->pixelformat = formats[0].pixelformat;
-+
-+	return 0;
-+}
-+
-+static int msi3101_try_fmt_vid_cap(struct file *file, void *priv,
-+		struct v4l2_format *f)
-+{
-+	struct msi3101_state *s = video_drvdata(file);
-+	int i;
-+	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
-+			(char *)&f->fmt.pix.pixelformat);
-+
-+	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		if (formats[i].pixelformat == f->fmt.pix.pixelformat)
-+			return 0;
-+	}
-+
-+	f->fmt.pix.pixelformat = formats[0].pixelformat;
-+
-+	return 0;
-+}
-+
- static int vidioc_s_tuner(struct file *file, void *priv,
- 		const struct v4l2_tuner *v)
- {
-@@ -1668,6 +1744,11 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- static const struct v4l2_ioctl_ops msi3101_ioctl_ops = {
- 	.vidioc_querycap          = msi3101_querycap,
- 
-+	.vidioc_enum_fmt_vid_cap  = msi3101_enum_fmt_vid_cap,
-+	.vidioc_g_fmt_vid_cap     = msi3101_g_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap     = msi3101_s_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_cap   = msi3101_try_fmt_vid_cap,
-+
- 	.vidioc_enum_input        = msi3101_enum_input,
- 	.vidioc_g_input           = msi3101_g_input,
- 	.vidioc_s_input           = msi3101_s_input,
--- 
-1.8.5.3
+>> be appropriate to use this instead of a simpler binding.
+>=20
+> Alright. The main point of this binding is that the devices may have
+> multiple distinct ports that each can be connected to other devices.
 
+The other main point with this binding are multiple endpoints per port.
+So you can have, say, a display controller, with single port, which has
+two endpoints going to two separate LCD panels.
+
+In physical level that would usually mean that the same pins from the
+display controller are connected to two panels. Most likely this would
+mean that only one panel can be used at a time, possibly with different
+settings (say, 16 RGB pins for one panel, 24 RGB pins for the other).
+
+ Tomi
+
+
+
+--tbslvQKphTF8vBEECJCkWDMkFG79k2pmB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTDvkUAAoJEPo9qoy8lh71ShEP/2H+TP+aNKfmsfd3A6pZl01T
+8Em17vHnfXjxX+7KxhoqJGiydt8NGKEZLrlEuBzyZws2h7tKcQIDh+uV9SKDRTZu
+qWPFWc734SR5kyuCfH9bRDyVQzi5lfLZs8PeQaglxgN6XWe9MQ9YzcLh2aQjZHyN
+f5LRJ3SdOG3rx46skL9kYdOmQw/NtoSIpJeU6X+CISYcoDcIXDKvgSlEYAOHy6oV
+tjORDF05GlsMotKOnehrhmmlXKrnGg21wD1adFYpMhR1ztFbkMpsn9SI9M6IMXno
+bbVa/Ik8BpT2qotMytu8sT83qWgP7DomMPAZkNLtn/D9rLqEntmSV2S8D99qa+Mo
+Zn81g/iUGY9AXF5L/GB935o6kTZAwaB5iXCyceLKaRFaBAoddEHg05hLOAvvmd0o
+D2GXp98N4S3S619dKg3jD634BwnwxeOAa9YJu7+4nvgx+Hi9uGH7kXYLwHOzsX9n
+jJDAZNggrhk4q3+EkM1TXaQ6NyRd8uMb6hK1x4MR9+wfsSQsT6jZlMJ2brndlgtT
+tK8UAR+m+n3mGkRWXx/+a0u5RCGy0YXJeqn25ctAsVE4hmUWgW6vm1bspCZdFA3O
+xvk40WhW6kafAWSbkeGt5BiDt8wD6L+9VQ/6ElT8ivlcMPv2S+GgDzmHgiC3T/40
+NXXecxeyuER7yZsCTjni
+=mQrO
+-----END PGP SIGNATURE-----
+
+--tbslvQKphTF8vBEECJCkWDMkFG79k2pmB--
