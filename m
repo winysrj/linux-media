@@ -1,112 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35080 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750711AbaBLHQW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Feb 2014 02:16:22 -0500
-Message-ID: <52FB1FA8.2070903@ti.com>
-Date: Wed, 12 Feb 2014 09:15:52 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [PATCH v2] [media] of: move graph helpers from drivers/media/v4l2-core
- to drivers/media
-References: <1392154905-12007-1-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1392154905-12007-1-git-send-email-p.zabel@pengutronix.de>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="XwJKMSFSVwGLK8GCIkHvqebgFcNOmN8wB"
+Received: from mail.kapsi.fi ([217.30.184.167]:49957 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754276AbaB0AQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:16:59 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 4/8] rtl2832: style changes and minor cleanup
+Date: Thu, 27 Feb 2014 02:16:06 +0200
+Message-Id: <1393460170-11591-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460170-11591-1-git-send-email-crope@iki.fi>
+References: <1393460170-11591-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---XwJKMSFSVwGLK8GCIkHvqebgFcNOmN8wB
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Most of those were reported by checkpatch.pl...
 
-Hi,
+debug module parameter is not used anywhere so remove it.
 
-On 11/02/14 23:41, Philipp Zabel wrote:
-> From: Philipp Zabel <philipp.zabel@gmail.com>
->=20
-> This patch moves the parsing helpers used to parse connected graphs
-> in the device tree, like the video interface bindings documented in
-> Documentation/devicetree/bindings/media/video-interfaces.txt, from
-> drivers/media/v4l2-core to drivers/media.
->=20
-> This allows to reuse the same parser code from outside the V4L2
-> framework, most importantly from display drivers.
-> The functions v4l2_of_get_next_endpoint, v4l2_of_get_remote_port,
-> and v4l2_of_get_remote_port_parent are moved. They are renamed to
-> of_graph_get_next_endpoint, of_graph_get_remote_port, and
-> of_graph_get_remote_port_parent, respectively.
-> Since there are not that many current users, switch all of them
-> to the new functions right away.
->=20
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 26 +++++++---------
+ drivers/media/dvb-frontends/rtl2832.h      |  2 +-
+ drivers/media/dvb-frontends/rtl2832_priv.h | 50 +++++++++++++++---------------
+ 3 files changed, 38 insertions(+), 40 deletions(-)
 
-I don't think the graphs or the parsing code has anything video
-specific. It could well be used for anything, whenever there's need to
-describe connections between devices which are not handled by the normal
-child-parent relationships. So the code could well reside in some
-generic place, in my opinion.
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 61d4ecb..00e63b9 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -24,11 +24,6 @@
+ 
+ /* Max transfer size done by I2C transfer functions */
+ #define MAX_XFER_SIZE  64
+-
+-int rtl2832_debug;
+-module_param_named(debug, rtl2832_debug, int, 0644);
+-MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
+-
+ #define REG_MASK(b) (BIT(b + 1) - 1)
+ 
+ static const struct rtl2832_reg_entry registers[] = {
+@@ -189,8 +184,9 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+-		dev_warn(&priv->i2c->dev, "%s: i2c wr failed=%d reg=%02x " \
+-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
++		dev_warn(&priv->i2c->dev,
++				"%s: i2c wr failed=%d reg=%02x len=%d\n",
++				KBUILD_MODNAME, ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 	return ret;
+@@ -218,8 +214,9 @@ static int rtl2832_rd(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ 	if (ret == 2) {
+ 		ret = 0;
+ 	} else {
+-		dev_warn(&priv->i2c->dev, "%s: i2c rd failed=%d reg=%02x " \
+-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
++		dev_warn(&priv->i2c->dev,
++				"%s: i2c rd failed=%d reg=%02x len=%d\n",
++				KBUILD_MODNAME, ret, reg, len);
+ 		ret = -EREMOTEIO;
+ 	}
+ 	return ret;
+@@ -417,7 +414,7 @@ static int rtl2832_set_if(struct dvb_frontend *fe, u32 if_freq)
+ 
+ 	ret = rtl2832_wr_demod_reg(priv, DVBT_PSET_IFFREQ, pset_iffreq);
+ 
+-	return (ret);
++	return ret;
+ }
+ 
+ static int rtl2832_init(struct dvb_frontend *fe)
+@@ -516,7 +513,8 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 
+ 	/*
+ 	 * r820t NIM code does a software reset here at the demod -
+-	 * may not be needed, as there's already a software reset at set_params()
++	 * may not be needed, as there's already a software reset at
++	 * set_params()
+ 	 */
+ #if 1
+ 	/* soft reset */
+@@ -593,9 +591,9 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
+ 	};
+ 
+ 
+-	dev_dbg(&priv->i2c->dev, "%s: frequency=%d bandwidth_hz=%d " \
+-			"inversion=%d\n", __func__, c->frequency,
+-			c->bandwidth_hz, c->inversion);
++	dev_dbg(&priv->i2c->dev,
++			"%s: frequency=%d bandwidth_hz=%d inversion=%d\n",
++			__func__, c->frequency, c->bandwidth_hz, c->inversion);
+ 
+ 	/* program tuner */
+ 	if (fe->ops.tuner_ops.set_params)
+diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
+index e543081..fa4e5f6 100644
+--- a/drivers/media/dvb-frontends/rtl2832.h
++++ b/drivers/media/dvb-frontends/rtl2832.h
+@@ -51,7 +51,7 @@ struct rtl2832_config {
+ };
+ 
+ #if IS_ENABLED(CONFIG_DVB_RTL2832)
+-extern struct dvb_frontend *rtl2832_attach(
++struct dvb_frontend *rtl2832_attach(
+ 	const struct rtl2832_config *cfg,
+ 	struct i2c_adapter *i2c
+ );
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index b5f2b80..4c845af 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -267,7 +267,7 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_tua9001[] = {
+ 	{DVBT_OPT_ADC_IQ,                0x1},
+ 	{DVBT_AD_AVI,                    0x0},
+ 	{DVBT_AD_AVQ,                    0x0},
+-	{DVBT_SPEC_INV,			 0x0},
++	{DVBT_SPEC_INV,                  0x0},
+ };
+ 
+ static const struct rtl2832_reg_value rtl2832_tuner_init_fc0012[] = {
+@@ -301,7 +301,7 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_fc0012[] = {
+ 	{DVBT_GI_PGA_STATE,              0x0},
+ 	{DVBT_EN_AGC_PGA,                0x1},
+ 	{DVBT_IF_AGC_MAN,                0x0},
+-	{DVBT_SPEC_INV,			 0x0},
++	{DVBT_SPEC_INV,                  0x0},
+ };
+ 
+ static const struct rtl2832_reg_value rtl2832_tuner_init_e4000[] = {
+@@ -339,32 +339,32 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_e4000[] = {
+ 	{DVBT_REG_MONSEL,                0x1},
+ 	{DVBT_REG_MON,                   0x1},
+ 	{DVBT_REG_4MSEL,                 0x0},
+-	{DVBT_SPEC_INV,			 0x0},
++	{DVBT_SPEC_INV,                  0x0},
+ };
+ 
+ static const struct rtl2832_reg_value rtl2832_tuner_init_r820t[] = {
+-	{DVBT_DAGC_TRG_VAL,		0x39},
+-	{DVBT_AGC_TARG_VAL_0,		0x0},
+-	{DVBT_AGC_TARG_VAL_8_1,		0x40},
+-	{DVBT_AAGC_LOOP_GAIN,		0x16},
+-	{DVBT_LOOP_GAIN2_3_0,		0x8},
+-	{DVBT_LOOP_GAIN2_4,		0x1},
+-	{DVBT_LOOP_GAIN3,		0x18},
+-	{DVBT_VTOP1,			0x35},
+-	{DVBT_VTOP2,			0x21},
+-	{DVBT_VTOP3,			0x21},
+-	{DVBT_KRF1,			0x0},
+-	{DVBT_KRF2,			0x40},
+-	{DVBT_KRF3,			0x10},
+-	{DVBT_KRF4,			0x10},
+-	{DVBT_IF_AGC_MIN,		0x80},
+-	{DVBT_IF_AGC_MAX,		0x7f},
+-	{DVBT_RF_AGC_MIN,		0x80},
+-	{DVBT_RF_AGC_MAX,		0x7f},
+-	{DVBT_POLAR_RF_AGC,		0x0},
+-	{DVBT_POLAR_IF_AGC,		0x0},
+-	{DVBT_AD7_SETTING,		0xe9f4},
+-	{DVBT_SPEC_INV,			0x1},
++	{DVBT_DAGC_TRG_VAL,             0x39},
++	{DVBT_AGC_TARG_VAL_0,            0x0},
++	{DVBT_AGC_TARG_VAL_8_1,         0x40},
++	{DVBT_AAGC_LOOP_GAIN,           0x16},
++	{DVBT_LOOP_GAIN2_3_0,            0x8},
++	{DVBT_LOOP_GAIN2_4,              0x1},
++	{DVBT_LOOP_GAIN3,               0x18},
++	{DVBT_VTOP1,                    0x35},
++	{DVBT_VTOP2,                    0x21},
++	{DVBT_VTOP3,                    0x21},
++	{DVBT_KRF1,                      0x0},
++	{DVBT_KRF2,                     0x40},
++	{DVBT_KRF3,                     0x10},
++	{DVBT_KRF4,                     0x10},
++	{DVBT_IF_AGC_MIN,               0x80},
++	{DVBT_IF_AGC_MAX,               0x7f},
++	{DVBT_RF_AGC_MIN,               0x80},
++	{DVBT_RF_AGC_MAX,               0x7f},
++	{DVBT_POLAR_RF_AGC,              0x0},
++	{DVBT_POLAR_IF_AGC,              0x0},
++	{DVBT_AD7_SETTING,            0xe9f4},
++	{DVBT_SPEC_INV,                  0x1},
+ };
+ 
+ #endif /* RTL2832_PRIV_H */
+-- 
+1.8.5.3
 
-Also, I have no problem with having it in drivers/media, but
-drivers/video should work also. We already have other, generic, video
-related things there like hdmi infoframes and display timings.
-
-And last, it's fine to move the funcs as-is in the first place, but I
-think they should be improved a bit before non-v4l2 users use them.
-There are a couple of things I tried to accomplish with the omapdss
-specific versions in
-https://www.mail-archive.com/linux-omap@vger.kernel.org/msg100761.html:
-
-- Iterating ports and endpoints separately. If a node has multiple
-ports, I would think that the driver needs to know which port and
-endpoint combination is the current one during iteration. It's not
-enough to just get the endpoint.
-
-- Simplify cases when there's just one port and one endpoint, in which
-case the port node can be omitted from the DT data.
-
- Tomi
-
-
-
---XwJKMSFSVwGLK8GCIkHvqebgFcNOmN8wB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJS+x+oAAoJEPo9qoy8lh71uekP/1rhT/v5BSIVHRpWBiwda9+W
-yE7AEE8a+tGGyppPa9G/sRYszytnpnl3XY1hzk5oATxwbaIfnZ7Yc6vIincCIMNQ
-U/MgoM4SZDq8GkoodXnKfDZOVBzJfG4l0DHpqfVu9Q/+uRBoUUWnQTD5JMmXKEK/
-Sne+1aBnUmFy88LyPrnl71sREMrjAyoUBaeM4GXblY/dYfM6OtT7qH4asO3qAoqF
-X3GSELUe5upENcGdSkYR1wVxzUBgEaBHHRsUZD0dkbmjmfyMoNF8jmADcCkKOi23
-M32s6CAzjqV/OnklYpP8sxezNehLrXR+kJSWeRp3UjcgEEvwbEf1sZNjkzuM8Coh
-MP5wVAfgJbWjD5lILHcNipUY47jm6mPC3mriWp2x+YjsBuwN95RdW9AbcjFZmkNi
-0PMEWFqxsYCQc4ey2UY+75qdFLCfFLhNiI2pvOOWonJPFHUmIuKY6/mtxi/CZGgd
-HFXbrbnqJ5SVDkR3kSIoaG+4yL3+41bk6nmzJtSzxMdlR+OVHjpMzCrhMSXY4AZf
-K/WpKbnMuLj2sM993e7cG2lmlKk5klo0LRfoiQGyPDmMzQ2SV1iWxyu3BMKU77e6
-MQFqCoKJqJfKjXgYb/E7cgpjVVI7qT34OhmbpS1FIxO/HYKTkGrx1DS3cCs/ObLF
-bp2rljxQnWdmBebMF5q8
-=6pPK
------END PGP SIGNATURE-----
-
---XwJKMSFSVwGLK8GCIkHvqebgFcNOmN8wB--
