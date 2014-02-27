@@ -1,289 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59642 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:41321 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752298AbaBKCFP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 21:05:15 -0500
+	id S1754278AbaB0AQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:16:59 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 05/16] e4000: get rid of DVB i2c_gate_ctrl()
-Date: Tue, 11 Feb 2014 04:04:48 +0200
-Message-Id: <1392084299-16549-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1392084299-16549-1-git-send-email-crope@iki.fi>
-References: <1392084299-16549-1-git-send-email-crope@iki.fi>
+Subject: [REVIEW PATCH 6/8] rtl2832: add muxed I2C adapter for demod itself
+Date: Thu, 27 Feb 2014 02:16:08 +0200
+Message-Id: <1393460170-11591-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460170-11591-1-git-send-email-crope@iki.fi>
+References: <1393460170-11591-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gate control is now implemented by rtl2832 I2C adapter so we do not
-need proprietary DVB i2c_gate_ctrl() anymore.
+There was a deadlock between master I2C adapter and muxed I2C
+adapter. Implement two I2C muxed I2C adapters and leave master
+alone, just only for offering I2C adapter for these mux adapters.
 
+Reported-by: Luis Alves <ljalvs@gmail.com>
+Reported-by: Benjamin Larsson <benjamin@southpole.se>
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/tuners/e4000.c | 106 +++++++++----------------------------------
- 1 file changed, 21 insertions(+), 85 deletions(-)
+ drivers/media/dvb-frontends/rtl2832.c      | 71 ++++++++++++++++++++++++------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
+ 2 files changed, 58 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index 662e19a1..e3e3b7e 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -119,9 +119,6 @@ static int e4000_init(struct dvb_frontend *fe)
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index dc46cf0..c0366a8 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -180,7 +180,7 @@ static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], val, len);
  
- 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+-	ret = i2c_transfer(priv->i2c, msg, 1);
++	ret = i2c_transfer(priv->i2c_adapter, msg, 1);
+ 	if (ret == 1) {
+ 		ret = 0;
+ 	} else {
+@@ -210,7 +210,7 @@ static int rtl2832_rd(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+ 		}
+ 	};
  
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
- 	/* dummy I2C to ensure I2C wakes up */
- 	ret = e4000_wr_reg(priv, 0x02, 0x40);
+-	ret = i2c_transfer(priv->i2c, msg, 2);
++	ret = i2c_transfer(priv->i2c_adapter, msg, 2);
+ 	if (ret == 2) {
+ 		ret = 0;
+ 	} else {
+@@ -891,26 +891,61 @@ static void rtl2832_release(struct dvb_frontend *fe)
+ 	struct rtl2832_priv *priv = fe->demodulator_priv;
  
-@@ -178,17 +175,11 @@ static int e4000_init(struct dvb_frontend *fe)
- 	if (ret < 0)
- 		goto err;
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
- 	priv->active = true;
--
--	return 0;
- err:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+	if (ret)
-+		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 
--	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
+ 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
++	i2c_del_mux_adapter(priv->i2c_adapter_tuner);
+ 	i2c_del_mux_adapter(priv->i2c_adapter);
+ 	kfree(priv);
  }
  
-@@ -201,22 +192,13 @@ static int e4000_sleep(struct dvb_frontend *fe)
+-static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ {
+ 	struct rtl2832_priv *priv = mux_priv;
+-	return rtl2832_i2c_gate_ctrl(&priv->fe, 1);
+-}
++	int ret;
++	u8 buf[2];
++	struct i2c_msg msg[1] = {
++		{
++			.addr = priv->cfg.i2c_addr,
++			.flags = 0,
++			.len = sizeof(buf),
++			.buf = buf,
++		}
++	};
  
- 	priv->active = false;
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
- 	ret = e4000_wr_reg(priv, 0x00, 0x00);
- 	if (ret < 0)
- 		goto err;
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
--	return 0;
- err:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+	if (ret)
-+		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 
--	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -233,9 +215,6 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 			__func__, c->delivery_system, c->frequency,
- 			c->bandwidth_hz);
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
- 	/* gain control manual */
- 	ret = e4000_wr_reg(priv, 0x1a, 0x00);
- 	if (ret < 0)
-@@ -361,16 +340,10 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	ret = e4000_wr_reg(priv, 0x1a, 0x17);
- 	if (ret < 0)
- 		goto err;
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
--	return 0;
- err:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+	if (ret)
-+		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 
--	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -390,14 +363,12 @@ static int e4000_set_lna_gain(struct dvb_frontend *fe)
- 	struct e4000_priv *priv = fe->tuner_priv;
- 	int ret;
- 	u8 u8tmp;
+-static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
+-{
+-	struct rtl2832_priv *priv = mux_priv;
+-	return rtl2832_i2c_gate_ctrl(&priv->fe, 0);
++	if (priv->i2c_gate_state == chan_id)
++		return 0;
 +
- 	dev_dbg(&priv->client->dev, "%s: lna auto=%d->%d val=%d->%d\n",
- 			__func__, priv->lna_gain_auto->cur.val,
- 			priv->lna_gain_auto->val, priv->lna_gain->cur.val,
- 			priv->lna_gain->val);
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
- 	if (priv->lna_gain_auto->val && priv->if_gain_auto->cur.val)
- 		u8tmp = 0x17;
- 	else if (priv->lna_gain_auto->val)
-@@ -416,16 +387,10 @@ static int e4000_set_lna_gain(struct dvb_frontend *fe)
- 		if (ret)
- 			goto err;
- 	}
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
--	return 0;
- err:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+	if (ret)
-+		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 
--	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -434,14 +399,12 @@ static int e4000_set_mixer_gain(struct dvb_frontend *fe)
- 	struct e4000_priv *priv = fe->tuner_priv;
- 	int ret;
- 	u8 u8tmp;
++	/* select reg bank 1 */
++	buf[0] = 0x00;
++	buf[1] = 0x01;
 +
- 	dev_dbg(&priv->client->dev, "%s: mixer auto=%d->%d val=%d->%d\n",
- 			__func__, priv->mixer_gain_auto->cur.val,
- 			priv->mixer_gain_auto->val, priv->mixer_gain->cur.val,
- 			priv->mixer_gain->val);
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
- 	if (priv->mixer_gain_auto->val)
- 		u8tmp = 0x15;
- 	else
-@@ -456,16 +419,10 @@ static int e4000_set_mixer_gain(struct dvb_frontend *fe)
- 		if (ret)
- 			goto err;
- 	}
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
--	return 0;
- err:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+	if (ret)
-+		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 
--	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -475,14 +432,12 @@ static int e4000_set_if_gain(struct dvb_frontend *fe)
- 	int ret;
- 	u8 buf[2];
- 	u8 u8tmp;
++	ret = i2c_transfer(adap, msg, 1);
++	if (ret != 1)
++		goto err;
 +
- 	dev_dbg(&priv->client->dev, "%s: if auto=%d->%d val=%d->%d\n",
- 			__func__, priv->if_gain_auto->cur.val,
- 			priv->if_gain_auto->val, priv->if_gain->cur.val,
- 			priv->if_gain->val);
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
- 	if (priv->if_gain_auto->val && priv->lna_gain_auto->cur.val)
- 		u8tmp = 0x17;
- 	else if (priv->lna_gain_auto->cur.val)
-@@ -503,16 +458,10 @@ static int e4000_set_if_gain(struct dvb_frontend *fe)
- 		if (ret)
- 			goto err;
- 	}
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
--	return 0;
- err:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+	if (ret)
-+		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 
--	dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
++	priv->page = 1;
++
++	/* open or close I2C repeater gate */
++	buf[0] = 0x01;
++	if (chan_id == 1)
++		buf[1] = 0x18; /* open */
++	else
++		buf[1] = 0x10; /* close */
++
++	ret = i2c_transfer(adap, msg, 1);
++	if (ret != 1)
++		goto err;
++
++	priv->i2c_gate_state = chan_id;
++
++	return 0;
++err:
++	dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
++	return -EREMOTEIO;
  }
  
-@@ -525,18 +474,12 @@ static int e4000_pll_lock(struct dvb_frontend *fe)
- 	if (priv->active == false)
- 		return 0;
+ struct i2c_adapter *rtl2832_get_i2c_adapter(struct dvb_frontend *fe)
+ {
+ 	struct rtl2832_priv *priv = fe->demodulator_priv;
+-	return priv->i2c_adapter;
++	return priv->i2c_adapter_tuner;
+ }
+ EXPORT_SYMBOL(rtl2832_get_i2c_adapter);
  
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
- 	ret = e4000_rd_reg(priv, 0x07, &u8tmp);
+@@ -933,15 +968,21 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+ 	priv->tuner = cfg->tuner;
+ 	memcpy(&priv->cfg, cfg, sizeof(struct rtl2832_config));
+ 
++	/* create muxed i2c adapter for demod itself */
++	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
++			rtl2832_select, NULL);
++	if (priv->i2c_adapter == NULL)
++		goto err;
++
+ 	/* check if the demod is there */
+ 	ret = rtl2832_rd_reg(priv, 0x00, 0x0, &tmp);
  	if (ret)
  		goto err;
  
- 	priv->pll_lock->val = (u8tmp & 0x01);
+-	/* create muxed i2c adapter */
+-	priv->i2c_adapter = i2c_add_mux_adapter(i2c, &i2c->dev, priv, 0, 0, 0,
+-			rtl2832_select, rtl2832_deselect);
+-	if (priv->i2c_adapter == NULL)
++	/* create muxed i2c adapter for demod tuner bus */
++	priv->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, priv,
++			0, 1, 0, rtl2832_select, NULL);
++	if (priv->i2c_adapter_tuner == NULL)
+ 		goto err;
+ 
+ 	/* create dvb_frontend */
+@@ -954,6 +995,8 @@ struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+ 	return &priv->fe;
  err:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
- 	if (ret)
- 		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
- 
-@@ -567,6 +510,7 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
- 	struct dvb_frontend *fe = priv->fe;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
-+
- 	dev_dbg(&priv->client->dev,
- 			"%s: id=%d name=%s val=%d min=%d max=%d step=%d\n",
- 			__func__, ctrl->id, ctrl->name, ctrl->val,
-@@ -632,9 +576,6 @@ static int e4000_probe(struct i2c_client *client,
- 	int ret;
- 	u8 chip_id;
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
- 	priv = kzalloc(sizeof(struct e4000_priv), GFP_KERNEL);
- 	if (!priv) {
- 		ret = -ENOMEM;
-@@ -702,19 +643,13 @@ static int e4000_probe(struct i2c_client *client,
- 	fe->tuner_priv = priv;
- 	memcpy(&fe->ops.tuner_ops, &e4000_tuner_ops,
- 			sizeof(struct dvb_tuner_ops));
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
- 	i2c_set_clientdata(client, priv);
--
--	return 0;
- err:
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+	if (ret) {
-+		dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
-+		kfree(priv);
-+	}
- 
--	dev_dbg(&client->dev, "%s: failed=%d\n", __func__, ret);
--	kfree(priv);
- 	return ret;
+ 	dev_dbg(&i2c->dev, "%s: failed=%d\n", __func__, ret);
++	if (priv && priv->i2c_adapter)
++		i2c_del_mux_adapter(priv->i2c_adapter);
+ 	kfree(priv);
+ 	return NULL;
  }
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index ec26c92..8b7c1ae 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -28,6 +28,7 @@
+ struct rtl2832_priv {
+ 	struct i2c_adapter *i2c;
+ 	struct i2c_adapter *i2c_adapter;
++	struct i2c_adapter *i2c_adapter_tuner;
+ 	struct dvb_frontend fe;
+ 	struct rtl2832_config cfg;
  
-@@ -724,6 +659,7 @@ static int e4000_remove(struct i2c_client *client)
- 	struct dvb_frontend *fe = priv->fe;
- 
- 	dev_dbg(&client->dev, "%s:\n", __func__);
-+
- 	v4l2_ctrl_handler_free(&priv->hdl);
- 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
- 	fe->tuner_priv = NULL;
 -- 
 1.8.5.3
 
