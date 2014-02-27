@@ -1,43 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:61272 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753549AbaBRDzh (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50337 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751717AbaB0Lhz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Feb 2014 22:55:37 -0500
+	Thu, 27 Feb 2014 06:37:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 06/15] vb2: add note that buf_finish can be called with !vb2_is_streaming()
+Date: Thu, 27 Feb 2014 12:39:15 +0100
+Message-ID: <5531711.0kD74xJGgQ@avalon>
+In-Reply-To: <1393332775-44067-7-git-send-email-hverkuil@xs4all.nl>
+References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl> <1393332775-44067-7-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20140206092800.GB31780@elgon.mountain>
-References: <20140206092800.GB31780@elgon.mountain>
-Date: Tue, 18 Feb 2014 09:25:36 +0530
-Message-ID: <CAHFNz9LMU0X2YsqniY+6VOS_mM-jUfAvP2sF5MFNdwWWwEVgsw@mail.gmail.com>
-Subject: Re: [patch] [media] stv090x: remove indent levels
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+Hi Hans,
 
-On Thu, Feb 6, 2014 at 2:58 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> 1) We can flip the "if (!lock)" check to "if (lock) return lock;" and
->    then remove a big chunk of indenting.
-> 2) There is a redundant "if (!lock)" which we can remove since we
->    already know that lock is zero.  This removes another indent level.
+Thank you for the patch.
 
+On Tuesday 25 February 2014 13:52:46 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Drivers need to be aware that buf_finish can be called when there is no
+> streaming going on, so make a note of that.
+> 
+> Also add a bunch of missing periods at the end of sentences.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pawel Osciak <pawel@osciak.com>
+> ---
+>  include/media/videobuf2-core.h | 44 ++++++++++++++++++++-------------------
+>  1 file changed, 23 insertions(+), 21 deletions(-)
+> 
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index f443ce0..82b7f0f 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
 
-The stv090x driver is a mature, but slightly complex driver supporting
-quite some
-different configurations. Is it that some bug you are trying to fix in there ?
-I wouldn't prefer unnecessary code churn in such a driver for
-something as simple
-as gain in an indentation level.
+[snip]
 
+>   * @buf_finish:		called before every dequeue of the buffer back to
+>   *			userspace; drivers may perform any operations required
+> - *			before userspace accesses the buffer; optional
+> + *			before userspace accesses the buffer; optional. Note:
+> + *			this op can be called as well when vb2_is_streaming()
+> + *			returns false!
 
-Thanks,
+Based on patch 05/15 several drivers assumed that buf_finish is only be called 
+when the buffer is to be dequeued to userspace, and performed operations such 
+as decompressing the image (yuck...), updating buffer fields such as the 
+timestamp, ... If I understand the problem correctly, those operations are 
+just a waste of CPU cycles if the buffer will not be returned to userspace, 
+hence the driver changes in patch 05/15.
 
-Manu
+I would document that explicitly here to tell driver developers that 
+buf_finish will be called for every buffer that has been queued, and that 
+operations related to updating the buffer for userspace can be skipped if the 
+queue isn't streaming.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
