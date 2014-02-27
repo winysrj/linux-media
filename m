@@ -1,59 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59347 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:35280 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752101AbaBJK1K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Feb 2014 05:27:10 -0500
-Message-ID: <52F8A97B.9080401@iki.fi>
-Date: Mon, 10 Feb 2014 12:27:07 +0200
+	id S1753229AbaB0Aal (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:30:41 -0500
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: gennarone@gmail.com, Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 00/86] SDR tree
-References: <1391935771-18670-1-git-send-email-crope@iki.fi> <52F89F2E.3040902@xs4all.nl> <52F8A4A2.9080106@gmail.com>
-In-Reply-To: <52F8A4A2.9080106@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 10/16] rtl28xxu: attach SDR extension module
+Date: Thu, 27 Feb 2014 02:30:19 +0200
+Message-Id: <1393461025-11857-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1393461025-11857-1-git-send-email-crope@iki.fi>
+References: <1393461025-11857-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10.02.2014 12:06, Gianluca Gennari wrote:
-> Hi Hans,
->
->> First of all, would this work for a rtl2838 as well or is this really 2832u
->> specific? I've got a 2838...  If it is 2832u specific, then do you know which
->> product has it? It would be useful for me to have a usb stick with which I can
->> test SDR.
->
-> regarding this question, 2838 is just another USB Id for rtl2832u
-> devices based on reference design. I have one with rtl2832u + e4000
-> tuner, so probably your stick is fine for SDR.
->
-> Realtek makes several different demodulators with similar codenames:
-> - 2830/2832 DVB-T
-> - 2836 DTMB
-> - 2840 DVB-C
->
-> see here for more info:
-> http://www.realtek.com.tw/products/productsView.aspx?Langid=1&PNid=7&PFid=22&Level=3&Conn=2
+With that extension module it supports SDR.
 
-Yeah, demod chips are just like that. Then these are integrated like that:
-RT2831U = USB-interface + RTL2830 DVB-T demod
-RT2832U = USB-interface + RTL2832 DVB-T demod
-RT2832P = USB-interface + RTL2832 DVB-T demod + TS interface
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/Makefile   |  1 +
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 18 ++++++++++++++++++
+ 2 files changed, 19 insertions(+)
 
-USB-interface used is pretty same for all these, thus it is split to own 
-driver named dvb_usb_rtl28xxu.
-
-SDR functionality is property of RTL2832 demodulator, but I decided to 
-split it to own driver too.
-
-Currently that SDR driver has support for devices having following RF 
-tuners: e4000, r820t, fc0012 and fc0013. So if Hans has a device having 
-some of those tuners, it should work.
-
-regards
-Antti
-
+diff --git a/drivers/media/usb/dvb-usb-v2/Makefile b/drivers/media/usb/dvb-usb-v2/Makefile
+index 2c06714..bfe67f9 100644
+--- a/drivers/media/usb/dvb-usb-v2/Makefile
++++ b/drivers/media/usb/dvb-usb-v2/Makefile
+@@ -44,3 +44,4 @@ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+ ccflags-y += -I$(srctree)/drivers/media/tuners
+ ccflags-y += -I$(srctree)/drivers/media/common
++ccflags-y += -I$(srctree)/drivers/staging/media/rtl2832u_sdr
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 00d9440..73348bf 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -24,6 +24,7 @@
+ 
+ #include "rtl2830.h"
+ #include "rtl2832.h"
++#include "rtl2832_sdr.h"
+ 
+ #include "qt1010.h"
+ #include "mt2060.h"
+@@ -901,6 +902,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		 * that to the tuner driver */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_fc0012_config);
+ 		return 0;
+ 		break;
+ 	case TUNER_RTL2832_FC0013:
+@@ -910,6 +915,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		/* fc0013 also supports signal strength reading */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_fc0013_config);
+ 		return 0;
+ 	case TUNER_RTL2832_E4000: {
+ 			struct e4000_config e4000_config = {
+@@ -923,6 +932,11 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ 			request_module("e4000");
+ 			priv->client = i2c_new_device(&d->i2c_adap, &info);
++
++			/* attach SDR */
++			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
++					&d->i2c_adap,
++					&rtl28xxu_rtl2832_e4000_config);
+ 		}
+ 		break;
+ 	case TUNER_RTL2832_FC2580:
+@@ -949,6 +963,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		/* Use tuner to get the signal strength */
+ 		adap->fe[0]->ops.read_signal_strength =
+ 				adap->fe[0]->ops.tuner_ops.get_rf_strength;
++
++		/* attach SDR */
++		dvb_attach(rtl2832_sdr_attach, adap->fe[0], &d->i2c_adap,
++				&rtl28xxu_rtl2832_r820t_config);
+ 		break;
+ 	case TUNER_RTL2832_R828D:
+ 		/* power off mn88472 demod on GPIO0 */
 -- 
-http://palosaari.fi/
+1.8.5.3
+
