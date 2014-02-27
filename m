@@ -1,102 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60494 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752927AbaB0RWZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Feb 2014 12:22:25 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v5 6/7] of: Implement simplified graph binding for single port devices
-Date: Thu, 27 Feb 2014 18:35:39 +0100
-Message-Id: <1393522540-22887-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
-References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:49856 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753369AbaB0Aal (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:30:41 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 15/16] rtl2832_sdr: expose R820T controls to user
+Date: Thu, 27 Feb 2014 02:30:24 +0200
+Message-Id: <1393461025-11857-16-git-send-email-crope@iki.fi>
+In-Reply-To: <1393461025-11857-1-git-send-email-crope@iki.fi>
+References: <1393461025-11857-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For simple devices with only one port, it can be made implicit.
-The endpoint node can be a direct child of the device node.
+R820T tuner driver provides now some controls. Expose those to
+userland.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/of/base.c | 24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index ba3cfca..7d9c62b 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2037,8 +2037,13 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 		struct device_node *node;
- 		/*
- 		 * It's the first call, we have to find a port subnode
--		 * within this node or within an optional 'ports' node.
-+		 * within this node or within an optional 'ports' node,
-+		 * or at least a single endpoint.
- 		 */
-+		endpoint = of_get_child_by_name(parent, "endpoint");
-+		if (endpoint)
-+			return endpoint;
-+
- 		node = of_get_child_by_name(parent, "ports");
- 		if (node)
- 			parent = node;
-@@ -2049,8 +2054,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 			/* Found a port, get an endpoint. */
- 			endpoint = of_get_next_child(port, NULL);
- 			of_node_put(port);
--		} else {
--			endpoint = NULL;
- 		}
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index 38000d2..f39e4e8 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -26,6 +26,7 @@
+ #include "rtl2832_sdr.h"
+ #include "dvb_usb.h"
+ #include "e4000.h"
++#include "r820t.h"
  
- 		if (!endpoint)
-@@ -2065,6 +2068,10 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 	if (WARN_ONCE(!port, "%s(): endpoint has no parent node\n",
- 		      __func__))
- 		return NULL;
-+	if (port == parent) {
-+		of_node_put(port);
-+		return NULL;
-+	}
- 
- 	/* Avoid dropping prev node refcount to 0. */
- 	of_node_get(prev);
-@@ -2105,9 +2112,11 @@ struct device_node *of_graph_get_remote_port_parent(
- 	/* Get remote endpoint node. */
- 	np = of_parse_phandle(node, "remote-endpoint", 0);
- 
--	/* Walk 3 levels up only if there is 'ports' node. */
-+	/* Walk 3 levels up only if there is 'ports' node */
- 	for (depth = 3; depth && np; depth--) {
- 		np = of_get_next_parent(np);
-+		if (depth == 3 && of_node_cmp(np->name, "port"))
-+			break;
- 		if (depth == 2 && of_node_cmp(np->name, "ports"))
- 			break;
- 	}
-@@ -2130,6 +2139,11 @@ struct device_node *of_graph_get_remote_port(const struct device_node *node)
- 	np = of_parse_phandle(node, "remote-endpoint", 0);
- 	if (!np)
- 		return NULL;
--	return of_get_next_parent(np);
-+	np = of_get_next_parent(np);
-+	if (of_node_cmp(np->name, "port")) {
-+		of_node_put(np);
-+		return NULL;
-+	}
-+	return np;
- }
- EXPORT_SYMBOL(of_graph_get_remote_port);
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+@@ -1394,10 +1395,13 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
+ 			v4l2_ctrl_add_handler(&s->hdl, hdl, NULL);
+ 		break;
+ 	case RTL2832_TUNER_R820T:
+-		v4l2_ctrl_handler_init(&s->hdl, 2);
++		v4l2_ctrl_handler_init(&s->hdl, 8);
+ 		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
+ 		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH, 0, 8000000, 100000, 0);
+ 		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
++		hdl = r820t_get_ctrl_handler(fe);
++		if (hdl)
++			v4l2_ctrl_add_handler(&s->hdl, hdl, NULL);
+ 		break;
+ 	case RTL2832_TUNER_FC0012:
+ 	case RTL2832_TUNER_FC0013:
 -- 
 1.8.5.3
 
