@@ -1,122 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3683 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752745AbaB1Rmu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 12:42:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:45107 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754286AbaB0AQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Feb 2014 19:16:59 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH 10/17] vb2: don't init the list if there are still buffers
-Date: Fri, 28 Feb 2014 18:42:08 +0100
-Message-Id: <1393609335-12081-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Luis Alves <ljalvs@gmail.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 7/8] rtl2832: Fix deadlock on i2c mux select function.
+Date: Thu, 27 Feb 2014 02:16:09 +0200
+Message-Id: <1393460170-11591-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1393460170-11591-1-git-send-email-crope@iki.fi>
+References: <1393460170-11591-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Luis Alves <ljalvs@gmail.com>
 
-__vb2_queue_free() would init the queued_list at all times, even if
-q->num_buffers > 0. This should only happen if num_buffers == 0.
-
-This situation can happen if a CREATE_BUFFERS call couldn't allocate
-enough buffers and had to free those it did manage to allocate before
-returning an error.
-
-While we're at it: __vb2_queue_alloc() returns the number of buffers
-allocated, not an error code. So stick the result in allocated_buffers
-instead of ret as that's very confusing.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Luis Alves <ljalvs@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ drivers/media/dvb-frontends/rtl2832.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index f34d3acc..a7ecece 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -452,9 +452,10 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 	}
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index c0366a8..cfc5438 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -917,7 +917,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	buf[0] = 0x00;
+ 	buf[1] = 0x01;
  
- 	q->num_buffers -= buffers;
--	if (!q->num_buffers)
-+	if (!q->num_buffers) {
- 		q->memory = 0;
--	INIT_LIST_HEAD(&q->queued_list);
-+		INIT_LIST_HEAD(&q->queued_list);
-+	}
- 	return 0;
- }
+-	ret = i2c_transfer(adap, msg, 1);
++	ret = __i2c_transfer(adap, msg, 1);
+ 	if (ret != 1)
+ 		goto err;
  
-@@ -820,14 +821,12 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	}
+@@ -930,7 +930,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
+ 	else
+ 		buf[1] = 0x10; /* close */
  
- 	/* Finally, allocate buffers and video memory */
--	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
--	if (ret == 0) {
-+	allocated_buffers = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
-+	if (allocated_buffers == 0) {
- 		dprintk(1, "Memory allocation failed\n");
- 		return -ENOMEM;
- 	}
+-	ret = i2c_transfer(adap, msg, 1);
++	ret = __i2c_transfer(adap, msg, 1);
+ 	if (ret != 1)
+ 		goto err;
  
--	allocated_buffers = ret;
--
- 	/*
- 	 * Check if driver can handle the allocated number of buffers.
- 	 */
-@@ -851,6 +850,10 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	q->num_buffers = allocated_buffers;
- 
- 	if (ret < 0) {
-+		/*
-+		 * Note: __vb2_queue_free() will subtract 'allocated_buffers'
-+		 * from q->num_buffers.
-+		 */
- 		__vb2_queue_free(q, allocated_buffers);
- 		return ret;
- 	}
-@@ -924,20 +927,18 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
- 	}
- 
- 	/* Finally, allocate buffers and video memory */
--	ret = __vb2_queue_alloc(q, create->memory, num_buffers,
-+	allocated_buffers = __vb2_queue_alloc(q, create->memory, num_buffers,
- 				num_planes);
--	if (ret == 0) {
-+	if (allocated_buffers == 0) {
- 		dprintk(1, "Memory allocation failed\n");
- 		return -ENOMEM;
- 	}
- 
--	allocated_buffers = ret;
--
- 	/*
- 	 * Check if driver can handle the so far allocated number of buffers.
- 	 */
--	if (ret < num_buffers) {
--		num_buffers = ret;
-+	if (allocated_buffers < num_buffers) {
-+		num_buffers = allocated_buffers;
- 
- 		/*
- 		 * q->num_buffers contains the total number of buffers, that the
-@@ -960,6 +961,10 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
- 	q->num_buffers += allocated_buffers;
- 
- 	if (ret < 0) {
-+		/*
-+		 * Note: __vb2_queue_free() will subtract 'allocated_buffers'
-+		 * from q->num_buffers.
-+		 */
- 		__vb2_queue_free(q, allocated_buffers);
- 		return -ENOMEM;
- 	}
 -- 
-1.9.rc1
+1.8.5.3
 
