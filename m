@@ -1,133 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:59047 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790AbaBVW0s (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50268 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068AbaB0L11 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Feb 2014 17:26:48 -0500
-Message-ID: <5309241B.5000702@gmail.com>
-Date: Sat, 22 Feb 2014 23:26:35 +0100
-From: Tomasz Figa <tomasz.figa@gmail.com>
+	Thu, 27 Feb 2014 06:27:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 05/15] vb2: change result code of buf_finish to void
+Date: Thu, 27 Feb 2014 12:28:48 +0100
+Message-ID: <3593441.WDTuX8ay1Q@avalon>
+In-Reply-To: <1393332775-44067-6-git-send-email-hverkuil@xs4all.nl>
+References: <1393332775-44067-1-git-send-email-hverkuil@xs4all.nl> <1393332775-44067-6-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Mark Rutland <mark.rutland@arm.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"robh+dt@kernel.org" <robh+dt@kernel.org>,
-	"galak@codeaurora.org" <galak@codeaurora.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"kgene.kim@samsung.com" <kgene.kim@samsung.com>,
-	"a.hajda@samsung.com" <a.hajda@samsung.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	Tomasz Figa <t.figa@samsung.com>
-Subject: Re: [PATCH v4 03/10] Documentation: devicetree: Update Samsung FIMC
- DT binding
-References: <1392925237-31394-1-git-send-email-s.nawrocki@samsung.com> <1392925237-31394-5-git-send-email-s.nawrocki@samsung.com> <20140221155023.GF20449@e106331-lin.cambridge.arm.com> <53091E72.3090107@gmail.com>
-In-Reply-To: <53091E72.3090107@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[Ccing Mike]
+And one more separate comment.
 
-On 22.02.2014 23:02, Sylwester Nawrocki wrote:
-> On 02/21/2014 04:50 PM, Mark Rutland wrote:
->> On Thu, Feb 20, 2014 at 07:40:30PM +0000, Sylwester Nawrocki wrote:
->>> +- #clock-cells: from the common clock bindings
->>> (../clock/clock-bindings.txt),
->>> +  must be 1. A clock provider is associated with the 'camera' node
->>> and it should
->>> +  be referenced by external sensors that use clocks provided by the
->>> SoC on
->>> +  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a
->>> clock.
->>> +  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks
->>> respectively.
->>> +
->>> +- clock-output-names: from the common clock bindings, should contain
->>> names of
->>> +  clocks registered by the camera subsystem corresponding to
->>> CAM_A_CLKOUT,
->>> +  CAM_B_CLKOUT output clocks, in this order. Parent clock of these
->>> clocks are
->>> +  specified be first two entries of the clock-names property.
->>
->> Do you need this?
->
-> All right, that might have been a bad idea, it mixes names of clocks
-> registered
-> by the main clock controller with names of clock input lines at the device.
-> It's a mistake I have been usually sensitive to and now made it myself. :/
->
-> My intention was to maintain the clock tree, since the camera block doesn't
-> generate the clock itself, it merely passes through the clocks from the
-> SoC main
-> clock controller (CMU). So clk parents need to be properly set and since
-> there
-> is no clock-output-names property at the CMU DT node,
-> of_clk_get_parent_name()
-> cannot be used.
->
-> So presumably the DT binding would be only specifying that the sclk_cam0,
-> sclk_cam1 clock input entries are associated with output clocks named as
-> in clock-output-names property.
->
-> And the driver could either:
->   1) hard code those (well defined) CMU clock (clk parent) names,
+On Tuesday 25 February 2014 13:52:45 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The buf_finish op should always work, so change the return type to void.
+> Update the few drivers that use it. Note that buf_finish can be called
+> both when the DMA is streaming and when it isn't (during queue_cancel).
+> Update drivers to check that where appropriate.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pawel Osciak <pawel@osciak.com>
+> Reviewed-by: Pawel Osciak <pawel@osciak.com>
+> ---
+>  drivers/media/parport/bw-qcam.c                 |  6 ++++--
+>  drivers/media/pci/sta2x11/sta2x11_vip.c         |  7 +++----
+>  drivers/media/platform/marvell-ccic/mcam-core.c |  3 +--
+>  drivers/media/usb/pwc/pwc-if.c                  | 16 +++++++++-------
+>  drivers/media/usb/uvc/uvc_queue.c               |  6 +++---
+>  drivers/media/v4l2-core/videobuf2-core.c        |  6 +-----
+>  drivers/staging/media/go7007/go7007-v4l2.c      |  3 +--
+>  include/media/videobuf2-core.h                  |  2 +-
+>  8 files changed, 23 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/parport/bw-qcam.c
+> b/drivers/media/parport/bw-qcam.c index d12bd33..8d69bfb 100644
+> --- a/drivers/media/parport/bw-qcam.c
+> +++ b/drivers/media/parport/bw-qcam.c
+> @@ -667,13 +667,16 @@ static void buffer_queue(struct vb2_buffer *vb)
+>  	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+>  }
+> 
+> -static int buffer_finish(struct vb2_buffer *vb)
+> +static void buffer_finish(struct vb2_buffer *vb)
+>  {
+>  	struct qcam *qcam = vb2_get_drv_priv(vb->vb2_queue);
+>  	void *vbuf = vb2_plane_vaddr(vb, 0);
+>  	int size = vb->vb2_queue->plane_sizes[0];
+>  	int len;
+> 
+> +	if (!vb2_is_streaming(vb->vb2_queue))
+> +		return;
+> +
+>  	mutex_lock(&qcam->lock);
+>  	parport_claim_or_block(qcam->pdev);
+> 
+> @@ -691,7 +694,6 @@ static int buffer_finish(struct vb2_buffer *vb)
+>  	if (len != size)
+>  		vb->state = VB2_BUF_STATE_ERROR;
+>  	vb2_set_plane_payload(vb, 0, len);
+> -	return 0;
+>  }
+> 
+>  static struct vb2_ops qcam_video_qops = {
+> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> b/drivers/media/pci/sta2x11/sta2x11_vip.c index e5cfb6c..bb11443 100644
+> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+> @@ -327,7 +327,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+>  	}
+>  	spin_unlock(&vip->lock);
+>  }
+> -static int buffer_finish(struct vb2_buffer *vb)
+> +static void buffer_finish(struct vb2_buffer *vb)
+>  {
+>  	struct sta2x11_vip *vip = vb2_get_drv_priv(vb->vb2_queue);
+>  	struct vip_buffer *vip_buf = to_vip_buffer(vb);
+> @@ -337,9 +337,8 @@ static int buffer_finish(struct vb2_buffer *vb)
+>  	list_del_init(&vip_buf->list);
+>  	spin_unlock(&vip->lock);
+> 
+> -	vip_active_buf_next(vip);
+> -
+> -	return 0;
+> +	if (vb2_is_streaming(vb->vb2_queue))
+> +		vip_active_buf_next(vip);
+>  }
+> 
+>  static int start_streaming(struct vb2_queue *vq, unsigned int count)
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c
+> b/drivers/media/platform/marvell-ccic/mcam-core.c index 32fab30..8b34c48
+> 100644
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+> @@ -1238,7 +1238,7 @@ static int mcam_vb_sg_buf_prepare(struct vb2_buffer
+> *vb) return 0;
+>  }
+> 
+> -static int mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
+> +static void mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
+>  {
+>  	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
+>  	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
+> @@ -1246,7 +1246,6 @@ static int mcam_vb_sg_buf_finish(struct vb2_buffer
+> *vb) if (sg_table)
+>  		dma_unmap_sg(cam->dev, sg_table->sgl,
+>  				sg_table->nents, DMA_FROM_DEVICE);
+> -	return 0;
+>  }
+> 
+>  static void mcam_vb_sg_buf_cleanup(struct vb2_buffer *vb)
+> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+> index abf365a..b9c9f10 100644
+> --- a/drivers/media/usb/pwc/pwc-if.c
+> +++ b/drivers/media/usb/pwc/pwc-if.c
+> @@ -614,17 +614,19 @@ static int buffer_prepare(struct vb2_buffer *vb)
+>  	return 0;
+>  }
+> 
+> -static int buffer_finish(struct vb2_buffer *vb)
+> +static void buffer_finish(struct vb2_buffer *vb)
+>  {
+>  	struct pwc_device *pdev = vb2_get_drv_priv(vb->vb2_queue);
+>  	struct pwc_frame_buf *buf = container_of(vb, struct pwc_frame_buf, vb);
+> 
+> -	/*
+> -	 * Application has called dqbuf and is getting back a buffer we've
+> -	 * filled, take the pwc data we've stored in buf->data and decompress
+> -	 * it into a usable format, storing the result in the vb2_buffer
+> -	 */
+> -	return pwc_decompress(pdev, buf);
+> +	if (vb->state == VB2_BUF_STATE_DONE) {
+> +		/*
+> +		 * Application has called dqbuf and is getting back a buffer we've
+> +		 * filled, take the pwc data we've stored in buf->data and decompress
+> +		 * it into a usable format, storing the result in the vb2_buffer
+> +		 */
 
-I don't think this would be a good idea, as those CMU clock names may 
-vary between SoCs.
+You should reflow the text if you want to avoid 80-char checkpatch.pl 
+warnings.
 
->   2) clk_get() its input clock, retrieve name with __clk_get_name() and
-> pass
->     it as parent name to clk_register() - it sounds a bit hacky though.
+> +		pwc_decompress(pdev, buf);
+> +	}
+>  }
+> 
+>  static void buffer_cleanup(struct vb2_buffer *vb)
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index cd962be..db5984e 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -104,15 +104,15 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
+>  	spin_unlock_irqrestore(&queue->irqlock, flags);
+>  }
+> 
+> -static int uvc_buffer_finish(struct vb2_buffer *vb)
+> +static void uvc_buffer_finish(struct vb2_buffer *vb)
+>  {
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+>  	struct uvc_streaming *stream =
+>  			container_of(queue, struct uvc_streaming, queue);
+>  	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
+> 
+> -	uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+> -	return 0;
+> +	if (vb2_is_streaming(vb->vb2_queue))
+> +		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+>  }
+> 
+>  static void uvc_wait_prepare(struct vb2_queue *vq)
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 8f1578b..59bfd85 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1783,11 +1783,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q,
+> struct v4l2_buffer *b, bool n if (ret < 0)
+>  		return ret;
+> 
+> -	ret = call_vb_qop(vb, buf_finish, vb);
+> -	if (ret) {
+> -		dprintk(1, "dqbuf: buffer finish failed\n");
+> -		return ret;
+> -	}
+> +	call_vb_qop(vb, buf_finish, vb);
+> 
+>  	switch (vb->state) {
+>  	case VB2_BUF_STATE_DONE:
+> diff --git a/drivers/staging/media/go7007/go7007-v4l2.c
+> b/drivers/staging/media/go7007/go7007-v4l2.c index edc52e2..3a01576 100644
+> --- a/drivers/staging/media/go7007/go7007-v4l2.c
+> +++ b/drivers/staging/media/go7007/go7007-v4l2.c
+> @@ -470,7 +470,7 @@ static int go7007_buf_prepare(struct vb2_buffer *vb)
+>  	return 0;
+>  }
+> 
+> -static int go7007_buf_finish(struct vb2_buffer *vb)
+> +static void go7007_buf_finish(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *vq = vb->vb2_queue;
+>  	struct go7007 *go = vb2_get_drv_priv(vq);
+> @@ -483,7 +483,6 @@ static int go7007_buf_finish(struct vb2_buffer *vb)
+>  			V4L2_BUF_FLAG_PFRAME);
+>  	buf->flags |= frame_type_flag;
+>  	buf->field = V4L2_FIELD_NONE;
+> -	return 0;
+>  }
+> 
+>  static int go7007_start_streaming(struct vb2_queue *q, unsigned int count)
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index f04eb28..f443ce0 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -311,7 +311,7 @@ struct vb2_ops {
+> 
+>  	int (*buf_init)(struct vb2_buffer *vb);
+>  	int (*buf_prepare)(struct vb2_buffer *vb);
+> -	int (*buf_finish)(struct vb2_buffer *vb);
+> +	void (*buf_finish)(struct vb2_buffer *vb);
+>  	void (*buf_cleanup)(struct vb2_buffer *vb);
+> 
+>  	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
 
-This looks fine, at least until proper interface is added to CCF. Exynos 
-audio subsystem clock driver does exactly the same.
+-- 
+Regards,
 
-However, the right thing would be to make it possible to use pointers to 
-struct clk instead of strings to list parent(s). This could be done by 
-adding .parents field (struct clk **) to clk_init_data struct and make 
-clk_register() use it if available.
+Laurent Pinchart
 
->
-> The output clock names could be also well defined by the binding per the
-> IP's
-> compatible. Nevertheless using clock-output-names seems cleaner to me than
-> defining character strings in the driver.
->
-> What do you think ?
-
-<RANT>
-
-Personally, I don't like clock-output-names at all. The idea of having a 
-global namespace for all clock providers looks flawed to me. This 
-property only tries to work around the not-quite-right design by giving 
-device tree the right to force CCF to use particular internal clock 
-identifiers and avoid collisions if two providers happen to have the 
-same internal clock names.
-
-I believe there should be completely no need for clock-output-names, 
-(other than a textual label for debugging purposes, analogically to 
-regulator-name). If one clock provider needs a clock from another, then 
-you should list it using clock bindings in node of the former, not rely 
-on some static name assignments.
-
-Then, after eliminating the need to use static names anymore, the 
-namespace could be split into per-provider namespaces and we would have 
-no collision issue anymore.
-
-Of course it's probably to late already for such changes, as there are 
-already systems relying on clock-output-names (i.e. without inter-IP 
-clock dependencies listed using clock bindings) and we would have to 
-keep backwards compatibility anyway...
-
-</RANT>
-
-Best regards,
-Tomasz
