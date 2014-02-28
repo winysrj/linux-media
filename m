@@ -1,59 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2401 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750868AbaBGJR1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Feb 2014 04:17:27 -0500
-Message-ID: <52F4A486.30100@xs4all.nl>
-Date: Fri, 07 Feb 2014 10:16:54 +0100
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1642 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752976AbaB1Rms (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Feb 2014 12:42:48 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH, RFC 08/30] [media] arv: fix sleep_on race
-References: <1388664474-1710039-1-git-send-email-arnd@arndb.de> <1388664474-1710039-9-git-send-email-arnd@arndb.de> <52D90B42.90206@xs4all.nl>
-In-Reply-To: <52D90B42.90206@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 17/17] vivi: fix ENUM_FRAMEINTERVALS implementation
+Date: Fri, 28 Feb 2014 18:42:15 +0100
+Message-Id: <1393609335-12081-18-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/17/2014 11:51 AM, Hans Verkuil wrote:
-> On 01/02/2014 01:07 PM, Arnd Bergmann wrote:
->> interruptible_sleep_on is racy and going away. In the arv driver that
->> race has probably never caused problems since it would require a whole
->> video frame to be captured before the read function has a chance to
->> go to sleep, but using wait_event_interruptible lets us kill off the
->> old interface. In order to do this, we have to slightly adapt the
->> meaning of the ar->start_capture field to distinguish between not having
->> started a frame and having completed it.
->>
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
->> Cc: linux-media@vger.kernel.org
->> ---
->>  drivers/media/platform/arv.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/arv.c b/drivers/media/platform/arv.c
->> index e346d32d..32f6d70 100644
->> --- a/drivers/media/platform/arv.c
->> +++ b/drivers/media/platform/arv.c
->> @@ -307,11 +307,11 @@ static ssize_t ar_read(struct file *file, char *buf, size_t count, loff_t *ppos)
->>  	/*
->>  	 * Okay, kick AR LSI to invoke an interrupt
->>  	 */
->> -	ar->start_capture = 0;
->> +	ar->start_capture = -1;
-> 
-> start_capture is defined as an unsigned. Can you make a new patch that changes
-> the type of start_capture to int?
-> 
-> Otherwise it looks fine.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-ping!
+This function never checked if width and height are correct. Add such
+a check so the v4l2-compliance tool returns OK again for vivi.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivi.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-	Hans
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 643937b..7360a84 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -1121,7 +1121,11 @@ static int vidioc_enum_frameintervals(struct file *file, void *priv,
+ 	if (!fmt)
+ 		return -EINVAL;
+ 
+-	/* regarding width & height - we support any */
++	/* check for valid width/height */
++	if (fival->width < 48 || fival->width > MAX_WIDTH || (fival->width & 3))
++		return -EINVAL;
++	if (fival->height < 32 || fival->height > MAX_HEIGHT)
++		return -EINVAL;
+ 
+ 	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+ 
+-- 
+1.9.rc1
+
