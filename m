@@ -1,37 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:35993 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752254AbaBTJeg (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4736 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752745AbaB1Rmm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Feb 2014 04:34:36 -0500
-Received: by mail-ea0-f181.google.com with SMTP id k10so774441eaj.12
-        for <linux-media@vger.kernel.org>; Thu, 20 Feb 2014 01:34:34 -0800 (PST)
-Received: from [192.168.1.100] (93-45-234-219.ip104.fastwebnet.it. [93.45.234.219])
-        by mx.google.com with ESMTPSA id k41sm11469172een.19.2014.02.20.01.34.32
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Thu, 20 Feb 2014 01:34:33 -0800 (PST)
-Message-ID: <5305CC27.1080609@gmail.com>
-Date: Thu, 20 Feb 2014 10:34:31 +0100
-From: Caterpillar <caterpillar86@gmail.com>
-MIME-Version: 1.0
+	Fri, 28 Feb 2014 12:42:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: tvtime and Pinnacle PCTV 72e
-References: <5305CB65.5000706@gmail.com>
-In-Reply-To: <5305CB65.5000706@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv3 PATCH 03/17] vb2: fix PREPARE_BUF regression
+Date: Fri, 28 Feb 2014 18:42:01 +0100
+Message-Id: <1393609335-12081-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ops I made some mistaked in pasting the URLs, heredown the fixed versions
+Fix an incorrect test in vb2_internal_qbuf() where only DEQUEUED buffers
+are allowed. But PREPARED buffers are also OK.
 
-lspci http://pastebin.com/Q2bdZiSq 
-ls /dev/ http://pastebin.com/vGYaD1mY
-lsusb http://pastebin.com/gFSKZcME
-lsmod http://pastebin.com/QpYUai90
-tree /dev/dvb http://pastebin.com/Sf0vewWc
-dmesg|grep DiB http://pastebin.com/a7M0HwRA
-dmesg|grep Pinnacle http://pastebin.com/zzDcKfN4
-dmesg|tail http://pastebin.com/gsimDTAd
+Introduced by commit 4138111a27859dcc56a5592c804dd16bb12a23d1
+("vb2: simplify qbuf/prepare_buf by removing callback").
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f1a2857c..909f367 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1420,11 +1420,6 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return ret;
+ 
+ 	vb = q->bufs[b->index];
+-	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+-		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
+-			vb->state);
+-		return -EINVAL;
+-	}
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
+@@ -1438,7 +1433,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		dprintk(1, "qbuf: buffer still being prepared\n");
+ 		return -EINVAL;
+ 	default:
+-		dprintk(1, "qbuf: buffer already in use\n");
++		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
++			vb->state);
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+1.9.rc1
 
