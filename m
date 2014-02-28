@@ -1,125 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:32786 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753758AbaCDPru (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 10:47:50 -0500
-Message-ID: <1393948056.3917.120.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v5 5/7] [media] of: move common endpoint parsing to
- drivers/of
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Date: Tue, 04 Mar 2014 16:47:36 +0100
-In-Reply-To: <5315C535.2070303@ti.com>
-References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
-		 <1393522540-22887-6-git-send-email-p.zabel@pengutronix.de>
-		 <531595AB.4000001@ti.com>
-	 <1393932989.3917.62.camel@paszta.hi.pengutronix.de>
-	 <5315C535.2070303@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:61156 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752299AbaB1X3w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Feb 2014 18:29:52 -0500
+Received: by mail-wi0-f179.google.com with SMTP id bs8so1216601wib.6
+        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:51 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH v4 05/10] rc: img-ir: add to build
+Date: Fri, 28 Feb 2014 23:28:55 +0000
+Message-Id: <1393630140-31765-6-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Dienstag, den 04.03.2014, 14:21 +0200 schrieb Tomi Valkeinen:
-> On 04/03/14 13:36, Philipp Zabel wrote:
-[...]
-> >> Can port_node be NULL? Probably only if something is quite wrong, but
-> >> maybe it's safer to return error in that case.
-> > 
-> > both of_property_read_u32 and of_node_put can handle port_node == NULL.
-> > I'll add a WARN_ONCE here as for of_graph_get_next_endpoint and continue
-> > on.
-> 
-> Isn't it better to return an error?
+Add ImgTec IR decoder driver to the build system.
 
-I am not sure. We can still correctly parse the endpoint properties of a
-parentless node. All current users ignore the return value anyway. So as
-long as we still do the memset and and set local_node and id, returning
-an error effectively won't change the current behaviour.
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/rc/Kconfig         |  2 ++
+ drivers/media/rc/Makefile        |  1 +
+ drivers/media/rc/img-ir/Kconfig  | 26 ++++++++++++++++++++++++++
+ drivers/media/rc/img-ir/Makefile |  6 ++++++
+ 4 files changed, 35 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/Kconfig
+ create mode 100644 drivers/media/rc/img-ir/Makefile
 
-[...]
-> > It depends a bit on whether you are actually iterating over individual
-> > ports, or if you are just walking the whole endpoint graph to find
-> > remote devices that have to be added to the component master's waiting
-> > list, for example.
-> 
-> True, but the latter is easily implemented using the separate
-> port/endpoint iteration. So I see it as a more powerful API.
-
-Indeed. I see no problem in adding an of_graph_get_next_port function.
-But I'd like to keep the current of_graph_get_next_endpoint function
-iterating over all endpoints of the device.
-
-> >> Both of those are possible with the API in the series, but not very cleanly.
-> >>
-> >> Also, if you just want to iterate the endpoints, it's easy to implement
-> >> a helper using the separate port and endpoint iterations.
-> > 
-> > I started out to move an existing (albeit lightly used) API to a common
-> > place so others can use it and improve upon it, too. I'm happy to pile
-> > on fixes directly in this series, but could we separate the improvement
-> > step from the move, for the bigger modifications?
-> 
-> Yes, I understand that. What I wonder is that which is easier: make it a
-> public API now, more or less as it was in v4l2, or make it a public API
-> only when all the improvements we can think of have been made.
-> 
-> So my fear is that the API is now made public, and you and others start
-> to use it.
-
-And I fear that this series might outgrow maintainer attention spans if
-I keep adding to it.
-
-> But I can't use it, as I need things like separate
-> port/endpoint iteration. I need to add those, which also means that I
-> need to change all the users of the API, making the task more difficult
-> than I'd like.
->
-> However, this is more of "thinking out loud" than "I don't like the
-> series". It's a good series =).
-
-Thanks. How about I follow this up with a split port/endpoint parsing
-helpers after I get some acks?
-
-> > I had no immediate use for the port iteration, so I have taken no steps
-> > to add a function for this. I see no problem to add this later when
-> > somebody needs it, or even rewrite of_graph_get_next_endpoint to use it
-> > if it is feasible. Iterating over endpoints on a given port needs no
-> > helper, as you can just use for_each_child_of_node.
-> 
-> I would have a helper, which should do some sanity checks, like that the
-> node names are "endpoint".
-
-I'd prefer this to be a generic function of_get_next_child_by_name and
-possibly a macro for_each_named_child_of_node wrapping that.
-
-[...]
-> In omapdss each driver handles only the ports and endpoints defined for
-> its device, and they can be considered private to that device. The only
-> reason to look for the remote endpoint is to find the remote device. To
-> me the omapdss model makes sense, and feels logical and sane =). So I
-> have to say I'm not really familiar with the model you're using.
-
-The main difference I see is that a single IPU device will have two port
-nodes handled by the DRM driver and two port nodes handled by the V4L2
-driver, so we can't go back up to the IPU device tree node and iterate
-over all its ports in either the DRM or V4L2 drivers.
-You could argue that all the device tree parsing should be done from the
-IPU drivers, and the DRM and V4L2 drivers should use preparsed internal
-graph structures. But then we are getting into using struct media_entity
-in DRM drivers territory, and rather not go there right now.
-
-regards
-Philipp
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 3b25887..8fbd377 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -309,6 +309,8 @@ config IR_RX51
+ 	   The driver uses omap DM timers for generating the carrier
+ 	   wave and pulses.
+ 
++source "drivers/media/rc/img-ir/Kconfig"
++
+ config RC_LOOPBACK
+ 	tristate "Remote Control Loopback Driver"
+ 	depends on RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 36dafed..f8b54ff 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -32,3 +32,4 @@ obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
+ obj-$(CONFIG_IR_IGUANA) += iguanair.o
+ obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
+ obj-$(CONFIG_RC_ST) += st_rc.o
++obj-$(CONFIG_IR_IMG) += img-ir/
+diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
+new file mode 100644
+index 0000000..60eaba6
+--- /dev/null
++++ b/drivers/media/rc/img-ir/Kconfig
+@@ -0,0 +1,26 @@
++config IR_IMG
++	tristate "ImgTec IR Decoder"
++	depends on RC_CORE
++	select IR_IMG_HW if !IR_IMG_RAW
++	help
++	   Say Y or M here if you want to use the ImgTec infrared decoder
++	   functionality found in SoCs such as TZ1090.
++
++config IR_IMG_RAW
++	bool "Raw decoder"
++	depends on IR_IMG
++	help
++	   Say Y here to enable the raw mode driver which passes raw IR signal
++	   changes to the IR raw decoders for software decoding. This is much
++	   less reliable (due to lack of timestamps) and consumes more
++	   processing power than using hardware decode, but can be useful for
++	   testing, debug, and to make more protocols available.
++
++config IR_IMG_HW
++	bool "Hardware decoder"
++	depends on IR_IMG
++	help
++	   Say Y here to enable the hardware decode driver which decodes the IR
++	   signals in hardware. This is more reliable, consumes less processing
++	   power since only a single interrupt is received for each scancode,
++	   and allows an IR scancode to be used as a wake event.
+diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
+new file mode 100644
+index 0000000..4ef86ed
+--- /dev/null
++++ b/drivers/media/rc/img-ir/Makefile
+@@ -0,0 +1,6 @@
++img-ir-y			:= img-ir-core.o
++img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
++img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
++img-ir-objs			:= $(img-ir-y)
++
++obj-$(CONFIG_IR_IMG)		+= img-ir.o
+-- 
+1.8.3.2
 
