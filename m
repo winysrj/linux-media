@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:37142 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbaBHV1O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Feb 2014 16:27:14 -0500
-Received: by mail-wi0-f172.google.com with SMTP id e4so1795272wiv.5
-        for <linux-media@vger.kernel.org>; Sat, 08 Feb 2014 13:27:13 -0800 (PST)
-From: "Luis Alves" <ljalvs@gmail.com>
-To: "'Antti Palosaari'" <crope@iki.fi>, <linux-media@vger.kernel.org>
-Cc: "'Mauro Carvalho Chehab'" <m.chehab@samsung.com>,
-	"'Hans Verkuil'" <hverkuil@xs4all.nl>
-References: <1391852281-18291-1-git-send-email-crope@iki.fi> <1391852281-18291-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1391852281-18291-4-git-send-email-crope@iki.fi>
-Subject: RE: [PATCH 3/8] rtl2832: Fix deadlock on i2c mux select function.
-Date: Sat, 8 Feb 2014 21:27:10 -0000
-Message-ID: <000301cf2514$87c87a30$97596e90$@gmail.com>
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:36681 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751711AbaB1VJa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Feb 2014 16:09:30 -0500
+Message-ID: <5310FB05.4000307@gmail.com>
+Date: Fri, 28 Feb 2014 22:09:25 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+To: Philipp Zabel <p.zabel@pengutronix.de>
+CC: Grant Likely <grant.likely@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 3/7] of: Warn if of_graph_get_next_endpoint is called
+ with the root node
+References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de> <1393522540-22887-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1393522540-22887-4-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Language: pt
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Luis Alves <ljalvs@gmail.com>
+On 02/27/2014 06:35 PM, Philipp Zabel wrote:
+> If of_graph_get_next_endpoint is given a parentless node instead of an
+> endpoint node, it is clearly a bug.
+>
+> Signed-off-by: Philipp Zabel<p.zabel@pengutronix.de>
+> ---
+>   drivers/of/base.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index b2f223f..6e650cf 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -2028,8 +2028,8 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+>   		of_node_put(node);
+>   	} else {
+>   		port = of_get_parent(prev);
+> -		if (!port)
+> -			/* Hm, has someone given us the root node ?... */
+> +		if (WARN_ONCE(!port, "%s(): endpoint has no parent node\n",
+> +			      __func__))
 
-Signed-off-by: Luis Alves <ljalvs@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Perhaps we can add more information to this error log, e.g.
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c
-b/drivers/media/dvb-frontends/rtl2832.c
-index c0366a8..cfc5438 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -917,7 +917,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void
-*mux_priv, u32 chan_id)
- 	buf[0] = 0x00;
- 	buf[1] = 0x01;
- 
--	ret = i2c_transfer(adap, msg, 1);
-+	ret = __i2c_transfer(adap, msg, 1);
- 	if (ret != 1)
- 		goto err;
- 
-@@ -930,7 +930,7 @@ static int rtl2832_select(struct i2c_adapter *adap, void
-*mux_priv, u32 chan_id)
- 	else
- 		buf[1] = 0x10; /* close */
- 
--	ret = i2c_transfer(adap, msg, 1);
-+	ret = __i2c_transfer(adap, msg, 1);
- 	if (ret != 1)
- 		goto err;
- 
--- 
-1.8.5.3
-
-
+		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
+			      __func__, prev->full_name))
+?
+>   			return NULL;
+>
+>   		/* Avoid dropping prev node refcount to 0. */
