@@ -1,113 +1,339 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2647 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864AbaC2Dau (ORCPT
+Received: from mail-we0-f182.google.com ([74.125.82.182]:52921 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752249AbaB1XRo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 23:30:50 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2T3UkBv099146
-	for <linux-media@vger.kernel.org>; Sat, 29 Mar 2014 04:30:48 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 9159D2A03F2
-	for <linux-media@vger.kernel.org>; Sat, 29 Mar 2014 04:30:44 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140329033044.9159D2A03F2@tschai.lan>
-Date: Sat, 29 Mar 2014 04:30:44 +0100 (CET)
+	Fri, 28 Feb 2014 18:17:44 -0500
+Received: by mail-we0-f182.google.com with SMTP id u57so1121270wes.27
+        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:17:42 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: James Hogan <james.hogan@imgtec.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+	Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 4/5] rc: add wakeup_protocols sysfs file
+Date: Fri, 28 Feb 2014 23:17:05 +0000
+Message-Id: <1393629426-31341-5-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com>
+References: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add a wakeup_protocols sysfs file which controls the new
+rc_dev::enabled_protocols[RC_FILTER_WAKEUP], which is the mask of
+protocols that are used for the wakeup filter.
 
-Results of the daily build of media_tree:
+A new RC driver callback change_wakeup_protocol() is called to change
+the wakeup protocol mask.
 
-date:		Sat Mar 29 04:01:37 CET 2014
-git branch:	test
-git hash:	3ec40dcfb413214b2874aec858870502b61c2202
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Seppälä <a.seppala@gmail.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: linux-media@vger.kernel.org
+Cc: linux-doc@vger.kernel.org
+---
+ Documentation/ABI/testing/sysfs-class-rc           | 23 +++++-
+ .../DocBook/media/v4l/remote_controllers.xml       | 20 +++++-
+ drivers/media/rc/rc-main.c                         | 82 +++++++++++++---------
+ include/media/rc-core.h                            |  3 +
+ 4 files changed, 90 insertions(+), 38 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: ERRORS
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: ERRORS
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12-i686: ERRORS
-linux-3.13-i686: ERRORS
-linux-3.14-rc1-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12-x86_64: ERRORS
-linux-3.13-x86_64: ERRORS
-linux-3.14-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0
-sparse: ERRORS
+diff --git a/Documentation/ABI/testing/sysfs-class-rc b/Documentation/ABI/testing/sysfs-class-rc
+index c0e1d14..b65674d 100644
+--- a/Documentation/ABI/testing/sysfs-class-rc
++++ b/Documentation/ABI/testing/sysfs-class-rc
+@@ -61,6 +61,25 @@ Description:
+ 		an error.
+ 		This value may be reset to 0 if the current protocol is altered.
+ 
++What:		/sys/class/rc/rcN/wakeup_protocols
++Date:		Feb 2014
++KernelVersion:	3.15
++Contact:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++Description:
++		Reading this file returns a list of available protocols to use
++		for the wakeup filter, something like:
++		    "rc5 rc6 nec jvc [sony]"
++		The enabled wakeup protocol is shown in [] brackets.
++		Writing "+proto" will add a protocol to the list of enabled
++		wakeup protocols.
++		Writing "-proto" will remove a protocol from the list of enabled
++		wakeup protocols.
++		Writing "proto" will use "proto" for wakeup events.
++		Writing "none" will disable wakeup.
++		Write fails with EINVAL if an invalid protocol combination or
++		unknown protocol name is used, or if wakeup is not supported by
++		the hardware.
++
+ What:		/sys/class/rc/rcN/wakeup_filter
+ Date:		Jan 2014
+ KernelVersion:	3.15
+@@ -74,7 +93,7 @@ Description:
+ 		scancodes which match the filter will wake the system from e.g.
+ 		suspend to RAM or power off.
+ 		Otherwise the write will fail with an error.
+-		This value may be reset to 0 if the current protocol is altered.
++		This value may be reset to 0 if the wakeup protocol is altered.
+ 
+ What:		/sys/class/rc/rcN/wakeup_filter_mask
+ Date:		Jan 2014
+@@ -89,4 +108,4 @@ Description:
+ 		scancodes which match the filter will wake the system from e.g.
+ 		suspend to RAM or power off.
+ 		Otherwise the write will fail with an error.
+-		This value may be reset to 0 if the current protocol is altered.
++		This value may be reset to 0 if the wakeup protocol is altered.
+diff --git a/Documentation/DocBook/media/v4l/remote_controllers.xml b/Documentation/DocBook/media/v4l/remote_controllers.xml
+index c440a81..5124a6c 100644
+--- a/Documentation/DocBook/media/v4l/remote_controllers.xml
++++ b/Documentation/DocBook/media/v4l/remote_controllers.xml
+@@ -102,6 +102,22 @@ an error.</para>
+ <para>This value may be reset to 0 if the current protocol is altered.</para>
+ 
+ </section>
++<section id="sys_class_rc_rcN_wakeup_protocols">
++<title>/sys/class/rc/rcN/wakeup_protocols</title>
++<para>Reading this file returns a list of available protocols to use for the
++wakeup filter, something like:</para>
++<para><constant>rc5 rc6 nec jvc [sony]</constant></para>
++<para>The enabled wakeup protocol is shown in [] brackets.</para>
++<para>Writing "+proto" will add a protocol to the list of enabled wakeup
++protocols.</para>
++<para>Writing "-proto" will remove a protocol from the list of enabled wakeup
++protocols.</para>
++<para>Writing "proto" will use "proto" for wakeup events.</para>
++<para>Writing "none" will disable wakeup.</para>
++<para>Write fails with EINVAL if an invalid protocol combination or unknown
++protocol name is used, or if wakeup is not supported by the hardware.</para>
++
++</section>
+ <section id="sys_class_rc_rcN_wakeup_filter">
+ <title>/sys/class/rc/rcN/wakeup_filter</title>
+ <para>Sets the scancode wakeup filter expected value.
+@@ -112,7 +128,7 @@ to trigger a system wake event.</para>
+ scancodes which match the filter will wake the system from e.g.
+ suspend to RAM or power off.
+ Otherwise the write will fail with an error.</para>
+-<para>This value may be reset to 0 if the current protocol is altered.</para>
++<para>This value may be reset to 0 if the wakeup protocol is altered.</para>
+ 
+ </section>
+ <section id="sys_class_rc_rcN_wakeup_filter_mask">
+@@ -125,7 +141,7 @@ expected value to trigger a system wake event.</para>
+ scancodes which match the filter will wake the system from e.g.
+ suspend to RAM or power off.
+ Otherwise the write will fail with an error.</para>
+-<para>This value may be reset to 0 if the current protocol is altered.</para>
++<para>This value may be reset to 0 if the wakeup protocol is altered.</para>
+ </section>
+ </section>
+ 
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 309d791..e6e3ec7 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -803,13 +803,38 @@ static struct {
+ };
+ 
+ /**
+- * show_protocols() - shows the current IR protocol(s)
++ * struct rc_filter_attribute - Device attribute relating to a filter type.
++ * @attr:	Device attribute.
++ * @type:	Filter type.
++ * @mask:	false for filter value, true for filter mask.
++ */
++struct rc_filter_attribute {
++	struct device_attribute		attr;
++	enum rc_filter_type		type;
++	bool				mask;
++};
++#define to_rc_filter_attr(a) container_of(a, struct rc_filter_attribute, attr)
++
++#define RC_PROTO_ATTR(_name, _mode, _show, _store, _type)		\
++	struct rc_filter_attribute dev_attr_##_name = {			\
++		.attr = __ATTR(_name, _mode, _show, _store),		\
++		.type = (_type),					\
++	}
++#define RC_FILTER_ATTR(_name, _mode, _show, _store, _type, _mask)	\
++	struct rc_filter_attribute dev_attr_##_name = {			\
++		.attr = __ATTR(_name, _mode, _show, _store),		\
++		.type = (_type),					\
++		.mask = (_mask),					\
++	}
++
++/**
++ * show_protocols() - shows the current/wakeup IR protocol(s)
+  * @device:	the device descriptor
+  * @mattr:	the device attribute struct (unused)
+  * @buf:	a pointer to the output buffer
+  *
+  * This routine is a callback routine for input read the IR protocol type(s).
+- * it is trigged by reading /sys/class/rc/rc?/protocols.
++ * it is trigged by reading /sys/class/rc/rc?/[wakeup_]protocols.
+  * It returns the protocol names of supported protocols.
+  * Enabled protocols are printed in brackets.
+  *
+@@ -820,6 +845,7 @@ static ssize_t show_protocols(struct device *device,
+ 			      struct device_attribute *mattr, char *buf)
+ {
+ 	struct rc_dev *dev = to_rc_dev(device);
++	struct rc_filter_attribute *fattr = to_rc_filter_attr(mattr);
+ 	u64 allowed, enabled;
+ 	char *tmp = buf;
+ 	int i;
+@@ -830,9 +856,10 @@ static ssize_t show_protocols(struct device *device,
+ 
+ 	mutex_lock(&dev->lock);
+ 
+-	enabled = dev->enabled_protocols[RC_FILTER_NORMAL];
+-	if (dev->driver_type == RC_DRIVER_SCANCODE)
+-		allowed = dev->allowed_protocols[RC_FILTER_NORMAL];
++	enabled = dev->enabled_protocols[fattr->type];
++	if (dev->driver_type == RC_DRIVER_SCANCODE ||
++	    fattr->type == RC_FILTER_WAKEUP)
++		allowed = dev->allowed_protocols[fattr->type];
+ 	else if (dev->raw)
+ 		allowed = ir_raw_get_allowed_protocols();
+ 	else {
+@@ -864,14 +891,14 @@ static ssize_t show_protocols(struct device *device,
+ }
+ 
+ /**
+- * store_protocols() - changes the current IR protocol(s)
++ * store_protocols() - changes the current/wakeup IR protocol(s)
+  * @device:	the device descriptor
+  * @mattr:	the device attribute struct (unused)
+  * @buf:	a pointer to the input buffer
+  * @len:	length of the input buffer
+  *
+  * This routine is for changing the IR protocol type.
+- * It is trigged by writing to /sys/class/rc/rc?/protocols.
++ * It is trigged by writing to /sys/class/rc/rc?/[wakeup_]protocols.
+  * Writing "+proto" will add a protocol to the list of enabled protocols.
+  * Writing "-proto" will remove a protocol from the list of enabled protocols.
+  * Writing "proto" will enable only "proto".
+@@ -888,12 +915,14 @@ static ssize_t store_protocols(struct device *device,
+ 			       size_t len)
+ {
+ 	struct rc_dev *dev = to_rc_dev(device);
++	struct rc_filter_attribute *fattr = to_rc_filter_attr(mattr);
+ 	bool enable, disable;
+ 	const char *tmp;
+ 	u64 type;
+ 	u64 mask;
+ 	int rc, i, count = 0;
+ 	ssize_t ret;
++	int (*change_protocol)(struct rc_dev *dev, u64 *rc_type);
+ 
+ 	/* Device is being removed */
+ 	if (!dev)
+@@ -906,7 +935,7 @@ static ssize_t store_protocols(struct device *device,
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+-	type = dev->enabled_protocols[RC_FILTER_NORMAL];
++	type = dev->enabled_protocols[fattr->type];
+ 
+ 	while ((tmp = strsep((char **) &data, " \n")) != NULL) {
+ 		if (!*tmp)
+@@ -954,8 +983,10 @@ static ssize_t store_protocols(struct device *device,
+ 		goto out;
+ 	}
+ 
+-	if (dev->change_protocol) {
+-		rc = dev->change_protocol(dev, &type);
++	change_protocol = (fattr->type == RC_FILTER_NORMAL)
++		? dev->change_protocol : dev->change_wakeup_protocol;
++	if (change_protocol) {
++		rc = change_protocol(dev, &type);
+ 		if (rc < 0) {
+ 			IR_dprintk(1, "Error setting protocols to 0x%llx\n",
+ 				   (long long)type);
+@@ -964,7 +995,7 @@ static ssize_t store_protocols(struct device *device,
+ 		}
+ 	}
+ 
+-	dev->enabled_protocols[RC_FILTER_NORMAL] = type;
++	dev->enabled_protocols[fattr->type] = type;
+ 	IR_dprintk(1, "Current protocol(s): 0x%llx\n",
+ 		   (long long)type);
+ 
+@@ -976,26 +1007,6 @@ out:
+ }
+ 
+ /**
+- * struct rc_filter_attribute - Device attribute relating to a filter type.
+- * @attr:	Device attribute.
+- * @type:	Filter type.
+- * @mask:	false for filter value, true for filter mask.
+- */
+-struct rc_filter_attribute {
+-	struct device_attribute		attr;
+-	enum rc_filter_type		type;
+-	bool				mask;
+-};
+-#define to_rc_filter_attr(a) container_of(a, struct rc_filter_attribute, attr)
+-
+-#define RC_FILTER_ATTR(_name, _mode, _show, _store, _type, _mask)	\
+-	struct rc_filter_attribute dev_attr_##_name = {			\
+-		.attr = __ATTR(_name, _mode, _show, _store),		\
+-		.type = (_type),					\
+-		.mask = (_mask),					\
+-	}
+-
+-/**
+  * show_filter() - shows the current scancode filter value or mask
+  * @device:	the device descriptor
+  * @attr:	the device attribute struct
+@@ -1128,8 +1139,10 @@ static int rc_dev_uevent(struct device *device, struct kobj_uevent_env *env)
+ /*
+  * Static device attribute struct with the sysfs attributes for IR's
+  */
+-static DEVICE_ATTR(protocols, S_IRUGO | S_IWUSR,
+-		   show_protocols, store_protocols);
++static RC_PROTO_ATTR(protocols, S_IRUGO | S_IWUSR,
++		     show_protocols, store_protocols, RC_FILTER_NORMAL);
++static RC_PROTO_ATTR(wakeup_protocols, S_IRUGO | S_IWUSR,
++		     show_protocols, store_protocols, RC_FILTER_WAKEUP);
+ static RC_FILTER_ATTR(filter, S_IRUGO|S_IWUSR,
+ 		      show_filter, store_filter, RC_FILTER_NORMAL, false);
+ static RC_FILTER_ATTR(filter_mask, S_IRUGO|S_IWUSR,
+@@ -1140,7 +1153,8 @@ static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
+ 		      show_filter, store_filter, RC_FILTER_WAKEUP, true);
+ 
+ static struct attribute *rc_dev_attrs[] = {
+-	&dev_attr_protocols.attr,
++	&dev_attr_protocols.attr.attr,
++	&dev_attr_wakeup_protocols.attr.attr,
+ 	&dev_attr_filter.attr.attr,
+ 	&dev_attr_filter_mask.attr.attr,
+ 	&dev_attr_wakeup_filter.attr.attr,
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index f165115..0b9f890 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -97,6 +97,8 @@ enum rc_filter_type {
+  * @tx_resolution: resolution (in ns) of output sampler
+  * @scancode_filters: scancode filters (indexed by enum rc_filter_type)
+  * @change_protocol: allow changing the protocol used on hardware decoders
++ * @change_wakeup_protocol: allow changing the protocol used for wakeup
++ *	filtering
+  * @open: callback to allow drivers to enable polling/irq when IR input device
+  *	is opened.
+  * @close: callback to allow drivers to disable polling/irq when IR input device
+@@ -145,6 +147,7 @@ struct rc_dev {
+ 	u32				tx_resolution;
+ 	struct rc_scancode_filter	scancode_filters[RC_FILTER_MAX];
+ 	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_type);
++	int				(*change_wakeup_protocol)(struct rc_dev *dev, u64 *rc_type);
+ 	int				(*open)(struct rc_dev *dev);
+ 	void				(*close)(struct rc_dev *dev);
+ 	int				(*s_tx_mask)(struct rc_dev *dev, u32 mask);
+-- 
+1.8.3.2
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
