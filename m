@@ -1,92 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w2.samsung.com ([211.189.100.12]:59396 "EHLO
-	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753942AbaCXT7D (ORCPT
+Received: from mail-we0-f182.google.com ([74.125.82.182]:36567 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129AbaB1X34 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 15:59:03 -0400
-Date: Mon, 24 Mar 2014 16:58:56 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	kbuild-all@01.org
-Subject: Re: cx23885-dvb.c:undefined reference to `tda18271_attach'
-Message-id: <20140324165856.738bd750@samsung.com>
-In-reply-to: <CA+MoWDrGGE4X9aX0=_iaacXUar17fb1B+CR5VcsPAwLFFiPCCA@mail.gmail.com>
-References: <532c2aaa.lXHUJ9RIRCRIxqPO%fengguang.wu@intel.com>
- <20140321130917.GA8667@localhost>
- <CA+MoWDrGGE4X9aX0=_iaacXUar17fb1B+CR5VcsPAwLFFiPCCA@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Fri, 28 Feb 2014 18:29:56 -0500
+Received: by mail-we0-f182.google.com with SMTP id u57so1128458wes.27
+        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:55 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH v4 08/10] rc: img-ir: add Sony decoder module
+Date: Fri, 28 Feb 2014 23:28:58 +0000
+Message-Id: <1393630140-31765-9-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Add an img-ir module for decoding the Sony infrared protocol.
 
-Em Mon, 24 Mar 2014 16:34:17 +0100
-Peter Senna Tschudin <peter.senna@gmail.com> escreveu:
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+v2:
+- Update to new scancode interface (32-bit NEC).
+- Update to new filtering interface (generic struct rc_scancode_filter).
+- Remove modularity and dynamic registration/unregistration, adding Sony
+  directly to the list of decoders in img-ir-hw.c.
+---
+ drivers/media/rc/img-ir/Kconfig       |   7 ++
+ drivers/media/rc/img-ir/Makefile      |   1 +
+ drivers/media/rc/img-ir/img-ir-hw.c   |   4 +
+ drivers/media/rc/img-ir/img-ir-sony.c | 145 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 157 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/img-ir-sony.c
 
-> Hi,
-> 
-> I'm being blamed for some bugs for more than one year, and this
-> weekend I was able to reproduce the error for the first time. I have
-> the impression that the issue is related to Kconfig because when
-> compiling the Kernel for x86(not x86_64), and
-> when:
-> CONFIG_VIDEO_CX23885=y
-> 
-> and
-> 
-> CONFIG_MEDIA_TUNER_TDA18271=m
-> 
-> the build fails as the tuner code was compiled as a module when it
-> should have been compiled as part of the Kernel. 
-
-No. It is valid to have those I2C drivers compiled as module while
-the main driver is compiled builtin.
-
-The trick is to use dvb_attach() macro. This macro is very bad
-named. It should be named as something like:
-	request_module_and_execute_symbol()
-In order to express what it really does.
-
-> On the Kconfig file
-> drivers/media/pci/cx23885/Kconfig:
-> config VIDEO_CX23885
->         tristate "Conexant cx23885 (2388x successor) support"
->         ...
->         select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
-> 
-> which I think is the problem. Can I just remove this 'if
-> MEDIA_SUBDRV_AUTOSELECT'? Or what is the correct way of telling
-> Kconfig to set CONFIG_MEDIA_TUNER_TDA18271 based on the value of
-> CONFIG_VIDEO_CX23885?
-
-You shouldn't be doing any of this. In this specific setup,
-we have:
-
-# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-CONFIG_MEDIA_TUNER_TDA18271=m
-CONFIG_VIDEO_CX23885=y
-
-With should be a valid configuration. 
-
-I'll try to reproduce and fix this one locally and send a fix for it
-latter.
-
-> There are at least 6 similar cases which I'm willing to send patches.
-> 
-> Thank you,
-> 
-> Peter
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
+index 96006fbf..ab36577 100644
+--- a/drivers/media/rc/img-ir/Kconfig
++++ b/drivers/media/rc/img-ir/Kconfig
+@@ -38,3 +38,10 @@ config IR_IMG_JVC
+ 	help
+ 	   Say Y here to enable support for the JVC protocol in the ImgTec
+ 	   infrared decoder block.
++
++config IR_IMG_SONY
++	bool "Sony protocol support"
++	depends on IR_IMG_HW
++	help
++	   Say Y here to enable support for the Sony protocol in the ImgTec
++	   infrared decoder block.
+diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
+index c5f8f06..978c0c6 100644
+--- a/drivers/media/rc/img-ir/Makefile
++++ b/drivers/media/rc/img-ir/Makefile
+@@ -3,6 +3,7 @@ img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
+ img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
+ img-ir-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
+ img-ir-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
++img-ir-$(CONFIG_IR_IMG_SONY)	+= img-ir-sony.o
+ img-ir-objs			:= $(img-ir-y)
+ 
+ obj-$(CONFIG_IR_IMG)		+= img-ir.o
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 81c50e3..0d4f921 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -22,6 +22,7 @@ static DEFINE_SPINLOCK(img_ir_decoders_lock);
+ 
+ extern struct img_ir_decoder img_ir_nec;
+ extern struct img_ir_decoder img_ir_jvc;
++extern struct img_ir_decoder img_ir_sony;
+ 
+ static bool img_ir_decoders_preprocessed;
+ static struct img_ir_decoder *img_ir_decoders[] = {
+@@ -31,6 +32,9 @@ static struct img_ir_decoder *img_ir_decoders[] = {
+ #ifdef CONFIG_IR_IMG_JVC
+ 	&img_ir_jvc,
+ #endif
++#ifdef CONFIG_IR_IMG_SONY
++	&img_ir_sony,
++#endif
+ 	NULL
+ };
+ 
+diff --git a/drivers/media/rc/img-ir/img-ir-sony.c b/drivers/media/rc/img-ir/img-ir-sony.c
+new file mode 100644
+index 0000000..993409a
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-sony.c
+@@ -0,0 +1,145 @@
++/*
++ * ImgTec IR Decoder setup for Sony (SIRC) protocol.
++ *
++ * Copyright 2012-2014 Imagination Technologies Ltd.
++ */
++
++#include "img-ir-hw.h"
++
++/* Convert Sony data to a scancode */
++static int img_ir_sony_scancode(int len, u64 raw, int *scancode, u64 protocols)
++{
++	unsigned int dev, subdev, func;
++
++	switch (len) {
++	case 12:
++		if (!(protocols & RC_BIT_SONY12))
++			return -EINVAL;
++		func   = raw & 0x7f;	/* first 7 bits */
++		raw    >>= 7;
++		dev    = raw & 0x1f;	/* next 5 bits */
++		subdev = 0;
++		break;
++	case 15:
++		if (!(protocols & RC_BIT_SONY15))
++			return -EINVAL;
++		func   = raw & 0x7f;	/* first 7 bits */
++		raw    >>= 7;
++		dev    = raw & 0xff;	/* next 8 bits */
++		subdev = 0;
++		break;
++	case 20:
++		if (!(protocols & RC_BIT_SONY20))
++			return -EINVAL;
++		func   = raw & 0x7f;	/* first 7 bits */
++		raw    >>= 7;
++		dev    = raw & 0x1f;	/* next 5 bits */
++		raw    >>= 5;
++		subdev = raw & 0xff;	/* next 8 bits */
++		break;
++	default:
++		return -EINVAL;
++	}
++	*scancode = dev << 16 | subdev << 8 | func;
++	return IMG_IR_SCANCODE;
++}
++
++/* Convert NEC scancode to NEC data filter */
++static int img_ir_sony_filter(const struct rc_scancode_filter *in,
++			      struct img_ir_filter *out, u64 protocols)
++{
++	unsigned int dev, subdev, func;
++	unsigned int dev_m, subdev_m, func_m;
++	unsigned int len = 0;
++
++	dev      = (in->data >> 16) & 0xff;
++	dev_m    = (in->mask >> 16) & 0xff;
++	subdev   = (in->data >> 8)  & 0xff;
++	subdev_m = (in->mask >> 8)  & 0xff;
++	func     = (in->data >> 0)  & 0x7f;
++	func_m   = (in->mask >> 0)  & 0x7f;
++
++	if (subdev & subdev_m) {
++		/* can't encode subdev and higher device bits */
++		if (dev & dev_m & 0xe0)
++			return -EINVAL;
++		/* subdevice (extended) bits only in 20 bit encoding */
++		if (!(protocols & RC_BIT_SONY20))
++			return -EINVAL;
++		len = 20;
++		dev_m &= 0x1f;
++	} else if (dev & dev_m & 0xe0) {
++		/* upper device bits only in 15 bit encoding */
++		if (!(protocols & RC_BIT_SONY15))
++			return -EINVAL;
++		len = 15;
++		subdev_m = 0;
++	} else {
++		/*
++		 * The hardware mask cannot distinguish high device bits and low
++		 * extended bits, so logically AND those bits of the masks
++		 * together.
++		 */
++		subdev_m &= (dev_m >> 5) | 0xf8;
++		dev_m &= 0x1f;
++	}
++
++	/* ensure there aren't any bits straying between fields */
++	dev &= dev_m;
++	subdev &= subdev_m;
++
++	/* write the hardware filter */
++	out->data = func          |
++		    dev      << 7 |
++		    subdev   << 15;
++	out->mask = func_m        |
++		    dev_m    << 7 |
++		    subdev_m << 15;
++
++	if (len) {
++		out->minlen = len;
++		out->maxlen = len;
++	}
++	return 0;
++}
++
++/*
++ * Sony SIRC decoder
++ * See also http://www.sbprojects.com/knowledge/ir/sirc.php
++ *          http://picprojects.org.uk/projects/sirc/sonysirc.pdf
++ */
++struct img_ir_decoder img_ir_sony = {
++	.type = RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20,
++	.control = {
++		.decoden = 1,
++		.code_type = IMG_IR_CODETYPE_PULSELEN,
++	},
++	/* main timings */
++	.unit = 600000, /* 600 us */
++	.timings = {
++		/* leader symbol */
++		.ldr = {
++			.pulse = { 4	/* 2.4 ms */ },
++			.space = { 1	/* 600 us */ },
++		},
++		/* 0 symbol */
++		.s00 = {
++			.pulse = { 1	/* 600 us */ },
++			.space = { 1	/* 600 us */ },
++		},
++		/* 1 symbol */
++		.s01 = {
++			.pulse = { 2	/* 1.2 ms */ },
++			.space = { 1	/* 600 us */ },
++		},
++		/* free time */
++		.ft = {
++			.minlen = 12,
++			.maxlen = 20,
++			.ft_min = 10,	/* 6 ms */
++		},
++	},
++	/* scancode logic */
++	.scancode = img_ir_sony_scancode,
++	.filter = img_ir_sony_filter,
++};
 -- 
+1.8.3.2
 
-Regards,
-Mauro
