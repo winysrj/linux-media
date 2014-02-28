@@ -1,167 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42592 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818AbaBGBUH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Feb 2014 20:20:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 27/47] v4l: Add support for DV timings ioctls on subdev nodes
-Date: Fri, 07 Feb 2014 02:21:05 +0100
-Message-ID: <11225547.hIkMZ05ThT@avalon>
-In-Reply-To: <52F27562.9070103@xs4all.nl>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-28-git-send-email-laurent.pinchart@ideasonboard.com> <52F27562.9070103@xs4all.nl>
+Received: from mail-ve0-f182.google.com ([209.85.128.182]:34267 "EHLO
+	mail-ve0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752347AbaB1B2J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Feb 2014 20:28:09 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <2514111.qYAaEZbJqk@radagast>
+References: <CAL_JsqLL6MbwajCUAm+NJk=ofL5OHq8b0zwO3LFb-TKY6UtVMQ@mail.gmail.com>
+	<1391788155-29191-1-git-send-email-james.hogan@imgtec.com>
+	<2514111.qYAaEZbJqk@radagast>
+Date: Thu, 27 Feb 2014 19:28:08 -0600
+Message-ID: <CAL_JsqJpbUzEUpUxtFe4JeZ=EtCfaQHsyPt3TqH8AJkGNRnTvw@mail.gmail.com>
+Subject: Re: [PATCH v3 06/15] dt: binding: add binding for ImgTec IR block
+From: Rob Herring <robherring2@gmail.com>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Rob Landley <rob@landley.net>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thank you for the comments.
-
-On Wednesday 05 February 2014 18:31:14 Hans Verkuil wrote:
-> On 02/05/2014 05:42 PM, Laurent Pinchart wrote:
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    | 27 ++++++++++++++---
-> >  .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   | 27 ++++++++++++++---
-> >  drivers/media/v4l2-core/v4l2-subdev.c              | 15 ++++++++++++
-> >  include/uapi/linux/v4l2-subdev.h                   |  5 ++++
-> >  4 files changed, 63 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-> > b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml index
-> > cd7720d..baef771 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-
-[snip]
-
-> > @@ -54,10 +55,19 @@
-> > 
-> >        interface and may change in the future.</para>
-> >      
-> >      </note>
-> > 
-> > -    <para>To query the capabilities of the DV receiver/transmitter
-> > applications can call -this ioctl and the driver will fill in the
-> > structure. Note that drivers may return +    <para>To query the
-> > capabilities of the DV receiver/transmitter applications +can call the
-> > <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl on a video node +and the
-> > driver will fill in the structure. Note that drivers may return> 
-> >  different values after switching the video input or output.</para>
-> > 
-> > +    <para>When implemented by the driver DV capabilities of subdevices
-> > can be +queried by calling the
-> > <constant>VIDIOC_SUBDEV_DV_TIMINGS_CAP</constant> ioctl +directly on a
-> > subdevice node. The capabilities are specific to inputs (for DV
-> > +receivers) or outputs (for DV transmitters), application must specify
-> > the
+On Thu, Feb 27, 2014 at 4:52 PM, James Hogan <james.hogan@imgtec.com> wrote:
+> Hi Rob, Mark + DT maintainers,
 >
-> s/application/the application/
-
-I've replaced "application" with "applications" to be consistent with the 
-first paragraph, but I can change both if desired.
-
-> > +desired pad number in the &v4l2-dv-timings-cap;
-> > <structfield>pad</structfield> +field. Attemps to query capabilities on a
-> > pad that doesn't support them will
+> On Friday 07 February 2014 15:49:15 James Hogan wrote:
+>> Add device tree binding for ImgTec Consumer Infrared block, specifically
+>> major revision 1 of the hardware.
+>>
+>> Signed-off-by: James Hogan <james.hogan@imgtec.com>
+>> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>> Cc: linux-media@vger.kernel.org
+>> Cc: Rob Herring <robh+dt@kernel.org>
+>> Cc: Pawel Moll <pawel.moll@arm.com>
+>> Cc: Mark Rutland <mark.rutland@arm.com>
+>> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+>> Cc: Kumar Gala <galak@codeaurora.org>
+>> Cc: devicetree@vger.kernel.org
+>> Cc: Rob Landley <rob@landley.net>
+>> Cc: linux-doc@vger.kernel.org
+>> Cc: Tomasz Figa <tomasz.figa@gmail.com>
+>> ---
+>> v3:
+>> - Rename compatible string to "img,ir-rev1" (Rob Herring).
+>> - Specify ordering of clocks explicitly (Rob Herring).
 >
-> s/Attemps/Attempts/
-> 
-> > +return an &EINVAL;.</para>
-> > +
-> >      <table pgwide="1" frame="none" id="v4l2-bt-timings-cap">
-> >        <title>struct <structname>v4l2_bt_timings_cap</structname></title>
-> >        <tgroup cols="3">
-> > @@ -127,7 +137,14 @@ different values after switching the video input or
-> > output.</para>> 
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry>__u32</entry>
-> > -	    <entry><structfield>reserved</structfield>[3]</entry>
-> > +	    <entry><structfield>pad</structfield></entry>
-> > +	    <entry>Pad number as reported by the media controller API. This
-> > field
-> > +	    is only used when operating on a subdevice node. When operating 
-on a
-> > +	    video node applications must set this field to zero.</entry>
-> 
-> Currently the spec says that the driver will zero the reserved array. No
-> mention is made of the application having to zero it. This means that
-> drivers cannot rely on what is in the pad field since apps can leave it
-> uninitialized.
-> 
-> If we keep that behavior, then the text has to change as follows:
-> 
-> s/applications must set this field to zero/this field is ignored/
-> 
-> However, should be keep that behavior? This ioctl is still marked as
-> experimental, so perhaps we should change the spec to require that reserved
-> should be zeroed by applications as well. I'm not certain, to be honest.
+> I'd appreciate if somebody could give this another glance after the two
+> changes listed above and Ack it (I'll probably be posting a v4 patchset
+> tomorrow).
 
-I would vote for changing the spec and forcing applications to zero the array. 
-This won't cause any regression on subdev nodes (as the ioctl is new there) or 
-video nodes (where the pad number is ignored) for now. The only risk is 
-applications written before the spec modification that might break later when 
-the reserved field is used for a different purpose. That's very unlikely.
+Looks fine.
 
-> 
-> > +	  </row>
-> > +	  <row>
-> > +	    <entry>__u32</entry>
-> > +	    <entry><structfield>reserved</structfield>[2]</entry>
-> >  	    <entry>Reserved for future extensions. Drivers must set the array 
-to
-> >  	    zero.</entry>>  	  
-> >  	  </row>
-> >  	  <row>
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-> > b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml index
-> > b3e17c1..e55df46 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
+Acked-by: Rob Herring <robh@kernel.org>
 
-[snip]
-
-> > @@ -82,7 +90,14 @@ application.</entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry>__u32</entry>
-> > -	    <entry><structfield>reserved</structfield>[3]</entry>
-> > +	    <entry><structfield>pad</structfield></entry>
-> > +	    <entry>Pad number as reported by the media controller API. This
-> > field
-> > +	    is only used when operating on a subdevice node. When operating 
-on a
-> > +	    video node applications must set this field to zero.</entry>
-> > +	  </row>
-> > +	  <row>
-> > +	    <entry>__u32</entry>
-> > +	    <entry><structfield>reserved</structfield>[2]</entry>
-> >  	    <entry>Reserved for future extensions. Drivers must set the array 
-> >  	    to zero.</entry>
->
-> This needs to change to:
-> 
-> "Drivers and applications must set the array to zero."
-> 
-> The description section for this ioctl clearly states that applications must
-> zero the array, so this field description is not correct.
-
-OK, I'll fix that.
- 
-> >  	  </row>
-> >  	  <row>
-
-[snip]
-
--- 
-Regards,
-
-Laurent Pinchart
-
+>>
+>> v2:
+>> - Future proof compatible string from "img,ir" to "img,ir1", where the 1
+>>   corresponds to the major revision number of the hardware (Tomasz
+>>   Figa).
+>> - Added clock-names property and three specific clock names described in
+>>   the manual, only one of which is used by the current driver (Tomasz
+>>   Figa).
+>> ---
+>>  .../devicetree/bindings/media/img-ir-rev1.txt      | 34
+>> ++++++++++++++++++++++ 1 file changed, 34 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/img-ir-rev1.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/img-ir-rev1.txt
+>> b/Documentation/devicetree/bindings/media/img-ir-rev1.txt new file mode
+>> 100644
+>> index 000000000000..5434ce61b925
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/img-ir-rev1.txt
+>> @@ -0,0 +1,34 @@
+>> +* ImgTec Infrared (IR) decoder version 1
+>> +
+>> +This binding is for Imagination Technologies' Infrared decoder block,
+>> +specifically major revision 1.
+>> +
+>> +Required properties:
+>> +- compatible:                Should be "img,ir-rev1"
+>> +- reg:                       Physical base address of the controller and length of
+>> +                     memory mapped region.
+>> +- interrupts:                The interrupt specifier to the cpu.
+>> +
+>> +Optional properties:
+>> +- clocks:            List of clock specifiers as described in standard
+>> +                     clock bindings.
+>> +                     Up to 3 clocks may be specified in the following order:
+>> +                     1st:    Core clock (defaults to 32.768KHz if omitted).
+>> +                     2nd:    System side (fast) clock.
+>> +                     3rd:    Power modulation clock.
+>> +- clock-names:               List of clock names corresponding to the clocks
+>> +                     specified in the clocks property.
+>> +                     Accepted clock names are:
+>> +                     "core": Core clock.
+>> +                     "sys":  System clock.
+>> +                     "mod":  Power modulation clock.
+>> +
+>> +Example:
+>> +
+>> +     ir@02006200 {
+>> +             compatible = "img,ir-rev1";
+>> +             reg = <0x02006200 0x100>;
+>> +             interrupts = <29 4>;
+>> +             clocks = <&clk_32khz>;
+>> +             clock-names =  "core";
+>> +     };
