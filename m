@@ -1,106 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2042 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753120AbaBYKEp (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3683 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752745AbaB1Rmu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Feb 2014 05:04:45 -0500
+	Fri, 28 Feb 2014 12:42:50 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 02/20] vb2: fix handling of data_offset and v4l2_plane.reserved[]
-Date: Tue, 25 Feb 2014 11:04:07 +0100
-Message-Id: <1393322665-29889-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393322665-29889-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [REVIEWv3 PATCH 10/17] vb2: don't init the list if there are still buffers
+Date: Fri, 28 Feb 2014 18:42:08 +0100
+Message-Id: <1393609335-12081-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The videobuf2-core did not zero the reserved array of v4l2_plane as it
-should.
+__vb2_queue_free() would init the queued_list at all times, even if
+q->num_buffers > 0. This should only happen if num_buffers == 0.
 
-More serious is the fact that data_offset was not handled correctly:
+This situation can happen if a CREATE_BUFFERS call couldn't allocate
+enough buffers and had to free those it did manage to allocate before
+returning an error.
 
-- for capture devices it was never zeroed, which meant that it was
-  uninitialized. Unless the driver sets it it was a completely random
-  number.
-
-- __qbuf_dmabuf had a completely incorrect length check that included
-  data_offset.
-
-- in the single-planar case data_offset was never correctly set to 0.
-  The single-planar API doesn't support data_offset, so setting it
-  to 0 is the right thing to do.
-
-All these issues were found with v4l2-compliance.
+While we're at it: __vb2_queue_alloc() returns the number of buffers
+allocated, not an error code. So stick the result in allocated_buffers
+instead of ret as that's very confusing.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 2c3a7f2..f9ced55 100644
+index f34d3acc..a7ecece 100644
 --- a/drivers/media/v4l2-core/videobuf2-core.c
 +++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1120,6 +1120,12 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 	unsigned int plane;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-+		for (plane = 0; plane < vb->num_planes; ++plane) {
-+			memset(v4l2_planes[plane].reserved, 0,
-+			       sizeof(v4l2_planes[plane].reserved));
-+			v4l2_planes[plane].data_offset = 0;
-+		}
-+
- 		/* Fill in driver-provided information for OUTPUT types */
- 		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
- 			/*
-@@ -1148,8 +1154,6 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 					b->m.planes[plane].m.fd;
- 				v4l2_planes[plane].length =
- 					b->m.planes[plane].length;
--				v4l2_planes[plane].data_offset =
--					b->m.planes[plane].data_offset;
- 			}
- 		}
- 	} else {
-@@ -1159,10 +1163,10 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		 * In videobuf we use our internal V4l2_planes struct for
- 		 * single-planar buffers as well, for simplicity.
- 		 */
--		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+		if (V4L2_TYPE_IS_OUTPUT(b->type))
- 			v4l2_planes[0].bytesused = b->bytesused;
--			v4l2_planes[0].data_offset = 0;
--		}
-+		/* Single-planar buffers never use data_offset */
-+		v4l2_planes[0].data_offset = 0;
- 
- 		if (b->memory == V4L2_MEMORY_USERPTR) {
- 			v4l2_planes[0].m.userptr = b->m.userptr;
-@@ -1172,9 +1176,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		if (b->memory == V4L2_MEMORY_DMABUF) {
- 			v4l2_planes[0].m.fd = b->m.fd;
- 			v4l2_planes[0].length = b->length;
--			v4l2_planes[0].data_offset = 0;
- 		}
--
+@@ -452,9 +452,10 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
  	}
  
- 	vb->v4l2_buf.field = b->field;
-@@ -1331,8 +1333,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		if (planes[plane].length == 0)
- 			planes[plane].length = dbuf->size;
+ 	q->num_buffers -= buffers;
+-	if (!q->num_buffers)
++	if (!q->num_buffers) {
+ 		q->memory = 0;
+-	INIT_LIST_HEAD(&q->queued_list);
++		INIT_LIST_HEAD(&q->queued_list);
++	}
+ 	return 0;
+ }
  
--		if (planes[plane].length < planes[plane].data_offset +
--		    q->plane_sizes[plane]) {
-+		if (planes[plane].length < q->plane_sizes[plane]) {
- 			dprintk(1, "qbuf: invalid dmabuf length for plane %d\n",
- 				plane);
- 			ret = -EINVAL;
+@@ -820,14 +821,12 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	}
+ 
+ 	/* Finally, allocate buffers and video memory */
+-	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
+-	if (ret == 0) {
++	allocated_buffers = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
++	if (allocated_buffers == 0) {
+ 		dprintk(1, "Memory allocation failed\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	allocated_buffers = ret;
+-
+ 	/*
+ 	 * Check if driver can handle the allocated number of buffers.
+ 	 */
+@@ -851,6 +850,10 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	q->num_buffers = allocated_buffers;
+ 
+ 	if (ret < 0) {
++		/*
++		 * Note: __vb2_queue_free() will subtract 'allocated_buffers'
++		 * from q->num_buffers.
++		 */
+ 		__vb2_queue_free(q, allocated_buffers);
+ 		return ret;
+ 	}
+@@ -924,20 +927,18 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ 	}
+ 
+ 	/* Finally, allocate buffers and video memory */
+-	ret = __vb2_queue_alloc(q, create->memory, num_buffers,
++	allocated_buffers = __vb2_queue_alloc(q, create->memory, num_buffers,
+ 				num_planes);
+-	if (ret == 0) {
++	if (allocated_buffers == 0) {
+ 		dprintk(1, "Memory allocation failed\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	allocated_buffers = ret;
+-
+ 	/*
+ 	 * Check if driver can handle the so far allocated number of buffers.
+ 	 */
+-	if (ret < num_buffers) {
+-		num_buffers = ret;
++	if (allocated_buffers < num_buffers) {
++		num_buffers = allocated_buffers;
+ 
+ 		/*
+ 		 * q->num_buffers contains the total number of buffers, that the
+@@ -960,6 +961,10 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ 	q->num_buffers += allocated_buffers;
+ 
+ 	if (ret < 0) {
++		/*
++		 * Note: __vb2_queue_free() will subtract 'allocated_buffers'
++		 * from q->num_buffers.
++		 */
+ 		__vb2_queue_free(q, allocated_buffers);
+ 		return -ENOMEM;
+ 	}
 -- 
-1.9.0
+1.9.rc1
 
