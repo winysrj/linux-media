@@ -1,208 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36420 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756703AbaCDMVf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 07:21:35 -0500
-Message-ID: <5315C535.2070303@ti.com>
-Date: Tue, 4 Mar 2014 14:21:09 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>
-Subject: Re: [PATCH v5 5/7] [media] of: move common endpoint parsing to drivers/of
-References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>	 <1393522540-22887-6-git-send-email-p.zabel@pengutronix.de>	 <531595AB.4000001@ti.com> <1393932989.3917.62.camel@paszta.hi.pengutronix.de>
-In-Reply-To: <1393932989.3917.62.camel@paszta.hi.pengutronix.de>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="IXxvtPJjNkm96PREqxo5baSKBmbogb4sQ"
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:62755 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752299AbaB1X3t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Feb 2014 18:29:49 -0500
+Received: by mail-wi0-f181.google.com with SMTP id hi5so1210595wib.14
+        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:48 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH v4 03/10] rc: img-ir: add raw driver
+Date: Fri, 28 Feb 2014 23:28:53 +0000
+Message-Id: <1393630140-31765-4-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---IXxvtPJjNkm96PREqxo5baSKBmbogb4sQ
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Add raw IR remote control input driver for the ImgTec Infrared decoder
+block's raw edge interrupts. Generic software protocol decoders are used
+to allow multiple protocols to be supported at a time, including those
+not supported by the hardware decoder.
 
-On 04/03/14 13:36, Philipp Zabel wrote:
-> Hi Tomi,
->=20
-> Am Dienstag, den 04.03.2014, 10:58 +0200 schrieb Tomi Valkeinen:
-> [...]
->>> +int of_graph_parse_endpoint(const struct device_node *node,
->>> +			    struct of_endpoint *endpoint)
->>> +{
->>> +	struct device_node *port_node =3D of_get_parent(node);
->>
->> Can port_node be NULL? Probably only if something is quite wrong, but
->> maybe it's safer to return error in that case.
->=20
-> both of_property_read_u32 and of_node_put can handle port_node =3D=3D N=
-ULL.
-> I'll add a WARN_ONCE here as for of_graph_get_next_endpoint and continu=
-e
-> on.
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+v2:
+- Echo the last sample after 150ms if no edges have been detected. This
+  allows the soft decoder state machines to recognise the final space
+  when no repeat code is received.
+- Use spin_lock_irq() instead of spin_lock_irqsave() in various bits of
+  code that aren't accessible from hard interrupt context.
+- Avoid removal race by checking for RC device in ISR.
+---
+ drivers/media/rc/img-ir/img-ir-raw.c | 151 +++++++++++++++++++++++++++++++++++
+ drivers/media/rc/img-ir/img-ir-raw.h |  60 ++++++++++++++
+ 2 files changed, 211 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/img-ir-raw.c
+ create mode 100644 drivers/media/rc/img-ir/img-ir-raw.h
 
-Isn't it better to return an error?
+diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
+new file mode 100644
+index 0000000..cfb01d9
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-raw.c
+@@ -0,0 +1,151 @@
++/*
++ * ImgTec IR Raw Decoder found in PowerDown Controller.
++ *
++ * Copyright 2010-2014 Imagination Technologies Ltd.
++ *
++ * This ties into the input subsystem using the RC-core in raw mode. Raw IR
++ * signal edges are reported and decoded by generic software decoders.
++ */
++
++#include <linux/spinlock.h>
++#include <media/rc-core.h>
++#include "img-ir.h"
++
++#define ECHO_TIMEOUT_MS 150	/* ms between echos */
++
++/* must be called with priv->lock held */
++static void img_ir_refresh_raw(struct img_ir_priv *priv, u32 irq_status)
++{
++	struct img_ir_priv_raw *raw = &priv->raw;
++	struct rc_dev *rc_dev = priv->raw.rdev;
++	int multiple;
++	u32 ir_status;
++
++	/* find whether both rise and fall was detected */
++	multiple = ((irq_status & IMG_IR_IRQ_EDGE) == IMG_IR_IRQ_EDGE);
++	/*
++	 * If so, we need to see if the level has actually changed.
++	 * If it's just noise that we didn't have time to process,
++	 * there's no point reporting it.
++	 */
++	ir_status = img_ir_read(priv, IMG_IR_STATUS) & IMG_IR_IRRXD;
++	if (multiple && ir_status == raw->last_status)
++		return;
++	raw->last_status = ir_status;
++
++	/* report the edge to the IR raw decoders */
++	if (ir_status) /* low */
++		ir_raw_event_store_edge(rc_dev, IR_SPACE);
++	else /* high */
++		ir_raw_event_store_edge(rc_dev, IR_PULSE);
++	ir_raw_event_handle(rc_dev);
++}
++
++/* called with priv->lock held */
++void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status)
++{
++	struct img_ir_priv_raw *raw = &priv->raw;
++
++	/* check not removing */
++	if (!raw->rdev)
++		return;
++
++	img_ir_refresh_raw(priv, irq_status);
++
++	/* start / push back the echo timer */
++	mod_timer(&raw->timer, jiffies + msecs_to_jiffies(ECHO_TIMEOUT_MS));
++}
++
++/*
++ * Echo timer callback function.
++ * The raw decoders expect to get a final sample even if there are no edges, in
++ * order to be assured of the final space. If there are no edges for a certain
++ * time we use this timer to emit a final sample to satisfy them.
++ */
++static void img_ir_echo_timer(unsigned long arg)
++{
++	struct img_ir_priv *priv = (struct img_ir_priv *)arg;
++
++	spin_lock_irq(&priv->lock);
++
++	/* check not removing */
++	if (priv->raw.rdev)
++		/*
++		 * It's safe to pass irq_status=0 since it's only used to check
++		 * for double edges.
++		 */
++		img_ir_refresh_raw(priv, 0);
++
++	spin_unlock_irq(&priv->lock);
++}
++
++void img_ir_setup_raw(struct img_ir_priv *priv)
++{
++	u32 irq_en;
++
++	if (!priv->raw.rdev)
++		return;
++
++	/* clear and enable edge interrupts */
++	spin_lock_irq(&priv->lock);
++	irq_en = img_ir_read(priv, IMG_IR_IRQ_ENABLE);
++	irq_en |= IMG_IR_IRQ_EDGE;
++	img_ir_write(priv, IMG_IR_IRQ_CLEAR, IMG_IR_IRQ_EDGE);
++	img_ir_write(priv, IMG_IR_IRQ_ENABLE, irq_en);
++	spin_unlock_irq(&priv->lock);
++}
++
++int img_ir_probe_raw(struct img_ir_priv *priv)
++{
++	struct img_ir_priv_raw *raw = &priv->raw;
++	struct rc_dev *rdev;
++	int error;
++
++	/* Set up the echo timer */
++	setup_timer(&raw->timer, img_ir_echo_timer, (unsigned long)priv);
++
++	/* Allocate raw decoder */
++	raw->rdev = rdev = rc_allocate_device();
++	if (!rdev) {
++		dev_err(priv->dev, "cannot allocate raw input device\n");
++		return -ENOMEM;
++	}
++	rdev->priv = priv;
++	rdev->map_name = RC_MAP_EMPTY;
++	rdev->input_name = "IMG Infrared Decoder Raw";
++	rdev->driver_type = RC_DRIVER_IR_RAW;
++
++	/* Register raw decoder */
++	error = rc_register_device(rdev);
++	if (error) {
++		dev_err(priv->dev, "failed to register raw IR input device\n");
++		rc_free_device(rdev);
++		raw->rdev = NULL;
++		return error;
++	}
++
++	return 0;
++}
++
++void img_ir_remove_raw(struct img_ir_priv *priv)
++{
++	struct img_ir_priv_raw *raw = &priv->raw;
++	struct rc_dev *rdev = raw->rdev;
++	u32 irq_en;
++
++	if (!rdev)
++		return;
++
++	/* switch off and disable raw (edge) interrupts */
++	spin_lock_irq(&priv->lock);
++	raw->rdev = NULL;
++	irq_en = img_ir_read(priv, IMG_IR_IRQ_ENABLE);
++	irq_en &= ~IMG_IR_IRQ_EDGE;
++	img_ir_write(priv, IMG_IR_IRQ_ENABLE, irq_en);
++	img_ir_write(priv, IMG_IR_IRQ_CLEAR, IMG_IR_IRQ_EDGE);
++	spin_unlock_irq(&priv->lock);
++
++	rc_unregister_device(rdev);
++
++	del_timer_sync(&raw->timer);
++}
+diff --git a/drivers/media/rc/img-ir/img-ir-raw.h b/drivers/media/rc/img-ir/img-ir-raw.h
+new file mode 100644
+index 0000000..9802ffd
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-raw.h
+@@ -0,0 +1,60 @@
++/*
++ * ImgTec IR Raw Decoder found in PowerDown Controller.
++ *
++ * Copyright 2010-2014 Imagination Technologies Ltd.
++ */
++
++#ifndef _IMG_IR_RAW_H_
++#define _IMG_IR_RAW_H_
++
++struct img_ir_priv;
++
++#ifdef CONFIG_IR_IMG_RAW
++
++/**
++ * struct img_ir_priv_raw - Private driver data for raw decoder.
++ * @rdev:		Raw remote control device
++ * @timer:		Timer to echo samples to keep soft decoders happy.
++ * @last_status:	Last raw status bits.
++ */
++struct img_ir_priv_raw {
++	struct rc_dev		*rdev;
++	struct timer_list	timer;
++	u32			last_status;
++};
++
++static inline bool img_ir_raw_enabled(struct img_ir_priv_raw *raw)
++{
++	return raw->rdev;
++};
++
++void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status);
++void img_ir_setup_raw(struct img_ir_priv *priv);
++int img_ir_probe_raw(struct img_ir_priv *priv);
++void img_ir_remove_raw(struct img_ir_priv *priv);
++
++#else
++
++struct img_ir_priv_raw {
++};
++static inline bool img_ir_raw_enabled(struct img_ir_priv_raw *raw)
++{
++	return false;
++};
++static inline void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status)
++{
++}
++static inline void img_ir_setup_raw(struct img_ir_priv *priv)
++{
++}
++static inline int img_ir_probe_raw(struct img_ir_priv *priv)
++{
++	return -ENODEV;
++}
++static inline void img_ir_remove_raw(struct img_ir_priv *priv)
++{
++}
++
++#endif /* CONFIG_IR_IMG_RAW */
++
++#endif /* _IMG_IR_RAW_H_ */
+-- 
+1.8.3.2
 
->> And generally speaking, if struct of_endpoint is needed, maybe it woul=
-d
->> be better to return the struct of_endpoint when iterating the ports an=
-d
->> endpoints. That way there's no need to do parsing "afterwards", trying=
-
->> to figure out if there's a parent port node, but the information is
->> already at hand.
->=20
-> I'd like to keep the iteration separate from parsing so we can
-> eventually introduce a for_each_endpoint_of_node helper macro around
-> of_graph_get_next_endpoint.
->=20
-> [...]
->> A few thoughts about the iteration, and the API in general.
->>
->> In the omapdss version I separated iterating ports and endpoints, for
->> the two reasons:
->>
->> 1) I think there are cases where you may want to have properties in th=
-e
->> port node, for things that are common for all the port's endpoints.
->>
->> 2) if there are multiple ports, I think the driver code is cleaner if
->> you first take the port, decide what port that is and maybe call a
->> sub-function, and then iterate the endpoints for that port only.
->=20
-> It depends a bit on whether you are actually iterating over individual
-> ports, or if you are just walking the whole endpoint graph to find
-> remote devices that have to be added to the component master's waiting
-> list, for example.
-
-True, but the latter is easily implemented using the separate
-port/endpoint iteration. So I see it as a more powerful API.
-
->> Both of those are possible with the API in the series, but not very cl=
-eanly.
->>
->> Also, if you just want to iterate the endpoints, it's easy to implemen=
-t
->> a helper using the separate port and endpoint iterations.
->=20
-> I started out to move an existing (albeit lightly used) API to a common=
-
-> place so others can use it and improve upon it, too. I'm happy to pile
-> on fixes directly in this series, but could we separate the improvement=
-
-> step from the move, for the bigger modifications?
-
-Yes, I understand that. What I wonder is that which is easier: make it a
-public API now, more or less as it was in v4l2, or make it a public API
-only when all the improvements we can think of have been made.
-
-So my fear is that the API is now made public, and you and others start
-to use it. But I can't use it, as I need things like separate
-port/endpoint iteration. I need to add those, which also means that I
-need to change all the users of the API, making the task more difficult
-than I'd like.
-
-However, this is more of "thinking out loud" than "I don't like the
-series". It's a good series =3D).
-
-> I had no immediate use for the port iteration, so I have taken no steps=
-
-> to add a function for this. I see no problem to add this later when
-> somebody needs it, or even rewrite of_graph_get_next_endpoint to use it=
-
-> if it is feasible. Iterating over endpoints on a given port needs no
-> helper, as you can just use for_each_child_of_node.
-
-I would have a helper, which should do some sanity checks, like that the
-node names are "endpoint".
-
->> Then, about the get_remote functions: I think there should be only one=
-
->> function for that purpose, one that returns the device node that
->> contains the remote endpoint.
->>
->> My reasoning is that the ports and endpoints, and their contents, shou=
-ld
->> be private to the device. So the only use to get the remote is to get
->> the actual device, to see if it's been probed, or maybe get some video=
-
->> API for that device.
->=20
-> of_graph_get_remote_port currently is used in the exynos4-is/fimc-is.c
-> v4l2 driver to get the mipi-csi channel id from the remote port, and
-> I've started using it in imx-drm-core.c for two cases:
-> - given an endpoint on the encoder, find the remote port connected to
->   it, get the associated drm_crtc, to obtain its the drm_crtc_mask
->   for encoder->possible_crtcs.
-> - given an encoder and a connected drm_crtc, walk all endpoints to find=
-
->   the remote port associated with the drm_crtc, and then use the local
->   endpoint parent port to determine multiplexer settings.
-
-Ok.
-
-In omapdss each driver handles only the ports and endpoints defined for
-its device, and they can be considered private to that device. The only
-reason to look for the remote endpoint is to find the remote device. To
-me the omapdss model makes sense, and feels logical and sane =3D). So I
-have to say I'm not really familiar with the model you're using.
-
-Of course, the different get_remove_* funcs do no harm, even if we have
-a bunch of them. My point was only about enforcing the correct use of
-the model, where "correct" is of course subjective =3D).
-
->> If the driver model used has some kind of master-driver, which goes
->> through all the display entities, I think the above is still valid. Wh=
-en
->> the master-driver follows the remote-link, it still needs to first get=
-
->> the main device node, as the ports and endpoints make no sense without=
-
->> the context of the main device node.
->=20
-> I'm not sure about this. I might just need the remote port node
-> associated with a remote drm_crtc or drm_encoder structure to find out
-> which local endpoint I should look at to retrieve configuration.
-
-Ok. I guess if you have a fixed model for the video pipeline elements it
-works out. For omapdss we don't know what's there on the remote side, as
-we can have arbitrary amount of video pipeline elements.
-
- Tomi
-
-
-
---IXxvtPJjNkm96PREqxo5baSKBmbogb4sQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTFcU1AAoJEPo9qoy8lh71R5AQAIUM/WUCv72o2BJb5tLUhrmz
-GmE+lHeqbBth/+sxcXR4sT/c5Rm6kZA5xROMLDbJErKU8dDFImTAUve0a1e7cl4f
-T7REBPw2bckd/KdJ3T9jmCsfKqN0TxmmGXQ9FQ/XqBXLhmU5ejDzzpBJ5pRnz+kx
-wzXcVOFvHGgOlPMy9As6a2mr86fYPhJmkU+HRD4uGA+AptP69PGGniLV5pr53Kq1
-K5UjXQbEHk64aRX0giRvL7o6QATFEF5EmI5on1hW//JQn9jZj1KDnFmwkuIgpi9r
-OWW/pLipfKs0VdfpnYWx/ZzqEz5Tn+mGK0h7bL2BxXcNlurmZ9JuEdCdVe/HxWV3
-xJcYIOMah5wJk9qFx6iIQJ8tq9f01UsgRzLfXzZa7mkFsXMjOXhVRTFd7cLVkgc2
-pluhPRed6FBPV8F8lPU17V0kC2+fpJiI60H+radPv9iwocR6wmeRIQlexriHLozd
-hvOgFj3Yhq2lUmS9tB6jwWKMAENlUJ43R8ahWIKVj9BkZrJnxszQ2gBvUkGEczQr
-A+zlOPVE9P+UoxFiEOCrt83W07WI/6PMtQrmWHetb3C2BjPRHczEeLDFHP5La9Ik
-1sa3J5/fUG9h7zojUiPNd5C1yLJFJ9wh1wYqgvxLxC6vvhn1muyHmd5Fj4NIDAEX
-24l/x4gwYR6E7emc3MLQ
-=YW3P
------END PGP SIGNATURE-----
-
---IXxvtPJjNkm96PREqxo5baSKBmbogb4sQ--
