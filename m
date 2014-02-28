@@ -1,97 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f178.google.com ([209.85.128.178]:56149 "EHLO
-	mail-ve0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713AbaCKHZN (ORCPT
+Received: from mail-we0-f178.google.com ([74.125.82.178]:33776 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129AbaB1X3x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 03:25:13 -0400
-Received: by mail-ve0-f178.google.com with SMTP id jw12so8059709veb.37
-        for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 00:25:12 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1394493359-14115-7-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1394493359-14115-7-git-send-email-laurent.pinchart@ideasonboard.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 11 Mar 2014 12:54:52 +0530
-Message-ID: <CA+V-a8vdPwUsqTz6VCKdCe1s6b7nsXLUfMkW8MbZ8h13FfSBvA@mail.gmail.com>
-Subject: Re: [PATCH v2 06/48] v4l: Add pad-level DV timings subdev operations
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 28 Feb 2014 18:29:53 -0500
+Received: by mail-we0-f178.google.com with SMTP id q59so1121078wes.9
+        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:52 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH v4 06/10] rc: img-ir: add NEC decoder module
+Date: Fri, 28 Feb 2014 23:28:56 +0000
+Message-Id: <1393630140-31765-7-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 11, 2014 at 4:45 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Add an img-ir module for decoding the NEC and extended NEC infrared
+protocols.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+v2:
+- Update scancode and filter callbacks to handle 32-bit NEC as used by
+  Apple and TiVo remotes (the new 32-bit NEC scancode format is used,
+  with the correct bit orientation).
+- Update to new scancode interface so that 32-bit NEC scancodes can be
+  returned reliably.
+- Update to new filtering interface (generic struct rc_scancode_filter).
+- Make it possible to set the filter to extended NEC even when the high
+  bits of the scancode value aren't set, by taking the mask into account
+  too. My TV remote happens to use extended NEC with address 0x7f00,
+  which unfortunately maps to scancodes 0x007f** which looks like normal
+  NEC and couldn't previously be filtered.
+- Remove modularity and dynamic registration/unregistration, adding NEC
+  directly to the list of decoders in img-ir-hw.c.
+---
+ drivers/media/rc/img-ir/Kconfig      |   7 ++
+ drivers/media/rc/img-ir/Makefile     |   1 +
+ drivers/media/rc/img-ir/img-ir-hw.c  |   5 ++
+ drivers/media/rc/img-ir/img-ir-nec.c | 148 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 161 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/img-ir-nec.c
 
-Regards,
---Prabhakar lad
+diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
+index 60eaba6..28498a2 100644
+--- a/drivers/media/rc/img-ir/Kconfig
++++ b/drivers/media/rc/img-ir/Kconfig
+@@ -24,3 +24,10 @@ config IR_IMG_HW
+ 	   signals in hardware. This is more reliable, consumes less processing
+ 	   power since only a single interrupt is received for each scancode,
+ 	   and allows an IR scancode to be used as a wake event.
++
++config IR_IMG_NEC
++	bool "NEC protocol support"
++	depends on IR_IMG_HW
++	help
++	   Say Y here to enable support for the NEC, extended NEC, and 32-bit
++	   NEC protocols in the ImgTec infrared decoder block.
+diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
+index 4ef86ed..c409197 100644
+--- a/drivers/media/rc/img-ir/Makefile
++++ b/drivers/media/rc/img-ir/Makefile
+@@ -1,6 +1,7 @@
+ img-ir-y			:= img-ir-core.o
+ img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
+ img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
++img-ir-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
+ img-ir-objs			:= $(img-ir-y)
+ 
+ obj-$(CONFIG_IR_IMG)		+= img-ir.o
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 21c8bbc..139f2c7 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -20,8 +20,13 @@
+ /* Decoders lock (only modified to preprocess them) */
+ static DEFINE_SPINLOCK(img_ir_decoders_lock);
+ 
++extern struct img_ir_decoder img_ir_nec;
++
+ static bool img_ir_decoders_preprocessed;
+ static struct img_ir_decoder *img_ir_decoders[] = {
++#ifdef CONFIG_IR_IMG_NEC
++	&img_ir_nec,
++#endif
+ 	NULL
+ };
+ 
+diff --git a/drivers/media/rc/img-ir/img-ir-nec.c b/drivers/media/rc/img-ir/img-ir-nec.c
+new file mode 100644
+index 0000000..e7a731b
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-nec.c
+@@ -0,0 +1,148 @@
++/*
++ * ImgTec IR Decoder setup for NEC protocol.
++ *
++ * Copyright 2010-2014 Imagination Technologies Ltd.
++ */
++
++#include "img-ir-hw.h"
++
++/* Convert NEC data to a scancode */
++static int img_ir_nec_scancode(int len, u64 raw, int *scancode, u64 protocols)
++{
++	unsigned int addr, addr_inv, data, data_inv;
++	/* a repeat code has no data */
++	if (!len)
++		return IMG_IR_REPEATCODE;
++	if (len != 32)
++		return -EINVAL;
++	/* raw encoding: ddDDaaAA */
++	addr     = (raw >>  0) & 0xff;
++	addr_inv = (raw >>  8) & 0xff;
++	data     = (raw >> 16) & 0xff;
++	data_inv = (raw >> 24) & 0xff;
++	if ((data_inv ^ data) != 0xff) {
++		/* 32-bit NEC (used by Apple and TiVo remotes) */
++		/* scan encoding: aaAAddDD */
++		*scancode = addr_inv << 24 |
++			    addr     << 16 |
++			    data_inv <<  8 |
++			    data;
++	} else if ((addr_inv ^ addr) != 0xff) {
++		/* Extended NEC */
++		/* scan encoding: AAaaDD */
++		*scancode = addr     << 16 |
++			    addr_inv <<  8 |
++			    data;
++	} else {
++		/* Normal NEC */
++		/* scan encoding: AADD */
++		*scancode = addr << 8 |
++			    data;
++	}
++	return IMG_IR_SCANCODE;
++}
++
++/* Convert NEC scancode to NEC data filter */
++static int img_ir_nec_filter(const struct rc_scancode_filter *in,
++			     struct img_ir_filter *out, u64 protocols)
++{
++	unsigned int addr, addr_inv, data, data_inv;
++	unsigned int addr_m, addr_inv_m, data_m, data_inv_m;
++
++	data       = in->data & 0xff;
++	data_m     = in->mask & 0xff;
++
++	if ((in->data | in->mask) & 0xff000000) {
++		/* 32-bit NEC (used by Apple and TiVo remotes) */
++		/* scan encoding: aaAAddDD */
++		addr_inv   = (in->data >> 24) & 0xff;
++		addr_inv_m = (in->mask >> 24) & 0xff;
++		addr       = (in->data >> 16) & 0xff;
++		addr_m     = (in->mask >> 16) & 0xff;
++		data_inv   = (in->data >>  8) & 0xff;
++		data_inv_m = (in->mask >>  8) & 0xff;
++	} else if ((in->data | in->mask) & 0x00ff0000) {
++		/* Extended NEC */
++		/* scan encoding AAaaDD */
++		addr       = (in->data >> 16) & 0xff;
++		addr_m     = (in->mask >> 16) & 0xff;
++		addr_inv   = (in->data >>  8) & 0xff;
++		addr_inv_m = (in->mask >>  8) & 0xff;
++		data_inv   = data ^ 0xff;
++		data_inv_m = data_m;
++	} else {
++		/* Normal NEC */
++		/* scan encoding: AADD */
++		addr       = (in->data >>  8) & 0xff;
++		addr_m     = (in->mask >>  8) & 0xff;
++		addr_inv   = addr ^ 0xff;
++		addr_inv_m = addr_m;
++		data_inv   = data ^ 0xff;
++		data_inv_m = data_m;
++	}
++
++	/* raw encoding: ddDDaaAA */
++	out->data = data_inv << 24 |
++		    data     << 16 |
++		    addr_inv <<  8 |
++		    addr;
++	out->mask = data_inv_m << 24 |
++		    data_m     << 16 |
++		    addr_inv_m <<  8 |
++		    addr_m;
++	return 0;
++}
++
++/*
++ * NEC decoder
++ * See also http://www.sbprojects.com/knowledge/ir/nec.php
++ *        http://wiki.altium.com/display/ADOH/NEC+Infrared+Transmission+Protocol
++ */
++struct img_ir_decoder img_ir_nec = {
++	.type = RC_BIT_NEC,
++	.control = {
++		.decoden = 1,
++		.code_type = IMG_IR_CODETYPE_PULSEDIST,
++	},
++	/* main timings */
++	.unit = 562500, /* 562.5 us */
++	.timings = {
++		/* leader symbol */
++		.ldr = {
++			.pulse = { 16	/* 9ms */ },
++			.space = { 8	/* 4.5ms */ },
++		},
++		/* 0 symbol */
++		.s00 = {
++			.pulse = { 1	/* 562.5 us */ },
++			.space = { 1	/* 562.5 us */ },
++		},
++		/* 1 symbol */
++		.s01 = {
++			.pulse = { 1	/* 562.5 us */ },
++			.space = { 3	/* 1687.5 us */ },
++		},
++		/* free time */
++		.ft = {
++			.minlen = 32,
++			.maxlen = 32,
++			.ft_min = 10,	/* 5.625 ms */
++		},
++	},
++	/* repeat codes */
++	.repeat = 108,			/* 108 ms */
++	.rtimings = {
++		/* leader symbol */
++		.ldr = {
++			.space = { 4	/* 2.25 ms */ },
++		},
++		/* free time */
++		.ft = {
++			.minlen = 0,	/* repeat code has no data */
++			.maxlen = 0,
++		},
++	},
++	/* scancode logic */
++	.scancode = img_ir_nec_scancode,
++	.filter = img_ir_nec_filter,
++};
+-- 
+1.8.3.2
 
-> ---
->  include/media/v4l2-subdev.h    |  4 ++++
->  include/uapi/linux/videodev2.h | 10 ++++++++--
->  2 files changed, 12 insertions(+), 2 deletions(-)
->
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 1752530..2b5ec32 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -509,6 +509,10 @@ struct v4l2_subdev_pad_ops {
->                              struct v4l2_subdev_selection *sel);
->         int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
->         int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
-> +       int (*dv_timings_cap)(struct v4l2_subdev *sd,
-> +                             struct v4l2_dv_timings_cap *cap);
-> +       int (*enum_dv_timings)(struct v4l2_subdev *sd,
-> +                              struct v4l2_enum_dv_timings *timings);
->  #ifdef CONFIG_MEDIA_CONTROLLER
->         int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
->                              struct v4l2_subdev_format *source_fmt,
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 17acba8..72fbbd4 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1103,12 +1103,15 @@ struct v4l2_dv_timings {
->
->  /** struct v4l2_enum_dv_timings - DV timings enumeration
->   * @index:     enumeration index
-> + * @pad:       the pad number for which to enumerate timings (used with
-> + *             v4l-subdev nodes only)
->   * @reserved:  must be zeroed
->   * @timings:   the timings for the given index
->   */
->  struct v4l2_enum_dv_timings {
->         __u32 index;
-> -       __u32 reserved[3];
-> +       __u32 pad;
-> +       __u32 reserved[2];
->         struct v4l2_dv_timings timings;
->  };
->
-> @@ -1146,11 +1149,14 @@ struct v4l2_bt_timings_cap {
->
->  /** struct v4l2_dv_timings_cap - DV timings capabilities
->   * @type:      the type of the timings (same as in struct v4l2_dv_timings)
-> + * @pad:       the pad number for which to query capabilities (used with
-> + *             v4l-subdev nodes only)
->   * @bt:                the BT656/1120 timings capabilities
->   */
->  struct v4l2_dv_timings_cap {
->         __u32 type;
-> -       __u32 reserved[3];
-> +       __u32 pad;
-> +       __u32 reserved[2];
->         union {
->                 struct v4l2_bt_timings_cap bt;
->                 __u32 raw_data[32];
-> --
-> 1.8.3.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
