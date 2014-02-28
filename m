@@ -1,40 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33954 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751830AbaBIIt4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Feb 2014 03:49:56 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 12/86] rtl2832_sdr: pixel format for SDR
-Date: Sun,  9 Feb 2014 10:48:17 +0200
-Message-Id: <1391935771-18670-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1391935771-18670-1-git-send-email-crope@iki.fi>
-References: <1391935771-18670-1-git-send-email-crope@iki.fi>
+Received: from mailapp01.imgtec.com ([195.89.28.114]:33960 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751224AbaB1JWV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Feb 2014 04:22:21 -0500
+Message-ID: <53105135.9030909@imgtec.com>
+Date: Fri, 28 Feb 2014 09:04:53 +0000
+From: James Hogan <james.hogan@imgtec.com>
+MIME-Version: 1.0
+To: Rob Herring <robherring2@gmail.com>
+CC: Rob Herring <robh+dt@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Rob Landley <rob@landley.net>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>
+Subject: Re: [PATCH v3 06/15] dt: binding: add binding for ImgTec IR block
+References: <CAL_JsqLL6MbwajCUAm+NJk=ofL5OHq8b0zwO3LFb-TKY6UtVMQ@mail.gmail.com> <1391788155-29191-1-git-send-email-james.hogan@imgtec.com> <2514111.qYAaEZbJqk@radagast> <CAL_JsqJpbUzEUpUxtFe4JeZ=EtCfaQHsyPt3TqH8AJkGNRnTvw@mail.gmail.com>
+In-Reply-To: <CAL_JsqJpbUzEUpUxtFe4JeZ=EtCfaQHsyPt3TqH8AJkGNRnTvw@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are used for converting / streaming I/Q data from SDR.
-* unsigned 8-bit
+On 28/02/14 01:28, Rob Herring wrote:
+> On Thu, Feb 27, 2014 at 4:52 PM, James Hogan <james.hogan@imgtec.com> wrote:
+>>> v3:
+>>> - Rename compatible string to "img,ir-rev1" (Rob Herring).
+>>> - Specify ordering of clocks explicitly (Rob Herring).
+>>
+>> I'd appreciate if somebody could give this another glance after the two
+>> changes listed above and Ack it (I'll probably be posting a v4 patchset
+>> tomorrow).
+> 
+> Looks fine.
+> 
+> Acked-by: Rob Herring <robh@kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 2 ++
- 1 file changed, 2 insertions(+)
+Thanks Rob!
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 2c84654..d3db859 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -49,6 +49,8 @@
- #define RTL2832_SDR_CID_TUNER_IF            ((V4L2_CID_USER_BASE | 0xf000) + 12)
- #define RTL2832_SDR_CID_TUNER_GAIN          ((V4L2_CID_USER_BASE | 0xf000) + 13)
- 
-+#define V4L2_PIX_FMT_SDR_U8     v4l2_fourcc('D', 'U', '0', '8') /* unsigned 8-bit */
-+
- #define MAX_BULK_BUFS            (8)
- #define BULK_BUFFER_SIZE         (8 * 512)
- 
--- 
-1.8.5.3
-
+Cheers
+James
