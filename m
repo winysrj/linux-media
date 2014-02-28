@@ -1,61 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f182.google.com ([209.85.216.182]:33626 "EHLO
-	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842AbaCPMO7 convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:57666 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752265AbaB1X3y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Mar 2014 08:14:59 -0400
-Received: by mail-qc0-f182.google.com with SMTP id e16so4842675qcx.13
-        for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 05:14:58 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <3611058.9Umk0NSF20@radagast>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com>
-	<1394838259-14260-7-git-send-email-james@albanarts.com>
-	<CAKv9HNYgfoAnTHfivgo8tov4nkSZHZ2+qJ=1BJzXUHXDmDSm2w@mail.gmail.com>
-	<3611058.9Umk0NSF20@radagast>
-Date: Sun, 16 Mar 2014 14:14:58 +0200
-Message-ID: <CAKv9HNZipt2RWn1mf_X8Rt+udb-jmDLMDJThRJjYUmkovyCTzA@mail.gmail.com>
-Subject: Re: [PATCH v2 6/9] rc: ir-rc5-sz-decoder: Add ir encoding support
-From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
-To: James Hogan <james@albanarts.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 28 Feb 2014 18:29:54 -0500
+Received: by mail-wi0-f179.google.com with SMTP id bs8so1216629wib.6
+        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:53 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH v4 07/10] rc: img-ir: add JVC decoder module
+Date: Fri, 28 Feb 2014 23:28:57 +0000
+Message-Id: <1393630140-31765-8-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi James.
+Add an img-ir module for decoding the JVC infrared protocol.
 
-On 16 March 2014 13:50, James Hogan <james@albanarts.com> wrote:
-> Hi Antti,
->
-> On Sunday 16 March 2014 10:34:31 Antti Seppälä wrote:
->> > +
->> > +       /* all important bits of scancode should be set in mask */
->> > +       if (~scancode->mask & 0x2fff)
->>
->> Do we want to be so restrictive here? In my opinion it's quite nice to
->> be able to encode also the toggle bit if needed. Therefore a check
->> against 0x3fff would be a better choice.
->>
->> I think the ability to encode toggle bit might also be nice to have
->> for rc-5(x) also.
->>
->
-> I don't believe the toggle bit is encoded in the scancode though, so I'm not
-> sure it makes sense to treat it like that. I'm not an expert on RC-5 like
-> protocols or the use of the toggle bit though.
->
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+v2:
+- Update to new scancode interface (32-bit NEC).
+- Update to new filtering interface (generic struct rc_scancode_filter).
+- Remove modularity and dynamic registration/unregistration, adding JVC
+  directly to the list of decoders in img-ir-hw.c.
+---
+ drivers/media/rc/img-ir/Kconfig      |  7 +++
+ drivers/media/rc/img-ir/Makefile     |  1 +
+ drivers/media/rc/img-ir/img-ir-hw.c  |  4 ++
+ drivers/media/rc/img-ir/img-ir-jvc.c | 92 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 104 insertions(+)
+ create mode 100644 drivers/media/rc/img-ir/img-ir-jvc.c
 
-Well I'm not an expert either but at least streamzap tends to have the
-toggle bit enabled quite often when sending ir pulses.
+diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
+index 28498a2..96006fbf 100644
+--- a/drivers/media/rc/img-ir/Kconfig
++++ b/drivers/media/rc/img-ir/Kconfig
+@@ -31,3 +31,10 @@ config IR_IMG_NEC
+ 	help
+ 	   Say Y here to enable support for the NEC, extended NEC, and 32-bit
+ 	   NEC protocols in the ImgTec infrared decoder block.
++
++config IR_IMG_JVC
++	bool "JVC protocol support"
++	depends on IR_IMG_HW
++	help
++	   Say Y here to enable support for the JVC protocol in the ImgTec
++	   infrared decoder block.
+diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
+index c409197..c5f8f06 100644
+--- a/drivers/media/rc/img-ir/Makefile
++++ b/drivers/media/rc/img-ir/Makefile
+@@ -2,6 +2,7 @@ img-ir-y			:= img-ir-core.o
+ img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
+ img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
+ img-ir-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
++img-ir-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
+ img-ir-objs			:= $(img-ir-y)
+ 
+ obj-$(CONFIG_IR_IMG)		+= img-ir.o
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 139f2c7..81c50e3 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -21,12 +21,16 @@
+ static DEFINE_SPINLOCK(img_ir_decoders_lock);
+ 
+ extern struct img_ir_decoder img_ir_nec;
++extern struct img_ir_decoder img_ir_jvc;
+ 
+ static bool img_ir_decoders_preprocessed;
+ static struct img_ir_decoder *img_ir_decoders[] = {
+ #ifdef CONFIG_IR_IMG_NEC
+ 	&img_ir_nec,
+ #endif
++#ifdef CONFIG_IR_IMG_JVC
++	&img_ir_jvc,
++#endif
+ 	NULL
+ };
+ 
+diff --git a/drivers/media/rc/img-ir/img-ir-jvc.c b/drivers/media/rc/img-ir/img-ir-jvc.c
+new file mode 100644
+index 0000000..ae55867
+--- /dev/null
++++ b/drivers/media/rc/img-ir/img-ir-jvc.c
+@@ -0,0 +1,92 @@
++/*
++ * ImgTec IR Decoder setup for JVC protocol.
++ *
++ * Copyright 2012-2014 Imagination Technologies Ltd.
++ */
++
++#include "img-ir-hw.h"
++
++/* Convert JVC data to a scancode */
++static int img_ir_jvc_scancode(int len, u64 raw, int *scancode, u64 protocols)
++{
++	unsigned int cust, data;
++
++	if (len != 16)
++		return -EINVAL;
++
++	cust = (raw >> 0) & 0xff;
++	data = (raw >> 8) & 0xff;
++
++	*scancode = cust << 8 | data;
++	return IMG_IR_SCANCODE;
++}
++
++/* Convert JVC scancode to JVC data filter */
++static int img_ir_jvc_filter(const struct rc_scancode_filter *in,
++			     struct img_ir_filter *out, u64 protocols)
++{
++	unsigned int cust, data;
++	unsigned int cust_m, data_m;
++
++	cust   = (in->data >> 8) & 0xff;
++	cust_m = (in->mask >> 8) & 0xff;
++	data   = (in->data >> 0) & 0xff;
++	data_m = (in->mask >> 0) & 0xff;
++
++	out->data = cust   | data << 8;
++	out->mask = cust_m | data_m << 8;
++
++	return 0;
++}
++
++/*
++ * JVC decoder
++ * See also http://www.sbprojects.com/knowledge/ir/jvc.php
++ *          http://support.jvc.com/consumer/support/documents/RemoteCodes.pdf
++ */
++struct img_ir_decoder img_ir_jvc = {
++	.type = RC_BIT_JVC,
++	.control = {
++		.decoden = 1,
++		.code_type = IMG_IR_CODETYPE_PULSEDIST,
++		.decodend2 = 1,
++	},
++	/* main timings */
++	.unit = 527500, /* 527.5 us */
++	.timings = {
++		/* leader symbol */
++		.ldr = {
++			.pulse = { 16	/* 8.44 ms */ },
++			.space = { 8	/* 4.22 ms */ },
++		},
++		/* 0 symbol */
++		.s00 = {
++			.pulse = { 1	/* 527.5 us +-60 us */ },
++			.space = { 1	/* 527.5 us */ },
++		},
++		/* 1 symbol */
++		.s01 = {
++			.pulse = { 1	/* 527.5 us +-60 us */ },
++			.space = { 3	/* 1.5825 ms +-40 us */ },
++		},
++		/* 0 symbol (no leader) */
++		.s00 = {
++			.pulse = { 1	/* 527.5 us +-60 us */ },
++			.space = { 1	/* 527.5 us */ },
++		},
++		/* 1 symbol (no leader) */
++		.s01 = {
++			.pulse = { 1	/* 527.5 us +-60 us */ },
++			.space = { 3	/* 1.5825 ms +-40 us */ },
++		},
++		/* free time */
++		.ft = {
++			.minlen = 16,
++			.maxlen = 16,
++			.ft_min = 10,	/* 5.275 ms */
++		},
++	},
++	/* scancode logic */
++	.scancode = img_ir_jvc_scancode,
++	.filter = img_ir_jvc_filter,
++};
+-- 
+1.8.3.2
 
-When decoding the toggle is always removed from the scancode but when
-encoding it would be useful to have the possibility to encode it in.
-This is because setting the toggle bit into wakeup makes it easier to
-wake the system with nuvoton hw as it is difficult to press the remote
-key short time enough (less than around 112ms) to generate a pulse
-without the toggle bit set.
-
--Antti
