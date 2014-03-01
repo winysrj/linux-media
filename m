@@ -1,132 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46397 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753019AbaCRG17 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Mar 2014 02:27:59 -0400
-Message-ID: <5327E74A.8030705@ti.com>
-Date: Tue, 18 Mar 2014 08:27:22 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Grant Likely <grant.likely@linaro.org>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Rob Herring <robh+dt@kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>
-Subject: Re: [GIT PULL] Move device tree graph parsing helpers to drivers/of
-References: <1394126000.3622.66.camel@paszta.hi.pengutronix.de> <5321CB04.6090700@samsung.com> <20140314070505.GV1629@pengutronix.de> <5247436.pV9jXGKXCJ@avalon>
-In-Reply-To: <5247436.pV9jXGKXCJ@avalon>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="HuPr66pmeGGMMPoRd6Wom8fe3jAgko9Fm"
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45700 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752388AbaCANN7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Mar 2014 08:13:59 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, k.debski@samsung.com,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATH v6 01/10] vb2: fix timecode and flags handling for output buffers
+Date: Sat,  1 Mar 2014 15:16:58 +0200
+Message-Id: <1393679828-25878-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
+References: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---HuPr66pmeGGMMPoRd6Wom8fe3jAgko9Fm
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 18/03/14 01:30, Laurent Pinchart wrote:
+When sending a buffer to a video output device some of the fields need
+to be copied so they arrive in the driver. These are the KEY/P/BFRAME
+flags and the TIMECODE flag, and, if that flag is set, the timecode field
+itself.
 
-> I agree with you. I know that DT bindings review takes too much time, s=
-lows=20
-> development down and is just generally painful. I'm trying to reply to =
-this e-
-> mail thread as fast as possible, but I'm also busy with other tasks :-/=
+There are a number of functions involved in this: the __fill_vb2_buffer()
+is called while preparing a buffer. For output buffers the buffer contains
+the video data, so any meta data associated with that (KEY/P/BFRAME and
+the field information) should be stored at that point.
 
->=20
-> The lack of formal consensus comes partly from the fact that people are=
- busy=20
-> and that the mail thread is growing big. There's still two open questio=
-ns from=20
-> my view of the whole discussion:
->=20
-> - Do we really want to drop bidirectional links ? Grant has been pretty=
- vocal=20
-> about that, but there has been several replies with arguments for=20
-> bidirectional links, and no reply from him afterwards. Even though that=
-=20
-> wouldn't be the preferred solution for everybody, there doesn't seem to=
- be a=20
-> strong disagreement about dropping bidirectional links, as long as we c=
-an come=20
-> up with a reasonable implementation.
->=20
-> - If we drop bidirectional links, what link direction do we use ? There=
- has=20
-> been several proposals (including "north", which I think isn't future-p=
-roof as=20
-> it assumes an earth-centric model) and no real agreement, although ther=
-e seems=20
-> to be a consensus among several developers that the core OF graph bindi=
-ngs=20
-> could leave that to be specified by subsystem bindings. We would still =
-have to=20
-> agree on a direction for the display subsystem of course.
->=20
-> If my above explanation isn't too far from the reality the next step co=
-uld be=20
-> to send a new version of the DT bindings proposal as a ping.
+The timecode, timecode flag and timestamp information is not part of that,
+that information will have to be set when vb2_internal_qbuf() is called to
+actually queue the buffer to the driver. Usually VIDIOC_QBUF will do the
+prepare as well, but you can call PREPARE_BUF first and only later VIDIOC_QBUF.
+You most likely will want to set the timestamp and timecode when you actually
+queue the buffer, not when you prepare it.
 
-I agree with the above.
+Finally, in buf_prepare() make sure the timestamp and sequence fields are
+actually cleared so that when you do a QUERYBUF of a prepared-but-not-yet-queued
+buffer you will not see stale timestamp/sequence data.
 
-However, I also think we should just go forward with the bidirectional
-links for now. The bindings for bidir links are already in the mainline
-kernel, so they can't be seen as broken.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |   35 ++++++++++++++++++++++++++++--
+ 1 file changed, 33 insertions(+), 2 deletions(-)
 
-When we have an agreement about the direction, and we've got common
-parsing code, it's trivial to convert the existing links to single
-direction links, and the old dts files with bidir links continue to work
-fine.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5a5fb7f..edab3af 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -40,10 +40,14 @@ module_param(debug, int, 0644);
+ #define call_qop(q, op, args...)					\
+ 	(((q)->ops->op) ? ((q)->ops->op(args)) : 0)
+ 
++/* Flags that are set by the vb2 core */
+ #define V4L2_BUFFER_MASK_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
+ 				 V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR | \
+ 				 V4L2_BUF_FLAG_PREPARED | \
+ 				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
++/* Output buffer flags that should be passed on to the driver */
++#define V4L2_BUFFER_OUT_FLAGS	(V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME | \
++				 V4L2_BUF_FLAG_KEYFRAME | V4L2_BUF_FLAG_TIMECODE)
+ 
+ /**
+  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
+@@ -1025,9 +1029,21 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 
+ 	}
+ 
+-	vb->v4l2_buf.field = b->field;
+-	vb->v4l2_buf.timestamp = b->timestamp;
++	/* Zero flags that the vb2 core handles */
+ 	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
++	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
++		/*
++		 * For output buffers mask out the timecode flag:
++		 * this will be handled later in vb2_internal_qbuf().
++		 * The 'field' is valid metadata for this output buffer
++		 * and so that needs to be copied here.
++		 */
++		vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TIMECODE;
++		vb->v4l2_buf.field = b->field;
++	} else {
++		/* Zero any output buffer flags as this is a capture buffer */
++		vb->v4l2_buf.flags &= ~V4L2_BUFFER_OUT_FLAGS;
++	}
+ }
+ 
+ /**
+@@ -1261,6 +1277,10 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	}
+ 
+ 	vb->state = VB2_BUF_STATE_PREPARING;
++	vb->v4l2_buf.timestamp.tv_sec = 0;
++	vb->v4l2_buf.timestamp.tv_usec = 0;
++	vb->v4l2_buf.sequence = 0;
++
+ 	switch (q->memory) {
+ 	case V4L2_MEMORY_MMAP:
+ 		ret = __qbuf_mmap(vb, b);
+@@ -1448,6 +1468,17 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	 */
+ 	list_add_tail(&vb->queued_entry, &q->queued_list);
+ 	vb->state = VB2_BUF_STATE_QUEUED;
++	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
++		/*
++		 * For output buffers copy the timestamp if needed,
++		 * and the timecode field and flag if needed.
++		 */
++		if (q->timestamp_type == V4L2_BUF_FLAG_TIMESTAMP_COPY)
++			vb->v4l2_buf.timestamp = b->timestamp;
++		vb->v4l2_buf.flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
++		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
++			vb->v4l2_buf.timecode = b->timecode;
++	}
+ 
+ 	/*
+ 	 * If already streaming, give the buffer to driver for processing.
+-- 
+1.7.10.4
 
-This is what I'm planning to do with OMAP display subsystem, as I
-_really_ want to get the DT support merged for 3.15. The current mix of
-pdata + DT that we have for OMAP display is an unmaintainable mess.
-
-So unless I get a nack from someone (I've pinged Grant twice about
-this), or someone explains why it's a bad idea, I'll push the OMAP
-display bindings [1] for 3.15 with bidir bindings, and change them to
-single-dir later.
-
-Note that I did remove the abbreviated endpoint format that I had there
-earlier, so now the bindings are fully compatible with the v4l2 bindings.=
-
-
- Tomi
-
-[1] http://article.gmane.org/gmane.linux.drivers.devicetree/63885
-
-
-
---HuPr66pmeGGMMPoRd6Wom8fe3jAgko9Fm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTJ+dLAAoJEPo9qoy8lh711zsP/RpStdfq4S+pzU/vDxItiGos
-y1i+9WQMNBWXRHhx8ZYYnF8NaDsLoIxGfcInMeH9jSxkkvcqnfcZP5teSKdZrhQF
-HxyiL4KZF2Fv4K2dDOKzTKttSFLKI6eDxsfO3uKibU2jBx3/tRpZoS6ha2ZoU0Bq
-pxjLXbhVzIGkTzPjByy5eTmaMretDAzmSNnRZOhrN2eBINnLnPOfG/7cd3NfgeZv
-N6J8H2TVtPAyT5RBwuqgqu9Nn8iVGt6H/JmvobKblBF+4Jmf1CGGOWGnI/gL8kjd
-iQ9vVJyb2hKYaNFDmwtXuHX6I7nJnVAzhjZ42fvCgbMIR48Yc4VE5KiQ7QONQB7n
-ff6zaPRdeTgQJ01+3yKmD/X2MO+TPfKQbDOKKVZfXSbNdVP4vYldzFKs503pmh1d
-oYndnQkEigTdZlxo9X9u2asc8KOquSyiTc0UvcN4F6zRNH7Od/uc+8BRO+ASK5s0
-Mq2Vo78+JPGbmHygsHoxPpwUxJCywOLTWxZoOkic4bV5LyLhJXfmpTgj2+MoXtI/
-HyhUc4Z7a4sRTspkGf8kFqonJCo6k0x1M4CnxBiZ2l3pck0chYKe5MhCzkYaIm/m
-sg2ec0WO18NKVZGABCBOoUozIbcASc0KWPpDmcdVDePQW2bxgN+ihPxC1OpiKWj+
-UXqlJN6TtZ2tDVNQBVb5
-=NAN+
------END PGP SIGNATURE-----
-
---HuPr66pmeGGMMPoRd6Wom8fe3jAgko9Fm--
