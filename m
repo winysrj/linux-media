@@ -1,43 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753198AbaCJXOm (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46251 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753026AbaCAQPT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 18/48] ad9389b: Remove deprecated video-level DV timings operations
-Date: Tue, 11 Mar 2014 00:15:29 +0100
-Message-Id: <1394493359-14115-19-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 1 Mar 2014 11:15:19 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Subject: [yavta PATCH 8/9] Support copy timestamps
+Date: Sat,  1 Mar 2014 18:18:09 +0200
+Message-Id: <1393690690-5004-9-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
+References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/i2c/ad9389b.c | 2 --
- 1 file changed, 2 deletions(-)
+ yavta.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 44c037d..4cdff9e 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -670,8 +670,6 @@ static const struct v4l2_subdev_video_ops ad9389b_video_ops = {
- 	.s_stream = ad9389b_s_stream,
- 	.s_dv_timings = ad9389b_s_dv_timings,
- 	.g_dv_timings = ad9389b_g_dv_timings,
--	.enum_dv_timings = ad9389b_enum_dv_timings,
--	.dv_timings_cap = ad9389b_dv_timings_cap,
- };
- 
- /* ------------------------------ PAD OPS ------------------------------ */
+diff --git a/yavta.c b/yavta.c
+index 224405d..5171024 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -454,6 +454,9 @@ static void get_ts_flags(uint32_t flags, const char **ts_type, const char **ts_s
+ 	case V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC:
+ 		*ts_type = "monotonic";
+ 		break;
++	case V4L2_BUF_FLAG_TIMESTAMP_COPY:
++		*ts_type = "copy";
++		break;
+ 	default:
+ 		*ts_type = "invalid";
+ 	}
 -- 
-1.8.3.2
+1.7.10.4
 
