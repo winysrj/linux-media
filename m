@@ -1,49 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54894 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324AbaCKKi3 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46428 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750762AbaCAQ4K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 06:38:29 -0400
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] drx-j: use ber_count var
-Date: Tue, 11 Mar 2014 07:37:35 -0300
-Message-Id: <1394534255-2672-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sat, 1 Mar 2014 11:56:10 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATH v6.1 06/10] v4l: Handle buffer timestamp flags correctly
+Date: Sat,  1 Mar 2014 18:59:25 +0200
+Message-Id: <1393693166-9624-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <5311EE75.1000305@xs4all.nl>
+References: <5311EE75.1000305@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/drx39xyj/drxj.c: In function 'ctrl_get_qam_sig_quality':
-drivers/media/dvb-frontends/drx39xyj/drxj.c:9468:6: warning: variable 'ber_cnt' set but not used [-Wunused-but-set-variable]
-  u32 ber_cnt = 0; /* BER count */
-      ^
+For COPY timestamps, buffer timestamp source flags will traverse the queue
+untouched.
 
-By reading the comment, it is said that BER should be calculated as:
-	qam_pre_rs_ber = frac_times1e6( ber_cnt, rs_bit_cnt );
-
-Also, it makes sense to take the mantissa into account, so fix the
-code to do what's commented.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+changes since v6:
+- Clean up changes to __fill_v4l2_buffer().
+- Drop timestamp source flags for non-OUTPUT buffers in __fill_vb2_buffer().
+- Comments fixed accordingly.
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 0c0e9f3b108f..41d4bfe66764 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -9583,7 +9583,7 @@ ctrl_get_qam_sig_quality(struct drx_demod_instance *demod)
- 	if (m > (rs_bit_cnt >> (e + 1)) || (rs_bit_cnt >> e) == 0)
- 		qam_pre_rs_ber = 500000 * rs_bit_cnt >> e;
- 	else
--		qam_pre_rs_ber = m;
-+		qam_pre_rs_ber = ber_cnt;
+ drivers/media/v4l2-core/videobuf2-core.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 42a8568..79eb9ba 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -488,7 +488,16 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 	 * Clear any buffer state related flags.
+ 	 */
+ 	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+-	b->flags |= q->timestamp_flags;
++	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
++	if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
++	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
++		/*
++		 * For non-COPY timestamps, drop timestamp source bits
++		 * and obtain the timestamp source from the queue.
++		 */
++		b->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
++		b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
++	}
  
- 	/* post RS BER = 1000000* (11.17 * FEC_OC_SNC_FAIL_COUNT__A) /  */
- 	/*               (1504.0 * FEC_OC_SNC_FAIL_PERIOD__A)  */
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_QUEUED:
+@@ -1031,6 +1040,16 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 
+ 	/* Zero flags that the vb2 core handles */
+ 	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
++	if ((vb->vb2_queue->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
++	    V4L2_BUF_FLAG_TIMESTAMP_COPY || !V4L2_TYPE_IS_OUTPUT(b->type)) {
++		/*
++		 * Non-COPY timestamps and non-OUTPUT queues will get
++		 * their timestamp and timestamp source flags from the
++		 * queue.
++		 */
++		vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
++	}
++
+ 	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+ 		/*
+ 		 * For output buffers mask out the timecode flag:
 -- 
-1.8.5.3
+1.7.10.4
 
