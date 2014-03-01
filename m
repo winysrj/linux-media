@@ -1,92 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:34253 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754784AbaCYUv0 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46250 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753025AbaCAQPT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Mar 2014 16:51:26 -0400
-Message-ID: <1395780682.11851.18.camel@nicolas-tpx230>
-Subject: [PATCH 3/5] s5p-fimc: Align imagesize to row size for tiled
- formats
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: s.nawrocki@samsung.com
-Date: Tue, 25 Mar 2014 16:51:22 -0400
-In-Reply-To: <1395780301.11851.14.camel@nicolas-tpx230>
-References: <1395780301.11851.14.camel@nicolas-tpx230>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-siC0Uiyh7CCWbiRMBce/"
-Mime-Version: 1.0
+	Sat, 1 Mar 2014 11:15:19 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Subject: [yavta PATCH 6/9] Timestamp source for output buffers
+Date: Sat,  1 Mar 2014 18:18:07 +0200
+Message-Id: <1393690690-5004-7-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
+References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---=-siC0Uiyh7CCWbiRMBce/
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-For tiled format, we need to allocated a multiple of the row size. A
-good example is for 1280x720, wich get adjusted to 1280x736. In tiles,
-this mean Y plane is 20x23 and UV plane 20x12. Because of the rounding,
-the previous code would only have enough space to fit half of the last
-row.
-
-Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/platform/exynos4-is/fimc-core.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ yavta.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/=
-platform/exynos4-is/fimc-core.c
-index 2e70fab..0e94412 100644
---- a/drivers/media/platform/exynos4-is/fimc-core.c
-+++ b/drivers/media/platform/exynos4-is/fimc-core.c
-@@ -736,6 +736,7 @@ void fimc_adjust_mplane_format(struct fimc_fmt *fmt, u3=
-2 width, u32 height,
- 	for (i =3D 0; i < pix->num_planes; ++i) {
- 		struct v4l2_plane_pix_format *plane_fmt =3D &pix->plane_fmt[i];
- 		u32 bpl =3D plane_fmt->bytesperline;
-+		u32 sizeimage;
-=20
- 		if (fmt->colplanes > 1 && (bpl =3D=3D 0 || bpl < pix->width))
- 			bpl =3D pix->width; /* Planar */
-@@ -755,8 +756,16 @@ void fimc_adjust_mplane_format(struct fimc_fmt *fmt, u=
-32 width, u32 height,
- 			bytesperline /=3D 2;
-=20
- 		plane_fmt->bytesperline =3D bytesperline;
--		plane_fmt->sizeimage =3D max((pix->width * pix->height *
--				   fmt->depth[i]) / 8, plane_fmt->sizeimage);
-+		sizeimage =3D pix->width * pix->height * fmt->depth[i] / 8;
-+
-+		/* Ensure full last row for tiled formats */
-+		if (tiled_fmt(fmt)) {
-+			/* 64 * 32 * plane_fmt->bytesperline / 64 */
-+			u32 row_size =3D plane_fmt->bytesperline * 32;
-+			sizeimage =3D ALIGN(sizeimage, row_size);
-+		}
-+
-+		plane_fmt->sizeimage =3D max(sizeimage, plane_fmt->sizeimage);
- 	}
- }
-=20
---=20
-1.8.5.3
-
-
-
---=-siC0Uiyh7CCWbiRMBce/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iEYEABECAAYFAlMx7EoACgkQcVMCLawGqBxxgwCeIOiQHzlVSRyJn/Ki4lz+c+gX
-FykAoJcj2eYxH7W6R0qrAfd/O8olHHPW
-=+Jou
------END PGP SIGNATURE-----
-
---=-siC0Uiyh7CCWbiRMBce/--
+diff --git a/yavta.c b/yavta.c
+index a9b192a..71c1477 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -73,6 +73,7 @@ struct device
+ 	unsigned int height;
+ 	unsigned int bytesperline;
+ 	unsigned int imagesize;
++	uint32_t buffer_output_flags;
+ 
+ 	void *pattern;
+ 	unsigned int patternsize;
+@@ -611,6 +612,7 @@ static int video_queue_buffer(struct device *dev, int index, enum buffer_fill_mo
+ 		buf.m.userptr = (unsigned long)dev->buffers[index].mem;
+ 
+ 	if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
++		buf.flags = dev->buffer_output_flags;
+ 		buf.bytesused = dev->patternsize;
+ 		memcpy(dev->buffers[buf.index].mem, dev->pattern, dev->patternsize);
+ 	} else {
+@@ -1255,6 +1257,7 @@ static void usage(const char *argv0)
+ 	printf("    --no-query			Don't query capabilities on open\n");
+ 	printf("    --offset			User pointer buffer offset from page start\n");
+ 	printf("    --requeue-last		Requeue the last buffers before streamoff\n");
++	printf("    --timestamp-source		Set timestamp source on output buffers [eof, soe]\n");
+ 	printf("    --skip n			Skip the first n frames\n");
+ 	printf("    --sleep-forever		Sleep forever after configuring the device\n");
+ 	printf("    --stride value		Line stride in bytes\n");
+@@ -1269,6 +1272,7 @@ static void usage(const char *argv0)
+ #define OPT_REQUEUE_LAST	262
+ #define OPT_STRIDE		263
+ #define OPT_FD			264
++#define OPT_TSTAMP_SRC		265
+ 
+ static struct option opts[] = {
+ 	{"capture", 2, 0, 'c'},
+@@ -1298,7 +1302,8 @@ static struct option opts[] = {
+ 	{"sleep-forever", 0, 0, OPT_SLEEP_FOREVER},
+ 	{"stride", 1, 0, OPT_STRIDE},
+ 	{"time-per-frame", 1, 0, 't'},
+-	{"userptr", 0, 0, 'u'},
++	{"timestamp-source", 1, 0, OPT_TSTAMP_SRC},
++	{"userptr", 1, 0, 'u'},
+ 	{0, 0, 0, 0}
+ };
+ 
+@@ -1487,6 +1492,17 @@ int main(int argc, char *argv[])
+ 		case OPT_STRIDE:
+ 			stride = atoi(optarg);
+ 			break;
++		case OPT_TSTAMP_SRC:
++			if (!strcmp(optarg, "eof")) {
++				dev.buffer_output_flags |= V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
++			} else if (!strcmp(optarg, "soe")) {
++				dev.buffer_output_flags |= V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
++			} else {
++				printf("Invalid timestamp source %s\n", optarg);
++				return 1;
++			}
++			printf("Using %s timestamp source\n", optarg);
++			break;
+ 		case OPT_USERPTR_OFFSET:
+ 			userptr_offset = atoi(optarg);
+ 			break;
+-- 
+1.7.10.4
 
