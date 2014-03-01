@@ -1,83 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3980 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752845AbaCaIG0 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46216 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752972AbaCAQJz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Mar 2014 04:06:26 -0400
-Message-ID: <533921F8.1000508@xs4all.nl>
-Date: Mon, 31 Mar 2014 10:06:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: linux-sparse@vger.kernel.org
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: sparse: ioctl defines and "error: bad integer constant expression"
-References: <53244092.6010906@xs4all.nl>
-In-Reply-To: <53244092.6010906@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sat, 1 Mar 2014 11:09:55 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, k.debski@samsung.com,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATH v6 05.1/11] v4l: Timestamp flags will soon contain timestamp source, not just type
+Date: Sat,  1 Mar 2014 18:13:07 +0200
+Message-Id: <1393690387-4826-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1393679828-25878-6-git-send-email-sakari.ailus@iki.fi>
+References: <1393679828-25878-6-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/15/2014 12:59 PM, Hans Verkuil wrote:
-> Hi!
-> 
-> Here is another sparse error that I get when running sparse over
-> drivers/media/v4l2-core/v4l2-ioctl.c:
-> 
-> drivers/media/v4l2-core/v4l2-ioctl.c:2043:9: error: bad integer constant expression
-> drivers/media/v4l2-core/v4l2-ioctl.c:2044:9: error: bad integer constant expression
-> drivers/media/v4l2-core/v4l2-ioctl.c:2045:9: error: bad integer constant expression
-> drivers/media/v4l2-core/v4l2-ioctl.c:2046:9: error: bad integer constant expression
-> 
-> etc.
-> 
-> The root cause of that turns out to be in include/asm-generic/ioctl.h:
-> 
-> #include <uapi/asm-generic/ioctl.h>
-> 
-> /* provoke compile error for invalid uses of size argument */
-> extern unsigned int __invalid_size_argument_for_IOC;
-> #define _IOC_TYPECHECK(t) \
->         ((sizeof(t) == sizeof(t[1]) && \
->           sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
->           sizeof(t) : __invalid_size_argument_for_IOC)
-> 
-> If it is defined as this:
-> 
-> #define _IOC_TYPECHECK(t) (sizeof(t))
-> 
-> then all is well with the world.
-> 
-> I can patch v4l2-ioctl.c to redefine _IOC_TYPECHECK if __CHECKER__ is defined, but
-> shouldn't sparse understand this instead? There was a similar situation with
-> ARRAY_SIZE in the past that sparse now understands.
+Mask out other bits when comparing timestamp types.
 
-Here is a small test case for this problem:
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+This change was missing from the set. The check needs to be changed as there
+will be also timestamp source flags, not just timestamp type flags in the
+field.
 
-====== ioc-typecheck.c ======
-extern unsigned int __invalid_size_argument_for_IOC;
-#define _IOC_TYPECHECK(t) \
-                ((sizeof(t) == sizeof(t[1]) && \
-                    sizeof(t) < (1 << 14)) ? \
-                   sizeof(t) : __invalid_size_argument_for_IOC)
+ drivers/media/v4l2-core/videobuf2-core.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-#define TEST_IOCTL (50 | (_IOC_TYPECHECK(unsigned) << 8))
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 411429c..521350a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1473,7 +1473,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		 * For output buffers copy the timestamp if needed,
+ 		 * and the timecode field and flag if needed.
+ 		 */
+-		if (q->timestamp_flags == V4L2_BUF_FLAG_TIMESTAMP_COPY)
++		if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
++		    V4L2_BUF_FLAG_TIMESTAMP_COPY)
+ 			vb->v4l2_buf.timestamp = b->timestamp;
+ 		vb->v4l2_buf.flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
+ 		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
+@@ -2230,7 +2231,8 @@ int vb2_queue_init(struct vb2_queue *q)
+ 		return -EINVAL;
+ 
+ 	/* Warn that the driver should choose an appropriate timestamp type */
+-	WARN_ON(q->timestamp_flags == V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN);
++	WARN_ON((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
++		V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN);
+ 
+ 	INIT_LIST_HEAD(&q->queued_list);
+ 	INIT_LIST_HEAD(&q->done_list);
+-- 
+1.7.10.4
 
-static unsigned iocnrs[] = {
-        [TEST_IOCTL & 0xff] = 1,
-};
-/*
- * check-name: correct handling of _IOC_TYPECHECK
- *
- * check-error-start
- * check-error-end
- */
-====== ioc-typecheck.c ======
-
-Running sparse over this gives:
-
-error: bad integer constant expression
-
-Regards,
-
-	Hans
