@@ -1,78 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:37604 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752499AbaC1Aiu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Mar 2014 20:38:50 -0400
-Date: Fri, 28 Mar 2014 01:38:47 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: tvboxspy@gmail.com
-Cc: linux-media@vger.kernel.org
-Subject: lmedm04 NEC scancode question
-Message-ID: <20140328003847.GA23351@hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45714 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752663AbaCANOA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Mar 2014 08:14:00 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, k.debski@samsung.com,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATH v6 06/10] v4l: Handle buffer timestamp flags correctly
+Date: Sat,  1 Mar 2014 15:17:03 +0200
+Message-Id: <1393679828-25878-7-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
+References: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Malcolm,
+For COPY timestamps, buffer timestamp source flags will traverse the queue
+untouched.
 
-I'm trying to make sure that the extended NEC parsing is consistent
-across drivers and I have a question regarding
-drivers/media/usb/dvb-usb-v2/lmedm04.c
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |   26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-In commit 616a4b83 you changed the scancode from something like this:
-
-	ibuf[2] << 24 | ibuf[3] << 16 | ibuf[4] << 8 | ibuf[5]
-
-into:
-
-	if ((ibuf[4] + ibuf[5]) == 0xff) {
-		key = ibuf[5];
-		key += (ibuf[3] > 0)
-			? (ibuf[3] ^ 0xff) << 8 : 0;
-		key += (ibuf[2] ^ 0xff) << 16;
-
-which can be written as:
-
-	(ibuf[2] ^ 0xff) << 16 |
-	(ibuf[3] > 0) ? (ibuf[3] ^ 0xff) << 8 : 0 |
-	ibuf[5]
-
-At the same time the keymap was changed from (one example from each
-type):
-
-	0xef12ba45 = KEY_0
-	0xff40ea15 = KEY_0
-	0xff00e31c = KEY_0
-
-into:
-
-	0x10ed45   = KEY_0 (0x10ed = ~0xef12; 0x45 = ~0xba)
-	0xbf15     = KEY_0 (0xbf = 0x00bf = ~0xff40; 0x15 = ~0xea)
-	0x1c       = KEY_0 (0x1c = 0x001c; this is a NEC16 coding?)
-
-I am assuming (given the ^ 0xff) that the hardware sends inverted bytes?
-And that the reason ibuf[5] does not need ^ 0xff is that it already is
-the inverted command (i.e. ibuf[5] == ~ibuf[4]).
-
-To put it differently:
-
-        ibuf[2] = ~addr         = not_addr;
-        ibuf[3] = ~not_addr     = addr;
-        ibuf[4] = ~cmd          = not_cmd;
-        ibuf[5] = ~not_cmd      = cmd;
-
-And the scancode can then be understood as:
-
-	addr << 16 | not_addr << 8 | cmd
-
-Except for when addr = 0x00 in which case the scancode is simply NEC16:
-
-	0x00 << 8 | cmd
-
-Is my interpretation correct?
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 3dda083..7afeb6b 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -488,7 +488,22 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 	 * Clear any buffer state related flags.
+ 	 */
+ 	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+-	b->flags |= q->timestamp_flags;
++	if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
++	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
++		/*
++		 * For COPY timestamps, we just set the timestamp type
++		 * here. The timestamp source is already in b->flags.
++		 */
++		b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
++	} else {
++		/*
++		 * For non-COPY timestamps, drop timestamp source and
++		 * obtain the timestamp type and source from the
++		 * queue.
++		 */
++		b->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
++		b->flags |= q->timestamp_flags;
++	}
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_QUEUED:
+@@ -1031,6 +1046,15 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 
+ 	/* Zero flags that the vb2 core handles */
+ 	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
++	if ((vb->vb2_queue->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
++	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
++		/*
++		 * Non-COPY timestamps will get their timestamp and
++		 * timestamp source flags from the queue.
++		 */
++		vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
++	}
++
+ 	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+ 		/*
+ 		 * For output buffers mask out the timecode flag:
 -- 
-David Härdeman
+1.7.10.4
+
