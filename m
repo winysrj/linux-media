@@ -1,103 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3985 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754541AbaCJVVz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 17:21:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 03/11] vb2: if bytesused is 0, then fill with output buffer length
-Date: Mon, 10 Mar 2014 22:20:50 +0100
-Message-Id: <1394486458-9836-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ve0-f173.google.com ([209.85.128.173]:41942 "EHLO
+	mail-ve0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817AbaCBG1K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 01:27:10 -0500
+Received: by mail-ve0-f173.google.com with SMTP id oy12so360966veb.18
+        for <linux-media@vger.kernel.org>; Sat, 01 Mar 2014 22:27:09 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1393519488-5427-1-git-send-email-p.zabel@pengutronix.de>
+References: <1393519488-5427-1-git-send-email-p.zabel@pengutronix.de>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sun, 2 Mar 2014 11:56:48 +0530
+Message-ID: <CA+V-a8sjibFouLHc_iNxXOdThgQ1PbKu6FhuLMspayPc3YhecA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] [media] tvp5150: Fix type mismatch warning in clamp macro
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Philipp,
 
-The application should really always fill in bytesused for output
-buffers, unfortunately the vb2 framework never checked for that.
+Thanks for the patch.
 
-So for single planar formats replace a bytesused of 0 by the length
-of the buffer, and for multiplanar format do the same if bytesused is
-0 for ALL planes.
+On Thu, Feb 27, 2014 at 10:14 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> This patch fixes the following warning:
+>
+> drivers/media/i2c/tvp5150.c: In function '__tvp5150_try_crop':
+> include/linux/kernel.h:762:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+>   (void) (&__val == &__min);  \
+>                  ^
+> drivers/media/i2c/tvp5150.c:886:16: note: in expansion of macro 'clamp'
+>   rect->width = clamp(rect->width,
+>                 ^
+> include/linux/kernel.h:763:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+>   (void) (&__val == &__max);  \
+>                  ^
+> drivers/media/i2c/tvp5150.c:886:16: note: in expansion of macro 'clamp'
+>   rect->width = clamp(rect->width,
+>                 ^
+> include/linux/kernel.h:762:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+>   (void) (&__val == &__min);  \
+>                  ^
+> drivers/media/i2c/tvp5150.c:904:17: note: in expansion of macro 'clamp'
+>   rect->height = clamp(rect->height,
+>                  ^
+> include/linux/kernel.h:763:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+>   (void) (&__val == &__max);  \
+>                  ^
+> drivers/media/i2c/tvp5150.c:904:17: note: in expansion of macro 'clamp'
+>   rect->height = clamp(rect->height,
+>                  ^
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-This seems to be what the user really intended if v4l2_buffer was
-just memset to 0.
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-I'm afraid that just checking for this and returning an error would
-break too many applications. Quite a few drivers never check for bytesused
-at all and just use the buffer length instead.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 32 +++++++++++++++++++++++++++-----
- 1 file changed, 27 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 1a09442..83e78e9 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1145,19 +1145,35 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 			memset(v4l2_planes[plane].reserved, 0,
- 			       sizeof(v4l2_planes[plane].reserved));
- 			v4l2_planes[plane].data_offset = 0;
-+			v4l2_planes[plane].bytesused = 0;
- 		}
- 
- 		/* Fill in driver-provided information for OUTPUT types */
- 		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+			bool bytesused_is_used;
-+
-+			/* Check if bytesused == 0 for all planes */
-+			for (plane = 0; plane < vb->num_planes; ++plane)
-+				if (b->m.planes[plane].bytesused)
-+					break;
-+			bytesused_is_used = plane < vb->num_planes;
-+
- 			/*
- 			 * Will have to go up to b->length when API starts
- 			 * accepting variable number of planes.
-+			 *
-+			 * If bytesused_is_used is false, then fall back to the
-+			 * full buffer size. In that case userspace clearly
-+			 * never bothered to set it and it's a safe assumption
-+			 * that they really meant to use the full plane sizes.
- 			 */
- 			for (plane = 0; plane < vb->num_planes; ++plane) {
--				v4l2_planes[plane].bytesused =
--					b->m.planes[plane].bytesused;
--				v4l2_planes[plane].data_offset =
--					b->m.planes[plane].data_offset;
-+				struct v4l2_plane *pdst = &v4l2_planes[plane];
-+				struct v4l2_plane *psrc = &b->m.planes[plane];
-+
-+				pdst->bytesused = bytesused_is_used ?
-+					psrc->bytesused : psrc->length;
-+				pdst->data_offset = psrc->data_offset;
- 			}
- 		}
- 
-@@ -1183,9 +1199,15 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		 * so fill in relevant v4l2_buffer struct fields instead.
- 		 * In videobuf we use our internal V4l2_planes struct for
- 		 * single-planar buffers as well, for simplicity.
-+		 *
-+		 * If bytesused == 0, then fall back to the full buffer size
-+		 * as that's a sensible default.
- 		 */
- 		if (V4L2_TYPE_IS_OUTPUT(b->type))
--			v4l2_planes[0].bytesused = b->bytesused;
-+			v4l2_planes[0].bytesused =
-+				b->bytesused ? b->bytesused : b->length;
-+		else
-+			v4l2_planes[0].bytesused = 0;
- 		/* Single-planar buffers never use data_offset */
- 		v4l2_planes[0].data_offset = 0;
- 
--- 
-1.9.0
-
+Thanks,
+--Prabhakar Lad
