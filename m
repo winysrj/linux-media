@@ -1,63 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55958 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751465AbaCWPas (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Mar 2014 11:30:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Fengguang Wu <fengguang.wu@intel.com>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
-Subject: [PATCH 1/2] usb: gadget: uvc: Switch to monotonic clock for buffer timestamps
-Date: Sun, 23 Mar 2014 16:32:33 +0100
-Message-Id: <1395588754-20587-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1395588754-20587-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <20140323001018.GA11963@localhost>
- <1395588754-20587-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-vc0-f181.google.com ([209.85.220.181]:38658 "EHLO
+	mail-vc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750863AbaCBG2a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 01:28:30 -0500
+Received: by mail-vc0-f181.google.com with SMTP id lg15so2408278vcb.12
+        for <linux-media@vger.kernel.org>; Sat, 01 Mar 2014 22:28:30 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1393519488-5427-2-git-send-email-p.zabel@pengutronix.de>
+References: <1393519488-5427-1-git-send-email-p.zabel@pengutronix.de> <1393519488-5427-2-git-send-email-p.zabel@pengutronix.de>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sun, 2 Mar 2014 11:58:10 +0530
+Message-ID: <CA+V-a8u=soW-qSnzN_ihqNBX1BfSOjhTuKxPy78iKzxx-iwQ4Q@mail.gmail.com>
+Subject: Re: [PATCH 2/2] [media] tvp5150: Make debug module parameter visible
+ in sysfs
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The wall time clock isn't useful for applications as it can jump around
-due to time adjustement. Switch to the monotonic clock.
+Hi Philipp,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/usb/gadget/uvc_queue.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
-index 0bb5d50..d4561ba 100644
---- a/drivers/usb/gadget/uvc_queue.c
-+++ b/drivers/usb/gadget/uvc_queue.c
-@@ -364,6 +364,7 @@ static struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
- 						struct uvc_buffer *buf)
- {
- 	struct uvc_buffer *nextbuf;
-+	struct timespec ts;
- 
- 	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
- 	     buf->length != buf->bytesused) {
-@@ -379,14 +380,11 @@ static struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
- 	else
- 		nextbuf = NULL;
- 
--	/*
--	 * FIXME: with videobuf2, the sequence number or timestamp fields
--	 * are valid only for video capture devices and the UVC gadget usually
--	 * is a video output device. Keeping these until the specs are clear on
--	 * this aspect.
--	 */
-+	ktime_get_ts(&ts);
-+
- 	buf->buf.v4l2_buf.sequence = queue->sequence++;
--	do_gettimeofday(&buf->buf.v4l2_buf.timestamp);
-+	buf->buf.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
-+	buf->buf.v4l2_buf.timestamp.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
- 
- 	vb2_set_plane_payload(&buf->buf, 0, buf->bytesused);
- 	vb2_buffer_done(&buf->buf, VB2_BUF_STATE_DONE);
--- 
-1.8.3.2
+On Thu, Feb 27, 2014 at 10:14 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Set permissions on the debug module parameter to make it appear in sysfs.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Thanks,
+--Prabhakar Lad
