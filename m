@@ -1,38 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:41432 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751310AbaCaOAT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Mar 2014 10:00:19 -0400
-Received: by mail-yk0-f174.google.com with SMTP id 20so6163233yks.33
-        for <linux-media@vger.kernel.org>; Mon, 31 Mar 2014 07:00:18 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45500 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750878AbaCBSFL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 13:05:11 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	sakari.ailus@iki.fi
+Subject: Re: [PATCH v2] omap3isp: Fix kerneldoc for _module_sync_is_stopping and isp_isr()
+Date: Sun, 02 Mar 2014 19:06:26 +0100
+Message-ID: <1709992.clf7muDlF1@avalon>
+In-Reply-To: <1393608967-9171-1-git-send-email-pmeerw@pmeerw.net>
+References: <1603681.R3i3XynjN4@avalon> <1393608967-9171-1-git-send-email-pmeerw@pmeerw.net>
 MIME-Version: 1.0
-In-Reply-To: <53374174.4000909@podiumbv.nl>
-References: <533731B9.7030805@PodiumBV.com>
-	<53374174.4000909@podiumbv.nl>
-Date: Mon, 31 Mar 2014 10:00:18 -0400
-Message-ID: <CALzAhNVKtF60VGUUR8wYjZq6FTLum6SLH1mfbXh=a853vtZuTw@mail.gmail.com>
-Subject: Re: FireDTV / w_scan / no data from NIT(actual)
-From: Steven Toth <stoth@kernellabs.com>
-To: mailinglist@podiumbv.nl
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> But I guess demuxing is necessary to get the "NIT(actual) table", isn't it ?
+Hi Peter,
 
-Generally speaking applications configure the demux to pass all pids,
-so yes - the demux is typically mandatory. Data is received from the
-dvr0 device.
+Thank you for the patch.
 
-Assuming the card is tuning and delivering complete unfiltered
-transport payload reliably, then if no NIT is appearing then I can
-only assume either the application isn't waiting long enough, or it
-doesn't existing on that frequency.
+On Friday 28 February 2014 18:36:07 Peter Meerwald wrote:
+> use the correct name in the comment describing function
+> omap3isp_module_sync_is_stopping()
+> 
+> isp_isr() never returned IRQ_NONE, remove the comment saying so
+> 
+> Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
 
-- Steve
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree.
+
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 5807185..d60a4b7 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -588,9 +588,6 @@ static void isp_isr_sbl(struct isp_device *isp)
+>   * @_isp: Pointer to the OMAP3 ISP device
+>   *
+>   * Handles the corresponding callback if plugged in.
+> - *
+> - * Returns IRQ_HANDLED when IRQ was correctly handled, or IRQ_NONE when the
+> - * IRQ wasn't handled.
+>   */
+>  static irqreturn_t isp_isr(int irq, void *_isp)
+>  {
+> @@ -1420,7 +1417,7 @@ int omap3isp_module_sync_idle(struct media_entity *me,
+> wait_queue_head_t *wait, }
+> 
+>  /*
+> - * omap3isp_module_sync_is_stopped - Helper to verify if module was
+> stopping + * omap3isp_module_sync_is_stopping - Helper to verify if module
+> was stopping * @wait: ISP submodule's wait queue for streamoff/interrupt
+> synchronization * @stopping: flag which tells module wants to stop
+>   *
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
+
