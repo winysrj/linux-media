@@ -1,41 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55957 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43157 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913AbaCWPas (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Mar 2014 11:30:48 -0400
+	with ESMTP id S1751765AbaCBKat (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 05:30:49 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Fengguang Wu <fengguang.wu@intel.com>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
-Subject: [PATCH 0/2] Clock fixes for UVC gadget driver
-Date: Sun, 23 Mar 2014 16:32:32 +0100
-Message-Id: <1395588754-20587-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20140323001018.GA11963@localhost>
-References: <20140323001018.GA11963@localhost>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH] media DocBook: fix NV16M description.
+Date: Sun, 02 Mar 2014 11:32:10 +0100
+Message-ID: <6224050.YuhZzId860@avalon>
+In-Reply-To: <5312FD30.3070908@xs4all.nl>
+References: <5312FD30.3070908@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Hans,
 
-These two patches fix clock issues in the UVC gadget driver. Please see
-individual patches for details.
+Thank you for the patch.
 
-The series is based on the latest media tree master branch as it depends on
-commit 872484ce40881e295b046adf21f7211306477751 ("v4l: Add timestamp source
-flags, mask and document them") queued for v3.15. It would thus be easier to
-merge it through the media tree. Greg and Mauro, would that be fine ?
-Alternatively I can rebase it on top of v3.15-rc1 when that version will be
-tagged.
+On Sunday 02 March 2014 10:43:12 Hans Verkuil wrote:
+> The NV16M description contained some copy-and-paste text from NV12M,
+> suggesting that this format is a 4:2:0 format when it really is a
+> 4:2:2 format.
+> 
+> Fixed the text.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Laurent Pinchart (2):
-  usb: gadget: uvc: Switch to monotonic clock for buffer timestamps
-  usb: gadget: uvc: Set the vb2 queue timestamp flags
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
- drivers/usb/gadget/uvc_queue.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+> ---
+>  Documentation/DocBook/media/v4l/pixfmt-nv16m.xml | 9 ++++-----
+>  1 file changed, 4 insertions(+), 5 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+> b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml index c51d5a4..fb2b5e3
+> 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
+> @@ -12,18 +12,17 @@
+>        <refsect1>
+>  	<title>Description</title>
+> 
+> -	<para>This is a multi-planar, two-plane version of the YUV 4:2:0 format.
+> +	<para>This is a multi-planar, two-plane version of the YUV 4:2:2 format.
+>  The three components are separated into two sub-images or planes.
+>  <constant>V4L2_PIX_FMT_NV16M</constant> differs from
+> <constant>V4L2_PIX_FMT_NV16 </constant> in that the two planes are
+> non-contiguous in memory, i.e. the chroma -plane does not necessarily
+> immediately follows the luma plane.
+> +plane does not necessarily immediately follow the luma plane.
+>  The luminance data occupies the first plane. The Y plane has one byte per
+> pixel. In the second plane there is chrominance data with alternating
+> chroma samples. The CbCr plane is the same width and height, in bytes, as
+> the Y plane. -Each CbCr pair belongs to four pixels. For example,
+> +Each CbCr pair belongs to two pixels. For example,
+>  Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
+> -Y'<subscript>00</subscript>, Y'<subscript>01</subscript>,
+> -Y'<subscript>10</subscript>, Y'<subscript>11</subscript>.
+> +Y'<subscript>00</subscript>, Y'<subscript>01</subscript>.
+>  <constant>V4L2_PIX_FMT_NV61M</constant> is the same as
+> <constant>V4L2_PIX_FMT_NV16M</constant> except the Cb and Cr bytes are
+> swapped, the CrCb plane starts with a Cr byte.</para>
 
 -- 
 Regards,
