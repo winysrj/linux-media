@@ -1,242 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f182.google.com ([74.125.82.182]:36567 "EHLO
-	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129AbaB1X34 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 18:29:56 -0500
-Received: by mail-we0-f182.google.com with SMTP id u57so1128458wes.27
-        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:55 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH v4 08/10] rc: img-ir: add Sony decoder module
-Date: Fri, 28 Feb 2014 23:28:58 +0000
-Message-Id: <1393630140-31765-9-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
-References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4709 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751018AbaCBD2g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Mar 2014 22:28:36 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s223SXgr051859
+	for <linux-media@vger.kernel.org>; Sun, 2 Mar 2014 04:28:35 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 68F692A0232
+	for <linux-media@vger.kernel.org>; Sun,  2 Mar 2014 04:28:24 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140302032824.68F692A0232@tschai.lan>
+Date: Sun,  2 Mar 2014 04:28:24 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an img-ir module for decoding the Sony infrared protocol.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
-v2:
-- Update to new scancode interface (32-bit NEC).
-- Update to new filtering interface (generic struct rc_scancode_filter).
-- Remove modularity and dynamic registration/unregistration, adding Sony
-  directly to the list of decoders in img-ir-hw.c.
----
- drivers/media/rc/img-ir/Kconfig       |   7 ++
- drivers/media/rc/img-ir/Makefile      |   1 +
- drivers/media/rc/img-ir/img-ir-hw.c   |   4 +
- drivers/media/rc/img-ir/img-ir-sony.c | 145 ++++++++++++++++++++++++++++++++++
- 4 files changed, 157 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-sony.c
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-index 96006fbf..ab36577 100644
---- a/drivers/media/rc/img-ir/Kconfig
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -38,3 +38,10 @@ config IR_IMG_JVC
- 	help
- 	   Say Y here to enable support for the JVC protocol in the ImgTec
- 	   infrared decoder block.
-+
-+config IR_IMG_SONY
-+	bool "Sony protocol support"
-+	depends on IR_IMG_HW
-+	help
-+	   Say Y here to enable support for the Sony protocol in the ImgTec
-+	   infrared decoder block.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-index c5f8f06..978c0c6 100644
---- a/drivers/media/rc/img-ir/Makefile
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -3,6 +3,7 @@ img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
- img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
- img-ir-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
- img-ir-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
-+img-ir-$(CONFIG_IR_IMG_SONY)	+= img-ir-sony.o
- img-ir-objs			:= $(img-ir-y)
- 
- obj-$(CONFIG_IR_IMG)		+= img-ir.o
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index 81c50e3..0d4f921 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -22,6 +22,7 @@ static DEFINE_SPINLOCK(img_ir_decoders_lock);
- 
- extern struct img_ir_decoder img_ir_nec;
- extern struct img_ir_decoder img_ir_jvc;
-+extern struct img_ir_decoder img_ir_sony;
- 
- static bool img_ir_decoders_preprocessed;
- static struct img_ir_decoder *img_ir_decoders[] = {
-@@ -31,6 +32,9 @@ static struct img_ir_decoder *img_ir_decoders[] = {
- #ifdef CONFIG_IR_IMG_JVC
- 	&img_ir_jvc,
- #endif
-+#ifdef CONFIG_IR_IMG_SONY
-+	&img_ir_sony,
-+#endif
- 	NULL
- };
- 
-diff --git a/drivers/media/rc/img-ir/img-ir-sony.c b/drivers/media/rc/img-ir/img-ir-sony.c
-new file mode 100644
-index 0000000..993409a
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-sony.c
-@@ -0,0 +1,145 @@
-+/*
-+ * ImgTec IR Decoder setup for Sony (SIRC) protocol.
-+ *
-+ * Copyright 2012-2014 Imagination Technologies Ltd.
-+ */
-+
-+#include "img-ir-hw.h"
-+
-+/* Convert Sony data to a scancode */
-+static int img_ir_sony_scancode(int len, u64 raw, int *scancode, u64 protocols)
-+{
-+	unsigned int dev, subdev, func;
-+
-+	switch (len) {
-+	case 12:
-+		if (!(protocols & RC_BIT_SONY12))
-+			return -EINVAL;
-+		func   = raw & 0x7f;	/* first 7 bits */
-+		raw    >>= 7;
-+		dev    = raw & 0x1f;	/* next 5 bits */
-+		subdev = 0;
-+		break;
-+	case 15:
-+		if (!(protocols & RC_BIT_SONY15))
-+			return -EINVAL;
-+		func   = raw & 0x7f;	/* first 7 bits */
-+		raw    >>= 7;
-+		dev    = raw & 0xff;	/* next 8 bits */
-+		subdev = 0;
-+		break;
-+	case 20:
-+		if (!(protocols & RC_BIT_SONY20))
-+			return -EINVAL;
-+		func   = raw & 0x7f;	/* first 7 bits */
-+		raw    >>= 7;
-+		dev    = raw & 0x1f;	/* next 5 bits */
-+		raw    >>= 5;
-+		subdev = raw & 0xff;	/* next 8 bits */
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	*scancode = dev << 16 | subdev << 8 | func;
-+	return IMG_IR_SCANCODE;
-+}
-+
-+/* Convert NEC scancode to NEC data filter */
-+static int img_ir_sony_filter(const struct rc_scancode_filter *in,
-+			      struct img_ir_filter *out, u64 protocols)
-+{
-+	unsigned int dev, subdev, func;
-+	unsigned int dev_m, subdev_m, func_m;
-+	unsigned int len = 0;
-+
-+	dev      = (in->data >> 16) & 0xff;
-+	dev_m    = (in->mask >> 16) & 0xff;
-+	subdev   = (in->data >> 8)  & 0xff;
-+	subdev_m = (in->mask >> 8)  & 0xff;
-+	func     = (in->data >> 0)  & 0x7f;
-+	func_m   = (in->mask >> 0)  & 0x7f;
-+
-+	if (subdev & subdev_m) {
-+		/* can't encode subdev and higher device bits */
-+		if (dev & dev_m & 0xe0)
-+			return -EINVAL;
-+		/* subdevice (extended) bits only in 20 bit encoding */
-+		if (!(protocols & RC_BIT_SONY20))
-+			return -EINVAL;
-+		len = 20;
-+		dev_m &= 0x1f;
-+	} else if (dev & dev_m & 0xe0) {
-+		/* upper device bits only in 15 bit encoding */
-+		if (!(protocols & RC_BIT_SONY15))
-+			return -EINVAL;
-+		len = 15;
-+		subdev_m = 0;
-+	} else {
-+		/*
-+		 * The hardware mask cannot distinguish high device bits and low
-+		 * extended bits, so logically AND those bits of the masks
-+		 * together.
-+		 */
-+		subdev_m &= (dev_m >> 5) | 0xf8;
-+		dev_m &= 0x1f;
-+	}
-+
-+	/* ensure there aren't any bits straying between fields */
-+	dev &= dev_m;
-+	subdev &= subdev_m;
-+
-+	/* write the hardware filter */
-+	out->data = func          |
-+		    dev      << 7 |
-+		    subdev   << 15;
-+	out->mask = func_m        |
-+		    dev_m    << 7 |
-+		    subdev_m << 15;
-+
-+	if (len) {
-+		out->minlen = len;
-+		out->maxlen = len;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Sony SIRC decoder
-+ * See also http://www.sbprojects.com/knowledge/ir/sirc.php
-+ *          http://picprojects.org.uk/projects/sirc/sonysirc.pdf
-+ */
-+struct img_ir_decoder img_ir_sony = {
-+	.type = RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20,
-+	.control = {
-+		.decoden = 1,
-+		.code_type = IMG_IR_CODETYPE_PULSELEN,
-+	},
-+	/* main timings */
-+	.unit = 600000, /* 600 us */
-+	.timings = {
-+		/* leader symbol */
-+		.ldr = {
-+			.pulse = { 4	/* 2.4 ms */ },
-+			.space = { 1	/* 600 us */ },
-+		},
-+		/* 0 symbol */
-+		.s00 = {
-+			.pulse = { 1	/* 600 us */ },
-+			.space = { 1	/* 600 us */ },
-+		},
-+		/* 1 symbol */
-+		.s01 = {
-+			.pulse = { 2	/* 1.2 ms */ },
-+			.space = { 1	/* 600 us */ },
-+		},
-+		/* free time */
-+		.ft = {
-+			.minlen = 12,
-+			.maxlen = 20,
-+			.ft_min = 10,	/* 6 ms */
-+		},
-+	},
-+	/* scancode logic */
-+	.scancode = img_ir_sony_scancode,
-+	.filter = img_ir_sony_filter,
-+};
--- 
-1.8.3.2
+date:		Sun Mar  2 04:00:20 CET 2014
+git branch:	test
+git hash:	a06b429df49bb50ec1e671123a45147a1d1a6186
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
