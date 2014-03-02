@@ -1,303 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39363 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755542AbaCERa7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 12:30:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, sakari.ailus@iki.fi
-Subject: [PATCH/RFC v2 2/5] Make the media_device structure private
-Date: Wed,  5 Mar 2014 18:32:18 +0100
-Message-Id: <1394040741-22503-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394040741-22503-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394040741-22503-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:21445 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284AbaCBPl2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 10:41:28 -0500
+Date: Sun, 02 Mar 2014 12:41:16 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Shuah Khan <shuah.kh@samsung.com>, shuahkhan@gmail.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Patrick Dickey <pdickeybeta@gmail.com>
+Subject: Re: [PATCH 0/3] media/drx39xyj: fix DJH_DEBUG path null pointer
+ dereferences, and compile errors.
+Message-id: <20140302124116.4b2e1004@samsung.com>
+In-reply-to: <20140301075742.626e457c@samsung.com>
+References: <cover.1393621530.git.shuah.kh@samsung.com>
+ <CAGoCfiyZr2eCCW3ZmAE4_YUZw++NC3o-VY84M+n38tzfLdfBiQ@mail.gmail.com>
+ <20140301075742.626e457c@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- src/main.c          | 32 ++++++++++++++++-----------
- src/mediactl-priv.h | 45 ++++++++++++++++++++++++++++++++++++++
- src/mediactl.c      | 29 +++++++++++++++++++++++++
- src/mediactl.h      | 62 +++++++++++++++++++++++++++++++++++++++++------------
- src/v4l2subdev.c    |  1 +
- 5 files changed, 142 insertions(+), 27 deletions(-)
- create mode 100644 src/mediactl-priv.h
+Em Sat, 01 Mar 2014 07:57:42 -0300
+Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
 
-diff --git a/src/main.c b/src/main.c
-index 8b48fde..b0e2277 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -171,13 +171,15 @@ static const char *media_pad_type_to_string(unsigned flag)
- 
- static void media_print_topology_dot(struct media_device *media)
- {
-+	struct media_entity *entities = media_get_entities(media);
-+	unsigned int nents = media_get_entities_count(media);
- 	unsigned int i, j;
- 
- 	printf("digraph board {\n");
- 	printf("\trankdir=TB\n");
- 
--	for (i = 0; i < media->entities_count; ++i) {
--		struct media_entity *entity = &media->entities[i];
-+	for (i = 0; i < nents; ++i) {
-+		struct media_entity *entity = &entities[i];
- 		unsigned int npads;
- 
- 		switch (media_entity_type(entity)) {
-@@ -254,13 +256,15 @@ static void media_print_topology_text(struct media_device *media)
- 		{ MEDIA_LNK_FL_DYNAMIC, "DYNAMIC" },
- 	};
- 
-+	struct media_entity *entities = media_get_entities(media);
-+	unsigned int nents = media_get_entities_count(media);
- 	unsigned int i, j, k;
- 	unsigned int padding;
- 
- 	printf("Device topology\n");
- 
--	for (i = 0; i < media->entities_count; ++i) {
--		struct media_entity *entity = &media->entities[i];
-+	for (i = 0; i < nents; ++i) {
-+		struct media_entity *entity = &entities[i];
- 
- 		padding = printf("- entity %u: ", entity->info.id);
- 		printf("%s (%u pad%s, %u link%s)\n", entity->info.name,
-@@ -347,10 +351,12 @@ int main(int argc, char **argv)
- 	}
- 
- 	if (media_opts.print) {
-+		const struct media_device_info *info = media_get_info(media);
-+
- 		printf("Media controller API version %u.%u.%u\n\n",
--		       (media->info.media_version << 16) & 0xff,
--		       (media->info.media_version << 8) & 0xff,
--		       (media->info.media_version << 0) & 0xff);
-+		       (info->media_version << 16) & 0xff,
-+		       (info->media_version << 8) & 0xff,
-+		       (info->media_version << 0) & 0xff);
- 		printf("Media device information\n"
- 		       "------------------------\n"
- 		       "driver          %s\n"
-@@ -359,12 +365,12 @@ int main(int argc, char **argv)
- 		       "bus info        %s\n"
- 		       "hw revision     0x%x\n"
- 		       "driver version  %u.%u.%u\n\n",
--		       media->info.driver, media->info.model,
--		       media->info.serial, media->info.bus_info,
--		       media->info.hw_revision,
--		       (media->info.driver_version << 16) & 0xff,
--		       (media->info.driver_version << 8) & 0xff,
--		       (media->info.driver_version << 0) & 0xff);
-+		       info->driver, info->model,
-+		       info->serial, info->bus_info,
-+		       info->hw_revision,
-+		       (info->driver_version << 16) & 0xff,
-+		       (info->driver_version << 8) & 0xff,
-+		       (info->driver_version << 0) & 0xff);
- 	}
- 
- 	if (media_opts.entity) {
-diff --git a/src/mediactl-priv.h b/src/mediactl-priv.h
-new file mode 100644
-index 0000000..844acc7
---- /dev/null
-+++ b/src/mediactl-priv.h
-@@ -0,0 +1,45 @@
-+/*
-+ * Media controller interface library
-+ *
-+ * Copyright (C) 2010-2011 Ideas on board SPRL
-+ *
-+ * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU Lesser General Public License as published
-+ * by the Free Software Foundation; either version 2.1 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU Lesser General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU Lesser General Public License
-+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __MEDIA_PRIV_H__
-+#define __MEDIA_PRIV_H__
-+
-+#include <linux/media.h>
-+
-+#include "mediactl.h"
-+
-+struct media_device {
-+	int fd;
-+	int refcount;
-+	char *devnode;
-+
-+	struct media_device_info info;
-+	struct media_entity *entities;
-+	unsigned int entities_count;
-+
-+	void (*debug_handler)(void *, ...);
-+	void *debug_priv;
-+};
-+
-+#define media_dbg(media, ...) \
-+	(media)->debug_handler((media)->debug_priv, __VA_ARGS__)
-+
-+#endif /* __MEDIA_PRIV_H__ */
-diff --git a/src/mediactl.c b/src/mediactl.c
-index c71d4e1..2ba0ab8 100644
---- a/src/mediactl.c
-+++ b/src/mediactl.c
-@@ -38,8 +38,13 @@
- #include <linux/videodev2.h>
- 
- #include "mediactl.h"
-+#include "mediactl-priv.h"
- #include "tools.h"
- 
-+/* -----------------------------------------------------------------------------
-+ * Graph access
-+ */
-+
- struct media_pad *media_entity_remote_source(struct media_pad *pad)
- {
- 	unsigned int i;
-@@ -101,6 +106,26 @@ struct media_entity *media_get_entity_by_id(struct media_device *media,
- 	return NULL;
- }
- 
-+unsigned int media_get_entities_count(struct media_device *media)
-+{
-+	return media->entities_count;
-+}
-+
-+struct media_entity *media_get_entities(struct media_device *media)
-+{
-+	return media->entities;
-+}
-+
-+const struct media_device_info *media_get_info(struct media_device *media)
-+{
-+	return &media->info;
-+}
-+
-+const char *media_get_devnode(struct media_device *media)
-+{
-+	return media->devnode;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Open/close
-  */
-@@ -222,6 +247,10 @@ int media_reset_links(struct media_device *media)
- 	return 0;
- }
- 
-+/* -----------------------------------------------------------------------------
-+ * Entities, pads and links enumeration
-+ */
-+
- static struct media_link *media_entity_add_link(struct media_entity *entity)
- {
- 	if (entity->num_links >= entity->max_links) {
-diff --git a/src/mediactl.h b/src/mediactl.h
-index 34e7487..efa59d6 100644
---- a/src/mediactl.h
-+++ b/src/mediactl.h
-@@ -52,20 +52,7 @@ struct media_entity {
- 	__u32 padding[6];
- };
- 
--struct media_device {
--	int fd;
--	int refcount;
--	char *devnode;
--	struct media_device_info info;
--	struct media_entity *entities;
--	unsigned int entities_count;
--	void (*debug_handler)(void *, ...);
--	void *debug_priv;
--	__u32 padding[6];
--};
--
--#define media_dbg(media, ...) \
--	(media)->debug_handler((media)->debug_priv, __VA_ARGS__)
-+struct media_device;
- 
- /**
-  * @brief Create a new media device.
-@@ -184,6 +171,53 @@ struct media_entity *media_get_entity_by_id(struct media_device *media,
- 	__u32 id);
- 
- /**
-+ * @brief Get the number of entities
-+ * @param media - media device.
-+ *
-+ * This function returns the total number of entities in the media device. If
-+ * entities haven't been enumerated yet it will return 0.
-+ *
-+ * @return The number of entities in the media device
-+ */
-+unsigned int media_get_entities_count(struct media_device *media);
-+
-+/**
-+ * @brief Get the entities
-+ * @param media - media device.
-+ *
-+ * This function returns a pointer to the array of entities for the media
-+ * device. If entities haven't been enumerated yet it will return NULL.
-+ *
-+ * The array of entities is owned by the media device object and will be freed
-+ * when the media object is destroyed.
-+ *
-+ * @return A pointer to an array of entities
-+ */
-+struct media_entity *media_get_entities(struct media_device *media);
-+
-+/**
-+ * @brief Get the media device information
-+ * @param media - media device.
-+ *
-+ * The information structure is owned by the media device object and will be freed
-+ * when the media object is destroyed.
-+ *
-+ * @return A pointer to the media device information
-+ */
-+const struct media_device_info *media_get_info(struct media_device *media);
-+
-+/**
-+ * @brief Get the media device node name
-+ * @param media - media device.
-+ *
-+ * The device node name string is owned by the media device object and will be
-+ * freed when the media object is destroyed.
-+ *
-+ * @return A pointer to the media device node name
-+ */
-+const char *media_get_devnode(struct media_device *media);
-+
-+/**
-  * @brief Configure a link.
-  * @param media - media device.
-  * @param source - source pad at the link origin.
-diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
-index 2d45d7f..77fe420 100644
---- a/src/v4l2subdev.c
-+++ b/src/v4l2subdev.c
-@@ -35,6 +35,7 @@
- #include <linux/v4l2-subdev.h>
- 
- #include "mediactl.h"
-+#include "mediactl-priv.h"
- #include "tools.h"
- #include "v4l2subdev.h"
- 
+> Hi Devin,
+> 
+> Em Fri, 28 Feb 2014 19:13:16 -0500
+> Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+> 
+> > Seems kind of strange that I wasn't on the CC for this, since I was the
+> > original author of all that code (in fact, DJH are my initials).
+> > 
+> > Mauro, did you strip off my authorship when you pulled the patches from my
+> > tree?
+> 
+> Thanks for warning me about that!
+> 
+> Not sure what happened there. The original branch were added back in 2012,
+> with the sole reason to provide a way for Patrick Dickey to catch a few
+> patches I made on that time with some CodingStyle fixes:
+> 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/drx-j
+> 
+> There, your name was there as an extra weird "Committer" tag on those changesets:
+> 	http://git.linuxtv.org/mchehab/experimental.git/commit/24d5ed7b19cc19f807264d7d4d56ab48e5cab230
+> 	http://git.linuxtv.org/mchehab/experimental.git/commit/0440897f72b9cf82b8f576fae292b0567ad88239
+> 
+> The second one also contained a "Tag: tip" on it. So, I suspect that
+> something wrong happened when I imported it (either from your tree or
+> from some email sent by you or by Patrick). Probably, some broken
+> hg-import scripting.
+> 
+> Anyway, I rebased my tree, fixing those issues, at:
+> 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/drx-j-v3
+> 
+> I also added a credit at the first patch for Patrick's fixes that
+> I suspect it was merged somehow there, based on the comments he
+> posted at the mailing list when he sent his 25-patches series:
+> 	https://lwn.net/Articles/467301/
+> 
+> Please let me know if you find any other issues on it. Anyway, I'll post
+> the patches from my experimental branch at the ML before merging them
+> upstream, in order to get a proper review.
+> 
+> Before that happen, however, I need to fix a serious bug that is
+> preventing to watch TV with this frontend, that it is there since the
+> first patch.
+> 
+> To be sure that this is a driver issue, I tested the driver on
+> another OS using the original PCTV driver, and it worked.
+> 
+> However, since the first working version of this driver, it
+> is randomly losing MPEG TS packets.
+> 
+> The bug is intermittent: every time it sets up VSB reception, it loses
+> different MPEG TS tables. Sometimes, not a single TS packet is received,
+> but, most of the time, it gets ~ 1/10 of the expected number of packets.
+
+Partially found and fixed it with this patch:
+	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/5cc6dca273e51494c17df5e488aaf223732edb38
+
+After that, it properly receives data at the right rate (~19Mbps) as
+generated by DTA-2111.
+
+However, there are still some weird things happening there... While
+the bit rate is ~ 19 Mbps, and adding a printk just before calling
+dvb_dmx_swfilter() to print the rate is showing the right bitrate
+(The signal generator shows it as 19.392.659 bps):
+
+[86213.084891] em28xx_dvb_urb_data_copy: 19428.672 kbps
+[86214.087737] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86215.090586] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86216.093433] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86217.096280] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86218.099126] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86219.101971] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86220.104814] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86221.107659] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86222.110519] em28xx_dvb_urb_data_copy: 19430.176 kbps
+[86223.113351] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86224.116200] em28xx_dvb_urb_data_copy: 19431.680 kbps
+[86225.119047] em28xx_dvb_urb_data_copy: 19431.680 kbps
+
+Using dvbv5-zap on monitor mode only shows about 6.3 Mbps:
+
+ PID          FREQ         SPEED       TOTAL
+05b6      1.33 p/s      2.0 Kbps        2 KB
+06a5      4.57 p/s      6.7 Kbps       10 KB
+07cf      4.40 p/s      6.5 Kbps        9 KB
+0a93   1200.38 p/s   1763.1 Kbps     2651 KB
+0f75      2.66 p/s      3.9 Kbps        5 KB
+1743      5.49 p/s      8.1 Kbps       12 KB
+18c4   1205.04 p/s   1769.9 Kbps     2661 KB
+197a      4.65 p/s      6.8 Kbps       10 KB
+1c15      4.99 p/s      7.3 Kbps       11 KB
+1c68   1286.40 p/s   1889.4 Kbps     2841 KB
+1d4b      4.32 p/s      6.3 Kbps        9 KB
+1fb2      4.07 p/s      6.0 Kbps        8 KB
+1fff      2.33 p/s      3.4 Kbps        5 KB
+TOT    4319.15 p/s   6343.7 Kbps     9541 KB
+
+
+Lock   (0x1f) Signal= 71.00% C/N= 0.42% UCB= 273 postBER= 0
+
+It seems that most of the packets are without the 0x47 sync byte there.
+
+In order to compare with another frontend, this is what it is seen
+with WinTV Aero-A (model 72251, rev D3F0):
+
+
+ PID          FREQ         SPEED       TOTAL
+0000     15.87 p/s     23.3 Kbps       29 KB
+0010      6.39 p/s      9.4 Kbps       11 KB
+0011  11754.82 p/s  17264.9 Kbps    21617 KB
+0014    312.27 p/s    458.6 Kbps      574 KB
+0015    156.03 p/s    229.2 Kbps      286 KB
+001f      1.70 p/s      2.5 Kbps        3 KB
+0200    430.07 p/s    631.7 Kbps      790 KB
+0630      6.39 p/s      9.4 Kbps       11 KB
+1053      7.19 p/s     10.6 Kbps       13 KB
+1054      2.40 p/s      3.5 Kbps        4 KB
+1055      2.40 p/s      3.5 Kbps        4 KB
+1056      1.70 p/s      2.5 Kbps        3 KB
+112d      4.79 p/s      7.0 Kbps        8 KB
+112e      1.60 p/s      2.3 Kbps        2 KB
+112f      1.60 p/s      2.3 Kbps        2 KB
+1ffb     14.97 p/s     22.0 Kbps       27 KB
+1fff    159.43 p/s    234.2 Kbps      293 KB
+TOT   12880.50 p/s  18918.2 Kbps    23688 KB
+
+
+Lock   (0x1f) Signal= 71.43% C/N= 0.38% UCB= 250 postBER= 0
+
+The net result is that it is impossible to watch TV with PCTV 80e,
+as most of the MPEG TS packages got discarded, but it works fine with
+WinTV Aero.
+
+
+So, there's something causing packet corruption there at drx-j.
+
+No sure yet how to fix it.
+
+Regards,
 -- 
-1.8.3.2
 
+Cheers,
+Mauro
