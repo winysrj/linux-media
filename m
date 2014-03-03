@@ -1,243 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53632 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752502AbaCKPJu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 11:09:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v3 46/48] adv7604: Add DT support
-Date: Tue, 11 Mar 2014 16:11:22 +0100
-Message-Id: <1394550682-25358-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-47-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-47-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:49500 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754241AbaCCKIO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:14 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 20/79] [media] drx-j: Get rid of drx39xyj/bsp_tuner.h
+Date: Mon,  3 Mar 2014 07:06:14 -0300
+Message-Id: <1393841233-24840-21-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse the device tree node to populate platform data.
+This file is not used anywhere. Drop it.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- .../devicetree/bindings/media/i2c/adv7604.txt      | 56 +++++++++++++
- drivers/media/i2c/adv7604.c                        | 92 ++++++++++++++++++----
- 2 files changed, 134 insertions(+), 14 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7604.txt
+ drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h | 204 -----------------------
+ 1 file changed, 204 deletions(-)
+ delete mode 100644 drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h
 
-Changes since v2:
-
-- Rebased on top of 36/48 v3.
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-new file mode 100644
-index 0000000..0845c50
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -0,0 +1,56 @@
-+* Analog Devices ADV7604/11 video decoder with HDMI receiver
-+
-+The ADV7604 and ADV7611 are multiformat video decoders with an integrated HDMI
-+receiver. The ADV7604 has four multiplexed HDMI inputs and one analog input,
-+and the ADV7611 has one HDMI input and no analog input.
-+
-+Required Properties:
-+
-+  - compatible: Must contain one of the following
-+    - "adi,adv7604" for the ADV7604
-+    - "adi,adv7611" for the ADV7611
-+
-+  - reg: I2C slave address
-+
-+  - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
-+    detection pins, one per HDMI input. The active flag indicates the GPIO
-+    level that enables hot-plug detection.
-+
-+Optional Properties:
-+
-+  - reset-gpios: Reference to the GPIO connected to the device's reset pin.
-+
-+  - adi,default-input: Index of the input to be configured as default. Valid
-+    values are 0..5 for the ADV7604 and 0 for the ADV7611.
-+
-+  - adi,disable-power-down: Boolean property. When set forces the device to
-+    ignore the power-down pin. The property is valid for the ADV7604 only as
-+    the ADV7611 has no power-down pin.
-+
-+  - adi,disable-cable-reset: Boolean property. When set disables the HDMI
-+    receiver automatic reset when the HDMI cable is unplugged.
-+
-+Example:
-+
-+	hdmi_receiver@4c {
-+		compatible = "adi,adv7611";
-+		reg = <0x4c>;
-+
-+		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
-+		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
-+
-+		adi,default-input = <0>;
-+
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+		};
-+		port@1 {
-+			reg = <1>;
-+			hdmi_in: endpoint {
-+				remote-endpoint = <&ccdc_in>;
-+			};
-+		};
-+	};
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index b352b62..5901b78 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2663,13 +2663,70 @@ static const struct adv7604_chip_info adv7604_chip_info[] = {
- 	},
- };
- 
-+static struct i2c_device_id adv7604_i2c_id[] = {
-+	{ "adv7604", (kernel_ulong_t)&adv7604_chip_info[ADV7604] },
-+	{ "adv7611", (kernel_ulong_t)&adv7604_chip_info[ADV7611] },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
-+
-+static struct of_device_id adv7604_of_id[] = {
-+	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
-+	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, adv7604_of_id);
-+
-+static int adv7604_parse_dt(struct adv7604_state *state)
-+{
-+	struct device_node *np;
-+	int ret;
-+
-+	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
-+
-+	state->pdata.disable_pwrdnb =
-+		of_property_read_bool(np, "adi,disable-power-down");
-+	state->pdata.disable_cable_det_rst =
-+		of_property_read_bool(np, "adi,disable-cable-reset");
-+
-+	ret = of_property_read_u32(np, "adi,default-input",
-+				   &state->pdata.default_input);
-+	if (ret < 0)
-+		state->pdata.default_input = -1;
-+
-+	/* Disable the interrupt for now as no DT-based board uses it. */
-+	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
-+
-+	/* Use the default I2C addresses. */
-+	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
-+	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
-+
-+	/* HACK: Hardcode the remaining platform data fields. */
-+	state->pdata.blank_data = 1;
-+	state->pdata.op_656_range = 1;
-+	state->pdata.alt_data_sat = 1;
-+	state->pdata.insert_av_codes = 1;
-+	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
-+
-+	return 0;
-+}
-+
- static int adv7604_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
- 	static const struct v4l2_dv_timings cea640x480 =
- 		V4L2_DV_BT_CEA_640X480P59_94;
- 	struct adv7604_state *state;
--	struct adv7604_platform_data *pdata = client->dev.platform_data;
- 	struct v4l2_ctrl_handler *hdl;
- 	struct v4l2_subdev *sd;
- 	unsigned int i;
-@@ -2688,19 +2745,32 @@ static int adv7604_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	}
- 
--	state->info = &adv7604_chip_info[id->driver_data];
- 	state->i2c_clients[ADV7604_PAGE_IO] = client;
- 
- 	/* initialize variables */
- 	state->restart_stdi_once = true;
- 	state->selected_input = ~0;
- 
--	/* platform data */
--	if (!pdata) {
-+	if (IS_ENABLED(CONFIG_OF) && client->dev.of_node) {
-+		const struct of_device_id *oid;
-+
-+		oid = of_match_node(adv7604_of_id, client->dev.of_node);
-+		state->info = oid->data;
-+
-+		err = adv7604_parse_dt(state);
-+		if (err < 0) {
-+			v4l_err(client, "DT parsing error\n");
-+			return err;
-+		}
-+	} else if (client->dev.platform_data) {
-+		struct adv7604_platform_data *pdata = client->dev.platform_data;
-+
-+		state->info = (const struct adv7604_chip_info *)id->driver_data;
-+		state->pdata = *pdata;
-+	} else {
- 		v4l_err(client, "No platform data!\n");
- 		return -ENODEV;
- 	}
--	state->pdata = *pdata;
- 
- 	/* Request GPIOs. */
- 	for (i = 0; i < state->info->num_dv_ports; ++i) {
-@@ -2799,7 +2869,7 @@ static int adv7604_probe(struct i2c_client *client,
- 			continue;
- 
- 		state->i2c_clients[i] =
--			adv7604_dummy_client(sd, pdata->i2c_addresses[i],
-+			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
- 					     0xf2 + i);
- 		if (state->i2c_clients[i] == NULL) {
- 			err = -ENOMEM;
-@@ -2873,21 +2943,15 @@ static int adv7604_remove(struct i2c_client *client)
- 
- /* ----------------------------------------------------------------------- */
- 
--static struct i2c_device_id adv7604_id[] = {
--	{ "adv7604", ADV7604 },
--	{ "adv7611", ADV7611 },
--	{ }
--};
--MODULE_DEVICE_TABLE(i2c, adv7604_id);
+diff --git a/drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h b/drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h
+deleted file mode 100644
+index 080ac02eaadb..000000000000
+--- a/drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h
++++ /dev/null
+@@ -1,204 +0,0 @@
+-/*
+-  Tuner dependable type definitions, macro's and functions
 -
- static struct i2c_driver adv7604_driver = {
- 	.driver = {
- 		.owner = THIS_MODULE,
- 		.name = "adv7604",
-+		.of_match_table = of_match_ptr(adv7604_of_id),
- 	},
- 	.probe = adv7604_probe,
- 	.remove = adv7604_remove,
--	.id_table = adv7604_id,
-+	.id_table = adv7604_i2c_id,
- };
- 
- module_i2c_driver(adv7604_driver);
+-  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
+-  All rights reserved.
+-
+-  Redistribution and use in source and binary forms, with or without
+-  modification, are permitted provided that the following conditions are met:
+-
+-  * Redistributions of source code must retain the above copyright notice,
+-    this list of conditions and the following disclaimer.
+-  * Redistributions in binary form must reproduce the above copyright notice,
+-    this list of conditions and the following disclaimer in the documentation
+-	and/or other materials provided with the distribution.
+-  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
+-    nor the names of its contributors may be used to endorse or promote
+-	products derived from this software without specific prior written
+-	permission.
+-
+-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+-  POSSIBILITY OF SUCH DAMAGE.
+-*/
+-
+-#ifndef __DRXBSP_TUNER_H__
+-#define __DRXBSP_TUNER_H__
+-/*------------------------------------------------------------------------------
+-INCLUDES
+-------------------------------------------------------------------------------*/
+-#include "bsp_types.h"
+-#include "bsp_i2c.h"
+-
+-#ifdef __cplusplus
+-extern "C" {
+-#endif
+-
+-/*------------------------------------------------------------------------------
+-DEFINES
+-------------------------------------------------------------------------------*/
+-
+-	/* Sub-mode bits should be adjacent and incremental */
+-#define TUNER_MODE_SUB0    0x0001	/* for sub-mode (e.g. RF-AGC setting) */
+-#define TUNER_MODE_SUB1    0x0002	/* for sub-mode (e.g. RF-AGC setting) */
+-#define TUNER_MODE_SUB2    0x0004	/* for sub-mode (e.g. RF-AGC setting) */
+-#define TUNER_MODE_SUB3    0x0008	/* for sub-mode (e.g. RF-AGC setting) */
+-#define TUNER_MODE_SUB4    0x0010	/* for sub-mode (e.g. RF-AGC setting) */
+-#define TUNER_MODE_SUB5    0x0020	/* for sub-mode (e.g. RF-AGC setting) */
+-#define TUNER_MODE_SUB6    0x0040	/* for sub-mode (e.g. RF-AGC setting) */
+-#define TUNER_MODE_SUB7    0x0080	/* for sub-mode (e.g. RF-AGC setting) */
+-
+-#define TUNER_MODE_DIGITAL 0x0100	/* for digital channel (e.g. DVB-T)   */
+-#define TUNER_MODE_ANALOG  0x0200	/* for analog channel  (e.g. PAL)     */
+-#define TUNER_MODE_SWITCH  0x0400	/* during channel switch & scanning   */
+-#define TUNER_MODE_LOCK    0x0800	/* after tuner has locked             */
+-#define TUNER_MODE_6MHZ    0x1000	/* for 6MHz bandwidth channels        */
+-#define TUNER_MODE_7MHZ    0x2000	/* for 7MHz bandwidth channels        */
+-#define TUNER_MODE_8MHZ    0x4000	/* for 8MHz bandwidth channels        */
+-
+-#define TUNER_MODE_SUB_MAX 8
+-#define TUNER_MODE_SUBALL  (TUNER_MODE_SUB0 | TUNER_MODE_SUB1 | \
+-			      TUNER_MODE_SUB2 | TUNER_MODE_SUB3 | \
+-			      TUNER_MODE_SUB4 | TUNER_MODE_SUB5 | \
+-			      TUNER_MODE_SUB6 | TUNER_MODE_SUB7)
+-
+-/*------------------------------------------------------------------------------
+-TYPEDEFS
+-------------------------------------------------------------------------------*/
+-
+-	typedef u32 tuner_mode_t;
+-	typedef u32 *ptuner_mode_t;
+-
+-	typedef char *tuner_sub_mode_t;	/* description of submode */
+-	typedef tuner_sub_mode_t *ptuner_sub_mode_t;
+-
+-	typedef enum {
+-
+-		TUNER_LOCKED,
+-		TUNER_NOT_LOCKED
+-	} tuner_lock_status_t, *ptuner_lock_status_t;
+-
+-	typedef struct {
+-
+-		char *name;	/* Tuner brand & type name */
+-		s32 min_freq_rf;	/* Lowest  RF input frequency, in kHz */
+-		s32 max_freq_rf;	/* Highest RF input frequency, in kHz */
+-
+-		u8 sub_mode;	/* Index to sub-mode in use */
+-		ptuner_sub_mode_t sub_modeDescriptions;	/* Pointer to description of sub-modes */
+-		u8 sub_modes;	/* Number of available sub-modes      */
+-
+-		/* The following fields will be either 0, NULL or false and do not need
+-		   initialisation */
+-		void *self_check;	/* gives proof of initialization  */
+-		bool programmed;	/* only valid if self_check is OK  */
+-		s32 r_ffrequency;	/* only valid if programmed       */
+-		s32 i_ffrequency;	/* only valid if programmed       */
+-
+-		void *myUser_data;	/* pointer to associated demod instance */
+-		u16 my_capabilities;	/* value for storing application flags  */
+-
+-	} tuner_common_attr_t, *ptuner_common_attr_t;
+-
+-/*
+-* Generic functions for DRX devices.
+-*/
+-	typedef struct tuner_instance_s *p_tuner_instance_t;
+-
+-	typedef drx_status_t(*tuner_open_func_t) (p_tuner_instance_t tuner);
+-	typedef drx_status_t(*tuner_close_func_t) (p_tuner_instance_t tuner);
+-
+-	typedef drx_status_t(*tuner_set_frequency_func_t) (p_tuner_instance_t tuner,
+-						       tuner_mode_t mode,
+-						       s32
+-						       frequency);
+-
+-	typedef drx_status_t(*tuner_get_frequency_func_t) (p_tuner_instance_t tuner,
+-						       tuner_mode_t mode,
+-						       s32 *
+-						       r_ffrequency,
+-						       s32 *
+-						       i_ffrequency);
+-
+-	typedef drx_status_t(*tuner_lock_status_func_t) (p_tuner_instance_t tuner,
+-						     ptuner_lock_status_t
+-						     lock_stat);
+-
+-	typedef drx_status_t(*tune_ri2c_write_read_func_t) (p_tuner_instance_t tuner,
+-						       struct i2c_device_addr *
+-						       w_dev_addr, u16 w_count,
+-						       u8 *wData,
+-						       struct i2c_device_addr *
+-						       r_dev_addr, u16 r_count,
+-						       u8 *r_data);
+-
+-	typedef struct {
+-		tuner_open_func_t open_func;
+-		tuner_close_func_t close_func;
+-		tuner_set_frequency_func_t set_frequency_func;
+-		tuner_get_frequency_func_t get_frequency_func;
+-		tuner_lock_status_func_t lock_statusFunc;
+-		tune_ri2c_write_read_func_t i2c_write_read_func;
+-
+-	} tuner_func_t, *ptuner_func_t;
+-
+-	typedef struct tuner_instance_s {
+-
+-		struct i2c_device_addr my_i2c_dev_addr;
+-		ptuner_common_attr_t my_common_attr;
+-		void *my_ext_attr;
+-		ptuner_func_t my_funct;
+-
+-	} tuner_instance_t;
+-
+-/*------------------------------------------------------------------------------
+-ENUM
+-------------------------------------------------------------------------------*/
+-
+-/*------------------------------------------------------------------------------
+-STRUCTS
+-------------------------------------------------------------------------------*/
+-
+-/*------------------------------------------------------------------------------
+-Exported FUNCTIONS
+-------------------------------------------------------------------------------*/
+-
+-	drx_status_t drxbsp_tuner_open(p_tuner_instance_t tuner);
+-
+-	drx_status_t drxbsp_tuner_close(p_tuner_instance_t tuner);
+-
+-	drx_status_t drxbsp_tuner_set_frequency(p_tuner_instance_t tuner,
+-					      tuner_mode_t mode,
+-					      s32 frequency);
+-
+-	drx_status_t drxbsp_tuner_get_frequency(p_tuner_instance_t tuner,
+-					      tuner_mode_t mode,
+-					      s32 *r_ffrequency,
+-					      s32 *i_ffrequency);
+-
+-	drx_status_t drxbsp_tuner_lock_status(p_tuner_instance_t tuner,
+-					    ptuner_lock_status_t lock_stat);
+-
+-	drx_status_t drxbsp_tuner_default_i2c_write_read(p_tuner_instance_t tuner,
+-						     struct i2c_device_addr *w_dev_addr,
+-						     u16 w_count,
+-						     u8 *wData,
+-						     struct i2c_device_addr *r_dev_addr,
+-						     u16 r_count, u8 *r_data);
+-
+-/*------------------------------------------------------------------------------
+-THE END
+-------------------------------------------------------------------------------*/
+-#ifdef __cplusplus
+-}
+-#endif
+-#endif				/* __DRXBSP_TUNER_H__ */
+-/* End of file */
 -- 
-1.8.3.2
+1.8.5.3
 
