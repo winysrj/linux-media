@@ -1,40 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48666 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751370AbaCBPfh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Mar 2014 10:35:37 -0500
-Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 2712F6008E
-	for <linux-media@vger.kernel.org>; Sun,  2 Mar 2014 17:35:34 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] v4l: Trivial documentation fix
-Date: Sun,  2 Mar 2014 17:38:52 +0200
-Message-Id: <1393774732-32538-1-git-send-email-sakari.ailus@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:49431 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754192AbaCCKIC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:02 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 71/79] [media] drx-j: Use single master mode
+Date: Mon,  3 Mar 2014 07:07:05 -0300
+Message-Id: <1393841233-24840-72-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove one quotation mark. This fixes DocBook documentation build.
+There are no other I2C masters here. Also, the Windows driver uses
+this mode (and both drxd and drxk Kernel drivers). So, switch
+to it.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+That helps to compare the logs between the Linux driver and the
+Windows one.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml |    2 +-
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 0e1770c..b7f3feb 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -2259,7 +2259,7 @@ VBV buffer control.</entry>
- 	      </row>
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+index 8419989b4c38..e54eb35b52d9 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
++++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+@@ -260,7 +260,7 @@ int drxbsp_tuner_default_i2c_write_read(struct tuner_instance *tuner,
+ *
+ */
+ #ifndef DRXDAP_SINGLE_MASTER
+-#define DRXDAP_SINGLE_MASTER 0
++#define DRXDAP_SINGLE_MASTER 1
+ #endif
  
- 		  <row><entry></entry></row>
--	      <row id=""v4l2-mpeg-video-hor-search-range">
-+	      <row id="v4l2-mpeg-video-hor-search-range">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE</constant>&nbsp;</entry>
- 		<entry>integer</entry>
- 	      </row>
+ /**
 -- 
-1.7.10.4
+1.8.5.3
 
