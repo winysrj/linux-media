@@ -1,112 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2521 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544AbaCEIWp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 03:22:45 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s258MgmW079054
-	for <linux-media@vger.kernel.org>; Wed, 5 Mar 2014 09:22:44 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id CCF8D2A045D
-	for <linux-media@vger.kernel.org>; Wed,  5 Mar 2014 09:22:28 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140305082228.CCF8D2A045D@tschai.lan>
-Date: Wed,  5 Mar 2014 09:22:28 +0100 (CET)
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:57475 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754872AbaCCVBK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 16:01:10 -0500
+Received: by mail-ea0-f174.google.com with SMTP id f15so1960328eak.33
+        for <linux-media@vger.kernel.org>; Mon, 03 Mar 2014 13:01:08 -0800 (PST)
+Date: Mon, 3 Mar 2014 22:01:04 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: Christian =?iso-8859-1?Q?K=F6nig?= <deathsimple@vodafone.de>,
+	Rob Clark <robdclark@gmail.com>, linux-arch@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Colin Cross <ccross@google.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/6] seqno-fence: Hardware dma-buf implementation of
+ fencing (v4)
+Message-ID: <20140303210104.GJ17001@phenom.ffwll.local>
+References: <20140217155056.20337.25254.stgit@patser>
+ <20140217155556.20337.37589.stgit@patser>
+ <53023F3E.3080107@vodafone.de>
+ <CAF6AEGtHSg=qESbGE8LZsQPrRfHnrSQOjpEAVKeZ5o9k07ZNcA@mail.gmail.com>
+ <530248B1.2090405@vodafone.de>
+ <CAF6AEGtk1dGdFg2wk-ofRQmaxEnnEOQBOg=JNaPRVapQqsML+w@mail.gmail.com>
+ <530257E3.2060508@vodafone.de>
+ <5304B0E7.4000802@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5304B0E7.4000802@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, Feb 19, 2014 at 02:25:59PM +0100, Maarten Lankhorst wrote:
+> op 17-02-14 19:41, Christian König schreef:
+> >Am 17.02.2014 19:24, schrieb Rob Clark:
+> >>On Mon, Feb 17, 2014 at 12:36 PM, Christian König
+> >><deathsimple@vodafone.de> wrote:
+> >>>Am 17.02.2014 18:27, schrieb Rob Clark:
+> >>>
+> >>>>On Mon, Feb 17, 2014 at 11:56 AM, Christian König
+> >>>><deathsimple@vodafone.de> wrote:
+> >>>>>Am 17.02.2014 16:56, schrieb Maarten Lankhorst:
+> >>>>>
+> >>>>>>This type of fence can be used with hardware synchronization for simple
+> >>>>>>hardware that can block execution until the condition
+> >>>>>>(dma_buf[offset] - value) >= 0 has been met.
+> >>>>>
+> >>>>>Can't we make that just "dma_buf[offset] != 0" instead? As far as I know
+> >>>>>this way it would match the definition M$ uses in their WDDM
+> >>>>>specification
+> >>>>>and so make it much more likely that hardware supports it.
+> >>>>well 'buf[offset] >= value' at least means the same slot can be used
+> >>>>for multiple operations (with increasing values of 'value').. not sure
+> >>>>if that is something people care about.
+> >>>>
+> >>>>>=value seems to be possible with adreno and radeon.  I'm not really sure
+> >>>>>about others (although I presume it as least supported for nv desktop
+> >>>>>stuff).  For hw that cannot do >=value, we can either have a different fence
+> >>>>>implementation which uses the !=0 approach.  Or change seqno-fence
+> >>>>>implementation later if needed.  But if someone has hw that can do !=0 but
+> >>>>>not >=value, speak up now ;-)
+> >>>
+> >>>Here! Radeon can only do >=value on the DMA and 3D engine, but not with UVD
+> >>>or VCE. And for the 3D engine it means draining the pipe, which isn't really
+> >>>a good idea.
+> >>hmm, ok.. forgot you have a few extra rings compared to me.  Is UVD
+> >>re-ordering from decode-order to display-order for you in hw? If not,
+> >>I guess you need sw intervention anyways when a frame is done for
+> >>frame re-ordering, so maybe hw->hw sync doesn't really matter as much
+> >>as compared to gpu/3d->display.  For dma<->3d interactions, seems like
+> >>you would care more about hw<->hw sync, but I guess you aren't likely
+> >>to use GPU A to do a resolve blit for GPU B..
+> >
+> >No UVD isn't reordering, but since frame reordering is predictable you usually end up with pipelining everything to the hardware. E.g. you send the decode commands in decode order to the UVD block and if you have overlay active one of the frames are going to be the first to display and then you want to wait for it on the display side.
+> >
+> >>For 3D ring, I assume you probably want a CP_WAIT_FOR_IDLE before a
+> >>CP_MEM_WRITE to update fence value in memory (for the one signalling
+> >>the fence).  But why would you need that before a CP_WAIT_REG_MEM (for
+> >>the one waiting for the fence)?  I don't exactly have documentation
+> >>for adreno version of CP_WAIT_REG_{MEM,EQ,GTE}..  but PFP and ME
+> >>appear to be same instruction set as r600, so I'm pretty sure they
+> >>should have similar capabilities.. CP_WAIT_REG_MEM appears to be same
+> >>but with 32bit gpu addresses vs 64b.
+> >
+> >You shouldn't use any of the CP commands for engine synchronization (neither for wait nor for signal). The PFP and ME are just the top of a quite deep pipeline and when you use any of the CP_WAIT functions you block them for something and that's draining the pipeline.
+> >
+> >With the semaphore and fence commands the values are just attached as prerequisite to the draw command, e.g. the CP setups the draw environment and issues the command, but the actual execution of it is delayed until the "!= 0" condition hits. And in the meantime the CP already prepares the next draw operation.
+> >
+> >But at least for compute queues wait semaphore aren't the perfect solution either. What you need then is a GPU scheduler that uses a kernel task for setting up the command submission for you when all prerequisites are meet.
+> nouveau has sort of a scheduler in hardware. It can yield when waiting
+> on a semaphore. And each process gets their own context and the
+> timeslices can be adjusted. ;-) But I don't mind changing this patch
+> when an actual user pops up. Nouveau can do a  wait for (*sema & mask)
+> != 0 only on nvc0 and newer, where mask can be chosen. But it can do ==
+> somevalue and >= somevalue on older relevant optimus hardware, so if we
+> know that it was zero before and we know the sign of the new value that
+> could work too.
+> 
+> Adding ops and a separate mask later on when users pop up is fine with
+> me, the original design here was chosen so I could map the intel status
+> page read-only into the process specific nvidia vm.
 
-Results of the daily build of media_tree:
-
-date:		Wed  5 Mar 08:48:23 CET 2014
-git branch:	test
-git hash:	59432be1c7fbf2a4f608850855ff649bee0f7b3b
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Yeah, I guess in the end we might end up having a pile of different
+memory-based (shared through dma-bufs) based fences. But imo getting this
+thing of the ground is more important, and you can always do crazy
+per-platform/generation/whatever hacks and match on that specific fence
+type in the interim. That'll cut it for the SoC madness, which also seems
+to be what google does with the android syncpoint stuff.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
