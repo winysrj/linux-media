@@ -1,43 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36126 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443AbaC1QAy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 12:00:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-usb@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
-Subject: [PATCH v2 0/3] Miscellaneous fixes for UVC gadget driver
-Date: Fri, 28 Mar 2014 17:02:45 +0100
-Message-Id: <1396022568-6794-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:39011 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754114AbaCCJw2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 04:52:28 -0500
+From: Daniel Jeong <gshark.jeong@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Jeong <gshark.jeong@gmail.com>,
+	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
+Subject: [RFC v7 1/3] v4l2-controls.h: add addtional Flash fault bits
+Date: Mon,  3 Mar 2014 18:52:08 +0900
+Message-Id: <1393840330-11130-2-git-send-email-gshark.jeong@gmail.com>
+In-Reply-To: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
+References: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+ Three Flash fault are added.
+ V4L2_FLASH_FAULT_UNDER_VOLTAGE for the case low voltage below the min. limit.
+ V4L2_FLASH_FAULT_INPUT_VOLTAGE	for the case falling input voltage and chip  
+ adjust flash current not occur under voltage event.
+ V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE for the case the temperature exceed
+ the maximun limit
 
-These three patches fix miscellaneous issues in the UVC gadget driver. Patches
-1 and 3 have already been posted as part of the "Clock fixes for UVC gadget
-driver" series, and patch 2 is new.
+Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+---
+ include/uapi/linux/v4l2-controls.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-The series is based on the latest media tree master branch as it depends on
-commit 872484ce40881e295b046adf21f7211306477751 ("v4l: Add timestamp source
-flags, mask and document them") queued for v3.15. It would thus be easier to
-merge it through the media tree. Greg and Mauro, would that be fine ?
-Alternatively I can rebase it on top of v3.15-rc1 when that version will be
-tagged.
-
-Laurent Pinchart (3):
-  usb: gadget: uvc: Switch to monotonic clock for buffer timestamps
-  usb: gadget: uvc: Set the V4L2 buffer field to V4L2_FIELD_NONE
-  usb: gadget: uvc: Set the vb2 queue timestamp flags
-
- drivers/usb/gadget/uvc_queue.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
-
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2cbe605..1d662f6 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -812,6 +812,9 @@ enum v4l2_flash_strobe_source {
+ #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
+ #define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
+ #define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
++#define V4L2_FLASH_FAULT_UNDER_VOLTAGE		(1 << 6)
++#define V4L2_FLASH_FAULT_INPUT_VOLTAGE		(1 << 7)
++#define V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE	(1 << 8)
+ 
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
