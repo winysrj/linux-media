@@ -1,196 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37743 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753784AbaCLOXS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 10:23:18 -0400
-Message-ID: <53206DD2.4000504@iki.fi>
-Date: Wed, 12 Mar 2014 16:23:14 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:49484 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754233AbaCCKIL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:11 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 24/79] [media] drx-j: Don't use buffer if an error occurs
+Date: Mon,  3 Mar 2014 07:06:18 -0300
+Message-Id: <1393841233-24840-25-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [REVIEW PATCH 11/13] DocBook: document RF tuner bandwidth controls
-References: <1393460528-11684-1-git-send-email-crope@iki.fi> <1393460528-11684-12-git-send-email-crope@iki.fi> <20140305154922.508c48d7@samsung.com> <531D8D78.800@iki.fi> <20140312080233.3823dd80@samsung.com> <5320527B.9040707@iki.fi> <20140312094739.089a8ce5@samsung.com> <532059B0.9010201@iki.fi> <53205BF6.9040304@iki.fi> <20140312102118.79956fd3@samsung.com>
-In-Reply-To: <20140312102118.79956fd3@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12.03.2014 15:21, Mauro Carvalho Chehab wrote:
-> Em Wed, 12 Mar 2014 15:07:02 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> On 12.03.2014 14:57, Antti Palosaari wrote:
->>> On 12.03.2014 14:47, Mauro Carvalho Chehab wrote:
->>>> Em Wed, 12 Mar 2014 14:26:35 +0200
->>>> Antti Palosaari <crope@iki.fi> escreveu:
->>>>
->>>>> On 12.03.2014 13:02, Mauro Carvalho Chehab wrote:
->>>>>> Em Mon, 10 Mar 2014 12:01:28 +0200
->>>>>> Antti Palosaari <crope@iki.fi> escreveu:
->>>>>>
->>>>>>> On 05.03.2014 20:49, Mauro Carvalho Chehab wrote:
->>>>>>>> Em Thu, 27 Feb 2014 02:22:06 +0200
->>>>>>>> Antti Palosaari <crope@iki.fi> escreveu:
->>>>>>>>
->>>>>>>>> Add documentation for RF tuner bandwidth controls. These controls
->>>>>>>>> are
->>>>>>>>> used to set filters on tuner signal path.
->>>>>>>>>
->>>>>>>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
->>>>>>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>>>>>>>> ---
->>>>>>>>>      Documentation/DocBook/media/v4l/controls.xml | 19
->>>>>>>>> +++++++++++++++++++
->>>>>>>>>      1 file changed, 19 insertions(+)
->>>>>>>>>
->>>>>>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
->>>>>>>>> b/Documentation/DocBook/media/v4l/controls.xml
->>>>>>>>> index 6c9dbf6..5550fea 100644
->>>>>>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>>>>>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>>>>>>>> @@ -5007,6 +5007,25 @@ descriptor. Calling &VIDIOC-QUERYCTRL; for
->>>>>>>>> this control will return a
->>>>>>>>>      description of this control class.</entry>
->>>>>>>>>                  </row>
->>>>>>>>>                  <row>
->>>>>>>>> +              <entry
->>>>>>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH_AUTO</constant>&nbsp;</entry>
->>>>>>>>>
->>>>>>>>> +              <entry>boolean</entry>
->>>>>>>>> +            </row>
->>>>>>>>> +            <row>
->>>>>>>>> +              <entry spanname="descr">Enables/disables tuner
->>>>>>>>> radio channel
->>>>>>>>> +bandwidth configuration. In automatic mode bandwidth
->>>>>>>>> configuration is performed
->>>>>>>>> +by the driver.</entry>
->>>>>>>>> +            </row>
->>>>>>>>> +            <row>
->>>>>>>>> +              <entry
->>>>>>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH</constant>&nbsp;</entry>
->>>>>>>>>
->>>>>>>>> +              <entry>integer</entry>
->>>>>>>>> +            </row>
->>>>>>>>> +            <row>
->>>>>>>>> +              <entry spanname="descr">Filter(s) on tuner signal
->>>>>>>>> path are used to
->>>>>>>>> +filter signal according to receiving party needs. Driver
->>>>>>>>> configures filters to
->>>>>>>>> +fulfill desired bandwidth requirement. Used when
->>>>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO is not
->>>>>>>>> +set. The range and step are driver-specific.</entry>
->>>>>>>>
->>>>>>>> Huh? If this is enable/disable, why "the range and step are
->>>>>>>> driver-specific"?
->>>>>>>
->>>>>>> Because there is two controls grouped. That is situation of having
->>>>>>> AUTO/MANUAL.
->>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO
->>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH
->>>>>>>
->>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when
->>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO == false.
->>>>>>>
->>>>>>
->>>>>> Sorry, but I'm not understanding what you're arguing.
->>>>>>
->>>>>> Yeah, it is clear at the patch that there are two controls, and that
->>>>>> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when AUTO is disabled, but
->>>>>> this doesn't answer my question:
->>>>>>
->>>>>> Why V4L2_CID_RF_TUNER_BANDWIDTH's range and step are driver-specific?
->>>>>>
->>>>>
->>>>> Hmmm. That control is used to configure RF filters. Filters set
->>>>> bandwidth of radio channel. There is usually quite limited set of
->>>>> available analog filters inside RF tuner. If you look for example
->>>>> FC0012/FC0013 possible filters are 6/7/8 MHz. E4000 has something 4-11
->>>>> MHz. If you look those very old 1st gen silicon tuners like QT1010 /
->>>>> MT2060, there is no integrated filters at all - but there is external
->>>>> saw filter which is usually 8MHz at 36.125 MHz IF.
->>>>>
->>>>> Did you remember there is same parameter already in DVB API (struct
->>>>> dtv_frontend_properties bandwidth_hz)? That is control is currently used
->>>>> to set r820t, fc0012, fc10013 .bandwidth_hz value, e4000 implements it
->>>>> correctly as own control.
->>>>>
->>>>> I am quite astonished we have that big gap with our views.
->>>>
->>>> Well, on DVB, the bandwidth is specified in Hz, at DVBv5 (or via
->>>> an enum on DVBv3).
->>>>
->>>> Here, there's no description about the unit to be used (Hz? kHz?).
->>>> It just says that this is an integer, with a driver-specific
->>>> range and step.
->>>>
->>>> So, one driver might choose to use Hz, other kHz, and other to
->>>> expose some internal counter. That's bad.
->>>>
->>>> We should either use a V4L2_CTRL_TYPE_MENU type of control, where it
->>>> would be possible to do something similar to DVBv3 way to specify
->>>> the bandwidth filter, or to define that the bandwidth will be
->>>> in Hz, kHz or MHz.
->>>
->>> Yeah, indeed. That was my mistake. The aim was Hz yes.
->>>
->>>>
->>>> Probably, a menu type is better, as it allows userspace to get
->>>> all supported bandwidths.
->>>
->>> I though it too, but there is already a lot choices for some tuners,
->>> E4000 has over 30. What is maximum reasonable filter count for
->>> V4L2_CTRL_TYPE_MENU?
->
-> I don't see any troubles on having 30 items there. Maybe Hans is aware
-> of some troubles on having such number of items.
->
-> The advantage of a menu type is that it helps userspace to select
-> an existing range.
->
->> One fear there is also what happens when there will be some day new RF
->> tuner having DSP which does digital filtering ~1 Hz step?
->
-> It is possible.
->
->> Mabbe the current control is enough, but probably it is place to add
->> comment unit is Hz (even I think people should expect it is Hz when RF
->> frequencies are spoken).
->
-> Please remind that V4L2 API has 3 scales already for frequencies,
-> HZ being the less obvious one, as it is the one added only for
-> 3.14 and upper.
->
-> I see two alternatives here:
->
-> 1) say that this is always Hz. The problem is if some future hardware
-> would support a bandwidth bigger than 2 GHz. That's unlikely, as
-> using such filter would require a wide band antenna, but
-> I won't doubt that this might happen some day;
+drivers/media/dvb-frontends/drx39xyj/drxj.c: In function ‘drxj_dap_scu_atomic_read_reg16’:
+drivers/media/dvb-frontends/drx39xyj/drxj.c:4170:9: warning: ‘*((void *)&buf+1)’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  word = (u16) (buf[0] + (buf[1] << 8));
+         ^
+drivers/media/dvb-frontends/drx39xyj/drxj.c:4170:9: warning: ‘buf’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+drivers/media/dvb-frontends/drx39xyj/drxj.c: In function ‘drxj_dap_atomic_read_reg32.isra.59’:
+drivers/media/dvb-frontends/drx39xyj/drxj.c:2186:7: warning: ‘*((void *)&buf+3)’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  word = (u32) buf[3];
+       ^
+drivers/media/dvb-frontends/drx39xyj/drxj.c:2188:10: warning: ‘*((void *)&buf+2)’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  word |= (u32) buf[2];
+          ^
+drivers/media/dvb-frontends/drx39xyj/drxj.c:2190:10: warning: ‘*((void *)&buf+1)’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  word |= (u32) buf[1];
+          ^
+drivers/media/dvb-frontends/drx39xyj/drxj.c:2192:10: warning: ‘buf’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  word |= (u32) buf[0];
+          ^
 
-Antenna dimensions are relative. 2GHz is not so much when we speak 
-frequencies over 100 GHz and so. But it is very far away from the 
-environment we are now playing with...
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-
-> 2) say that this should follow the corresponding tuner CAPS for
-> frequencies (V4L2_TUNER_CAP_LOW, V4L2_TUNER_CAP_NORM, V4L2_TUNER_CAP_1HZ).
->
-> The advantage of (2) is that, if we latter need to support wide band
-> filters, one would just need to use V4L2_TUNER_CAP_NORM (or a newer
-> V4L2_TUNER_CAP_1KHZ).
-
-That is fine for me too, but I suspect Hans don't like it, as those 
-steps are mapped "V4L tuner API", right?
-
-Anyway, is that something we can just put in and fine tune later if 
-needed? I cannot see big issues and it is still experimental and all 
-drivers are staging....
-
-regards
-Antti
-
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index bb67edeb5121..d51cea9bc5eb 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -2183,6 +2183,9 @@ int drxj_dap_atomic_read_reg32(struct i2c_device_addr *dev_addr,
+ 	rc = drxj_dap_atomic_read_write_block(dev_addr, addr,
+ 					   sizeof(*data), buf, true);
+ 
++	if (rc < 0)
++		return 0;
++
+ 	word = (u32) buf[3];
+ 	word <<= 8;
+ 	word |= (u32) buf[2];
+@@ -4166,6 +4169,8 @@ int drxj_dap_scu_atomic_read_reg16(struct i2c_device_addr *dev_addr,
+ 	}
+ 
+ 	rc = drxj_dap_scu_atomic_read_write_block(dev_addr, addr, 2, buf, true);
++	if (rc < 0)
++		return rc;
+ 
+ 	word = (u16) (buf[0] + (buf[1] << 8));
+ 
 -- 
-http://palosaari.fi/
+1.8.5.3
+
