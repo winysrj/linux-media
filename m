@@ -1,177 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:60039 "EHLO
-	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753138AbaCGOTL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:19:11 -0500
-Message-ID: <5319D55B.6080202@cisco.com>
-Date: Fri, 07 Mar 2014 15:19:07 +0100
-From: Hans Verkuil <hansverk@cisco.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, marbugge@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv1 PATCH 5/5] DocBook v4l2: update the G/S_EDID documentation
-References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl> <1394187679-7345-6-git-send-email-hverkuil@xs4all.nl> <1636382.IFSev3egjD@avalon>
-In-Reply-To: <1636382.IFSev3egjD@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:49361 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753750AbaCCKH4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:56 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 45/79] [media] drx-j: reset the DVB scan configuration at powerup
+Date: Mon,  3 Mar 2014 07:06:39 -0300
+Message-Id: <1393841233-24840-46-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/07/2014 03:09 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Friday 07 March 2014 11:21:19 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Document that it is now possible to call G/S_EDID from video nodes, not
->> just sub-device nodes. Add a note that -EINVAL will be returned if
->> the pad does not support EDIDs.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  Documentation/DocBook/media/v4l/v4l2.xml           |   2 +-
->>  .../DocBook/media/v4l/vidioc-subdev-g-edid.xml     | 152 ------------------
->>  2 files changed, 1 insertion(+), 153 deletions(-)
->>  delete mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-> 
-> The patch just removes the EDID ioctls documentation, I highly doubt that this 
-> is what you intended :-)
+Without this fixup, the DRX-J will not be properly initialized,
+loosing several PIDs.
 
-Let's try again:
-
-
-Document that it is now possible to call G/S_EDID from video nodes, not
-just sub-device nodes. Add a note that -EINVAL will be returned if
-the pad does not support EDIDs.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- Documentation/DocBook/media/v4l/v4l2.xml           |  2 +-
- ...{vidioc-subdev-g-edid.xml => vidioc-g-edid.xml} | 36 ++++++++++++++--------
- 2 files changed, 24 insertions(+), 14 deletions(-)
- rename Documentation/DocBook/media/v4l/{vidioc-subdev-g-edid.xml => vidioc-g-edid.xml} (77%)
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 151 +++++++++++++++-------------
+ 1 file changed, 80 insertions(+), 71 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 61a7bb1..b445161 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -607,6 +607,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-g-crop;
-     &sub-g-ctrl;
-     &sub-g-dv-timings;
-+    &sub-g-edid;
-     &sub-g-enc-index;
-     &sub-g-ext-ctrls;
-     &sub-g-fbuf;
-@@ -638,7 +639,6 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-subdev-enum-frame-size;
-     &sub-subdev-enum-mbus-code;
-     &sub-subdev-g-crop;
--    &sub-subdev-g-edid;
-     &sub-subdev-g-fmt;
-     &sub-subdev-g-frame-interval;
-     &sub-subdev-g-selection;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
-similarity index 77%
-rename from Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-rename to Documentation/DocBook/media/v4l/vidioc-g-edid.xml
-index bbd18f0..becd7cb 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
-@@ -1,12 +1,12 @@
--<refentry id="vidioc-subdev-g-edid">
-+<refentry id="vidioc-g-edid">
-   <refmeta>
--    <refentrytitle>ioctl VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</refentrytitle>
-+    <refentrytitle>ioctl VIDIOC_G_EDID, VIDIOC_S_EDID</refentrytitle>
-     &manvol;
-   </refmeta>
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index b90e6c1210f8..b1ad26b9778a 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -18354,6 +18354,81 @@ rw_error:
  
-   <refnamediv>
--    <refname>VIDIOC_SUBDEV_G_EDID</refname>
--    <refname>VIDIOC_SUBDEV_S_EDID</refname>
-+    <refname>VIDIOC_G_EDID</refname>
-+    <refname>VIDIOC_S_EDID</refname>
-     <refpurpose>Get or set the EDID of a video receiver/transmitter</refpurpose>
-   </refnamediv>
+ /*============================================================================*/
  
-@@ -16,7 +16,7 @@
- 	<funcdef>int <function>ioctl</function></funcdef>
- 	<paramdef>int <parameter>fd</parameter></paramdef>
- 	<paramdef>int <parameter>request</parameter></paramdef>
--	<paramdef>struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
-+	<paramdef>struct v4l2_edid *<parameter>argp</parameter></paramdef>
-       </funcprototype>
-     </funcsynopsis>
-     <funcsynopsis>
-@@ -24,7 +24,7 @@
- 	<funcdef>int <function>ioctl</function></funcdef>
- 	<paramdef>int <parameter>fd</parameter></paramdef>
- 	<paramdef>int <parameter>request</parameter></paramdef>
--	<paramdef>const struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
-+	<paramdef>const struct v4l2_edid *<parameter>argp</parameter></paramdef>
-       </funcprototype>
-     </funcsynopsis>
-   </refsynopsisdiv>
-@@ -42,7 +42,7 @@
-       <varlistentry>
- 	<term><parameter>request</parameter></term>
- 	<listitem>
--	  <para>VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</para>
-+	  <para>VIDIOC_G_EDID, VIDIOC_S_EDID</para>
- 	</listitem>
-       </varlistentry>
-       <varlistentry>
-@@ -56,12 +56,20 @@
- 
-   <refsect1>
-     <title>Description</title>
--    <para>These ioctls can be used to get or set an EDID associated with an input pad
--    from a receiver or an output pad of a transmitter subdevice.</para>
-+    <para>These ioctls can be used to get or set an EDID associated with an input
-+    from a receiver or an output of a transmitter device. These ioctls can be
-+    used with subdevice nodes (/dev/v4l-subdevX) or with video nodes (/dev/videoX).</para>
++static void drxj_reset_mode(struct drxj_data *ext_attr)
++{
++	/* Initialize default AFE configuartion for QAM */
++	if (ext_attr->has_lna) {
++		/* IF AGC off, PGA active */
++#ifndef DRXJ_VSB_ONLY
++		ext_attr->qam_if_agc_cfg.standard = DRX_STANDARD_ITU_B;
++		ext_attr->qam_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_OFF;
++		ext_attr->qam_pga_cfg = 140 + (11 * 13);
++#endif
++		ext_attr->vsb_if_agc_cfg.standard = DRX_STANDARD_8VSB;
++		ext_attr->vsb_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_OFF;
++		ext_attr->vsb_pga_cfg = 140 + (11 * 13);
++	} else {
++		/* IF AGC on, PGA not active */
++#ifndef DRXJ_VSB_ONLY
++		ext_attr->qam_if_agc_cfg.standard = DRX_STANDARD_ITU_B;
++		ext_attr->qam_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
++		ext_attr->qam_if_agc_cfg.min_output_level = 0;
++		ext_attr->qam_if_agc_cfg.max_output_level = 0x7FFF;
++		ext_attr->qam_if_agc_cfg.speed = 3;
++		ext_attr->qam_if_agc_cfg.top = 1297;
++		ext_attr->qam_pga_cfg = 140;
++#endif
++		ext_attr->vsb_if_agc_cfg.standard = DRX_STANDARD_8VSB;
++		ext_attr->vsb_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
++		ext_attr->vsb_if_agc_cfg.min_output_level = 0;
++		ext_attr->vsb_if_agc_cfg.max_output_level = 0x7FFF;
++		ext_attr->vsb_if_agc_cfg.speed = 3;
++		ext_attr->vsb_if_agc_cfg.top = 1024;
++		ext_attr->vsb_pga_cfg = 140;
++	}
++	/* TODO: remove min_output_level and max_output_level for both QAM and VSB after */
++	/* mc has not used them */
++#ifndef DRXJ_VSB_ONLY
++	ext_attr->qam_rf_agc_cfg.standard = DRX_STANDARD_ITU_B;
++	ext_attr->qam_rf_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
++	ext_attr->qam_rf_agc_cfg.min_output_level = 0;
++	ext_attr->qam_rf_agc_cfg.max_output_level = 0x7FFF;
++	ext_attr->qam_rf_agc_cfg.speed = 3;
++	ext_attr->qam_rf_agc_cfg.top = 9500;
++	ext_attr->qam_rf_agc_cfg.cut_off_current = 4000;
++	ext_attr->qam_pre_saw_cfg.standard = DRX_STANDARD_ITU_B;
++	ext_attr->qam_pre_saw_cfg.reference = 0x07;
++	ext_attr->qam_pre_saw_cfg.use_pre_saw = true;
++#endif
++	/* Initialize default AFE configuartion for VSB */
++	ext_attr->vsb_rf_agc_cfg.standard = DRX_STANDARD_8VSB;
++	ext_attr->vsb_rf_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
++	ext_attr->vsb_rf_agc_cfg.min_output_level = 0;
++	ext_attr->vsb_rf_agc_cfg.max_output_level = 0x7FFF;
++	ext_attr->vsb_rf_agc_cfg.speed = 3;
++	ext_attr->vsb_rf_agc_cfg.top = 9500;
++	ext_attr->vsb_rf_agc_cfg.cut_off_current = 4000;
++	ext_attr->vsb_pre_saw_cfg.standard = DRX_STANDARD_8VSB;
++	ext_attr->vsb_pre_saw_cfg.reference = 0x07;
++	ext_attr->vsb_pre_saw_cfg.use_pre_saw = true;
 +
-+    <para>When used with video nodes the <structfield>pad</structfield> field represents the
-+    input (for video capture devices) or output (for video output devices) index as
-+    is returned by &VIDIOC-ENUMINPUT; and &VIDIOC-ENUMOUTPUT; respectively. When used
-+    with subdevice nodes the <structfield>pad</structfield> field represents the
-+    input or output pad of the subdevice. If there is no EDID support for the given
-+    <structfield>pad</structfield> value, then the &EINVAL; will be returned.</para>
++#ifndef DRXJ_DIGITAL_ONLY
++	/* Initialize default AFE configuartion for ATV */
++	ext_attr->atv_rf_agc_cfg.standard = DRX_STANDARD_NTSC;
++	ext_attr->atv_rf_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
++	ext_attr->atv_rf_agc_cfg.top = 9500;
++	ext_attr->atv_rf_agc_cfg.cut_off_current = 4000;
++	ext_attr->atv_rf_agc_cfg.speed = 3;
++	ext_attr->atv_if_agc_cfg.standard = DRX_STANDARD_NTSC;
++	ext_attr->atv_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
++	ext_attr->atv_if_agc_cfg.speed = 3;
++	ext_attr->atv_if_agc_cfg.top = 2400;
++	ext_attr->atv_pre_saw_cfg.reference = 0x0007;
++	ext_attr->atv_pre_saw_cfg.use_pre_saw = true;
++	ext_attr->atv_pre_saw_cfg.standard = DRX_STANDARD_NTSC;
++#endif
++}
++
+ /**
+ * \fn int ctrl_power_mode()
+ * \brief Set the power mode of the device to the specified power mode
+@@ -18418,6 +18493,9 @@ ctrl_power_mode(struct drx_demod_instance *demod, enum drx_power_mode *mode)
  
-     <para>To get the EDID data the application has to fill in the <structfield>pad</structfield>,
-     <structfield>start_block</structfield>, <structfield>blocks</structfield> and <structfield>edid</structfield>
--    fields and call <constant>VIDIOC_SUBDEV_G_EDID</constant>. The current EDID from block
-+    fields and call <constant>VIDIOC_G_EDID</constant>. The current EDID from block
-     <structfield>start_block</structfield> and of size <structfield>blocks</structfield>
-     will be placed in the memory <structfield>edid</structfield> points to. The <structfield>edid</structfield>
-     pointer must point to memory at least <structfield>blocks</structfield>&nbsp;*&nbsp;128 bytes
-@@ -91,15 +99,17 @@
-     data in some way. In any case, the end result is the same: the EDID is no longer available.
-     </para>
+ 	if ((*mode == DRX_POWER_UP)) {
+ 		/* Restore analog & pin configuartion */
++
++		/* Initialize default AFE configuartion for VSB */
++		drxj_reset_mode(ext_attr);
+ 	} else {
+ 		/* Power down to requested mode */
+ 		/* Backup some register settings */
+@@ -20034,6 +20112,7 @@ rw_error:
  
--    <table pgwide="1" frame="none" id="v4l2-subdev-edid">
--      <title>struct <structname>v4l2_subdev_edid</structname></title>
-+    <table pgwide="1" frame="none" id="v4l2-edid">
-+      <title>struct <structname>v4l2_edid</structname></title>
-       <tgroup cols="3">
-         &cs-str;
- 	<tbody valign="top">
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>pad</structfield></entry>
--	    <entry>Pad for which to get/set the EDID blocks.</entry>
-+	    <entry>Pad for which to get/set the EDID blocks. When used with a video device
-+	    node the pad represents the input or output index as returned by
-+	    &VIDIOC-ENUMINPUT; and &VIDIOC-ENUMOUTPUT; respectively.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
+ /*=============================================================================
+ ===== EXPORTED FUNCTIONS ====================================================*/
++
+ /**
+ * \fn drxj_open()
+ * \brief Open the demod instance, configure device, configure drxdriver
+@@ -20221,77 +20300,7 @@ int drxj_open(struct drx_demod_instance *demod)
+ 	common_attr->scan_demod_lock_timeout = DRXJ_SCAN_TIMEOUT;
+ 	common_attr->scan_desired_lock = DRX_LOCKED;
+ 
+-	/* Initialize default AFE configuartion for QAM */
+-	if (ext_attr->has_lna) {
+-		/* IF AGC off, PGA active */
+-#ifndef DRXJ_VSB_ONLY
+-		ext_attr->qam_if_agc_cfg.standard = DRX_STANDARD_ITU_B;
+-		ext_attr->qam_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_OFF;
+-		ext_attr->qam_pga_cfg = 140 + (11 * 13);
+-#endif
+-		ext_attr->vsb_if_agc_cfg.standard = DRX_STANDARD_8VSB;
+-		ext_attr->vsb_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_OFF;
+-		ext_attr->vsb_pga_cfg = 140 + (11 * 13);
+-	} else {
+-		/* IF AGC on, PGA not active */
+-#ifndef DRXJ_VSB_ONLY
+-		ext_attr->qam_if_agc_cfg.standard = DRX_STANDARD_ITU_B;
+-		ext_attr->qam_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
+-		ext_attr->qam_if_agc_cfg.min_output_level = 0;
+-		ext_attr->qam_if_agc_cfg.max_output_level = 0x7FFF;
+-		ext_attr->qam_if_agc_cfg.speed = 3;
+-		ext_attr->qam_if_agc_cfg.top = 1297;
+-		ext_attr->qam_pga_cfg = 140;
+-#endif
+-		ext_attr->vsb_if_agc_cfg.standard = DRX_STANDARD_8VSB;
+-		ext_attr->vsb_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
+-		ext_attr->vsb_if_agc_cfg.min_output_level = 0;
+-		ext_attr->vsb_if_agc_cfg.max_output_level = 0x7FFF;
+-		ext_attr->vsb_if_agc_cfg.speed = 3;
+-		ext_attr->vsb_if_agc_cfg.top = 1024;
+-		ext_attr->vsb_pga_cfg = 140;
+-	}
+-	/* TODO: remove min_output_level and max_output_level for both QAM and VSB after */
+-	/* mc has not used them */
+-#ifndef DRXJ_VSB_ONLY
+-	ext_attr->qam_rf_agc_cfg.standard = DRX_STANDARD_ITU_B;
+-	ext_attr->qam_rf_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
+-	ext_attr->qam_rf_agc_cfg.min_output_level = 0;
+-	ext_attr->qam_rf_agc_cfg.max_output_level = 0x7FFF;
+-	ext_attr->qam_rf_agc_cfg.speed = 3;
+-	ext_attr->qam_rf_agc_cfg.top = 9500;
+-	ext_attr->qam_rf_agc_cfg.cut_off_current = 4000;
+-	ext_attr->qam_pre_saw_cfg.standard = DRX_STANDARD_ITU_B;
+-	ext_attr->qam_pre_saw_cfg.reference = 0x07;
+-	ext_attr->qam_pre_saw_cfg.use_pre_saw = true;
+-#endif
+-	/* Initialize default AFE configuartion for VSB */
+-	ext_attr->vsb_rf_agc_cfg.standard = DRX_STANDARD_8VSB;
+-	ext_attr->vsb_rf_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
+-	ext_attr->vsb_rf_agc_cfg.min_output_level = 0;
+-	ext_attr->vsb_rf_agc_cfg.max_output_level = 0x7FFF;
+-	ext_attr->vsb_rf_agc_cfg.speed = 3;
+-	ext_attr->vsb_rf_agc_cfg.top = 9500;
+-	ext_attr->vsb_rf_agc_cfg.cut_off_current = 4000;
+-	ext_attr->vsb_pre_saw_cfg.standard = DRX_STANDARD_8VSB;
+-	ext_attr->vsb_pre_saw_cfg.reference = 0x07;
+-	ext_attr->vsb_pre_saw_cfg.use_pre_saw = true;
+-
+-#ifndef DRXJ_DIGITAL_ONLY
+-	/* Initialize default AFE configuartion for ATV */
+-	ext_attr->atv_rf_agc_cfg.standard = DRX_STANDARD_NTSC;
+-	ext_attr->atv_rf_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
+-	ext_attr->atv_rf_agc_cfg.top = 9500;
+-	ext_attr->atv_rf_agc_cfg.cut_off_current = 4000;
+-	ext_attr->atv_rf_agc_cfg.speed = 3;
+-	ext_attr->atv_if_agc_cfg.standard = DRX_STANDARD_NTSC;
+-	ext_attr->atv_if_agc_cfg.ctrl_mode = DRX_AGC_CTRL_AUTO;
+-	ext_attr->atv_if_agc_cfg.speed = 3;
+-	ext_attr->atv_if_agc_cfg.top = 2400;
+-	ext_attr->atv_pre_saw_cfg.reference = 0x0007;
+-	ext_attr->atv_pre_saw_cfg.use_pre_saw = true;
+-	ext_attr->atv_pre_saw_cfg.standard = DRX_STANDARD_NTSC;
+-#endif
++	drxj_reset_mode(ext_attr);
+ 	ext_attr->standard = DRX_STANDARD_UNKNOWN;
+ 
+ 	rc = smart_ant_init(demod);
 -- 
-1.9.0
-
+1.8.5.3
 
