@@ -1,78 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33967 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752653AbaCXMq0 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50258 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750987AbaCCG2L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 08:46:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] Documentation: media: Remove double 'struct'
-Date: Mon, 24 Mar 2014 13:48:13 +0100
-Message-Id: <1395665293-4498-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 3 Mar 2014 01:28:11 -0500
+Date: Mon, 3 Mar 2014 08:28:05 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 06/17] vb2: call buf_finish from __queue_cancel.
+Message-ID: <20140303062805.GN15635@valkosipuli.retiisi.org.uk>
+References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl>
+ <1393609335-12081-7-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1393609335-12081-7-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The XML entities for media structures start with the 'struct' word.
-Remove duplicate 'struct' from the entity users.
+On Fri, Feb 28, 2014 at 06:42:04PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> If a queue was canceled, then the buf_finish op was never called for the
+> pending buffers. So add this call to queue_cancel. Before calling buf_finish
+> set the buffer state to PREPARED, which is the correct state. That way the
+> states DONE and ERROR will only be seen in buf_finish if streaming is in
+> progress.
+> 
+> Since buf_finish can now be called from non-streaming state we need to
+> adapt the handful of drivers that actually need to know this.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media/v4l/io.xml                   | 2 +-
- Documentation/DocBook/media/v4l/media-ioc-enum-links.xml | 8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 97a69bf..2955d13 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -125,7 +125,7 @@ location of the buffers in device memory can be determined with the
- <structfield>m.offset</structfield> and <structfield>length</structfield>
- returned in a &v4l2-buffer; are passed as sixth and second parameter to the
- <function>mmap()</function> function. When using the multi-planar API,
--struct &v4l2-buffer; contains an array of &v4l2-plane; structures, each
-+&v4l2-buffer; contains an array of &v4l2-plane; structures, each
- containing its own <structfield>m.offset</structfield> and
- <structfield>length</structfield>. When using the multi-planar API, every
- plane of every buffer has to be mapped separately, so the number of
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
-index cf85485..74fb394 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
-@@ -79,13 +79,13 @@
- 	    <entry>Entity id, set by the application.</entry>
- 	  </row>
- 	  <row>
--	    <entry>struct &media-pad-desc;</entry>
-+	    <entry>&media-pad-desc;</entry>
- 	    <entry>*<structfield>pads</structfield></entry>
- 	    <entry>Pointer to a pads array allocated by the application. Ignored
- 	    if NULL.</entry>
- 	  </row>
- 	  <row>
--	    <entry>struct &media-link-desc;</entry>
-+	    <entry>&media-link-desc;</entry>
- 	    <entry>*<structfield>links</structfield></entry>
- 	    <entry>Pointer to a links array allocated by the application. Ignored
- 	    if NULL.</entry>
-@@ -153,12 +153,12 @@
-         &cs-str;
- 	<tbody valign="top">
- 	  <row>
--	    <entry>struct &media-pad-desc;</entry>
-+	    <entry>&media-pad-desc;</entry>
- 	    <entry><structfield>source</structfield></entry>
- 	    <entry>Pad at the origin of this link.</entry>
- 	  </row>
- 	  <row>
--	    <entry>struct &media-pad-desc;</entry>
-+	    <entry>&media-pad-desc;</entry>
- 	    <entry><structfield>sink</structfield></entry>
- 	    <entry>Pad at the target of this link.</entry>
- 	  </row>
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
