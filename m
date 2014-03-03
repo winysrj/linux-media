@@ -1,117 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:57475 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754872AbaCCVBK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 16:01:10 -0500
-Received: by mail-ea0-f174.google.com with SMTP id f15so1960328eak.33
-        for <linux-media@vger.kernel.org>; Mon, 03 Mar 2014 13:01:08 -0800 (PST)
-Date: Mon, 3 Mar 2014 22:01:04 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: Christian =?iso-8859-1?Q?K=F6nig?= <deathsimple@vodafone.de>,
-	Rob Clark <robdclark@gmail.com>, linux-arch@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Colin Cross <ccross@google.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/6] seqno-fence: Hardware dma-buf implementation of
- fencing (v4)
-Message-ID: <20140303210104.GJ17001@phenom.ffwll.local>
-References: <20140217155056.20337.25254.stgit@patser>
- <20140217155556.20337.37589.stgit@patser>
- <53023F3E.3080107@vodafone.de>
- <CAF6AEGtHSg=qESbGE8LZsQPrRfHnrSQOjpEAVKeZ5o9k07ZNcA@mail.gmail.com>
- <530248B1.2090405@vodafone.de>
- <CAF6AEGtk1dGdFg2wk-ofRQmaxEnnEOQBOg=JNaPRVapQqsML+w@mail.gmail.com>
- <530257E3.2060508@vodafone.de>
- <5304B0E7.4000802@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5304B0E7.4000802@canonical.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:49834 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754103AbaCCLLb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 06:11:31 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 35/79] [media] drx-j: remove drxj_options.h
+Date: Mon,  3 Mar 2014 07:06:29 -0300
+Message-Id: <1393841233-24840-36-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 19, 2014 at 02:25:59PM +0100, Maarten Lankhorst wrote:
-> op 17-02-14 19:41, Christian König schreef:
-> >Am 17.02.2014 19:24, schrieb Rob Clark:
-> >>On Mon, Feb 17, 2014 at 12:36 PM, Christian König
-> >><deathsimple@vodafone.de> wrote:
-> >>>Am 17.02.2014 18:27, schrieb Rob Clark:
-> >>>
-> >>>>On Mon, Feb 17, 2014 at 11:56 AM, Christian König
-> >>>><deathsimple@vodafone.de> wrote:
-> >>>>>Am 17.02.2014 16:56, schrieb Maarten Lankhorst:
-> >>>>>
-> >>>>>>This type of fence can be used with hardware synchronization for simple
-> >>>>>>hardware that can block execution until the condition
-> >>>>>>(dma_buf[offset] - value) >= 0 has been met.
-> >>>>>
-> >>>>>Can't we make that just "dma_buf[offset] != 0" instead? As far as I know
-> >>>>>this way it would match the definition M$ uses in their WDDM
-> >>>>>specification
-> >>>>>and so make it much more likely that hardware supports it.
-> >>>>well 'buf[offset] >= value' at least means the same slot can be used
-> >>>>for multiple operations (with increasing values of 'value').. not sure
-> >>>>if that is something people care about.
-> >>>>
-> >>>>>=value seems to be possible with adreno and radeon.  I'm not really sure
-> >>>>>about others (although I presume it as least supported for nv desktop
-> >>>>>stuff).  For hw that cannot do >=value, we can either have a different fence
-> >>>>>implementation which uses the !=0 approach.  Or change seqno-fence
-> >>>>>implementation later if needed.  But if someone has hw that can do !=0 but
-> >>>>>not >=value, speak up now ;-)
-> >>>
-> >>>Here! Radeon can only do >=value on the DMA and 3D engine, but not with UVD
-> >>>or VCE. And for the 3D engine it means draining the pipe, which isn't really
-> >>>a good idea.
-> >>hmm, ok.. forgot you have a few extra rings compared to me.  Is UVD
-> >>re-ordering from decode-order to display-order for you in hw? If not,
-> >>I guess you need sw intervention anyways when a frame is done for
-> >>frame re-ordering, so maybe hw->hw sync doesn't really matter as much
-> >>as compared to gpu/3d->display.  For dma<->3d interactions, seems like
-> >>you would care more about hw<->hw sync, but I guess you aren't likely
-> >>to use GPU A to do a resolve blit for GPU B..
-> >
-> >No UVD isn't reordering, but since frame reordering is predictable you usually end up with pipelining everything to the hardware. E.g. you send the decode commands in decode order to the UVD block and if you have overlay active one of the frames are going to be the first to display and then you want to wait for it on the display side.
-> >
-> >>For 3D ring, I assume you probably want a CP_WAIT_FOR_IDLE before a
-> >>CP_MEM_WRITE to update fence value in memory (for the one signalling
-> >>the fence).  But why would you need that before a CP_WAIT_REG_MEM (for
-> >>the one waiting for the fence)?  I don't exactly have documentation
-> >>for adreno version of CP_WAIT_REG_{MEM,EQ,GTE}..  but PFP and ME
-> >>appear to be same instruction set as r600, so I'm pretty sure they
-> >>should have similar capabilities.. CP_WAIT_REG_MEM appears to be same
-> >>but with 32bit gpu addresses vs 64b.
-> >
-> >You shouldn't use any of the CP commands for engine synchronization (neither for wait nor for signal). The PFP and ME are just the top of a quite deep pipeline and when you use any of the CP_WAIT functions you block them for something and that's draining the pipeline.
-> >
-> >With the semaphore and fence commands the values are just attached as prerequisite to the draw command, e.g. the CP setups the draw environment and issues the command, but the actual execution of it is delayed until the "!= 0" condition hits. And in the meantime the CP already prepares the next draw operation.
-> >
-> >But at least for compute queues wait semaphore aren't the perfect solution either. What you need then is a GPU scheduler that uses a kernel task for setting up the command submission for you when all prerequisites are meet.
-> nouveau has sort of a scheduler in hardware. It can yield when waiting
-> on a semaphore. And each process gets their own context and the
-> timeslices can be adjusted. ;-) But I don't mind changing this patch
-> when an actual user pops up. Nouveau can do a  wait for (*sema & mask)
-> != 0 only on nvc0 and newer, where mask can be chosen. But it can do ==
-> somevalue and >= somevalue on older relevant optimus hardware, so if we
-> know that it was zero before and we know the sign of the new value that
-> could work too.
-> 
-> Adding ops and a separate mask later on when users pop up is fine with
-> me, the original design here was chosen so I could map the intel status
-> page read-only into the process specific nvidia vm.
+This file is empty (actually, all commented there). So, remove it.
 
-Yeah, I guess in the end we might end up having a pile of different
-memory-based (shared through dma-bufs) based fences. But imo getting this
-thing of the ground is more important, and you can always do crazy
-per-platform/generation/whatever hacks and match on that specific fence
-type in the interim. That'll cut it for the SoC madness, which also seems
-to be what google does with the android syncpoint stuff.
--Daniel
+We should latter remove those macros too, or convert them into
+a struct to allow dynamically enable the options during device
+probing time.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c        |  4 --
+ .../media/dvb-frontends/drx39xyj/drxj_options.h    | 65 ----------------------
+ 2 files changed, 69 deletions(-)
+ delete mode 100644 drivers/media/dvb-frontends/drx39xyj/drxj_options.h
+
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 668ac1a07959..c04745202c49 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -40,10 +40,6 @@ INCLUDE FILES
+ #include "drxj.h"
+ #include "drxj_map.h"
+ 
+-#ifdef DRXJ_OPTIONS_H
+-#include "drxj_options.h"
+-#endif
+-
+ /*============================================================================*/
+ /*=== DEFINES ================================================================*/
+ /*============================================================================*/
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj_options.h b/drivers/media/dvb-frontends/drx39xyj/drxj_options.h
+deleted file mode 100644
+index f3902868eaad..000000000000
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj_options.h
++++ /dev/null
+@@ -1,65 +0,0 @@
+-/*
+-  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
+-  All rights reserved.
+-
+-  Redistribution and use in source and binary forms, with or without
+-  modification, are permitted provided that the following conditions are met:
+-
+-  * Redistributions of source code must retain the above copyright notice,
+-    this list of conditions and the following disclaimer.
+-  * Redistributions in binary form must reproduce the above copyright notice,
+-    this list of conditions and the following disclaimer in the documentation
+-	and/or other materials provided with the distribution.
+-  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
+-    nor the names of its contributors may be used to endorse or promote
+-	products derived from this software without specific prior written
+-	permission.
+-
+-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+-  POSSIBILITY OF SUCH DAMAGE.
+-*/
+-
+-/**
+-* \file $Id: drxj_options.h,v 1.5 2009/10/05 21:32:49 dingtao Exp $
+-*
+-* \brief DRXJ optional settings
+-*
+-* \author Tao Ding
+-*/
+-
+-/* Note: Please add preprocessor DRXJ_OPTIONS_H for drxj.c to include this file */
+-#ifndef __DRXJ_OPTIONS_H__
+-#define __DRXJ_OPTIONS_H__
+-
+-#ifdef __cplusplus
+-extern "C" {
+-#endif
+-
+-/* #define DRXJ_DIGITAL_ONLY     */
+-/* #define DRXJ_VSB_ONLY         */
+-/* #define DRXJ_SIGNAL_ACCUM_ERR */
+-/* #define MPEG_SERIAL_OUTPUT_PIN_DRIVE_STRENGTH   0x03  */
+-/* #define MPEG_PARALLEL_OUTPUT_PIN_DRIVE_STRENGTH 0x04  */
+-/* #define MPEG_OUTPUT_CLK_DRIVE_STRENGTH    0x05  */
+-/* #define OOB_CRX_DRIVE_STRENGTH            0x04  */
+-/* #define OOB_DRX_DRIVE_STRENGTH            0x05  */
+-/* #define DRXJ_QAM_MAX_WAITTIME             1000  */
+-/* #define DRXJ_QAM_FEC_LOCK_WAITTIME        200   */
+-/* #define DRXJ_QAM_DEMOD_LOCK_EXT_WAITTIME  250   */
+-
+-/*-------------------------------------------------------------------------
+-THE END
+--------------------------------------------------------------------------*/
+-#ifdef __cplusplus
+-}
+-#endif
+-#endif				/* __DRXJ_OPTIONS_H__ */
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.8.5.3
+
