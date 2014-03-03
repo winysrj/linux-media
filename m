@@ -1,48 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:65186 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751096AbaCFWa7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 17:30:59 -0500
-Received: by mail-qa0-f42.google.com with SMTP id k15so3252563qaq.15
-        for <linux-media@vger.kernel.org>; Thu, 06 Mar 2014 14:30:58 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <5318ED33.4040009@pinguin74.gmx.com>
-References: <5318ED33.4040009@pinguin74.gmx.com>
-Date: Thu, 6 Mar 2014 23:30:58 +0100
-Message-ID: <CA+O4pCJ4OPGEC3_RUoxjPfScgL9vEGPbUOCefjNgFOrRcYvgMw@mail.gmail.com>
-Subject: Re: sound dropouts with DVB
-From: Markus Rechberger <mrechberger@gmail.com>
-To: pinguin74 <pinguin74@gmx.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:41662 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524AbaCCRBD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 12:01:03 -0500
+Received: by mail-pa0-f47.google.com with SMTP id lj1so4025354pab.20
+        for <linux-media@vger.kernel.org>; Mon, 03 Mar 2014 09:01:03 -0800 (PST)
+From: Jon Mason <jdmason@kudzu.us>
+To: linux-media@vger.kernel.org
+Cc: devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: [PATCH] staging/dt3155v4l: use PCI_VENDOR_ID_INTEL
+Date: Mon,  3 Mar 2014 10:00:38 -0700
+Message-Id: <1393866038-15778-1-git-send-email-jdmason@kudzu.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Use PCI_VENDOR_ID_INTEL instead of creating its own vendor ID #define.
 
-On Thu, Mar 6, 2014 at 10:48 PM, pinguin74 <pinguin74@gmx.com> wrote:
-> Hello,
->
-> I use a Sundtek DVB-C stick with openSUSE 13.1 Linux.
->
-> Most of the time, TV is just fine. But sometimes the sound just drops
-> out, the sound disappears totally for up to 20 or 30 seconds. Usually
-> sound returns. When sound drops out, there is no error message.
->
-> Generally sound is fine, I use pulseaudio with KDE. The sound drop out
-> happens only when watching TV.
->
-> Is this a know issue with DVB? What could be the reason for the
-> dropouts? The DVB-C signal is strong, usually 100%.
->
+Signed-off-by: Jon Mason <jdmason@kudzu.us>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/staging/media/dt3155v4l/dt3155v4l.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-If you use mplayer, mplayer will show you if there's some stream corruption.
-Other than that it could only be a codec issue.
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+index e729e52..ef4e2aa 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+@@ -31,7 +31,6 @@
+ 
+ #include "dt3155v4l.h"
+ 
+-#define DT3155_VENDOR_ID 0x8086
+ #define DT3155_DEVICE_ID 0x1223
+ 
+ /* DT3155_CHUNK_SIZE is 4M (2^22) 8 full size buffers */
+@@ -975,7 +974,7 @@ dt3155_remove(struct pci_dev *pdev)
+ }
+ 
+ static const struct pci_device_id pci_ids[] = {
+-	{ PCI_DEVICE(DT3155_VENDOR_ID, DT3155_DEVICE_ID) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, DT3155_DEVICE_ID) },
+ 	{ 0, /* zero marks the end */ },
+ };
+ MODULE_DEVICE_TABLE(pci, pci_ids);
+-- 
+1.7.10.4
 
-Markus
-> Would be nice to get a hint.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
