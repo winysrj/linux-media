@@ -1,96 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:40159 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921AbaC1P3d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 11:29:33 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>
-Subject: [PATCH/RFC v2 3/8] Documentation: leds: Add description of flash mode
-Date: Fri, 28 Mar 2014 16:29:00 +0100
-Message-id: <1396020545-15727-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
-References: <1396020545-15727-1-git-send-email-j.anaszewski@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:49483 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754232AbaCCKIK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:10 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 59/79] [media] drx-j: be sure to use tuner's IF
+Date: Mon,  3 Mar 2014 07:06:53 -0300
+Message-Id: <1393841233-24840-60-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
----
- Documentation/leds/leds-class.txt |   52 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+Instead of just hardcoding an IF value of 5MHz, use the one
+provided by the tuner, with can be different for QAM and
+VSB.
 
-diff --git a/Documentation/leds/leds-class.txt b/Documentation/leds/leds-class.txt
-index 62261c0..ea50d27 100644
---- a/Documentation/leds/leds-class.txt
-+++ b/Documentation/leds/leds-class.txt
-@@ -8,6 +8,58 @@ LED is defined in max_brightness file. The brightness file will set the brightne
- of the LED (taking a value 0-max_brightness). Most LEDs don't have hardware
- brightness support so will just be turned on for non-zero brightness settings.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index c9608e627cca..ccd847e10797 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -20171,11 +20171,21 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
+ 	/* Bring the demod out of sleep */
+ 	drx39xxj_set_powerstate(fe, 1);
  
-+Some LED devices support two modes - torch and flash. In order to enable
-+support for flash LEDs the CONFIG_LEDS_CLASS_FLASH symbol must be defined
-+in the kernel config. A flash LED driver must initialize the "flash" field
-+of the led_classdev structure (see <linux/leds_flash.h>) to enable flash
-+related features of the LED subsystem for the driver.
+-	/* Now make the tuner do it's thing... */
+ 	if (fe->ops.tuner_ops.set_params) {
++		u32 int_freq;
 +
-+There are seven sysfs attributes dedicated specifically to the flash LED devices:
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 1);
 +
-+	- flash_brightness - flash LED brightness in milliampers (RW)
-+	- max_flash_brightness - maximum available flash LED brightness (RO)
-+	- flash_timeout - flash strobe duration in milliseconds (RW)
-+	- max_flash_timeout - maximum available flash strobe duration (RO)
-+	- flash_strobe - flash strobe state (RW)
-+	- flash_fault - bitmask of flash faults that may have occured, possible
-+			flags are:
-+		* 0x01 - flash controller voltage to the flash LED has exceeded
-+			 the limit specific to the flash controller
-+		* 0x02 - the flash strobe was still on when the timeout set by
-+			 the user has expired; not all flash controllers may set
-+			 this in all such conditions
-+		* 0x04 - the flash controller has overheated
-+		* 0x08 - the short circuit protection of the flash controller
-+			 has been triggered
-+		* 0x10 - current in the LED power supply has exceeded the limit
-+			 specific to the flash controller
-+		* 0x40 - flash controller voltage to the flash LED has been below
-+			 the minimum limit specific to the flash
-+		* 0x80 - the input voltage of the flash controller is below
-+			 the limit under which strobing the flash at full current
-+			 will not be possible. The condition persists until this
-+			 flag is no longer set
-+		* 0x100 - the temperature of the LED has exceeded its allowed
-+			  upper limit
-+	- hw_triggered - some devices expose dedicated hardware pins for
-+			 triggering a flash LED - the attribute allows to set
-+			 this mode (RW)
++		/* Set tuner to desired frequency and standard */
+ 		fe->ops.tuner_ops.set_params(fe);
 +
-+The LED subsystem driver can be controlled also from the level of
-+the VideoForLinux2 subsystem. In order to enable this the CONFIG_V4L2_FLASH
-+symbol has to be defined in the kernel config. The driver must
-+initialize v4l2_flash_ctrl_config structure and pass it to the v4l2_flash_init
-+function. On remove v4l2_flash_release has to be called (see <media/v4l2-flash.h>).
-+After proper initialization V4L2 Flash sub-device is created. The sub-device
-+must be registered by a V4L2 video device to become available for the user
-+space. This is accomplished with use of asynchronous sub-device registration
-+mechanism (see <media/v4l2-async.h>).
-+A V4l2 Flash sub-device exposes a number of V4L2 controls.
-+When the V4L2_CID_FLASH_LED_MODE control is set to V4L2_FLASH_LED_MODE_TORCH
-+or V4L2_FLASH_LED_MODE_FLASH the LED subsystem sysfs interface becomes
-+unavailable. The interface can be unlocked by setting the mode back
-+to V4L2_FLASH_LED_MODE_NONE.
++		/* Use the tuner's IF */
++		if (fe->ops.tuner_ops.get_if_frequency) {
++			fe->ops.tuner_ops.get_if_frequency(fe, &int_freq);
++			demod->my_common_attr->intermediate_freq = int_freq / 1000;
++		}
 +
- The class also introduces the optional concept of an LED trigger. A trigger
- is a kernel based source of led events. Triggers can either be simple or
- complex. A simple trigger isn't configurable and is designed to slot into
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
 -- 
-1.7.9.5
+1.8.5.3
 
