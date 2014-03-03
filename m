@@ -1,201 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36434 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754121AbaCMLpL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 07:45:11 -0400
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 02/14] v4l: ti-vpe: register video device only when firmware is loaded
-Date: Thu, 13 Mar 2014 17:14:04 +0530
-Message-ID: <1394711056-10878-3-git-send-email-archit@ti.com>
-In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394711056-10878-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:43394 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753942AbaCCJwX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 04:52:23 -0500
+From: Daniel Jeong <gshark.jeong@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Jeong <gshark.jeong@gmail.com>,
+	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
+Subject: [RFC v7 0/3] add new Dual LED FLASH LM3646
+Date: Mon,  3 Mar 2014 18:52:07 +0900
+Message-Id: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vpe fops(vpe_open in particular) should be called only when VPDMA firmware
-is loaded. File operations on the video device are possible the moment it is
-registered.
+ This patch is to add new dual led flash, lm3646.
+ LM3646 is the product of ti and it has two 1.5A sync. boost 
+ converter with dual white current source.
+ 2 files are created and 4 files are modified.
+ And 3 patch files are created and sent.
 
-Currently, we register the video device for VPE at driver probe, after calling
-a vpdma helper to initialize VPDMA and load firmware. This function is
-non-blocking(it calls request_firmware_nowait()), and doesn't ensure that the
-firmware is actually loaded when it returns.
+ v7 - change log
+   Changed V4L2_FLASH_FAULT_UNDER_VOLTAGE description in DocBook.
+   Changed lm3646_get_ctrl
 
-We remove the device registration from vpe probe, and move it to a callback
-provided by the vpe driver to the vpdma library, through vpdma_create().
+ v6 - change log
+   Changed description in DocBook.
 
-The ready field in vpdma_data is no longer needed since we always have firmware
-loaded before the device is registered.
+ v5 - change log
+   Added control register caching to avoid redundant i2c access.
+   Removed dt to create a seperate patch.
+   Changed description in DocBook.
 
-A minor problem with this approach is that if the video_register_device
-fails(which doesn't really happen), the vpe platform device would be registered.
-however, there won't be any v4l2 device corresponding to it.
+Daniel Jeong (3):
+  [RFC] v4l2-controls.h:
+  [RFC] DocBook:Media:v4l:controls.xml
+  [RFC] media: i2c: add new dual LED Flash driver, lm3646
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/platform/ti-vpe/vpdma.c |  8 +++--
- drivers/media/platform/ti-vpe/vpdma.h |  7 +++--
- drivers/media/platform/ti-vpe/vpe.c   | 55 ++++++++++++++++++++---------------
- 3 files changed, 41 insertions(+), 29 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml |   18 ++
+ drivers/media/i2c/Kconfig                    |    9 +
+ drivers/media/i2c/Makefile                   |    1 +
+ drivers/media/i2c/lm3646.c                   |  414 ++++++++++++++++++++++++++
+ include/media/lm3646.h                       |   87 ++++++
+ include/uapi/linux/v4l2-controls.h           |    3 +
+ 6 files changed, 532 insertions(+)
+ create mode 100644 drivers/media/i2c/lm3646.c
+ create mode 100644 include/media/lm3646.h
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index e8175e7..73dd38e 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -781,7 +781,7 @@ static void vpdma_firmware_cb(const struct firmware *f, void *context)
- 	/* already initialized */
- 	if (read_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
- 			VPDMA_LIST_RDY_SHFT)) {
--		vpdma->ready = true;
-+		vpdma->cb(vpdma->pdev);
- 		return;
- 	}
- 
-@@ -811,7 +811,7 @@ static void vpdma_firmware_cb(const struct firmware *f, void *context)
- 		goto free_buf;
- 	}
- 
--	vpdma->ready = true;
-+	vpdma->cb(vpdma->pdev);
- 
- free_buf:
- 	vpdma_unmap_desc_buf(vpdma, &fw_dma_buf);
-@@ -839,7 +839,8 @@ static int vpdma_load_firmware(struct vpdma_data *vpdma)
- 	return 0;
- }
- 
--struct vpdma_data *vpdma_create(struct platform_device *pdev)
-+struct vpdma_data *vpdma_create(struct platform_device *pdev,
-+		void (*cb)(struct platform_device *pdev))
- {
- 	struct resource *res;
- 	struct vpdma_data *vpdma;
-@@ -854,6 +855,7 @@ struct vpdma_data *vpdma_create(struct platform_device *pdev)
- 	}
- 
- 	vpdma->pdev = pdev;
-+	vpdma->cb = cb;
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
- 	if (res == NULL) {
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index cf40f11..bf5f8bb 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -35,8 +35,8 @@ struct vpdma_data {
- 
- 	struct platform_device	*pdev;
- 
--	/* tells whether vpdma firmware is loaded or not */
--	bool ready;
-+	/* callback to VPE driver when the firmware is loaded */
-+	void (*cb)(struct platform_device *pdev);
- };
- 
- enum vpdma_data_format_type {
-@@ -208,6 +208,7 @@ void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
- void vpdma_dump_regs(struct vpdma_data *vpdma);
- 
- /* initialize vpdma, passed with VPE's platform device pointer */
--struct vpdma_data *vpdma_create(struct platform_device *pdev);
-+struct vpdma_data *vpdma_create(struct platform_device *pdev,
-+		void (*cb)(struct platform_device *pdev));
- 
- #endif
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index f3143ac..f1eae67 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1817,11 +1817,6 @@ static int vpe_open(struct file *file)
- 
- 	vpe_dbg(dev, "vpe_open\n");
- 
--	if (!dev->vpdma->ready) {
--		vpe_err(dev, "vpdma firmware not loaded\n");
--		return -ENODEV;
--	}
--
- 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
- 		return -ENOMEM;
-@@ -2039,10 +2034,40 @@ static void vpe_runtime_put(struct platform_device *pdev)
- 	WARN_ON(r < 0 && r != -ENOSYS);
- }
- 
-+static void vpe_fw_cb(struct platform_device *pdev)
-+{
-+	struct vpe_dev *dev = platform_get_drvdata(pdev);
-+	struct video_device *vfd;
-+	int ret;
-+
-+	vfd = &dev->vfd;
-+	*vfd = vpe_videodev;
-+	vfd->lock = &dev->dev_mutex;
-+	vfd->v4l2_dev = &dev->v4l2_dev;
-+
-+	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-+	if (ret) {
-+		vpe_err(dev, "Failed to register video device\n");
-+
-+		vpe_set_clock_enable(dev, 0);
-+		vpe_runtime_put(pdev);
-+		pm_runtime_disable(&pdev->dev);
-+		v4l2_m2m_release(dev->m2m_dev);
-+		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
-+		v4l2_device_unregister(&dev->v4l2_dev);
-+
-+		return;
-+	}
-+
-+	video_set_drvdata(vfd, dev);
-+	snprintf(vfd->name, sizeof(vfd->name), "%s", vpe_videodev.name);
-+	dev_info(dev->v4l2_dev.dev, "Device registered as /dev/video%d\n",
-+		vfd->num);
-+}
-+
- static int vpe_probe(struct platform_device *pdev)
- {
- 	struct vpe_dev *dev;
--	struct video_device *vfd;
- 	int ret, irq, func;
- 
- 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-@@ -2123,28 +2148,12 @@ static int vpe_probe(struct platform_device *pdev)
- 		goto runtime_put;
- 	}
- 
--	dev->vpdma = vpdma_create(pdev);
-+	dev->vpdma = vpdma_create(pdev, vpe_fw_cb);
- 	if (IS_ERR(dev->vpdma)) {
- 		ret = PTR_ERR(dev->vpdma);
- 		goto runtime_put;
- 	}
- 
--	vfd = &dev->vfd;
--	*vfd = vpe_videodev;
--	vfd->lock = &dev->dev_mutex;
--	vfd->v4l2_dev = &dev->v4l2_dev;
--
--	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
--	if (ret) {
--		vpe_err(dev, "Failed to register video device\n");
--		goto runtime_put;
--	}
--
--	video_set_drvdata(vfd, dev);
--	snprintf(vfd->name, sizeof(vfd->name), "%s", vpe_videodev.name);
--	dev_info(dev->v4l2_dev.dev, "Device registered as /dev/video%d\n",
--		vfd->num);
--
- 	return 0;
- 
- runtime_put:
 -- 
-1.8.3.2
+1.7.9.5
 
