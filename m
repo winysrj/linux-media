@@ -1,153 +1,395 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4740 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752858AbaCANkG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Mar 2014 08:40:06 -0500
-Message-ID: <5311E31F.904@xs4all.nl>
-Date: Sat, 01 Mar 2014 14:39:43 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-CC: k.debski@samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATH v6 05/10] v4l: Add timestamp source flags, mask and document
- them
-References: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi> <1393679828-25878-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1393679828-25878-6-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:49354 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754098AbaCCKHz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:55 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 52/79] [media] drx-j: get rid of drx_ctrl
+Date: Mon,  3 Mar 2014 07:06:46 -0300
+Message-Id: <1393841233-24840-53-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This function is used only as an abstraction layer to call the
+two firmware functions. Remove it.
 
-Don't worry, it's a very minor change:
+As a bonus, the drx_ctrl_function is now unused and can be
+removed.
 
-On 03/01/2014 02:17 PM, Sakari Ailus wrote:
-> Some devices do not produce timestamps that correspond to the end of the
-> frame. The user space should be informed on the matter. This patch achieves
-> that by adding buffer flags (and a mask) for timestamp sources since more
-> possible timestamping points are expected than just two.
-> 
-> A three-bit mask is defined (V4L2_BUF_FLAG_TSTAMP_SRC_MASK) and two of the
-> eight possible values is are defined V4L2_BUF_FLAG_TSTAMP_SRC_EOF for end of
-> frame (value zero) V4L2_BUF_FLAG_TSTAMP_SRC_SOE for start of exposure (next
-> value).
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Kamil Debski <k.debski@samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/DocBook/media/v4l/io.xml   |   36 +++++++++++++++++++++++++-----
->  drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
->  include/media/videobuf2-core.h           |    2 ++
->  include/uapi/linux/videodev2.h           |    4 ++++
->  4 files changed, 39 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 46d24b3..d44401c 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -653,12 +653,6 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
->  In that case, struct <structname>v4l2_buffer</structname> contains an array of
->  plane structures.</para>
->  
-> -      <para>For timestamp types that are sampled from the system clock
-> -(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
-> -taken after the complete frame has been received (or transmitted in
-> -case of video output devices). For other kinds of
-> -timestamps this may vary depending on the driver.</para>
-> -
->      <table frame="none" pgwide="1" id="v4l2-buffer">
->        <title>struct <structname>v4l2_buffer</structname></title>
->        <tgroup cols="4">
-> @@ -1119,6 +1113,36 @@ in which case caches have not been used.</entry>
->  	    <entry>The CAPTURE buffer timestamp has been taken from the
->  	    corresponding OUTPUT buffer. This flag applies only to mem2mem devices.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant></entry>
-> +	    <entry>0x00070000</entry>
-> +	    <entry>Mask for timestamp sources below. The timestamp source
-> +	    defines the point of time the timestamp is taken in relation to
-> +	    the frame. Logical and operation between the
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drx39xxj.c   |  24 +--
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.h |   3 -
+ drivers/media/dvb-frontends/drx39xyj/drxj.c       | 185 ++--------------------
+ 3 files changed, 28 insertions(+), 184 deletions(-)
 
-Rephrase to: "A logical 'and' operation"
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
+index 7a7a4a87fe25..7e316618bfa9 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
+@@ -45,7 +45,7 @@ static int drx39xxj_set_powerstate(struct dvb_frontend *fe, int enable)
+ 	else
+ 		power_mode = DRX_POWER_DOWN;
+ 
+-	result = drx_ctrl(demod, DRX_CTRL_POWER_MODE, &power_mode);
++	result = drxj_ctrl(demod, DRX_CTRL_POWER_MODE, &power_mode);
+ 	if (result != 0) {
+ 		pr_err("Power state change failed\n");
+ 		return 0;
+@@ -64,7 +64,7 @@ static int drx39xxj_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 
+ 	*status = 0;
+ 
+-	result = drx_ctrl(demod, DRX_CTRL_LOCK_STATUS, &lock_status);
++	result = drxj_ctrl(demod, DRX_CTRL_LOCK_STATUS, &lock_status);
+ 	if (result != 0) {
+ 		pr_err("drx39xxj: could not get lock status!\n");
+ 		*status = 0;
+@@ -109,7 +109,7 @@ static int drx39xxj_read_ber(struct dvb_frontend *fe, u32 *ber)
+ 	int result;
+ 	struct drx_sig_quality sig_quality;
+ 
+-	result = drx_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
++	result = drxj_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
+ 	if (result != 0) {
+ 		pr_err("drx39xxj: could not get ber!\n");
+ 		*ber = 0;
+@@ -128,7 +128,7 @@ static int drx39xxj_read_signal_strength(struct dvb_frontend *fe,
+ 	int result;
+ 	struct drx_sig_quality sig_quality;
+ 
+-	result = drx_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
++	result = drxj_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
+ 	if (result != 0) {
+ 		pr_err("drx39xxj: could not get signal strength!\n");
+ 		*strength = 0;
+@@ -147,7 +147,7 @@ static int drx39xxj_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	int result;
+ 	struct drx_sig_quality sig_quality;
+ 
+-	result = drx_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
++	result = drxj_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
+ 	if (result != 0) {
+ 		pr_err("drx39xxj: could not read snr!\n");
+ 		*snr = 0;
+@@ -165,7 +165,7 @@ static int drx39xxj_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	int result;
+ 	struct drx_sig_quality sig_quality;
+ 
+-	result = drx_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
++	result = drxj_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
+ 	if (result != 0) {
+ 		pr_err("drx39xxj: could not get uc blocks!\n");
+ 		*ucblocks = 0;
+@@ -244,7 +244,7 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
+ 
+ 	if (standard != state->current_standard || state->powered_up == 0) {
+ 		/* Set the standard (will be powered up if necessary */
+-		result = drx_ctrl(demod, DRX_CTRL_SET_STANDARD, &standard);
++		result = drxj_ctrl(demod, DRX_CTRL_SET_STANDARD, &standard);
+ 		if (result != 0) {
+ 			pr_err("Failed to set standard! result=%02x\n",
+ 			       result);
+@@ -261,7 +261,7 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
+ 	channel.constellation = constellation;
+ 
+ 	/* program channel */
+-	result = drx_ctrl(demod, DRX_CTRL_SET_CHANNEL, &channel);
++	result = drxj_ctrl(demod, DRX_CTRL_SET_CHANNEL, &channel);
+ 	if (result != 0) {
+ 		pr_err("Failed to set channel!\n");
+ 		return -EINVAL;
+@@ -269,7 +269,7 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
+ 	/* Just for giggles, let's shut off the LNA again.... */
+ 	uio_data.uio = DRX_UIO1;
+ 	uio_data.value = false;
+-	result = drx_ctrl(demod, DRX_CTRL_UIO_WRITE, &uio_data);
++	result = drxj_ctrl(demod, DRX_CTRL_UIO_WRITE, &uio_data);
+ 	if (result != 0) {
+ 		pr_err("Failed to disable LNA!\n");
+ 		return 0;
+@@ -315,7 +315,7 @@ static int drx39xxj_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 		return 0;
+ 	}
+ 
+-	result = drx_ctrl(demod, DRX_CTRL_I2C_BRIDGE, &i2c_gate_state);
++	result = drxj_ctrl(demod, DRX_CTRL_I2C_BRIDGE, &i2c_gate_state);
+ 	if (result != 0) {
+ 		pr_err("drx39xxj: could not open i2c gate [%d]\n",
+ 		       result);
+@@ -423,7 +423,7 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
+ 	uio_cfg.uio = DRX_UIO1;
+ 	uio_cfg.mode = DRX_UIO_MODE_READWRITE;
+ 	/* Configure user-I/O #3: enable read/write */
+-	result = drx_ctrl(demod, DRX_CTRL_UIO_CFG, &uio_cfg);
++	result = drxj_ctrl(demod, DRX_CTRL_UIO_CFG, &uio_cfg);
+ 	if (result) {
+ 		pr_err("Failed to setup LNA GPIO!\n");
+ 		goto error;
+@@ -431,7 +431,7 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
+ 
+ 	uio_data.uio = DRX_UIO1;
+ 	uio_data.value = false;
+-	result = drx_ctrl(demod, DRX_CTRL_UIO_WRITE, &uio_data);
++	result = drxj_ctrl(demod, DRX_CTRL_UIO_WRITE, &uio_data);
+ 	if (result != 0) {
+ 		pr_err("Failed to disable LNA!\n");
+ 		goto error;
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+index 343ae519b5dc..9ecf01029e90 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
++++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+@@ -2468,9 +2468,6 @@ Exported FUNCTIONS
+ 
+ 	int drx_close(struct drx_demod_instance *demod);
+ 
+-	int drx_ctrl(struct drx_demod_instance *demod,
+-			     u32 ctrl, void *ctrl_data);
+-
+ /*-------------------------------------------------------------------------
+ THE END
+ -------------------------------------------------------------------------*/
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index cea5b6d66ab7..083673525243 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -19797,6 +19797,10 @@ rw_error:
+ /*=============================================================================
+ ===== EXPORTED FUNCTIONS ====================================================*/
+ 
++static int drx_ctrl_u_code(struct drx_demod_instance *demod,
++		       struct drxu_code_info *mc_info,
++		       enum drxu_code_action action);
++
+ /**
+ * \fn drxj_open()
+ * \brief Open the demod instance, configure device, configure drxdriver
+@@ -19807,6 +19811,7 @@ rw_error:
+ * rely on SCU or AUD ucode to be present.
+ *
+ */
++
+ int drxj_open(struct drx_demod_instance *demod)
+ {
+ 	struct i2c_device_addr *dev_addr = NULL;
+@@ -19908,15 +19913,21 @@ int drxj_open(struct drx_demod_instance *demod)
+ 		common_attr->is_opened = true;
+ 		ucode_info.mc_file = common_attr->microcode_file;
+ 
+-		rc = drx_ctrl(demod, DRX_CTRL_LOAD_UCODE, &ucode_info);
++		if (DRX_ISPOWERDOWNMODE(demod->my_common_attr->current_power_mode)) {
++			pr_err("Should powerup before loading the firmware.");
++			return -EINVAL;
++		}
++
++		rc = drx_ctrl_u_code(demod, &ucode_info, UCODE_UPLOAD);
+ 		if (rc != 0) {
+-			pr_err("error %d\n", rc);
++			pr_err("error %d while uploading the firmware\n", rc);
+ 			goto rw_error;
+ 		}
+ 		if (common_attr->verify_microcode == true) {
+-			rc = drx_ctrl(demod, DRX_CTRL_VERIFY_UCODE, &ucode_info);
++			rc = drx_ctrl_u_code(demod, &ucode_info, UCODE_VERIFY);
+ 			if (rc != 0) {
+-				pr_err("error %d\n", rc);
++				pr_err("error %d while verifying the firmware\n",
++				       rc);
+ 				goto rw_error;
+ 			}
+ 		}
+@@ -20454,17 +20465,8 @@ static int drx_ctrl_u_code(struct drx_demod_instance *demod,
+ 		rc = drx_check_firmware(demod, (u8 *)mc_data_init, size);
+ 		if (rc)
+ 			goto release;
+-
+-		/* After scanning, validate the microcode.
+-		   It is also valid if no validation control exists.
+-		 */
+-		rc = drx_ctrl(demod, DRX_CTRL_VALIDATE_UCODE, NULL);
+-		if (rc != 0 && rc != -ENOTSUPP) {
+-			pr_err("Validate ucode not supported\n");
+-			return rc;
+-		}
+ 		pr_info("Uploading firmware %s\n", mc_file);
+-	} else if (action == UCODE_VERIFY) {
++	} else {
+ 		pr_info("Verifying if firmware upload was ok.\n");
+ 	}
+ 
+@@ -20579,67 +20581,6 @@ release:
+ 
+ /*============================================================================*/
+ 
+-/**
+- * drx_ctrl_version - Build list of version information.
+- * @demod: A pointer to a demodulator instance.
+- * @version_list: Pointer to linked list of versions.
+- *
+- * This function returns:
+- *	0:		Version information stored in version_list
+- *	-EINVAL:	Invalid arguments.
+- */
+-static int drx_ctrl_version(struct drx_demod_instance *demod,
+-			struct drx_version_list **version_list)
+-{
+-	static char drx_driver_core_module_name[] = "Core driver";
+-	static char drx_driver_core_version_text[] =
+-	    DRX_VERSIONSTRING(0, 0, 0);
+-
+-	static struct drx_version drx_driver_core_version;
+-	static struct drx_version_list drx_driver_core_version_list;
+-
+-	struct drx_version_list *demod_version_list = NULL;
+-	int return_status = -EIO;
+-
+-	/* Check arguments */
+-	if (version_list == NULL)
+-		return -EINVAL;
+-
+-	/* Get version info list from demod */
+-	return_status = (*(demod->my_demod_funct->ctrl_func)) (demod,
+-							   DRX_CTRL_VERSION,
+-							   (void *)
+-							   &demod_version_list);
+-
+-	/* Always fill in the information of the driver SW . */
+-	drx_driver_core_version.module_type = DRX_MODULE_DRIVERCORE;
+-	drx_driver_core_version.module_name = drx_driver_core_module_name;
+-	drx_driver_core_version.v_major = 0;
+-	drx_driver_core_version.v_minor = 0;
+-	drx_driver_core_version.v_patch = 0;
+-	drx_driver_core_version.v_string = drx_driver_core_version_text;
+-
+-	drx_driver_core_version_list.version = &drx_driver_core_version;
+-	drx_driver_core_version_list.next = (struct drx_version_list *) (NULL);
+-
+-	if ((return_status == 0) && (demod_version_list != NULL)) {
+-		/* Append versioninfo from driver to versioninfo from demod  */
+-		/* Return version info in "bottom-up" order. This way, multiple
+-		   devices can be handled without using malloc. */
+-		struct drx_version_list *current_list_element = demod_version_list;
+-		while (current_list_element->next != NULL)
+-			current_list_element = current_list_element->next;
+-		current_list_element->next = &drx_driver_core_version_list;
+-
+-		*version_list = demod_version_list;
+-	} else {
+-		/* Just return versioninfo from driver */
+-		*version_list = &drx_driver_core_version_list;
+-	}
+-
+-	return 0;
+-}
+-
+ /*
+  * Exported functions
+  */
+@@ -20711,97 +20652,3 @@ int drx_close(struct drx_demod_instance *demod)
+ 
+ 	return status;
+ }
+-/**
+- * drx_ctrl - Control the device.
+- * @demod:    A pointer to a demodulator instance.
+- * @ctrl:     Reference to desired control function.
+- * @ctrl_data: Pointer to data structure for control function.
+- *
+- * Data needed or returned by the control function is stored in ctrl_data.
+- *
+- * This function returns:
+- *	0:		Control function completed successfully.
+- *	-EIO:		Driver not initialized or error during control demod.
+- *	-EINVAL:	Demod instance or ctrl_data has invalid content.
+- *	-ENOTSUPP:	Specified control function is not available.
+- */
+-
+-int drx_ctrl(struct drx_demod_instance *demod, u32 ctrl, void *ctrl_data)
+-{
+-	int status = -EIO;
+-
+-	if ((demod == NULL) ||
+-	    (demod->my_demod_funct == NULL) ||
+-	    (demod->my_common_attr == NULL) ||
+-	    (demod->my_ext_attr == NULL) || (demod->my_i2c_dev_addr == NULL)
+-	    ) {
+-		return -EINVAL;
+-	}
+-
+-	if (((!demod->my_common_attr->is_opened) &&
+-	     (ctrl != DRX_CTRL_PROBE_DEVICE) && (ctrl != DRX_CTRL_VERSION))
+-	    ) {
+-		return -EINVAL;
+-	}
+-
+-	if ((DRX_ISPOWERDOWNMODE(demod->my_common_attr->current_power_mode) &&
+-	     (ctrl != DRX_CTRL_POWER_MODE) &&
+-	     (ctrl != DRX_CTRL_PROBE_DEVICE) &&
+-	     (ctrl != DRX_CTRL_NOP) && (ctrl != DRX_CTRL_VERSION)
+-	    )
+-	    ) {
+-		return -ENOTSUPP;
+-	}
+-
+-	/* Fixed control functions */
+-	switch (ctrl) {
+-      /*======================================================================*/
+-	case DRX_CTRL_NOP:
+-		/* No operation */
+-		return 0;
+-		break;
+-
+-      /*======================================================================*/
+-	case DRX_CTRL_VERSION:
+-		return drx_ctrl_version(demod, (struct drx_version_list **)ctrl_data);
+-		break;
+-
+-      /*======================================================================*/
+-	default:
+-		/* Do nothing */
+-		break;
+-	}
+-
+-	/* Virtual functions */
+-	/* First try calling function from derived class */
+-	status = (*(demod->my_demod_funct->ctrl_func)) (demod, ctrl, ctrl_data);
+-	if (status == -ENOTSUPP) {
+-		/* Now try calling a the base class function */
+-		switch (ctrl) {
+-	 /*===================================================================*/
+-		case DRX_CTRL_LOAD_UCODE:
+-			return drx_ctrl_u_code(demod,
+-					 (struct drxu_code_info *)ctrl_data,
+-					 UCODE_UPLOAD);
+-			break;
+-
+-	 /*===================================================================*/
+-		case DRX_CTRL_VERIFY_UCODE:
+-			{
+-				return drx_ctrl_u_code(demod,
+-						 (struct drxu_code_info *)ctrl_data,
+-						 UCODE_VERIFY);
+-			}
+-			break;
+-
+-	 /*===================================================================*/
+-		default:
+-			pr_err("control %d not supported\n", ctrl);
+-			return -ENOTSUPP;
+-		}
+-	} else {
+-		return status;
+-	}
+-
+-	return 0;
+-}
+\ No newline at end of file
+-- 
+1.8.5.3
 
-I read it at first more like 'apples and oranges': 'logical and operation'.
-It's unambiguous after rephrasing.
-
-Regards,
-
-	Hans
-
-> +	    <structfield>flags</structfield> field and
-> +	    <constant>V4L2_BUF_FLAG_TSTAMP_SRC_MASK</constant> produces the
-> +	    value of the timestamp source.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_EOF</constant></entry>
-> +	    <entry>0x00000000</entry>
-> +	    <entry>End Of Frame. The buffer timestamp has been taken
-> +	    when the last pixel of the frame has been received or the
-> +	    last pixel of the frame has been transmitted. In practice,
-> +	    software generated timestamps will typically be read from
-> +	    the clock a small amount of time after the last pixel has
-> +	    been received or transmitten, depending on the system and
-> +	    other activity in it.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TSTAMP_SRC_SOE</constant></entry>
-> +	    <entry>0x00010000</entry>
-> +	    <entry>Start Of Exposure. The buffer timestamp has been
-> +	    taken when the exposure of the frame has begun. This is
-> +	    only valid for the
-> +	    <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant> buffer
-> +	    type.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 411429c..3dda083 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2226,7 +2226,9 @@ int vb2_queue_init(struct vb2_queue *q)
->  	    WARN_ON(!q->io_modes)	  ||
->  	    WARN_ON(!q->ops->queue_setup) ||
->  	    WARN_ON(!q->ops->buf_queue)   ||
-> -	    WARN_ON(q->timestamp_flags & ~V4L2_BUF_FLAG_TIMESTAMP_MASK))
-> +	    WARN_ON(q->timestamp_flags &
-> +		    ~(V4L2_BUF_FLAG_TIMESTAMP_MASK |
-> +		      V4L2_BUF_FLAG_TSTAMP_SRC_MASK)))
->  		return -EINVAL;
->  
->  	/* Warn that the driver should choose an appropriate timestamp type */
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 3770be6..bf6859e 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -312,6 +312,8 @@ struct v4l2_fh;
->   * @buf_struct_size: size of the driver-specific buffer structure;
->   *		"0" indicates the driver doesn't want to use a custom buffer
->   *		structure type, so sizeof(struct vb2_buffer) will is used
-> + * @timestamp_flags: Timestamp flags; V4L2_BUF_FLAGS_TIMESTAMP_* and
-> + *		V4L2_BUF_FLAGS_TSTAMP_SRC_*
->   * @gfp_flags:	additional gfp flags used when allocating the buffers.
->   *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
->   *		to force the buffer allocation to a specific memory zone.
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index e9ee444..82e8661 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -695,6 +695,10 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x00000000
->  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x00002000
->  #define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x00004000
-> +/* Timestamp sources. */
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
-> +#define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
->  
->  /**
->   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
-> 
