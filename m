@@ -1,61 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55047 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752579AbaCDPiJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 10:38:09 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/2] [media] em28xx: Add LED support for Kworld UB45-Q v3
-Date: Tue,  4 Mar 2014 12:37:28 -0300
-Message-Id: <1393947448-1738-2-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393947448-1738-1-git-send-email-m.chehab@samsung.com>
-References: <1393947448-1738-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from bear.ext.ti.com ([192.94.94.41]:38169 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752952AbaCCHeK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Mar 2014 02:34:10 -0500
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH 0/7] v4l: ti-vpe: Some VPE fixes and enhancements
+Date: Mon, 3 Mar 2014 13:03:21 +0530
+Message-ID: <1393832008-22174-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This device has a led at bit 7 of GPIO reg. 0x80 to indicate
-when a DVB capture is happening.
+This patch set mainly consists of minor fixes for the VPE driver. These fixes
+ensure the following:
 
-Add support for it.
+- The VPE module can be inserted and removed successively.
+- Make sure that smaller resolutions like qcif work correctly.
+- Prevent race condition between firmware loading and an open call to the v4l2
+  device.
+- Prevent the possibility of output m2m queue not having sufficient 'ready'
+  buffers.
+- Some VPDMA data descriptor fields weren't understood correctly before. They
+  are now used correctly.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+The rest of the patches add some minor features like DMA buf support and
+cropping.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 5cd2df14bf1a..66d9c8798c82 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -516,6 +516,17 @@ static struct em28xx_led speedlink_vad_laplace_leds[] = {
- 	{-1, 0, 0, 0},
- };
- 
-+static struct em28xx_led kworld_ub435q_v3_leds[] = {
-+	{
-+		.role      = EM28XX_LED_DIGITAL_CAPTURING,
-+		.gpio_reg  = EM2874_R80_GPIO_P0_CTRL,
-+		.gpio_mask = 0x80,
-+		.inverted  = 1,
-+	},
-+	{-1, 0, 0, 0},
-+};
-+
-+
- /*
-  *  Board definitions
-  */
-@@ -2159,6 +2170,7 @@ struct em28xx_board em28xx_boards[] = {
- 		.def_i2c_bus	= 1,
- 		.i2c_speed      = EM28XX_I2C_CLK_WAIT_ENABLE |
- 				  EM28XX_I2C_FREQ_100_KHZ,
-+		.leds = kworld_ub435q_v3_leds,
- 	},
- 	[EM2874_BOARD_PCTV_HD_MINI_80E] = {
- 		.name         = "Pinnacle PCTV HD Mini",
+Reference branch:
+
+git@github.com:boddob/linux.git vpe_for_315
+
+Archit Taneja (7):
+  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
+    dst_bufs
+  v4l: ti-vpe: register video device only when firmware is loaded
+  v4l: ti-vpe: Use video_device_release_empty
+  v4l: ti-vpe: Allow DMABUF buffer type support
+  v4l: ti-vpe: Allow usage of smaller images
+  v4l: ti-vpe: Fix some params in VPE data descriptors
+  v4l: ti-vpe: Add crop support in VPE driver
+
+ drivers/media/platform/ti-vpe/vpdma.c |  58 ++++++++---
+ drivers/media/platform/ti-vpe/vpdma.h |  16 +--
+ drivers/media/platform/ti-vpe/vpe.c   | 180 +++++++++++++++++++++++++++-------
+ 3 files changed, 198 insertions(+), 56 deletions(-)
+
 -- 
-1.8.5.3
+1.8.3.2
 
