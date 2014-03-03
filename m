@@ -1,33 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.89.28.114]:42692 "EHLO
-	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753381AbaCMK3x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 06:29:53 -0400
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: <linux-media@vger.kernel.org>, James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH 0/3] rc: img-ir: Fixes a few warnings
-Date: Thu, 13 Mar 2014 10:29:20 +0000
-Message-ID: <1394706563-31081-1-git-send-email-james.hogan@imgtec.com>
+Received: from mail-yh0-f45.google.com ([209.85.213.45]:42612 "EHLO
+	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752469AbaCCEUU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 23:20:20 -0500
+Received: by mail-yh0-f45.google.com with SMTP id i57so3105140yha.18
+        for <linux-media@vger.kernel.org>; Sun, 02 Mar 2014 20:20:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1393609335-12081-2-git-send-email-hverkuil@xs4all.nl>
+References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl> <1393609335-12081-2-git-send-email-hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Mon, 3 Mar 2014 13:19:33 +0900
+Message-ID: <CAMm-=zCyMqktJh8G-zWwrUXPKz__YLx8wdXWH4XyQvz8W1T5BQ@mail.gmail.com>
+Subject: Re: [REVIEWv3 PATCH 01/17] vb2: Check if there are buffers before streamon
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches fix a few warnings in the img-ir driver, one from
-coccinelle and two more from W=1 (thanks Mauro).
+On Sat, Mar 1, 2014 at 2:41 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>
+> This patch adds a test preventing streamon() if there is no buffer
+> ready.
+>
+> Without this patch, a user could call streamon() before
+> preparing any buffer. This leads to a situation where if he calls
+> close() before calling streamoff() the device is kept streaming.
+>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-James Hogan (3):
-  rc: img-ir: hw: Remove unnecessary semi-colon
-  rc: img-ir: hw: Fix min/max bits setup
-  rc: img-ir: jvc: Remove unused no-leader timings
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
- drivers/media/rc/img-ir/img-ir-hw.c  |  8 ++++----
- drivers/media/rc/img-ir/img-ir-jvc.c | 11 -----------
- 2 files changed, 4 insertions(+), 15 deletions(-)
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 5a5fb7f..a127925 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1776,6 +1776,11 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+>                 return 0;
+>         }
+>
+> +       if (!q->num_buffers) {
+> +               dprintk(1, "streamon: no buffers have been allocated\n");
+> +               return -EINVAL;
+> +       }
+> +
+>         /*
+>          * If any buffers were queued before streamon,
+>          * we can now pass them to driver for processing.
+> --
+> 1.9.rc1
+>
+
+
 
 -- 
-1.8.1.2
-
+Best regards,
+Pawel Osciak
