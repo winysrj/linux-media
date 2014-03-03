@@ -1,129 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966AbaCJXOj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 08/48] adv7511: Add pad-level DV timings operations
-Date: Tue, 11 Mar 2014 00:15:19 +0100
-Message-Id: <1394493359-14115-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41315 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830AbaCCHeV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 02:34:21 -0500
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH 3/7] v4l: ti-vpe: Use video_device_release_empty
+Date: Mon, 3 Mar 2014 13:03:24 +0530
+Message-ID: <1393832008-22174-4-git-send-email-archit@ti.com>
+In-Reply-To: <1393832008-22174-1-git-send-email-archit@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated.
-Implement the pad-level version of those operations to prepare for the
-removal of the video version.
+The video_device struct is currently embedded in the driver data struct vpe_dev.
+A vpe_dev instance is allocated by the driver, and the memory for the vfd is a
+part of this struct.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+The v4l2 core, however, manages the removal of the vfd region, through the
+video_device's .release() op, which currently is the helper
+video_device_release. This causes memory corruption, and leads to issues when
+we try to re-insert the vpe module.
+
+Use the video_device_release_empty helper function instead
+
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/i2c/adv7511.c | 67 ++++++++++++++++++++++++++-------------------
- 1 file changed, 39 insertions(+), 28 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index ee61894..f8c75c6 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -597,34 +597,6 @@ static int adv7511_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
--static int adv7511_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
--{
--	struct adv7511_state *state = get_adv7511_state(sd);
--
--	if (edid->pad != 0)
--		return -EINVAL;
--	if ((edid->blocks == 0) || (edid->blocks > 256))
--		return -EINVAL;
--	if (!edid->edid)
--		return -EINVAL;
--	if (!state->edid.segments) {
--		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
--		return -ENODATA;
--	}
--	if (edid->start_block >= state->edid.segments * 2)
--		return -E2BIG;
--	if ((edid->blocks + edid->start_block) >= state->edid.segments * 2)
--		edid->blocks = state->edid.segments * 2 - edid->start_block;
--
--	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
--			128 * edid->blocks);
--	return 0;
--}
--
--static const struct v4l2_subdev_pad_ops adv7511_pad_ops = {
--	.get_edid = adv7511_get_edid,
--};
--
- static const struct v4l2_subdev_core_ops adv7511_core_ops = {
- 	.log_status = adv7511_log_status,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-@@ -700,12 +672,18 @@ static int adv7511_g_dv_timings(struct v4l2_subdev *sd,
- static int adv7511_enum_dv_timings(struct v4l2_subdev *sd,
- 				   struct v4l2_enum_dv_timings *timings)
- {
-+	if (timings->pad != 0)
-+		return -EINVAL;
-+
- 	return v4l2_enum_dv_timings_cap(timings, &adv7511_timings_cap, NULL, NULL);
- }
- 
- static int adv7511_dv_timings_cap(struct v4l2_subdev *sd,
- 				  struct v4l2_dv_timings_cap *cap)
- {
-+	if (cap->pad != 0)
-+		return -EINVAL;
-+
- 	*cap = adv7511_timings_cap;
- 	return 0;
- }
-@@ -797,6 +775,39 @@ static const struct v4l2_subdev_audio_ops adv7511_audio_ops = {
- 	.s_routing = adv7511_s_routing,
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 4243687..bb275f4 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1998,7 +1998,7 @@ static struct video_device vpe_videodev = {
+ 	.fops		= &vpe_fops,
+ 	.ioctl_ops	= &vpe_ioctl_ops,
+ 	.minor		= -1,
+-	.release	= video_device_release,
++	.release	= video_device_release_empty,
+ 	.vfl_dir	= VFL_DIR_M2M,
  };
  
-+/* ---------------------------- PAD OPS ------------------------------------- */
-+
-+static int adv7511_get_edid(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_edid *edid)
-+{
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+
-+	if (edid->pad != 0)
-+		return -EINVAL;
-+	if ((edid->blocks == 0) || (edid->blocks > 256))
-+		return -EINVAL;
-+	if (!edid->edid)
-+		return -EINVAL;
-+	if (!state->edid.segments) {
-+		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
-+		return -ENODATA;
-+	}
-+	if (edid->start_block >= state->edid.segments * 2)
-+		return -E2BIG;
-+	if ((edid->blocks + edid->start_block) >= state->edid.segments * 2)
-+		edid->blocks = state->edid.segments * 2 - edid->start_block;
-+
-+	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
-+			128 * edid->blocks);
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_pad_ops adv7511_pad_ops = {
-+	.get_edid = adv7511_get_edid,
-+	.enum_dv_timings = adv7511_enum_dv_timings,
-+	.dv_timings_cap = adv7511_dv_timings_cap,
-+};
-+
- /* --------------------- SUBDEV OPS --------------------------------------- */
- 
- static const struct v4l2_subdev_ops adv7511_ops = {
 -- 
 1.8.3.2
 
