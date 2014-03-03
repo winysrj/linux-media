@@ -1,108 +1,337 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4904 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756777AbaCDKnV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 10/18] vb2: rename queued_count to owned_by_drv_count
-Date: Tue,  4 Mar 2014 11:42:18 +0100
-Message-Id: <1393929746-39437-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:49400 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754172AbaCCKH7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:59 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 41/79] [media] drx-j: Split firmware size check from the main routine
+Date: Mon,  3 Mar 2014 07:06:35 -0300
+Message-Id: <1393841233-24840-42-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The firmware upload routine is already complex enough. Split the
+first loop that verifies the firmware size into a separate routine,
+making the code more readable.
 
-'queued_count' is a bit vague since it is not clear to which queue it
-refers to: the vb2 internal list of buffers or the driver-owned list
-of buffers.
-
-Rename to make it explicit.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
- include/media/videobuf2-core.h           |  4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.c | 215 ++++++++++++----------
+ 1 file changed, 122 insertions(+), 93 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7753abe..018a132 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1071,7 +1071,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
- 	list_add_tail(&vb->done_entry, &q->done_list);
--	atomic_dec(&q->queued_count);
-+	atomic_dec(&q->owned_by_drv_count);
- 	spin_unlock_irqrestore(&q->done_lock, flags);
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
+index 194be8344273..94768b16ee92 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
+@@ -933,6 +933,86 @@ static u16 u_code_compute_crc(u8 *block_data, u16 nr_words)
  
- 	/* Inform any processes that may be waiting for buffers */
-@@ -1402,7 +1402,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 	unsigned int plane;
+ /*============================================================================*/
  
- 	vb->state = VB2_BUF_STATE_ACTIVE;
--	atomic_inc(&q->queued_count);
-+	atomic_inc(&q->owned_by_drv_count);
++
++static int check_firmware(struct drx_demod_instance *demod, u8 *mc_data,
++			  unsigned size)
++{
++	struct drxu_code_block_hdr block_hdr;
++	int i;
++	unsigned count = 2 * sizeof(u16);
++	u32 mc_dev_type, mc_version, mc_base_version;
++	u16 mc_nr_of_blks = u_code_read16(mc_data + sizeof(u16));
++
++	/*
++	 * Scan microcode blocks first for version info
++	 * and firmware check
++	 */
++
++	/* Clear version block */
++	DRX_ATTR_MCRECORD(demod).aux_type = 0;
++	DRX_ATTR_MCRECORD(demod).mc_dev_type = 0;
++	DRX_ATTR_MCRECORD(demod).mc_version = 0;
++	DRX_ATTR_MCRECORD(demod).mc_base_version = 0;
++
++	for (i = 0; i < mc_nr_of_blks; i++) {
++		if (count + 3 * sizeof(u16) + sizeof(u32) > size)
++			goto eof;
++
++		/* Process block header */
++		block_hdr.addr = u_code_read32(mc_data + count);
++		count += sizeof(u32);
++		block_hdr.size = u_code_read16(mc_data + count);
++		count += sizeof(u16);
++		block_hdr.flags = u_code_read16(mc_data + count);
++		count += sizeof(u16);
++		block_hdr.CRC = u_code_read16(mc_data + count);
++		count += sizeof(u16);
++
++		pr_debug("%u: addr %u, size %u, flags 0x%04x, CRC 0x%04x\n",
++			count, block_hdr.addr, block_hdr.size, block_hdr.flags,
++			block_hdr.CRC);
++
++		if (block_hdr.flags & 0x8) {
++			u8 *auxblk = ((void *)mc_data) + block_hdr.addr;
++			u16 auxtype;
++
++			if (block_hdr.addr + sizeof(u16) > size)
++				goto eof;
++
++			auxtype = u_code_read16(auxblk);
++
++			/* Aux block. Check type */
++			if (DRX_ISMCVERTYPE(auxtype)) {
++				if (block_hdr.addr + 2 * sizeof(u16) + 2 * sizeof (u32) > size)
++					goto eof;
++
++				auxblk += sizeof(u16);
++				mc_dev_type = u_code_read32(auxblk);
++				auxblk += sizeof(u32);
++				mc_version = u_code_read32(auxblk);
++				auxblk += sizeof(u32);
++				mc_base_version = u_code_read32(auxblk);
++
++				DRX_ATTR_MCRECORD(demod).aux_type = auxtype;
++				DRX_ATTR_MCRECORD(demod).mc_dev_type = mc_dev_type;
++				DRX_ATTR_MCRECORD(demod).mc_version = mc_version;
++				DRX_ATTR_MCRECORD(demod).mc_base_version = mc_base_version;
++
++				pr_info("Firmware dev %x, ver %x, base ver %x\n",
++					mc_dev_type, mc_version, mc_base_version);
++
++			}
++		} else if (count + block_hdr.size * sizeof(u16) > size)
++			goto eof;
++
++		count += block_hdr.size * sizeof(u16);
++	}
++	return 0;
++eof:
++	pr_err("Firmware is truncated at pos %u/%u\n", count, size);
++	return -EINVAL;
++}
++
+ /**
+ * \brief Handle microcode upload or verify.
+ * \param dev_addr: Address of device.
+@@ -962,24 +1042,15 @@ ctrl_u_code(struct drx_demod_instance *demod,
+ 	u16 mc_magic_word = 0;
+ 	const u8 *mc_data_init = NULL;
+ 	u8 *mc_data = NULL;
++	unsigned size;
+ 	char *mc_file = mc_info->mc_file;
  
- 	/* sync buffers */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
-@@ -1554,7 +1554,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	int ret;
+ 	/* Check arguments */
+ 	if (!mc_info || !mc_file)
+ 		return -EINVAL;
  
- 	/* Tell the driver to start streaming */
--	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-+	ret = call_qop(q, start_streaming, q, atomic_read(&q->owned_by_drv_count));
- 	if (ret)
- 		fail_qop(q, start_streaming);
+-	if (demod->firmware) {
+-		mc_data_init = demod->firmware->data;
+-		mc_data = (void *)mc_data_init;
+-
+-		/* Check data */
+-		mc_magic_word = u_code_read16(mc_data);
+-		mc_data += sizeof(u16);
+-		mc_nr_of_blks = u_code_read16(mc_data);
+-		mc_data += sizeof(u16);
+-	} else {
++	if (!demod->firmware) {
+ 		const struct firmware *fw = NULL;
+-		unsigned size = 0;
  
-@@ -1775,7 +1775,7 @@ int vb2_wait_for_all_buffers(struct vb2_queue *q)
+ 		rc = request_firmware(&fw, mc_file, demod->i2c->dev.parent);
+ 		if (rc < 0) {
+@@ -987,95 +1058,49 @@ ctrl_u_code(struct drx_demod_instance *demod,
+ 			return -ENOENT;
+ 		}
+ 		demod->firmware = fw;
+-		mc_data_init = demod->firmware->data;
+-		size = demod->firmware->size;
+-
+-		pr_info("Firmware %s, size %u\n", mc_file, size);
+-
+-		mc_data = (void *)mc_data_init;
+-		/* Check data */
+-		if (mc_data - mc_data_init + 2 * sizeof(u16) > size)
+-			goto eof;
+-		mc_magic_word = u_code_read16(mc_data);
+-		mc_data += sizeof(u16);
+-		mc_nr_of_blks = u_code_read16(mc_data);
+-		mc_data += sizeof(u16);
+-
+ 
+-		if ((mc_magic_word != DRX_UCODE_MAGIC_WORD) || (mc_nr_of_blks == 0)) {
+-			rc = -EINVAL;		/* wrong endianess or wrong data ? */
+-			pr_err("Firmware magic word doesn't match\n");
++		if (demod->firmware->size < 2 * sizeof(u16)) {
++			rc = -EINVAL;
++			pr_err("Firmware is too short!\n");
+ 			goto release;
+ 		}
+ 
+-		/*
+-		 * Scan microcode blocks first for version info
+-		 * and firmware check
+-		 */
+-
+-		/* Clear version block */
+-		DRX_ATTR_MCRECORD(demod).aux_type = 0;
+-		DRX_ATTR_MCRECORD(demod).mc_dev_type = 0;
+-		DRX_ATTR_MCRECORD(demod).mc_version = 0;
+-		DRX_ATTR_MCRECORD(demod).mc_base_version = 0;
+-		for (i = 0; i < mc_nr_of_blks; i++) {
+-			struct drxu_code_block_hdr block_hdr;
+-
+-			if (mc_data - mc_data_init +
+-			    3 * sizeof(u16) + sizeof(u32) > size)
+-				goto eof;
+-			/* Process block header */
+-			block_hdr.addr = u_code_read32(mc_data);
+-			mc_data += sizeof(u32);
+-			block_hdr.size = u_code_read16(mc_data);
+-			mc_data += sizeof(u16);
+-			block_hdr.flags = u_code_read16(mc_data);
+-			mc_data += sizeof(u16);
+-			block_hdr.CRC = u_code_read16(mc_data);
+-			mc_data += sizeof(u16);
+-
+-			if (block_hdr.flags & 0x8) {
+-				u8 *auxblk = ((void *)mc_data_init) + block_hdr.addr;
+-				u16 auxtype;
+-
+-				if (mc_data - mc_data_init + sizeof(u16) +
+-				    2 * sizeof(u32) > size)
+-					goto eof;
++		pr_info("Firmware %s, size %zu\n",
++			mc_file, demod->firmware->size);
++	}
+ 
+-				/* Aux block. Check type */
+-				auxtype = u_code_read16(auxblk);
+-				if (DRX_ISMCVERTYPE(auxtype)) {
+-					DRX_ATTR_MCRECORD(demod).aux_type = u_code_read16(auxblk);
+-					auxblk += sizeof(u16);
+-					DRX_ATTR_MCRECORD(demod).mc_dev_type = u_code_read32(auxblk);
+-					auxblk += sizeof(u32);
+-					DRX_ATTR_MCRECORD(demod).mc_version = u_code_read32(auxblk);
+-					auxblk += sizeof(u32);
+-					DRX_ATTR_MCRECORD(demod).mc_base_version = u_code_read32(auxblk);
+-				}
+-			}
+-			if (mc_data - mc_data_init +
+-			    block_hdr.size * sizeof(u16) > size)
+-				goto eof;
++	mc_data_init = demod->firmware->data;
++	size = demod->firmware->size;
+ 
+-			/* Next block */
+-			mc_data += block_hdr.size * sizeof(u16);
+-		}
++	mc_data = (void *)mc_data_init;
++	/* Check data */
++	mc_magic_word = u_code_read16(mc_data);
++	mc_data += sizeof(u16);
++	mc_nr_of_blks = u_code_read16(mc_data);
++	mc_data += sizeof(u16);
+ 
+-		/* Restore data pointer */
+-		mc_data = ((void *)mc_data_init) + 2 * sizeof(u16);
++	if ((mc_magic_word != DRX_UCODE_MAGIC_WORD) || (mc_nr_of_blks == 0)) {
++		rc = -EINVAL;
++		pr_err("Firmware magic word doesn't match\n");
++		goto release;
  	}
  
- 	if (!q->retry_start_streaming)
--		wait_event(q->done_wq, !atomic_read(&q->queued_count));
-+		wait_event(q->done_wq, !atomic_read(&q->owned_by_drv_count));
+ 	if (action == UCODE_UPLOAD) {
++		rc = check_firmware(demod, (u8 *)mc_data_init, size);
++		if (rc)
++			goto release;
++
+ 		/* After scanning, validate the microcode.
+ 		   It is also valid if no validation control exists.
+ 		 */
+ 		rc = drx_ctrl(demod, DRX_CTRL_VALIDATE_UCODE, NULL);
+ 		if (rc != 0 && rc != -ENOTSUPP) {
+ 			pr_err("Validate ucode not supported\n");
+-			goto release;
++			return rc;
+ 		}
+ 		pr_info("Uploading firmware %s\n", mc_file);
++	} else if (action == UCODE_VERIFY) {
++		pr_info("Verifying if firmware upload was ok.\n");
+ 	}
+ 
+ 	/* Process microcode blocks */
+@@ -1093,6 +1118,10 @@ ctrl_u_code(struct drx_demod_instance *demod,
+ 		block_hdr.CRC = u_code_read16(mc_data);
+ 		mc_data += sizeof(u16);
+ 
++		pr_debug("%u: addr %u, size %u, flags 0x%04x, CRC 0x%04x\n",
++			(unsigned)(mc_data - mc_data_init), block_hdr.addr,
++			 block_hdr.size, block_hdr.flags, block_hdr.CRC);
++
+ 		/* Check block header on:
+ 		   - data larger than 64Kb
+ 		   - if CRC enabled check CRC
+@@ -1114,17 +1143,18 @@ ctrl_u_code(struct drx_demod_instance *demod,
+ 
+ 		/* Perform the desired action */
+ 		switch (action) {
+-		case UCODE_UPLOAD:
+-			/* Upload microcode */
++		case UCODE_UPLOAD:	/* Upload microcode */
+ 			if (demod->my_access_funct->write_block_func(dev_addr,
+ 							block_hdr.addr,
+ 							mc_block_nr_bytes,
+ 							mc_data, 0x0000)) {
+-				pr_err("error writing firmware\n");
++				rc = -EIO;
++				pr_err("error writing firmware at pos %u\n",
++				       (unsigned)(mc_data - mc_data_init));
+ 				goto release;
+ 			}
+ 			break;
+-		case UCODE_VERIFY: {
++		case UCODE_VERIFY: {	/* Verify uploaded microcode */
+ 			int result = 0;
+ 			u8 mc_data_buffer[DRX_UCODE_MAX_BUF_SIZE];
+ 			u32 bytes_to_comp = 0;
+@@ -1144,8 +1174,9 @@ ctrl_u_code(struct drx_demod_instance *demod,
+ 						    (u16)bytes_to_comp,
+ 						    (u8 *)mc_data_buffer,
+ 						    0x0000)) {
+-					pr_err("error reading firmware\n");
+-					goto release;
++					pr_err("error reading firmware at pos %u\n",
++					       (unsigned)(mc_data - mc_data_init));
++					return -EIO;
+ 				}
+ 
+ 				result =drxbsp_hst_memcmp(curr_ptr,
+@@ -1153,7 +1184,8 @@ ctrl_u_code(struct drx_demod_instance *demod,
+ 							  bytes_to_comp);
+ 
+ 				if (result) {
+-					pr_err("error verifying firmware\n");
++					pr_err("error verifying firmware at pos %u\n",
++					       (unsigned)(mc_data - mc_data_init));
+ 					return -EIO;
+ 				}
+ 
+@@ -1172,10 +1204,7 @@ ctrl_u_code(struct drx_demod_instance *demod,
+ 	}
+ 
  	return 0;
- }
- EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
-@@ -1907,7 +1907,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	 * has not already dequeued before initiating cancel.
- 	 */
- 	INIT_LIST_HEAD(&q->done_list);
--	atomic_set(&q->queued_count, 0);
-+	atomic_set(&q->owned_by_drv_count, 0);
- 	wake_up_all(&q->done_wq);
- 
- 	/*
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 06efa4a..4f8dce2 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -359,7 +359,7 @@ struct v4l2_fh;
-  * @bufs:	videobuf buffer structures
-  * @num_buffers: number of allocated/used buffers
-  * @queued_list: list of buffers currently queued from userspace
-- * @queued_count: number of buffers owned by the driver
-+ * @owned_by_drv_count: number of buffers owned by the driver
-  * @done_list:	list of buffers ready to be dequeued to userspace
-  * @done_lock:	lock to protect done_list list
-  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
-@@ -391,7 +391,7 @@ struct vb2_queue {
- 
- 	struct list_head		queued_list;
- 
--	atomic_t			queued_count;
-+	atomic_t			owned_by_drv_count;
- 	struct list_head		done_list;
- 	spinlock_t			done_lock;
- 	wait_queue_head_t		done_wq;
+-eof:
+-	rc = -ENOENT;
+-	pr_err("Firmware file %s is truncated at pos %lu\n",
+-	       mc_file, (unsigned long)(mc_data - mc_data_init));
++
+ release:
+ 	release_firmware(demod->firmware);
+ 	demod->firmware = NULL;
 -- 
-1.9.0
+1.8.5.3
 
