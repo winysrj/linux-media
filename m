@@ -1,97 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:60092 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932AbaCVMbS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Mar 2014 08:31:18 -0400
-Message-ID: <532D82C9.6010401@googlemail.com>
-Date: Sat, 22 Mar 2014 13:32:09 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Shuah Khan <shuah.kh@samsung.com>, m.chehab@samsung.com
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	shuahkhan@gmail.com
-Subject: Re: [PATCH] media: em28xx-video - change em28xx_scaler_set() to use
- em28xx_reg_len()
-References: <1395435890-15100-1-git-send-email-shuah.kh@samsung.com>
-In-Reply-To: <1395435890-15100-1-git-send-email-shuah.kh@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:49334 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753873AbaCCKHx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:53 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 19/79] [media] drx-j: make a few functions static
+Date: Mon,  3 Mar 2014 07:06:13 -0300
+Message-Id: <1393841233-24840-20-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+drivers/media/dvb-frontends/drx39xyj/drx_driver.c:181:7: warning: no previous prototype for 'get_scan_context' [-Wmissing-prototypes]
+ void *get_scan_context(pdrx_demod_instance_t demod, void *scan_context)
 
-Am 21.03.2014 22:04, schrieb Shuah Khan:
-> Change em28xx_scaler_set() to use em28xx_reg_len() to get register
-> lengths for EM28XX_R30_HSCALELOW and EM28XX_R32_VSCALELOW registers,
-> instead of hard-coding the length. Moved em28xx_reg_len() definition
-> for it to be visible to em28xx_scaler_set().
->
-> Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-video.c |   29 ++++++++++++++++-------------
->  1 file changed, 16 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index 19af6b3..f8a91de 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -272,6 +272,18 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
->  	}
->  }
->  
-> +static int em28xx_reg_len(int reg)
-> +{
-> +	switch (reg) {
-> +	case EM28XX_R40_AC97LSB:
-> +	case EM28XX_R30_HSCALELOW:
-> +	case EM28XX_R32_VSCALELOW:
-> +		return 2;
-> +	default:
-> +		return 1;
-> +	}
-> +}
-> +
->  static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
->  {
->  	u8 mode;
-> @@ -284,11 +296,13 @@ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
->  
->  		buf[0] = h;
->  		buf[1] = h >> 8;
-> -		em28xx_write_regs(dev, EM28XX_R30_HSCALELOW, (char *)buf, 2);
-> +		em28xx_write_regs(dev, EM28XX_R30_HSCALELOW, (char *)buf,
-> +				  em28xx_reg_len(EM28XX_R30_HSCALELOW));
->  
->  		buf[0] = v;
->  		buf[1] = v >> 8;
-> -		em28xx_write_regs(dev, EM28XX_R32_VSCALELOW, (char *)buf, 2);
-> +		em28xx_write_regs(dev, EM28XX_R32_VSCALELOW, (char *)buf,
-> +				  em28xx_reg_len(EM28XX_R32_VSCALELOW));
-Hmm... registers 0x30 and 0x32 are always 2 bytes long.
-So this change would needlessly complicate the code.
+drivers/media/dvb-frontends/drx39xyj/drx_driver.c: At top level:
+drivers/media/dvb-frontends/drx39xyj/drx_driver.c:842:5: warning: no previous prototype for 'ctrl_dump_registers' [-Wmissing-prototypes]
+ int ctrl_dump_registers(pdrx_demod_instance_t demod,
 
-Or do you know more than us, e.g. from looking into the datasheets ? ;-)
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
->  		/* it seems that both H and V scalers must be active
->  		   to work correctly */
->  		mode = (h || v) ? 0x30 : 0x00;
-> @@ -1583,17 +1597,6 @@ static int vidioc_g_chip_info(struct file *file, void *priv,
->  	return 0;
->  }
->  
-> -static int em28xx_reg_len(int reg)
-> -{
-> -	switch (reg) {
-> -	case EM28XX_R40_AC97LSB:
-> -	case EM28XX_R30_HSCALELOW:
-> -	case EM28XX_R32_VSCALELOW:
-> -		return 2;
-> -	default:
-> -		return 1;
-> -	}
-> -}
->  
->  static int vidioc_g_register(struct file *file, void *priv,
->  			     struct v4l2_dbg_register *reg)
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
+index e8d1a26bf581..db92b4f9b650 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
+@@ -178,7 +178,7 @@ static drx_scan_func_t get_scan_function(pdrx_demod_instance_t demod)
+ * \param scan_context: Context Pointer.
+ * \return drx_scan_func_t.
+ */
+-void *get_scan_context(pdrx_demod_instance_t demod, void *scan_context)
++static void *get_scan_context(pdrx_demod_instance_t demod, void *scan_context)
+ {
+ 	pdrx_common_attr_t common_attr = (pdrx_common_attr_t) (NULL);
+ 
+@@ -839,7 +839,7 @@ ctrl_program_tuner(pdrx_demod_instance_t demod, pdrx_channel_t channel)
+ * \retval DRX_STS_INVALID_ARG: Wrong parameters.
+ *
+ */
+-int ctrl_dump_registers(pdrx_demod_instance_t demod,
++static int ctrl_dump_registers(pdrx_demod_instance_t demod,
+ 			      p_drx_reg_dump_t registers)
+ {
+ 	u16 i = 0;
+-- 
+1.8.5.3
 
