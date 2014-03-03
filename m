@@ -1,175 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:58129 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754935AbaCLQbt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 12:31:49 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v10][ 06/10] ARM: dts: imx5*, imx6*: correct display-timings nodes.
-Date: Wed, 12 Mar 2014 17:31:03 +0100
-Message-Id: <1394641867-15629-6-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394641867-15629-1-git-send-email-denis@eukrea.com>
-References: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54088 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754564AbaCCVwt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 16:52:49 -0500
+Received: from avalon.localnet (unknown [91.178.178.142])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 1F51335AC4
+	for <linux-media@vger.kernel.org>; Mon,  3 Mar 2014 22:51:46 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.15] uvcvideo fixes
+Date: Mon, 03 Mar 2014 22:54:14 +0100
+Message-ID: <6017354.8tlIuUTvP2@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The imx-drm driver can't use the de-active and
-pixelclk-active display-timings properties yet.
+Hi Mauro,
 
-Instead the data-enable and the pixel data clock
-polarity are hardcoded in the imx-drm driver.
+The following changes since commit cd701c89751d5c63230f47da9a78cdbb39384fdc:
 
-So theses properties are now set to keep
-the same behaviour when imx-drm will start
-using them.
+  [media] em28xx: implement em28xx_usb_driver suspend, resume, reset_resume 
+hooks (2014-03-03 06:46:48 -0300)
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-ChangeLog v9->v10:
-- New patch that was splitted out of:
-  "staging imx-drm: Use de-active and pixelclk-active
-  display-timings."
+are available in the git repository at:
 
----
- arch/arm/boot/dts/imx51-babbage.dts       |    2 ++
- arch/arm/boot/dts/imx53-m53evk.dts        |    2 ++
- arch/arm/boot/dts/imx53-tx53-x03x.dts     |    2 +-
- arch/arm/boot/dts/imx6qdl-gw53xx.dtsi     |    2 ++
- arch/arm/boot/dts/imx6qdl-gw54xx.dtsi     |    2 ++
- arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi |    2 ++
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi  |    2 ++
- arch/arm/boot/dts/imx6qdl-sabrelite.dtsi  |    2 ++
- arch/arm/boot/dts/imx6qdl-sabresd.dtsi    |    2 ++
- 9 files changed, 17 insertions(+), 1 deletion(-)
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
 
-diff --git a/arch/arm/boot/dts/imx51-babbage.dts b/arch/arm/boot/dts/imx51-babbage.dts
-index 9e9deb2..4732a00 100644
---- a/arch/arm/boot/dts/imx51-babbage.dts
-+++ b/arch/arm/boot/dts/imx51-babbage.dts
-@@ -38,6 +38,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 
-diff --git a/arch/arm/boot/dts/imx53-m53evk.dts b/arch/arm/boot/dts/imx53-m53evk.dts
-index 4646ea9..d6e1046 100644
---- a/arch/arm/boot/dts/imx53-m53evk.dts
-+++ b/arch/arm/boot/dts/imx53-m53evk.dts
-@@ -40,6 +40,8 @@
- 					vfront-porch = <9>;
- 					vsync-len = <3>;
- 					vsync-active = <1>;
-+					de-active = <1>;
-+					pixelclk-active = <0>;
- 				};
- 			};
- 		};
-diff --git a/arch/arm/boot/dts/imx53-tx53-x03x.dts b/arch/arm/boot/dts/imx53-tx53-x03x.dts
-index 0217dde3..4092a81 100644
---- a/arch/arm/boot/dts/imx53-tx53-x03x.dts
-+++ b/arch/arm/boot/dts/imx53-tx53-x03x.dts
-@@ -93,7 +93,7 @@
- 					hsync-active = <0>;
- 					vsync-active = <0>;
- 					de-active = <1>;
--					pixelclk-active = <1>;
-+					pixelclk-active = <0>;
- 				};
- 
- 				ET0500 {
-diff --git a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
-index c8e5ae0..43f48f2 100644
---- a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
-@@ -494,6 +494,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-index 2795dfc..59ecfd1 100644
---- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
-@@ -516,6 +516,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
-index 99be301..e9419a2 100644
---- a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
-@@ -349,6 +349,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 009abd6..230bbc6 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -405,6 +405,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-index 3bec128..ed4c72f 100644
---- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-@@ -349,6 +349,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-index 7a88d9a..7d1c84c 100644
---- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
-@@ -463,6 +463,8 @@
- 				vfront-porch = <7>;
- 				hsync-len = <60>;
- 				vsync-len = <10>;
-+				de-active = <1>;
-+				pixelclk-active = <0>;
- 			};
- 		};
- 	};
+for you to fetch changes up to a44939ba9afaccf63f727d263c1db1054cc130b2:
+
+  uvcvideo: Add bayer 8-bit patterns to uvcvideo (2014-03-03 13:35:14 +0100)
+
+----------------------------------------------------------------
+Edgar Thier (1):
+      uvcvideo: Add bayer 8-bit patterns to uvcvideo
+
+Oleksij Rempel (1):
+      uvcvideo: Do not use usb_set_interface on bulk EP
+
+ drivers/media/usb/uvc/uvc_driver.c | 22 +++++++++++++++++++++-
+ drivers/media/usb/uvc/uvc_video.c  | 20 +++++++++++++++++++-
+ drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
+ 3 files changed, 52 insertions(+), 2 deletions(-)
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
