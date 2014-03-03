@@ -1,63 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.comexp.ru ([78.110.60.213]:35338 "EHLO mail.comexp.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753540AbaCaNuy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Mar 2014 09:50:54 -0400
-Message-ID: <1396264443.4328.10.camel@localhost.localdomain>
-Subject: [PATCH v2 2/3] videodev2: add new event type
- V4L2_EVENT_SIGNALCHANGED
-From: Mikhail Domrachev <mihail.domrychev@comexp.ru>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Aleksey Igonin <aleksey.igonin@comexp.ru>
-Date: Mon, 31 Mar 2014 15:14:03 +0400
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:49457 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754037AbaCCKIG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:06 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 65/79] [media] drx-j: Get rid of I2C protocol version
+Date: Mon,  3 Mar 2014 07:06:59 -0300
+Message-Id: <1393841233-24840-66-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Applications subscribed for this event can be notified about
-changes of TV standard.
+This is not used anywere. Get rid of it.
 
-Signed-off-by: Mikhail Domrachev <mihail.domrychev@comexp.ru>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml | 7 +++++++
- include/uapi/linux/videodev2.h                             | 1 +
- 2 files changed, 8 insertions(+)
+ drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.c | 15 ---------------
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.h   |  1 -
+ drivers/media/dvb-frontends/drx39xyj/drxj.c         | 15 ---------------
+ 3 files changed, 31 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 5c70b61..dc7cb9f 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -155,6 +155,13 @@
- 	    </entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_EVENT_SIGNALCHANGED</constant></entry>
-+	    <entry>5</entry>
-+	    <entry>This event is triggered when TV standard of the input signal is changed.
-+		   New detected standard of type &v4l2-std-id; placed to u.data[] field of &v4l2-event;
-+	    </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
- 	    <entry>0x08000000</entry>
- 	    <entry>Base event number for driver-private events.</entry>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index e35ad6c..45094f2 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1765,6 +1765,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_SIGNALCHANGED		5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.c b/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.c
+index b78d45b68668..b81b4f9cd4b0 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.c
+@@ -108,23 +108,8 @@ static int drxdap_fasi_read_modify_write_reg32(struct i2c_device_addr *dev_addr,
+ 						    u32 datain,	/* data to send                 */
+ 						    u32 *dataout);	/* data to receive back         */
  
- /* Payload for V4L2_EVENT_VSYNC */
+-/* The version structure of this protocol implementation */
+-char drx_dap_fasi_module_name[] = "FASI Data Access Protocol";
+-char drx_dap_fasi_version_text[] = "";
+-
+-struct drx_version drx_dap_fasi_version = {
+-	DRX_MODULE_DAP,	      /**< type identifier of the module */
+-	drx_dap_fasi_module_name, /**< name or description of module */
+-
+-	0,		      /**< major version number */
+-	0,		      /**< minor version number */
+-	0,		      /**< patch version number */
+-	drx_dap_fasi_version_text /**< version as text string */
+-};
+-
+ /* The structure containing the protocol interface */
+ struct drx_access_func drx_dap_fasi_funct_g = {
+-	&drx_dap_fasi_version,
+ 	drxdap_fasi_write_block,	/* Supported */
+ 	drxdap_fasi_read_block,	/* Supported */
+ 	drxdap_fasi_write_reg8,	/* Not supported */
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+index aabd5c56d55b..f3098b6bd006 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
++++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+@@ -1825,7 +1825,6 @@ struct drx_aud_data {
+ * \struct struct drx_access_func * \brief Interface to an access protocol.
+ */
+ struct drx_access_func {
+-	struct drx_version *protocolVersion;
+ 	drx_write_block_func_t write_block_func;
+ 	drx_read_block_func_t read_block_func;
+ 	drx_write_reg8func_t write_reg8func;
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 8f2f2653af2c..1e202dafe335 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -584,23 +584,8 @@ static int drxj_dap_write_reg32(struct i2c_device_addr *dev_addr,
+ 				       u32 addr,
+ 				       u32 data, u32 flags);
+ 
+-/* The version structure of this protocol implementation */
+-char drx_dap_drxj_module_name[] = "DRXJ Data Access Protocol";
+-char drx_dap_drxj_version_text[] = "0.0.0";
+-
+-struct drx_version drx_dap_drxj_version = {
+-	DRX_MODULE_DAP,	      /**< type identifier of the module  */
+-	drx_dap_drxj_module_name, /**< name or description of module  */
+-
+-	0,		      /**< major version number           */
+-	0,		      /**< minor version number           */
+-	0,		      /**< patch version number           */
+-	drx_dap_drxj_version_text /**< version as text string         */
+-};
+-
+ /* The structure containing the protocol interface */
+ struct drx_access_func drx_dap_drxj_funct_g = {
+-	&drx_dap_drxj_version,
+ 	drxj_dap_write_block,	/* Supported       */
+ 	drxj_dap_read_block,	/* Supported       */
+ 	drxj_dap_write_reg8,	/* Not supported   */
 -- 
 1.8.5.3
-
-
 
