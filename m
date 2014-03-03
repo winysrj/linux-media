@@ -1,62 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f173.google.com ([209.85.128.173]:41942 "EHLO
-	mail-ve0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750817AbaCBG1K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 01:27:10 -0500
-Received: by mail-ve0-f173.google.com with SMTP id oy12so360966veb.18
-        for <linux-media@vger.kernel.org>; Sat, 01 Mar 2014 22:27:09 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1393519488-5427-1-git-send-email-p.zabel@pengutronix.de>
-References: <1393519488-5427-1-git-send-email-p.zabel@pengutronix.de>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sun, 2 Mar 2014 11:56:48 +0530
-Message-ID: <CA+V-a8sjibFouLHc_iNxXOdThgQ1PbKu6FhuLMspayPc3YhecA@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] tvp5150: Fix type mismatch warning in clamp macro
-To: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from bombadil.infradead.org ([198.137.202.9]:49833 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753678AbaCCLLb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 06:11:31 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 46/79] [media] drx-j: Allow standard selection
+Date: Mon,  3 Mar 2014 07:06:40 -0300
+Message-Id: <1393841233-24840-47-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+ClearQAM is currently not working. Add support for it too.
+Unlikely other ATSC tuners, though, this device will not
+auto-detect between ATSC and ClearQAM. So, the delivery
+system should be properly set.
 
-Thanks for the patch.
+Also, this frontend seems to also support DVB-C annex A/C. Add
+experimental support for them.
 
-On Thu, Feb 27, 2014 at 10:14 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> This patch fixes the following warning:
->
-> drivers/media/i2c/tvp5150.c: In function '__tvp5150_try_crop':
-> include/linux/kernel.h:762:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
->   (void) (&__val == &__min);  \
->                  ^
-> drivers/media/i2c/tvp5150.c:886:16: note: in expansion of macro 'clamp'
->   rect->width = clamp(rect->width,
->                 ^
-> include/linux/kernel.h:763:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
->   (void) (&__val == &__max);  \
->                  ^
-> drivers/media/i2c/tvp5150.c:886:16: note: in expansion of macro 'clamp'
->   rect->width = clamp(rect->width,
->                 ^
-> include/linux/kernel.h:762:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
->   (void) (&__val == &__min);  \
->                  ^
-> drivers/media/i2c/tvp5150.c:904:17: note: in expansion of macro 'clamp'
->   rect->height = clamp(rect->height,
->                  ^
-> include/linux/kernel.h:763:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
->   (void) (&__val == &__max);  \
->                  ^
-> drivers/media/i2c/tvp5150.c:904:17: note: in expansion of macro 'clamp'
->   rect->height = clamp(rect->height,
->                  ^
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drx39xxj.c | 29 +++++++++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
+index f0f14ed95958..7a7a4a87fe25 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
+@@ -188,7 +188,8 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
+ 	struct drx_channel channel;
+ 	int result;
+ 	struct drxuio_data uio_data;
+-	struct drx_channel def_channel = { /* frequency      */ 0,
++	static const struct drx_channel def_channel = {
++		/* frequency      */ 0,
+ 		/* bandwidth      */ DRX_BANDWIDTH_6MHZ,
+ 		/* mirror         */ DRX_MIRROR_NO,
+ 		/* constellation  */ DRX_CONSTELLATION_AUTO,
+@@ -204,6 +205,7 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
+ 		/* carrier        */ DRX_CARRIER_UNKNOWN,
+ 		/* frame mode     */ DRX_FRAMEMODE_UNKNOWN
+ 	};
++	u32 constellation = DRX_CONSTELLATION_AUTO;
+ 
+ 	/* Bring the demod out of sleep */
+ 	drx39xxj_set_powerstate(fe, 1);
+@@ -217,6 +219,29 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
+ 			fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
+ 
++	switch (p->delivery_system) {
++	case SYS_ATSC:
++		standard = DRX_STANDARD_8VSB;
++		break;
++	case SYS_DVBC_ANNEX_B:
++		standard = DRX_STANDARD_ITU_B;
++
++		switch (p->modulation) {
++		case QAM_64:
++			constellation = DRX_CONSTELLATION_QAM64;
++			break;
++		case QAM_256:
++			constellation = DRX_CONSTELLATION_QAM256;
++			break;
++		default:
++			constellation = DRX_CONSTELLATION_AUTO;
++			break;
++		}
++		break;
++	default:
++		return -EINVAL;
++	}
++
+ 	if (standard != state->current_standard || state->powered_up == 0) {
+ 		/* Set the standard (will be powered up if necessary */
+ 		result = drx_ctrl(demod, DRX_CTRL_SET_STANDARD, &standard);
+@@ -233,7 +258,7 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
+ 	channel = def_channel;
+ 	channel.frequency = p->frequency / 1000;
+ 	channel.bandwidth = DRX_BANDWIDTH_6MHZ;
+-	channel.constellation = DRX_CONSTELLATION_AUTO;
++	channel.constellation = constellation;
+ 
+ 	/* program channel */
+ 	result = drx_ctrl(demod, DRX_CTRL_SET_CHANNEL, &channel);
+-- 
+1.8.5.3
 
-Thanks,
---Prabhakar Lad
