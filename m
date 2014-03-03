@@ -1,145 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47463 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752487AbaCNAOu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 20:14:50 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 15/17] rtl2832_sdr: fixing v4l2-compliance issues
-Date: Fri, 14 Mar 2014 02:14:29 +0200
-Message-Id: <1394756071-22410-16-git-send-email-crope@iki.fi>
-In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
-References: <1394756071-22410-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50758 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753825AbaCCLWs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 06:22:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 06/17] vb2: call buf_finish from __queue_cancel.
+Date: Mon, 03 Mar 2014 12:24:12 +0100
+Message-ID: <1906063.QvkTUhjlBo@avalon>
+In-Reply-To: <1393609335-12081-7-git-send-email-hverkuil@xs4all.nl>
+References: <1393609335-12081-1-git-send-email-hverkuil@xs4all.nl> <1393609335-12081-7-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Hi Hans,
 
-Fix rtl2832_sdr driver v4l2-compliance issues.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 29 +++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 6 deletions(-)
+On Friday 28 February 2014 18:42:04 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> If a queue was canceled, then the buf_finish op was never called for the
+> pending buffers. So add this call to queue_cancel. Before calling buf_finish
+> set the buffer state to PREPARED, which is the correct state. That way the
+> states DONE and ERROR will only be seen in buf_finish if streaming is in
+> progress.
+> 
+> Since buf_finish can now be called from non-streaming state we need to
+> adapt the handful of drivers that actually need to know this.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/parport/bw-qcam.c          |  3 +++
+>  drivers/media/pci/sta2x11/sta2x11_vip.c  |  3 ++-
+>  drivers/media/usb/uvc/uvc_queue.c        |  3 ++-
+>  drivers/media/v4l2-core/videobuf2-core.c | 14 ++++++++++++--
+>  include/media/videobuf2-core.h           | 10 +++++++++-
+>  5 files changed, 28 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/parport/bw-qcam.c
+> b/drivers/media/parport/bw-qcam.c index 0166aef..8d69bfb 100644
+> --- a/drivers/media/parport/bw-qcam.c
+> +++ b/drivers/media/parport/bw-qcam.c
+> @@ -674,6 +674,9 @@ static void buffer_finish(struct vb2_buffer *vb)
+>  	int size = vb->vb2_queue->plane_sizes[0];
+>  	int len;
+> 
+> +	if (!vb2_is_streaming(vb->vb2_queue))
+> +		return;
+> +
+>  	mutex_lock(&qcam->lock);
+>  	parport_claim_or_block(qcam->pdev);
+> 
+> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> b/drivers/media/pci/sta2x11/sta2x11_vip.c index e66556c..bb11443 100644
+> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+> @@ -337,7 +337,8 @@ static void buffer_finish(struct vb2_buffer *vb)
+>  	list_del_init(&vip_buf->list);
+>  	spin_unlock(&vip->lock);
+> 
+> -	vip_active_buf_next(vip);
+> +	if (vb2_is_streaming(vb->vb2_queue))
+> +		vip_active_buf_next(vip);
+>  }
+> 
+>  static int start_streaming(struct vb2_queue *vq, unsigned int count)
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index cca2c6e..ab9f96e 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -111,7 +111,8 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
+>  			container_of(queue, struct uvc_streaming, queue);
+>  	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
+> 
+> -	uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+> +	if (vb->state == VB2_BUF_STATE_DONE)
+> +		uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
+>  }
+> 
+>  static void uvc_wait_prepare(struct vb2_queue *vq)
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 59bfd85..6f84bcb 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1878,9 +1878,19 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+> 
+>  	/*
+>  	 * Reinitialize all buffers for next use.
+> +	 * Make sure to call buf_finish for any queued buffers. Normally
+> +	 * that's done in dqbuf, but that's not going to happen when we
+> +	 * cancel the whole queue.
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 7e20576..141fc8b 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -118,6 +118,7 @@ struct rtl2832_sdr_state {
- 	struct vb2_queue vb_queue;
- 	struct list_head queued_bufs;
- 	spinlock_t queued_bufs_lock; /* Protects queued_bufs */
-+	unsigned sequence;	     /* buffer sequence counter */
- 
- 	/* Note if taking both locks v4l2_lock must always be locked first! */
- 	struct mutex v4l2_lock;      /* Protects everything else */
-@@ -413,6 +414,8 @@ static void rtl2832_sdr_urb_complete(struct urb *urb)
- 		len = rtl2832_sdr_convert_stream(s, ptr, urb->transfer_buffer,
- 				urb->actual_length);
- 		vb2_set_plane_payload(&fbuf->vb, 0, len);
-+		v4l2_get_timestamp(&fbuf->vb.v4l2_buf.timestamp);
-+		fbuf->vb.v4l2_buf.sequence = s->sequence++;
- 		vb2_buffer_done(&fbuf->vb, VB2_BUF_STATE_DONE);
- 	}
- skip:
-@@ -609,8 +612,9 @@ static int rtl2832_sdr_queue_setup(struct vb2_queue *vq,
- 	struct rtl2832_sdr_state *s = vb2_get_drv_priv(vq);
- 	dev_dbg(&s->udev->dev, "%s: *nbuffers=%d\n", __func__, *nbuffers);
- 
--	/* Absolute min and max number of buffers available for mmap() */
--	*nbuffers = clamp_t(unsigned int, *nbuffers, 8, 32);
-+	/* Need at least 8 buffers */
-+	if (vq->num_buffers + *nbuffers < 8)
-+		*nbuffers = 8 - vq->num_buffers;
- 	*nplanes = 1;
- 	/* 2 = max 16-bit sample returned */
- 	sizes[0] = PAGE_ALIGN(BULK_BUFFER_SIZE * 2);
-@@ -1011,6 +1015,8 @@ static int rtl2832_sdr_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (ret)
- 		goto err;
- 
-+	s->sequence = 0;
-+
- 	ret = rtl2832_sdr_submit_urbs(s);
- 	if (ret)
- 		goto err;
-@@ -1088,6 +1094,8 @@ static int rtl2832_sdr_s_tuner(struct file *file, void *priv,
- 	struct rtl2832_sdr_state *s = video_drvdata(file);
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
-+	if (v->index > 1)
-+		return -EINVAL;
- 	return 0;
- }
- 
-@@ -1123,12 +1131,15 @@ static int rtl2832_sdr_g_frequency(struct file *file, void *priv,
- 	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
- 			__func__, f->tuner, f->type);
- 
--	if (f->tuner == 0)
-+	if (f->tuner == 0) {
- 		f->frequency = s->f_adc;
--	else if (f->tuner == 1)
-+		f->type = V4L2_TUNER_ADC;
-+	} else if (f->tuner == 1) {
- 		f->frequency = s->f_tuner;
--	else
-+		f->type = V4L2_TUNER_RF;
-+	} else {
- 		return -EINVAL;
-+	}
- 
- 	return ret;
- }
-@@ -1162,7 +1173,9 @@ static int rtl2832_sdr_s_frequency(struct file *file, void *priv,
- 				__func__, s->f_adc);
- 		ret = rtl2832_sdr_set_adc(s);
- 	} else if (f->tuner == 1) {
--		s->f_tuner = f->frequency;
-+		s->f_tuner = clamp_t(unsigned int, f->frequency,
-+				bands_fm[0].rangelow,
-+				bands_fm[0].rangehigh);
- 		dev_dbg(&s->udev->dev, "%s: RF frequency=%u Hz\n",
- 				__func__, f->frequency);
- 
-@@ -1196,6 +1209,7 @@ static int rtl2832_sdr_g_fmt_sdr_cap(struct file *file, void *priv,
- 	dev_dbg(&s->udev->dev, "%s:\n", __func__);
- 
- 	f->fmt.sdr.pixelformat = s->pixelformat;
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 
- 	return 0;
- }
-@@ -1212,6 +1226,7 @@ static int rtl2832_sdr_s_fmt_sdr_cap(struct file *file, void *priv,
- 	if (vb2_is_busy(q))
- 		return -EBUSY;
- 
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	for (i = 0; i < NUM_FORMATS; i++) {
- 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
- 			s->pixelformat = f->fmt.sdr.pixelformat;
-@@ -1233,6 +1248,7 @@ static int rtl2832_sdr_try_fmt_sdr_cap(struct file *file, void *priv,
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
- 			(char *)&f->fmt.sdr.pixelformat);
- 
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	for (i = 0; i < NUM_FORMATS; i++) {
- 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
- 			return 0;
-@@ -1363,6 +1379,7 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	s->i2c = i2c;
- 	s->cfg = cfg;
- 	s->f_adc = bands_adc[0].rangelow;
-+	s->f_tuner = bands_fm[0].rangelow;
- 	s->pixelformat =  V4L2_SDR_FMT_CU8;
- 
- 	mutex_init(&s->v4l2_lock);
+I would also state that buf_finish can't simply be moved to __vb2_dqbuf as it 
+needs to be called before __fill_v4l2_buffer in the DQBUF path. Otherwise 
+someone might submit a patch to simplify that vb2 code later when we'll have 
+forgotten about this, introducing a bug.
+
+>  	 */
+> -	for (i = 0; i < q->num_buffers; ++i)
+> -		__vb2_dqbuf(q->bufs[i]);
+> +	for (i = 0; i < q->num_buffers; ++i) {
+> +		struct vb2_buffer *vb = q->bufs[i];
+> +
+> +		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+> +			vb->state = VB2_BUF_STATE_PREPARED;
+> +			call_vb_qop(vb, buf_finish, vb);
+> +		}
+> +		__vb2_dqbuf(vb);
+> +	}
+>  }
+> 
+>  static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type
+> type) diff --git a/include/media/videobuf2-core.h
+> b/include/media/videobuf2-core.h index f443ce0..3cb0bcf 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -276,7 +276,15 @@ struct vb2_buffer {
+>   *			in driver; optional
+>   * @buf_finish:		called before every dequeue of the buffer back to
+>   *			userspace; drivers may perform any operations required
+> - *			before userspace accesses the buffer; optional
+> + *			before userspace accesses the buffer; optional. The
+> + *			buffer state can be one of the following: DONE and
+> + *			ERROR occur while streaming is in progress, and the
+> + *			PREPARED state occurs when the queue has been canceled
+> + *			and all pending buffers are being returned to their
+> + *			default DEQUEUED state. Typically you only have to do
+> + *			something if the state is VB2_BUF_STATE_DONE, since in
+> + *			all other cases the buffer contents will be ignored
+> + *			anyway.
+>   * @buf_cleanup:	called once before the buffer is freed; drivers may
+>   *			perform any additional cleanup; optional
+>   * @start_streaming:	called once to enter 'streaming' state; the driver 
+may
+
 -- 
-1.8.5.3
+Regards,
+
+Laurent Pinchart
 
