@@ -1,184 +1,586 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:37559 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754166AbaCRKCZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Mar 2014 06:02:25 -0400
-Date: Tue, 18 Mar 2014 10:02:13 +0000
-From: Mark Rutland <mark.rutland@arm.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"robh+dt@kernel.org" <robh+dt@kernel.org>,
-	"galak@codeaurora.org" <galak@codeaurora.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Subject: Re: [PATCH v8 3/10] Documentation: devicetree: Update Samsung FIMC
- DT binding
-Message-ID: <20140318100213.GC8043@e106331-lin.cambridge.arm.com>
-References: <1823087.0J3KNi6X3C@avalon>
- <1394555670-14155-1-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1394555670-14155-1-git-send-email-s.nawrocki@samsung.com>
-Content-Language: en-US
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:59747 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754114AbaCCJwg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 04:52:36 -0500
+From: Daniel Jeong <gshark.jeong@gmail.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Jeong <gshark.jeong@gmail.com>,
+	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
+Subject: [RFC v7,3/3] media: i2c: add new dual LED Flash driver, lm364
+Date: Mon,  3 Mar 2014 18:52:10 +0900
+Message-Id: <1393840330-11130-4-git-send-email-gshark.jeong@gmail.com>
+In-Reply-To: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
+References: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 11, 2014 at 04:34:30PM +0000, Sylwester Nawrocki wrote:
-> This patch documents following updates of the Exynos4 SoC camera subsystem
-> devicetree binding:
-> 
->  - addition of #clock-cells and clock-output-names properties to 'camera'
->    node - these are now needed so the image sensor sub-devices can reference
->    clocks provided by the camera host interface,
->  - dropped a note about required clock-frequency properties at the
->    image sensor nodes; the sensor devices can now control their clock
->    explicitly through the clk API and there is no need to require this
->    property in the camera host interface binding.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
-> Changes since v7:
->  - dropped a note about clock-frequency property in sensor nodes.
-> 
-> Changes since v6:
->  - #clock-cells, clock-output-names documented as mandatory properties;
->  - renamed "cam_mclk_{a,b}" to "cam_{a,b}_clkout in the example dts,
->    this now matches changes in exynos4.dtsi further in the patch series;
->  - marked "samsung,camclk-out" property as deprecated.
-> 
-> Changes since v5:
->  - none.
-> 
-> Changes since v4:
->  - dropped a requirement of specific order of values in clocks/
->    clock-names properties (Mark) and reference to clock-names in
->    clock-output-names property description (Mark).
-> ---
->  .../devicetree/bindings/media/samsung-fimc.txt     |   44 +++++++++++++-------
->  1 file changed, 29 insertions(+), 15 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> index 96312f6..922d6f8 100644
-> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> @@ -15,11 +15,21 @@ Common 'camera' node
-> 
->  Required properties:
-> 
-> -- compatible	: must be "samsung,fimc", "simple-bus"
+ This patch adds the driver for the LM3646, dual LED Flash driver.
+The LM3646 has two 1.5A sync. boost converter with dual white current source.
+It is controlled via an I2C compatible interface.
+Each flash brightness, torch brightness and enable/disable can be controlled.
+Under voltage, input voltage monitor and thermal threshhold Faults are added.
+Please refer the datasheet http://www.ti.com/lit/ds/snvs962/snvs962.pdf
 
-While it was already the case, why is "samsung,fimc" also a simple bus?
+Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
+---
+ drivers/media/i2c/Kconfig  |    9 +
+ drivers/media/i2c/Makefile |    1 +
+ drivers/media/i2c/lm3646.c |  414 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/lm3646.h     |   87 ++++++++++
+ 4 files changed, 511 insertions(+)
+ create mode 100644 drivers/media/i2c/lm3646.c
+ create mode 100644 include/media/lm3646.h
 
-If it has any properties which are required for the correct use of the
-child nodes, it is _not_ a simple-bus.
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 4aa9c53..c7f2823 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -629,6 +629,15 @@ config VIDEO_LM3560
+ 	  This is a driver for the lm3560 dual flash controllers. It controls
+ 	  flash, torch LEDs.
+ 
++config VIDEO_LM3646
++	tristate "LM3646 dual flash driver support"
++	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
++	depends on MEDIA_CAMERA_SUPPORT
++	select REGMAP_I2C
++	---help---
++	  This is a driver for the lm3646 dual flash controllers. It controls
++	  flash, torch LEDs.
++
+ comment "Video improvement chips"
+ 
+ config VIDEO_UPD64031A
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 48888ae..01b6bfc 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -72,6 +72,7 @@ obj-$(CONFIG_VIDEO_S5C73M3)	+= s5c73m3/
+ obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
+ obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
+ obj-$(CONFIG_VIDEO_LM3560)	+= lm3560.o
++obj-$(CONFIG_VIDEO_LM3646)	+= lm3646.o
+ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+ obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+diff --git a/drivers/media/i2c/lm3646.c b/drivers/media/i2c/lm3646.c
+new file mode 100644
+index 0000000..626fb46
+--- /dev/null
++++ b/drivers/media/i2c/lm3646.c
+@@ -0,0 +1,414 @@
++/*
++ * drivers/media/i2c/lm3646.c
++ * General device driver for TI lm3646, Dual FLASH LED Driver
++ *
++ * Copyright (C) 2014 Texas Instruments
++ *
++ * Contact: Daniel Jeong <gshark.jeong@gmail.com>
++ *			Ldd-Mlp <ldd-mlp@list.ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ */
++
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/regmap.h>
++#include <linux/videodev2.h>
++#include <media/lm3646.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++
++/* registers definitions */
++#define REG_ENABLE		0x01
++#define REG_TORCH_BR	0x05
++#define REG_FLASH_BR	0x05
++#define REG_FLASH_TOUT	0x04
++#define REG_FLAG		0x08
++#define REG_STROBE_SRC	0x06
++#define REG_LED1_FLASH_BR 0x06
++#define REG_LED1_TORCH_BR 0x07
++
++#define MASK_ENABLE		0x03
++#define MASK_TORCH_BR	0x70
++#define MASK_FLASH_BR	0x0F
++#define MASK_FLASH_TOUT	0x07
++#define MASK_FLAG		0xFF
++#define MASK_STROBE_SRC	0x80
++
++/* Fault Mask */
++#define FAULT_TIMEOUT	(1<<0)
++#define FAULT_SHORT_CIRCUIT	(1<<1)
++#define FAULT_UVLO		(1<<2)
++#define FAULT_IVFM		(1<<3)
++#define FAULT_OCP		(1<<4)
++#define FAULT_OVERTEMP	(1<<5)
++#define FAULT_NTC_TRIP	(1<<6)
++#define FAULT_OVP		(1<<7)
++
++enum led_mode {
++	MODE_SHDN = 0x0,
++	MODE_TORCH = 0x2,
++	MODE_FLASH = 0x3,
++};
++
++/*
++ * struct lm3646_flash
++ *
++ * @pdata: platform data
++ * @regmap: reg. map for i2c
++ * @lock: muxtex for serial access.
++ * @led_mode: V4L2 LED mode
++ * @ctrls_led: V4L2 contols
++ * @subdev_led: V4L2 subdev
++ * @mode_reg : mode register value
++ */
++struct lm3646_flash {
++	struct device *dev;
++	struct lm3646_platform_data *pdata;
++	struct regmap *regmap;
++
++	struct v4l2_ctrl_handler ctrls_led;
++	struct v4l2_subdev subdev_led;
++
++	u8 mode_reg;
++};
++
++#define to_lm3646_flash(_ctrl)	\
++	container_of(_ctrl->handler, struct lm3646_flash, ctrls_led)
++
++/* enable mode control */
++static int lm3646_mode_ctrl(struct lm3646_flash *flash,
++			    enum v4l2_flash_led_mode led_mode)
++{
++	switch (led_mode) {
++	case V4L2_FLASH_LED_MODE_NONE:
++		return regmap_write(flash->regmap,
++				    REG_ENABLE, flash->mode_reg | MODE_SHDN);
++	case V4L2_FLASH_LED_MODE_TORCH:
++		return regmap_write(flash->regmap,
++				    REG_ENABLE, flash->mode_reg | MODE_TORCH);
++	case V4L2_FLASH_LED_MODE_FLASH:
++		return regmap_write(flash->regmap,
++				    REG_ENABLE, flash->mode_reg | MODE_FLASH);
++	}
++	return -EINVAL;
++}
++
++/* V4L2 controls  */
++static int lm3646_get_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct lm3646_flash *flash = to_lm3646_flash(ctrl);
++	unsigned int reg_val;
++	int rval;
++
++	if (ctrl->id != V4L2_CID_FLASH_FAULT)
++		return -EINVAL;
++
++	rval = regmap_read(flash->regmap, REG_FLAG, &reg_val);
++	if (rval < 0)
++		return rval;
++
++	ctrl->val = 0;
++	if (reg_val & FAULT_TIMEOUT)
++		ctrl->val |= V4L2_FLASH_FAULT_TIMEOUT;
++	if (reg_val & FAULT_SHORT_CIRCUIT)
++		ctrl->val |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
++	if (reg_val & FAULT_UVLO)
++		ctrl->val |= V4L2_FLASH_FAULT_UNDER_VOLTAGE;
++	if (reg_val & FAULT_IVFM)
++		ctrl->val |= V4L2_FLASH_FAULT_INPUT_VOLTAGE;
++	if (reg_val & FAULT_OCP)
++		ctrl->val |= V4L2_FLASH_FAULT_OVER_CURRENT;
++	if (reg_val & FAULT_OVERTEMP)
++		ctrl->val |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
++	if (reg_val & FAULT_NTC_TRIP)
++		ctrl->val |= V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE;
++	if (reg_val & FAULT_OVP)
++		ctrl->val |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
++
++	return 0;
++}
++
++static int lm3646_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct lm3646_flash *flash = to_lm3646_flash(ctrl);
++	unsigned int reg_val;
++	int rval = -EINVAL;
++
++	switch (ctrl->id) {
++	case V4L2_CID_FLASH_LED_MODE:
++
++		if (ctrl->val != V4L2_FLASH_LED_MODE_FLASH)
++			return lm3646_mode_ctrl(flash, ctrl->val);
++		/* switch to SHDN mode before flash strobe on */
++		return lm3646_mode_ctrl(flash, V4L2_FLASH_LED_MODE_NONE);
++
++	case V4L2_CID_FLASH_STROBE_SOURCE:
++		return regmap_update_bits(flash->regmap,
++					  REG_STROBE_SRC, MASK_STROBE_SRC,
++					  (ctrl->val) << 7);
++
++	case V4L2_CID_FLASH_STROBE:
++
++		/* read and check current mode of chip to start flash */
++		rval = regmap_read(flash->regmap, REG_ENABLE, &reg_val);
++		if (rval < 0 || ((reg_val & MASK_ENABLE) != MODE_SHDN))
++			return rval;
++		/* flash on */
++		return lm3646_mode_ctrl(flash, V4L2_FLASH_LED_MODE_FLASH);
++
++	case V4L2_CID_FLASH_STROBE_STOP:
++
++		/*
++		 * flash mode will be turned automatically
++		 * from FLASH mode to SHDN mode after flash duration timeout
++		 * read and check current mode of chip to stop flash
++		 */
++		rval = regmap_read(flash->regmap, REG_ENABLE, &reg_val);
++		if (rval < 0)
++			return rval;
++		if ((reg_val & MASK_ENABLE) == MODE_FLASH)
++			return lm3646_mode_ctrl(flash,
++						V4L2_FLASH_LED_MODE_NONE);
++		return rval;
++
++	case V4L2_CID_FLASH_TIMEOUT:
++		return regmap_update_bits(flash->regmap,
++					  REG_FLASH_TOUT, MASK_FLASH_TOUT,
++					  LM3646_FLASH_TOUT_ms_TO_REG
++					  (ctrl->val));
++
++	case V4L2_CID_FLASH_INTENSITY:
++		return regmap_update_bits(flash->regmap,
++					  REG_FLASH_BR, MASK_FLASH_BR,
++					  LM3646_TOTAL_FLASH_BRT_uA_TO_REG
++					  (ctrl->val));
++
++	case V4L2_CID_FLASH_TORCH_INTENSITY:
++		return regmap_update_bits(flash->regmap,
++					  REG_TORCH_BR, MASK_TORCH_BR,
++					  LM3646_TOTAL_TORCH_BRT_uA_TO_REG
++					  (ctrl->val) << 4);
++	}
++
++	return -EINVAL;
++}
++
++static const struct v4l2_ctrl_ops lm3646_led_ctrl_ops = {
++	.g_volatile_ctrl = lm3646_get_ctrl,
++	.s_ctrl = lm3646_set_ctrl,
++};
++
++static int lm3646_init_controls(struct lm3646_flash *flash)
++{
++	struct v4l2_ctrl *fault;
++	struct v4l2_ctrl_handler *hdl = &flash->ctrls_led;
++	const struct v4l2_ctrl_ops *ops = &lm3646_led_ctrl_ops;
++
++	v4l2_ctrl_handler_init(hdl, 8);
++	/* flash mode */
++	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_FLASH_LED_MODE,
++			       V4L2_FLASH_LED_MODE_TORCH, ~0x7,
++			       V4L2_FLASH_LED_MODE_NONE);
++
++	/* flash source */
++	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_FLASH_STROBE_SOURCE,
++			       0x1, ~0x3, V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
++
++	/* flash strobe */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_STROBE, 0, 0, 0, 0);
++	/* flash strobe stop */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_STROBE_STOP, 0, 0, 0, 0);
++
++	/* flash strobe timeout */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_TIMEOUT,
++			  LM3646_FLASH_TOUT_MIN,
++			  LM3646_FLASH_TOUT_MAX,
++			  LM3646_FLASH_TOUT_STEP, flash->pdata->flash_timeout);
++
++	/* max flash current */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_INTENSITY,
++			  LM3646_TOTAL_FLASH_BRT_MIN,
++			  LM3646_TOTAL_FLASH_BRT_MAX,
++			  LM3646_TOTAL_FLASH_BRT_STEP,
++			  LM3646_TOTAL_FLASH_BRT_MAX);
++
++	/* max torch current */
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_TORCH_INTENSITY,
++			  LM3646_TOTAL_TORCH_BRT_MIN,
++			  LM3646_TOTAL_TORCH_BRT_MAX,
++			  LM3646_TOTAL_TORCH_BRT_STEP,
++			  LM3646_TOTAL_TORCH_BRT_MAX);
++
++	/* fault */
++	fault = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FLASH_FAULT, 0,
++				  V4L2_FLASH_FAULT_OVER_VOLTAGE
++				  | V4L2_FLASH_FAULT_OVER_TEMPERATURE
++				  | V4L2_FLASH_FAULT_SHORT_CIRCUIT
++				  | V4L2_FLASH_FAULT_TIMEOUT, 0, 0);
++	if (fault != NULL)
++		fault->flags |= V4L2_CTRL_FLAG_VOLATILE;
++
++	if (hdl->error)
++		return hdl->error;
++
++	flash->subdev_led.ctrl_handler = hdl;
++	return 0;
++}
++
++/* initialize device */
++static const struct v4l2_subdev_ops lm3646_ops = {
++	.core = NULL,
++};
++
++static const struct regmap_config lm3646_regmap = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = 0xFF,
++};
++
++static int lm3646_subdev_init(struct lm3646_flash *flash)
++{
++	struct i2c_client *client = to_i2c_client(flash->dev);
++	int rval;
++
++	v4l2_i2c_subdev_init(&flash->subdev_led, client, &lm3646_ops);
++	flash->subdev_led.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	strcpy(flash->subdev_led.name, LM3646_NAME);
++	rval = lm3646_init_controls(flash);
++	if (rval)
++		goto err_out;
++	rval = media_entity_init(&flash->subdev_led.entity, 0, NULL, 0);
++	if (rval < 0)
++		goto err_out;
++	flash->subdev_led.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
++	return rval;
++
++err_out:
++	v4l2_ctrl_handler_free(&flash->ctrls_led);
++	return rval;
++}
++
++static int lm3646_init_device(struct lm3646_flash *flash)
++{
++	unsigned int reg_val;
++	int rval;
++
++	/* read the value of mode register to reduce redundant i2c accesses */
++	rval = regmap_read(flash->regmap, REG_ENABLE, &reg_val);
++	if (rval < 0)
++		return rval;
++	flash->mode_reg = reg_val & 0xfc;
++
++	/* output disable */
++	rval = lm3646_mode_ctrl(flash, V4L2_FLASH_LED_MODE_NONE);
++	if (rval < 0)
++		return rval;
++
++	/*
++	 * LED1 flash current setting
++	 * LED2 flash current = Total(Max) flash current - LED1 flash current
++	 */
++	rval = regmap_update_bits(flash->regmap,
++				  REG_LED1_FLASH_BR, 0x7F,
++				  LM3646_LED1_FLASH_BRT_uA_TO_REG
++				  (flash->pdata->led1_flash_brt));
++
++	if (rval < 0)
++		return rval;
++
++	/*
++	 * LED1 torch current setting
++	 * LED2 torch current = Total(Max) torch current - LED1 torch current
++	 */
++	rval = regmap_update_bits(flash->regmap,
++				  REG_LED1_TORCH_BR, 0x7F,
++				  LM3646_LED1_TORCH_BRT_uA_TO_REG
++				  (flash->pdata->led1_torch_brt));
++	if (rval < 0)
++		return rval;
++
++	/* Reset flag register */
++	return regmap_read(flash->regmap, REG_FLAG, &reg_val);
++}
++
++static int lm3646_probe(struct i2c_client *client,
++			const struct i2c_device_id *devid)
++{
++	struct lm3646_flash *flash;
++	struct lm3646_platform_data *pdata = dev_get_platdata(&client->dev);
++	int rval;
++
++	flash = devm_kzalloc(&client->dev, sizeof(*flash), GFP_KERNEL);
++	if (flash == NULL)
++		return -ENOMEM;
++
++	flash->regmap = devm_regmap_init_i2c(client, &lm3646_regmap);
++	if (IS_ERR(flash->regmap))
++		return PTR_ERR(flash->regmap);
++
++	/* check device tree if there is no platform data */
++	if (pdata == NULL) {
++		pdata = devm_kzalloc(&client->dev,
++				     sizeof(struct lm3646_platform_data),
++				     GFP_KERNEL);
++		if (pdata == NULL)
++			return -ENOMEM;
++		/* use default data in case of no platform data */
++		pdata->flash_timeout = LM3646_FLASH_TOUT_MAX;
++		pdata->led1_torch_brt = LM3646_LED1_TORCH_BRT_MAX;
++		pdata->led1_flash_brt = LM3646_LED1_FLASH_BRT_MAX;
++	}
++	flash->pdata = pdata;
++	flash->dev = &client->dev;
++
++	rval = lm3646_subdev_init(flash);
++	if (rval < 0)
++		return rval;
++
++	rval = lm3646_init_device(flash);
++	if (rval < 0)
++		return rval;
++
++	i2c_set_clientdata(client, flash);
++
++	return 0;
++}
++
++static int lm3646_remove(struct i2c_client *client)
++{
++	struct lm3646_flash *flash = i2c_get_clientdata(client);
++
++	v4l2_device_unregister_subdev(&flash->subdev_led);
++	v4l2_ctrl_handler_free(&flash->ctrls_led);
++	media_entity_cleanup(&flash->subdev_led.entity);
++
++	return 0;
++}
++
++static const struct i2c_device_id lm3646_id_table[] = {
++	{LM3646_NAME, 0},
++	{}
++};
++
++MODULE_DEVICE_TABLE(i2c, lm3646_id_table);
++
++static struct i2c_driver lm3646_i2c_driver = {
++	.driver = {
++		   .name = LM3646_NAME,
++		   },
++	.probe = lm3646_probe,
++	.remove = lm3646_remove,
++	.id_table = lm3646_id_table,
++};
++
++module_i2c_driver(lm3646_i2c_driver);
++
++MODULE_AUTHOR("Daniel Jeong <gshark.jeong@gmail.com>");
++MODULE_AUTHOR("Ldd Mlp <ldd-mlp@list.ti.com>");
++MODULE_DESCRIPTION("Texas Instruments LM3646 Dual Flash LED driver");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/lm3646.h b/include/media/lm3646.h
+new file mode 100644
+index 0000000..c6acf5a
+--- /dev/null
++++ b/include/media/lm3646.h
+@@ -0,0 +1,87 @@
++/*
++ * include/media/lm3646.h
++ *
++ * Copyright (C) 2014 Texas Instruments
++ *
++ * Contact: Daniel Jeong <gshark.jeong@gmail.com>
++ *			Ldd-Mlp <ldd-mlp@list.ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ */
++
++#ifndef __LM3646_H__
++#define __LM3646_H__
++
++#include <media/v4l2-subdev.h>
++
++#define LM3646_NAME	"lm3646"
++#define LM3646_I2C_ADDR_REV1	(0x67)
++#define LM3646_I2C_ADDR_REV0	(0x63)
++
++/*  TOTAL FLASH Brightness Max
++ *	min 93350uA, step 93750uA, max 1499600uA
++ */
++#define LM3646_TOTAL_FLASH_BRT_MIN 93350
++#define LM3646_TOTAL_FLASH_BRT_STEP 93750
++#define LM3646_TOTAL_FLASH_BRT_MAX 1499600
++#define LM3646_TOTAL_FLASH_BRT_uA_TO_REG(a)	\
++	((a) < LM3646_TOTAL_FLASH_BRT_MIN ? 0 :	\
++	 ((((a) - LM3646_TOTAL_FLASH_BRT_MIN) / LM3646_TOTAL_FLASH_BRT_STEP)))
++
++/*  TOTAL TORCH Brightness Max
++ *	min 23040uA, step 23430uA, max 187100uA
++ */
++#define LM3646_TOTAL_TORCH_BRT_MIN 23040
++#define LM3646_TOTAL_TORCH_BRT_STEP 23430
++#define LM3646_TOTAL_TORCH_BRT_MAX 187100
++#define LM3646_TOTAL_TORCH_BRT_uA_TO_REG(a)	\
++	((a) < LM3646_TOTAL_TORCH_BRT_MIN ? 0 :	\
++	 ((((a) - LM3646_TOTAL_TORCH_BRT_MIN) / LM3646_TOTAL_TORCH_BRT_STEP)))
++
++/*  LED1 FLASH Brightness
++ *	min 23040uA, step 11718uA, max 1499600uA
++ */
++#define LM3646_LED1_FLASH_BRT_MIN 23040
++#define LM3646_LED1_FLASH_BRT_STEP 11718
++#define LM3646_LED1_FLASH_BRT_MAX 1499600
++#define LM3646_LED1_FLASH_BRT_uA_TO_REG(a)	\
++	((a) <= LM3646_LED1_FLASH_BRT_MIN ? 0 :	\
++	 ((((a) - LM3646_LED1_FLASH_BRT_MIN) / LM3646_LED1_FLASH_BRT_STEP))+1)
++
++/*  LED1 TORCH Brightness
++ *	min 2530uA, step 1460uA, max 187100uA
++ */
++#define LM3646_LED1_TORCH_BRT_MIN 2530
++#define LM3646_LED1_TORCH_BRT_STEP 1460
++#define LM3646_LED1_TORCH_BRT_MAX 187100
++#define LM3646_LED1_TORCH_BRT_uA_TO_REG(a)	\
++	((a) <= LM3646_LED1_TORCH_BRT_MIN ? 0 :	\
++	 ((((a) - LM3646_LED1_TORCH_BRT_MIN) / LM3646_LED1_TORCH_BRT_STEP))+1)
++
++/*  FLASH TIMEOUT DURATION
++ *	min 50ms, step 50ms, max 400ms
++ */
++#define LM3646_FLASH_TOUT_MIN 50
++#define LM3646_FLASH_TOUT_STEP 50
++#define LM3646_FLASH_TOUT_MAX 400
++#define LM3646_FLASH_TOUT_ms_TO_REG(a)	\
++	((a) <= LM3646_FLASH_TOUT_MIN ? 0 :	\
++	 (((a) - LM3646_FLASH_TOUT_MIN) / LM3646_FLASH_TOUT_STEP))
++
++/* struct lm3646_platform_data
++ *
++ * @flash_timeout: flash timeout
++ * @led1_flash_brt: led1 flash mode brightness, uA
++ * @led1_torch_brt: led1 torch mode brightness, uA
++ */
++struct lm3646_platform_data {
++
++	u32 flash_timeout;
++
++	u32 led1_flash_brt;
++	u32 led1_torch_brt;
++};
++
++#endif /* __LM3646_H__ */
+-- 
+1.7.9.5
 
-> -- clocks	: list of clock specifiers, corresponding to entries in
-> -		  the clock-names property;
-> -- clock-names	: must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
-> -		  "pxl_async1" entries, matching entries in the clocks property.
-> +- compatible: must be "samsung,fimc", "simple-bus"
-> +- clocks: list of clock specifiers, corresponding to entries in
-> +  the clock-names property;
-> +- clock-names : must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
-> +  "pxl_async1" entries, matching entries in the clocks property.
-> +
-> +- #clock-cells: from the common clock bindings (../clock/clock-bindings.txt),
-> +  must be 1. A clock provider is associated with the 'camera' node and it should
-> +  be referenced by external sensors that use clocks provided by the SoC on
-> +  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a clock.
-> +  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively.
-> +
-> +- clock-output-names: from the common clock bindings, should contain names of
-> +  clocks registered by the camera subsystem corresponding to CAM_A_CLKOUT,
-> +  CAM_B_CLKOUT output clocks respectively.
-
-And if we're adding more stuff required by child nodes it's definitely
-not a simple-bus.
-
-Get rid of simple-bus. Get the driver for "samsung,fimc" to probe its
-children once it has set up.
-
-Apologies for the late reply, and sorry to have to be negative on this.
-
-Thanks,
-Mark.
-
-> 
->  The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
->  to define a required pinctrl state named "default" and optional pinctrl states:
-> @@ -32,6 +42,7 @@ way around.
-> 
->  The 'camera' node must include at least one 'fimc' child node.
-> 
-> +
->  'fimc' device nodes
->  -------------------
-> 
-> @@ -88,8 +99,8 @@ port nodes specifies data input - 0, 1 indicates input A, B respectively.
-> 
->  Optional properties
-> 
-> -- samsung,camclk-out : specifies clock output for remote sensor,
-> -		       0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
-> +- samsung,camclk-out (deprecated) : specifies clock output for remote sensor,
-> +  0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
-> 
->  Image sensor nodes
->  ------------------
-> @@ -97,8 +108,6 @@ Image sensor nodes
->  The sensor device nodes should be added to their control bus controller (e.g.
->  I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
->  using the common video interfaces bindings, defined in video-interfaces.txt.
-> -The implementation of this bindings requires clock-frequency property to be
-> -present in the sensor device nodes.
-> 
->  Example:
-> 
-> @@ -114,7 +123,7 @@ Example:
->  			vddio-supply = <...>;
-> 
->  			clock-frequency = <24000000>;
-> -			clocks = <...>;
-> +			clocks = <&camera 1>;
->  			clock-names = "mclk";
-> 
->  			port {
-> @@ -135,7 +144,7 @@ Example:
->  			vddio-supply = <...>;
-> 
->  			clock-frequency = <24000000>;
-> -			clocks = <...>;
-> +			clocks = <&camera 0>;
->  			clock-names = "mclk";
-> 
->  			port {
-> @@ -149,12 +158,17 @@ Example:
-> 
->  	camera {
->  		compatible = "samsung,fimc", "simple-bus";
-> -		#address-cells = <1>;
-> -		#size-cells = <1>;
-> -		status = "okay";
-> -
-> +		clocks = <&clock 132>, <&clock 133>, <&clock 351>,
-> +			 <&clock 352>;
-> +		clock-names = "sclk_cam0", "sclk_cam1", "pxl_async0",
-> +			      "pxl_async1";
-> +		#clock-cells = <1>;
-> +		clock-output-names = "cam_a_clkout", "cam_b_clkout";
->  		pinctrl-names = "default";
->  		pinctrl-0 = <&cam_port_a_clk_active>;
-> +		status = "okay";
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> 
->  		/* parallel camera ports */
->  		parallel-ports {
-> --
-> 1.7.9.5
-> 
-> 
