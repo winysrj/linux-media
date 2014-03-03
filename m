@@ -1,278 +1,427 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45983 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:49394 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755691AbaCONoK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Mar 2014 09:44:10 -0400
+	with ESMTP id S1754153AbaCCKH7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:59 -0500
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Fengguang Wu <fengguang.wu@intel.com>
 Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [RFC PATCH 2/3] dib7000p: rename dvb_attach to dvb_init
-Date: Sat, 15 Mar 2014 10:43:13 -0300
-Message-Id: <1394890994-29185-3-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1394890994-29185-1-git-send-email-m.chehab@samsung.com>
-References: <1394890994-29185-1-git-send-email-m.chehab@samsung.com>
+Subject: [PATCH 47/79] [media] drx-j: Some cleanups at drx_driver.c source
+Date: Mon,  3 Mar 2014 07:06:41 -0300
+Message-Id: <1393841233-24840-48-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Well, what we call as "foo_attach" is the method that should
-be called by the dvb_attach() macro.
+This is mostly CodingStyle fixes and improvements.
 
-It should be noticed that the name "dvb_attach" is really a
-bad name and don't express what it does.
-
-dvb_attach() basically does three things, if the frontend is
-compiled as a module:
-- It lookups for the module that it is known to have the
-  given symbol name and requests such module;
-- It increments the module usage (anonymously - so lsmod
-  doesn't print who loaded the module);
-- after loading the module, it runs the function associated
-  with the dynamic symbol.
-
-When compiled as builtin, it just calls the function given to it.
-
-As dvb_attach() increments refcount, it can't be (easily)
-called more than once for the same module, or the kernel
-will deny to remove the module, because refcount will never
-be zeroed.
-
-In other words, the function name given to dvb_attach()
-should be one single symbol that will always be called
-before any other function on that module to be used.
-
-For almost all DVB frontends, there's just one function.
-
-However, the dib7000p initialization can require up to 3
-functions to be called:
-	- dib7000p_get_i2c_master;
-	- dib7000p_i2c_enumeration;
-	- dib7000p_init (before this patch dib7000_attach).
-
-(plus a bunch of other functions that the bridge driver will
-need to call).
-
-As we need to get rid of all those direct calls, because they
-cause compilation breakages when bridge is builtin and
-frontend is module, we'll need to add a new function that
-will be the first one to be called, whatever initialization
-is needed.
-
-So, let's rename the function that probes and init the hardware
-to dib7000p_init.
-
-A latter patch will add a new dib7000p_attach that will be
-used as originally conceived by dvb_attach() way.
+No functional changes.
 
 Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/dvb-frontends/dib7000p.c      |  4 ++--
- drivers/media/dvb-frontends/dib7000p.h      |  4 ++--
- drivers/media/pci/cx23885/cx23885-dvb.c     |  2 +-
- drivers/media/usb/dvb-usb/cxusb.c           |  2 +-
- drivers/media/usb/dvb-usb/dib0700_devices.c | 28 ++++++++++++++--------------
- 5 files changed, 20 insertions(+), 20 deletions(-)
+ drivers/media/dvb-frontends/drx39xyj/drx39xxj.h   |   2 +-
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.c | 269 ++++++++++------------
+ 2 files changed, 118 insertions(+), 153 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
-index effb87f773b0..4b33bce3a4c6 100644
---- a/drivers/media/dvb-frontends/dib7000p.c
-+++ b/drivers/media/dvb-frontends/dib7000p.c
-@@ -2374,7 +2374,7 @@ int dib7090_slave_reset(struct dvb_frontend *fe)
- EXPORT_SYMBOL(dib7090_slave_reset);
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.h b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.h
+index 8c24d73410bc..b9f642e5d98b 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.h
++++ b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.h
+@@ -31,7 +31,7 @@ struct drx39xxj_state {
+ 	struct drx_demod_instance *demod;
+ 	enum drx_standard current_standard;
+ 	struct dvb_frontend frontend;
+-	int powered_up:1;
++	unsigned int powered_up:1;
+ 	unsigned int i2c_gate_open:1;
+ 	const struct firmware *fw;
+ };
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
+index 0803298b89bf..afeda82a1acd 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
+@@ -32,70 +32,42 @@
  
- static struct dvb_frontend_ops dib7000p_ops;
--struct dvb_frontend *dib7000p_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib7000p_config *cfg)
-+struct dvb_frontend *dib7000p_init(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib7000p_config *cfg)
+ #define pr_fmt(fmt) KBUILD_MODNAME ":%s: " fmt, __func__
+ 
+-
+ /*------------------------------------------------------------------------------
+ INCLUDE FILES
+ ------------------------------------------------------------------------------*/
+ #include "drx_driver.h"
+ 
+-#define VERSION_FIXED 0
+-#if     VERSION_FIXED
+ #define VERSION_MAJOR 0
+ #define VERSION_MINOR 0
+ #define VERSION_PATCH 0
+-#else
+-#include "drx_driver_version.h"
+-#endif
+ 
+-/*------------------------------------------------------------------------------
+-DEFINES
+-------------------------------------------------------------------------------*/
++/*
++ * DEFINES
++ */
+ 
+-/*============================================================================*/
+-/*=== MICROCODE RELATED DEFINES ==============================================*/
+-/*============================================================================*/
++/*
++/* MICROCODE RELATED DEFINES
++ */
+ 
+-/** \brief Magic word for checking correct Endianess of microcode data. */
+-#ifndef DRX_UCODE_MAGIC_WORD
++/* Magic word for checking correct Endianess of microcode data */
+ #define DRX_UCODE_MAGIC_WORD         ((((u16)'H')<<8)+((u16)'L'))
+-#endif
+ 
+-/** \brief CRC flag in ucode header, flags field. */
+-#ifndef DRX_UCODE_CRC_FLAG
++/* CRC flag in ucode header, flags field. */
+ #define DRX_UCODE_CRC_FLAG           (0x0001)
+-#endif
+ 
+-/** \brief Compression flag in ucode header, flags field. */
+-#ifndef DRX_UCODE_COMPRESSION_FLAG
+-#define DRX_UCODE_COMPRESSION_FLAG   (0x0002)
+-#endif
+-
+-/** \brief Maximum size of buffer used to verify the microcode.
+-   Must be an even number. */
+-#ifndef DRX_UCODE_MAX_BUF_SIZE
++/*
++ * Maximum size of buffer used to verify the microcode.
++ * Must be an even number
++ */
+ #define DRX_UCODE_MAX_BUF_SIZE       (DRXDAP_MAX_RCHUNKSIZE)
+-#endif
++
+ #if DRX_UCODE_MAX_BUF_SIZE & 1
+ #error DRX_UCODE_MAX_BUF_SIZE must be an even number
+ #endif
+ 
+-/*============================================================================*/
+-/*=== CHANNEL SCAN RELATED DEFINES ===========================================*/
+-/*============================================================================*/
+-
+-/**
+-* \brief Maximum progress indication.
+-*
+-* Progress indication will run from 0 upto DRX_SCAN_MAX_PROGRESS during scan.
+-*
+-*/
+-#ifndef DRX_SCAN_MAX_PROGRESS
+-#define DRX_SCAN_MAX_PROGRESS 1000
+-#endif
+-
+-/*============================================================================*/
+-/*=== MACROS =================================================================*/
+-/*============================================================================*/
++/*
++ * Power mode macros
++ */
+ 
+ #define DRX_ISPOWERDOWNMODE(mode) ((mode == DRX_POWER_MODE_9) || \
+ 				       (mode == DRX_POWER_MODE_10) || \
+@@ -108,41 +80,40 @@ DEFINES
+ 				       (mode == DRX_POWER_DOWN))
+ 
+ /*------------------------------------------------------------------------------
+-GLOBAL VARIABLES
+-------------------------------------------------------------------------------*/
+-
+-/*------------------------------------------------------------------------------
+ STRUCTURES
+ ------------------------------------------------------------------------------*/
+-/** \brief  Structure of the microcode block headers */
++
++/**
++ * struct drxu_code_block_hdr - Structure of the microcode block headers
++ *
++ * @addr:	Destination address of the data in this block
++ * @size:	Size of the block data following this header counted in
++ *		16 bits words
++ * @CRC:	CRC value of the data block, only valid if CRC flag is
++ *		set.
++ */
+ struct drxu_code_block_hdr {
+ 	u32 addr;
+-		  /**<  Destination address of the data in this block */
+ 	u16 size;
+-		  /**<  Size of the block data following this header counted in
+-			16 bits words */
+ 	u16 flags;
+-		  /**<  Flags for this data block:
+-			- bit[0]= CRC on/off
+-			- bit[1]= compression on/off
+-			- bit[15..2]=reserved */
+-	u16 CRC;/**<  CRC value of the data block, only valid if CRC flag is
+-			set. */};
++	u16 CRC;
++};
+ 
+ /*------------------------------------------------------------------------------
+ FUNCTIONS
+ ------------------------------------------------------------------------------*/
+ 
+-/*============================================================================*/
+-/*===Microcode related functions==============================================*/
+-/*============================================================================*/
++/*
++ * Microcode related functions
++ */
+ 
+ /**
+-* \brief Compute CRC of block of microcode data.
+-* \param block_data: Pointer to microcode data.
+-* \param nr_words:   Size of microcode block (number of 16 bits words).
+-* \return u16 The computed CRC residu.
+-*/
++ * u_code_compute_crc	- Compute CRC of block of microcode data.
++ * @block_data: Pointer to microcode data.
++ * @nr_words:   Size of microcode block (number of 16 bits words).
++ *
++ * returns The computed CRC residue.
++ */
+ static u16 u_code_compute_crc(u8 *block_data, u16 nr_words)
  {
- 	struct dvb_frontend *demod;
- 	struct dib7000p_state *st;
-@@ -2434,7 +2434,7 @@ error:
- 	kfree(st);
- 	return NULL;
+ 	u16 i = 0;
+@@ -151,7 +122,7 @@ static u16 u_code_compute_crc(u8 *block_data, u16 nr_words)
+ 	u32 carry = 0;
+ 
+ 	while (i < nr_words) {
+-		crc_word |= (u32) be16_to_cpu(*(u32 *)(block_data));
++		crc_word |= (u32)be16_to_cpu(*(u32 *)(block_data));
+ 		for (j = 0; j < 16; j++) {
+ 			crc_word <<= 1;
+ 			if (carry != 0)
+@@ -164,9 +135,13 @@ static u16 u_code_compute_crc(u8 *block_data, u16 nr_words)
+ 	return (u16)(crc_word >> 16);
  }
--EXPORT_SYMBOL(dib7000p_attach);
-+EXPORT_SYMBOL(dib7000p_init);
  
- static struct dvb_frontend_ops dib7000p_ops = {
- 	.delsys = { SYS_DVBT },
-diff --git a/drivers/media/dvb-frontends/dib7000p.h b/drivers/media/dvb-frontends/dib7000p.h
-index d08cdff59bdf..583c94e8eca5 100644
---- a/drivers/media/dvb-frontends/dib7000p.h
-+++ b/drivers/media/dvb-frontends/dib7000p.h
-@@ -47,7 +47,7 @@ struct dib7000p_config {
- #define DEFAULT_DIB7000P_I2C_ADDRESS 18
- 
- #if IS_ENABLED(CONFIG_DVB_DIB7000P)
--extern struct dvb_frontend *dib7000p_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib7000p_config *cfg);
-+extern struct dvb_frontend *dib7000p_init(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib7000p_config *cfg);
- extern struct i2c_adapter *dib7000p_get_i2c_master(struct dvb_frontend *, enum dibx000_i2c_interface, int);
- extern int dib7000p_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib7000p_config cfg[]);
- extern int dib7000p_set_gpio(struct dvb_frontend *, u8 num, u8 dir, u8 val);
-@@ -65,7 +65,7 @@ extern int dib7000p_get_agc_values(struct dvb_frontend *fe,
- 		u16 *agc_global, u16 *agc1, u16 *agc2, u16 *wbd);
- extern int dib7000p_set_agc1_min(struct dvb_frontend *fe, u16 v);
- #else
--static inline struct dvb_frontend *dib7000p_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib7000p_config *cfg)
-+static inline struct dvb_frontend *dib7000p_init(struct i2c_adapter *i2c_adap, u8 i2c_addr, struct dib7000p_config *cfg)
+-/*============================================================================*/
+-
+-
++/**
++ * check_firmware - checks if the loaded firmware is valid
++ *
++ * @demod:	demod structure
++ * @mc_data:	pointer to the start of the firmware
++ * @size:	firmware size
++ */
+ static int check_firmware(struct drx_demod_instance *demod, u8 *mc_data,
+ 			  unsigned size)
  {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 4be01b3bd4f5..69e526391c12 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -925,7 +925,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 		break;
- 	case CX23885_BOARD_HAUPPAUGE_HVR1400:
- 		i2c_bus = &dev->i2c_bus[0];
--		fe0->dvb.frontend = dvb_attach(dib7000p_attach,
-+		fe0->dvb.frontend = dvb_attach(dib7000p_init,
- 			&i2c_bus->i2c_adap,
- 			0x12, &hauppauge_hvr1400_dib7000_config);
- 		if (fe0->dvb.frontend != NULL) {
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index a1c641e18362..e81a2fd54960 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -1085,7 +1085,7 @@ static int cxusb_dualdig4_rev2_frontend_attach(struct dvb_usb_adapter *adap)
- 		return -ENODEV;
- 	}
- 
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 0x80,
- 			      &cxusb_dualdig4_rev2_config);
- 	if (adap->fe_adap[0].fe == NULL)
- 		return -EIO;
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index 829323e42ca0..0b0c2215d429 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -281,7 +281,7 @@ static int stk7700P2_frontend_attach(struct dvb_usb_adapter *adap)
- 	}
- 
- 	adap->fe_adap[0].fe =
--		dvb_attach(dib7000p_attach, &adap->dev->i2c_adap,
-+		dvb_attach(dib7000p_init, &adap->dev->i2c_adap,
- 			   0x80 + (adap->id << 1),
- 			   &stk7700d_dib7000p_mt2266_config[adap->id]);
- 
-@@ -310,7 +310,7 @@ static int stk7700d_frontend_attach(struct dvb_usb_adapter *adap)
- 	}
- 
- 	adap->fe_adap[0].fe =
--		dvb_attach(dib7000p_attach, &adap->dev->i2c_adap,
-+		dvb_attach(dib7000p_init, &adap->dev->i2c_adap,
- 			   0x80 + (adap->id << 1),
- 			   &stk7700d_dib7000p_mt2266_config[adap->id]);
- 
-@@ -452,7 +452,7 @@ static int stk7700ph_frontend_attach(struct dvb_usb_adapter *adap)
- 		return -ENODEV;
- 	}
- 
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 0x80,
- 		&stk7700ph_dib7700_xc3028_config);
- 
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
-@@ -690,7 +690,7 @@ static int stk7700p_frontend_attach(struct dvb_usb_adapter *adap)
- 	st->mt2060_if1[0] = 1220;
- 
- 	if (dib7000pc_detection(&adap->dev->i2c_adap)) {
--		adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 18, &stk7700p_dib7000p_config);
-+		adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 18, &stk7700p_dib7000p_config);
- 		st->is_dib7000pc = 1;
- 	} else
- 		adap->fe_adap[0].fe = dvb_attach(dib7000m_attach, &adap->dev->i2c_adap, 18, &stk7700p_dib7000m_config);
-@@ -961,7 +961,7 @@ static int stk7070p_frontend_attach(struct dvb_usb_adapter *adap)
- 		return -ENODEV;
- 	}
- 
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 0x80,
- 		&dib7070p_dib7000p_config);
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
- }
-@@ -1013,7 +1013,7 @@ static int stk7770p_frontend_attach(struct dvb_usb_adapter *adap)
- 		return -ENODEV;
- 	}
- 
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 0x80,
- 		&dib7770p_dib7000p_config);
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
- }
-@@ -2899,7 +2899,7 @@ static int nim7090_frontend_attach(struct dvb_usb_adapter *adap)
- 		err("%s: dib7000p_i2c_enumeration failed.  Cannot continue\n", __func__);
- 		return -ENODEV;
- 	}
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80, &nim7090_dib7000p_config);
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 0x80, &nim7090_dib7000p_config);
- 
- 	return adap->fe_adap[0].fe == NULL ?  -ENODEV : 0;
- }
-@@ -2945,7 +2945,7 @@ static int tfe7090pvr_frontend0_attach(struct dvb_usb_adapter *adap)
- 	}
- 
- 	dib0700_set_i2c_speed(adap->dev, 340);
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x90, &tfe7090pvr_dib7000p_config[0]);
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 0x90, &tfe7090pvr_dib7000p_config[0]);
- 	if (adap->fe_adap[0].fe == NULL)
- 		return -ENODEV;
- 
-@@ -2969,7 +2969,7 @@ static int tfe7090pvr_frontend1_attach(struct dvb_usb_adapter *adap)
- 		return -ENODEV;
- 	}
- 
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, i2c, 0x92, &tfe7090pvr_dib7000p_config[1]);
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, i2c, 0x92, &tfe7090pvr_dib7000p_config[1]);
- 	dib0700_set_i2c_speed(adap->dev, 200);
- 
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
-@@ -3030,7 +3030,7 @@ static int tfe7790p_frontend_attach(struct dvb_usb_adapter *adap)
- 				__func__);
- 		return -ENODEV;
- 	}
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap,
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap,
- 			0x80, &tfe7790p_dib7000p_config);
- 
- 	return adap->fe_adap[0].fe == NULL ?  -ENODEV : 0;
-@@ -3115,13 +3115,13 @@ static int stk7070pd_frontend_attach0(struct dvb_usb_adapter *adap)
- 		return -ENODEV;
- 	}
- 
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80, &stk7070pd_dib7000p_config[0]);
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 0x80, &stk7070pd_dib7000p_config[0]);
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
+@@ -247,26 +222,27 @@ eof:
  }
  
- static int stk7070pd_frontend_attach1(struct dvb_usb_adapter *adap)
+ /**
+-* \brief Handle microcode upload or verify.
+-* \param dev_addr: Address of device.
+-* \param mc_info:  Pointer to information about microcode data.
+-* \param action:  Either UCODE_UPLOAD or UCODE_VERIFY
+-* \return int.
+-* \retval 0:
+-*                    - In case of UCODE_UPLOAD: code is successfully uploaded.
+-*                    - In case of UCODE_VERIFY: image on device is equal to
+-*                      image provided to this control function.
+-* \retval -EIO:
+-*                    - In case of UCODE_UPLOAD: I2C error.
+-*                    - In case of UCODE_VERIFY: I2C error or image on device
+-*                      is not equal to image provided to this control function.
+-* \retval -EINVAL:
+-*                    - Invalid arguments.
+-*                    - Provided image is corrupt
+-*/
+-static int
+-ctrl_u_code(struct drx_demod_instance *demod,
+-	    struct drxu_code_info *mc_info, enum drxu_code_action action)
++ * ctrl_u_code - Handle microcode upload or verify.
++ * @dev_addr: Address of device.
++ * @mc_info:  Pointer to information about microcode data.
++ * @action:  Either UCODE_UPLOAD or UCODE_VERIFY
++ *
++ * This function returns:
++ *	0:
++ *		- In case of UCODE_UPLOAD: code is successfully uploaded.
++ *               - In case of UCODE_VERIFY: image on device is equal to
++ *		  image provided to this control function.
++ *	-EIO:
++ *		- In case of UCODE_UPLOAD: I2C error.
++ *		- In case of UCODE_VERIFY: I2C error or image on device
++ *		  is not equal to image provided to this control function.
++ * 	-EINVAL:
++ *		- Invalid arguments.
++ *		- Provided image is corrupt
++ */
++static int ctrl_u_code(struct drx_demod_instance *demod,
++		       struct drxu_code_info *mc_info,
++		       enum drxu_code_action action)
  {
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x82, &stk7070pd_dib7000p_config[1]);
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 0x82, &stk7070pd_dib7000p_config[1]);
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
+ 	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
+ 	int rc;
+@@ -448,15 +424,16 @@ release:
+ /*============================================================================*/
+ 
+ /**
+-* \brief Build list of version information.
+-* \param demod: A pointer to a demodulator instance.
+-* \param version_list: Pointer to linked list of versions.
+-* \return int.
+-* \retval 0:          Version information stored in version_list
+-* \retval -EINVAL: Invalid arguments.
+-*/
+-static int
+-ctrl_version(struct drx_demod_instance *demod, struct drx_version_list **version_list)
++ * ctrl_version - Build list of version information.
++ * @demod: A pointer to a demodulator instance.
++ * @version_list: Pointer to linked list of versions.
++ *
++ * This function returns:
++ *	0:		Version information stored in version_list
++ *	-EINVAL:	Invalid arguments.
++ */
++static int ctrl_version(struct drx_demod_instance *demod,
++			struct drx_version_list **version_list)
+ {
+ 	static char drx_driver_core_module_name[] = "Core driver";
+ 	static char drx_driver_core_version_text[] =
+@@ -465,7 +442,7 @@ ctrl_version(struct drx_demod_instance *demod, struct drx_version_list **version
+ 	static struct drx_version drx_driver_core_version;
+ 	static struct drx_version_list drx_driver_core_version_list;
+ 
+-	struct drx_version_list *demod_version_list = (struct drx_version_list *) (NULL);
++	struct drx_version_list *demod_version_list = NULL;
+ 	int return_status = -EIO;
+ 
+ 	/* Check arguments */
+@@ -507,22 +484,21 @@ ctrl_version(struct drx_demod_instance *demod, struct drx_version_list **version
+ 	return 0;
  }
  
-@@ -3181,7 +3181,7 @@ static int novatd_frontend_attach(struct dvb_usb_adapter *adap)
- 		}
- 	}
+-/*============================================================================*/
+-/*============================================================================*/
+-/*== Exported functions ======================================================*/
+-/*============================================================================*/
+-/*============================================================================*/
++/*
++ * Exported functions
++ */
  
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &dev->i2c_adap,
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &dev->i2c_adap,
- 			adap->id == 0 ? 0x80 : 0x82,
- 			&stk7070pd_dib7000p_config[adap->id]);
+ /**
+-* \brief Open a demodulator instance.
+-* \param demod: A pointer to a demodulator instance.
+-* \return int Return status.
+-* \retval 0:          Opened demod instance with succes.
+-* \retval -EIO:       Driver not initialized or unable to initialize
+-*                              demod.
+-* \retval -EINVAL: Demod instance has invalid content.
+-*
+-*/
++ * drx_open - Open a demodulator instance.
++ * @demod: A pointer to a demodulator instance.
++ *
++ * This function returns:
++ *	0:		Opened demod instance with succes.
++ *	-EIO:		Driver not initialized or unable to initialize
++ *			demod.
++ *	-EINVAL:	Demod instance has invalid content.
++ *
++ */
  
-@@ -3402,7 +3402,7 @@ static int pctv340e_frontend_attach(struct dvb_usb_adapter *adap)
- 		return -ENODEV;
- 	}
+ int drx_open(struct drx_demod_instance *demod)
+ {
+@@ -548,18 +524,18 @@ int drx_open(struct drx_demod_instance *demod)
+ /*============================================================================*/
  
--	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x12,
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_init, &adap->dev->i2c_adap, 0x12,
- 			      &pctv_340e_config);
- 	st->is_dib7000pc = 1;
+ /**
+-* \brief Close device.
+-* \param demod: A pointer to a demodulator instance.
+-* \return int Return status.
+-* \retval 0:          Closed demod instance with succes.
+-* \retval -EIO:       Driver not initialized or error during close
+-*                              demod.
+-* \retval -EINVAL: Demod instance has invalid content.
+-*
+-* Free resources occupied by device instance.
+-* Put device into sleep mode.
+-*/
+-
++ * drx_close - Close device
++ * @demod: A pointer to a demodulator instance.
++ *
++ * Free resources occupied by device instance.
++ * Put device into sleep mode.
++ *
++ * This function returns:
++ *	0:		Closed demod instance with succes.
++ *	-EIO:		Driver not initialized or error during close
++ *			demod.
++ *	-EINVAL:	Demod instance has invalid content.
++ */
+ int drx_close(struct drx_demod_instance *demod)
+ {
+ 	int status = 0;
+@@ -579,29 +555,22 @@ int drx_close(struct drx_demod_instance *demod)
  
+ 	return status;
+ }
+-
+-/*============================================================================*/
+-
+ /**
+-* \brief Control the device.
+-* \param demod:    A pointer to a demodulator instance.
+-* \param ctrl:     Reference to desired control function.
+-* \param ctrl_data: Pointer to data structure for control function.
+-* \return int Return status.
+-* \retval 0:                 Control function completed successfully.
+-* \retval -EIO:              Driver not initialized or error during
+-*                                     control demod.
+-* \retval -EINVAL:        Demod instance or ctrl_data has invalid
+-*                                     content.
+-* \retval -ENOTSUPP: Specified control function is not
+-*                                     available.
+-*
+-* Data needed or returned by the control function is stored in ctrl_data.
+-*
+-*/
+-
+-int
+-drx_ctrl(struct drx_demod_instance *demod, u32 ctrl, void *ctrl_data)
++ * drx_ctrl - Control the device.
++ * @demod:    A pointer to a demodulator instance.
++ * @ctrl:     Reference to desired control function.
++ * @ctrl_data: Pointer to data structure for control function.
++ *
++ * Data needed or returned by the control function is stored in ctrl_data.
++ *
++ * This function returns:
++ *	0:		Control function completed successfully.
++ *	-EIO:		Driver not initialized or error during control demod.
++ *	-EINVAL:	Demod instance or ctrl_data has invalid content.
++ *	-ENOTSUPP:	Specified control function is not available.
++ */
++
++int drx_ctrl(struct drx_demod_instance *demod, u32 ctrl, void *ctrl_data)
+ {
+ 	int status = -EIO;
+ 
+@@ -680,7 +649,3 @@ drx_ctrl(struct drx_demod_instance *demod, u32 ctrl, void *ctrl_data)
+ 
+ 	return 0;
+ }
+-
+-/*============================================================================*/
+-
+-/* END OF FILE */
 -- 
 1.8.5.3
 
