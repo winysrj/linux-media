@@ -1,81 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48707 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713AbaCKIen (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 04:34:43 -0400
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 00/14] v4l: ti-vpe: Some VPE fixes and enhancements
-Date: Tue, 11 Mar 2014 14:03:39 +0530
-Message-ID: <1394526833-24805-1-git-send-email-archit@ti.com>
-In-Reply-To: <1393922965-15967-1-git-send-email-archit@ti.com>
-References: <1393922965-15967-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:51497 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754393AbaCCTh5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 14:37:57 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 3/4] tda18212: add experimental support for ATSC (tda18272)
+Date: Mon,  3 Mar 2014 16:37:17 -0300
+Message-Id: <1393875438-1916-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393875438-1916-1-git-send-email-m.chehab@samsung.com>
+References: <1393875438-1916-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set mainly consists of minor fixes for the VPE driver. These fixes
-ensure the following:
+Add experimental support for ATSC. Currently, only 8VSB
+was tested.
 
-- The VPE module can be inserted and removed successively.
-- Make sure that smaller resolutions like qcif work correctly.
-- Prevent race condition between firmware loading and an open call to the v4l2
-  device.
-- Prevent the possibility of output m2m queue not having sufficient 'ready'
-  buffers.
-- Some VPDMA data descriptor fields weren't understood correctly before. They
-  are now used correctly.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/tuners/tda18212.c | 12 ++++++++++++
+ drivers/media/tuners/tda18212.h |  2 ++
+ 2 files changed, 14 insertions(+)
 
-The rest of the patches add some minor features like DMA buf support and
-cropping/composing.
-
-Reference branch:
-
-git@github.com:boddob/linux.git vpe_for_315
-
-Changes in v3:
-
-- improvements in selection API patch.
-- querycap fixes for v4l2 compliance.
-- v4l2_buffer 'field' and flags' fixes for compliance.
-- fixes in try_fmt vpe_open for compliance.
-- rename a IOMEM resource for better DT compatibility.
-
-Changes in v2:
-
-- selection API used instead of older cropping API.
-- Typo fix.
-- Some changes in patch 6/7 to support composing on the capture side of VPE.
-
-
-Archit Taneja (14):
-  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
-    dst_bufs
-  v4l: ti-vpe: register video device only when firmware is loaded
-  v4l: ti-vpe: Use video_device_release_empty
-  v4l: ti-vpe: Allow DMABUF buffer type support
-  v4l: ti-vpe: Allow usage of smaller images
-  v4l: ti-vpe: Fix some params in VPE data descriptors
-  v4l: ti-vpe: Add selection API in VPE driver
-  v4l: ti-vpe: Rename csc memory resource name
-  v4l: ti-vpe: report correct capabilities in querycap
-  v4l: ti-vpe: Use correct bus_info name for the device in querycap
-  v4l: ti-vpe: Fix initial configuration queue data
-  v4l: ti-vpe: zero out reserved fields in try_fmt
-  v4l: ti-vpe: Set correct field parameter for output and capture
-    buffers
-  v4l: ti-vpe: retain v4l2_buffer flags for captured buffers
-
- drivers/media/platform/ti-vpe/csc.c   |   2 +-
- drivers/media/platform/ti-vpe/vpdma.c |  68 ++++++---
- drivers/media/platform/ti-vpe/vpdma.h |  17 ++-
- drivers/media/platform/ti-vpe/vpe.c   | 263 ++++++++++++++++++++++++++++------
- 4 files changed, 281 insertions(+), 69 deletions(-)
-
+diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
+index abe256e1f843..6adf32216165 100644
+--- a/drivers/media/tuners/tda18212.c
++++ b/drivers/media/tuners/tda18212.c
+@@ -150,6 +150,8 @@ static int tda18212_set_params(struct dvb_frontend *fe)
+ 	#define DVBT2_8  5
+ 	#define DVBC_6   6
+ 	#define DVBC_8   7
++	#define ATSC_VSB 8
++	#define ATSC_QAM 9
+ 	static const u8 bw_params[][3] = {
+ 		     /* reg:   0f    13    23 */
+ 		[DVBT_6]  = { 0xb3, 0x20, 0x03 },
+@@ -160,6 +162,8 @@ static int tda18212_set_params(struct dvb_frontend *fe)
+ 		[DVBT2_8] = { 0xbc, 0x22, 0x01 },
+ 		[DVBC_6]  = { 0x92, 0x50, 0x03 },
+ 		[DVBC_8]  = { 0x92, 0x53, 0x03 },
++		[ATSC_VSB] = { 0x7d, 0x20, 0x63 },
++		[ATSC_QAM] = { 0x7d, 0x20, 0x63 },	/* FIXME */
+ 	};
+ 
+ 	dev_dbg(&priv->i2c->dev,
+@@ -171,6 +175,14 @@ static int tda18212_set_params(struct dvb_frontend *fe)
+ 		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+ 
+ 	switch (c->delivery_system) {
++	case SYS_ATSC:
++		if_khz = priv->cfg->if_atsc_vsb;
++		i = ATSC_VSB;
++		break;
++	case SYS_DVBC_ANNEX_B:
++		if_khz = priv->cfg->if_atsc_qam;
++		i = ATSC_QAM;
++		break;
+ 	case SYS_DVBT:
+ 		switch (c->bandwidth_hz) {
+ 		case 6000000:
+diff --git a/drivers/media/tuners/tda18212.h b/drivers/media/tuners/tda18212.h
+index 7e0d503baf05..c36b49e4b274 100644
+--- a/drivers/media/tuners/tda18212.h
++++ b/drivers/media/tuners/tda18212.h
+@@ -35,6 +35,8 @@ struct tda18212_config {
+ 	u16 if_dvbt2_7;
+ 	u16 if_dvbt2_8;
+ 	u16 if_dvbc;
++	u16 if_atsc_vsb;
++	u16 if_atsc_qam;
+ };
+ 
+ #if IS_ENABLED(CONFIG_MEDIA_TUNER_TDA18212)
 -- 
-1.8.3.2
+1.8.5.3
 
