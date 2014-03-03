@@ -1,121 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.karo-electronics.de ([81.173.242.67]:49579 "EHLO
-	mail.karo-electronics.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751184AbaCRHvi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Mar 2014 03:51:38 -0400
-Date: Tue, 18 Mar 2014 08:50:30 +0100
-From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW@KARO-electronics.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>, devel@driverdev.osuosl.org,
-	Russell King <linux@arm.linux.org.uk>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	dri-devel@lists.freedesktop.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Denis Carikli <denis@eukrea.com>,
-	Eric =?UTF-8?B?QsOpbmFyZA==?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/12] drm: drm_display_mode: add signal polarity flags
-Message-ID: <20140318085030.66db84b7@ipc1.ka-ro>
-In-Reply-To: <2777667.XJdaUSpRsD@avalon>
-References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
-	<2166863.3Fn4k2rvaz@avalon>
-	<20140317161436.06169b33@ipc1.ka-ro>
-	<2777667.XJdaUSpRsD@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from bombadil.infradead.org ([198.137.202.9]:49447 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754208AbaCCKIF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:05 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 68/79] [media] drx-j: get rid of struct drx_dap_fasi_funct_g
+Date: Mon,  3 Mar 2014 07:07:02 -0300
+Message-Id: <1393841233-24840-69-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This struct contains the first abstraction layer for the I2C
+access routines. Get rid of it.
 
-Laurent Pinchart wrote:
-> Hi Lothar,
-> 
-> On Monday 17 March 2014 16:14:36 Lothar Waßmann wrote:
-> > Laurent Pinchart wrote:
-> > > On Monday 17 March 2014 14:41:09 Andrzej Hajda wrote:
-> > > > On 03/13/2014 06:17 PM, Denis Carikli wrote:
-> > > > > We need a way to pass signal polarity informations
-> > > > > between DRM panels, and the display drivers.
-> > > > > 
-> > > > > To do that, a pol_flags field was added to drm_display_mode.
-> > > > > 
-> > > > > Signed-off-by: Denis Carikli <denis@eukrea.com>
-> > > > > ---
-> > > > > ChangeLog v10->v11:
-> > > > > - Since the imx-drm won't be able to retrive its regulators
-> > > > > 
-> > > > >   from the device tree when using display-timings nodes,
-> > > > >   and that I was told that the drm simple-panel driver
-> > > > >   already supported that, I then, instead, added what was
-> > > > >   lacking to make the eukrea displays work with the
-> > > > >   drm-simple-panel driver.
-> > > > >   
-> > > > >   That required a way to get back the display polarity
-> > > > >   informations from the imx-drm driver without affecting
-> > > > >   userspace.
-> > > > > 
-> > > > > ---
-> > > > > 
-> > > > >  include/drm/drm_crtc.h |    8 ++++++++
-> > > > >  1 file changed, 8 insertions(+)
-> > > > > 
-> > > > > diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
-> > > > > index f764654..61a4fe1 100644
-> > > > > --- a/include/drm/drm_crtc.h
-> > > > > +++ b/include/drm/drm_crtc.h
-> > > > > @@ -131,6 +131,13 @@ enum drm_mode_status {
-> > > > > 
-> > > > >  #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
-> > > > > 
-> > > > > +#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
-> > > > > +#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
-> > > > > +#define DRM_MODE_FLAG_POL_PIXDATA_PRESERVE	BIT(3)
-> > > > > +#define DRM_MODE_FLAG_POL_DE_NEGEDGE		BIT(4)
-> > > > > +#define DRM_MODE_FLAG_POL_DE_POSEDGE		BIT(5)
-> > > > > +#define DRM_MODE_FLAG_POL_DE_PRESERVE		BIT(6)
-> > > > 
-> > > > Could you add some description to these flags.
-> > > > What are *_PRESERVE flags for?
-> > > > Are those flags 1:1 compatible with respective 'videomode:flags'?
-> > > > I guess DE flags should be rather DRM_MODE_FLAG_POL_DE_(LOW|HIGH), am I
-> > > > right?
-> > > 
-> > > Possibly nitpicking, I wouldn't call the clock edge on which data signals
-> > > are generated/sampled "data polarity". This is clock polarity
-> > > information.
-> > > 
-> > > Have you seen cases where pixel data and DE are geenrated or need to be
-> > > sampled on different edges ?
-> > 
-> > DE is not a clock signal, but an 'Enable' signal whose value (high or
-> > low) defines the window in which the pixel data is valid.
-> > The flag defines whether data is valid during the HIGH or LOW period of
-> > DE.
-> 
-> The DRM_MODE_FLAG_POL_DE_(LOW|HIGH) do, by my impression of the proposed new 
-> DRM_MODE_FLAG_POL_DE_*EDGE flags is that they define sampling clock edges, not 
-> active levels.
-> 
-The current naming of the flags gives the impression that they describe
-the sampling edges of a clock signal. But the DE signal in fact is not
-a clock signal but a level sensitive gating signal.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 45 ++++++++++-------------------
+ 1 file changed, 15 insertions(+), 30 deletions(-)
 
-
-Lothar Waßmann
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 94c3d6f0d5b8..8dc53345dd06 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -2073,27 +2073,12 @@ static int drxdap_fasi_write_reg32(struct i2c_device_addr *dev_addr,
+ 	return drxdap_fasi_write_block(dev_addr, addr, sizeof(data), buf, flags);
+ }
+ 
+-/* The structure containing the protocol interface */
+-struct drx_access_func drx_dap_fasi_funct_g = {
+-	drxdap_fasi_write_block,	/* Supported */
+-	drxdap_fasi_read_block,	/* Supported */
+-	drxdap_fasi_write_reg8,	/* Not supported */
+-	drxdap_fasi_read_reg8,	/* Not supported */
+-	drxdap_fasi_read_modify_write_reg8,	/* Not supported */
+-	drxdap_fasi_write_reg16,	/* Supported */
+-	drxdap_fasi_read_reg16,	/* Supported */
+-	drxdap_fasi_read_modify_write_reg16,	/* Supported */
+-	drxdap_fasi_write_reg32,	/* Supported */
+-	drxdap_fasi_read_reg32,	/* Supported */
+-	drxdap_fasi_read_modify_write_reg32	/* Not supported */
+-};
+-
+ static int drxj_dap_read_block(struct i2c_device_addr *dev_addr,
+ 				      u32 addr,
+ 				      u16 datasize,
+ 				      u8 *data, u32 flags)
+ {
+-	return drx_dap_fasi_funct_g.read_block_func(dev_addr,
++	return drxdap_fasi_read_block(dev_addr,
+ 					       addr, datasize, data, flags);
+ }
+ 
+@@ -2104,7 +2089,7 @@ static int drxj_dap_read_modify_write_reg8(struct i2c_device_addr *dev_addr,
+ 						u32 raddr,
+ 						u8 wdata, u8 *rdata)
+ {
+-	return drx_dap_fasi_funct_g.read_modify_write_reg8func(dev_addr,
++	return drxdap_fasi_read_modify_write_reg8(dev_addr,
+ 							 waddr,
+ 							 raddr, wdata, rdata);
+ }
+@@ -2143,23 +2128,23 @@ static int drxj_dap_rm_write_reg16short(struct i2c_device_addr *dev_addr,
+ 		return -EINVAL;
+ 
+ 	/* Set RMW flag */
+-	rc = drx_dap_fasi_funct_g.write_reg16func(dev_addr,
++	rc = drxdap_fasi_write_reg16(dev_addr,
+ 					      SIO_HI_RA_RAM_S0_FLG_ACC__A,
+ 					      SIO_HI_RA_RAM_S0_FLG_ACC_S0_RWM__M,
+ 					      0x0000);
+ 	if (rc == 0) {
+ 		/* Write new data: triggers RMW */
+-		rc = drx_dap_fasi_funct_g.write_reg16func(dev_addr, waddr, wdata,
++		rc = drxdap_fasi_write_reg16(dev_addr, waddr, wdata,
+ 						      0x0000);
+ 	}
+ 	if (rc == 0) {
+ 		/* Read old data */
+-		rc = drx_dap_fasi_funct_g.read_reg16func(dev_addr, raddr, rdata,
++		rc = drxdap_fasi_read_reg16(dev_addr, raddr, rdata,
+ 						     0x0000);
+ 	}
+ 	if (rc == 0) {
+ 		/* Reset RMW flag */
+-		rc = drx_dap_fasi_funct_g.write_reg16func(dev_addr,
++		rc = drxdap_fasi_write_reg16(dev_addr,
+ 						      SIO_HI_RA_RAM_S0_FLG_ACC__A,
+ 						      0, 0x0000);
+ 	}
+@@ -2179,7 +2164,7 @@ static int drxj_dap_read_modify_write_reg16(struct i2c_device_addr *dev_addr,
+ 	   now long format has higher prio then short because short also
+ 	   needs virt bnks (not impl yet) for certain audio registers */
+ #if (DRXDAPFASI_LONG_ADDR_ALLOWED == 1)
+-	return drx_dap_fasi_funct_g.read_modify_write_reg16func(dev_addr,
++	return drxdap_fasi_read_modify_write_reg16(dev_addr,
+ 							  waddr,
+ 							  raddr, wdata, rdata);
+ #else
+@@ -2194,7 +2179,7 @@ static int drxj_dap_read_modify_write_reg32(struct i2c_device_addr *dev_addr,
+ 						 u32 raddr,
+ 						 u32 wdata, u32 *rdata)
+ {
+-	return drx_dap_fasi_funct_g.read_modify_write_reg32func(dev_addr,
++	return drxdap_fasi_read_modify_write_reg32(dev_addr,
+ 							  waddr,
+ 							  raddr, wdata, rdata);
+ }
+@@ -2205,7 +2190,7 @@ static int drxj_dap_read_reg8(struct i2c_device_addr *dev_addr,
+ 				     u32 addr,
+ 				     u8 *data, u32 flags)
+ {
+-	return drx_dap_fasi_funct_g.read_reg8func(dev_addr, addr, data, flags);
++	return drxdap_fasi_read_reg8(dev_addr, addr, data, flags);
+ }
+ 
+ /*============================================================================*/
+@@ -2311,7 +2296,7 @@ static int drxj_dap_read_reg16(struct i2c_device_addr *dev_addr,
+ 	if (is_handled_by_aud_tr_if(addr))
+ 		stat = drxj_dap_read_aud_reg16(dev_addr, addr, data);
+ 	else
+-		stat = drx_dap_fasi_funct_g.read_reg16func(dev_addr,
++		stat = drxdap_fasi_read_reg16(dev_addr,
+ 							   addr, data, flags);
+ 
+ 	return stat;
+@@ -2323,7 +2308,7 @@ static int drxj_dap_read_reg32(struct i2c_device_addr *dev_addr,
+ 				      u32 addr,
+ 				      u32 *data, u32 flags)
+ {
+-	return drx_dap_fasi_funct_g.read_reg32func(dev_addr, addr, data, flags);
++	return drxdap_fasi_read_reg32(dev_addr, addr, data, flags);
+ }
+ 
+ /*============================================================================*/
+@@ -2333,7 +2318,7 @@ static int drxj_dap_write_block(struct i2c_device_addr *dev_addr,
+ 				       u16 datasize,
+ 				       u8 *data, u32 flags)
+ {
+-	return drx_dap_fasi_funct_g.write_block_func(dev_addr,
++	return drxdap_fasi_write_block(dev_addr,
+ 						addr, datasize, data, flags);
+ }
+ 
+@@ -2343,7 +2328,7 @@ static int drxj_dap_write_reg8(struct i2c_device_addr *dev_addr,
+ 				      u32 addr,
+ 				      u8 data, u32 flags)
+ {
+-	return drx_dap_fasi_funct_g.write_reg8func(dev_addr, addr, data, flags);
++	return drxdap_fasi_write_reg8(dev_addr, addr, data, flags);
+ }
+ 
+ /*============================================================================*/
+@@ -2420,7 +2405,7 @@ static int drxj_dap_write_reg16(struct i2c_device_addr *dev_addr,
+ 	if (is_handled_by_aud_tr_if(addr))
+ 		stat = drxj_dap_write_aud_reg16(dev_addr, addr, data);
+ 	else
+-		stat = drx_dap_fasi_funct_g.write_reg16func(dev_addr,
++		stat = drxdap_fasi_write_reg16(dev_addr,
+ 							    addr, data, flags);
+ 
+ 	return stat;
+@@ -2432,7 +2417,7 @@ static int drxj_dap_write_reg32(struct i2c_device_addr *dev_addr,
+ 				       u32 addr,
+ 				       u32 data, u32 flags)
+ {
+-	return drx_dap_fasi_funct_g.write_reg32func(dev_addr, addr, data, flags);
++	return drxdap_fasi_write_reg32(dev_addr, addr, data, flags);
+ }
+ 
+ /*============================================================================*/
 -- 
-___________________________________________________________
+1.8.5.3
 
-Ka-Ro electronics GmbH | Pascalstraße 22 | D - 52076 Aachen
-Phone: +49 2408 1402-0 | Fax: +49 2408 1402-10
-Geschäftsführer: Matthias Kaussen
-Handelsregistereintrag: Amtsgericht Aachen, HRB 4996
-
-www.karo-electronics.de | info@karo-electronics.de
-___________________________________________________________
