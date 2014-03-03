@@ -1,53 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f46.google.com ([209.85.192.46]:34321 "EHLO
-	mail-qg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751227AbaC1NQH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 09:16:07 -0400
-Received: by mail-qg0-f46.google.com with SMTP id 63so812242qgz.33
-        for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 06:16:06 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54159 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754896AbaCCWIg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 17:08:36 -0500
+Received: from avalon.localnet (unknown [91.178.178.142])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 6235C35AC4
+	for <linux-media@vger.kernel.org>; Mon,  3 Mar 2014 23:07:33 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.15] OMAP3 ISP and OMAP4 ISS fixes
+Date: Mon, 03 Mar 2014 23:10:01 +0100
+Message-ID: <2080385.eQNKOcWPWE@avalon>
 MIME-Version: 1.0
-In-Reply-To: <53354925.6070603@xs4all.nl>
-References: <1395661349.2916.3.camel@localhost.localdomain>
-	<533534D7.6010301@xs4all.nl>
-	<1396000280.3518.24.camel@localhost.localdomain>
-	<53354925.6070603@xs4all.nl>
-Date: Fri, 28 Mar 2014 09:16:06 -0400
-Message-ID: <CAGoCfiwN6Z9Whof-ZfWPxPfu+HztHTQewkXLicJkT7si_Jg9uw@mail.gmail.com>
-Subject: Re: [PATCH] saa7134: automatic norm detection
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mikhail Domrachev <mihail.domrychev@comexp.ru>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?KOI8-R?B?4czFy9PFyiDpx8/Oyc4=?= <aleksey.igonin@comexp.ru>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Let me explain why I created a new thread.
->> My company is engaged in the monitoring of TV air. All TV channels are
->> recorded 24/7 for further analysis. But some local TV channels change
->> the standard over time (SECAM->PAL, PAL->SECAM). So the recording
->> software must be notified about these changes to set a new standard and
->> record the picture but not the noise.
->
-> OK, fair enough.
+Hi Mauro,
 
-This is a perfectly reasonable use case, but since we don't do this
-with any other devices we probably need to decide whether this really
-should be the responsibility of the kernel at all, or whether it
-really should be done in userland.  Doing it in userland would be
-trivial (even just a script which periodically runs QUERYSTD in a loop
-would accomplish the same thing), and the extra complexity of having a
-thread combined with the inconsistent behavior with all the other
-drivers might make it more worthwhile to do it in userland.
+The following changes since commit cd701c89751d5c63230f47da9a78cdbb39384fdc:
 
-If it were hooked to an interrupt line on the video decoder, I could
-certainly see doing it in kernel, but for something like this the loop
-that checks the standard could just as easily be done in userland.
+  [media] em28xx: implement em28xx_usb_driver suspend, resume, reset_resume 
+hooks (2014-03-03 06:46:48 -0300)
 
-Devin
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap3isp/next
+
+for you to fetch changes up to c6ca492864b522b57ed3ffbda9b15b78fc0c6b3c:
+
+  v4l: omap4iss: Add DEBUG compiler flag (2014-03-03 22:56:11 +0100)
+
+----------------------------------------------------------------
+Lad, Prabhakar (3):
+      omap3isp: Fix typos
+      omap3isp: ispccdc: Remove unwanted comments
+      omap3isp: Rename the variable names in description
+
+Paul Bolle (1):
+      v4l: omap4iss: Add DEBUG compiler flag
+
+Peter Meerwald (1):
+      omap3isp: Fix kerneldoc for _module_sync_is_stopping and isp_isr()
+
+ drivers/media/platform/omap3isp/isp.c        |  7 ++-----
+ drivers/media/platform/omap3isp/isp.h        | 12 ++++++------
+ drivers/media/platform/omap3isp/ispccdc.c    | 10 +++++-----
+ drivers/media/platform/omap3isp/ispccdc.h    |  6 ------
+ drivers/media/platform/omap3isp/ispccp2.c    |  6 +++---
+ drivers/media/platform/omap3isp/isphist.c    |  4 ++--
+ drivers/media/platform/omap3isp/isppreview.c | 13 +++++++------
+ drivers/media/platform/omap3isp/ispqueue.c   |  2 +-
+ drivers/media/platform/omap3isp/ispresizer.c |  6 +++---
+ drivers/media/platform/omap3isp/ispresizer.h |  4 ++--
+ drivers/media/platform/omap3isp/ispstat.c    |  4 ++--
+ drivers/media/platform/omap3isp/ispvideo.c   |  4 ++--
+ drivers/staging/media/omap4iss/Makefile      |  2 ++
+ 13 files changed, 37 insertions(+), 43 deletions(-)
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
+
