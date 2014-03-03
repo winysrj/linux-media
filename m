@@ -1,582 +1,863 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:38294 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751805AbaC2QK5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Mar 2014 12:10:57 -0400
-Subject: [PATCH 02/11] rc-core: improve ir-kbd-i2c get_key functions
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: james.hogan@imgtec.com, m.chehab@samsung.com
-Date: Sat, 29 Mar 2014 17:10:55 +0100
-Message-ID: <20140329161055.13234.66063.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
-References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:49410 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752988AbaCCKIA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:00 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 43/79] [media] drx-j: remove unused code from drx_driver.c
+Date: Mon,  3 Mar 2014 07:06:37 -0300
+Message-Id: <1393841233-24840-44-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The arguments used for ir-kbd-i2c's get_key() functions are not
-really suited for rc-core and the ir_raw/ir_key distinction is
-just confusing.
+There are several drx-j code there that are never used, as
+they don't even fit into Linux DVB subystem model.
 
-Convert all of them to return a protocol/scancode/toggle triple instead.
+Remove them, in order to simplify the code.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/i2c/ir-kbd-i2c.c            |   90 +++++++++++++++--------------
- drivers/media/pci/bt8xx/bttv-input.c      |    8 ++-
- drivers/media/pci/cx88/cx88-input.c       |    8 ++-
- drivers/media/pci/ivtv/ivtv-i2c.c         |    9 ++-
- drivers/media/pci/saa7134/saa7134-input.c |   76 +++++++++++++++---------
- drivers/media/usb/cx231xx/cx231xx-input.c |   20 ++----
- include/media/ir-kbd-i2c.h                |    6 +-
- include/media/rc-map.h                    |   10 +++
- 8 files changed, 127 insertions(+), 100 deletions(-)
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.c | 789 +---------------------
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.h |   4 -
+ 2 files changed, 1 insertion(+), 792 deletions(-)
 
-diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
-index c8fe135..143cb2b 100644
---- a/drivers/media/i2c/ir-kbd-i2c.c
-+++ b/drivers/media/i2c/ir-kbd-i2c.c
-@@ -62,8 +62,8 @@ module_param(debug, int, 0644);    /* debug level (0,1,2) */
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
+index 94768b16ee92..c144fb7080cf 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
+@@ -135,719 +135,6 @@ FUNCTIONS
  
- /* ----------------------------------------------------------------------- */
- 
--static int get_key_haup_common(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
--			       int size, int offset)
-+static int get_key_haup_common(struct IR_i2c *ir, enum rc_type *protocol,
-+			       u32 *scancode, u8 *ptoggle, int size, int offset)
- {
- 	unsigned char buf[6];
- 	int start, range, toggle, dev, code, ircode;
-@@ -86,19 +86,10 @@ static int get_key_haup_common(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
- 	if (!start)
- 		/* no key pressed */
- 		return 0;
--	/*
--	 * Hauppauge remotes (black/silver) always use
--	 * specific device ids. If we do not filter the
--	 * device ids then messages destined for devices
--	 * such as TVs (id=0) will get through causing
--	 * mis-fired events.
--	 *
--	 * We also filter out invalid key presses which
--	 * produce annoying debug log entries.
--	 */
--	ircode= (start << 12) | (toggle << 11) | (dev << 6) | code;
--	if ((ircode & 0x1fff)==0x1fff)
--		/* invalid key press */
-+
-+	/* filter out invalid key presses */
-+	ircode = (start << 12) | (toggle << 11) | (dev << 6) | code;
-+	if ((ircode & 0x1fff) == 0x1fff)
- 		return 0;
- 
- 	if (!range)
-@@ -107,18 +98,20 @@ static int get_key_haup_common(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
- 	dprintk(1,"ir hauppauge (rc5): s%d r%d t%d dev=%d code=%d\n",
- 		start, range, toggle, dev, code);
- 
--	/* return key */
--	*ir_key = (dev << 8) | code;
--	*ir_raw = ircode;
-+	*protocol = RC_TYPE_RC5;
-+	*scancode = RC_SCANCODE_RC5(dev, code);
-+	*ptoggle = toggle;
- 	return 1;
- }
- 
--static int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_haup(struct IR_i2c *ir, enum rc_type *protocol,
-+			u32 *scancode, u8 *toggle)
- {
--	return get_key_haup_common (ir, ir_key, ir_raw, 3, 0);
-+	return get_key_haup_common (ir, protocol, scancode, toggle, 3, 0);
- }
- 
--static int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_haup_xvr(struct IR_i2c *ir, enum rc_type *protocol,
-+			    u32 *scancode, u8 *toggle)
- {
- 	int ret;
- 	unsigned char buf[1] = { 0 };
-@@ -133,10 +126,11 @@ static int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	if (ret != 1)
- 		return (ret < 0) ? ret : -EINVAL;
- 
--	return get_key_haup_common (ir, ir_key, ir_raw, 6, 3);
-+	return get_key_haup_common(ir, protocol, scancode, toggle, 6, 3);
- }
- 
--static int get_key_pixelview(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_pixelview(struct IR_i2c *ir, enum rc_type *protocol,
-+			     u32 *scancode, u8 *toggle)
- {
- 	unsigned char b;
- 
-@@ -145,12 +139,15 @@ static int get_key_pixelview(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 		dprintk(1,"read error\n");
- 		return -EIO;
- 	}
--	*ir_key = b;
--	*ir_raw = b;
-+
-+	*protocol = RC_TYPE_OTHER;
-+	*scancode = b;
-+	*toggle = 0;
- 	return 1;
- }
- 
--static int get_key_fusionhdtv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_fusionhdtv(struct IR_i2c *ir, enum rc_type *protocol,
-+			      u32 *scancode, u8 *toggle)
- {
- 	unsigned char buf[4];
- 
-@@ -168,13 +165,14 @@ static int get_key_fusionhdtv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	if(buf[0] != 0x1 ||  buf[1] != 0xfe)
- 		return 0;
- 
--	*ir_key = buf[2];
--	*ir_raw = (buf[2] << 8) | buf[3];
+ /*============================================================================*/
+ /*============================================================================*/
+-/*== Channel Scan Functions ==================================================*/
+-/*============================================================================*/
+-/*============================================================================*/
 -
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = buf[2];
-+	*toggle = 0;
- 	return 1;
- }
- 
--static int get_key_knc1(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_knc1(struct IR_i2c *ir, enum rc_type *protocol,
-+			u32 *scancode, u8 *toggle)
- {
- 	unsigned char b;
- 
-@@ -197,13 +195,14 @@ static int get_key_knc1(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 		/* keep old data */
- 		return 1;
- 
--	*ir_key = b;
--	*ir_raw = b;
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = b;
-+	*toggle = 0;
- 	return 1;
- }
- 
--static int get_key_avermedia_cardbus(struct IR_i2c *ir,
--				     u32 *ir_key, u32 *ir_raw)
-+static int get_key_avermedia_cardbus(struct IR_i2c *ir, enum rc_type *protocol,
-+				     u32 *scancode, u8 *toggle)
- {
- 	unsigned char subaddr, key, keygroup;
- 	struct i2c_msg msg[] = { { .addr = ir->c->addr, .flags = 0,
-@@ -237,12 +236,11 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
- 	}
- 	key |= (keygroup & 1) << 6;
- 
--	*ir_key = key;
--	*ir_raw = key;
--	if (!strcmp(ir->ir_codes, RC_MAP_AVERMEDIA_M733A_RM_K6)) {
--		*ir_key |= keygroup << 8;
--		*ir_raw |= keygroup << 8;
+-#ifndef DRX_EXCLUDE_SCAN
+-
+-/* Prototype of default scanning function */
+-static int
+-scan_function_default(void *scan_context,
+-		      enum drx_scan_command scan_command,
+-		    struct drx_channel *scan_channel, bool *get_next_channel);
+-
+-/**
+-* \brief Get pointer to scanning function.
+-* \param demod:    Pointer to demodulator instance.
+-* \return drx_scan_func_t.
+-*/
+-static drx_scan_func_t get_scan_function(struct drx_demod_instance *demod)
+-{
+-	struct drx_common_attr *common_attr = (struct drx_common_attr *) (NULL);
+-	drx_scan_func_t scan_func = (drx_scan_func_t) (NULL);
+-
+-	/* get scan function from common attributes */
+-	common_attr = (struct drx_common_attr *) demod->my_common_attr;
+-	scan_func = common_attr->scan_function;
+-
+-	if (scan_func != NULL) {
+-		/* return device-specific scan function if it's not NULL */
+-		return scan_func;
 -	}
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = key;
-+	if (ir->c->addr == 0x41) /* AVerMedia EM78P153 */
-+		*scancode |= keygroup << 8;
-+	*toggle = 0;
- 	return 1;
- }
- 
-@@ -250,19 +248,21 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
- 
- static int ir_key_poll(struct IR_i2c *ir)
- {
--	static u32 ir_key, ir_raw;
-+	enum rc_type protocol;
-+	u32 scancode;
-+	u8 toggle;
- 	int rc;
- 
- 	dprintk(3, "%s\n", __func__);
--	rc = ir->get_key(ir, &ir_key, &ir_raw);
-+	rc = ir->get_key(ir, &protocol, &scancode, &toggle);
- 	if (rc < 0) {
- 		dprintk(2,"error\n");
- 		return rc;
- 	}
- 
- 	if (rc) {
--		dprintk(1, "%s: keycode = 0x%04x\n", __func__, ir_key);
--		rc_keydown(ir->rc, ir_key, 0);
-+		dprintk(1, "%s: scancode = 0x%08x\n", __func__, scancode);
-+		rc_keydown(ir->rc, scancode, toggle);
- 	}
- 	return 0;
- }
-@@ -327,7 +327,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	case 0x6b:
- 		name        = "FusionHDTV";
- 		ir->get_key = get_key_fusionhdtv;
--		rc_type     = RC_BIT_RC5;
-+		rc_type     = RC_BIT_UNKNOWN;
- 		ir_codes    = RC_MAP_FUSIONHDTV_MCE;
- 		break;
- 	case 0x40:
-diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
-index ffc0ee1..e745f5a 100644
---- a/drivers/media/pci/bt8xx/bttv-input.c
-+++ b/drivers/media/pci/bt8xx/bttv-input.c
-@@ -336,7 +336,8 @@ static void bttv_ir_stop(struct bttv *btv)
-  * Get_key functions used by I2C remotes
-  */
- 
--static int get_key_pv951(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_pv951(struct IR_i2c *ir, enum rc_type *protocol,
-+			 u32 *scancode, u8 *toggle)
- {
- 	unsigned char b;
- 
-@@ -363,8 +364,9 @@ static int get_key_pv951(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	 * 	   the device is bound to the vendor-provided RC.
- 	 */
- 
--	*ir_key = b;
--	*ir_raw = b;
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = b;
-+	*toggle = 0;
- 	return 1;
- }
- 
-diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
-index f991696..779fc63 100644
---- a/drivers/media/pci/cx88/cx88-input.c
-+++ b/drivers/media/pci/cx88/cx88-input.c
-@@ -539,7 +539,8 @@ void cx88_ir_irq(struct cx88_core *core)
- 	ir_raw_event_handle(ir->dev);
- }
- 
--static int get_key_pvr2000(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_pvr2000(struct IR_i2c *ir, enum rc_type *protocol,
-+			   u32 *scancode, u8 *toggle)
- {
- 	int flags, code;
- 
-@@ -563,8 +564,9 @@ static int get_key_pvr2000(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	dprintk("IR Key/Flags: (0x%02x/0x%02x)\n",
- 		   code & 0xff, flags & 0xff);
- 
--	*ir_key = code & 0xff;
--	*ir_raw = code;
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = code & 0xff;
-+	*toggle = 0;
- 	return 1;
- }
- 
-diff --git a/drivers/media/pci/ivtv/ivtv-i2c.c b/drivers/media/pci/ivtv/ivtv-i2c.c
-index ceed2d8..1a41ba5 100644
---- a/drivers/media/pci/ivtv/ivtv-i2c.c
-+++ b/drivers/media/pci/ivtv/ivtv-i2c.c
-@@ -148,7 +148,8 @@ static const char * const hw_devicenames[] = {
- 	"ir_video",		/* IVTV_HW_I2C_IR_RX_ADAPTEC */
- };
- 
--static int get_key_adaptec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_adaptec(struct IR_i2c *ir, enum rc_type *protocol,
-+			   u32 *scancode, u8 *toggle)
- {
- 	unsigned char keybuf[4];
- 
-@@ -167,9 +168,9 @@ static int get_key_adaptec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	keybuf[2] &= 0x7f;
- 	keybuf[3] |= 0x80;
- 
--	*ir_key = keybuf[3] | keybuf[2] << 8 | keybuf[1] << 16 |keybuf[0] << 24;
--	*ir_raw = *ir_key;
+-	/* otherwise return default scan function in core driver */
+-	return &scan_function_default;
+-}
 -
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = keybuf[3] | keybuf[2] << 8 | keybuf[1] << 16 |keybuf[0] << 24;
-+	*toggle = 0;
- 	return 1;
- }
- 
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index 6f43126..73670ed 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -108,7 +108,8 @@ static int build_key(struct saa7134_dev *dev)
- 
- /* --------------------- Chip specific I2C key builders ----------------- */
- 
--static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_flydvb_trio(struct IR_i2c *ir, enum rc_type *protocol,
-+			       u32 *scancode, u8 *toggle)
- {
- 	int gpio;
- 	int attempt = 0;
-@@ -158,13 +159,14 @@ static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 		return -EIO;
- 	}
- 
--	*ir_key = b;
--	*ir_raw = b;
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = b;
-+	*toggle = 0;
- 	return 1;
- }
- 
--static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
--				       u32 *ir_raw)
-+static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, enum rc_type *protocol,
-+				       u32 *scancode, u8 *toggle)
- {
- 	unsigned char b;
- 	int gpio;
-@@ -205,14 +207,15 @@ static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
- 	/* Button pressed */
- 
- 	dprintk("get_key_msi_tvanywhere_plus: Key = 0x%02X\n", b);
--	*ir_key = b;
--	*ir_raw = b;
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = b;
-+	*toggle = 0;
- 	return 1;
- }
- 
- /* copied and modified from get_key_msi_tvanywhere_plus() */
--static int get_key_kworld_pc150u(struct IR_i2c *ir, u32 *ir_key,
--					u32 *ir_raw)
-+static int get_key_kworld_pc150u(struct IR_i2c *ir, enum rc_type *protocol,
-+				 u32 *scancode, u8 *toggle)
- {
- 	unsigned char b;
- 	unsigned int gpio;
-@@ -253,12 +256,14 @@ static int get_key_kworld_pc150u(struct IR_i2c *ir, u32 *ir_key,
- 	/* Button pressed */
- 
- 	dprintk("get_key_kworld_pc150u: Key = 0x%02X\n", b);
--	*ir_key = b;
--	*ir_raw = b;
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = b;
-+	*toggle = 0;
- 	return 1;
- }
- 
--static int get_key_purpletv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_purpletv(struct IR_i2c *ir, enum rc_type *protocol,
-+			    u32 *scancode, u8 *toggle)
- {
- 	unsigned char b;
- 
-@@ -276,12 +281,14 @@ static int get_key_purpletv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	if (b & 0x80)
- 		return 1;
- 
--	*ir_key = b;
--	*ir_raw = b;
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = b;
-+	*toggle = 0;
- 	return 1;
- }
- 
--static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_hvr1110(struct IR_i2c *ir, enum rc_type *protocol,
-+			   u32 *scancode, u8 *toggle)
- {
- 	unsigned char buf[5];
- 
-@@ -299,14 +306,20 @@ static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	 * by preserving it into two separate readings
- 	 * buf[4] bits 0 and 1, and buf[1] and buf[2] are always
- 	 * zero.
-+	 *
-+	 * Note that the keymap which the hvr1110 uses is RC5.
-+	 *
-+	 * FIXME: start bits could maybe be used...?
- 	 */
--	*ir_key = 0x1fff & ((buf[3] << 8) | (buf[4] >> 2));
--	*ir_raw = *ir_key;
-+	*protocol = RC_TYPE_RC5;
-+	*scancode = RC_SCANCODE_RC5(buf[3] & 0x1f, buf[4] >> 2);
-+	*toggle = !!(buf[3] & 0x40);
- 	return 1;
- }
- 
- 
--static int get_key_beholdm6xx(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_beholdm6xx(struct IR_i2c *ir, enum rc_type *protocol,
-+			      u32 *scancode, u8 *toggle)
- {
- 	unsigned char data[12];
- 	u32 gpio;
-@@ -332,17 +345,18 @@ static int get_key_beholdm6xx(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	if (data[9] != (unsigned char)(~data[8]))
- 		return 0;
- 
--	*ir_raw = ((data[10] << 16) | (data[11] << 8) | (data[9] << 0));
--	*ir_key = *ir_raw;
+-/**
+-* \brief Get Context pointer.
+-* \param demod:    Pointer to demodulator instance.
+-* \param scan_context: Context Pointer.
+-* \return drx_scan_func_t.
+-*/
+-static void *get_scan_context(struct drx_demod_instance *demod, void *scan_context)
+-{
+-	struct drx_common_attr *common_attr = (struct drx_common_attr *) (NULL);
 -
-+	*protocol = RC_TYPE_NEC;
-+	*scancode = RC_SCANCODE_NECX(((data[10] << 8) | data[11]), data[9]);
-+	*toggle = 0;
- 	return 1;
- }
- 
- /* Common (grey or coloured) pinnacle PCTV remote handling
-  *
-  */
--static int get_key_pinnacle(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
--			    int parity_offset, int marker, int code_modulo)
-+static int get_key_pinnacle(struct IR_i2c *ir, enum rc_type *protocol,
-+			    u32 *scancode, u8 *toggle, int parity_offset,
-+			    int marker, int code_modulo)
- {
- 	unsigned char b[4];
- 	unsigned int start = 0,parity = 0,code = 0;
-@@ -377,11 +391,11 @@ static int get_key_pinnacle(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
- 
- 	code %= code_modulo;
- 
--	*ir_raw = code;
--	*ir_key = code;
-+	*protocol = RC_TYPE_UNKNOWN;
-+	*scancode = code;
-+	*toggle = 0;
- 
- 	i2cdprintk("Pinnacle PCTV key %02x\n", code);
+-	/* get scan function from common attributes */
+-	common_attr = (struct drx_common_attr *) demod->my_common_attr;
+-	scan_context = common_attr->scan_context;
 -
- 	return 1;
- }
+-	if (scan_context == NULL)
+-		scan_context = (void *)demod;
+-
+-	return scan_context;
+-}
+-
+-/**
+-* \brief Wait for lock while scanning.
+-* \param demod:    Pointer to demodulator instance.
+-* \param lock_stat: Pointer to bool indicating if end result is lock or not.
+-* \return int.
+-* \retval 0:    Success
+-* \retval -EIO: I2C failure or bsp function failure.
+-*
+-* Wait until timeout, desired lock or NEVER_LOCK.
+-* Assume:
+-* - lock function returns : at least DRX_NOT_LOCKED and a lock state
+-*   higher than DRX_NOT_LOCKED.
+-* - BSP has a clock function to retrieve a millisecond ticker value.
+-* - BSP has a sleep function to enable sleep of n millisecond.
+-*
+-* In case DRX_NEVER_LOCK is returned the poll-wait will be aborted.
+-*
+-*/
+-static int scan_wait_for_lock(struct drx_demod_instance *demod, bool *is_locked)
+-{
+-	bool done_waiting = false;
+-	enum drx_lock_status lock_state = DRX_NOT_LOCKED;
+-	enum drx_lock_status desired_lock_state = DRX_NOT_LOCKED;
+-	u32 timeout_value = 0;
+-	u32 start_time_lock_stage = 0;
+-	u32 current_time = 0;
+-	u32 timer_value = 0;
+-
+-	*is_locked = false;
+-	timeout_value = (u32) demod->my_common_attr->scan_demod_lock_timeout;
+-	desired_lock_state = demod->my_common_attr->scan_desired_lock;
+-	start_time_lock_stage = drxbsp_hst_clock();
+-
+-	/* Start polling loop, checking for lock & timeout */
+-	while (!done_waiting) {
+-		if (drx_ctrl(demod, DRX_CTRL_LOCK_STATUS, &lock_state))
+-			return -EIO;
+-
+-		current_time = drxbsp_hst_clock();
+-
+-		timer_value = current_time - start_time_lock_stage;
+-		if (lock_state >= desired_lock_state) {
+-			*is_locked = true;
+-			done_waiting = true;
+-		} else if (lock_state == DRX_NEVER_LOCK) {
+-			done_waiting = true;
+-		} else if (timer_value > timeout_value) {
+-			/* lock_state == DRX_NOT_LOCKED  and timeout */
+-			done_waiting = true;
+-		} else {
+-			if (drxbsp_hst_sleep(10) != 0)
+-				return -EIO;
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+-/*============================================================================*/
+-
+-/**
+-* \brief Determine next frequency to scan.
+-* \param demod: Pointer to demodulator instance.
+-* \param skip : Minimum frequency step to take.
+-* \return int.
+-* \retval 0:          Succes.
+-* \retval -EINVAL: Invalid frequency plan.
+-*
+-* Helper function for ctrl_scan_next() function.
+-* Compute next frequency & index in frequency plan.
+-* Check if scan is ready.
+-*
+-*/
+-static int
+-scan_prepare_next_scan(struct drx_demod_instance *demod, s32 skip)
+-{
+-	struct drx_common_attr *common_attr = (struct drx_common_attr *) (NULL);
+-	u16 table_index = 0;
+-	u16 frequency_plan_size = 0;
+-	struct drx_frequency_plan *frequency_plan = (struct drx_frequency_plan *) (NULL);
+-	s32 next_frequency = 0;
+-	s32 tuner_min_frequency = 0;
+-	s32 tuner_max_frequency = 0;
+-
+-	common_attr = (struct drx_common_attr *) demod->my_common_attr;
+-	table_index = common_attr->scan_freq_plan_index;
+-	frequency_plan = common_attr->scan_param->frequency_plan;
+-	next_frequency = common_attr->scan_next_frequency;
+-	tuner_min_frequency = common_attr->tuner_min_freq_rf;
+-	tuner_max_frequency = common_attr->tuner_max_freq_rf;
+-
+-	do {
+-		/* Search next frequency to scan */
+-
+-		/* always take at least one step */
+-		(common_attr->scan_channels_scanned)++;
+-		next_frequency += frequency_plan[table_index].step;
+-		skip -= frequency_plan[table_index].step;
+-
+-		/* and then as many steps necessary to exceed 'skip'
+-		   without exceeding end of the band */
+-		while ((skip > 0) &&
+-		       (next_frequency <= frequency_plan[table_index].last)) {
+-			(common_attr->scan_channels_scanned)++;
+-			next_frequency += frequency_plan[table_index].step;
+-			skip -= frequency_plan[table_index].step;
+-		}
+-		/* reset skip, in case we move to the next band later */
+-		skip = 0;
+-
+-		if (next_frequency > frequency_plan[table_index].last) {
+-			/* reached end of this band */
+-			table_index++;
+-			frequency_plan_size =
+-			    common_attr->scan_param->frequency_plan_size;
+-			if (table_index >= frequency_plan_size) {
+-				/* reached end of frequency plan */
+-				common_attr->scan_ready = true;
+-			} else {
+-				next_frequency = frequency_plan[table_index].first;
+-			}
+-		}
+-		if (next_frequency > (tuner_max_frequency)) {
+-			/* reached end of tuner range */
+-			common_attr->scan_ready = true;
+-		}
+-	} while ((next_frequency < tuner_min_frequency) &&
+-		 (!common_attr->scan_ready));
+-
+-	/* Store new values */
+-	common_attr->scan_freq_plan_index = table_index;
+-	common_attr->scan_next_frequency = next_frequency;
+-
+-	return 0;
+-}
+-
+-/*============================================================================*/
+-
+-/**
+-* \brief Default DTV scanning function.
+-*
+-* \param demod:          Pointer to demodulator instance.
+-* \param scan_command:    Scanning command: INIT, NEXT or STOP.
+-* \param scan_channel:    Channel to check: frequency and bandwidth, others AUTO
+-* \param get_next_channel: Return true if next frequency is desired at next call
+-*
+-* \return int.
+-* \retval 0:      Channel found, DRX_CTRL_GET_CHANNEL can be used
+-*                             to retrieve channel parameters.
+-* \retval -EBUSY:    Channel not found (yet).
+-* \retval -EIO:   Something went wrong.
+-*
+-* scan_channel and get_next_channel will be NULL for INIT and STOP.
+-*/
+-static int
+-scan_function_default(void *scan_context,
+-		      enum drx_scan_command scan_command,
+-		    struct drx_channel *scan_channel, bool *get_next_channel)
+-{
+-	struct drx_demod_instance *demod = scan_context;
+-	int status;
+-	bool is_locked = false;
+-
+-	/* just return OK if not doing "scan next" */
+-	if (scan_command != DRX_SCAN_COMMAND_NEXT)
+-		return 0;
+-
+-	*get_next_channel = false;
+-
+-	status = drx_ctrl(demod, DRX_CTRL_SET_CHANNEL, scan_channel);
+-	if (status)
+-		return status;
+-
+-	status = scan_wait_for_lock(demod, &is_locked);
+-	if (status)
+-		return status;
+-
+-	/* done with this channel, move to next one */
+-	*get_next_channel = true;
+-
+-	if (!is_locked)
+-		return -EBUSY;		/* no channel found */
+-
+-	/* channel found */
+-	return 0;
+-}
+-
+-/*============================================================================*/
+-
+-/**
+-* \brief Initialize for channel scan.
+-* \param demod:     Pointer to demodulator instance.
+-* \param scan_param: Pointer to scan parameters.
+-* \return int.
+-* \retval 0:          Initialized for scan.
+-* \retval -EIO:       No overlap between frequency plan and tuner
+-*                              range.
+-* \retval -EINVAL: Wrong parameters.
+-*
+-* This function should be called before starting a complete channel scan.
+-* It will prepare everything for a complete channel scan.
+-* After calling this function the DRX_CTRL_SCAN_NEXT control function can be
+-* used to perform the actual scanning. Scanning will start at the first
+-* center frequency of the frequency plan that is within the tuner range.
+-*
+-*/
+-static int
+-ctrl_scan_init(struct drx_demod_instance *demod, struct drx_scan_param *scan_param)
+-{
+-	struct drx_common_attr *common_attr = (struct drx_common_attr *) (NULL);
+-	s32 max_tuner_freq = 0;
+-	s32 min_tuner_freq = 0;
+-	u16 nr_channels_in_plan = 0;
+-	u16 i = 0;
+-	void *scan_context = NULL;
+-
+-	common_attr = (struct drx_common_attr *) demod->my_common_attr;
+-	common_attr->scan_active = true;
+-
+-	/* invalidate a previous SCAN_INIT */
+-	common_attr->scan_param = NULL;
+-	common_attr->scan_next_frequency = 0;
+-
+-	/* Check parameters */
+-	if (((demod->my_tuner == NULL) &&
+-	     (scan_param->num_tries != 1)) ||
+-	    (scan_param == NULL) ||
+-	    (scan_param->num_tries == 0) ||
+-	    (scan_param->frequency_plan == NULL) ||
+-	    (scan_param->frequency_plan_size == 0)
+-	    ) {
+-		common_attr->scan_active = false;
+-		return -EINVAL;
+-	}
+-
+-	/* Check frequency plan contents */
+-	max_tuner_freq = common_attr->tuner_max_freq_rf;
+-	min_tuner_freq = common_attr->tuner_min_freq_rf;
+-	for (i = 0; i < (scan_param->frequency_plan_size); i++) {
+-		s32 width = 0;
+-		s32 step = scan_param->frequency_plan[i].step;
+-		s32 first_freq = scan_param->frequency_plan[i].first;
+-		s32 last_freq = scan_param->frequency_plan[i].last;
+-		s32 min_freq = 0;
+-		s32 max_freq = 0;
+-
+-		if (step <= 0) {
+-			/* Step must be positive and non-zero */
+-			common_attr->scan_active = false;
+-			return -EINVAL;
+-		}
+-
+-		if (first_freq > last_freq) {
+-			/* First center frequency is higher than last center frequency */
+-			common_attr->scan_active = false;
+-			return -EINVAL;
+-		}
+-
+-		width = last_freq - first_freq;
+-
+-		if ((width % step) != 0) {
+-			/* Difference between last and first center frequency is not
+-			   an integer number of steps */
+-			common_attr->scan_active = false;
+-			return -EINVAL;
+-		}
+-
+-		/* Check if frequency plan entry intersects with tuner range */
+-		if (last_freq >= min_tuner_freq) {
+-			if (first_freq <= max_tuner_freq) {
+-				if (first_freq >= min_tuner_freq) {
+-					min_freq = first_freq;
+-				} else {
+-					s32 n = 0;
+-
+-					n = (min_tuner_freq - first_freq) / step;
+-					if (((min_tuner_freq - first_freq) % step) != 0)
+-						n++;
+-					min_freq = first_freq + n * step;
+-				}
+-
+-				if (last_freq <= max_tuner_freq) {
+-					max_freq = last_freq;
+-				} else {
+-					s32 n = 0;
+-
+-					n = (last_freq - max_tuner_freq) / step;
+-					if (((last_freq - max_tuner_freq) % step) != 0)
+-						n++;
+-					max_freq = last_freq - n * step;
+-				}
+-			}
+-		}
+-
+-		/* Keep track of total number of channels within tuner range
+-		   in this frequency plan. */
+-		if ((min_freq != 0) && (max_freq != 0)) {
+-			nr_channels_in_plan +=
+-			    (u16) (((max_freq - min_freq) / step) + 1);
+-
+-			/* Determine first frequency (within tuner range) to scan */
+-			if (common_attr->scan_next_frequency == 0) {
+-				common_attr->scan_next_frequency = min_freq;
+-				common_attr->scan_freq_plan_index = i;
+-			}
+-		}
+-
+-	}			/* for ( ... ) */
+-
+-	if (nr_channels_in_plan == 0) {
+-		/* Tuner range and frequency plan ranges do not overlap */
+-		common_attr->scan_active = false;
+-		return -EIO;
+-	}
+-
+-	/* Store parameters */
+-	common_attr->scan_ready = false;
+-	common_attr->scan_max_channels = nr_channels_in_plan;
+-	common_attr->scan_channels_scanned = 0;
+-	common_attr->scan_param = scan_param;	/* SCAN_NEXT is now allowed */
+-
+-	scan_context = get_scan_context(demod, scan_context);
+-
+-	/*
+-	 * FIXME: Should we really ignore the result of the scan function?
+-	 */
+-	(*(get_scan_function(demod)))(scan_context, DRX_SCAN_COMMAND_INIT, NULL, NULL);
+-
+-	common_attr->scan_active = false;
+-
+-	return 0;
+-}
+-
+-/*============================================================================*/
+-
+-/**
+-* \brief Stop scanning.
+-* \param demod:         Pointer to demodulator instance.
+-* \return int.
+-* \retval 0:          Scan stopped.
+-* \retval -EIO:       Something went wrong.
+-* \retval -EINVAL: Wrong parameters.
+-*/
+-static int ctrl_scan_stop(struct drx_demod_instance *demod)
+-{
+-	int status = -EIO;
+-	struct drx_common_attr *common_attr = (struct drx_common_attr *) (NULL);
+-	void *scan_context = NULL;
+-
+-	common_attr = (struct drx_common_attr *) demod->my_common_attr;
+-	common_attr->scan_active = true;
+-
+-	if ((common_attr->scan_param == NULL) ||
+-	    (common_attr->scan_max_channels == 0)) {
+-		/* Scan was not running, just return OK */
+-		common_attr->scan_active = false;
+-		return 0;
+-	}
+-
+-	/* Call default or device-specific scanning stop function */
+-	scan_context = get_scan_context(demod, scan_context);
+-
+-	status = (*(get_scan_function(demod)))
+-	    (scan_context, DRX_SCAN_COMMAND_STOP, NULL, NULL);
+-
+-	/* All done, invalidate scan-init */
+-	common_attr->scan_param = NULL;
+-	common_attr->scan_max_channels = 0;
+-	common_attr->scan_active = false;
+-
+-	return status;
+-}
+-
+-/*============================================================================*/
+-
+-/**
+-* \brief Scan for next channel.
+-* \param demod:         Pointer to demodulator instance.
+-* \param scan_progress:  Pointer to scan progress.
+-* \return int.
+-* \retval 0:          Channel found, DRX_CTRL_GET_CHANNEL can be used
+-*                              to retrieve channel parameters.
+-* \retval -EBUSY:        Tried part of the channels, as specified in
+-*                              num_tries field of scan parameters. At least one
+-*                              more call to DRX_CTRL_SCAN_NEXT is needed to
+-*                              complete scanning.
+-* \retval -ERANGE:       Reached end of scan range.
+-* \retval -EIO:       Something went wrong.
+-* \retval -EINVAL: Wrong parameters. The scan_progress may be NULL.
+-*
+-* Progress indication will run from 0 upto DRX_SCAN_MAX_PROGRESS during scan.
+-*
+-*/
+-static int ctrl_scan_next(struct drx_demod_instance *demod, u16 *scan_progress)
+-{
+-	struct drx_common_attr *common_attr = (struct drx_common_attr *) (NULL);
+-	bool *scan_ready = (bool *)(NULL);
+-	u16 max_progress = DRX_SCAN_MAX_PROGRESS;
+-	u32 num_tries = 0;
+-	u32 i = 0;
+-
+-	common_attr = (struct drx_common_attr *) demod->my_common_attr;
+-
+-	/* Check scan parameters */
+-	if (scan_progress == NULL) {
+-		common_attr->scan_active = false;
+-		return -EINVAL;
+-	}
+-
+-	*scan_progress = 0;
+-	common_attr->scan_active = true;
+-	if ((common_attr->scan_param == NULL) ||
+-	    (common_attr->scan_max_channels == 0)) {
+-		/* ctrl_scan_init() was not called succesfully before ctrl_scan_next() */
+-		common_attr->scan_active = false;
+-		return -EIO;
+-	}
+-
+-	*scan_progress = (u16) (((common_attr->scan_channels_scanned) *
+-				  ((u32) (max_progress))) /
+-				 (common_attr->scan_max_channels));
+-
+-	/* Scan */
+-	num_tries = common_attr->scan_param->num_tries;
+-	scan_ready = &(common_attr->scan_ready);
+-
+-	for (i = 0; ((i < num_tries) && (!(*scan_ready))); i++) {
+-		struct drx_channel scan_channel = { 0 };
+-		int status = -EIO;
+-		struct drx_frequency_plan *freq_plan = (struct drx_frequency_plan *) (NULL);
+-		bool next_channel = false;
+-		void *scan_context = NULL;
+-
+-		/* Next channel to scan */
+-		freq_plan =
+-		    &(common_attr->scan_param->
+-		      frequency_plan[common_attr->scan_freq_plan_index]);
+-		scan_channel.frequency = common_attr->scan_next_frequency;
+-		scan_channel.bandwidth = freq_plan->bandwidth;
+-		scan_channel.mirror = DRX_MIRROR_AUTO;
+-		scan_channel.constellation = DRX_CONSTELLATION_AUTO;
+-		scan_channel.hierarchy = DRX_HIERARCHY_AUTO;
+-		scan_channel.priority = DRX_PRIORITY_HIGH;
+-		scan_channel.coderate = DRX_CODERATE_AUTO;
+-		scan_channel.guard = DRX_GUARD_AUTO;
+-		scan_channel.fftmode = DRX_FFTMODE_AUTO;
+-		scan_channel.classification = DRX_CLASSIFICATION_AUTO;
+-		scan_channel.symbolrate = 0;
+-		scan_channel.interleavemode = DRX_INTERLEAVEMODE_AUTO;
+-		scan_channel.ldpc = DRX_LDPC_AUTO;
+-		scan_channel.carrier = DRX_CARRIER_AUTO;
+-		scan_channel.framemode = DRX_FRAMEMODE_AUTO;
+-		scan_channel.pilot = DRX_PILOT_AUTO;
+-
+-		/* Call default or device-specific scanning function */
+-		scan_context = get_scan_context(demod, scan_context);
+-
+-		status = (*(get_scan_function(demod)))
+-		    (scan_context, DRX_SCAN_COMMAND_NEXT, &scan_channel,
+-		     &next_channel);
+-
+-		/* Proceed to next channel if requested */
+-		if (next_channel) {
+-			int next_status = -EIO;
+-			s32 skip = 0;
+-
+-			if (status == 0) {
+-				/* a channel was found, so skip some frequency steps */
+-				skip = common_attr->scan_param->skip;
+-			}
+-			next_status = scan_prepare_next_scan(demod, skip);
+-
+-			/* keep track of progress */
+-			*scan_progress =
+-			    (u16) (((common_attr->scan_channels_scanned) *
+-				      ((u32) (max_progress))) /
+-				     (common_attr->scan_max_channels));
+-
+-			if (next_status != 0) {
+-				common_attr->scan_active = false;
+-				return next_status;
+-			}
+-		}
+-		if (status != -EBUSY) {
+-			/* channel found or error */
+-			common_attr->scan_active = false;
+-			return status;
+-		}
+-	}			/* for ( i = 0; i < ( ... num_tries); i++) */
+-
+-	if ((*scan_ready)) {
+-		/* End of scan reached: call stop-scan, ignore any error */
+-		ctrl_scan_stop(demod);
+-		common_attr->scan_active = false;
+-		return -ERANGE;
+-	}
+-
+-	common_attr->scan_active = false;
+-
+-	return -EBUSY;
+-}
+-
+-#endif /* #ifndef DRX_EXCLUDE_SCAN */
+-
+-/*============================================================================*/
+-
+-/**
+-* \brief Program tuner.
+-* \param demod:         Pointer to demodulator instance.
+-* \param tunerChannel:  Pointer to tuning parameters.
+-* \return int.
+-* \retval 0:          Tuner programmed successfully.
+-* \retval -EIO:       Something went wrong.
+-* \retval -EINVAL: Wrong parameters.
+-*
+-* tunerChannel passes parameters to program the tuner,
+-* but also returns the actual RF and IF frequency from the tuner.
+-*
+-*/
+-static int
+-ctrl_program_tuner(struct drx_demod_instance *demod, struct drx_channel *channel)
+-{
+-	struct drx_common_attr *common_attr = (struct drx_common_attr *) (NULL);
+-	enum drx_standard standard = DRX_STANDARD_UNKNOWN;
+-	u32 tuner_mode = 0;
+-	int status = -EIO;
+-	s32 if_frequency = 0;
+-	bool tuner_slow_mode = false;
+-
+-	/* can't tune without a tuner */
+-	if (demod->my_tuner == NULL)
+-		return -EINVAL;
+-
+-	common_attr = demod->my_common_attr;
+-
+-	/* select analog or digital tuner mode based on current standard */
+-	if (drx_ctrl(demod, DRX_CTRL_GET_STANDARD, &standard))
+-		return -EIO;
+-
+-	if (DRX_ISATVSTD(standard))
+-		tuner_mode |= TUNER_MODE_ANALOG;
+-	else
+-
+-		tuner_mode |= TUNER_MODE_DIGITAL; /* also for unknown standard */
+-
+-	/* select tuner bandwidth */
+-	switch (channel->bandwidth) {
+-	case DRX_BANDWIDTH_6MHZ:
+-		tuner_mode |= TUNER_MODE_6MHZ;
+-		break;
+-	case DRX_BANDWIDTH_7MHZ:
+-		tuner_mode |= TUNER_MODE_7MHZ;
+-		break;
+-	case DRX_BANDWIDTH_8MHZ:
+-		tuner_mode |= TUNER_MODE_8MHZ;
+-		break;
+-	default:		/* note: also for unknown bandwidth */
+-		return -EINVAL;
+-	}
+-
+-	tuner_slow_mode = DRX_ATTR_TUNERSLOWMODE(demod);
+-
+-	/* select fast (switch) or slow (lock) tuner mode */
+-	if (tuner_slow_mode)
+-		tuner_mode |= TUNER_MODE_LOCK;
+-	else
+-		tuner_mode |= TUNER_MODE_SWITCH;
+-
+-	if (common_attr->tuner_port_nr == 1) {
+-		bool bridge_closed = true;
+-		int status_bridge = -EIO;
+-
+-		status_bridge = drx_ctrl(demod, DRX_CTRL_I2C_BRIDGE,
+-					 &bridge_closed);
+-		if (status_bridge)
+-			return status_bridge;
+-	}
+-
+-	status = drxbsp_tuner_set_frequency(demod->my_tuner,
+-					    tuner_mode, channel->frequency);
+-
+-	/* attempt restoring bridge before checking status of set_frequency */
+-	if (common_attr->tuner_port_nr == 1) {
+-		bool bridge_closed = false;
+-		int status_bridge = -EIO;
+-
+-		status_bridge =
+-		    drx_ctrl(demod, DRX_CTRL_I2C_BRIDGE, &bridge_closed);
+-		if (status_bridge)
+-			return status_bridge;
+-	}
+-
+-	/* now check status of drxbsp_tuner_set_frequency */
+-	if (status)
+-		return status;
+-
+-	/* get actual RF and IF frequencies from tuner */
+-	status = drxbsp_tuner_get_frequency(demod->my_tuner,
+-					   tuner_mode,
+-					   &(channel->frequency),
+-					   &(if_frequency));
+-	if (status)
+-		return status;
+-
+-	/* update common attributes with information available from this function;
+-	   TODO: check if this is required and safe */
+-	DRX_ATTR_INTERMEDIATEFREQ(demod) = if_frequency;
+-
+-	return 0;
+-}
+-
+-/*============================================================================*/
+-
+-/**
+-* \brief function to do a register dump.
+-* \param demod:            Pointer to demodulator instance.
+-* \param registers:        Registers to dump.
+-* \return int.
+-* \retval 0:          Dump executed successfully.
+-* \retval -EIO:       Something went wrong.
+-* \retval -EINVAL: Wrong parameters.
+-*
+-*/
+-static int ctrl_dump_registers(struct drx_demod_instance *demod,
+-			      struct drx_reg_dump *registers)
+-{
+-	u16 i = 0;
+-
+-	if (registers == NULL)
+-		return -EINVAL;		/* registers not supplied */
+-
+-	/* start dumping registers */
+-	while (registers[i].address) {
+-		int status = -EIO;
+-		u16 value = 0;
+-		u32 data = 0;
+-
+-		status = demod->my_access_funct->read_reg16func(demod->my_i2c_dev_addr,
+-							registers[i].address,
+-							&value, 0);
+-
+-		data = (u32) value;
+-
+-		/*
+-		 * On error: no breakouts;
+-		 *   depending on device ID, some HW blocks might not be available
+-		 */
+-		if (status)
+-			data |= ((u32) status) << 16;
+-		registers[i].data = data;
+-		i++;
+-	}
+-
+-	/* all done, all OK (any errors are saved inside data) */
+-	return 0;
+-}
+-
+-/*============================================================================*/
+-/*============================================================================*/
+ /*===Microcode related functions==============================================*/
+ /*============================================================================*/
+ /*============================================================================*/
+@@ -1281,39 +568,6 @@ ctrl_version(struct drx_demod_instance *demod, struct drx_version_list **version
+ /*============================================================================*/
  
-@@ -394,10 +408,11 @@ static int get_key_pinnacle(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw,
-  *
-  * Sylvain Pasche <sylvain.pasche@gmail.com>
-  */
--static int get_key_pinnacle_grey(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_pinnacle_grey(struct IR_i2c *ir, enum rc_type *protocol,
-+				 u32 *scancode, u8 *toggle)
- {
+ /**
+-* \brief This function is obsolete.
+-* \param demods: Don't care, parameter is ignored.
+-* \return int Return status.
+-* \retval 0: Initialization completed.
+-*
+-* This function is obsolete, prototype available for backward compatability.
+-*
+-*/
+-
+-int drx_init(struct drx_demod_instance *demods[])
+-{
+-	return 0;
+-}
+-
+-/*============================================================================*/
+-
+-/**
+-* \brief This function is obsolete.
+-* \return int Return status.
+-* \retval 0: Terminated driver successful.
+-*
+-* This function is obsolete, prototype available for backward compatability.
+-*
+-*/
+-
+-int drx_term(void)
+-{
+-	return 0;
+-}
+-
+-/*============================================================================*/
+-
+-/**
+ * \brief Open a demodulator instance.
+ * \param demod: A pointer to a demodulator instance.
+ * \return int Return status.
+@@ -1469,50 +723,9 @@ drx_ctrl(struct drx_demod_instance *demod, u32 ctrl, void *ctrl_data)
+ 			}
+ 			break;
  
--	return get_key_pinnacle(ir, ir_key, ir_raw, 1, 0xfe, 0xff);
-+	return get_key_pinnacle(ir, protocol, scancode, toggle, 1, 0xfe, 0xff);
- }
+-#ifndef DRX_EXCLUDE_SCAN
+-	 /*===================================================================*/
+-		case DRX_CTRL_SCAN_INIT:
+-			{
+-				return ctrl_scan_init(demod,
+-						    (struct drx_scan_param *) ctrl_data);
+-			}
+-			break;
+-
+-	 /*===================================================================*/
+-		case DRX_CTRL_SCAN_NEXT:
+-			{
+-				return ctrl_scan_next(demod, (u16 *)ctrl_data);
+-			}
+-			break;
+-
+-	 /*===================================================================*/
+-		case DRX_CTRL_SCAN_STOP:
+-			{
+-				return ctrl_scan_stop(demod);
+-			}
+-			break;
+-#endif /* #ifndef DRX_EXCLUDE_SCAN */
+-
+-	 /*===================================================================*/
+-		case DRX_CTRL_PROGRAM_TUNER:
+-			{
+-				return ctrl_program_tuner(demod,
+-							(struct drx_channel *)
+-							ctrl_data);
+-			}
+-			break;
+-
+-	 /*===================================================================*/
+-		case DRX_CTRL_DUMP_REGISTERS:
+-			{
+-				return ctrl_dump_registers(demod,
+-							 (struct drx_reg_dump *)
+-							 ctrl_data);
+-			}
+-			break;
+-
+ 	 /*===================================================================*/
+ 		default:
++			pr_err("control %d not supported\n", ctrl);
+ 			return -ENOTSUPP;
+ 		}
+ 	} else {
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+index 1696e0d95657..343ae519b5dc 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
++++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+@@ -2464,10 +2464,6 @@ Access macros
+ Exported FUNCTIONS
+ -------------------------------------------------------------------------*/
  
+-	int drx_init(struct drx_demod_instance *demods[]);
+-
+-	int drx_term(void);
+-
+ 	int drx_open(struct drx_demod_instance *demod);
  
-@@ -405,7 +420,8 @@ static int get_key_pinnacle_grey(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-  *
-  * Ricardo Cerqueira <v4l@cerqueira.org>
-  */
--static int get_key_pinnacle_color(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_pinnacle_color(struct IR_i2c *ir, enum rc_type *protocol,
-+				  u32 *scancode, u8 *toggle)
- {
- 	/* code_modulo parameter (0x88) is used to reduce code value to fit inside IR_KEYTAB_SIZE
- 	 *
-@@ -413,7 +429,7 @@ static int get_key_pinnacle_color(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	 * codes < 128
- 	 */
- 
--	return get_key_pinnacle(ir, ir_key, ir_raw, 2, 0x80, 0x88);
-+	return get_key_pinnacle(ir, protocol, scancode, toggle, 2, 0x80, 0x88);
- }
- 
- void saa7134_input_irq(struct saa7134_dev *dev)
-diff --git a/drivers/media/usb/cx231xx/cx231xx-input.c b/drivers/media/usb/cx231xx/cx231xx-input.c
-index 46d52fa..adcdd92 100644
---- a/drivers/media/usb/cx231xx/cx231xx-input.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-input.c
-@@ -21,11 +21,12 @@
- #include "cx231xx.h"
- #include <linux/usb.h>
- #include <linux/slab.h>
-+#include <linux/bitrev.h>
- 
- #define MODULE_NAME "cx231xx-input"
- 
--static int get_key_isdbt(struct IR_i2c *ir, u32 *ir_key,
--			 u32 *ir_raw)
-+static int get_key_isdbt(struct IR_i2c *ir, enum rc_type *protocol,
-+			 u32 *pscancode, u8 *toggle)
- {
- 	int	rc;
- 	u8	cmd, scancode;
-@@ -46,21 +47,14 @@ static int get_key_isdbt(struct IR_i2c *ir, u32 *ir_key,
- 	if (cmd == 0xff)
- 		return 0;
- 
--	scancode =
--		 ((cmd & 0x01) ? 0x80 : 0) |
--		 ((cmd & 0x02) ? 0x40 : 0) |
--		 ((cmd & 0x04) ? 0x20 : 0) |
--		 ((cmd & 0x08) ? 0x10 : 0) |
--		 ((cmd & 0x10) ? 0x08 : 0) |
--		 ((cmd & 0x20) ? 0x04 : 0) |
--		 ((cmd & 0x40) ? 0x02 : 0) |
--		 ((cmd & 0x80) ? 0x01 : 0);
-+	scancode = bitrev8(cmd);
- 
- 	dev_dbg(&ir->rc->input_dev->dev, "cmd %02x, scan = %02x\n",
- 		cmd, scancode);
- 
--	*ir_key = scancode;
--	*ir_raw = scancode;
-+	*protocol = RC_TYPE_OTHER;
-+	*pscancode = scancode;
-+	*toggle = 0;
- 	return 1;
- }
- 
-diff --git a/include/media/ir-kbd-i2c.h b/include/media/ir-kbd-i2c.h
-index e221bc7..d856435 100644
---- a/include/media/ir-kbd-i2c.h
-+++ b/include/media/ir-kbd-i2c.h
-@@ -20,7 +20,8 @@ struct IR_i2c {
- 	struct delayed_work    work;
- 	char                   name[32];
- 	char                   phys[32];
--	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
-+	int                    (*get_key)(struct IR_i2c *ir, enum rc_type *protocol,
-+					  u32 *scancode, u8 *toggle);
- };
- 
- enum ir_kbd_get_key_fn {
-@@ -44,7 +45,8 @@ struct IR_i2c_init_data {
- 	 * Specify either a function pointer or a value indicating one of
- 	 * ir_kbd_i2c's internal get_key functions
- 	 */
--	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
-+	int                    (*get_key)(struct IR_i2c *ir, enum rc_type *protocol,
-+					  u32 *scancode, u8 *toggle);
- 	enum ir_kbd_get_key_fn internal_get_key_func;
- 
- 	struct rc_dev		*rc_dev;
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index e5aa240..894c7e4 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -62,6 +62,16 @@ enum rc_type {
- 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
- 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP)
- 
-+#define RC_SCANCODE_UNKNOWN(x)			(x)
-+#define RC_SCANCODE_OTHER(x)			(x)
-+#define RC_SCANCODE_NEC(addr, cmd)		(((addr) << 8) | (cmd))
-+#define RC_SCANCODE_NECX(addr, cmd)		(((addr) << 8) | (cmd))
-+#define RC_SCANCODE_NEC32(data)			((data) & 0xffffffff)
-+#define RC_SCANCODE_RC5(sys, cmd)		(((sys) << 8) | (cmd))
-+#define RC_SCANCODE_RC5_SZ(sys, cmd)		(((sys) << 8) | (cmd))
-+#define RC_SCANCODE_RC6_0(sys, cmd)		(((sys) << 8) | (cmd))
-+#define RC_SCANCODE_RC6_6A(vendor, sys, cmd)	(((vendor) << 16) | ((sys) << 8) | (cmd))
-+
- struct rc_map_table {
- 	u32	scancode;
- 	u32	keycode;
+ 	int drx_close(struct drx_demod_instance *demod);
+-- 
+1.8.5.3
 
