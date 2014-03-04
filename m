@@ -1,21 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nrccenhts1.nrc.ca ([132.246.15.88]:21620 "EHLO
-	nrccenhts1.nrc.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755791AbaCELmg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 06:42:36 -0500
-Content-Type: text/plain; charset=US-ASCII
+Received: from bear.ext.ti.com ([192.94.94.41]:55936 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756630AbaCDIu0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Mar 2014 03:50:26 -0500
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<hverkuil@xs4all.nl>, Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 5/7] v4l: ti-vpe: Allow usage of smaller images
+Date: Tue, 4 Mar 2014 14:19:23 +0530
+Message-ID: <1393922965-15967-6-git-send-email-archit@ti.com>
+In-Reply-To: <1393922965-15967-1-git-send-email-archit@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com>
+ <1393922965-15967-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Loan Application
-To: Recipients <shoude.chang@nrc.ca>
-From: Loans <shoude.chang@nrc.ca>
-Date: Wed, 5 Mar 2014 17:06:41 +0530
-Reply-To: standard11@56788.com
-Message-ID: <8e43af9b-e1cb-4c98-8a86-294cc0fe0cce@NRCCENHTS1.nrc.ca>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Loan Application at a low rate of 0.5% send your Name,Amount,Phone and country to standard11@56788.com
+The minimum width and height for VPE input/output was kept as 128 pixels. VPE
+doesn't have a constraint on the image height, it requires the image width to
+be at least 16 bytes.
 
-Note: $5,000.00 USD minimum and $100,000,000 Maximum.
+Change the minimum supported dimensions to 32x32. This allows us to de-interlace
+qcif content. A smaller image size than 32x32 didn't make much sense, so stopped
+at this.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 915029b..3a610a6 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -49,8 +49,8 @@
+ #define VPE_MODULE_NAME "vpe"
+ 
+ /* minimum and maximum frame sizes */
+-#define MIN_W		128
+-#define MIN_H		128
++#define MIN_W		32
++#define MIN_H		32
+ #define MAX_W		1920
+ #define MAX_H		1080
+ 
+-- 
+1.8.3.2
+
