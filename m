@@ -1,487 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:44288 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964848AbaCTOvq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 10:51:46 -0400
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH/RFC 4/8] media: Add registration helpers for V4L2 flash
- sub-devices
-Date: Thu, 20 Mar 2014 15:51:06 +0100
-Message-id: <1395327070-20215-5-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
-References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
+Received: from mail-qc0-f171.google.com ([209.85.216.171]:57693 "EHLO
+	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753599AbaCDQBi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 11:01:38 -0500
+Received: by mail-qc0-f171.google.com with SMTP id x13so4333719qcv.16
+        for <linux-media@vger.kernel.org>; Tue, 04 Mar 2014 08:01:37 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
+Date: Tue, 4 Mar 2014 11:01:37 -0500
+Message-ID: <CAGoCfixx0dG0yziT2tAu8kaofgVsaK7R-C8EdOKU_HZSRv6EuA@mail.gmail.com>
+Subject: Re: [PATCH 00/79] Add support for ATSC PCTV 80e USB stick
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	Shuah Khan <shuah.kh@samsung.com>, shuahkhan@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds helper functions for registering/unregistering
-LED class flash devices as V4L2 subdevs. The functions should
-be called from the LED subsystem device driver. In case the
-Multimedia Framework support is disabled in the kernel config
-the functions' empty versions will be used.
+On Mon, Mar 3, 2014 at 5:05 AM, Mauro Carvalho Chehab
+<m.chehab@samsung.com> wrote:
+> This patch series finally merge a long waited driver, for Micronas/Trident
+> DRX-J ATSC frontends.
+>
+> It is based on a previous work from Devin, who made the original port
+> of the Trident driver and got license to ship the firmware.
+>
+> Latter, it got some attention from Patrick that tried to upstream it.
+>
+> However, this driver had very serious issues, and didn't fit into Linux
+> Kernel code quality standards.
+>
+> So, I made some patches, back in 2012, in order to try helping to get
+> this driver merged, but, as I didn't have the device, and Patrick never
+> sent a final tested version, the patches got hibernated for a long time.
+>
+> Finally, this year, I got one hardware for me, and one for Shuah, as
+> she offered her help to fix suspend/resume issues at the subsystem.
+>
+> This series is a result of this work: the driver got major cleanups,
+> and several relevant bug fixes. The most serious one is that the
+> device was not fully initializing the struct that was enabling the
+> MPEG output. Worse than that, the routine that was setting the MPEG
+> output was also rewriting the default values for a dirty set.
+>
+> The type of output was also wrong: on this board, PCTV 80e is wired
+> for serial MPEG transfer, but the driver was initialized to parallel.
+>
+> All those bugs got fixed, and, at least on my tests with a PCTV
+> 80e model 01134, the device is now properly working.
+>
+> Not sure if all patches will arrive the ML, as there are some very big
+> ones here that could be biger than VGER's max limit for posts.
+>
+> Anyway, all patches can be found at:
+>         http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/drx-j-v3
+>
+> Have fun!
+> Mauro
+>
+> Devin Heitmueller (2):
+>   [media] drx-j: add a driver for Trident drx-j frontend
+>   [media] drx-j: put under 3-clause BSD license
+>
+> Mauro Carvalho Chehab (74):
+>   [media] drx-j: CodingStyle fixes
+>   [media] drx-j: Fix compilation and un-comment it
+>   [media] drx-j: Fix CodingStyle
+>   [media] drx-j: get rid of the typedefs on bsp_i2c.h
+>   [media] drx-j: remove the "const" annotate on HICommand()
+>   [media] drx-j: get rid of the integer typedefs
+>   [media] drx-j: get rid of the other typedefs at bsp_types.h
+>   [media] drx-j: get rid of the bsp*.h headers
+>   [media] drx-j: get rid of most of the typedefs
+>   [media] drx-j: fix whitespacing on pointer parmameters
+>   [media] drx-j: Use checkpatch --fix to solve several issues
+>   [media] drx-j: Don't use CamelCase
+>   [media] drx-j: do more CodingStyle fixes
+>   [media] drx-j: remove the unused tuner_i2c_write_read() function
+>   [media] drx-j: Remove a bunch of unused but assigned vars
+>   [media] drx-j: Some minor CodingStyle fixes at headers
+>   [media] drx-j: make a few functions static
+>   [media] drx-j: Get rid of drx39xyj/bsp_tuner.h
+>   [media] drx-j: get rid of typedefs in drx_driver.h
+>   [media] drx-j: Get rid of typedefs on drxh.h
+>   [media] drx-j: a few more CodingStyle fixups
+>   [media] drx-j: Don't use buffer if an error occurs
+>   [media] drx-j: replace the ugly CHK_ERROR() macro
+>   [media] drx-j: don't use parenthesis on return
+>   [media] drx-j: Simplify logic expressions
+>   [media] drx-j: More CamelCase fixups
+>   [media] drx-j: Remove typedefs in drxj.c
+>   [media] drx-j: CodingStyle fixups on drxj.c
+>   [media] drx-j: Use the Linux error codes
+>   [media] drx-j: Replace printk's by pr_foo()
+>   [media] drx-j: get rid of some ugly macros
+>   [media] drx-j: remove typedefs at drx_driver.c
+>   [media] drx-j: remove drxj_options.h
+>   [media] drx-j: make checkpatch.pl happy
+>   [media] drx-j: remove the useless microcode_size
+>   [media] drx-j: Fix release and error path on drx39xxj.c
+>   [media] drx-j: Be sure that all allocated data are properly initialized
+>   [media] drx-j: dynamically load the firmware
+>   [media] drx-j: Split firmware size check from the main routine
+>   [media] em28xx: add support for PCTV 80e remote controller
+>   [media] drx-j: remove unused code from drx_driver.c
+>   [media] drx-j: get rid of its own be??_to_cpu() implementation
+>   [media] drx-j: reset the DVB scan configuration at powerup
+>   [media] drx-j: Allow standard selection
+>   [media] drx-j: Some cleanups at drx_driver.c source
+>   [media] drx-j: prepend function names with drx_ at drx_driver.c
+>   [media] drx-j: get rid of drx_driver.c
+>   [media] drx-j: Avoid any regressions by preserving old behavior
+>   [media] drx-j: Remove duplicated firmware upload code
+>   [media] drx-j: get rid of drx_ctrl
+>   [media] drx-j: get rid of the remaining drx generic functions
+>   [media] drx-j: move drx39xxj into drxj.c
+>   [media] drx-j: get rid of drxj_ctrl()
+>   [media] drx-j: comment or remove unused code
+>   [media] drx-j: remove some ugly bindings from drx39xxj_dummy.c
+>   [media] drx-j: get rid of tuner dummy get/set frequency
+>   [media] drx-j: be sure to use tuner's IF
+>   [media] drx-j: avoid calling power_down_foo twice
+>   [media] drx-j: call ctrl_set_standard even if a standard is powered
+>   [media] drx-j: use the proper timeout code on scu_command
+>   [media] drx-j: remove some unused data
+>   [media] drx-j: Fix qam/256 mode
+>   [media] drx-j: Get rid of I2C protocol version
+>   [media] drx-j: get rid of function prototypes at drx_dap_fasi.c
+>   [media] drx-j: get rid of drx_dap_fasi.c
+>   [media] drx-j: get rid of struct drx_dap_fasi_funct_g
+>   [media] drx-j: get rid of function wrappers
+>   [media] drx-j: Allow userspace control of LNA
+>   [media] drx-j: Use single master mode
+>   [media] drx-j: be sure to send the powerup command at device open
+>   [media] drx-j: be sure to do a full software reset
+>   [media] drx-j: disable OOB
+>   [media] drx-j: Properly initialize mpeg struct before using it
+>   [media] drx-j: set it to serial mode by default
+>
+> Shuah Khan (3):
+>   [media] drx-j: fix pr_dbg undefined compile errors when DJH_DEBUG is defined
+>   [media] drx-j: remove return that prevents DJH_DEBUG code to run
+>   [media] drx-j: fix boot failure due to null pointer dereference
+>
+>  Documentation/video4linux/CARDLIST.em28xx          |     1 +
+>  drivers/media/dvb-frontends/Kconfig                |     2 +
+>  drivers/media/dvb-frontends/Makefile               |     1 +
+>  drivers/media/dvb-frontends/drx39xyj/Kconfig       |     7 +
+>  drivers/media/dvb-frontends/drx39xyj/Makefile      |     6 +
+>  drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h     |   139 +
+>  drivers/media/dvb-frontends/drx39xyj/drx39xxj.h    |    39 +
+>  .../media/dvb-frontends/drx39xyj/drx_dap_fasi.h    |   256 +
+>  drivers/media/dvb-frontends/drx39xyj/drx_driver.h  |  2367 +++
+>  .../dvb-frontends/drx39xyj/drx_driver_version.h    |    72 +
+>  drivers/media/dvb-frontends/drx39xyj/drxj.c        | 20867 +++++++++++++++++++
+>  drivers/media/dvb-frontends/drx39xyj/drxj.h        |   680 +
+>  drivers/media/dvb-frontends/drx39xyj/drxj_map.h    | 15055 +++++++++++++
+>  drivers/media/usb/em28xx/Kconfig                   |     1 +
+>  drivers/media/usb/em28xx/em28xx-cards.c            |    21 +
+>  drivers/media/usb/em28xx/em28xx-dvb.c              |    27 +
+>  drivers/media/usb/em28xx/em28xx.h                  |     1 +
+>  17 files changed, 39542 insertions(+)
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/Kconfig
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/Makefile
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/drx39xxj.h
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/drx_driver.h
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/drx_driver_version.h
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/drxj.c
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/drxj.h
+>  create mode 100644 drivers/media/dvb-frontends/drx39xyj/drxj_map.h
+>
+> --
+> 1.8.5.3
+>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/v4l2-core/Makefile     |    2 +-
- drivers/media/v4l2-core/v4l2-flash.c |  320 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-flash.h           |  102 +++++++++++
- 3 files changed, 423 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
- create mode 100644 include/media/v4l2-flash.h
+Acked-by:  Devin Heitmueller <dheitmueller@kernellabs.com>
 
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index c6ae7ba..63e8f03 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -6,7 +6,7 @@ tuner-objs	:=	tuner-core.o
- 
- videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
- 			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
--			v4l2-async.o
-+			v4l2-async.o v4l2-flash.o
- ifeq ($(CONFIG_COMPAT),y)
-   videodev-objs += v4l2-compat-ioctl32.o
- endif
-diff --git a/drivers/media/v4l2-core/v4l2-flash.c b/drivers/media/v4l2-core/v4l2-flash.c
-new file mode 100644
-index 0000000..6be0ba9
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-flash.c
-@@ -0,0 +1,320 @@
-+/*
-+ * V4L2 flash LED subdevice registration helpers.
-+ *
-+ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
-+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation."
-+ */
-+
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-flash.h>
-+#include <media/v4l2-dev.h>
-+
-+static int v4l2_flash_g_volatile_ctrl(struct v4l2_ctrl *c)
-+
-+{
-+	struct v4l2_flash *flash = ctrl_to_flash(c);
-+	struct led_classdev *led_cdev = flash->led_cdev;
-+	unsigned int fault;
-+	int ret;
-+
-+	switch (c->id) {
-+	case V4L2_CID_FLASH_STROBE_STATUS:
-+		ret = led_update_brightness(led_cdev);
-+		if (ret < 0)
-+			return ret;
-+		c->val = !!ret;
-+		return 0;
-+	case V4L2_CID_FLASH_FAULT:
-+		/* led faults map directly to V4L2 flash faults */
-+		ret = led_get_flash_fault(led_cdev, &fault);
-+		if (!ret)
-+			c->val = fault;
-+		return ret;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static int v4l2_flash_set_intensity(struct v4l2_flash *flash,
-+				    unsigned int intensity)
-+{
-+	struct led_classdev *led_cdev = flash->led_cdev;
-+	unsigned int fault;
-+	int ret;
-+
-+	ret = led_get_flash_fault(led_cdev, &fault);
-+	if (ret < 0 || fault)
-+		return -EINVAL;
-+
-+	led_set_brightness(led_cdev, intensity);
-+
-+	return ret;
-+}
-+
-+static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
-+{
-+	struct v4l2_flash *flash = ctrl_to_flash(c);
-+	struct led_classdev *led_cdev = flash->led_cdev;
-+	int ret = 0;
-+
-+	switch (c->id) {
-+	case V4L2_CID_FLASH_LED_MODE:
-+		switch (c->val) {
-+		case V4L2_FLASH_LED_MODE_NONE:
-+			/* clear flash mode on releae */
-+			ret = led_set_flash_mode(led_cdev, false);
-+			if (ret < 0)
-+				return ret;
-+			mutex_lock(&led_cdev->led_lock);
-+			led_sysfs_unlock(led_cdev);
-+			mutex_unlock(&led_cdev->led_lock);
-+			break;
-+		case V4L2_FLASH_LED_MODE_FLASH:
-+			mutex_lock(&led_cdev->led_lock);
-+			led_sysfs_lock(led_cdev);
-+			mutex_unlock(&led_cdev->led_lock);
-+
-+			ret = led_set_flash_mode(led_cdev, true);
-+			if (ret < 0)
-+				return ret;
-+			if (flash->ctrl.source->val ==
-+					V4L2_FLASH_STROBE_SOURCE_EXTERNAL) {
-+				ret = led_set_hw_triggered(led_cdev, true);
-+				if (ret < 0)
-+					return ret;
-+				ret = v4l2_flash_set_intensity(flash,
-+						       flash->flash_intensity);
-+			} else {
-+				ret = led_set_hw_triggered(led_cdev, false);
-+				if (ret < 0)
-+					return ret;
-+			}
-+			break;
-+		case V4L2_FLASH_LED_MODE_TORCH:
-+			mutex_lock(&led_cdev->led_lock);
-+			led_sysfs_lock(led_cdev);
-+			mutex_unlock(&led_cdev->led_lock);
-+
-+			ret = led_set_flash_mode(led_cdev, false);
-+			if (ret < 0)
-+				return ret;
-+			/* torch is always triggered by software */
-+			ret = led_set_hw_triggered(led_cdev, false);
-+			if (ret)
-+				return -EINVAL;
-+			ret = v4l2_flash_set_intensity(flash,
-+						       flash->torch_intensity);
-+			break;
-+		}
-+		break;
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
-+		ret = led_set_hw_triggered(led_cdev,
-+				c->val == V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
-+		break;
-+	case V4L2_CID_FLASH_STROBE:
-+		if (flash->ctrl.led_mode->val != V4L2_FLASH_LED_MODE_FLASH ||
-+		   flash->ctrl.source->val != V4L2_FLASH_STROBE_SOURCE_SOFTWARE)
-+			return -EINVAL;
-+		led_set_flash_timeout(led_cdev, flash->flash_timeout);
-+		ret = v4l2_flash_set_intensity(flash,
-+						flash->flash_intensity);
-+		break;
-+	case V4L2_CID_FLASH_STROBE_STOP:
-+		led_set_brightness(led_cdev, 0);
-+		break;
-+	case V4L2_CID_FLASH_TIMEOUT:
-+		flash->flash_timeout = c->val;
-+		break;
-+	case V4L2_CID_FLASH_INTENSITY:
-+		flash->flash_intensity = c->val;
-+		break;
-+	case V4L2_CID_FLASH_TORCH_INTENSITY:
-+		flash->torch_intensity = c->val;
-+		if (flash->ctrl.led_mode->val == V4L2_FLASH_LED_MODE_TORCH)
-+			ret = v4l2_flash_set_intensity(flash,
-+						       flash->torch_intensity);
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops v4l2_flash_ctrl_ops = {
-+	.g_volatile_ctrl = v4l2_flash_g_volatile_ctrl,
-+	.s_ctrl = v4l2_flash_s_ctrl,
-+};
-+
-+static int v4l2_flash_init_controls(struct v4l2_flash *flash,
-+				struct v4l2_flash_ctrl_config *config)
-+
-+{
-+	unsigned int mask;
-+	struct v4l2_ctrl *ctrl;
-+	struct v4l2_ctrl_config *ctrl_cfg;
-+	bool has_flash = config->flags & V4L2_FLASH_CFG_LED_FLASH;
-+	bool has_torch = config->flags & V4L2_FLASH_CFG_LED_TORCH;
-+	int ret, num_ctrls;
-+
-+	if (!has_flash && !has_torch)
-+		return -EINVAL;
-+
-+	num_ctrls = has_flash ? 8 : 2;
-+	if (config->flags & V4L2_FLASH_CFG_FAULTS_MASK)
-+		++num_ctrls;
-+
-+	v4l2_ctrl_handler_init(&flash->hdl, num_ctrls);
-+
-+	mask = 1 << V4L2_FLASH_LED_MODE_NONE;
-+	if (has_flash)
-+		mask |= 1 << V4L2_FLASH_LED_MODE_FLASH;
-+	if (has_torch)
-+		mask |= 1 << V4L2_FLASH_LED_MODE_TORCH;
-+
-+	/* Configure TORCH_INTENSITY ctrl */
-+	ctrl_cfg = &config->torch_intensity;
-+	ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+				 V4L2_CID_FLASH_TORCH_INTENSITY,
-+				 ctrl_cfg->min, ctrl_cfg->max,
-+				 ctrl_cfg->step, ctrl_cfg->def);
-+
-+	if (has_flash) {
-+		/* Configure FLASH_LED_MODE ctrl */
-+		flash->ctrl.led_mode = v4l2_ctrl_new_std_menu(&flash->hdl,
-+				&v4l2_flash_ctrl_ops, V4L2_CID_FLASH_LED_MODE,
-+				V4L2_FLASH_LED_MODE_TORCH, ~mask,
-+				V4L2_FLASH_LED_MODE_NONE);
-+
-+		/* Configure FLASH_STROBE_SOURCE ctrl */
-+		mask = 1 << V4L2_FLASH_STROBE_SOURCE_SOFTWARE |
-+		       1 << V4L2_FLASH_STROBE_SOURCE_EXTERNAL;
-+
-+		flash->ctrl.source = v4l2_ctrl_new_std_menu(&flash->hdl,
-+					&v4l2_flash_ctrl_ops,
-+					V4L2_CID_FLASH_STROBE_SOURCE,
-+					V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
-+					~mask,
-+					V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
-+
-+		/* Configure FLASH_STROBE ctrl */
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					  V4L2_CID_FLASH_STROBE, 0, 1, 1, 0);
-+		if (ctrl)
-+			ctrl->type = V4L2_CTRL_TYPE_BUTTON;
-+
-+		/* Configure FLASH_STROBE_STOP ctrl */
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					  V4L2_CID_FLASH_STROBE_STOP,
-+					  0, 1, 1, 0);
-+		if (ctrl)
-+			ctrl->type = V4L2_CTRL_TYPE_BUTTON;
-+
-+		/* Configure FLASH_STROBE_STATUS ctrl */
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					 V4L2_CID_FLASH_STROBE_STATUS,
-+					 0, 1, 1, 1);
-+		if (ctrl)
-+			ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE |
-+				       V4L2_CTRL_FLAG_READ_ONLY;
-+
-+		/* Configure FLASH_TIMEOUT ctrl */
-+		ctrl_cfg = &config->flash_timeout;
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					 V4L2_CID_FLASH_TIMEOUT, ctrl_cfg->min,
-+					 ctrl_cfg->max, ctrl_cfg->step,
-+					 ctrl_cfg->def);
-+
-+		/* Configure FLASH_INTENSITY ctrl */
-+		ctrl_cfg = &config->flash_intensity;
-+		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-+					 V4L2_CID_FLASH_INTENSITY,
-+					 ctrl_cfg->min, ctrl_cfg->max,
-+					 ctrl_cfg->step, ctrl_cfg->def);
-+
-+		if (config->flags & V4L2_FLASH_CFG_FAULTS_MASK) {
-+			/* Configure FLASH_FAULT ctrl */
-+			ctrl = v4l2_ctrl_new_std(&flash->hdl,
-+						 &v4l2_flash_ctrl_ops,
-+						 V4L2_CID_FLASH_FAULT, 0,
-+						 config->flags &
-+						 V4L2_FLASH_CFG_FAULTS_MASK,
-+						 0, 0);
-+			if (ctrl) {
-+				ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE |
-+					       V4L2_CTRL_FLAG_READ_ONLY;
-+				ctrl->type = V4L2_CTRL_TYPE_BITMASK;
-+			}
-+		}
-+	}
-+
-+	if (flash->hdl.error) {
-+		ret = flash->hdl.error;
-+		goto error_free;
-+	}
-+
-+	ret = v4l2_ctrl_handler_setup(&flash->hdl);
-+	if (ret < 0)
-+		goto error_free;
-+
-+	flash->subdev.ctrl_handler = &flash->hdl;
-+
-+	return 0;
-+
-+error_free:
-+	v4l2_ctrl_handler_free(&flash->hdl);
-+	return ret;
-+}
-+
-+/* v4l2_subdev_init requires this structure */
-+static struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
-+};
-+
-+int v4l2_flash_init(struct led_classdev *led_cdev, struct v4l2_flash *flash,
-+				struct v4l2_flash_ctrl_config *config)
-+{
-+	struct v4l2_subdev *sd = &flash->subdev;
-+	int ret;
-+
-+	flash->led_cdev = led_cdev;
-+	sd->dev = led_cdev->dev->parent;
-+	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	snprintf(sd->name, sizeof(sd->name), led_cdev->name);
-+
-+	ret = v4l2_flash_init_controls(flash, config);
-+	if (ret < 0)
-+		goto err_init_controls;
-+
-+	ret = media_entity_init(&sd->entity, 0, NULL, 0);
-+	if (ret < 0)
-+		goto err_init_entity;
-+
-+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-+
-+	ret = v4l2_async_register_subdev(sd);
-+	if (ret < 0)
-+		goto err_init_entity;
-+
-+	return 0;
-+
-+err_init_entity:
-+	media_entity_cleanup(&sd->entity);
-+err_init_controls:
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_flash_init);
-+
-+void v4l2_flash_release(struct v4l2_flash *flash)
-+{
-+	media_entity_cleanup(&flash->subdev.entity);
-+	v4l2_ctrl_handler_free(flash->subdev.ctrl_handler);
-+	v4l2_async_unregister_subdev(&flash->subdev);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_flash_release);
-diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
-new file mode 100644
-index 0000000..138edae
---- /dev/null
-+++ b/include/media/v4l2-flash.h
-@@ -0,0 +1,102 @@
-+/*
-+ * V4L2 flash LED subdevice registration helpers.
-+ *
-+ *	Copyright (C) 2014 Samsung Electronics Co., Ltd
-+ *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation."
-+ */
-+
-+#ifndef _V4L2_FLASH_H
-+#define _V4L2_FLASH_H
-+
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-dev.h>
-+#include <linux/leds.h>
-+
-+/*
-+ * Supported led fault and mode bits -
-+ * must be kept in synch with V4L2_FLASH_FAULT bits
-+ */
-+#define V4L2_FLASH_CFG_FAULT_OVER_VOLTAGE	(1 << 0)
-+#define V4L2_FLASH_CFG_FAULT_TIMEOUT		(1 << 1)
-+#define V4L2_FLASH_CFG_FAULT_OVER_TEMPERATURE	(1 << 2)
-+#define V4L2_FLASH_CFG_FAULT_SHORT_CIRCUIT	(1 << 3)
-+#define V4L2_FLASH_CFG_FAULT_OVER_CURRENT	(1 << 4)
-+#define V4L2_FLASH_CFG_FAULT_INDICATOR		(1 << 5)
-+#define V4L2_FLASH_CFG_FAULTS_MASK		0x3f
-+#define V4L2_FLASH_CFG_LED_FLASH		(1 << 6)
-+#define V4L2_FLASH_CFG_LED_TORCH		(1 << 7)
-+
-+/* Flash control config data initializer */
-+
-+struct v4l2_flash {
-+	struct led_classdev *led_cdev;
-+	struct v4l2_subdev subdev;
-+	struct v4l2_ctrl_handler hdl;
-+
-+	struct {
-+		struct v4l2_ctrl *source;
-+		struct v4l2_ctrl *led_mode;
-+	} ctrl;
-+
-+	unsigned int flash_intensity;
-+	unsigned int torch_intensity;
-+	unsigned int flash_timeout;
-+};
-+
-+struct v4l2_flash_ctrl_config {
-+	struct v4l2_ctrl_config flash_timeout;
-+	struct v4l2_ctrl_config flash_intensity;
-+	struct v4l2_ctrl_config torch_intensity;
-+	unsigned int flags;
-+};
-+
-+static inline struct v4l2_flash *subdev_to_flash(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct v4l2_flash, subdev);
-+}
-+
-+static inline struct v4l2_flash *ctrl_to_flash(struct v4l2_ctrl *c)
-+{
-+	return container_of(c->handler, struct v4l2_flash, hdl);
-+}
-+
-+#ifdef CONFIG_VIDEO_V4L2
-+/**
-+ * v4l2_flash_init - initialize V4L2 flash led sub-device
-+ * @led_cdev: the LED to create subdev upon
-+ * @flash: a structure representing V4L2 flash led device
-+ * @config: initial data for the flash led subdev controls
-+ *
-+ * Create V4L2 subdev wrapping given LED subsystem device.
-+ */
-+int v4l2_flash_init(struct led_classdev *led_cdev, struct v4l2_flash *flash,
-+				struct v4l2_flash_ctrl_config *config);
-+
-+/**
-+ * v4l2_flash_release - release V4L2 flash led sub-device
-+ * @flash: a structure representing V4L2 flash led device
-+ *
-+ * Release V4L2 flash led subdev.
-+ */
-+void v4l2_flash_release(struct v4l2_flash *flash);
-+#else
-+static inline int v4l2_flash_init(struct led_classdev *led_cdev,
-+				  struct v4l2_flash *flash,
-+				  struct v4l2_flash_ctrl_config *config)
-+{
-+	return 0;
-+}
-+
-+static inline void v4l2_flash_release(struct v4l2_flash *flash)
-+{
-+}
-+#endif
-+
-+#endif
 -- 
-1.7.9.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
