@@ -1,60 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:63411 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753673AbaCGPuR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 10:50:17 -0500
-Received: by mail-la0-f47.google.com with SMTP id y1so2894616lam.20
-        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 07:50:16 -0800 (PST)
-Message-ID: <5319F8D1.5050608@cogentembedded.com>
-Date: Fri, 07 Mar 2014 19:50:25 +0300
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: Ben Dooks <ben.dooks@codethink.co.uk>, linux-media@vger.kernel.org
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
-	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Subject: Re: [PATCH 2/5] ARM: lager: add vin1 node
-References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk> <1394197299-17528-3-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1394197299-17528-3-git-send-email-ben.dooks@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3684 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756678AbaCDKnQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 13/18] vb2: properly clean up PREPARED and QUEUED buffers
+Date: Tue,  4 Mar 2014 11:42:21 +0100
+Message-Id: <1393929746-39437-14-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 03/07/2014 04:01 PM, Ben Dooks wrote:
+If __reqbufs was called then existing buffers are freed. However, if that
+happens without ever having started STREAMON, but if buffers have been queued,
+then the buf_finish op is never called.
 
-> Add device-tree for vin1 (composite video in) on the
-> lager board.
+Add a call to __vb2_queue_cancel in __reqbufs so that these buffers are
+cleaned up there as well.
 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-    This patch should have been preceded by the VIN driver patch and bindings 
-description, don't you think?
-
-> diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-> index a087421..7528cfc 100644
-> --- a/arch/arm/boot/dts/r8a7790-lager.dts
-> +++ b/arch/arm/boot/dts/r8a7790-lager.dts
-[...]
-> @@ -239,8 +244,41 @@
->   	status = "ok";
->   	pinctrl-0 = <&i2c2_pins>;
->   	pinctrl-names = "default";
-> +
-> +	adv7180: adv7180@0x20 {
-
-    ePAPR standard [1] tells us that:
-
-"The name of a node should be somewhat generic, reflecting the function of the 
-device and not its precise programming model."
-
-    So, I would suggest something like "video-decoder" instead. And remove 
-"0x" from the address part of the node name please.
-
-[1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.0.pdf
-
-WBR, Sergei
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1f6eccf..8dc8d50 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -96,6 +96,8 @@ module_param(debug, int, 0644);
+ 				 V4L2_BUF_FLAG_PREPARED | \
+ 				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
+ 
++static void __vb2_queue_cancel(struct vb2_queue *q);
++
+ /**
+  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
+  */
+@@ -789,6 +791,12 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 			return -EBUSY;
+ 		}
+ 
++		/*
++		 * Call queue_cancel to clean up any buffers in the PREPARED or
++		 * QUEUED state which is possible if buffers were prepared or
++		 * queued without ever calling STREAMON.
++		 */
++		__vb2_queue_cancel(q);
+ 		ret = __vb2_queue_free(q, q->num_buffers);
+ 		if (ret)
+ 			return ret;
+-- 
+1.9.0
 
