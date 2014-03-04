@@ -1,118 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48643 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162AbaCHKq5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 05:46:57 -0500
-Message-ID: <531AF4ED.5020608@ti.com>
-Date: Sat, 8 Mar 2014 12:46:05 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-CC: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> < 1393340304-19005-2-git-send-email-p.zabel@pengutronix.de> <20140226113729. A9D5AC40A89@trevor.secretlab.ca> <1393428297.3248.92.camel@paszta.hi. pengutronix.de> <20140307171804.EF245C40A32@trevor.secretlab.ca>
-In-Reply-To: <20140307171804.EF245C40A32@trevor.secretlab.ca>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="KDhiUnuuxVHKONxw4jlm14R4d5nVQ8tXr"
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4069 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932092AbaCDKnH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 03/18] vb2: fix PREPARE_BUF regression
+Date: Tue,  4 Mar 2014 11:42:11 +0100
+Message-Id: <1393929746-39437-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---KDhiUnuuxVHKONxw4jlm14R4d5nVQ8tXr
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Fix an incorrect test in vb2_internal_qbuf() where only DEQUEUED buffers
+are allowed. But PREPARED buffers are also OK.
 
-On 07/03/14 19:18, Grant Likely wrote:
+Introduced by commit 4138111a27859dcc56a5592c804dd16bb12a23d1
+("vb2: simplify qbuf/prepare_buf by removing callback").
 
-> From a pattern perspective I have no problem with that.... From an
-> individual driver binding perspective that is just dumb! It's fine for
-> the ports node to be optional, but an individual driver using the
-> binding should be explicit about which it will accept. Please use eithe=
-r
-> a flag or a separate wrapper so that the driver can select the
-> behaviour.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-Why is that? The meaning of the DT data stays the same, regardless of
-the existence of the 'ports' node. The driver uses the graph helpers to
-parse the port/endpoint data, so individual drivers don't even have to
-care about the format used.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index f1a2857c..909f367 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1420,11 +1420,6 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return ret;
+ 
+ 	vb = q->bufs[b->index];
+-	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+-		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
+-			vb->state);
+-		return -EINVAL;
+-	}
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
+@@ -1438,7 +1433,8 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		dprintk(1, "qbuf: buffer still being prepared\n");
+ 		return -EINVAL;
+ 	default:
+-		dprintk(1, "qbuf: buffer already in use\n");
++		dprintk(1, "%s(): invalid buffer state %d\n", __func__,
++			vb->state);
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+1.9.0
 
-As I see it, the graph helpers should allow the drivers to iterate the
-ports and the endpoints for a port. These should work the same way, no
-matter which abbreviated format is used in the dts.
-
->> The helper should find the two endpoints in both cases.
->> Tomi suggests an even more compact form for devices with just one port=
-:
->>
->> 	device {
->> 		endpoint { ... };
->>
->> 		some-other-child { ... };
->> 	};
->=20
-> That's fine. In that case the driver would specifically require the
-> endpoint to be that one node.... although the above looks a little weir=
-d
-
-The driver can't require that. It's up to the board designer to decide
-how many endpoints are used. A driver may say that it has a single input
-port. But the number of endpoints for that port is up to the use case.
-
-> to me. I would recommend that if there are other non-port child nodes
-> then the ports should still be encapsulated by a ports node.  The devic=
-e
-> binding should not be ambiguous about which nodes are ports.
-
-Hmm, ambiguous in what way?
-
-If the dts uses 'ports' node, all the ports and endpoints are inside
-that 'ports' node. If there is no 'ports' node, there may be one or more
-'port' nodes, which then contain endpoints. If there are no 'port'
-nodes, there may be a single 'endpoint' node.
-
-True, there are many "if"s there. But I don't think it's ambiguous. The
-reason we have these abbreviations is that the full 'ports' node is not
-needed that often, and it is rather verbose. In almost all the use
-cases, panels and connectors can use the single endpoint format.
-
- Tomi
-
-
-
---KDhiUnuuxVHKONxw4jlm14R4d5nVQ8tXr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTGvTtAAoJEPo9qoy8lh71DkoQAI9olG4IKoXnS42j7svHIReP
-4XREe5aFwEpxNbzJYEhCEEHFmVd3GhngyZbxGIo0eQAknNbzIEHOIKwHzh5QGQWj
-3efXba0KDGgTOiog/3KZE5eRNkw/5wBbarUvf11eBv6VPT68hf2S+YeiP3A8/oxl
-QEJZYDjUMPFN2L6hL2jcFFqgEaOQL+swJHw/MVroG9kvZlnIvMCfoE4rW5ml6t6I
-WukH8z+kVV05KrZwD96y31Rw6dHEEYIxvrOH+n9MK5n7ZHBVnrTZd1LdIRcb/PYP
-yVEZAf7wzyKUtizJDx3jr8e0k9bPQp0wmdcOy82SVt/96Di7YFYOmtG41z477mSY
-Gyo4t1NKyeZ/ouIsKoQsgWaTwtPuz/k3L97dFqaTkFVvj1HNrJVA0pYMONHEA1d4
-xFcL9CQZGSoeVIIGDN/40klKZeAcE8jim5Duhb4/E205LVibchKUwZAivfJeFY0W
-6apfXGb1unJUbg4ODUVsPblV1goDhyhVQcC28XX6k8kAD/m37Luq0uDwX6rdVOMT
-zL3K+kOLbq29ykU5IlNsoNS+Tyu1NKILplkYy2DStN88Yu5LH25ksGqBevOlqHeR
-8UHy2bTzq7SHCvmDzSn3SRfzxpF7OIdMVBxWpdCiT+sX94QPoEPSP56g+IFYoGFR
-NollNDhACsHpUTT8vDES
-=NrAG
------END PGP SIGNATURE-----
-
---KDhiUnuuxVHKONxw4jlm14R4d5nVQ8tXr--
