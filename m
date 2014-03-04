@@ -1,111 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39309 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932906AbaCQMjh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:39:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [REVIEWv2 PATCH for v3.15 2/4] videobuf2-core: fix sparse errors.
-Date: Mon, 17 Mar 2014 13:41:19 +0100
-Message-ID: <6449458.ttdRkGWNIv@avalon>
-In-Reply-To: <5326EB6C.9090508@xs4all.nl>
-References: <5326D540.7080805@xs4all.nl> <4203879.N4NqSdO3mH@avalon> <5326EB6C.9090508@xs4all.nl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51868 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752123AbaCDI12 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Mar 2014 03:27:28 -0500
+Message-ID: <53158E48.80904@ti.com>
+Date: Tue, 4 Mar 2014 13:56:48 +0530
+From: Archit Taneja <archit@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>, <k.debski@samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 7/7] v4l: ti-vpe: Add crop support in VPE driver
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393832008-22174-8-git-send-email-archit@ti.com> <53143439.5030007@xs4all.nl> <531582E8.7020800@ti.com> <53158437.6070200@xs4all.nl>
+In-Reply-To: <53158437.6070200@xs4all.nl>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi,
 
-On Monday 17 March 2014 13:32:44 Hans Verkuil wrote:
-> On 03/17/2014 01:26 PM, Laurent Pinchart wrote:
-> > On Monday 17 March 2014 11:58:08 Hans Verkuil wrote:
-> >> (Fixed typo pointed out by Pawel, but more importantly made an additional
-> >> change to __qbuf_dmabuf. See last paragraph in the commit log)
-> > 
-> > [snip]
-> > 
-> >> I made one other change: in __qbuf_dmabuf the result of the memop call
-> >> attach_dmabuf() is checked by IS_ERR() instead of IS_ERR_OR_NULL(). Since
-> >> the call_ptr_memop macro checks for IS_ERR_OR_NULL and since a NULL
-> >> pointer makes no sense anyway, I've changed the IS_ERR to IS_ERR_OR_NULL
-> >> to remain consistent, both with the call_ptr_memop macro, but also with
-> >> all other cases where a pointer is checked.
-> > 
-> > Could you please split this to a separate patch ?
-> > 
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >> 
-> >>  drivers/media/v4l2-core/videobuf2-core.c | 215 +++++++++++++++----------
-> >>  1 file changed, 132 insertions(+), 83 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> >> b/drivers/media/v4l2-core/videobuf2-core.c index f9059bb..fb1ee86 100644
-> >> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > 
-> > [snip]
-> > 
-> >> @@ -1401,12 +1458,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb,
-> >> const struct v4l2_buffer *b) memset(&vb->v4l2_planes[plane], 0,
-> >> sizeof(struct v4l2_plane));
-> >> 
-> >>  		/* Acquire each plane's memory */
-> >> 
-> >> -		mem_priv = call_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
-> >> +		mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
-> >> 
-> >>  			dbuf, planes[plane].length, write);
-> >> 
-> >> -		if (IS_ERR(mem_priv)) {
-> >> +		if (IS_ERR_OR_NULL(mem_priv)) {
-> >> 
-> >>  			dprintk(1, "qbuf: failed to attach dmabuf\n");
-> >> 
-> >> -			fail_memop(vb, attach_dmabuf);
-> >> -			ret = PTR_ERR(mem_priv);
-> >> +			ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
-> > 
-> > That gets confusing. Wouldn't it be better to switch the other memop calls
-> > that return pointers to return an ERR_PTR() in error cases instead of NULL
-> > ?
+On Tuesday 04 March 2014 01:13 PM, Hans Verkuil wrote:
+> On 03/04/2014 08:38 AM, Archit Taneja wrote:
+>> Hi Hans,
+>>
+>> On Monday 03 March 2014 01:20 PM, Hans Verkuil wrote:
+>>> Hi Archit!
+>>>
+>>> On 03/03/2014 08:33 AM, Archit Taneja wrote:
+>>>> Add crop ioctl ops. For VPE, cropping only makes sense with the input to VPE, or
+>>>> the V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffer type.
+>>>>
+>>>> For the CAPTURE type, a S_CROP ioctl results in setting the crop region as the
+>>>> whole image itself, hence making crop dimensions same as the pix dimensions.
+>>>>
+>>>> Setting the crop successfully should result in re-configuration of those
+>>>> registers which are affected when either source or destination dimensions
+>>>> change, set_srcdst_params() is called for this purpose.
+>>>>
+>>>> Some standard crop parameter checks are done in __vpe_try_crop().
+>>>
+>>> Please use the selection ops instead: if you implement cropping with those then you'll
+>>> support both the selection API and the old cropping API will be implemented by the v4l2
+>>> core using the selection ops. Two for the price of one...
+>>
+>>
+>> When using selection API, I was finding issues using the older cropping
+>> API. The v4l_s_crop() ioctl func assumes that "crop means compose for
+>> output devices". However, for a m2m device. It probably makes sense to
+>> provide the following configuration:
+>>
+>> for V4L2_BUF_TYPE_VIDEO_OUTPUT (input to the mem to mem HW), use CROP
+>> target(to crop the input buffer)
+>>
+>> and, for V4L2_BUF_TYPE_VIDEO_CAPTURE(output of the mem to mem HW), use
+>> COMPOSE target(to place the HW output into a larger region)
+>>
+>> Don't you think forcing OUTPUT devices to 'COMPOSE' for older cropping
+>> API is a bit limiting?
 >
-> I don't see why it is confusing as long as everyone sticks to the same
-> scheme.
+> Yes, and that's why the selection API was created to work around that
+> limitation :-)
+>
+> The old cropping API was insufficiently flexible for modern devices, so
+> we came up with this replacement.
+>
+> Another reason why you have to implement the selection API: it's the only
+> way to implement your functionality.
 
-Because that would be mixing two schemes. For one thing, the -EINVAL error 
-code above is arbitrary. The construct is also confusing, and it would be easy 
-to write
+Okay, I'll go ahead with the selection API then :)
 
-	if (IS_ERR_OR_NULL(foo)) {
-		...
-		ret = PTR_ERR(foo);
-		...
-
-which would return success even though an error occurs. That error will be 
-more difficult to debug than accepting a NULL pointer by mistake, which would 
-result in an oops pretty soon.
-
-> I actually prefer this way, since it is more robust as it will catch cases
-> where the memop unintentionally returned NULL. If I would just check for
-> IS_ERR, then that would be missed. Especially in a core piece of code like
-> this I'd like to err on the robust side.
-
-You can always add a WARN_ON(mem_priv == NULL) if you really want to catch 
-that.
-
-> >>  			dma_buf_put(dbuf);
-> >>  			goto err;
-> >>  		
-> >>  		}
-
--- 
-Regards,
-
-Laurent Pinchart
+Archit
 
