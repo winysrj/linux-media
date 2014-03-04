@@ -1,41 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49381 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754124AbaCCKH5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:57 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 42/79] [media] em28xx: add support for PCTV 80e remote controller
-Date: Mon,  3 Mar 2014 07:06:36 -0300
-Message-Id: <1393841233-24840-43-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2822 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756666AbaCDKnb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 18/18] vivi: fix ENUM_FRAMEINTERVALS implementation
+Date: Tue,  4 Mar 2014 11:42:26 +0100
+Message-Id: <1393929746-39437-19-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This stick uses the same RC-5 remote controll found on other
-PCTV devices. So, just use the existing keymap.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+This function never checked if width and height are correct. Add such
+a check so the v4l2-compliance tool returns OK again for vivi.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/vivi.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index ed0edfdb56b5..138659b23cbb 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2145,6 +2145,7 @@ struct em28xx_board em28xx_boards[] = {
- 		.has_dvb      = 1,
- 		.dvb_gpio     = em2874_pctv_80e_digital,
- 		.decoder      = EM28XX_NODECODER,
-+		.ir_codes     = RC_MAP_PINNACLE_PCTV_HD,
- 	},
- 	/* 1ae7:9003/9004 SpeedLink Vicious And Devine Laplace webcam
- 	 * Empia EM2765 + OmniVision OV2640 */
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 643937b..7360a84 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -1121,7 +1121,11 @@ static int vidioc_enum_frameintervals(struct file *file, void *priv,
+ 	if (!fmt)
+ 		return -EINVAL;
+ 
+-	/* regarding width & height - we support any */
++	/* check for valid width/height */
++	if (fival->width < 48 || fival->width > MAX_WIDTH || (fival->width & 3))
++		return -EINVAL;
++	if (fival->height < 32 || fival->height > MAX_HEIGHT)
++		return -EINVAL;
+ 
+ 	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+ 
 -- 
-1.8.5.3
+1.9.0
 
