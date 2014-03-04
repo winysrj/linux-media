@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753061AbaCJXOn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2115 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756779AbaCDKnW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:22 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 20/48] adv7842: Remove deprecated video-level DV timings operations
-Date: Tue, 11 Mar 2014 00:15:31 +0100
-Message-Id: <1394493359-14115-21-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 14/18] vb2: replace BUG by WARN_ON
+Date: Tue,  4 Mar 2014 11:42:22 +0100
+Message-Id: <1393929746-39437-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+No need to oops for this, WARN_ON is good enough.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/adv7842.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 78d21fd..7fd9325 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2892,8 +2892,6 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
- 	.s_dv_timings = adv7842_s_dv_timings,
- 	.g_dv_timings = adv7842_g_dv_timings,
- 	.query_dv_timings = adv7842_query_dv_timings,
--	.enum_dv_timings = adv7842_enum_dv_timings,
--	.dv_timings_cap = adv7842_dv_timings_cap,
- 	.enum_mbus_fmt = adv7842_enum_mbus_fmt,
- 	.g_mbus_fmt = adv7842_g_mbus_fmt,
- 	.try_mbus_fmt = adv7842_g_mbus_fmt,
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 8dc8d50..e750769 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2538,9 +2538,9 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	/*
+ 	 * Sanity check
+ 	 */
+-	if ((read && !(q->io_modes & VB2_READ)) ||
+-	   (!read && !(q->io_modes & VB2_WRITE)))
+-		BUG();
++	if (WARN_ON((read && !(q->io_modes & VB2_READ)) ||
++		    (!read && !(q->io_modes & VB2_WRITE))))
++		return -EINVAL;
+ 
+ 	/*
+ 	 * Check if device supports mapping buffers to kernel virtual space.
 -- 
-1.8.3.2
+1.9.0
 
