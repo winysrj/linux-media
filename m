@@ -1,76 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35302 "EHLO mail.kapsi.fi"
+Received: from bear.ext.ti.com ([192.94.94.41]:55911 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753242AbaCNAOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 20:14:48 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 03/17] e4000: fix PLL calc to allow higher frequencies
-Date: Fri, 14 Mar 2014 02:14:17 +0200
-Message-Id: <1394756071-22410-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
-References: <1394756071-22410-1-git-send-email-crope@iki.fi>
+	id S1756464AbaCDIuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Mar 2014 03:50:13 -0500
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<hverkuil@xs4all.nl>, Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 1/7] v4l: ti-vpe: Make sure in job_ready that we have the needed number of dst_bufs
+Date: Tue, 4 Mar 2014 14:19:19 +0530
+Message-ID: <1393922965-15967-2-git-send-email-archit@ti.com>
+In-Reply-To: <1393922965-15967-1-git-send-email-archit@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com>
+ <1393922965-15967-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was 32-bit overflow on VCO frequency calculation which blocks
-tuning to 1073 - 1104 MHz. Use 64 bit number in order to avoid VCO
-frequency overflow.
+VPE has a ctrl parameter which decides how many mem to mem transactions the
+active job from the job queue can perform.
 
-After that fix device in question tunes to following range:
-60 - 1104 MHz
-1250 - 2207 MHz
+The driver's job_ready() made sure that the number of ready source buffers are
+sufficient for the job to execute successfully. But it didn't make sure if
+there are sufficient ready destination buffers in the capture queue for the
+VPE output.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+If the time taken by VPE to process a single frame is really slow, then it's
+possible that we don't need to imply such a restriction on the dst queue, but
+really fast transactions(small resolution, no de-interlacing) may cause us to
+hit the condition where we don't have any free buffers for the VPE to write on.
+
+Add the extra check in job_ready() to make sure we have the sufficient amount
+of destination buffers.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/tuners/e4000.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index 3a03b02..ae52a1f 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -221,11 +221,11 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 	struct e4000_priv *priv = fe->tuner_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, i, sigma_delta;
--	unsigned int f_vco;
-+	u64 f_vco;
- 	u8 buf[5], i_data[4], q_data[4];
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 1296c53..623e59e 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -887,6 +887,9 @@ static int job_ready(void *priv)
+ 	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
+ 		return 0;
  
- 	dev_dbg(&priv->client->dev,
--			"%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
-+			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
- 			__func__, c->delivery_system, c->frequency,
- 			c->bandwidth_hz);
++	if (v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < needed)
++		return 0;
++
+ 	return 1;
+ }
  
-@@ -248,20 +248,16 @@ static int e4000_set_params(struct dvb_frontend *fe)
- 		goto err;
- 	}
- 
--	/*
--	 * Note: Currently f_vco overflows when c->frequency is 1 073 741 824 Hz
--	 * or more.
--	 */
--	f_vco = c->frequency * e4000_pll_lut[i].mul;
-+	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
- 	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
--	buf[0] = f_vco / priv->clock;
-+	buf[0] = div_u64(f_vco, priv->clock);
- 	buf[1] = (sigma_delta >> 0) & 0xff;
- 	buf[2] = (sigma_delta >> 8) & 0xff;
- 	buf[3] = 0x00;
- 	buf[4] = e4000_pll_lut[i].div;
- 
- 	dev_dbg(&priv->client->dev,
--			"%s: f_vco=%u pll div=%d sigma_delta=%04x\n",
-+			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
- 			__func__, f_vco, buf[0], sigma_delta);
- 
- 	ret = e4000_wr_regs(priv, 0x09, buf, 5);
 -- 
-1.8.5.3
+1.8.3.2
 
