@@ -1,219 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:41627 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752604AbaB1X36 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 18:29:58 -0500
-Received: by mail-wi0-f180.google.com with SMTP id hm4so1217060wib.1
-        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:57 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH v4 10/10] rc: img-ir: add Sanyo decoder module
-Date: Fri, 28 Feb 2014 23:29:00 +0000
-Message-Id: <1393630140-31765-11-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
-References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59197 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756650AbaCDLZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Mar 2014 06:25:58 -0500
+Message-ID: <5315B822.7010005@ti.com>
+Date: Tue, 4 Mar 2014 16:55:22 +0530
+From: Archit Taneja <archit@ti.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <k.debski@samsung.com>, <linux-media@vger.kernel.org>,
+	<linux-omap@vger.kernel.org>
+Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl>
+In-Reply-To: <53159F7D.8020707@xs4all.nl>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an img-ir module for decoding the Sanyo infrared protocol.
+Hi,
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
-v2:
-- Update to new scancode interface (32-bit NEC).
-- Update to new filtering interface (generic struct rc_scancode_filter).
-- Remove modularity and dynamic registration/unregistration, adding
-  Sanyo directly to the list of decoders in img-ir-hw.c.
----
- drivers/media/rc/img-ir/Kconfig        |   7 ++
- drivers/media/rc/img-ir/Makefile       |   1 +
- drivers/media/rc/img-ir/img-ir-hw.c    |   4 ++
- drivers/media/rc/img-ir/img-ir-sanyo.c | 122 +++++++++++++++++++++++++++++++++
- 4 files changed, 134 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-sanyo.c
+On Tuesday 04 March 2014 03:10 PM, Hans Verkuil wrote:
+> Hi Archit,
+>
+> On 03/04/14 09:49, Archit Taneja wrote:
+>> Add selection ioctl ops. For VPE, cropping makes sense only for the input to
+>> VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
+>> only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
+>>
+>> For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
+>> in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
+>> results in selecting a rectangle region within the source buffer.
+>>
+>> Setting the crop/compose rectangles should successfully result in
+>> re-configuration of registers which are affected when either source or
+>> destination dimensions change, set_srcdst_params() is called for this purpose.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>> ---
+>>   drivers/media/platform/ti-vpe/vpe.c | 142 ++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 142 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+>> index 03a6846..b938590 100644
+>> --- a/drivers/media/platform/ti-vpe/vpe.c
+>> +++ b/drivers/media/platform/ti-vpe/vpe.c
+>> @@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
+>>   {
+>>   	switch (type) {
+>>   	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+>> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+>>   		return &ctx->q_data[Q_DATA_SRC];
+>>   	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+>
+> I noticed that the querycap implementation is wrong. It reports
+> V4L2_CAP_VIDEO_M2M instead of V4L2_CAP_VIDEO_M2M_MPLANE.
+>
+> This driver is using the multiplanar formats, so the M2M_MPLANE cap should
+> be set.
+>
+> This should be a separate patch.
 
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-index 48627f9..03ba9fc 100644
---- a/drivers/media/rc/img-ir/Kconfig
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -52,3 +52,10 @@ config IR_IMG_SHARP
- 	help
- 	   Say Y here to enable support for the Sharp protocol in the ImgTec
- 	   infrared decoder block.
-+
-+config IR_IMG_SANYO
-+	bool "Sanyo protocol support"
-+	depends on IR_IMG_HW
-+	help
-+	   Say Y here to enable support for the Sanyo protocol (used by Sanyo,
-+	   Aiwa, Chinon remotes) in the ImgTec infrared decoder block.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-index 792a3c4..92a459d 100644
---- a/drivers/media/rc/img-ir/Makefile
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -5,6 +5,7 @@ img-ir-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
- img-ir-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
- img-ir-$(CONFIG_IR_IMG_SONY)	+= img-ir-sony.o
- img-ir-$(CONFIG_IR_IMG_SHARP)	+= img-ir-sharp.o
-+img-ir-$(CONFIG_IR_IMG_SANYO)	+= img-ir-sanyo.o
- img-ir-objs			:= $(img-ir-y)
- 
- obj-$(CONFIG_IR_IMG)		+= img-ir.o
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index 9931dfa..cbbfd7d 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -24,6 +24,7 @@ extern struct img_ir_decoder img_ir_nec;
- extern struct img_ir_decoder img_ir_jvc;
- extern struct img_ir_decoder img_ir_sony;
- extern struct img_ir_decoder img_ir_sharp;
-+extern struct img_ir_decoder img_ir_sanyo;
- 
- static bool img_ir_decoders_preprocessed;
- static struct img_ir_decoder *img_ir_decoders[] = {
-@@ -39,6 +40,9 @@ static struct img_ir_decoder *img_ir_decoders[] = {
- #ifdef CONFIG_IR_IMG_SHARP
- 	&img_ir_sharp,
- #endif
-+#ifdef CONFIG_IR_IMG_SANYO
-+	&img_ir_sanyo,
-+#endif
- 	NULL
- };
- 
-diff --git a/drivers/media/rc/img-ir/img-ir-sanyo.c b/drivers/media/rc/img-ir/img-ir-sanyo.c
-new file mode 100644
-index 0000000..c2c763e
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-sanyo.c
-@@ -0,0 +1,122 @@
-+/*
-+ * ImgTec IR Decoder setup for Sanyo protocol.
-+ *
-+ * Copyright 2012-2014 Imagination Technologies Ltd.
-+ *
-+ * From ir-sanyo-decoder.c:
-+ *
-+ * This protocol uses the NEC protocol timings. However, data is formatted as:
-+ *	13 bits Custom Code
-+ *	13 bits NOT(Custom Code)
-+ *	8 bits Key data
-+ *	8 bits NOT(Key data)
-+ *
-+ * According with LIRC, this protocol is used on Sanyo, Aiwa and Chinon
-+ * Information for this protocol is available at the Sanyo LC7461 datasheet.
-+ */
-+
-+#include "img-ir-hw.h"
-+
-+/* Convert Sanyo data to a scancode */
-+static int img_ir_sanyo_scancode(int len, u64 raw, int *scancode, u64 protocols)
-+{
-+	unsigned int addr, addr_inv, data, data_inv;
-+	/* a repeat code has no data */
-+	if (!len)
-+		return IMG_IR_REPEATCODE;
-+	if (len != 42)
-+		return -EINVAL;
-+	addr     = (raw >>  0) & 0x1fff;
-+	addr_inv = (raw >> 13) & 0x1fff;
-+	data     = (raw >> 26) & 0xff;
-+	data_inv = (raw >> 34) & 0xff;
-+	/* Validate data */
-+	if ((data_inv ^ data) != 0xff)
-+		return -EINVAL;
-+	/* Validate address */
-+	if ((addr_inv ^ addr) != 0x1fff)
-+		return -EINVAL;
-+
-+	/* Normal Sanyo */
-+	*scancode = addr << 8 | data;
-+	return IMG_IR_SCANCODE;
-+}
-+
-+/* Convert Sanyo scancode to Sanyo data filter */
-+static int img_ir_sanyo_filter(const struct rc_scancode_filter *in,
-+			       struct img_ir_filter *out, u64 protocols)
-+{
-+	unsigned int addr, addr_inv, data, data_inv;
-+	unsigned int addr_m, data_m;
-+
-+	data = in->data & 0xff;
-+	data_m = in->mask & 0xff;
-+	data_inv = data ^ 0xff;
-+
-+	if (in->data & 0xff700000)
-+		return -EINVAL;
-+
-+	addr       = (in->data >> 8) & 0x1fff;
-+	addr_m     = (in->mask >> 8) & 0x1fff;
-+	addr_inv   = addr ^ 0x1fff;
-+
-+	out->data = (u64)data_inv << 34 |
-+		    (u64)data     << 26 |
-+			 addr_inv << 13 |
-+			 addr;
-+	out->mask = (u64)data_m << 34 |
-+		    (u64)data_m << 26 |
-+			 addr_m << 13 |
-+			 addr_m;
-+	return 0;
-+}
-+
-+/* Sanyo decoder */
-+struct img_ir_decoder img_ir_sanyo = {
-+	.type = RC_BIT_SANYO,
-+	.control = {
-+		.decoden = 1,
-+		.code_type = IMG_IR_CODETYPE_PULSEDIST,
-+	},
-+	/* main timings */
-+	.unit = 562500, /* 562.5 us */
-+	.timings = {
-+		/* leader symbol */
-+		.ldr = {
-+			.pulse = { 16	/* 9ms */ },
-+			.space = { 8	/* 4.5ms */ },
-+		},
-+		/* 0 symbol */
-+		.s00 = {
-+			.pulse = { 1	/* 562.5 us */ },
-+			.space = { 1	/* 562.5 us */ },
-+		},
-+		/* 1 symbol */
-+		.s01 = {
-+			.pulse = { 1	/* 562.5 us */ },
-+			.space = { 3	/* 1687.5 us */ },
-+		},
-+		/* free time */
-+		.ft = {
-+			.minlen = 42,
-+			.maxlen = 42,
-+			.ft_min = 10,	/* 5.625 ms */
-+		},
-+	},
-+	/* repeat codes */
-+	.repeat = 108,			/* 108 ms */
-+	.rtimings = {
-+		/* leader symbol */
-+		.ldr = {
-+			.space = { 4	/* 2.25 ms */ },
-+		},
-+		/* free time */
-+		.ft = {
-+			.minlen = 0,	/* repeat code has no data */
-+			.maxlen = 0,
-+		},
-+	},
-+	/* scancode logic */
-+	.scancode = img_ir_sanyo_scancode,
-+	.filter = img_ir_sanyo_filter,
-+};
--- 
-1.8.3.2
+Thanks for pointing this out, I'll make a patch for that.
+
+>
+> BTW, did you test the driver with the v4l2-compliance tool? The latest version
+> (http://git.linuxtv.org/v4l-utils.git) has m2m support.
+>
+
+I haven't tested it with this yet.
+
+> However, if you want to test streaming (the -s option), then you will probably
+> need to base your kernel on this tree:
+>
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/vb2-part1
+
+I can give it a try. It'll probably take a bit more time to try this 
+out. I'll need to port some minor DRA7x stuff.
+
+Kamil,
+
+Do you think you have some more time for the m2m pull request?
+
+>
+> That branch contains a pile of fixes for vb2 and without that v4l2-compliance -s
+> will fail a number of tests.
+>
+>>   		return &ctx->q_data[Q_DATA_DST];
+>>   	default:
+>>   		BUG();
+>> @@ -1585,6 +1587,143 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>>   	return set_srcdst_params(ctx);
+>>   }
+>>
+>> +static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
+>> +{
+>> +	struct vpe_q_data *q_data;
+>> +
+>> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
+>> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
+>> +		return -EINVAL;
+>> +
+>> +	q_data = get_q_data(ctx, s->type);
+>> +	if (!q_data)
+>> +		return -EINVAL;
+>> +
+>> +	switch (s->target) {
+>> +	case V4L2_SEL_TGT_COMPOSE:
+>> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+>> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+>> +		/*
+>> +		 * COMPOSE target is only valid for capture buffer type, for
+>> +		 * output buffer type, assign existing crop parameters to the
+>> +		 * selection rectangle
+>> +		 */
+>> +		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+>> +			break;
+>> +		} else {
+>
+> No need for the 'else' keywork here.
+>
+>> +			s->r = q_data->c_rect;
+>> +			return 0;
+>> +		}
+>> +
+>> +	case V4L2_SEL_TGT_CROP:
+>> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+>> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+>> +		/*
+>> +		 * CROP target is only valid for output buffer type, for capture
+>> +		 * buffer type, assign existing compose parameters to the
+>> +		 * selection rectangle
+>> +		 */
+>> +		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>> +			break;
+>> +		} else {
+>
+> Ditto.
+
+
+Thanks. I'll fix these.
+
+I had a minor question about the selection API:
+
+Are the V4L2_SET_TGT_CROP/COMPOSE_DEFAULT and the corresponding 'BOUNDS' 
+targets supposed to be used with VIDIOC_S_SELECTION? If so, what's the 
+expect behaviour?
+
+Thanks,
+Archit
 
