@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3158 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754257AbaCNMjT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 08:39:19 -0400
-Message-ID: <5322F864.6050507@xs4all.nl>
-Date: Fri, 14 Mar 2014 13:39:00 +0100
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1886 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756777AbaCDKnk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:40 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: hdegoede@redhat.com
-Subject: libv4lconvert: remove broken ALTERNATE handling
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 16/18] vb2: call buf_finish after the state check.
+Date: Tue,  4 Mar 2014 11:42:24 +0100
+Message-Id: <1393929746-39437-17-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2 specification used to say that if field == V4L2_FIELD_ALTERNATE, the
-height would have to be divided by two. This is incorrect, the height is that of
-a single field. This has been corrected in the spec, now this code in libv4lconvert
-needs to be removed as well.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Tested with both bttv and saa7146, the only two drivers supporting FIELD_ALTERNATE
-today.
+Don't call buf_finish unless we know that the buffer is in a valid state.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- lib/libv4lconvert/libv4lconvert.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index e2afc27..df06b75 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -1328,13 +1328,6 @@ int v4lconvert_convert(struct v4lconvert_data *data,
- 		return to_copy;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 3c00e22..54cea42 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1878,8 +1878,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	call_vb_qop(vb, buf_finish, vb);
+-
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DONE:
+ 		dprintk(3, "dqbuf: Returning done buffer\n");
+@@ -1892,6 +1890,8 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
+ 		return -EINVAL;
  	}
  
--	/* When field is V4L2_FIELD_ALTERNATE, each buffer only contains half the
--	   lines */
--	if (my_src_fmt.fmt.pix.field == V4L2_FIELD_ALTERNATE) {
--		my_src_fmt.fmt.pix.height /= 2;
--		my_dest_fmt.fmt.pix.height /= 2;
--	}
--
- 	/* sanity check, is the dest buffer large enough? */
- 	switch (my_dest_fmt.fmt.pix.pixelformat) {
- 	case V4L2_PIX_FMT_RGB24:
++	call_vb_qop(vb, buf_finish, vb);
++
+ 	/* Fill buffer information for the userspace */
+ 	__fill_v4l2_buffer(vb, b);
+ 	/* Remove from videobuf queue */
 -- 
 1.9.0
 
