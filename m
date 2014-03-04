@@ -1,34 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1265 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756539AbaCONIT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Mar 2014 09:08:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, pawel@osciak.com
-Subject: [REVIEW PATCH for v3.15 0/4] v4l2 core sparse error/warning fixes
-Date: Sat, 15 Mar 2014 14:07:59 +0100
-Message-Id: <1394888883-46850-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bear.ext.ti.com ([192.94.94.41]:55931 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756507AbaCDIuX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Mar 2014 03:50:23 -0500
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<hverkuil@xs4all.nl>, Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 4/7] v4l: ti-vpe: Allow DMABUF buffer type support
+Date: Tue, 4 Mar 2014 14:19:22 +0530
+Message-ID: <1393922965-15967-5-git-send-email-archit@ti.com>
+In-Reply-To: <1393922965-15967-1-git-send-email-archit@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com>
+ <1393922965-15967-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These four patches fix sparse errors and warnings coming from the v4l2
-core. There are more, but those seem to be problems with sparse itself (see
-my posts from today on that topic).
+For OMAP and DRA7x, we generally allocate video and graphics buffers through
+omapdrm since the corresponding omap-gem driver provides DMM-Tiler backed
+contiguous buffers. omapdrm is a dma-buf exporter. These buffers are used by
+other drivers in the video pipeline.
 
-Please take a good look at patch 3/4 in particular: that fixes sparse
-errors introduced by my vb2 changes, and required some rework to get it
-accepted by sparse without errors or warnings.
+Add VB2_DMABUF flag to the io_modes of the vb2 output and capture queues. This
+allows the driver to import dma shared buffers.
 
-The rework required the introduction of more type-specific call_*op macros,
-but on the other hand the fail_op macros could be dropped. Sort of one
-step backwards, one step forwards.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-If someone can think of a smarter solution for this, then please let me
-know.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index bb275f4..915029b 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1768,7 +1768,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 
+ 	memset(src_vq, 0, sizeof(*src_vq));
+ 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+-	src_vq->io_modes = VB2_MMAP;
++	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
+ 	src_vq->drv_priv = ctx;
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->ops = &vpe_qops;
+@@ -1781,7 +1781,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 
+ 	memset(dst_vq, 0, sizeof(*dst_vq));
+ 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	dst_vq->io_modes = VB2_MMAP;
++	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
+ 	dst_vq->drv_priv = ctx;
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->ops = &vpe_qops;
+-- 
+1.8.3.2
 
