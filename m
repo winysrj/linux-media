@@ -1,74 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2978 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756531AbaCQN43 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 09:56:29 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2HDuQRw026445
-	for <linux-media@vger.kernel.org>; Mon, 17 Mar 2014 14:56:28 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 254852A188B
-	for <linux-media@vger.kernel.org>; Mon, 17 Mar 2014 14:56:16 +0100 (CET)
-Message-ID: <5326FF00.4040909@xs4all.nl>
-Date: Mon, 17 Mar 2014 14:56:16 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga09.intel.com ([134.134.136.24]:45514 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754936AbaCDUzZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Mar 2014 15:55:25 -0500
+Date: Wed, 05 Mar 2014 04:55:21 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:master 428/499]
+ drivers/media/dvb-frontends/drx39xyj/drxj.c:1039:16: sparse: symbol
+ 'drxj_default_aud_data_g' was not declared. Should it be static?
+Message-ID: <53163db9.R+8n3ktQRv5O10lw%fengguang.wu@intel.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.16] saa7134: convert to vb2
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="=_53163db9.hhZx5fFgp4FUaQBlNYEEe4LNdAjoEkNjQJrT6XjJB5xxAk6X"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds videobuf2-dvb support to vb2 (this was missing
-until now) and converts saa7134 to vb2.
+This is a multi-part message in MIME format.
 
-These patches are unchanged from the review patch series posted before:
+--=_53163db9.hhZx5fFgp4FUaQBlNYEEe4LNdAjoEkNjQJrT6XjJB5xxAk6X
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/75376
+tree:   git://linuxtv.org/media_tree.git master
+head:   59432be1c7fbf2a4f608850855ff649bee0f7b3b
+commit: 57afe2f0bb0cca758701679f141c9fa92a034415 [428/499] [media] drx-j: Don't use CamelCase
+reproduce: make C=1 CF=-D__CHECK_ENDIAN__
 
-except for being rebased to the latest code.
 
-Regards,
+sparse warnings: (new ones prefixed by >>)
 
-	Hans
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:651:6: sparse: symbol 'drx_dap_drxj_module_name' was not declared. Should it be static?
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:652:6: sparse: symbol 'drx_dap_drxj_version_text' was not declared. Should it be static?
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:654:15: sparse: symbol 'drx_dap_drxj_version' was not declared. Should it be static?
+>> drivers/media/dvb-frontends/drx39xyj/drxj.c:1039:16: sparse: symbol 'drxj_default_aud_data_g' was not declared. Should it be static?
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:4208:1: sparse: symbol 'tuner_i2c_write_read' was not declared. Should it be static?
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:10234:27: sparse: cast truncates bits from constant value (ffff00ff becomes ff)
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:10251:24: sparse: cast truncates bits from constant value (ffff3fff becomes 3fff)
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:11125:31: sparse: cast truncates bits from constant value (ffff00ff becomes ff)
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:11167:26: sparse: cast truncates bits from constant value (ffff0000 becomes 0)
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:11233:33: sparse: cast truncates bits from constant value (ffff7fff becomes 7fff)
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:11777:26: sparse: cast truncates bits from constant value (ffff7fff becomes 7fff)
 
-The following changes since commit ed97a6fe5308e5982d118a25f0697b791af5ec50:
+Please consider folding the attached diff :-)
 
-  [media] af9033: Don't export functions for the hardware filter (2014-03-14 20:26:59 -0300)
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
 
-are available in the git repository at:
+--=_53163db9.hhZx5fFgp4FUaQBlNYEEe4LNdAjoEkNjQJrT6XjJB5xxAk6X
+Content-Type: text/x-diff;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="make-it-static-57afe2f0bb0cca758701679f141c9fa92a034415.diff"
 
-  git://linuxtv.org/hverkuil/media_tree.git saa7134
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: [PATCH linuxtv-media] drx-j: drxj_default_aud_data_g can be static
+TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org
+CC: linux-media@vger.kernel.org 
+CC: linux-kernel@vger.kernel.org 
 
-for you to fetch changes up to b85c7ee2e578101b8b60abdc57afe58514235695:
+CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+---
+ drxj.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-  saa7134: convert to vb2 (2014-03-17 14:51:50 +0100)
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 3a63520..b7a2b84 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -1036,7 +1036,7 @@ drx_demod_instance_t drxj_default_demod_g = {
+ * This structure is DRXK specific.
+ *
+ */
+-drx_aud_data_t drxj_default_aud_data_g = {
++static drx_aud_data_t drxj_default_aud_data_g = {
+ 	false,			/* audio_is_active */
+ 	DRX_AUD_STANDARD_AUTO,	/* audio_standard  */
+ 
 
-----------------------------------------------------------------
-Hans Verkuil (3):
-      vb2: add thread support
-      vb2: Add videobuf2-dvb support
-      saa7134: convert to vb2
-
- drivers/media/pci/saa7134/Kconfig           |   4 +-
- drivers/media/pci/saa7134/saa7134-alsa.c    | 106 +++++++++++--
- drivers/media/pci/saa7134/saa7134-core.c    | 107 +++++++------
- drivers/media/pci/saa7134/saa7134-dvb.c     |  43 ++++--
- drivers/media/pci/saa7134/saa7134-empress.c | 178 +++++++++-------------
- drivers/media/pci/saa7134/saa7134-ts.c      | 185 +++++++++++++----------
- drivers/media/pci/saa7134/saa7134-vbi.c     | 170 +++++++++------------
- drivers/media/pci/saa7134/saa7134-video.c   | 659 +++++++++++++++++++++++++++++---------------------------------------------------
- drivers/media/pci/saa7134/saa7134.h         | 106 ++++++-------
- drivers/media/v4l2-core/Kconfig             |   4 +
- drivers/media/v4l2-core/Makefile            |   1 +
- drivers/media/v4l2-core/videobuf2-core.c    | 147 ++++++++++++++++++
- drivers/media/v4l2-core/videobuf2-dvb.c     | 336 +++++++++++++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h              |  32 ++++
- include/media/videobuf2-dvb.h               |  58 +++++++
- 15 files changed, 1293 insertions(+), 843 deletions(-)
- create mode 100644 drivers/media/v4l2-core/videobuf2-dvb.c
- create mode 100644 include/media/videobuf2-dvb.h
+--=_53163db9.hhZx5fFgp4FUaQBlNYEEe4LNdAjoEkNjQJrT6XjJB5xxAk6X--
