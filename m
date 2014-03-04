@@ -1,113 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4237 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753350AbaCKLBa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 07:01:30 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2BB1RD0068855
-	for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 12:01:29 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 13FE22A1889
-	for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 12:01:25 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140311110125.13FE22A1889@tschai.lan>
-Date: Tue, 11 Mar 2014 12:01:25 +0100 (CET)
+Received: from outrelay03.libero.it ([212.52.84.103]:40423 "EHLO
+	outrelay03.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755410AbaCDD52 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 22:57:28 -0500
+Message-ID: <10502473.12963741393905446746.JavaMail.defaultUser@defaultHost>
+Date: Tue, 4 Mar 2014 04:57:26 +0100 (CET)
+From: "valerio.vanni@inwind.it" <valerio.vanni@inwind.it>
+Reply-To: "valerio.vanni@inwind.it" <valerio.vanni@inwind.it>
+To: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: SAA7134 warning during resume from S3: regression 3.8.13 ->
+ 3.9.0
+Cc: <mchehab@infradead.org>, <alan@lxorguk.ukuu.org.uk>,
+	<linux@rainbow-software.org>, <pavel@suse.cz>,
+	<hverkuil@xs4all.nl>, <michael.opdenacker@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+>----Messaggio originale----
+>Da: valerio.vanni@inwind.it
+>Data: 14/02/2014 16.29
 
-Results of the daily build of media_tree:
+>The full report is on bugzilla:
+>https://bugzilla.kernel.org/show_bug.cgi?id=69581
 
-date:		Tue Mar 11 11:47:29 CET 2014
-git branch:	test
-git hash:	0d49e7761173520ff02cec6f11d581f8ebca764d
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.13-5.slh.4-amd64
+>[1.] One line summary of the problem:
+>
+>Kernel gives a oops warning during resume
+>from S3 sleep.
+>
+>[2.] Full description of the problem/report:
+>
+>OS is Debian Lenny, with vanilla kernel. It happens the same after upgrade to
+>Squeeze.
+>I've tried with kernels over kernels to find the point and I've found:
+>the latest working kernel is 3.8.13, the first failing is 3.9.0
+>
+>I suspend the machine with s2ram and it goes off.
+>During the resume it writes that warning, then it seem to work normally,
+>except for serial redirection of console.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12-i686: ERRORS
-linux-3.13-i686: ERRORS
-linux-3.14-rc1-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12-x86_64: ERRORS
-linux-3.13-x86_64: ERRORS
-linux-3.14-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+>------------[ cut here ]------------
+>WARNING: CPU: 0 PID: 7928 at kernel/kmod.c:148 __request_module+0x34/0x1ae()
+>Modules linked in: vmnet(O) vsock(O) vmci(O) vmmon(O) lp fbcon font bitblit
+>softcursor i915 drm_kms_helper fb fbdev cfbcopyarea video backlight cfbimgblt
+>cfbfillrect bnep nfsd lockd sunrpc fuse saa7134_alsa snd_seq_dummy 
+snd_seq_oss
+>snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq snd_seq_device cifs 
+rfcomm
+>bluetooth rfkill it87 hwmon_vid isofs zlib_inflate nls_utf8 nls_iso8859_1
+>nls_cp850 nls_cp437 nls_ascii cpuid vfat ntfs msdos fat udf nls_iso8859_15
+>softdog loop tda1004x saa7134_dvb videobuf_dvb dvb_core tda827x mousedev
+>tda8290 tuner snd_hda_codec_realtek snd_hda_intel snd_hda_codec saa7134
+>v4l2_common usb_storage videodev r8169 snd_hwdep parport_pc snd_pcm_oss
+>snd_mixer_oss videobuf_dma_sg mii ehci_pci parport videobuf_core snd_pcm
+>uhci_hcd firewire_ohci firewire_core evdev crc_itu_t ehci_hcd psmouse 
+rtc_cmos
+>tveeprom pcspkr intel_agp intel_gtt snd_timer snd_page_alloc
+>CPU: 0 PID: 7928 Comm: kworker/u8:12 Tainted: G           O 3.13.2 #1
+>Hardware name: Gigabyte Technology Co., Ltd. G33M-S2/G33M-S2, BIOS F7f
+>04/02/2008
+>Workqueue: events_unbound async_run_entry_fn
+>00000000 00000000 c13534fe c103d476 c102e079 00000009 f13ede00 f534f1a4
+>f80630d0 f534f024 c102e099 00000009 00000000 c103d476 ffffffff 01000282
+>c1036a29 00000282 f13edda4 c155c680 c155c680 c1036a5c 003a8aba c1353657
+>Call Trace:
+>[<c13534fe>] ? dump_stack+0x3e/0x50
+>[<c103d476>] ? __request_module+0x34/0x1ae
+>[<c102e079>] ? warn_slowpath_common+0x66/0x7a
+>[<c102e099>] ? warn_slowpath_null+0xc/0xf
+>[<c103d476>] ? __request_module+0x34/0x1ae
+>[<c1036a29>] ? try_to_del_timer_sync+0x3a/0x41
+>[<c1036a5c>] ? del_timer_sync+0x2c/0x36
+>[<c1353657>] ? schedule_timeout+0x147/0x15d
+>[<c1036aa6>] ? del_timer+0x40/0x40
+>[<f8062370>] ? v4l2_i2c_new_subdev_board+0x23/0xa7 [v4l2_common]
+>[<f806243d>] ? v4l2_i2c_new_subdev+0x49/0x51 [v4l2_common]
+>[<f831290b>] ? saa7134_board_init2+0x869/0xb58 [saa7134]
+>[<c1036a29>] ? try_to_del_timer_sync+0x3a/0x41
+>[<c1036a5c>] ? del_timer_sync+0x2c/0x36
+>[<c1353657>] ? schedule_timeout+0x147/0x15d
+>[<c1030003>] ? do_exit+0x51a/0x7ce
+>[<f8313ca7>] ? saa7134_resume+0xbf/0x150 [saa7134]
+>[<c11ef0a7>] ? pci_legacy_resume+0x23/0x2c
+>[<c11ef19a>] ? pci_pm_thaw+0x62/0x62
+>[<c12650d5>] ? dpm_run_callback+0x25/0x60
+>[<c1265308>] ? device_resume+0x10f/0x12c
+>[<c1265338>] ? async_resume+0x13/0x33
+>[<c1048004>] ? async_run_entry_fn+0x52/0xf3
+>[<c103fba7>] ? process_one_work+0x200/0x331
+>[<c103fe83>] ? worker_thread+0x1ab/0x2e1
+>[<c103fcd8>] ? process_one_work+0x331/0x331
+>[<c1044120>] ? kthread+0xa1/0xaa
+>[<c135b837>] ? ret_from_kernel_thread+0x1b/0x28
+>[<c104407f>] ? kthread_freezable_should_stop+0x4d/0x4d
+>---[ end trace d02ad8471166632e ]---
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
