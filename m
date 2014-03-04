@@ -1,80 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:43925 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574AbaCHFa1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:27 -0500
-Received: by mail-we0-f180.google.com with SMTP id p61so6102860wes.11
-        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:26 -0800 (PST)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [GIT PULL] Move device tree graph parsing helpers to drivers/of
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Rob Herring <robh+dt@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-In-Reply-To: <1394126000.3622.66.camel@paszta.hi.pengutronix.de>
-References: <1394126000.3622.66.camel@paszta.hi.pengutronix.de>
-Date: Fri, 07 Mar 2014 18:23:30 +0000
-Message-Id: <20140307182330.75168C40AE3@trevor.secretlab.ca>
+Received: from devils.ext.ti.com ([198.47.26.153]:56304 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756462AbaCDIuK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 03:50:10 -0500
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<hverkuil@xs4all.nl>, Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 0/7] v4l: ti-vpe: Some VPE fixes and enhancements
+Date: Tue, 4 Mar 2014 14:19:18 +0530
+Message-ID: <1393922965-15967-1-git-send-email-archit@ti.com>
+In-Reply-To: <1393832008-22174-1-git-send-email-archit@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 06 Mar 2014 18:13:20 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Hi Mauro, Russell,
-> 
-> I have temporarily removed the simplified bindings at Sylwester's
-> request and updated the branch with the acks. The following changes
-> since commit 0414855fdc4a40da05221fc6062cccbc0c30f169:
-> 
->   Linux 3.14-rc5 (2014-03-02 18:56:16 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.pengutronix.de/git/pza/linux.git topic/of-graph
-> 
-> for you to fetch changes up to d484700a36952c6675aa47dec4d7a536929aa922:
-> 
->   of: Warn if of_graph_parse_endpoint is called with the root node (2014-03-06 17:41:54 +0100)
+This patch set mainly consists of minor fixes for the VPE driver. These fixes
+ensure the following:
 
-Nak. I made comments that haven't been resolved yet. I've replied with
-more detail tonight. The big issues are how drivers handle the optional
-'ports' node and I do not agree to the double-linkage in the binding
-description.
+- The VPE module can be inserted and removed successively.
+- Make sure that smaller resolutions like qcif work correctly.
+- Prevent race condition between firmware loading and an open call to the v4l2
+  device.
+- Prevent the possibility of output m2m queue not having sufficient 'ready'
+  buffers.
+- Some VPDMA data descriptor fields weren't understood correctly before. They
+  are now used correctly.
 
-g.
+The rest of the patches add some minor features like DMA buf support and
+cropping/composing.
 
-> 
-> ----------------------------------------------------------------
-> Philipp Zabel (6):
->       [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
->       Documentation: of: Document graph bindings
->       of: Warn if of_graph_get_next_endpoint is called with the root node
->       of: Reduce indentation in of_graph_get_next_endpoint
->       [media] of: move common endpoint parsing to drivers/of
->       of: Warn if of_graph_parse_endpoint is called with the root node
-> 
->  Documentation/devicetree/bindings/graph.txt   | 129 ++++++++++++++++++++++
->  drivers/media/i2c/adv7343.c                   |   4 +-
->  drivers/media/i2c/mt9p031.c                   |   4 +-
->  drivers/media/i2c/s5k5baf.c                   |   3 +-
->  drivers/media/i2c/tvp514x.c                   |   3 +-
->  drivers/media/i2c/tvp7002.c                   |   3 +-
->  drivers/media/platform/exynos4-is/fimc-is.c   |   6 +-
->  drivers/media/platform/exynos4-is/media-dev.c |  13 ++-
->  drivers/media/platform/exynos4-is/mipi-csis.c |   5 +-
->  drivers/media/v4l2-core/v4l2-of.c             | 133 +----------------------
->  drivers/of/base.c                             | 151 ++++++++++++++++++++++++++
->  include/linux/of_graph.h                      |  66 +++++++++++
->  include/media/v4l2-of.h                       |  33 +-----
->  13 files changed, 375 insertions(+), 178 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/graph.txt
->  create mode 100644 include/linux/of_graph.h
-> 
-> 
+Reference branch:
+
+git@github.com:boddob/linux.git vpe_for_315
+
+Changes in v2:
+
+- selection API used instead of older cropping API.
+- Typo fix.
+- Some changes in patch 6/7 to support composing on the capture side of VPE.
+
+Archit Taneja (7):
+  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
+    dst_bufs
+  v4l: ti-vpe: register video device only when firmware is loaded
+  v4l: ti-vpe: Use video_device_release_empty
+  v4l: ti-vpe: Allow DMABUF buffer type support
+  v4l: ti-vpe: Allow usage of smaller images
+  v4l: ti-vpe: Fix some params in VPE data descriptors
+  v4l: ti-vpe: Add selection API in VPE driver
+
+ drivers/media/platform/ti-vpe/vpdma.c |  68 +++++++---
+ drivers/media/platform/ti-vpe/vpdma.h |  17 +--
+ drivers/media/platform/ti-vpe/vpe.c   | 228 +++++++++++++++++++++++++++++-----
+ 3 files changed, 255 insertions(+), 58 deletions(-)
+
+-- 
+1.8.3.2
 
