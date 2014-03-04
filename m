@@ -1,113 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3910 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751394AbaCZDel (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Mar 2014 23:34:41 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2Q3Ybao055944
-	for <linux-media@vger.kernel.org>; Wed, 26 Mar 2014 04:34:39 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 596B52A188D
-	for <linux-media@vger.kernel.org>; Wed, 26 Mar 2014 04:34:27 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140326033427.596B52A188D@tschai.lan>
-Date: Wed, 26 Mar 2014 04:34:27 +0100 (CET)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52830 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756507AbaCDIuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Mar 2014 03:50:20 -0500
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<hverkuil@xs4all.nl>, Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 3/7] v4l: ti-vpe: Use video_device_release_empty
+Date: Tue, 4 Mar 2014 14:19:21 +0530
+Message-ID: <1393922965-15967-4-git-send-email-archit@ti.com>
+In-Reply-To: <1393922965-15967-1-git-send-email-archit@ti.com>
+References: <1393832008-22174-1-git-send-email-archit@ti.com>
+ <1393922965-15967-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The video_device struct is currently embedded in the driver data struct vpe_dev.
+A vpe_dev instance is allocated by the driver, and the memory for the vfd is a
+part of this struct.
 
-Results of the daily build of media_tree:
+The v4l2 core, however, manages the removal of the vfd region, through the
+video_device's .release() op, which currently is the helper
+video_device_release. This causes memory corruption, and leads to issues when
+we try to re-insert the vpe module.
 
-date:		Wed Mar 26 04:00:16 CET 2014
-git branch:	test
-git hash:	8432164ddf7bfe40748ac49995356ab4dfda43b7
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0
-host hardware:	x86_64
-host os:	3.13-5.slh.4-amd64
+Use the video_device_release_empty helper function instead
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0
-sparse: ERRORS
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Detailed results are available here:
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 4243687..bb275f4 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1998,7 +1998,7 @@ static struct video_device vpe_videodev = {
+ 	.fops		= &vpe_fops,
+ 	.ioctl_ops	= &vpe_ioctl_ops,
+ 	.minor		= -1,
+-	.release	= video_device_release,
++	.release	= video_device_release_empty,
+ 	.vfl_dir	= VFL_DIR_M2M,
+ };
+ 
+-- 
+1.8.3.2
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
