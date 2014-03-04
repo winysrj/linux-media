@@ -1,223 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1590 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754892AbaCKMWc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:22:32 -0400
-Message-ID: <531EFFC5.6040007@xs4all.nl>
-Date: Tue, 11 Mar 2014 13:21:25 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: k.debski@samsung.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 07/14] v4l: ti-vpe: Add selection API in VPE driver
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-8-git-send-email-archit@ti.com>
-In-Reply-To: <1394526833-24805-8-git-send-email-archit@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:32786 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753758AbaCDPru (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 10:47:50 -0500
+Message-ID: <1393948056.3917.120.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v5 5/7] [media] of: move common endpoint parsing to
+ drivers/of
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Date: Tue, 04 Mar 2014 16:47:36 +0100
+In-Reply-To: <5315C535.2070303@ti.com>
+References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
+		 <1393522540-22887-6-git-send-email-p.zabel@pengutronix.de>
+		 <531595AB.4000001@ti.com>
+	 <1393932989.3917.62.camel@paszta.hi.pengutronix.de>
+	 <5315C535.2070303@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Archit,
-
-A few small comments below...
-
-On 03/11/14 09:33, Archit Taneja wrote:
-> Add selection ioctl ops. For VPE, cropping makes sense only for the input to
-> VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
-> only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
+Am Dienstag, den 04.03.2014, 14:21 +0200 schrieb Tomi Valkeinen:
+> On 04/03/14 13:36, Philipp Zabel wrote:
+[...]
+> >> Can port_node be NULL? Probably only if something is quite wrong, but
+> >> maybe it's safer to return error in that case.
+> > 
+> > both of_property_read_u32 and of_node_put can handle port_node == NULL.
+> > I'll add a WARN_ONCE here as for of_graph_get_next_endpoint and continue
+> > on.
 > 
-> For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
-> in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
-> results in selecting a rectangle region within the source buffer.
+> Isn't it better to return an error?
+
+I am not sure. We can still correctly parse the endpoint properties of a
+parentless node. All current users ignore the return value anyway. So as
+long as we still do the memset and and set local_node and id, returning
+an error effectively won't change the current behaviour.
+
+[...]
+> > It depends a bit on whether you are actually iterating over individual
+> > ports, or if you are just walking the whole endpoint graph to find
+> > remote devices that have to be added to the component master's waiting
+> > list, for example.
 > 
-> Setting the crop/compose rectangles should successfully result in
-> re-configuration of registers which are affected when either source or
-> destination dimensions change, set_srcdst_params() is called for this purpose.
+> True, but the latter is easily implemented using the separate
+> port/endpoint iteration. So I see it as a more powerful API.
+
+Indeed. I see no problem in adding an of_graph_get_next_port function.
+But I'd like to keep the current of_graph_get_next_endpoint function
+iterating over all endpoints of the device.
+
+> >> Both of those are possible with the API in the series, but not very cleanly.
+> >>
+> >> Also, if you just want to iterate the endpoints, it's easy to implement
+> >> a helper using the separate port and endpoint iterations.
+> > 
+> > I started out to move an existing (albeit lightly used) API to a common
+> > place so others can use it and improve upon it, too. I'm happy to pile
+> > on fixes directly in this series, but could we separate the improvement
+> > step from the move, for the bigger modifications?
 > 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 141 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 141 insertions(+)
+> Yes, I understand that. What I wonder is that which is easier: make it a
+> public API now, more or less as it was in v4l2, or make it a public API
+> only when all the improvements we can think of have been made.
 > 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index ece9b96..4abb85c 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
->  {
->  	switch (type) {
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->  		return &ctx->q_data[Q_DATA_SRC];
->  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->  		return &ctx->q_data[Q_DATA_DST];
->  	default:
->  		BUG();
-> @@ -1587,6 +1589,142 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  	return set_srcdst_params(ctx);
->  }
->  
-> +static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
-> +{
-> +	struct vpe_q_data *q_data;
-> +
-> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-> +		return -EINVAL;
-> +
-> +	q_data = get_q_data(ctx, s->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	switch (s->target) {
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +		/*
-> +		 * COMPOSE target is only valid for capture buffer type, for
-> +		 * output buffer type, assign existing crop parameters to the
-> +		 * selection rectangle
-> +		 */
-> +		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +			break;
+> So my fear is that the API is now made public, and you and others start
+> to use it.
 
-Shouldn't this return -EINVAL?
+And I fear that this series might outgrow maintainer attention spans if
+I keep adding to it.
 
-> +
-> +		s->r = q_data->c_rect;
-> +		return 0;
-> +
-> +	case V4L2_SEL_TGT_CROP:
-> +		/*
-> +		 * CROP target is only valid for output buffer type, for capture
-> +		 * buffer type, assign existing compose parameters to the
-> +		 * selection rectangle
-> +		 */
-> +		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +			break;
+> But I can't use it, as I need things like separate
+> port/endpoint iteration. I need to add those, which also means that I
+> need to change all the users of the API, making the task more difficult
+> than I'd like.
+>
+> However, this is more of "thinking out loud" than "I don't like the
+> series". It's a good series =).
 
-Ditto.
+Thanks. How about I follow this up with a split port/endpoint parsing
+helpers after I get some acks?
 
-> +
-> +		s->r = q_data->c_rect;
-> +		return 0;
-> +
-> +	/*
-> +	 * bound and default crop/compose targets are invalid targets to
-> +	 * try/set
-> +	 */
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (s->r.top < 0 || s->r.left < 0) {
-> +		vpe_err(ctx->dev, "negative values for top and left\n");
-> +		s->r.top = s->r.left = 0;
-> +	}
-> +
-> +	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
-> +		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
-> +
-> +	/* adjust left/top if cropping rectangle is out of bounds */
-> +	if (s->r.left + s->r.width > q_data->width)
-> +		s->r.left = q_data->width - s->r.width;
-> +	if (s->r.top + s->r.height > q_data->height)
-> +		s->r.top = q_data->height - s->r.height;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vpe_g_selection(struct file *file, void *fh,
-> +		struct v4l2_selection *s)
-> +{
-> +	struct vpe_ctx *ctx = file2ctx(file);
-> +	struct vpe_q_data *q_data;
-> +
-> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-> +		return -EINVAL;
-> +
-> +	q_data = get_q_data(ctx, s->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	switch (s->target) {
-> +	/* return width and height from S_FMT of the respective buffer type */
-> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> +		s->r.left = 0;
-> +		s->r.top = 0;
-> +		s->r.width = q_data->width;
-> +		s->r.height = q_data->height;
-
-The crop targets only make sense for type OUTPUT and the compose only for
-type CAPTURE. Add some checks for that.
-
-> +		return 0;
-> +
-> +	/*
-> +	 * CROP target holds for the output buffer type, and COMPOSE target
-> +	 * holds for the capture buffer type. We still return the c_rect params
-> +	 * for both the target types.
-> +	 */
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +	case V4L2_SEL_TGT_CROP:
-> +		s->r.left = q_data->c_rect.left;
-> +		s->r.top = q_data->c_rect.top;
-> +		s->r.width = q_data->c_rect.width;
-> +		s->r.height = q_data->c_rect.height;
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +
-> +static int vpe_s_selection(struct file *file, void *fh,
-> +		struct v4l2_selection *s)
-> +{
-> +	struct vpe_ctx *ctx = file2ctx(file);
-> +	struct vpe_q_data *q_data;
-> +	struct v4l2_selection sel = *s;
-> +	int ret;
-> +
-> +	ret = __vpe_try_selection(ctx, &sel);
-> +	if (ret)
-> +		return ret;
-> +
-> +	q_data = get_q_data(ctx, sel.type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	if ((q_data->c_rect.left == sel.r.left) &&
-> +			(q_data->c_rect.top == sel.r.top) &&
-> +			(q_data->c_rect.width == sel.r.width) &&
-> +			(q_data->c_rect.height == sel.r.height)) {
-> +		vpe_dbg(ctx->dev,
-> +			"requested crop/compose values are already set\n");
-> +		return 0;
-> +	}
-> +
-> +	q_data->c_rect = sel.r;
-> +
-> +	return set_srcdst_params(ctx);
-> +}
-> +
->  static int vpe_reqbufs(struct file *file, void *priv,
->  		       struct v4l2_requestbuffers *reqbufs)
->  {
-> @@ -1674,6 +1812,9 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
->  	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
->  	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
->  
-> +	.vidioc_g_selection		= vpe_g_selection,
-> +	.vidioc_s_selection		= vpe_s_selection,
-> +
->  	.vidioc_reqbufs		= vpe_reqbufs,
->  	.vidioc_querybuf	= vpe_querybuf,
->  
+> > I had no immediate use for the port iteration, so I have taken no steps
+> > to add a function for this. I see no problem to add this later when
+> > somebody needs it, or even rewrite of_graph_get_next_endpoint to use it
+> > if it is feasible. Iterating over endpoints on a given port needs no
+> > helper, as you can just use for_each_child_of_node.
 > 
+> I would have a helper, which should do some sanity checks, like that the
+> node names are "endpoint".
+
+I'd prefer this to be a generic function of_get_next_child_by_name and
+possibly a macro for_each_named_child_of_node wrapping that.
+
+[...]
+> In omapdss each driver handles only the ports and endpoints defined for
+> its device, and they can be considered private to that device. The only
+> reason to look for the remote endpoint is to find the remote device. To
+> me the omapdss model makes sense, and feels logical and sane =). So I
+> have to say I'm not really familiar with the model you're using.
+
+The main difference I see is that a single IPU device will have two port
+nodes handled by the DRM driver and two port nodes handled by the V4L2
+driver, so we can't go back up to the IPU device tree node and iterate
+over all its ports in either the DRM or V4L2 drivers.
+You could argue that all the device tree parsing should be done from the
+IPU drivers, and the DRM and V4L2 drivers should use preparsed internal
+graph structures. But then we are getting into using struct media_entity
+in DRM drivers territory, and rather not go there right now.
+
+regards
+Philipp
 
