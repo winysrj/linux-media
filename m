@@ -1,113 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2545 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878AbaCXDe3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Mar 2014 23:34:29 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2O3YPeX015760
-	for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 04:34:27 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 0FE5A2A188C
-	for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 04:34:18 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3750 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932092AbaCDKmx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:42:53 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140324033418.0FE5A2A188C@tschai.lan>
-Date: Mon, 24 Mar 2014 04:34:18 +0100 (CET)
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 01/18] vb2: Check if there are buffers before streamon
+Date: Tue,  4 Mar 2014 11:42:09 +0100
+Message-Id: <1393929746-39437-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-Results of the daily build of media_tree:
+This patch adds a test preventing streamon() if there is no buffer
+ready.
 
-date:		Mon Mar 24 04:00:13 CET 2014
-git branch:	test
-git hash:	ed97a6fe5308e5982d118a25f0697b791af5ec50
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0
-host hardware:	x86_64
-host os:	3.13-5.slh.4-amd64
+Without this patch, a user could call streamon() before
+preparing any buffer. This leads to a situation where if he calls
+close() before calling streamoff() the device is kept streaming.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0
-sparse: ERRORS
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Detailed results are available here:
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5a5fb7f..a127925 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1776,6 +1776,11 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
+ 		return 0;
+ 	}
+ 
++	if (!q->num_buffers) {
++		dprintk(1, "streamon: no buffers have been allocated\n");
++		return -EINVAL;
++	}
++
+ 	/*
+ 	 * If any buffers were queued before streamon,
+ 	 * we can now pass them to driver for processing.
+-- 
+1.9.0
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
