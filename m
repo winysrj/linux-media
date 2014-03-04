@@ -1,131 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:42550 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190AbaCFGDt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 01:03:49 -0500
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-Subject: [PATCH] [media] s5p-mfc: Add a control for IVF format for VP8 encoder
-Date: Thu,  6 Mar 2014 11:33:39 +0530
-Message-Id: <1394085820-3784-1-git-send-email-arun.kk@samsung.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:60132 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756305AbaCDHuo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 02:50:44 -0500
+Message-ID: <531585CE.9020509@canonical.com>
+Date: Tue, 04 Mar 2014 08:50:38 +0100
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: Daniel Vetter <daniel@ffwll.ch>, Ian Lister <ian.lister@intel.com>
+CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-arch@vger.kernel.org, Colin Cross <ccross@google.com>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"Clark, Rob" <robdclark@gmail.com>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 4/6] android: convert sync to fence api, v4
+References: <20140217155056.20337.25254.stgit@patser>	<20140217155640.20337.13331.stgit@patser> <CAKMK7uESOhk_i8ui1pVknA=6s8oQsBOCTULYszxe5fodcBwTGw@mail.gmail.com>
+In-Reply-To: <CAKMK7uESOhk_i8ui1pVknA=6s8oQsBOCTULYszxe5fodcBwTGw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+op 03-03-14 22:11, Daniel Vetter schreef:
+> On Mon, Feb 17, 2014 at 04:57:19PM +0100, Maarten Lankhorst wrote:
+>> Android syncpoints can be mapped to a timeline. This removes the need
+>> to maintain a separate api for synchronization. I've left the android
+>> trace events in place, but the core fence events should already be
+>> sufficient for debugging.
+>>
+>> v2:
+>> - Call fence_remove_callback in sync_fence_free if not all fences have fired.
+>> v3:
+>> - Merge Colin Cross' bugfixes, and the android fence merge optimization.
+>> v4:
+>> - Merge with the upstream fixes.
+>>
+>> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+>> ---
+> Snipped everything but headers - Ian Lister from our android team is
+> signed up to have a more in-depth look at proper integration with android
+> syncpoints. Adding him to cc.
+>
+>> diff --git a/drivers/staging/android/sync.h b/drivers/staging/android/sync.h
+>> index 62e2255b1c1e..6036dbdc8e6f 100644
+>> --- a/drivers/staging/android/sync.h
+>> +++ b/drivers/staging/android/sync.h
+>> @@ -21,6 +21,7 @@
+>>   #include <linux/list.h>
+>>   #include <linux/spinlock.h>
+>>   #include <linux/wait.h>
+>> +#include <linux/fence.h>
+>>
+>>   struct sync_timeline;
+>>   struct sync_pt;
+>> @@ -40,8 +41,6 @@ struct sync_fence;
+>>    * -1 if a will signal before b
+>>    * @free_pt: called before sync_pt is freed
+>>    * @release_obj: called before sync_timeline is freed
+>> - * @print_obj: deprecated
+>> - * @print_pt: deprecated
+>>    * @fill_driver_data: write implementation specific driver data to data.
+>>    *  should return an error if there is not enough room
+>>    *  as specified by size.  This information is returned
+>> @@ -67,13 +66,6 @@ struct sync_timeline_ops {
+>>    /* optional */
+>>    void (*release_obj)(struct sync_timeline *sync_timeline);
+>>
+>> - /* deprecated */
+>> - void (*print_obj)(struct seq_file *s,
+>> -  struct sync_timeline *sync_timeline);
+>> -
+>> - /* deprecated */
+>> - void (*print_pt)(struct seq_file *s, struct sync_pt *sync_pt);
+>> -
+>>    /* optional */
+>>    int (*fill_driver_data)(struct sync_pt *syncpt, void *data, int size);
+>>
+>> @@ -104,42 +96,48 @@ struct sync_timeline {
+>>
+>>    /* protected by child_list_lock */
+>>    bool destroyed;
+>> + int context, value;
+>>
+>>    struct list_head child_list_head;
+>>    spinlock_t child_list_lock;
+>>
+>>    struct list_head active_list_head;
+>> - spinlock_t active_list_lock;
+>>
+>> +#ifdef CONFIG_DEBUG_FS
+>>    struct list_head sync_timeline_list;
+>> +#endif
+>>   };
+>>
+>>   /**
+>>    * struct sync_pt - sync point
+>> - * @parent: sync_timeline to which this sync_pt belongs
+>> + * @fence: base fence class
+>>    * @child_list: membership in sync_timeline.child_list_head
+>>    * @active_list: membership in sync_timeline.active_list_head
+>> +<<<<<<< current
+>>    * @signaled_list: membership in temporary signaled_list on stack
+>>    * @fence: sync_fence to which the sync_pt belongs
+>>    * @pt_list: membership in sync_fence.pt_list_head
+>>    * @status: 1: signaled, 0:active, <0: error
+>>    * @timestamp: time which sync_pt status transitioned from active to
+>>    *  signaled or error.
+>> +=======
+>> +>>>>>>> patched
+> Conflict markers ...
+Oops.
+>>    */
+>>   struct sync_pt {
+>> - struct sync_timeline *parent;
+>> - struct list_head child_list;
+>> + struct fence base;
+> Hm, embedding feels wrong, since that still means that I'll need to
+> implement two kinds of fences in i915 - one using the seqno fence to make
+> dma-buf sync work, and one to implmenent sync_pt to make the android folks
+> happy.
+>
+> If I can dream I think we should have a pointer to an underlying fence
+> here, i.e. a struct sync_pt would just be a userspace interface wrapper to
+> do explicit syncing using native fences, instead of implicit syncing like
+> with dma-bufs. But this is all drive-by comments from a very cursory
+> high-level look. I might be full of myself again ;-)
+> -Daniel
+>
+No, the idea is that because android syncpoint is simply another type of dma-fence, that if you deal with normal fences then android can automatically
+be handled too. The userspace fence api android exposes could be very easily made to work for dma-fence, just pass a dma-fence to sync_fence_create.
+So exposing dma-fence would probably work for android too.
 
-Add a control to enable/disable IVF output stream format for VP8 encode.
-Set the IVF format output to disabled as default.
-
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml    |    8 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   11 +++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    2 ++
- drivers/media/v4l2-core/v4l2-ctrls.c            |    1 +
- include/uapi/linux/v4l2-controls.h              |    1 +
- 6 files changed, 24 insertions(+)
-
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 0e1770c..07fb64a 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3222,6 +3222,14 @@ V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame.</entry>
- Acceptable values are 0, 1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.</entry>
- 	      </row>
- 
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_IVF_FORMAT</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Outputs the VP8 encoded stream in IVF file format.</entry>
-+	      </row>
-+
-           <row><entry></entry></row>
-         </tbody>
-       </tgroup>
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 5c28cc3..4d17df9 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -418,6 +418,7 @@ struct s5p_mfc_vp8_enc_params {
- 	u8 rc_frame_qp;
- 	u8 rc_p_frame_qp;
- 	u8 profile;
-+	bool ivf;
- };
- 
- /**
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index df83cd1..a67913e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -676,6 +676,14 @@ static struct mfc_control controls[] = {
- 		.step = 1,
- 		.default_value = 0,
- 	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_VPX_IVF_FORMAT,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
- };
- 
- #define NUM_CTRLS ARRAY_SIZE(controls)
-@@ -1636,6 +1644,9 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
- 		p->codec.vp8.profile = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_VPX_IVF_FORMAT:
-+		p->codec.vp8.ivf = ctrl->val;
-+		break;
- 	default:
- 		v4l2_err(&dev->v4l2_dev, "Invalid control, id=%d, val=%d\n",
- 							ctrl->id, ctrl->val);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index f64621a..90edb19 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -1243,6 +1243,8 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
- 
- 	/* VP8 specific params */
- 	reg = 0;
-+	/* Bit set to 1 disables IVF stream format. */
-+	reg |= p_vp8->ivf ? 0 : (0x1 << 12);
- 	reg |= (p_vp8->imd_4x4 & 0x1) << 10;
- 	switch (p_vp8->num_partitions) {
- 	case V4L2_CID_MPEG_VIDEO_VPX_1_PARTITION:
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e9e12c4..19e78df 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -752,6 +752,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP:		return "VPX I-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
-+	case V4L2_CID_MPEG_VIDEO_VPX_IVF_FORMAT:		return "VPX Output stream in IVF format";
- 
- 	/* CAMERA controls */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index cda6fa0..b2763d6 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -565,6 +565,7 @@ enum v4l2_vp8_golden_frame_sel {
- #define V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP		(V4L2_CID_MPEG_BASE+509)
- #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
- #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
-+#define V4L2_CID_MPEG_VIDEO_VPX_IVF_FORMAT		(V4L2_CID_MPEG_BASE+512)
- 
- /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
- #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
--- 
-1.7.9.5
-
+~Maarten
