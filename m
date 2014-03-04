@@ -1,89 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49216 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753999AbaCCJtZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 04:49:25 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 4/4] [media] DocBook: document DVB DMX_[ADD|REMOVE]_PID
-Date: Mon,  3 Mar 2014 06:48:47 -0300
-Message-Id: <1393840127-22081-4-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393840127-22081-1-git-send-email-m.chehab@samsung.com>
-References: <1393840127-22081-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2748 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756780AbaCDKnY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv4 PATCH 08/18] vb2: consistent usage of periods in videobuf2-core.h
+Date: Tue,  4 Mar 2014 11:42:16 +0100
+Message-Id: <1393929746-39437-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those ioctls were added back in 2009, at changeset 1cb662a3144
-but were never documented. Fortunately, the original commit is
-good enough to serve as the basis for documenting it. Also, the
-support for it is done by dmxdev implementation.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-So, add a proper documentation for it, based on the description
-of the original changeset.
+Sometimes sentences in comments ended with a period, and sometimes they
+didn't. Add periods. No other changes.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/dvb/demux.xml | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ include/media/videobuf2-core.h | 40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/Documentation/DocBook/media/dvb/demux.xml b/Documentation/DocBook/media/dvb/demux.xml
-index 86de89cfbd67..c8683d66f059 100644
---- a/Documentation/DocBook/media/dvb/demux.xml
-+++ b/Documentation/DocBook/media/dvb/demux.xml
-@@ -1042,7 +1042,14 @@ role="subsection"><title>DMX_ADD_PID</title>
- </para>
- <informaltable><tgroup cols="1"><tbody><row><entry
-  align="char">
--<para>This ioctl is undocumented. Documentation is welcome.</para>
-+<para>This ioctl call allows to add multiple PIDs to a transport stream filter
-+previously set up with DMX_SET_PES_FILTER and output equal to DMX_OUT_TSDEMUX_TAP.
-+</para></entry></row><row><entry align="char"><para>
-+It is used by readers of /dev/dvb/adapterX/demuxY.
-+</para></entry></row><row><entry align="char"><para>
-+It may be called at any time, i.e. before or after the first filter on the
-+shared file descriptor was started. It makes it possible to record multiple
-+services without the need to de-multiplex or re-multiplex TS packets.</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
- <para>SYNOPSIS
-@@ -1075,7 +1082,7 @@ role="subsection"><title>DMX_ADD_PID</title>
- </para>
- </entry><entry
-  align="char">
--<para>Undocumented.</para>
-+<para>PID number to be filtered.</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
- &return-value-dvb;
-@@ -1087,7 +1094,15 @@ role="subsection"><title>DMX_REMOVE_PID</title>
- </para>
- <informaltable><tgroup cols="1"><tbody><row><entry
-  align="char">
--<para>This ioctl is undocumented. Documentation is welcome.</para>
-+<para>This ioctl call allows to remove a PID when multiple PIDs are set on a
-+transport stream filter, e. g. a filter previously set up with output equal to
-+DMX_OUT_TSDEMUX_TAP, created via either DMX_SET_PES_FILTER or DMX_ADD_PID.
-+</para></entry></row><row><entry align="char"><para>
-+It is used by readers of /dev/dvb/adapterX/demuxY.
-+</para></entry></row><row><entry align="char"><para>
-+It may be called at any time, i.e. before or after the first filter on the
-+shared file descriptor was started. It makes it possible to record multiple
-+services without the need to de-multiplex or re-multiplex TS packets.</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
- <para>SYNOPSIS
-@@ -1120,7 +1135,7 @@ role="subsection"><title>DMX_REMOVE_PID</title>
- </para>
- </entry><entry
-  align="char">
--<para>Undocumented.</para>
-+<para>PID of the PES filter to be removed.</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
- &return-value-dvb;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 3cb0bcf..06efa4a 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -34,49 +34,49 @@ struct vb2_fileio_data;
+  *		usually will result in the allocator freeing the buffer (if
+  *		no other users of this buffer are present); the buf_priv
+  *		argument is the allocator private per-buffer structure
+- *		previously returned from the alloc callback
++ *		previously returned from the alloc callback.
+  * @get_userptr: acquire userspace memory for a hardware operation; used for
+  *		 USERPTR memory types; vaddr is the address passed to the
+  *		 videobuf layer when queuing a video buffer of USERPTR type;
+  *		 should return an allocator private per-buffer structure
+  *		 associated with the buffer on success, NULL on failure;
+  *		 the returned private structure will then be passed as buf_priv
+- *		 argument to other ops in this structure
++ *		 argument to other ops in this structure.
+  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
+- *		 be used
++ *		 be used.
+  * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
+  *		   used for DMABUF memory types; alloc_ctx is the alloc context
+  *		   dbuf is the shared dma_buf; returns NULL on failure;
+  *		   allocator private per-buffer structure on success;
+- *		   this needs to be used for further accesses to the buffer
++ *		   this needs to be used for further accesses to the buffer.
+  * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
+  *		   buffer is no longer used; the buf_priv argument is the
+  *		   allocator private per-buffer structure previously returned
+- *		   from the attach_dmabuf callback
++ *		   from the attach_dmabuf callback.
+  * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
+  *		of dmabuf is informed that this driver is going to use the
+- *		dmabuf
++ *		dmabuf.
+  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
+- *		  that this driver is done using the dmabuf for now
++ *		  that this driver is done using the dmabuf for now.
+  * @prepare:	called every time the buffer is passed from userspace to the
+- *		driver, useful for cache synchronisation, optional
++ *		driver, useful for cache synchronisation, optional.
+  * @finish:	called every time the buffer is passed back from the driver
+- *		to the userspace, also optional
++ *		to the userspace, also optional.
+  * @vaddr:	return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+- *		such mapping exists
++ *		such mapping exists.
+  * @cookie:	return allocator specific cookie for a given memory buffer
+  *		associated with the passed private structure or NULL if not
+- *		available
++ *		available.
+  * @num_users:	return the current number of users of a memory buffer;
+  *		return 1 if the videobuf layer (or actually the driver using
+- *		it) is the only user
++ *		it) is the only user.
+  * @mmap:	setup a userspace mapping for a given memory buffer under
+- *		the provided virtual memory region
++ *		the provided virtual memory region.
+  *
+  * Required ops for USERPTR types: get_userptr, put_userptr.
+  * Required ops for MMAP types: alloc, put, num_users, mmap.
+- * Required ops for read/write access types: alloc, put, num_users, vaddr
++ * Required ops for read/write access types: alloc, put, num_users, vaddr.
+  * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
+  *				  unmap_dmabuf.
+  */
+@@ -258,22 +258,22 @@ struct vb2_buffer {
+  * @wait_prepare:	release any locks taken while calling vb2 functions;
+  *			it is called before an ioctl needs to wait for a new
+  *			buffer to arrive; required to avoid a deadlock in
+- *			blocking access type
++ *			blocking access type.
+  * @wait_finish:	reacquire all locks released in the previous callback;
+  *			required to continue operation after sleeping while
+- *			waiting for a new buffer to arrive
++ *			waiting for a new buffer to arrive.
+  * @buf_init:		called once after allocating a buffer (in MMAP case)
+  *			or after acquiring a new USERPTR buffer; drivers may
+  *			perform additional buffer-related initialization;
+  *			initialization failure (return != 0) will prevent
+- *			queue setup from completing successfully; optional
++ *			queue setup from completing successfully; optional.
+  * @buf_prepare:	called every time the buffer is queued from userspace
+  *			and from the VIDIOC_PREPARE_BUF ioctl; drivers may
+  *			perform any initialization required before each hardware
+  *			operation in this callback; drivers that support
+  *			VIDIOC_CREATE_BUFS must also validate the buffer size;
+  *			if an error is returned, the buffer will not be queued
+- *			in driver; optional
++ *			in driver; optional.
+  * @buf_finish:		called before every dequeue of the buffer back to
+  *			userspace; drivers may perform any operations required
+  *			before userspace accesses the buffer; optional. The
+@@ -286,7 +286,7 @@ struct vb2_buffer {
+  *			all other cases the buffer contents will be ignored
+  *			anyway.
+  * @buf_cleanup:	called once before the buffer is freed; drivers may
+- *			perform any additional cleanup; optional
++ *			perform any additional cleanup; optional.
+  * @start_streaming:	called once to enter 'streaming' state; the driver may
+  *			receive buffers with @buf_queue callback before
+  *			@start_streaming is called; the driver gets the number
+@@ -307,7 +307,7 @@ struct vb2_buffer {
+  *			the buffer back by calling vb2_buffer_done() function;
+  *			it is allways called after calling STREAMON ioctl;
+  *			might be called before start_streaming callback if user
+- *			pre-queued buffers before calling STREAMON
++ *			pre-queued buffers before calling STREAMON.
+  */
+ struct vb2_ops {
+ 	int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
 -- 
-1.8.5.3
+1.9.0
 
