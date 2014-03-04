@@ -1,52 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52830 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756507AbaCDIuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Mar 2014 03:50:20 -0500
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<hverkuil@xs4all.nl>, Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 3/7] v4l: ti-vpe: Use video_device_release_empty
-Date: Tue, 4 Mar 2014 14:19:21 +0530
-Message-ID: <1393922965-15967-4-git-send-email-archit@ti.com>
-In-Reply-To: <1393922965-15967-1-git-send-email-archit@ti.com>
-References: <1393832008-22174-1-git-send-email-archit@ti.com>
- <1393922965-15967-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45163 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756618AbaCDKMj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:12:39 -0500
+Message-ID: <1393927933.3917.4.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v5 3/7] of: Warn if of_graph_get_next_endpoint is called
+ with the root node
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Date: Tue, 04 Mar 2014 11:12:13 +0100
+In-Reply-To: <5310FB05.4000307@gmail.com>
+References: <1393522540-22887-1-git-send-email-p.zabel@pengutronix.de>
+	 <1393522540-22887-4-git-send-email-p.zabel@pengutronix.de>
+	 <5310FB05.4000307@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video_device struct is currently embedded in the driver data struct vpe_dev.
-A vpe_dev instance is allocated by the driver, and the memory for the vfd is a
-part of this struct.
+Am Freitag, den 28.02.2014, 22:09 +0100 schrieb Sylwester Nawrocki:
+> On 02/27/2014 06:35 PM, Philipp Zabel wrote:
+> > If of_graph_get_next_endpoint is given a parentless node instead of an
+> > endpoint node, it is clearly a bug.
+> >
+> > Signed-off-by: Philipp Zabel<p.zabel@pengutronix.de>
+> > ---
+> >   drivers/of/base.c | 4 ++--
+> >   1 file changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/of/base.c b/drivers/of/base.c
+> > index b2f223f..6e650cf 100644
+> > --- a/drivers/of/base.c
+> > +++ b/drivers/of/base.c
+> > @@ -2028,8 +2028,8 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+> >   		of_node_put(node);
+> >   	} else {
+> >   		port = of_get_parent(prev);
+> > -		if (!port)
+> > -			/* Hm, has someone given us the root node ?... */
+> > +		if (WARN_ONCE(!port, "%s(): endpoint has no parent node\n",
+> > +			      __func__))
+> 
+> Perhaps we can add more information to this error log, e.g.
+>
+> 		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
+> 			      __func__, prev->full_name))
+> ?
 
-The v4l2 core, however, manages the removal of the vfd region, through the
-video_device's .release() op, which currently is the helper
-video_device_release. This causes memory corruption, and leads to issues when
-we try to re-insert the vpe module.
+Yes, I'll include this change next time.
 
-Use the video_device_release_empty helper function instead
-
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 4243687..bb275f4 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1998,7 +1998,7 @@ static struct video_device vpe_videodev = {
- 	.fops		= &vpe_fops,
- 	.ioctl_ops	= &vpe_ioctl_ops,
- 	.minor		= -1,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- 	.vfl_dir	= VFL_DIR_M2M,
- };
- 
--- 
-1.8.3.2
+thanks
+Philipp
 
