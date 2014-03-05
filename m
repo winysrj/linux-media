@@ -1,71 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48921 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647AbaCGASI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 19:18:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, marbugge@cisco.com
-Subject: Re: [RFCv1 PATCH 0/4] add G/S_EDID support for video nodes
-Date: Fri, 07 Mar 2014 01:19:38 +0100
-Message-ID: <2019495.ODacH4EFDT@avalon>
-In-Reply-To: <5318710C.1070204@xs4all.nl>
-References: <1393932659-13817-1-git-send-email-hverkuil@xs4all.nl> <2719510.vO5HGhFCIt@avalon> <5318710C.1070204@xs4all.nl>
+Received: from aserp1040.oracle.com ([141.146.126.69]:21580 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755028AbaCELLI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 06:11:08 -0500
+Date: Wed, 5 Mar 2014 14:09:37 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch v2] [patch] [media] em28xx-cards: remove a wrong indent level
+Message-ID: <20140305110937.GC16926@elgon.mountain>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <530B8995.8030807@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This code is correct but the indenting is wrong and triggers a static
+checker warning "add curly braces?".
 
-On Thursday 06 March 2014 13:58:52 Hans Verkuil wrote:
-> On 03/06/14 11:37, Laurent Pinchart wrote:
-> > On Thursday 06 March 2014 08:35:07 Hans Verkuil wrote:
-> >> On 03/06/2014 02:45 AM, Laurent Pinchart wrote:
-> >>> On Tuesday 04 March 2014 12:30:55 Hans Verkuil wrote:
-> >>>> Currently the VIDIOC_SUBDEV_G/S_EDID and struct v4l2_subdev_edid are
-> >>>> subdev APIs. However, that's in reality quite annoying since for simple
-> >>>> video pipelines there is no need to create v4l-subdev device nodes for
-> >>>> anything else except for setting or getting EDIDs.
-> >>>> 
-> >>>> What happens in practice is that v4l2 bridge drivers add explicit
-> >>>> support for VIDIOC_SUBDEV_G/S_EDID themselves, just to avoid having to
-> >>>> create subdev device nodes just for this.
-> >>>> 
-> >>>> So this patch series makes the ioctls available as regular ioctls as
-> >>>> well. In that case the pad field should be set to 0 and the bridge
-> >>>> driver will fill in the right pad value internally depending on the
-> >>>> current input or output and pass it along to the actual subdev driver.
-> >>> 
-> >>> Would it make sense to allow usage of the pad field on video nodes as
-> >>> well ?
-> >> 
-> >> No, really not. The video node driver has full control over which
-> >> inputs/outputs map to which pads. None of that is (or should be) visible
-> >> from userspace.
-> > 
-> > What about using the pad field as an input number in that case ? That
-> > would allow getting and setting EDID for the different inputs without
-> > requiring to change the active input, just like we can do with the subdev
-> > API.
-> 
-> That's a good idea. How should I do that with the v4l2_edid struct: just
-> expect userspace to fill in the pad but interpret it differently, or change
-> it to a union:
-> 
-> 	union {
-> 		__u32 pad;
-> 		__u32 input;
-> 		__u32 output;
-> 	};
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2: in v1 I added curly braces.
 
-I think I woul djust document the pad field as being used as an input or 
-output number in that case, to keep the code simpler, but I'm fine with a 
-union if you find it cleaner.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 4d97a76cc3b0..33f06ffec4b2 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3331,8 +3331,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 	if (has_video) {
+ 	    if (!dev->analog_ep_isoc || (try_bulk && dev->analog_ep_bulk))
+ 		dev->analog_xfer_bulk = 1;
+-		em28xx_info("analog set to %s mode.\n",
+-			    dev->analog_xfer_bulk ? "bulk" : "isoc");
++	    em28xx_info("analog set to %s mode.\n",
++			dev->analog_xfer_bulk ? "bulk" : "isoc");
+ 	}
+ 	if (has_dvb) {
+ 	    if (!dev->dvb_ep_isoc || (try_bulk && dev->dvb_ep_bulk))
