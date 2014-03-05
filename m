@@ -1,406 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49314 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753964AbaCCKHv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:51 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 17/79] [media] drx-j: Remove a bunch of unused but assigned vars
-Date: Mon,  3 Mar 2014 07:06:11 -0300
-Message-Id: <1393841233-24840-18-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40007 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573AbaCETWl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 14:22:41 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 1/6] v4l: vsp1: Support multi-input entities
+Date: Wed,  5 Mar 2014 20:23:59 +0100
+Message-Id: <1394047444-30077-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1394047444-30077-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1394047444-30077-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-None of those vars are used on those functions. Just remove them.
+Rework the route configuration code to support entities with multiple
+sink pads.
 
-After this patch, there's just one of such warnings:
-
-	drivers/media/dvb-frontends/drx39xyj/drxj.c: In function 'ctrl_get_qam_sig_quality':
-	drivers/media/dvb-frontends/drx39xyj/drxj.c:7872:6: warning: variable 'ber_cnt' set but not used [-Wunused-but-set-variable]
-	  u32 ber_cnt = 0; /* BER count */
-
-We'll keep it, as BER count will be useful when converting the
-frontend to report statistics via DVBv5 API
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 136 ++++++----------------------
- 1 file changed, 29 insertions(+), 107 deletions(-)
+ drivers/media/platform/vsp1/vsp1_entity.c | 54 +++++++++++++++----------------
+ drivers/media/platform/vsp1/vsp1_entity.h | 23 +++++++++++--
+ drivers/media/platform/vsp1/vsp1_hsit.c   |  7 ++--
+ drivers/media/platform/vsp1/vsp1_lif.c    |  1 -
+ drivers/media/platform/vsp1/vsp1_lut.c    |  1 -
+ drivers/media/platform/vsp1/vsp1_rpf.c    |  1 -
+ drivers/media/platform/vsp1/vsp1_sru.c    |  1 -
+ drivers/media/platform/vsp1/vsp1_uds.c    |  1 -
+ drivers/media/platform/vsp1/vsp1_video.c  |  7 ++--
+ drivers/media/platform/vsp1/vsp1_wpf.c    |  1 -
+ 10 files changed, 54 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 5bf215e33f2f..24f84e5d5bd0 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -3341,13 +3341,10 @@ static int
- ctrl_get_cfg_hw_cfg(pdrx_demod_instance_t demod, p_drxj_cfg_hw_cfg_t cfg_data)
- {
- 	u16 data = 0;
--	pdrxj_data_t ext_attr = (pdrxj_data_t) (NULL);
- 
--	if (cfg_data == NULL) {
-+	if (cfg_data == NULL)
- 		return (DRX_STS_INVALID_ARG);
--	}
- 
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
- 	WR16(demod->my_i2c_dev_addr, SIO_TOP_COMM_KEY__A, 0xFABA);
- 	RR16(demod->my_i2c_dev_addr, SIO_PDR_OHW_CFG__A, &data);
- 	WR16(demod->my_i2c_dev_addr, SIO_TOP_COMM_KEY__A, 0x0000);
-@@ -4299,11 +4296,7 @@ rw_error:
- static int iqm_set_af(pdrx_demod_instance_t demod, bool active)
- {
- 	u16 data = 0;
--	struct i2c_device_addr *dev_addr = NULL;
--	pdrxj_data_t ext_attr = NULL;
--
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
--	dev_addr = demod->my_i2c_dev_addr;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
- 
- 	/* Configure IQM */
- 	RR16(dev_addr, IQM_AF_STDBY__A, &data);
-@@ -4315,7 +4308,6 @@ static int iqm_set_af(pdrx_demod_instance_t demod, bool active)
- 			 & (~IQM_AF_STDBY_STDBY_TAGC_RF_A2_ACTIVE)
- 		    );
- 	} else {		/* active */
--
- 		data |= (IQM_AF_STDBY_STDBY_ADC_A2_ACTIVE
- 			 | IQM_AF_STDBY_STDBY_AMP_A2_ACTIVE
- 			 | IQM_AF_STDBY_STDBY_PD_A2_ACTIVE
-@@ -4342,17 +4334,14 @@ ctrl_set_cfg_atv_output(pdrx_demod_instance_t demod, p_drxj_cfg_atv_output_t out
- static int
- ctrl_set_cfg_pdr_safe_mode(pdrx_demod_instance_t demod, bool *enable)
- {
--	pdrxj_data_t ext_attr = (pdrxj_data_t) NULL;
--	struct i2c_device_addr *dev_addr = (struct i2c_device_addr *)NULL;
--	pdrx_common_attr_t common_attr = (pdrx_common_attr_t) NULL;
-+	pdrxj_data_t ext_attr = NULL;
-+	struct i2c_device_addr *dev_addr = NULL;
- 
--	if (enable == NULL) {
-+	if (enable == NULL)
- 		return (DRX_STS_INVALID_ARG);
--	}
- 
- 	dev_addr = demod->my_i2c_dev_addr;
- 	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
--	common_attr = demod->my_common_attr;
- 
- 	/*  Write magic word to enable pdr reg write  */
- 	WR16(dev_addr, SIO_TOP_COMM_KEY__A, SIO_TOP_COMM_KEY_KEY);
-@@ -4744,27 +4733,22 @@ static int
- set_frequency(pdrx_demod_instance_t demod,
- 	      pdrx_channel_t channel, s32 tuner_freq_offset)
- {
--	struct i2c_device_addr *dev_addr = NULL;
--	pdrx_common_attr_t common_attr = NULL;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
-+	pdrxj_data_t ext_attr = demod->my_ext_attr;
- 	s32 sampling_frequency = 0;
- 	s32 frequency_shift = 0;
- 	s32 if_freq_actual = 0;
--	s32 rf_freq_residual = 0;
-+	s32 rf_freq_residual = -1 * tuner_freq_offset;
- 	s32 adc_freq = 0;
- 	s32 intermediate_freq = 0;
- 	u32 iqm_fs_rate_ofs = 0;
--	pdrxj_data_t ext_attr = NULL;
- 	bool adc_flip = true;
- 	bool select_pos_image = false;
--	bool rf_mirror = false;
--	bool tuner_mirror = true;
-+	bool rf_mirror;
-+	bool tuner_mirror;
- 	bool image_to_select = true;
- 	s32 fm_frequency_shift = 0;
- 
--	dev_addr = demod->my_i2c_dev_addr;
--	common_attr = (pdrx_common_attr_t) demod->my_common_attr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
--	rf_freq_residual = -1 * tuner_freq_offset;
- 	rf_mirror = (ext_attr->mirror == DRX_MIRROR_YES) ? true : false;
- 	tuner_mirror = demod->my_common_attr->mirror_freq_spect ? false : true;
- 	/*
-@@ -4851,17 +4835,13 @@ rw_error:
- 
- static int get_sig_strength(pdrx_demod_instance_t demod, u16 *sig_strength)
- {
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
- 	u16 rf_gain = 0;
- 	u16 if_gain = 0;
- 	u16 if_agc_sns = 0;
- 	u16 if_agc_top = 0;
- 	u16 rf_agc_max = 0;
- 	u16 rf_agc_min = 0;
--	pdrxj_data_t ext_attr = NULL;
--	struct i2c_device_addr *dev_addr = NULL;
--
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
--	dev_addr = demod->my_i2c_dev_addr;
- 
- 	RR16(dev_addr, IQM_AF_AGC_IF__A, &if_gain);
- 	if_gain &= IQM_AF_AGC_IF__M;
-@@ -4976,13 +4956,8 @@ static int get_str_freq_offset(pdrx_demod_instance_t demod, s32 *str_freq)
- 	u32 symbol_frequency_ratio = 0;
- 	u32 symbol_nom_frequency_ratio = 0;
- 
--	enum drx_standard standard = DRX_STANDARD_UNKNOWN;
--	struct i2c_device_addr *dev_addr = NULL;
--	pdrxj_data_t ext_attr = NULL;
--
--	dev_addr = demod->my_i2c_dev_addr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
--	standard = ext_attr->standard;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
-+	pdrxj_data_t ext_attr = demod->my_ext_attr;
- 
- 	ARR32(dev_addr, IQM_RC_RATE_LO__A, &symbol_frequency_ratio);
- 	symbol_nom_frequency_ratio = ext_attr->iqm_rc_rate_ofs;
-@@ -5607,7 +5582,7 @@ rw_error:
- */
- static int power_down_vsb(pdrx_demod_instance_t demod, bool primary)
- {
--	struct i2c_device_addr *dev_addr = NULL;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
- 	drxjscu_cmd_t cmd_scu = { /* command     */ 0,
- 		/* parameter_len */ 0,
- 		/* result_len    */ 0,
-@@ -5615,11 +5590,8 @@ static int power_down_vsb(pdrx_demod_instance_t demod, bool primary)
- 		/* *result      */ NULL
- 	};
- 	u16 cmd_result = 0;
--	pdrxj_data_t ext_attr = NULL;
- 	drx_cfg_mpeg_output_t cfg_mpeg_output;
- 
--	dev_addr = demod->my_i2c_dev_addr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
- 	/*
- 	   STOP demodulator
- 	   reset of FEC and VSB HW
-@@ -6303,13 +6275,9 @@ static int power_down_qam(pdrx_demod_instance_t demod, bool primary)
- 		/* *result      */ NULL
- 	};
- 	u16 cmd_result = 0;
--	struct i2c_device_addr *dev_addr = NULL;
--	pdrxj_data_t ext_attr = NULL;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
- 	drx_cfg_mpeg_output_t cfg_mpeg_output;
- 
--	dev_addr = demod->my_i2c_dev_addr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
--
- 	/*
- 	   STOP demodulator
- 	   resets IQM, QAM and FEC HW blocks
-@@ -8626,17 +8594,14 @@ ctrl_get_cfg_atv_agc_status(pdrx_demod_instance_t demod,
- 			    p_drxj_cfg_atv_agc_status_t agc_status)
- {
- 	struct i2c_device_addr *dev_addr = NULL;
--	pdrxj_data_t ext_attr = NULL;
- 	u16 data = 0;
- 	u32 tmp = 0;
- 
- 	/* Check arguments */
--	if (agc_status == NULL) {
-+	if (agc_status == NULL)
- 		return DRX_STS_INVALID_ARG;
--	}
- 
- 	dev_addr = demod->my_i2c_dev_addr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
- 
- 	/*
- 	   RFgain = (IQM_AF_AGC_RF__A * 26.75)/1000 (uA)
-@@ -8728,11 +8693,7 @@ rw_error:
- */
- static int power_up_atv(pdrx_demod_instance_t demod, enum drx_standard standard)
- {
--	struct i2c_device_addr *dev_addr = NULL;
--	pdrxj_data_t ext_attr = NULL;
--
--	dev_addr = demod->my_i2c_dev_addr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
- 
- 	/* ATV NTSC */
- 	WR16(dev_addr, ATV_COMM_EXEC__A, ATV_COMM_EXEC_ACTIVE);
-@@ -8766,7 +8727,7 @@ rw_error:
- static int
- power_down_atv(pdrx_demod_instance_t demod, enum drx_standard standard, bool primary)
- {
--	struct i2c_device_addr *dev_addr = NULL;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
- 	drxjscu_cmd_t cmd_scu = { /* command      */ 0,
- 		/* parameter_len */ 0,
- 		/* result_len    */ 0,
-@@ -8774,10 +8735,7 @@ power_down_atv(pdrx_demod_instance_t demod, enum drx_standard standard, bool pri
- 		/* *result      */ NULL
- 	};
- 	u16 cmd_result = 0;
--	pdrxj_data_t ext_attr = NULL;
- 
--	dev_addr = demod->my_i2c_dev_addr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
- 	/* ATV NTSC */
- 
- 	/* Stop ATV SCU (will reset ATV and IQM hardware */
-@@ -9511,11 +9469,7 @@ get_atv_channel(pdrx_demod_instance_t demod,
- 		pdrx_channel_t channel, enum drx_standard standard)
- {
- 	s32 offset = 0;
--	struct i2c_device_addr *dev_addr = NULL;
--	pdrxj_data_t ext_attr = NULL;
--
--	dev_addr = demod->my_i2c_dev_addr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
- 
- 	/* Bandwidth */
- 	channel->bandwidth = ((pdrxj_data_t) demod->my_ext_attr)->curr_bandwidth;
-@@ -10580,16 +10534,12 @@ static int
- aud_ctrl_get_cfg_auto_sound(pdrx_demod_instance_t demod,
- 			    pdrx_cfg_aud_auto_sound_t auto_sound)
- {
--	struct i2c_device_addr *dev_addr = (struct i2c_device_addr *)NULL;
--	pdrxj_data_t ext_attr = (pdrxj_data_t) NULL;
--
-+	pdrxj_data_t ext_attr = NULL;
- 	u16 r_modus = 0;
- 
--	if (auto_sound == NULL) {
-+	if (auto_sound == NULL)
- 		return DRX_STS_INVALID_ARG;
--	}
- 
--	dev_addr = demod->my_i2c_dev_addr;
- 	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
- 
- 	/* power up */
-@@ -11315,17 +11265,10 @@ rw_error:
- static int
- aud_ctrl_get_cfg_dev(pdrx_demod_instance_t demod, pdrx_cfg_aud_deviation_t dev)
- {
--	struct i2c_device_addr *dev_addr = (struct i2c_device_addr *)NULL;
--	pdrxj_data_t ext_attr = (pdrxj_data_t) NULL;
--
- 	u16 r_modus = 0;
- 
--	if (dev == NULL) {
-+	if (dev == NULL)
- 		return DRX_STS_INVALID_ARG;
--	}
--
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
--	dev_addr = demod->my_i2c_dev_addr;
- 
- 	CHK_ERROR(aud_get_modus(demod, &r_modus));
- 
-@@ -12395,11 +12338,7 @@ rw_error:
- static int set_orx_nsu_aox(pdrx_demod_instance_t demod, bool active)
- {
- 	u16 data = 0;
--	struct i2c_device_addr *dev_addr = NULL;
--	pdrxj_data_t ext_attr = NULL;
--
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
--	dev_addr = demod->my_i2c_dev_addr;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
- 
- 	/* Configure NSU_AOX */
- 	RR16(dev_addr, ORX_NSU_AOX_STDBY_W__A, &data);
-@@ -12458,7 +12397,6 @@ rw_error:
- static int ctrl_set_oob(pdrx_demod_instance_t demod, p_drxoob_t oob_param)
- {
- #ifndef DRXJ_DIGITAL_ONLY
--	drxoob_downstream_standard_t standard = DRX_OOB_MODE_A;
- 	s32 freq = 0;	/* KHz */
- 	struct i2c_device_addr *dev_addr = NULL;
- 	pdrxj_data_t ext_attr = NULL;
-@@ -12503,8 +12441,6 @@ static int ctrl_set_oob(pdrx_demod_instance_t demod, p_drxoob_t oob_param)
- 		return (DRX_STS_OK);
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 0226e47..966b185 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -100,8 +100,10 @@ static int vsp1_entity_link_setup(struct media_entity *entity,
+ 		if (source->sink)
+ 			return -EBUSY;
+ 		source->sink = remote->entity;
++		source->sink_pad = remote->index;
+ 	} else {
+ 		source->sink = NULL;
++		source->sink_pad = 0;
  	}
  
--	standard = oob_param->standard;
+ 	return 0;
+@@ -116,42 +118,40 @@ const struct media_entity_operations vsp1_media_ops = {
+  * Initialization
+  */
+ 
++static const struct vsp1_route vsp1_routes[] = {
++	{ VSP1_ENTITY_HSI, 0, VI6_DPR_HSI_ROUTE, { VI6_DPR_NODE_HSI, } },
++	{ VSP1_ENTITY_HST, 0, VI6_DPR_HST_ROUTE, { VI6_DPR_NODE_HST, } },
++	{ VSP1_ENTITY_LIF, 0, 0, { VI6_DPR_NODE_LIF, } },
++	{ VSP1_ENTITY_LUT, 0, VI6_DPR_LUT_ROUTE, { VI6_DPR_NODE_LUT, } },
++	{ VSP1_ENTITY_RPF, 0, VI6_DPR_RPF_ROUTE(0), { VI6_DPR_NODE_RPF(0), } },
++	{ VSP1_ENTITY_RPF, 1, VI6_DPR_RPF_ROUTE(1), { VI6_DPR_NODE_RPF(1), } },
++	{ VSP1_ENTITY_RPF, 2, VI6_DPR_RPF_ROUTE(2), { VI6_DPR_NODE_RPF(2), } },
++	{ VSP1_ENTITY_RPF, 3, VI6_DPR_RPF_ROUTE(3), { VI6_DPR_NODE_RPF(3), } },
++	{ VSP1_ENTITY_RPF, 4, VI6_DPR_RPF_ROUTE(4), { VI6_DPR_NODE_RPF(4), } },
++	{ VSP1_ENTITY_SRU, 0, VI6_DPR_SRU_ROUTE, { VI6_DPR_NODE_SRU, } },
++	{ VSP1_ENTITY_UDS, 0, VI6_DPR_UDS_ROUTE(0), { VI6_DPR_NODE_UDS(0), } },
++	{ VSP1_ENTITY_UDS, 1, VI6_DPR_UDS_ROUTE(1), { VI6_DPR_NODE_UDS(1), } },
++	{ VSP1_ENTITY_UDS, 2, VI6_DPR_UDS_ROUTE(2), { VI6_DPR_NODE_UDS(2), } },
++	{ VSP1_ENTITY_WPF, 0, 0, { VI6_DPR_NODE_WPF(0), } },
++	{ VSP1_ENTITY_WPF, 1, 0, { VI6_DPR_NODE_WPF(1), } },
++	{ VSP1_ENTITY_WPF, 2, 0, { VI6_DPR_NODE_WPF(2), } },
++	{ VSP1_ENTITY_WPF, 3, 0, { VI6_DPR_NODE_WPF(3), } },
++};
++
+ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+ 		     unsigned int num_pads)
+ {
+-	static const struct {
+-		unsigned int id;
+-		unsigned int reg;
+-	} routes[] = {
+-		{ VI6_DPR_NODE_HSI, VI6_DPR_HSI_ROUTE },
+-		{ VI6_DPR_NODE_HST, VI6_DPR_HST_ROUTE },
+-		{ VI6_DPR_NODE_LIF, 0 },
+-		{ VI6_DPR_NODE_LUT, VI6_DPR_LUT_ROUTE },
+-		{ VI6_DPR_NODE_RPF(0), VI6_DPR_RPF_ROUTE(0) },
+-		{ VI6_DPR_NODE_RPF(1), VI6_DPR_RPF_ROUTE(1) },
+-		{ VI6_DPR_NODE_RPF(2), VI6_DPR_RPF_ROUTE(2) },
+-		{ VI6_DPR_NODE_RPF(3), VI6_DPR_RPF_ROUTE(3) },
+-		{ VI6_DPR_NODE_RPF(4), VI6_DPR_RPF_ROUTE(4) },
+-		{ VI6_DPR_NODE_SRU, VI6_DPR_SRU_ROUTE },
+-		{ VI6_DPR_NODE_UDS(0), VI6_DPR_UDS_ROUTE(0) },
+-		{ VI6_DPR_NODE_UDS(1), VI6_DPR_UDS_ROUTE(1) },
+-		{ VI6_DPR_NODE_UDS(2), VI6_DPR_UDS_ROUTE(2) },
+-		{ VI6_DPR_NODE_WPF(0), 0 },
+-		{ VI6_DPR_NODE_WPF(1), 0 },
+-		{ VI6_DPR_NODE_WPF(2), 0 },
+-		{ VI6_DPR_NODE_WPF(3), 0 },
+-	};
 -
- 	freq = oob_param->frequency;
- 	if ((freq < 70000) || (freq > 130000))
- 		return (DRX_STS_ERROR);
-@@ -13931,15 +13867,12 @@ static int
- ctrl_get_cfg_symbol_clock_offset(pdrx_demod_instance_t demod, s32 *rate_offset)
- {
- 	enum drx_standard standard = DRX_STANDARD_UNKNOWN;
--	struct i2c_device_addr *dev_addr = NULL;
- 	pdrxj_data_t ext_attr = NULL;
+ 	unsigned int i;
  
- 	/* check arguments */
--	if (rate_offset == NULL) {
-+	if (rate_offset == NULL)
- 		return (DRX_STS_INVALID_ARG);
+-	for (i = 0; i < ARRAY_SIZE(routes); ++i) {
+-		if (routes[i].id == entity->id) {
+-			entity->route = routes[i].reg;
++	for (i = 0; i < ARRAY_SIZE(vsp1_routes); ++i) {
++		if (vsp1_routes[i].type == entity->type &&
++		    vsp1_routes[i].index == entity->index) {
++			entity->route = &vsp1_routes[i];
+ 			break;
+ 		}
+ 	}
+ 
+-	if (i == ARRAY_SIZE(routes))
++	if (i == ARRAY_SIZE(vsp1_routes))
+ 		return -EINVAL;
+ 
+ 	entity->vsp1 = vsp1;
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index e152798..dc31a31 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -30,13 +30,31 @@ enum vsp1_entity_type {
+ 	VSP1_ENTITY_WPF,
+ };
+ 
++/*
++ * struct vsp1_route - Entity routing configuration
++ * @type: Entity type this routing entry is associated with
++ * @index: Entity index this routing entry is associated with
++ * @reg: Output routing configuration register
++ * @inputs: Target node value for each input
++ *
++ * Each $vsp1_route entry describes routing configuration for the entity
++ * specified by the entry's @type and @index. @reg indicates the register that
++ * holds output routing configuration for the entity, and the @inputs array
++ * store the target node value for each input of the entity.
++ */
++struct vsp1_route {
++	enum vsp1_entity_type type;
++	unsigned int index;
++	unsigned int reg;
++	unsigned int inputs[4];
++};
++
+ struct vsp1_entity {
+ 	struct vsp1_device *vsp1;
+ 
+ 	enum vsp1_entity_type type;
+ 	unsigned int index;
+-	unsigned int id;
+-	unsigned int route;
++	const struct vsp1_route *route;
+ 
+ 	struct list_head list_dev;
+ 	struct list_head list_pipe;
+@@ -45,6 +63,7 @@ struct vsp1_entity {
+ 	unsigned int source_pad;
+ 
+ 	struct media_entity *sink;
++	unsigned int sink_pad;
+ 
+ 	struct v4l2_subdev subdev;
+ 	struct v4l2_mbus_framefmt *formats;
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index 28548535..db2950a 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -193,13 +193,10 @@ struct vsp1_hsit *vsp1_hsit_create(struct vsp1_device *vsp1, bool inverse)
+ 
+ 	hsit->inverse = inverse;
+ 
+-	if (inverse) {
++	if (inverse)
+ 		hsit->entity.type = VSP1_ENTITY_HSI;
+-		hsit->entity.id = VI6_DPR_NODE_HSI;
+-	} else {
++	else
+ 		hsit->entity.type = VSP1_ENTITY_HST;
+-		hsit->entity.id = VI6_DPR_NODE_HST;
 -	}
  
--	dev_addr = demod->my_i2c_dev_addr;
- 	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
- 	standard = ext_attr->standard;
+ 	ret = vsp1_entity_init(vsp1, &hsit->entity, 2);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index 74a32e6..2b275f6 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -215,7 +215,6 @@ struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
+ 		return ERR_PTR(-ENOMEM);
  
-@@ -15111,15 +15044,12 @@ rw_error:
- static int
- ctrl_get_cfg_pre_saw(pdrx_demod_instance_t demod, p_drxj_cfg_pre_saw_t pre_saw)
+ 	lif->entity.type = VSP1_ENTITY_LIF;
+-	lif->entity.id = VI6_DPR_NODE_LIF;
+ 
+ 	ret = vsp1_entity_init(vsp1, &lif->entity, 2);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 4e9dc7c..fea36eb 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -229,7 +229,6 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	lut->entity.type = VSP1_ENTITY_LUT;
+-	lut->entity.id = VI6_DPR_NODE_LUT;
+ 
+ 	ret = vsp1_entity_init(vsp1, &lut->entity, 2);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index bce2be5..97088d7 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -176,7 +176,6 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 
+ 	rpf->entity.type = VSP1_ENTITY_RPF;
+ 	rpf->entity.index = index;
+-	rpf->entity.id = VI6_DPR_NODE_RPF(index);
+ 
+ 	ret = vsp1_entity_init(vsp1, &rpf->entity, 2);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index 7ab1a0b..aa0e04c 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -327,7 +327,6 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	sru->entity.type = VSP1_ENTITY_SRU;
+-	sru->entity.id = VI6_DPR_NODE_SRU;
+ 
+ 	ret = vsp1_entity_init(vsp1, &sru->entity, 2);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index 0e50b37..509c9fe 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -323,7 +323,6 @@ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
+ 
+ 	uds->entity.type = VSP1_ENTITY_UDS;
+ 	uds->entity.index = index;
+-	uds->entity.id = VI6_DPR_NODE_UDS(index);
+ 
+ 	ret = vsp1_entity_init(vsp1, &uds->entity, 2);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index b4687a8..ce83145 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -461,7 +461,7 @@ static int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
+ 
+ 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+ 		if (entity->route)
+-			vsp1_write(entity->vsp1, entity->route,
++			vsp1_write(entity->vsp1, entity->route->reg,
+ 				   VI6_DPR_NODE_UNUSED);
+ 
+ 		v4l2_subdev_call(&entity->subdev, video, s_stream, 0);
+@@ -680,11 +680,12 @@ static void vsp1_entity_route_setup(struct vsp1_entity *source)
  {
--	struct i2c_device_addr *dev_addr = NULL;
- 	pdrxj_data_t ext_attr = NULL;
+ 	struct vsp1_entity *sink;
  
- 	/* check arguments */
--	if (pre_saw == NULL) {
-+	if (pre_saw == NULL)
- 		return (DRX_STS_INVALID_ARG);
--	}
+-	if (source->route == 0)
++	if (source->route->reg == 0)
+ 		return;
  
--	dev_addr = demod->my_i2c_dev_addr;
- 	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
+ 	sink = container_of(source->sink, struct vsp1_entity, subdev.entity);
+-	vsp1_write(source->vsp1, source->route, sink->id);
++	vsp1_write(source->vsp1, source->route->reg,
++		   sink->route->inputs[source->sink_pad]);
+ }
  
- 	switch (pre_saw->standard) {
-@@ -15171,16 +15101,13 @@ ctrl_get_cfg_pre_saw(pdrx_demod_instance_t demod, p_drxj_cfg_pre_saw_t pre_saw)
- static int
- ctrl_get_cfg_afe_gain(pdrx_demod_instance_t demod, p_drxj_cfg_afe_gain_t afe_gain)
- {
--	struct i2c_device_addr *dev_addr = NULL;
- 	pdrxj_data_t ext_attr = NULL;
+ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 7baed81..974af6b 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -181,7 +181,6 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
  
- 	/* check arguments */
--	if (afe_gain == NULL) {
-+	if (afe_gain == NULL)
- 		return (DRX_STS_INVALID_ARG);
--	}
+ 	wpf->entity.type = VSP1_ENTITY_WPF;
+ 	wpf->entity.index = index;
+-	wpf->entity.id = VI6_DPR_NODE_WPF(index);
  
--	dev_addr = demod->my_i2c_dev_addr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
-+	ext_attr = demod->my_ext_attr;
- 
- 	switch (afe_gain->standard) {
- 	case DRX_STANDARD_8VSB:
-@@ -15724,15 +15651,10 @@ rw_error:
- */
- int drxj_close(pdrx_demod_instance_t demod)
- {
--	struct i2c_device_addr *dev_addr = NULL;
--	pdrxj_data_t ext_attr = NULL;
--	pdrx_common_attr_t common_attr = NULL;
-+	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
-+	pdrx_common_attr_t common_attr = demod->my_common_attr;
- 	drx_power_mode_t power_mode = DRX_POWER_UP;
- 
--	common_attr = (pdrx_common_attr_t) demod->my_common_attr;
--	dev_addr = demod->my_i2c_dev_addr;
--	ext_attr = (pdrxj_data_t) demod->my_ext_attr;
--
- 	/* power up */
- 	CHK_ERROR(ctrl_power_mode(demod, &power_mode));
- 
+ 	ret = vsp1_entity_init(vsp1, &wpf->entity, 2);
+ 	if (ret < 0)
 -- 
-1.8.5.3
+1.8.3.2
 
