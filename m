@@ -1,71 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f170.google.com ([209.85.128.170]:42919 "EHLO
-	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752203AbaCKHNR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 03:13:17 -0400
-Received: by mail-ve0-f170.google.com with SMTP id pa12so8205972veb.15
-        for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 00:13:16 -0700 (PDT)
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:59710 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754326AbaCEXy0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 18:54:26 -0500
+Received: by mail-wg0-f49.google.com with SMTP id b13so2211774wgh.20
+        for <linux-media@vger.kernel.org>; Wed, 05 Mar 2014 15:54:24 -0800 (PST)
+From: James Hogan <james.hogan@imgtec.com>
+To: Antti =?ISO-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Bruno =?ISO-8859-1?Q?Pr=E9mont?= <bonbons@linux-vserver.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Sean Young <sean@mess.org>,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [PATCH 0/5] rc: scancode filtering improvements
+Date: Wed, 05 Mar 2014 23:17:48 +0000
+Message-ID: <8608633.KYrQeh4qc7@radagast>
+In-Reply-To: <CAKv9HNZ7CG85J0B_xqO_QUH+FWafXZ8oB11V92P6+tOjARLhNw@mail.gmail.com>
+References: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com> <CAKv9HNZ7CG85J0B_xqO_QUH+FWafXZ8oB11V92P6+tOjARLhNw@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1394493359-14115-14-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1394493359-14115-14-git-send-email-laurent.pinchart@ideasonboard.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 11 Mar 2014 12:42:56 +0530
-Message-ID: <CA+V-a8vSC5AQmcd6G8r7eRSZKxRte1t+txB3X8m0-+q7ZtpRkQ@mail.gmail.com>
-Subject: Re: [PATCH v2 13/48] tvp7002: Add pad-level DV timings operations
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; boundary="nextPart2431994.iRJYWN5qzl"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 11, 2014 at 4:45 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> The video enum_dv_timings operation is deprecated. Implement the
-> pad-level version of the operation to prepare for the removal of the
-> video version.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+--nextPart2431994.iRJYWN5qzl
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-Regards,
---Prabhakar lad
+Hi Antti,
 
-> ---
->  drivers/media/i2c/tvp7002.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index 912e1cc..9f56fd5 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -832,6 +832,9 @@ static int tvp7002_log_status(struct v4l2_subdev *sd)
->  static int tvp7002_enum_dv_timings(struct v4l2_subdev *sd,
->                 struct v4l2_enum_dv_timings *timings)
->  {
-> +       if (timings->pad != 0)
-> +               return -EINVAL;
-> +
->         /* Check requested format index is within range */
->         if (timings->index >= NUM_TIMINGS)
->                 return -EINVAL;
-> @@ -937,6 +940,7 @@ static const struct v4l2_subdev_pad_ops tvp7002_pad_ops = {
->         .enum_mbus_code = tvp7002_enum_mbus_code,
->         .get_fmt = tvp7002_get_pad_format,
->         .set_fmt = tvp7002_set_pad_format,
-> +       .enum_dv_timings = tvp7002_enum_dv_timings,
->  };
->
->  /* V4L2 top level operation handlers */
-> --
-> 1.8.3.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wednesday 05 March 2014 20:12:15 Antti Sepp=E4l=E4 wrote:
+> After reviewing the series and porting my nuvoton changes to it I
+> haven't noticed any errors worth mentioning.
+> In fact I think this series is very well written and should be merged=
+.
+
+Thanks for reviewing!
+
+> James, I hope you also have the time to submit the ir encoder series
+> for inclusion. :)
+
+I did a little work on it the other day, including adding encode+loopba=
+ck on=20
+filter change to loopback driver, fixing a few bugs and adding RC-5/RC-=
+5X=20
+encode. I'll probably see what I can do to add partial encode to be sur=
+e the=20
+API doesn't fall short and then send a combined patchset.
+
+Cheers
+James
+--nextPart2431994.iRJYWN5qzl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAABAgAGBQJTF7CoAAoJEKHZs+irPybf3qYQAKyUoSFQ0827mma6LzR2W5nT
+Ka8s14A9QO2Klt5Bm3LzDebAbRsqlec0S8BlExNS/qULNVovjsAw5rGvJVdsqlJx
+0m7ie4DwGa7tkmv6g4GC0zWY2QbmF0RB5ksP1S2px+vdXfeZlyCAgnqYzlUU6J/W
+jxBGaJrjjNV1WjSj4cX89WOlVuJAy1RMecpTW8MZkT8sQU1x5A5EVUjA35/yLwk1
+6GkpK6lQ5mgx0FkUic/IRtBpyA7S7e91u3cXnnH8WZdtDGgSs1Puy5hBX/RHs3sQ
+M8DbZ99/AL2dPGPESbCYemoEumh+/L5TyjMVGW7ee2oeRKroQP8cwb1B9j1gPqPJ
+SA2dLts3E/h2YOewmYSDasRGMV6IK02MFbjJSJXBvBVq+cRGUAkcTST1J+8P3tVl
+yzsN1gLw0++vJQ4arJRd0QrItxBMoy19hbs1Tn7vo1eZ5c9BWQUhbIZ9LMkQyQ+b
+Mp3dTPGDEduvvOKd5gOipKF/ElDVsUnmVyD3YK0+elNxnnLsqO8cvCYxpfA3GtZx
+IHvqsw9kuAhW4WBBYhHJLaglNykRlqUPAgs92vGWO6qTsWjMJAg9w9aNnhr/VjcY
+2x76VJLMlL6/oSvM7DbeBYk4ACfvzaFRGu/yQqn0jjGU5D2spKUfMBoD+SyoMezQ
+QgZ5H1+PTz8Z3/kOY/i0
+=5A62
+-----END PGP SIGNATURE-----
+
+--nextPart2431994.iRJYWN5qzl--
+
