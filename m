@@ -1,148 +1,395 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:60291 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756384AbaCDIVC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 03:21:02 -0500
-Message-ID: <53158CEA.30004@canonical.com>
-Date: Tue, 04 Mar 2014 09:20:58 +0100
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Ian Lister <ian.lister@intel.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-arch@vger.kernel.org, Colin Cross <ccross@google.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"Clark, Rob" <robdclark@gmail.com>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/6] android: convert sync to fence api, v4
-References: <20140217155056.20337.25254.stgit@patser> <20140217155640.20337.13331.stgit@patser> <CAKMK7uESOhk_i8ui1pVknA=6s8oQsBOCTULYszxe5fodcBwTGw@mail.gmail.com> <531585CE.9020509@canonical.com> <20140304081411.GK17001@phenom.ffwll.local>
-In-Reply-To: <20140304081411.GK17001@phenom.ffwll.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39366 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752430AbaCERbA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 12:31:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, sakari.ailus@iki.fi
+Subject: [PATCH/RFC v2 3/5] Make the media_entity structure private
+Date: Wed,  5 Mar 2014 18:32:19 +0100
+Message-Id: <1394040741-22503-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394040741-22503-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394040741-22503-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-op 04-03-14 09:14, Daniel Vetter schreef:
-> On Tue, Mar 04, 2014 at 08:50:38AM +0100, Maarten Lankhorst wrote:
->> op 03-03-14 22:11, Daniel Vetter schreef:
->>> On Mon, Feb 17, 2014 at 04:57:19PM +0100, Maarten Lankhorst wrote:
->>>> Android syncpoints can be mapped to a timeline. This removes the need
->>>> to maintain a separate api for synchronization. I've left the android
->>>> trace events in place, but the core fence events should already be
->>>> sufficient for debugging.
->>>>
->>>> v2:
->>>> - Call fence_remove_callback in sync_fence_free if not all fences have fired.
->>>> v3:
->>>> - Merge Colin Cross' bugfixes, and the android fence merge optimization.
->>>> v4:
->>>> - Merge with the upstream fixes.
->>>>
->>>> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
->>>> ---
->>> Snipped everything but headers - Ian Lister from our android team is
->>> signed up to have a more in-depth look at proper integration with android
->>> syncpoints. Adding him to cc.
->>>
->>>> diff --git a/drivers/staging/android/sync.h b/drivers/staging/android/sync.h
->>>> index 62e2255b1c1e..6036dbdc8e6f 100644
->>>> --- a/drivers/staging/android/sync.h
->>>> +++ b/drivers/staging/android/sync.h
->>>> @@ -21,6 +21,7 @@
->>>>   #include <linux/list.h>
->>>>   #include <linux/spinlock.h>
->>>>   #include <linux/wait.h>
->>>> +#include <linux/fence.h>
->>>>
->>>>   struct sync_timeline;
->>>>   struct sync_pt;
->>>> @@ -40,8 +41,6 @@ struct sync_fence;
->>>>    * -1 if a will signal before b
->>>>    * @free_pt: called before sync_pt is freed
->>>>    * @release_obj: called before sync_timeline is freed
->>>> - * @print_obj: deprecated
->>>> - * @print_pt: deprecated
->>>>    * @fill_driver_data: write implementation specific driver data to data.
->>>>    *  should return an error if there is not enough room
->>>>    *  as specified by size.  This information is returned
->>>> @@ -67,13 +66,6 @@ struct sync_timeline_ops {
->>>>    /* optional */
->>>>    void (*release_obj)(struct sync_timeline *sync_timeline);
->>>>
->>>> - /* deprecated */
->>>> - void (*print_obj)(struct seq_file *s,
->>>> -  struct sync_timeline *sync_timeline);
->>>> -
->>>> - /* deprecated */
->>>> - void (*print_pt)(struct seq_file *s, struct sync_pt *sync_pt);
->>>> -
->>>>    /* optional */
->>>>    int (*fill_driver_data)(struct sync_pt *syncpt, void *data, int size);
->>>>
->>>> @@ -104,42 +96,48 @@ struct sync_timeline {
->>>>
->>>>    /* protected by child_list_lock */
->>>>    bool destroyed;
->>>> + int context, value;
->>>>
->>>>    struct list_head child_list_head;
->>>>    spinlock_t child_list_lock;
->>>>
->>>>    struct list_head active_list_head;
->>>> - spinlock_t active_list_lock;
->>>>
->>>> +#ifdef CONFIG_DEBUG_FS
->>>>    struct list_head sync_timeline_list;
->>>> +#endif
->>>>   };
->>>>
->>>>   /**
->>>>    * struct sync_pt - sync point
->>>> - * @parent: sync_timeline to which this sync_pt belongs
->>>> + * @fence: base fence class
->>>>    * @child_list: membership in sync_timeline.child_list_head
->>>>    * @active_list: membership in sync_timeline.active_list_head
->>>> +<<<<<<< current
->>>>    * @signaled_list: membership in temporary signaled_list on stack
->>>>    * @fence: sync_fence to which the sync_pt belongs
->>>>    * @pt_list: membership in sync_fence.pt_list_head
->>>>    * @status: 1: signaled, 0:active, <0: error
->>>>    * @timestamp: time which sync_pt status transitioned from active to
->>>>    *  signaled or error.
->>>> +=======
->>>> +>>>>>>> patched
->>> Conflict markers ...
->> Oops.
->>>>    */
->>>>   struct sync_pt {
->>>> - struct sync_timeline *parent;
->>>> - struct list_head child_list;
->>>> + struct fence base;
->>> Hm, embedding feels wrong, since that still means that I'll need to
->>> implement two kinds of fences in i915 - one using the seqno fence to make
->>> dma-buf sync work, and one to implmenent sync_pt to make the android folks
->>> happy.
->>>
->>> If I can dream I think we should have a pointer to an underlying fence
->>> here, i.e. a struct sync_pt would just be a userspace interface wrapper to
->>> do explicit syncing using native fences, instead of implicit syncing like
->>> with dma-bufs. But this is all drive-by comments from a very cursory
->>> high-level look. I might be full of myself again ;-)
->>> -Daniel
->>>
->> No, the idea is that because android syncpoint is simply another type of
->> dma-fence, that if you deal with normal fences then android can
->> automatically be handled too. The userspace fence api android exposes
->> could be very easily made to work for dma-fence, just pass a dma-fence
->> to sync_fence_create.
->> So exposing dma-fence would probably work for android too.
-> Hm, then why do we still have struct sync_pt around? Since it's just the
-> internal bit, with the userspace facing object being struct sync_fence,
-> I'd opt to shuffle any useful features into the core struct fence.
-> -Daniel
-To keep compatibility with the android api. I think that gradually converting them is going to be
-more useful than to force all drivers to use a new api all at once. They could keep android
-syncpoint api for exporting, as long as they accept dma-fence for importing/waiting.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ src/main.c          | 94 ++++++++++++++++++++++++++++++-----------------------
+ src/mediactl-priv.h | 12 +++++++
+ src/mediactl.c      | 38 ++++++++++++++++++++--
+ src/mediactl.h      | 78 +++++++++++++++++++++++++++++++++++---------
+ 4 files changed, 164 insertions(+), 58 deletions(-)
 
-~Maarten
+diff --git a/src/main.c b/src/main.c
+index b0e2277..6f980b4 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -171,7 +171,6 @@ static const char *media_pad_type_to_string(unsigned flag)
+ 
+ static void media_print_topology_dot(struct media_device *media)
+ {
+-	struct media_entity *entities = media_get_entities(media);
+ 	unsigned int nents = media_get_entities_count(media);
+ 	unsigned int i, j;
+ 
+@@ -179,34 +178,41 @@ static void media_print_topology_dot(struct media_device *media)
+ 	printf("\trankdir=TB\n");
+ 
+ 	for (i = 0; i < nents; ++i) {
+-		struct media_entity *entity = &entities[i];
++		struct media_entity *entity = media_get_entity(media, i);
++		const struct media_entity_desc *info = media_entity_get_info(entity);
++		const char *devname = media_entity_get_devname(entity);
++		unsigned int num_links = media_entity_get_links_count(entity);
+ 		unsigned int npads;
+ 
+ 		switch (media_entity_type(entity)) {
+ 		case MEDIA_ENT_T_DEVNODE:
+ 			printf("\tn%08x [label=\"%s\\n%s\", shape=box, style=filled, "
+ 			       "fillcolor=yellow]\n",
+-			       entity->info.id, entity->info.name, entity->devname);
++			       info->id, info->name, devname);
+ 			break;
+ 
+ 		case MEDIA_ENT_T_V4L2_SUBDEV:
+-			printf("\tn%08x [label=\"{{", entity->info.id);
++			printf("\tn%08x [label=\"{{", info->id);
+ 
+-			for (j = 0, npads = 0; j < entity->info.pads; ++j) {
+-				if (!(entity->pads[j].flags & MEDIA_PAD_FL_SINK))
++			for (j = 0, npads = 0; j < info->pads; ++j) {
++				const struct media_pad *pad = media_entity_get_pad(entity, j);
++
++				if (!(pad->flags & MEDIA_PAD_FL_SINK))
+ 					continue;
+ 
+ 				printf("%s<port%u> %u", npads ? " | " : "", j, j);
+ 				npads++;
+ 			}
+ 
+-			printf("} | %s", entity->info.name);
+-			if (entity->devname)
+-				printf("\\n%s", entity->devname);
++			printf("} | %s", info->name);
++			if (devname)
++				printf("\\n%s", devname);
+ 			printf(" | {");
+ 
+-			for (j = 0, npads = 0; j < entity->info.pads; ++j) {
+-				if (!(entity->pads[j].flags & MEDIA_PAD_FL_SOURCE))
++			for (j = 0, npads = 0; j < info->pads; ++j) {
++				const struct media_pad *pad = media_entity_get_pad(entity, j);
++
++				if (!(pad->flags & MEDIA_PAD_FL_SOURCE))
+ 					continue;
+ 
+ 				printf("%s<port%u> %u", npads ? " | " : "", j, j);
+@@ -220,19 +226,21 @@ static void media_print_topology_dot(struct media_device *media)
+ 			continue;
+ 		}
+ 
+-		for (j = 0; j < entity->num_links; j++) {
+-			struct media_link *link = &entity->links[j];
++		for (j = 0; j < num_links; j++) {
++			const struct media_link *link = media_entity_get_link(entity, j);
++			const struct media_pad *source = link->source;
++			const struct media_pad *sink = link->sink;
+ 
+-			if (link->source->entity != entity)
++			if (source->entity != entity)
+ 				continue;
+ 
+-			printf("\tn%08x", link->source->entity->info.id);
+-			if (media_entity_type(link->source->entity) == MEDIA_ENT_T_V4L2_SUBDEV)
+-				printf(":port%u", link->source->index);
++			printf("\tn%08x", media_entity_get_info(source->entity)->id);
++			if (media_entity_type(source->entity) == MEDIA_ENT_T_V4L2_SUBDEV)
++				printf(":port%u", source->index);
+ 			printf(" -> ");
+-			printf("n%08x", link->sink->entity->info.id);
+-			if (media_entity_type(link->sink->entity) == MEDIA_ENT_T_V4L2_SUBDEV)
+-				printf(":port%u", link->sink->index);
++			printf("n%08x", media_entity_get_info(sink->entity)->id);
++			if (media_entity_type(sink->entity) == MEDIA_ENT_T_V4L2_SUBDEV)
++				printf(":port%u", sink->index);
+ 
+ 			if (link->flags & MEDIA_LNK_FL_IMMUTABLE)
+ 				printf(" [style=bold]");
+@@ -256,7 +264,6 @@ static void media_print_topology_text(struct media_device *media)
+ 		{ MEDIA_LNK_FL_DYNAMIC, "DYNAMIC" },
+ 	};
+ 
+-	struct media_entity *entities = media_get_entities(media);
+ 	unsigned int nents = media_get_entities_count(media);
+ 	unsigned int i, j, k;
+ 	unsigned int padding;
+@@ -264,40 +271,45 @@ static void media_print_topology_text(struct media_device *media)
+ 	printf("Device topology\n");
+ 
+ 	for (i = 0; i < nents; ++i) {
+-		struct media_entity *entity = &entities[i];
+-
+-		padding = printf("- entity %u: ", entity->info.id);
+-		printf("%s (%u pad%s, %u link%s)\n", entity->info.name,
+-			entity->info.pads, entity->info.pads > 1 ? "s" : "",
+-			entity->num_links, entity->num_links > 1 ? "s" : "");
++		struct media_entity *entity = media_get_entity(media, i);
++		const struct media_entity_desc *info = media_entity_get_info(entity);
++		const char *devname = media_entity_get_devname(entity);
++		unsigned int num_links = media_entity_get_links_count(entity);
++
++		padding = printf("- entity %u: ", info->id);
++		printf("%s (%u pad%s, %u link%s)\n", info->name,
++			info->pads, info->pads > 1 ? "s" : "",
++			num_links, num_links > 1 ? "s" : "");
+ 		printf("%*ctype %s subtype %s flags %x\n", padding, ' ',
+-			media_entity_type_to_string(entity->info.type),
+-			media_entity_subtype_to_string(entity->info.type),
+-			entity->info.flags);
+-		if (entity->devname[0])
+-			printf("%*cdevice node name %s\n", padding, ' ', entity->devname);
++			media_entity_type_to_string(info->type),
++			media_entity_subtype_to_string(info->type),
++			info->flags);
++		if (devname)
++			printf("%*cdevice node name %s\n", padding, ' ', devname);
+ 
+-		for (j = 0; j < entity->info.pads; j++) {
+-			struct media_pad *pad = &entity->pads[j];
++		for (j = 0; j < info->pads; j++) {
++			const struct media_pad *pad = media_entity_get_pad(entity, j);
+ 
+ 			printf("\tpad%u: %s\n", j, media_pad_type_to_string(pad->flags));
+ 
+ 			if (media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV)
+ 				v4l2_subdev_print_format(entity, j, V4L2_SUBDEV_FORMAT_ACTIVE);
+ 
+-			for (k = 0; k < entity->num_links; k++) {
+-				struct media_link *link = &entity->links[k];
+-				struct media_pad *source = link->source;
+-				struct media_pad *sink = link->sink;
++			for (k = 0; k < num_links; k++) {
++				const struct media_link *link = media_entity_get_link(entity, k);
++				const struct media_pad *source = link->source;
++				const struct media_pad *sink = link->sink;
+ 				bool first = true;
+ 				unsigned int i;
+ 
+ 				if (source->entity == entity && source->index == j)
+ 					printf("\t\t-> \"%s\":%u [",
+-						sink->entity->info.name, sink->index);
++						media_entity_get_info(sink->entity)->name,
++						sink->index);
+ 				else if (sink->entity == entity && sink->index == j)
+ 					printf("\t\t<- \"%s\":%u [",
+-						source->entity->info.name, source->index);
++						media_entity_get_info(source->entity)->name,
++						source->index);
+ 				else
+ 					continue;
+ 
+@@ -383,7 +395,7 @@ int main(int argc, char **argv)
+ 			goto out;
+ 		}
+ 
+-		printf("%s\n", entity->devname);
++		printf("%s\n", media_entity_get_devname(entity));
+ 	}
+ 
+ 	if (media_opts.pad) {
+diff --git a/src/mediactl-priv.h b/src/mediactl-priv.h
+index 844acc7..37e60aa 100644
+--- a/src/mediactl-priv.h
++++ b/src/mediactl-priv.h
+@@ -26,6 +26,18 @@
+ 
+ #include "mediactl.h"
+ 
++struct media_entity {
++	struct media_device *media;
++	struct media_entity_desc info;
++	struct media_pad *pads;
++	struct media_link *links;
++	unsigned int max_links;
++	unsigned int num_links;
++
++	char devname[32];
++	int fd;
++};
++
+ struct media_device {
+ 	int fd;
+ 	int refcount;
+diff --git a/src/mediactl.c b/src/mediactl.c
+index 2ba0ab8..a48953a 100644
+--- a/src/mediactl.c
++++ b/src/mediactl.c
+@@ -111,9 +111,38 @@ unsigned int media_get_entities_count(struct media_device *media)
+ 	return media->entities_count;
+ }
+ 
+-struct media_entity *media_get_entities(struct media_device *media)
++struct media_entity *media_get_entity(struct media_device *media, unsigned int index)
+ {
+-	return media->entities;
++	if (index >= media->entities_count)
++		return NULL;
++
++	return &media->entities[index];
++}
++
++const struct media_pad *media_entity_get_pad(struct media_entity *entity, unsigned int index)
++{
++	if (index >= entity->info.pads)
++		return NULL;
++
++	return &entity->pads[index];
++}
++
++unsigned int media_entity_get_links_count(struct media_entity *entity)
++{
++	return entity->num_links;
++}
++
++const struct media_link *media_entity_get_link(struct media_entity *entity, unsigned int index)
++{
++	if (index >= entity->num_links)
++		return NULL;
++
++	return &entity->links[index];
++}
++
++const char *media_entity_get_devname(struct media_entity *entity)
++{
++	return entity->devname[0] ? entity->devname : NULL;
+ }
+ 
+ const struct media_device_info *media_get_info(struct media_device *media)
+@@ -126,6 +155,11 @@ const char *media_get_devnode(struct media_device *media)
+ 	return media->devnode;
+ }
+ 
++const struct media_entity_desc *media_entity_get_info(struct media_entity *entity)
++{
++	return &entity->info;
++}
++
+ /* -----------------------------------------------------------------------------
+  * Open/close
+  */
+diff --git a/src/mediactl.h b/src/mediactl.h
+index efa59d6..e2c93b8 100644
+--- a/src/mediactl.h
++++ b/src/mediactl.h
+@@ -39,20 +39,8 @@ struct media_pad {
+ 	__u32 padding[3];
+ };
+ 
+-struct media_entity {
+-	struct media_device *media;
+-	struct media_entity_desc info;
+-	struct media_pad *pads;
+-	struct media_link *links;
+-	unsigned int max_links;
+-	unsigned int num_links;
+-
+-	char devname[32];
+-	int fd;
+-	__u32 padding[6];
+-};
+-
+ struct media_device;
++struct media_entity;
+ 
+ /**
+  * @brief Create a new media device.
+@@ -131,6 +119,66 @@ int media_device_enumerate(struct media_device *media);
+ struct media_pad *media_entity_remote_source(struct media_pad *pad);
+ 
+ /**
++ * @brief Get information about a media entity
++ * @param entity - media entity.
++ *
++ * The information structure is owned by the media entity object and will be
++ * freed when the object is destroyed.
++ *
++ * @return A pointer to the media entity information
++ */
++const struct media_entity_desc *media_entity_get_info(struct media_entity *entity);
++
++/**
++ * @brief Get an entity pad
++ * @param entity - media entity.
++ * @param index - pad index.
++ *
++ * This function returns a pointer to the pad object identified by its index
++ * for the given entity. If the pad index is out of bounds it will return NULL.
++ *
++ * @return A pointer to the pad
++ */
++const struct media_pad *media_entity_get_pad(struct media_entity *entity,
++					     unsigned int index);
++
++/**
++ * @brief Get the number of links
++ * @param entity - media entity.
++ *
++ * This function returns the total number of links that originate from or arrive
++ * at the the media entity.
++ *
++ * @return The number of links for the entity
++ */
++unsigned int media_entity_get_links_count(struct media_entity *entity);
++
++/**
++ * @brief Get an entity link
++ * @param entity - media entity.
++ * @param index - link index.
++ *
++ * This function returns a pointer to the link object identified by its index
++ * for the given entity. If the link index is out of bounds it will return NULL.
++ *
++ * @return A pointer to the link
++ */
++const struct media_link *media_entity_get_link(struct media_entity *entity,
++					       unsigned int index);
++
++/**
++ * @brief Get the device node name for an entity
++ * @param entity - media entity.
++ *
++ * This function returns the full path and name to the device node corresponding
++ * to the given entity.
++ *
++ * @return A pointer to the device node name or NULL if the entity has no
++ * associated device node
++ */
++const char *media_entity_get_devname(struct media_entity *entity);
++
++/**
+  * @brief Get the type of an entity.
+  * @param entity - the entity.
+  *
+@@ -138,7 +186,7 @@ struct media_pad *media_entity_remote_source(struct media_pad *pad);
+  */
+ static inline unsigned int media_entity_type(struct media_entity *entity)
+ {
+-	return entity->info.type & MEDIA_ENT_TYPE_MASK;
++	return media_entity_get_info(entity)->type & MEDIA_ENT_TYPE_MASK;
+ }
+ 
+ /**
+@@ -193,7 +241,7 @@ unsigned int media_get_entities_count(struct media_device *media);
+  *
+  * @return A pointer to an array of entities
+  */
+-struct media_entity *media_get_entities(struct media_device *media);
++struct media_entity *media_get_entity(struct media_device *media, unsigned int index);
+ 
+ /**
+  * @brief Get the media device information
+-- 
+1.8.3.2
+
