@@ -1,59 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f169.google.com ([209.85.215.169]:50961 "EHLO
-	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753190AbaCFUPr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 15:15:47 -0500
-Message-ID: <5318D76E.80203@gmail.com>
-Date: Thu, 06 Mar 2014 21:15:42 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Philipp Zabel <philipp.zabel@gmail.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	Mark Rutland <mark.rutland@arm.com>,
-	linux-samsung-soc@vger.kernel.org, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, Rob Herring <robh+dt@kernel.org>,
-	Kumar Gala <galak@codeaurora.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH v6 01/10] Documentation: dt: Add binding documentation
- for S5K6A3 image sensor
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com> <1394122819-9582-2-git-send-email-s.nawrocki@samsung.com> <CA+gwMcc7sLp0N5oyCYf-121AzS8KsRdNsvY3DJ7p3z=yVLrBdw@mail.gmail.com>
-In-Reply-To: <CA+gwMcc7sLp0N5oyCYf-121AzS8KsRdNsvY3DJ7p3z=yVLrBdw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:53747 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753813AbaCEJVD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 04:21:03 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v6 2/8] Documentation: of: Document graph bindings
+Date: Wed,  5 Mar 2014 10:20:36 +0100
+Message-Id: <1394011242-16783-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Phillip,
+The device tree graph bindings as used by V4L2 and documented in
+Documentation/device-tree/bindings/media/video-interfaces.txt contain
+generic parts that are not media specific but could be useful for any
+subsystem with data flow between multiple devices. This document
+describes the generic bindings.
 
-On 03/06/2014 07:08 PM, Philipp Zabel wrote:
->> +++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
->> >  @@ -0,0 +1,33 @@
->> >  +Samsung S5K6A3(YX) raw image sensor
->> >  +---------------------------------
->> >  +
->> >  +S5K6A3(YX) is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
->> >  +and CCI (I2C compatible) control bus.
->> >  +
->> >  +Required properties:
->> >  +
->> >  +- compatible   : "samsung,s5k6a3";
->> >  +- reg          : I2C slave address of the sensor;
->> >  +- svdda-supply : core voltage supply;
->> >  +- svddio-supply        : I/O voltage supply;
->> >  +- afvdd-supply : AF (actuator) voltage supply;
->> >  +- gpios                : specifier of a GPIO connected to the RESET pin;
->
-> Please use 'reset-gpios' for GPIOs connected to reset pins.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v5:
+ - Fixed spelling errors and a wrong device node name in the link section
+ Documentation/devicetree/bindings/graph.txt | 129 ++++++++++++++++++++++++++++
+ 1 file changed, 129 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/graph.txt
 
-I would prefer to keep it as is, I'm not adding a new driver in this
-series, just the binding documentation and doing some refactoring.
-So if I changed this now, the driver would need to be messed up with
-an additional code to support both 'gpios' and 'reset-gpios'. Are
-there any serious reasons to use this specific name ? It's not
-related to the reset signal DT bindings, is it ?
+diff --git a/Documentation/devicetree/bindings/graph.txt b/Documentation/devicetree/bindings/graph.txt
+new file mode 100644
+index 0000000..1a69c07
+--- /dev/null
++++ b/Documentation/devicetree/bindings/graph.txt
+@@ -0,0 +1,129 @@
++Common bindings for device graphs
++
++General concept
++---------------
++
++The hierarchical organisation of the device tree is well suited to describe
++control flow to devices, but there can be more complex connections between
++devices that work together to form a logical compound device, following an
++arbitrarily complex graph.
++There already is a simple directed graph between devices tree nodes using
++phandle properties pointing to other nodes to describe connections that
++can not be inferred from device tree parent-child relationships. The device
++tree graph bindings described herein abstract more complex devices that can
++have multiple specifiable ports, each of which can be linked to one or more
++ports of other devices.
++
++These common bindings do not contain any information about the direction or
++type of the connections, they just map their existence. Specific properties
++may be described by specialized bindings depending on the type of connection.
++
++To see how this binding applies to video pipelines, for example, see
++Documentation/device-tree/bindings/media/video-interfaces.txt.
++Here the ports describe data interfaces, and the links between them are
++the connecting data buses. A single port with multiple connections can
++correspond to multiple devices being connected to the same physical bus.
++
++Organisation of ports and endpoints
++-----------------------------------
++
++Ports are described by child 'port' nodes contained in the device node.
++Each port node contains an 'endpoint' subnode for each remote device port
++connected to this port. If a single port is connected to more than one
++remote device, an 'endpoint' child node must be provided for each link.
++If more than one port is present in a device node or there is more than one
++endpoint at a port, or a port node needs to be associated with a selected
++hardware interface, a common scheme using '#address-cells', '#size-cells'
++and 'reg' properties is used number the nodes.
++
++device {
++        ...
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        port@0 {
++	        #address-cells = <1>;
++	        #size-cells = <0>;
++		reg = <0>;
++
++                endpoint@0 {
++			reg = <0>;
++			...
++		};
++                endpoint@1 {
++			reg = <1>;
++			...
++		};
++        };
++
++        port@1 {
++		reg = <1>;
++
++		endpoint { ... };
++	};
++};
++
++All 'port' nodes can be grouped under an optional 'ports' node, which
++allows to specify #address-cells, #size-cells properties for the 'port'
++nodes independently from any other child device nodes a device might
++have.
++
++device {
++        ...
++        ports {
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                port@0 {
++                        ...
++                        endpoint@0 { ... };
++                        endpoint@1 { ... };
++                };
++
++                port@1 { ... };
++        };
++};
++
++Links between endpoints
++-----------------------
++
++Each endpoint should contain a 'remote-endpoint' phandle property that points
++to the corresponding endpoint in the port of the remote device. In turn, the
++remote endpoint should contain a 'remote-endpoint' property. If it has one,
++it must not point to another than the local endpoint. Two endpoints with their
++'remote-endpoint' phandles pointing at each other form a link between the
++containing ports.
++
++device-1 {
++        port {
++                device_1_output: endpoint {
++                        remote-endpoint = <&device_2_input>;
++                };
++        };
++};
++
++device-2 {
++        port {
++                device_2_input: endpoint {
++                        remote-endpoint = <&device_1_output>;
++                };
++        };
++};
++
++
++Required properties
++-------------------
++
++If there is more than one 'port' or more than one 'endpoint' node or 'reg'
++property is present in port and/or endpoint nodes the following properties
++are required in a relevant parent node:
++
++ - #address-cells : number of cells required to define port/endpoint
++                    identifier, should be 1.
++ - #size-cells    : should be zero.
++
++Optional endpoint properties
++----------------------------
++
++- remote-endpoint: phandle to an 'endpoint' subnode of a remote device node.
++
+-- 
+1.9.0.rc3
 
---
-Regards,
-Sylwester
