@@ -1,120 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:31691 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752788AbaCNKWp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 06:22:45 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: <g.liakhovetski@gmx.de>
-CC: <m.chehab@samsung.com>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH] [media] ov2640: add support for async device registration
-Date: Fri, 14 Mar 2014 18:12:31 +0800
-Message-ID: <1394791952-12941-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:48566 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752215AbaCEUcC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 15:32:02 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N1Z00AROD1B6T60@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 05 Mar 2014 15:31:59 -0500 (EST)
+Date: Wed, 05 Mar 2014 17:31:53 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: kbuild test robot <fengguang.wu@intel.com>,
+	Federico Simoncelli <fsimonce@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: Re: [linuxtv-media:master 499/499]
+ drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table'
+ was not declared. Should it be static?
+Message-id: <20140305173153.51fc9274@samsung.com>
+In-reply-to: <20140305142746.4ef16bff@samsung.com>
+References: <52f0ac8a.aIXONk2PY1rBXEn8%fengguang.wu@intel.com>
+ <20140305142746.4ef16bff@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the clock detection code to the beginning of the probe().
-If we meet any error in the clock detecting, then defer the probe.
+Em Wed, 5 Mar 2014 14:27:46 -0300
+Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/i2c/soc_camera/ov2640.c |   43 +++++++++++++++++++++------------
- 1 file changed, 28 insertions(+), 15 deletions(-)
+> Hi Fengguang,
+> 
+> This patch got obsoleted by another patch in the same series.
+> 
+> Unfortunately, I had to break sending the patch series into a few
+> pushes, as my mailbomb script has a logic there that prevents it to
+> send more than 30~50 emails (I never remember the exact setting).
+> 
+> So, I pushed this 80-series into a few pushes. You likely compiled the
+> tree without waiting for the hole series to be upstreamed.
 
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-index 6c6b1c3..fb9b6e9 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/soc_camera/ov2640.c
-@@ -22,6 +22,7 @@
- #include <linux/videodev2.h>
- 
- #include <media/soc_camera.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-clk.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
-@@ -1069,6 +1070,7 @@ static int ov2640_probe(struct i2c_client *client,
- 	struct ov2640_priv	*priv;
- 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
-+	struct v4l2_clk		*clk;
- 	int			ret;
- 
- 	if (!ssdd) {
-@@ -1083,13 +1085,20 @@ static int ov2640_probe(struct i2c_client *client,
- 		return -EIO;
- 	}
- 
-+	clk = v4l2_clk_get(&client->dev, "mclk");
-+	if (IS_ERR(clk))
-+		return -EPROBE_DEFER;
-+
- 	priv = devm_kzalloc(&client->dev, sizeof(struct ov2640_priv), GFP_KERNEL);
- 	if (!priv) {
- 		dev_err(&adapter->dev,
- 			"Failed to allocate memory for private data!\n");
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto err_kzalloc;
- 	}
- 
-+	priv->clk = clk;
-+
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
-@@ -1097,23 +1106,26 @@ static int ov2640_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
- 			V4L2_CID_HFLIP, 0, 1, 1, 0);
- 	priv->subdev.ctrl_handler = &priv->hdl;
--	if (priv->hdl.error)
--		return priv->hdl.error;
--
--	priv->clk = v4l2_clk_get(&client->dev, "mclk");
--	if (IS_ERR(priv->clk)) {
--		ret = PTR_ERR(priv->clk);
--		goto eclkget;
-+	if (priv->hdl.error) {
-+		ret = priv->hdl.error;
-+		goto err_kzalloc;
- 	}
- 
- 	ret = ov2640_video_probe(client);
--	if (ret) {
--		v4l2_clk_put(priv->clk);
--eclkget:
--		v4l2_ctrl_handler_free(&priv->hdl);
--	} else {
--		dev_info(&adapter->dev, "OV2640 Probed\n");
--	}
-+	if (ret)
-+		goto err_probe;
-+
-+	ret = v4l2_async_register_subdev(&priv->subdev);
-+	if (ret)
-+		goto err_probe;
-+
-+	dev_info(&adapter->dev, "OV2640 Probed\n");
-+	return 0;
-+
-+err_probe:
-+	v4l2_ctrl_handler_free(&priv->hdl);
-+err_kzalloc:
-+	v4l2_clk_put(clk);
- 
- 	return ret;
- }
-@@ -1122,6 +1134,7 @@ static int ov2640_remove(struct i2c_client *client)
- {
- 	struct ov2640_priv       *priv = to_ov2640(client);
- 
-+	v4l2_async_unregister_subdev(&priv->subdev);
- 	v4l2_clk_put(priv->clk);
- 	v4l2_device_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
+Sorry, I sent the reply to the wrong patch. The above comments are for
+this patch:
+	Subject: [PATCH linuxtv-media] drx-j: drxj_default_aud_data_g can be static
+
+That was on the email with this title:
+	[linuxtv-media:master 428/499] drivers/media/dvb-frontends/drx39xyj/drxj.c:1039:16: sparse: symbol 'drxj_default_aud_data_g' was not declared. Should
+
+Regards,
+Mauro
+
+> 
+> Regards,
+> Mauro
+> 
+> Em Tue, 04 Feb 2014 17:02:02 +0800
+> kbuild test robot <fengguang.wu@intel.com> escreveu:
+> 
+> > tree:   git://linuxtv.org/media_tree.git master
+> > head:   a3550ea665acd1922df8275379028c1634675629
+> > commit: a3550ea665acd1922df8275379028c1634675629 [499/499] [media] usbtv: split core and video implementation
+> > reproduce: make C=1 CF=-D__CHECK_ENDIAN__
+> > 
+> > 
+> > sparse warnings: (new ones prefixed by >>)
+> > 
+> > >> drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table' was not declared. Should it be static?
+> > >> drivers/media/usb/usbtv/usbtv-core.c:129:19: sparse: symbol 'usbtv_usb_driver' was not declared. Should it be static?
+> > --
+> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> > >> drivers/media/usb/usbtv/usbtv-video.c:565:23: sparse: symbol 'usbtv_ioctl_ops' was not declared. Should it be static?
+> > >> drivers/media/usb/usbtv/usbtv-video.c:587:29: sparse: symbol 'usbtv_fops' was not declared. Should it be static?
+> > >> drivers/media/usb/usbtv/usbtv-video.c:648:16: sparse: symbol 'usbtv_vb2_ops' was not declared. Should it be static?
+> > 
+> > Please consider folding the attached diff :-)
+> > 
+> > ---
+> > 0-DAY kernel build testing backend              Open Source Technology Center
+> > http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+> 
+> 
+
+
 -- 
-1.7.9.5
 
+Cheers,
+Mauro
