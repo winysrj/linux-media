@@ -1,85 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3762 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751580AbaC1IvF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 04:51:05 -0400
-Message-ID: <533537E2.9020904@xs4all.nl>
-Date: Fri, 28 Mar 2014 09:50:42 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-CC: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Fengguang Wu <fengguang.wu@intel.com>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Roland Scheidegger <rscheidegger_lists@hispeed.ch>
-Subject: Re: [PATCH 1/2] usb: gadget: uvc: Switch to monotonic clock for buffer
- timestamps
-References: <20140323001018.GA11963@localhost> <1395588754-20587-1-git-send-email-laurent.pinchart@ideasonboard.com> <1395588754-20587-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1395588754-20587-2-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40006 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967AbaCETWl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 14:22:41 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 0/6] VSP1 Blend/ROP Unit and DT support 
+Date: Wed,  5 Mar 2014 20:23:58 +0100
+Message-Id: <1394047444-30077-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello,
 
-I have a few comments:
+This patch series extends the VSP1 driver with support for the Blend/ROP Units
+as well as DT bindings. Please see individual patches for details.
 
-On 03/23/2014 04:32 PM, Laurent Pinchart wrote:
-> The wall time clock isn't useful for applications as it can jump around
-> due to time adjustement. Switch to the monotonic clock.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/usb/gadget/uvc_queue.c | 12 +++++-------
->  1 file changed, 5 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
-> index 0bb5d50..d4561ba 100644
-> --- a/drivers/usb/gadget/uvc_queue.c
-> +++ b/drivers/usb/gadget/uvc_queue.c
-> @@ -364,6 +364,7 @@ static struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
->  						struct uvc_buffer *buf)
->  {
->  	struct uvc_buffer *nextbuf;
-> +	struct timespec ts;
->  
->  	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
->  	     buf->length != buf->bytesused) {
-> @@ -379,14 +380,11 @@ static struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
->  	else
->  		nextbuf = NULL;
->  
-> -	/*
-> -	 * FIXME: with videobuf2, the sequence number or timestamp fields
-> -	 * are valid only for video capture devices and the UVC gadget usually
-> -	 * is a video output device. Keeping these until the specs are clear on
-> -	 * this aspect.
-> -	 */
-> +	ktime_get_ts(&ts);
+The driver patches (1 to 4) and platform patches (5 to 6) can be merged
+independently once the DT bindings will be approved.
 
-Why not use the v4l2-common.c helper v4l2_get_timestamp()?
+The series has been tested with the VSP1-DU0 instance on the Lager and Koelsch
+boards.
 
-> +
->  	buf->buf.v4l2_buf.sequence = queue->sequence++;
-> -	do_gettimeofday(&buf->buf.v4l2_buf.timestamp);
-> +	buf->buf.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
-> +	buf->buf.v4l2_buf.timestamp.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+Laurent Pinchart (6):
+  v4l: vsp1: Support multi-input entities
+  v4l: vsp1: Add BRU support
+  v4l: vsp1: uds: Enable scaling of alpha layer
+  v4l: vsp1: Add DT support
+  ARM: shmobile: r8a7790: Add VSP1 devices to DT
+  ARM: shmobile: r8a7791: Add VSP1 devices to DT
 
-You should also add:
+ .../devicetree/bindings/media/renesas,vsp1.txt     |  51 +++
+ arch/arm/boot/dts/r8a7790.dtsi                     |  55 +++
+ arch/arm/boot/dts/r8a7791.dtsi                     |  39 ++
+ drivers/media/platform/vsp1/Makefile               |   2 +-
+ drivers/media/platform/vsp1/vsp1.h                 |   2 +
+ drivers/media/platform/vsp1/vsp1_bru.c             | 395 +++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_bru.h             |  39 ++
+ drivers/media/platform/vsp1/vsp1_drv.c             |  61 +++-
+ drivers/media/platform/vsp1/vsp1_entity.c          |  57 +--
+ drivers/media/platform/vsp1/vsp1_entity.h          |  24 +-
+ drivers/media/platform/vsp1/vsp1_hsit.c            |   7 +-
+ drivers/media/platform/vsp1/vsp1_lif.c             |   1 -
+ drivers/media/platform/vsp1/vsp1_lut.c             |   1 -
+ drivers/media/platform/vsp1/vsp1_regs.h            |  98 +++++
+ drivers/media/platform/vsp1/vsp1_rpf.c             |   7 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.h            |   4 +
+ drivers/media/platform/vsp1/vsp1_sru.c             |   1 -
+ drivers/media/platform/vsp1/vsp1_uds.c             |   4 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |  26 +-
+ drivers/media/platform/vsp1/vsp1_video.h           |   1 +
+ drivers/media/platform/vsp1/vsp1_wpf.c             |  13 +-
+ 21 files changed, 830 insertions(+), 58 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,vsp1.txt
+ create mode 100644 drivers/media/platform/vsp1/vsp1_bru.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_bru.h
 
-	buf->buf.v4l2_buf.field = V4L2_FIELD_NONE;
-
-I noticed that that was never set, which is wrong.
-
+-- 
 Regards,
 
-	Hans
-
->  
->  	vb2_set_plane_payload(&buf->buf, 0, buf->bytesused);
->  	vb2_buffer_done(&buf->buf, VB2_BUF_STATE_DONE);
-> 
+Laurent Pinchart
 
