@@ -1,114 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:50786 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755604AbaCULrm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 07:47:42 -0400
-Received: by mail-ee0-f47.google.com with SMTP id b15so1718587eek.34
-        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 04:47:41 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Andrzej Hajda <a.hajda@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <532C1808.6090409@samsung.com>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 139468148.3QhLg3QYq1@avalon> <531F08A8.300@ti.com> <1883687.VdfitvQEN3@ samsung.com> <avalon@samsung.com> <20140320172302.CD320C4067A@trevor. secretlab.ca> <532C1808.6090409@samsung.com>
-Date: Fri, 21 Mar 2014 11:47:35 +0000
-Message-Id: <20140321114735.3E132C4052A@trevor.secretlab.ca>
+Received: from mga09.intel.com ([134.134.136.24]:41828 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750990AbaCEF2m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Mar 2014 00:28:42 -0500
+Date: Wed, 05 Mar 2014 13:28:39 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: [linuxtv-media:master 485/499]
+ drivers/media/dvb-frontends/drx39xyj/drxj.c:1672:65: sparse: Using plain
+ integer as NULL pointer
+Message-ID: <5316b607.tZvy2dEGJe9LO2S/%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 21 Mar 2014 11:44:24 +0100, Andrzej Hajda <a.hajda@samsung.com> wrote:
-> On 03/20/2014 06:23 PM, Grant Likely wrote:
-> > On Tue, 11 Mar 2014 14:16:37 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> >> On Tuesday 11 March 2014 14:59:20 Tomi Valkeinen wrote:
-> >>> So depending on the use case, the endpoints would point to opposite
-> >>> direction from the encoder's point of view.
-> >>>
-> >>> And if I gathered Grant's opinion correctly (correct me if I'm wrong),
-> >>> he thinks things should be explicit, i.e. the bindings for, say, an
-> >>> encoder should state that the encoder's output endpoint _must_ contain a
-> >>> remote-endpoint property, whereas the encoder's input endpoint _must
-> >>> not_ contain a remote-endpoint property.
-> >>
-> >> Actually my understand was that DT links would have the same direction as the 
-> >> data flow. There would be no ambiguity in that case as the direction of the 
-> >> data flow is known. What happens for bidirectional data flows still need to be 
-> >> discussed though. And if we want to use the of-graph bindings to describe 
-> >> graphs without a data flow, a decision will need to be taken there too.
-> > 
-> > On further thinking, I would say linkage direction should be in the
-> > direction that would be considered the dependency order... I'm going to
-> > soften my position though. I think the generic pattern should still
-> > recommend unidirection links in direction of device dependency, but
-> 
-> I am not sure what you mean by 'device dependency' but I am sure it will
-> not be difficult to present problematic cases, maybe circular
-> dependencies, two-way dependencies, etc.
+tree:   git://linuxtv.org/media_tree.git master
+head:   59432be1c7fbf2a4f608850855ff649bee0f7b3b
+commit: 9e4c509d7444e067d39d3ac96a3398721bca4f01 [485/499] [media] drx-j: Use single master mode
+reproduce: make C=1 CF=-D__CHECK_ENDIAN__
 
-My understanding has been that the link data would be used determine
-when the controller driver can be brought up and active. Certainly both
-sides of a link need to be 'live' before the link can be used. The
-kernel must have a way to resolve the question of "who starts first?",
-whether it be the situation of the consumer starts before the producer,
-or the situation of two components need to start before the controller
-driver can start. That is the dependency chain I'm talking about.
 
-> The only problem of unidirectional links from programming point of view
-> is that destination port/interface should be exposed using some
-> framework and driver of source link should grab it using the same
-> framework, using port/endpoint node for identification. In case of
-> bi-directional links the same process should happen but DT do not
-> dictates who should expose and who grabs.
-> 
-> So from programming point of view it should be easy to handle
-> unidirectional links regardless of the direction. So I guess the best
-> is to use data flow direction as it seems to be the most natural.
+sparse warnings: (new ones prefixed by >>)
 
-right.
+>> drivers/media/dvb-frontends/drx39xyj/drxj.c:1672:65: sparse: Using plain integer as NULL pointer
+>> drivers/media/dvb-frontends/drx39xyj/drxj.c:1672:71: sparse: Using plain integer as NULL pointer
+>> drivers/media/dvb-frontends/drx39xyj/drxj.c:1674:52: sparse: Using plain integer as NULL pointer
+>> drivers/media/dvb-frontends/drx39xyj/drxj.c:1674:58: sparse: Using plain integer as NULL pointer
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:905:21: sparse: symbol 'drxj_default_aud_data_g' was not declared. Should it be static?
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20248:25: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20248:25: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20248:25: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20248:25: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20250:25: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20250:25: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20250:25: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20250:25: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20274:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20276:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20276:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20276:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20276:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20278:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20278:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20278:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20278:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20280:33: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20280:33: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20280:33: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20280:33: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20087:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20087:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20087:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20087:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20114:29: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20114:29: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20114:29: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20114:29: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20132:34: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20134:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20134:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20134:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20134:34: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20136:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20136:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20136:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20136:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20138:33: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20138:33: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20138:33: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20138:33: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20152:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20152:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20152:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20152:35: sparse: cast to restricted __be16
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20160:47: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20162:46: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
+   drivers/media/dvb-frontends/drx39xyj/drxj.c:20164:51: sparse: cast to restricted __be32
 
-> 
-> 
-> > I'm okay with allowing the bidirection option if the helper functions
-> > are modified to validate the target endpoint. I think it needs to test
-> > for the following:
-> > - Make sure the endpoint either:
-> >   - does not have a backlink, or
-> >   - the backlink points back to the origin node
-> > - If the target is an endpoint node, then make sure the parent doesn't
-> >   have a link of any kind
-> > - If the target is a port node, make sure it doesn't have any endpoint
-> >   children nodes at all.
-> 
-> I think link validation can be done at dts compile time.
+vim +1672 drivers/media/dvb-frontends/drx39xyj/drxj.c
 
-I'm firm on the opinion that the checking must also happen at runtime.
-The biggest part of my objection has been how easy it would be to get a
-linkage out of sync, and dtc is not necessarily the last tool to touch
-the dtb before the kernel gets booted. I want the kernel to flat out
-reject any linkage that is improperly formed.
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1666  
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1667  #if DRXDAP_SINGLE_MASTER
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1668  		/*
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1669  		 * In single master mode, split the read and write actions.
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1670  		 * No special action is needed for write chunks here.
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1671  		 */
+73b3fc3d Mauro Carvalho Chehab 2014-01-27 @1672  		rc = drxbsp_i2c_write_read(dev_addr, bufx, buf, 0, 0, 0);
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1673  		if (rc == 0)
+73b3fc3d Mauro Carvalho Chehab 2014-01-27 @1674  			rc = drxbsp_i2c_write_read(0, 0, 0, dev_addr, todo, data);
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1675  #else
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1676  		/* In multi master mode, do everything in one RW action */
+73b3fc3d Mauro Carvalho Chehab 2014-01-27  1677  		rc = drxbsp_i2c_write_read(dev_addr, bufx, buf, dev_addr, todo,
 
-g.
+:::::: The code at line 1672 was first introduced by commit
+:::::: 73b3fc3d74de4ccba5775476d685e062b7774e64 [media] drx-j: get rid of drx_dap_fasi.c
 
-> 
-> Regards
-> Andrzej
-> 
-> > 
-> > g.
-> > 
-> > 
-> 
+:::::: TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
+:::::: CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
