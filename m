@@ -1,325 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:57437 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753245AbaCMPBK (ORCPT
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:52393 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755323AbaCEXBC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 11:01:10 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Archit Taneja' <archit@ti.com>, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394711056-10878-1-git-send-email-archit@ti.com>
- <1394711056-10878-7-git-send-email-archit@ti.com>
-In-reply-to: <1394711056-10878-7-git-send-email-archit@ti.com>
-Subject: RE: [PATCH v4 06/14] v4l: ti-vpe: Fix some params in VPE data
- descriptors
-Date: Thu, 13 Mar 2014 16:01:06 +0100
-Message-id: <001001cf3ecd$0fdf1650$2f9d42f0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Wed, 5 Mar 2014 18:01:02 -0500
+Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 808872109A
+	for <linux-media@vger.kernel.org>; Wed,  5 Mar 2014 18:01:01 -0500 (EST)
+Received: from [192.168.0.8] (unknown [86.26.230.106])
+	by mail.messagingengine.com (Postfix) with ESMTPA id 1FBC7C00005
+	for <linux-media@vger.kernel.org>; Wed,  5 Mar 2014 18:01:01 -0500 (EST)
+Message-ID: <5317ACAC.8000008@williammanley.net>
+Date: Wed, 05 Mar 2014 23:01:00 +0000
+From: William Manley <will@williammanley.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: uvcvideo: logitech C920 resets controls during VIDIOC_STREAMON
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi All
 
-> From: Archit Taneja [mailto:archit@ti.com]
-> Sent: Thursday, March 13, 2014 12:44 PM
-> To: k.debski@samsung.com; hverkuil@xs4all.nl
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Archit
-> Taneja
-> Subject: [PATCH v4 06/14] v4l: ti-vpe: Fix some params in VPE data
-> descriptors
-> 
-> Some parameters of the VPE descriptors were understood incorrectly.
-> They are now fixed. The fixes are explained as follows:
-> 
-> - When adding an inbound data descriptor to the VPDMA descriptor list,
-> we intend
->   to use c_rect as the cropped region fetched by VPDMA. Therefore,
-> c_rect->width
->   shouldn't be used to calculate the line stride, the original image
-> width
->   should be used for that. We add a 'width' argument which gives the
-> buffer
->   width in memory.
-> 
-> - frame_width and frame_height describe the complete width and height
-> of the
->   client to which the channel is connected. If there are multiple
-> channels
->   fetching data and providing to the same client, the above 2 arguments
-> should
->   be the width and height of the region covered by all the channels. In
-> the case
->   where there is only one channel providing pixel data to the client
->   (like in VPE), frame_width and frame_height should be the cropped
-> width and
->   cropped height respectively. The calculation of these params is done
-> in the
->   vpe driver now.
-> 
-> - start_h and start_v is also used in the case of multiple channels to
-> describe
->   where each channel should start filling pixel data. We don't use this
-> in VPE,
->   and pass 0s to the vpdma_add_in_dtd() helper.
-> 
-> - Some minor changes are made to the vpdma_add_out_dtd() helper. The
-> c_rect
->   param is used for specifying the 'composition' target, and 'width'
-> is added
->   to calculate the line stride.
+I've been attempting to use the Logitech C920 with the uvcvideo driver.
+ I set the controls with v4l2-ctl but some of them change during
+VIDIOC_STREAMON.  My understanding is that the values of controls should
+be preserved.
 
-This patch looks ok. Passes checkpatch and compiles. I can't say much more
-as I have limited knowledge of the internals of VPE and don't have the
-hardware.
+Minimal test case:
 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+    #include <linux/videodev2.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <errno.h>
+    #include <string.h>
+    #include <unistd.h>
+    #include <sys/ioctl.h>
 
-Acked-by: Kamil Debski <k.debski@samsung.com>
+    #define DEVICE "/dev/video2"
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+    int main()
+    {
+            int fd, type;
 
-> ---
->  drivers/media/platform/ti-vpe/vpdma.c | 60
-> +++++++++++++++++++++++++++--------
->  drivers/media/platform/ti-vpe/vpdma.h | 10 +++---
->  drivers/media/platform/ti-vpe/vpe.c   | 18 +++++++----
->  3 files changed, 64 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpdma.c
-> b/drivers/media/platform/ti-vpe/vpdma.c
-> index 73dd38e..a51a013 100644
-> --- a/drivers/media/platform/ti-vpe/vpdma.c
-> +++ b/drivers/media/platform/ti-vpe/vpdma.c
-> @@ -614,8 +614,17 @@ static void dump_dtd(struct vpdma_dtd *dtd)
->  /*
->   * append an outbound data transfer descriptor to the given descriptor
-> list,
->   * this sets up a 'client to memory' VPDMA transfer for the given
-> VPDMA channel
-> + *
-> + * @list: vpdma desc list to which we add this decriptor
-> + * @width: width of the image in pixels in memory
-> + * @c_rect: compose params of output image
-> + * @fmt: vpdma data format of the buffer
-> + * dma_addr: dma address as seen by VPDMA
-> + * chan: VPDMA channel
-> + * flags: VPDMA flags to configure some descriptor fileds
->   */
-> -void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect
-> *c_rect,
-> +void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
-> +		const struct v4l2_rect *c_rect,
->  		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
->  		enum vpdma_channel chan, u32 flags)
->  {
-> @@ -623,6 +632,7 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list,
-> struct v4l2_rect *c_rect,
->  	int field = 0;
->  	int notify = 1;
->  	int channel, next_chan;
-> +	struct v4l2_rect rect = *c_rect;
->  	int depth = fmt->depth;
->  	int stride;
->  	struct vpdma_dtd *dtd;
-> @@ -630,11 +640,15 @@ void vpdma_add_out_dtd(struct vpdma_desc_list
-> *list, struct v4l2_rect *c_rect,
->  	channel = next_chan = chan_info[chan].num;
-> 
->  	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
-> -			fmt->data_type == DATA_TYPE_C420)
-> +			fmt->data_type == DATA_TYPE_C420) {
-> +		rect.height >>= 1;
-> +		rect.top >>= 1;
->  		depth = 8;
-> +	}
-> 
-> -	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
-> -	dma_addr += (c_rect->left * depth) >> 3;
-> +	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
-> +
-> +	dma_addr += rect.top * stride + (rect.left * depth >> 3);
-> 
->  	dtd = list->next;
->  	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-> @@ -664,31 +678,48 @@ void vpdma_add_out_dtd(struct vpdma_desc_list
-> *list, struct v4l2_rect *c_rect,
->  /*
->   * append an inbound data transfer descriptor to the given descriptor
-> list,
->   * this sets up a 'memory to client' VPDMA transfer for the given
-> VPDMA channel
-> + *
-> + * @list: vpdma desc list to which we add this decriptor
-> + * @width: width of the image in pixels in memory(not the cropped
-> + width)
-> + * @c_rect: crop params of input image
-> + * @fmt: vpdma data format of the buffer
-> + * dma_addr: dma address as seen by VPDMA
-> + * chan: VPDMA channel
-> + * field: top or bottom field info of the input image
-> + * flags: VPDMA flags to configure some descriptor fileds
-> + * frame_width/height: the complete width/height of the image
-> presented to the
-> + *			client (this makes sense when multiple channels are
-> + *			connected to the same client, forming a larger
-frame)
-> + * start_h, start_v: position where the given channel starts providing
-> pixel
-> + *			data to the client (makes sense when multiple
-> channels
-> + *			contribute to the client)
->   */
-> -void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
-> -		int frame_height, struct v4l2_rect *c_rect,
-> +void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
-> +		const struct v4l2_rect *c_rect,
->  		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
-> -		enum vpdma_channel chan, int field, u32 flags)
-> +		enum vpdma_channel chan, int field, u32 flags, int
-> frame_width,
-> +		int frame_height, int start_h, int start_v)
->  {
->  	int priority = 0;
->  	int notify = 1;
->  	int depth = fmt->depth;
->  	int channel, next_chan;
-> +	struct v4l2_rect rect = *c_rect;
->  	int stride;
-> -	int height = c_rect->height;
->  	struct vpdma_dtd *dtd;
-> 
->  	channel = next_chan = chan_info[chan].num;
-> 
->  	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
->  			fmt->data_type == DATA_TYPE_C420) {
-> -		height >>= 1;
-> -		frame_height >>= 1;
-> +		rect.height >>= 1;
-> +		rect.top >>= 1;
->  		depth = 8;
->  	}
-> 
-> -	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
-> -	dma_addr += (c_rect->left * depth) >> 3;
-> +	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
-> +
-> +	dma_addr += rect.top * stride + (rect.left * depth >> 3);
-> 
->  	dtd = list->next;
->  	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-> @@ -701,13 +732,14 @@ void vpdma_add_in_dtd(struct vpdma_desc_list
-> *list, int frame_width,
->  					!!(flags &
-VPDMA_DATA_ODD_LINE_SKIP),
->  					stride);
-> 
-> -	dtd->xfer_length_height = dtd_xfer_length_height(c_rect->width,
-> height);
-> +	dtd->xfer_length_height = dtd_xfer_length_height(rect.width,
-> +					rect.height);
->  	dtd->start_addr = (u32) dma_addr;
->  	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
->  				DTD_DIR_IN, channel, priority, next_chan);
->  	dtd->frame_width_height = dtd_frame_width_height(frame_width,
->  					frame_height);
-> -	dtd->start_h_v = dtd_start_h_v(c_rect->left, c_rect->top);
-> +	dtd->start_h_v = dtd_start_h_v(start_h, start_v);
->  	dtd->client_attr0 = 0;
->  	dtd->client_attr1 = 0;
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpdma.h
-> b/drivers/media/platform/ti-vpe/vpdma.h
-> index bf5f8bb..2bd8fb0 100644
-> --- a/drivers/media/platform/ti-vpe/vpdma.h
-> +++ b/drivers/media/platform/ti-vpe/vpdma.h
-> @@ -186,13 +186,15 @@ void vpdma_add_cfd_adb(struct vpdma_desc_list
-> *list, int client,
->  		struct vpdma_buf *adb);
->  void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
->  		enum vpdma_channel chan);
-> -void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect
-> *c_rect,
-> +void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
-> +		const struct v4l2_rect *c_rect,
->  		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
->  		enum vpdma_channel chan, u32 flags);
-> -void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
-> -		int frame_height, struct v4l2_rect *c_rect,
-> +void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
-> +		const struct v4l2_rect *c_rect,
->  		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
-> -		enum vpdma_channel chan, int field, u32 flags);
-> +		enum vpdma_channel chan, int field, u32 flags, int
-> frame_width,
-> +		int frame_height, int start_h, int start_v);
-> 
->  /* vpdma list interrupt management */
->  void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int
-> list_num, diff --git a/drivers/media/platform/ti-vpe/vpe.c
-> b/drivers/media/platform/ti-vpe/vpe.c
-> index dbdc338..ece9b96 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -986,7 +986,6 @@ static void add_out_dtd(struct vpe_ctx *ctx, int
-> port)
->  	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_DST];
->  	const struct vpe_port_data *p_data = &port_data[port];
->  	struct vb2_buffer *vb = ctx->dst_vb;
-> -	struct v4l2_rect *c_rect = &q_data->c_rect;
->  	struct vpe_fmt *fmt = q_data->fmt;
->  	const struct vpdma_data_format *vpdma_fmt;
->  	int mv_buf_selector = !ctx->src_mv_buf_selector; @@ -1015,8
-> +1014,8 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
->  	if (q_data->flags & Q_DATA_MODE_TILED)
->  		flags |= VPDMA_DATA_MODE_TILED;
-> 
-> -	vpdma_add_out_dtd(&ctx->desc_list, c_rect, vpdma_fmt, dma_addr,
-> -		p_data->channel, flags);
-> +	vpdma_add_out_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
-> +		vpdma_fmt, dma_addr, p_data->channel, flags);
->  }
-> 
->  static void add_in_dtd(struct vpe_ctx *ctx, int port) @@ -1024,11
-> +1023,11 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
->  	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_SRC];
->  	const struct vpe_port_data *p_data = &port_data[port];
->  	struct vb2_buffer *vb = ctx->src_vbs[p_data->vb_index];
-> -	struct v4l2_rect *c_rect = &q_data->c_rect;
->  	struct vpe_fmt *fmt = q_data->fmt;
->  	const struct vpdma_data_format *vpdma_fmt;
->  	int mv_buf_selector = ctx->src_mv_buf_selector;
->  	int field = vb->v4l2_buf.field == V4L2_FIELD_BOTTOM;
-> +	int frame_width, frame_height;
->  	dma_addr_t dma_addr;
->  	u32 flags = 0;
-> 
-> @@ -1055,8 +1054,15 @@ static void add_in_dtd(struct vpe_ctx *ctx, int
-> port)
->  	if (q_data->flags & Q_DATA_MODE_TILED)
->  		flags |= VPDMA_DATA_MODE_TILED;
-> 
-> -	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, q_data->height,
-> -		c_rect, vpdma_fmt, dma_addr, p_data->channel, field, flags);
-> +	frame_width = q_data->c_rect.width;
-> +	frame_height = q_data->c_rect.height;
-> +
-> +	if (p_data->vb_part && fmt->fourcc == V4L2_PIX_FMT_NV12)
-> +		frame_height /= 2;
-> +
-> +	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
-> +		vpdma_fmt, dma_addr, p_data->channel, field, flags,
-> frame_width,
-> +		frame_height, 0, 0);
->  }
-> 
->  /*
-> --
-> 1.8.3.2
+            fd = open(DEVICE, O_RDWR | O_CLOEXEC);
+            if (fd < 0) {
+                    perror("Failed to open " DEVICE "\n");
+                    return 1;
+            }
 
+            struct v4l2_requestbuffers reqbuf = {
+                    .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+                    .memory = V4L2_MEMORY_MMAP,
+                    .count = 1,
+            };
+
+            if (-1 == ioctl (fd, VIDIOC_REQBUFS, &reqbuf)) {
+                    perror("VIDIOC_REQBUFS");
+                    return 1;
+            }
+
+            system("v4l2-ctl -d" DEVICE " -l | grep exposure_absolute");
+
+            type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+            if (ioctl (fd, VIDIOC_STREAMON, &type) != 0) {
+                    perror("VIDIOC_STREAMON");
+                    return 1;
+            }
+
+            printf("VIDIOC_STREAMON\n");
+
+            usleep(100000);
+            system("v4l2-ctl -d" DEVICE " -l | grep exposure_absolute");
+
+            return 0;
+    }
+
+None of the other controls seem to be affected.  Note: to get the C920
+to report exposure_absolute correctly I also had to make this change to
+the uvcvideo kernel driver:
+
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+b/drivers/media/usb/uvc/uvc_ctrl.c
+index a2f4501..e7c805b 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -227,7 +227,8 @@ static struct uvc_control_info uvc_ctrls[] = {
+                .size           = 4,
+                .flags          = UVC_CTRL_FLAG_SET_CUR
+                                | UVC_CTRL_FLAG_GET_RANGE
+-                               | UVC_CTRL_FLAG_RESTORE,
++                               | UVC_CTRL_FLAG_RESTORE
++                               | UVC_CTRL_FLAG_AUTO_UPDATE,
+        },
+        {
+                .entity         = UVC_GUID_UVC_CAMERA,
+
+
+The variables seem to be changed when the URBs are Submitted.  To
+investigate I made the following change to the uvc driver:
+
+
+diff --git a/drivers/media/usb/uvc/uvc_video.c
+b/drivers/media/usb/uvc/uvc_video.c
+index 3394c34..f2f66f6 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1649,17 +1649,23 @@ static int uvc_init_video(struct uvc_streaming
+*stream, gfp_t gfp_flags)
+        if (ret < 0)
+                return ret;
+
++       /* No effect: */
++       uvc_ctrl_resume_device(stream->dev);
++
+        /* Submit the URBs. */
+        for (i = 0; i < UVC_URBS; ++i) {
+                ret = usb_submit_urb(stream->urb[i], gfp_flags);
+                if (ret < 0) {
+                        uvc_printk(KERN_ERR, "Failed to submit URB %u "
+                                        "(%d).\n", i, ret);
+                        uvc_uninit_video(stream, 1);
+                        return ret;
+                }
+        }
+
++       /* "Fixes" the issue: */
++       uvc_ctrl_resume_device(stream->dev);
++
+        return 0;
+ }
+
+
+At this point the backtrace looks something like:
+
+    uvc_init_video
+    uvc_video_enable
+    uvc_v4l2_do_ioctl (in the case VIDIOC_STREAMON:)
+
+The call to uvc_ctrl_resume_device() has the effect that the v4l2 ctrls
+which are cached in the kernel get resubmitted to the camera as if it
+were coming out of suspend/resume.
+
+I've looked at the wireshark capture of USB traffic and I can't find
+anywhere where the host causes exposure_auto to change.  The camera does
+have a mode where it would change by itself but that is disabled
+(exposure_auto=1).  I've uploaded the wireshark trace to:
+
+http://williammanley.net/usb-wireshark-streamon.pcapng
+
+I'm guessing that this is a hardware bug.  One fix would be modify the
+driver to save all values at the beginning of STREAMON and then restore
+them at the end.  What do you think?
+
+Thanks
+
+Will
