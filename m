@@ -1,83 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2266 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753829AbaCJN6y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 09:58:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, k.debski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv1 PATCH 7/7] mem2mem_testdev: improve field handling
-Date: Mon, 10 Mar 2014 14:58:29 +0100
-Message-Id: <1394459909-36497-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:46234 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751943AbaCEKOo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 05:14:44 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N1Y0033OKGC4G40@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 05 Mar 2014 10:14:36 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Seung-Woo Kim' <sw0312.kim@samsung.com>,
+	linux-media@vger.kernel.org, m.chehab@samsung.com
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+References: <1394014092-29620-1-git-send-email-sw0312.kim@samsung.com>
+In-reply-to: <1394014092-29620-1-git-send-email-sw0312.kim@samsung.com>
+Subject: RE: [PATCH] [media] s5-mfc: remove meaningless assignment
+Date: Wed, 05 Mar 2014 11:14:40 +0100
+Message-id: <187b01cf385b$b933c1b0$2b9b4510$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Seung-Woo,
 
-try_fmt should just set field to NONE and not return an error if
-a different field was passed.
+> From: Seung-Woo Kim [mailto:sw0312.kim@samsung.com]
+> Sent: Wednesday, March 05, 2014 11:08 AM
+> 
+> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
 
-buf_prepare should check if the field passed in from userspace has a
-supported field value. At the moment only NONE is supported and ANY
-is mapped to NONE.
+Thank you for your patch. I know that content of the patch is obvious, but
+please provide a description of the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/mem2mem_testdev.c | 21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-index dec8092..4f3096b 100644
---- a/drivers/media/platform/mem2mem_testdev.c
-+++ b/drivers/media/platform/mem2mem_testdev.c
-@@ -516,19 +516,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 
- static int vidioc_try_fmt(struct v4l2_format *f, struct m2mtest_fmt *fmt)
- {
--	enum v4l2_field field;
--
--	field = f->fmt.pix.field;
--
--	if (field == V4L2_FIELD_ANY)
--		field = V4L2_FIELD_NONE;
--	else if (V4L2_FIELD_NONE != field)
--		return -EINVAL;
--
- 	/* V4L2 specification suggests the driver corrects the format struct
- 	 * if any of the dimensions is unsupported */
--	f->fmt.pix.field = field;
--
- 	if (f->fmt.pix.height < MIN_H)
- 		f->fmt.pix.height = MIN_H;
- 	else if (f->fmt.pix.height > MAX_H)
-@@ -542,6 +531,7 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct m2mtest_fmt *fmt)
- 	f->fmt.pix.width &= ~DIM_ALIGN_MASK;
- 	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
- 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+	f->fmt.pix.field = V4L2_FIELD_NONE;
- 	f->fmt.pix.priv = 0;
- 
- 	return 0;
-@@ -760,6 +750,15 @@ static int m2mtest_buf_prepare(struct vb2_buffer *vb)
- 	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
- 
- 	q_data = get_q_data(ctx, vb->vb2_queue->type);
-+	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
-+		if (vb->v4l2_buf.field == V4L2_FIELD_ANY)
-+			vb->v4l2_buf.field = V4L2_FIELD_NONE;
-+		if (vb->v4l2_buf.field != V4L2_FIELD_NONE) {
-+			dprintk(ctx->dev, "%s field isn't supported\n",
-+					__func__);
-+			return -EINVAL;
-+		}
-+	}
- 
- 	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
- 		dprintk(ctx->dev, "%s data will not fit into plane (%lu < %lu)\n",
+Best wishes,
 -- 
-1.9.0
+Kamil Debski
+Samsung R&D Institute Poland
+
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> index 2475a3c..ee05f2d 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> @@ -44,8 +44,6 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+>  		return -ENOMEM;
+>  	}
+> 
+> -	dev->bank1 = dev->bank1;
+> -
+>  	if (HAS_PORTNUM(dev) && IS_TWOPORT(dev)) {
+>  		bank2_virt = dma_alloc_coherent(dev->mem_dev_r, 1 <<
+> MFC_BASE_ALIGN_ORDER,
+>  					&bank2_dma_addr, GFP_KERNEL);
+> --
+> 1.7.4.1
 
