@@ -1,66 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:34759 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753477AbaCGQWh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 11:22:37 -0500
-Received: by mail-la0-f49.google.com with SMTP id mc6so2874078lab.8
-        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 08:22:36 -0800 (PST)
-Message-ID: <531A0065.3060001@cogentembedded.com>
-Date: Fri, 07 Mar 2014 20:22:45 +0300
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-CC: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
-	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Subject: Re: [PATCH 2/5] ARM: lager: add vin1 node
-References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk> <1394197299-17528-3-git-send-email-ben.dooks@codethink.co.uk> <5319F8D1.5050608@cogentembedded.com> <5319EE73.7010305@codethink.co.uk>
-In-Reply-To: <5319EE73.7010305@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4623 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756347AbaCED1f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 22:27:35 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s253RVOg062208
+	for <linux-media@vger.kernel.org>; Wed, 5 Mar 2014 04:27:33 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id ADCB72A045D
+	for <linux-media@vger.kernel.org>; Wed,  5 Mar 2014 04:27:18 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140305032718.ADCB72A045D@tschai.lan>
+Date: Wed,  5 Mar 2014 04:27:18 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/07/2014 07:06 PM, Ben Dooks wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
->>> Add device-tree for vin1 (composite video in) on the
->>> lager board.
+Results of the daily build of media_tree:
 
->>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+date:		Wed Mar  5 04:00:26 CET 2014
+git branch:	test
+git hash:	59432be1c7fbf2a4f608850855ff649bee0f7b3b
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.12-6.slh.2-amd64
 
->>     This patch should have been preceded by the VIN driver patch and
->> bindings description, don't you think?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12-i686: ERRORS
+linux-3.13-i686: ERRORS
+linux-3.14-rc1-i686: ERRORS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12-x86_64: ERRORS
+linux-3.13-x86_64: ERRORS
+linux-3.14-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
->>> diff --git a/arch/arm/boot/dts/r8a7790-lager.dts
->>> b/arch/arm/boot/dts/r8a7790-lager.dts
->>> index a087421..7528cfc 100644
->>> --- a/arch/arm/boot/dts/r8a7790-lager.dts
->>> +++ b/arch/arm/boot/dts/r8a7790-lager.dts
->> [...]
->>> @@ -239,8 +244,41 @@
->>>       status = "ok";
->>>       pinctrl-0 = <&i2c2_pins>;
->>>       pinctrl-names = "default";
->>> +
->>> +    adv7180: adv7180@0x20 {
+Detailed results are available here:
 
->>     ePAPR standard [1] tells us that:
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
->> "The name of a node should be somewhat generic, reflecting the function
->> of the device and not its precise programming model."
+Full logs are available here:
 
->>     So, I would suggest something like "video-decoder" instead. And
->> remove "0x" from the address part of the node name please.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-> Personally I'm not fussed about names in the tree.
+The Media Infrastructure API from this daily build is here:
 
-    I quoted the standard everybody should follow.
-
-> I will look at changing it to something like vin1_decoder
-
-    Please give it a generic name instead, without indexes and underscores.
-
-WBR, Sergei
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
