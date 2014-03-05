@@ -1,116 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:35578 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751143AbaCFQCL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Mar 2014 11:02:11 -0500
-From: Denis Carikli <denis@eukrea.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v9][ 2/8] staging: imx-drm: Add RGB666 support for parallel display.
-Date: Thu,  6 Mar 2014 17:01:41 +0100
-Message-Id: <1394121702-13257-2-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394121702-13257-1-git-send-email-denis@eukrea.com>
-References: <1394121702-13257-1-git-send-email-denis@eukrea.com>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:48828 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752215AbaCER16 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 12:27:58 -0500
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N1Z004AF4IKZQ40@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 05 Mar 2014 12:27:56 -0500 (EST)
+Date: Wed, 05 Mar 2014 14:27:46 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: kbuild test robot <fengguang.wu@intel.com>
+Cc: Federico Simoncelli <fsimonce@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: Re: [linuxtv-media:master 499/499]
+ drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table'
+ was not declared. Should it be static?
+Message-id: <20140305142746.4ef16bff@samsung.com>
+In-reply-to: <52f0ac8a.aIXONk2PY1rBXEn8%fengguang.wu@intel.com>
+References: <52f0ac8a.aIXONk2PY1rBXEn8%fengguang.wu@intel.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-ChangeLog v8->v9:
-- Removed the Cc. They are now set in git-send-email directly.
-- Rebased.
+Hi Fengguang,
 
-ChangeLog v7->v8:
-- Shrinked even more the Cc list.
+This patch got obsoleted by another patch in the same series.
 
-ChangeLog v6->v7:
-- Shrinked even more the Cc list.
+Unfortunately, I had to break sending the patch series into a few
+pushes, as my mailbomb script has a logic there that prevents it to
+send more than 30~50 emails (I never remember the exact setting).
 
-ChangeLog v5->v6:
-- Remove people not concerned by this patch from the Cc list.
+So, I pushed this 80-series into a few pushes. You likely compiled the
+tree without waiting for the hole series to be upstreamed.
 
-ChangeLog v3->v5:
-- Use the correct RGB order.
+Regards,
+Mauro
 
-ChangeLog v2->v3:
-- Added some interested people in the Cc list.
-- Removed the commit message long desciption that was just a copy of the short
-  description.
-- Rebased the patch.
-- Fixed a copy-paste error in the ipu_dc_map_clear parameter.
----
- .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    2 +-
- drivers/staging/imx-drm/ipu-v3/ipu-dc.c            |    9 +++++++++
- drivers/staging/imx-drm/parallel-display.c         |    2 ++
- 3 files changed, 12 insertions(+), 1 deletion(-)
+Em Tue, 04 Feb 2014 17:02:02 +0800
+kbuild test robot <fengguang.wu@intel.com> escreveu:
 
-diff --git a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-index b876d49..2d24425 100644
---- a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-+++ b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-@@ -29,7 +29,7 @@ Required properties:
- - crtc: the crtc this display is connected to, see below
- Optional properties:
- - interface_pix_fmt: How this display is connected to the
--  crtc. Currently supported types: "rgb24", "rgb565", "bgr666"
-+  crtc. Currently supported types: "rgb24", "rgb565", "bgr666", "rgb666"
- - edid: verbatim EDID data block describing attached display.
- - ddc: phandle describing the i2c bus handling the display data
-   channel
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-index d5de8bb..6f9abe8 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-@@ -92,6 +92,7 @@ enum ipu_dc_map {
- 	IPU_DC_MAP_GBR24, /* TVEv2 */
- 	IPU_DC_MAP_BGR666,
- 	IPU_DC_MAP_BGR24,
-+	IPU_DC_MAP_RGB666,
- };
- 
- struct ipu_dc {
-@@ -155,6 +156,8 @@ static int ipu_pixfmt_to_map(u32 fmt)
- 		return IPU_DC_MAP_BGR666;
- 	case V4L2_PIX_FMT_BGR24:
- 		return IPU_DC_MAP_BGR24;
-+	case V4L2_PIX_FMT_RGB666:
-+		return IPU_DC_MAP_RGB666;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -404,6 +407,12 @@ int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
- 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 1, 15, 0xff); /* green */
- 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 0, 23, 0xff); /* blue */
- 
-+	/* rgb666 */
-+	ipu_dc_map_clear(priv, IPU_DC_MAP_RGB666);
-+	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 0, 5, 0xfc); /* blue */
-+	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 1, 11, 0xfc); /* green */
-+	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 2, 17, 0xfc); /* red */
-+
- 	return 0;
- }
- 
-diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-drm/parallel-display.c
-index c60b6c6..01b7ce5 100644
---- a/drivers/staging/imx-drm/parallel-display.c
-+++ b/drivers/staging/imx-drm/parallel-display.c
-@@ -219,6 +219,8 @@ static int imx_pd_bind(struct device *dev, struct device *master, void *data)
- 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB565;
- 		else if (!strcmp(fmt, "bgr666"))
- 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_BGR666;
-+		else if (!strcmp(fmt, "rgb666"))
-+			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB666;
- 	}
- 
- 	panel_node = of_parse_phandle(np, "fsl,panel", 0);
+> tree:   git://linuxtv.org/media_tree.git master
+> head:   a3550ea665acd1922df8275379028c1634675629
+> commit: a3550ea665acd1922df8275379028c1634675629 [499/499] [media] usbtv: split core and video implementation
+> reproduce: make C=1 CF=-D__CHECK_ENDIAN__
+> 
+> 
+> sparse warnings: (new ones prefixed by >>)
+> 
+> >> drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table' was not declared. Should it be static?
+> >> drivers/media/usb/usbtv/usbtv-core.c:129:19: sparse: symbol 'usbtv_usb_driver' was not declared. Should it be static?
+> --
+> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
+> >> drivers/media/usb/usbtv/usbtv-video.c:565:23: sparse: symbol 'usbtv_ioctl_ops' was not declared. Should it be static?
+> >> drivers/media/usb/usbtv/usbtv-video.c:587:29: sparse: symbol 'usbtv_fops' was not declared. Should it be static?
+> >> drivers/media/usb/usbtv/usbtv-video.c:648:16: sparse: symbol 'usbtv_vb2_ops' was not declared. Should it be static?
+> 
+> Please consider folding the attached diff :-)
+> 
+> ---
+> 0-DAY kernel build testing backend              Open Source Technology Center
+> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+
+
 -- 
-1.7.9.5
 
+Cheers,
+Mauro
