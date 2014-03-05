@@ -1,143 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:16035 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754162AbaCMQlA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 12:41:00 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2D006KLVOBRE90@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 13 Mar 2014 12:40:59 -0400 (EDT)
-Date: Thu, 13 Mar 2014 13:40:54 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:60293 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754222AbaCERUa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 12:20:30 -0500
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [REVIEW PATCH 02/16] e4000: implement controls via v4l2 control
- framework
-Message-id: <20140313134054.63122089@samsung.com>
-In-reply-to: <5321CC1E.3080509@iki.fi>
-References: <1393461025-11857-1-git-send-email-crope@iki.fi>
- <1393461025-11857-3-git-send-email-crope@iki.fi>
- <20140313105727.43c3d689@samsung.com> <5321CC1E.3080509@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] DocBook: Fix a breakage at controls.xml
+Date: Wed,  5 Mar 2014 14:19:50 -0300
+Message-Id: <1394039990-26111-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 13 Mar 2014 17:17:50 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+Some previous patch introduced this bug:
 
-> On 13.03.2014 15:57, Mauro Carvalho Chehab wrote:
-> > Em Thu, 27 Feb 2014 02:30:11 +0200
-> > Antti Palosaari <crope@iki.fi> escreveu:
-> >
-> >> Implement gain and bandwidth controls using v4l2 control framework.
-> >> Pointer to control handler is provided by exported symbol.
-> >>
-> >> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> >> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> >> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> >> ---
-> >>   drivers/media/tuners/e4000.c      | 210 +++++++++++++++++++++++++++++++++++++-
-> >>   drivers/media/tuners/e4000.h      |  14 +++
-> >>   drivers/media/tuners/e4000_priv.h |  75 ++++++++++++++
-> >>   3 files changed, 298 insertions(+), 1 deletion(-)
-> >
-> > ...
-> >> diff --git a/drivers/media/tuners/e4000.h b/drivers/media/tuners/e4000.h
-> >> index e74b8b2..989f2ea 100644
-> >> --- a/drivers/media/tuners/e4000.h
-> >> +++ b/drivers/media/tuners/e4000.h
-> >> @@ -40,4 +40,18 @@ struct e4000_config {
-> >>   	u32 clock;
-> >>   };
-> >>
-> >> +#if IS_ENABLED(CONFIG_MEDIA_TUNER_E4000)
-> >> +extern struct v4l2_ctrl_handler *e4000_get_ctrl_handler(
-> >> +		struct dvb_frontend *fe
-> >> +);
-> >> +#else
-> >> +static inline struct v4l2_ctrl_handler *e4000_get_ctrl_handler(
-> >> +		struct dvb_frontend *fe
-> >> +)
-> >> +{
-> >> +	pr_warn("%s: driver disabled by Kconfig\n", __func__);
-> >> +	return NULL;
-> >> +}
-> >> +#endif
-> >> +
-> >>   #endif
-> >
-> > There are two things to be noticed here:
-> >
-> > 1) Please don't add any EXPORT_SYMBOL() on a pure I2C module. You
-> > should, instead, use the subdev calls, in order to callback a
-> > function provided by the module;
-> 
-> That means, I have to implement it as a V4L subdev driver then...
+/devel/v4l/patchwork/Documentation/DocBook/controls.xml:2262: parser error : attributes construct error
+	      <row id=""v4l2-mpeg-video-hor-search-range">
+	                ^
+/devel/v4l/patchwork/Documentation/DocBook/controls.xml:2262: parser error : Couldn't find end of Start Tag row line 2262
+	      <row id=""v4l2-mpeg-video-hor-search-range">
+	                ^
 
-Yes, or to create some other type of binding. IMO, we should move
-the subdev interface one level up, as we'll need to use it also
-for some other DVB drivers, with a different set of callbacks.
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Is there any problem to leave as it is? It just only provides control 
-> handler using that export. If you look those existing dvb frontend or 
-> tuner drivers there is many kind of resources exported just similarly 
-> (example DibCom PID filters, af9033 pid filters), so I cannot see why 
-> that should be different.
-
-Well, try googling for:
-	undefined reference to `dib3000mc_get_tuner_i2c_master'
-
-And you'll see that having more than one export on a DVB frontend
-driver doesn't work.
-
-If you want to see what happens, try to compile rtl28xxu builtin
-and e4000 as a module.
-
-What happens is that dvb_attach() will request the tuner module, 
-if the driver provides just the foo_attach. 
-
-If you see what dvb_attach() does, it is actually a kind of
-"request_module" that uses a symbol name instead of the module
-name, plus a dynamically solved call to the attach function. 
-It also increments the loaded module kref (but without assigning
-the module caller ownership).
-
-So, it is actually a dirty hack.
-
-In your case, rtl28xxu builtin will have a hard reference for
-e4000_get_ctrl_handler, with will cause a compilation breakage
-if e4000 is compiled as module.
-
-What the previous I2C model did, and v4l2 subdev does, is to provide
-a way for the driver to register a set of callbacks. This way,
-all that the caller driver needs to do is to check if the callback
-is set. If so, calls it.
-
-> 
-> > 2) As you're now using request_module(), you don't need to use
-> > #if IS_ENABLED() anymore. It is up to the module to register
-> > itself as a V4L2 subdevice. The caller module should use the
-> > subdevice interface to run the callbacks.
-> >
-> > If you don't to that, you'll have several issues with the
-> > building system.
-> 
-> So basically you are saying I should implement that driver as a V4L 
-> subdev too?
-
-Basically, I'm saying that your patch will break compilation, and,
-at a first glance, the subdev approach is the better way to solve it.
-> 
-> regards
-> Antti
-> 
-
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 0e1770c133a8..b7f3feb820db 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2259,7 +2259,7 @@ VBV buffer control.</entry>
+ 	      </row>
+ 
+ 		  <row><entry></entry></row>
+-	      <row id=""v4l2-mpeg-video-hor-search-range">
++	      <row id="v4l2-mpeg-video-hor-search-range">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE</constant>&nbsp;</entry>
+ 		<entry>integer</entry>
+ 	      </row>
 -- 
+1.8.5.3
 
-Regards,
-Mauro
