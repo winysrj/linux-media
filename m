@@ -1,432 +1,315 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:48632 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbaC3QVu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 12:21:50 -0400
-Received: by mail-ee0-f53.google.com with SMTP id b57so5772768eek.40
-        for <linux-media@vger.kernel.org>; Sun, 30 Mar 2014 09:21:49 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 1/8] libdvbv5: cleanup printing tables and descriptors
-Date: Sun, 30 Mar 2014 18:21:11 +0200
-Message-Id: <1396196478-996-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:59582 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753181AbaCEOXg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 09:23:36 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3] em28xx: Only deallocate struct em28xx after finishing all extensions
+Date: Wed,  5 Mar 2014 11:22:52 -0300
+Message-Id: <1394029372-5322-1-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <52FBB6BC.7030102@googlemail.com>
+References: <52FBB6BC.7030102@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- log hex values where appropriate
-- cleanup indents
+We can't free struct em28xx while one of the extensions is still
+using it.
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+So, add a kref() to control it, freeing it only after the
+extensions fini calls.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- lib/libdvbv5/descriptors.c                         |  6 +--
- lib/libdvbv5/descriptors/cat.c                     |  2 +-
- .../descriptors/desc_atsc_service_location.c       |  1 -
- lib/libdvbv5/descriptors/desc_ca.c                 |  4 +-
- lib/libdvbv5/descriptors/desc_ca_identifier.c      |  2 +-
- lib/libdvbv5/descriptors/desc_cable_delivery.c     |  1 -
- lib/libdvbv5/descriptors/desc_event_extended.c     |  2 +-
- lib/libdvbv5/descriptors/desc_event_short.c        |  6 +--
- lib/libdvbv5/descriptors/desc_extension.c          |  2 +-
- lib/libdvbv5/descriptors/desc_frequency_list.c     |  4 +-
- lib/libdvbv5/descriptors/desc_hierarchy.c          |  1 -
- lib/libdvbv5/descriptors/desc_isdbt_delivery.c     |  1 -
- lib/libdvbv5/descriptors/desc_language.c           |  2 +-
- lib/libdvbv5/descriptors/desc_service.c            |  7 ++--
- lib/libdvbv5/descriptors/desc_t2_delivery.c        |  1 -
- .../descriptors/desc_terrestrial_delivery.c        |  1 -
- lib/libdvbv5/descriptors/desc_ts_info.c            |  1 -
- lib/libdvbv5/descriptors/mpeg_pes.c                |  2 +-
- lib/libdvbv5/descriptors/mpeg_ts.c                 | 43 +++++++++++-----------
- lib/libdvbv5/descriptors/nit.c                     |  2 +-
- lib/libdvbv5/descriptors/pat.c                     |  4 +-
- lib/libdvbv5/descriptors/sdt.c                     |  6 +--
- 22 files changed, 46 insertions(+), 55 deletions(-)
+ drivers/media/usb/em28xx/em28xx-audio.c |  7 ++++++-
+ drivers/media/usb/em28xx/em28xx-cards.c | 31 ++++++++++++++++++++++++-------
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  6 +++++-
+ drivers/media/usb/em28xx/em28xx-input.c |  8 +++++++-
+ drivers/media/usb/em28xx/em28xx-video.c | 15 ++++++++-------
+ drivers/media/usb/em28xx/em28xx.h       |  8 ++++++--
+ 6 files changed, 56 insertions(+), 19 deletions(-)
 
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index 15696f0..4694b98 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -75,8 +75,7 @@ void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc
- {
- 	if (!parms)
- 		parms = dvb_fe_dummy();
--	dvb_log("|                   %s (0x%02x)", dvb_descriptors[desc->type].name, desc->type);
--	hexdump(parms, "|                       ", desc->data, desc->length);
-+	hexdump(parms, "|           ", desc->data, desc->length);
- }
- 
- const struct dvb_table_init dvb_table_initializers[] = {
-@@ -167,6 +166,7 @@ void dvb_print_descriptors(struct dvb_v5_fe_parms *parms, struct dvb_desc *desc)
- 		dvb_desc_print_func print = dvb_descriptors[desc->type].print;
- 		if (!print)
- 			print = dvb_desc_default_print;
-+		dvb_log("|        0x%02x: %s", desc->type, dvb_descriptors[desc->type].name);
- 		print(parms, desc);
- 		desc = desc->next;
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 0f5b6f3e7a3f..f75c0a5494d6 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -301,6 +301,7 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+ 			goto err;
  	}
-@@ -1362,6 +1362,6 @@ void hexdump(struct dvb_v5_fe_parms *parms, const char *prefix, const unsigned c
- 		for (i = strlen(hex); i < 49; i++)
- 			strncat(spaces, " ", sizeof(spaces));
- 		ascii[j] = '\0';
--		dvb_log("%s %s %s %s", prefix, hex, spaces, ascii);
-+		dvb_log("%s%s %s %s", prefix, hex, spaces, ascii);
+ 
++	kref_get(&dev->ref);
+ 	dev->adev.users++;
+ 	mutex_unlock(&dev->lock);
+ 
+@@ -341,6 +342,7 @@ static int snd_em28xx_pcm_close(struct snd_pcm_substream *substream)
+ 		substream->runtime->dma_area = NULL;
  	}
+ 	mutex_unlock(&dev->lock);
++	kref_put(&dev->ref, em28xx_free_device);
+ 
+ 	return 0;
  }
-diff --git a/lib/libdvbv5/descriptors/cat.c b/lib/libdvbv5/descriptors/cat.c
-index 4069923..20376de 100644
---- a/lib/libdvbv5/descriptors/cat.c
-+++ b/lib/libdvbv5/descriptors/cat.c
-@@ -65,7 +65,7 @@ void dvb_table_cat_free(struct dvb_table_cat *cat)
+@@ -895,6 +897,8 @@ static int em28xx_audio_init(struct em28xx *dev)
  
- void dvb_table_cat_print(struct dvb_v5_fe_parms *parms, struct dvb_table_cat *cat)
- {
--	dvb_log("cat");
-+	dvb_log("CAT");
- 	dvb_table_header_print(parms, &cat->header);
- 	dvb_print_descriptors(parms, cat->descriptor);
- }
-diff --git a/lib/libdvbv5/descriptors/desc_atsc_service_location.c b/lib/libdvbv5/descriptors/desc_atsc_service_location.c
-index 5e3f461..6da43b6 100644
---- a/lib/libdvbv5/descriptors/desc_atsc_service_location.c
-+++ b/lib/libdvbv5/descriptors/desc_atsc_service_location.c
-@@ -64,7 +64,6 @@ void atsc_desc_service_location_print(struct dvb_v5_fe_parms *parms, const struc
- 	struct atsc_desc_service_location_elementary *el = s_loc->elementary;
- 	int i;
+ 	em28xx_info("Binding audio extension\n");
  
--	dvb_log("|       service location");
- 	dvb_log("|           pcr PID               %d", s_loc->pcr_pid);
- 	dvb_log("|\\ elementary service - %d elementaries", s_loc->number_elements);
- 	for (i = 0; i < s_loc->number_elements; i++) {
-diff --git a/lib/libdvbv5/descriptors/desc_ca.c b/lib/libdvbv5/descriptors/desc_ca.c
-index 6b48175..40edfde 100644
---- a/lib/libdvbv5/descriptors/desc_ca.c
-+++ b/lib/libdvbv5/descriptors/desc_ca.c
-@@ -48,8 +48,8 @@ void dvb_desc_ca_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct
- void dvb_desc_ca_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
- 	const struct dvb_desc_ca *d = (const struct dvb_desc_ca *) desc;
--	dvb_log("|           ca_id             %04x", d->ca_id);
--	dvb_log("|           ca_pid            %04x", d->ca_pid);
-+	dvb_log("|           ca_id             0x%04x", d->ca_id);
-+	dvb_log("|           ca_pid            0x%04x", d->ca_pid);
- 	dvb_log("|           privdata length   %d", d->privdata_len);
- 	if (d->privdata)
- 		hexdump(parms, "|           privdata          ", d->privdata, d->privdata_len);
-diff --git a/lib/libdvbv5/descriptors/desc_ca_identifier.c b/lib/libdvbv5/descriptors/desc_ca_identifier.c
-index 4740a01..95e0569 100644
---- a/lib/libdvbv5/descriptors/desc_ca_identifier.c
-+++ b/lib/libdvbv5/descriptors/desc_ca_identifier.c
-@@ -46,7 +46,7 @@ void dvb_desc_ca_identifier_print(struct dvb_v5_fe_parms *parms, const struct dv
- 	int i;
++	kref_get(&dev->ref);
++
+ 	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
+ 			 "Rechberger\n");
+ 	printk(KERN_INFO
+@@ -967,7 +971,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+ 	if (dev == NULL)
+ 		return 0;
  
- 	for (i = 0; i < d->caid_count; i++)
--		dvb_log("|           caid %d            %04x", i, d->caids[i]);
-+		dvb_log("|           caid %d            0x%04x", i, d->caids[i]);
- }
- 
- void dvb_desc_ca_identifier_free(struct dvb_desc *desc)
-diff --git a/lib/libdvbv5/descriptors/desc_cable_delivery.c b/lib/libdvbv5/descriptors/desc_cable_delivery.c
-index 2cfc679..2214133 100644
---- a/lib/libdvbv5/descriptors/desc_cable_delivery.c
-+++ b/lib/libdvbv5/descriptors/desc_cable_delivery.c
-@@ -41,7 +41,6 @@ void dvb_desc_cable_delivery_init(struct dvb_v5_fe_parms *parms, const uint8_t *
- void dvb_desc_cable_delivery_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
- 	const struct dvb_desc_cable_delivery *cable = (const struct dvb_desc_cable_delivery *) desc;
--	dvb_log("|        cable delivery");
- 	dvb_log("|           length            %d", cable->length);
- 	dvb_log("|           frequency         %d", cable->frequency);
- 	dvb_log("|           fec outer         %d", cable->fec_outer);
-diff --git a/lib/libdvbv5/descriptors/desc_event_extended.c b/lib/libdvbv5/descriptors/desc_event_extended.c
-index 51c7d2b..c3bfc33 100644
---- a/lib/libdvbv5/descriptors/desc_event_extended.c
-+++ b/lib/libdvbv5/descriptors/desc_event_extended.c
-@@ -74,6 +74,6 @@ void dvb_desc_event_extended_free(struct dvb_desc *desc)
- void dvb_desc_event_extended_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
- 	const struct dvb_desc_event_extended *event = (const struct dvb_desc_event_extended *) desc;
--	dvb_log("|   Description   '%s'", event->text);
-+	dvb_log("|           '%s'", event->text);
- }
- 
-diff --git a/lib/libdvbv5/descriptors/desc_event_short.c b/lib/libdvbv5/descriptors/desc_event_short.c
-index 8525579..81f7b36 100644
---- a/lib/libdvbv5/descriptors/desc_event_short.c
-+++ b/lib/libdvbv5/descriptors/desc_event_short.c
-@@ -67,8 +67,8 @@ void dvb_desc_event_short_free(struct dvb_desc *desc)
- void dvb_desc_event_short_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
- 	const struct dvb_desc_event_short *event = (const struct dvb_desc_event_short *) desc;
--	dvb_log("|   Name          '%s'", event->name);
--	dvb_log("|   Language      '%s'", event->language);
--	dvb_log("|   Description   '%s'", event->text);
-+	dvb_log("|           name          '%s'", event->name);
-+	dvb_log("|           language      '%s'", event->language);
-+	dvb_log("|           sescription   '%s'", event->text);
- }
- 
-diff --git a/lib/libdvbv5/descriptors/desc_extension.c b/lib/libdvbv5/descriptors/desc_extension.c
-index 400372f..0adf9c0 100644
---- a/lib/libdvbv5/descriptors/desc_extension.c
-+++ b/lib/libdvbv5/descriptors/desc_extension.c
-@@ -178,7 +178,7 @@ void extension_descriptor_print(struct dvb_v5_fe_parms *parms,
- {
- 	struct dvb_extension_descriptor *ext = (void *)desc;
- 	uint8_t type = ext->extension_code;
--	dvb_log("Extension descriptor %s type 0x%02x",
-+	dvb_log("|           descriptor %s type 0x%02x",
- 		dvb_ext_descriptors[type].name, type);
- 
- 	if (dvb_ext_descriptors[type].print)
-diff --git a/lib/libdvbv5/descriptors/desc_frequency_list.c b/lib/libdvbv5/descriptors/desc_frequency_list.c
-index 9a911a3..fa6d2cd 100644
---- a/lib/libdvbv5/descriptors/desc_frequency_list.c
-+++ b/lib/libdvbv5/descriptors/desc_frequency_list.c
-@@ -59,11 +59,11 @@ void dvb_desc_frequency_list_init(struct dvb_v5_fe_parms *parms, const uint8_t *
- void dvb_desc_frequency_list_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
- 	const struct dvb_desc_frequency_list *d = (const struct dvb_desc_frequency_list *) desc;
--	dvb_log("|       frequency list type: %d", d->freq_type);
-+	dvb_log("|           type: %d", d->freq_type);
- 	int i = 0;
- 
- 	for (i = 0; i < d->frequencies; i++) {
--		dvb_log("|       frequency : %u", d->frequency[i]);
-+		dvb_log("|           frequency : %u", d->frequency[i]);
+-	if (dev->has_alsa_audio != 1) {
++	if (!dev->has_alsa_audio) {
+ 		/* This device does not support the extension (in this case
+ 		   the device is expecting the snd-usb-audio module or
+ 		   doesn't have analog audio support at all) */
+@@ -986,6 +990,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+ 		dev->adev.sndcard = NULL;
  	}
+ 
++	kref_put(&dev->ref, em28xx_free_device);
+ 	return 0;
  }
  
-diff --git a/lib/libdvbv5/descriptors/desc_hierarchy.c b/lib/libdvbv5/descriptors/desc_hierarchy.c
-index b6e0adc..cf14824 100644
---- a/lib/libdvbv5/descriptors/desc_hierarchy.c
-+++ b/lib/libdvbv5/descriptors/desc_hierarchy.c
-@@ -35,7 +35,6 @@ void dvb_desc_hierarchy_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
- void dvb_desc_hierarchy_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 2fb300e882f0..512448b757c9 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2939,7 +2939,7 @@ static void flush_request_modules(struct em28xx *dev)
+  * unregisters the v4l2,i2c and usb devices
+  * called when the device gets disconnected or at module unload
+ */
+-void em28xx_release_resources(struct em28xx *dev)
++static void em28xx_release_resources(struct em28xx *dev)
  {
- 	const struct dvb_desc_hierarchy *hierarchy = (const struct dvb_desc_hierarchy *) desc;
--	dvb_log("|	Hierarchy");
- 	dvb_log("|           type           %d", hierarchy->hierarchy_type);
- 	dvb_log("|           layer          %d", hierarchy->layer);
- 	dvb_log("|           embedded_layer %d", hierarchy->embedded_layer);
-diff --git a/lib/libdvbv5/descriptors/desc_isdbt_delivery.c b/lib/libdvbv5/descriptors/desc_isdbt_delivery.c
-index df04580..bd22456 100644
---- a/lib/libdvbv5/descriptors/desc_isdbt_delivery.c
-+++ b/lib/libdvbv5/descriptors/desc_isdbt_delivery.c
-@@ -83,7 +83,6 @@ void isdbt_desc_delivery_print(struct dvb_v5_fe_parms *parms, const struct dvb_d
- 	const struct isdbt_desc_terrestrial_delivery_system *d = (const void *) desc;
- 	int i;
+ 	/*FIXME: I2C IR should be disconnected */
  
--	dvb_log("|        ISDB-T delivery");
- 	dvb_log("|           transmission mode %s (%d)",
- 		tm_name[d->transmission_mode], d->transmission_mode);
- 	dvb_log("|           guard interval    %s (%d)",
-diff --git a/lib/libdvbv5/descriptors/desc_language.c b/lib/libdvbv5/descriptors/desc_language.c
-index 3d234e1..dfdf40f 100644
---- a/lib/libdvbv5/descriptors/desc_language.c
-+++ b/lib/libdvbv5/descriptors/desc_language.c
-@@ -37,6 +37,6 @@ void dvb_desc_language_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, s
- void dvb_desc_language_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
- 	const struct dvb_desc_language *lang = (const struct dvb_desc_language *) desc;
--	dvb_log("|                   lang: %s (type: %d)", lang->language, lang->audio_type);
-+	dvb_log("|           lang: %s (type: %d)", lang->language, lang->audio_type);
- }
+@@ -2956,7 +2956,26 @@ void em28xx_release_resources(struct em28xx *dev)
  
-diff --git a/lib/libdvbv5/descriptors/desc_service.c b/lib/libdvbv5/descriptors/desc_service.c
-index e73bf78..c86de91 100644
---- a/lib/libdvbv5/descriptors/desc_service.c
-+++ b/lib/libdvbv5/descriptors/desc_service.c
-@@ -30,7 +30,6 @@ void dvb_desc_service_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, st
- 	uint8_t len;        /* the length of the string in the input data */
- 	uint8_t len1, len2; /* the lenght of the output strings */
+ 	mutex_unlock(&dev->lock);
+ };
+-EXPORT_SYMBOL_GPL(em28xx_release_resources);
++
++/**
++ * em28xx_free_defice() - Free em28xx device
++ *
++ * @ref: struct kref for em28xx device
++ *
++ * This is called when all extensions and em28xx core unregisters a device
++ */
++void em28xx_free_device(struct kref *ref)
++{
++	struct em28xx *dev = kref_to_dev(ref);
++
++	em28xx_info("Freeing device\n");
++
++	if (!dev->disconnected)
++		em28xx_release_resources(dev);
++
++	kfree(dev->alt_max_pkt_size_isoc);
++	kfree(dev);
++}
  
--        /*hexdump(parms, "service desc: ", buf - 2, desc->length + 2);*/
- 	service->service_type = buf[0];
- 	buf++;
- 
-@@ -63,8 +62,8 @@ void dvb_desc_service_free(struct dvb_desc *desc)
- void dvb_desc_service_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
- 	const struct dvb_desc_service *service = (const struct dvb_desc_service *) desc;
--	dvb_log("|   service type     %d", service->service_type);
--	dvb_log("|           name     '%s'", service->name);
--	dvb_log("|           provider '%s'", service->provider);
-+	dvb_log("|           service type  %d", service->service_type);
-+	dvb_log("|           name          '%s'", service->name);
-+	dvb_log("|           provider      '%s'", service->provider);
- }
- 
-diff --git a/lib/libdvbv5/descriptors/desc_t2_delivery.c b/lib/libdvbv5/descriptors/desc_t2_delivery.c
-index a563164..31c6974 100644
---- a/lib/libdvbv5/descriptors/desc_t2_delivery.c
-+++ b/lib/libdvbv5/descriptors/desc_t2_delivery.c
-@@ -98,7 +98,6 @@ void dvb_desc_t2_delivery_print(struct dvb_v5_fe_parms *parms,
- 	const struct dvb_desc_t2_delivery *d = desc;
- 	int i;
- 
--	dvb_log("|       DVB-T2 delivery");
- 	dvb_log("|           plp_id                    %d", d->plp_id);
- 	dvb_log("|           system_id                 %d", d->system_id);
- 
-diff --git a/lib/libdvbv5/descriptors/desc_terrestrial_delivery.c b/lib/libdvbv5/descriptors/desc_terrestrial_delivery.c
-index d7ebe1d..2cb3a01 100644
---- a/lib/libdvbv5/descriptors/desc_terrestrial_delivery.c
-+++ b/lib/libdvbv5/descriptors/desc_terrestrial_delivery.c
-@@ -39,7 +39,6 @@ void dvb_desc_terrestrial_delivery_init(struct dvb_v5_fe_parms *parms, const uin
- void dvb_desc_terrestrial_delivery_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
- 	const struct dvb_desc_terrestrial_delivery *tdel = (const struct dvb_desc_terrestrial_delivery *) desc;
--	dvb_log("|       terrestrial delivery");
- 	dvb_log("|           length                %d", tdel->length);
- 	dvb_log("|           centre frequency      %d", tdel->centre_frequency * 10);
- 	dvb_log("|           mpe_fec_indicator     %d", tdel->mpe_fec_indicator);
-diff --git a/lib/libdvbv5/descriptors/desc_ts_info.c b/lib/libdvbv5/descriptors/desc_ts_info.c
-index 02fcb82..233d331 100644
---- a/lib/libdvbv5/descriptors/desc_ts_info.c
-+++ b/lib/libdvbv5/descriptors/desc_ts_info.c
-@@ -69,7 +69,6 @@ void dvb_desc_ts_info_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc
- 
- 	t = &d->transmission_type;
- 
--	dvb_log("|        TS Information");
- 	dvb_log("|           remote key ID     %d", d->remote_control_key_id);
- 	dvb_log("|           name              %s", d->ts_name);
- 	dvb_log("|           emphasis name     %s", d->ts_name_emph);
-diff --git a/lib/libdvbv5/descriptors/mpeg_pes.c b/lib/libdvbv5/descriptors/mpeg_pes.c
-index 6ce9f66..43a12d8 100644
---- a/lib/libdvbv5/descriptors/mpeg_pes.c
-+++ b/lib/libdvbv5/descriptors/mpeg_pes.c
-@@ -109,7 +109,7 @@ void dvb_mpeg_pes_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_pes *pes)
- 		   pes->stream_id == DVB_MPEG_STREAM_DIRECTORY ||
- 		   pes->stream_id == DVB_MPEG_STREAM_DSMCC ||
- 		   pes->stream_id == DVB_MPEG_STREAM_H222E ) {
--		dvb_log("  mpeg pes unsupported stream type %#04x", pes->stream_id);
-+		dvb_log("  mpeg pes unsupported stream type 0x%04x", pes->stream_id);
- 	} else {
- 		dvb_loginfo("  mpeg pes optional");
- 		dvb_loginfo("   - two                      %d", pes->optional->two);
-diff --git a/lib/libdvbv5/descriptors/mpeg_ts.c b/lib/libdvbv5/descriptors/mpeg_ts.c
-index e1e115f..e846b3e 100644
---- a/lib/libdvbv5/descriptors/mpeg_ts.c
-+++ b/lib/libdvbv5/descriptors/mpeg_ts.c
-@@ -28,7 +28,7 @@ ssize_t dvb_mpeg_ts_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssiz
- 	const uint8_t *p = buf;
- 
- 	if (buf[0] != DVB_MPEG_TS) {
--		dvb_logerr("mpeg ts invalid marker %#02x, sould be %#02x", buf[0], DVB_MPEG_TS);
-+		dvb_logerr("mpeg ts invalid marker 0x%02x, sould be 0x%02x", buf[0], DVB_MPEG_TS);
- 		*table_length = 0;
- 		return -1;
+ /*
+  * em28xx_init_dev()
+@@ -3409,6 +3428,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 			    dev->dvb_xfer_bulk ? "bulk" : "isoc");
  	}
-@@ -55,26 +55,25 @@ void dvb_mpeg_ts_free(struct dvb_mpeg_ts *ts)
  
- void dvb_mpeg_ts_print(struct dvb_v5_fe_parms *parms, struct dvb_mpeg_ts *ts)
- {
--	dvb_loginfo("MPEG TS");
--	dvb_loginfo(" - sync byte       0x%02x", ts->sync_byte);
--	dvb_loginfo(" - tei                %d", ts->tei);
--	dvb_loginfo(" - payload_start      %d", ts->payload_start);
--	dvb_loginfo(" - priority           %d", ts->priority);
--	dvb_loginfo(" - pid           0x%04x", ts->pid);
--	dvb_loginfo(" - scrambling         %d", ts->scrambling);
--	dvb_loginfo(" - adaptation_field   %d", ts->adaptation_field);
--	dvb_loginfo(" - payload present    %d", ts->payload);
--	dvb_loginfo(" - continuity_counter %d", ts->continuity_counter);
--	if (ts->adaptation_field) {
--		dvb_loginfo(" Adaption Field");
--                dvb_loginfo("   - length         %d", ts->adaption->length);
--                dvb_loginfo("   - discontinued   %d", ts->adaption->discontinued);
--                dvb_loginfo("   - random_access  %d", ts->adaption->random_access);
--                dvb_loginfo("   - priority       %d", ts->adaption->priority);
--                dvb_loginfo("   - PCR            %d", ts->adaption->PCR);
--                dvb_loginfo("   - OPCR           %d", ts->adaption->OPCR);
--                dvb_loginfo("   - splicing_point %d", ts->adaption->splicing_point);
--                dvb_loginfo("   - private_data   %d", ts->adaption->private_data);
--                dvb_loginfo("   - extension      %d", ts->adaption->extension);
-+	dvb_log("MPEG TS");
-+	dvb_log(" - sync byte        0x%02x", ts->sync_byte);
-+	dvb_log(" - tei                %d", ts->tei);
-+	dvb_log(" - payload_start      %d", ts->payload_start);
-+	dvb_log(" - priority           %d", ts->priority);
-+	dvb_log(" - pid              0x%04x", ts->pid);
-+	dvb_log(" - scrambling         %d", ts->scrambling);
-+	dvb_log(" - adaptation_field   %d", ts->adaptation_field);
-+	dvb_log(" - continuity_counter %d", ts->continuity_counter);
-+	if (ts->adaptation_field & 0x2) {
-+		dvb_log(" Adaption Field");
-+                dvb_log("   - length         %d", ts->adaption->length);
-+                dvb_log("   - discontinued   %d", ts->adaption->discontinued);
-+                dvb_log("   - random_access  %d", ts->adaption->random_access);
-+                dvb_log("   - priority       %d", ts->adaption->priority);
-+                dvb_log("   - PCR            %d", ts->adaption->PCR);
-+                dvb_log("   - OPCR           %d", ts->adaption->OPCR);
-+                dvb_log("   - splicing_point %d", ts->adaption->splicing_point);
-+                dvb_log("   - private_data   %d", ts->adaption->private_data);
-+                dvb_log("   - extension      %d", ts->adaption->extension);
- 	}
- }
-diff --git a/lib/libdvbv5/descriptors/nit.c b/lib/libdvbv5/descriptors/nit.c
-index 054a924..1c08f0e 100644
---- a/lib/libdvbv5/descriptors/nit.c
-+++ b/lib/libdvbv5/descriptors/nit.c
-@@ -143,7 +143,7 @@ void dvb_table_nit_print(struct dvb_v5_fe_parms *parms, struct dvb_table_nit *ni
- 	const struct dvb_table_nit_transport *transport = nit->transport;
- 	uint16_t transports = 0;
- 	while(transport) {
--		dvb_log("|- Transport: %-7d Network: %-7d", transport->transport_id, transport->network_id);
-+		dvb_log("|- transport %04x network %04x", transport->transport_id, transport->network_id);
- 		dvb_print_descriptors(parms, transport->descriptor);
- 		transport = transport->next;
- 		transports++;
-diff --git a/lib/libdvbv5/descriptors/pat.c b/lib/libdvbv5/descriptors/pat.c
-index 2000729..ac5b5d4 100644
---- a/lib/libdvbv5/descriptors/pat.c
-+++ b/lib/libdvbv5/descriptors/pat.c
-@@ -94,10 +94,10 @@ void dvb_table_pat_print(struct dvb_v5_fe_parms *parms, struct dvb_table_pat *pa
++	kref_init(&dev->ref);
++
+ 	request_modules(dev);
  
- 	dvb_log("PAT");
- 	dvb_table_header_print(parms, &pat->header);
--	dvb_log("|\\  program  service (%d programs)", pat->programs);
-+	dvb_log("|\\ %d program%s", pat->programs, pat->programs != 1 ? "s" : "");
+ 	/* Should be the last thing to do, to avoid newer udev's to
+@@ -3453,11 +3474,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 	em28xx_close_extension(dev);
  
- 	while (pgm) {
--		dvb_log("|- %7d %7d", pgm->pid, pgm->service_id);
-+		dvb_log("|- program 0x%04x  ->  service 0x%04x", pgm->pid, pgm->service_id);
- 		pgm = pgm->next;
- 	}
- }
-diff --git a/lib/libdvbv5/descriptors/sdt.c b/lib/libdvbv5/descriptors/sdt.c
-index 5e0c924..5c354f1 100644
---- a/lib/libdvbv5/descriptors/sdt.c
-+++ b/lib/libdvbv5/descriptors/sdt.c
-@@ -73,7 +73,7 @@ void dvb_table_sdt_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf,
- 		p += service->section_length;
- 	}
- 	if (endbuf - p)
--		dvb_logerr("PAT table has %zu spurious bytes at the end.",
-+		dvb_logerr("SDT table has %zu spurious bytes at the end.",
- 			   endbuf - p);
+ 	em28xx_release_resources(dev);
+-
+-	if (!dev->users) {
+-		kfree(dev->alt_max_pkt_size_isoc);
+-		kfree(dev);
+-	}
++	kref_put(&dev->ref, em28xx_free_device);
  }
  
-@@ -94,11 +94,11 @@ void dvb_table_sdt_print(struct dvb_v5_fe_parms *parms, struct dvb_table_sdt *sd
- 	dvb_log("SDT");
- 	dvb_table_header_print(parms, &sdt->header);
- 	dvb_log("|- network_id         %d", sdt->network_id);
--	dvb_log("|\\  service_id");
-+	dvb_log("|\\");
- 	const struct dvb_table_sdt_service *service = sdt->service;
- 	uint16_t services = 0;
- 	while(service) {
--		dvb_log("|- %7d", service->service_id);
-+		dvb_log("|- service 0x%04x", service->service_id);
- 		dvb_log("|   EIT schedule          %d", service->EIT_schedule);
- 		dvb_log("|   EIT present following %d", service->EIT_present_following);
- 		dvb_log("|   free CA mode          %d", service->free_CA_mode);
+ static int em28xx_usb_suspend(struct usb_interface *interface,
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index d4986bdfbdc3..6dbc71ba2820 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1043,7 +1043,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 	em28xx_info("Binding DVB extension\n");
+ 
+ 	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
+-
+ 	if (dvb == NULL) {
+ 		em28xx_info("em28xx_dvb: memory allocation failed\n");
+ 		return -ENOMEM;
+@@ -1521,6 +1520,9 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 	dvb->adapter.mfe_shared = mfe_shared;
+ 
+ 	em28xx_info("DVB extension successfully initialized\n");
++
++	kref_get(&dev->ref);
++
+ ret:
+ 	em28xx_set_mode(dev, EM28XX_SUSPEND);
+ 	mutex_unlock(&dev->lock);
+@@ -1579,6 +1581,8 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 		dev->dvb = NULL;
+ 	}
+ 
++	kref_put(&dev->ref, em28xx_free_device);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 47a2c1dcccbf..2a9bf667f208 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -676,6 +676,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
++	kref_get(&dev->ref);
++
+ 	if (dev->board.buttons)
+ 		em28xx_init_buttons(dev);
+ 
+@@ -816,7 +818,7 @@ static int em28xx_ir_fini(struct em28xx *dev)
+ 
+ 	/* skip detach on non attached boards */
+ 	if (!ir)
+-		return 0;
++		goto ref_put;
+ 
+ 	if (ir->rc)
+ 		rc_unregister_device(ir->rc);
+@@ -824,6 +826,10 @@ static int em28xx_ir_fini(struct em28xx *dev)
+ 	/* done */
+ 	kfree(ir);
+ 	dev->ir = NULL;
++
++ref_put:
++	kref_put(&dev->ref, em28xx_free_device);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 19af6b3e9e2b..32aa55f033fc 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1837,7 +1837,6 @@ static int em28xx_v4l2_open(struct file *filp)
+ 			video_device_node_name(vdev), v4l2_type_names[fh_type],
+ 			dev->users);
+ 
+-
+ 	if (mutex_lock_interruptible(&dev->lock))
+ 		return -ERESTARTSYS;
+ 	fh = kzalloc(sizeof(struct em28xx_fh), GFP_KERNEL);
+@@ -1869,6 +1868,7 @@ static int em28xx_v4l2_open(struct file *filp)
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_radio);
+ 	}
+ 
++	kref_get(&dev->ref);
+ 	dev->users++;
+ 
+ 	mutex_unlock(&dev->lock);
+@@ -1926,9 +1926,8 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+ 		dev->clk = NULL;
+ 	}
+ 
+-	if (dev->users)
+-		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
+ 	mutex_unlock(&dev->lock);
++	kref_put(&dev->ref, em28xx_free_device);
+ 
+ 	return 0;
+ }
+@@ -1976,11 +1975,9 @@ static int em28xx_v4l2_close(struct file *filp)
+ 	mutex_lock(&dev->lock);
+ 
+ 	if (dev->users == 1) {
+-		/* free the remaining resources if device is disconnected */
+-		if (dev->disconnected) {
+-			kfree(dev->alt_max_pkt_size_isoc);
++		/* No sense to try to write to the device */
++		if (dev->disconnected)
+ 			goto exit;
+-		}
+ 
+ 		/* Save some power by putting tuner to sleep */
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+@@ -2001,6 +1998,8 @@ static int em28xx_v4l2_close(struct file *filp)
+ exit:
+ 	dev->users--;
+ 	mutex_unlock(&dev->lock);
++	kref_put(&dev->ref, em28xx_free_device);
++
+ 	return 0;
+ }
+ 
+@@ -2515,6 +2514,8 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 
+ 	em28xx_info("V4L2 extension successfully initialized\n");
+ 
++	kref_get(&dev->ref);
++
+ 	mutex_unlock(&dev->lock);
+ 	return 0;
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 9e44f5bfc48b..2051fc9fb932 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -32,6 +32,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/i2c.h>
+ #include <linux/mutex.h>
++#include <linux/kref.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/videobuf2-vmalloc.h>
+@@ -536,9 +537,10 @@ struct em28xx_i2c_bus {
+ 	enum em28xx_i2c_algo_type algo_type;
+ };
+ 
+-
+ /* main device struct */
+ struct em28xx {
++	struct kref ref;
++
+ 	/* generic device properties */
+ 	char name[30];		/* name (including minor) of the device */
+ 	int model;		/* index in the device_data struct */
+@@ -710,6 +712,8 @@ struct em28xx {
+ 	struct em28xx_dvb *dvb;
+ };
+ 
++#define kref_to_dev(d) container_of(d, struct em28xx, ref)
++
+ struct em28xx_ops {
+ 	struct list_head next;
+ 	char *name;
+@@ -771,7 +775,7 @@ extern struct em28xx_board em28xx_boards[];
+ extern struct usb_device_id em28xx_id_table[];
+ int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
+ void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl);
+-void em28xx_release_resources(struct em28xx *dev);
++void em28xx_free_device(struct kref *ref);
+ 
+ /* Provided by em28xx-camera.c */
+ int em28xx_detect_sensor(struct em28xx *dev);
 -- 
-1.8.3.2
+1.8.5.3
 
