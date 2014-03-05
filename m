@@ -1,49 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3032 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752705AbaCKMX6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:23:58 -0400
-Message-ID: <531F0029.3040906@xs4all.nl>
-Date: Tue, 11 Mar 2014 13:23:05 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: k.debski@samsung.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 09/14] v4l: ti-vpe: report correct capabilities in
- querycap
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-10-git-send-email-archit@ti.com>
-In-Reply-To: <1394526833-24805-10-git-send-email-archit@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:53745 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753753AbaCEJVD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 04:21:03 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Grant Likely <grant.likely@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v6 3/8] of: Warn if of_graph_get_next_endpoint is called with the root node
+Date: Wed,  5 Mar 2014 10:20:37 +0100
+Message-Id: <1394011242-16783-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/14 09:33, Archit Taneja wrote:
-> querycap currently returns V4L2_CAP_VIDEO_M2M as a capability, this should be
-> V4L2_CAP_VIDEO_M2M_MPLANE instead, as the driver supports multiplanar formats.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+If of_graph_get_next_endpoint is given a parentless node instead of an
+endpoint node, it is clearly a bug.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v5:
+ - Added parentless previous endpoint's full name to warning
+---
+ drivers/of/base.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 4abb85c..46b9d44 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -1347,7 +1347,7 @@ static int vpe_querycap(struct file *file, void *priv,
->  	strncpy(cap->driver, VPE_MODULE_NAME, sizeof(cap->driver) - 1);
->  	strncpy(cap->card, VPE_MODULE_NAME, sizeof(cap->card) - 1);
->  	strlcpy(cap->bus_info, VPE_MODULE_NAME, sizeof(cap->bus_info));
-> -	cap->device_caps  = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
-> +	cap->device_caps  = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
->  	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->  	return 0;
->  }
-> 
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index b2f223f..b5e690b 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -2028,8 +2028,8 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+ 		of_node_put(node);
+ 	} else {
+ 		port = of_get_parent(prev);
+-		if (!port)
+-			/* Hm, has someone given us the root node ?... */
++		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
++			      __func__, prev->full_name))
+ 			return NULL;
+ 
+ 		/* Avoid dropping prev node refcount to 0. */
+-- 
+1.9.0.rc3
 
