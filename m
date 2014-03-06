@@ -1,101 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:43985 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753623AbaCMKsV (ORCPT
+Received: from smtprelay0186.hostedemail.com ([216.40.44.186]:58945 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750794AbaCFQsF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 06:48:21 -0400
-Message-Id: <1394707700.15658.93976573.78252B46@webmail.messagingengine.com>
-From: Will Manley <will@williammanley.net>
+	Thu, 6 Mar 2014 11:48:05 -0500
+Message-ID: <1394124479.12070.62.camel@joe-AO722>
+Subject: Re: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
+From: Joe Perches <joe@perches.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Paul Bolle <pebolle@tiscali.nl>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Date: Thu, 06 Mar 2014 08:47:59 -0800
+In-Reply-To: <2183657.tkSdBlXoCc@avalon>
+References: <1391958577.25424.22.camel@x220> <18589524.VtEDRg43uX@avalon>
+	 <1394076347.12070.41.camel@joe-AO722> <2183657.tkSdBlXoCc@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain
-Reply-To: will@williammanley.net
-In-Reply-To: <1854099.LO0jorujWf@avalon>
-References: <1394647711-25291-1-git-send-email-will@williammanley.net>
- <1854099.LO0jorujWf@avalon>
-Subject: Re: [PATCH] uvcvideo: Work around buggy Logitech C920 firmware
-Date: Thu, 13 Mar 2014 10:48:20 +0000
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 13 Mar 2014, at 10:23, Laurent Pinchart wrote:
-> First of all, could you please CC me in the future for uvcvideo patches ?
+On Thu, 2014-03-06 at 11:55 +0100, Laurent Pinchart wrote:
+> We thus need the #define DEBUG it appear before the first time device.h is 
+> included, either directly or indirectly. Adding #define DEBUG to iss.h won't 
+> work now as iss.h is included after all system includes (which is the usual 
+> practice, #include <...> come before #include "...").
 
-Will do.
+Ahh, right, good point.
+I'd forgotten about that include order dependency.
 
-> On Wednesday 12 March 2014 18:08:31 William Manley wrote:
-> > The uvcvideo webcam driver exposes the v4l2 control "Exposure (Absolute)"
-> > which allows the user to control the exposure time of the webcam,
-> > essentially controlling the brightness of the received image.  By default
-> > the webcam automatically adjusts the exposure time automatically but the
-> > if you set the control "Exposure, Auto"="Manual Mode" the user can fix
-> > the exposure time.
-> > 
-> > Unfortunately it seems that the Logitech C920 has a firmware bug where
-> > it will forget that it's in manual mode temporarily during initialisation.
-> > This means that the camera doesn't respect the exposure time that the user
-> > requested if they request it before starting to stream video.  They end up
-> > with a video stream which is either too bright or too dark and must reset
-> > the controls after video starts streaming.
-> 
-> I've asked Logitech whether they can confirm this is a known issue. I'm
-> not 
-> sure when I'll have a reply though.
+cheers, Joe
 
-Great :)
-
-> > This patch works around this camera bug by re-uploading the cached
-> > controls to the camera immediately after initialising the camera.
-> 
-> I'm a bit concerned about this. As you noticed UVC camera are often
-> buggy, and 
-> small changes in the driver can fix problems with one model and break
-> others. 
-> Sending a bunch of SET_CUR requests at once right after starting the
-> stream is 
-> something that has the potential to crash firmwares (yes, they can be
-> that 
-> fragile, unfortunately).
-
-Good point.  I can add a quirk such that it only happens with the C920.
-
-> I would like to get a better understanding of the problem first. As I
-> don't 
-> have a C920, could you please perform two tests for me ?
-> 
-> I would first like to know what the camera reports as its exposure time
-> after 
-> starting the stream. If you get the exposure time at that point (by
-> sending a 
-> GET_CUR request, bypassing the driver cache), do you get the value you
-> had 
-> previously set (which, from your explanation, would be incorrect, as the 
-> exposure time has changed based on your findings), or a different value ?
-> Does 
-> the camera change the exposure priority control autonomously as well, or
-> just 
-> the exposure time ?
-
-It's a bit of a strange behaviour.  I'd already tried littering the code
-with (uncached) GET_CUR requests.  It seems that the value changes
-sometime during the call to usb_set_interface in uvc_init_video. 
-Strangely enough though calling uvc_ctrl_restore_values immediately
-after uvc_init_video has no effect.  It must be put after the
-usb_submit_urb loop to fix the problem.
-
-> Then, I would like to know whether the camera sends a control update
-> event 
-> when you start the stream, or if it just changes the exposure time
-> without 
-> notifying the driver.
-
-Wireshark tells me that it is sending a control update event, but it
-seems like uvcvideo ignores it.  I had to add the flag
-UVC_CTRL_FLAG_AUTO_UPDATE to the uvc_control_info entry for "Exposure
-(Auto)" for the new value to be properly reported to userspace.
-
-Thanks
-
-Will
