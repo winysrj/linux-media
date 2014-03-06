@@ -1,96 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:63269 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751679AbaC3QVy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 12:21:54 -0400
-Received: by mail-ee0-f41.google.com with SMTP id t10so5862208eei.0
-        for <linux-media@vger.kernel.org>; Sun, 30 Mar 2014 09:21:52 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 3/8] libdvbv5: make dvb_desc_default_init and dvb_desc_default_print private
-Date: Sun, 30 Mar 2014 18:21:13 +0200
-Message-Id: <1396196478-996-3-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1396196478-996-1-git-send-email-neolynx@gmail.com>
-References: <1396196478-996-1-git-send-email-neolynx@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.24]:63878 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750885AbaCFLqw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 06:46:52 -0500
+Date: Thu, 6 Mar 2014 12:46:30 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+cc: David Airlie <airlied@linux.ie>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>, devel@driverdev.osuosl.org,
+	dri-devel@lists.freedesktop.org,
+	linux-arm-kernel@lists.infradead.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH RFC 26/46] drivers/base: provide an infrastructure for
+ componentised subsystems
+In-Reply-To: <20140226221939.GC21483@n2100.arm.linux.org.uk>
+Message-ID: <Pine.LNX.4.64.1403061241560.30001@axis700.grange>
+References: <20140102212528.GD7383@n2100.arm.linux.org.uk>
+ <E1Vypo6-0007FF-Lb@rmk-PC.arm.linux.org.uk> <Pine.LNX.4.64.1402262144190.10826@axis700.grange>
+ <20140226221939.GC21483@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dvb_desc_default_init and dvb_desc_default_print are used
-internaly only, remove them from the header file.
-add extern "C" to the parser functions, so they can be used
-from C++ directly.
+Hi Russell,
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+Sorry for a long delay.
+
+On Wed, 26 Feb 2014, Russell King - ARM Linux wrote:
+
+[snip]
+
+> Better bindings for imx-drm are currently being worked on.  Philipp
+> Zabel of Pengutronix is currently looking at it, and has posted many
+> RFC patches on this very subject, including moving the V4L2 OF helpers
+> to a more suitable location.  OF people have been involved in that
+> discussion over the preceding weeks, and there's a working implementation
+> of imx-drm using these helpers from v4l2.
+
+Yes, I'm aware of that patch series, and I do look at the discussion from 
+time to time, unfortunately I don't have too much time for it now. But in 
+any case if this work is going to be used with imx-drm too, that should be 
+a good direction to take, I think.
+
+Thanks
+Guennadi
 ---
- lib/include/libdvbv5/descriptors.h | 16 ++++++++--------
- lib/libdvbv5/descriptors.c         |  4 ++--
- 2 files changed, 10 insertions(+), 10 deletions(-)
-
-diff --git a/lib/include/libdvbv5/descriptors.h b/lib/include/libdvbv5/descriptors.h
-index b869a14..1ea0957 100644
---- a/lib/include/libdvbv5/descriptors.h
-+++ b/lib/include/libdvbv5/descriptors.h
-@@ -65,14 +65,6 @@ struct dvb_desc {
- 	uint8_t data[];
- } __attribute__((packed));
- 
--void dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc);
--#ifdef __cplusplus
--extern "C" {
--#endif
--void dvb_desc_default_print  (struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc);
--#ifdef __cplusplus
--}
--#endif
- 
- #define dvb_desc_foreach( _desc, _tbl ) \
- 	for( struct dvb_desc *_desc = _tbl->descriptor; _desc; _desc = _desc->next ) \
-@@ -81,6 +73,10 @@ void dvb_desc_default_print  (struct dvb_v5_fe_parms *parms, const struct dvb_de
- 	for( _struct *_desc = (_struct *) _tbl->descriptor; _desc; _desc = (_struct *) _desc->next ) \
- 		if(_desc->type == _type) \
- 
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
- uint32_t bcd(uint32_t bcd);
- 
- void hexdump(struct dvb_v5_fe_parms *parms, const char *prefix, const unsigned char *buf, int len);
-@@ -89,6 +85,10 @@ void dvb_parse_descriptors(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ui
- void dvb_free_descriptors(struct dvb_desc **list);
- void dvb_print_descriptors(struct dvb_v5_fe_parms *parms, struct dvb_desc *desc);
- 
-+#ifdef __cplusplus
-+}
-+#endif
-+
- struct dvb_v5_fe_parms;
- 
- typedef void (*dvb_desc_init_func) (struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc);
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index 4694b98..86bc7af 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -66,12 +66,12 @@ static void dvb_desc_init(uint8_t type, uint8_t length, struct dvb_desc *desc)
- 	desc->next   = NULL;
- }
- 
--void dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
-+static void dvb_desc_default_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, struct dvb_desc *desc)
- {
- 	memcpy(desc->data, buf, desc->length);
- }
- 
--void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
-+static void dvb_desc_default_print(struct dvb_v5_fe_parms *parms, const struct dvb_desc *desc)
- {
- 	if (!parms)
- 		parms = dvb_fe_dummy();
--- 
-1.8.3.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
