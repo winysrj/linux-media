@@ -1,73 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60298 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752606AbaCEOmq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 09:42:46 -0500
-Message-ID: <1394030554.8754.31.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v6 0/8] Move device tree graph parsing helpers to
- drivers/of
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Date: Wed, 05 Mar 2014 15:42:34 +0100
-In-Reply-To: <53170C00.20200@ti.com>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
-	 <53170C00.20200@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:28351 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753410AbaCFQWd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:22:33 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v6 10/10] ARM: dts: exynos4: Update camera clk provider and
+ s5k6a3 sensor node
+Date: Thu, 06 Mar 2014 17:20:19 +0100
+Message-id: <1394122819-9582-11-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
+Remove unused /camera/clock-controller node and required clock properties
+to the camera node. This is required for a clock provider that will be
+referenced by image sensor devices.
+Also add required clock related changes to s5k6a3 device node and afvdd
+regulator supply.
 
-Am Mittwoch, den 05.03.2014, 13:35 +0200 schrieb Tomi Valkeinen:
-> Hi,
-> 
-> On 05/03/14 11:20, Philipp Zabel wrote:
-> > Hi,
-> > 
-> > this version of the OF graph helper move series further addresses a few of
-> > Tomi's and Sylwester's comments.
-> > 
-> > Changes since v5:
-> >  - Fixed spelling errors and a wrong device node name in the link section
-> >  - Added parentless previous endpoint's full name to warning
-> >  - Fixed documentation comment for of_graph_parse_endpoint
-> >  - Unrolled for-loop in of_graph_get_remote_port_parent
-> > 
-> > Philipp Zabel (8):
-> >   [media] of: move graph helpers from drivers/media/v4l2-core to
-> >     drivers/of
-> >   Documentation: of: Document graph bindings
-> >   of: Warn if of_graph_get_next_endpoint is called with the root node
-> >   of: Reduce indentation in of_graph_get_next_endpoint
-> >   [media] of: move common endpoint parsing to drivers/of
-> >   of: Implement simplified graph binding for single port devices
-> >   of: Document simplified graph binding for single port devices
-> >   of: Warn if of_graph_parse_endpoint is called with the root node
-> 
-> So, as I've pointed out, I don't agree with the API, as it's too limited
-> and I can't use it, but as this series is (mostly) about moving the
-> current API to a common place, it's fine for me.
-> 
-> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Changes since v5:
+  - none.
 
-Thanks. I'll be happy to help expanding the API to parse ports
-individually, once this gets accepted.
+Changes since v4:
+  - added changes at the s5k6a3 device node.
+  - clock output names adjusted to better match documentation.
+---
+ arch/arm/boot/dts/exynos4.dtsi          |    6 ++----
+ arch/arm/boot/dts/exynos4412-trats2.dts |    5 +++--
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-Mauro, Guennadi, are you fine with how this turned out? I'd like to get
-your acks again, for the changed location.
-
-regards
-Philipp
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index 08452e1..6430a0e 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -109,12 +109,10 @@
+ 		status = "disabled";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
++		#clock-cells = <1>;
++		clock-output-names = "cam_a_clkout", "cam_b_clkout";
+ 		ranges;
+ 
+-		clock_cam: clock-controller {
+-			 #clock-cells = <1>;
+-		};
+-
+ 		fimc_0: fimc@11800000 {
+ 			compatible = "samsung,exynos4210-fimc";
+ 			reg = <0x11800000 0x1000>;
+diff --git a/arch/arm/boot/dts/exynos4412-trats2.dts b/arch/arm/boot/dts/exynos4412-trats2.dts
+index 0c6afbe..d7e13a4 100644
+--- a/arch/arm/boot/dts/exynos4412-trats2.dts
++++ b/arch/arm/boot/dts/exynos4412-trats2.dts
+@@ -647,10 +647,11 @@
+ 					reg = <0x10>;
+ 					svdda-supply = <&cam_io_reg>;
+ 					svddio-supply = <&ldo19_reg>;
++					afvdd-supply = <&ldo19_reg>;
+ 					clock-frequency = <24000000>;
+ 					/* CAM_B_CLKOUT */
+-					clocks = <&clock_cam 1>;
+-					clock-names = "mclk";
++					clocks = <&camera 1>;
++					clock-names = "extclk";
+ 					samsung,camclk-out = <1>;
+ 					gpios = <&gpm1 6 0>;
+ 
+-- 
+1.7.9.5
 
