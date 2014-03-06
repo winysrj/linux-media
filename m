@@ -1,74 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51868 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752123AbaCDI12 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Mar 2014 03:27:28 -0500
-Message-ID: <53158E48.80904@ti.com>
-Date: Tue, 4 Mar 2014 13:56:48 +0530
-From: Archit Taneja <archit@ti.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, <k.debski@samsung.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 7/7] v4l: ti-vpe: Add crop support in VPE driver
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393832008-22174-8-git-send-email-archit@ti.com> <53143439.5030007@xs4all.nl> <531582E8.7020800@ti.com> <53158437.6070200@xs4all.nl>
-In-Reply-To: <53158437.6070200@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2750 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752229AbaCFDa6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 22:30:58 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id s263Ur6k013195
+	for <linux-media@vger.kernel.org>; Thu, 6 Mar 2014 04:30:56 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 7BC522A1887
+	for <linux-media@vger.kernel.org>; Thu,  6 Mar 2014 04:30:52 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140306033052.7BC522A1887@tschai.lan>
+Date: Thu,  6 Mar 2014 04:30:52 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Tuesday 04 March 2014 01:13 PM, Hans Verkuil wrote:
-> On 03/04/2014 08:38 AM, Archit Taneja wrote:
->> Hi Hans,
->>
->> On Monday 03 March 2014 01:20 PM, Hans Verkuil wrote:
->>> Hi Archit!
->>>
->>> On 03/03/2014 08:33 AM, Archit Taneja wrote:
->>>> Add crop ioctl ops. For VPE, cropping only makes sense with the input to VPE, or
->>>> the V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffer type.
->>>>
->>>> For the CAPTURE type, a S_CROP ioctl results in setting the crop region as the
->>>> whole image itself, hence making crop dimensions same as the pix dimensions.
->>>>
->>>> Setting the crop successfully should result in re-configuration of those
->>>> registers which are affected when either source or destination dimensions
->>>> change, set_srcdst_params() is called for this purpose.
->>>>
->>>> Some standard crop parameter checks are done in __vpe_try_crop().
->>>
->>> Please use the selection ops instead: if you implement cropping with those then you'll
->>> support both the selection API and the old cropping API will be implemented by the v4l2
->>> core using the selection ops. Two for the price of one...
->>
->>
->> When using selection API, I was finding issues using the older cropping
->> API. The v4l_s_crop() ioctl func assumes that "crop means compose for
->> output devices". However, for a m2m device. It probably makes sense to
->> provide the following configuration:
->>
->> for V4L2_BUF_TYPE_VIDEO_OUTPUT (input to the mem to mem HW), use CROP
->> target(to crop the input buffer)
->>
->> and, for V4L2_BUF_TYPE_VIDEO_CAPTURE(output of the mem to mem HW), use
->> COMPOSE target(to place the HW output into a larger region)
->>
->> Don't you think forcing OUTPUT devices to 'COMPOSE' for older cropping
->> API is a bit limiting?
->
-> Yes, and that's why the selection API was created to work around that
-> limitation :-)
->
-> The old cropping API was insufficiently flexible for modern devices, so
-> we came up with this replacement.
->
-> Another reason why you have to implement the selection API: it's the only
-> way to implement your functionality.
+Results of the daily build of media_tree:
 
-Okay, I'll go ahead with the selection API then :)
+date:		Thu Mar  6 04:00:20 CET 2014
+git branch:	test
+git hash:	bfd0306462fdbc5e0a8c6999aef9dde0f9745399
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
-Archit
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
