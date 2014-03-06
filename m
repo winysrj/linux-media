@@ -1,70 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:34258 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754472AbaCYUxh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Mar 2014 16:53:37 -0400
-Message-ID: <1395780812.11851.20.camel@nicolas-tpx230>
-Subject: [PATCH 5/5] s5p-fimc: Reuse calculated sizes
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: s.nawrocki@samsung.com
-Date: Tue, 25 Mar 2014 16:53:32 -0400
-In-Reply-To: <1395780301.11851.14.camel@nicolas-tpx230>
-References: <1395780301.11851.14.camel@nicolas-tpx230>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-kbFo81h4lGojY32n7j5k"
-Mime-Version: 1.0
+Received: from mailout3.samsung.com ([203.254.224.33]:43890 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753410AbaCFQW2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:22:28 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v6 09/10] ARM: dts: Add rear camera nodes for Exynos4412 TRATS2
+ board
+Date: Thu, 06 Mar 2014 17:20:18 +0100
+Message-id: <1394122819-9582-10-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch enables the rear facing camera (s5c73m3) on TRATS2 board
+by adding the I2C0 bus controller, s5c73m3 sensor, MIPI CSI-2 receiver
+and the sensor's voltage regulator supply nodes.
 
---=-kbFo81h4lGojY32n7j5k
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-This formula did not take into account the required tiled alignement for
-NV12MT format. As this was already computed an stored in payload array
-initially, reuse that value.
-
-Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/platform/exynos4-is/fimc-m2m.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes since v5:
+  - none.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/p=
-latform/exynos4-is/fimc-m2m.c
-index 07b8f97..c648e5f 100644
---- a/drivers/media/platform/exynos4-is/fimc-m2m.c
-+++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
-@@ -197,7 +197,7 @@ static int fimc_queue_setup(struct vb2_queue *vq, const=
- struct v4l2_format *fmt,
-=20
- 	*num_planes =3D f->fmt->memplanes;
- 	for (i =3D 0; i < f->fmt->memplanes; i++) {
--		sizes[i] =3D (f->f_width * f->f_height * f->fmt->depth[i]) / 8;
-+		sizes[i] =3D f->payload[i];
- 		allocators[i] =3D ctx->fimc_dev->alloc_ctx;
- 	}
- 	return 0;
---=20
-1.8.5.3
+Changes since v4:
+  - removed changes related to s5k6a3 sensor.
+---
+ arch/arm/boot/dts/exynos4412-trats2.dts |   81 +++++++++++++++++++++++++++++--
+ 1 file changed, 78 insertions(+), 3 deletions(-)
 
-
-
---=-kbFo81h4lGojY32n7j5k
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iEYEABECAAYFAlMx7MwACgkQcVMCLawGqBxU5QCgvQYK4obP6wGOH5kmvk2OWkDY
-GW4An0WSzmw0OLRychsNdIKDJ5zev/k0
-=KZXx
------END PGP SIGNATURE-----
-
---=-kbFo81h4lGojY32n7j5k--
+diff --git a/arch/arm/boot/dts/exynos4412-trats2.dts b/arch/arm/boot/dts/exynos4412-trats2.dts
+index 4f851cc..0c6afbe 100644
+--- a/arch/arm/boot/dts/exynos4412-trats2.dts
++++ b/arch/arm/boot/dts/exynos4412-trats2.dts
+@@ -71,7 +71,33 @@
+ 			enable-active-high;
+ 		};
+ 
+-		/* More to come */
++		cam_af_reg: voltage-regulator-2 {
++			compatible = "regulator-fixed";
++			regulator-name = "CAM_AF";
++			regulator-min-microvolt = <2800000>;
++			regulator-max-microvolt = <2800000>;
++			gpio = <&gpm0 4 0>;
++			enable-active-high;
++		};
++
++		cam_isp_core_reg: voltage-regulator-3 {
++			compatible = "regulator-fixed";
++			regulator-name = "CAM_ISP_CORE_1.2V_EN";
++			regulator-min-microvolt = <1200000>;
++			regulator-max-microvolt = <1200000>;
++			gpio = <&gpm0 3 0>;
++			enable-active-high;
++			regulator-always-on;
++		};
++
++		lcd_vdd3_reg: voltage-regulator-4 {
++			compatible = "regulator-fixed";
++			regulator-name = "LCD_VDD_2.2V";
++			regulator-min-microvolt = <2200000>;
++			regulator-max-microvolt = <2200000>;
++			gpio = <&gpc0 1 0>;
++			enable-active-high;
++		};
+ 	};
+ 
+ 	gpio-keys {
+@@ -106,6 +132,38 @@
+ 		};
+ 	};
+ 
++	i2c_0: i2c@13860000 {
++		samsung,i2c-sda-delay = <100>;
++		samsung,i2c-slave-addr = <0x10>;
++		samsung,i2c-max-bus-freq = <400000>;
++		pinctrl-0 = <&i2c0_bus>;
++		pinctrl-names = "default";
++		status = "okay";
++
++		s5c73m3@3c {
++			compatible = "samsung,s5c73m3";
++			reg = <0x3c>;
++			standby-gpios = <&gpm0 1 1>;   /* ISP_STANDBY */
++			xshutdown-gpios = <&gpf1 3 1>; /* ISP_RESET */
++			vdd-int-supply = <&buck9_reg>;
++			vddio-cis-supply = <&ldo9_reg>;
++			vdda-supply = <&ldo17_reg>;
++			vddio-host-supply = <&ldo18_reg>;
++			vdd-af-supply = <&cam_af_reg>;
++			vdd-reg-supply = <&cam_io_reg>;
++			clock-frequency = <24000000>;
++			/* CAM_A_CLKOUT */
++			clocks = <&camera 0>;
++			clock-names = "cis_extclk";
++			port {
++				s5c73m3_ep: endpoint {
++					remote-endpoint = <&csis0_ep>;
++					data-lanes = <1 2 3 4>;
++				};
++			};
++		};
++	};
++
+ 	i2c@13890000 {
+ 		samsung,i2c-sda-delay = <100>;
+ 		samsung,i2c-slave-addr = <0x10>;
+@@ -511,8 +569,8 @@
+ 		};
+ 	};
+ 
+-	camera {
+-		pinctrl-0 = <&cam_port_b_clk_active>;
++	camera: camera {
++		pinctrl-0 = <&cam_port_a_clk_active &cam_port_b_clk_active>;
+ 		pinctrl-names = "default";
+ 		status = "okay";
+ 
+@@ -532,6 +590,23 @@
+ 			status = "okay";
+ 		};
+ 
++		csis_0: csis@11880000 {
++			status = "okay";
++			vddcore-supply = <&ldo8_reg>;
++			vddio-supply = <&ldo10_reg>;
++			clock-frequency = <176000000>;
++
++			/* Camera C (3) MIPI CSI-2 (CSIS0) */
++			port@3 {
++				reg = <3>;
++				csis0_ep: endpoint {
++					remote-endpoint = <&s5c73m3_ep>;
++					data-lanes = <1 2 3 4>;
++					samsung,csis-hs-settle = <12>;
++				};
++			};
++		};
++
+ 		csis_1: csis@11890000 {
+ 			vddcore-supply = <&ldo8_reg>;
+ 			vddio-supply = <&ldo10_reg>;
+-- 
+1.7.9.5
 
