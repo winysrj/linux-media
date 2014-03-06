@@ -1,63 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from d594e42d.dsl.concepts.nl ([213.148.228.45]:34568 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753107AbaCXSRd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 14:17:33 -0400
-Message-ID: <533074B2.4000007@hoogenraad.net>
-Date: Mon, 24 Mar 2014 19:08:50 +0100
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-CC: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: How to build I2C_MUX in media_build as rtl28xxu depends on it ?
-References: <1394756071-22410-1-git-send-email-crope@iki.fi> <1394756071-22410-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1394756071-22410-12-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:43835 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752526AbaCFQVc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:21:32 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v6 01/10] Documentation: dt: Add binding documentation for
+ S5K6A3 image sensor
+Date: Thu, 06 Mar 2014 17:20:10 +0100
+Message-id: <1394122819-9582-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After recent changes, I cannot build  rtl28xxu on systems with linux
-2.6.32 or 3.2.0.
-rtl28xxu is one of the few drivers depending on  I2C_MUX.
-Kconfig.kern lists I2C_MUX (correctly) as not in the kernel of the system.
-I don't know if it is possible to load a new module for that.
+This patch adds binding documentation for the Samsung S5K6A3(YX)
+raw image sensor.
 
-Who can help me with this ?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+---
+Changes since v5:
+  - none.
 
-Antti Palosaari wrote:
-> We need depend on I2C_MUX as rtl2832 demod used requires it.
->
-> All error/warnings:
-> warning: (DVB_USB_RTL28XXU) selects DVB_RTL2832 which has unmet direct dependencies (MEDIA_SUPPORT && DVB_CORE && I2C && I2C_MUX)
-> ERROR: "i2c_add_mux_adapter" [drivers/media/dvb-frontends/rtl2832.ko] undefined!
-> ERROR: "i2c_del_mux_adapter" [drivers/media/dvb-frontends/rtl2832.ko] undefined!
->
-> Reported-by: kbuild test robot <fengguang.wu@intel.com>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/usb/dvb-usb-v2/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-> index bfb7378..037e519 100644
-> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
-> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-> @@ -126,7 +126,7 @@ config DVB_USB_MXL111SF
->  
->  config DVB_USB_RTL28XXU
->  	tristate "Realtek RTL28xxU DVB USB support"
-> -	depends on DVB_USB_V2
-> +	depends on DVB_USB_V2 && I2C_MUX
->  	select DVB_RTL2830
->  	select DVB_RTL2832
->  	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
+Changes since v2:
+ - rephrased 'clocks' and 'clock-names' properties' description;
+---
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 ++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
 
-
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+new file mode 100644
+index 0000000..cce01e8
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+@@ -0,0 +1,33 @@
++Samsung S5K6A3(YX) raw image sensor
++---------------------------------
++
++S5K6A3(YX) is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
++and CCI (I2C compatible) control bus.
++
++Required properties:
++
++- compatible	: "samsung,s5k6a3";
++- reg		: I2C slave address of the sensor;
++- svdda-supply	: core voltage supply;
++- svddio-supply	: I/O voltage supply;
++- afvdd-supply	: AF (actuator) voltage supply;
++- gpios		: specifier of a GPIO connected to the RESET pin;
++- clocks	: should contain list of phandle and clock specifier pairs
++		  according to common clock bindings for the clocks described
++		  in the clock-names property;
++- clock-names	: should contain "extclk" entry for the sensor's EXTCLK clock;
++
++Optional properties:
++
++- clock-frequency : the frequency at which the "extclk" clock should be
++		    configured to operate, in Hz; if this property is not
++		    specified default 24 MHz value will be used.
++
++The common video interfaces bindings (see video-interfaces.txt) should be
++used to specify link to the image data receiver. The S5K6A3(YX) device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Following properties are valid for the endpoint node:
++
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++  video-interfaces.txt.  The sensor supports only one data lane.
 -- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+1.7.9.5
 
