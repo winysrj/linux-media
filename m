@@ -1,70 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3197 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932514AbaCQLpg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 07:45:36 -0400
-Message-ID: <5326E04C.5050808@xs4all.nl>
-Date: Mon, 17 Mar 2014 12:45:16 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.21]:62525 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752337AbaCFXTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Mar 2014 18:19:14 -0500
+Received: from [192.168.178.28] ([134.3.109.71]) by mail.gmx.com (mrgmx103)
+ with ESMTPSA (Nemesis) id 0MPUFR-1WH2rh44wL-004iVl for
+ <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 00:19:13 +0100
+Message-ID: <53190270.80407@pinguin74.gmx.com>
+Date: Fri, 07 Mar 2014 00:19:12 +0100
+From: pinguin74 <pinguin74@gmx.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH for v3.15 1/4] v4l2-subdev.h: fix sparse error
- with v4l2_subdev_notify
-References: <1394888883-46850-1-git-send-email-hverkuil@xs4all.nl> <1394888883-46850-2-git-send-email-hverkuil@xs4all.nl> <2510988.dElkAvpb7d@avalon>
-In-Reply-To: <2510988.dElkAvpb7d@avalon>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: sound dropouts with DVB
+References: <5318ED33.4040009@pinguin74.gmx.com> <CA+O4pCJ4OPGEC3_RUoxjPfScgL9vEGPbUOCefjNgFOrRcYvgMw@mail.gmail.com>
+In-Reply-To: <CA+O4pCJ4OPGEC3_RUoxjPfScgL9vEGPbUOCefjNgFOrRcYvgMw@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/17/2014 12:44 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Saturday 15 March 2014 14:08:00 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
+>> Most of the time, TV is just fine. But sometimes the sound just drops
+>> out, the sound disappears totally for up to 20 or 30 seconds. Usually
+>> sound returns. When sound drops out, there is no error message.
 >>
->> The notify function is a void function, yet the v4l2_subdev_notify
->> define uses it in a ? : construction, which causes sparse warnings.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  include/media/v4l2-subdev.h | 8 +++++---
->>  1 file changed, 5 insertions(+), 3 deletions(-)
->>
->> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->> index 28f4d8c..0fbf669 100644
->> --- a/include/media/v4l2-subdev.h
->> +++ b/include/media/v4l2-subdev.h
->> @@ -692,9 +692,11 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
->>  		(sd)->ops->o->f((sd) , ##args) : -ENOIOCTLCMD))
->>
->>  /* Send a notification to v4l2_device. */
->> -#define v4l2_subdev_notify(sd, notification, arg)			   \
->> -	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
->> -	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
->> +#define v4l2_subdev_notify(sd, notification, arg)				\
->> +	do {									\
->> +		if ((sd) && (sd)->v4l2_dev && (sd)->v4l2_dev->notify)		\
->> +			(sd)->v4l2_dev->notify((sd), (notification), (arg));	\
->> +	} while (0)
-> 
-> The construct would prevent using v4l2_subdev_notify() as an expression. What 
-> about turning the macro into an inline function instead ?
+> If you use mplayer, mplayer will show you if there's some stream corruption.
+> Other than that it could only be a codec issue.
 
-How can you use a void function in an expression anyway? That was the whole point
-of the sparse error.
+I will try with mplayer later. What does codec issue mean? I think the
+audio stream in DVB-C is a digital stream that does not need to be
+changed or encoded in any way? I thought DVB playback simply is a kind
+of pass thru the digital streamt to the media player....
 
-Regards,
-
-	Hans
-
-> 
->>  #define v4l2_subdev_has_op(sd, o, f) \
->>  	((sd)->ops->o && (sd)->ops->o->f)
-> 
 
