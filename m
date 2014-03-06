@@ -1,46 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:40291 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752238AbaCFPY3 (ORCPT
+Received: from smtprelay0196.hostedemail.com ([216.40.44.196]:51735 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752886AbaCFDZv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Mar 2014 10:24:29 -0500
-Date: Thu, 6 Mar 2014 15:24:14 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 0/8] Move device tree graph parsing helpers to
-	drivers/of
-Message-ID: <20140306152414.GC21483@n2100.arm.linux.org.uk>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 5 Mar 2014 22:25:51 -0500
+Message-ID: <1394076347.12070.41.camel@joe-AO722>
+Subject: Re: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
+From: Joe Perches <joe@perches.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Paul Bolle <pebolle@tiscali.nl>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Date: Wed, 05 Mar 2014 19:25:47 -0800
+In-Reply-To: <18589524.VtEDRg43uX@avalon>
+References: <1391958577.25424.22.camel@x220> <3032500.9J1uSX3lel@avalon>
+	 <1394069742.12070.39.camel@joe-AO722> <18589524.VtEDRg43uX@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 05, 2014 at 10:20:34AM +0100, Philipp Zabel wrote:
-> this version of the OF graph helper move series further addresses a few of
-> Tomi's and Sylwester's comments.
+On Thu, 2014-03-06 at 02:52 +0100, Laurent Pinchart wrote:
 
-Philipp,
+Hi again Laurent
 
-You mention in your other cover for imx-drm bits that this is available
-via:
+> I've thought about that, but it would require iss.h to be included before all 
+> other headers. I've also thought about creating an iss-debug.h header to be 
+> included first just to #define DEBUG, but decided to go for handling the OMAP4 
+> ISS debug option in the Makefile instead. If that's ugly and discouraged as 
+> reported by Mauro I can try to come up with something else.
 
-	git://git.pengutronix.de/git/pza/linux.git topic/of-graph
+Unless debugging logging statements are in system level static inlines,
+adding #define DEBUG to iss.h should otherwise produce the same output
+as -DDEBUG in a Makefile.
 
-What is this tree based upon?
-
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
