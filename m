@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:62579 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752393AbaCGVUB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Mar 2014 16:20:01 -0500
-Received: from [192.168.178.28] ([134.3.109.71]) by mail.gmx.com (mrgmx001)
- with ESMTPSA (Nemesis) id 0McmFl-1Wdyi109XV-00Hy6f for
- <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 22:20:00 +0100
-Message-ID: <531A37FF.5080509@pinguin74.gmx.com>
-Date: Fri, 07 Mar 2014 22:19:59 +0100
-From: pinguin74 <pinguin74@gmx.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44665 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751095AbaCFKyC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 05:54:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Paul Bolle <pebolle@tiscali.nl>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
+Date: Thu, 06 Mar 2014 11:55:31 +0100
+Message-ID: <2183657.tkSdBlXoCc@avalon>
+In-Reply-To: <1394076347.12070.41.camel@joe-AO722>
+References: <1391958577.25424.22.camel@x220> <18589524.VtEDRg43uX@avalon> <1394076347.12070.41.camel@joe-AO722>
 MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: sound dropouts with DVB
-References: <5318ED33.4040009@pinguin74.gmx.com>	<CA+O4pCJ4OPGEC3_RUoxjPfScgL9vEGPbUOCefjNgFOrRcYvgMw@mail.gmail.com>	<53190270.80407@pinguin74.gmx.com> <CA+O4pC+R8ZXZ_wYfa2y82TPwCD4q_fUh96pgbYu2VUhVyGPGvQ@mail.gmail.com>
-In-Reply-To: <CA+O4pC+R8ZXZ_wYfa2y82TPwCD4q_fUh96pgbYu2VUhVyGPGvQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 07.03.2014 00:36, schrieb Markus Rechberger:
+Hi Joe,
 
->> I will try with mplayer later. What does codec issue mean? I think the
->> audio stream in DVB-C is a digital stream that does not need to be
->> changed or encoded in any way? I thought DVB playback simply is a kind
->> of pass thru the digital streamt to the media player....
+On Wednesday 05 March 2014 19:25:47 Joe Perches wrote:
+> On Thu, 2014-03-06 at 02:52 +0100, Laurent Pinchart wrote:
+> > I've thought about that, but it would require iss.h to be included before
+> > all other headers. I've also thought about creating an iss-debug.h header
+> > to be included first just to #define DEBUG, but decided to go for
+> > handling the OMAP4 ISS debug option in the Makefile instead. If that's
+> > ugly and discouraged as reported by Mauro I can try to come up with
+> > something else.
 > 
-> The mediaplayer is using a codec for decoding/unpacking the compressed
-> digital stream.
+> Unless debugging logging statements are in system level static inlines,
+> adding #define DEBUG to iss.h should otherwise produce the same output
+> as -DDEBUG in a Makefile.
 
-Oh yes, of course. Is this not also called "demuxing"? Or is demuxing
-just the splitting of the stream?
+dev_dbg() is defined in include/linux/device.h as
 
-I found out this may be an issue with the snd-hda-intel module.
+#if defined(CONFIG_DYNAMIC_DEBUG)
+#define dev_dbg(dev, format, ...)                    \
+do {                                                 \
+        dynamic_dev_dbg(dev, format, ##__VA_ARGS__); \
+} while (0)
+#elif defined(DEBUG)
+#define dev_dbg(dev, format, arg...)            \
+        dev_printk(KERN_DEBUG, dev, format, ##arg)
+#else
+#define dev_dbg(dev, format, arg...)                            \
+({                                                              \
+        if (0)                                                  \
+                dev_printk(KERN_DEBUG, dev, format, ##arg);     \
+        0;                                                      \
+})
+#endif
 
-When I use a different model option for this module, the siutation
-changes, at least the bluetooth headphone does not lose connection, but
-audio still drops out.
+We thus need the #define DEBUG it appear before the first time device.h is 
+included, either directly or indirectly. Adding #define DEBUG to iss.h won't 
+work now as iss.h is included after all system includes (which is the usual 
+practice, #include <...> come before #include "...").
 
-MPlayer reports I and B frame errors, but DVB works.
+-- 
+Regards,
 
-I now use
-modprobe snd-hda-intel model=acer-aspire align_buffer_size=128000
-
-I will try out VLC now with DVB to see if the VLC codecs work better
-than Xine/kaffeine.
-
-Thanx.
+Laurent Pinchart
 
