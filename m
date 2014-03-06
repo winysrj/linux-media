@@ -1,128 +1,480 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:60417 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754252AbaCYSUg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Mar 2014 14:20:36 -0400
-Received: by mail-ee0-f50.google.com with SMTP id c13so787901eek.9
-        for <linux-media@vger.kernel.org>; Tue, 25 Mar 2014 11:20:34 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 04/11] libdvbv5: fix EIT parsing
-Date: Tue, 25 Mar 2014 19:19:54 +0100
-Message-Id: <1395771601-3509-4-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1395771601-3509-1-git-send-email-neolynx@gmail.com>
-References: <1395771601-3509-1-git-send-email-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:53722 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753410AbaCFQWY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:22:24 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v6 08/10] exynos4-is: Add support for asynchronous subdevices
+ registration
+Date: Thu, 06 Mar 2014 17:20:17 +0100
+Message-id: <1394122819-9582-9-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-the dvb_table_eit_event now contains the service_id,
-indicating where the events belong to.
+Add support for registering external sensor subdevs using
+v4l2-async API. The async API is used only for sensor subdevs
+and only for booting from DT.
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- lib/include/descriptors/eit.h  |  3 ++-
- lib/libdvbv5/descriptors/eit.c | 35 ++++++++++++++++++++++++++---------
- 2 files changed, 28 insertions(+), 10 deletions(-)
+Changes since v5:
+  - removed erroneous introduction of a redundant media_device_unregister()
+    call.
 
-diff --git a/lib/include/descriptors/eit.h b/lib/include/descriptors/eit.h
-index 9a1a637..e0ecee3 100644
---- a/lib/include/descriptors/eit.h
-+++ b/lib/include/descriptors/eit.h
-@@ -40,7 +40,7 @@
- struct dvb_table_eit_event {
- 	uint16_t event_id;
- 	union {
--		uint16_t bitfield;
-+		uint16_t bitfield1; /* first 2 bytes are MJD, they need to be bswapped */
- 		uint8_t dvbstart[5];
- 	} __attribute__((packed));
- 	uint8_t dvbduration[3];
-@@ -56,6 +56,7 @@ struct dvb_table_eit_event {
- 	struct dvb_table_eit_event *next;
- 	struct tm start;
- 	uint32_t duration;
-+	uint16_t service_id;
- } __attribute__((packed));
- 
- struct dvb_table_eit {
-diff --git a/lib/libdvbv5/descriptors/eit.c b/lib/libdvbv5/descriptors/eit.c
-index 64a8897..123dc91 100644
---- a/lib/libdvbv5/descriptors/eit.c
-+++ b/lib/libdvbv5/descriptors/eit.c
-@@ -29,6 +29,11 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
- 	struct dvb_table_eit_event **head;
- 
- 	if (*table_length > 0) {
-+		memcpy(eit, p, sizeof(struct dvb_table_eit) - sizeof(eit->event));
+Changes since v4:
+ - call v4l2_async_notifier_register() only if any camera sensor
+   is specified in devicetree, so the driver can initialize even if
+   only mem-to-mem functionality is used.
+
+Changes since v2:
+  - none.
+
+Changes since v1:
+ - register clock provider after registering FIMC devices so the clock
+   can be actually used right after it is registered.Changes since v1:
+ - register clock provider after registering FIMC devices so the clock
+   can be actually used right after it is registered.
+---
+ drivers/media/platform/exynos4-is/media-dev.c |  238 ++++++++++++++-----------
+ drivers/media/platform/exynos4-is/media-dev.h |   13 +-
+ 2 files changed, 147 insertions(+), 104 deletions(-)
+
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index f047a9f..c670d67 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -26,6 +26,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/types.h>
+ #include <linux/slab.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-of.h>
+ #include <media/media-device.h>
+@@ -220,6 +221,7 @@ static int __fimc_pipeline_open(struct exynos_media_pipeline *ep,
+ 		if (ret < 0)
+ 			return ret;
+ 	}
 +
-+		bswap16(eit->transport_id);
-+		bswap16(eit->network_id);
-+
- 		/* find end of curent list */
- 		head = &eit->event;
- 		while (*head != NULL)
-@@ -48,18 +53,30 @@ void dvb_table_eit_init(struct dvb_v5_fe_parms *parms, const uint8_t *buf, ssize
- 	struct dvb_table_eit_event *last = NULL;
- 	while ((uint8_t *) p < buf + buflen - 4) {
- 		struct dvb_table_eit_event *event = (struct dvb_table_eit_event *) malloc(sizeof(struct dvb_table_eit_event));
--		memcpy(event, p, sizeof(struct dvb_table_eit_event) - sizeof(event->descriptor) - sizeof(event->next) - sizeof(event->start) - sizeof(event->duration));
--		p += sizeof(struct dvb_table_eit_event) - sizeof(event->descriptor) - sizeof(event->next) - sizeof(event->start) - sizeof(event->duration);
-+		memcpy(event, p, sizeof(struct dvb_table_eit_event) -
-+				 sizeof(event->descriptor) -
-+				 sizeof(event->next) -
-+				 sizeof(event->start) -
-+				 sizeof(event->duration) -
-+				 sizeof(event->service_id));
-+		p += sizeof(struct dvb_table_eit_event) -
-+		     sizeof(event->descriptor) -
-+		     sizeof(event->next) -
-+		     sizeof(event->start) -
-+		     sizeof(event->duration) -
-+		     sizeof(event->service_id);
+ 	ret = fimc_md_set_camclk(sd, true);
+ 	if (ret < 0)
+ 		goto err_wbclk;
+@@ -380,77 +382,18 @@ static void fimc_md_unregister_sensor(struct v4l2_subdev *sd)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct i2c_adapter *adapter;
  
- 		bswap16(event->event_id);
--		bswap16(event->bitfield);
-+		bswap16(event->bitfield1);
- 		bswap16(event->bitfield2);
- 		event->descriptor = NULL;
- 		event->next = NULL;
- 		dvb_time(event->dvbstart, &event->start);
--		event->duration = bcd(event->dvbduration[0]) * 3600 +
--				  bcd(event->dvbduration[1]) * 60 +
--				  bcd(event->dvbduration[2]);
-+		event->duration = bcd((uint32_t) event->dvbduration[0]) * 3600 +
-+				  bcd((uint32_t) event->dvbduration[1]) * 60 +
-+				  bcd((uint32_t) event->dvbduration[2]);
-+
-+		event->service_id = eit->header.id;
+-	if (!client)
++	if (!client || client->dev.of_node)
+ 		return;
  
- 		if(!*head)
- 			*head = event;
-@@ -102,6 +119,7 @@ void dvb_table_eit_print(struct dvb_v5_fe_parms *parms, struct dvb_table_eit *ei
- 		char start[255];
- 		strftime(start, sizeof(start), "%F %T", &event->start);
- 		dvb_log("|- %7d", event->event_id);
-+		dvb_log("|   Service               %d", event->service_id);
- 		dvb_log("|   Start                 %s UTC", start);
- 		dvb_log("|   Duration              %dh %dm %ds", event->duration / 3600, (event->duration % 3600) / 60, event->duration % 60);
- 		dvb_log("|   free CA mode          %d", event->free_CA_mode);
-@@ -137,9 +155,8 @@ void dvb_time(const uint8_t data[5], struct tm *tm)
-   tm->tm_mday  = day;
-   tm->tm_mon   = month - 1;
-   tm->tm_year  = year;
--  tm->tm_isdst = -1;
--  tm->tm_wday  = 0;
--  tm->tm_yday  = 0;
-+  tm->tm_isdst = 1; /* dst in effect, do not adjust */
-+  mktime( tm );
+ 	v4l2_device_unregister_subdev(sd);
+ 
+-	if (!client->dev.of_node) {
+-		adapter = client->adapter;
+-		i2c_unregister_device(client);
+-		if (adapter)
+-			i2c_put_adapter(adapter);
+-	}
++	adapter = client->adapter;
++	i2c_unregister_device(client);
++	if (adapter)
++		i2c_put_adapter(adapter);
  }
  
+ #ifdef CONFIG_OF
+-/* Register I2C client subdev associated with @node. */
+-static int fimc_md_of_add_sensor(struct fimc_md *fmd,
+-				 struct device_node *node, int index)
+-{
+-	struct fimc_sensor_info *si;
+-	struct i2c_client *client;
+-	struct v4l2_subdev *sd;
+-	int ret;
+-
+-	if (WARN_ON(index >= ARRAY_SIZE(fmd->sensor)))
+-		return -EINVAL;
+-	si = &fmd->sensor[index];
+-
+-	client = of_find_i2c_device_by_node(node);
+-	if (!client)
+-		return -EPROBE_DEFER;
+-
+-	device_lock(&client->dev);
+-
+-	if (!client->dev.driver ||
+-	    !try_module_get(client->dev.driver->owner)) {
+-		ret = -EPROBE_DEFER;
+-		v4l2_info(&fmd->v4l2_dev, "No driver found for %s\n",
+-						node->full_name);
+-		goto dev_put;
+-	}
+-
+-	/* Enable sensor's master clock */
+-	ret = __fimc_md_set_camclk(fmd, &si->pdata, true);
+-	if (ret < 0)
+-		goto mod_put;
+-	sd = i2c_get_clientdata(client);
+-
+-	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
+-	__fimc_md_set_camclk(fmd, &si->pdata, false);
+-	if (ret < 0)
+-		goto mod_put;
+-
+-	v4l2_set_subdev_hostdata(sd, &si->pdata);
+-	if (si->pdata.fimc_bus_type == FIMC_BUS_TYPE_ISP_WRITEBACK)
+-		sd->grp_id = GRP_ID_FIMC_IS_SENSOR;
+-	else
+-		sd->grp_id = GRP_ID_SENSOR;
+-
+-	si->subdev = sd;
+-	v4l2_info(&fmd->v4l2_dev, "Registered sensor subdevice: %s (%d)\n",
+-		  sd->name, fmd->num_sensors);
+-	fmd->num_sensors++;
+-
+-mod_put:
+-	module_put(client->dev.driver->owner);
+-dev_put:
+-	device_unlock(&client->dev);
+-	put_device(&client->dev);
+-	return ret;
+-}
+-
+ /* Parse port node and register as a sub-device any sensor specified there. */
+ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 				   struct device_node *port,
+@@ -459,7 +402,6 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 	struct device_node *rem, *ep, *np;
+ 	struct fimc_source_info *pd;
+ 	struct v4l2_of_endpoint endpoint;
+-	int ret;
+ 	u32 val;
  
+ 	pd = &fmd->sensor[index].pdata;
+@@ -487,6 +429,8 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 
+ 	if (!of_property_read_u32(rem, "clock-frequency", &val))
+ 		pd->clk_frequency = val;
++	else
++		pd->clk_frequency = DEFAULT_SENSOR_CLK_FREQ;
+ 
+ 	if (pd->clk_frequency == 0) {
+ 		v4l2_err(&fmd->v4l2_dev, "Wrong clock frequency at node %s\n",
+@@ -526,10 +470,17 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 	else
+ 		pd->fimc_bus_type = pd->sensor_bus_type;
+ 
+-	ret = fimc_md_of_add_sensor(fmd, rem, index);
+-	of_node_put(rem);
++	if (WARN_ON(index >= ARRAY_SIZE(fmd->sensor)))
++		return -EINVAL;
+ 
+-	return ret;
++	fmd->sensor[index].asd.match_type = V4L2_ASYNC_MATCH_OF;
++	fmd->sensor[index].asd.match.of.node = rem;
++	fmd->async_subdevs[index] = &fmd->sensor[index].asd;
++
++	fmd->num_sensors++;
++
++	of_node_put(rem);
++	return 0;
+ }
+ 
+ /* Register all SoC external sub-devices */
+@@ -885,11 +836,13 @@ static void fimc_md_unregister_entities(struct fimc_md *fmd)
+ 		v4l2_device_unregister_subdev(fmd->csis[i].sd);
+ 		fmd->csis[i].sd = NULL;
+ 	}
+-	for (i = 0; i < fmd->num_sensors; i++) {
+-		if (fmd->sensor[i].subdev == NULL)
+-			continue;
+-		fimc_md_unregister_sensor(fmd->sensor[i].subdev);
+-		fmd->sensor[i].subdev = NULL;
++	if (fmd->pdev->dev.of_node == NULL) {
++		for (i = 0; i < fmd->num_sensors; i++) {
++			if (fmd->sensor[i].subdev == NULL)
++				continue;
++			fimc_md_unregister_sensor(fmd->sensor[i].subdev);
++			fmd->sensor[i].subdev = NULL;
++		}
+ 	}
+ 
+ 	if (fmd->fimc_is)
+@@ -1224,6 +1177,14 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
+ 	struct fimc_camclk_info *camclk;
+ 	int ret = 0;
+ 
++	/*
++	 * When device tree is used the sensor drivers are supposed to
++	 * control the clock themselves. This whole function will be
++	 * removed once S5PV210 platform is converted to the device tree.
++	 */
++	if (fmd->pdev->dev.of_node)
++		return 0;
++
+ 	if (WARN_ON(si->clk_id >= FIMC_MAX_CAMCLKS) || !fmd || !fmd->pmf)
+ 		return -EINVAL;
+ 
+@@ -1544,6 +1505,56 @@ err:
+ #define fimc_md_unregister_clk_provider(fmd) (0)
+ #endif
+ 
++static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
++				 struct v4l2_subdev *subdev,
++				 struct v4l2_async_subdev *asd)
++{
++	struct fimc_md *fmd = notifier_to_fimc_md(notifier);
++	struct fimc_sensor_info *si = NULL;
++	int i;
++
++	/* Find platform data for this sensor subdev */
++	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
++		if (fmd->sensor[i].asd.match.of.node == subdev->dev->of_node)
++			si = &fmd->sensor[i];
++
++	if (si == NULL)
++		return -EINVAL;
++
++	v4l2_set_subdev_hostdata(subdev, &si->pdata);
++
++	if (si->pdata.fimc_bus_type == FIMC_BUS_TYPE_ISP_WRITEBACK)
++		subdev->grp_id = GRP_ID_FIMC_IS_SENSOR;
++	else
++		subdev->grp_id = GRP_ID_SENSOR;
++
++	si->subdev = subdev;
++
++	v4l2_info(&fmd->v4l2_dev, "Registered sensor subdevice: %s (%d)\n",
++		  subdev->name, fmd->num_sensors);
++
++	fmd->num_sensors++;
++
++	return 0;
++}
++
++static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
++{
++	struct fimc_md *fmd = notifier_to_fimc_md(notifier);
++	int ret;
++
++	mutex_lock(&fmd->media_dev.graph_mutex);
++
++	ret = fimc_md_create_links(fmd);
++	if (ret < 0)
++		goto unlock;
++
++	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
++unlock:
++	mutex_unlock(&fmd->media_dev.graph_mutex);
++	return ret;
++}
++
+ static int fimc_md_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -1571,12 +1582,6 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 
+ 	fmd->use_isp = fimc_md_is_isp_available(dev->of_node);
+ 
+-	ret = fimc_md_register_clk_provider(fmd);
+-	if (ret < 0) {
+-		v4l2_err(v4l2_dev, "clock provider registration failed\n");
+-		return ret;
+-	}
+-
+ 	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
+@@ -1586,64 +1591,88 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	ret = media_device_register(&fmd->media_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register media device: %d\n", ret);
+-		goto err_md;
++		goto err_v4l2_dev;
+ 	}
+ 
+ 	ret = fimc_md_get_clocks(fmd);
+ 	if (ret)
+-		goto err_clk;
++		goto err_md;
+ 
+ 	fmd->user_subdev_api = (dev->of_node != NULL);
+ 
+-	/* Protect the media graph while we're registering entities */
+-	mutex_lock(&fmd->media_dev.graph_mutex);
+-
+ 	ret = fimc_md_get_pinctrl(fmd);
+ 	if (ret < 0) {
+ 		if (ret != EPROBE_DEFER)
+ 			dev_err(dev, "Failed to get pinctrl: %d\n", ret);
+-		goto err_unlock;
++		goto err_clk;
+ 	}
+ 
++	platform_set_drvdata(pdev, fmd);
++
++	/* Protect the media graph while we're registering entities */
++	mutex_lock(&fmd->media_dev.graph_mutex);
++
+ 	if (dev->of_node)
+ 		ret = fimc_md_register_of_platform_entities(fmd, dev->of_node);
+ 	else
+ 		ret = bus_for_each_dev(&platform_bus_type, NULL, fmd,
+ 						fimc_md_pdev_match);
+-	if (ret)
+-		goto err_unlock;
++	if (ret) {
++		mutex_unlock(&fmd->media_dev.graph_mutex);
++		goto err_clk;
++	}
+ 
+ 	if (dev->platform_data || dev->of_node) {
+ 		ret = fimc_md_register_sensor_entities(fmd);
+-		if (ret)
+-			goto err_unlock;
++		if (ret) {
++			mutex_unlock(&fmd->media_dev.graph_mutex);
++			goto err_m_ent;
++		}
+ 	}
+ 
+-	ret = fimc_md_create_links(fmd);
+-	if (ret)
+-		goto err_unlock;
+-
+-	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
+-	if (ret)
+-		goto err_unlock;
++	mutex_unlock(&fmd->media_dev.graph_mutex);
+ 
+ 	ret = device_create_file(&pdev->dev, &dev_attr_subdev_conf_mode);
+ 	if (ret)
+-		goto err_unlock;
++		goto err_m_ent;
++	/*
++	 * FIMC platform devices need to be registered before the sclk_cam
++	 * clocks provider, as one of these devices needs to be activated
++	 * to enable the clock.
++	 */
++	ret = fimc_md_register_clk_provider(fmd);
++	if (ret < 0) {
++		v4l2_err(v4l2_dev, "clock provider registration failed\n");
++		goto err_attr;
++	}
++
++	if (fmd->num_sensors > 0) {
++		fmd->subdev_notifier.subdevs = fmd->async_subdevs;
++		fmd->subdev_notifier.num_subdevs = fmd->num_sensors;
++		fmd->subdev_notifier.bound = subdev_notifier_bound;
++		fmd->subdev_notifier.complete = subdev_notifier_complete;
++		fmd->num_sensors = 0;
++
++		ret = v4l2_async_notifier_register(&fmd->v4l2_dev,
++						&fmd->subdev_notifier);
++		if (ret)
++			goto err_clk_p;
++	}
+ 
+-	platform_set_drvdata(pdev, fmd);
+-	mutex_unlock(&fmd->media_dev.graph_mutex);
+ 	return 0;
+ 
+-err_unlock:
+-	mutex_unlock(&fmd->media_dev.graph_mutex);
++err_clk_p:
++	fimc_md_unregister_clk_provider(fmd);
++err_attr:
++	device_remove_file(&pdev->dev, &dev_attr_subdev_conf_mode);
+ err_clk:
+ 	fimc_md_put_clocks(fmd);
++err_m_ent:
+ 	fimc_md_unregister_entities(fmd);
+-	media_device_unregister(&fmd->media_dev);
+ err_md:
++	media_device_unregister(&fmd->media_dev);
++err_v4l2_dev:
+ 	v4l2_device_unregister(&fmd->v4l2_dev);
+-	fimc_md_unregister_clk_provider(fmd);
+ 	return ret;
+ }
+ 
+@@ -1655,12 +1684,15 @@ static int fimc_md_remove(struct platform_device *pdev)
+ 		return 0;
+ 
+ 	fimc_md_unregister_clk_provider(fmd);
++	v4l2_async_notifier_unregister(&fmd->subdev_notifier);
++
+ 	v4l2_device_unregister(&fmd->v4l2_dev);
+ 	device_remove_file(&pdev->dev, &dev_attr_subdev_conf_mode);
+ 	fimc_md_unregister_entities(fmd);
+ 	fimc_md_pipelines_free(fmd);
+ 	media_device_unregister(&fmd->media_dev);
+ 	fimc_md_put_clocks(fmd);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index a88cee5..ee1e251 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -32,8 +32,9 @@
+ 
+ #define PINCTRL_STATE_IDLE	"idle"
+ 
+-#define FIMC_MAX_SENSORS	8
++#define FIMC_MAX_SENSORS	4
+ #define FIMC_MAX_CAMCLKS	2
++#define DEFAULT_SENSOR_CLK_FREQ	24000000U
+ 
+ /* LCD/ISP Writeback clocks (PIXELASYNCMx) */
+ enum {
+@@ -79,6 +80,7 @@ struct fimc_camclk_info {
+ /**
+  * struct fimc_sensor_info - image data source subdev information
+  * @pdata: sensor's atrributes passed as media device's platform data
++ * @asd: asynchronous subdev registration data structure
+  * @subdev: image sensor v4l2 subdev
+  * @host: fimc device the sensor is currently linked to
+  *
+@@ -86,6 +88,7 @@ struct fimc_camclk_info {
+  */
+ struct fimc_sensor_info {
+ 	struct fimc_source_info pdata;
++	struct v4l2_async_subdev asd;
+ 	struct v4l2_subdev *subdev;
+ 	struct fimc_dev *host;
+ };
+@@ -145,6 +148,9 @@ struct fimc_md {
+ 		int num_clocks;
+ 	} clk_provider;
+ 
++	struct v4l2_async_notifier subdev_notifier;
++	struct v4l2_async_subdev *async_subdevs[FIMC_MAX_SENSORS];
++
+ 	bool user_subdev_api;
+ 	spinlock_t slock;
+ 	struct list_head pipelines;
+@@ -162,6 +168,11 @@ static inline struct fimc_md *entity_to_fimc_mdev(struct media_entity *me)
+ 		container_of(me->parent, struct fimc_md, media_dev);
+ }
+ 
++static inline struct fimc_md *notifier_to_fimc_md(struct v4l2_async_notifier *n)
++{
++	return container_of(n, struct fimc_md, subdev_notifier);
++}
++
+ static inline void fimc_md_graph_lock(struct exynos_video_entity *ve)
+ {
+ 	mutex_lock(&ve->vdev.entity.parent->graph_mutex);
 -- 
-1.8.3.2
+1.7.9.5
 
