@@ -1,69 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:60463 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760506AbaCULBr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 07:01:47 -0400
-Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 3A1B02DE26
-	for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 12:01:41 +0100 (CET)
-Message-Id: <cover.1395397665.git.moinejf@free.fr>
-From: Jean-Francois Moine <moinejf@free.fr>
-Date: Fri, 21 Mar 2014 11:27:45 +0100
-Subject: [PATCH RFC v2 0/6] drm/i2c: Move tda998x to a couple encoder/connector
-To: Russell King <rmk+kernel@arm.linux.org.uk>,
-	Rob Clark <robdclark@gmail.com>,
-	dri-devel@lists.freedesktop.org
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41927 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755429AbaCFBnz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 20:43:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, marbugge@cisco.com
+Subject: Re: [RFCv1 PATCH 0/4] add G/S_EDID support for video nodes
+Date: Thu, 06 Mar 2014 02:45:23 +0100
+Message-ID: <2313806.6Mf9nE69NY@avalon>
+In-Reply-To: <1393932659-13817-1-git-send-email-hverkuil@xs4all.nl>
+References: <1393932659-13817-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 'slave encoder' structure of the tda998x driver asks for glue
-between the DRM driver and the encoder/connector structures.
+Hi Hans,
 
-Changing the tda998x driver to a simple encoder/connector simplifies
-the code of the tilcdc driver. This change is permitted by
-Russell's infrastructure for componentised subsystems.
+Thank you for the patches.
 
-The proposed patch set does not include changes to the Armada DRM driver.
-These changes should already have been prepared by Russell King, as
-told in the message
-  https://www.mail-archive.com/linux-media@vger.kernel.org/msg71202.html
+On Tuesday 04 March 2014 12:30:55 Hans Verkuil wrote:
+> Currently the VIDIOC_SUBDEV_G/S_EDID and struct v4l2_subdev_edid are subdev
+> APIs. However, that's in reality quite annoying since for simple video
+> pipelines there is no need to create v4l-subdev device nodes for anything
+> else except for setting or getting EDIDs.
+> 
+> What happens in practice is that v4l2 bridge drivers add explicit support
+> for VIDIOC_SUBDEV_G/S_EDID themselves, just to avoid having to create
+> subdev device nodes just for this.
+> 
+> So this patch series makes the ioctls available as regular ioctls as
+> well. In that case the pad field should be set to 0 and the bridge driver
+> will fill in the right pad value internally depending on the current
+> input or output and pass it along to the actual subdev driver.
 
-The tilcdc part of this patch set has not been tested.
+Would it make sense to allow usage of the pad field on video nodes as well ?
 
-This patch set applies after the patchs:
-	drm/i2c: tda998x: Fix lack of required reg in DT documentation
-	drm/i2c: tda998x: Change the compatible strings
-
-- v2
-	- fix lack of call to component_bind_all() in tilcdc_drv.c
-	- add tda998x configuration for non-DT systems
-
-Jean-Francois Moine (6):
-  drm/i2c: tda998x: Add the required port property
-  drm/i2c: tda998x: Move tda998x to a couple encoder/connector
-  drm/tilcd: dts: Add the video output port
-  drm/tilcdc: Change the interface with the tda998x driver
-  drm/tilcd: dts: Remove unused slave description
-  ARM: AM33XX: dts: Change the tda998x description
-
- .../devicetree/bindings/drm/i2c/tda998x.txt        |  11 +-
- .../devicetree/bindings/drm/tilcdc/slave.txt       |  18 -
- .../devicetree/bindings/drm/tilcdc/tilcdc.txt      |  14 +
- arch/arm/boot/dts/am335x-base0033.dts              |  28 +-
- arch/arm/boot/dts/am335x-boneblack.dts             |  21 +-
- drivers/gpu/drm/i2c/tda998x_drv.c                  | 323 +++++++++-------
- drivers/gpu/drm/tilcdc/Makefile                    |   1 -
- drivers/gpu/drm/tilcdc/tilcdc_drv.c                |  85 ++++-
- drivers/gpu/drm/tilcdc/tilcdc_slave.c              | 406 ---------------------
- drivers/gpu/drm/tilcdc/tilcdc_slave.h              |  26 --
- 10 files changed, 315 insertions(+), 618 deletions(-)
- delete mode 100644 Documentation/devicetree/bindings/drm/tilcdc/slave.txt
- delete mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.c
- delete mode 100644 drivers/gpu/drm/tilcdc/tilcdc_slave.h
+Apart from that and minor issues with patch 2/4 this series looks good to me.
 
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
