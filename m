@@ -1,269 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:62755 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752299AbaB1X3t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 18:29:49 -0500
-Received: by mail-wi0-f181.google.com with SMTP id hi5so1210595wib.14
-        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:48 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH v4 03/10] rc: img-ir: add raw driver
-Date: Fri, 28 Feb 2014 23:28:53 +0000
-Message-Id: <1393630140-31765-4-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
-References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1306 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750997AbaCFHqR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 02:46:17 -0500
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s267kEr7013377
+	for <linux-media@vger.kernel.org>; Thu, 6 Mar 2014 08:46:16 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 097FE2A1887
+	for <linux-media@vger.kernel.org>; Thu,  6 Mar 2014 08:46:13 +0100 (CET)
+Message-ID: <531827C4.60308@xs4all.nl>
+Date: Thu, 06 Mar 2014 08:46:12 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.15] vb2: fixes, balancing callbacks
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add raw IR remote control input driver for the ImgTec Infrared decoder
-block's raw edge interrupts. Generic software protocol decoders are used
-to allow multiple protocols to be supported at a time, including those
-not supported by the hardware decoder.
+Hi Mauro,
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
-v2:
-- Echo the last sample after 150ms if no edges have been detected. This
-  allows the soft decoder state machines to recognise the final space
-  when no repeat code is received.
-- Use spin_lock_irq() instead of spin_lock_irqsave() in various bits of
-  code that aren't accessible from hard interrupt context.
-- Avoid removal race by checking for RC device in ISR.
----
- drivers/media/rc/img-ir/img-ir-raw.c | 151 +++++++++++++++++++++++++++++++++++
- drivers/media/rc/img-ir/img-ir-raw.h |  60 ++++++++++++++
- 2 files changed, 211 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-raw.c
- create mode 100644 drivers/media/rc/img-ir/img-ir-raw.h
+This pull request is identical to the REVIEWv4 series:
 
-diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
-new file mode 100644
-index 0000000..cfb01d9
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-raw.c
-@@ -0,0 +1,151 @@
-+/*
-+ * ImgTec IR Raw Decoder found in PowerDown Controller.
-+ *
-+ * Copyright 2010-2014 Imagination Technologies Ltd.
-+ *
-+ * This ties into the input subsystem using the RC-core in raw mode. Raw IR
-+ * signal edges are reported and decoded by generic software decoders.
-+ */
-+
-+#include <linux/spinlock.h>
-+#include <media/rc-core.h>
-+#include "img-ir.h"
-+
-+#define ECHO_TIMEOUT_MS 150	/* ms between echos */
-+
-+/* must be called with priv->lock held */
-+static void img_ir_refresh_raw(struct img_ir_priv *priv, u32 irq_status)
-+{
-+	struct img_ir_priv_raw *raw = &priv->raw;
-+	struct rc_dev *rc_dev = priv->raw.rdev;
-+	int multiple;
-+	u32 ir_status;
-+
-+	/* find whether both rise and fall was detected */
-+	multiple = ((irq_status & IMG_IR_IRQ_EDGE) == IMG_IR_IRQ_EDGE);
-+	/*
-+	 * If so, we need to see if the level has actually changed.
-+	 * If it's just noise that we didn't have time to process,
-+	 * there's no point reporting it.
-+	 */
-+	ir_status = img_ir_read(priv, IMG_IR_STATUS) & IMG_IR_IRRXD;
-+	if (multiple && ir_status == raw->last_status)
-+		return;
-+	raw->last_status = ir_status;
-+
-+	/* report the edge to the IR raw decoders */
-+	if (ir_status) /* low */
-+		ir_raw_event_store_edge(rc_dev, IR_SPACE);
-+	else /* high */
-+		ir_raw_event_store_edge(rc_dev, IR_PULSE);
-+	ir_raw_event_handle(rc_dev);
-+}
-+
-+/* called with priv->lock held */
-+void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status)
-+{
-+	struct img_ir_priv_raw *raw = &priv->raw;
-+
-+	/* check not removing */
-+	if (!raw->rdev)
-+		return;
-+
-+	img_ir_refresh_raw(priv, irq_status);
-+
-+	/* start / push back the echo timer */
-+	mod_timer(&raw->timer, jiffies + msecs_to_jiffies(ECHO_TIMEOUT_MS));
-+}
-+
-+/*
-+ * Echo timer callback function.
-+ * The raw decoders expect to get a final sample even if there are no edges, in
-+ * order to be assured of the final space. If there are no edges for a certain
-+ * time we use this timer to emit a final sample to satisfy them.
-+ */
-+static void img_ir_echo_timer(unsigned long arg)
-+{
-+	struct img_ir_priv *priv = (struct img_ir_priv *)arg;
-+
-+	spin_lock_irq(&priv->lock);
-+
-+	/* check not removing */
-+	if (priv->raw.rdev)
-+		/*
-+		 * It's safe to pass irq_status=0 since it's only used to check
-+		 * for double edges.
-+		 */
-+		img_ir_refresh_raw(priv, 0);
-+
-+	spin_unlock_irq(&priv->lock);
-+}
-+
-+void img_ir_setup_raw(struct img_ir_priv *priv)
-+{
-+	u32 irq_en;
-+
-+	if (!priv->raw.rdev)
-+		return;
-+
-+	/* clear and enable edge interrupts */
-+	spin_lock_irq(&priv->lock);
-+	irq_en = img_ir_read(priv, IMG_IR_IRQ_ENABLE);
-+	irq_en |= IMG_IR_IRQ_EDGE;
-+	img_ir_write(priv, IMG_IR_IRQ_CLEAR, IMG_IR_IRQ_EDGE);
-+	img_ir_write(priv, IMG_IR_IRQ_ENABLE, irq_en);
-+	spin_unlock_irq(&priv->lock);
-+}
-+
-+int img_ir_probe_raw(struct img_ir_priv *priv)
-+{
-+	struct img_ir_priv_raw *raw = &priv->raw;
-+	struct rc_dev *rdev;
-+	int error;
-+
-+	/* Set up the echo timer */
-+	setup_timer(&raw->timer, img_ir_echo_timer, (unsigned long)priv);
-+
-+	/* Allocate raw decoder */
-+	raw->rdev = rdev = rc_allocate_device();
-+	if (!rdev) {
-+		dev_err(priv->dev, "cannot allocate raw input device\n");
-+		return -ENOMEM;
-+	}
-+	rdev->priv = priv;
-+	rdev->map_name = RC_MAP_EMPTY;
-+	rdev->input_name = "IMG Infrared Decoder Raw";
-+	rdev->driver_type = RC_DRIVER_IR_RAW;
-+
-+	/* Register raw decoder */
-+	error = rc_register_device(rdev);
-+	if (error) {
-+		dev_err(priv->dev, "failed to register raw IR input device\n");
-+		rc_free_device(rdev);
-+		raw->rdev = NULL;
-+		return error;
-+	}
-+
-+	return 0;
-+}
-+
-+void img_ir_remove_raw(struct img_ir_priv *priv)
-+{
-+	struct img_ir_priv_raw *raw = &priv->raw;
-+	struct rc_dev *rdev = raw->rdev;
-+	u32 irq_en;
-+
-+	if (!rdev)
-+		return;
-+
-+	/* switch off and disable raw (edge) interrupts */
-+	spin_lock_irq(&priv->lock);
-+	raw->rdev = NULL;
-+	irq_en = img_ir_read(priv, IMG_IR_IRQ_ENABLE);
-+	irq_en &= ~IMG_IR_IRQ_EDGE;
-+	img_ir_write(priv, IMG_IR_IRQ_ENABLE, irq_en);
-+	img_ir_write(priv, IMG_IR_IRQ_CLEAR, IMG_IR_IRQ_EDGE);
-+	spin_unlock_irq(&priv->lock);
-+
-+	rc_unregister_device(rdev);
-+
-+	del_timer_sync(&raw->timer);
-+}
-diff --git a/drivers/media/rc/img-ir/img-ir-raw.h b/drivers/media/rc/img-ir/img-ir-raw.h
-new file mode 100644
-index 0000000..9802ffd
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-raw.h
-@@ -0,0 +1,60 @@
-+/*
-+ * ImgTec IR Raw Decoder found in PowerDown Controller.
-+ *
-+ * Copyright 2010-2014 Imagination Technologies Ltd.
-+ */
-+
-+#ifndef _IMG_IR_RAW_H_
-+#define _IMG_IR_RAW_H_
-+
-+struct img_ir_priv;
-+
-+#ifdef CONFIG_IR_IMG_RAW
-+
-+/**
-+ * struct img_ir_priv_raw - Private driver data for raw decoder.
-+ * @rdev:		Raw remote control device
-+ * @timer:		Timer to echo samples to keep soft decoders happy.
-+ * @last_status:	Last raw status bits.
-+ */
-+struct img_ir_priv_raw {
-+	struct rc_dev		*rdev;
-+	struct timer_list	timer;
-+	u32			last_status;
-+};
-+
-+static inline bool img_ir_raw_enabled(struct img_ir_priv_raw *raw)
-+{
-+	return raw->rdev;
-+};
-+
-+void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status);
-+void img_ir_setup_raw(struct img_ir_priv *priv);
-+int img_ir_probe_raw(struct img_ir_priv *priv);
-+void img_ir_remove_raw(struct img_ir_priv *priv);
-+
-+#else
-+
-+struct img_ir_priv_raw {
-+};
-+static inline bool img_ir_raw_enabled(struct img_ir_priv_raw *raw)
-+{
-+	return false;
-+};
-+static inline void img_ir_isr_raw(struct img_ir_priv *priv, u32 irq_status)
-+{
-+}
-+static inline void img_ir_setup_raw(struct img_ir_priv *priv)
-+{
-+}
-+static inline int img_ir_probe_raw(struct img_ir_priv *priv)
-+{
-+	return -ENODEV;
-+}
-+static inline void img_ir_remove_raw(struct img_ir_priv *priv)
-+{
-+}
-+
-+#endif /* CONFIG_IR_IMG_RAW */
-+
-+#endif /* _IMG_IR_RAW_H_ */
--- 
-1.8.3.2
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg72474.html
 
+except for being rebased to the latest master branch.
+
+Take special note: the first three patches ("vb2: Check if there are buffers before
+streamon", "vb2: fix read/write regression" and "vb2: fix PREPARE_BUF regression")
+are patches for 3.14 that have already been processed by you. However, this patch
+series relies on them being present. I have not tried it, but I doubt if this
+series applies without them being there.
+
+This patch series adds debugging code to check for unbalanced ops and then proceeds
+to fix all the bugs I found with that debugging code and some more that I found
+while testing nasty streaming corner cases with v4l2-compliance.
+
+Regards,
+
+	Hans
+
+The following changes since commit bfd0306462fdbc5e0a8c6999aef9dde0f9745399:
+
+  [media] v4l: Document timestamp buffer flag behaviour (2014-03-05 16:48:28 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git vb2-part1
+
+for you to fetch changes up to 8028d16f6406661755f405c49078d6f8c93dd3ec:
+
+  vivi: fix ENUM_FRAMEINTERVALS implementation (2014-03-05 21:45:19 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (17):
+      vb2: fix read/write regression
+      vb2: fix PREPARE_BUF regression
+      vb2: add debugging code to check for unbalanced ops
+      vb2: change result code of buf_finish to void
+      pwc: do not decompress the image unless the state is DONE
+      vb2: call buf_finish from __queue_cancel.
+      vb2: consistent usage of periods in videobuf2-core.h
+      vb2: fix buf_init/buf_cleanup call sequences
+      vb2: rename queued_count to owned_by_drv_count
+      vb2: don't init the list if there are still buffers
+      vb2: only call start_streaming if sufficient buffers are queued
+      vb2: properly clean up PREPARED and QUEUED buffers
+      vb2: replace BUG by WARN_ON
+      vb2: fix streamoff handling if streamon wasn't called.
+      vb2: call buf_finish after the state check.
+      vivi: correctly cleanup after a start_streaming failure
+      vivi: fix ENUM_FRAMEINTERVALS implementation
+
+Ricardo Ribalda Delgado (1):
+      vb2: Check if there are buffers before streamon
+
+ drivers/media/parport/bw-qcam.c                 |   6 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c         |   7 +-
+ drivers/media/platform/davinci/vpbe_display.c   |   6 +-
+ drivers/media/platform/davinci/vpif_capture.c   |   7 +-
+ drivers/media/platform/davinci/vpif_display.c   |   7 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c |   3 +-
+ drivers/media/platform/s5p-tv/mixer_video.c     |   6 +-
+ drivers/media/platform/vivi.c                   |  18 ++-
+ drivers/media/usb/pwc/pwc-if.c                  |  17 ++-
+ drivers/media/usb/uvc/uvc_queue.c               |   6 +-
+ drivers/media/v4l2-core/videobuf2-core.c        | 594 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------
+ drivers/staging/media/davinci_vpfe/vpfe_video.c |   3 +-
+ drivers/staging/media/go7007/go7007-v4l2.c      |   3 +-
+ include/media/videobuf2-core.h                  | 113 +++++++++++----
+ 14 files changed, 565 insertions(+), 231 deletions(-)
