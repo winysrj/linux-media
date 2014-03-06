@@ -1,151 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33942 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753355AbaCNAOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 20:14:48 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 04/17] e4000: implement PLL lock v4l control
-Date: Fri, 14 Mar 2014 02:14:18 +0200
-Message-Id: <1394756071-22410-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
-References: <1394756071-22410-1-git-send-email-crope@iki.fi>
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:37829 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751951AbaCFXgE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 18:36:04 -0500
+Received: by mail-qc0-f180.google.com with SMTP id x3so3839357qcv.25
+        for <linux-media@vger.kernel.org>; Thu, 06 Mar 2014 15:36:02 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <53190270.80407@pinguin74.gmx.com>
+References: <5318ED33.4040009@pinguin74.gmx.com>
+	<CA+O4pCJ4OPGEC3_RUoxjPfScgL9vEGPbUOCefjNgFOrRcYvgMw@mail.gmail.com>
+	<53190270.80407@pinguin74.gmx.com>
+Date: Fri, 7 Mar 2014 00:36:02 +0100
+Message-ID: <CA+O4pC+R8ZXZ_wYfa2y82TPwCD4q_fUh96pgbYu2VUhVyGPGvQ@mail.gmail.com>
+Subject: Re: sound dropouts with DVB
+From: Markus Rechberger <mrechberger@gmail.com>
+To: pinguin74 <pinguin74@gmx.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement PLL lock control to get PLL lock flag status from tuner
-synthesizer.
+On Fri, Mar 7, 2014 at 12:19 AM, pinguin74 <pinguin74@gmx.com> wrote:
+>>> Most of the time, TV is just fine. But sometimes the sound just drops
+>>> out, the sound disappears totally for up to 20 or 30 seconds. Usually
+>>> sound returns. When sound drops out, there is no error message.
+>>>
+>> If you use mplayer, mplayer will show you if there's some stream corruption.
+>> Other than that it could only be a codec issue.
+>
+> I will try with mplayer later. What does codec issue mean? I think the
+> audio stream in DVB-C is a digital stream that does not need to be
+> changed or encoded in any way? I thought DVB playback simply is a kind
+> of pass thru the digital streamt to the media player....
+>
+>
 
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/e4000.c      | 53 ++++++++++++++++++++++++++++++++++++++-
- drivers/media/tuners/e4000_priv.h |  2 ++
- 2 files changed, 54 insertions(+), 1 deletion(-)
+The mediaplayer is using a codec for decoding/unpacking the compressed
+digital stream.
 
-diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-index ae52a1f..ed2f635 100644
---- a/drivers/media/tuners/e4000.c
-+++ b/drivers/media/tuners/e4000.c
-@@ -181,6 +181,8 @@ static int e4000_init(struct dvb_frontend *fe)
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
- 
-+	priv->active = true;
-+
- 	return 0;
- err:
- 	if (fe->ops.i2c_gate_ctrl)
-@@ -197,6 +199,8 @@ static int e4000_sleep(struct dvb_frontend *fe)
- 
- 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
- 
-+	priv->active = false;
-+
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
-@@ -512,6 +516,50 @@ err:
- 	return ret;
- }
- 
-+static int e4000_pll_lock(struct dvb_frontend *fe)
-+{
-+	struct e4000_priv *priv = fe->tuner_priv;
-+	int ret;
-+	u8 u8tmp;
-+
-+	if (priv->active == false)
-+		return 0;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	ret = e4000_rd_reg(priv, 0x07, &u8tmp);
-+	if (ret)
-+		goto err;
-+
-+	priv->pll_lock->val = (u8tmp & 0x01);
-+err:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	if (ret)
-+		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
-+
-+	return ret;
-+}
-+
-+static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct e4000_priv *priv =
-+			container_of(ctrl->handler, struct e4000_priv, hdl);
-+	int ret;
-+
-+	switch (ctrl->id) {
-+	case  V4L2_CID_RF_TUNER_PLL_LOCK:
-+		ret = e4000_pll_lock(priv->fe);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
- static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct e4000_priv *priv =
-@@ -550,6 +598,7 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
- }
- 
- static const struct v4l2_ctrl_ops e4000_ctrl_ops = {
-+	.g_volatile_ctrl = e4000_g_volatile_ctrl,
- 	.s_ctrl = e4000_s_ctrl,
- };
- 
-@@ -613,7 +662,7 @@ static int e4000_probe(struct i2c_client *client,
- 		goto err;
- 
- 	/* Register controls */
--	v4l2_ctrl_handler_init(&priv->hdl, 8);
-+	v4l2_ctrl_handler_init(&priv->hdl, 9);
- 	priv->bandwidth_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
- 	priv->bandwidth = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-@@ -634,6 +683,8 @@ static int e4000_probe(struct i2c_client *client,
- 	priv->if_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
- 			V4L2_CID_RF_TUNER_IF_GAIN, 0, 54, 1, 0);
- 	v4l2_ctrl_auto_cluster(2, &priv->if_gain_auto, 0, false);
-+	priv->pll_lock = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
-+			V4L2_CID_RF_TUNER_PLL_LOCK,  0, 1, 1, 0);
- 	if (priv->hdl.error) {
- 		ret = priv->hdl.error;
- 		dev_err(&priv->client->dev, "Could not initialize controls\n");
-diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
-index e2ad54f..3ddd980 100644
---- a/drivers/media/tuners/e4000_priv.h
-+++ b/drivers/media/tuners/e4000_priv.h
-@@ -30,6 +30,7 @@ struct e4000_priv {
- 	u32 clock;
- 	struct dvb_frontend *fe;
- 	struct v4l2_subdev sd;
-+	bool active;
- 
- 	/* Controls */
- 	struct v4l2_ctrl_handler hdl;
-@@ -41,6 +42,7 @@ struct e4000_priv {
- 	struct v4l2_ctrl *mixer_gain;
- 	struct v4l2_ctrl *if_gain_auto;
- 	struct v4l2_ctrl *if_gain;
-+	struct v4l2_ctrl *pll_lock;
- };
- 
- struct e4000_pll {
--- 
-1.8.5.3
+Markus
 
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
