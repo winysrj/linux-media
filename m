@@ -1,235 +1,296 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55717 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277AbaCSRU3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Mar 2014 13:20:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>, devel@driverdev.osuosl.org,
-	dri-devel@lists.freedesktop.org,
-	linux-arm-kernel@lists.infradead.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCH RFC 26/46] drivers/base: provide an infrastructure for componentised subsystems
-Date: Wed, 19 Mar 2014 18:22:14 +0100
-Message-ID: <2098368.XZDkvYocrm@avalon>
-In-Reply-To: <16403654.Dg5ZqMop7H@avalon>
-References: <20140102212528.GD7383@n2100.arm.linux.org.uk> <20140226221939.GC21483@n2100.arm.linux.org.uk> <16403654.Dg5ZqMop7H@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout2.samsung.com ([203.254.224.25]:63460 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753410AbaCFQWT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:22:19 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v6 07/10] exynos4-is: Add clock provider for the SCLK_CAM clock
+ outputs
+Date: Thu, 06 Mar 2014 17:20:16 +0100
+Message-id: <1394122819-9582-8-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
+This patch adds clock provider so the the SCLK_CAM0/1 output clocks
+can be accessed by image sensor devices through the clk API.
 
-(CC'ing Philipp Zabel who might be able to provide feedback as a user of the 
-component framework)
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Changes since v5:
+ - added a missing check if clocks provider is registered, in order
+   to prevent control of the clock at the host interface side in case
+   when clock is exposed through the clk API and handled by the sensor
+   drivers. This allows new kernels to work with old DTB (old kernels
+   will work with new DTB as well).
 
-Could you please have a look at the questions below and provide an answer when 
-you'll have time ? I'd like to bridge the gap between the component and the 
-V4L2 asynchronous registration implementations.
+Changes since v4:
+ - retrieve clk parent name through __clk_get_name() on the input
+   clock instead of improperly using clock-names (Mark).
 
-On Friday 07 March 2014 00:24:33 Laurent Pinchart wrote:
-> On Wednesday 26 February 2014 22:19:39 Russell King - ARM Linux wrote:
-> > On Wed, Feb 26, 2014 at 10:00:25PM +0100, Guennadi Liakhovetski wrote:
-> > > Hi Russell
-> > > 
-> > > (I suspect this my email will be rejected by ALKML too like other my
-> > > recent emails, but at least other MLs will pick it up and individual CCs
-> > > too, so, if replying, maybe it would be good to keep my entire reply,
-> > > all the more that it's going to be very short)
-> > > 
-> > > On Thu, 2 Jan 2014, Russell King wrote:
-> > > > Subsystems such as ALSA, DRM and others require a single card-level
-> > > > device structure to represent a subsystem.  However, firmware tends to
-> > > > describe the individual devices and the connections between them.
-> > > > 
-> > > > Therefore, we need a way to gather up the individual component devices
-> > > > together, and indicate when we have all the component devices.
-> > > > 
-> > > > We do this in DT by providing a "superdevice" node which specifies
-> > > > 
-> > > > the components, eg:
-> > > > 	imx-drm {
-> > > > 		compatible = "fsl,drm";
-> > > > 		crtcs = <&ipu1>;
-> > > > 		connectors = <&hdmi>;
-> > > > 	};
-> > > 
-> > > It is a pity linux-media wasn't CC'ed and apparently V4L developers
-> > > didn't notice this and other related patches in a "clean up" series, and
-> > > now this patch is already in the mainline. But at least I'd like to ask
-> > > whether the bindings, defined in
-> > > Documentation/devicetree/bindings/media/video-interfaces.txt and
-> > > implemented in drivers/media/v4l2-core/v4l2-of.c have been considered
-> > > for this job, and - if so - why have they been found unsuitable?
-> > > Wouldn't it have been better to use and - if needed - extend them to
-> > > cover any deficiencies? Even though the implementation is currently
-> > > located under drivers/media/v4l2-code/ it's pretty generic and should be
-> > > easily transferable to a more generic location.
-> > 
-> > The component helpers have nothing to do with DT apart from solving
-> > the problem of how to deal with subsystems which expect a single device,
-> > but we have a group of devices and their individual drivers to cope with.
-> > Subsystems like DRM and ALSA.
-> 
-> (and V4L2)
-> 
-> Point duly taken. First of all I want to mention that your proposal is
-> greatly appreciated. This is a problem that crosses subsystem boundaries,
-> and should thus be addressed centrally.
-> 
-> However, we (as in the V4L2 community, and me personally) would have
-> appreciated to be CC'ed on the proposal. As you might know we already had a
-> solution for this problem, albeit V4L2-specific, in drivers/media/v4l2-
-> core/v4l2-async.c. Whether or not this solution should have been made
-> generic instead of coming up with a new separate implementation would of
-> course have been debatable, but the most important point would have been to
-> make sure that v4l2-async could easily be implemented on top of the common
-> component architecture.
-> 
-> The topic is particularly hot given that a similar solution was also
-> proposed as part of the now defunct (or at least hibernating) common
-> display framework. If I had replied to this mail thread without sleeping on
-> it first I might not have known better and have got half-paranoid,
-> wondereding whether there had been a deliberate attempt to fast-track this
-> API before the V4L2 developers noticed. To be perfectly clear, there is
-> *NO* implicit or explicit such accusation here, as I know better.
-> 
-> Let's all take this as a positive opportunity to cooperate more closely,
-> media devices still need a huge effort to be cleanly supported on modern
-> hardware, and we'll need all the development power we can get.
-> 
-> Accordingly, I would like to comment on the component API, despite the fact
-> that it has been merged in mainline already. The first thing that I believe
-> is missing is documentation. Do you have any pending patch for that, either
-> as kerneldoc or as a text file for Documentation/ ? As I've read the code
-> to understand it I might have missed so design goals, so please bear with
-> the stupid questions that may follow.
-> 
-> I'll first provide a brief comparison of the two models to make the rest of
-> the comments easier to understand.
-> 
-> v4l2-async calls the component master object v4l2_async_notifier. The base
-> component child object is a v4l2_subdev instance instead of being a plain
-> device. v4l2_subdev instances are stored in v4l2-async lists similarly to
-> how the component framework stores objects, except that the list head is
-> directly embedded inside the v4l2_subdev structure instead of being part of
-> a separate structure allocated by the framework.
-> 
-> The notifier has three callback functions, bound, complete and unbind. The
-> bound function is called when one component has been bound to the master.
-> Similarly the unbind function is called when one component is about to be
-> unbound from the master. The complete function is called when all components
-> have been bound, and is thus equivalent to the bind function of the
-> component framework.
-> 
-> Notifiers are registered along with a list of match entries. A match entry
-> is roughly equivalent to the compare function passed to
-> component_master_add_child, except that it includes built-in support for
-> matching on an OF node, dev_name or I2C bus number and child address.
-> 
-> Whenever a subdev (component child) is registered with
-> v4l2_async_register_subdev (equivalent to component_add), the list of
-> notifiers (masters) is walked and their match entries are processed. If a
-> matching entry is found the subdev is bound to the notifier immediately,
-> otherwise it is added to a list of unbound subdevices (component_list).
-> Whenever a notifier (component master) is registered with
-> v4l2_async_notifier_register (component_master_add) the list of unbound
-> subdevs is walked and every match entry of the notifier is tested. If a
-> matching entry is found the subdev is bound to the notifier.
-> 
-> I've seen a couple of core differences in concept between your component
-> model and the v4l2-async model:
-> 
-> - The component framework uses private master and component structures.
-> Wouldn't it simplify the code from a memory management point of view to
-> expose the master structure (which would then be embedded in
-> driver-specific structures) and the component structure (which would be
-> embedded in struct device) ? The latter would be slightly more intrusive
-> from a struct device point of view, so I don't have a strong opinion there
-> yet, exposing the master structure only might be better.
-> 
-> - The component framework requires the master to provide an add_components
-> operation that will call the component_master_add_child function for every
-> component it needs, with a compare function. The add child function is
-> called when the master is registered, and then for every component added to
-> the system. I'm not sure to understand the design decisions behind this,
-> but these two levels of indirection appear pretty complex and confusing.
-> Wouldn't it be simpler to pass an array of match entries to the master
-> registration function instead and remove the add_components operation ? A
-> match entry would basically be a structure with a compare function and a
-> compare_data pointer.
-> 
-> We could also extend the match entry with explicit support for OF node and
-> I2C bus number + address matching as those are the most common cases, or at
-> least provide a couple of standard compare functions for those cases.
-> 
-> - The component framework doesn't provide partial bind support. Children are
-> bound to the master only when all children are available. This makes it
-> impossible in practice to implement v4l2-async on top of the component
-> framework. What would you think about adding optional partial bind support
-> ? The master operations would then have partial bind, complete bind,
-> partial unbind and complete unbind functions. Drivers that only need full
-> bind support could set the partial bind and unbind functions to NULL.
-> 
-> > It is completely agnostic to whether you're using platform data, DT or
-> > even ACPI - this code could *not* care less.  None of that comes anywhere
-> > near what this patch does.  It merely provides a way to collect up
-> > individual devices from co-operating drivers, and control their binding
-> > such that a subsystem like DRM or ALSA can be presented with a "card"
-> > level view of the hardware rather than a multi-device medusa with all
-> > the buggy, racy, crap fsckage that people come up to make that kind of
-> > thing work.
-> > 
-> > Now, as for the binding above, first, what does "eg" mean... and
-> > secondly, how would a binding which refers to crtcs and connectors
-> > have anything to do with ALSA?  Clearly this isn't an example of a
-> > binding for an ALSA use, which was talked about in the very first
-> > line of the above commit commentry.  So it's quite clear that what is
-> > given there is an example of how it /could/ be used.
-> > 
-> > I suppose I could have instead turned imx-drm into a completely unusable
-> > mess by not coming up with some kind of binding, and instead submitted
-> > a whole pile of completely untested code.  Alternatively, I could've
-> > used the OF binding as you're suggesting, but that would mean radically
-> > changing the /existing/ bindings for the IPU as a whole - something
-> > which others are better suited at as they have a /much/ better
-> > understanding of the complexities of this hardware than I.
-> > 
-> > So, what I have done is implemented - for a driver in staging which is
-> > still subject to ongoing development and non-stable DT bindings -
-> > something which allows forward progress with a *minimum* of disruption
-> > to the existing DT bindings for everyone, while still allowing forward
-> > progress.
-> > 
-> > Better bindings for imx-drm are currently being worked on.  Philipp
-> > Zabel of Pengutronix is currently looking at it, and has posted many
-> > RFC patches on this very subject, including moving the V4L2 OF helpers
-> > to a more suitable location.  OF people have been involved in that
-> > discussion over the preceding weeks, and there's a working implementation
-> > of imx-drm using these helpers from v4l2.
-> > 
-> > I'm finding people who are working in the same area and trying to get
-> > everyone talking to each other so that we /do/ end up with a set of
-> > bindings for the display stuff which are suitable for everyone.  Tomi
-> > from TI has already expressed his input to this ongoing discussion.
-> > 
-> > You're welcome to get involved in those discussions too.
-> > 
-> > I hope this makes it clear, and clears up the confusion.
-> > 
-> > Thanks.
+Changes since v3:
+ - use clock-output-names DT property instead of hard coding names
+   of registered clocks in the driver; first two entries of the
+   clock-names property value are used to specify parent clocks of
+   cam_{a,b}_clkout clocks, rather than hard coding it to sclk_cam{0,1}
+   in the driver;
+ - addressed issues pointed out in review (Mauro).
 
--- 
-Regards,
+Changes since v2:
+ - use 'camera' DT node drirectly as clock provider node, rather than
+  creating additional clock-controller child node.
+ - DT binding documentation moved to a separate patch.
+---
+ drivers/media/platform/exynos4-is/media-dev.c |  118 +++++++++++++++++++++++++
+ drivers/media/platform/exynos4-is/media-dev.h |   19 +++-
+ 2 files changed, 136 insertions(+), 1 deletion(-)
 
-Laurent Pinchart
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index c1bce17..f047a9f 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -11,6 +11,8 @@
+  */
+
+ #include <linux/bug.h>
++#include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/i2c.h>
+@@ -1276,6 +1278,14 @@ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on)
+ 	struct fimc_source_info *si = v4l2_get_subdev_hostdata(sd);
+ 	struct fimc_md *fmd = entity_to_fimc_mdev(&sd->entity);
+
++	/*
++	 * If there is a clock provider registered the sensors will
++	 * handle their clock themselves, no need to control it on
++	 * the host interface side.
++	 */
++	if (fmd->clk_provider.num_clocks > 0)
++		return 0;
++
+ 	return __fimc_md_set_camclk(fmd, si, on);
+ }
+
+@@ -1437,6 +1447,103 @@ static int fimc_md_get_pinctrl(struct fimc_md *fmd)
+ 	return 0;
+ }
+
++#ifdef CONFIG_OF
++static int cam_clk_prepare(struct clk_hw *hw)
++{
++	struct cam_clk *camclk = to_cam_clk(hw);
++	int ret;
++
++	if (camclk->fmd->pmf == NULL)
++		return -ENODEV;
++
++	ret = pm_runtime_get_sync(camclk->fmd->pmf);
++	return ret < 0 ? ret : 0;
++}
++
++static void cam_clk_unprepare(struct clk_hw *hw)
++{
++	struct cam_clk *camclk = to_cam_clk(hw);
++
++	if (camclk->fmd->pmf == NULL)
++		return;
++
++	pm_runtime_put_sync(camclk->fmd->pmf);
++}
++
++static const struct clk_ops cam_clk_ops = {
++	.prepare = cam_clk_prepare,
++	.unprepare = cam_clk_unprepare,
++};
++
++static void fimc_md_unregister_clk_provider(struct fimc_md *fmd)
++{
++	struct cam_clk_provider *cp = &fmd->clk_provider;
++	unsigned int i;
++
++	if (cp->of_node)
++		of_clk_del_provider(cp->of_node);
++
++	for (i = 0; i < cp->num_clocks; i++)
++		clk_unregister(cp->clks[i]);
++}
++
++static int fimc_md_register_clk_provider(struct fimc_md *fmd)
++{
++	struct cam_clk_provider *cp = &fmd->clk_provider;
++	struct device *dev = &fmd->pdev->dev;
++	int i, ret;
++
++	for (i = 0; i < FIMC_MAX_CAMCLKS; i++) {
++		struct cam_clk *camclk = &cp->camclk[i];
++		struct clk_init_data init;
++		const char *p_name;
++
++		ret = of_property_read_string_index(dev->of_node,
++					"clock-output-names", i, &init.name);
++		if (ret < 0)
++			break;
++
++		p_name = __clk_get_name(fmd->camclk[i].clock);
++
++		/* It's safe since clk_register() will duplicate the string. */
++		init.parent_names = &p_name;
++		init.num_parents = 1;
++		init.ops = &cam_clk_ops;
++		init.flags = CLK_SET_RATE_PARENT;
++		camclk->hw.init = &init;
++		camclk->fmd = fmd;
++
++		cp->clks[i] = clk_register(NULL, &camclk->hw);
++		if (IS_ERR(cp->clks[i])) {
++			dev_err(dev, "failed to register clock: %s (%ld)\n",
++					init.name, PTR_ERR(cp->clks[i]));
++			ret = PTR_ERR(cp->clks[i]);
++			goto err;
++		}
++		cp->num_clocks++;
++	}
++
++	if (cp->num_clocks == 0) {
++		dev_warn(dev, "clk provider not registered\n");
++		return 0;
++	}
++
++	cp->clk_data.clks = cp->clks;
++	cp->clk_data.clk_num = cp->num_clocks;
++	cp->of_node = dev->of_node;
++	ret = of_clk_add_provider(dev->of_node, of_clk_src_onecell_get,
++				  &cp->clk_data);
++	if (ret == 0)
++		return 0;
++err:
++	fimc_md_unregister_clk_provider(fmd);
++	return ret;
++}
++#else
++#define fimc_md_register_clk_provider(fmd) (0)
++#define fimc_md_unregister_clk_provider(fmd) (0)
++#endif
++
+ static int fimc_md_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -1464,16 +1571,24 @@ static int fimc_md_probe(struct platform_device *pdev)
+
+ 	fmd->use_isp = fimc_md_is_isp_available(dev->of_node);
+
++	ret = fimc_md_register_clk_provider(fmd);
++	if (ret < 0) {
++		v4l2_err(v4l2_dev, "clock provider registration failed\n");
++		return ret;
++	}
++
+ 	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
+ 		return ret;
+ 	}
++
+ 	ret = media_device_register(&fmd->media_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register media device: %d\n", ret);
+ 		goto err_md;
+ 	}
++
+ 	ret = fimc_md_get_clocks(fmd);
+ 	if (ret)
+ 		goto err_clk;
+@@ -1507,6 +1622,7 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	ret = fimc_md_create_links(fmd);
+ 	if (ret)
+ 		goto err_unlock;
++
+ 	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
+ 	if (ret)
+ 		goto err_unlock;
+@@ -1527,6 +1643,7 @@ err_clk:
+ 	media_device_unregister(&fmd->media_dev);
+ err_md:
+ 	v4l2_device_unregister(&fmd->v4l2_dev);
++	fimc_md_unregister_clk_provider(fmd);
+ 	return ret;
+ }
+
+@@ -1537,6 +1654,7 @@ static int fimc_md_remove(struct platform_device *pdev)
+ 	if (!fmd)
+ 		return 0;
+
++	fimc_md_unregister_clk_provider(fmd);
+ 	v4l2_device_unregister(&fmd->v4l2_dev);
+ 	device_remove_file(&pdev->dev, &dev_attr_subdev_conf_mode);
+ 	fimc_md_unregister_entities(fmd);
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index 62599fd..a88cee5 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -10,6 +10,7 @@
+ #define FIMC_MDEVICE_H_
+
+ #include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
+ #include <linux/of.h>
+@@ -89,6 +90,12 @@ struct fimc_sensor_info {
+ 	struct fimc_dev *host;
+ };
+
++struct cam_clk {
++	struct clk_hw hw;
++	struct fimc_md *fmd;
++};
++#define to_cam_clk(_hw) container_of(_hw, struct cam_clk, hw)
++
+ /**
+  * struct fimc_md - fimc media device information
+  * @csis: MIPI CSIS subdevs data
+@@ -105,6 +112,7 @@ struct fimc_sensor_info {
+  * @pinctrl: camera port pinctrl handle
+  * @state_default: pinctrl default state handle
+  * @state_idle: pinctrl idle state handle
++ * @cam_clk_provider: CAMCLK clock provider structure
+  * @user_subdev_api: true if subdevs are not configured by the host driver
+  * @slock: spinlock protecting @sensor array
+  */
+@@ -122,13 +130,22 @@ struct fimc_md {
+ 	struct media_device media_dev;
+ 	struct v4l2_device v4l2_dev;
+ 	struct platform_device *pdev;
++
+ 	struct fimc_pinctrl {
+ 		struct pinctrl *pinctrl;
+ 		struct pinctrl_state *state_default;
+ 		struct pinctrl_state *state_idle;
+ 	} pinctl;
+-	bool user_subdev_api;
+
++	struct cam_clk_provider {
++		struct clk *clks[FIMC_MAX_CAMCLKS];
++		struct clk_onecell_data clk_data;
++		struct device_node *of_node;
++		struct cam_clk camclk[FIMC_MAX_CAMCLKS];
++		int num_clocks;
++	} clk_provider;
++
++	bool user_subdev_api;
+ 	spinlock_t slock;
+ 	struct list_head pipelines;
+ };
+--
+1.7.9.5
 
