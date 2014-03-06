@@ -1,96 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:24506 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756590AbaCPA0J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Mar 2014 20:26:09 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2I00FYR6JKIR20@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 15 Mar 2014 20:26:08 -0400 (EDT)
-Date: Sat, 15 Mar 2014 21:26:03 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [linuxtv-media:master 471/499] e4000.c:undefined reference to
- `v4l2_ctrl_handler_free'
-Message-id: <20140315212603.369388f1@samsung.com>
-In-reply-to: <53248108.4040601@iki.fi>
-References: <53244504.diJFy1Wfww202OA7%fengguang.wu@intel.com>
- <53248108.4040601@iki.fi>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:53490 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbaCFQcz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:32:55 -0500
+Message-id: <5318A331.2070603@samsung.com>
+Date: Thu, 06 Mar 2014 17:32:49 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 0/8] Move device tree graph parsing helpers to drivers/of
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+ <53170C00.20200@ti.com> <1394030554.8754.31.camel@paszta.hi.pengutronix.de>
+ <20140306141657.GB21483@n2100.arm.linux.org.uk>
+ <20140306121721.6186dafb@samsung.com> <5318988C.2030004@samsung.com>
+ <1394122879.3622.47.camel@paszta.hi.pengutronix.de>
+In-reply-to: <1394122879.3622.47.camel@paszta.hi.pengutronix.de>
+Content-type: text/plain; charset=UTF-8
 Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 15 Mar 2014 18:34:16 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+On 06/03/14 17:21, Philipp Zabel wrote:
+> Am Donnerstag, den 06.03.2014, 16:47 +0100 schrieb Sylwester Nawrocki:
+>> On 06/03/14 16:17, Mauro Carvalho Chehab wrote:
+>>> Em Thu, 06 Mar 2014 14:16:57 +0000
+>>> Russell King - ARM Linux <linux@arm.linux.org.uk> escreveu:
+>>>>> On Wed, Mar 05, 2014 at 03:42:34PM +0100, Philipp Zabel wrote:
+>>>>>>> Am Mittwoch, den 05.03.2014, 13:35 +0200 schrieb Tomi Valkeinen:
+> [...]
+>>>>>>>>> So, as I've pointed out, I don't agree with the API, as it's too limited
+>>>>>>>>> and I can't use it, but as this series is (mostly) about moving the
+>>>>>>>>> current API to a common place, it's fine for me.
+>>>>>>>>>
+>>>>>>>>> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>>>>>>>
+>>>>>>> Thanks. I'll be happy to help expanding the API to parse ports
+>>>>>>> individually, once this gets accepted.
+>>>>>>>
+>>>>>>> Mauro, Guennadi, are you fine with how this turned out? I'd like to get
+>>>>>>> your acks again, for the changed location.
+>>>
+>>> From my side, there's nothing on such code that is V4L2 specific.
+>>> Moving it to drivers/of makes sense on my eyes.
+>>>
+>>> Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+>>
+>> I'm OK with patches 1...5, 8, so for these:
+>>
+>> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>>
+>> Regarding the simplified version of the binding, I thought we should
+>> leave 'port' instead of 'endpoint' node. This could cover more hardware
+>> configurations. Are there any users of this simplified binding queued
+>> for v3.15 ? If not, perhaps we can postpone it and discuss it a bit more
+>> (sorry, couldn't find time to comment on that earlier) ?
+> 
+> Since Tomi needs the separate port/endpoint iteration anyway, 
+> postponing the simple bindings shouldn't hurt. I'll (re)submit them
+> together in a second series.
 
-> Mauro,
-> I am not sure how this should be resolved. E4000 has already depends to 
-> VIDEO_V4L2. Should VIDEO_V4L2 selected in config MEDIA_SUBDRV_AUTOSELECT ?
+Ok, thanks.
 
-The problem is likely with the Kconfig at the dvb driver. You should
-remember that select doesn't recursively select the dependencies.
+>>>>> I'll need those acks before I can even think about queuing up the
+>>>>> imx-drm bits.
+>>>>>
+>>>>> Another way to deal with this is if this gets pulled into the V4L tree
+>>>>> from Philipp's git tree, I can also pull that in myself.  What mustn't
+>>>>> happen is for these to be committed independently as patches.
+>>>
+>>> If everyone agrees, I actually prefer have this patch applied on my tree,
+>>> in order to avoid some potential merge conflicts at the merge window,
+>>> as we might have other drivers and changes there touching on those API
+>>> calls (I'm aware of a series of patches from Sylwester with some DT
+>>> stuff on it. Not sure if it would be affected by such changes or not).
+>>
+>> Yes, it's going to conflict with my patch series. I thought it could be
+>> put onto a stable a topic branch, e.g. at git://linuxtv.org/media_tree.git,
+>> which could be then pulled into the media master branch and anywhere
+>> else it is needed ?
+> 
+> Mauro, are you ok with handling the conflict in the merge, or should I
+> rebase on top of the media tree after you merged Sylwester's changes?
 
-So, you should either make the v4l2 control framework optional at
-e4000 or to make VB_USB_RTL28XXU to either depend or select
-V4L2 core.
+I could rebase and resolve any conflicts before sending my pull request
+to Mauro. I don't think it's a good idea to rebase this series onto the
+media tree, since it is touching drivers/of.
 
-There's also a third option: add stubs for the v4l2_ctrl_* functions
-at the *.h file. This way, if V4L2 is not compiled, the functions
-won't do anything. Perhaps this is the most elegant solution.
-
-Hans,
-any comments?
-
+--
 Regards,
-Mauro
+Sylwester
 
-
-> 
-> regards
-> Antti
-> 
-> 
-> On 15.03.2014 14:18, kbuild test robot wrote:
-> > tree:   git://linuxtv.org/media_tree.git master
-> > head:   ed97a6fe5308e5982d118a25f0697b791af5ec50
-> > commit: adaa616ffb697f00db9b4ccb638c5e9e719dbb7f [471/499] [media] e4000: implement controls via v4l2 control framework
-> > config: i386-randconfig-j4-03151459 (attached as .config)
-> >
-> > All error/warnings:
-> >
-> > warning: (DVB_USB_RTL28XXU) selects MEDIA_TUNER_E4000 which has unmet direct dependencies ((MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT) && MEDIA_SUPPORT && I2C && VIDEO_V4L2)
-> >     drivers/built-in.o: In function `e4000_remove':
-> >>> e4000.c:(.text+0x541015): undefined reference to `v4l2_ctrl_handler_free'
-> >     drivers/built-in.o: In function `e4000_probe':
-> >>> e4000.c:(.text+0x54219e): undefined reference to `v4l2_ctrl_handler_init_class'
-> >>> e4000.c:(.text+0x5421ce): undefined reference to `v4l2_ctrl_new_std'
-> >>> e4000.c:(.text+0x542204): undefined reference to `v4l2_ctrl_new_std'
-> >>> e4000.c:(.text+0x542223): undefined reference to `v4l2_ctrl_auto_cluster'
-> >>> e4000.c:(.text+0x542253): undefined reference to `v4l2_ctrl_new_std'
-> >>> e4000.c:(.text+0x542289): undefined reference to `v4l2_ctrl_new_std'
-> >>> e4000.c:(.text+0x5422a8): undefined reference to `v4l2_ctrl_auto_cluster'
-> >>> e4000.c:(.text+0x5422d8): undefined reference to `v4l2_ctrl_new_std'
-> >>> e4000.c:(.text+0x54230e): undefined reference to `v4l2_ctrl_new_std'
-> >>> e4000.c:(.text+0x54232d): undefined reference to `v4l2_ctrl_auto_cluster'
-> >>> e4000.c:(.text+0x54235d): undefined reference to `v4l2_ctrl_new_std'
-> >>> e4000.c:(.text+0x542393): undefined reference to `v4l2_ctrl_new_std'
-> >>> e4000.c:(.text+0x5423b2): undefined reference to `v4l2_ctrl_auto_cluster'
-> >>> e4000.c:(.text+0x5423d8): undefined reference to `v4l2_ctrl_handler_free'
-> >
-> > ---
-> > 0-DAY kernel build testing backend              Open Source Technology Center
-> > http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
-> >
-> 
-> 
-
-
--- 
-
-Regards,
-Mauro
