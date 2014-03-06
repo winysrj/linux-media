@@ -1,176 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:38312 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880AbaC2QL2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Mar 2014 12:11:28 -0400
-Subject: [PATCH 08/11] lmedm04: NEC scancode cleanup
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: james.hogan@imgtec.com, m.chehab@samsung.com
-Date: Sat, 29 Mar 2014 17:11:26 +0100
-Message-ID: <20140329161126.13234.52938.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
-References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44697 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751577AbaCFK7B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 05:59:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>, devel@driverdev.osuosl.org,
+	Paul Bolle <pebolle@tiscali.nl>, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
+Date: Thu, 06 Mar 2014 12:00:30 +0100
+Message-ID: <6116451.L9roNDfSqL@avalon>
+In-Reply-To: <20140306044529.GA6466@kroah.com>
+References: <1391958577.25424.22.camel@x220> <2136780.FIdBGb725A@avalon> <20140306044529.GA6466@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am assuming (given the ^ 0xff) that the hardware sends inverted bytes.
-And that the reason ibuf[5] does not need ^ 0xff is that it already is
-the inverted command (i.e. ibuf[5] == ~ibuf[4]).
+Hi Greg,
 
-To put it differently:
+On Wednesday 05 March 2014 20:45:29 Greg Kroah-Hartman wrote:
+> On Thu, Mar 06, 2014 at 01:48:29AM +0100, Laurent Pinchart wrote:
+> > On Wednesday 05 March 2014 16:28:03 Joe Perches wrote:
+> > > On Thu, 2014-03-06 at 00:50 +0100, Laurent Pinchart wrote:
+> > > > Please note that -DDEBUG is equivalent to '#define DEBUG', not to
+> > > > '#define CONFIG_DEBUG'. 'DEBUG' needs to be defined for dev_dbg() to
+> > > > have any effect.
+> > > 
+> > > Not quite.  If CONFIG_DYNAMIC_DEBUG is set, these
+> > > dev_dbg statements are compiled in but not by default
+> > > set to emit output.  Output can be enabled by using
+> > > dynamic_debug controls like:
+> > > 
+> > > # echo -n 'file omap4iss/* +p' > <debugfs>/dynamic_debug/control
+> > > 
+> > > See Documentation/dynamic-debug-howto.txt for more details.
+> > 
+> > Thank you for the additional information.
+> > 
+> > Would you recommend to drop driver-specific Kconfig options related to
+> > debugging and use CONFIG_DYNAMIC_DEBUG instead ?
+> 
+> Yes, please do that, no one wants to rebuild drivers and subsystems with
+> different options just for debugging.
 
-        ibuf[2] = ~addr         = not_addr;
-        ibuf[3] = ~not_addr     = addr;
-        ibuf[4] = ~cmd          = not_cmd;
-        ibuf[5] = ~not_cmd      = cmd;
+Is CONFIG_DYNAMIC_DEBUG lean enough to be used on embedded systems ? Note that 
+people would still have to rebuild their kernel to enable CONFIG_DYNAMIC_DEBUG 
+anyway :-)
 
-And the scancode can then be understood as:
+-- 
+Regards,
 
-        addr << 16 | not_addr << 8 | cmd
-
-Except for when addr = 0x00 in which case the scancode is simply NEC16:
-
-        0x00 << 8 | cmd
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/keymaps/rc-lme2510.c  |   80 ++++++++++++++++----------------
- drivers/media/usb/dvb-usb-v2/lmedm04.c |   28 ++++++++---
- 2 files changed, 59 insertions(+), 49 deletions(-)
-
-diff --git a/drivers/media/rc/keymaps/rc-lme2510.c b/drivers/media/rc/keymaps/rc-lme2510.c
-index 51f18bb..76e9265 100644
---- a/drivers/media/rc/keymaps/rc-lme2510.c
-+++ b/drivers/media/rc/keymaps/rc-lme2510.c
-@@ -42,47 +42,47 @@ static struct rc_map_table lme2510_rc[] = {
- 	{ 0x10ed07, KEY_EPG },
- 	{ 0x10ed01, KEY_STOP },
- 	/* Type 2 - 20 buttons */
--	{ 0xbf15, KEY_0 },
--	{ 0xbf08, KEY_1 },
--	{ 0xbf09, KEY_2 },
--	{ 0xbf0a, KEY_3 },
--	{ 0xbf0c, KEY_4 },
--	{ 0xbf0d, KEY_5 },
--	{ 0xbf0e, KEY_6 },
--	{ 0xbf10, KEY_7 },
--	{ 0xbf11, KEY_8 },
--	{ 0xbf12, KEY_9 },
--	{ 0xbf00, KEY_POWER },
--	{ 0xbf04, KEY_MEDIA_REPEAT}, /* Recall */
--	{ 0xbf1a, KEY_PAUSE }, /* Timeshift */
--	{ 0xbf02, KEY_VOLUMEUP }, /* 2 x -/+ Keys not marked */
--	{ 0xbf06, KEY_VOLUMEDOWN }, /* Volume defined as right hand*/
--	{ 0xbf01, KEY_CHANNELUP },
--	{ 0xbf05, KEY_CHANNELDOWN },
--	{ 0xbf14, KEY_ZOOM },
--	{ 0xbf18, KEY_RECORD },
--	{ 0xbf16, KEY_STOP },
-+	{ 0x00bf15, KEY_0 },
-+	{ 0x00bf08, KEY_1 },
-+	{ 0x00bf09, KEY_2 },
-+	{ 0x00bf0a, KEY_3 },
-+	{ 0x00bf0c, KEY_4 },
-+	{ 0x00bf0d, KEY_5 },
-+	{ 0x00bf0e, KEY_6 },
-+	{ 0x00bf10, KEY_7 },
-+	{ 0x00bf11, KEY_8 },
-+	{ 0x00bf12, KEY_9 },
-+	{ 0x00bf00, KEY_POWER },
-+	{ 0x00bf04, KEY_MEDIA_REPEAT}, /* Recall */
-+	{ 0x00bf1a, KEY_PAUSE }, /* Timeshift */
-+	{ 0x00bf02, KEY_VOLUMEUP }, /* 2 x -/+ Keys not marked */
-+	{ 0x00bf06, KEY_VOLUMEDOWN }, /* Volume defined as right hand*/
-+	{ 0x00bf01, KEY_CHANNELUP },
-+	{ 0x00bf05, KEY_CHANNELDOWN },
-+	{ 0x00bf14, KEY_ZOOM },
-+	{ 0x00bf18, KEY_RECORD },
-+	{ 0x00bf16, KEY_STOP },
- 	/* Type 3 - 20 buttons */
--	{ 0x1c, KEY_0 },
--	{ 0x07, KEY_1 },
--	{ 0x15, KEY_2 },
--	{ 0x09, KEY_3 },
--	{ 0x16, KEY_4 },
--	{ 0x19, KEY_5 },
--	{ 0x0d, KEY_6 },
--	{ 0x0c, KEY_7 },
--	{ 0x18, KEY_8 },
--	{ 0x5e, KEY_9 },
--	{ 0x45, KEY_POWER },
--	{ 0x44, KEY_MEDIA_REPEAT}, /* Recall */
--	{ 0x4a, KEY_PAUSE }, /* Timeshift */
--	{ 0x47, KEY_VOLUMEUP }, /* 2 x -/+ Keys not marked */
--	{ 0x43, KEY_VOLUMEDOWN }, /* Volume defined as right hand*/
--	{ 0x46, KEY_CHANNELUP },
--	{ 0x40, KEY_CHANNELDOWN },
--	{ 0x08, KEY_ZOOM },
--	{ 0x42, KEY_RECORD },
--	{ 0x5a, KEY_STOP },
-+	{ 0x00001c, KEY_0 },
-+	{ 0x000007, KEY_1 },
-+	{ 0x000015, KEY_2 },
-+	{ 0x000009, KEY_3 },
-+	{ 0x000016, KEY_4 },
-+	{ 0x000019, KEY_5 },
-+	{ 0x00000d, KEY_6 },
-+	{ 0x00000c, KEY_7 },
-+	{ 0x000018, KEY_8 },
-+	{ 0x00005e, KEY_9 },
-+	{ 0x000045, KEY_POWER },
-+	{ 0x000044, KEY_MEDIA_REPEAT}, /* Recall */
-+	{ 0x00004a, KEY_PAUSE }, /* Timeshift */
-+	{ 0x000047, KEY_VOLUMEUP }, /* 2 x -/+ Keys not marked */
-+	{ 0x000043, KEY_VOLUMEDOWN }, /* Volume defined as right hand*/
-+	{ 0x000046, KEY_CHANNELUP },
-+	{ 0x000040, KEY_CHANNELDOWN },
-+	{ 0x000008, KEY_ZOOM },
-+	{ 0x000042, KEY_RECORD },
-+	{ 0x00005a, KEY_STOP },
- };
- 
- static struct rc_map_list lme2510_map = {
-diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index 31f31fc..6e3ca72 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -286,15 +286,25 @@ static void lme2510_int_response(struct urb *lme_urb)
- 		switch (ibuf[0]) {
- 		case 0xaa:
- 			debug_data_snipet(1, "INT Remote data snipet", ibuf);
--			if ((ibuf[4] + ibuf[5]) == 0xff) {
--				key = RC_SCANCODE_NECX((ibuf[2] ^ 0xff) << 8 |
--						       (ibuf[3] > 0) ? (ibuf[3] ^ 0xff) : 0,
--						       ibuf[5]);
--				deb_info(1, "INT Key =%08x", key);
--				if (adap_to_d(adap)->rc_dev != NULL)
--					rc_keydown(adap_to_d(adap)->rc_dev,
--						   RC_TYPE_NEC, key, 0);
--			}
-+			if (!adap_to_d(adap)->rc_dev)
-+				break;
-+
-+			ibuf[2] ^= 0xff;
-+			ibuf[3] ^= 0xff;
-+			ibuf[4] ^= 0xff;
-+			ibuf[5] ^= 0xff;
-+
-+			if (ibuf[4] ^ ibuf[5] == 0xff)
-+				key = RC_SCANCODE_NECX(ibuf[2] << 8 | ibuf[3],
-+						       ibuf[4]);
-+			else
-+				key = RC_SCANCODE_NEC32(ibuf[2] << 24 |
-+							ibuf[3] << 16 |
-+							ibuf[4] << 8  |
-+							ibuf[5]);
-+
-+			deb_info(1, "INT Key =%08x", key);
-+			rc_keydown(adap_to_d(adap)->rc_dev, RC_TYPE_NEC, key, 0);
- 			break;
- 		case 0xbb:
- 			switch (st->tuner_config) {
+Laurent Pinchart
 
