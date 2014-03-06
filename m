@@ -1,88 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:58090 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752609AbaCMB4H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 21:56:07 -0400
-Date: Thu, 13 Mar 2014 10:56:05 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57375 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752526AbaCFQVf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:21:35 -0500
+Message-ID: <1394122879.3622.47.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v6 0/8] Move device tree graph parsing helpers to
+ drivers/of
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
-	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Subject: Re: [PATCH 1/5] r8a7790.dtsi: add vin[0-3] nodes
-Message-ID: <20140313015605.GB16719@verge.net.au>
-References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk>
- <1394197299-17528-2-git-send-email-ben.dooks@codethink.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1394197299-17528-2-git-send-email-ben.dooks@codethink.co.uk>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Date: Thu, 06 Mar 2014 17:21:19 +0100
+In-Reply-To: <5318988C.2030004@samsung.com>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+	 <53170C00.20200@ti.com> <1394030554.8754.31.camel@paszta.hi.pengutronix.de>
+	 <20140306141657.GB21483@n2100.arm.linux.org.uk>
+	 <20140306121721.6186dafb@samsung.com> <5318988C.2030004@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 07, 2014 at 01:01:35PM +0000, Ben Dooks wrote:
-> Add nodes for the four video input channels on the R8A7790.
+Am Donnerstag, den 06.03.2014, 16:47 +0100 schrieb Sylwester Nawrocki:
+> On 06/03/14 16:17, Mauro Carvalho Chehab wrote:
+> > Em Thu, 06 Mar 2014 14:16:57 +0000
+> > Russell King - ARM Linux <linux@arm.linux.org.uk> escreveu:
+> >> > On Wed, Mar 05, 2014 at 03:42:34PM +0100, Philipp Zabel wrote:
+> >>> > > Am Mittwoch, den 05.03.2014, 13:35 +0200 schrieb Tomi Valkeinen:
+[...]
+> >>>> > > > So, as I've pointed out, I don't agree with the API, as it's too limited
+> >>>> > > > and I can't use it, but as this series is (mostly) about moving the
+> >>>> > > > current API to a common place, it's fine for me.
+> >>>> > > > 
+> >>>> > > > Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >>> > > 
+> >>> > > Thanks. I'll be happy to help expanding the API to parse ports
+> >>> > > individually, once this gets accepted.
+> >>> > > 
+> >>> > > Mauro, Guennadi, are you fine with how this turned out? I'd like to get
+> >>> > > your acks again, for the changed location.
+> >
+> > From my side, there's nothing on such code that is V4L2 specific.
+> > Moving it to drivers/of makes sense on my eyes.
+> > 
+> > Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+> I'm OK with patches 1...5, 8, so for these:
+> 
+> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> 
+> Regarding the simplified version of the binding, I thought we should
+> leave 'port' instead of 'endpoint' node. This could cover more hardware
+> configurations. Are there any users of this simplified binding queued
+> for v3.15 ? If not, perhaps we can postpone it and discuss it a bit more
+> (sorry, couldn't find time to comment on that earlier) ?
 
-Please update the prefix of this subject of this patch to:
-ARM: shmobile: r8a7790: 
+Since Tomi needs the separate port/endpoint iteration anyway, 
+postponing the simple bindings shouldn't hurt. I'll (re)submit them
+together in a second series.
 
+> >> > I'll need those acks before I can even think about queuing up the
+> >> > imx-drm bits.
+> >> > 
+> >> > Another way to deal with this is if this gets pulled into the V4L tree
+> >> > from Philipp's git tree, I can also pull that in myself.  What mustn't
+> >> > happen is for these to be committed independently as patches.
+> >
+> > If everyone agrees, I actually prefer have this patch applied on my tree,
+> > in order to avoid some potential merge conflicts at the merge window,
+> > as we might have other drivers and changes there touching on those API
+> > calls (I'm aware of a series of patches from Sylwester with some DT
+> > stuff on it. Not sure if it would be affected by such changes or not).
 > 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> ---
->  arch/arm/boot/dts/r8a7790.dtsi | 32 ++++++++++++++++++++++++++++++++
->  1 file changed, 32 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/r8a7790.dtsi b/arch/arm/boot/dts/r8a7790.dtsi
-> index a1e7c39..4c3eafb 100644
-> --- a/arch/arm/boot/dts/r8a7790.dtsi
-> +++ b/arch/arm/boot/dts/r8a7790.dtsi
-> @@ -395,6 +395,38 @@
->  		status = "disabled";
->  	};
->  
-> +	vin0: vin@0xe6ef0000 {
-> +		compatible = "renesas,vin-r8a7790";
-> +		clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
-> +		reg = <0 0xe6ef0000 0 0x1000>;
-> +		interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
-> +		status = "disabled";
-> +	};
-> +
-> +	vin1: vin@0xe6ef1000 {
-> +		compatible = "renesas,vin-r8a7790";
-> +		clocks = <&mstp8_clks R8A7790_CLK_VIN1>;
-> +		reg = <0 0xe6ef1000 0 0x1000>;
-> +		interrupts = <0 189 IRQ_TYPE_LEVEL_HIGH>;
-> +		status = "disabled";
-> +	};
-> +
-> +	vin2: vin@0xe6ef2000 {
-> +		compatible = "renesas,vin-r8a7790";
-> +		clocks = <&mstp8_clks R8A7790_CLK_VIN2>;
-> +		reg = <0 0xe6ef2000 0 0x1000>;
-> +		interrupts = <0 190 IRQ_TYPE_LEVEL_HIGH>;
-> +		status = "disabled";
-> +	};
-> +
-> +	vin3: vin@0xe6ef3000 {
-> +		compatible = "renesas,vin-r8a7790";
-> +		clocks = <&mstp8_clks R8A7790_CLK_VIN3>;
-> +		reg = <0 0xe6ef3000 0 0x1000>;
-> +		interrupts = <0 191 IRQ_TYPE_LEVEL_HIGH>;
-> +		status = "disabled";
-> +	};
-> +
->  	clocks {
->  		#address-cells = <2>;
->  		#size-cells = <2>;
-> -- 
-> 1.9.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Yes, it's going to conflict with my patch series. I thought it could be
+> put onto a stable a topic branch, e.g. at git://linuxtv.org/media_tree.git,
+> which could be then pulled into the media master branch and anywhere
+> else it is needed ?
+
+Mauro, are you ok with handling the conflict in the merge, or should I
+rebase on top of the media tree after you merged Sylwester's changes?
+
+regards
+Philipp
+
