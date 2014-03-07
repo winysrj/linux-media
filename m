@@ -1,90 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w2.samsung.com ([211.189.100.14]:12503 "EHLO
-	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240AbaCWO6Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Mar 2014 10:58:24 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2W00LHB9LBIG60@usmailout4.samsung.com> for
- linux-media@vger.kernel.org; Sun, 23 Mar 2014 10:58:23 -0400 (EDT)
-Date: Sun, 23 Mar 2014 11:58:18 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Olliver Schinagl <oliver+list@schinagl.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: DTV-Scan-tables tarballs not generated properly
-Message-id: <20140323115818.572d5bdb@samsung.com>
-In-reply-to: <532EB3F5.9090607@schinagl.nl>
-References: <532EB3F5.9090607@schinagl.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:60722 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752331AbaCGNsG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 08:48:06 -0500
+Message-ID: <5319CDF1.4030405@ti.com>
+Date: Fri, 7 Mar 2014 19:17:29 +0530
+From: Archit Taneja <archit@ti.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <k.debski@samsung.com>, <linux-media@vger.kernel.org>,
+	<linux-omap@vger.kernel.org>
+Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com> <5319C2A7.6090805@xs4all.nl> <5319C813.5030508@ti.com> <5319CA53.9020101@xs4all.nl>
+In-Reply-To: <5319CA53.9020101@xs4all.nl>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 23 Mar 2014 11:14:13 +0100
-Olliver Schinagl <oliver+list@schinagl.nl> escreveu:
+On Friday 07 March 2014 07:02 PM, Hans Verkuil wrote:
+> On 03/07/2014 02:22 PM, Archit Taneja wrote:
+>> Hi,
+>>
+>> On Friday 07 March 2014 06:29 PM, Hans Verkuil wrote:
+>>>>
+>>>> Do you think I can go ahead with posting the v3 patch set for 3.15, and
+>>>> work on fixing the compliance issue for the -rc fixes?
+>>>
+>>> It's fine to upstream this in staging, but while not all compliance errors
+>>> are fixed it can't go to drivers/media. I'm tightening the screws on that
+>>> since v4l2-compliance is getting to be such a powerful tool for ensuring
+>>> the driver complies.
+>>>
+>>
+>> But the vpe driver is already in drivers/media. How do I push these
+>> patches if the vpe drivers is not in staging?
+>
+> Oops, sorry. I got confused with Benoit's AM437x ti-vpfe patch :-)
+>
+> Disregard what I said, it's OK to upstream it. But if you could just spend
+> some hours fixing the problems, that would really be best.
 
-> Hey Mauro,
-> 
-> Hope everything is well.
-> 
-> People have noticed that the tarballs for the dtv-scan-tables aren't 
-> being generated properly. The 'LATEST' appears to be correct, but there 
-> is only one dated one, no new ones. If you have a few minutes, can you 
-> see what's going on?
+Sure, I'll try to fix these issues and then post a v3.
 
-Fixed. Basically, the logic that were getting the date were after
-the command that was moving to the repository. So, it was returning an
-empty date. So, the file was always named as:
-	dtv-scan-tables-.tar.gz
+>
+>>
+>> <snip>
+>>
+>>>> Multiplanar: TRY_FMT(G_FMT) != G_FMT
+>>>>            test VIDIOC_TRY_FMT: FAIL
+>>>>                    warn: v4l2-test-formats.cpp(834): S_FMT cannot handle
+>>>> an invalid pixelformat.
+>>>>                    warn: v4l2-test-formats.cpp(835): This may or may not
+>>>> be a problem. For more information see:
+>>>>                    warn: v4l2-test-formats.cpp(836):
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>>>>                    fail: v4l2-test-formats.cpp(420): pix_mp.reserved not
+>>>> zeroed
+>>>
+>>> This is easy enough to fix.
+>>>
+>>>>                    fail: v4l2-test-formats.cpp(851): Video Capture
+>>>> Multiplanar is valid, but no S_FMT was implemented
+>>>
+>>> For the FMT things: run with -T: that gives nice traces. You can also
+>>> set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
+>>> ioctls in more detail.
+>>
+>> Thanks for the tip, will try this.
+>>
+>>>
+>>>>            test VIDIOC_S_FMT: FAIL
+>>>>            test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>>>
+>>>> Codec ioctls:
+>>>>            test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>>>            test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>>>            test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>>>
+>>>> Buffer ioctls:
+>>>>                    info: test buftype Video Capture Multiplanar
+>>>>                    warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>>>> not supported
+>>>>                    info: test buftype Video Output Multiplanar
+>>>>                    warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>>>> not supported
+>>>>            test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>>>            test VIDIOC_EXPBUF: OK (Not Supported)
+>>>>            test read/write: OK (Not Supported)
+>>>>                Video Capture Multiplanar (polling):
+>>>>                    Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
+>>>>                    fail: v4l2-test-buffers.cpp(222): buf.field !=
+>>>> cur_fmt.fmt.pix.field
+>>>
+>>> Definitely needs to be fixed, you probably just don't set the field at all.
+>>
+>> The VPE output is always progressive. But yes, I should still set the
+>> field parameter to something.
+>
+> V4L2_FIELD_NONE is the correct field setting for that.
 
-As dtv-scan-tables-LATEST.tar.gz is actually a link to the produced
-file, it was working.
+I checked the driver, it isn't setting it to V4L2_FIELD_NONE. Will fix this.
 
-Now, it was properly generated, based on git last commit:
-	dtv-scan-tables-2014-03-09-177b522.tar.bz2
+Archit
 
-The name there matches the latest changeset:
-	http://git.linuxtv.org/dtv-scan-tables.git/commit/177b522e4c815d034cfda5d1a084ad074bc373b6
-
-As usual, the produced files are at:
-	http://linuxtv.org/downloads/dtv-scan-tables/
-
-Please check it again the day after you add some new commit(s) there,
-for us to be sure that everything is working ok. Ah, you should never
-rebase the tree, as otherwise the script may fail.
-
-> Secondly, I guess we are way past the year marker, how do you feel the 
-> dtv-scan-tables are handled? I hope it is all satisfactory still?
-
-Yes. I would add a few things on a TODO list:
-
-1) Work with major distros for them to have a package for dtv-scan-tables;
-
-2) Convert the files to the libdvbv5 format. On libdvbv5 format, all
-properties of a DVB channel/transponder are properly represented, as
-it uses the same definitions as found at DVBv5 API.
-
-I dunno if you are aware, but the current format is not compatible
-with some standards (like ISDB-T). Ok, there are tables there for
-ISDB-T, but that relies on the frontend to be able to auto-discover
-the properties, because the only thing that it is right there is
-the channel frequency.
-
-Even for DVB-T2/S2, there's a new property that is needed to tune
-a channel with is not represented with the current format
-(DTV_STREAM_ID). Thankfully, afaikt, there aren't many broadcasters
-using it.
-
-Of course, in order to preserve backward compat, we should still have
-the same format at /usr/share/dvb.
-
-So, my suggestion is to convert the files there to libdvbv5, and
-store them at /usr/share/dvbv5. Then, add a Makefile that will
-use dvb-format-convert to generate the current contents, and store
-them at /usr/share/dvb.
-
-Regards,
-Mauro
