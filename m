@@ -1,63 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:20191 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755769AbaCFCMz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 21:12:55 -0500
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0N1Z00FABSTI9LA0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Mar 2014 11:12:54 +0900 (KST)
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-Message-id: <5317D9B4.1080405@samsung.com>
-Date: Thu, 06 Mar 2014 11:13:08 +0900
-From: Seung-Woo Kim <sw0312.kim@samsung.com>
-Reply-to: sw0312.kim@samsung.com
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
+Received: from mail-la0-f49.google.com ([209.85.215.49]:34759 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753477AbaCGQWh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 11:22:37 -0500
+Received: by mail-la0-f49.google.com with SMTP id mc6so2874078lab.8
+        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 08:22:36 -0800 (PST)
+Message-ID: <531A0065.3060001@cogentembedded.com>
+Date: Fri, 07 Mar 2014 20:22:45 +0300
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+CC: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: Re: [PATCH] [media] s5-mfc: remove meaningless memory bank assignment
-References: <187b01cf385bb9b4510$%debski@samsung.com>
- <1394017710-671-1-git-send-email-sw0312.kim@samsung.com>
- <CAK9yfHx_yx9qvitSGfNZWJfRK1ZtrOu3VdhJh-aEZ4LNv_8Z-A@mail.gmail.com>
-In-reply-to: <CAK9yfHx_yx9qvitSGfNZWJfRK1ZtrOu3VdhJh-aEZ4LNv_8Z-A@mail.gmail.com>
+	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
+	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Subject: Re: [PATCH 2/5] ARM: lager: add vin1 node
+References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk> <1394197299-17528-3-git-send-email-ben.dooks@codethink.co.uk> <5319F8D1.5050608@cogentembedded.com> <5319EE73.7010305@codethink.co.uk>
+In-Reply-To: <5319EE73.7010305@codethink.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sachin,
+On 03/07/2014 07:06 PM, Ben Dooks wrote:
 
-On 2014년 03월 05일 20:42, Sachin Kamat wrote:
-> On 5 March 2014 16:38, Seung-Woo Kim <sw0312.kim@samsung.com> wrote:
+>>> Add device-tree for vin1 (composite video in) on the
+>>> lager board.
 
-(...)
+>>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 
->> -       dev->bank1 = dev->bank1;
-> 
-> Are you sure this isn't some kind of typo? If not then your commit
-> description is too verbose
-> to actually say that the code is redundant and could be removed. The
-> code here is something like
-> 
->  a = a;
-> 
-> which does not make sense nor add any value and hence redundant and
-> could be removed.
+>>     This patch should have been preceded by the VIN driver patch and
+>> bindings description, don't you think?
 
-Right, this meaningless code can be simply removed as like the first
-version. Anyway this redundant made from change of address type in
-earlier patch. So I tried to describe that.
+>>> diff --git a/arch/arm/boot/dts/r8a7790-lager.dts
+>>> b/arch/arm/boot/dts/r8a7790-lager.dts
+>>> index a087421..7528cfc 100644
+>>> --- a/arch/arm/boot/dts/r8a7790-lager.dts
+>>> +++ b/arch/arm/boot/dts/r8a7790-lager.dts
+>> [...]
+>>> @@ -239,8 +244,41 @@
+>>>       status = "ok";
+>>>       pinctrl-0 = <&i2c2_pins>;
+>>>       pinctrl-names = "default";
+>>> +
+>>> +    adv7180: adv7180@0x20 {
 
-Regards,
-- Seung-Woo Kim
+>>     ePAPR standard [1] tells us that:
 
--- 
-Seung-Woo Kim
-Samsung Software R&D Center
---
+>> "The name of a node should be somewhat generic, reflecting the function
+>> of the device and not its precise programming model."
+
+>>     So, I would suggest something like "video-decoder" instead. And
+>> remove "0x" from the address part of the node name please.
+
+> Personally I'm not fussed about names in the tree.
+
+    I quoted the standard everybody should follow.
+
+> I will look at changing it to something like vin1_decoder
+
+    Please give it a generic name instead, without indexes and underscores.
+
+WBR, Sergei
 
