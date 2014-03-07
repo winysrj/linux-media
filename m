@@ -1,44 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36582 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305AbaC1RVz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 13:21:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH] adv7604: Mark adv7604_of_id table with __maybe_unused
-Date: Fri, 28 Mar 2014 18:23:50 +0100
-Message-Id: <1396027430-27328-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:51894 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103AbaCHFaS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:18 -0500
+Received: by mail-wg0-f49.google.com with SMTP id a1so1835358wgh.32
+        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:17 -0800 (PST)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v6 2/8] Documentation: of: Document graph bindings
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+In-Reply-To: <1394011242-16783-3-git-send-email-p.zabel@pengutronix.de>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> < 1394011242-16783-3-git-send-email-p.zabel@pengutronix.de>
+Date: Fri, 07 Mar 2014 18:27:17 +0000
+Message-Id: <20140307182717.67596C40B43@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The table is always declared but is unused when both CONFIG_OF and
-CONFIG_MODULES are not set. This results in a compile warning. Fix it by
-marking the table as __maybe_unused. The compiler will discard it if
-unused.
+On Wed,  5 Mar 2014 10:20:36 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> The device tree graph bindings as used by V4L2 and documented in
+> Documentation/device-tree/bindings/media/video-interfaces.txt contain
+> generic parts that are not media specific but could be useful for any
+> subsystem with data flow between multiple devices. This document
+> describes the generic bindings.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/adv7604.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+See my comments on the previous version. My concerns are the handling of
+the optional 'ports' node and the usage of reverse links.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index c864db9..5de6dad 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2672,7 +2672,7 @@ static struct i2c_device_id adv7604_i2c_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
- 
--static struct of_device_id adv7604_of_id[] = {
-+static struct of_device_id adv7604_of_id[] __maybe_unused = {
- 	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
- 	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
- 	{ }
--- 
-Regards,
-
-Laurent Pinchart
-
+g.
