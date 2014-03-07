@@ -1,351 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752955AbaCJXOg (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:52523 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751033AbaCGPyJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 04/48] v4l: Add 12-bit YUV 4:2:0 media bus pixel codes
-Date: Tue, 11 Mar 2014 00:15:15 +0100
-Message-Id: <1394493359-14115-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 7 Mar 2014 10:54:09 -0500
+Message-ID: <5319EB9E.7020900@codethink.co.uk>
+Date: Fri, 07 Mar 2014 15:54:06 +0000
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+MIME-Version: 1.0
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+CC: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
+	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Subject: Re: [PATCH 1/5] r8a7790.dtsi: add vin[0-3] nodes
+References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk> <1394197299-17528-2-git-send-email-ben.dooks@codethink.co.uk> <5319F7AA.7040305@cogentembedded.com>
+In-Reply-To: <5319F7AA.7040305@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 288 +++++++++++++++++++++
- include/uapi/linux/v4l2-mediabus.h                 |   6 +-
- 2 files changed, 293 insertions(+), 1 deletion(-)
+On 07/03/14 16:45, Sergei Shtylyov wrote:
+> Hello.
+>
+> On 03/07/2014 04:01 PM, Ben Dooks wrote:
+>
+>> Add nodes for the four video input channels on the R8A7790.
+>
+>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+>
+>     This patch should have been preceded by the VIN driver patch and
+> bindings description, don't you think?
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index e3cbbb4..a0fa7e0 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -2718,6 +2718,294 @@
- 	      <entry>v<subscript>1</subscript></entry>
- 	      <entry>v<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-UYVY12-2X12">
-+	      <entry>V4L2_MBUS_FMT_UYVY12_2X12</entry>
-+	      <entry>0x201c</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-VYUY12-2X12">
-+	      <entry>V4L2_MBUS_FMT_VYUY12_2X12</entry>
-+	      <entry>0x201d</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-YUYV12-2X12">
-+	      <entry>V4L2_MBUS_FMT_YUYV12_2X12</entry>
-+	      <entry>0x201e</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-YVYU12-2X12">
-+	      <entry>V4L2_MBUS_FMT_YVYU12_2X12</entry>
-+	      <entry>0x201f</entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>v<subscript>11</subscript></entry>
-+	      <entry>v<subscript>10</subscript></entry>
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>y<subscript>11</subscript></entry>
-+	      <entry>y<subscript>10</subscript></entry>
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-20;
-+	      <entry>u<subscript>11</subscript></entry>
-+	      <entry>u<subscript>10</subscript></entry>
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
- 	  </tbody>
- 	</tgroup>
-       </table>
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index 43707b2..70a732b 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
- 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
- 
--	/* YUV (including grey) - next is 0x201c */
-+	/* YUV (including grey) - next is 0x2020 */
- 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
- 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
- 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-@@ -80,6 +80,10 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
- 	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
- 	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
-+	V4L2_MBUS_FMT_UYVY12_2X12 = 0x201c,
-+	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
-+	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
-+	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
- 
- 	/* Bayer - next is 0x3019 */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+Given this is a pretty standard device and video input binding
+as already described in the relevant documentation, didn't really
+think it was necessary.
+
+>> diff --git a/arch/arm/boot/dts/r8a7790.dtsi
+>> b/arch/arm/boot/dts/r8a7790.dtsi
+>> index a1e7c39..4c3eafb 100644
+>> --- a/arch/arm/boot/dts/r8a7790.dtsi
+>> +++ b/arch/arm/boot/dts/r8a7790.dtsi
+>> @@ -395,6 +395,38 @@
+>>           status = "disabled";
+>>       };
+>>
+>> +    vin0: vin@0xe6ef0000 {
+>
+>     ePAPR standard [1] tells us that:
+>
+> The name of a node should be somewhat generic, reflecting the function
+> of the device and not its precise programming model.
+>
+>     So, I would suggest something like "video". And remove "0x" from the
+> address part of the node name please.
+
+vin is a reasonable contraction of video-input.
+
+
 -- 
-1.8.3.2
-
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
