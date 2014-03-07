@@ -1,73 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4348 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932752AbaCQMC3 (ORCPT
+Received: from smtp-out-096.synserver.de ([212.40.185.96]:1052 "EHLO
+	smtp-out-014.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752951AbaCGQOJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:02:29 -0400
-Message-ID: <5326E441.6080705@xs4all.nl>
-Date: Mon, 17 Mar 2014 13:02:09 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] bttv: Add support for PCI-8604PW
-References: <1394966028-1277-1-git-send-email-daniel-gl@gmx.net> <5326C3FD.4030302@xs4all.nl> <20140317115904.GA10962@minime.bse>
-In-Reply-To: <20140317115904.GA10962@minime.bse>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	Fri, 7 Mar 2014 11:14:09 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 1/7] [media] adv7180: Fix remove order
+Date: Fri,  7 Mar 2014 17:14:27 +0100
+Message-Id: <1394208873-23260-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/17/2014 12:59 PM, Daniel Glöckner wrote:
-> Hi Hans,
-> 
-> On Mon, Mar 17, 2014 at 10:44:29AM +0100, Hans Verkuil wrote:
->>> +		switch (state) {
->>> +		case 1:
->>> +		case 5:
->>> +		case 6:
->>> +		case 4:
->>> +			pr_debug("PCI-8604PW in state %i, toggling pin\n",
->>> +				 state);
->>> +			btwrite(0x080000, BT848_GPIO_DATA);
->>> +			msleep(1);
->>> +			btwrite(0x000000, BT848_GPIO_DATA);
->>> +			msleep(1);
->>> +			break;
->>> +		case 7:
->>> +			pr_info("PCI-8604PW unlocked\n");
->>> +			return;
->>> +		case 0: /* FIXME */
->>
->> Fix what? My guess is that if this state happens, then you have no idea how to
->> get out of it. Did you actually see this happen, or is this a theoretical case?
-> 
-> yes, if we are in state 7 and toggle GPIO[19] one more time, the CPLD
-> goes into state 0, where PCI bus mastering is inhibited again.
-> We have not managed to get out of that state.
-> 
->>> +			pr_err("PCI-8604PW locked until reset\n");
->>> +			return;
-> 
->>> +		state = (state << 4) | ((btread(BT848_GPIO_DATA) >> 21) & 7);
->>> +
->>> +		switch (state) {
->>> +		case 0x15:
->>> +		case 0x56:
->>> +		case 0x64:
->>> +		case 0x47:
->>> +/*		case 0x70: */
->>
->> Why is this commented out?
-> 
-> The transition from state 7 to state 0 is, as explained above, valid
-> but undesired and with this code impossible as we exit as soon as we
-> are in state 7.
+The mutex is used in the subdev callbacks, so unregister the subdev before the
+mutex is destroyed.
 
-Can you post a new version with comments that explain this?
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/media/i2c/adv7180.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-This is non-obvious information that should be documented in the code.
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index d7d99f1..1a3622a 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -616,8 +616,8 @@ static int adv7180_probe(struct i2c_client *client,
+ err_free_ctrl:
+ 	adv7180_exit_controls(state);
+ err_unreg_subdev:
+-	mutex_destroy(&state->mutex);
+ 	v4l2_device_unregister_subdev(sd);
++	mutex_destroy(&state->mutex);
+ err:
+ 	printk(KERN_ERR KBUILD_MODNAME ": Failed to probe: %d\n", ret);
+ 	return ret;
+@@ -640,8 +640,8 @@ static int adv7180_remove(struct i2c_client *client)
+ 		}
+ 	}
+ 
+-	mutex_destroy(&state->mutex);
+ 	v4l2_device_unregister_subdev(sd);
++	mutex_destroy(&state->mutex);
+ 	return 0;
+ }
+ 
+-- 
+1.8.0
 
-Thanks!
-
-	Hans
