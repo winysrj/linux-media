@@ -1,113 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:48566 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215AbaCEUcC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 15:32:02 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N1Z00AROD1B6T60@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Mar 2014 15:31:59 -0500 (EST)
-Date: Wed, 05 Mar 2014 17:31:53 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kbuild test robot <fengguang.wu@intel.com>,
-	Federico Simoncelli <fsimonce@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: Re: [linuxtv-media:master 499/499]
- drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table'
- was not declared. Should it be static?
-Message-id: <20140305173153.51fc9274@samsung.com>
-In-reply-to: <20140305142746.4ef16bff@samsung.com>
-References: <52f0ac8a.aIXONk2PY1rBXEn8%fengguang.wu@intel.com>
- <20140305142746.4ef16bff@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2562 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752771AbaCGNcT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 08:32:19 -0500
+Message-ID: <5319CA53.9020101@xs4all.nl>
+Date: Fri, 07 Mar 2014 14:32:03 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Archit Taneja <archit@ti.com>
+CC: k.debski@samsung.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com> <5319C2A7.6090805@xs4all.nl> <5319C813.5030508@ti.com>
+In-Reply-To: <5319C813.5030508@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 5 Mar 2014 14:27:46 -0300
-Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
-
-> Hi Fengguang,
+On 03/07/2014 02:22 PM, Archit Taneja wrote:
+> Hi,
 > 
-> This patch got obsoleted by another patch in the same series.
+> On Friday 07 March 2014 06:29 PM, Hans Verkuil wrote:
+>>>
+>>> Do you think I can go ahead with posting the v3 patch set for 3.15, and
+>>> work on fixing the compliance issue for the -rc fixes?
+>>
+>> It's fine to upstream this in staging, but while not all compliance errors
+>> are fixed it can't go to drivers/media. I'm tightening the screws on that
+>> since v4l2-compliance is getting to be such a powerful tool for ensuring
+>> the driver complies.
+>>
 > 
-> Unfortunately, I had to break sending the patch series into a few
-> pushes, as my mailbomb script has a logic there that prevents it to
-> send more than 30~50 emails (I never remember the exact setting).
+> But the vpe driver is already in drivers/media. How do I push these 
+> patches if the vpe drivers is not in staging?
+
+Oops, sorry. I got confused with Benoit's AM437x ti-vpfe patch :-)
+
+Disregard what I said, it's OK to upstream it. But if you could just spend
+some hours fixing the problems, that would really be best.
+
 > 
-> So, I pushed this 80-series into a few pushes. You likely compiled the
-> tree without waiting for the hole series to be upstreamed.
+> <snip>
+> 
+>>> Multiplanar: TRY_FMT(G_FMT) != G_FMT
+>>>           test VIDIOC_TRY_FMT: FAIL
+>>>                   warn: v4l2-test-formats.cpp(834): S_FMT cannot handle
+>>> an invalid pixelformat.
+>>>                   warn: v4l2-test-formats.cpp(835): This may or may not
+>>> be a problem. For more information see:
+>>>                   warn: v4l2-test-formats.cpp(836):
+>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>>>                   fail: v4l2-test-formats.cpp(420): pix_mp.reserved not
+>>> zeroed
+>>
+>> This is easy enough to fix.
+>>
+>>>                   fail: v4l2-test-formats.cpp(851): Video Capture
+>>> Multiplanar is valid, but no S_FMT was implemented
+>>
+>> For the FMT things: run with -T: that gives nice traces. You can also
+>> set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
+>> ioctls in more detail.
+> 
+> Thanks for the tip, will try this.
+> 
+>>
+>>>           test VIDIOC_S_FMT: FAIL
+>>>           test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>>
+>>> Codec ioctls:
+>>>           test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>>           test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>>           test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>>
+>>> Buffer ioctls:
+>>>                   info: test buftype Video Capture Multiplanar
+>>>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>>> not supported
+>>>                   info: test buftype Video Output Multiplanar
+>>>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>>> not supported
+>>>           test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>>           test VIDIOC_EXPBUF: OK (Not Supported)
+>>>           test read/write: OK (Not Supported)
+>>>               Video Capture Multiplanar (polling):
+>>>                   Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
+>>>                   fail: v4l2-test-buffers.cpp(222): buf.field !=
+>>> cur_fmt.fmt.pix.field
+>>
+>> Definitely needs to be fixed, you probably just don't set the field at all.
+> 
+> The VPE output is always progressive. But yes, I should still set the 
+> field parameter to something.
 
-Sorry, I sent the reply to the wrong patch. The above comments are for
-this patch:
-	Subject: [PATCH linuxtv-media] drx-j: drxj_default_aud_data_g can be static
-
-That was on the email with this title:
-	[linuxtv-media:master 428/499] drivers/media/dvb-frontends/drx39xyj/drxj.c:1039:16: sparse: symbol 'drxj_default_aud_data_g' was not declared. Should
+V4L2_FIELD_NONE is the correct field setting for that.
 
 Regards,
-Mauro
+
+	Hans
 
 > 
-> Regards,
-> Mauro
+> Thanks,
+> Archit
 > 
-> Em Tue, 04 Feb 2014 17:02:02 +0800
-> kbuild test robot <fengguang.wu@intel.com> escreveu:
-> 
-> > tree:   git://linuxtv.org/media_tree.git master
-> > head:   a3550ea665acd1922df8275379028c1634675629
-> > commit: a3550ea665acd1922df8275379028c1634675629 [499/499] [media] usbtv: split core and video implementation
-> > reproduce: make C=1 CF=-D__CHECK_ENDIAN__
-> > 
-> > 
-> > sparse warnings: (new ones prefixed by >>)
-> > 
-> > >> drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table' was not declared. Should it be static?
-> > >> drivers/media/usb/usbtv/usbtv-core.c:129:19: sparse: symbol 'usbtv_usb_driver' was not declared. Should it be static?
-> > --
-> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> > >> drivers/media/usb/usbtv/usbtv-video.c:565:23: sparse: symbol 'usbtv_ioctl_ops' was not declared. Should it be static?
-> > >> drivers/media/usb/usbtv/usbtv-video.c:587:29: sparse: symbol 'usbtv_fops' was not declared. Should it be static?
-> > >> drivers/media/usb/usbtv/usbtv-video.c:648:16: sparse: symbol 'usbtv_vb2_ops' was not declared. Should it be static?
-> > 
-> > Please consider folding the attached diff :-)
-> > 
-> > ---
-> > 0-DAY kernel build testing backend              Open Source Technology Center
-> > http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 
-
--- 
-
-Cheers,
-Mauro
