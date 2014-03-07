@@ -1,69 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45500 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52957 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878AbaCBSFL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 13:05:11 -0500
+	with ESMTP id S1751464AbaCGOCm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:02:42 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@iki.fi
-Subject: Re: [PATCH v2] omap3isp: Fix kerneldoc for _module_sync_is_stopping and isp_isr()
-Date: Sun, 02 Mar 2014 19:06:26 +0100
-Message-ID: <1709992.clf7muDlF1@avalon>
-In-Reply-To: <1393608967-9171-1-git-send-email-pmeerw@pmeerw.net>
-References: <1603681.R3i3XynjN4@avalon> <1393608967-9171-1-git-send-email-pmeerw@pmeerw.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, marbugge@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
+Subject: Re: [REVIEWv1 PATCH 1/5] v4l2-compat-ioctl32: fix wrong VIDIOC_SUBDEV_G/S_EDID32 support.
+Date: Fri, 07 Mar 2014 15:04:13 +0100
+Message-ID: <60619351.pvxbuytH99@avalon>
+In-Reply-To: <1394187679-7345-2-git-send-email-hverkuil@xs4all.nl>
+References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl> <1394187679-7345-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Hi Hans,
 
 Thank you for the patch.
 
-On Friday 28 February 2014 18:36:07 Peter Meerwald wrote:
-> use the correct name in the comment describing function
-> omap3isp_module_sync_is_stopping()
+On Friday 07 March 2014 11:21:15 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> isp_isr() never returned IRQ_NONE, remove the comment saying so
+> The wrong ioctl numbers were used due to a copy-and-paste error.
 > 
-> Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: stable@vger.kernel.org      # for v3.7 and up
 
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-and applied to my tree.
-
 > ---
->  drivers/media/platform/omap3isp/isp.c | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 5807185..d60a4b7 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -588,9 +588,6 @@ static void isp_isr_sbl(struct isp_device *isp)
->   * @_isp: Pointer to the OMAP3 ISP device
->   *
->   * Handles the corresponding callback if plugged in.
-> - *
-> - * Returns IRQ_HANDLED when IRQ was correctly handled, or IRQ_NONE when the
-> - * IRQ wasn't handled.
->   */
->  static irqreturn_t isp_isr(int irq, void *_isp)
->  {
-> @@ -1420,7 +1417,7 @@ int omap3isp_module_sync_idle(struct media_entity *me,
-> wait_queue_head_t *wait, }
-> 
->  /*
-> - * omap3isp_module_sync_is_stopped - Helper to verify if module was
-> stopping + * omap3isp_module_sync_is_stopping - Helper to verify if module
-> was stopping * @wait: ISP submodule's wait queue for streamoff/interrupt
-> synchronization * @stopping: flag which tells module wants to stop
->   *
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 1b18616..7e23e19
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -787,8 +787,8 @@ static int put_v4l2_subdev_edid32(struct
+> v4l2_subdev_edid *kp, struct v4l2_subde #define VIDIOC_DQBUF32		
+_IOWR('V',
+> 17, struct v4l2_buffer32)
+>  #define VIDIOC_ENUMSTD32	_IOWR('V', 25, struct v4l2_standard32)
+>  #define VIDIOC_ENUMINPUT32	_IOWR('V', 26, struct v4l2_input32)
+> -#define VIDIOC_SUBDEV_G_EDID32	_IOWR('V', 63, struct v4l2_subdev_edid32)
+> -#define VIDIOC_SUBDEV_S_EDID32	_IOWR('V', 64, struct v4l2_subdev_edid32)
+> +#define VIDIOC_SUBDEV_G_EDID32	_IOWR('V', 40, struct v4l2_subdev_edid32)
+> +#define VIDIOC_SUBDEV_S_EDID32	_IOWR('V', 41, struct v4l2_subdev_edid32)
+>  #define VIDIOC_TRY_FMT32      	_IOWR('V', 64, struct v4l2_format32)
+>  #define VIDIOC_G_EXT_CTRLS32    _IOWR('V', 71, struct v4l2_ext_controls32)
+>  #define VIDIOC_S_EXT_CTRLS32    _IOWR('V', 72, struct v4l2_ext_controls32)
 
 -- 
 Regards,
 
 Laurent Pinchart
-
