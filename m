@@ -1,97 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:59370 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369AbaCMPho (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:53029 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753809AbaCGQGO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 11:37:44 -0400
-Message-id: <5321D0BF.6080605@samsung.com>
-Date: Thu, 13 Mar 2014 16:37:35 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Grant Likely <grant.likely@linaro.org>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Fri, 7 Mar 2014 11:06:14 -0500
+Message-ID: <5319EE73.7010305@codethink.co.uk>
+Date: Fri, 07 Mar 2014 16:06:11 +0000
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+MIME-Version: 1.0
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+CC: linux-media@vger.kernel.org,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Rob Herring <robh+dt@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [GIT PULL] Move device tree graph parsing helpers to drivers/of
-References: <1394126000.3622.66.camel@paszta.hi.pengutronix.de>
- <20140307182330.75168C40AE3@trevor.secretlab.ca>
- <20140310102630.3cb1bcd7@samsung.com>
- <20140310143758.3734FC405FA@trevor.secretlab.ca>
- <1394708896.3577.21.camel@paszta.hi.pengutronix.de>
- <20140313113527.GM21483@n2100.arm.linux.org.uk> <5321CB04.6090700@samsung.com>
-In-reply-to: <5321CB04.6090700@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
+	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Subject: Re: [PATCH 2/5] ARM: lager: add vin1 node
+References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk> <1394197299-17528-3-git-send-email-ben.dooks@codethink.co.uk> <5319F8D1.5050608@cogentembedded.com>
+In-Reply-To: <5319F8D1.5050608@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13/03/14 16:13, Sylwester Nawrocki wrote:
-> On 13/03/14 12:35, Russell King - ARM Linux wrote:
+On 07/03/14 16:50, Sergei Shtylyov wrote:
+> Hello.
+>
+> On 03/07/2014 04:01 PM, Ben Dooks wrote:
+>
+>> Add device-tree for vin1 (composite video in) on the
+>> lager board.
+>
+>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+>
+>     This patch should have been preceded by the VIN driver patch and
+> bindings description, don't you think?
+>
+>> diff --git a/arch/arm/boot/dts/r8a7790-lager.dts
+>> b/arch/arm/boot/dts/r8a7790-lager.dts
+>> index a087421..7528cfc 100644
+>> --- a/arch/arm/boot/dts/r8a7790-lager.dts
+>> +++ b/arch/arm/boot/dts/r8a7790-lager.dts
 > [...]
->> > Grant and myself have exchanged emails in private on this discussing what
->> > should happen - essentially Grant's position is that he's happy to leave
->> > this stuff queued provided a resolution to his concerns are forthcoming.
->> > 
->> > However, what I find incredibly unfair is that we're taking the rap for
->> > these bad bindings.  From what I can see, these bad bindings were merged
->> > into the V4L2 code with _zero_ review by DT maintainers.  It's quite
->> > clear that DT maintainers would have objected to them had they seen them,
+>> @@ -239,8 +244,41 @@
+>>       status = "ok";
+>>       pinctrl-0 = <&i2c2_pins>;
+>>       pinctrl-names = "default";
+>> +
+>> +    adv7180: adv7180@0x20 {
 >
-> Russell, it's just unfair what you're trying to impute here.  These 
-> bindings were floating on the mailing list for _several_ months before 
-> getting merged.
-> They were finally acked by Rob and Grant [1], [2], however it cannot be 
-> seen from the commits as the Ack come late, after I sent a pull request.
-> 
->> > but they didn't.  And the lack of documentation of the bindings which
->> > has been something that's been insisted on is also disgusting.
->> >
->> > And now we're now taking the pain for that oversight.
->> > 
->> > So... frankly, I've walked away from this dysfunctional situation.  I
->> > don't see imx-drm moving out of drivers/staging due to this debacle for
->> > many months - possibly never now given that no one can agree on this
->> > stuff.  This just goes to show what a fscking joke mainline kernels are,
->> > and why people just give up and go to vendor kernels which offer /much/
->> > better support all round.
->> > 
->> > As far as I can see, it's proved impossible to define a set of bindings
->> > for display devices which satisfy everyone.  So, rather than doing
->> > /something/ so we can move forward, we end up doing /nothing/.
->> > 
->> > It's times like this where I start believing that /board files/ were the
->> > best solution for ARM, because DT just carries soo many thorny issues
->> > (such as these) and is a continual blocker.
+>     ePAPR standard [1] tells us that:
 >
-> My experience and feelings are similar, I started to treat mainline
-> kernel much less seriously after similar DT related blocking issues.
-> An example is a simple patch series for couple drivers that was first 
-> posted in July 2013 and is still not merged, because the subsystem 
-> maintainer requires a DT binding maintainer Ack for everything and you
-> can wait to death to get one, specially if there are multiple iterations,
-> each needing attention of a DT binding maintainer. I remember opinions, 
-> when the process was being defined during one of the last kernel summits, 
-> that things may get longer to merge upstream, due to DT binding reviews. 
-> And that we must live with that. But these latencies are getting so 
-> ridiculously large that there is nothing left but to move to an 
-> alternative process.
-> 
-> Regarding moving forward doing /something/, rather than ending up
-> doing nothing - IMO it's the worst thing to rush DT binding being
-> merged upstream. I don't think an agreement can't be achieved soon, 
-> if not for this release then hopefully for next one.
+> "The name of a node should be somewhat generic, reflecting the function
+> of the device and not its precise programming model."
+>
+>     So, I would suggest something like "video-decoder" instead. And
+> remove "0x" from the address part of the node name please.
 
-Sorry about the missing links:
+Personally I'm not fussed about names in the tree.
 
-[1] http://www.spinics.net/lists/linux-media/msg61899.html
-[2] http://www.spinics.net/lists/linux-media/msg62458.html
+I will look at changing it to something like vin1_decoder
 
+
+-- 
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
