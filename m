@@ -1,98 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:33044 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758342AbaCTSSq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 14:18:46 -0400
-Date: Thu, 20 Mar 2014 18:18:20 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
-	drivers/media/v4l2-core to drivers/of
-Message-ID: <20140320181820.GY7528@n2100.arm.linux.org.uk>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140312102556.GC21483@n2100.arm.linux.org.uk> <20140320175432.0559CC4067A@trevor.secretlab.ca> <2161777.L3ZZmhyfM4@avalon>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40858 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752075AbaCGNXF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Mar 2014 08:23:05 -0500
+Message-ID: <5319C813.5030508@ti.com>
+Date: Fri, 7 Mar 2014 18:52:27 +0530
+From: Archit Taneja <archit@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2161777.L3ZZmhyfM4@avalon>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <k.debski@samsung.com>, <linux-media@vger.kernel.org>,
+	<linux-omap@vger.kernel.org>
+Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com> <5319C2A7.6090805@xs4all.nl>
+In-Reply-To: <5319C2A7.6090805@xs4all.nl>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 20, 2014 at 07:16:29PM +0100, Laurent Pinchart wrote:
-> On Thursday 20 March 2014 17:54:31 Grant Likely wrote:
-> > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux wrote:
-> > > On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
-> > > > In theory unidirectional links in DT are indeed enough. However, let's
-> > > > not forget the following.
-> > > > 
-> > > > - There's no such thing as single start points for graphs. Sure, in some
-> > > > simple cases the graph will have a single start point, but that's not a
-> > > > generic rule. For instance the camera graphs
-> > > > http://ideasonboard.org/media/omap3isp.ps and
-> > > > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and
-> > > > thus two starting points from a data flow point of view.
-> > > 
-> > > I think we need to stop thinking of a graph linked in terms of data
-> > > flow - that's really not useful.
-> > > 
-> > > Consider a display subsystem.  The CRTC is the primary interface for
-> > > the CPU - this is the "most interesting" interface, it's the interface
-> > > which provides access to the picture to be displayed for the CPU.  Other
-> > > interfaces are secondary to that purpose - reading the I2C DDC bus for
-> > > the display information is all secondary to the primary purpose of
-> > > displaying a picture.
-> > > 
-> > > For a capture subsystem, the primary interface for the CPU is the frame
-> > > grabber (whether it be an already encoded frame or not.)  The sensor
-> > > devices are all secondary to that.
-> > > 
-> > > So, the primary software interface in each case is where the data for
-> > > the primary purpose is transferred.  This is the point at which these
-> > > graphs should commence since this is where we would normally start
-> > > enumeration of the secondary interfaces.
-> > > 
-> > > V4L2 even provides interfaces for this: you open the capture device,
-> > > which then allows you to enumerate the capture device's inputs, and
-> > > this in turn allows you to enumerate their properties.  You don't open
-> > > a particular sensor and work back up the tree.
-> > > 
-> > > I believe trying to do this according to the flow of data is just wrong.
-> > > You should always describe things from the primary device for the CPU
-> > > towards the peripheral devices and never the opposite direction.
-> > 
-> > Agreed.
-> 
-> Absolutely not agreed. The whole concept of CPU towards peripherals only makes 
-> sense for very simple devices and breaks as soon as the hardware gets more 
-> complex. There's no such thing as CPU towards peripherals when peripherals 
-> communicate directly.
-> 
-> Please consider use cases more complex than just a display controller and an 
-> encoder, and you'll realize how messy not being able to parse the whole graph 
-> at once will become. Let's try to improve things, not to make sure to prevent 
-> support for future devices.
+Hi,
 
-That's odd, I did.
+On Friday 07 March 2014 06:29 PM, Hans Verkuil wrote:
+>>
+>> Do you think I can go ahead with posting the v3 patch set for 3.15, and
+>> work on fixing the compliance issue for the -rc fixes?
+>
+> It's fine to upstream this in staging, but while not all compliance errors
+> are fixed it can't go to drivers/media. I'm tightening the screws on that
+> since v4l2-compliance is getting to be such a powerful tool for ensuring
+> the driver complies.
+>
 
-Please draw some (ascii) diagrams of the situations you're saying this
-won't work for, because at the moment all I'm seeing is some vague
-hand-waving rather than anything factual that I can relate to.  Help
-us to actually _see_ the problem you have with this approach so we can
-understand it.
+But the vpe driver is already in drivers/media. How do I push these 
+patches if the vpe drivers is not in staging?
 
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+<snip>
+
+>> Multiplanar: TRY_FMT(G_FMT) != G_FMT
+>>           test VIDIOC_TRY_FMT: FAIL
+>>                   warn: v4l2-test-formats.cpp(834): S_FMT cannot handle
+>> an invalid pixelformat.
+>>                   warn: v4l2-test-formats.cpp(835): This may or may not
+>> be a problem. For more information see:
+>>                   warn: v4l2-test-formats.cpp(836):
+>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>>                   fail: v4l2-test-formats.cpp(420): pix_mp.reserved not
+>> zeroed
+>
+> This is easy enough to fix.
+>
+>>                   fail: v4l2-test-formats.cpp(851): Video Capture
+>> Multiplanar is valid, but no S_FMT was implemented
+>
+> For the FMT things: run with -T: that gives nice traces. You can also
+> set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
+> ioctls in more detail.
+
+Thanks for the tip, will try this.
+
+>
+>>           test VIDIOC_S_FMT: FAIL
+>>           test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>
+>> Codec ioctls:
+>>           test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>           test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>           test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>
+>> Buffer ioctls:
+>>                   info: test buftype Video Capture Multiplanar
+>>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>> not supported
+>>                   info: test buftype Video Output Multiplanar
+>>                   warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
+>> not supported
+>>           test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>           test VIDIOC_EXPBUF: OK (Not Supported)
+>>           test read/write: OK (Not Supported)
+>>               Video Capture Multiplanar (polling):
+>>                   Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
+>>                   fail: v4l2-test-buffers.cpp(222): buf.field !=
+>> cur_fmt.fmt.pix.field
+>
+> Definitely needs to be fixed, you probably just don't set the field at all.
+
+The VPE output is always progressive. But yes, I should still set the 
+field parameter to something.
+
+Thanks,
+Archit
+
