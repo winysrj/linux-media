@@ -1,133 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:58774 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754935AbaCLQcB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 12:32:01 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v10][ 08/10] imx-drm: imx-drm-core: provide a common display timings retrival function.
-Date: Wed, 12 Mar 2014 17:31:05 +0100
-Message-Id: <1394641867-15629-8-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394641867-15629-1-git-send-email-denis@eukrea.com>
-References: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45095 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753498AbaCGWl5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Mar 2014 17:41:57 -0500
+Date: Sat, 8 Mar 2014 00:41:21 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Daniel Jeong <gshark.jeong@gmail.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Landley <rob@landley.net>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-doc@vger.kernel.org
+Subject: Re: [RFC v7 0/3] add new Dual LED FLASH LM3646
+Message-ID: <20140307224121.GU15635@valkosipuli.retiisi.org.uk>
+References: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-imx_drm_of_get_extra_timing_flags will be used to
-retrive the native-mode and de-active display-timings
-node properties in the device tree.
+Hi Daniel,
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
----
-ChangeLog v9->v10:
-- New patch that was splitted out of
-  "staging: imx-drm: Use de-active and pixelclk-active
-- When a IMXDRM_MODE_FLAG_ flag is set, its opposite
-  flag is also unset.
----
- drivers/staging/imx-drm/imx-drm-core.c |   57 ++++++++++++++++++++++++++++++++
- drivers/staging/imx-drm/imx-drm.h      |    2 ++
- 2 files changed, 59 insertions(+)
+On Mon, Mar 03, 2014 at 06:52:07PM +0900, Daniel Jeong wrote:
+>  This patch is to add new dual led flash, lm3646.
+>  LM3646 is the product of ti and it has two 1.5A sync. boost 
+>  converter with dual white current source.
+>  2 files are created and 4 files are modified.
+>  And 3 patch files are created and sent.
 
-diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
-index 6a71cd9..d877b77 100644
---- a/drivers/staging/imx-drm/imx-drm-core.c
-+++ b/drivers/staging/imx-drm/imx-drm-core.c
-@@ -24,6 +24,7 @@
- #include <drm/drm_crtc_helper.h>
- #include <drm/drm_gem_cma_helper.h>
- #include <drm/drm_fb_cma_helper.h>
-+#include <video/of_display_timing.h>
- 
- #include "imx-drm.h"
- 
-@@ -492,6 +493,62 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
- }
- EXPORT_SYMBOL_GPL(imx_drm_encoder_parse_of);
- 
-+int imx_drm_of_get_extra_timing_flags(struct drm_connector *connector,
-+				 struct drm_display_mode *mode,
-+				 struct device_node *display_np)
-+{
-+	struct drm_display_mode *new_mode = drm_mode_create(connector->dev);
-+	struct device_node *timings_np;
-+	struct device_node *mode_np;
-+	u32 val;
-+
-+	if (!new_mode)
-+		return -EINVAL;
-+
-+	of_get_drm_display_mode(display_np, mode, OF_USE_NATIVE_MODE);
-+
-+	timings_np = of_get_child_by_name(display_np, "display-timings");
-+	if (timings_np) {
-+		/* get the display mode node */
-+		mode_np = of_parse_phandle(timings_np,
-+					   "native-mode", 0);
-+		if (!mode_np)
-+			mode_np = of_get_next_child(timings_np, NULL);
-+
-+		if (!of_property_read_u32(mode_np, "de-active", &val)) {
-+			if (val) {
-+				mode->private_flags |=
-+					IMXDRM_MODE_FLAG_DE_HIGH;
-+				mode->private_flags &=
-+					~IMXDRM_MODE_FLAG_DE_LOW;
-+			} else {
-+				mode->private_flags &=
-+					~IMXDRM_MODE_FLAG_DE_HIGH;
-+				mode->private_flags |=
-+					IMXDRM_MODE_FLAG_DE_LOW;
-+			}
-+		}
-+
-+		if (!of_property_read_u32(mode_np, "pixelclk-active",
-+					  &val)) {
-+			if (val) {
-+				mode->private_flags |=
-+					IMXDRM_MODE_FLAG_PIXDATA_POSEDGE;
-+				mode->private_flags &=
-+					~IMXDRM_MODE_FLAG_PIXDATA_NEGEDGE;
-+			} else {
-+				mode->private_flags &=
-+					~IMXDRM_MODE_FLAG_PIXDATA_POSEDGE;
-+				mode->private_flags |=
-+					IMXDRM_MODE_FLAG_PIXDATA_NEGEDGE;
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(imx_drm_of_get_extra_timing_flags);
-+
- void imx_drm_set_default_timing_flags(struct drm_display_mode *mode)
- {
- 	mode->private_flags &= ~IMXDRM_MODE_FLAG_DE_LOW;
-diff --git a/drivers/staging/imx-drm/imx-drm.h b/drivers/staging/imx-drm/imx-drm.h
-index ae07d9d..ae01f4d 100644
---- a/drivers/staging/imx-drm/imx-drm.h
-+++ b/drivers/staging/imx-drm/imx-drm.h
-@@ -54,6 +54,8 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
- 		struct drm_encoder *encoder);
- int imx_drm_encoder_parse_of(struct drm_device *drm,
- 	struct drm_encoder *encoder, struct device_node *np);
-+int imx_drm_of_get_extra_timing_flags(struct drm_connector *connector,
-+	struct drm_display_mode *mode, struct device_node *display_np);
- void imx_drm_set_default_timing_flags(struct drm_display_mode *mode);
- 
- int imx_drm_connector_mode_valid(struct drm_connector *connector,
+Thank you for the patchset. I've applied the patches to my tree with a few
+modifications to the commit messages. I also noticed there were some
+whitespace issues in the 2nd patch; I fixed those as well.
+
+The patches are in the flash branch.
+
 -- 
-1.7.9.5
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
