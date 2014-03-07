@@ -1,100 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753327AbaCJXOs (ORCPT
+Received: from 82-68-191-81.dsl.posilan.com ([82.68.191.81]:59409 "EHLO
+	rainbowdash.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752744AbaCGNBs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Fri, 7 Mar 2014 08:01:48 -0500
+From: Ben Dooks <ben.dooks@codethink.co.uk>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 32/48] adv7604: Cache register contents when reading multiple bits
-Date: Tue, 11 Mar 2014 00:15:43 +0100
-Message-Id: <1394493359-14115-33-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
+	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
+	Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: [PATCH 4/5] rcar_vin: copy flags from pdata
+Date: Fri,  7 Mar 2014 13:01:38 +0000
+Message-Id: <1394197299-17528-5-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk>
+References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When extracting multiple bits from a single register read the register
-once and extract the bits on the read value.
+The platform data is a single word, so simply copy
+it into the device's private data structure than
+keeping a copy of the pointer.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This will make changing to device-tree binding
+easier as it is one allocation instead of two.
+
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 ---
- drivers/media/i2c/adv7604.c | 33 ++++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 13 deletions(-)
+ drivers/media/platform/soc_camera/rcar_vin.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 75b3dae..80534f9 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1207,6 +1207,8 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 702dc47..47516df 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -126,13 +126,13 @@ struct rcar_vin_priv {
+ 	int				sequence;
+ 	/* State of the VIN module in capturing mode */
+ 	enum rcar_vin_state		state;
+-	struct rcar_vin_platform_data	*pdata;
+ 	struct soc_camera_host		ici;
+ 	struct list_head		capture;
+ #define MAX_BUFFER_NUM			3
+ 	struct vb2_buffer		*queue_buf[MAX_BUFFER_NUM];
+ 	struct vb2_alloc_ctx		*alloc_ctx;
+ 	enum v4l2_field			field;
++	unsigned int			pdata_flags;
+ 	unsigned int			vb_count;
+ 	unsigned int			nr_hw_slots;
+ 	bool				request_to_stop;
+@@ -275,12 +275,12 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 		break;
+ 	case V4L2_MBUS_FMT_YUYV8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
++		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		break;
+ 	case V4L2_MBUS_FMT_YUYV10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
++		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		break;
+ 	default:
+@@ -799,7 +799,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
+ 	/* Make choises, based on platform preferences */
+ 	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
+-		if (priv->pdata->flags & RCAR_VIN_HSYNC_ACTIVE_LOW)
++		if (priv->pdata_flags & RCAR_VIN_HSYNC_ACTIVE_LOW)
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
+@@ -807,7 +807,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
  
- static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
- {
-+	u8 polarity;
-+
- 	if (no_lock_stdi(sd) || no_lock_sspd(sd)) {
- 		v4l2_dbg(2, debug, sd, "%s: STDI and/or SSPD not locked\n", __func__);
- 		return -1;
-@@ -1219,11 +1221,12 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
- 	stdi->interlaced = io_read(sd, 0x12) & 0x10;
+ 	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
+-		if (priv->pdata->flags & RCAR_VIN_VSYNC_ACTIVE_LOW)
++		if (priv->pdata_flags & RCAR_VIN_VSYNC_ACTIVE_LOW)
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
+@@ -1447,7 +1447,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	priv->ici.drv_name = dev_name(&pdev->dev);
+ 	priv->ici.ops = &rcar_vin_host_ops;
  
- 	/* read SSPD */
--	if ((cp_read(sd, 0xb5) & 0x03) == 0x01) {
--		stdi->hs_pol = ((cp_read(sd, 0xb5) & 0x10) ?
--				((cp_read(sd, 0xb5) & 0x08) ? '+' : '-') : 'x');
--		stdi->vs_pol = ((cp_read(sd, 0xb5) & 0x40) ?
--				((cp_read(sd, 0xb5) & 0x20) ? '+' : '-') : 'x');
-+	polarity = cp_read(sd, 0xb5);
-+	if ((polarity & 0x03) == 0x01) {
-+		stdi->hs_pol = polarity & 0x10
-+			     ? (polarity & 0x08 ? '+' : '-') : 'x';
-+		stdi->vs_pol = polarity & 0x40
-+			     ? (polarity & 0x20 ? '+' : '-') : 'x';
- 	} else {
- 		stdi->hs_pol = 'x';
- 		stdi->vs_pol = 'x';
-@@ -1881,6 +1884,8 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
- 	struct v4l2_dv_timings timings;
- 	struct stdi_readback stdi;
- 	u8 reg_io_0x02 = io_read(sd, 0x02);
-+	u8 edid_enabled;
-+	u8 cable_det;
- 
- 	static const char * const csc_coeff_sel_rb[16] = {
- 		"bypassed", "YPbPr601 -> RGB", "reserved", "YPbPr709 -> RGB",
-@@ -1910,20 +1915,22 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
- 
- 	v4l2_info(sd, "-----Chip status-----\n");
- 	v4l2_info(sd, "Chip power: %s\n", no_power(sd) ? "off" : "on");
-+	edid_enabled = rep_read(sd, 0x7d);
- 	v4l2_info(sd, "EDID enabled port A: %s, B: %s, C: %s, D: %s\n",
--			((rep_read(sd, 0x7d) & 0x01) ? "Yes" : "No"),
--			((rep_read(sd, 0x7d) & 0x02) ? "Yes" : "No"),
--			((rep_read(sd, 0x7d) & 0x04) ? "Yes" : "No"),
--			((rep_read(sd, 0x7d) & 0x08) ? "Yes" : "No"));
-+			((edid_enabled & 0x01) ? "Yes" : "No"),
-+			((edid_enabled & 0x02) ? "Yes" : "No"),
-+			((edid_enabled & 0x04) ? "Yes" : "No"),
-+			((edid_enabled & 0x08) ? "Yes" : "No"));
- 	v4l2_info(sd, "CEC: %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
- 			"enabled" : "disabled");
- 
- 	v4l2_info(sd, "-----Signal status-----\n");
-+	cable_det = io_read(sd, 0x6f);
- 	v4l2_info(sd, "Cable detected (+5V power) port A: %s, B: %s, C: %s, D: %s\n",
--			((io_read(sd, 0x6f) & 0x10) ? "Yes" : "No"),
--			((io_read(sd, 0x6f) & 0x08) ? "Yes" : "No"),
--			((io_read(sd, 0x6f) & 0x04) ? "Yes" : "No"),
--			((io_read(sd, 0x6f) & 0x02) ? "Yes" : "No"));
-+			((cable_det & 0x10) ? "Yes" : "No"),
-+			((cable_det & 0x08) ? "Yes" : "No"),
-+			((cable_det & 0x04) ? "Yes" : "No"),
-+			((cable_det & 0x02) ? "Yes" : "No"));
- 	v4l2_info(sd, "TMDS signal detected: %s\n",
- 			no_signal_tmds(sd) ? "false" : "true");
- 	v4l2_info(sd, "TMDS signal locked: %s\n",
+-	priv->pdata = pdata;
++	priv->pdata_flags = pdata->flags;
+ 	priv->chip = pdev->id_entry->driver_data;
+ 	spin_lock_init(&priv->lock);
+ 	INIT_LIST_HEAD(&priv->capture);
 -- 
-1.8.3.2
+1.9.0
 
