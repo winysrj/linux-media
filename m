@@ -1,127 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4016 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754801AbaCND3e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 23:29:34 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4673 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753548AbaCGO0b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:26:31 -0500
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
 	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2E3TU5H001609
-	for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 04:29:32 +0100 (CET)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id s27EQRdb062372
+	for <linux-media@vger.kernel.org>; Fri, 7 Mar 2014 15:26:30 +0100 (CET)
 	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 2E9842A1889
-	for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 04:29:25 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from tschai.cisco.com (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7167A2A1887
+	for <linux-media@vger.kernel.org>; Fri,  7 Mar 2014 15:26:26 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140314032925.2E9842A1889@tschai.lan>
-Date: Fri, 14 Mar 2014 04:29:25 +0100 (CET)
+Subject: [RFCv1 PATCH 0/5] DocBook media updates
+Date: Fri,  7 Mar 2014 15:26:19 +0100
+Message-Id: <1394202384-5762-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+After doing a lot of work on v4l2-compliance I found some wrong and some
+missing information in the spec. This patch series fixes and clarifies
+them.
 
-Results of the daily build of media_tree:
+The first clarifies two corner cases: what happens with queued buffers is
+STREAMON fails, and what happens if buffers are queued, STREAMON was never
+called, and STREAMOFF is called.
 
-date:		Fri Mar 14 04:00:17 CET 2014
-git branch:	test
-git hash:	8ea5488a919bbd49941584f773fd66623192ffc0
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.13-5.slh.4-amd64
+The second fixed a bug in a code example.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12-i686: WARNINGS
-linux-3.13-i686: WARNINGS
-linux-3.14-rc1-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12-x86_64: WARNINGS
-linux-3.13-x86_64: WARNINGS
-linux-3.14-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+The third clarifies the use of several v4l2_buffer/plane fields. In particular
+who is responsible for setting them, the application or the driver.
 
-Detailed results are available here:
+The fourth fixes the FIELD_ALTERNATE description: sizeimage is really
+that of the field, not of the frame. It makes no sense to do it the way
+that the spec describes, and all the drivers implementing FIELD_ALTERNATE
+set sizeimage to the field height times bytesperline.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+The last patch does the same as the third but for v4l2_pix_format(_mplane).
 
-Full logs are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+	Hans
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
