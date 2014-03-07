@@ -1,51 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3203 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753550AbaCKMYJ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41801 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750956AbaCGHeJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:24:09 -0400
-Message-ID: <531F0036.6070802@xs4all.nl>
-Date: Tue, 11 Mar 2014 13:23:18 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 7 Mar 2014 02:34:09 -0500
+Date: Fri, 7 Mar 2014 09:34:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH/RFC v2 1/5] Split media_device creation and opening
+Message-ID: <20140307073402.GS15635@valkosipuli.retiisi.org.uk>
+References: <1394040741-22503-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1394040741-22503-2-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: k.debski@samsung.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 10/14] v4l: ti-vpe: Use correct bus_info name for the
- device in querycap
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-11-git-send-email-archit@ti.com>
-In-Reply-To: <1394526833-24805-11-git-send-email-archit@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1394040741-22503-2-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/14 09:33, Archit Taneja wrote:
-> The bus_info parameter in v4l2_capabilities expects a 'platform_' prefix. This
-> wasn't done in the driver and hence was breaking compliance. Update the bus_info
-> parameter accordingly.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+Hi Laurent,
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks for the set.
 
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 46b9d44..5591d04 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -1346,7 +1346,8 @@ static int vpe_querycap(struct file *file, void *priv,
+On Wed, Mar 05, 2014 at 06:32:17PM +0100, Laurent Pinchart wrote:
+...
+> diff --git a/src/main.c b/src/main.c
+> index 4a27c8c..8b48fde 100644
+> --- a/src/main.c
+> +++ b/src/main.c
+> diff --git a/src/mediactl.c b/src/mediactl.c
+> index 57cf86b..c71d4e1 100644
+> --- a/src/mediactl.c
+> +++ b/src/mediactl.c
+> @@ -101,6 +101,42 @@ struct media_entity *media_get_entity_by_id(struct media_device *media,
+>  	return NULL;
+>  }
+>  
+> +/* -----------------------------------------------------------------------------
+> + * Open/close
+> + */
+> +
+> +static int media_device_open(struct media_device *media)
+> +{
+> +	int ret;
+> +
+> +	if (media->fd != -1)
+> +		return 0;
+> +
+> +	media_dbg(media, "Opening media device %s\n", media->devnode);
+> +
+> +	media->fd = open(media->devnode, O_RDWR);
+> +	if (media->fd < 0) {
+> +		ret = -errno;
+> +		media_dbg(media, "%s: Can't open media device %s\n",
+> +			  __func__, media->devnode);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void media_device_close(struct media_device *media)
+> +{
+> +	if (media->fd != -1) {
+> +		close(media->fd);
+> +		media->fd = -1;
+> +	}
+> +}
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Link setup
+> + */
+> +
+>  int media_setup_link(struct media_device *media,
+>  		     struct media_pad *source,
+>  		     struct media_pad *sink,
+> @@ -111,6 +147,10 @@ int media_setup_link(struct media_device *media,
+>  	unsigned int i;
+>  	int ret;
+>  
+> +	ret = media_device_open(media);
+> +	if (ret < 0)
+> +		goto done;
+> +
+>  	for (i = 0; i < source->entity->num_links; i++) {
+>  		link = &source->entity->links[i];
+>  
+> @@ -123,7 +163,8 @@ int media_setup_link(struct media_device *media,
+>  
+>  	if (i == source->entity->num_links) {
+>  		media_dbg(media, "%s: Link not found\n", __func__);
+> -		return -ENOENT;
+> +		ret = -ENOENT;
+
+Please use errno before further function calls, i.e. reverse the order of
+the print and ret assignment.
+
+> +		goto done;
+>  	}
+>  
+>  	/* source pad */
+> @@ -142,12 +183,18 @@ int media_setup_link(struct media_device *media,
+>  	if (ret == -1) {
+>  		media_dbg(media, "%s: Unable to setup link (%s)\n",
+>  			  __func__, strerror(errno));
+> -		return -errno;
+> +		ret = -errno;
+
+Same here.
+
+> +		goto done;
+>  	}
+>  
+>  	link->flags = ulink.flags;
+>  	link->twin->flags = ulink.flags;
+> -	return 0;
+> +
+> +	ret = 0;
+> +
+> +done:
+> +	media_device_close(media);
+> +	return ret;
+>  }
+>  
+>  int media_reset_links(struct media_device *media)
+> @@ -425,6 +472,58 @@ static int media_enum_entities(struct media_device *media)
+>  	return ret;
+>  }
+>  
+> +int media_device_enumerate(struct media_device *media)
+> +{
+> +	int ret;
+> +
+> +	if (media->entities)
+> +		return 0;
+> +
+> +	ret = media_device_open(media);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = ioctl(media->fd, MEDIA_IOC_DEVICE_INFO, &media->info);
+> +	if (ret < 0) {
+> +		media_dbg(media, "%s: Unable to retrieve media device "
+> +			  "information for device %s (%s)\n", __func__,
+
+Splitting strings is not recommended since this breaks grepping them. But
+perhaps this is so small project it doesn't make a big difference. I
+wouldn't still.
+
+> +			  media->devnode, strerror(errno));
+> +		ret = -errno;
+
+And here.
+
+> +		goto done;
+> +	}
+> +
+> +	media_dbg(media, "Enumerating entities\n");
+> +
+> +	ret = media_enum_entities(media);
+> +	if (ret < 0) {
+> +		media_dbg(media,
+> +			  "%s: Unable to enumerate entities for device %s (%s)\n",
+> +			  __func__, media->devnode, strerror(-ret));
+> +		goto done;
+> +	}
+> +
+> +	media_dbg(media, "Found %u entities\n", media->entities_count);
+> +	media_dbg(media, "Enumerating pads and links\n");
+> +
+> +	ret = media_enum_links(media);
+> +	if (ret < 0) {
+> +		media_dbg(media,
+> +			  "%s: Unable to enumerate pads and linksfor device %s\n",
+> +			  __func__, media->devnode);
+> +		goto done;
+> +	}
+> +
+> +	ret = 0;
+> +
+> +done:
+> +	media_device_close(media);
+> +	return ret;
+> +}
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Create/destroy
+> + */
+> +
+>  static void media_debug_default(void *ptr, ...)
 >  {
->  	strncpy(cap->driver, VPE_MODULE_NAME, sizeof(cap->driver) - 1);
->  	strncpy(cap->card, VPE_MODULE_NAME, sizeof(cap->card) - 1);
-> -	strlcpy(cap->bus_info, VPE_MODULE_NAME, sizeof(cap->bus_info));
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-> +		VPE_MODULE_NAME);
->  	cap->device_caps  = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
->  	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->  	return 0;
-> 
+>  }
 
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
