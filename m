@@ -1,53 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:34935 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753732AbaCNVRo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 17:17:44 -0400
-Message-ID: <532371F4.9050509@gmail.com>
-Date: Fri, 14 Mar 2014 22:17:40 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Josh Wu <josh.wu@atmel.com>
-CC: g.liakhovetski@gmx.de, m.chehab@samsung.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] ov2640: add support for async device registration
-References: <1394791952-12941-1-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1394791952-12941-1-git-send-email-josh.wu@atmel.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55267 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751988AbaCGPGS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 10:06:18 -0500
+Message-ID: <1394204770.16309.16.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH] of: Fix of_graph_parse_endpoint stub for !CONFIG_OF
+ builds
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Grant Likely <grant.likely@linaro.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	kernel@pengutronix.de
+Date: Fri, 07 Mar 2014 16:06:10 +0100
+In-Reply-To: <1394204235-28706-1-git-send-email-p.zabel@pengutronix.de>
+References: <1394204235-28706-1-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+Am Freitag, den 07.03.2014, 15:57 +0100 schrieb Philipp Zabel:
+> This patch fixes the following build error:
+> 
+>    In file included from drivers/media/i2c/adv7343.c:29:0:
+> >> include/linux/of_graph.h:41:1: error: expected identifier or '(' before '{' token
+>     {
+>     ^
+>    include/linux/of_graph.h:39:19: warning: 'of_graph_parse_endpoint' declared 'static' but never defined [-Wunused-function]
+>     static inline int of_graph_parse_endpoint(const struct device_node *node,
+>                       ^
+> 
+> vim +41 include/linux/of_graph.h
+> 
+>     35                                          const struct device_node *node);
+>     36  struct device_node *of_graph_get_remote_port(const struct device_node *node);
+>     37  #else
+>     38
+>     39  static inline int of_graph_parse_endpoint(const struct device_node *node,
+>     40                                          struct of_endpoint *endpoint);
+>   > 41  {
+>     42          return -ENOSYS;
+>     43  }
+>     44
+> 
+> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  include/linux/of_graph.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
+> index 17f28eb..46795b3 100644
+> --- a/include/linux/of_graph.h
+> +++ b/include/linux/of_graph.h
+> @@ -45,7 +45,7 @@ struct device_node *of_graph_get_remote_port(const struct device_node *node);
+>  #else
+>  
+>  static inline int of_graph_parse_endpoint(const struct device_node *node,
+> -					struct of_endpoint *endpoint);
+> +					struct of_endpoint *endpoint)
+>  {
+>  	return -ENOSYS;
+>  }
 
-On 03/14/2014 11:12 AM, Josh Wu wrote:
-> +	clk = v4l2_clk_get(&client->dev, "mclk");
-> +	if (IS_ERR(clk))
-> +		return -EPROBE_DEFER;
+I have also updated the git branch. The following changes since commit
+d484700a36952c6675aa47dec4d7a536929aa922:
 
-You should instead make it:
+  of: Warn if of_graph_parse_endpoint is called with the root node
+(2014-03-06 17:41:54 +0100)
 
-		return PTR_ERR(clk);
+are available in the git repository at:
 
-But you will need this patch for that to work:
-http://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/drivers/clk/clk.c?id=a34cd4666f3da84228a82f70c94b8d9b692034ea
+  git://git.pengutronix.de/git/pza/linux.git topic/of-graph
 
-With this patch there is no need to overwrite any returned error
-value with EPROBE_DEFER.
+for you to fetch changes up to 00fd9619120db1d6a19be2f9e3df6f76234b311b:
 
-> @@ -1097,23 +1106,26 @@ static int ov2640_probe(struct i2c_client *client,
->   	v4l2_ctrl_new_std(&priv->hdl,&ov2640_ctrl_ops,
->   			V4L2_CID_HFLIP, 0, 1, 1, 0);
->   	priv->subdev.ctrl_handler =&priv->hdl;
-> -	if (priv->hdl.error)
-> -		return priv->hdl.error;
-> -
-> -	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> -	if (IS_ERR(priv->clk)) {
-> -		ret = PTR_ERR(priv->clk);
-> -		goto eclkget;
+  of: Fix of_graph_parse_endpoint stub for !CONFIG_OF builds (2014-03-07
+16:02:46 +0100)
 
---
-Regards,
-Sylwester
+----------------------------------------------------------------
+Philipp Zabel (1):
+      of: Fix of_graph_parse_endpoint stub for !CONFIG_OF builds
+
+ include/linux/of_graph.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+regards
+Philipp
+
