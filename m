@@ -1,66 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54771 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753193AbaCGQio (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 11:38:44 -0500
-Message-ID: <1394210312.16309.22.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH] of: Fix of_graph_parse_endpoint stub for !CONFIG_OF
- builds
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	kernel@pengutronix.de
-Date: Fri, 07 Mar 2014 17:38:32 +0100
-In-Reply-To: <20140307154953.GL21483@n2100.arm.linux.org.uk>
-References: <1394204235-28706-1-git-send-email-p.zabel@pengutronix.de>
-	 <1394204770.16309.16.camel@paszta.hi.pengutronix.de>
-	 <20140307154953.GL21483@n2100.arm.linux.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-vc0-f169.google.com ([209.85.220.169]:36354 "EHLO
+	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751555AbaCGLJ7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 06:09:59 -0500
+MIME-Version: 1.0
+In-Reply-To: <53199175.6030606@samsung.com>
+References: <1394181090-16446-1-git-send-email-arun.kk@samsung.com>
+	<53199175.6030606@samsung.com>
+Date: Fri, 7 Mar 2014 16:39:58 +0530
+Message-ID: <CALt3h7_8=jHq821D_7Fi69bFRNk67S18W6T_SFQeSimpHTdOUA@mail.gmail.com>
+Subject: Re: [PATCH] [media] s5p-mfc: add init buffer cmd to MFCV6
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: "avnd.kiran" <avnd.kiran@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Pawel Osciak <posciak@chromium.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
+Hi Sylwester,
 
-Am Freitag, den 07.03.2014, 15:49 +0000 schrieb Russell King - ARM
-Linux:
-> On Fri, Mar 07, 2014 at 04:06:10PM +0100, Philipp Zabel wrote:
-> > I have also updated the git branch. The following changes since commit
-> > d484700a36952c6675aa47dec4d7a536929aa922:
-> > 
-> >   of: Warn if of_graph_parse_endpoint is called with the root node
-> > (2014-03-06 17:41:54 +0100)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.pengutronix.de/git/pza/linux.git topic/of-graph
-> > 
-> > for you to fetch changes up to 00fd9619120db1d6a19be2f9e3df6f76234b311b:
-> > 
-> >   of: Fix of_graph_parse_endpoint stub for !CONFIG_OF builds (2014-03-07
-> > 16:02:46 +0100)
-> 
-> Thanks, I'll re-pull it shortly.  The other good news is that I've thrown
-> your patches on top of the previous pull, merged them into my test tree
-> and everything seems to work as it should on the SolidRun Hummingboard.
+On Fri, Mar 7, 2014 at 2:59 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> Hi,
 >
-> What base have you used for those imx-drm patches?  I assume it would
-> be something like a merge of my imx-drm commits and the of-graph branch?
+> On 07/03/14 09:31, Arun Kumar K wrote:
+>> From: avnd kiran <avnd.kiran@samsung.com>
+>>
+>> Latest MFC v6 firmware requires tile mode and loop filter
+>> setting to be done as part of Init buffer command, in sync
+>> with v7. So, move these settings out of decode options reg.
+>> Also, make this register definition applicable from v6 onwards.
+>>
+>> Signed-off-by: avnd kiran <avnd.kiran@samsung.com>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>
+> Will the driver also work with older version of the firmware
+> after this change ? If not, shouldn't things like this be done
+> depending on what firmware version is loaded ?
+>
 
-I have based the topic/imx-drm-dt branch on the staging-next branch of
-the staging tree, at the time it was created:
-    17b02809cfa77abcab155ce3afbb1467e7f0744f "Merge 3.14-rc5 into staging-next"
+The original code was for the initial version of v6 firmware.
+After that the v6 firmware has got many fixes and updates which
+also got updated in the products running the same.
+As such there are no official multiple versions of v6 firmware, but only
+fixes / updates to older version. I will update the s5p-mfc-v6.fw in the
+linux-firmware also with the newer version. Hope that will be fine.
 
-The topic/imx-drm-dt branch is not based on topic/of-graph at all.
-
-> Let me put this a different way: I'd be happy to pull those changes if
-> they're sensibly based in your git tree.
-
-Thanks!
-
-regards
-Philipp
-
+Regards
+Arun
