@@ -1,113 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49404 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754177AbaCCKH7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:59 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 38/79] [media] drx-j: Fix release and error path on drx39xxj.c
-Date: Mon,  3 Mar 2014 07:06:32 -0300
-Message-Id: <1393841233-24840-39-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:51741 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750834AbaCGIbg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 03:31:36 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH] [media] s5p-mfc: add init buffer cmd to MFCV6
+Date: Fri,  7 Mar 2014 14:01:29 +0530
+Message-Id: <1394181090-16446-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are memory leaks on both DVB release and
-dvb attach error path. Fix them.
+From: avnd kiran <avnd.kiran@samsung.com>
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Latest MFC v6 firmware requires tile mode and loop filter
+setting to be done as part of Init buffer command, in sync
+with v7. So, move these settings out of decode options reg.
+Also, make this register definition applicable from v6 onwards.
+
+Signed-off-by: avnd kiran <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/dvb-frontends/drx39xyj/drx39xxj.c | 31 +++++++++++++++----------
- 1 file changed, 19 insertions(+), 12 deletions(-)
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h    |    2 --
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   11 +++--------
+ 3 files changed, 4 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
-index e5f276f5d215..44e9bafcc9ed 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
-@@ -318,6 +318,12 @@ static int drx39xxj_get_tune_settings(struct dvb_frontend *fe,
- static void drx39xxj_release(struct dvb_frontend *fe)
- {
- 	struct drx39xxj_state *state = fe->demodulator_priv;
-+	struct drx_demod_instance *demod = state->demod;
-+
-+	kfree(demod->my_ext_attr);
-+	kfree(demod->my_common_attr);
-+	kfree(demod->my_i2c_dev_addr);
-+	kfree(demod);
- 	kfree(state);
- }
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index 8d0b686..b47567c 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -132,6 +132,7 @@
+ #define S5P_FIMV_D_METADATA_BUFFER_ADDR_V6	0xf448
+ #define S5P_FIMV_D_METADATA_BUFFER_SIZE_V6	0xf44c
+ #define S5P_FIMV_D_NUM_MV_V6			0xf478
++#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V6	0xf47c
+ #define S5P_FIMV_D_CPB_BUFFER_ADDR_V6		0xf4b0
+ #define S5P_FIMV_D_CPB_BUFFER_SIZE_V6		0xf4b4
  
-@@ -378,16 +384,14 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+index ea5ec2a..82c96fa 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -18,8 +18,6 @@
+ #define S5P_FIMV_CODEC_VP8_ENC_V7	25
  
- 	demod->my_ext_attr = demod_ext_attr;
- 	memcpy(demod->my_ext_attr, &drxj_data_g, sizeof(struct drxj_data));
--	((struct drxj_data *)demod->my_ext_attr)->uio_sma_tx_mode =
--	    DRX_UIO_MODE_READWRITE;
-+	((struct drxj_data *)demod->my_ext_attr)->uio_sma_tx_mode = DRX_UIO_MODE_READWRITE;
- 
- 	demod->my_tuner = NULL;
- 
- 	result = drx_open(demod);
- 	if (result != 0) {
- 		pr_err("DRX open failed!  Aborting\n");
--		kfree(state);
--		return NULL;
-+		goto error;
+ /* Additional registers for v7 */
+-#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
+-
+ #define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
+ #define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
+ #define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 90edb19..b226d75 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -1296,10 +1296,8 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ 		WRITEL(ctx->display_delay, S5P_FIMV_D_DISPLAY_DELAY_V6);
  	}
  
- 	/* Turn off the LNA */
-@@ -395,9 +399,9 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 	uio_cfg.mode = DRX_UIO_MODE_READWRITE;
- 	/* Configure user-I/O #3: enable read/write */
- 	result = drx_ctrl(demod, DRX_CTRL_UIO_CFG, &uio_cfg);
--	if (result != 0) {
-+	if (result) {
- 		pr_err("Failed to setup LNA GPIO!\n");
--		return NULL;
-+		goto error;
- 	}
+-	if (IS_MFCV7(dev)) {
+-		WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
+-		reg = 0;
+-	}
++	WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
++	reg = 0;
  
- 	uio_data.uio = DRX_UIO1;
-@@ -405,7 +409,7 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 	result = drx_ctrl(demod, DRX_CTRL_UIO_WRITE, &uio_data);
- 	if (result != 0) {
- 		pr_err("Failed to disable LNA!\n");
--		return NULL;
-+		goto error;
- 	}
+ 	/* Setup loop filter, for decoding this is only valid for MPEG4 */
+ 	if (ctx->codec_mode == S5P_MFC_CODEC_MPEG4_DEC) {
+@@ -1311,10 +1309,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ 	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)
+ 		reg |= (0x1 << S5P_FIMV_D_OPT_TILE_MODE_SHIFT_V6);
  
- 	/* create dvb_frontend */
-@@ -416,10 +420,12 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 	return &state->frontend;
+-	if (IS_MFCV7(dev))
+-		WRITEL(reg, S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7);
+-	else
+-		WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
++	WRITEL(reg, S5P_FIMV_D_INIT_BUFFER_OPTIONS_V6);
  
- error:
--	if (state != NULL)
--		kfree(state);
--	if (demod != NULL)
--		kfree(demod);
-+	kfree(demod_ext_attr);
-+	kfree(demod_comm_attr);
-+	kfree(demod_addr);
-+	kfree(demod);
-+	kfree(state);
-+
- 	return NULL;
- }
- EXPORT_SYMBOL(drx39xxj_attach);
-@@ -431,7 +437,8 @@ static struct dvb_frontend_ops drx39xxj_ops = {
- 		 .frequency_stepsize = 62500,
- 		 .frequency_min = 51000000,
- 		 .frequency_max = 858000000,
--		 .caps = FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB},
-+		 .caps = FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB
-+	},
- 
- 	.init = drx39xxj_init,
- 	.i2c_gate_ctrl = drx39xxj_i2c_gate_ctrl,
+ 	/* 0: NV12(CbCr), 1: NV21(CrCb) */
+ 	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV21M)
 -- 
-1.8.5.3
+1.7.9.5
 
