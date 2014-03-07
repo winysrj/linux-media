@@ -1,131 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53743 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753662AbaCEJVC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 04:21:02 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v6 6/8] of: Implement simplified graph binding for single port devices
-Date: Wed,  5 Mar 2014 10:20:40 +0100
-Message-Id: <1394011242-16783-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3868 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751130AbaCGLPj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 06:15:39 -0500
+Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s27BFaxT035707
+	for <linux-media@vger.kernel.org>; Fri, 7 Mar 2014 12:15:38 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B9BA52A1887
+	for <linux-media@vger.kernel.org>; Fri,  7 Mar 2014 12:15:34 +0100 (CET)
+Message-ID: <5319AA56.8020806@xs4all.nl>
+Date: Fri, 07 Mar 2014 12:15:34 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.15] Various fixes for 3.15
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For simple devices with only one port, it can be made implicit.
-The endpoint node can be a direct child of the device node.
+The following changes since commit bfd0306462fdbc5e0a8c6999aef9dde0f9745399:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v5:
- - Unrolled for-loop in of_graph_get_remote_port_parent
----
- drivers/of/base.c | 42 +++++++++++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 13 deletions(-)
+  [media] v4l: Document timestamp buffer flag behaviour (2014-03-05 16:48:28 -0300)
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 715144af..ffd0217 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -2003,7 +2003,8 @@ int of_graph_parse_endpoint(const struct device_node *node,
- 	 * It doesn't matter whether the two calls below succeed.
- 	 * If they don't then the default value 0 is used.
- 	 */
--	of_property_read_u32(port_node, "reg", &endpoint->port);
-+	if (port_node && !of_node_cmp(port_node->name, "port"))
-+		of_property_read_u32(port_node, "reg", &endpoint->port);
- 	of_property_read_u32(node, "reg", &endpoint->id);
- 
- 	of_node_put(port_node);
-@@ -2034,8 +2035,13 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 		struct device_node *node;
- 		/*
- 		 * It's the first call, we have to find a port subnode
--		 * within this node or within an optional 'ports' node.
-+		 * within this node or within an optional 'ports' node,
-+		 * or at least a single endpoint.
- 		 */
-+		endpoint = of_get_child_by_name(parent, "endpoint");
-+		if (endpoint)
-+			return endpoint;
-+
- 		node = of_get_child_by_name(parent, "ports");
- 		if (node)
- 			parent = node;
-@@ -2046,8 +2052,6 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 			/* Found a port, get an endpoint. */
- 			endpoint = of_get_next_child(port, NULL);
- 			of_node_put(port);
--		} else {
--			endpoint = NULL;
- 		}
- 
- 		if (!endpoint)
-@@ -2062,6 +2066,10 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
- 	if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
- 		      __func__, prev->full_name))
- 		return NULL;
-+	if (port == parent) {
-+		of_node_put(port);
-+		return NULL;
-+	}
- 
- 	/* Avoid dropping prev node refcount to 0. */
- 	of_node_get(prev);
-@@ -2097,18 +2105,21 @@ struct device_node *of_graph_get_remote_port_parent(
- 			       const struct device_node *node)
- {
- 	struct device_node *np;
--	unsigned int depth;
- 
- 	/* Get remote endpoint node. */
- 	np = of_parse_phandle(node, "remote-endpoint", 0);
-+	if (!np)
-+		return NULL;
- 
--	/* Walk 3 levels up only if there is 'ports' node. */
--	for (depth = 3; depth && np; depth--) {
--		np = of_get_next_parent(np);
--		if (depth == 2 && of_node_cmp(np->name, "ports"))
--			break;
--	}
--	return np;
-+	np = of_get_next_parent(np);
-+	if (!np || of_node_cmp(np->name, "port") != 0)
-+		return np;
-+
-+	np = of_get_next_parent(np);
-+	if (!np || of_node_cmp(np->name, "ports") != 0)
-+		return np;
-+
-+	return of_get_next_parent(np);
- }
- EXPORT_SYMBOL(of_graph_get_remote_port_parent);
- 
-@@ -2127,6 +2138,11 @@ struct device_node *of_graph_get_remote_port(const struct device_node *node)
- 	np = of_parse_phandle(node, "remote-endpoint", 0);
- 	if (!np)
- 		return NULL;
--	return of_get_next_parent(np);
-+	np = of_get_next_parent(np);
-+	if (of_node_cmp(np->name, "port")) {
-+		of_node_put(np);
-+		return NULL;
-+	}
-+	return np;
- }
- EXPORT_SYMBOL(of_graph_get_remote_port);
--- 
-1.9.0.rc3
+are available in the git repository at:
 
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.15d
+
+for you to fetch changes up to fa7d917d4b77fc9de583a70c2405e2c628f39cb8:
+
+  s2255drv: urgent memory leak fix. (2014-03-07 12:13:15 +0100)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      arv: fix sleep_on race
+
+Dan Carpenter (1):
+      em28xx-cards: remove a wrong indent level
+
+Fengguang Wu (1):
+      drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table' was not declared. Should it be static?
+
+Geert Uytterhoeven (1):
+      v4l: VIDEO_SH_VOU should depend on HAS_DMA
+
+Hans Verkuil (2):
+      v4l2-ctrls: replace BUG_ON by WARN_ON
+      media DocBook: fix NV16M description.
+
+Jon Mason (1):
+      staging/dt3155v4l: use PCI_VENDOR_ID_INTEL
+
+Philipp Zabel (2):
+      tvp5150: Fix type mismatch warning in clamp macro
+      tvp5150: Make debug module parameter visible in sysfs
+
+sensoray-dev (1):
+      s2255drv: urgent memory leak fix.
+
+ Documentation/DocBook/media/v4l/pixfmt-nv16m.xml | 9 ++++-----
+ drivers/media/i2c/tvp5150.c                      | 8 ++++----
+ drivers/media/platform/Kconfig                   | 2 +-
+ drivers/media/platform/arv.c                     | 6 +++---
+ drivers/media/usb/em28xx/em28xx-cards.c          | 4 ++--
+ drivers/media/usb/s2255/s2255drv.c               | 5 -----
+ drivers/media/usb/usbtv/usbtv-core.c             | 4 ++--
+ drivers/media/usb/usbtv/usbtv-video.c            | 6 +++---
+ drivers/media/v4l2-core/v4l2-ctrls.c             | 3 ++-
+ drivers/staging/media/dt3155v4l/dt3155v4l.c      | 3 +--
+ 10 files changed, 22 insertions(+), 28 deletions(-)
