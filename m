@@ -1,92 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:48042 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751750AbaC3V0K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 17:26:10 -0400
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, linux-sh@vger.kernel.org,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [RFC 1/3] rcar_vin: copy flags from pdata
-Date: Sun, 30 Mar 2014 22:26:03 +0100
-Message-Id: <1396214765-23689-1-git-send-email-ben.dooks@codethink.co.uk>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3284 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752092AbaCGM7f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 07:59:35 -0500
+Message-ID: <5319C2A7.6090805@xs4all.nl>
+Date: Fri, 07 Mar 2014 13:59:19 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Archit Taneja <archit@ti.com>
+CC: k.debski@samsung.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
+References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com>
+In-Reply-To: <5319B26B.8050900@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The platform data is a single word, so simply copy
-it into the device's private data structure than
-keeping a copy of the pointer.
+On 03/07/2014 12:50 PM, Archit Taneja wrote:
+> Hi Hans,
+> 
+> On Tuesday 04 March 2014 05:05 PM, Hans Verkuil wrote:
+>> On 03/04/14 12:25, Archit Taneja wrote:
+>>> I had a minor question about the selection API:
+>>>
+>>> Are the V4L2_SET_TGT_CROP/COMPOSE_DEFAULT and the corresponding
+>>> 'BOUNDS' targets supposed to be used with VIDIOC_S_SELECTION? If so,
+>>> what's the expect behaviour?
+>>
+>> No, those are read only in practice. So only used with G_SELECTION, never
+>> with S_SELECTION.
+> 
+> <snip>
+> 
+> I tried the v4l2-compliance thing. It's awesome! And a bit annoying too 
+> when it comes to fixing little things needed for compliance :). But it's 
+> required, and I hope to fix these eventually.
+> 
+> After a few small fixes in the driver, I get the results as below. I am 
+> debugging the cause of try_fmt and s_fmt failures. I'm not sure why the 
+> streaming test fails with MMAP, the logs of my driver show that a 
+> successful mem2mem transaction happened.
+> 
+> I tried this on the 'vb2-part1' branch as you suggested.
+> 
+> Do you think I can go ahead with posting the v3 patch set for 3.15, and 
+> work on fixing the compliance issue for the -rc fixes?
 
-This will make changing to device-tree binding
-easier as it is one allocation instead of two.
+It's fine to upstream this in staging, but while not all compliance errors
+are fixed it can't go to drivers/media. I'm tightening the screws on that
+since v4l2-compliance is getting to be such a powerful tool for ensuring
+the driver complies.
 
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
----
- drivers/media/platform/soc_camera/rcar_vin.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+> 
+> Thanks,
+> Archit
+> 
+> # ./utils/v4l2-compliance/v4l2-compliance  -v --streaming=10
+> root@localhost:~/source_trees/v4l-utils# Driver Info:
+>          Driver name   : vpe
+>          Card type     : vpe
+>          Bus info      : platform:vpe
+>          Driver version: 3.14.0
+>          Capabilities  : 0x84004000
+>                  Video Memory-to-Memory Multiplanar
+>                  Streaming
+>                  Device Capabilities
+>          Device Caps   : 0x04004000
+>                  Video Memory-to-Memory Multiplanar
+>                  Streaming
+> 
+> Compliance test for device /dev/video0 (not using libv4l2):
+> 
+> Required ioctls:
+>          test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>          test second video open: OK
+>          test VIDIOC_QUERYCAP: OK
+>          test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+>          test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>          test VIDIOC_LOG_STATUS: OK (Not Supported)
+> 
+> Input ioctls:
+>          test VIDIOC_G/S_TUNER: OK (Not Supported)
+>          test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>          test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>          test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>          test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+>          test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>          Inputs: 0 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>          test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>          test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>          test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>          test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>          test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>          Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Control ioctls:
+>                  info: checking v4l2_queryctrl of control 'User 
+> Controls' (0x00980001)
+>                  info: checking v4l2_queryctrl of control 'Buffers Per 
+> Transaction' (0x00981950)
+>                  info: checking v4l2_queryctrl of control 'Buffers Per 
+> Transaction' (0x08000000)
+>          test VIDIOC_QUERYCTRL/MENU: OK
+>                  info: checking control 'User Controls' (0x00980001)
+>                  info: checking control 'Buffers Per Transaction' 
+> (0x00981950)
+>          test VIDIOC_G/S_CTRL: OK
+>                  info: checking extended control 'User Controls' 
+> (0x00980001)
+>                  info: checking extended control 'Buffers Per 
+> Transaction' (0x00981950)
+>          test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>                  info: checking control event 'User Controls' (0x00980001)
+>                  info: checking control event 'Buffers Per Transaction' 
+> (0x00981950)
+>          test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>          test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>          Standard Controls: 1 Private Controls: 1
+> 
+> Input/Output configuration ioctls:
+>          test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>          test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>          test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+> 
+> Format ioctls:
+>                  info: found 8 formats for buftype 9
+>                  info: found 4 formats for buftype 10
+>          test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>          test VIDIOC_G/S_PARM: OK (Not Supported)
+>          test VIDIOC_G_FBUF: OK (Not Supported)
+>          test VIDIOC_G_FMT: OK
+>                  fail: v4l2-test-formats.cpp(614): Video Capture 
+> Multiplanar: TRY_FMT(G_FMT) != G_FMT
+>          test VIDIOC_TRY_FMT: FAIL
+>                  warn: v4l2-test-formats.cpp(834): S_FMT cannot handle 
+> an invalid pixelformat.
+>                  warn: v4l2-test-formats.cpp(835): This may or may not 
+> be a problem. For more information see:
+>                  warn: v4l2-test-formats.cpp(836): 
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+>                  fail: v4l2-test-formats.cpp(420): pix_mp.reserved not 
+> zeroed
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 702dc47..47516df 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -126,13 +126,13 @@ struct rcar_vin_priv {
- 	int				sequence;
- 	/* State of the VIN module in capturing mode */
- 	enum rcar_vin_state		state;
--	struct rcar_vin_platform_data	*pdata;
- 	struct soc_camera_host		ici;
- 	struct list_head		capture;
- #define MAX_BUFFER_NUM			3
- 	struct vb2_buffer		*queue_buf[MAX_BUFFER_NUM];
- 	struct vb2_alloc_ctx		*alloc_ctx;
- 	enum v4l2_field			field;
-+	unsigned int			pdata_flags;
- 	unsigned int			vb_count;
- 	unsigned int			nr_hw_slots;
- 	bool				request_to_stop;
-@@ -275,12 +275,12 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 		break;
- 	case V4L2_MBUS_FMT_YUYV8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
-+		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
- 		break;
- 	case V4L2_MBUS_FMT_YUYV10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
-+		vnmc |= priv->pdata_flags & RCAR_VIN_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
- 		break;
- 	default:
-@@ -799,7 +799,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
- 	/* Make choises, based on platform preferences */
- 	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
- 	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
--		if (priv->pdata->flags & RCAR_VIN_HSYNC_ACTIVE_LOW)
-+		if (priv->pdata_flags & RCAR_VIN_HSYNC_ACTIVE_LOW)
- 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
- 		else
- 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
-@@ -807,7 +807,7 @@ static int rcar_vin_set_bus_param(struct soc_camera_device *icd)
- 
- 	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
- 	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
--		if (priv->pdata->flags & RCAR_VIN_VSYNC_ACTIVE_LOW)
-+		if (priv->pdata_flags & RCAR_VIN_VSYNC_ACTIVE_LOW)
- 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
- 		else
- 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
-@@ -1447,7 +1447,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	priv->ici.drv_name = dev_name(&pdev->dev);
- 	priv->ici.ops = &rcar_vin_host_ops;
- 
--	priv->pdata = pdata;
-+	priv->pdata_flags = pdata->flags;
- 	priv->chip = pdev->id_entry->driver_data;
- 	spin_lock_init(&priv->lock);
- 	INIT_LIST_HEAD(&priv->capture);
--- 
-1.9.0
+This is easy enough to fix.
 
+>                  fail: v4l2-test-formats.cpp(851): Video Capture 
+> Multiplanar is valid, but no S_FMT was implemented
+
+For the FMT things: run with -T: that gives nice traces. You can also
+set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
+ioctls in more detail.
+
+>          test VIDIOC_S_FMT: FAIL
+>          test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> 
+> Codec ioctls:
+>          test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>          test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>          test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+> Buffer ioctls:
+>                  info: test buftype Video Capture Multiplanar
+>                  warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS 
+> not supported
+>                  info: test buftype Video Output Multiplanar
+>                  warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS 
+> not supported
+>          test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>          test VIDIOC_EXPBUF: OK (Not Supported)
+>          test read/write: OK (Not Supported)
+>              Video Capture Multiplanar (polling):
+>                  Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
+>                  fail: v4l2-test-buffers.cpp(222): buf.field != 
+> cur_fmt.fmt.pix.field
+
+Definitely needs to be fixed, you probably just don't set the field at all.
+
+>                  fail: v4l2-test-buffers.cpp(630): checkQueryBuf(node, 
+> buf, bufs.type, bufs.memory, buf.index, Dequeued, last_seq)
+>                  fail: v4l2-test-buffers.cpp(1038): captureBufs(node, 
+> bufs, m2m_bufs, frame_count, true)
+>          test MMAP: FAIL
+>          test USERPTR: OK (Not Supported)
+>          test DMABUF: Cannot test, specify --expbuf-device
+> 
+> Total: 40, Succeeded: 37, Failed: 3, Warnings: 5
+> 
+> [1]+  Exit 1                  ./utils/v4l2-compliance/v4l2-compliance -v 
+> --streaming=10
+
+Regards,
+
+	Hans
