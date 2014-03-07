@@ -1,73 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35458 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759669AbaCTSss (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 14:48:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
+Received: from mail-we0-f181.google.com ([74.125.82.181]:63380 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752744AbaCHFa2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:28 -0500
+Received: by mail-we0-f181.google.com with SMTP id q58so6077953wes.40
+        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:28 -0800 (PST)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v6 3/8] of: Warn if of_graph_get_next_endpoint is called with the root node
+To: Philipp Zabel <p.zabel@pengutronix.de>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Rob Herring <robh+dt@kernel.org>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-Date: Thu, 20 Mar 2014 19:50:35 +0100
-Message-ID: <13435143.OQHHLITVrH@avalon>
-In-Reply-To: <20140320181820.GY7528@n2100.arm.linux.org.uk>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <2161777.L3ZZmhyfM4@avalon> <20140320181820.GY7528@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+In-Reply-To: <1394011242-16783-4-git-send-email-p.zabel@pengutronix.de>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> < 1394011242-16783-4-git-send-email-p.zabel@pengutronix.de>
+Date: Fri, 07 Mar 2014 18:28:03 +0000
+Message-Id: <20140307182803.A565BC40B63@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
-
-On Thursday 20 March 2014 18:18:20 Russell King - ARM Linux wrote:
-> On Thu, Mar 20, 2014 at 07:16:29PM +0100, Laurent Pinchart wrote:
-> > On Thursday 20 March 2014 17:54:31 Grant Likely wrote:
-> > > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux wrote:
-
-[snip]
-
-> > > > I believe trying to do this according to the flow of data is just
-> > > > wrong. You should always describe things from the primary device for
-> > > > the CPU towards the peripheral devices and never the opposite
-> > > > direction.
-> > > 
-> > > Agreed.
-> > 
-> > Absolutely not agreed. The whole concept of CPU towards peripherals only
-> > makes sense for very simple devices and breaks as soon as the hardware
-> > gets more complex. There's no such thing as CPU towards peripherals when
-> > peripherals communicate directly.
-> > 
-> > Please consider use cases more complex than just a display controller and
-> > an encoder, and you'll realize how messy not being able to parse the
-> > whole graph at once will become. Let's try to improve things, not to make
-> > sure to prevent support for future devices.
+On Wed,  5 Mar 2014 10:20:37 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> If of_graph_get_next_endpoint is given a parentless node instead of an
+> endpoint node, it is clearly a bug.
 > 
-> That's odd, I did.
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+Acked-by: Grant Likely <grant.likely@linaro.org>
+
+> ---
+> Changes since v5:
+>  - Added parentless previous endpoint's full name to warning
+> ---
+>  drivers/of/base.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> Please draw some (ascii) diagrams of the situations you're saying this
-> won't work for, because at the moment all I'm seeing is some vague
-> hand-waving rather than anything factual that I can relate to.  Help
-> us to actually _see_ the problem you have with this approach so we can
-> understand it.
-
-Working on it. Given my drawing skills this will take a bit of time.
-
--- 
-Regards,
-
-Laurent Pinchart
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index b2f223f..b5e690b 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -2028,8 +2028,8 @@ struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+>  		of_node_put(node);
+>  	} else {
+>  		port = of_get_parent(prev);
+> -		if (!port)
+> -			/* Hm, has someone given us the root node ?... */
+> +		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
+> +			      __func__, prev->full_name))
+>  			return NULL;
+>  
+>  		/* Avoid dropping prev node refcount to 0. */
+> -- 
+> 1.9.0.rc3
+> 
 
