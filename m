@@ -1,143 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41972 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751739AbaCABRf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 20:17:35 -0500
-Message-ID: <53113529.6020205@iki.fi>
-Date: Sat, 01 Mar 2014 03:17:29 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL] SDR API 2nd part
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4866 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752520AbaCGKVf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 05:21:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: marbugge@cisco.com, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv1 PATCH 5/5] DocBook v4l2: update the G/S_EDID documentation
+Date: Fri,  7 Mar 2014 11:21:19 +0100
+Message-Id: <1394187679-7345-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
-These patches are based top of:
-http://git.linuxtv.org/media-tree.git/shortlog/refs/heads/sdr
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I am not able to make development during next week, so if there is any 
-issues, please wait to week 12 I could fix, or do what ever is best 
-required by situation.
+Document that it is now possible to call G/S_EDID from video nodes, not
+just sub-device nodes. Add a note that -EINVAL will be returned if
+the pad does not support EDIDs.
 
-Both SDR drivers are in staging and API is market as experimental. I 
-think the quality is more than enough for merging that stuff (to staging).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/v4l2.xml           |   2 +-
+ .../DocBook/media/v4l/vidioc-subdev-g-edid.xml     | 152 ---------------------
+ 2 files changed, 1 insertion(+), 153 deletions(-)
+ delete mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
 
-regards
-Antti
-
-
-The following changes since commit 11532660e6f5b6b3a74a03f999d878f35d2cc668:
-
-   Add Antti at the V4L2 revision list (2014-02-07 12:19:37 -0200)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git sdr_review_v2
-
-for you to fetch changes up to 674c092d32e840243fa9f63b9da23ace364a2af7:
-
-   MAINTAINERS: add rtl2832_sdr driver (2014-02-27 02:01:51 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (42):
-       xc2028: silence compiler warnings
-       rtl28xxu: add module parameter to disable IR
-       rtl2832: remove unused if_dvbt config parameter
-       rtl2832: style changes and minor cleanup
-       rtl2832: provide muxed I2C adapter
-       rtl2832: add muxed I2C adapter for demod itself
-       rtl2832: implement delayed I2C gate close
-       v4l: add RF tuner gain controls
-       v4l: add RF tuner channel bandwidth control
-       v4l: reorganize RF tuner control ID numbers
-       v4l: uapi: add SDR formats CU8 and CU16LE
-       v4l: add enum_freq_bands support to tuner sub-device
-       v4l: add control for RF tuner PLL lock flag
-       DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
-       DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
-       DocBook: document RF tuner gain controls
-       DocBook: media: document V4L2_CTRL_CLASS_RF_TUNER
-       DocBook: document RF tuner bandwidth controls
-       DocBook: media: document PLL lock control
-       DocBook: media: add some general info about RF tuners
-       msi3101: convert to SDR API
-       msi001: Mirics MSi001 silicon tuner driver
-       msi3101: use msi001 tuner driver
-       MAINTAINERS: add msi001 driver
-       MAINTAINERS: add msi3101 driver
-       msi3101: clamp mmap buffers to reasonable level
-       e4000: convert DVB tuner to I2C driver model
-       e4000: implement controls via v4l2 control framework
-       e4000: fix PLL calc to allow higher frequencies
-       e4000: implement PLL lock v4l control
-       e4000: get rid of DVB i2c_gate_ctrl()
-       e4000: convert to Regmap API
-       e4000: rename some variables
-       rtl2832_sdr: Realtek RTL2832 SDR driver module
-       rtl28xxu: constify demod config structs
-       rtl28xxu: attach SDR extension module
-       rtl28xxu: fix switch-case style issue
-       rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
-       rtl2832_sdr: expose e4000 controls to user
-       r820t: add manual gain controls
-       rtl2832_sdr: expose R820T controls to user
-       MAINTAINERS: add rtl2832_sdr driver
-
-Luis Alves (1):
-       rtl2832: Fix deadlock on i2c mux select function.
-
-  Documentation/DocBook/media/v4l/controls.xml           |  138 +++++++++++
-  Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml    |   44 ++++
-  Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml  |   46 ++++
-  Documentation/DocBook/media/v4l/pixfmt.xml             |    3 +
-  Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml |    7 +-
-  MAINTAINERS                                            |   30 +++
-  drivers/media/dvb-frontends/Kconfig                    |    2 +-
-  drivers/media/dvb-frontends/rtl2832.c                  |  191 
-+++++++++++++--
-  drivers/media/dvb-frontends/rtl2832.h                  |   34 ++-
-  drivers/media/dvb-frontends/rtl2832_priv.h             |   54 +++--
-  drivers/media/tuners/Kconfig                           |    1 +
-  drivers/media/tuners/e4000.c                           |  598 
-+++++++++++++++++++++++++++++------------------
-  drivers/media/tuners/e4000.h                           |   21 +-
-  drivers/media/tuners/e4000_priv.h                      |   86 ++++++-
-  drivers/media/tuners/r820t.c                           |  137 ++++++++++-
-  drivers/media/tuners/r820t.h                           |   10 +
-  drivers/media/tuners/tuner-xc2028.c                    |    3 +
-  drivers/media/usb/dvb-usb-v2/Makefile                  |    1 +
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c                |   99 ++++++--
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.h                |    2 +
-  drivers/media/v4l2-core/v4l2-ctrls.c                   |   24 ++
-  drivers/staging/media/Kconfig                          |    2 +
-  drivers/staging/media/Makefile                         |    2 +
-  drivers/staging/media/msi3101/Kconfig                  |    7 +-
-  drivers/staging/media/msi3101/Makefile                 |    1 +
-  drivers/staging/media/msi3101/msi001.c                 |  499 
-+++++++++++++++++++++++++++++++++++++++
-  drivers/staging/media/msi3101/sdr-msi3101.c            | 1560 
-++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------------------------------
-  drivers/staging/media/rtl2832u_sdr/Kconfig             |    7 +
-  drivers/staging/media/rtl2832u_sdr/Makefile            |    6 +
-  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c       | 1476 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h       |   51 ++++
-  include/media/v4l2-subdev.h                            |    1 +
-  include/uapi/linux/v4l2-controls.h                     |   14 ++
-  include/uapi/linux/videodev2.h                         |    4 +
-  34 files changed, 3845 insertions(+), 1316 deletions(-)
-  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
-  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-  create mode 100644 drivers/staging/media/msi3101/msi001.c
-  create mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
-  create mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
-  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
-
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 61a7bb1..b445161 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -607,6 +607,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-g-crop;
+     &sub-g-ctrl;
+     &sub-g-dv-timings;
++    &sub-g-edid;
+     &sub-g-enc-index;
+     &sub-g-ext-ctrls;
+     &sub-g-fbuf;
+@@ -638,7 +639,6 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-subdev-enum-frame-size;
+     &sub-subdev-enum-mbus-code;
+     &sub-subdev-g-crop;
+-    &sub-subdev-g-edid;
+     &sub-subdev-g-fmt;
+     &sub-subdev-g-frame-interval;
+     &sub-subdev-g-selection;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+deleted file mode 100644
+index bbd18f0..0000000
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
++++ /dev/null
+@@ -1,152 +0,0 @@
+-<refentry id="vidioc-subdev-g-edid">
+-  <refmeta>
+-    <refentrytitle>ioctl VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</refentrytitle>
+-    &manvol;
+-  </refmeta>
+-
+-  <refnamediv>
+-    <refname>VIDIOC_SUBDEV_G_EDID</refname>
+-    <refname>VIDIOC_SUBDEV_S_EDID</refname>
+-    <refpurpose>Get or set the EDID of a video receiver/transmitter</refpurpose>
+-  </refnamediv>
+-
+-  <refsynopsisdiv>
+-    <funcsynopsis>
+-      <funcprototype>
+-	<funcdef>int <function>ioctl</function></funcdef>
+-	<paramdef>int <parameter>fd</parameter></paramdef>
+-	<paramdef>int <parameter>request</parameter></paramdef>
+-	<paramdef>struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
+-      </funcprototype>
+-    </funcsynopsis>
+-    <funcsynopsis>
+-      <funcprototype>
+-	<funcdef>int <function>ioctl</function></funcdef>
+-	<paramdef>int <parameter>fd</parameter></paramdef>
+-	<paramdef>int <parameter>request</parameter></paramdef>
+-	<paramdef>const struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
+-      </funcprototype>
+-    </funcsynopsis>
+-  </refsynopsisdiv>
+-
+-  <refsect1>
+-    <title>Arguments</title>
+-
+-    <variablelist>
+-      <varlistentry>
+-	<term><parameter>fd</parameter></term>
+-	<listitem>
+-	  <para>&fd;</para>
+-	</listitem>
+-      </varlistentry>
+-      <varlistentry>
+-	<term><parameter>request</parameter></term>
+-	<listitem>
+-	  <para>VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</para>
+-	</listitem>
+-      </varlistentry>
+-      <varlistentry>
+-	<term><parameter>argp</parameter></term>
+-	<listitem>
+-	  <para></para>
+-	</listitem>
+-      </varlistentry>
+-    </variablelist>
+-  </refsect1>
+-
+-  <refsect1>
+-    <title>Description</title>
+-    <para>These ioctls can be used to get or set an EDID associated with an input pad
+-    from a receiver or an output pad of a transmitter subdevice.</para>
+-
+-    <para>To get the EDID data the application has to fill in the <structfield>pad</structfield>,
+-    <structfield>start_block</structfield>, <structfield>blocks</structfield> and <structfield>edid</structfield>
+-    fields and call <constant>VIDIOC_SUBDEV_G_EDID</constant>. The current EDID from block
+-    <structfield>start_block</structfield> and of size <structfield>blocks</structfield>
+-    will be placed in the memory <structfield>edid</structfield> points to. The <structfield>edid</structfield>
+-    pointer must point to memory at least <structfield>blocks</structfield>&nbsp;*&nbsp;128 bytes
+-    large (the size of one block is 128 bytes).</para>
+-
+-    <para>If there are fewer blocks than specified, then the driver will set <structfield>blocks</structfield>
+-    to the actual number of blocks. If there are no EDID blocks available at all, then the error code
+-    ENODATA is set.</para>
+-
+-    <para>If blocks have to be retrieved from the sink, then this call will block until they
+-    have been read.</para>
+-
+-    <para>To set the EDID blocks of a receiver the application has to fill in the <structfield>pad</structfield>,
+-    <structfield>blocks</structfield> and <structfield>edid</structfield> fields and set
+-    <structfield>start_block</structfield> to 0. It is not possible to set part of an EDID,
+-    it is always all or nothing. Setting the EDID data is only valid for receivers as it makes
+-    no sense for a transmitter.</para>
+-
+-    <para>The driver assumes that the full EDID is passed in. If there are more EDID blocks than
+-    the hardware can handle then the EDID is not written, but instead the error code E2BIG is set
+-    and <structfield>blocks</structfield> is set to the maximum that the hardware supports.
+-    If <structfield>start_block</structfield> is any
+-    value other than 0 then the error code EINVAL is set.</para>
+-
+-    <para>To disable an EDID you set <structfield>blocks</structfield> to 0. Depending on the
+-    hardware this will drive the hotplug pin low and/or block the source from reading the EDID
+-    data in some way. In any case, the end result is the same: the EDID is no longer available.
+-    </para>
+-
+-    <table pgwide="1" frame="none" id="v4l2-subdev-edid">
+-      <title>struct <structname>v4l2_subdev_edid</structname></title>
+-      <tgroup cols="3">
+-        &cs-str;
+-	<tbody valign="top">
+-	  <row>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>pad</structfield></entry>
+-	    <entry>Pad for which to get/set the EDID blocks.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>start_block</structfield></entry>
+-	    <entry>Read the EDID from starting with this block. Must be 0 when setting
+-	    the EDID.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>blocks</structfield></entry>
+-	    <entry>The number of blocks to get or set. Must be less or equal to 256 (the
+-	    maximum number of blocks as defined by the standard). When you set the EDID and
+-	    <structfield>blocks</structfield> is 0, then the EDID is disabled or erased.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__u8&nbsp;*</entry>
+-	    <entry><structfield>edid</structfield></entry>
+-	    <entry>Pointer to memory that contains the EDID. The minimum size is
+-	    <structfield>blocks</structfield>&nbsp;*&nbsp;128.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[5]</entry>
+-	    <entry>Reserved for future extensions. Applications and drivers must
+-	    set the array to zero.</entry>
+-	  </row>
+-	</tbody>
+-      </tgroup>
+-    </table>
+-  </refsect1>
+-
+-  <refsect1>
+-    &return-value;
+-
+-    <variablelist>
+-      <varlistentry>
+-	<term><errorcode>ENODATA</errorcode></term>
+-	<listitem>
+-	  <para>The EDID data is not available.</para>
+-	</listitem>
+-      </varlistentry>
+-      <varlistentry>
+-	<term><errorcode>E2BIG</errorcode></term>
+-	<listitem>
+-	  <para>The EDID data you provided is more than the hardware can handle.</para>
+-	</listitem>
+-      </varlistentry>
+-    </variablelist>
+-  </refsect1>
+-</refentry>
 -- 
-http://palosaari.fi/
+1.9.0
+
