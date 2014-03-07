@@ -1,106 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60722 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331AbaCGNsG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 08:48:06 -0500
-Message-ID: <5319CDF1.4030405@ti.com>
-Date: Fri, 7 Mar 2014 19:17:29 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:36265 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751935AbaCGQTl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 11:19:41 -0500
+Received: by mail-la0-f53.google.com with SMTP id b8so2898701lan.40
+        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 08:19:39 -0800 (PST)
+Message-ID: <5319FFB4.3050102@cogentembedded.com>
+Date: Fri, 07 Mar 2014 20:19:48 +0300
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <k.debski@samsung.com>, <linux-media@vger.kernel.org>,
-	<linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v2 7/7] v4l: ti-vpe: Add selection API in VPE driver
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393922965-15967-1-git-send-email-archit@ti.com> <1393922965-15967-8-git-send-email-archit@ti.com> <53159F7D.8020707@xs4all.nl> <5315B822.7010005@ti.com> <5315BA83.5080500@xs4all.nl> <5319B26B.8050900@ti.com> <5319C2A7.6090805@xs4all.nl> <5319C813.5030508@ti.com> <5319CA53.9020101@xs4all.nl>
-In-Reply-To: <5319CA53.9020101@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+To: Ben Dooks <ben.dooks@codethink.co.uk>, linux-media@vger.kernel.org
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
+	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Subject: Re: [PATCH 5/5] rcar_vin: add devicetree support
+References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk> <1394197299-17528-6-git-send-email-ben.dooks@codethink.co.uk>
+In-Reply-To: <1394197299-17528-6-git-send-email-ben.dooks@codethink.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 07 March 2014 07:02 PM, Hans Verkuil wrote:
-> On 03/07/2014 02:22 PM, Archit Taneja wrote:
->> Hi,
->>
->> On Friday 07 March 2014 06:29 PM, Hans Verkuil wrote:
->>>>
->>>> Do you think I can go ahead with posting the v3 patch set for 3.15, and
->>>> work on fixing the compliance issue for the -rc fixes?
->>>
->>> It's fine to upstream this in staging, but while not all compliance errors
->>> are fixed it can't go to drivers/media. I'm tightening the screws on that
->>> since v4l2-compliance is getting to be such a powerful tool for ensuring
->>> the driver complies.
->>>
->>
->> But the vpe driver is already in drivers/media. How do I push these
->> patches if the vpe drivers is not in staging?
->
-> Oops, sorry. I got confused with Benoit's AM437x ti-vpfe patch :-)
->
-> Disregard what I said, it's OK to upstream it. But if you could just spend
-> some hours fixing the problems, that would really be best.
+Hello.
 
-Sure, I'll try to fix these issues and then post a v3.
+On 03/07/2014 04:01 PM, Ben Dooks wrote:
 
+> Add support for devicetree probe for the rcar-vin
+> driver.
+
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> ---
+>   .../devicetree/bindings/media/rcar_vin.txt         | 79 ++++++++++++++++++++++
+>   drivers/media/platform/soc_camera/rcar_vin.c       | 67 ++++++++++++++++--
+>   2 files changed, 140 insertions(+), 6 deletions(-)
+>   create mode 100644 Documentation/devicetree/bindings/media/rcar_vin.txt
+
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> new file mode 100644
+> index 0000000..105b8de
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -0,0 +1,79 @@
+> +Renesas RCar Video Input driver (rcar_vin)
+> +------------------------------------------
+> +
+> +The rcar_vin device provides video input capabilities for the Renesas R-Car
+> +family of devices. The current blocks are always slaves and suppot one input
+
+    Support.
+
+> +channel which can be either RGB, YUYV or BT656.
+> +
+> + - compatible: Must be one of the following
+> +   - "renesas,vin-r8a7791" for the R8A7791 device
+> +   - "renesas,vin-r8a7790" for the R8A7790 device
+> +   - "renesas,vin-r8a7779" for the R8A7779 device
+> +   - "renesas,vin-r8a7778" for the R8A7778 device
+> + - reg: the register base and size for the device registers
+> + - interrupts: the interrupt for the device
+> + - clocks: Reference to the parent clock
+> +
+> +The per-board settings:
+> + - port sub-node describing a single endpoint connected to the vin
+
+    s/vin/VIN/.
+
+> +   as described in video-interfaces.txt[1]. Only the first one will
+> +   be considered as each vin interface has one input port.
+[...]
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 47516df..73c56c7 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -1404,15 +1418,50 @@ MODULE_DEVICE_TABLE(platform, rcar_vin_id_table);
 >
->>
->> <snip>
->>
->>>> Multiplanar: TRY_FMT(G_FMT) != G_FMT
->>>>            test VIDIOC_TRY_FMT: FAIL
->>>>                    warn: v4l2-test-formats.cpp(834): S_FMT cannot handle
->>>> an invalid pixelformat.
->>>>                    warn: v4l2-test-formats.cpp(835): This may or may not
->>>> be a problem. For more information see:
->>>>                    warn: v4l2-test-formats.cpp(836):
->>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
->>>>                    fail: v4l2-test-formats.cpp(420): pix_mp.reserved not
->>>> zeroed
->>>
->>> This is easy enough to fix.
->>>
->>>>                    fail: v4l2-test-formats.cpp(851): Video Capture
->>>> Multiplanar is valid, but no S_FMT was implemented
->>>
->>> For the FMT things: run with -T: that gives nice traces. You can also
->>> set the debug flag: echo 2 >/sys/class/video4linux/video0/debug to see all
->>> ioctls in more detail.
->>
->> Thanks for the tip, will try this.
->>
->>>
->>>>            test VIDIOC_S_FMT: FAIL
->>>>            test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->>>>
->>>> Codec ioctls:
->>>>            test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->>>>            test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->>>>            test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
->>>>
->>>> Buffer ioctls:
->>>>                    info: test buftype Video Capture Multiplanar
->>>>                    warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
->>>> not supported
->>>>                    info: test buftype Video Output Multiplanar
->>>>                    warn: v4l2-test-buffers.cpp(403): VIDIOC_CREATE_BUFS
->>>> not supported
->>>>            test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->>>>            test VIDIOC_EXPBUF: OK (Not Supported)
->>>>            test read/write: OK (Not Supported)
->>>>                Video Capture Multiplanar (polling):
->>>>                    Buffer: 0 Sequence: 0 Field: Top Timestamp: 113.178208s
->>>>                    fail: v4l2-test-buffers.cpp(222): buf.field !=
->>>> cur_fmt.fmt.pix.field
->>>
->>> Definitely needs to be fixed, you probably just don't set the field at all.
->>
->> The VPE output is always progressive. But yes, I should still set the
->> field parameter to something.
+>   static int rcar_vin_probe(struct platform_device *pdev)
+>   {
+> +	const struct of_device_id *match = NULL;
+>   	struct rcar_vin_priv *priv;
+>   	struct resource *mem;
+>   	struct rcar_vin_platform_data *pdata;
+> +	unsigned int pdata_flags;
+>   	int irq, ret;
 >
-> V4L2_FIELD_NONE is the correct field setting for that.
+> -	pdata = pdev->dev.platform_data;
+> -	if (!pdata || !pdata->flags) {
+> -		dev_err(&pdev->dev, "platform data not set\n");
+> -		return -EINVAL;
+> +	if (pdev->dev.of_node) {
+> +		struct v4l2_of_endpoint ep;
+> +		struct device_node *np;
+> +
+> +		match = of_match_device(of_match_ptr(rcar_vin_of_table),
+> +					&pdev->dev);
+> +
+> +		np = v4l2_of_get_next_endpoint(pdev->dev.of_node, NULL);
+> +		if (!np) {
+> +			dev_err(&pdev->dev, "could not find endpoint\n");
+> +			return -EINVAL;
+> +		}
+> +
+> +		ret = v4l2_of_parse_endpoint(np, &ep);
+> +		if (ret) {
+> +			dev_err(&pdev->dev, "could not parse endpoint\n");
+> +			return ret;
+> +		}
+> +
+> +		if (ep.bus_type == V4L2_MBUS_BT656)
+> +			pdata_flags = RCAR_VIN_BT656;
+> +		else {
 
-I checked the driver, it isn't setting it to V4L2_FIELD_NONE. Will fix this.
+    Both arms of *if* should have {} -- see Documentation/CodingStyle.
 
-Archit
+> +			pdata_flags = 0;
+> +			if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+> +				pdata_flags |= RCAR_VIN_HSYNC_ACTIVE_LOW;
+> +			if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+> +				pdata_flags |= RCAR_VIN_VSYNC_ACTIVE_LOW;
+> +		}
+> +
+> +		dev_dbg(&pdev->dev, "pdata_flags = %08x\n", pdata_flags);
+> +	} else {
+> +		pdata = pdev->dev.platform_data;
+
+    Use dev_get_platdata(&pdev->dev), please. Lot of drivers have been 
+converted to use it instead of the direct access. Haven't gotten to this one 
+it seems.
+
+> @@ -1447,8 +1496,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
+>   	priv->ici.drv_name = dev_name(&pdev->dev);
+>   	priv->ici.ops = &rcar_vin_host_ops;
+>
+> -	priv->pdata_flags = pdata->flags;
+> -	priv->chip = pdev->id_entry->driver_data;
+> +	priv->pdata_flags = pdata_flags;
+> +	if (!match)
+> +		priv->chip = pdev->id_entry->driver_data;
+> +	else
+> +		priv->chip = (enum chip_id)match->data;
+> +
+> +
+
+    Too many empty lines here, I think.
+
+WBR, Sergei
 
