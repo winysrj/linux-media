@@ -1,64 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40006 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967AbaCETWl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 14:22:41 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3443 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753149AbaCGKVe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 05:21:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 0/6] VSP1 Blend/ROP Unit and DT support 
-Date: Wed,  5 Mar 2014 20:23:58 +0100
-Message-Id: <1394047444-30077-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: marbugge@cisco.com, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	stable@vger.kernel.org.#.for.v3.7.and.up
+Subject: [REVIEWv1 PATCH 1/5] v4l2-compat-ioctl32: fix wrong VIDIOC_SUBDEV_G/S_EDID32 support.
+Date: Fri,  7 Mar 2014 11:21:15 +0100
+Message-Id: <1394187679-7345-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch series extends the VSP1 driver with support for the Blend/ROP Units
-as well as DT bindings. Please see individual patches for details.
+The wrong ioctl numbers were used due to a copy-and-paste error.
 
-The driver patches (1 to 4) and platform patches (5 to 6) can be merged
-independently once the DT bindings will be approved.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: stable@vger.kernel.org      # for v3.7 and up
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The series has been tested with the VSP1-DU0 instance on the Lager and Koelsch
-boards.
-
-Laurent Pinchart (6):
-  v4l: vsp1: Support multi-input entities
-  v4l: vsp1: Add BRU support
-  v4l: vsp1: uds: Enable scaling of alpha layer
-  v4l: vsp1: Add DT support
-  ARM: shmobile: r8a7790: Add VSP1 devices to DT
-  ARM: shmobile: r8a7791: Add VSP1 devices to DT
-
- .../devicetree/bindings/media/renesas,vsp1.txt     |  51 +++
- arch/arm/boot/dts/r8a7790.dtsi                     |  55 +++
- arch/arm/boot/dts/r8a7791.dtsi                     |  39 ++
- drivers/media/platform/vsp1/Makefile               |   2 +-
- drivers/media/platform/vsp1/vsp1.h                 |   2 +
- drivers/media/platform/vsp1/vsp1_bru.c             | 395 +++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_bru.h             |  39 ++
- drivers/media/platform/vsp1/vsp1_drv.c             |  61 +++-
- drivers/media/platform/vsp1/vsp1_entity.c          |  57 +--
- drivers/media/platform/vsp1/vsp1_entity.h          |  24 +-
- drivers/media/platform/vsp1/vsp1_hsit.c            |   7 +-
- drivers/media/platform/vsp1/vsp1_lif.c             |   1 -
- drivers/media/platform/vsp1/vsp1_lut.c             |   1 -
- drivers/media/platform/vsp1/vsp1_regs.h            |  98 +++++
- drivers/media/platform/vsp1/vsp1_rpf.c             |   7 +-
- drivers/media/platform/vsp1/vsp1_rwpf.h            |   4 +
- drivers/media/platform/vsp1/vsp1_sru.c             |   1 -
- drivers/media/platform/vsp1/vsp1_uds.c             |   4 +-
- drivers/media/platform/vsp1/vsp1_video.c           |  26 +-
- drivers/media/platform/vsp1/vsp1_video.h           |   1 +
- drivers/media/platform/vsp1/vsp1_wpf.c             |  13 +-
- 21 files changed, 830 insertions(+), 58 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,vsp1.txt
- create mode 100644 drivers/media/platform/vsp1/vsp1_bru.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_bru.h
-
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 1b18616..7e23e19 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -787,8 +787,8 @@ static int put_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct v4l2_subde
+ #define VIDIOC_DQBUF32		_IOWR('V', 17, struct v4l2_buffer32)
+ #define VIDIOC_ENUMSTD32	_IOWR('V', 25, struct v4l2_standard32)
+ #define VIDIOC_ENUMINPUT32	_IOWR('V', 26, struct v4l2_input32)
+-#define VIDIOC_SUBDEV_G_EDID32	_IOWR('V', 63, struct v4l2_subdev_edid32)
+-#define VIDIOC_SUBDEV_S_EDID32	_IOWR('V', 64, struct v4l2_subdev_edid32)
++#define VIDIOC_SUBDEV_G_EDID32	_IOWR('V', 40, struct v4l2_subdev_edid32)
++#define VIDIOC_SUBDEV_S_EDID32	_IOWR('V', 41, struct v4l2_subdev_edid32)
+ #define VIDIOC_TRY_FMT32      	_IOWR('V', 64, struct v4l2_format32)
+ #define VIDIOC_G_EXT_CTRLS32    _IOWR('V', 71, struct v4l2_ext_controls32)
+ #define VIDIOC_S_EXT_CTRLS32    _IOWR('V', 72, struct v4l2_ext_controls32)
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.0
 
