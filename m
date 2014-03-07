@@ -1,94 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:64261 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322AbaCPLwi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Mar 2014 07:52:38 -0400
-Received: by mail-wg0-f46.google.com with SMTP id b13so3600188wgh.17
-        for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 04:52:37 -0700 (PDT)
-From: James Hogan <james@albanarts.com>
-To: Antti =?ISO-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52975 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752191AbaCGOFe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:05:34 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, marbugge@cisco.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2 9/9] rc: nuvoton-cir: Add support for writing wakeup samples via sysfs filter callback
-Date: Sun, 16 Mar 2014 11:52:21 +0000
-Message-ID: <2076172.6KyOpsnAqT@radagast>
-In-Reply-To: <CAKv9HNZN6hWgYnWmD3zgEABjNMxzMsAoaCT4Mgb7EKF4r5zjdg@mail.gmail.com>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com> <1394838259-14260-10-git-send-email-james@albanarts.com> <CAKv9HNZN6hWgYnWmD3zgEABjNMxzMsAoaCT4Mgb7EKF4r5zjdg@mail.gmail.com>
+Subject: Re: [REVIEWv1 PATCH 3/5] v4l2: add VIDIOC_G/S_EDID support to the v4l2 core.
+Date: Fri, 07 Mar 2014 15:07:05 +0100
+Message-ID: <8715671.6NvOosLvqM@avalon>
+In-Reply-To: <1394187679-7345-4-git-send-email-hverkuil@xs4all.nl>
+References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl> <1394187679-7345-4-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart2323710.yqxCSamatO"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---nextPart2323710.yqxCSamatO
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Thank you for the patch.
 
-On Sunday 16 March 2014 10:39:39 Antti Sepp=E4l=E4 wrote:
-> > +static int nvt_write_wakeup_codes(struct rc_dev *dev,
-> > +                                 const u8 *wakeup_sample_buf, int =
-count)
-> > +{
-> > +       int i =3D 0;
-> > +       u8 reg, reg_learn_mode;
-> > +       unsigned long flags;
-> > +       struct nvt_dev *nvt =3D dev->priv;
-> > +
-> > +       nvt_dbg_wake("writing wakeup samples");
-> > +
-> > +       reg =3D nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
-> > +       reg_learn_mode =3D reg & ~CIR_WAKE_IRCON_MODE0;
-> > +       reg_learn_mode |=3D CIR_WAKE_IRCON_MODE1;
-> > +
-> > +       /* Lock the learn area to prevent racing with wake-isr */
-> > +       spin_lock_irqsave(&nvt->nvt_lock, flags);
-> > +
-> > +       /* Enable fifo writes */
-> > +       nvt_cir_wake_reg_write(nvt, reg_learn_mode, CIR_WAKE_IRCON)=
-;
-> > +
-> > +       /* Clear cir wake rx fifo */
-> > +       nvt_clear_cir_wake_fifo(nvt);
-> > +
-> > +       if (count > WAKE_FIFO_LEN) {
-> > +               nvt_dbg_wake("HW FIFO too small for all wake sample=
-s");
-> > +               count =3D WAKE_FIFO_LEN;
-> > +       }
->=20
-> Now that the encoders support partial encoding the above check agains=
-t
-> WAKE_FIFO_LEN never triggers and can be removed.
+On Friday 07 March 2014 11:21:17 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Support this ioctl as part of the v4l2 core. Use the new ioctl
+> name and struct v4l2_edid type in the existing core code.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yep, good point
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks
-James
---nextPart2323710.yqxCSamatO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 32 ++++++++++++------------
+>  drivers/media/v4l2-core/v4l2-dev.c            |  2 ++
+>  drivers/media/v4l2-core/v4l2-ioctl.c          | 16 +++++++++++---
+>  drivers/media/v4l2-core/v4l2-subdev.c         |  4 ++--
+>  include/media/v4l2-ioctl.h                    |  2 ++
+>  include/media/v4l2-subdev.h                   |  4 ++--
+>  6 files changed, 37 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 7e23e19..872f1ca
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -740,7 +740,7 @@ static int put_v4l2_event32(struct v4l2_event *kp,
+> struct v4l2_event32 __user *u return 0;
+>  }
+> 
+> -struct v4l2_subdev_edid32 {
+> +struct v4l2_edid32 {
+>  	__u32 pad;
+>  	__u32 start_block;
+>  	__u32 blocks;
+> @@ -748,11 +748,11 @@ struct v4l2_subdev_edid32 {
+>  	compat_caddr_t edid;
+>  };
+> 
+> -static int get_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct
+> v4l2_subdev_edid32 __user *up) +static int get_v4l2_edid32(struct v4l2_edid
+> *kp, struct v4l2_edid32 __user *up) {
+>  	u32 tmp;
+> 
+> -	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_subdev_edid32)) ||
+> +	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_edid32)) ||
+>  		get_user(kp->pad, &up->pad) ||
+>  		get_user(kp->start_block, &up->start_block) ||
+>  		get_user(kp->blocks, &up->blocks) ||
+> @@ -763,11 +763,11 @@ static int get_v4l2_subdev_edid32(struct
+> v4l2_subdev_edid *kp, struct v4l2_subde return 0;
+>  }
+> 
+> -static int put_v4l2_subdev_edid32(struct v4l2_subdev_edid *kp, struct
+> v4l2_subdev_edid32 __user *up) +static int put_v4l2_edid32(struct v4l2_edid
+> *kp, struct v4l2_edid32 __user *up) {
+>  	u32 tmp = (u32)((unsigned long)kp->edid);
+> 
+> -	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_subdev_edid32)) ||
+> +	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_edid32)) ||
+>  		put_user(kp->pad, &up->pad) ||
+>  		put_user(kp->start_block, &up->start_block) ||
+>  		put_user(kp->blocks, &up->blocks) ||
+> @@ -787,8 +787,8 @@ static int put_v4l2_subdev_edid32(struct
+> v4l2_subdev_edid *kp, struct v4l2_subde #define VIDIOC_DQBUF32		
+_IOWR('V',
+> 17, struct v4l2_buffer32)
+>  #define VIDIOC_ENUMSTD32	_IOWR('V', 25, struct v4l2_standard32)
+>  #define VIDIOC_ENUMINPUT32	_IOWR('V', 26, struct v4l2_input32)
+> -#define VIDIOC_SUBDEV_G_EDID32	_IOWR('V', 40, struct v4l2_subdev_edid32)
+> -#define VIDIOC_SUBDEV_S_EDID32	_IOWR('V', 41, struct v4l2_subdev_edid32)
+> +#define VIDIOC_G_EDID32		_IOWR('V', 40, struct v4l2_edid32)
+> +#define VIDIOC_S_EDID32		_IOWR('V', 41, struct v4l2_edid32)
+>  #define VIDIOC_TRY_FMT32      	_IOWR('V', 64, struct v4l2_format32)
+>  #define VIDIOC_G_EXT_CTRLS32    _IOWR('V', 71, struct v4l2_ext_controls32)
+>  #define VIDIOC_S_EXT_CTRLS32    _IOWR('V', 72, struct v4l2_ext_controls32)
+> @@ -816,7 +816,7 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar struct v4l2_ext_controls v2ecs;
+>  		struct v4l2_event v2ev;
+>  		struct v4l2_create_buffers v2crt;
+> -		struct v4l2_subdev_edid v2edid;
+> +		struct v4l2_edid v2edid;
+>  		unsigned long vx;
+>  		int vi;
+>  	} karg;
+> @@ -849,8 +849,8 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar case VIDIOC_S_OUTPUT32: cmd = VIDIOC_S_OUTPUT;
+> break;
+>  	case VIDIOC_CREATE_BUFS32: cmd = VIDIOC_CREATE_BUFS; break;
+>  	case VIDIOC_PREPARE_BUF32: cmd = VIDIOC_PREPARE_BUF; break;
+> -	case VIDIOC_SUBDEV_G_EDID32: cmd = VIDIOC_SUBDEV_G_EDID; break;
+> -	case VIDIOC_SUBDEV_S_EDID32: cmd = VIDIOC_SUBDEV_S_EDID; break;
+> +	case VIDIOC_G_EDID32: cmd = VIDIOC_G_EDID; break;
+> +	case VIDIOC_S_EDID32: cmd = VIDIOC_S_EDID; break;
+>  	}
+> 
+>  	switch (cmd) {
+> @@ -868,9 +868,9 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar compatible_arg = 0;
+>  		break;
+> 
+> -	case VIDIOC_SUBDEV_G_EDID:
+> -	case VIDIOC_SUBDEV_S_EDID:
+> -		err = get_v4l2_subdev_edid32(&karg.v2edid, up);
+> +	case VIDIOC_G_EDID:
+> +	case VIDIOC_S_EDID:
+> +		err = get_v4l2_edid32(&karg.v2edid, up);
+>  		compatible_arg = 0;
+>  		break;
+> 
+> @@ -966,9 +966,9 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar err = put_v4l2_event32(&karg.v2ev, up);
+>  		break;
+> 
+> -	case VIDIOC_SUBDEV_G_EDID:
+> -	case VIDIOC_SUBDEV_S_EDID:
+> -		err = put_v4l2_subdev_edid32(&karg.v2edid, up);
+> +	case VIDIOC_G_EDID:
+> +	case VIDIOC_S_EDID:
+> +		err = put_v4l2_edid32(&karg.v2edid, up);
+>  		break;
+> 
+>  	case VIDIOC_G_FMT:
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
+> b/drivers/media/v4l2-core/v4l2-dev.c index 95112f6..634d863 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -701,6 +701,7 @@ static void determine_valid_ioctls(struct video_device
+> *vdev) SET_VALID_IOCTL(ops, VIDIOC_G_AUDIO, vidioc_g_audio);
+>  			SET_VALID_IOCTL(ops, VIDIOC_S_AUDIO, vidioc_s_audio);
+>  			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, 
+vidioc_query_dv_timings);
+> +			SET_VALID_IOCTL(ops, VIDIOC_S_EDID, vidioc_s_edid);
+>  		}
+>  		if (is_tx) {
+>  			SET_VALID_IOCTL(ops, VIDIOC_ENUMOUTPUT, vidioc_enum_output);
+> @@ -726,6 +727,7 @@ static void determine_valid_ioctls(struct video_device
+> *vdev) SET_VALID_IOCTL(ops, VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings);
+> SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
+> SET_VALID_IOCTL(ops, VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap);
+> +		SET_VALID_IOCTL(ops, VIDIOC_G_EDID, vidioc_g_edid);
+>  	}
+>  	if (is_tx && (is_radio || is_sdr)) {
+>  		/* radio transmitter only ioctls */
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> b/drivers/media/v4l2-core/v4l2-ioctl.c index 95dd4f1..6536e15 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -844,6 +844,14 @@ static void v4l_print_freq_band(const void *arg, bool
+> write_only) p->rangehigh, p->modulation);
+>  }
+> 
+> +static void v4l_print_edid(const void *arg, bool write_only)
+> +{
+> +	const struct v4l2_edid *p = arg;
+> +
+> +	pr_cont("pad=%u, start_block=%u, blocks=%u\n",
+> +		p->pad, p->start_block, p->blocks);
+> +}
+> +
+>  static void v4l_print_u32(const void *arg, bool write_only)
+>  {
+>  	pr_cont("value=%u\n", *(const u32 *)arg);
+> @@ -2062,6 +2070,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+>  	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu,
+> INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
+> IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
+> IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
+> +	IOCTL_INFO_STD(VIDIOC_G_EDID, vidioc_g_edid, v4l_print_edid,
+> INFO_FL_CLEAR(v4l2_edid, edid)), +	IOCTL_INFO_STD(VIDIOC_S_EDID,
+> vidioc_s_edid, v4l_print_edid, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_edid,
+> edid)), IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
+> IOCTL_INFO_FNC(VIDIOC_S_OUTPUT, v4l_s_output, v4l_print_u32, INFO_FL_PRIO),
+> IOCTL_INFO_FNC(VIDIOC_ENUMOUTPUT, v4l_enumoutput, v4l_print_enumoutput,
+> INFO_FL_CLEAR(v4l2_output, index)), @@ -2274,9 +2284,9 @@ static int
+> check_array_args(unsigned int cmd, void *parg, size_t *array_size, break;
+>  	}
+> 
+> -	case VIDIOC_SUBDEV_G_EDID:
+> -	case VIDIOC_SUBDEV_S_EDID: {
+> -		struct v4l2_subdev_edid *edid = parg;
+> +	case VIDIOC_G_EDID:
+> +	case VIDIOC_S_EDID: {
+> +		struct v4l2_edid *edid = parg;
+> 
+>  		if (edid->blocks) {
+>  			if (edid->blocks > 256) {
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
+> b/drivers/media/v4l2-core/v4l2-subdev.c index 60d2550..aea84ac 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -349,10 +349,10 @@ static long subdev_do_ioctl(struct file *file,
+> unsigned int cmd, void *arg) sd, pad, set_selection, subdev_fh, sel);
+>  	}
+> 
+> -	case VIDIOC_SUBDEV_G_EDID:
+> +	case VIDIOC_G_EDID:
+>  		return v4l2_subdev_call(sd, pad, get_edid, arg);
+> 
+> -	case VIDIOC_SUBDEV_S_EDID:
+> +	case VIDIOC_S_EDID:
+>  		return v4l2_subdev_call(sd, pad, set_edid, arg);
+>  #endif
+>  	default:
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index 8be32f5..50cf7c1 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -273,6 +273,8 @@ struct v4l2_ioctl_ops {
+>  				    struct v4l2_enum_dv_timings *timings);
+>  	int (*vidioc_dv_timings_cap) (struct file *file, void *fh,
+>  				    struct v4l2_dv_timings_cap *cap);
+> +	int (*vidioc_g_edid) (struct file *file, void *fh, struct v4l2_edid
+> *edid); +	int (*vidioc_s_edid) (struct file *file, void *fh, struct
+> v4l2_edid *edid);
+> 
+>  	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
+>  					const struct v4l2_event_subscription *sub);
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 1752530..855c928 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -507,8 +507,8 @@ struct v4l2_subdev_pad_ops {
+>  			     struct v4l2_subdev_selection *sel);
+>  	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>  			     struct v4l2_subdev_selection *sel);
+> -	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+> -	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+> +	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_edid *edid);
+> +	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_edid *edid);
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
+>  			     struct v4l2_subdev_format *source_fmt,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+-- 
+Regards,
 
-iQIcBAABAgAGBQJTJZB8AAoJEGwLaZPeOHZ6W6AQAIEpfE85+KO6yT8xQO9RGG67
-8/iysTeeLXPQyXRrymjdCfQNO5lme9Dn/TZcFVy8w/k0dV56Zmb26QwS69dcnVyF
-4a/FyhbbWGFX03Z+bW6o1mrJ/eJUA1snLST8p1GaeKyIZRhTQUHFw72JaD0kjEwf
-HYv93d5SFpgXJK/NxHWqP/uxzEqulCn4VRdPemQFHuponeGoyxfsqDpezpT242WS
-PmGGwWfmKsBSG/KSE59m7RAd3xjCxdbWQn/5HeevbUEKJVZcZQO8jYkMbr61+kVd
-RYgnNEQBWQNo5K9NUqouWHg2zyoQmttoFLva7Cwvn9FHsHON49ckiTvnSyZaZHTC
-pW5wR4QSej5PEXpFo5v+XdDt4BaIqKIPGpg2WTjh42XGGhQOSSP7UE5CE5JLhewg
-tHzRQO55UswKMVwSmrdim+O2bxclVIRoyatnnLCAPog436kQWid5YFooPCQAJsmV
-xNTdP67Da8xnkZbZtGd7c94XD7xQxk/NNbD3RB6yGSJejkfUReK+nJRpVZq49070
-unf4SBO9T374Hef3T/eY2Vq8atduAnBcPm+p/UiKrswX8VYimTU0qDnvMJba8Loz
-x7JNmiO77zyNqOZSQ1WrPnLUpWLNlp8gR1ki75PrLCTyuFQ1vz68PReMuWOYFTTs
-sU/MQAvOIvltEwXrCbJk
-=nW18
------END PGP SIGNATURE-----
-
---nextPart2323710.yqxCSamatO--
+Laurent Pinchart
 
