@@ -1,62 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:21829 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168AbaCKNrV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 09:47:21 -0400
-Message-id: <531F13E2.3040603@samsung.com>
-Date: Tue, 11 Mar 2014 14:47:14 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
- <1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>
- <530DE8A9.9050809@ti.com> <1393426623.3248.70.camel@paszta.hi.pengutronix.de>
- <530DFF4C.8080807@ti.com> <20140307181132.B2D71C40A88@trevor.secretlab.ca>
- <531AE46A.2060808@ti.com> <20140308122532.1AED9C40612@trevor.secretlab.ca>
- <531D6178.3070906@ti.com>
-In-reply-to: <531D6178.3070906@ti.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4041 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753556AbaCGO0e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:26:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 1/5] DocBook media: update STREAMON/OFF documentation.
+Date: Fri,  7 Mar 2014 15:26:20 +0100
+Message-Id: <1394202384-5762-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394202384-5762-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394202384-5762-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/03/14 07:53, Tomi Valkeinen wrote:
-> On 08/03/14 14:25, Grant Likely wrote:
-> 
->> Sure. If endpoints are logical, then only create the ones actually
->> hooked up. No problem there. But nor do I see any issue with having
->> empty connections if the board author things it makes sense to have them
->> in the dtsi.
-> 
-> I don't think they are usually logical, although they probably might be
-> in some cases.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The endpoint nodes are supposed to be logical, they just group properties
-describing a port's configuration.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/vidioc-streamon.xml          | 28 +++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-> As I see it, a "port" is a group of pins in a hardware component, and
-> two endpoints define a connection between two ports, which on the HW
-> level are the wires between the ports.
-> 
-> So a port with two endpoints is a group of pins, with wires that go from
-> the same pins to two different components.
+diff --git a/Documentation/DocBook/media/v4l/vidioc-streamon.xml b/Documentation/DocBook/media/v4l/vidioc-streamon.xml
+index 65dff55..df2c63d 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-streamon.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-streamon.xml
+@@ -52,16 +52,24 @@
+     <para>The <constant>VIDIOC_STREAMON</constant> and
+ <constant>VIDIOC_STREAMOFF</constant> ioctl start and stop the capture
+ or output process during streaming (<link linkend="mmap">memory
+-mapping</link> or <link linkend="userp">user pointer</link>) I/O.</para>
++mapping</link>, <link linkend="userp">user pointer</link> or
++<link linkend="dmabuf">DMABUF</link>) I/O.</para>
+ 
+-    <para>Specifically the capture hardware is disabled and no input
++    <para>Capture hardware is disabled and no input
+ buffers are filled (if there are any empty buffers in the incoming
+ queue) until <constant>VIDIOC_STREAMON</constant> has been called.
+-Accordingly the output hardware is disabled, no video signal is
++Output hardware is disabled and no video signal is
+ produced until <constant>VIDIOC_STREAMON</constant> has been called.
+ The ioctl will succeed when at least one output buffer is in the
+ incoming queue.</para>
+ 
++    <para>Memory-to-memory devices will not start until
++<constant>VIDIOC_STREAMON</constant> has been called for both the capture
++and output stream types.</para>
++
++    <para>If <constant>VIDIOC_STREAMON</constant> fails then any already
++queued buffers will remain queued.</para>
++
+     <para>The <constant>VIDIOC_STREAMOFF</constant> ioctl, apart of
+ aborting or finishing any DMA in progress, unlocks any user pointer
+ buffers locked in physical memory, and it removes all buffers from the
+@@ -70,14 +78,22 @@ dequeued yet will be lost, likewise all images enqueued for output but
+ not transmitted yet. I/O returns to the same state as after calling
+ &VIDIOC-REQBUFS; and can be restarted accordingly.</para>
+ 
++    <para>If buffers have been queued with &VIDIOC-QBUF; and
++<constant>VIDIOC_STREAMOFF</constant> is called without ever having
++called <constant>VIDIOC_STREAMON</constant>, then those queued buffers
++will also be removed from the incoming queue and all are returned to the
++same state as after calling &VIDIOC-REQBUFS; and can be restarted
++accordingly.</para>
++
+     <para>Both ioctls take a pointer to an integer, the desired buffer or
+ stream type. This is the same as &v4l2-requestbuffers;
+ <structfield>type</structfield>.</para>
+ 
+     <para>If <constant>VIDIOC_STREAMON</constant> is called when streaming
+ is already in progress, or if <constant>VIDIOC_STREAMOFF</constant> is called
+-when streaming is already stopped, then the ioctl does nothing and 0 is
+-returned.</para>
++when streaming is already stopped, then 0 is returned. Nothing happens in the
++case of <constant>VIDIOC_STREAMON</constant>, but <constant>VIDIOC_STREAMOFF</constant>
++will return queued buffers to their starting state as mentioned above.</para>
+ 
+     <para>Note that applications can be preempted for unknown periods right
+ before or after the <constant>VIDIOC_STREAMON</constant> or
+@@ -93,7 +109,7 @@ synchronize with other events.</para>
+       <varlistentry>
+ 	<term><errorcode>EINVAL</errorcode></term>
+ 	<listitem>
+-	  <para>The buffer<structfield>type</structfield> is not supported,
++	  <para>The buffer <structfield>type</structfield> is not supported,
+ 	  or no buffers have been allocated (memory mapping) or enqueued
+ 	  (output) yet.</para>
+ 	</listitem>
+-- 
+1.9.0
 
-It could be approximated like this, but I don't think it is needed.
-I would rather stay with only port nodes mapped to hardware and the
-endpoint nodes logical.
-
---
-Regards,
-Sylwester
