@@ -1,560 +1,349 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37590 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750993AbaCXAJI (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:42717 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751457AbaCGLKL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Mar 2014 20:09:08 -0400
-Date: Mon, 24 Mar 2014 02:08:34 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com
-Subject: Re: [PATCH/RFC 4/8] media: Add registration helpers for V4L2 flash
- sub-devices
-Message-ID: <20140324000834.GC2054@valkosipuli.retiisi.org.uk>
-References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
- <1395327070-20215-5-git-send-email-j.anaszewski@samsung.com>
+	Fri, 7 Mar 2014 06:10:11 -0500
+Message-ID: <5319A90E.2020704@codethink.co.uk>
+Date: Fri, 07 Mar 2014 11:10:06 +0000
+From: Ben Dooks <ben.dooks@codethink.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1395327070-20215-5-git-send-email-j.anaszewski@samsung.com>
+To: Bryan Wu <cooloney@gmail.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	linux-tegra <linux-tegra@vger.kernel.org>
+Subject: Re: [PATCH v2] media: soc-camera: OF cameras
+References: <1392235552-28134-1-git-send-email-pengw@nvidia.com> <CAK5ve-LGkvxyPJK1YXMXc-4DV6TOM6RcpHthjmt3RLaCEnWVhg@mail.gmail.com> <CAK5ve-+UE1R-SYk0XDgg0kz+in8nyVseem=Rbe0VAiKc23b_aQ@mail.gmail.com> <Pine.LNX.4.64.1402250718590.30082@axis700.grange> <CAK5ve-JZmh4M6rCb4Mp0d_UOb_fzE04CBZ_c1GCOEyJCQvKWfg@mail.gmail.com>
+In-Reply-To: <CAK5ve-JZmh4M6rCb4Mp0d_UOb_fzE04CBZ_c1GCOEyJCQvKWfg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+On 06/03/14 23:12, Bryan Wu wrote:
+> On Mon, Feb 24, 2014 at 10:19 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+>> Hi Bryan,
+>>
+>> On Mon, 24 Feb 2014, Bryan Wu wrote:
+>>
+>>> On Tue, Feb 18, 2014 at 10:40 AM, Bryan Wu <cooloney@gmail.com> wrote:
+>>>> On Wed, Feb 12, 2014 at 12:05 PM, Bryan Wu <cooloney@gmail.com> wrote:
+>>>>> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>>>>
+>>>>> With OF we aren't getting platform data any more. To minimise changes we
+>>>>> create all the missing data ourselves, including compulsory struct
+>>>>> soc_camera_link objects. Host-client linking is now done, based on the OF
+>>>>> data. Media bus numbers also have to be assigned dynamically.
+>>>>>
+>>>>> OF probing reuses the V4L2 Async API which is used by async non-OF probing.
+>>>>>
+>>>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>>>
+>>>> Hi Guennadi,
+>>>>
+>>>> Do you have chance to review my v2 patch?
+>>
+>> I looked at it briefly, the direction looks good now, but I'll have to
+>> find time to properly review it.
+>>
+>
+> Hi Guennadi,
+>
+> Do you have chance to review this patch?
+>
+> Thanks,
+> -Bryan
+>
+>
+>>
+>>>>> Signed-off-by: Bryan Wu <pengw@nvidia.com>
+>>>>> ---
+>>>>> v2:
+>>>>>   - move to use V4L2 Async API
+>>>>>   - cleanup some coding style issue
+>>>>>   - allocate struct soc_camera_desc sdesc on stack
+>>>>>   - cleanup unbalanced mutex operation
+>>>>>
+>>>>>   drivers/media/platform/soc_camera/soc_camera.c | 232 ++++++++++++++++++++++++-
+>>>>>   include/media/soc_camera.h                     |   5 +
+>>>>>   2 files changed, 233 insertions(+), 4 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+>>>>> index 4b8c024..ffe1254 100644
+>>>>> --- a/drivers/media/platform/soc_camera/soc_camera.c
+>>>>> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+>>>>> @@ -23,6 +23,7 @@
+>>>>>   #include <linux/list.h>
+>>>>>   #include <linux/module.h>
+>>>>>   #include <linux/mutex.h>
+>>>>> +#include <linux/of.h>
+>>>>>   #include <linux/platform_device.h>
+>>>>>   #include <linux/pm_runtime.h>
+>>>>>   #include <linux/regulator/consumer.h>
+>>>>> @@ -36,6 +37,7 @@
+>>>>>   #include <media/v4l2-common.h>
+>>>>>   #include <media/v4l2-ioctl.h>
+>>>>>   #include <media/v4l2-dev.h>
+>>>>> +#include <media/v4l2-of.h>
+>>>>>   #include <media/videobuf-core.h>
+>>>>>   #include <media/videobuf2-core.h>
+>>>>>
+>>>>> @@ -49,6 +51,7 @@
+>>>>>           vb2_is_streaming(&(icd)->vb2_vidq))
+>>>>>
+>>>>>   #define MAP_MAX_NUM 32
+>>>>> +static DECLARE_BITMAP(host_map, MAP_MAX_NUM);
+>>>>>   static DECLARE_BITMAP(device_map, MAP_MAX_NUM);
+>>>>>   static LIST_HEAD(hosts);
+>>>>>   static LIST_HEAD(devices);
+>>>>> @@ -65,6 +68,17 @@ struct soc_camera_async_client {
+>>>>>          struct list_head list;          /* needed for clean up */
+>>>>>   };
+>>>>>
+>>>>> +struct soc_camera_of_client {
+>>>>> +       struct soc_camera_desc *sdesc;
+>>>>> +       struct soc_camera_async_client sasc;
+>>>>> +       struct v4l2_of_endpoint node;
+>>>>> +       struct dev_archdata archdata;
+>>>>> +       struct device_node *link_node;
+>>>>> +       union {
+>>>>> +               struct i2c_board_info i2c_info;
+>>>>> +       };
+>>>>> +};
 
-On Thu, Mar 20, 2014 at 03:51:06PM +0100, Jacek Anaszewski wrote:
-> This patch adds helper functions for registering/unregistering
-> LED class flash devices as V4L2 subdevs. The functions should
-> be called from the LED subsystem device driver. In case the
-> Multimedia Framework support is disabled in the kernel config
-> the functions' empty versions will be used.
-> 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/v4l2-core/Makefile     |    2 +-
->  drivers/media/v4l2-core/v4l2-flash.c |  320 ++++++++++++++++++++++++++++++++++
->  include/media/v4l2-flash.h           |  102 +++++++++++
->  3 files changed, 423 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/v4l2-core/v4l2-flash.c
->  create mode 100644 include/media/v4l2-flash.h
-> 
-> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-> index c6ae7ba..63e8f03 100644
-> --- a/drivers/media/v4l2-core/Makefile
-> +++ b/drivers/media/v4l2-core/Makefile
-> @@ -6,7 +6,7 @@ tuner-objs	:=	tuner-core.o
->  
->  videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
->  			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
-> -			v4l2-async.o
-> +			v4l2-async.o v4l2-flash.o
->  ifeq ($(CONFIG_COMPAT),y)
->    videodev-objs += v4l2-compat-ioctl32.o
->  endif
-> diff --git a/drivers/media/v4l2-core/v4l2-flash.c b/drivers/media/v4l2-core/v4l2-flash.c
-> new file mode 100644
-> index 0000000..6be0ba9
-> --- /dev/null
-> +++ b/drivers/media/v4l2-core/v4l2-flash.c
-> @@ -0,0 +1,320 @@
-> +/*
-> + * V4L2 flash LED subdevice registration helpers.
-> + *
-> + *	Copyright (C) 2014 Samsung Electronics Co., Ltd
-> + *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation."
-> + */
-> +
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-event.h>
-> +#include <media/v4l2-flash.h>
-> +#include <media/v4l2-dev.h>
+I don't understand why you need this for the async api case, since you
+do not need to create any new i2c info. The i2c device should be probed
+using OF and linked via the async probe api.
 
-Alphabetical order, please.
+I did a much simpler version of this that I was going to post today that
+works with the renesas vin driver.
 
-> +
-> +static int v4l2_flash_g_volatile_ctrl(struct v4l2_ctrl *c)
-> +
-> +{
-> +	struct v4l2_flash *flash = ctrl_to_flash(c);
-> +	struct led_classdev *led_cdev = flash->led_cdev;
-> +	unsigned int fault;
-> +	int ret;
-> +
-> +	switch (c->id) {
-> +	case V4L2_CID_FLASH_STROBE_STATUS:
-> +		ret = led_update_brightness(led_cdev);
-> +		if (ret < 0)
-> +			return ret;
-> +		c->val = !!ret;
-> +		return 0;
-> +	case V4L2_CID_FLASH_FAULT:
-> +		/* led faults map directly to V4L2 flash faults */
-> +		ret = led_get_flash_fault(led_cdev, &fault);
-> +		if (!ret)
-> +			c->val = fault;
-> +		return ret;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +static int v4l2_flash_set_intensity(struct v4l2_flash *flash,
-> +				    unsigned int intensity)
-> +{
-> +	struct led_classdev *led_cdev = flash->led_cdev;
-> +	unsigned int fault;
-> +	int ret;
-> +
-> +	ret = led_get_flash_fault(led_cdev, &fault);
-> +	if (ret < 0 || fault)
-> +		return -EINVAL;
+>>>>> +
+>>>>>   static int soc_camera_video_start(struct soc_camera_device *icd);
+>>>>>   static int video_dev_create(struct soc_camera_device *icd);
+>>>>>
+>>>>> @@ -1336,6 +1350,10 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+>>>>>                  return -EPROBE_DEFER;
+>>>>>          }
+>>>>>
+>>>>> +       /* OF probing skips following I2C init */
+>>>>> +       if (shd->host_wait)
+>>>>> +               return 0;
+>>>>> +
+>>>>>          ici = to_soc_camera_host(icd->parent);
+>>>>>          adap = i2c_get_adapter(shd->i2c_adapter_id);
+>>>>>          if (!adap) {
+>>>>> @@ -1573,10 +1591,180 @@ static void scan_async_host(struct soc_camera_host *ici)
+>>>>>                  asd += ici->asd_sizes[j];
+>>>>>          }
+>>>>>   }
+>>>>> +
+>>>>> +static void soc_camera_of_i2c_ifill(struct soc_camera_of_client *sofc,
+>>>>> +                                   struct i2c_client *client)
+>>>>> +{
+>>>>> +       struct i2c_board_info *info = &sofc->i2c_info;
+>>>>> +       struct soc_camera_desc *sdesc = sofc->sdesc;
+>>>>> +
+>>>>> +       /* on OF I2C devices platform_data == NULL */
+>>>>> +       info->flags = client->flags;
+>>>>> +       info->addr = client->addr;
+>>>>> +       info->irq = client->irq;
+>>>>> +       info->archdata = &sofc->archdata;
+>>>>> +
+>>>>> +       /* archdata is always empty on OF I2C devices */
+>>>>> +       strlcpy(info->type, client->name, sizeof(info->type));
+>>>>> +
+>>>>> +       sdesc->host_desc.i2c_adapter_id = client->adapter->nr;
+>>>>> +}
+>>>>> +
+>>>>> +static void soc_camera_of_i2c_info(struct device_node *node,
+>>>>> +                                  struct soc_camera_of_client *sofc)
+>>>>> +{
+>>>>> +       struct i2c_client *client;
+>>>>> +       struct soc_camera_desc *sdesc = sofc->sdesc;
+>>>>> +       struct i2c_board_info *info = &sofc->i2c_info;
+>>>>> +       struct device_node *port, *sensor, *bus;
+>>>>> +
+>>>>> +       port = v4l2_of_get_remote_port(node);
+>>>>> +       if (!port)
+>>>>> +               return;
+>>>>> +
+>>>>> +       /* Check the bus */
+>>>>> +       sensor = of_get_parent(port);
+>>>>> +       bus = of_get_parent(sensor);
+>>>>> +
+>>>>> +       if (of_node_cmp(bus->name, "i2c")) {
+>>>>> +               of_node_put(port);
+>>>>> +               of_node_put(sensor);
+>>>>> +               of_node_put(bus);
+>>>>> +               return;
+>>>>> +       }
+>>>>> +
+>>>>> +       info->of_node = sensor;
+>>>>> +       sdesc->host_desc.board_info = info;
+>>>>> +
+>>>>> +       client = of_find_i2c_device_by_node(sensor);
+>>>>> +       /*
+>>>>> +        * of_i2c_register_devices() took a reference to the OF node, it is not
+>>>>> +        * dropped, when the I2C device is removed, so, we don't need an
+>>>>> +        * additional reference.
+>>>>> +        */
+>>>>> +       of_node_put(sensor);
+>>>>> +       if (client) {
+>>>>> +               soc_camera_of_i2c_ifill(sofc, client);
+>>>>> +               sofc->link_node = sensor;
+>>>>> +               put_device(&client->dev);
+>>>>> +       }
+>>>>> +
+>>>>> +       /* client hasn't attached to I2C yet */
+>>>>> +}
+>>>>> +
+>>>>> +static struct soc_camera_of_client *soc_camera_of_alloc_client(const struct soc_camera_host *ici,
+>>>>> +                                                              struct device_node *node)
+>>>>> +{
+>>>>> +       struct soc_camera_of_client *sofc;
+>>>>> +       struct v4l2_async_subdev *sensor;
+>>>>> +       struct soc_camera_desc sdesc = { .host_desc.host_wait = true,};
+>>>>> +       int i, ret;
+>>>>> +
+>>>>> +       sofc = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sofc), GFP_KERNEL);
+>>>>> +       if (!sofc)
+>>>>> +               return NULL;
+>>>>> +
+>>>>> +       /* Allocate v4l2_async_subdev by ourselves */
+>>>>> +       sensor = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sensor), GFP_KERNEL);
+>>>>> +       if (!sensor)
+>>>>> +               return NULL;
+>>>>> +       sofc->sasc.sensor = sensor;
+>>>>> +
+>>>>> +       mutex_lock(&list_lock);
+>>>>> +       i = find_first_zero_bit(device_map, MAP_MAX_NUM);
+>>>>> +       if (i < MAP_MAX_NUM)
+>>>>> +               set_bit(i, device_map);
+>>>>> +       mutex_unlock(&list_lock);
+>>>>> +       if (i >= MAP_MAX_NUM)
+>>>>> +               return NULL;
+>>>>> +       sofc->sasc.pdev = platform_device_alloc("soc-camera-pdrv", i);
+>>>>> +       if (!sofc->sasc.pdev)
+>>>>> +               return NULL;
+>>>>> +
+>>>>> +       sdesc.host_desc.node = &sofc->node;
+>>>>> +       sdesc.host_desc.bus_id = ici->nr;
+>>>>> +
+>>>>> +       ret = platform_device_add_data(sofc->sasc.pdev, &sdesc, sizeof(sdesc));
+>>>>> +       if (ret < 0)
+>>>>> +               return NULL;
+>>>>> +       sofc->sdesc = sofc->sasc.pdev->dev.platform_data;
+>>>>> +
+>>>>> +       soc_camera_of_i2c_info(node, sofc);
+>>>>> +
+>>>>> +       return sofc;
+>>>>> +}
+>>>>> +
+>>>>> +static void scan_of_host(struct soc_camera_host *ici)
+>>>>> +{
+>>>>> +       struct soc_camera_of_client *sofc;
+>>>>> +       struct soc_camera_async_client *sasc;
+>>>>> +       struct v4l2_async_subdev *asd;
+>>>>> +       struct soc_camera_device *icd;
+>>>>> +       struct device_node *node = NULL;
+>>>>> +
+>>>>> +       for (;;) {
+>>>>> +               int ret;
+>>>>> +
+>>>>> +               node = v4l2_of_get_next_endpoint(ici->v4l2_dev.dev->of_node,
+>>>>> +                                              node);
+>>>>> +               if (!node)
+>>>>> +                       break;
+>>>>> +
+>>>>> +               sofc = soc_camera_of_alloc_client(ici, node);
+>>>>> +               if (!sofc) {
+>>>>> +                       dev_err(ici->v4l2_dev.dev,
+>>>>> +                               "%s(): failed to create a client device\n",
+>>>>> +                               __func__);
+>>>>> +                       of_node_put(node);
+>>>>> +                       break;
+>>>>> +               }
+>>>>> +               v4l2_of_parse_endpoint(node, &sofc->node);
+>>>>> +
+>>>>> +               sasc = &sofc->sasc;
+>>>>> +               ret = platform_device_add(sasc->pdev);
+>>>>> +               if (ret < 0) {
+>>>>> +                       /* Useless thing, but keep trying */
+>>>>> +                       platform_device_put(sasc->pdev);
+>>>>> +                       of_node_put(node);
+>>>>> +                       continue;
+>>>>> +               }
+>>>>> +
+>>>>> +               /* soc_camera_pdrv_probe() probed successfully */
+>>>>> +               icd = platform_get_drvdata(sasc->pdev);
+>>>>> +               if (!icd) {
+>>>>> +                       /* Cannot be... */
+>>>>> +                       platform_device_put(sasc->pdev);
+>>>>> +                       of_node_put(node);
+>>>>> +                       continue;
+>>>>> +               }
+>>>>> +
+>>>>> +               asd = sasc->sensor;
+>>>>> +               asd->match_type = V4L2_ASYNC_MATCH_OF;
+>>>>> +               asd->match.of.node = sofc->link_node;
+>>>>> +
+>>>>> +               sasc->notifier.subdevs = &asd;
+>>>>> +               sasc->notifier.num_subdevs = 1;
+>>>>> +               sasc->notifier.bound = soc_camera_async_bound;
+>>>>> +               sasc->notifier.unbind = soc_camera_async_unbind;
+>>>>> +               sasc->notifier.complete = soc_camera_async_complete;
+>>>>> +
+>>>>> +               icd->parent = ici->v4l2_dev.dev;
+>>>>> +
+>>>>> +               ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
+>>>>> +               if (!ret)
+>>>>> +                       sjUmBMDe3fq35HMObreak;
+>>>>> +
+>>>>> +               /*
+>>>>> +                * We could destroy the icd in there error case here, but the
+>>>>> +                * non-OF version doesn't do that, so, we can keep it around too
+>>>>> +                */
+>>>>> +       }
+>>>>> +}
+>>>>>   #else
+>>>>>   #define soc_camera_i2c_init(icd, sdesc)        (-ENODEV)
+>>>>>   #define soc_camera_i2c_free(icd)       do {} while (0)
+>>>>>   #define scan_async_host(ici)           do {} while (0)
+>>>>> +#define scan_of_host(ici)              do {} while (0)
+>>>>>   #endif
+>>>>>
+>>>>>   /* Called during host-driver probe */
+>>>>> @@ -1689,6 +1877,7 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+>>>>>   {
+>>>>>          struct soc_camera_desc *sdesc = to_soc_camera_desc(icd);
+>>>>>          struct video_device *vdev = icd->vdev;
+>>>>> +       struct v4l2_of_endpoint *node = sdesc->host_desc.node;
+>>>>>
+>>>>>          v4l2_ctrl_handler_free(&icd->ctrl_handler);
+>>>>>          if (vdev) {
+>>>>> @@ -1719,6 +1908,17 @@ static int soc_camera_remove(struct soc_camera_device *icd)
+>>>>>          if (icd->sasc)
+>>>>>                  platform_device_unregister(icd->sasc->pdev);
+>>>>>
+>>>>> +       if (node) {
+>>>>> +               struct soc_camera_of_client *sofc = container_of(node,
+>>>>> +                                       struct soc_camera_of_client, node);
+>>>>> +               /* Don't dead-lock: remove the device here under the lock */
+>>>>> +               clear_bit(sofc->sasc.pdev->id, device_map);
+>>>>> +               list_del(&icd->list);
+>>>>> +               if (sofc->link_node)
+>>>>> +                       of_node_put(sofc->link_node);
+>>>>> +               platform_device_unregister(sofc->sasc.pdev);
+>>>>> +       }
+>>>>> +
 
-Is it meaningful to check the faults here?
+Going back to the previous, in the use-case we have the device that
+we link to the soc_camera is /not/ an soc-camera, it is a standard
+v4l2 subdev device (adv7180).
 
-The existing flash controller drivers mostly do not. The responsibility is
-left to the user --- something the user should probably do after the strobe
-has expectedly finished. This isn't particularly very well documented in the
-spec, though.
-
-Also, the presence of every fault does not prevent using the flash.
-
-> +	led_set_brightness(led_cdev, intensity);
-
-Where do you convert between the LED framework brightness and the value used
-by the V4L2 controls?
-
-> +
-> +	return ret;
-> +}
-> +
-> +static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
-> +{
-> +	struct v4l2_flash *flash = ctrl_to_flash(c);
-> +	struct led_classdev *led_cdev = flash->led_cdev;
-> +	int ret = 0;
-> +
-> +	switch (c->id) {
-> +	case V4L2_CID_FLASH_LED_MODE:
-> +		switch (c->val) {
-> +		case V4L2_FLASH_LED_MODE_NONE:
-> +			/* clear flash mode on releae */
-
-It's not uncommon for the user to leave the mode to something else than none
-when the user goes away. Could there be other ways to mediate access?
-
-> +			ret = led_set_flash_mode(led_cdev, false);
-> +			if (ret < 0)
-> +				return ret;
-> +			mutex_lock(&led_cdev->led_lock);
-> +			led_sysfs_unlock(led_cdev);
-> +			mutex_unlock(&led_cdev->led_lock);
-> +			break;
-> +		case V4L2_FLASH_LED_MODE_FLASH:
-> +			mutex_lock(&led_cdev->led_lock);
-> +			led_sysfs_lock(led_cdev);
-> +			mutex_unlock(&led_cdev->led_lock);
-> +
-> +			ret = led_set_flash_mode(led_cdev, true);
-> +			if (ret < 0)
-> +				return ret;
-> +			if (flash->ctrl.source->val ==
-> +					V4L2_FLASH_STROBE_SOURCE_EXTERNAL) {
-> +				ret = led_set_hw_triggered(led_cdev, true);
-> +				if (ret < 0)
-> +					return ret;
-> +				ret = v4l2_flash_set_intensity(flash,
-> +						       flash->flash_intensity);
-> +			} else {
-> +				ret = led_set_hw_triggered(led_cdev, false);
-> +				if (ret < 0)
-> +					return ret;
-
-As the switch() is the last thing you'll do anyway, you could as well just
-return here. Same below. Up to you.
-
-> +			}
-> +			break;
-> +		case V4L2_FLASH_LED_MODE_TORCH:
-> +			mutex_lock(&led_cdev->led_lock);
-> +			led_sysfs_lock(led_cdev);
-> +			mutex_unlock(&led_cdev->led_lock);
-> +
-> +			ret = led_set_flash_mode(led_cdev, false);
-> +			if (ret < 0)
-> +				return ret;
-> +			/* torch is always triggered by software */
-> +			ret = led_set_hw_triggered(led_cdev, false);
-> +			if (ret)
-> +				return -EINVAL;
-> +			ret = v4l2_flash_set_intensity(flash,
-> +						       flash->torch_intensity);
-> +			break;
-> +		}
-> +		break;
-> +	case V4L2_CID_FLASH_STROBE_SOURCE:
-> +		ret = led_set_hw_triggered(led_cdev,
-> +				c->val == V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
-> +		break;
-> +	case V4L2_CID_FLASH_STROBE:
-> +		if (flash->ctrl.led_mode->val != V4L2_FLASH_LED_MODE_FLASH ||
-> +		   flash->ctrl.source->val != V4L2_FLASH_STROBE_SOURCE_SOFTWARE)
-> +			return -EINVAL;
-> +		led_set_flash_timeout(led_cdev, flash->flash_timeout);
-> +		ret = v4l2_flash_set_intensity(flash,
-> +						flash->flash_intensity);
-
-Same comment as on the other patch: strobe should be just strobe, nothing
-else.
-
-> +		break;
-> +	case V4L2_CID_FLASH_STROBE_STOP:
-> +		led_set_brightness(led_cdev, 0);
-> +		break;
-> +	case V4L2_CID_FLASH_TIMEOUT:
-> +		flash->flash_timeout = c->val;
-> +		break;
-> +	case V4L2_CID_FLASH_INTENSITY:
-> +		flash->flash_intensity = c->val;
-> +		break;
-> +	case V4L2_CID_FLASH_TORCH_INTENSITY:
-> +		flash->torch_intensity = c->val;
-> +		if (flash->ctrl.led_mode->val == V4L2_FLASH_LED_MODE_TORCH)
-> +			ret = v4l2_flash_set_intensity(flash,
-> +						       flash->torch_intensity);
-> +		break;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops v4l2_flash_ctrl_ops = {
-> +	.g_volatile_ctrl = v4l2_flash_g_volatile_ctrl,
-> +	.s_ctrl = v4l2_flash_s_ctrl,
-> +};
-> +
-> +static int v4l2_flash_init_controls(struct v4l2_flash *flash,
-> +				struct v4l2_flash_ctrl_config *config)
-> +
-> +{
-> +	unsigned int mask;
-> +	struct v4l2_ctrl *ctrl;
-> +	struct v4l2_ctrl_config *ctrl_cfg;
-> +	bool has_flash = config->flags & V4L2_FLASH_CFG_LED_FLASH;
-> +	bool has_torch = config->flags & V4L2_FLASH_CFG_LED_TORCH;
-> +	int ret, num_ctrls;
-> +
-> +	if (!has_flash && !has_torch)
-> +		return -EINVAL;
-> +
-> +	num_ctrls = has_flash ? 8 : 2;
-> +	if (config->flags & V4L2_FLASH_CFG_FAULTS_MASK)
-> +		++num_ctrls;
-> +
-> +	v4l2_ctrl_handler_init(&flash->hdl, num_ctrls);
-> +
-> +	mask = 1 << V4L2_FLASH_LED_MODE_NONE;
-> +	if (has_flash)
-> +		mask |= 1 << V4L2_FLASH_LED_MODE_FLASH;
-> +	if (has_torch)
-> +		mask |= 1 << V4L2_FLASH_LED_MODE_TORCH;
-
-I don't expect to see this on LED flash devices. :-)
-
-> +	/* Configure TORCH_INTENSITY ctrl */
-> +	ctrl_cfg = &config->torch_intensity;
-> +	ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-> +				 V4L2_CID_FLASH_TORCH_INTENSITY,
-> +				 ctrl_cfg->min, ctrl_cfg->max,
-> +				 ctrl_cfg->step, ctrl_cfg->def);
-> +
-> +	if (has_flash) {
-> +		/* Configure FLASH_LED_MODE ctrl */
-> +		flash->ctrl.led_mode = v4l2_ctrl_new_std_menu(&flash->hdl,
-> +				&v4l2_flash_ctrl_ops, V4L2_CID_FLASH_LED_MODE,
-> +				V4L2_FLASH_LED_MODE_TORCH, ~mask,
-> +				V4L2_FLASH_LED_MODE_NONE);
-> +
-> +		/* Configure FLASH_STROBE_SOURCE ctrl */
-> +		mask = 1 << V4L2_FLASH_STROBE_SOURCE_SOFTWARE |
-> +		       1 << V4L2_FLASH_STROBE_SOURCE_EXTERNAL;
-
-Not every implementation supports hardware strobe. It could be that the
-flash chip does but the pin isn't connected. That's the case on e.g. the
-Nokia N900. The hardware strobe source is typically the sensor but not all
-sensors support it. So you just have to cope with what you have. :-)
-
-> +		flash->ctrl.source = v4l2_ctrl_new_std_menu(&flash->hdl,
-> +					&v4l2_flash_ctrl_ops,
-> +					V4L2_CID_FLASH_STROBE_SOURCE,
-> +					V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
-> +					~mask,
-> +					V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
-> +
-> +		/* Configure FLASH_STROBE ctrl */
-> +		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-> +					  V4L2_CID_FLASH_STROBE, 0, 1, 1, 0);
-> +		if (ctrl)
-> +			ctrl->type = V4L2_CTRL_TYPE_BUTTON;
-
-I think this is already handled by the control framework.
-
-> +		/* Configure FLASH_STROBE_STOP ctrl */
-> +		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-> +					  V4L2_CID_FLASH_STROBE_STOP,
-> +					  0, 1, 1, 0);
-> +		if (ctrl)
-> +			ctrl->type = V4L2_CTRL_TYPE_BUTTON;
-
-Same here.
-
-> +		/* Configure FLASH_STROBE_STATUS ctrl */
-> +		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-> +					 V4L2_CID_FLASH_STROBE_STATUS,
-> +					 0, 1, 1, 1);
-> +		if (ctrl)
-> +			ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE |
-> +				       V4L2_CTRL_FLAG_READ_ONLY;
-> +
-> +		/* Configure FLASH_TIMEOUT ctrl */
-> +		ctrl_cfg = &config->flash_timeout;
-> +		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-> +					 V4L2_CID_FLASH_TIMEOUT, ctrl_cfg->min,
-> +					 ctrl_cfg->max, ctrl_cfg->step,
-> +					 ctrl_cfg->def);
-> +
-> +		/* Configure FLASH_INTENSITY ctrl */
-> +		ctrl_cfg = &config->flash_intensity;
-> +		ctrl = v4l2_ctrl_new_std(&flash->hdl, &v4l2_flash_ctrl_ops,
-> +					 V4L2_CID_FLASH_INTENSITY,
-> +					 ctrl_cfg->min, ctrl_cfg->max,
-> +					 ctrl_cfg->step, ctrl_cfg->def);
-> +
-> +		if (config->flags & V4L2_FLASH_CFG_FAULTS_MASK) {
-> +			/* Configure FLASH_FAULT ctrl */
-> +			ctrl = v4l2_ctrl_new_std(&flash->hdl,
-> +						 &v4l2_flash_ctrl_ops,
-> +						 V4L2_CID_FLASH_FAULT, 0,
-> +						 config->flags &
-> +						 V4L2_FLASH_CFG_FAULTS_MASK,
-> +						 0, 0);
-> +			if (ctrl) {
-> +				ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE |
-> +					       V4L2_CTRL_FLAG_READ_ONLY;
-> +				ctrl->type = V4L2_CTRL_TYPE_BITMASK;
-
-And here.
-
-> +			}
-> +		}
-> +	}
-> +
-> +	if (flash->hdl.error) {
-> +		ret = flash->hdl.error;
-> +		goto error_free;
-> +	}
-> +
-> +	ret = v4l2_ctrl_handler_setup(&flash->hdl);
-> +	if (ret < 0)
-> +		goto error_free;
-> +
-> +	flash->subdev.ctrl_handler = &flash->hdl;
-> +
-> +	return 0;
-> +
-> +error_free:
-> +	v4l2_ctrl_handler_free(&flash->hdl);
-> +	return ret;
-> +}
-> +
-> +/* v4l2_subdev_init requires this structure */
-
-...because v4l2_subdev_call() requires it to be set. I might leave the
-comment out. Up to you.
-
-> +static struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
-> +};
-> +
-> +int v4l2_flash_init(struct led_classdev *led_cdev, struct v4l2_flash *flash,
-> +				struct v4l2_flash_ctrl_config *config)
-> +{
-> +	struct v4l2_subdev *sd = &flash->subdev;
-> +	int ret;
-> +
-> +	flash->led_cdev = led_cdev;
-> +	sd->dev = led_cdev->dev->parent;
-> +	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
-> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	snprintf(sd->name, sizeof(sd->name), led_cdev->name);
-> +
-> +	ret = v4l2_flash_init_controls(flash, config);
-> +	if (ret < 0)
-> +		goto err_init_controls;
-> +
-> +	ret = media_entity_init(&sd->entity, 0, NULL, 0);
-> +	if (ret < 0)
-> +		goto err_init_entity;
-> +
-> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-> +
-> +	ret = v4l2_async_register_subdev(sd);
-> +	if (ret < 0)
-> +		goto err_init_entity;
-> +
-> +	return 0;
-> +
-> +err_init_entity:
-> +	media_entity_cleanup(&sd->entity);
-> +err_init_controls:
-> +	v4l2_ctrl_handler_free(sd->ctrl_handler);
-> +	return -EINVAL;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_flash_init);
-> +
-> +void v4l2_flash_release(struct v4l2_flash *flash)
-> +{
-> +	media_entity_cleanup(&flash->subdev.entity);
-
-media_entity_cleanup() has to be called after
-v4l2_async_unregister_subdev(). v4l2_device_unregister_subdev() assumes the
-entity to be there.
-
-> +	v4l2_ctrl_handler_free(flash->subdev.ctrl_handler);
-> +	v4l2_async_unregister_subdev(&flash->subdev);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_flash_release);
-> diff --git a/include/media/v4l2-flash.h b/include/media/v4l2-flash.h
-> new file mode 100644
-> index 0000000..138edae
-> --- /dev/null
-> +++ b/include/media/v4l2-flash.h
-> @@ -0,0 +1,102 @@
-> +/*
-> + * V4L2 flash LED subdevice registration helpers.
-> + *
-> + *	Copyright (C) 2014 Samsung Electronics Co., Ltd
-> + *	Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation."
-> + */
-> +
-> +#ifndef _V4L2_FLASH_H
-> +#define _V4L2_FLASH_H
-> +
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-event.h>
-> +#include <media/v4l2-dev.h>
-> +#include <linux/leds.h>
-
-Order, please.
-
-> +
-> +/*
-> + * Supported led fault and mode bits -
-> + * must be kept in synch with V4L2_FLASH_FAULT bits
-> + */
-> +#define V4L2_FLASH_CFG_FAULT_OVER_VOLTAGE	(1 << 0)
-> +#define V4L2_FLASH_CFG_FAULT_TIMEOUT		(1 << 1)
-> +#define V4L2_FLASH_CFG_FAULT_OVER_TEMPERATURE	(1 << 2)
-> +#define V4L2_FLASH_CFG_FAULT_SHORT_CIRCUIT	(1 << 3)
-> +#define V4L2_FLASH_CFG_FAULT_OVER_CURRENT	(1 << 4)
-> +#define V4L2_FLASH_CFG_FAULT_INDICATOR		(1 << 5)
-> +#define V4L2_FLASH_CFG_FAULTS_MASK		0x3f
-> +#define V4L2_FLASH_CFG_LED_FLASH		(1 << 6)
-> +#define V4L2_FLASH_CFG_LED_TORCH		(1 << 7)
-> +
-> +/* Flash control config data initializer */
-> +
-> +struct v4l2_flash {
-> +	struct led_classdev *led_cdev;
-> +	struct v4l2_subdev subdev;
-> +	struct v4l2_ctrl_handler hdl;
-> +
-> +	struct {
-> +		struct v4l2_ctrl *source;
-> +		struct v4l2_ctrl *led_mode;
-> +	} ctrl;
-> +
-> +	unsigned int flash_intensity;
-> +	unsigned int torch_intensity;
-> +	unsigned int flash_timeout;
-> +};
-> +
-> +struct v4l2_flash_ctrl_config {
-> +	struct v4l2_ctrl_config flash_timeout;
-> +	struct v4l2_ctrl_config flash_intensity;
-> +	struct v4l2_ctrl_config torch_intensity;
-> +	unsigned int flags;
-> +};
-> +
-> +static inline struct v4l2_flash *subdev_to_flash(struct v4l2_subdev *sd)
-
-I'd prefer to have at least the v4l2_ prefix in public V4L2 sub-device
-framework functions.
-
-> +{
-> +	return container_of(sd, struct v4l2_flash, subdev);
-> +}
-> +
-> +static inline struct v4l2_flash *ctrl_to_flash(struct v4l2_ctrl *c)
-
-How about e.g. v4l2_ctrl_to_v4l2_flash?
-
-> +{
-> +	return container_of(c->handler, struct v4l2_flash, hdl);
-> +}
-> +
-> +#ifdef CONFIG_VIDEO_V4L2
-> +/**
-> + * v4l2_flash_init - initialize V4L2 flash led sub-device
-> + * @led_cdev: the LED to create subdev upon
-> + * @flash: a structure representing V4L2 flash led device
-> + * @config: initial data for the flash led subdev controls
-> + *
-> + * Create V4L2 subdev wrapping given LED subsystem device.
-> + */
-> +int v4l2_flash_init(struct led_classdev *led_cdev, struct v4l2_flash *flash,
-> +				struct v4l2_flash_ctrl_config *config);
-> +
-> +/**
-> + * v4l2_flash_release - release V4L2 flash led sub-device
-> + * @flash: a structure representing V4L2 flash led device
-> + *
-> + * Release V4L2 flash led subdev.
-> + */
-> +void v4l2_flash_release(struct v4l2_flash *flash);
-> +#else
-> +static inline int v4l2_flash_init(struct led_classdev *led_cdev,
-> +				  struct v4l2_flash *flash,
-> +				  struct v4l2_flash_ctrl_config *config)
-> +{
-> +	return 0;
-> +}
-> +
-> +static inline void v4l2_flash_release(struct v4l2_flash *flash)
-> +{
-> +}
-> +#endif
-> +
-> +#endif
-
-#endif /* WHATWASIT */ would be nice.
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
