@@ -1,113 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45717 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53072 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752105AbaCJN4H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 09:56:07 -0400
+	with ESMTP id S1752366AbaCGOXw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:23:52 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Philipp Zabel <philipp.zabel@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
-Date: Mon, 10 Mar 2014 14:57:40 +0100
-Message-ID: <5535468.UzAob2tcU4@avalon>
-In-Reply-To: <531D54E2.8030303@ti.com>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <1536567.OYzyi25bjL@avalon> <531D54E2.8030303@ti.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	marbugge@cisco.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv1 PATCH 5/5] DocBook v4l2: update the G/S_EDID documentation
+Date: Fri, 07 Mar 2014 15:25:22 +0100
+Message-ID: <2043205.LIW4DDJa2A@avalon>
+In-Reply-To: <5319D55B.6080202@cisco.com>
+References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl> <1636382.IFSev3egjD@avalon> <5319D55B.6080202@cisco.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart2040582.688Yf7bA7m"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---nextPart2040582.688Yf7bA7m
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="us-ascii"
+On Friday 07 March 2014 15:19:07 Hans Verkuil wrote:
+> On 03/07/2014 03:09 PM, Laurent Pinchart wrote:
+> > Hi Hans,
+> > 
+> > Thank you for the patch.
+> > 
+> > On Friday 07 March 2014 11:21:19 Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >> 
+> >> Document that it is now possible to call G/S_EDID from video nodes, not
+> >> just sub-device nodes. Add a note that -EINVAL will be returned if
+> >> the pad does not support EDIDs.
+> >> 
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >> 
+> >>  Documentation/DocBook/media/v4l/v4l2.xml           |   2 +-
+> >>  .../DocBook/media/v4l/vidioc-subdev-g-edid.xml     | 152
+> >>  ------------------
+> >>  2 files changed, 1 insertion(+), 153 deletions(-)
+> >>  delete mode 100644
+> >>  Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+> > 
+> > The patch just removes the EDID ioctls documentation, I highly doubt that
+> > this is what you intended :-)
+> 
+> Let's try again:
 
-Hi Tomi,
+Much better :-)
 
-On Monday 10 March 2014 08:00:02 Tomi Valkeinen wrote:
-> On 08/03/14 17:54, Laurent Pinchart wrote:
-> >> Sylwester suggested as an alternative, if I understood correctly, =
-to
-> >>=20
-> >> drop the endpoint node and instead keep the port:
-> >>     device-a {
-> >>         implicit_output_ep: port {
-> >>             remote-endpoint =3D <&explicit_input_ep>;
-> >>         };
-> >>     };
-> >>    =20
-> >>     device-b {
-> >>         port {
-> >>             explicit_input_ep: endpoint {
-> >>                 remote-endpoint =3D <&implicit_output_ep>;
-> >>             };
-> >>         };
-> >>     };
-> >>=20
-> >> This would have the advantage to reduce verbosity for devices with=
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> >> multiple ports that are only connected via one endport each, and y=
-ou'd
-> >> always have the connected ports in the device tree as 'port' nodes=
-.
-> >=20
-> > I like that idea. I would prefer making the 'port' nodes mandatory =
-and the
-> > 'ports' and 'endpoint' nodes optional. Leaving the 'port' node out
-> > slightly
-> > decreases readability in my opinion, but making the 'endpoint' node=
+with a minor nitpicking comment below.
 
-> > optional increases it. That's just my point of view though.
->=20
-> I, on the other hand, don't like it =3D). With that format, the
-> remote-endpoint doesn't point to an EP, but a port. And you'll have
-> endpoint's properties in a port node, among the port's properties.
+> Document that it is now possible to call G/S_EDID from video nodes, not
+> just sub-device nodes. Add a note that -EINVAL will be returned if
+> the pad does not support EDIDs.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/DocBook/media/v4l/v4l2.xml           |  2 +-
+>  ...{vidioc-subdev-g-edid.xml => vidioc-g-edid.xml} | 36 +++++++++++--------
+>  2 files changed, 24 insertions(+), 14 deletions(-)
+>  rename Documentation/DocBook/media/v4l/{vidioc-subdev-g-edid.xml =>
+>  vidioc-g-edid.xml} (77%)
 
-We'll need to discuss port and endpoint properties separately, but it m=
-ight=20
-make sense to allow endpoints to override port properties instead of=20=
+[snip]
 
-specifying the same value explicitly for each endpoint. Endpoint parsin=
-g=20
-functions would thus look for properties in endpoints first and then in=
- the=20
-parent port node if the property can't be found. This would work with i=
-mplicit=20
-endpoints and would be hidden to the drivers.
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+> b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml similarity index 77%
+> rename from Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+> rename to Documentation/DocBook/media/v4l/vidioc-g-edid.xml
+> index bbd18f0..becd7cb 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
 
-(Please note that this is just food for thought)
+[snip]
 
-=2D-=20
+> @@ -56,12 +56,20 @@
+> 
+>    <refsect1>
+>      <title>Description</title>
+> -    <para>These ioctls can be used to get or set an EDID associated with an
+> input pad
+> -    from a receiver or an output pad of a transmitter subdevice.</para>
+> +    <para>These ioctls can be used to get or set an EDID associated with an
+> input
+> +    from a receiver or an output of a transmitter device. These ioctls can
+
+I would s/These ioctls/They/ here to avoid repeating "These ioctls" at the 
+beginning of the two sentences.
+
+> be
+> +    used with subdevice nodes (/dev/v4l-subdevX) or with video nodes
+> (/dev/videoX).</para>
+> +
+
+-- 
 Regards,
 
 Laurent Pinchart
-
---nextPart2040582.688Yf7bA7m
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQEcBAABAgAGBQJTHcTUAAoJEIkPb2GL7hl13loH/j9F18fh/nKm2t1gabghaVF1
-UzBQnSQirdoRuFBjC166EVXsZK4mp2N57FWFALOGSsznji7COqb3MJFoXEL2p7s6
-hjWEnuS0kjSTyy/7hGC3jUOC+moM6F6EJ4FLckKstUmkGA41W7JGoQyRxoe02x35
-rkPJ4krQwvMW+Kyql2YD7wl1eevXECD/b6twhP60vbauqObItyu/LK+6IC4qZLKI
-f9TJQkPiBsbGk+VFgM2C3Yv49oQ5SMiaKSttjY7rSdEQssF4Ob3WA2AXurQTuIBU
-E7/7YkBoS7mVALIMt99H8Jp7JzjwYqghyB7cWmyBt2PE9rd/XTZaW0lMvj1ulto=
-=Df0E
------END PGP SIGNATURE-----
-
---nextPart2040582.688Yf7bA7m--
 
