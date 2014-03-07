@@ -1,117 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:36138 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751058AbaCVHbC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Mar 2014 03:31:02 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48871 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751296AbaCGALH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 19:11:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Grant Likely <grant.likely@linaro.org>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH for v3.15 3/3] media: davinci: vpbe_display: fix releasing of active buffers
-Date: Sat, 22 Mar 2014 13:00:39 +0530
-Message-Id: <1395473439-18643-4-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1395473439-18643-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1395473439-18643-1-git-send-email-prabhakar.csengg@gmail.com>
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 4/8] of: Reduce indentation in of_graph_get_next_endpoint
+Date: Fri, 07 Mar 2014 01:12:37 +0100
+Message-ID: <31687163.hgTkcLrn0Z@avalon>
+In-Reply-To: <1394011242-16783-5-git-send-email-p.zabel@pengutronix.de>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> <1394011242-16783-5-git-send-email-p.zabel@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Philipp,
 
-from commit-id: b3379c6201bb3555298cdbf0aa004af260f2a6a4
-"vb2: only call start_streaming if sufficient buffers are queued"
-the vb2 framework warns on (WARN_ON()) if all the active buffers
-are not released when streaming is stopped, initially the vb2 silently
-released the buffer internally if the buffer was not released by
-the driver.
-This patch fixes following issue:
+Thank you for the patch.
 
-WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:2011 __vb2_queue_cancel+0x1a0/0x218()
-Modules linked in:
-CPU: 0 PID: 2049 Comm: vpbe_display Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
-[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
-[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
-[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
-[<c001adec>] (warn_slowpath_null) from [<c0252e0c>] (__vb2_queue_cancel+0x1a0/0x218)
-[<c0252e0c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
-[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpbe_display_release+0x60/0x230)
-[<c025a65c>] (vpbe_display_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
-[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
-[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
-[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
-[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
-[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
-[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
-[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
-[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
----[ end trace 5faa75e8c2f8a6a1 ]---
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 2049 at drivers/media/v4l2-core/videobuf2-core.c:1095 vb2_buffer_done+0x1e0/0x224()
-Modules linked in:
-CPU: 0 PID: 2049 Comm: vpbe_display Tainted: G        W    3.14.0-rc5-00414-ged97a6f #89
-[<c000e3f0>] (unwind_backtrace) from [<c000c618>] (show_stack+0x10/0x14)
-[<c000c618>] (show_stack) from [<c001adb0>] (warn_slowpath_common+0x68/0x88)
-[<c001adb0>] (warn_slowpath_common) from [<c001adec>] (warn_slowpath_null+0x1c/0x24)
-[<c001adec>] (warn_slowpath_null) from [<c0252c28>] (vb2_buffer_done+0x1e0/0x224)
-[<c0252c28>] (vb2_buffer_done) from [<c0252e3c>] (__vb2_queue_cancel+0x1d0/0x218)
-[<c0252e3c>] (__vb2_queue_cancel) from [<c02533a4>] (vb2_queue_release+0x14/0x24)
-[<c02533a4>] (vb2_queue_release) from [<c025a65c>] (vpbe_display_release+0x60/0x230)
-[<c025a65c>] (vpbe_display_release) from [<c023fe5c>] (v4l2_release+0x34/0x74)
-[<c023fe5c>] (v4l2_release) from [<c00b4a00>] (__fput+0x80/0x224)
-[<c00b4a00>] (__fput) from [<c00341e8>] (task_work_run+0xa0/0xd0)
-[<c00341e8>] (task_work_run) from [<c001cc28>] (do_exit+0x244/0x918)
-[<c001cc28>] (do_exit) from [<c001d344>] (do_group_exit+0x48/0xdc)
-[<c001d344>] (do_group_exit) from [<c0029894>] (get_signal_to_deliver+0x2a0/0x5bc)
-[<c0029894>] (get_signal_to_deliver) from [<c000b888>] (do_signal+0x78/0x3a0)
-[<c000b888>] (do_signal) from [<c000bc54>] (do_work_pending+0xa4/0xb4)
-[<c000bc54>] (do_work_pending) from [<c00096dc>] (work_pending+0xc/0x20)
----[ end trace 5faa75e8c2f8a6a2 ]---
+I've submitted a fix for the of_graph_get_next_endpoint() function, but it 
+hasn't been applied yet due to the patch series that contained it needing more 
+work.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_display.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+The patch is available at https://patchwork.linuxtv.org/patch/21946/. I can 
+rebase it on top of this series, but I still wanted to let you know about it 
+in case you would like to integrate it.
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index b4f12d0..6567082 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -372,18 +372,32 @@ static int vpbe_stop_streaming(struct vb2_queue *vq)
- {
- 	struct vpbe_fh *fh = vb2_get_drv_priv(vq);
- 	struct vpbe_layer *layer = fh->layer;
-+	struct vpbe_display *disp = fh->disp_dev;
-+	unsigned long flags;
- 
- 	if (!vb2_is_streaming(vq))
- 		return 0;
- 
- 	/* release all active buffers */
-+	spin_lock_irqsave(&disp->dma_queue_lock, flags);
-+	if (layer->cur_frm == layer->next_frm) {
-+		vb2_buffer_done(&layer->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+	} else {
-+		if (layer->cur_frm != NULL)
-+			vb2_buffer_done(&layer->cur_frm->vb,
-+					VB2_BUF_STATE_ERROR);
-+		if (layer->next_frm != NULL)
-+			vb2_buffer_done(&layer->next_frm->vb,
-+					VB2_BUF_STATE_ERROR);
-+	}
-+
- 	while (!list_empty(&layer->dma_queue)) {
- 		layer->next_frm = list_entry(layer->dma_queue.next,
- 						struct vpbe_disp_buffer, list);
- 		list_del(&layer->next_frm->list);
- 		vb2_buffer_done(&layer->next_frm->vb, VB2_BUF_STATE_ERROR);
- 	}
--
-+	spin_unlock_irqrestore(&disp->dma_queue_lock, flags);
- 	return 0;
- }
- 
+On Wednesday 05 March 2014 10:20:38 Philipp Zabel wrote:
+> A 'return endpoint;' at the end of the (!prev) case allows to
+> reduce the indentation level of the (prev) case.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/of/base.c | 42 ++++++++++++++++++++++--------------------
+>  1 file changed, 22 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index b5e690b..a8e47d3 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -2026,32 +2026,34 @@ struct device_node *of_graph_get_next_endpoint(const
+> struct device_node *parent, pr_err("%s(): no endpoint nodes specified for
+> %s\n",
+>  			       __func__, parent->full_name);
+>  		of_node_put(node);
+> -	} else {
+> -		port = of_get_parent(prev);
+> -		if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
+> -			      __func__, prev->full_name))
+> -			return NULL;
+> 
+> -		/* Avoid dropping prev node refcount to 0. */
+> -		of_node_get(prev);
+> -		endpoint = of_get_next_child(port, prev);
+> -		if (endpoint) {
+> -			of_node_put(port);
+> -			return endpoint;
+> -		}
+> +		return endpoint;
+> +	}
+> 
+> -		/* No more endpoints under this port, try the next one. */
+> -		do {
+> -			port = of_get_next_child(parent, port);
+> -			if (!port)
+> -				return NULL;
+> -		} while (of_node_cmp(port->name, "port"));
+> +	port = of_get_parent(prev);
+> +	if (WARN_ONCE(!port, "%s(): endpoint %s has no parent node\n",
+> +		      __func__, prev->full_name))
+> +		return NULL;
+> 
+> -		/* Pick up the first endpoint in this port. */
+> -		endpoint = of_get_next_child(port, NULL);
+> +	/* Avoid dropping prev node refcount to 0. */
+> +	of_node_get(prev);
+> +	endpoint = of_get_next_child(port, prev);
+> +	if (endpoint) {
+>  		of_node_put(port);
+> +		return endpoint;
+>  	}
+> 
+> +	/* No more endpoints under this port, try the next one. */
+> +	do {
+> +		port = of_get_next_child(parent, port);
+> +		if (!port)
+> +			return NULL;
+> +	} while (of_node_cmp(port->name, "port"));
+> +
+> +	/* Pick up the first endpoint in this port. */
+> +	endpoint = of_get_next_child(port, NULL);
+> +	of_node_put(port);
+> +
+>  	return endpoint;
+>  }
+>  EXPORT_SYMBOL(of_graph_get_next_endpoint);
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
