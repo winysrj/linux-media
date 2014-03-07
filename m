@@ -1,189 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752257AbaCJXOf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 02/48] v4l: Add UYVY10_2X10 and VYUY10_2X10 media bus pixel codes
-Date: Tue, 11 Mar 2014 00:15:13 +0100
-Message-Id: <1394493359-14115-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mout.gmx.net ([212.227.15.15]:56237 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751945AbaCGWdi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Mar 2014 17:33:38 -0500
+Received: from [192.168.178.28] ([134.3.109.71]) by mail.gmx.com (mrgmx001)
+ with ESMTPSA (Nemesis) id 0MTBLi-1WmyO6225u-00SBPz for
+ <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 23:33:36 +0100
+Message-ID: <531A4940.6020403@pinguin74.gmx.com>
+Date: Fri, 07 Mar 2014 23:33:36 +0100
+From: pinguin74 <pinguin74@gmx.com>
+MIME-Version: 1.0
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: sound dropouts with DVB
+References: <5318ED33.4040009@pinguin74.gmx.com>	<CA+O4pCJ4OPGEC3_RUoxjPfScgL9vEGPbUOCefjNgFOrRcYvgMw@mail.gmail.com>	<53190270.80407@pinguin74.gmx.com> <CA+O4pC+R8ZXZ_wYfa2y82TPwCD4q_fUh96pgbYu2VUhVyGPGvQ@mail.gmail.com>
+In-Reply-To: <CA+O4pC+R8ZXZ_wYfa2y82TPwCD4q_fUh96pgbYu2VUhVyGPGvQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 128 +++++++++++++++++++++
- include/uapi/linux/v4l2-mediabus.h                 |   4 +-
- 2 files changed, 131 insertions(+), 1 deletion(-)
+> The mediaplayer is using a codec for decoding/unpacking the compressed
+> digital stream.
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 7331ce1..6fb58de 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -1898,6 +1898,134 @@
- 	      <entry>y<subscript>1</subscript></entry>
- 	      <entry>y<subscript>0</subscript></entry>
- 	    </row>
-+	    <row id="V4L2-MBUS-FMT-UYVY10-2X10">
-+	      <entry>V4L2_MBUS_FMT_UYVY10_2X10</entry>
-+	      <entry>0x2018</entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row id="V4L2-MBUS-FMT-VYUY10-2X10">
-+	      <entry>V4L2_MBUS_FMT_VYUY10_2X10</entry>
-+	      <entry>0x2019</entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>v<subscript>9</subscript></entry>
-+	      <entry>v<subscript>8</subscript></entry>
-+	      <entry>v<subscript>7</subscript></entry>
-+	      <entry>v<subscript>6</subscript></entry>
-+	      <entry>v<subscript>5</subscript></entry>
-+	      <entry>v<subscript>4</subscript></entry>
-+	      <entry>v<subscript>3</subscript></entry>
-+	      <entry>v<subscript>2</subscript></entry>
-+	      <entry>v<subscript>1</subscript></entry>
-+	      <entry>v<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>u<subscript>9</subscript></entry>
-+	      <entry>u<subscript>8</subscript></entry>
-+	      <entry>u<subscript>7</subscript></entry>
-+	      <entry>u<subscript>6</subscript></entry>
-+	      <entry>u<subscript>5</subscript></entry>
-+	      <entry>u<subscript>4</subscript></entry>
-+	      <entry>u<subscript>3</subscript></entry>
-+	      <entry>u<subscript>2</subscript></entry>
-+	      <entry>u<subscript>1</subscript></entry>
-+	      <entry>u<subscript>0</subscript></entry>
-+	    </row>
-+	    <row>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      <entry></entry>
-+	      &dash-ent-22;
-+	      <entry>y<subscript>9</subscript></entry>
-+	      <entry>y<subscript>8</subscript></entry>
-+	      <entry>y<subscript>7</subscript></entry>
-+	      <entry>y<subscript>6</subscript></entry>
-+	      <entry>y<subscript>5</subscript></entry>
-+	      <entry>y<subscript>4</subscript></entry>
-+	      <entry>y<subscript>3</subscript></entry>
-+	      <entry>y<subscript>2</subscript></entry>
-+	      <entry>y<subscript>1</subscript></entry>
-+	      <entry>y<subscript>0</subscript></entry>
-+	    </row>
- 	    <row id="V4L2-MBUS-FMT-YUYV10-2X10">
- 	      <entry>V4L2_MBUS_FMT_YUYV10_2X10</entry>
- 	      <entry>0x200b</entry>
-diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-index b5c3aab..20a99b1 100644
---- a/include/uapi/linux/v4l2-mediabus.h
-+++ b/include/uapi/linux/v4l2-mediabus.h
-@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
- 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
- 
--	/* YUV (including grey) - next is 0x2018 */
-+	/* YUV (including grey) - next is 0x201a */
- 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
- 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
- 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-@@ -64,6 +64,8 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
- 	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
- 	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
-+	V4L2_MBUS_FMT_UYVY10_2X10 = 0x2018,
-+	V4L2_MBUS_FMT_VYUY10_2X10 = 0x2019,
- 	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
- 	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
- 	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
--- 
-1.8.3.2
+Oh, I just see my TV provider sends two video streams for each channel,
+a H264 encoded video stream and an MPEG2 video stream, both in each
+channel.
+
+No matter if a channel is HD or not, there is always a H264 stream and
+an MPEG2 video stream.
+
+But I have no clue how to tell Xine or VLC to play either the H264
+stream or the MPEG2 stream....
+
+Thanks
 
