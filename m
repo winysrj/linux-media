@@ -1,156 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:57284 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752346AbaCKQfH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 12:35:07 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v8 3/10] Documentation: devicetree: Update Samsung FIMC DT
- binding
-Date: Tue, 11 Mar 2014 17:34:30 +0100
-Message-id: <1394555670-14155-1-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1823087.0J3KNi6X3C@avalon>
-References: <1823087.0J3KNi6X3C@avalon>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52960 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752800AbaCGODM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:03:12 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, marbugge@cisco.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv1 PATCH 2/5] v4l2: allow v4l2_subdev_edid to be used with video nodes
+Date: Fri, 07 Mar 2014 15:04:43 +0100
+Message-ID: <4558126.A5rqnIvp04@avalon>
+In-Reply-To: <1394187679-7345-3-git-send-email-hverkuil@xs4all.nl>
+References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl> <1394187679-7345-3-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch documents following updates of the Exynos4 SoC camera subsystem
-devicetree binding:
+Hi Hans,
 
- - addition of #clock-cells and clock-output-names properties to 'camera'
-   node - these are now needed so the image sensor sub-devices can reference
-   clocks provided by the camera host interface,
- - dropped a note about required clock-frequency properties at the
-   image sensor nodes; the sensor devices can now control their clock
-   explicitly through the clk API and there is no need to require this
-   property in the camera host interface binding.
+Thank you for the patch.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
-Changes since v7:
- - dropped a note about clock-frequency property in sensor nodes.
+On Friday 07 March 2014 11:21:16 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Struct v4l2_subdev_edid and the VIDIOC_SUBDEV_G/S_EDID ioctls were
+> specific for subdevices, but for hardware with a simple video pipeline
+> you do not need/want to create subdevice nodes to just get/set the EDID.
+> 
+> Move the v4l2_subdev_edid struct to v4l2-common.h and rename as
+> v4l2_edid. Add the same ioctls to videodev2.h as well, thus allowing
+> this API to be used with both video nodes and v4l-subdev nodes.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Changes since v6:
- - #clock-cells, clock-output-names documented as mandatory properties;
- - renamed "cam_mclk_{a,b}" to "cam_{a,b}_clkout in the example dts,
-   this now matches changes in exynos4.dtsi further in the patch series;
- - marked "samsung,camclk-out" property as deprecated.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Changes since v5:
- - none.
+> ---
+>  include/uapi/linux/v4l2-common.h |  8 ++++++++
+>  include/uapi/linux/v4l2-subdev.h | 14 +++++---------
+>  include/uapi/linux/videodev2.h   |  2 ++
+>  3 files changed, 15 insertions(+), 9 deletions(-)
+> 
+> diff --git a/include/uapi/linux/v4l2-common.h
+> b/include/uapi/linux/v4l2-common.h index 4f0667e..270db89 100644
+> --- a/include/uapi/linux/v4l2-common.h
+> +++ b/include/uapi/linux/v4l2-common.h
+> @@ -68,4 +68,12 @@
+>  #define V4L2_SUBDEV_SEL_FLAG_SIZE_LE	V4L2_SEL_FLAG_LE
+>  #define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG V4L2_SEL_FLAG_KEEP_CONFIG
+> 
+> +struct v4l2_edid {
+> +	__u32 pad;
+> +	__u32 start_block;
+> +	__u32 blocks;
+> +	__u32 reserved[5];
+> +	__u8 __user *edid;
+> +};
+> +
+>  #endif /* __V4L2_COMMON__ */
+> diff --git a/include/uapi/linux/v4l2-subdev.h
+> b/include/uapi/linux/v4l2-subdev.h index a33c4da..87e0515 100644
+> --- a/include/uapi/linux/v4l2-subdev.h
+> +++ b/include/uapi/linux/v4l2-subdev.h
+> @@ -148,13 +148,8 @@ struct v4l2_subdev_selection {
+>  	__u32 reserved[8];
+>  };
+> 
+> -struct v4l2_subdev_edid {
+> -	__u32 pad;
+> -	__u32 start_block;
+> -	__u32 blocks;
+> -	__u32 reserved[5];
+> -	__u8 __user *edid;
+> -};
+> +/* Backwards compatibility define --- to be removed */
+> +#define v4l2_subdev_edid v4l2_edid
+> 
+>  #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
+>  #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
+> @@ -174,7 +169,8 @@ struct v4l2_subdev_edid {
+>  	_IOWR('V', 61, struct v4l2_subdev_selection)
+>  #define VIDIOC_SUBDEV_S_SELECTION \
+>  	_IOWR('V', 62, struct v4l2_subdev_selection)
+> -#define VIDIOC_SUBDEV_G_EDID	_IOWR('V', 40, struct v4l2_subdev_edid)
+> -#define VIDIOC_SUBDEV_S_EDID	_IOWR('V', 41, struct v4l2_subdev_edid)
+> +/* These two G/S_EDID ioctls are identical to the ioctls in videodev2.h */
+> +#define VIDIOC_SUBDEV_G_EDID	_IOWR('V', 40, struct v4l2_edid)
+> +#define VIDIOC_SUBDEV_S_EDID	_IOWR('V', 41, struct v4l2_edid)
+> 
+>  #endif
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 17acba8..339738a 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1913,6 +1913,8 @@ struct v4l2_create_buffers {
+>  #define VIDIOC_QUERYMENU	_IOWR('V', 37, struct v4l2_querymenu)
+>  #define VIDIOC_G_INPUT		 _IOR('V', 38, int)
+>  #define VIDIOC_S_INPUT		_IOWR('V', 39, int)
+> +#define VIDIOC_G_EDID		_IOWR('V', 40, struct v4l2_edid)
+> +#define VIDIOC_S_EDID		_IOWR('V', 41, struct v4l2_edid)
+>  #define VIDIOC_G_OUTPUT		 _IOR('V', 46, int)
+>  #define VIDIOC_S_OUTPUT		_IOWR('V', 47, int)
+>  #define VIDIOC_ENUMOUTPUT	_IOWR('V', 48, struct v4l2_output)
 
-Changes since v4:
- - dropped a requirement of specific order of values in clocks/
-   clock-names properties (Mark) and reference to clock-names in
-   clock-output-names property description (Mark).
----
- .../devicetree/bindings/media/samsung-fimc.txt     |   44 +++++++++++++-------
- 1 file changed, 29 insertions(+), 15 deletions(-)
+-- 
+Regards,
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-index 96312f6..922d6f8 100644
---- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-+++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-@@ -15,11 +15,21 @@ Common 'camera' node
-
- Required properties:
-
--- compatible	: must be "samsung,fimc", "simple-bus"
--- clocks	: list of clock specifiers, corresponding to entries in
--		  the clock-names property;
--- clock-names	: must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
--		  "pxl_async1" entries, matching entries in the clocks property.
-+- compatible: must be "samsung,fimc", "simple-bus"
-+- clocks: list of clock specifiers, corresponding to entries in
-+  the clock-names property;
-+- clock-names : must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
-+  "pxl_async1" entries, matching entries in the clocks property.
-+
-+- #clock-cells: from the common clock bindings (../clock/clock-bindings.txt),
-+  must be 1. A clock provider is associated with the 'camera' node and it should
-+  be referenced by external sensors that use clocks provided by the SoC on
-+  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a clock.
-+  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively.
-+
-+- clock-output-names: from the common clock bindings, should contain names of
-+  clocks registered by the camera subsystem corresponding to CAM_A_CLKOUT,
-+  CAM_B_CLKOUT output clocks respectively.
-
- The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
- to define a required pinctrl state named "default" and optional pinctrl states:
-@@ -32,6 +42,7 @@ way around.
-
- The 'camera' node must include at least one 'fimc' child node.
-
-+
- 'fimc' device nodes
- -------------------
-
-@@ -88,8 +99,8 @@ port nodes specifies data input - 0, 1 indicates input A, B respectively.
-
- Optional properties
-
--- samsung,camclk-out : specifies clock output for remote sensor,
--		       0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
-+- samsung,camclk-out (deprecated) : specifies clock output for remote sensor,
-+  0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
-
- Image sensor nodes
- ------------------
-@@ -97,8 +108,6 @@ Image sensor nodes
- The sensor device nodes should be added to their control bus controller (e.g.
- I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
- using the common video interfaces bindings, defined in video-interfaces.txt.
--The implementation of this bindings requires clock-frequency property to be
--present in the sensor device nodes.
-
- Example:
-
-@@ -114,7 +123,7 @@ Example:
- 			vddio-supply = <...>;
-
- 			clock-frequency = <24000000>;
--			clocks = <...>;
-+			clocks = <&camera 1>;
- 			clock-names = "mclk";
-
- 			port {
-@@ -135,7 +144,7 @@ Example:
- 			vddio-supply = <...>;
-
- 			clock-frequency = <24000000>;
--			clocks = <...>;
-+			clocks = <&camera 0>;
- 			clock-names = "mclk";
-
- 			port {
-@@ -149,12 +158,17 @@ Example:
-
- 	camera {
- 		compatible = "samsung,fimc", "simple-bus";
--		#address-cells = <1>;
--		#size-cells = <1>;
--		status = "okay";
--
-+		clocks = <&clock 132>, <&clock 133>, <&clock 351>,
-+			 <&clock 352>;
-+		clock-names = "sclk_cam0", "sclk_cam1", "pxl_async0",
-+			      "pxl_async1";
-+		#clock-cells = <1>;
-+		clock-output-names = "cam_a_clkout", "cam_b_clkout";
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&cam_port_a_clk_active>;
-+		status = "okay";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-
- 		/* parallel camera ports */
- 		parallel-ports {
---
-1.7.9.5
+Laurent Pinchart
 
