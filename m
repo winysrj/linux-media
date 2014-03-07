@@ -1,31 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:48233 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752150AbaC3Vew (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 17:34:52 -0400
-Message-ID: <53388DF0.7030500@codethink.co.uk>
-Date: Sun, 30 Mar 2014 22:34:40 +0100
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-MIME-Version: 1.0
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4571 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752926AbaCGKVa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 05:21:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-CC: g.liakhovetski@gmx.de, linux-sh@vger.kernel.org
-Subject: Re: [RFC 2/3] rcar_vin: add devicetree support
-References: <1396214765-23689-1-git-send-email-ben.dooks@codethink.co.uk> <1396214765-23689-2-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1396214765-23689-2-git-send-email-ben.dooks@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: marbugge@cisco.com, laurent.pinchart@ideasonboard.com
+Subject: [REVIEWv1 PATCH 0/5] Add G/S_EDID support for video nodes
+Date: Fri,  7 Mar 2014 11:21:14 +0100
+Message-Id: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30/03/14 22:26, Ben Dooks wrote:
-> Add support for devicetree probe for the rcar-vin
-> driver.
+Currently the VIDIOC_SUBDEV_G/S_EDID and struct v4l2_subdev_edid are subdev
+APIs. However, that's in reality quite annoying since for simple video
+pipelines there is no need to create v4l-subdev device nodes for anything
+else except for setting or getting EDIDs.
 
-Sorry, this was an older branch and needed
-a fix for the pdev->id field.
+What happens in practice is that v4l2 bridge drivers add explicit support
+for VIDIOC_SUBDEV_G/S_EDID themselves, just to avoid having to create
+subdev device nodes just for this.
 
+So this patch series makes the ioctls available as regular ioctls as
+well. In that case the pad field is interpreted as the input or output
+index as returned by ENUMINPUT/OUTPUT.
 
--- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
+Changes since RFCv1:
+
+- Split off the compat32 fix (I'll queue this for 3.14)
+- Interpret pad as an input or output index when used with a video node.
+- S_EDID is now enabled for rx devices instead of tx.
+- Fix a one tab too many.
+
+Regards,
+
+        Hans
+
