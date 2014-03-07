@@ -1,55 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:34245 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755115AbaCYUpG (ORCPT
+Received: from smtp-out-096.synserver.de ([212.40.185.96]:1087 "EHLO
+	smtp-out-014.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753240AbaCGQOJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Mar 2014 16:45:06 -0400
-Message-ID: <1395780301.11851.14.camel@nicolas-tpx230>
-Subject: [PATCH 0/5] s5p-fimc: Misc fixes
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: s.nawrocki@samsung.com
-Date: Tue, 25 Mar 2014 16:45:01 -0400
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-xz2227++Z4lA3oKW8FKM"
-Mime-Version: 1.0
+	Fri, 7 Mar 2014 11:14:09 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 2/7] [media] adv7180: Free control handler on remove()
+Date: Fri,  7 Mar 2014 17:14:28 +0100
+Message-Id: <1394208873-23260-2-git-send-email-lars@metafoo.de>
+In-Reply-To: <1394208873-23260-1-git-send-email-lars@metafoo.de>
+References: <1394208873-23260-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Make sure to free the control handler when the device is removed.
 
---=-xz2227++Z4lA3oKW8FKM
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/media/i2c/adv7180.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-This patch series fixes several bugs found in the s5p-fimc driver. These
-bugs relate to bad parameters in the formats definition and short size
-of image buffers.
-
-Nicolas Dufresne (5):
-  s5p-fimc: Reuse calculated sizes
-  s5p-fimc: Iterate for each memory plane
-  s5p-fimc: Align imagesize to row size for tiled formats
-  s5p-fimc: Fix YUV422P depth
-  s5p-fimc: Changed RGB32 to BGR32
-
- drivers/media/platform/exynos4-is/fimc-core.c | 21 +++++++++++++++------
- drivers/media/platform/exynos4-is/fimc-m2m.c  |  6 +++---
- 2 files changed, 18 insertions(+), 9 deletions(-)
-
-
---=-xz2227++Z4lA3oKW8FKM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iEYEABECAAYFAlMx6s0ACgkQcVMCLawGqBxMnwCfT88D37VLgifZfClSKxWB5RmO
-RbcAn1vTRzbH99naZfo1RPka9+hYr0DD
-=pKFw
------END PGP SIGNATURE-----
-
---=-xz2227++Z4lA3oKW8FKM--
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 1a3622a..2359fd8 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -641,6 +641,7 @@ static int adv7180_remove(struct i2c_client *client)
+ 	}
+ 
+ 	v4l2_device_unregister_subdev(sd);
++	adv7180_exit_controls(state);
+ 	mutex_destroy(&state->mutex);
+ 	return 0;
+ }
+-- 
+1.8.0
 
