@@ -1,74 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:59554 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754731AbaCTRyh (ORCPT
+Received: from smtp-out-096.synserver.de ([212.40.185.96]:1042 "EHLO
+	smtp-out-014.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751578AbaCGQOL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 13:54:37 -0400
-Received: by mail-ee0-f48.google.com with SMTP id b57so948607eek.35
-        for <linux-media@vger.kernel.org>; Thu, 20 Mar 2014 10:54:36 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <20140312102556.GC21483@n2100.arm.linux.org.uk>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 20140226110114.CF2C7C40A89@trevor.secretlab.ca> <531D916C.2010903@ti.com> < 5427810.BUKJ3iUXnO@avalon> <20140312102556.GC21483@n2100.arm.linux.org.uk>
-Date: Thu, 20 Mar 2014 17:54:31 +0000
-Message-Id: <20140320175432.0559CC4067A@trevor.secretlab.ca>
+	Fri, 7 Mar 2014 11:14:11 -0500
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 7/7] [media] adv7180: Add support for power down
+Date: Fri,  7 Mar 2014 17:14:33 +0100
+Message-Id: <1394208873-23260-7-git-send-email-lars@metafoo.de>
+In-Reply-To: <1394208873-23260-1-git-send-email-lars@metafoo.de>
+References: <1394208873-23260-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
-> On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
-> > In theory unidirectional links in DT are indeed enough. However, let's not 
-> > forget the following.
-> > 
-> > - There's no such thing as single start points for graphs. Sure, in some 
-> > simple cases the graph will have a single start point, but that's not a 
-> > generic rule. For instance the camera graphs 
-> > http://ideasonboard.org/media/omap3isp.ps and 
-> > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and thus two 
-> > starting points from a data flow point of view.
-> 
-> I think we need to stop thinking of a graph linked in terms of data
-> flow - that's really not useful.
-> 
-> Consider a display subsystem.  The CRTC is the primary interface for
-> the CPU - this is the "most interesting" interface, it's the interface
-> which provides access to the picture to be displayed for the CPU.  Other
-> interfaces are secondary to that purpose - reading the I2C DDC bus for
-> the display information is all secondary to the primary purpose of
-> displaying a picture.
-> 
-> For a capture subsystem, the primary interface for the CPU is the frame
-> grabber (whether it be an already encoded frame or not.)  The sensor
-> devices are all secondary to that.
-> 
-> So, the primary software interface in each case is where the data for
-> the primary purpose is transferred.  This is the point at which these
-> graphs should commence since this is where we would normally start
-> enumeration of the secondary interfaces.
-> 
-> V4L2 even provides interfaces for this: you open the capture device,
-> which then allows you to enumerate the capture device's inputs, and
-> this in turn allows you to enumerate their properties.  You don't open
-> a particular sensor and work back up the tree.
-> 
-> I believe trying to do this according to the flow of data is just wrong.
-> You should always describe things from the primary device for the CPU
-> towards the peripheral devices and never the opposite direction.
+The adv7180 has a low power mode in which the analog and the digital processing
+section are shut down. Implement the s_power callback to let bridge drivers put
+the part into low power mode when not needed.
 
-Agreed.
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/media/i2c/adv7180.c | 52 ++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 42 insertions(+), 10 deletions(-)
 
-g.
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 623cec5..8271362 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -127,6 +127,7 @@ struct adv7180_state {
+ 	int			irq;
+ 	v4l2_std_id		curr_norm;
+ 	bool			autodetect;
++	bool			powered;
+ 	u8			input;
+ };
+ #define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
+@@ -311,6 +312,39 @@ out:
+ 	return ret;
+ }
+ 
++static int adv7180_set_power(struct adv7180_state *state,
++	struct i2c_client *client, bool on)
++{
++	u8 val;
++
++	if (on)
++		val = ADV7180_PWR_MAN_ON;
++	else
++		val = ADV7180_PWR_MAN_OFF;
++
++	return i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG, val);
++}
++
++static int adv7180_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct adv7180_state *state = to_state(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret;
++
++	ret = mutex_lock_interruptible(&state->mutex);
++	if (ret)
++		return ret;
++
++	ret = adv7180_set_power(state, client, on);
++	if (ret)
++		goto out;
++
++	state->powered = on;
++out:
++	mutex_unlock(&state->mutex);
++	return ret;
++}
++
+ static int adv7180_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct v4l2_subdev *sd = to_adv7180_sd(ctrl);
+@@ -441,6 +475,7 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ 
+ static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+ 	.s_std = adv7180_s_std,
++	.s_power = adv7180_s_power,
+ };
+ 
+ static const struct v4l2_subdev_ops adv7180_ops = {
+@@ -640,13 +675,9 @@ static const struct i2c_device_id adv7180_id[] = {
+ static int adv7180_suspend(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+-	int ret;
++	struct adv7180_state *state = to_state(sd);
+ 
+-	ret = i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG,
+-					ADV7180_PWR_MAN_OFF);
+-	if (ret < 0)
+-		return ret;
+-	return 0;
++	return adv7180_set_power(state, client, false);
+ }
+ 
+ static int adv7180_resume(struct device *dev)
+@@ -656,10 +687,11 @@ static int adv7180_resume(struct device *dev)
+ 	struct adv7180_state *state = to_state(sd);
+ 	int ret;
+ 
+-	ret = i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG,
+-					ADV7180_PWR_MAN_ON);
+-	if (ret < 0)
+-		return ret;
++	if (state->powered) {
++		ret = adv7180_set_power(state, client, true);
++		if (ret)
++			return ret;
++	}
+ 	ret = init_device(client, state);
+ 	if (ret < 0)
+ 		return ret;
+-- 
+1.8.0
+
