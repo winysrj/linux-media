@@ -1,64 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2637 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753162AbaCJMpY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 08:45:24 -0400
-Received: from tschai.lan (173-38-208-169.cisco.com [173.38.208.169])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2ACjKSM007929
-	for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 13:45:22 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id EC91D2A1889
-	for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 13:45:19 +0100 (CET)
-Message-ID: <531DB3DF.6000301@xs4all.nl>
-Date: Mon, 10 Mar 2014 13:45:19 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.14] Three fixes
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:29539 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669AbaCGMsi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 07:48:38 -0500
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Arun Kumar K' <arunkk.samsung@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: "'avnd.kiran'" <avnd.kiran@samsung.com>,
+	'LMML' <linux-media@vger.kernel.org>,
+	'linux-samsung-soc' <linux-samsung-soc@vger.kernel.org>,
+	'Pawel Osciak' <posciak@chromium.org>
+References: <1394181090-16446-1-git-send-email-arun.kk@samsung.com>
+ <53199175.6030606@samsung.com>
+ <CALt3h7_8=jHq821D_7Fi69bFRNk67S18W6T_SFQeSimpHTdOUA@mail.gmail.com>
+In-reply-to: <CALt3h7_8=jHq821D_7Fi69bFRNk67S18W6T_SFQeSimpHTdOUA@mail.gmail.com>
+Subject: RE: [PATCH] [media] s5p-mfc: add init buffer cmd to MFCV6
+Date: Fri, 07 Mar 2014 13:48:34 +0100
+Message-id: <19dc01cf3a03$8dba8d80$a92fa880$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Three small fixes for 3.14:
+Hi Arun, 
 
-- while working on the EDID changes Laurent discovered that the ioctl numbers
-  specified in v4l2-compat-ioctl32 were wrong and have been from the beginning.
-  Fix that. NOTE: this patch was also included with the 3.15 EDID pull request
-  I posted today.
+> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com]
+> Sent: Friday, March 07, 2014 12:10 PM
+> 
+> Hi Sylwester,
+> 
+> On Fri, Mar 7, 2014 at 2:59 PM, Sylwester Nawrocki
+> <s.nawrocki@samsung.com> wrote:
+> > Hi,
+> >
+> > On 07/03/14 09:31, Arun Kumar K wrote:
+> >> From: avnd kiran <avnd.kiran@samsung.com>
+> >>
+> >> Latest MFC v6 firmware requires tile mode and loop filter setting to
+> >> be done as part of Init buffer command, in sync with v7. So, move
+> >> these settings out of decode options reg.
+> >> Also, make this register definition applicable from v6 onwards.
+> >>
+> >> Signed-off-by: avnd kiran <avnd.kiran@samsung.com>
+> >> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> >
+> > Will the driver also work with older version of the firmware after
+> > this change ? If not, shouldn't things like this be done depending on
+> > what firmware version is loaded ?
+> >
+> 
+> The original code was for the initial version of v6 firmware.
+> After that the v6 firmware has got many fixes and updates which also
+> got updated in the products running the same.
+> As such there are no official multiple versions of v6 firmware, but
+> only fixes / updates to older version. I will update the s5p-mfc-v6.fw
+> in the linux-firmware also with the newer version. Hope that will be
+> fine.
 
-- The v4l2-dv-timings module was missing the module name, description and license.
-  Because of the missing license any driver that loads that module will taint the
-  kernel. Definitely not what I intended.
+Unfortunately, I share the same concerns as Sylwester. We have two problems:
+1) new kernel + old firmware
 
-- Fix a saa7134 suspend bug: https://bugzilla.kernel.org/show_bug.cgi?id=69581
+In this case, someone will update the kernel and find out that video
+decoding is not working. An assumption that I think is common, is that
+updating the kernel should not break anything. If it was working with the
+previous version it should work with the next.
 
-Regards,
+The solution I can suggest is that a check which firmware version is used
+has to be implemented. Maybe you can use the date of firmware to do this
+check?
 
-	Hans
+2) old kernel + new firmware
 
-The following changes since commit bfd0306462fdbc5e0a8c6999aef9dde0f9745399:
+I see no clear solution to this problem. If the kernel is old and the
+firmware is behaving differently, the video decoding will not work. I can
+guess that this case would be less common, but still a person can update the
+firmware and leave the old kernel. Changing the firmware can be done by
+replacing a single file.
 
-  [media] v4l: Document timestamp buffer flag behaviour (2014-03-05 16:48:28 -0300)
+In addition to the above, you need to clearly specify in the
+linux-firmware.git what is going on. A readme file is a must. Maybe a second
+v6 firmware file should be included?
 
-are available in the git repository at:
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.14f
-
-for you to fetch changes up to b500d6a1664622cb7ba6ad27a1bc2bbce1022587:
-
-  saa7134: fix WARN_ON during resume. (2014-03-07 12:11:19 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (3):
-      v4l2-compat-ioctl32: fix wrong VIDIOC_SUBDEV_G/S_EDID32 support.
-      v4l2-dv-timings: add module name, description, license.
-      saa7134: fix WARN_ON during resume.
-
- drivers/media/pci/saa7134/saa7134-cards.c     | 4 ++--
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
- drivers/media/v4l2-core/v4l2-dv-timings.c     | 4 ++++
- 3 files changed, 8 insertions(+), 4 deletions(-)
