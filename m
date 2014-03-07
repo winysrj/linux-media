@@ -1,135 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:51154 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956AbaCZLgz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Mar 2014 07:36:55 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N3100DEDK9H3790@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 26 Mar 2014 07:36:53 -0400 (EDT)
-Date: Wed, 26 Mar 2014 08:36:48 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: =?UTF-8?B?QmrDuHJu?= Mork <bjorn@mork.no>
-Cc: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 11/11] libdvbv5: fix PMT parser
-Message-id: <20140326083648.4a432272@samsung.com>
-In-reply-to: <87r45pcvmw.fsf@nemi.mork.no>
-References: <1395771601-3509-1-git-send-email-neolynx@gmail.com>
- <1395771601-3509-11-git-send-email-neolynx@gmail.com>
- <87vbv2c87u.fsf@nemi.mork.no> <20140325222222.0fd23199@neutrino.exnihilo>
- <87r45pcvmw.fsf@nemi.mork.no>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:59798 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752393AbaCHFaZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:25 -0500
+Received: by mail-wg0-f49.google.com with SMTP id a1so1811066wgh.8
+        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:24 -0800 (PST)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v6 0/8] Move device tree graph parsing helpers to drivers/of
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+In-Reply-To: <20140306121721.6186dafb@samsung.com>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> < 53170C00.20200@ti.com> <1394030554.8754.31.camel@paszta.hi.pengutronix.de> <20140306141657.GB21483@n2100.arm.linux.org.uk> <20140306121721.6186dafb@ samsung.com>
+Date: Fri, 07 Mar 2014 18:41:38 +0000
+Message-Id: <20140307184138.7FF68C40CC5@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 26 Mar 2014 07:38:15 +0100
-Bjørn Mork <bjorn@mork.no> escreveu:
-
-> André Roth <neolynx@gmail.com> writes:
+On Thu, 06 Mar 2014 12:17:21 -0300, Mauro Carvalho Chehab <m.chehab@samsung.com> wrote:
+> Em Thu, 06 Mar 2014 14:16:57 +0000
+> Russell King - ARM Linux <linux@arm.linux.org.uk> escreveu:
 > 
-> > On Tue, 25 Mar 2014 21:51:49 +0100
-> > Bjørn Mork <bjorn@mork.no> wrote:
-> >
-> >> > - * Copyright (c) 2011-2012 - Mauro Carvalho Chehab
-> >> > - * Copyright (c) 2012 - Andre Roth <neolynx@gmail.com>
-> >> > + * Copyright (c) 2013 - Andre Roth <neolynx@gmail.com>
-> >> >   *
-> >> >   * This program is free software; you can redistribute it and/or
-> >> >   * modify it under the terms of the GNU General Public License
-> >> 
-> >> This copyright change looked strange to me.  Accidental deletion?
-> >
-> > Hi Bjørn,
-> >
-> > thanks for pointing this out.
-> > originally I was adding mauro to my dvb files as the "owner" of dvb in
-> > v4l. mauro then stated on some files that this was not his code and as
-> > the PMT is originally my code, I corrected this here.
-> >
-> > @mauro: please correct me if I'm wrong...
+> > On Wed, Mar 05, 2014 at 03:42:34PM +0100, Philipp Zabel wrote:
+> > > Am Mittwoch, den 05.03.2014, 13:35 +0200 schrieb Tomi Valkeinen:
+> > > > Hi,
+> > > > 
+> > > > On 05/03/14 11:20, Philipp Zabel wrote:
+> > > > > Hi,
+> > > > > 
+> > > > > this version of the OF graph helper move series further addresses a few of
+> > > > > Tomi's and Sylwester's comments.
+> > > > > 
+> > > > > Changes since v5:
+> > > > >  - Fixed spelling errors and a wrong device node name in the link section
+> > > > >  - Added parentless previous endpoint's full name to warning
+> > > > >  - Fixed documentation comment for of_graph_parse_endpoint
+> > > > >  - Unrolled for-loop in of_graph_get_remote_port_parent
+> > > > > 
+> > > > > Philipp Zabel (8):
+> > > > >   [media] of: move graph helpers from drivers/media/v4l2-core to
+> > > > >     drivers/of
+> > > > >   Documentation: of: Document graph bindings
+> > > > >   of: Warn if of_graph_get_next_endpoint is called with the root node
+> > > > >   of: Reduce indentation in of_graph_get_next_endpoint
+> > > > >   [media] of: move common endpoint parsing to drivers/of
+> > > > >   of: Implement simplified graph binding for single port devices
+> > > > >   of: Document simplified graph binding for single port devices
+> > > > >   of: Warn if of_graph_parse_endpoint is called with the root node
+> > > > 
+> > > > So, as I've pointed out, I don't agree with the API, as it's too limited
+> > > > and I can't use it, but as this series is (mostly) about moving the
+> > > > current API to a common place, it's fine for me.
+> > > > 
+> > > > Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > > 
+> > > Thanks. I'll be happy to help expanding the API to parse ports
+> > > individually, once this gets accepted.
+> > > 
+> > > Mauro, Guennadi, are you fine with how this turned out? I'd like to get
+> > > your acks again, for the changed location.
 > 
-> Correcting the copyright is of course fine, but I think it would be good
-> to document that in the patch description so people like me don't end up
-> asking unnecessary questions :-)
-
-Yeah, a proper documentation always help.
-
-Btw, what we generally do here is to extend the copyright timestamp,
-instead of just replacing, like:
-
-Copyright (c) 2012-2014 
-
+> From my side, there's nothing on such code that is V4L2 specific.
+> Moving it to drivers/of makes sense on my eyes.
 > 
-> > I'm a bit confused about the copyright year and author. Is this still
-> > needed in the age of git ? What is the policy for them ?
+> Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > 
+> > I'll need those acks before I can even think about queuing up the
+> > imx-drm bits.
+> > 
+> > Another way to deal with this is if this gets pulled into the V4L tree
+> > from Philipp's git tree, I can also pull that in myself.  What mustn't
+> > happen is for these to be committed independently as patches.
 > 
-> IANAL.  But looking at this from a practical point of view, I believe
-> that this info is useful whether it is required or not.  Reading the
-> copyright owner(s) out of a git log can be a lot of work, and it isn't
-> necessariliy correct either - your copyright can be assigned to
-> e.g. your employer or to the FSF.  It's also difficult to judge who of
-> many contributors have made changes big enough to make them copyright
-> owners.  Some changes can be small in code size but still major, while
-> other changes can touch almost every line but still only be a minor
-> editorial fixup.
+> If everyone agrees, I actually prefer have this patch applied on my tree,
+> in order to avoid some potential merge conflicts at the merge window,
+> as we might have other drivers and changes there touching on those API
+> calls (I'm aware of a series of patches from Sylwester with some DT
+> stuff on it. Not sure if it would be affected by such changes or not).
 
-The copyright laws were written to cover all sorts of intelectual
-work, and were written originally to cover music, painting, literature
-work. There are actually two kinds of copyrights: moral rights and
-economic rights. 
+No. I disagree. Aside from the api changes this is primarily a drivers/of
+series. I should go via me or Rob Herring. If you're concerned about
+resolving conflicts then I can put it into a separate branch that you
+can merge into your tree also.
 
-The GPL license (and all other sorts of licensing) deals with the
-economic rights. A copyright line, however, can, IMO, serve for both
-purposes: to tell the authorship and to identify who owns the
-economic rights and who is licensing them under GPL.
+g.
 
-If you develop something under your work contract, your employer likely
-has property rights. 
-
-Yet, you still owns the moral rights[1]. On most Countries, it is
-not even possible to transfer them to someone else.
-
-[1] http://en.wikipedia.org/wiki/Moral_rights
-
-That warrants that a book written by, let's say, Julio Verne, will
-always be copyrighted by him, no matter if he (or his family)
-sold the economic rights, or if his books are already in public
-domain or not.
-
-> And why is it useful who owns a copyright and when the copyrighted work
-> was produced? If relicensing your code ever becomes a question, then we
-> need to know who to contact.  You might think that relicensing isn't
-> going to happen.  But there are real world examples where code has ended
-> up beeing linked to libraries with a GPL conflicting license, and
-> therefore needed an exception. The classical example is linking with
-> openssl.
-> 
-> And the year is useful because copyright expires some years (depending
-> on country of origin, but typical 50) after the authors death.  You
-> write code that will live forever, right? :-)
-
-Yeah, the property rights expires. 
-
-The moral rights, however, never expire: if someone uses part of the
-Illiad (written around the 8th Century BC by Homero) on his work, he 
-can't claim any rights on it, because that part of the text will forever
-belong to Homero.
-
-> 
-> 
-> Bjørn
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-
-Regards,
-Mauro
