@@ -1,57 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2039 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756817AbaCDKn0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:26 -0500
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1078 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752801AbaCGOba (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:31:30 -0500
+Message-ID: <5319D835.4050004@xs4all.nl>
+Date: Fri, 07 Mar 2014 15:31:17 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hansverk@cisco.com>
+CC: linux-media@vger.kernel.org, marbugge@cisco.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 17/18] vivi: correctly cleanup after a start_streaming failure
-Date: Tue,  4 Mar 2014 11:42:25 +0100
-Message-Id: <1393929746-39437-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+Subject: Re: [REVIEWv1 PATCH 5/5] DocBook v4l2: update the G/S_EDID documentation
+References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl> <1636382.IFSev3egjD@avalon> <5319D55B.6080202@cisco.com> <2043205.LIW4DDJa2A@avalon>
+In-Reply-To: <2043205.LIW4DDJa2A@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-If start_streaming fails then any queued buffers must be given back
-to the vb2 core.
+Thanks for reviewing this series so quickly. I've added your nitpick to my
+tree and I plan to post the pull request on Monday.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivi.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+Regards,
 
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index e9cd96e..643937b 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -889,10 +889,20 @@ static void buffer_queue(struct vb2_buffer *vb)
- static int start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
-+	int err;
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 	dev->seq_count = 0;
--	return vivi_start_generating(dev);
-+	err = vivi_start_generating(dev);
-+	if (err) {
-+		struct vivi_buffer *buf, *tmp;
-+
-+		list_for_each_entry_safe(buf, tmp, &dev->vidq.active, list) {
-+			list_del(&buf->list);
-+			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+		}
-+	}
-+	return err;
- }
- 
- /* abort streaming and wait for last buffer */
--- 
-1.9.0
+	Hans
+
+On 03/07/2014 03:25 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Friday 07 March 2014 15:19:07 Hans Verkuil wrote:
+>> On 03/07/2014 03:09 PM, Laurent Pinchart wrote:
+>>> Hi Hans,
+>>>
+>>> Thank you for the patch.
+>>>
+>>> On Friday 07 March 2014 11:21:19 Hans Verkuil wrote:
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> Document that it is now possible to call G/S_EDID from video nodes, not
+>>>> just sub-device nodes. Add a note that -EINVAL will be returned if
+>>>> the pad does not support EDIDs.
+>>>>
+>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>> ---
+>>>>
+>>>>  Documentation/DocBook/media/v4l/v4l2.xml           |   2 +-
+>>>>  .../DocBook/media/v4l/vidioc-subdev-g-edid.xml     | 152
+>>>>  ------------------
+>>>>  2 files changed, 1 insertion(+), 153 deletions(-)
+>>>>  delete mode 100644
+>>>>  Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+>>>
+>>> The patch just removes the EDID ioctls documentation, I highly doubt that
+>>> this is what you intended :-)
+>>
+>> Let's try again:
+> 
+> Much better :-)
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> with a minor nitpicking comment below.
+> 
+>> Document that it is now possible to call G/S_EDID from video nodes, not
+>> just sub-device nodes. Add a note that -EINVAL will be returned if
+>> the pad does not support EDIDs.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  Documentation/DocBook/media/v4l/v4l2.xml           |  2 +-
+>>  ...{vidioc-subdev-g-edid.xml => vidioc-g-edid.xml} | 36 +++++++++++--------
+>>  2 files changed, 24 insertions(+), 14 deletions(-)
+>>  rename Documentation/DocBook/media/v4l/{vidioc-subdev-g-edid.xml =>
+>>  vidioc-g-edid.xml} (77%)
+> 
+> [snip]
+> 
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+>> b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml similarity index 77%
+>> rename from Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+>> rename to Documentation/DocBook/media/v4l/vidioc-g-edid.xml
+>> index bbd18f0..becd7cb 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-g-edid.xml
+> 
+> [snip]
+> 
+>> @@ -56,12 +56,20 @@
+>>
+>>    <refsect1>
+>>      <title>Description</title>
+>> -    <para>These ioctls can be used to get or set an EDID associated with an
+>> input pad
+>> -    from a receiver or an output pad of a transmitter subdevice.</para>
+>> +    <para>These ioctls can be used to get or set an EDID associated with an
+>> input
+>> +    from a receiver or an output of a transmitter device. These ioctls can
+> 
+> I would s/These ioctls/They/ here to avoid repeating "These ioctls" at the 
+> beginning of the two sentences.
+> 
+>> be
+>> +    used with subdevice nodes (/dev/v4l-subdevX) or with video nodes
+>> (/dev/videoX).</para>
+>> +
+> 
 
