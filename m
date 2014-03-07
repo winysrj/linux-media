@@ -1,103 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34972 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752092AbaCJKSm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 06:18:42 -0400
-Message-ID: <531D916C.2010903@ti.com>
-Date: Mon, 10 Mar 2014 12:18:20 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-CC: Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+Received: from mail-we0-f180.google.com ([74.125.82.180]:43925 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752574AbaCHFa1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:27 -0500
+Received: by mail-we0-f180.google.com with SMTP id p61so6102860wes.11
+        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:26 -0800 (PST)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [GIT PULL] Move device tree graph parsing helpers to drivers/of
+To: Philipp Zabel <p.zabel@pengutronix.de>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com> < 20140217181451.7EB7FC4044D@trevor.secretlab.ca> <20140218070624.GP17250@ pengutronix.de> <20140218162627.32BA4C40517@trevor.secretlab.ca> < 1393263389.3091.82.camel@pizza.hi.pengutronix.de> <20140226110114. CF2C7C40A89@trevor.secretlab.ca> <1393426129.3248.64.camel@paszta.hi. pengutronix.de> <20140307170550.1DFB2C40A0D@trevor.secretlab.ca> <531AF1E8. 50606@ti.com> <20140308114115.BB08EC40612@trevor.secretlab.ca>
-In-Reply-To: <20140308114115.BB08EC40612@trevor.secretlab.ca>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="m9agE5FH5X00TA97e9K7BvgiWLaTKpLWn"
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+In-Reply-To: <1394126000.3622.66.camel@paszta.hi.pengutronix.de>
+References: <1394126000.3622.66.camel@paszta.hi.pengutronix.de>
+Date: Fri, 07 Mar 2014 18:23:30 +0000
+Message-Id: <20140307182330.75168C40AE3@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---m9agE5FH5X00TA97e9K7BvgiWLaTKpLWn
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Thu, 06 Mar 2014 18:13:20 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Hi Mauro, Russell,
+> 
+> I have temporarily removed the simplified bindings at Sylwester's
+> request and updated the branch with the acks. The following changes
+> since commit 0414855fdc4a40da05221fc6062cccbc0c30f169:
+> 
+>   Linux 3.14-rc5 (2014-03-02 18:56:16 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.pengutronix.de/git/pza/linux.git topic/of-graph
+> 
+> for you to fetch changes up to d484700a36952c6675aa47dec4d7a536929aa922:
+> 
+>   of: Warn if of_graph_parse_endpoint is called with the root node (2014-03-06 17:41:54 +0100)
 
-On 08/03/14 13:41, Grant Likely wrote:
+Nak. I made comments that haven't been resolved yet. I've replied with
+more detail tonight. The big issues are how drivers handle the optional
+'ports' node and I do not agree to the double-linkage in the binding
+description.
 
->> Ok. If we go for single directional link, the question is then: which
->> way? And is the direction different for display and camera, which are
->> kind of reflections of each other?
->=20
-> In general I would recommend choosing whichever device you would
-> sensibly think of as a master. In the camera case I would choose the
-> camera controller node instead of the camera itself, and in the display=
+g.
 
-> case I would choose the display controller instead of the panel. The
-> binding author needs to choose what she things makes the most sense, bu=
-t
-> drivers can still use if it it turns out to be 'backwards'
+> 
+> ----------------------------------------------------------------
+> Philipp Zabel (6):
+>       [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
+>       Documentation: of: Document graph bindings
+>       of: Warn if of_graph_get_next_endpoint is called with the root node
+>       of: Reduce indentation in of_graph_get_next_endpoint
+>       [media] of: move common endpoint parsing to drivers/of
+>       of: Warn if of_graph_parse_endpoint is called with the root node
+> 
+>  Documentation/devicetree/bindings/graph.txt   | 129 ++++++++++++++++++++++
+>  drivers/media/i2c/adv7343.c                   |   4 +-
+>  drivers/media/i2c/mt9p031.c                   |   4 +-
+>  drivers/media/i2c/s5k5baf.c                   |   3 +-
+>  drivers/media/i2c/tvp514x.c                   |   3 +-
+>  drivers/media/i2c/tvp7002.c                   |   3 +-
+>  drivers/media/platform/exynos4-is/fimc-is.c   |   6 +-
+>  drivers/media/platform/exynos4-is/media-dev.c |  13 ++-
+>  drivers/media/platform/exynos4-is/mipi-csis.c |   5 +-
+>  drivers/media/v4l2-core/v4l2-of.c             | 133 +----------------------
+>  drivers/of/base.c                             | 151 ++++++++++++++++++++++++++
+>  include/linux/of_graph.h                      |  66 +++++++++++
+>  include/media/v4l2-of.h                       |  33 +-----
+>  13 files changed, 375 insertions(+), 178 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/graph.txt
+>  create mode 100644 include/linux/of_graph.h
+> 
+> 
 
-I would perhaps choose the same approach, but at the same time I think
-it's all but clear. The display controller doesn't control the panel any
-more than a DMA controller controls, say, the display controller.
-
-In fact, in earlier versions of OMAP DSS DT support I had a simpler port
-description, and in that I had the panel as the master (i.e. link from
-panel to dispc) because the panel driver uses the display controller's
-features to provide the panel device a data stream.
-
-And even with the current OMAP DSS DT version, which uses the v4l2 style
-ports/endpoints, the driver model is still the same, and only links
-towards upstream are used.
-
-So one reason I'm happy with the dual-linking is that I can easily
-follow the links from the downstream entities to upstream entities, and
-other people, who have different driver model, can easily do the opposite=
-=2E
-
-But I agree that single-linking is enough and this can be handled at
-runtime, even if it makes the code more complex. And perhaps requires
-extra data in the dts, to give the start points for the graph.
-
- Tomi
-
-
-
---m9agE5FH5X00TA97e9K7BvgiWLaTKpLWn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTHZFsAAoJEPo9qoy8lh71TxgP/2VBc8qqL7gzkimED+kI2e+J
-tDApeGiLcqQEq7MW+Jgq9ssDxPUUY/zoIDEM2xzg1xO9fXVi++TziIXEGrp0vE/r
-JAYUT/YQ+St07VakXFrnBPAmvpIfph+mE841yr0gOXVyY+EJKFWK8RUwCCLBL6WJ
-jBTuy7gHUQpTcm+Y+gI2rUh12buP8i9kSaqTmI2qIEtV08GmDvQJm5d6u9uGKHk1
-kbzuV9IT3/3W2iBiiphIfjdeZ5n+qwxUbPNVy+fdzf8z9+mCl7cqwIQGV1fIdRK1
-wapu+JGFoqc36PdtGUiTImJDfkoInPfuyj2IEhEKzTSV2sDM2XYn0g0HNwuKvIro
-E9CEQXeqm2G0TUbmtxNPWgHGXu7GOkHa5PhfzYyQIBBoX3hQrS12bRkrsb3gmMM6
-tAMZQU/6Jkwjwl0qXXI8tH4p6nvxQbLIXxzkhpbv7Qh4Ue32C6AkD3I1zL043dCr
-N2qeWdNz7rVHRL0EFXnJQoem0n70R6SToCXreJiH4NWg9uiTcm1Ey0dc8Dc07cST
-ZV4Wxky+zDvnAIKXI7Aa26yHIdJXZPMIsr4carehvRfoLZVtoCoT4Fg7MnUDf2sz
-n91XgkSLqlPkzRcSiLf87DAzhuFEtGBE1tvYq924wGr6cPVGIt0ELPNKBofaMzra
-yQGD/2hoPCNBi/DVj9BW
-=leqH
------END PGP SIGNATURE-----
-
---m9agE5FH5X00TA97e9K7BvgiWLaTKpLWn--
