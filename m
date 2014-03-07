@@ -1,124 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:60641 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964951AbaCULCw (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44572 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753516AbaCGTfR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 07:02:52 -0400
-Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 791C777D4AC
-	for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 12:02:49 +0100 (CET)
-Message-Id: <911da5ce15cdb37cf899e629b0edc31f44ce5205.1395397665.git.moinejf@free.fr>
-In-Reply-To: <cover.1395397665.git.moinejf@free.fr>
-References: <cover.1395397665.git.moinejf@free.fr>
-From: Jean-Francois Moine <moinejf@free.fr>
-Date: Fri, 21 Mar 2014 09:52:29 +0100
-Subject: [PATCH RFC v2 6/6] ARM: AM33XX: dts: Change the tda998x description
-To: Russell King <rmk+kernel@arm.linux.org.uk>,
-	Rob Clark <robdclark@gmail.com>,
-	dri-devel@lists.freedesktop.org
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
+	Fri, 7 Mar 2014 14:35:17 -0500
+Date: Fri, 7 Mar 2014 21:35:12 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH/RFC v2 1/5] Split media_device creation and opening
+Message-ID: <20140307193512.GT15635@valkosipuli.retiisi.org.uk>
+References: <1394040741-22503-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1394040741-22503-2-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20140307073402.GS15635@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20140307073402.GS15635@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tda998x being moved from a 'slave encoder' to a normal DRM
-encoder/connector and the tilcdc_slave glue being removed, the
-declaration of the HDMI transmitter description must be changed in
-the associated DTs.
+On Fri, Mar 07, 2014 at 09:34:02AM +0200, Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> Thanks for the set.
 
-Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
----
- arch/arm/boot/dts/am335x-base0033.dts  | 28 +++++++++++++++++++---------
- arch/arm/boot/dts/am335x-boneblack.dts | 21 ++++++++++++++++-----
- 2 files changed, 35 insertions(+), 14 deletions(-)
+With the proposed chaanges, for the whole set:
 
-diff --git a/arch/arm/boot/dts/am335x-base0033.dts b/arch/arm/boot/dts/am335x-base0033.dts
-index 72a9b3f..05f2b8f 100644
---- a/arch/arm/boot/dts/am335x-base0033.dts
-+++ b/arch/arm/boot/dts/am335x-base0033.dts
-@@ -14,15 +14,6 @@
- 	model = "IGEP COM AM335x on AQUILA Expansion";
- 	compatible = "isee,am335x-base0033", "isee,am335x-igep0033", "ti,am33xx";
- 
--	hdmi {
--		compatible = "ti,tilcdc,slave";
--		i2c = <&i2c0>;
--		pinctrl-names = "default", "off";
--		pinctrl-0 = <&nxp_hdmi_pins>;
--		pinctrl-1 = <&nxp_hdmi_off_pins>;
--		status = "okay";
--	};
--
- 	leds_base {
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&leds_base_pins>;
-@@ -85,6 +76,11 @@
- 
- &lcdc {
- 	status = "okay";
-+	port {
-+		lcd_0: endpoint@0 {
-+			remote-endpoint = <&hdmi_0>;
-+		};
-+	};
- };
- 
- &i2c0 {
-@@ -92,4 +88,18 @@
- 		compatible = "at,24c256";
- 		reg = <0x50>;
- 	};
-+	hdmi: hdmi-encoder {
-+		compatible = "nxp,tda19988";
-+		reg = <0x70>;
-+
-+		pinctrl-names = "default", "off";
-+		pinctrl-0 = <&nxp_hdmi_pins>;
-+		pinctrl-1 = <&nxp_hdmi_off_pins>;
-+
-+		port {
-+			hdmi_0: endpoint@0 {
-+				remote-endpoint = <&lcd_0>;
-+			};
-+		};
-+	};
- };
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 6b71ad9..b94d8bd 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -64,15 +64,26 @@
- 
- &lcdc {
- 	status = "okay";
-+	port {
-+		lcd_0: endpoint@0 {
-+			remote-endpoint = <&hdmi_0>;
-+		};
-+	};
- };
- 
--/ {
--	hdmi {
--		compatible = "ti,tilcdc,slave";
--		i2c = <&i2c0>;
-+&i2c0 {
-+	hdmi: hdmi-encoder {
-+		compatible = "nxp,tda19988";
-+		reg = <0x70>;
-+
- 		pinctrl-names = "default", "off";
- 		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
- 		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
--		status = "okay";
-+
-+		port {
-+			hdmi_0: endpoint@0 {
-+				remote-endpoint = <&lcd_0>;
-+			};
-+		};
- 	};
- };
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
 -- 
-1.9.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
