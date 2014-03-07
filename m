@@ -1,162 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:37581 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755170AbaC0VAj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Mar 2014 17:00:39 -0400
-Subject: [PATCH] rc-core: do not change 32bit NEC scancode format for now
-To: james.hogan@imgtec.com, linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: m.chehab@samsung.com
-Date: Thu, 27 Mar 2014 22:00:37 +0100
-Message-ID: <20140327210037.20406.93136.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:59324 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752735AbaCHFa2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:28 -0500
+Received: by mail-wg0-f47.google.com with SMTP id x12so6218207wgg.30
+        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:27 -0800 (PST)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+In-Reply-To: <1393428297.3248.92.camel@paszta.hi.pengutronix.de>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> < 1393340304-19005-2-git-send-email-p.zabel@pengutronix.de> <20140226113729. A9D5AC40A89@trevor.secretlab.ca> <1393428297.3248.92.camel@paszta.hi. pengutronix.de>
+Date: Sat, 08 Mar 2014 01:18:04 +0800
+Message-Id: <20140307171804.EF245C40A32@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts 18bc17448147e93f31cc9b1a83be49f1224657b2
+On Wed, 26 Feb 2014 16:24:57 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+> Hi Grant,
+> 
+> Am Mittwoch, den 26.02.2014, 11:37 +0000 schrieb Grant Likely:
+> [...]
+> > >  drivers/media/v4l2-core/v4l2-of.c             | 117 ----------------------
+> > >  drivers/of/Makefile                           |   1 +
+> > >  drivers/of/of_graph.c                         | 134 ++++++++++++++++++++++++++
+> > 
+> > Nah. Just put it into drivers/of/base.c. This isn't a separate subsystem
+> > and the functions are pretty basic.
+> 
+> Ok.
+> 
+> [...]
+> > > +struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
+> > > +					struct device_node *prev)
+> > > +{
+> > > +	struct device_node *endpoint;
+> > > +	struct device_node *port = NULL;
+> > > +
+> > > +	if (!parent)
+> > > +		return NULL;
+> > > +
+> > > +	if (!prev) {
+> > > +		struct device_node *node;
+> > > +		/*
+> > > +		 * It's the first call, we have to find a port subnode
+> > > +		 * within this node or within an optional 'ports' node.
+> > > +		 */
+> > > +		node = of_get_child_by_name(parent, "ports");
+> > > +		if (node)
+> > > +			parent = node;
+> > > +
+> > > +		port = of_get_child_by_name(parent, "port");
+> > 
+> > If you've got a "ports" node, then I would expect every single child to
+> > be a port. Should not need the _by_name variant.
+> 
+> The 'ports' node is optional. It is only needed if the parent node has
+> its own #address-cells and #size-cells properties. If the ports are
+> direct children of the device node, there might be other nodes than
+> ports:
+> 
+> 	device {
+> 		#address-cells = <1>;
+> 		#size-cells = <0>;
+> 
+> 		port@0 {
+> 			endpoint { ... };
+> 		};
+> 		port@1 {
+> 			endpoint { ... };
+> 		};
+> 
+> 		some-other-child { ... };
+> 	};
+> 
+> 	device {
+> 		#address-cells = <x>;
+> 		#size-cells = <y>;
+> 
+> 		ports {
+> 			#address-cells = <1>;
+> 			#size-cells = <0>;
+> 
+> 			port@0 {
+> 				endpoint { ... };
+> 			};
+> 			port@1 {
+> 				endpoint { ... };
+> 			};
+> 		};
+> 
+> 		some-other-child { ... };
+> 	};
 
-The patch ignores the fact that NEC32 scancodes are generated not only in the
-NEC raw decoder but also directly in some drivers. Whichever approach is chosen
-it should be consistent across drivers and this patch needs more discussion.
+>From a pattern perspective I have no problem with that.... From an
+individual driver binding perspective that is just dumb! It's fine for
+the ports node to be optional, but an individual driver using the
+binding should be explicit about which it will accept. Please use either
+a flag or a separate wrapper so that the driver can select the
+behaviour.
 
-Furthermore, I'm convinced that we have to stop playing games trying to
-decipher the "meaning" of NEC scancodes (what's the customer/vendor/address,
-which byte is the MSB, etc).
+> The helper should find the two endpoints in both cases.
+> Tomi suggests an even more compact form for devices with just one port:
+> 
+> 	device {
+> 		endpoint { ... };
+> 
+> 		some-other-child { ... };
+> 	};
 
-I'll post separate proposals to that effect later.
+That's fine. In that case the driver would specifically require the
+endpoint to be that one node.... although the above looks a little weird
+to me. I would recommend that if there are other non-port child nodes
+then the ports should still be encapsulated by a ports node.  The device
+binding should not be ambiguous about which nodes are ports.
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/ir-nec-decoder.c  |    5 --
- drivers/media/rc/keymaps/rc-tivo.c |   86 ++++++++++++++++++------------------
- 2 files changed, 44 insertions(+), 47 deletions(-)
+> > It seems that this function is merely a helper to get all grandchildren
+> > of a node (with some very minor constraints). That could be generalized
+> > and simplified. If the function takes the "ports" node as an argument
+> > instead of the parent, then there is a greater likelyhood that other
+> > code can make use of it...
+> > 
+> > Thinking further. I think the semantics of this whole feature basically
+> > boil down to this:
+> > 
+> > #define for_each_grandchild_of_node(parent, child, grandchild) \
+> > 	for_each_child_of_node(parent, child) \
+> > 		for_each_child_of_node(child, grandchild)
+> > 
+> > Correct? Or in this specific case:
+> > 
+> > 	parent = of_get_child_by_name(np, "ports")
+> > 	for_each_grandchild_of_node(parent, child, grandchild) {
+> > 		...
+> > 	}
+> 
+> Hmm, that would indeed be a bit more generic, but it doesn't handle the
+> optional 'ports' subnode and doesn't allow for other child nodes in the
+> device node.
 
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 735a509..c4333d5 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -172,10 +172,7 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		if (send_32bits) {
- 			/* NEC transport, but modified protocol, used by at
- 			 * least Apple and TiVo remotes */
--			scancode = not_address << 24 |
--				   address     << 16 |
--				   not_command <<  8 |
--				   command;
-+			scancode = data->bits;
- 			IR_dprintk(1, "NEC (modified) scancode 0x%08x\n", scancode);
- 		} else if ((address ^ not_address) != 0xff) {
- 			/* Extended NEC */
-diff --git a/drivers/media/rc/keymaps/rc-tivo.c b/drivers/media/rc/keymaps/rc-tivo.c
-index 5cc1b45..454e062 100644
---- a/drivers/media/rc/keymaps/rc-tivo.c
-+++ b/drivers/media/rc/keymaps/rc-tivo.c
-@@ -15,62 +15,62 @@
-  * Initial mapping is for the TiVo remote included in the Nero LiquidTV bundle,
-  * which also ships with a TiVo-branded IR transceiver, supported by the mceusb
-  * driver. Note that the remote uses an NEC-ish protocol, but instead of having
-- * a command/not_command pair, it has a vendor ID of 0x3085, but some keys, the
-+ * a command/not_command pair, it has a vendor ID of 0xa10c, but some keys, the
-  * NEC extended checksums do pass, so the table presently has the intended
-  * values and the checksum-passed versions for those keys.
-  */
- static struct rc_map_table tivo[] = {
--	{ 0x3085f009, KEY_MEDIA },	/* TiVo Button */
--	{ 0x3085e010, KEY_POWER2 },	/* TV Power */
--	{ 0x3085e011, KEY_TV },		/* Live TV/Swap */
--	{ 0x3085c034, KEY_VIDEO_NEXT },	/* TV Input */
--	{ 0x3085e013, KEY_INFO },
--	{ 0x3085a05f, KEY_CYCLEWINDOWS }, /* Window */
-+	{ 0xa10c900f, KEY_MEDIA },	/* TiVo Button */
-+	{ 0xa10c0807, KEY_POWER2 },	/* TV Power */
-+	{ 0xa10c8807, KEY_TV },		/* Live TV/Swap */
-+	{ 0xa10c2c03, KEY_VIDEO_NEXT },	/* TV Input */
-+	{ 0xa10cc807, KEY_INFO },
-+	{ 0xa10cfa05, KEY_CYCLEWINDOWS }, /* Window */
- 	{ 0x0085305f, KEY_CYCLEWINDOWS },
--	{ 0x3085c036, KEY_EPG },	/* Guide */
-+	{ 0xa10c6c03, KEY_EPG },	/* Guide */
- 
--	{ 0x3085e014, KEY_UP },
--	{ 0x3085e016, KEY_DOWN },
--	{ 0x3085e017, KEY_LEFT },
--	{ 0x3085e015, KEY_RIGHT },
-+	{ 0xa10c2807, KEY_UP },
-+	{ 0xa10c6807, KEY_DOWN },
-+	{ 0xa10ce807, KEY_LEFT },
-+	{ 0xa10ca807, KEY_RIGHT },
- 
--	{ 0x3085e018, KEY_SCROLLDOWN },	/* Red Thumbs Down */
--	{ 0x3085e019, KEY_SELECT },
--	{ 0x3085e01a, KEY_SCROLLUP },	/* Green Thumbs Up */
-+	{ 0xa10c1807, KEY_SCROLLDOWN },	/* Red Thumbs Down */
-+	{ 0xa10c9807, KEY_SELECT },
-+	{ 0xa10c5807, KEY_SCROLLUP },	/* Green Thumbs Up */
- 
--	{ 0x3085e01c, KEY_VOLUMEUP },
--	{ 0x3085e01d, KEY_VOLUMEDOWN },
--	{ 0x3085e01b, KEY_MUTE },
--	{ 0x3085d020, KEY_RECORD },
--	{ 0x3085e01e, KEY_CHANNELUP },
--	{ 0x3085e01f, KEY_CHANNELDOWN },
-+	{ 0xa10c3807, KEY_VOLUMEUP },
-+	{ 0xa10cb807, KEY_VOLUMEDOWN },
-+	{ 0xa10cd807, KEY_MUTE },
-+	{ 0xa10c040b, KEY_RECORD },
-+	{ 0xa10c7807, KEY_CHANNELUP },
-+	{ 0xa10cf807, KEY_CHANNELDOWN },
- 	{ 0x0085301f, KEY_CHANNELDOWN },
- 
--	{ 0x3085d021, KEY_PLAY },
--	{ 0x3085d023, KEY_PAUSE },
--	{ 0x3085d025, KEY_SLOW },
--	{ 0x3085d022, KEY_REWIND },
--	{ 0x3085d024, KEY_FASTFORWARD },
--	{ 0x3085d026, KEY_PREVIOUS },
--	{ 0x3085d027, KEY_NEXT },	/* ->| */
-+	{ 0xa10c840b, KEY_PLAY },
-+	{ 0xa10cc40b, KEY_PAUSE },
-+	{ 0xa10ca40b, KEY_SLOW },
-+	{ 0xa10c440b, KEY_REWIND },
-+	{ 0xa10c240b, KEY_FASTFORWARD },
-+	{ 0xa10c640b, KEY_PREVIOUS },
-+	{ 0xa10ce40b, KEY_NEXT },	/* ->| */
- 
--	{ 0x3085b044, KEY_ZOOM },	/* Aspect */
--	{ 0x3085b048, KEY_STOP },
--	{ 0x3085b04a, KEY_DVD },	/* DVD Menu */
-+	{ 0xa10c220d, KEY_ZOOM },	/* Aspect */
-+	{ 0xa10c120d, KEY_STOP },
-+	{ 0xa10c520d, KEY_DVD },	/* DVD Menu */
- 
--	{ 0x3085d028, KEY_NUMERIC_1 },
--	{ 0x3085d029, KEY_NUMERIC_2 },
--	{ 0x3085d02a, KEY_NUMERIC_3 },
--	{ 0x3085d02b, KEY_NUMERIC_4 },
--	{ 0x3085d02c, KEY_NUMERIC_5 },
--	{ 0x3085d02d, KEY_NUMERIC_6 },
--	{ 0x3085d02e, KEY_NUMERIC_7 },
--	{ 0x3085d02f, KEY_NUMERIC_8 },
-+	{ 0xa10c140b, KEY_NUMERIC_1 },
-+	{ 0xa10c940b, KEY_NUMERIC_2 },
-+	{ 0xa10c540b, KEY_NUMERIC_3 },
-+	{ 0xa10cd40b, KEY_NUMERIC_4 },
-+	{ 0xa10c340b, KEY_NUMERIC_5 },
-+	{ 0xa10cb40b, KEY_NUMERIC_6 },
-+	{ 0xa10c740b, KEY_NUMERIC_7 },
-+	{ 0xa10cf40b, KEY_NUMERIC_8 },
- 	{ 0x0085302f, KEY_NUMERIC_8 },
--	{ 0x3085c030, KEY_NUMERIC_9 },
--	{ 0x3085c031, KEY_NUMERIC_0 },
--	{ 0x3085c033, KEY_ENTER },
--	{ 0x3085c032, KEY_CLEAR },
-+	{ 0xa10c0c03, KEY_NUMERIC_9 },
-+	{ 0xa10c8c03, KEY_NUMERIC_0 },
-+	{ 0xa10ccc03, KEY_ENTER },
-+	{ 0xa10c4c03, KEY_CLEAR },
- };
- 
- static struct rc_map_list tivo_map = {
+See above. The no-ports-node version could be the
+for_each_grandchild_of_node() block, and the yes-ports-node version
+could be a wrapper around that.
 
+> > Finally, looking at the actual patch, is any of this actually needed.
+> > All of the users updated by this patch only ever handle a single
+> > endpoint. Have I read it correctly? Are there any users supporting
+> > multiple endpoints?
+> 
+> Yes, mainline currently only contains simple cases. I have posted i.MX6
+> patches that use this scheme for the output path:
+>   http://www.spinics.net/lists/arm-kernel/msg310817.html
+>   http://www.spinics.net/lists/arm-kernel/msg310821.html
+
+Blurg. On a plane right now. Can't go and read those links.
+
+> > > +
+> > > +		if (port) {
+> > > +			/* Found a port, get an endpoint. */
+> > > +			endpoint = of_get_next_child(port, NULL);
+> > > +			of_node_put(port);
+> > > +		} else {
+> > > +			endpoint = NULL;
+> > > +		}
+> > > +
+> > > +		if (!endpoint)
+> > > +			pr_err("%s(): no endpoint nodes specified for %s\n",
+> > > +			       __func__, parent->full_name);
+> > > +		of_node_put(node);
+> > 
+> > If you 'return endpoint' here, then the else block can go down a level.
+> 
+> Note that this patch is a straight move of existing code.
+> I can follow up with code beautification and ...
+
+I'm fine with that.
+
+g.
