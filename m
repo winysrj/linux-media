@@ -1,87 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36420 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753939AbaCMLpD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 07:45:03 -0400
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 00/14] v4l: ti-vpe: Some VPE fixes and enhancements
-Date: Thu, 13 Mar 2014 17:14:02 +0530
-Message-ID: <1394711056-10878-1-git-send-email-archit@ti.com>
-In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48643 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751162AbaCHKq5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 05:46:57 -0500
+Message-ID: <531AF4ED.5020608@ti.com>
+Date: Sat, 8 Mar 2014 12:46:05 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+CC: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core
+ to drivers/of
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> < 1393340304-19005-2-git-send-email-p.zabel@pengutronix.de> <20140226113729. A9D5AC40A89@trevor.secretlab.ca> <1393428297.3248.92.camel@paszta.hi. pengutronix.de> <20140307171804.EF245C40A32@trevor.secretlab.ca>
+In-Reply-To: <20140307171804.EF245C40A32@trevor.secretlab.ca>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="KDhiUnuuxVHKONxw4jlm14R4d5nVQ8tXr"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set mainly consists of minor fixes for the VPE driver. These fixes
-ensure the following:
+--KDhiUnuuxVHKONxw4jlm14R4d5nVQ8tXr
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-- The VPE module can be inserted and removed successively.
-- Make sure that smaller resolutions like qcif work correctly.
-- Prevent race condition between firmware loading and an open call to the v4l2
-  device.
-- Prevent the possibility of output m2m queue not having sufficient 'ready'
-  buffers.
-- Some VPDMA data descriptor fields weren't understood correctly before. They
-  are now used correctly.
+On 07/03/14 19:18, Grant Likely wrote:
 
-The rest of the patches add some minor features like DMA buf support and
-cropping/composing.
+> From a pattern perspective I have no problem with that.... From an
+> individual driver binding perspective that is just dumb! It's fine for
+> the ports node to be optional, but an individual driver using the
+> binding should be explicit about which it will accept. Please use eithe=
+r
+> a flag or a separate wrapper so that the driver can select the
+> behaviour.
 
-Reference branch:
+Why is that? The meaning of the DT data stays the same, regardless of
+the existence of the 'ports' node. The driver uses the graph helpers to
+parse the port/endpoint data, so individual drivers don't even have to
+care about the format used.
 
-git@github.com:boddob/linux.git vpe_for_315
+As I see it, the graph helpers should allow the drivers to iterate the
+ports and the endpoints for a port. These should work the same way, no
+matter which abbreviated format is used in the dts.
 
-Changes in v4:
+>> The helper should find the two endpoints in both cases.
+>> Tomi suggests an even more compact form for devices with just one port=
+:
+>>
+>> 	device {
+>> 		endpoint { ... };
+>>
+>> 		some-other-child { ... };
+>> 	};
+>=20
+> That's fine. In that case the driver would specifically require the
+> endpoint to be that one node.... although the above looks a little weir=
+d
 
-- More legible code for selection API
-- Stricter checking for target type vs crop type in g_selection
-- Minor fix in patch 13/14, there was a logical bug in buf_prepare when
-  checking validity of top and bottom fields.
+The driver can't require that. It's up to the board designer to decide
+how many endpoints are used. A driver may say that it has a single input
+port. But the number of endpoints for that port is up to the use case.
 
-Changes in v3:
+> to me. I would recommend that if there are other non-port child nodes
+> then the ports should still be encapsulated by a ports node.  The devic=
+e
+> binding should not be ambiguous about which nodes are ports.
 
-- improvements in selection API patch.
-- querycap fixes for v4l2 compliance.
-- v4l2_buffer 'field' and flags' fixes for compliance.
-- fixes in try_fmt vpe_open for compliance.
-- rename a IOMEM resource for better DT compatibility.
+Hmm, ambiguous in what way?
 
-Changes in v2:
+If the dts uses 'ports' node, all the ports and endpoints are inside
+that 'ports' node. If there is no 'ports' node, there may be one or more
+'port' nodes, which then contain endpoints. If there are no 'port'
+nodes, there may be a single 'endpoint' node.
 
-- selection API used instead of older cropping API.
-- Typo fix.
-- Some changes in patch 6/7 to support composing on the capture side of VPE.
+True, there are many "if"s there. But I don't think it's ambiguous. The
+reason we have these abbreviations is that the full 'ports' node is not
+needed that often, and it is rather verbose. In almost all the use
+cases, panels and connectors can use the single endpoint format.
+
+ Tomi
 
 
-Archit Taneja (14):
-  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
-    dst_bufs
-  v4l: ti-vpe: register video device only when firmware is loaded
-  v4l: ti-vpe: Use video_device_release_empty
-  v4l: ti-vpe: Allow DMABUF buffer type support
-  v4l: ti-vpe: Allow usage of smaller images
-  v4l: ti-vpe: Fix some params in VPE data descriptors
-  v4l: ti-vpe: Add selection API in VPE driver
-  v4l: ti-vpe: Rename csc memory resource name
-  v4l: ti-vpe: report correct capabilities in querycap
-  v4l: ti-vpe: Use correct bus_info name for the device in querycap
-  v4l: ti-vpe: Fix initial configuration queue data
-  v4l: ti-vpe: zero out reserved fields in try_fmt
-  v4l: ti-vpe: Set correct field parameter for output and capture
-    buffers
-  v4l: ti-vpe: retain v4l2_buffer flags for captured buffers
 
- drivers/media/platform/ti-vpe/csc.c   |   2 +-
- drivers/media/platform/ti-vpe/vpdma.c |  68 ++++++---
- drivers/media/platform/ti-vpe/vpdma.h |  17 ++-
- drivers/media/platform/ti-vpe/vpe.c   | 272 ++++++++++++++++++++++++++++------
- 4 files changed, 290 insertions(+), 69 deletions(-)
+--KDhiUnuuxVHKONxw4jlm14R4d5nVQ8tXr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
--- 
-1.8.3.2
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
+iQIcBAEBAgAGBQJTGvTtAAoJEPo9qoy8lh71DkoQAI9olG4IKoXnS42j7svHIReP
+4XREe5aFwEpxNbzJYEhCEEHFmVd3GhngyZbxGIo0eQAknNbzIEHOIKwHzh5QGQWj
+3efXba0KDGgTOiog/3KZE5eRNkw/5wBbarUvf11eBv6VPT68hf2S+YeiP3A8/oxl
+QEJZYDjUMPFN2L6hL2jcFFqgEaOQL+swJHw/MVroG9kvZlnIvMCfoE4rW5ml6t6I
+WukH8z+kVV05KrZwD96y31Rw6dHEEYIxvrOH+n9MK5n7ZHBVnrTZd1LdIRcb/PYP
+yVEZAf7wzyKUtizJDx3jr8e0k9bPQp0wmdcOy82SVt/96Di7YFYOmtG41z477mSY
+Gyo4t1NKyeZ/ouIsKoQsgWaTwtPuz/k3L97dFqaTkFVvj1HNrJVA0pYMONHEA1d4
+xFcL9CQZGSoeVIIGDN/40klKZeAcE8jim5Duhb4/E205LVibchKUwZAivfJeFY0W
+6apfXGb1unJUbg4ODUVsPblV1goDhyhVQcC28XX6k8kAD/m37Luq0uDwX6rdVOMT
+zL3K+kOLbq29ykU5IlNsoNS+Tyu1NKILplkYy2DStN88Yu5LH25ksGqBevOlqHeR
+8UHy2bTzq7SHCvmDzSn3SRfzxpF7OIdMVBxWpdCiT+sX94QPoEPSP56g+IFYoGFR
+NollNDhACsHpUTT8vDES
+=NrAG
+-----END PGP SIGNATURE-----
+
+--KDhiUnuuxVHKONxw4jlm14R4d5nVQ8tXr--
