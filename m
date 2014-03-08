@@ -1,113 +1,324 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4270 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754459AbaCPDew (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Mar 2014 23:34:52 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2G3YniC076515
-	for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 04:34:51 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 220AF2A1889
-	for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 04:34:41 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140316033441.220AF2A1889@tschai.lan>
-Date: Sun, 16 Mar 2014 04:34:41 +0100 (CET)
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:45342 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751045AbaCHS2I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 13:28:08 -0500
+Received: by mail-ea0-f180.google.com with SMTP id m10so2918272eaj.11
+        for <linux-media@vger.kernel.org>; Sat, 08 Mar 2014 10:28:06 -0800 (PST)
+Message-ID: <531B6176.6070802@googlemail.com>
+Date: Sat, 08 Mar 2014 19:29:10 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>, unlisted-recipients:;
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 1/2] em28xx: Only deallocate struct em28xx after finishing
+ all extensions
+References: <1394281177-5920-1-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1394281177-5920-1-git-send-email-m.chehab@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+Am 08.03.2014 13:19, schrieb Mauro Carvalho Chehab:
+> We can't free struct em28xx while one of the extensions is still
+> using it.
+>
+> So, add a kref() to control it, freeing it only after the
+> extensions fini calls.
+>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-audio.c |  7 ++++++-
+>  drivers/media/usb/em28xx/em28xx-cards.c | 32 +++++++++++++++++++++++++-------
+>  drivers/media/usb/em28xx/em28xx-dvb.c   |  5 ++++-
+>  drivers/media/usb/em28xx/em28xx-input.c |  8 +++++++-
+>  drivers/media/usb/em28xx/em28xx-video.c | 15 ++++++++-------
+>  drivers/media/usb/em28xx/em28xx.h       |  8 ++++++--
+>  6 files changed, 56 insertions(+), 19 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+> index 0f5b6f3e7a3f..f75c0a5494d6 100644
+> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+> @@ -301,6 +301,7 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+>  			goto err;
+>  	}
+>  
+> +	kref_get(&dev->ref);
+>  	dev->adev.users++;
+>  	mutex_unlock(&dev->lock);
+>  
+> @@ -341,6 +342,7 @@ static int snd_em28xx_pcm_close(struct snd_pcm_substream *substream)
+>  		substream->runtime->dma_area = NULL;
+>  	}
+>  	mutex_unlock(&dev->lock);
+> +	kref_put(&dev->ref, em28xx_free_device);
+>  
+>  	return 0;
+>  }
+> @@ -895,6 +897,8 @@ static int em28xx_audio_init(struct em28xx *dev)
+>  
+>  	em28xx_info("Binding audio extension\n");
+>  
+> +	kref_get(&dev->ref);
+> +
+>  	printk(KERN_INFO "em28xx-audio.c: Copyright (C) 2006 Markus "
+>  			 "Rechberger\n");
+>  	printk(KERN_INFO
+> @@ -967,7 +971,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+>  	if (dev == NULL)
+>  		return 0;
+>  
+> -	if (dev->has_alsa_audio != 1) {
+> +	if (!dev->has_alsa_audio) {
+>  		/* This device does not support the extension (in this case
+>  		   the device is expecting the snd-usb-audio module or
+>  		   doesn't have analog audio support at all) */
+> @@ -986,6 +990,7 @@ static int em28xx_audio_fini(struct em28xx *dev)
+>  		dev->adev.sndcard = NULL;
+>  	}
+>  
+> +	kref_put(&dev->ref, em28xx_free_device);
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index 2fb300e882f0..015e3731a1c0 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -2939,7 +2939,7 @@ static void flush_request_modules(struct em28xx *dev)
+>   * unregisters the v4l2,i2c and usb devices
+>   * called when the device gets disconnected or at module unload
+>  */
+> -void em28xx_release_resources(struct em28xx *dev)
+> +static void em28xx_release_resources(struct em28xx *dev)
+>  {
+>  	/*FIXME: I2C IR should be disconnected */
+>  
+> @@ -2956,7 +2956,27 @@ void em28xx_release_resources(struct em28xx *dev)
+>  
+>  	mutex_unlock(&dev->lock);
+>  };
+> -EXPORT_SYMBOL_GPL(em28xx_release_resources);
+> +
+> +/**
+> + * em28xx_free_defice() - Free em28xx device
+Small typo. ;-)
 
-date:		Sun Mar 16 04:00:20 CET 2014
-git branch:	test
-git hash:	ed97a6fe5308e5982d118a25f0697b791af5ec50
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0
-host hardware:	x86_64
-host os:	3.13-5.slh.4-amd64
+Reviewed-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0
-sparse: ERRORS
+> + *
+> + * @ref: struct kref for em28xx device
+> + *
+> + * This is called when all extensions and em28xx core unregisters a device
+> + */
+> +void em28xx_free_device(struct kref *ref)
+> +{
+> +	struct em28xx *dev = kref_to_dev(ref);
+> +
+> +	em28xx_info("Freeing device\n");
+> +
+> +	if (!dev->disconnected)
+> +		em28xx_release_resources(dev);
+> +
+> +	kfree(dev->alt_max_pkt_size_isoc);
+> +	kfree(dev);
+> +}
+> +EXPORT_SYMBOL_GPL(em28xx_free_device);
+>  
+>  /*
+>   * em28xx_init_dev()
+> @@ -3409,6 +3429,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+>  			    dev->dvb_xfer_bulk ? "bulk" : "isoc");
+>  	}
+>  
+> +	kref_init(&dev->ref);
+> +
+>  	request_modules(dev);
+>  
+>  	/* Should be the last thing to do, to avoid newer udev's to
+> @@ -3453,11 +3475,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+>  	em28xx_close_extension(dev);
+>  
+>  	em28xx_release_resources(dev);
+> -
+> -	if (!dev->users) {
+> -		kfree(dev->alt_max_pkt_size_isoc);
+> -		kfree(dev);
+> -	}
+> +	kref_put(&dev->ref, em28xx_free_device);
+>  }
+>  
+>  static int em28xx_usb_suspend(struct usb_interface *interface,
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index d4986bdfbdc3..cacdca3a3412 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -1043,7 +1043,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>  	em28xx_info("Binding DVB extension\n");
+>  
+>  	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
+> -
+>  	if (dvb == NULL) {
+>  		em28xx_info("em28xx_dvb: memory allocation failed\n");
+>  		return -ENOMEM;
+> @@ -1521,6 +1520,9 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>  	dvb->adapter.mfe_shared = mfe_shared;
+>  
+>  	em28xx_info("DVB extension successfully initialized\n");
+> +
+> +	kref_get(&dev->ref);
+> +
+>  ret:
+>  	em28xx_set_mode(dev, EM28XX_SUSPEND);
+>  	mutex_unlock(&dev->lock);
+> @@ -1577,6 +1579,7 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+>  		em28xx_unregister_dvb(dvb);
+>  		kfree(dvb);
+>  		dev->dvb = NULL;
+> +		kref_put(&dev->ref, em28xx_free_device);
+>  	}
+>  
+>  	return 0;
+> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+> index 47a2c1dcccbf..2a9bf667f208 100644
+> --- a/drivers/media/usb/em28xx/em28xx-input.c
+> +++ b/drivers/media/usb/em28xx/em28xx-input.c
+> @@ -676,6 +676,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+>  		return 0;
+>  	}
+>  
+> +	kref_get(&dev->ref);
+> +
+>  	if (dev->board.buttons)
+>  		em28xx_init_buttons(dev);
+>  
+> @@ -816,7 +818,7 @@ static int em28xx_ir_fini(struct em28xx *dev)
+>  
+>  	/* skip detach on non attached boards */
+>  	if (!ir)
+> -		return 0;
+> +		goto ref_put;
+>  
+>  	if (ir->rc)
+>  		rc_unregister_device(ir->rc);
+> @@ -824,6 +826,10 @@ static int em28xx_ir_fini(struct em28xx *dev)
+>  	/* done */
+>  	kfree(ir);
+>  	dev->ir = NULL;
+> +
+> +ref_put:
+> +	kref_put(&dev->ref, em28xx_free_device);
+> +
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index 19af6b3e9e2b..32aa55f033fc 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -1837,7 +1837,6 @@ static int em28xx_v4l2_open(struct file *filp)
+>  			video_device_node_name(vdev), v4l2_type_names[fh_type],
+>  			dev->users);
+>  
+> -
+>  	if (mutex_lock_interruptible(&dev->lock))
+>  		return -ERESTARTSYS;
+>  	fh = kzalloc(sizeof(struct em28xx_fh), GFP_KERNEL);
+> @@ -1869,6 +1868,7 @@ static int em28xx_v4l2_open(struct file *filp)
+>  		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_radio);
+>  	}
+>  
+> +	kref_get(&dev->ref);
+>  	dev->users++;
+>  
+>  	mutex_unlock(&dev->lock);
+> @@ -1926,9 +1926,8 @@ static int em28xx_v4l2_fini(struct em28xx *dev)
+>  		dev->clk = NULL;
+>  	}
+>  
+> -	if (dev->users)
+> -		em28xx_warn("Device is open ! Memory deallocation is deferred on last close.\n");
+>  	mutex_unlock(&dev->lock);
+> +	kref_put(&dev->ref, em28xx_free_device);
+>  
+>  	return 0;
+>  }
+> @@ -1976,11 +1975,9 @@ static int em28xx_v4l2_close(struct file *filp)
+>  	mutex_lock(&dev->lock);
+>  
+>  	if (dev->users == 1) {
+> -		/* free the remaining resources if device is disconnected */
+> -		if (dev->disconnected) {
+> -			kfree(dev->alt_max_pkt_size_isoc);
+> +		/* No sense to try to write to the device */
+> +		if (dev->disconnected)
+>  			goto exit;
+> -		}
+>  
+>  		/* Save some power by putting tuner to sleep */
+>  		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+> @@ -2001,6 +1998,8 @@ static int em28xx_v4l2_close(struct file *filp)
+>  exit:
+>  	dev->users--;
+>  	mutex_unlock(&dev->lock);
+> +	kref_put(&dev->ref, em28xx_free_device);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -2515,6 +2514,8 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+>  
+>  	em28xx_info("V4L2 extension successfully initialized\n");
+>  
+> +	kref_get(&dev->ref);
+> +
+>  	mutex_unlock(&dev->lock);
+>  	return 0;
+>  
+> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+> index 9e44f5bfc48b..2051fc9fb932 100644
+> --- a/drivers/media/usb/em28xx/em28xx.h
+> +++ b/drivers/media/usb/em28xx/em28xx.h
+> @@ -32,6 +32,7 @@
+>  #include <linux/workqueue.h>
+>  #include <linux/i2c.h>
+>  #include <linux/mutex.h>
+> +#include <linux/kref.h>
+>  #include <linux/videodev2.h>
+>  
+>  #include <media/videobuf2-vmalloc.h>
+> @@ -536,9 +537,10 @@ struct em28xx_i2c_bus {
+>  	enum em28xx_i2c_algo_type algo_type;
+>  };
+>  
+> -
+>  /* main device struct */
+>  struct em28xx {
+> +	struct kref ref;
+> +
+>  	/* generic device properties */
+>  	char name[30];		/* name (including minor) of the device */
+>  	int model;		/* index in the device_data struct */
+> @@ -710,6 +712,8 @@ struct em28xx {
+>  	struct em28xx_dvb *dvb;
+>  };
+>  
+> +#define kref_to_dev(d) container_of(d, struct em28xx, ref)
+> +
+>  struct em28xx_ops {
+>  	struct list_head next;
+>  	char *name;
+> @@ -771,7 +775,7 @@ extern struct em28xx_board em28xx_boards[];
+>  extern struct usb_device_id em28xx_id_table[];
+>  int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
+>  void em28xx_setup_xc3028(struct em28xx *dev, struct xc2028_ctrl *ctl);
+> -void em28xx_release_resources(struct em28xx *dev);
+> +void em28xx_free_device(struct kref *ref);
+>  
+>  /* Provided by em28xx-camera.c */
+>  int em28xx_detect_sensor(struct em28xx *dev);
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
