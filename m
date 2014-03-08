@@ -1,128 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45976 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753204AbaCJTiV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 15:38:21 -0400
-Received: from dyn3-82-128-190-236.psoas.suomi.net ([82.128.190.236] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1WN61k-0007Rn-Fz
-	for linux-media@vger.kernel.org; Mon, 10 Mar 2014 21:38:20 +0200
-Message-ID: <531E14AB.4060309@iki.fi>
-Date: Mon, 10 Mar 2014 21:38:19 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from devils.ext.ti.com ([198.47.26.153]:48871 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054AbaCHK5t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 05:57:49 -0500
+Message-ID: <531AF782.5080801@ti.com>
+Date: Sat, 8 Mar 2014 12:57:06 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] SDR API
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+CC: Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
+ to drivers/of
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>	 < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com>	 < 20140217181451.7EB7FC4044D@trevor.secretlab.ca>	 <20140218070624.GP17250@ pengutronix.de>	 <20140218162627.32BA4C40517@trevor.secretlab.ca>	 < 1393263389.3091.82.camel@pizza.hi.pengutronix.de>	 <20140226110114. CF2C7C40A89@trevor.secretlab.ca> <1393426129.3248.64.camel@paszta.hi. pengutronix.de> <530EF914.3000407@ti.com> <20140307170645.CE50DC40A1B@trevor.secretlab.ca>
+In-Reply-To: <20140307170645.CE50DC40A1B@trevor.secretlab.ca>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="lfSvpLQODLCNjnDX4EBJCJBLVdb4h0r6v"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That is just same set I sent earlier too, but rebased to latest 
-media/master and 6 small compliance fix.
+--lfSvpLQODLCNjnDX4EBJCJBLVdb4h0r6v
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 07/03/14 19:06, Grant Likely wrote:
+> On Thu, 27 Feb 2014 10:36:36 +0200, Tomi Valkeinen <tomi.valkeinen@ti.c=
+om> wrote:
+>> On 26/02/14 16:48, Philipp Zabel wrote:
+>>
+>>>> I would like the document to acknowledge the difference from the
+>>>> phandle+args pattern used elsewhere and a description of when it wou=
+ld
+>>>> be appropriate to use this instead of a simpler binding.
+>>>
+>>> Alright. The main point of this binding is that the devices may have
+>>> multiple distinct ports that each can be connected to other devices.
+>>
+>> The other main point with this binding are multiple endpoints per port=
+=2E
+>> So you can have, say, a display controller, with single port, which ha=
+s
+>> two endpoints going to two separate LCD panels.
+>>
+>> In physical level that would usually mean that the same pins from the
+>> display controller are connected to two panels. Most likely this would=
+
+>> mean that only one panel can be used at a time, possibly with differen=
+t
+>> settings (say, 16 RGB pins for one panel, 24 RGB pins for the other).
+>=20
+> What device is in control in that scenario?
+
+The endpoints in a single port are exclusive, only one can be active at
+a time. So the control for the active path would be no different than in
+single panel case (for which people have different opinions).
+
+ Tomi
 
 
-The following changes since commit f2d7313534072a5fe192e7cf46204b413acef479:
 
-   [media] drx-d: add missing braces in drxd_hard.c:DRXD_init 
-(2014-03-09 09:20:50 -0300)
+--lfSvpLQODLCNjnDX4EBJCJBLVdb4h0r6v
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-are available in the git repository at:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-   git://linuxtv.org/anttip/media_tree.git sdr_review_v3
+iQIcBAEBAgAGBQJTGveCAAoJEPo9qoy8lh71R74P+gIz+WGE6WfW2fMVMXiVQf84
++VoyCY9AKmAJiugsQJAEZnm9Wsm7KQhs/6NH6orR77AOOgzl7nXxFgpWT/UiCeIE
+uHisz0+OZDGPyswsrRhin2iQRJlPoAexsiHHMuvpBjIBO5UbGjNkxPuCBcZeg7Q8
+sUYQFnr1mn3b8uh4o6lmAX2o/FJNqxIQvJ4OqCzLeckYStHDQ+zQARi5oVC90AjZ
+XXZGVroUJ9ygIKpkF3xjZ55xVUNGzC80UnD6J/4WWr4orLrRay4vCMOJLVC2ygwH
+X+t92C1HxYWnF7j3cjl7vCrTIXOJkJKTz/WedhZtiSc8pA6sjh2W10+/tR4k3acT
+12wedIemZrVu4vR21twy4isdYK2z2U401ZLr+QUh4kazJauheohBaMRqKG/7A+k+
+0MosFuBAGhH9YdNzmtqkGbrlWDCX3ak7nHSPmhT9y75m57H+PpdQj5LtGoVZ6h6/
+6fJv7CGT6mAsCGiY7WuiawpDSgbyRsRF9dipJA1VMxIosOLEp1UCG0KKpUox9eX5
+UP6xV7QPp+xwePs/LdSCKRfTJz2QVSCNvtrSi/9SnCxqh8jve+9KMxK2rYBtWZe0
+OKmQB6Ie+y7ZD7vUJjTQTNZTultu5fnauHP4phIjB5Xzl1Y8Atlp+5l/atCD9TMw
+nSkVMHQqpvBJhHIt3ltw
+=831F
+-----END PGP SIGNATURE-----
 
-for you to fetch changes up to 2a02f2e9cf67c2e083950ea4b1d03a2756c1ee94:
-
-   msi3101: fix v4l2-compliance issues (2014-03-10 21:30:44 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (37):
-       v4l: add RF tuner channel bandwidth control
-       v4l: reorganize RF tuner control ID numbers
-       v4l: uapi: add SDR formats CU8 and CU16LE
-       v4l: add enum_freq_bands support to tuner sub-device
-       v4l: add control for RF tuner PLL lock flag
-       DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
-       DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
-       DocBook: document RF tuner bandwidth controls
-       DocBook: media: document PLL lock control
-       DocBook: media: add some general info about RF tuners
-       msi3101: convert to SDR API
-       msi001: Mirics MSi001 silicon tuner driver
-       msi3101: use msi001 tuner driver
-       MAINTAINERS: add msi001 driver
-       MAINTAINERS: add msi3101 driver
-       msi3101: clamp mmap buffers to reasonable level
-       e4000: convert DVB tuner to I2C driver model
-       e4000: implement controls via v4l2 control framework
-       e4000: fix PLL calc to allow higher frequencies
-       e4000: implement PLL lock v4l control
-       e4000: get rid of DVB i2c_gate_ctrl()
-       e4000: convert to Regmap API
-       e4000: rename some variables
-       rtl2832_sdr: Realtek RTL2832 SDR driver module
-       rtl28xxu: constify demod config structs
-       rtl28xxu: attach SDR extension module
-       rtl28xxu: fix switch-case style issue
-       rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
-       rtl2832_sdr: expose e4000 controls to user
-       r820t: add manual gain controls
-       rtl2832_sdr: expose R820T controls to user
-       MAINTAINERS: add rtl2832_sdr driver
-       v4l: rename v4l2_format_sdr to v4l2_sdr_format
-       rtl2832_sdr: clamp bandwidth to nearest legal value in automode
-       rtl28xxu: depends on I2C_MUX
-       msi001: fix v4l2-compliance issues
-       msi3101: fix v4l2-compliance issues
-
-Hans Verkuil (1):
-       rtl2832u_sdr: fixing v4l2-compliance issues
-
-  Documentation/DocBook/media/v4l/controls.xml          |   51 +++-
-  Documentation/DocBook/media/v4l/dev-sdr.xml           |    2 +-
-  Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml   |   44 ++++
-  Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml |   46 ++++
-  Documentation/DocBook/media/v4l/pixfmt.xml            |    3 +
-  MAINTAINERS                                           |   30 +++
-  drivers/media/tuners/Kconfig                          |    1 +
-  drivers/media/tuners/e4000.c                          |  598 
-+++++++++++++++++++++++++++++------------------
-  drivers/media/tuners/e4000.h                          |   21 +-
-  drivers/media/tuners/e4000_priv.h                     |   86 ++++++-
-  drivers/media/tuners/r820t.c                          |  137 ++++++++++-
-  drivers/media/tuners/r820t.h                          |   10 +
-  drivers/media/usb/dvb-usb-v2/Kconfig                  |    2 +-
-  drivers/media/usb/dvb-usb-v2/Makefile                 |    1 +
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c               |   90 +++++--
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.h               |    2 +
-  drivers/media/v4l2-core/v4l2-ctrls.c                  |    9 +
-  drivers/media/v4l2-core/v4l2-ioctl.c                  |    2 +-
-  drivers/staging/media/Kconfig                         |    2 +
-  drivers/staging/media/Makefile                        |    2 +
-  drivers/staging/media/msi3101/Kconfig                 |    7 +-
-  drivers/staging/media/msi3101/Makefile                |    1 +
-  drivers/staging/media/msi3101/msi001.c                |  500 
-+++++++++++++++++++++++++++++++++++++++
-  drivers/staging/media/msi3101/sdr-msi3101.c           | 1564 
-+++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------------------------------
-  drivers/staging/media/rtl2832u_sdr/Kconfig            |    7 +
-  drivers/staging/media/rtl2832u_sdr/Makefile           |    6 +
-  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c      | 1501 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h      |   51 ++++
-  include/media/v4l2-subdev.h                           |    1 +
-  include/uapi/linux/v4l2-controls.h                    |   15 +-
-  include/uapi/linux/videodev2.h                        |   10 +-
-  31 files changed, 3531 insertions(+), 1271 deletions(-)
-  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
-  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
-  create mode 100644 drivers/staging/media/msi3101/msi001.c
-  create mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
-  create mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
-  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
-
--- 
-http://palosaari.fi/
+--lfSvpLQODLCNjnDX4EBJCJBLVdb4h0r6v--
