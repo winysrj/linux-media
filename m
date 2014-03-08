@@ -1,55 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34915 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752153AbaCFQvO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:51:14 -0500
-Message-ID: <1394124630.3622.64.camel@paszta.hi.pengutronix.de>
-Subject: Re: [PATCH v6 0/8] Move device tree graph parsing helpers to
- drivers/of
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:38492 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365AbaCHMZi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 07:25:38 -0500
+Received: by mail-ee0-f44.google.com with SMTP id e49so2237363eek.3
+        for <linux-media@vger.kernel.org>; Sat, 08 Mar 2014 04:25:37 -0800 (PST)
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
 Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Grant Likely <grant.likely@linaro.org>,
 	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Date: Thu, 06 Mar 2014 17:50:30 +0100
-In-Reply-To: <5318A331.2070603@samsung.com>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
-	 <53170C00.20200@ti.com> <1394030554.8754.31.camel@paszta.hi.pengutronix.de>
-	 <20140306141657.GB21483@n2100.arm.linux.org.uk>
-	 <20140306121721.6186dafb@samsung.com> <5318988C.2030004@samsung.com>
-	 <1394122879.3622.47.camel@paszta.hi.pengutronix.de>
-	 <5318A331.2070603@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+In-Reply-To: <531AE46A.2060808@ti.com>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>	 < 1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>	 <530DE8A9. 9050809@ti.com> <1393426623.3248.70.camel@paszta.hi.pengutronix.de> < 530DFF4C.8080807@ti.com> <20140307181132.B2D71C40A88@trevor.secretlab.ca> < 531AE46A.2060808@ti.com>
+Date: Sat, 08 Mar 2014 12:25:32 +0000
+Message-Id: <20140308122532.1AED9C40612@trevor.secretlab.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, den 06.03.2014, 17:32 +0100 schrieb Sylwester Nawrocki:
-> On 06/03/14 17:21, Philipp Zabel wrote:
-> > Am Donnerstag, den 06.03.2014, 16:47 +0100 schrieb Sylwester Nawrocki:
-> >> Yes, it's going to conflict with my patch series. I thought it could be
-> >> put onto a stable a topic branch, e.g. at git://linuxtv.org/media_tree.git,
-> >> which could be then pulled into the media master branch and anywhere
-> >> else it is needed ?
-> > 
-> > Mauro, are you ok with handling the conflict in the merge, or should I
-> > rebase on top of the media tree after you merged Sylwester's changes?
+On Sat, 8 Mar 2014 11:35:38 +0200, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 07/03/14 20:11, Grant Likely wrote:
 > 
-> I could rebase and resolve any conflicts before sending my pull request
-> to Mauro. I don't think it's a good idea to rebase this series onto the
-> media tree, since it is touching drivers/of.
+> >>> Any board not using that port can just leave the endpoint disconnected.
+> >>
+> >> Hmm I see. I'm against that.
+> >>
+> >> I think the SoC dtsi should not contain endpoint node, or even port node
+> >> (at least usually). It doesn't know how many endpoints, if any, a
+> >> particular board has. That part should be up to the board dts.
+> > 
+> > Why? We have established precedence for unused devices still being in
+> > the tree. I really see no issue with it.
+> 
+> I'm fine with having ports defined in the SoC dtsi. A port is a physical
+> thing, a group of pins, for example.
+> 
+> But an endpoint is a description of the other end of a link. To me, a
+> single endpoint makes no sense, there has to be a pair of endpoints. The
+> board may need 0 to n endpoints, and the SoC dtsi cannot know how many
+> are needed.
+> 
+> If the SoC dtsi defines a single endpoint for a port, and the board
+> needs to use two endpoints for that port, it gets really messy: one
+> endpoint is defined in the SoC dtsi, and used in the board dts. The
+> second endpoint for the same port needs to be defined separately in the
+> board file. I.e. something like:
 
-Excellent, thanks. I will send a pull request to Mauro and Russell
-shortly.
+Sure. If endpoints are logical, then only create the ones actually
+hooked up. No problem there. But nor do I see any issue with having
+empty connections if the board author things it makes sense to have them
+in the dtsi.
 
-regards
-Philipp
+> 
+> /* the first ep */
+> &port1_ep {
+> 	remote-endpoint = <&..>;
+> };
+> 
+> &port1 {
+> 	/* the second ep */
+> 	endpoint@2 {
+> 		remote-endpoint = <&..>;
+> 	};
+> };
+> 
+> Versus:
+> 
+> &port1 {
+> 	/* the first ep */
+> 	endpoint@1 {
+> 		remote-endpoint = <&..>;
+> 	};
+> 
+> 	/* the second ep */
+> 	endpoint@2 {
+> 		remote-endpoint = <&..>;
+> 	};
+> };
+> 
+>  Tomi
+> 
+> 
 
