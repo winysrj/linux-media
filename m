@@ -1,64 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958AbaCJXOj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 09/48] adv7842: Add pad-level DV timings operations
-Date: Tue, 11 Mar 2014 00:15:20 +0100
-Message-Id: <1394493359-14115-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47102 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751222AbaCHJga (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 04:36:30 -0500
+Message-ID: <531AE46A.2060808@ti.com>
+Date: Sat, 8 Mar 2014 11:35:38 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+CC: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>	 < 1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>	 <530DE8A9. 9050809@ti.com> <1393426623.3248.70.camel@paszta.hi.pengutronix.de> < 530DFF4C.8080807@ti.com> <20140307181132.B2D71C40A88@trevor.secretlab.ca>
+In-Reply-To: <20140307181132.B2D71C40A88@trevor.secretlab.ca>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="6uRTMvvwH3OpEIWdqbUxIqw3ac3vMg2TU"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated.
-Implement the pad-level version of those operations to prepare for the
-removal of the video version.
+--6uRTMvvwH3OpEIWdqbUxIqw3ac3vMg2TU
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+On 07/03/14 20:11, Grant Likely wrote:
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index e04fe3f..78d21fd 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -1399,6 +1399,9 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
- static int adv7842_enum_dv_timings(struct v4l2_subdev *sd,
- 				   struct v4l2_enum_dv_timings *timings)
- {
-+	if (timings->pad != 0)
-+		return -EINVAL;
-+
- 	return v4l2_enum_dv_timings_cap(timings,
- 		adv7842_get_dv_timings_cap(sd), adv7842_check_dv_timings, NULL);
- }
-@@ -1406,6 +1409,9 @@ static int adv7842_enum_dv_timings(struct v4l2_subdev *sd,
- static int adv7842_dv_timings_cap(struct v4l2_subdev *sd,
- 				  struct v4l2_dv_timings_cap *cap)
- {
-+	if (cap->pad != 0)
-+		return -EINVAL;
-+
- 	*cap = *adv7842_get_dv_timings_cap(sd);
- 	return 0;
- }
-@@ -2897,6 +2903,8 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
- static const struct v4l2_subdev_pad_ops adv7842_pad_ops = {
- 	.get_edid = adv7842_get_edid,
- 	.set_edid = adv7842_set_edid,
-+	.enum_dv_timings = adv7842_enum_dv_timings,
-+	.dv_timings_cap = adv7842_dv_timings_cap,
- };
- 
- static const struct v4l2_subdev_ops adv7842_ops = {
--- 
-1.8.3.2
+>>> Any board not using that port can just leave the endpoint disconnecte=
+d.
+>>
+>> Hmm I see. I'm against that.
+>>
+>> I think the SoC dtsi should not contain endpoint node, or even port no=
+de
+>> (at least usually). It doesn't know how many endpoints, if any, a
+>> particular board has. That part should be up to the board dts.
+>=20
+> Why? We have established precedence for unused devices still being in
+> the tree. I really see no issue with it.
 
+I'm fine with having ports defined in the SoC dtsi. A port is a physical
+thing, a group of pins, for example.
+
+But an endpoint is a description of the other end of a link. To me, a
+single endpoint makes no sense, there has to be a pair of endpoints. The
+board may need 0 to n endpoints, and the SoC dtsi cannot know how many
+are needed.
+
+If the SoC dtsi defines a single endpoint for a port, and the board
+needs to use two endpoints for that port, it gets really messy: one
+endpoint is defined in the SoC dtsi, and used in the board dts. The
+second endpoint for the same port needs to be defined separately in the
+board file. I.e. something like:
+
+/* the first ep */
+&port1_ep {
+	remote-endpoint =3D <&..>;
+};
+
+&port1 {
+	/* the second ep */
+	endpoint@2 {
+		remote-endpoint =3D <&..>;
+	};
+};
+
+Versus:
+
+&port1 {
+	/* the first ep */
+	endpoint@1 {
+		remote-endpoint =3D <&..>;
+	};
+
+	/* the second ep */
+	endpoint@2 {
+		remote-endpoint =3D <&..>;
+	};
+};
+
+ Tomi
+
+
+
+--6uRTMvvwH3OpEIWdqbUxIqw3ac3vMg2TU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTGuRtAAoJEPo9qoy8lh7167AP/ilCxKAGnrbU20kUjp80barz
+/B1MCJJ63fwBxH4V2V012Yp0t6iLyoIhyjvBVxSMQRNIactBq9M9qVWgBmbBPig+
+/Zrl4sFqS3q4Qd6hyScfP912xIm2htY9SJRAtmCnpOYj82pUZugUdxq8bGrNTfiJ
+7Z5FEmHWD97Oy73+TgqbClOVO2WNtiwvM5xUf3myU7wvgTHWbqttgx82pjzU4j53
+f3OnH2DTrXIQvi/SSiOpaGzqzasgDI+I1npLq8YxvDxFpr0ptpHqCZ5dljA5DTQj
+/LVe3SNRmRr/gBT9DB7jMmElv74HX/Icx77UvXpJtnVw0TEvJ9EXyKHJFzir+A5Y
+qZC2zXJtyOHaYPNQt8ZWvbSuWOSxzvt3rFyNx/KAZmasDDiJhQIz80pqEYfu8zEC
+supiuLOzUy1RPpNv09sVAz3fkTcL44T0yQ1PA6YnolvbT1idA9pYUTw5Kz1elv6f
+xcFlMwWCUAILfrmwgVXDC+SLpcgs4Pw8hsBWq4f8rhIWk5YROXegpcF6is/C6Jvf
+6ETn0z52jv7jvWsI+GugFdXrgLj54TH9vLFxG7nWoHY/UOWhjBdlrbK7YdA2E7+e
+ye+tr1qSDRCxtDxAgx/SY6mg3r4Rw+kAbpWPBIztHZBfrXCjD6piZ0EkJxhKca91
+B125posKbgD8fQFa+CZT
+=szaS
+-----END PGP SIGNATURE-----
+
+--6uRTMvvwH3OpEIWdqbUxIqw3ac3vMg2TU--
