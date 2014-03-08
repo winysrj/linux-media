@@ -1,148 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48027 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750811AbaCQTto (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 15:49:44 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 4/9] media: vb2: Convert vb2_dma_sg_get_userptr() to use pinned pfns
-Date: Mon, 17 Mar 2014 20:49:31 +0100
-Message-Id: <1395085776-8626-5-git-send-email-jack@suse.cz>
-In-Reply-To: <1395085776-8626-1-git-send-email-jack@suse.cz>
-References: <1395085776-8626-1-git-send-email-jack@suse.cz>
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:51773 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669AbaCHXZN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 18:25:13 -0500
+Message-ID: <531BA6D3.4030004@gmail.com>
+Date: Sun, 09 Mar 2014 00:25:07 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Grant Likely <grant.likely@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
+ to drivers/of
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < CAL_Jsq+U9zU1i+STLHMBjY5BeEP6djYnJVE5X1ix-D2q_zWztQ@mail.gmail.com> < 20140217181451.7EB7FC4044D@trevor.secretlab.ca> <20140218070624.GP17250@ pengutronix.de> <20140218162627.32BA4C40517@trevor.secretlab.ca> < 1393263389.3091.82.camel@pizza.hi.pengutronix.de> <20140226110114. CF2C7C40A89@trevor.secretlab.ca> <1393426129.3248.64.camel@paszta.hi. pengutronix.de> <20140307170550.1DFB2C40A0D@trevor.secretlab.ca> <531AF1E8. 50606@ti.com> <20140308114115.BB08EC40612@trevor.secretlab.ca>
+In-Reply-To: <20140308114115.BB08EC40612@trevor.secretlab.ca>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/v4l2-core/videobuf2-dma-sg.c | 85 ++++++------------------------
- 1 file changed, 15 insertions(+), 70 deletions(-)
+On 03/08/2014 12:41 PM, Grant Likely wrote:
+>>> Another thought. In terms of the pattern, I would add a recommendation
+>>> >  >  that there should be a way to identify ports of a particular type. ie.
+>>> >  >  If I were using the pattern to implement an patch bay of DSP filters,
+>>> >  >  where each input and output, then each target node should have a unique
+>>> >  >  identifier property analogous to "interrupt-controller" or
+>>> >  >  "gpio-controller". In this fictitious example I would probably choose
+>>> >  >  "audiostream-input-port" and "audiostream-output-port" as empty
+>>> >  >  properties in the port nodes. (I'm not suggesting a change to the
+>>> >  >  existing binding, but making a recommendation to new users).
+>> >
+>> >  I don't see any harm in that, but I don't right away see what could be
+>> >  done with them? Did you have something in mind?
+>
+> It would help with schema validation and allow ports of the same
+> interface to get grouped together.
+>
+>> >  I guess those could be used to study the graph before the drivers have
+>> >  been loaded. After the drivers have been loaded, the drivers should
+>> >  somehow register themselves and the ports/endpoints. And as the driver
+>> >  knows what kind of ports they are, it can supply this information in the
+>> >  runtime data structures.
+>> >
+>> >  If we do that, would it be better to have two pieces of data:
+>> >  input/output/bi-directional, and the port type (say, mipi-dpi, lvds, etc.)?
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index ef0b3f765d8e..a37ee0fa84d3 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -33,6 +33,7 @@ module_param(debug, int, 0644);
- struct vb2_dma_sg_buf {
- 	void				*vaddr;
- 	struct page			**pages;
-+	struct pinned_pfns		*pfns;
- 	int				write;
- 	int				offset;
- 	struct sg_table			sg_table;
-@@ -166,9 +167,10 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
- 				    int write)
- {
- 	struct vb2_dma_sg_buf *buf;
--	unsigned long first, last;
--	int num_pages_from_user;
--	struct vm_area_struct *vma;
-+	struct pinned_pfns *pfns = *ppfn;
-+
-+	if (pfns_vector_to_pages(pfns))
-+		return NULL;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -178,75 +180,20 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
- 	buf->write = write;
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
--
--	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
--	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
--	buf->num_pages = last - first + 1;
--
--	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
--			     GFP_KERNEL);
--	if (!buf->pages)
--		goto userptr_fail_alloc_pages;
--
--	vma = find_vma(current->mm, vaddr);
--	if (!vma) {
--		dprintk(1, "no vma for address %lu\n", vaddr);
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma->vm_end < vaddr + size) {
--		dprintk(1, "vma at %lu is too small for %lu bytes\n",
--			vaddr, size);
--		goto userptr_fail_find_vma;
--	}
--
--	buf->vma = vb2_get_vma(vma);
--	if (!buf->vma) {
--		dprintk(1, "failed to copy vma\n");
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma_is_io(buf->vma)) {
--		for (num_pages_from_user = 0;
--		     num_pages_from_user < buf->num_pages;
--		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
--			unsigned long pfn;
--
--			if (follow_pfn(buf->vma, vaddr, &pfn)) {
--				dprintk(1, "no page for address %lu\n", vaddr);
--				break;
--			}
--			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
--		}
--	} else
--		num_pages_from_user = get_user_pages(current, current->mm,
--					     vaddr & PAGE_MASK,
--					     buf->num_pages,
--					     write,
--					     1, /* force */
--					     buf->pages,
--					     NULL);
--
--	if (num_pages_from_user != buf->num_pages)
--		goto userptr_fail_get_user_pages;
-+	buf->pages = pfns_vector_pages(pfns);
-+	buf->num_pages = pfns_vector_count(pfns);
- 
- 	if (sg_alloc_table_from_pages(&buf->sg_table, buf->pages,
- 			buf->num_pages, buf->offset, size, 0))
--		goto userptr_fail_alloc_table_from_pages;
-+		goto fail;
-+
-+	buf->pfns = pfns;
-+	/* Clear *ppfn so that the caller doesn't free the vector */
-+	*ppfn = NULL;
- 
- 	return buf;
- 
--userptr_fail_alloc_table_from_pages:
--userptr_fail_get_user_pages:
--	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
--		buf->num_pages, num_pages_from_user);
--	if (!vma_is_io(buf->vma))
--		while (--num_pages_from_user >= 0)
--			put_page(buf->pages[num_pages_from_user]);
--	vb2_put_vma(buf->vma);
--userptr_fail_find_vma:
--	kfree(buf->pages);
--userptr_fail_alloc_pages:
-+fail:
- 	kfree(buf);
- 	return NULL;
- }
-@@ -268,11 +215,9 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	while (--i >= 0) {
- 		if (buf->write)
- 			set_page_dirty_lock(buf->pages[i]);
--		if (!vma_is_io(buf->vma))
--			put_page(buf->pages[i]);
- 	}
--	kfree(buf->pages);
--	vb2_put_vma(buf->vma);
-+	put_vaddr_pfns(buf->pfns);
-+	pfns_vector_destroy(buf->pfns);
- 	kfree(buf);
- }
- 
--- 
-1.8.1.4
+I'm not sure about the direction information (it also came up when we
+originally discussed this binding), but the port type information would
+be useful. As it turns out, it is not always possible to describe a data
+bus interface type/data transmission protocol with a set of primitive
+properties in an endpoint node. Especially in cases when the physical
+layer is basically identical, for instance in case of MIPI CSI-2 and
+SMIA CCP2, or in future MIPI CSI-3 and MIPI CSI-2.
 
+In general there could likely be more than one supported, if both the
+transmitter and the receiver are sufficiently configurable.
+
+Then, to be able to fully describe a data port, perhaps we could
+add a property like 'interface-type' or 'bus-type' with values like
+"mipi-dbi", mipi-dsi", "mipi-csi2", "smia-ccp2", "hdmi", etc.
+
+> Sure. That's worth considering.
