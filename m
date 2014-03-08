@@ -1,161 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:36313 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754780AbaCQAAp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Mar 2014 20:00:45 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c13so3520859eek.38
-        for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 17:00:44 -0700 (PDT)
-Received: from iMac-di-Apple.local (host15-26-dynamic.36-79-r.retail.telecomitalia.it. [79.36.26.15])
-        by mx.google.com with ESMTPSA id x45sm23318918eeu.23.2014.03.16.17.00.42
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sun, 16 Mar 2014 17:00:43 -0700 (PDT)
-Message-ID: <53263B2A.3050209@gmail.com>
-Date: Mon, 17 Mar 2014 01:00:42 +0100
-From: Carlo De Stefani <charlie.ds.rome@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60565 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487AbaCHPx1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 10:53:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
+Date: Sat, 08 Mar 2014 16:54:58 +0100
+Message-ID: <1536567.OYzyi25bjL@avalon>
+In-Reply-To: <CA+gwMcfgKre8S4KHPvTVuAuz672aehGrN1UfFpwKAueTAcrMZQ@mail.gmail.com>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <20140307171804.EF245C40A32@trevor.secretlab.ca> <CA+gwMcfgKre8S4KHPvTVuAuz672aehGrN1UfFpwKAueTAcrMZQ@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Pinnacle PCTV SAT CI (Tw.VT-1030a). no dst no frontend
-References: <532639ED.5080206@gmail.com>
-In-Reply-To: <532639ED.5080206@gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------080702060201050902030403"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080702060201050902030403
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Philipp,
 
-Hi, I'm quite newbie.
-This is my trouble:
+On Saturday 08 March 2014 13:07:23 Philipp Zabel wrote:
+> On Fri, Mar 7, 2014 at 6:18 PM, Grant Likely wrote:
+> > On Wed, 26 Feb 2014 16:24:57 +0100, Philipp Zabel wrote:
+> >> The 'ports' node is optional. It is only needed if the parent node has
+> >> its own #address-cells and #size-cells properties. If the ports are
+> >> direct children of the device node, there might be other nodes than
+> >> 
+> >> ports:
+> >>       device {
+> >>               #address-cells = <1>;
+> >>               #size-cells = <0>;
+> >>               
+> >>               port@0 {
+> >>                       endpoint { ... };
+> >>               };
+> >>               port@1 {
+> >>                       endpoint { ... };
+> >>               };
+> >>               
+> >>               some-other-child { ... };
+> >>       };
+> >>       
+> >>       device {
+> >>               #address-cells = <x>;
+> >>               #size-cells = <y>;
+> >>               
+> >>               ports {
+> >>                       #address-cells = <1>;
+> >>                       #size-cells = <0>;
+> >>                       
+> >>                       port@0 {
+> >>                               endpoint { ... };
+> >>                       };
+> >>                       port@1 {
+> >>                               endpoint { ... };
+> >>                       };
+> >>               };
+> >>               
+> >>               some-other-child { ... };
+> >>       };
+> > 
+> > From a pattern perspective I have no problem with that.... From an
+> > individual driver binding perspective that is just dumb! It's fine for
+> > the ports node to be optional, but an individual driver using the
+> > binding should be explicit about which it will accept. Please use either
+> > a flag or a separate wrapper so that the driver can select the
+> > behaviour.
+> 
+> If the generic binding exists in both forms, most drivers should be
+> able to cope with both. Maybe it should be mentioned in the bindings
+> that the short form without ports node should be used where possible
+> (i.e. for devices that don't already have #address,size-cells != 1,0).
+> 
+> Having a separate wrapper to enforce the ports node for devices that
+> need it might be useful.
+> 
+> >> The helper should find the two endpoints in both cases.
+> >> 
+> >> Tomi suggests an even more compact form for devices with just one port:
+> >>       device {
+> >>               endpoint { ... };
+> >>               
+> >>               some-other-child { ... };
+> >>       };
+> > 
+> > That's fine. In that case the driver would specifically require the
+> > endpoint to be that one node.... although the above looks a little weird
+> > to me. I would recommend that if there are other non-port child nodes
+> > then the ports should still be encapsulated by a ports node.  The device
+> > binding should not be ambiguous about which nodes are ports.
+> 
+> Sylwester suggested as an alternative, if I understood correctly, to
+> drop the endpoint node and instead keep the port:
+> 
+>     device-a {
+>         implicit_output_ep: port {
+>             remote-endpoint = <&explicit_input_ep>;
+>         };
+>     };
+> 
+>     device-b {
+>         port {
+>             explicit_input_ep: endpoint {
+>                 remote-endpoint = <&implicit_output_ep>;
+>             };
+>         };
+>     };
+> 
+> This would have the advantage to reduce verbosity for devices with multiple
+> ports that are only connected via one endport each, and you'd always have
+> the connected ports in the device tree as 'port' nodes.
 
-Into Ubuntu 12.04 LTS, NOT working Pinnacle PCTV SAT CI (cloning Twinhan 
-VP-1030A).
-No frontend in /dev/dvb/adapter0 only dmux, dvr, net.
+I like that idea. I would prefer making the 'port' nodes mandatory and the 
+'ports' and 'endpoint' nodes optional. Leaving the 'port' node out slightly 
+decreases readability in my opinion, but making the 'endpoint' node optional 
+increases it. That's just my point of view though.
 
-In attach my logs and "dst options" used in /etc/modules. Also added:
+> >> > It seems that this function is merely a helper to get all grandchildren
+> >> > of a node (with some very minor constraints). That could be generalized
+> >> > and simplified. If the function takes the "ports" node as an argument
+> >> > instead of the parent, then there is a greater likelyhood that other
+> >> > code can make use of it...
+> >> > 
+> >> > Thinking further. I think the semantics of this whole feature basically
+> >> > boil down to this:
+> >> > 
+> >> > #define for_each_grandchild_of_node(parent, child, grandchild) \
+> >> > 
+> >> >     for_each_child_of_node(parent, child) \
+> >> >     
+> >> >             for_each_child_of_node(child, grandchild)
+> >> > 
+> >> > Correct? Or in this specific case:
+> >> >     parent = of_get_child_by_name(np, "ports")
+> >> >     for_each_grandchild_of_node(parent, child, grandchild) {
+> >> >     
+> >> >             ...
+> >> >     
+> >> >     }
+> >> 
+> >> Hmm, that would indeed be a bit more generic, but it doesn't handle the
+> >> optional 'ports' subnode and doesn't allow for other child nodes in the
+> >> device node.
+> > 
+> > See above. The no-ports-node version could be the
+> > for_each_grandchild_of_node() block, and the yes-ports-node version
+> > could be a wrapper around that.
+> 
+> For the yes-ports-node version I see no problem, but without the ports node,
+> for_each_grandchild_of_node would also collect the children of non-port
+> child nodes.
+> The port and endpoint nodes in this binding are identified by their name,
+> so maybe adding of_get_next_child_by_name() /
+> for_each_named_child_of_node() could be helpful here.
+> 
+> >> > Finally, looking at the actual patch, is any of this actually needed.
+> >> > All of the users updated by this patch only ever handle a single
+> >> > endpoint. Have I read it correctly? Are there any users supporting
+> >> > multiple endpoints?
+> >> 
+> >> Yes, mainline currently only contains simple cases. I have posted i.MX6
+> >> 
+> >> patches that use this scheme for the output path:
+> >>   http://www.spinics.net/lists/arm-kernel/msg310817.html
+> >>   http://www.spinics.net/lists/arm-kernel/msg310821.html
+> > 
+> > Blurg. On a plane right now. Can't go and read those links.
+> 
+> The patches are merged into the staging tree now at bfe24b9.
 
-options dvb_core dvb_shutdown_timeout=0
-options bttv i2c_hw=1 card=0x71
+-- 
+Regards,
 
-in etc/modprobe.d/options
+Laurent Pinchart
 
-Then I found it: http://www.spinics.net/lists/linux-dvb/msg09054.html, 
-but 'til now not modified the BIOS...: next step.
-
-Can you help me?
-
-Bye
-Carlo
-
-
---------------080702060201050902030403
-Content-Type: text/plain; charset=UTF-8; x-mac-type="0"; x-mac-creator="0";
- name="Log per Pinnacle"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="Log per Pinnacle"
-
-WyAgICA2LjczMzgyN10gbHA6IGRyaXZlciBsb2FkZWQgYnV0IG5vIGRldmljZXMgZm91bmQK
-WyAgICA2LjkwOTQ2OV0gdHZlZXByb206IG1vZHVsZSB2ZXJpZmljYXRpb24gZmFpbGVkOiBz
-aWduYXR1cmUgYW5kL29yIHJlcXVpcmVkIGtleSBtaXNzaW5nIC0gdGFpbnRpbmcga2VybmVs
-ClsgICAgNi45NTYzNzVdIFdBUk5JTkc6IFlvdSBhcmUgdXNpbmcgYW4gZXhwZXJpbWVudGFs
-IHZlcnNpb24gb2YgdGhlIG1lZGlhIHN0YWNrLgpbICAgIDYuOTU2Mzc1XSAJQXMgdGhlIGRy
-aXZlciBpcyBiYWNrcG9ydGVkIHRvIGFuIG9sZGVyIGtlcm5lbCwgaXQgZG9lc24ndCBvZmZl
-cgpbICAgIDYuOTU2Mzc1XSAJZW5vdWdoIHF1YWxpdHkgZm9yIGl0cyB1c2FnZSBpbiBwcm9k
-dWN0aW9uLgpbICAgIDYuOTU2Mzc1XSAJVXNlIGl0IHdpdGggY2FyZS4KWyAgICA2Ljk1NjM3
-NV0gTGF0ZXN0IGdpdCBwYXRjaGVzIChuZWVkZWQgaWYgeW91IHJlcG9ydCBhIGJ1ZyB0byBs
-aW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcpOgpbICAgIDYuOTU2Mzc1XSAJOGVhNTQ4OGE5
-MTliYmQ0OTk0MTU4NGY3NzNmZDY2NjIzMTkyZmZjMCBbbWVkaWFdIG1lZGlhOiByYy1jb3Jl
-OiB1c2UgVVx4ZmZmZmZmYmFhdVx4ZmZmZmZmY2NceGZmZmZmZmUwXHhmZmZmZmY4OVx4ZmZm
-ZmZmZTVTUFx4ZmZmZmZmYjggcFx4ZmZmZmZmY2NceGZmZmZmZmUwXHhmZmZmZmZlOAxceGZm
-ZmZmZmI0XHhmZmZmZmZjZVx4ZmZmZmZmZTBceGZmZmZmZjg1XHhmZmZmZmZjMFx4ZmZmZmZm
-ODlceGZmZmZmZmMzdFx4MGVceGZmZmZmZmM3XHgwNCQMaFx4ZmZmZmZmY2NceGZmZmZmZmUw
-XHhmZmZmZmZlOFx4ZmZmZmZmZjZceDAyXHhmZmZmZmZmNFx4ZmZmZmZmZTBceGZmZmZmZmVi
-JVx4ZmZmZmZmYmEodVx4ZmZmZmZmY2NceGZmZmZmZmUwXHhmZmZmZmZiOEhkXHhmZmZmZmZj
-Y1x4ZmZmZmZmZTBceGZmZmZmZmU4XHhmZmZmZmZmOTdceGZmZmZmZmUzXHhmZmZmZmZlMFx4
-ZmZmZmZmYjhceGZmZmZmZjgwcFx4ZmZmZmZmY2NceGZmZmZmZmUwXHhmZmZmZmZlOD9ceGZm
-ZmZmZmFkWSBpbiByY19tYXBfZ2V0KCkgbW9kdWxlIGxvYWQKWyAgICA2Ljk1NjM3NV0gCThh
-YzQzMzk1Njc3YWYwOGIwM2IzYzU4MTlmOTY4ZGIxNTZhMTgwZDUgW21lZGlhXSBEb2NCb29r
-IG1lZGlhOiBmaXggYnJva2VuIEZJRUxEX0FMVEVSTkFURSBkZXNjcmlwdGlvbgpbICAgIDYu
-OTU2Mzc1XSAJMjJhNDM3Y2Q2MzM2MTkzZDhmZmViNDIxN2U5NzUzZmI5MmM3Yzg3MCBbbWVk
-aWFdIERvY0Jvb2sgbWVkaWE6IGNsYXJpZnkgdjRsMl9idWZmZXIvcGxhbmUgZmllbGRzClsg
-ICAgNy4wMjIzMzBdIEVYVDQtZnMgKHNkYTMpOiByZS1tb3VudGVkLiBPcHRzOiBlcnJvcnM9
-cmVtb3VudC1ybwpbICAgIDcuMDc0MjYzXSBtZWRpYTogTGludXggbWVkaWEgaW50ZXJmYWNl
-OiB2MC4xMApbICAgIDcuMTI3MzY1XSBMaW51eCB2aWRlbyBjYXB0dXJlIGludGVyZmFjZTog
-djIuMDAKWyAgICA3LjEyNzM3NF0gV0FSTklORzogWW91IGFyZSB1c2luZyBhbiBleHBlcmlt
-ZW50YWwgdmVyc2lvbiBvZiB0aGUgbWVkaWEgc3RhY2suClsgICAgNy4xMjczNzRdIAlBcyB0
-aGUgZHJpdmVyIGlzIGJhY2twb3J0ZWQgdG8gYW4gb2xkZXIga2VybmVsLCBpdCBkb2Vzbid0
-IG9mZmVyClsgICAgNy4xMjczNzRdIAllbm91Z2ggcXVhbGl0eSBmb3IgaXRzIHVzYWdlIGlu
-IHByb2R1Y3Rpb24uClsgICAgNy4xMjczNzRdIAlVc2UgaXQgd2l0aCBjYXJlLgpbICAgIDcu
-MTI3Mzc0XSBMYXRlc3QgZ2l0IHBhdGNoZXMgKG5lZWRlZCBpZiB5b3UgcmVwb3J0IGEgYnVn
-IHRvIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZyk6ClsgICAgNy4xMjczNzRdIAk4ZWE1
-NDg4YTkxOWJiZDQ5OTQxNTg0Zjc3M2ZkNjY2MjMxOTJmZmMwIFttZWRpYV0gbWVkaWE6IHJj
-LWNvcmU6IHVzZSAgaW4gcmNfbWFwX2dldCgpIG1vZHVsZSBsb2FkClsgICAgNy4xMjczNzRd
-IAk4YWM0MzM5NTY3N2FmMDhiMDNiM2M1ODE5Zjk2OGRiMTU2YTE4MGQ1IFttZWRpYV0gRG9j
-Qm9vayBtZWRpYTogZml4IGJyb2tlbiBGSUVMRF9BTFRFUk5BVEUgZGVzY3JpcHRpb24KWyAg
-ICA3LjEyNzM3NF0gCTIyYTQzN2NkNjMzNjE5M2Q4ZmZlYjQyMTdlOTc1M2ZiOTJjN2M4NzAg
-W21lZGlhXSBEb2NCb29rIG1lZGlhOiBjbGFyaWZ5IHY0bDJfYnVmZmVyL3BsYW5lIGZpZWxk
-cwpbICAgIDcuMTcyNzUwXSBidHR2OiBkcml2ZXIgdmVyc2lvbiAwLjkuMTkgbG9hZGVkClsg
-ICAgNy4xNzI3NjFdIGJ0dHY6IHVzaW5nIDggYnVmZmVycyB3aXRoIDIwODBrICg1MjAgcGFn
-ZXMpIGVhY2ggZm9yIGNhcHR1cmUKWyAgICA3LjE3MjkzN10gYnR0djogQnQ4eHggY2FyZCBm
-b3VuZCAoMCkKWyAgICA3LjE3MzM3MF0gYnR0djogMDogQnQ4NzggKHJldiAxNykgYXQgMDAw
-MDowMDowYS4wLCBpcnE6IDE4LCBsYXRlbmN5OiAzMiwgbW1pbzogMHhmYzAwODAwMApbICAg
-IDcuMTczNDAzXSBidHR2OiAwOiBkZXRlY3RlZDogUGlubmFjbGUgUENUViBTQVQgQ0kgW2Nh
-cmQ9MTEzXSwgUENJIHN1YnN5c3RlbSBJRCBpcyAxMWJkOjAwMjYKWyAgICA3LjE3MzQxMV0g
-YnR0djogMDogdXNpbmc6IFR3aW5oYW4gRFNUICsgY2xvbmVzIFtjYXJkPTExMyxpbnNtb2Qg
-b3B0aW9uXQpbICAgIDcuMTczNzU0XSBidHR2OiAwOiB0dW5lciBhYnNlbnQKWyAgICA3LjE3
-Mzg4M10gYnR0djogMDogYWRkIHN1YmRldmljZSAiZHZiMCIKWyAgICA3LjE5MjUwM10gYnQ4
-Nzg6IEFVRElPIGRyaXZlciB2ZXJzaW9uIDAuMC4wIGxvYWRlZApbICAgIDcuMTkyNTQ5XSBi
-dDg3ODogQnQ4NzggQVVESU8gZnVuY3Rpb24gZm91bmQgKDApLgpbICAgIDcuMTkyODA0XSBi
-dDg3OF9wcm9iZTogY2FyZCBpZD1bMHgyNjExYmRdLFsgUGlubmFjbGUgUENUViBTQVQgQ0kg
-XSBoYXMgRFZCIGZ1bmN0aW9ucy4KWyAgICA3LjE5MjgxNl0gYnQ4NzgoMCk6IEJ0ODc4IChy
-ZXYgMTcpIGF0IDAwOjBhLjEsIGlycTogMTgsIGxhdGVuY3k6IDMyLCBtZW1vcnk6IDB4ZmMw
-MDkwMDAKWyAgICA3LjI3Njg5M10gV0FSTklORzogWW91IGFyZSB1c2luZyBhbiBleHBlcmlt
-ZW50YWwgdmVyc2lvbiBvZiB0aGUgbWVkaWEgc3RhY2suClsgICAgNy4yNzY4OTNdIAlBcyB0
-aGUgZHJpdmVyIGlzIGJhY2twb3J0ZWQgdG8gYW4gb2xkZXIga2VybmVsLCBpdCBkb2Vzbid0
-IG9mZmVyClsgICAgNy4yNzY4OTNdIAllbm91Z2ggcXVhbGl0eSBmb3IgaXRzIHVzYWdlIGlu
-IHByb2R1Y3Rpb24uClsgICAgNy4yNzY4OTNdIAlVc2UgaXQgd2l0aCBjYXJlLgpbICAgIDcu
-Mjc2ODkzXSBMYXRlc3QgZ2l0IHBhdGNoZXMgKG5lZWRlZCBpZiB5b3UgcmVwb3J0IGEgYnVn
-IHRvIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZyk6ClsgICAgNy4yNzY4OTNdIAk4ZWE1
-NDg4YTkxOWJiZDQ5OTQxNTg0Zjc3M2ZkNjY2MjMxOTJmZmMwIFttZWRpYV0gbWVkaWE6IHJj
-LWNvcmU6IHVzZSAgaW4gcmNfbWFwX2dldCgpIG1vZHVsZSBsb2FkClsgICAgNy4yNzY4OTNd
-IAk4YWM0MzM5NTY3N2FmMDhiMDNiM2M1ODE5Zjk2OGRiMTU2YTE4MGQ1IFttZWRpYV0gRG9j
-Qm9vayBtZWRpYTogZml4IGJyb2tlbiBGSUVMRF9BTFRFUk5BVEUgZGVzY3JpcHRpb24KWyAg
-ICA3LjI3Njg5M10gCTIyYTQzN2NkNjMzNjE5M2Q4ZmZlYjQyMTdlOTc1M2ZiOTJjN2M4NzAg
-W21lZGlhXSBEb2NCb29rIG1lZGlhOiBjbGFyaWZ5IHY0bDJfYnVmZmVyL3BsYW5lIGZpZWxk
-cwpbICAgIDcuMjk3OTcyXSBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChidHR2MCkK
-WyAgICA3LjYyODA0OF0gZHN0KDApIGRzdF9wcm9iZTogdW5rbm93biBkZXZpY2UuClsgICAg
-Ny42MjgwNzddIGR2Yl9idDh4eDogZnJvbnRlbmRfaW5pdDogQ291bGQgbm90IGZpbmQgYSBU
-d2luaGFuIERTVApbICAgIDcuNjI4MDkwXSBkdmJfYnQ4eHg6IEEgZnJvbnRlbmQgZHJpdmVy
-IHdhcyBub3QgZm91bmQgZm9yIGRldmljZSBbMTA5ZTowODc4XSBzdWJzeXN0ZW0gWzExYmQ6
-MDAyNl0KWyAgICA3LjY4NTQ3MV0gc2hwY2hwOiBTdGFuZGFyZCBIb3QgUGx1ZyBQQ0kgQ29u
-dHJvbGxlciBEcml2ZXIgdmVyc2lvbjogMC40ClsgICAgNy43MjIzNTVdIHBhcnBvcnRfcGMg
-MDA6MDk6IHJlcG9ydGVkIGJ5IFBsdWcgYW5kIFBsYXkgQUNQSQpbICAgIDcuNzIyNDE0XSBw
-YXJwb3J0MDogUEMtc3R5bGUgYXQgMHgzNzgsIGlycSA3IFtQQ1NQUCxUUklTVEFURV0KWyAg
-ICA3Ljc0NzcyNl0gY3g4OFswXTogc3Vic3lzdGVtOiAxNDYyOjg2MDYsIGJvYXJkOiBNU0kg
-VFYtQG55d2hlcmUgTWFzdGVyIFtjYXJkPTcsYXV0b2RldGVjdGVkXSwgZnJvbnRlbmQocyk6
-IDAKCg==
---------------080702060201050902030403
-Content-Type: text/plain; charset=UTF-8; x-mac-type="0"; x-mac-creator="0";
- name="Firmware"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="Firmware"
-
-RFNUTUNJCgpvcgoKRFNULTAzMAoKb3IKCmRzdAoK
---------------080702060201050902030403
-Content-Type: text/plain; charset=UTF-8; x-mac-type="0"; x-mac-creator="0";
- name="Output lspci"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="Output lspci"
-
-MDA6MGEuMCBNdWx0aW1lZGlhIHZpZGVvIGNvbnRyb2xsZXI6IEJyb29rdHJlZSBDb3Jwb3Jh
-dGlvbiBCdDg3OCBWaWRlbyBDYXB0dXJlIChyZXYgMTEpCjAwOjBhLjEgTXVsdGltZWRpYSBj
-b250cm9sbGVyOiBCcm9va3RyZWUgQ29ycG9yYXRpb24gQnQ4NzggQXVkaW8gQ2FwdHVyZSAo
-cmV2IDExKQoK
---------------080702060201050902030403--
