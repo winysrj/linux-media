@@ -1,123 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:10298 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754882AbaCRLUL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Mar 2014 07:20:11 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>, <m.chehab@samsung.com>,
-	<nicolas.ferre@atmel.com>, <linux-arm-kernel@lists.infradead.org>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 2/3] [media] atmel-isi: convert the pdata from pointer to structure
-Date: Tue, 18 Mar 2014 19:13:58 +0800
-Message-ID: <1395141238-5948-3-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1395141238-5948-1-git-send-email-josh.wu@atmel.com>
-References: <1395141238-5948-1-git-send-email-josh.wu@atmel.com>
+Received: from mail-vc0-f180.google.com ([209.85.220.180]:49224 "EHLO
+	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750981AbaCHMHY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 07:07:24 -0500
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20140307171804.EF245C40A32@trevor.secretlab.ca>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>
+	<1393428297.3248.92.camel@paszta.hi.pengutronix.de>
+	<20140307171804.EF245C40A32@trevor.secretlab.ca>
+Date: Sat, 8 Mar 2014 13:07:23 +0100
+Message-ID: <CA+gwMcfgKre8S4KHPvTVuAuz672aehGrN1UfFpwKAueTAcrMZQ@mail.gmail.com>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now the platform data is initialized by allocation of isi
-structure. In the future, we use pdata to store the dt parameters.
+Hi Grant,
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- drivers/media/platform/soc_camera/atmel-isi.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+On Fri, Mar 7, 2014 at 6:18 PM, Grant Likely <grant.likely@linaro.org> wrote:
+> On Wed, 26 Feb 2014 16:24:57 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
+>> The 'ports' node is optional. It is only needed if the parent node has
+>> its own #address-cells and #size-cells properties. If the ports are
+>> direct children of the device node, there might be other nodes than
+>> ports:
+>>
+>>       device {
+>>               #address-cells = <1>;
+>>               #size-cells = <0>;
+>>
+>>               port@0 {
+>>                       endpoint { ... };
+>>               };
+>>               port@1 {
+>>                       endpoint { ... };
+>>               };
+>>
+>>               some-other-child { ... };
+>>       };
+>>
+>>       device {
+>>               #address-cells = <x>;
+>>               #size-cells = <y>;
+>>
+>>               ports {
+>>                       #address-cells = <1>;
+>>                       #size-cells = <0>;
+>>
+>>                       port@0 {
+>>                               endpoint { ... };
+>>                       };
+>>                       port@1 {
+>>                               endpoint { ... };
+>>                       };
+>>               };
+>>
+>>               some-other-child { ... };
+>>       };
+>
+> From a pattern perspective I have no problem with that.... From an
+> individual driver binding perspective that is just dumb! It's fine for
+> the ports node to be optional, but an individual driver using the
+> binding should be explicit about which it will accept. Please use either
+> a flag or a separate wrapper so that the driver can select the
+> behaviour.
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index d22aba1..93bf1cb 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -84,7 +84,7 @@ struct atmel_isi {
- 	struct clk			*mck;
- 	unsigned int			irq;
- 
--	struct isi_platform_data	*pdata;
-+	struct isi_platform_data	pdata;
- 	u16				width_flags;	/* max 12 bits */
- 
- 	struct list_head		video_buffer_list;
-@@ -350,7 +350,7 @@ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
- 
- 	cfg1 &= ~ISI_CFG1_FRATE_DIV_MASK;
- 	/* Enable linked list */
--	cfg1 |= isi->pdata->frate | ISI_CFG1_DISCR;
-+	cfg1 |= isi->pdata.frate | ISI_CFG1_DISCR;
- 
- 	/* Enable codec path and ISI */
- 	ctrl = ISI_CTRL_CDC | ISI_CTRL_EN;
-@@ -797,7 +797,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
- 	/* Make choises, based on platform preferences */
- 	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
- 	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
--		if (isi->pdata->hsync_act_low)
-+		if (isi->pdata.hsync_act_low)
- 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
- 		else
- 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
-@@ -805,7 +805,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
- 
- 	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
- 	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
--		if (isi->pdata->vsync_act_low)
-+		if (isi->pdata.vsync_act_low)
- 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
- 		else
- 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
-@@ -813,7 +813,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
- 
- 	if ((common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING) &&
- 	    (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)) {
--		if (isi->pdata->pclk_act_falling)
-+		if (isi->pdata.pclk_act_falling)
- 			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_RISING;
- 		else
- 			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_FALLING;
-@@ -835,9 +835,9 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
- 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
- 		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
- 
--	if (isi->pdata->has_emb_sync)
-+	if (isi->pdata.has_emb_sync)
- 		cfg1 |= ISI_CFG1_EMB_SYNC;
--	if (isi->pdata->full_mode)
-+	if (isi->pdata.full_mode)
- 		cfg1 |= ISI_CFG1_FULL_MODE;
- 
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-@@ -905,7 +905,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	if (IS_ERR(isi->pclk))
- 		return PTR_ERR(isi->pclk);
- 
--	isi->pdata = pdata;
-+	memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
- 	isi->active = NULL;
- 	spin_lock_init(&isi->lock);
- 	INIT_LIST_HEAD(&isi->video_buffer_list);
-@@ -921,7 +921,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 		/* Set ISI_MCK's frequency, it should be faster than pixel
- 		 * clock.
- 		 */
--		ret = clk_set_rate(isi->mck, pdata->mck_hz);
-+		ret = clk_set_rate(isi->mck, isi->pdata.mck_hz);
- 		if (ret < 0)
- 			return ret;
- 	}
-@@ -955,9 +955,9 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 		goto err_ioremap;
- 	}
- 
--	if (pdata->data_width_flags & ISI_DATAWIDTH_8)
-+	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_8)
- 		isi->width_flags = 1 << 7;
--	if (pdata->data_width_flags & ISI_DATAWIDTH_10)
-+	if (isi->pdata.data_width_flags & ISI_DATAWIDTH_10)
- 		isi->width_flags |= 1 << 9;
- 
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
--- 
-1.7.9.5
+If the generic binding exists in both forms, most drivers should be
+able to cope with both. Maybe it should be mentioned in the bindings
+that the short form without ports node should be used where possible
+(i.e. for devices that don't already have #address,size-cells != 1,0).
 
+Having a separate wrapper to enforce the ports node for devices that
+need it might be useful.
+
+>> The helper should find the two endpoints in both cases.
+>> Tomi suggests an even more compact form for devices with just one port:
+>>
+>>       device {
+>>               endpoint { ... };
+>>
+>>               some-other-child { ... };
+>>       };
+>
+> That's fine. In that case the driver would specifically require the
+> endpoint to be that one node.... although the above looks a little weird
+> to me. I would recommend that if there are other non-port child nodes
+> then the ports should still be encapsulated by a ports node.  The device
+> binding should not be ambiguous about which nodes are ports.
+
+Sylwester suggested as an alternative, if I understood correctly, to
+drop the endpoint node and instead keep the port:
+
+    device-a {
+        implicit_output_ep: port {
+            remote-endpoint = <&explicit_input_ep>;
+        };
+    };
+
+    device-b {
+        port {
+            explicit_input_ep: endpoint {
+                remote-endpoint = <&implicit_output_ep>;
+            };
+        };
+    };
+
+This would have the advantage to reduce verbosity for devices with multiple
+ports that are only connected via one endport each, and you'd always have
+the connected ports in the device tree as 'port' nodes.
+
+>> > It seems that this function is merely a helper to get all grandchildren
+>> > of a node (with some very minor constraints). That could be generalized
+>> > and simplified. If the function takes the "ports" node as an argument
+>> > instead of the parent, then there is a greater likelyhood that other
+>> > code can make use of it...
+>> >
+>> > Thinking further. I think the semantics of this whole feature basically
+>> > boil down to this:
+>> >
+>> > #define for_each_grandchild_of_node(parent, child, grandchild) \
+>> >     for_each_child_of_node(parent, child) \
+>> >             for_each_child_of_node(child, grandchild)
+>> >
+>> > Correct? Or in this specific case:
+>> >
+>> >     parent = of_get_child_by_name(np, "ports")
+>> >     for_each_grandchild_of_node(parent, child, grandchild) {
+>> >             ...
+>> >     }
+>>
+>> Hmm, that would indeed be a bit more generic, but it doesn't handle the
+>> optional 'ports' subnode and doesn't allow for other child nodes in the
+>> device node.
+>
+> See above. The no-ports-node version could be the
+> for_each_grandchild_of_node() block, and the yes-ports-node version
+> could be a wrapper around that.
+
+For the yes-ports-node version I see no problem, but without the ports node,
+for_each_grandchild_of_node would also collect the children of non-port
+child nodes.
+The port and endpoint nodes in this binding are identified by their name,
+so maybe adding of_get_next_child_by_name() /
+for_each_named_child_of_node() could be helpful here.
+
+>> > Finally, looking at the actual patch, is any of this actually needed.
+>> > All of the users updated by this patch only ever handle a single
+>> > endpoint. Have I read it correctly? Are there any users supporting
+>> > multiple endpoints?
+>>
+>> Yes, mainline currently only contains simple cases. I have posted i.MX6
+>> patches that use this scheme for the output path:
+>>   http://www.spinics.net/lists/arm-kernel/msg310817.html
+>>   http://www.spinics.net/lists/arm-kernel/msg310821.html
+>
+> Blurg. On a plane right now. Can't go and read those links.
+
+The patches are merged into the staging tree now at bfe24b9.
+
+regards
+Philipp
