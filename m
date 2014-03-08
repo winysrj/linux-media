@@ -1,84 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40096 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753815AbaCMMJo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 08:09:44 -0400
-Message-ID: <53219FE0.8010604@ti.com>
-Date: Thu, 13 Mar 2014 17:39:04 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from mail-ea0-f171.google.com ([209.85.215.171]:55376 "EHLO
+	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054AbaCHKuW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 05:50:22 -0500
+Received: by mail-ea0-f171.google.com with SMTP id n15so2781918ead.30
+        for <linux-media@vger.kernel.org>; Sat, 08 Mar 2014 02:50:21 -0800 (PST)
+Message-ID: <531AF62B.8000005@googlemail.com>
+Date: Sat, 08 Mar 2014 11:51:23 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v3 02/14] v4l: ti-vpe: register video device only when
- firmware is loaded
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-3-git-send-email-archit@ti.com> <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com>
-In-Reply-To: <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3] em28xx: Only deallocate struct em28xx after finishing
+ all extensions
+References: <52FBB6BC.7030102@googlemail.com> <1394029372-5322-1-git-send-email-m.chehab@samsung.com> <5319FC34.5000602@googlemail.com> <20140307143803.61543333@samsung.com>
+In-Reply-To: <20140307143803.61543333@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
 
-On Thursday 13 March 2014 05:18 PM, Kamil Debski wrote:
-> Hi Archit,
+Am 07.03.2014 18:38, schrieb Mauro Carvalho Chehab:
+>>> static int em28xx_usb_suspend(struct usb_interface *interface,
+>>> > > diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+>>> > > index d4986bdfbdc3..6dbc71ba2820 100644
+>>> > > --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+>>> > > +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+>>> > > @@ -1043,7 +1043,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>>> > >  	em28xx_info("Binding DVB extension\n");
+>>> > >  
+>>> > >  	dvb = kzalloc(sizeof(struct em28xx_dvb), GFP_KERNEL);
+>>> > > -
+>>> > >  	if (dvb == NULL) {
+>>> > >  		em28xx_info("em28xx_dvb: memory allocation failed\n");
+>>> > >  		return -ENOMEM;
+>>> > > @@ -1521,6 +1520,9 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>>> > >  	dvb->adapter.mfe_shared = mfe_shared;
+>>> > >  
+>>> > >  	em28xx_info("DVB extension successfully initialized\n");
+>>> > > +
+>>> > > +	kref_get(&dev->ref);
+>>> > > +
+>> > 
+>> > The fini() functions are always called, even if an error occured in init().
+>> > So (in opposition to the open()/close() functions) kref_get() needs to
+>> > be called at the beginning of the init() methods.
+>> > 
+>> > "dev->is_audio_only" and "!dev->board.has_dvb" is checked in both
+>> > functions (init+fini), so the right place here is one line before or after
+>> > 
+>> >     em28xx_info("Binding DVB extension\n");
+>> > 
+>> > 
+>> > Everything else looks good.
+> I actually prefer to fix it the other way, at the code for kref_put()...
+> see below
+...
+>> > 
+>> > Regards,
+>> > Frank
+>> > 
+>>> > >  ret:
+>>> > >  	em28xx_set_mode(dev, EM28XX_SUSPEND);
+>>> > >  	mutex_unlock(&dev->lock);
+>>> > > @@ -1579,6 +1581,8 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+>>> > >  		dev->dvb = NULL;
+> Putting the kref_put() here. This part of the code is only called if
+> dev->dvb it not NULL, and this is only possible to happen if the
+> DVB is properly initialized.
+Yes, that works, too.
+
+Regards,
+Frank
+
 >
->> From: Archit Taneja [mailto:archit@ti.com]
->> Sent: Tuesday, March 11, 2014 9:34 AM
->>
->> vpe fops(vpe_open in particular) should be called only when VPDMA
->> firmware is loaded. File operations on the video device are possible
->> the moment it is registered.
->>
->> Currently, we register the video device for VPE at driver probe, after
->> calling a vpdma helper to initialize VPDMA and load firmware. This
->> function is non-blocking(it calls request_firmware_nowait()), and
->> doesn't ensure that the firmware is actually loaded when it returns.
->>
->> We remove the device registration from vpe probe, and move it to a
->> callback provided by the vpe driver to the vpdma library, through
->> vpdma_create().
->>
->> The ready field in vpdma_data is no longer needed since we always have
->> firmware loaded before the device is registered.
->>
->> A minor problem with this approach is that if the video_register_device
->> fails(which doesn't really happen), the vpe platform device would be
->> registered.
->> however, there won't be any v4l2 device corresponding to it.
->
-> Could you explain to me one thing. request_firmware cannot be used in
-> probe, thus you are using request_firmware_nowait. Why cannot the firmware
-> be
-> loaded on open with a regular request_firmware that is waiting?
-
-I totally agree with you here. Placing the firmware in open() would 
-probably make more sense.
-
-The reason I didn't place it in open() is because I didn't want to 
-release firmware in a corresponding close(), and be in a situation where 
-the firmware is loaded multiple times in the driver's lifetime.
-
-There are some reasons for doing this. First, it will require more 
-testing with respect to whether the firmware is loaded correctly 
-successive times :), the second is that loading firmware might probably 
-take a bit of time, and we don't want to make applications too slow(I 
-haven't measured the time taken, so I don't have a strong case for this 
-either)
-
->
-> This patch seems to swap one problem for another. The possibility that open
-> fails (because firmware is not yet loaded) is swapped for a vague
-> possibility
-> that video_register_device.
-
-The driver will work fine in most cases even without this patch(apart 
-from the possibility mentioned as above).
-
-We could discard this patch from this series, and I can work on a patch 
-which moves firmware loading to the vpe_open() call, and hence solving 
-the issue in the right manner. Does that sound fine?
-
-Thanks,
-Archit
+>>> > >  	}
+>>> > >  
+>>> > > +	kref_put(&dev->ref, em28xx_free_device);
+>>> > > +
+>>> > >  	return 0;
+>>> > >  }
 
