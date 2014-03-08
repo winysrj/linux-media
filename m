@@ -1,43 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234AbaCJXOn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 19/48] adv7511: Remove deprecated video-level DV timings operations
-Date: Tue, 11 Mar 2014 00:15:30 +0100
-Message-Id: <1394493359-14115-20-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:44276 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156AbaCHMUX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 07:20:23 -0500
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/2] em28xx-dvb: remove one level of identation at fini callback
+Date: Sat,  8 Mar 2014 09:19:37 -0300
+Message-Id: <1394281177-5920-2-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1394281177-5920-1-git-send-email-m.chehab@samsung.com>
+References: <1394281177-5920-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated
-and unused. Remove them.
+Simplify the logic a little by removing one level of identation.
+Also, it only makes sense to print something if the .fini callback
+is actually doing something.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 ---
- drivers/media/i2c/adv7511.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/media/usb/em28xx/em28xx-dvb.c | 48 +++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index f8c75c6..de7ddf5 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -692,8 +692,6 @@ static const struct v4l2_subdev_video_ops adv7511_video_ops = {
- 	.s_stream = adv7511_s_stream,
- 	.s_dv_timings = adv7511_s_dv_timings,
- 	.g_dv_timings = adv7511_g_dv_timings,
--	.enum_dv_timings = adv7511_enum_dv_timings,
--	.dv_timings_cap = adv7511_dv_timings_cap,
- };
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index cacdca3a3412..6638394b3457 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1543,6 +1543,9 @@ static inline void prevent_sleep(struct dvb_frontend_ops *ops)
  
- /* ------------------------------ AUDIO OPS ------------------------------ */
+ static int em28xx_dvb_fini(struct em28xx *dev)
+ {
++	struct em28xx_dvb *dvb;
++	struct i2c_client *client;
++
+ 	if (dev->is_audio_only) {
+ 		/* Shouldn't initialize IR for this interface */
+ 		return 0;
+@@ -1553,35 +1556,36 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 		return 0;
+ 	}
+ 
+-	em28xx_info("Closing DVB extension");
++	if (!dev->dvb)
++		return 0;
+ 
+-	if (dev->dvb) {
+-		struct em28xx_dvb *dvb = dev->dvb;
+-		struct i2c_client *client = dvb->i2c_client_tuner;
++	em28xx_info("Closing DVB extension");
+ 
+-		em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
++	dvb = dev->dvb;
++	client = dvb->i2c_client_tuner;
+ 
+-		if (dev->disconnected) {
+-			/* We cannot tell the device to sleep
+-			 * once it has been unplugged. */
+-			if (dvb->fe[0])
+-				prevent_sleep(&dvb->fe[0]->ops);
+-			if (dvb->fe[1])
+-				prevent_sleep(&dvb->fe[1]->ops);
+-		}
++	em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
+ 
+-		/* remove I2C tuner */
+-		if (client) {
+-			module_put(client->dev.driver->owner);
+-			i2c_unregister_device(client);
+-		}
++	if (dev->disconnected) {
++		/* We cannot tell the device to sleep
++		 * once it has been unplugged. */
++		if (dvb->fe[0])
++			prevent_sleep(&dvb->fe[0]->ops);
++		if (dvb->fe[1])
++			prevent_sleep(&dvb->fe[1]->ops);
++	}
+ 
+-		em28xx_unregister_dvb(dvb);
+-		kfree(dvb);
+-		dev->dvb = NULL;
+-		kref_put(&dev->ref, em28xx_free_device);
++	/* remove I2C tuner */
++	if (client) {
++		module_put(client->dev.driver->owner);
++		i2c_unregister_device(client);
+ 	}
+ 
++	em28xx_unregister_dvb(dvb);
++	kfree(dvb);
++	dev->dvb = NULL;
++	kref_put(&dev->ref, em28xx_free_device);
++
+ 	return 0;
+ }
+ 
 -- 
-1.8.3.2
+1.8.5.3
 
