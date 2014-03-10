@@ -1,52 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:50175 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753113AbaCXPeS (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:50459 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753454AbaCJL7z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 11:34:18 -0400
-MIME-Version: 1.0
-In-Reply-To: <20140321130917.GA8667@localhost>
-References: <532c2aaa.lXHUJ9RIRCRIxqPO%fengguang.wu@intel.com>
-	<20140321130917.GA8667@localhost>
-Date: Mon, 24 Mar 2014 16:34:17 +0100
-Message-ID: <CA+MoWDrGGE4X9aX0=_iaacXUar17fb1B+CR5VcsPAwLFFiPCCA@mail.gmail.com>
-Subject: Fwd: cx23885-dvb.c:undefined reference to `tda18271_attach'
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	kbuild-all@01.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 10 Mar 2014 07:59:55 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 02/15] drx-j: Fix dubious usage of "&" instead of "&&"
+Date: Mon, 10 Mar 2014 08:58:54 -0300
+Message-Id: <1394452747-5426-3-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
+References: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Fixes the following warnings:
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:16764:68: warning: dubious: x & !y
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:16778:68: warning: dubious: x & !y
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:16797:68: warning: dubious: x & !y
 
-I'm being blamed for some bugs for more than one year, and this
-weekend I was able to reproduce the error for the first time. I have
-the impression that the issue is related to Kconfig because when
-compiling the Kernel for x86(not x86_64), and
-when:
-CONFIG_VIDEO_CX23885=y
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-and
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index af3b69ce8c16..1e6dab7e5892 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -16762,12 +16762,12 @@ static int ctrl_set_oob(struct drx_demod_instance *demod, struct drxoob *oob_par
+ 	case DRX_OOB_MODE_A:
+ 		if (
+ 			   /* signal is transmitted inverted */
+-			   ((oob_param->spectrum_inverted == true) &
++			   ((oob_param->spectrum_inverted == true) &&
+ 			    /* and tuner is not mirroring the signal */
+ 			    (!mirror_freq_spect_oob)) |
+ 			   /* or */
+ 			   /* signal is transmitted noninverted */
+-			   ((oob_param->spectrum_inverted == false) &
++			   ((oob_param->spectrum_inverted == false) &&
+ 			    /* and tuner is mirroring the signal */
+ 			    (mirror_freq_spect_oob))
+ 		    )
+@@ -16780,12 +16780,12 @@ static int ctrl_set_oob(struct drx_demod_instance *demod, struct drxoob *oob_par
+ 	case DRX_OOB_MODE_B_GRADE_A:
+ 		if (
+ 			   /* signal is transmitted inverted */
+-			   ((oob_param->spectrum_inverted == true) &
++			   ((oob_param->spectrum_inverted == true) &&
+ 			    /* and tuner is not mirroring the signal */
+ 			    (!mirror_freq_spect_oob)) |
+ 			   /* or */
+ 			   /* signal is transmitted noninverted */
+-			   ((oob_param->spectrum_inverted == false) &
++			   ((oob_param->spectrum_inverted == false) &&
+ 			    /* and tuner is mirroring the signal */
+ 			    (mirror_freq_spect_oob))
+ 		    )
+@@ -16799,12 +16799,12 @@ static int ctrl_set_oob(struct drx_demod_instance *demod, struct drxoob *oob_par
+ 	default:
+ 		if (
+ 			   /* signal is transmitted inverted */
+-			   ((oob_param->spectrum_inverted == true) &
++			   ((oob_param->spectrum_inverted == true) &&
+ 			    /* and tuner is not mirroring the signal */
+ 			    (!mirror_freq_spect_oob)) |
+ 			   /* or */
+ 			   /* signal is transmitted noninverted */
+-			   ((oob_param->spectrum_inverted == false) &
++			   ((oob_param->spectrum_inverted == false) &&
+ 			    /* and tuner is mirroring the signal */
+ 			    (mirror_freq_spect_oob))
+ 		    )
+-- 
+1.8.5.3
 
-CONFIG_MEDIA_TUNER_TDA18271=m
-
-the build fails as the tuner code was compiled as a module when it
-should have been compiled as part of the Kernel. On the Kconfig file
-drivers/media/pci/cx23885/Kconfig:
-config VIDEO_CX23885
-        tristate "Conexant cx23885 (2388x successor) support"
-        ...
-        select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
-
-which I think is the problem. Can I just remove this 'if
-MEDIA_SUBDRV_AUTOSELECT'? Or what is the correct way of telling
-Kconfig to set CONFIG_MEDIA_TUNER_TDA18271 based on the value of
-CONFIG_VIDEO_CX23885?
-
-There are at least 6 similar cases which I'm willing to send patches.
-
-Thank you,
-
-Peter
