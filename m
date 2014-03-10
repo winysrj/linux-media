@@ -1,105 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36930 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759997AbaCTXYZ (ORCPT
+Received: from mail-we0-f180.google.com ([74.125.82.180]:52791 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752725AbaCJXj6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Mar 2014 19:24:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-Date: Fri, 21 Mar 2014 00:26:12 +0100
-Message-ID: <2220569.iDU3Tk3vCh@avalon>
-In-Reply-To: <20140320231250.8F0E0C412EA@trevor.secretlab.ca>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140320153804.35d5b835@samsung.com> <20140320231250.8F0E0C412EA@trevor.secretlab.ca>
+	Mon, 10 Mar 2014 19:39:58 -0400
+Received: by mail-we0-f180.google.com with SMTP id p61so9299537wes.25
+        for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 16:39:57 -0700 (PDT)
+Date: Mon, 10 Mar 2014 23:39:53 +0000
+From: Jonathan McCrohan <jmccrohan@gmail.com>
+To: Oliver Schinagl <oliver@schinagl.nl>,
+	Quentin Glidic <sardemff7+linuxtv@sardemff7.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: dvb-apps build failure
+Message-ID: <20140310233953.GA3490@lambda.dereenigne.org>
+References: <52F346EA.4070100@sardemff7.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Content-Disposition: inline
+In-Reply-To: <52F346EA.4070100@sardemff7.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grant,
 
-On Thursday 20 March 2014 23:12:50 Grant Likely wrote:
-> On Thu, 20 Mar 2014 19:52:53 +0100, Laurent Pinchart wrote:
-> > On Thursday 20 March 2014 18:48:16 Grant Likely wrote:
-> > > On Thu, 20 Mar 2014 15:38:04 -0300, Mauro Carvalho Chehab wrote:
-> > > > Em Thu, 20 Mar 2014 17:54:31 +0000 Grant Likely escreveu:
-> > > > > On Wed, 12 Mar 2014 10:25:56 +0000, Russell King - ARM Linux wrote:
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[snip]
+Hi Oliver,
 
-> > > > > > I believe trying to do this according to the flow of data is just
-> > > > > > wrong. You should always describe things from the primary device
-> > > > > > for the CPU towards the peripheral devices and never the opposite
-> > > > > > direction.
-> > > > > 
-> > > > > Agreed.
-> > > > 
-> > > > I don't agree, as what's the primary device is relative.
-> > > > 
-> > > > Actually, in the case of a media data flow, the CPU is generally not
-> > > > the primary device.
-> > > > 
-> > > > Even on general purpose computers, if the full data flow is taken into
-> > > > the account, the CPU is a mere device that will just be used to copy
-> > > > data either to GPU and speakers or to disk, eventually doing format
-> > > > conversions, when the hardware is cheap and don't provide format
-> > > > converters.
-> > > > 
-> > > > On more complex devices, like the ones we want to solve with the
-> > > > media controller, like an embedded hardware like a TV or a STB, the
-> > > > CPU is just an ancillary component that could even hang without
-> > > > stopping TV reception, as the data flow can be fully done inside the
-> > > > chipset.
-> > > 
-> > > We're talking about wiring up device drivers here, not data flow. Yes, I
-> > > completely understand that data flow is often not even remotely
-> > > cpu-centric. However, device drivers are, and the kernel needs to know
-> > > the dependency graph for choosing what devices depend on other devices.
-> > 
-> > Then we might not be talking about the same thing. I'm talking about DT
-> > bindings to represent the topology of the device, not how drivers are
-> > wired together.
-> 
-> Possibly. I'm certainly confused now. You brought up the component helpers
-> in drivers/base/component.c, so I thought working out dependencies is part
-> of the purpose of this binding. Everything I've heard so far has given me
-> the impression that the graph binding is tied up with knowing when all of
-> the devices exist.
+On Thu, 06 Feb 2014 09:25:14 +0100, Quentin Glidic wrote:
+> Hello,
+>
+> When building dvb-apps from the Mercurial repository, you hit the=20
+> following error:
+> install: cannot stat 'atsc/*': No such file or directory
+>
+> In the latest changeset=20
+> (http://linuxtv.org/hg/dvb-apps/rev/d40083fff895) scan files were=20
+> deleted from the repository but not their install rule.
+>
+> Could someone please remove the bottom part of util/scan/Makefile (from=
+=20
+> line 31,=20
+> http://linuxtv.org/hg/dvb-apps/file/d40083fff895/util/scan/Makefile#l31)=
+=20
+> to fix this issue?
 
-The two are related, you're of course right about that.
+Ping on Quentin's behalf. I'd like to upload a new version of dvb-apps
+to Debian, but the build is currently broken after your recent patch.
 
-We're not really moving forward here. Part of our disagreement comes in my 
-opinion from having different requirements and different views of the problem, 
-caused by experiences with different kind of devices. This is much easier to 
-solve by sitting around the same table than discussing on mailing lists. I 
-would propose a meeting at the ELC but that's still a bit far away and would 
-delay progress by more than one month, which is probably not acceptable.
+Would you be able to take a look?
 
-I can reply to the e-mail where I've drawn one use case I have to deal with to 
-detail my needs if that can help.
+Thanks,
+Jon
 
-Alternatively the UK isn't that far away and I could jump in a train if you 
-can provide tea for the discussion :-)
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature
 
-> How device drivers get connected together may not strictly be a property
-> of hardware, but it absolutely is informed by hardware topology.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+Comment: Signed by Jonathan McCrohan
 
--- 
-Regards,
+iQIcBAABCAAGBQJTHk1JAAoJEBVu7Ac3rTKWBkgQAIr4rak7RAQDYq/Uk5pbn7iM
+lruQ1D+YAiUtw79WKQ99hMziFyysSYmgigZeAh3oE+e1q56Sxe58NfFD7TmQdeH/
+PO2/Ckru45N8QnU7NzLqYoQ8b6YGGMX2T1kQ9wxLRkTBviChHQFnL9oaIa+yeLPx
+36nm7Y/X9HpQ6yP8cyQIV98SvkZp3ymikEWLImy85yliBBFRlghADDvPjw2qT8Ha
+lQW1iOgI5Ct3Ma+09vhK++64ZcWXmeKj4HLKGXBuZDPv3irqLeCoYXs+A101OxHt
+Ju3dWQ9+pNTMDSbB5sulQmZ2ti2EW2wxbBEpQhjhG5SA2bjoAYwRVqgN68powkt4
+Luy6Lf3ishVz0gg5x6122RWzcAWjOj/Fm7dXPzd9csxZZ7hY0wMRvaSoD11wcMaM
+tPGjAbfiXBX5SpDuoiR4O6HHg8ZvHcmJ4J/B1ZRTm6090zIIUKFmSTArEqB2X808
+91PGb1PZ2o5o17QY+QahIAyqtJsGsBXvxPxXaOFOVOZUFi73R5kA/4LLCoV93JVa
+qpJjfWa9a8YITlO3/PTvpzhjeC6tlkjaJ0zNIJIwIXuBfzUStjpbPDnLIFWnTAaG
+p4/cnzplrQdltCpTB7a/Usc90VQFYkuylxdPQTf3OZf2FG+Z/vKkPAAIo4qFtVhP
+ShN6L6H5Q0tamLzVeiIp
+=fFfT
+-----END PGP SIGNATURE-----
 
-Laurent Pinchart
-
+--SUOF0GtieIMvvwua--
