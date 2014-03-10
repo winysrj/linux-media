@@ -1,95 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:48828 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215AbaCER16 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 12:27:58 -0500
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N1Z004AF4IKZQ40@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Mar 2014 12:27:56 -0500 (EST)
-Date: Wed, 05 Mar 2014 14:27:46 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: kbuild test robot <fengguang.wu@intel.com>
-Cc: Federico Simoncelli <fsimonce@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: Re: [linuxtv-media:master 499/499]
- drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table'
- was not declared. Should it be static?
-Message-id: <20140305142746.4ef16bff@samsung.com>
-In-reply-to: <52f0ac8a.aIXONk2PY1rBXEn8%fengguang.wu@intel.com>
-References: <52f0ac8a.aIXONk2PY1rBXEn8%fengguang.wu@intel.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753290AbaCJXOr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 30/48] adv7604: Don't put info string arrays on the stack
+Date: Tue, 11 Mar 2014 00:15:41 +0100
+Message-Id: <1394493359-14115-31-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fengguang,
+From: Lars-Peter Clausen <lars@metafoo.de>
 
-This patch got obsoleted by another patch in the same series.
+We do not want to modify the info string arrays ever, so no need to
+waste stack space for them. While we are at it also make them const.
 
-Unfortunately, I had to break sending the patch series into a few
-pushes, as my mailbomb script has a logic there that prevents it to
-send more than 30~50 emails (I never remember the exact setting).
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-So, I pushed this 80-series into a few pushes. You likely compiled the
-tree without waiting for the hole series to be upstreamed.
-
-Regards,
-Mauro
-
-Em Tue, 04 Feb 2014 17:02:02 +0800
-kbuild test robot <fengguang.wu@intel.com> escreveu:
-
-> tree:   git://linuxtv.org/media_tree.git master
-> head:   a3550ea665acd1922df8275379028c1634675629
-> commit: a3550ea665acd1922df8275379028c1634675629 [499/499] [media] usbtv: split core and video implementation
-> reproduce: make C=1 CF=-D__CHECK_ENDIAN__
-> 
-> 
-> sparse warnings: (new ones prefixed by >>)
-> 
-> >> drivers/media/usb/usbtv/usbtv-core.c:119:22: sparse: symbol 'usbtv_id_table' was not declared. Should it be static?
-> >> drivers/media/usb/usbtv/usbtv-core.c:129:19: sparse: symbol 'usbtv_usb_driver' was not declared. Should it be static?
-> --
-> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:285:14: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:287:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:288:15: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:289:20: sparse: cast to restricted __be32
-> >> drivers/media/usb/usbtv/usbtv-video.c:565:23: sparse: symbol 'usbtv_ioctl_ops' was not declared. Should it be static?
-> >> drivers/media/usb/usbtv/usbtv-video.c:587:29: sparse: symbol 'usbtv_fops' was not declared. Should it be static?
-> >> drivers/media/usb/usbtv/usbtv-video.c:648:16: sparse: symbol 'usbtv_vb2_ops' was not declared. Should it be static?
-> 
-> Please consider folding the attached diff :-)
-> 
-> ---
-> 0-DAY kernel build testing backend              Open Source Technology Center
-> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
-
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index c3a76ac..81d737c 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1882,13 +1882,13 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 	struct stdi_readback stdi;
+ 	u8 reg_io_0x02 = io_read(sd, 0x02);
+ 
+-	char *csc_coeff_sel_rb[16] = {
++	static const char * const csc_coeff_sel_rb[16] = {
+ 		"bypassed", "YPbPr601 -> RGB", "reserved", "YPbPr709 -> RGB",
+ 		"reserved", "RGB -> YPbPr601", "reserved", "RGB -> YPbPr709",
+ 		"reserved", "YPbPr709 -> YPbPr601", "YPbPr601 -> YPbPr709",
+ 		"reserved", "reserved", "reserved", "reserved", "manual"
+ 	};
+-	char *input_color_space_txt[16] = {
++	static const char * const input_color_space_txt[16] = {
+ 		"RGB limited range (16-235)", "RGB full range (0-255)",
+ 		"YCbCr Bt.601 (16-235)", "YCbCr Bt.709 (16-235)",
+ 		"xvYCC Bt.601", "xvYCC Bt.709",
+@@ -1896,12 +1896,12 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 		"invalid", "invalid", "invalid", "invalid", "invalid",
+ 		"invalid", "invalid", "automatic"
+ 	};
+-	char *rgb_quantization_range_txt[] = {
++	static const char * const rgb_quantization_range_txt[] = {
+ 		"Automatic",
+ 		"RGB limited range (16-235)",
+ 		"RGB full range (0-255)",
+ 	};
+-	char *deep_color_mode_txt[4] = {
++	static const char * const deep_color_mode_txt[4] = {
+ 		"8-bits per channel",
+ 		"10-bits per channel",
+ 		"12-bits per channel",
 -- 
+1.8.3.2
 
-Cheers,
-Mauro
