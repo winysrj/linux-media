@@ -1,103 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:18762 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325AbaCKL3X (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47476 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753984AbaCJTSK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 07:29:23 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>, posciak@chromium.org,
-	arunkk.samsung@gmail.com
-References: <1394180752-16348-1-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1394180752-16348-1-git-send-email-arun.kk@samsung.com>
-Subject: RE: [PATCH] [media] s5p-mfc: Don't try to resubmit VP8 bitstream
- buffer for decode.
-Date: Tue, 11 Mar 2014 12:29:20 +0100
-Message-id: <1d2001cf3d1d$25bd90c0$7138b240$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Mon, 10 Mar 2014 15:18:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 4/8] of: Reduce indentation in of_graph_get_next_endpoint
+Date: Mon, 10 Mar 2014 20:19:44 +0100
+Message-ID: <1688746.6CaQoSDOni@avalon>
+In-Reply-To: <1394214054.16309.45.camel@paszta.hi.pengutronix.de>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> <31687163.hgTkcLrn0Z@avalon> <1394214054.16309.45.camel@paszta.hi.pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+Hi Philipp,
 
-> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com] On Behalf Of Arun
-> Kumar K
-> Sent: Friday, March 07, 2014 9:26 AM
+On Friday 07 March 2014 18:40:54 Philipp Zabel wrote:
+> Am Freitag, den 07.03.2014, 01:12 +0100 schrieb Laurent Pinchart:
+> > Hi Philipp,
+> > 
+> > Thank you for the patch.
+> > 
+> > I've submitted a fix for the of_graph_get_next_endpoint() function, but it
+> > hasn't been applied yet due to the patch series that contained it needing
+> > more work.
+> > 
+> > The patch is available at https://patchwork.linuxtv.org/patch/21946/. I
+> > can rebase it on top of this series, but I still wanted to let you know
+> > about it in case you would like to integrate it.
 > 
-> From: Pawel Osciak <posciak@chromium.org>
+> Thank you for the pointer. A pity about the timing, this will mostly
+> revert my indentation patch. I'd be glad if you could rebase on top of
+> the merged series.
 > 
-> Currently, for formats that are not H264, MFC driver will check the
-> consumed stream size returned by the firmware and, based on that, will
-> try to decide whether the bitstream buffer contained more than one
-> frame. If the size of the buffer is larger than the consumed stream, it
-> assumes that there are more frames in the buffer and that the buffer
-> should be resubmitted for decode. This rarely works though and actually
-> introduces problems, because:
-> 
-> - v7 firmware will always return consumed stream size equal to whatever
-> the driver passed to it when running decode (which is the size of the
-> whole buffer), which means we will never try to resubmit, because the
-> firmware will always tell us that it consumed all the data we passed to
-> it;
+> While we look at of_graph_get_next_endpoint(), could you explain the
+> reason behind the extra reference count increase on the prev node:
+>
+> 	/*
+> 	 * Avoid dropping prev node refcount to 0 when getting the next
+> 	 * child below.
+> 	 */
+> 	of_node_get(prev);
+>
+> This unfortunately makes using the function in for_each style macros a
+> hassle. If that part wasn't there and all users that want to keep using
+> prev after the call were expected to increase refcount themselves,
+> we could have a
+>
+> #define of_graph_for_each_endpoint(parent, endpoint) \
+> 	for (endpoint = of_graph_get_next_endpoint(parent, NULL); \
+> 	     endpoint != NULL; \
+> 	     endpoint = of_graph_get_next_endpoint(parent, endpoint))
 
-This does sound like a hardware bug/feature. So in v7 the buffer is never
-resubmitted, yes? And this patch makes no difference for v7?
+I don't know what the exact design decision was (Sylwester might know), but I 
+suspect it's mostly about historical reasons. I see no reason that would 
+prevent modifying the current behaviour to make a for-each loop easier to 
+implement.
 
-> 
-> - v6 firmware will return the number of consumed bytes, but will not
-> include the padding ("stuffing") bytes that are allowed after the frame
-> in VP8. Since there is no way of figuring out how many of those bytes
-> follow the frame without getting the frame size from IVF headers (or
-> somewhere else, but not from the stream itself), the driver tries to
-> guess that padding size is not larger than 4 bytes, which is not always
-> true;
-
-How about v5 of MFC? I need to do some additional testing, as I don't want
-to introduce any regressions. I remember that this check was a result of a
-fair amount of work and testing with v5.
- 
-> The only way to make it work is to queue only one frame per buffer from
-> userspace and the check in the kernel is useless and wrong for VP8.
-> MPEG4 still seems to require it, so keep it only for that format.
-
-Is your goal to give more than one frame in a single buffer and have the 
-buffer resubmitted? Or the opposite - you are getting the frame resubmitted
-without the need? By the contents of this patch I guess the latter, on the
-other hand I do remember that at some point the idea was to be able to queue
-more than one frame per buffer. I don't remember exactly who was opting for
-the ability to queue more frames in a single buffer...
-
-Best wishes,
 -- 
-Kamil Debski
-Samsung R&D Institute Poland
+Regards,
 
-> 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index e2aac59..66c1775 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -360,7 +360,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx
-> *ctx,
->  								list);
->  		ctx->consumed_stream += s5p_mfc_hw_call(dev->mfc_ops,
->  						get_consumed_stream, dev);
-> -		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
-> +		if (ctx->codec_mode == S5P_MFC_CODEC_MPEG4_DEC &&
->  			ctx->consumed_stream + STUFF_BYTE <
->  			src_buf->b->v4l2_planes[0].bytesused) {
->  			/* Run MFC again on the same buffer */
-> --
-> 1.7.9.5
+Laurent Pinchart
 
