@@ -1,113 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3852 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757056AbaC1Det (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1231 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752423AbaCJMk1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Mar 2014 23:34:49 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2S3YkXF093740
-	for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 04:34:48 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 4C1972A03F2
-	for <linux-media@vger.kernel.org>; Fri, 28 Mar 2014 04:34:45 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140328033445.4C1972A03F2@tschai.lan>
-Date: Fri, 28 Mar 2014 04:34:45 +0100 (CET)
+	Mon, 10 Mar 2014 08:40:27 -0400
+Message-ID: <531DB2B5.1060202@xs4all.nl>
+Date: Mon, 10 Mar 2014 13:40:21 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [GIT PULL FOR v3.15] Add G/S_EDID support for video nodes
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Currently the VIDIOC_SUBDEV_G/S_EDID and struct v4l2_subdev_edid are subdev
+APIs. However, that's in reality quite annoying since for simple video
+pipelines there is no need to create v4l-subdev device nodes for anything
+else except for setting or getting EDIDs.
 
-Results of the daily build of media_tree:
+What happens in practice is that v4l2 bridge drivers add explicit support
+for VIDIOC_SUBDEV_G/S_EDID themselves, just to avoid having to create
+subdev device nodes just for this.
 
-date:		Fri Mar 28 04:00:24 CET 2014
-git branch:	test
-git hash:	8432164ddf7bfe40748ac49995356ab4dfda43b7
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0
-host hardware:	x86_64
-host os:	3.13-7.slh.1-amd64
+So this patch series makes the ioctls available as regular ioctls as
+well. In that case the pad field is interpreted as the input or output
+index as returned by ENUMINPUT/OUTPUT.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0
-sparse: ERRORS
+Rebased to the latest master branch, but otherwise unchanged from the
+REVIEWv1 patch series:
 
-Detailed results are available here:
+http://www.spinics.net/lists/linux-media/msg74022.html
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Regards,
 
-Full logs are available here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+The following changes since commit f2d7313534072a5fe192e7cf46204b413acef479:
 
-The Media Infrastructure API from this daily build is here:
+  [media] drx-d: add missing braces in drxd_hard.c:DRXD_init (2014-03-09 09:20:50 -0300)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git edid
+
+for you to fetch changes up to 66090d7c5b127fa4a461394261c50ca2364a286a:
+
+  DocBook v4l2: update the G/S_EDID documentation (2014-03-10 13:36:29 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (5):
+      v4l2-compat-ioctl32: fix wrong VIDIOC_SUBDEV_G/S_EDID32 support.
+      v4l2: allow v4l2_subdev_edid to be used with video nodes
+      v4l2: add VIDIOC_G/S_EDID support to the v4l2 core.
+      adv*: replace the deprecated v4l2_subdev_edid by v4l2_edid.
+      DocBook v4l2: update the G/S_EDID documentation
+
+ Documentation/DocBook/media/v4l/v4l2.xml                                        |  2 +-
+ Documentation/DocBook/media/v4l/{vidioc-subdev-g-edid.xml => vidioc-g-edid.xml} | 36 +++++++++++++++++++++++-------------
+ drivers/media/i2c/ad9389b.c                                                     |  2 +-
+ drivers/media/i2c/adv7511.c                                                     |  2 +-
+ drivers/media/i2c/adv7604.c                                                     |  4 ++--
+ drivers/media/i2c/adv7842.c                                                     |  4 ++--
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c                                   | 32 ++++++++++++++++----------------
+ drivers/media/v4l2-core/v4l2-dev.c                                              |  2 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c                                            | 16 +++++++++++++---
+ drivers/media/v4l2-core/v4l2-subdev.c                                           |  4 ++--
+ include/media/v4l2-ioctl.h                                                      |  2 ++
+ include/media/v4l2-subdev.h                                                     |  4 ++--
+ include/uapi/linux/v4l2-common.h                                                |  8 ++++++++
+ include/uapi/linux/v4l2-subdev.h                                                | 14 +++++---------
+ include/uapi/linux/videodev2.h                                                  |  2 ++
+ 15 files changed, 82 insertions(+), 52 deletions(-)
+ rename Documentation/DocBook/media/v4l/{vidioc-subdev-g-edid.xml => vidioc-g-edid.xml} (77%)
