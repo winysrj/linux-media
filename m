@@ -1,55 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.24]:63878 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750885AbaCFLqw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 06:46:52 -0500
-Date: Thu, 6 Mar 2014 12:46:30 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-cc: David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>, devel@driverdev.osuosl.org,
-	dri-devel@lists.freedesktop.org,
-	linux-arm-kernel@lists.infradead.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH RFC 26/46] drivers/base: provide an infrastructure for
- componentised subsystems
-In-Reply-To: <20140226221939.GC21483@n2100.arm.linux.org.uk>
-Message-ID: <Pine.LNX.4.64.1403061241560.30001@axis700.grange>
-References: <20140102212528.GD7383@n2100.arm.linux.org.uk>
- <E1Vypo6-0007FF-Lb@rmk-PC.arm.linux.org.uk> <Pine.LNX.4.64.1402262144190.10826@axis700.grange>
- <20140226221939.GC21483@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752535AbaCJXO5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 48/48] adv7604: Add endpoint properties to DT bindings
+Date: Tue, 11 Mar 2014 00:15:59 +0100
+Message-Id: <1394493359-14115-49-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russell,
+Add support for the hsync-active, vsync-active and pclk-sample
+properties to the DT bindings and control BT.656 mode implicitly.
 
-Sorry for a long delay.
-
-On Wed, 26 Feb 2014, Russell King - ARM Linux wrote:
-
-[snip]
-
-> Better bindings for imx-drm are currently being worked on.  Philipp
-> Zabel of Pengutronix is currently looking at it, and has posted many
-> RFC patches on this very subject, including moving the V4L2 OF helpers
-> to a more suitable location.  OF people have been involved in that
-> discussion over the preceding weeks, and there's a working implementation
-> of imx-drm using these helpers from v4l2.
-
-Yes, I'm aware of that patch series, and I do look at the discussion from 
-time to time, unfortunately I don't have too much time for it now. But in 
-any case if this work is going to be used with imx-drm too, that should be 
-a good direction to take, I think.
-
-Thanks
-Guennadi
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ .../devicetree/bindings/media/i2c/adv7604.txt      | 13 +++++++++
+ drivers/media/i2c/adv7604.c                        | 31 ++++++++++++++++++++--
+ 2 files changed, 42 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+index 0845c50..2b62c06 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -30,6 +30,19 @@ Optional Properties:
+   - adi,disable-cable-reset: Boolean property. When set disables the HDMI
+     receiver automatic reset when the HDMI cable is unplugged.
+ 
++Optional Endpoint Properties:
++
++  The following three properties are defined in video-interfaces.txt and are
++  valid for source endpoints only.
++
++  - hsync-active: Horizontal synchronization polarity. Defaults to active low.
++  - vsync-active: Vertical synchronization polarity. Defaults to active low.
++  - pclk-sample: Pixel clock polarity. Defaults to output on the falling edge.
++
++  If none of hsync-active, vsync-active and pclk-sample is specified the
++  endpoint will use embedded BT.656 synchronization.
++
++
+ Example:
+ 
+ 	hdmi_receiver@4c {
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 95cc911..2a92099 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -41,6 +41,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-dv-timings.h>
++#include <media/v4l2-of.h>
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+@@ -2643,11 +2644,39 @@ MODULE_DEVICE_TABLE(of, adv7604_of_id);
+ 
+ static int adv7604_parse_dt(struct adv7604_state *state)
+ {
++	struct v4l2_of_endpoint bus_cfg;
++	struct device_node *endpoint;
+ 	struct device_node *np;
++	unsigned int flags;
+ 	int ret;
+ 
+ 	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
+ 
++	/* Parse the endpoint. */
++	endpoint = v4l2_of_get_next_endpoint(np, NULL);
++	if (!endpoint)
++		return -EINVAL;
++
++	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++	of_node_put(endpoint);
++
++	flags = bus_cfg.bus.parallel.flags;
++
++	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
++		state->pdata.inv_hs_pol = 1;
++
++	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++		state->pdata.inv_vs_pol = 1;
++
++	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
++		state->pdata.inv_llc_pol = 1;
++
++	if (bus_cfg.bus_type == V4L2_MBUS_BT656) {
++		state->pdata.insert_av_codes = 1;
++		state->pdata.op_656_range = 1;
++	}
++
++	/* Parse device-specific properties. */
+ 	state->pdata.disable_pwrdnb =
+ 		of_property_read_bool(np, "adi,disable-power-down");
+ 	state->pdata.disable_cable_det_rst =
+@@ -2677,9 +2706,7 @@ static int adv7604_parse_dt(struct adv7604_state *state)
+ 
+ 	/* HACK: Hardcode the remaining platform data fields. */
+ 	state->pdata.blank_data = 1;
+-	state->pdata.op_656_range = 1;
+ 	state->pdata.alt_data_sat = 1;
+-	state->pdata.insert_av_codes = 1;
+ 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
+ 
+ 	return 0;
+-- 
+1.8.3.2
+
