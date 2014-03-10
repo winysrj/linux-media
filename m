@@ -1,68 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4014 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753162AbaCSHXD (ORCPT
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:61611 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752363AbaCJIbS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Mar 2014 03:23:03 -0400
-Message-ID: <532945D0.2020007@xs4all.nl>
-Date: Wed, 19 Mar 2014 08:22:56 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 10 Mar 2014 04:31:18 -0400
+Received: by mail-pb0-f43.google.com with SMTP id um1so6924387pbc.16
+        for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 01:31:17 -0700 (PDT)
 MIME-Version: 1.0
-To: m silverstri <michael.j.silverstri@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: How can I feed more data to a stream after I stream on?
-References: <CABMudhQzWS7P6uSq=tQQY85JLkj+qdZEg+AbCSwVYFevp6gy-w@mail.gmail.com>
-In-Reply-To: <CABMudhQzWS7P6uSq=tQQY85JLkj+qdZEg+AbCSwVYFevp6gy-w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <531d3574.ABJnnOxkVY0Ybvpz%fengguang.wu@intel.com>
+References: <531d3574.ABJnnOxkVY0Ybvpz%fengguang.wu@intel.com>
+Date: Mon, 10 Mar 2014 09:31:16 +0100
+Message-ID: <CAMuHMdWjZ=TmxXfwLmdWvx6Uzd5ome27OVd6Z8y2E6zxO9zD4g@mail.gmail.com>
+Subject: Re: mcam-core.c:undefined reference to `vb2_dma_sg_memops'
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: kbuild test robot <fengguang.wu@intel.com>
+Cc: kbuild-all@01.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Randy Dunlap <rdunlap@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/19/2014 12:18 AM, m silverstri wrote:
-> I am using v4l2 m2m framework to develop a resize driver. I have an
-> image , pass it to the driver and it generated a resize output image.
-> 
-> My v4l2 sequence is
-> 1. qbuf OUTPUT, CAPTURE
-> 2. stream on OUTPUT, CAPTURE
-> 3. dqbuf OUTPUT, CAPTURE
-> 4. stream off OUTPUT, CAPTURE
-> 
-> this works if i have a full frame of image before i start streaming.
-> 
-> But what I only have partial buffers when I start streaming, how can I
-> qbuf more buffer after I 'stream on' OUTPUT,
+On Mon, Mar 10, 2014 at 4:45 AM, kbuild test robot
+<fengguang.wu@intel.com> wrote:
+> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+> head:   ca62eec4e524591b82d9edf7a18e3ae6b691517d
+> commit: 866f321339988293a5bb3ec6634c2c9d8396bf54 Revert "staging/solo6x10: depend on CONFIG_FONTS"
+> date:   9 months ago
+> config: x86_64-randconfig-tt1-03101102 (attached as .config)
+>
+> All error/warnings:
+>
+>    drivers/built-in.o: In function `mcam_v4l_open':
+>>> mcam-core.c:(.text+0x22b222): undefined reference to `vb2_dma_sg_memops'
+>
+> ---
+> 0-DAY kernel build testing backend              Open Source Technology Center
+> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
 
-You can't. Each buffer passed to the driver must contain a full image.
-So your application needs some logic to keep filling a buffer until it
-is complete and only then do you issue the QBUF.
+Patch available and accepted according to patchwork:
+https://patchwork.linuxtv.org/patch/20263/
 
-Regards,
+But not yet in mainline
 
-	Hans
+Also submitted by Randy: https://lkml.org/lkml/2013/10/31/395
 
-> 
-> I try this, but this fail
-> 1. qbuf OUTPUT, CAPTURE (I qbuf only partial OUTPUT)
-> 2. stream on OUTPUT, CAPTURE
-> 
-> // do this in a loop:
-> 3. dqbuf OUTPUT (I want to queue more OUTPUT as they become available)
-> 4. qbuf OUTPUT
-> 
-> // now I am done, I want to dqbuf my output
-> 5. dqbuf CAPTURE
-> 6. stream off OUTPUT, CAPTURE
-> 
-> I try to do dqbuf/qbuf OUTPUT in step #3, #4 above, but it just stuck
-> in dqbuf OUTPUT.
-> 
-> How can I queue more of my input data after I stream on?
-> 
-> Thank you.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Gr{oetje,eeting}s,
 
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
