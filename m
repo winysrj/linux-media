@@ -1,198 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3934 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756685AbaCDKnQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:43:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv4 PATCH 05/18] vb2: change result code of buf_finish to void
-Date: Tue,  4 Mar 2014 11:42:13 +0100
-Message-Id: <1393929746-39437-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42707 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754360AbaCJPk6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 11:40:58 -0400
+Message-ID: <1394466030.7380.39.camel@paszta.hi.pengutronix.de>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Date: Mon, 10 Mar 2014 16:40:30 +0100
+In-Reply-To: <4339286.FzhQ2m6hoA@avalon>
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
+	 <5427810.BUKJ3iUXnO@avalon>
+	 <20140310145815.17595C405FA@trevor.secretlab.ca>
+	 <4339286.FzhQ2m6hoA@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Am Montag, den 10.03.2014, 16:15 +0100 schrieb Laurent Pinchart:
+> Hi Grant,
+> 
+> On Monday 10 March 2014 14:58:15 Grant Likely wrote:
+> > On Mon, 10 Mar 2014 14:52:53 +0100, Laurent Pinchart wrote:
+> > > On Monday 10 March 2014 12:18:20 Tomi Valkeinen wrote:
+> > > > On 08/03/14 13:41, Grant Likely wrote:
+> > > > >> Ok. If we go for single directional link, the question is then: which
+> > > > >> way? And is the direction different for display and camera, which are
+> > > > >> kind of reflections of each other?
+> > > > > 
+> > > > > In general I would recommend choosing whichever device you would
+> > > > > sensibly think of as a master. In the camera case I would choose the
+> > > > > camera controller node instead of the camera itself, and in the
+> > > > > display case I would choose the display controller instead of the
+> > > > > panel. The binding author needs to choose what she things makes the
+> > > > > most sense, but drivers can still use if it it turns out to be
+> > > > > 'backwards'
+> > > > 
+> > > > I would perhaps choose the same approach, but at the same time I think
+> > > > it's all but clear. The display controller doesn't control the panel any
+> > > > more than a DMA controller controls, say, the display controller.
+> > > > 
+> > > > In fact, in earlier versions of OMAP DSS DT support I had a simpler port
+> > > > description, and in that I had the panel as the master (i.e. link from
+> > > > panel to dispc) because the panel driver uses the display controller's
+> > > > features to provide the panel device a data stream.
+> > > > 
+> > > > And even with the current OMAP DSS DT version, which uses the v4l2 style
+> > > > ports/endpoints, the driver model is still the same, and only links
+> > > > towards upstream are used.
+> > > > 
+> > > > So one reason I'm happy with the dual-linking is that I can easily
+> > > > follow the links from the downstream entities to upstream entities, and
+> > > > other people, who have different driver model, can easily do the
+> > > > opposite.
+> > > > 
+> > > > But I agree that single-linking is enough and this can be handled at
+> > > > runtime, even if it makes the code more complex. And perhaps requires
+> > > > extra data in the dts, to give the start points for the graph.
+> > > 
+> > > In theory unidirectional links in DT are indeed enough. However, let's not
+> > > forget the following.
+> > > 
+> > > - There's no such thing as single start points for graphs. Sure, in some
+> > > simple cases the graph will have a single start point, but that's not a
+> > > generic rule. For instance the camera graphs
+> > > http://ideasonboard.org/media/omap3isp.ps and
+> > > http://ideasonboard.org/media/eyecam.ps have two camera sensors, and thus
+> > > two starting points from a data flow point of view. And if you want a
+> > > better understanding of how complex media graphs can become, have a look
+> > > at http://ideasonboard.org/media/vsp1.0.pdf (that's a real world example,
+> > > albeit all connections are internal to the SoC in that particular case,
+> > > and don't need to be described in DT).
+> > > 
+> > > - There's also no such thing as a master device that can just point to
+> > > slave devices. Once again simple cases exist where that model could work,
+> > > but real world examples exist of complex pipelines with dozens of
+> > > elements all implemented by a separate IP core and handled by separate
+> > > drivers, forming a graph with long chains and branches. We thus need real
+> > > graph bindings.
+> > > 
+> > > - Finally, having no backlinks in DT would make the software
+> > > implementation very complex. We need to be able to walk the graph in a
+> > > generic way without having any of the IP core drivers loaded, and without
+> > > any specific starting point. We would thus need to parse the complete DT
+> > > tree, looking at all nodes and trying to find out whether they're part of
+> > > the graph we're trying to walk. The complexity of the operation would be
+> > > at best quadratic to the number of nodes in the whole DT and to the number
+> > > of nodes in the graph.
+> > 
+> > Not really. To being with, you cannot determine any meaning of a node
+> > across the tree (aside from it being an endpoint)
+> 
+> That's the important part. I can assume the target node of the remote-endpoint 
+> phandle to be an endpoint, and can thus assume that it implements the of-graph 
+> bindings. That's all I need to be able to walk the graph in a generic way.
+> 
+> > without also understanding the binding that the node is a part of. That
+> > means you need to have something matching against the compatible string on
+> > both ends of the linkage. For instance:
+> > 
+> > panel {
+> > 	compatible = "acme,lvds-panel";
+> > 	lvds-port: port {
+> > 	};
+> > };
+> > 
+> > display-controller {
+> > 	compatible = "encom,video";
+> > 	port {
+> > 		remote-endpoint = <&lvds-port>;
+> > 	};
+> > };
+> > 
+> > In the above example, the encom,video driver has absolutely zero
+> > information about what the acme,lvds-panel binding actually implements.
+> > There needs to be both a driver for the "acme,lvds-panel" binding and
+> > one for the "encom,video" binding (even if the acme,lvds-panel binding
+> > is very thin and defers the functionality to the video controller).
+> 
+> I absolutely agree with that. We need a driver for each device (in this case 
+> the acme panel and the encom display controller), and we need those drivers to 
+> register entities (in the generic sense of the term) for them to be able to 
+> communicate with each other. The display controller driver must not try to 
+> parse panel-specific properties from the panel node. However, as described 
+> above, I believe it can parse ports and endpoints to walk the graph.
+> 
+> > What you want here is the drivers to register each side of the
+> > connection. That could be modeled with something like the following
+> > (pseudocode):
+> > 
+> > struct of_endpoint {
+> > 	struct list_head list;
+> > 	struct device_node *ep_node;
+> > 	void *context;
+> > 	void (*cb)(struct of_endpoint *ep, void *data);
+> > }
+> > 
+> > int of_register_port(struct device *node, void (*cb)(struct of_endpoint *ep,
+> > void *data), void *data) {
+> > 	struct of_endpoint *ep = kzalloc(sizeof(*ep), GFP_KERNEL);
+> > 
+> > 	ep->ep_node = node;
+> > 	ep->data = data;
+> > 	ep->callback = cb;
+> > 
+> > 	/* store the endpoint to a list */
+> > 	/* check if the endpoint has a remote-endpoint link */
+> > 		/* If so, then link the two together and call the
+> > 		 * callbacks */
+> > }
+> > 
+> > That's neither expensive or complicated.
+> > 
+> > Originally I suggested walking the whole tree multiple times, but as
+> > mentioned that doesn't scale, and as I thought about the above it isn't
+> > even a valid thing to do. Everything has to be driven by drivers, so
+> > even if the backlinks are there, nothing can be done with the link until
+> > the other side goes through enumeration independently.
+> 
+> For such composite devices, what we need from a drivers point of view is a 
+> mechanism to wait for all components to be in place before proceeding. This 
+> isn't DT-related as such, but the graph is obviously described in DT for DT-
+> based platforms.
+> 
+> There are at least two mainline implementation of such a mechanism. One of 
+> them can be found in drivers/media/v4l2-core/v4l2-async.c, another more recent 
+> one in drivers/base/component.c. Neither of them is DT-specific, and they 
+> don't try to parse DT content.
+> 
+> The main problem, from a DT point of view, is that we need to pick a master 
+> driver that will initiate the process of waiting for all components to be in 
+> place. This is usually the driver of the main component inside the SoC. For a 
+> camera capture pipeline the master is the SoC camera device driver that will 
+> create the V4L2 device node(s). For a display pipeline the master is the SoC 
+> display driver that will create the DRM/KMS devices.
+> 
+> The master device driver needs to create a list of all components it needs, 
+> and wait until all those components have been probed by their respective 
+> driver. Creating such a list requires walking the graph, starting at the 
+> master device (using a CPU-centric view as described by Russell). This is why 
+> we need the backlinks, as the master device can have inbound links.
 
-The buf_finish op should always work, so change the return type to void.
-Update the few drivers that use it.
+We could scan the whole tree for entities, ports and endpoints once, in
+the base oftree code, and put that into a graph structure, adding the
+backlinks.
+The of_graph_* helpers could then use that graph instead of the device
+tree.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
-Reviewed-by: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/parport/bw-qcam.c                 | 3 +--
- drivers/media/pci/sta2x11/sta2x11_vip.c         | 4 +---
- drivers/media/platform/marvell-ccic/mcam-core.c | 3 +--
- drivers/media/usb/pwc/pwc-if.c                  | 4 ++--
- drivers/media/usb/uvc/uvc_queue.c               | 3 +--
- drivers/media/v4l2-core/videobuf2-core.c        | 6 +-----
- drivers/staging/media/go7007/go7007-v4l2.c      | 3 +--
- include/media/videobuf2-core.h                  | 2 +-
- 8 files changed, 9 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
-index d12bd33..0166aef 100644
---- a/drivers/media/parport/bw-qcam.c
-+++ b/drivers/media/parport/bw-qcam.c
-@@ -667,7 +667,7 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
- }
- 
--static int buffer_finish(struct vb2_buffer *vb)
-+static void buffer_finish(struct vb2_buffer *vb)
- {
- 	struct qcam *qcam = vb2_get_drv_priv(vb->vb2_queue);
- 	void *vbuf = vb2_plane_vaddr(vb, 0);
-@@ -691,7 +691,6 @@ static int buffer_finish(struct vb2_buffer *vb)
- 	if (len != size)
- 		vb->state = VB2_BUF_STATE_ERROR;
- 	vb2_set_plane_payload(vb, 0, len);
--	return 0;
- }
- 
- static struct vb2_ops qcam_video_qops = {
-diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-index e5cfb6c..e66556c 100644
---- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-+++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-@@ -327,7 +327,7 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	}
- 	spin_unlock(&vip->lock);
- }
--static int buffer_finish(struct vb2_buffer *vb)
-+static void buffer_finish(struct vb2_buffer *vb)
- {
- 	struct sta2x11_vip *vip = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vip_buffer *vip_buf = to_vip_buffer(vb);
-@@ -338,8 +338,6 @@ static int buffer_finish(struct vb2_buffer *vb)
- 	spin_unlock(&vip->lock);
- 
- 	vip_active_buf_next(vip);
--
--	return 0;
- }
- 
- static int start_streaming(struct vb2_queue *vq, unsigned int count)
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 32fab30..8b34c48 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1238,7 +1238,7 @@ static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--static int mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
-+static void mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
- {
- 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
- 	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
-@@ -1246,7 +1246,6 @@ static int mcam_vb_sg_buf_finish(struct vb2_buffer *vb)
- 	if (sg_table)
- 		dma_unmap_sg(cam->dev, sg_table->sgl,
- 				sg_table->nents, DMA_FROM_DEVICE);
--	return 0;
- }
- 
- static void mcam_vb_sg_buf_cleanup(struct vb2_buffer *vb)
-diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index abf365a..619121f 100644
---- a/drivers/media/usb/pwc/pwc-if.c
-+++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -614,7 +614,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--static int buffer_finish(struct vb2_buffer *vb)
-+static void buffer_finish(struct vb2_buffer *vb)
- {
- 	struct pwc_device *pdev = vb2_get_drv_priv(vb->vb2_queue);
- 	struct pwc_frame_buf *buf = container_of(vb, struct pwc_frame_buf, vb);
-@@ -624,7 +624,7 @@ static int buffer_finish(struct vb2_buffer *vb)
- 	 * filled, take the pwc data we've stored in buf->data and decompress
- 	 * it into a usable format, storing the result in the vb2_buffer
- 	 */
--	return pwc_decompress(pdev, buf);
-+	pwc_decompress(pdev, buf);
- }
- 
- static void buffer_cleanup(struct vb2_buffer *vb)
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index cd962be..cca2c6e 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -104,7 +104,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&queue->irqlock, flags);
- }
- 
--static int uvc_buffer_finish(struct vb2_buffer *vb)
-+static void uvc_buffer_finish(struct vb2_buffer *vb)
- {
- 	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
- 	struct uvc_streaming *stream =
-@@ -112,7 +112,6 @@ static int uvc_buffer_finish(struct vb2_buffer *vb)
- 	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
- 
- 	uvc_video_clock_update(stream, &vb->v4l2_buf, buf);
--	return 0;
- }
- 
- static void uvc_wait_prepare(struct vb2_queue *vq)
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 8f1578b..59bfd85 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1783,11 +1783,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 	if (ret < 0)
- 		return ret;
- 
--	ret = call_vb_qop(vb, buf_finish, vb);
--	if (ret) {
--		dprintk(1, "dqbuf: buffer finish failed\n");
--		return ret;
--	}
-+	call_vb_qop(vb, buf_finish, vb);
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DONE:
-diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
-index edc52e2..3a01576 100644
---- a/drivers/staging/media/go7007/go7007-v4l2.c
-+++ b/drivers/staging/media/go7007/go7007-v4l2.c
-@@ -470,7 +470,7 @@ static int go7007_buf_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--static int go7007_buf_finish(struct vb2_buffer *vb)
-+static void go7007_buf_finish(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *vq = vb->vb2_queue;
- 	struct go7007 *go = vb2_get_drv_priv(vq);
-@@ -483,7 +483,6 @@ static int go7007_buf_finish(struct vb2_buffer *vb)
- 			V4L2_BUF_FLAG_PFRAME);
- 	buf->flags |= frame_type_flag;
- 	buf->field = V4L2_FIELD_NONE;
--	return 0;
- }
- 
- static int go7007_start_streaming(struct vb2_queue *q, unsigned int count)
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f04eb28..f443ce0 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -311,7 +311,7 @@ struct vb2_ops {
- 
- 	int (*buf_init)(struct vb2_buffer *vb);
- 	int (*buf_prepare)(struct vb2_buffer *vb);
--	int (*buf_finish)(struct vb2_buffer *vb);
-+	void (*buf_finish)(struct vb2_buffer *vb);
- 	void (*buf_cleanup)(struct vb2_buffer *vb);
- 
- 	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
--- 
-1.9.0
+regards
+Philipp
 
