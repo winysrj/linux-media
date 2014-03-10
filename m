@@ -1,86 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42501 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133AbaCMLpq (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.13]:63104 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752262AbaCJXXk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 07:45:46 -0400
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 13/14] v4l: ti-vpe: Set correct field parameter for output and capture buffers
-Date: Thu, 13 Mar 2014 17:14:15 +0530
-Message-ID: <1394711056-10878-14-git-send-email-archit@ti.com>
-In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394711056-10878-1-git-send-email-archit@ti.com>
+	Mon, 10 Mar 2014 19:23:40 -0400
+Date: Tue, 11 Mar 2014 00:23:34 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 1/3] v4l2-subdev.h: add g_tvnorms video op
+In-Reply-To: <1392637454-29179-2-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1403110014000.10570@axis700.grange>
+References: <1392637454-29179-1-git-send-email-hverkuil@xs4all.nl>
+ <1392637454-29179-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vpe driver wasn't setting the correct field parameter for dequed CAPTURE
-type buffers for the case where the captured output is progressive.
+Hi Hans,
 
-Set the field to V4L2_FIELD_NONE for the completed destination buffers when
-the captured output is progressive.
+Thanks for taking care about this problem. I'm not sure it would be ok for 
+me to pull this specific patch via my tree, because it's for the V4L2 
+core, and the other 2 patches in this series depend on this one. But 
+anyway I've got a question to this patch:
 
-For OUTPUT type buffers, a queued buffer's field is forced to V4L2_FIELD_NONE
-if the pixel format(configured through s_fmt for the buffer type
-V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE specifies) the field type isn't interlaced.
-If the pixel format specified was V4L2_FIELD_ALTERNATE, and the queued buffer's
-field isn't V4L2_FIELD_TOP or V4L2_FIELD_BOTTOM, the vb2 buf_prepare op returns
-an error.
+On Mon, 17 Feb 2014, Hans Verkuil wrote:
 
-This ensures compliance, and that the dequeued output and captured buffers
-contain the field type that the driver used internally.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> While there was already a g_tvnorms_output video op, it's counterpart for
+> video capture was missing. Add it.
+> 
+> This is necessary for generic bridge drivers like soc-camera to set the
+> video_device tvnorms field correctly. Otherwise ENUMSTD cannot work.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/media/v4l2-subdev.h | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index d67210a..787d078 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -264,8 +264,11 @@ struct v4l2_mbus_frame_desc {
+>     g_std_output: get current standard for video OUTPUT devices. This is ignored
+>  	by video input devices.
+>  
+> -   g_tvnorms_output: get v4l2_std_id with all standards supported by video
+> -	OUTPUT device. This is ignored by video input devices.
+> +   g_tvnorms: get v4l2_std_id with all standards supported by the video
+> +	CAPTURE device. This is ignored by video output devices.
+> +
+> +   g_tvnorms_output: get v4l2_std_id with all standards supported by the video
+> +	OUTPUT device. This is ignored by video capture devices.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
+Why do we need two separate operations with the same functionality - one 
+for capture and one for output? Can we have subdevices, that need to 
+implement both? Besides, what about these two core ops:
+
+	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
+	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
+
+? Seems like a slightly different approach is needed? Or am I missing 
+anything?
+
+Thanks
+Guennadi
+
+>     s_crystal_freq: sets the frequency of the crystal used to generate the
+>  	clocks in Hz. An extra flags field allows device specific configuration
+> @@ -308,6 +311,7 @@ struct v4l2_subdev_video_ops {
+>  	int (*s_std_output)(struct v4l2_subdev *sd, v4l2_std_id std);
+>  	int (*g_std_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>  	int (*querystd)(struct v4l2_subdev *sd, v4l2_std_id *std);
+> +	int (*g_tvnorms)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>  	int (*g_tvnorms_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>  	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
+>  	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+> -- 
+> 1.8.5.2
+> 
+
 ---
- drivers/media/platform/ti-vpe/vpe.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index c0ae847..362d5be 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1296,10 +1296,10 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 		d_buf->timecode = s_buf->timecode;
- 	}
- 	d_buf->sequence = ctx->sequence;
--	d_buf->field = ctx->field;
- 
- 	d_q_data = &ctx->q_data[Q_DATA_DST];
- 	if (d_q_data->flags & Q_DATA_INTERLACED) {
-+		d_buf->field = ctx->field;
- 		if (ctx->field == V4L2_FIELD_BOTTOM) {
- 			ctx->sequence++;
- 			ctx->field = V4L2_FIELD_TOP;
-@@ -1308,6 +1308,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 			ctx->field = V4L2_FIELD_BOTTOM;
- 		}
- 	} else {
-+		d_buf->field = V4L2_FIELD_NONE;
- 		ctx->sequence++;
- 	}
- 
-@@ -1880,6 +1881,16 @@ static int vpe_buf_prepare(struct vb2_buffer *vb)
- 	q_data = get_q_data(ctx, vb->vb2_queue->type);
- 	num_planes = q_data->fmt->coplanar ? 2 : 1;
- 
-+	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		if (!(q_data->flags & Q_DATA_INTERLACED)) {
-+			vb->v4l2_buf.field = V4L2_FIELD_NONE;
-+		} else {
-+			if (vb->v4l2_buf.field != V4L2_FIELD_TOP &&
-+					vb->v4l2_buf.field != V4L2_FIELD_BOTTOM)
-+				return -EINVAL;
-+		}
-+	}
-+
- 	for (i = 0; i < num_planes; i++) {
- 		if (vb2_plane_size(vb, i) < q_data->sizeimage[i]) {
- 			vpe_err(ctx->dev,
--- 
-1.8.3.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
