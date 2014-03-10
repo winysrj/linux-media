@@ -1,141 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49304 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753751AbaCCKHt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:49 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 12/79] [media] drx-j: fix whitespacing on pointer parmameters
-Date: Mon,  3 Mar 2014 07:06:06 -0300
-Message-Id: <1393841233-24840-13-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752257AbaCJXOf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 02/48] v4l: Add UYVY10_2X10 and VYUY10_2X10 media bus pixel codes
+Date: Tue, 11 Mar 2014 00:15:13 +0100
+Message-Id: <1394493359-14115-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch generated with this script:
-
-for i in drivers/media/dvb-frontends/drx39xyj/*.[ch]; do perl -ne 's,(enum|struct|void|int|u32|u64|u16|u8|s8|s16|s32|s64)\s+(\S+)\s+\*[ ]+,\1 \2 *,g; print $_' <$i >a && mv a $i; done
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/drx39xyj/drx_driver.h |  8 ++++----
- drivers/media/dvb-frontends/drx39xyj/drxj.c       | 16 ++++++++--------
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 128 +++++++++++++++++++++
+ include/uapi/linux/v4l2-mediabus.h                 |   4 +-
+ 2 files changed, 131 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
-index 1e906b8298fc..fddf491d4816 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
-+++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.h
-@@ -237,9 +237,9 @@ struct tuner_ops {
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 7331ce1..6fb58de 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -1898,6 +1898,134 @@
+ 	      <entry>y<subscript>1</subscript></entry>
+ 	      <entry>y<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-UYVY10-2X10">
++	      <entry>V4L2_MBUS_FMT_UYVY10_2X10</entry>
++	      <entry>0x2018</entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-VYUY10-2X10">
++	      <entry>V4L2_MBUS_FMT_VYUY10_2X10</entry>
++	      <entry>0x2019</entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-22;
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="V4L2-MBUS-FMT-YUYV10-2X10">
+ 	      <entry>V4L2_MBUS_FMT_YUYV10_2X10</entry>
+ 	      <entry>0x200b</entry>
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index b5c3aab..20a99b1 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
+ 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
  
- struct tuner_instance {
- 	struct i2c_device_addr myI2CDevAddr;
--	struct tuner_common * myCommonAttr;
-+	struct tuner_common *myCommonAttr;
- 	void *myExtAttr;
--	struct tuner_ops * myFunct;
-+	struct tuner_ops *myFunct;
- };
- 
- 
-@@ -257,7 +257,7 @@ int DRXBSP_TUNER_GetFrequency(struct tuner_instance *tuner,
- 					s32 * IFfrequency);
- 
- int DRXBSP_TUNER_LockStatus(struct tuner_instance *tuner,
--					enum tuner_lock_status * lockStat);
-+					enum tuner_lock_status *lockStat);
- 
- int DRXBSP_TUNER_DefaultI2CWriteRead(struct tuner_instance *tuner,
- 						struct i2c_device_addr *wDevAddr,
-@@ -1223,7 +1223,7 @@ STRUCTS
- 	typedef struct {
- 		u32 *symbolrate;	  /**<  list of symbolrates to scan   */
- 		u16 symbolrateSize;	  /**<  size of symbolrate array      */
--		enum drx_modulation * constellation;
-+		enum drx_modulation *constellation;
- 					  /**<  list of constellations        */
- 		u16 constellationSize;    /**<  size of constellation array */
- 		u16 ifAgcThreshold;	  /**<  thresholf for IF-AGC based
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index c8212069a540..c13622652bd6 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -6101,7 +6101,7 @@ rw_error:
- }
- 
- /**
--* \fn static short GetVSBPostRSPckErr(struct i2c_device_addr * devAddr, u16 *PckErrs)
-+* \fn static short GetVSBPostRSPckErr(struct i2c_device_addr *devAddr, u16 *PckErrs)
- * \brief Get the values of packet error in 8VSB mode
- * \return Error code
- */
-@@ -6132,7 +6132,7 @@ rw_error:
- }
- 
- /**
--* \fn static short GetVSBBer(struct i2c_device_addr * devAddr, u32 *ber)
-+* \fn static short GetVSBBer(struct i2c_device_addr *devAddr, u32 *ber)
- * \brief Get the values of ber in VSB mode
- * \return Error code
- */
-@@ -6170,7 +6170,7 @@ rw_error:
- }
- 
- /**
--* \fn static short GetVSBpreViterbiBer(struct i2c_device_addr * devAddr, u32 *ber)
-+* \fn static short GetVSBpreViterbiBer(struct i2c_device_addr *devAddr, u32 *ber)
- * \brief Get the values of ber in VSB mode
- * \return Error code
- */
-@@ -6189,7 +6189,7 @@ rw_error:
- }
- 
- /**
--* \fn static short GetVSBSymbErr(struct i2c_device_addr * devAddr, u32 *ber)
-+* \fn static short GetVSBSymbErr(struct i2c_device_addr *devAddr, u32 *ber)
- * \brief Get the values of ber in VSB mode
- * \return Error code
- */
-@@ -7834,7 +7834,7 @@ rw_error:
- /*============================================================================*/
- 
- /**
--* \fn static short GetQAMRSErrCount(struct i2c_device_addr * devAddr)
-+* \fn static short GetQAMRSErrCount(struct i2c_device_addr *devAddr)
- * \brief Get RS error count in QAM mode (used for post RS BER calculation)
- * \return Error code
- *
-@@ -8841,7 +8841,7 @@ rw_error:
- #ifndef DRXJ_DIGITAL_ONLY
- #define SCU_RAM_ATV_ENABLE_IIR_WA__A 0x831F6D	/* TODO remove after done with reg import */
- static int
--SetATVStandard(pDRXDemodInstance_t demod, enum drx_standard * standard)
-+SetATVStandard(pDRXDemodInstance_t demod, enum drx_standard *standard)
- {
- /* TODO: enable alternative for tap settings via external file
- 
-@@ -13817,7 +13817,7 @@ rw_error:
- *
- */
- static int
--CtrlSetStandard(pDRXDemodInstance_t demod, enum drx_standard * standard)
-+CtrlSetStandard(pDRXDemodInstance_t demod, enum drx_standard *standard)
- {
- 	pDRXJData_t extAttr = NULL;
- 	enum drx_standard prevStandard;
-@@ -13917,7 +13917,7 @@ rw_error:
- *
- */
- static int
--CtrlGetStandard(pDRXDemodInstance_t demod, enum drx_standard * standard)
-+CtrlGetStandard(pDRXDemodInstance_t demod, enum drx_standard *standard)
- {
- 	pDRXJData_t extAttr = NULL;
- 	extAttr = (pDRXJData_t) demod->myExtAttr;
+-	/* YUV (including grey) - next is 0x2018 */
++	/* YUV (including grey) - next is 0x201a */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+ 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+@@ -64,6 +64,8 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_YUYV8_2X8 = 0x2008,
+ 	V4L2_MBUS_FMT_YVYU8_2X8 = 0x2009,
+ 	V4L2_MBUS_FMT_Y10_1X10 = 0x200a,
++	V4L2_MBUS_FMT_UYVY10_2X10 = 0x2018,
++	V4L2_MBUS_FMT_VYUY10_2X10 = 0x2019,
+ 	V4L2_MBUS_FMT_YUYV10_2X10 = 0x200b,
+ 	V4L2_MBUS_FMT_YVYU10_2X10 = 0x200c,
+ 	V4L2_MBUS_FMT_Y12_1X12 = 0x2013,
 -- 
-1.8.5.3
+1.8.3.2
 
