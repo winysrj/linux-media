@@ -1,102 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:46133 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933245AbaCQNlN (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2266 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753829AbaCJN6y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 09:41:13 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2L00EM020N8J80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Mar 2014 13:41:11 +0000 (GMT)
-Message-id: <5326FB75.1050605@samsung.com>
-Date: Mon, 17 Mar 2014 14:41:09 +0100
-From: Andrzej Hajda <a.hajda@samsung.com>
-MIME-version: 1.0
-To: Denis Carikli <denis@eukrea.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Cc: devel@driverdev.osuosl.org, Russell King <linux@arm.linux.org.uk>,
-	=?ISO-8859-1?Q?Eric_B=E9nard?= <eric@eukrea.com>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 07/12] drm: drm_display_mode: add signal polarity flags
-References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
- <1394731053-6118-7-git-send-email-denis@eukrea.com>
-In-reply-to: <1394731053-6118-7-git-send-email-denis@eukrea.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Mon, 10 Mar 2014 09:58:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, k.debski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv1 PATCH 7/7] mem2mem_testdev: improve field handling
+Date: Mon, 10 Mar 2014 14:58:29 +0100
+Message-Id: <1394459909-36497-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Denis,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the patch.
+try_fmt should just set field to NONE and not return an error if
+a different field was passed.
 
-On 03/13/2014 06:17 PM, Denis Carikli wrote:
-> We need a way to pass signal polarity informations
->   between DRM panels, and the display drivers.
-> 
-> To do that, a pol_flags field was added to drm_display_mode.
-> 
-> Signed-off-by: Denis Carikli <denis@eukrea.com>
-> ---
-> ChangeLog v10->v11:
-> - Since the imx-drm won't be able to retrive its regulators
->   from the device tree when using display-timings nodes,
->   and that I was told that the drm simple-panel driver 
->   already supported that, I then, instead, added what was
->   lacking to make the eukrea displays work with the
->   drm-simple-panel driver.
-> 
->   That required a way to get back the display polarity
->   informations from the imx-drm driver without affecting
->   userspace.
-> ---
->  include/drm/drm_crtc.h |    8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
-> index f764654..61a4fe1 100644
-> --- a/include/drm/drm_crtc.h
-> +++ b/include/drm/drm_crtc.h
-> @@ -131,6 +131,13 @@ enum drm_mode_status {
->  
->  #define DRM_MODE_FLAG_3D_MAX	DRM_MODE_FLAG_3D_SIDE_BY_SIDE_HALF
->  
-> +#define DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE	BIT(1)
-> +#define DRM_MODE_FLAG_POL_PIXDATA_POSEDGE	BIT(2)
-> +#define DRM_MODE_FLAG_POL_PIXDATA_PRESERVE	BIT(3)
-> +#define DRM_MODE_FLAG_POL_DE_NEGEDGE		BIT(4)
-> +#define DRM_MODE_FLAG_POL_DE_POSEDGE		BIT(5)
-> +#define DRM_MODE_FLAG_POL_DE_PRESERVE		BIT(6)
+buf_prepare should check if the field passed in from userspace has a
+supported field value. At the moment only NONE is supported and ANY
+is mapped to NONE.
 
-Could you add some description to these flags.
-What are *_PRESERVE flags for?
-Are those flags 1:1 compatible with respective 'videomode:flags'?
-I guess DE flags should be rather DRM_MODE_FLAG_POL_DE_(LOW|HIGH), am I
-right?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/mem2mem_testdev.c | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-Regards
-Andrzej
-
-
-> +
->  struct drm_display_mode {
->  	/* Header */
->  	struct list_head head;
-> @@ -183,6 +190,7 @@ struct drm_display_mode {
->  	int vrefresh;		/* in Hz */
->  	int hsync;		/* in kHz */
->  	enum hdmi_picture_aspect picture_aspect_ratio;
-> +	unsigned int pol_flags;
->  };
->  
->  static inline bool drm_mode_is_stereo(const struct drm_display_mode *mode)
-> 
+diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+index dec8092..4f3096b 100644
+--- a/drivers/media/platform/mem2mem_testdev.c
++++ b/drivers/media/platform/mem2mem_testdev.c
+@@ -516,19 +516,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 
+ static int vidioc_try_fmt(struct v4l2_format *f, struct m2mtest_fmt *fmt)
+ {
+-	enum v4l2_field field;
+-
+-	field = f->fmt.pix.field;
+-
+-	if (field == V4L2_FIELD_ANY)
+-		field = V4L2_FIELD_NONE;
+-	else if (V4L2_FIELD_NONE != field)
+-		return -EINVAL;
+-
+ 	/* V4L2 specification suggests the driver corrects the format struct
+ 	 * if any of the dimensions is unsupported */
+-	f->fmt.pix.field = field;
+-
+ 	if (f->fmt.pix.height < MIN_H)
+ 		f->fmt.pix.height = MIN_H;
+ 	else if (f->fmt.pix.height > MAX_H)
+@@ -542,6 +531,7 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct m2mtest_fmt *fmt)
+ 	f->fmt.pix.width &= ~DIM_ALIGN_MASK;
+ 	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
+ 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
++	f->fmt.pix.field = V4L2_FIELD_NONE;
+ 	f->fmt.pix.priv = 0;
+ 
+ 	return 0;
+@@ -760,6 +750,15 @@ static int m2mtest_buf_prepare(struct vb2_buffer *vb)
+ 	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
+ 
+ 	q_data = get_q_data(ctx, vb->vb2_queue->type);
++	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
++		if (vb->v4l2_buf.field == V4L2_FIELD_ANY)
++			vb->v4l2_buf.field = V4L2_FIELD_NONE;
++		if (vb->v4l2_buf.field != V4L2_FIELD_NONE) {
++			dprintk(ctx->dev, "%s field isn't supported\n",
++					__func__);
++			return -EINVAL;
++		}
++	}
+ 
+ 	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
+ 		dprintk(ctx->dev, "%s data will not fit into plane (%lu < %lu)\n",
+-- 
+1.9.0
 
