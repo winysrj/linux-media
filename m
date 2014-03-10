@@ -1,73 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy9-pub.mail.unifiedlayer.com ([69.89.24.6]:59951 "HELO
-	oproxy9-pub.mail.unifiedlayer.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751405AbaC2C5f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 22:57:35 -0400
-Message-ID: <1396061452.3383.42.camel@Wailaba2>
-Subject: Re: [PATCH] [media] uvcvideo: Fix clock param realtime setting
-From: Olivier Langlois <olivier@trillion01.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: m.chehab@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Stable <stable@vger.kernel.org>
-Date: Fri, 28 Mar 2014 22:50:52 -0400
-In-Reply-To: <2051908.tTlcvVaa3D@avalon>
-References: <1395985358-17047-1-git-send-email-olivier@trillion01.com>
-	 <16236471.uFSjvbT2di@avalon> <1396042028.3383.34.camel@Wailaba2>
-	 <2051908.tTlcvVaa3D@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:51707 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752669AbaCJKBb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 06:01:31 -0400
+Message-ID: <531D8D78.800@iki.fi>
+Date: Mon, 10 Mar 2014 12:01:28 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: [REVIEW PATCH 11/13] DocBook: document RF tuner bandwidth controls
+References: <1393460528-11684-1-git-send-email-crope@iki.fi> <1393460528-11684-12-git-send-email-crope@iki.fi> <20140305154922.508c48d7@samsung.com>
+In-Reply-To: <20140305154922.508c48d7@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 05.03.2014 20:49, Mauro Carvalho Chehab wrote:
+> Em Thu, 27 Feb 2014 02:22:06 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> Add documentation for RF tuner bandwidth controls. These controls are
+>> used to set filters on tuner signal path.
+>>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   Documentation/DocBook/media/v4l/controls.xml | 19 +++++++++++++++++++
+>>   1 file changed, 19 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index 6c9dbf6..5550fea 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -5007,6 +5007,25 @@ descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
+>>   description of this control class.</entry>
+>>               </row>
+>>               <row>
+>> +              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH_AUTO</constant>&nbsp;</entry>
+>> +              <entry>boolean</entry>
+>> +            </row>
+>> +            <row>
+>> +              <entry spanname="descr">Enables/disables tuner radio channel
+>> +bandwidth configuration. In automatic mode bandwidth configuration is performed
+>> +by the driver.</entry>
+>> +            </row>
+>> +            <row>
+>> +              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH</constant>&nbsp;</entry>
+>> +              <entry>integer</entry>
+>> +            </row>
+>> +            <row>
+>> +              <entry spanname="descr">Filter(s) on tuner signal path are used to
+>> +filter signal according to receiving party needs. Driver configures filters to
+>> +fulfill desired bandwidth requirement. Used when V4L2_CID_RF_TUNER_BANDWIDTH_AUTO is not
+>> +set. The range and step are driver-specific.</entry>
+>
+> Huh? If this is enable/disable, why "the range and step are driver-specific"?
 
-> > > 
-> > > Before applying this, I'm curious, do you have a use case for realtime
-> > > time stamps ?
-> > 
-> > Yes. ffmpeg uses wall clock time to create timestamps for audio packets from
-> > ALSA device.
-> 
-> OK. I suppose I shouldn't drop support for the realtime clock like I wanted to 
-> then :-)
->  
-> > There is a bug in ffmpeg describing problems to synchronize audio and
-> > the video from a v4l2 webcam.
-> > 
-> > https://trac.ffmpeg.org/ticket/692
-> > 
-> > To workaround this issue, ffmpeg devs added a switch to convert back
-> > monotonic to realtime. From ffmpeg/libavdevice/v4l2.c:
-> > 
-> >   -ts                <int>        .D.... set type of timestamps for
-> > grabbed frames (from 0 to 2) (default 0)
-> >      default                      .D.... use timestamps from the kernel
-> >      abs                          .D.... use absolute timestamps (wall
-> > clock)
-> >      mono2abs                     .D.... force conversion from monotonic
-> > to absolute timestamps
-> > 
-> > If the v4l2 driver is able to send realtime ts, it is easier synchronize
-> > in userspace if all inputs use the same clock.
-> 
-> That might be a stupid question, but shouldn't ALSA use the monotonic clock 
-> instead ?
-> 
+Because there is two controls grouped. That is situation of having 
+AUTO/MANUAL.
+V4L2_CID_RF_TUNER_BANDWIDTH_AUTO
+V4L2_CID_RF_TUNER_BANDWIDTH
 
-This isn't stupid. I had the same though after replying you.
-Intuitively, I would think that monotonic clock is a better choice for
-multimedia. I am just speculating but I would say that ffmpeg decided to
-use realtime clock as the standard clock throughout the project for
-portability purposes since it is a cross-platform project.
+V4L2_CID_RF_TUNER_BANDWIDTH is valid only when 
+V4L2_CID_RF_TUNER_BANDWIDTH_AUTO == false.
 
-Now you know how I ended up trying the clock=realtime option.
-IMHO, if the option is there, it should be working but just removing it
-could also be a valid option.
-
-I feel that this could bring some new problems if it stays there
-because, I'll be honest and say that I didn't test the driver behavior
-when the time goes backward....
+regards
+Antti
 
 
 
+>
+>> +            </row>
+>> +            <row>
+>>                 <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant>&nbsp;</entry>
+>>                 <entry>boolean</entry>
+>>               </row>
+>
+>
+
+
+-- 
+http://palosaari.fi/
