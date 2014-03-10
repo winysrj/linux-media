@@ -1,209 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4248 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758137AbaCSJz1 (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1096 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753812AbaCJN6q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Mar 2014 05:55:27 -0400
-Message-ID: <53296951.8020005@xs4all.nl>
-Date: Wed, 19 Mar 2014 10:54:25 +0100
+	Mon, 10 Mar 2014 09:58:46 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: =?UTF-8?B?RGFuaWVsIEdsw7Zja25lcg==?= <daniel-gl@gmx.net>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3] bttv: Add support for PCI-8604PW
-References: <1395222641-19060-1-git-send-email-daniel-gl@gmx.net>
-In-Reply-To: <1395222641-19060-1-git-send-email-daniel-gl@gmx.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, k.debski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv1 PATCH 1/7] mem2mem_testdev: use 40ms default transfer time.
+Date: Mon, 10 Mar 2014 14:58:23 +0100
+Message-Id: <1394459909-36497-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/19/14 10:50, Daniel Glöckner wrote:
-> This patch adds support for the PCI-8604PW card equipped with four 878A.
-> It is unknown who the manufacturer of this card is and no drivers were
-> available during development of the patch. According to images found
-> online, the card is originally sold with Linux DVR software.
-> 
-> A CPLD on the card prevents the 878A from requesting access to the
-> bus until an initialization sequence has been issued via GPIOs. The
-> implemented sequence uses the minimum number of GPIOs needed to
-> successfully unlock bus access. As there are many more GPIOs connected
-> to the CPLD, it is very likely that some of the others have an influence
-> on the bus arbitration scheduling. This should be investigated further
-> in case of performance issues.
-> 
-> The tested card contains an EEPROM on one of the 878A, but it is
-> completely empty (i.e. contains only 0xff), so it is not possible
-> to detect the card.
-> 
-> Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
-> Tested-by: Robert Longbottom <rongblor@googlemail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks! That looks much better. I'll queue this for 3.16.
+The default of 1 second is a bit painful, switch to a 25 Hz framerate.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/mem2mem_testdev.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-	Hans
-
-> ---
->  drivers/media/pci/bt8xx/bttv-cards.c | 110 +++++++++++++++++++++++++++++++++++
->  drivers/media/pci/bt8xx/bttv.h       |   1 +
->  2 files changed, 111 insertions(+)
-> 
-> diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-> index 6662b49..7df34b4 100644
-> --- a/drivers/media/pci/bt8xx/bttv-cards.c
-> +++ b/drivers/media/pci/bt8xx/bttv-cards.c
-> @@ -52,6 +52,7 @@ static void osprey_eeprom(struct bttv *btv, const u8 ee[256]);
->  static void modtec_eeprom(struct bttv *btv);
->  static void init_PXC200(struct bttv *btv);
->  static void init_RTV24(struct bttv *btv);
-> +static void init_PCI8604PW(struct bttv *btv);
->  
->  static void rv605_muxsel(struct bttv *btv, unsigned int input);
->  static void eagle_muxsel(struct bttv *btv, unsigned int input);
-> @@ -2856,6 +2857,22 @@ struct tvcard bttv_tvcards[] = {
->  		.tuner_addr	= ADDR_UNSET,
->  	},
->  
-> +	/* ---- card 0xa5---------------------------------- */
-> +	[BTTV_BOARD_PCI_8604PW] = {
-> +		/* PCI-8604PW with special unlock sequence */
-> +		.name           = "PCI-8604PW",
-> +		.video_inputs   = 2,
-> +		/* .audio_inputs= 0, */
-> +		.svhs           = NO_SVHS,
-> +		/* The second input is available on CN4, if populated.
-> +		 * The other 5x2 header (CN2?) connects to the same inputs
-> +		 * as the on-board BNCs */
-> +		.muxsel         = MUXSEL(2, 3),
-> +		.tuner_type     = TUNER_ABSENT,
-> +		.no_msp34xx	= 1,
-> +		.no_tda7432	= 1,
-> +		.pll            = PLL_35,
-> +	},
->  };
->  
->  static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
-> @@ -3290,6 +3307,9 @@ void bttv_init_card1(struct bttv *btv)
->  	case BTTV_BOARD_ADLINK_RTV24:
->  		init_RTV24( btv );
->  		break;
-> +	case BTTV_BOARD_PCI_8604PW:
-> +		init_PCI8604PW(btv);
-> +		break;
->  
->  	}
->  	if (!bttv_tvcards[btv->c.type].has_dvb)
-> @@ -4170,6 +4190,96 @@ init_RTV24 (struct bttv *btv)
->  
->  
->  /* ----------------------------------------------------------------------- */
-> +/*
-> + *  The PCI-8604PW contains a CPLD, probably an ispMACH 4A, that filters
-> + *  the PCI REQ signals comming from the four BT878 chips. After power
-> + *  up, the CPLD does not forward requests to the bus, which prevents
-> + *  the BT878 from fetching RISC instructions from memory. While the
-> + *  CPLD is connected to most of the GPIOs of PCI device 0xD, only
-> + *  five appear to play a role in unlocking the REQ signal. The following
-> + *  sequence has been determined by trial and error without access to the
-> + *  original driver.
-> + *
-> + *  Eight GPIOs of device 0xC are provided on connector CN4 (4 in, 4 out).
-> + *  Devices 0xE and 0xF do not appear to have anything connected to their
-> + *  GPIOs.
-> + *
-> + *  The correct GPIO_OUT_EN value might have some more bits set. It should
-> + *  be possible to derive it from a boundary scan of the CPLD. Its JTAG
-> + *  pins are routed to test points.
-> + *
-> + */
-> +/* ----------------------------------------------------------------------- */
-> +static void
-> +init_PCI8604PW(struct bttv *btv)
-> +{
-> +	int state;
-> +
-> +	if ((PCI_SLOT(btv->c.pci->devfn) & ~3) != 0xC) {
-> +		pr_warn("This is not a PCI-8604PW\n");
-> +		return;
-> +	}
-> +
-> +	if (PCI_SLOT(btv->c.pci->devfn) != 0xD)
-> +		return;
-> +
-> +	btwrite(0x080002, BT848_GPIO_OUT_EN);
-> +
-> +	state = (btread(BT848_GPIO_DATA) >> 21) & 7;
-> +
-> +	for (;;) {
-> +		switch (state) {
-> +		case 1:
-> +		case 5:
-> +		case 6:
-> +		case 4:
-> +			pr_debug("PCI-8604PW in state %i, toggling pin\n",
-> +				 state);
-> +			btwrite(0x080000, BT848_GPIO_DATA);
-> +			msleep(1);
-> +			btwrite(0x000000, BT848_GPIO_DATA);
-> +			msleep(1);
-> +			break;
-> +		case 7:
-> +			pr_info("PCI-8604PW unlocked\n");
-> +			return;
-> +		case 0:
-> +			/* FIXME: If we are in state 7 and toggle GPIO[19] one
-> +			   more time, the CPLD goes into state 0, where PCI bus
-> +			   mastering is inhibited again. We have not managed to
-> +			   get out of that state. */
-> +
-> +			pr_err("PCI-8604PW locked until reset\n");
-> +			return;
-> +		default:
-> +			pr_err("PCI-8604PW in unknown state %i\n", state);
-> +			return;
-> +		}
-> +
-> +		state = (state << 4) | ((btread(BT848_GPIO_DATA) >> 21) & 7);
-> +
-> +		switch (state) {
-> +		case 0x15:
-> +		case 0x56:
-> +		case 0x64:
-> +		case 0x47:
-> +		/* The transition from state 7 to state 0 is, as explained
-> +		   above, valid but undesired and with this code impossible
-> +		   as we exit as soon as we are in state 7.
-> +		case 0x70: */
-> +			break;
-> +		default:
-> +			pr_err("PCI-8604PW invalid transition %i -> %i\n",
-> +			       state >> 4, state & 7);
-> +			return;
-> +		}
-> +		state &= 7;
-> +	}
-> +}
-> +
-> +
-> +
-> +/* ----------------------------------------------------------------------- */
->  /* Miro Pro radio stuff -- the tea5757 is connected to some GPIO ports     */
->  /*
->   * Copyright (c) 1999 Csaba Halasz <qgehali@uni-miskolc.hu>
-> diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
-> index df578ef..c0a4c93 100644
-> --- a/drivers/media/pci/bt8xx/bttv.h
-> +++ b/drivers/media/pci/bt8xx/bttv.h
-> @@ -188,6 +188,7 @@
->  #define BTTV_BOARD_ADLINK_MPG24            0xa2
->  #define BTTV_BOARD_BT848_CAP_14            0xa3
->  #define BTTV_BOARD_CYBERVISION_CV06        0xa4
-> +#define BTTV_BOARD_PCI_8604PW              0xa5
->  
->  /* more card-specific defines */
->  #define PT2254_L_CHANNEL 0x10
-> 
+diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+index 4bb5e88..5c6067d 100644
+--- a/drivers/media/platform/mem2mem_testdev.c
++++ b/drivers/media/platform/mem2mem_testdev.c
+@@ -60,9 +60,7 @@ MODULE_PARM_DESC(debug, "activates debug info");
+ #define MEM2MEM_VID_MEM_LIMIT	(16 * 1024 * 1024)
+ 
+ /* Default transaction time in msec */
+-#define MEM2MEM_DEF_TRANSTIME	1000
+-/* Default number of buffers per transaction */
+-#define MEM2MEM_DEF_TRANSLEN	1
++#define MEM2MEM_DEF_TRANSTIME	40
+ #define MEM2MEM_COLOR_STEP	(0xff >> 4)
+ #define MEM2MEM_NUM_TILES	8
+ 
+@@ -804,10 +802,10 @@ static const struct v4l2_ctrl_config m2mtest_ctrl_trans_time_msec = {
+ 	.id = V4L2_CID_TRANS_TIME_MSEC,
+ 	.name = "Transaction Time (msec)",
+ 	.type = V4L2_CTRL_TYPE_INTEGER,
+-	.def = 1001,
++	.def = MEM2MEM_DEF_TRANSTIME,
+ 	.min = 1,
+ 	.max = 10001,
+-	.step = 100,
++	.step = 1,
+ };
+ 
+ static const struct v4l2_ctrl_config m2mtest_ctrl_trans_num_bufs = {
+-- 
+1.9.0
 
