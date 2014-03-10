@@ -1,64 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38975 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932672AbaCQLnH (ORCPT
+	with ESMTP id S1753394AbaCJXOx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 07:43:07 -0400
+	Mon, 10 Mar 2014 19:14:53 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH for v3.15 1/4] v4l2-subdev.h: fix sparse error with v4l2_subdev_notify
-Date: Mon, 17 Mar 2014 12:44:51 +0100
-Message-ID: <2510988.dElkAvpb7d@avalon>
-In-Reply-To: <1394888883-46850-2-git-send-email-hverkuil@xs4all.nl>
-References: <1394888883-46850-1-git-send-email-hverkuil@xs4all.nl> <1394888883-46850-2-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 40/48] adv7604: Inline the to_sd function
+Date: Tue, 11 Mar 2014 00:15:51 +0100
+Message-Id: <1394493359-14115-41-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This one line function is called in a single location. Inline it.
 
-Thank you for the patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-On Saturday 15 March 2014 14:08:00 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The notify function is a void function, yet the v4l2_subdev_notify
-> define uses it in a ? : construction, which causes sparse warnings.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/media/v4l2-subdev.h | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 28f4d8c..0fbf669 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -692,9 +692,11 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
->  		(sd)->ops->o->f((sd) , ##args) : -ENOIOCTLCMD))
-> 
->  /* Send a notification to v4l2_device. */
-> -#define v4l2_subdev_notify(sd, notification, arg)			   \
-> -	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
-> -	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
-> +#define v4l2_subdev_notify(sd, notification, arg)				\
-> +	do {									\
-> +		if ((sd) && (sd)->v4l2_dev && (sd)->v4l2_dev->notify)		\
-> +			(sd)->v4l2_dev->notify((sd), (notification), (arg));	\
-> +	} while (0)
-
-The construct would prevent using v4l2_subdev_notify() as an expression. What 
-about turning the macro into an inline function instead ?
-
->  #define v4l2_subdev_has_op(sd, o, f) \
->  	((sd)->ops->o && (sd)->ops->o->f)
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d4d085c..2a3ced2 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -340,11 +340,6 @@ static inline struct adv7604_state *to_state(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct adv7604_state, sd);
+ }
+ 
+-static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
+-{
+-	return &container_of(ctrl->handler, struct adv7604_state, hdl)->sd;
+-}
+-
+ static inline unsigned hblanking(const struct v4l2_bt_timings *t)
+ {
+ 	return V4L2_DV_BT_BLANKING_WIDTH(t);
+@@ -1270,7 +1265,9 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
+ 
+ static int adv7604_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct v4l2_subdev *sd = to_sd(ctrl);
++	struct v4l2_subdev *sd =
++		&container_of(ctrl->handler, struct adv7604_state, hdl)->sd;
++
+ 	struct adv7604_state *state = to_state(sd);
+ 
+ 	switch (ctrl->id) {
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
