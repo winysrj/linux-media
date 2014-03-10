@@ -1,141 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1220 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932091AbaCDKmx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 05:42:53 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753061AbaCJXOl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [REVIEWv4 PATCH 02/18] vb2: fix read/write regression
-Date: Tue,  4 Mar 2014 11:42:10 +0100
-Message-Id: <1393929746-39437-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
-References: <1393929746-39437-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 15/48] media: davinci: vpif: Switch to pad-level DV operations
+Date: Tue, 11 Mar 2014 00:15:26 +0100
+Message-Id: <1394493359-14115-16-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The video-level enum_dv_timings and dv_timings_cap operations are
+deprecated in favor of the pad-level versions. All subdev drivers
+implement the pad-level versions, switch to them.
 
-Commit 88e268702bfba78448abd20a31129458707383aa ("vb2: Improve file I/O
-emulation to handle buffers in any order") broke read/write support if
-the size of the buffer being read/written is less than the size of the
-image.
-
-When the commit was tested originally I used qv4l2, which calls read()
-with exactly the size of the image. But if you try 'cat /dev/video0'
-then it will fail and typically hang after reading two buffers.
-
-This patch fixes the behavior by adding a new cur_index field that
-contains the index of the field currently being filled/read, or it
-is num_buffers in which case a new buffer needs to be dequeued.
-
-The old index field has been renamed to initial_index in order to be
-a bit more descriptive.
-
-This has been tested with both read and write.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 46 +++++++++++++++++++++++++++-----
- 1 file changed, 40 insertions(+), 6 deletions(-)
+ drivers/media/platform/davinci/vpif_capture.c | 4 +++-
+ drivers/media/platform/davinci/vpif_display.c | 4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index a127925..f1a2857c 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2251,6 +2251,22 @@ struct vb2_fileio_buf {
- /**
-  * struct vb2_fileio_data - queue context used by file io emulator
-  *
-+ * @cur_index:	the index of the buffer currently being read from or
-+ *		written to. If equal to q->num_buffers then a new buffer
-+ *		must be dequeued.
-+ * @initial_index: in the read() case all buffers are queued up immediately
-+ *		in __vb2_init_fileio() and __vb2_perform_fileio() just cycles
-+ *		buffers. However, in the write() case no buffers are initially
-+ *		queued, instead whenever a buffer is full it is queued up by
-+ *		__vb2_perform_fileio(). Only once all available buffers have
-+ *		been queued up will __vb2_perform_fileio() start to dequeue
-+ *		buffers. This means that initially __vb2_perform_fileio()
-+ *		needs to know what buffer index to use when it is queuing up
-+ *		the buffers for the first time. That initial index is stored
-+ *		in this field. Once it is equal to q->num_buffers all
-+ *		available buffers have been queued and __vb2_perform_fileio()
-+ *		should start the normal dequeue/queue cycle.
-+ *
-  * vb2 provides a compatibility layer and emulator of file io (read and
-  * write) calls on top of streaming API. For proper operation it required
-  * this structure to save the driver state between each call of the read
-@@ -2260,7 +2276,8 @@ struct vb2_fileio_data {
- 	struct v4l2_requestbuffers req;
- 	struct v4l2_buffer b;
- 	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
--	unsigned int index;
-+	unsigned int cur_index;
-+	unsigned int initial_index;
- 	unsigned int q_count;
- 	unsigned int dq_count;
- 	unsigned int flags;
-@@ -2360,7 +2377,12 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
- 		}
--		fileio->index = q->num_buffers;
-+		/*
-+		 * All buffers have been queued, so mark that by setting
-+		 * initial_index to q->num_buffers
-+		 */
-+		fileio->initial_index = q->num_buffers;
-+		fileio->cur_index = q->num_buffers;
- 	}
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index cd6da8b..16a1958 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1723,7 +1723,9 @@ vpif_enum_dv_timings(struct file *file, void *priv,
+ 	struct channel_obj *ch = fh->channel;
+ 	int ret;
  
- 	/*
-@@ -2439,7 +2461,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	/*
- 	 * Check if we need to dequeue the buffer.
- 	 */
--	index = fileio->index;
-+	index = fileio->cur_index;
- 	if (index >= q->num_buffers) {
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
-@@ -2453,7 +2475,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 			return ret;
- 		fileio->dq_count += 1;
+-	ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
++	timings->pad = 0;
++
++	ret = v4l2_subdev_call(ch->sd, pad, enum_dv_timings, timings);
+ 	if (ret == -ENOIOCTLCMD || ret == -ENODEV)
+ 		return -EINVAL;
+ 	return ret;
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index fd68236..e1edefe 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1380,7 +1380,9 @@ vpif_enum_dv_timings(struct file *file, void *priv,
+ 	struct channel_obj *ch = fh->channel;
+ 	int ret;
  
--		index = fileio->b.index;
-+		fileio->cur_index = index = fileio->b.index;
- 		buf = &fileio->bufs[index];
- 
- 		/*
-@@ -2529,8 +2551,20 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		buf->queued = 1;
- 		buf->size = vb2_plane_size(q->bufs[index], 0);
- 		fileio->q_count += 1;
--		if (fileio->index < q->num_buffers)
--			fileio->index++;
-+		/*
-+		 * If we are queuing up buffers for the first time, then
-+		 * increase initial_index by one.
-+		 */
-+		if (fileio->initial_index < q->num_buffers)
-+			fileio->initial_index++;
-+		/*
-+		 * The next buffer to use is either a buffer that's going to be
-+		 * queued for the first time (initial_index < q->num_buffers)
-+		 * or it is equal to q->num_buffers, meaning that the next
-+		 * time we need to dequeue a buffer since we've now queued up
-+		 * all the 'first time' buffers.
-+		 */
-+		fileio->cur_index = fileio->initial_index;
- 	}
- 
- 	/*
+-	ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
++	timings->pad = 0;
++
++	ret = v4l2_subdev_call(ch->sd, pad, enum_dv_timings, timings);
+ 	if (ret == -ENOIOCTLCMD || ret == -ENODEV)
+ 		return -EINVAL;
+ 	return ret;
 -- 
-1.9.0
+1.8.3.2
 
