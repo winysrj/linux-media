@@ -1,55 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:43394 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753942AbaCCJwX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 04:52:23 -0500
-From: Daniel Jeong <gshark.jeong@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753309AbaCJXOr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Jeong <gshark.jeong@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
-Subject: [RFC v7 0/3] add new Dual LED FLASH LM3646
-Date: Mon,  3 Mar 2014 18:52:07 +0900
-Message-Id: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 29/48] adv7604: Add support for asynchronous probing
+Date: Tue, 11 Mar 2014 00:15:40 +0100
+Message-Id: <1394493359-14115-30-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- This patch is to add new dual led flash, lm3646.
- LM3646 is the product of ti and it has two 1.5A sync. boost 
- converter with dual white current source.
- 2 files are created and 4 files are modified.
- And 3 patch files are created and sent.
+From: Lars-Peter Clausen <lars@metafoo.de>
 
- v7 - change log
-   Changed V4L2_FLASH_FAULT_UNDER_VOLTAGE description in DocBook.
-   Changed lm3646_get_ctrl
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
- v6 - change log
-   Changed description in DocBook.
-
- v5 - change log
-   Added control register caching to avoid redundant i2c access.
-   Removed dt to create a seperate patch.
-   Changed description in DocBook.
-
-Daniel Jeong (3):
-  [RFC] v4l2-controls.h:
-  [RFC] DocBook:Media:v4l:controls.xml
-  [RFC] media: i2c: add new dual LED Flash driver, lm3646
-
- Documentation/DocBook/media/v4l/controls.xml |   18 ++
- drivers/media/i2c/Kconfig                    |    9 +
- drivers/media/i2c/Makefile                   |    1 +
- drivers/media/i2c/lm3646.c                   |  414 ++++++++++++++++++++++++++
- include/media/lm3646.h                       |   87 ++++++
- include/uapi/linux/v4l2-controls.h           |    3 +
- 6 files changed, 532 insertions(+)
- create mode 100644 drivers/media/i2c/lm3646.c
- create mode 100644 include/media/lm3646.h
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index de3db42..c3a76ac 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2333,6 +2333,11 @@ static int adv7604_probe(struct i2c_client *client,
+ 		goto err_entity;
+ 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
+ 			client->addr << 1, client->adapter->name);
++
++	err = v4l2_async_register_subdev(sd);
++	if (err)
++		goto err_entity;
++
+ 	return 0;
+ 
+ err_entity:
+@@ -2356,6 +2361,7 @@ static int adv7604_remove(struct i2c_client *client)
+ 
+ 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
+ 	destroy_workqueue(state->work_queues);
++	v4l2_async_unregister_subdev(sd);
+ 	v4l2_device_unregister_subdev(sd);
+ 	media_entity_cleanup(&sd->entity);
+ 	adv7604_unregister_clients(to_state(sd));
 -- 
-1.7.9.5
+1.8.3.2
 
