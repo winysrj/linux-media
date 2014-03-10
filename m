@@ -1,241 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f178.google.com ([209.85.216.178]:48521 "EHLO
-	mail-qc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837AbaCPIjk convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753347AbaCJXOt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Mar 2014 04:39:40 -0400
-Received: by mail-qc0-f178.google.com with SMTP id i8so4682800qcq.37
-        for <linux-media@vger.kernel.org>; Sun, 16 Mar 2014 01:39:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1394838259-14260-10-git-send-email-james@albanarts.com>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com>
-	<1394838259-14260-10-git-send-email-james@albanarts.com>
-Date: Sun, 16 Mar 2014 10:39:39 +0200
-Message-ID: <CAKv9HNZN6hWgYnWmD3zgEABjNMxzMsAoaCT4Mgb7EKF4r5zjdg@mail.gmail.com>
-Subject: Re: [PATCH v2 9/9] rc: nuvoton-cir: Add support for writing wakeup
- samples via sysfs filter callback
-From: =?ISO-8859-1?Q?Antti_Sepp=E4l=E4?= <a.seppala@gmail.com>
-To: James Hogan <james@albanarts.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 10 Mar 2014 19:14:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 34/48] adv7604: Remove subdev control handlers
+Date: Tue, 11 Mar 2014 00:15:45 +0100
+Message-Id: <1394493359-14115-35-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15 March 2014 01:04, James Hogan <james@albanarts.com> wrote:
-> From: Antti Seppälä <a.seppala@gmail.com>
->
-> Nuvoton-cir utilizes the encoding capabilities of rc-core to convert
-> scancodes from user space to pulse/space format understood by the
-> underlying hardware.
->
-> Converted samples are then written to the wakeup fifo along with other
-> necessary configuration to enable wake up functionality.
->
-> Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-> Signed-off-by: James Hogan <james@albanarts.com>
-> Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> Cc: Jarod Wilson <jarod@redhat.com>
-> Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> Please note this patch is only build tested.
->
-> Changes in v2 (James Hogan):
->  - Handle new -ENOBUFS when IR encoding buffer isn't long enough and
->    reduce buffer size to the size of the wake fifo so that time isn't
->    wasted processing encoded IR events that will be discarded. Also only
->    discard the last event if the encoded data is complete.
->  - Change reference to rc_dev::enabled_protocols to
->    enabled_protocols[type] since it has been converted to an array.
->  - Fix IR encoding buffer loop condition to be i < ret rather than i <=
->    ret. The return value of ir_raw_encode_scancode is the number of
->    events rather than the last event.
->  - Set encode_wakeup so that the set of allowed wakeup protocols matches
->    the set of raw IR encoders.
-> ---
->  drivers/media/rc/nuvoton-cir.c | 123 +++++++++++++++++++++++++++++++++++++++++
->  drivers/media/rc/nuvoton-cir.h |   1 +
->  include/media/rc-core.h        |   1 +
->  3 files changed, 125 insertions(+)
->
-> diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-> index d244e1a..ec8f4fc 100644
-> --- a/drivers/media/rc/nuvoton-cir.c
-> +++ b/drivers/media/rc/nuvoton-cir.c
-> @@ -527,6 +527,127 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32 carrier)
->         return 0;
->  }
->
-> +static int nvt_write_wakeup_codes(struct rc_dev *dev,
-> +                                 const u8 *wakeup_sample_buf, int count)
-> +{
-> +       int i = 0;
-> +       u8 reg, reg_learn_mode;
-> +       unsigned long flags;
-> +       struct nvt_dev *nvt = dev->priv;
-> +
-> +       nvt_dbg_wake("writing wakeup samples");
-> +
-> +       reg = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
-> +       reg_learn_mode = reg & ~CIR_WAKE_IRCON_MODE0;
-> +       reg_learn_mode |= CIR_WAKE_IRCON_MODE1;
-> +
-> +       /* Lock the learn area to prevent racing with wake-isr */
-> +       spin_lock_irqsave(&nvt->nvt_lock, flags);
-> +
-> +       /* Enable fifo writes */
-> +       nvt_cir_wake_reg_write(nvt, reg_learn_mode, CIR_WAKE_IRCON);
-> +
-> +       /* Clear cir wake rx fifo */
-> +       nvt_clear_cir_wake_fifo(nvt);
-> +
-> +       if (count > WAKE_FIFO_LEN) {
-> +               nvt_dbg_wake("HW FIFO too small for all wake samples");
-> +               count = WAKE_FIFO_LEN;
-> +       }
+Control operations are handled by the control framework and the subdev
+control handlers are never called directly. Remove them.
 
-Now that the encoders support partial encoding the above check against
-WAKE_FIFO_LEN never triggers and can be removed.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-> +
-> +       if (count)
-> +               pr_info("Wake samples (%d) =", count);
-> +       else
-> +               pr_info("Wake sample fifo cleared");
-> +
-> +       /* Write wake samples to fifo */
-> +       for (i = 0; i < count; i++) {
-> +               pr_cont(" %02x", wakeup_sample_buf[i]);
-> +               nvt_cir_wake_reg_write(nvt, wakeup_sample_buf[i],
-> +                                      CIR_WAKE_WR_FIFO_DATA);
-> +       }
-> +       pr_cont("\n");
-> +
-> +       /* Switch cir to wakeup mode and disable fifo writing */
-> +       nvt_cir_wake_reg_write(nvt, reg, CIR_WAKE_IRCON);
-> +
-> +       /* Set number of bytes needed for wake */
-> +       nvt_cir_wake_reg_write(nvt, count ? count :
-> +                              CIR_WAKE_FIFO_CMP_BYTES,
-> +                              CIR_WAKE_FIFO_CMP_DEEP);
-> +
-> +       spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-> +
-> +       return 0;
-> +}
-> +
-> +static int nvt_ir_raw_set_filter(struct rc_dev *dev, enum rc_filter_type type,
-> +                                struct rc_scancode_filter *sc_filter)
-> +{
-> +       u8 *reg_buf;
-> +       u8 buf_val;
-> +       int i, ret, count;
-> +       unsigned int val;
-> +       struct ir_raw_event *raw;
-> +       bool complete;
-> +
-> +       /* Other types are not valid for nuvoton */
-> +       if (type != RC_FILTER_WAKEUP)
-> +               return -EINVAL;
-> +
-> +       /* Require both mask and data to be set before actually committing */
-> +       if (!sc_filter->mask || !sc_filter->data)
-> +               return 0;
-> +
-> +       raw = kmalloc(WAKE_FIFO_LEN * sizeof(*raw), GFP_KERNEL);
-> +       if (!raw)
-> +               return -ENOMEM;
-> +
-> +       ret = ir_raw_encode_scancode(dev->enabled_protocols[type], sc_filter,
-> +                                    raw, WAKE_FIFO_LEN);
-> +       complete = (ret != -ENOBUFS);
-> +       if (!complete)
-> +               ret = WAKE_FIFO_LEN;
-> +       else if (ret < 0)
-> +               goto out_raw;
-> +
-> +       reg_buf = kmalloc(sizeof(*reg_buf) * WAKE_FIFO_LEN, GFP_KERNEL);
-> +       if (!reg_buf) {
-> +               ret = -ENOMEM;
-> +               goto out_raw;
-> +       }
-> +
-> +       /* Inspect the ir samples */
-> +       for (i = 0, count = 0; i < ret && count < WAKE_FIFO_LEN; ++i) {
-> +               val = NS_TO_US((raw[i]).duration) / SAMPLE_PERIOD;
-> +
-> +               /* Split too large values into several smaller ones */
-> +               while (val > 0 && count < WAKE_FIFO_LEN) {
-> +
-> +                       /* Skip last value for better comparison tolerance */
-> +                       if (complete && i == ret - 1 && val < BUF_LEN_MASK)
-> +                               break;
-> +
-> +                       /* Clamp values to BUF_LEN_MASK at most */
-> +                       buf_val = (val > BUF_LEN_MASK) ? BUF_LEN_MASK : val;
-> +
-> +                       reg_buf[count] = buf_val;
-> +                       val -= buf_val;
-> +                       if ((raw[i]).pulse)
-> +                               reg_buf[count] |= BUF_PULSE_BIT;
-> +                       count++;
-> +               }
-> +       }
-> +
-> +       ret = nvt_write_wakeup_codes(dev, reg_buf, count);
-> +
-> +       kfree(reg_buf);
-> +out_raw:
-> +       kfree(raw);
-> +
-> +       return ret;
-> +}
-> +
->  /*
->   * nvt_tx_ir
->   *
-> @@ -1044,11 +1165,13 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
->         /* Set up the rc device */
->         rdev->priv = nvt;
->         rdev->driver_type = RC_DRIVER_IR_RAW;
-> +       rdev->encode_wakeup = true;
->         rc_set_allowed_protocols(rdev, RC_BIT_ALL);
->         rdev->open = nvt_open;
->         rdev->close = nvt_close;
->         rdev->tx_ir = nvt_tx_ir;
->         rdev->s_tx_carrier = nvt_set_tx_carrier;
-> +       rdev->s_filter = nvt_ir_raw_set_filter;
->         rdev->input_name = "Nuvoton w836x7hg Infrared Remote Transceiver";
->         rdev->input_phys = "nuvoton/cir0";
->         rdev->input_id.bustype = BUS_HOST;
-> diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-> index e1cf23c..9d0e161 100644
-> --- a/drivers/media/rc/nuvoton-cir.h
-> +++ b/drivers/media/rc/nuvoton-cir.h
-> @@ -63,6 +63,7 @@ static int debug;
->   */
->  #define TX_BUF_LEN 256
->  #define RX_BUF_LEN 32
-> +#define WAKE_FIFO_LEN 67
->
->  struct nvt_dev {
->         struct pnp_dev *pdev;
-> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-> index 2d81d6c..80177da 100644
-> --- a/include/media/rc-core.h
-> +++ b/include/media/rc-core.h
-> @@ -271,6 +271,7 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
->  #define US_TO_NS(usec)         ((usec) * 1000)
->  #define MS_TO_US(msec)         ((msec) * 1000)
->  #define MS_TO_NS(msec)         ((msec) * 1000 * 1000)
-> +#define NS_TO_US(nsec)         DIV_ROUND_UP(nsec, 1000L)
->
->  void ir_raw_event_handle(struct rc_dev *dev);
->  int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
-> --
-> 1.8.3.2
->
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 3866970..dc7f6e0 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2172,13 +2172,6 @@ static const struct v4l2_ctrl_ops adv7604_ctrl_ops = {
+ 
+ static const struct v4l2_subdev_core_ops adv7604_core_ops = {
+ 	.log_status = adv7604_log_status,
+-	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+-	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+-	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+-	.g_ctrl = v4l2_subdev_g_ctrl,
+-	.s_ctrl = v4l2_subdev_s_ctrl,
+-	.queryctrl = v4l2_subdev_queryctrl,
+-	.querymenu = v4l2_subdev_querymenu,
+ 	.interrupt_service_routine = adv7604_isr,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = adv7604_g_register,
+-- 
+1.8.3.2
+
