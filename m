@@ -1,102 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:53490 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbaCFQcz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:32:55 -0500
-Message-id: <5318A331.2070603@samsung.com>
-Date: Thu, 06 Mar 2014 17:32:49 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:59941 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752811AbaCJNEq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 09:04:46 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N28009KZ1NX8460@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 Mar 2014 09:04:45 -0400 (EDT)
+Date: Mon, 10 Mar 2014 10:04:40 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 00/15] drx-j: Cleanups, fixes and support for DVBv5 stats
+Message-id: <20140310100440.7d5d757a@samsung.com>
+In-reply-to: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
+References: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
 MIME-version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 0/8] Move device tree graph parsing helpers to drivers/of
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
- <53170C00.20200@ti.com> <1394030554.8754.31.camel@paszta.hi.pengutronix.de>
- <20140306141657.GB21483@n2100.arm.linux.org.uk>
- <20140306121721.6186dafb@samsung.com> <5318988C.2030004@samsung.com>
- <1394122879.3622.47.camel@paszta.hi.pengutronix.de>
-In-reply-to: <1394122879.3622.47.camel@paszta.hi.pengutronix.de>
-Content-type: text/plain; charset=UTF-8
+Content-type: text/plain; charset=US-ASCII
 Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/14 17:21, Philipp Zabel wrote:
-> Am Donnerstag, den 06.03.2014, 16:47 +0100 schrieb Sylwester Nawrocki:
->> On 06/03/14 16:17, Mauro Carvalho Chehab wrote:
->>> Em Thu, 06 Mar 2014 14:16:57 +0000
->>> Russell King - ARM Linux <linux@arm.linux.org.uk> escreveu:
->>>>> On Wed, Mar 05, 2014 at 03:42:34PM +0100, Philipp Zabel wrote:
->>>>>>> Am Mittwoch, den 05.03.2014, 13:35 +0200 schrieb Tomi Valkeinen:
-> [...]
->>>>>>>>> So, as I've pointed out, I don't agree with the API, as it's too limited
->>>>>>>>> and I can't use it, but as this series is (mostly) about moving the
->>>>>>>>> current API to a common place, it's fine for me.
->>>>>>>>>
->>>>>>>>> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->>>>>>>
->>>>>>> Thanks. I'll be happy to help expanding the API to parse ports
->>>>>>> individually, once this gets accepted.
->>>>>>>
->>>>>>> Mauro, Guennadi, are you fine with how this turned out? I'd like to get
->>>>>>> your acks again, for the changed location.
->>>
->>> From my side, there's nothing on such code that is V4L2 specific.
->>> Moving it to drivers/of makes sense on my eyes.
->>>
->>> Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
->>
->> I'm OK with patches 1...5, 8, so for these:
->>
->> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>
->> Regarding the simplified version of the binding, I thought we should
->> leave 'port' instead of 'endpoint' node. This could cover more hardware
->> configurations. Are there any users of this simplified binding queued
->> for v3.15 ? If not, perhaps we can postpone it and discuss it a bit more
->> (sorry, couldn't find time to comment on that earlier) ?
+Em Mon, 10 Mar 2014 08:58:52 -0300
+Mauro Carvalho Chehab <m.chehab@samsung.com> escreveu:
+
+> This patch series is meant to:
+> 1) fix some reported issues (sparse, smatch);
 > 
-> Since Tomi needs the separate port/endpoint iteration anyway, 
-> postponing the simple bindings shouldn't hurt. I'll (re)submit them
-> together in a second series.
-
-Ok, thanks.
-
->>>>> I'll need those acks before I can even think about queuing up the
->>>>> imx-drm bits.
->>>>>
->>>>> Another way to deal with this is if this gets pulled into the V4L tree
->>>>> from Philipp's git tree, I can also pull that in myself.  What mustn't
->>>>> happen is for these to be committed independently as patches.
->>>
->>> If everyone agrees, I actually prefer have this patch applied on my tree,
->>> in order to avoid some potential merge conflicts at the merge window,
->>> as we might have other drivers and changes there touching on those API
->>> calls (I'm aware of a series of patches from Sylwester with some DT
->>> stuff on it. Not sure if it would be affected by such changes or not).
->>
->> Yes, it's going to conflict with my patch series. I thought it could be
->> put onto a stable a topic branch, e.g. at git://linuxtv.org/media_tree.git,
->> which could be then pulled into the media master branch and anywhere
->> else it is needed ?
+> 2) Fix one compilation issue with em28xx when drx-j is not selected;
 > 
-> Mauro, are you ok with handling the conflict in the merge, or should I
-> rebase on top of the media tree after you merged Sylwester's changes?
+> 3) Get rid of unused code. It is always possible to restore the code
+>    from git history. Removing the unused code helps to better understand
+>    what's actually there.
+> 
+> 4) Add support for DVBv5 stats.
+> 
+> On my tests here with an AWGN noise generator, the CNR measure made by
+> drx-j was close enough to the SNR injected (with a difference of about
+> 1 dB).
+> 
+> Mauro Carvalho Chehab (15):
+>   drx-j: Don't use 0 as NULL
+>   drx-j: Fix dubious usage of "&" instead of "&&"
+>   drx39xxj.h: Fix undefined reference to attach function
+>   drx-j: don't use mc_info before checking if its not NULL
+>   drx-j: get rid of dead code
 
-I could rebase and resolve any conflicts before sending my pull request
-to Mauro. I don't think it's a good idea to rebase this series onto the
-media tree, since it is touching drivers/of.
+This patch seems to be rejected by vger... likely too big.
+Well the patch is here:
+	http://git.linuxtv.org/mchehab/experimental.git/commitdiff/49bac5876df20f74238bfccf3ef9cbaefcaa2ca9
 
---
+For anyone wanting to test, all patches are at:
+	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/drx-j-v3
+
+>   drx-j: remove external symbols
+>   drx-j: Fix usage of drxj_close()
+>   drx-j: propagate returned error from request_firmware()
+>   drx-j: get rid of some unused vars
+>   drx-j: Don't use "state" for DVB lock state
+>   drx-j: re-add get_sig_strength()
+>   drx-j: Prepare to use DVBv5 stats
+>   drx-j: properly handle bit counts on stats
+>   drx-j: Fix detection of no signal
+>   drx-j: enable DVBv5 stats
+> 
+>  drivers/media/dvb-frontends/drx39xyj/drx39xxj.h   |     6 +
+>  drivers/media/dvb-frontends/drx39xyj/drx_driver.h |    24 -
+>  drivers/media/dvb-frontends/drx39xyj/drxj.c       | 11146 +++-----------------
+>  drivers/media/dvb-frontends/drx39xyj/drxj.h       |    30 -
+>  4 files changed, 1343 insertions(+), 9863 deletions(-)
+> 
+
+
+-- 
+
 Regards,
-Sylwester
-
+Mauro
