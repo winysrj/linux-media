@@ -1,40 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:47626 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755084AbaC0LHw (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752966AbaCJXOj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Mar 2014 07:07:52 -0400
-From: Ma Haijun <mahaijuns@gmail.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	Ma Haijun <mahaijuns@gmail.com>
-Subject: [media] videobuf-dma-contig: fix vm_iomap_memory() call
-Date: Thu, 27 Mar 2014 19:07:05 +0800
-Message-Id: <1395918426-27787-1-git-send-email-mahaijuns@gmail.com>
+	Mon, 10 Mar 2014 19:14:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 08/48] adv7511: Add pad-level DV timings operations
+Date: Tue, 11 Mar 2014 00:15:19 +0100
+Message-Id: <1394493359-14115-9-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The video enum_dv_timings and dv_timings_cap operations are deprecated.
+Implement the pad-level version of those operations to prepare for the
+removal of the video version.
 
-This is a trivial fix, but I think the patch itself has problem too. 
-The function requires a phys_addr_t, but we feed it with a dma_handle_t.
-AFAIK, this implicit conversion does not always work.
-Can I use virt_to_phys(mem->vaddr) to get the physical address instead?
-(mem->vaddr and mem->dma_handle are from dma_alloc_coherent)
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7511.c | 67 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 39 insertions(+), 28 deletions(-)
 
-Regards
-
-Ma Haijun
-
-Ma Haijun (1):
-  [media] videobuf-dma-contig: fix incorrect argument to
-    vm_iomap_memory() call
-
- drivers/media/v4l2-core/videobuf-dma-contig.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
+diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+index ee61894..f8c75c6 100644
+--- a/drivers/media/i2c/adv7511.c
++++ b/drivers/media/i2c/adv7511.c
+@@ -597,34 +597,6 @@ static int adv7511_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	return 0;
+ }
+ 
+-static int adv7511_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
+-{
+-	struct adv7511_state *state = get_adv7511_state(sd);
+-
+-	if (edid->pad != 0)
+-		return -EINVAL;
+-	if ((edid->blocks == 0) || (edid->blocks > 256))
+-		return -EINVAL;
+-	if (!edid->edid)
+-		return -EINVAL;
+-	if (!state->edid.segments) {
+-		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
+-		return -ENODATA;
+-	}
+-	if (edid->start_block >= state->edid.segments * 2)
+-		return -E2BIG;
+-	if ((edid->blocks + edid->start_block) >= state->edid.segments * 2)
+-		edid->blocks = state->edid.segments * 2 - edid->start_block;
+-
+-	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
+-			128 * edid->blocks);
+-	return 0;
+-}
+-
+-static const struct v4l2_subdev_pad_ops adv7511_pad_ops = {
+-	.get_edid = adv7511_get_edid,
+-};
+-
+ static const struct v4l2_subdev_core_ops adv7511_core_ops = {
+ 	.log_status = adv7511_log_status,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+@@ -700,12 +672,18 @@ static int adv7511_g_dv_timings(struct v4l2_subdev *sd,
+ static int adv7511_enum_dv_timings(struct v4l2_subdev *sd,
+ 				   struct v4l2_enum_dv_timings *timings)
+ {
++	if (timings->pad != 0)
++		return -EINVAL;
++
+ 	return v4l2_enum_dv_timings_cap(timings, &adv7511_timings_cap, NULL, NULL);
+ }
+ 
+ static int adv7511_dv_timings_cap(struct v4l2_subdev *sd,
+ 				  struct v4l2_dv_timings_cap *cap)
+ {
++	if (cap->pad != 0)
++		return -EINVAL;
++
+ 	*cap = adv7511_timings_cap;
+ 	return 0;
+ }
+@@ -797,6 +775,39 @@ static const struct v4l2_subdev_audio_ops adv7511_audio_ops = {
+ 	.s_routing = adv7511_s_routing,
+ };
+ 
++/* ---------------------------- PAD OPS ------------------------------------- */
++
++static int adv7511_get_edid(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_edid *edid)
++{
++	struct adv7511_state *state = get_adv7511_state(sd);
++
++	if (edid->pad != 0)
++		return -EINVAL;
++	if ((edid->blocks == 0) || (edid->blocks > 256))
++		return -EINVAL;
++	if (!edid->edid)
++		return -EINVAL;
++	if (!state->edid.segments) {
++		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
++		return -ENODATA;
++	}
++	if (edid->start_block >= state->edid.segments * 2)
++		return -E2BIG;
++	if ((edid->blocks + edid->start_block) >= state->edid.segments * 2)
++		edid->blocks = state->edid.segments * 2 - edid->start_block;
++
++	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
++			128 * edid->blocks);
++	return 0;
++}
++
++static const struct v4l2_subdev_pad_ops adv7511_pad_ops = {
++	.get_edid = adv7511_get_edid,
++	.enum_dv_timings = adv7511_enum_dv_timings,
++	.dv_timings_cap = adv7511_dv_timings_cap,
++};
++
+ /* --------------------- SUBDEV OPS --------------------------------------- */
+ 
+ static const struct v4l2_subdev_ops adv7511_ops = {
 -- 
 1.8.3.2
 
