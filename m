@@ -1,100 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49338 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754006AbaCCKHx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:53 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 18/79] [media] drx-j: Some minor CodingStyle fixes at headers
-Date: Mon,  3 Mar 2014 07:06:12 -0300
-Message-Id: <1393841233-24840-19-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753166AbaCJXOp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 26/48] v4l: Add support for DV timings ioctls on subdev nodes
+Date: Tue, 11 Mar 2014 00:15:37 +0100
+Message-Id: <1394493359-14115-27-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No functional changes.
+Validate the pad field in the core code whenever specified.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h   | 22 ++++++++--------------
- drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h |  9 ++-------
- 2 files changed, 10 insertions(+), 21 deletions(-)
+ .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    | 27 +++++++++++++++----
+ .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   | 30 +++++++++++++++++-----
+ drivers/media/v4l2-core/v4l2-subdev.c              | 27 +++++++++++++++++++
+ include/uapi/linux/v4l2-subdev.h                   |  5 ++++
+ 4 files changed, 77 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h b/drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h
-index dd2fc797a991..80d7b2061bd0 100644
---- a/drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h
-+++ b/drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h
-@@ -1,4 +1,6 @@
- /*
-+  I2C API, implementation depends on board specifics
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
+index cd7720d..28a8c1e 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
+@@ -1,11 +1,12 @@
+ <refentry id="vidioc-dv-timings-cap">
+   <refmeta>
+-    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP</refentrytitle>
++    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP, VIDIOC_SUBDEV_DV_TIMINGS_CAP</refentrytitle>
+     &manvol;
+   </refmeta>
+ 
+   <refnamediv>
+     <refname>VIDIOC_DV_TIMINGS_CAP</refname>
++    <refname>VIDIOC_SUBDEV_DV_TIMINGS_CAP</refname>
+     <refpurpose>The capabilities of the Digital Video receiver/transmitter</refpurpose>
+   </refnamediv>
+ 
+@@ -33,7 +34,7 @@
+       <varlistentry>
+ 	<term><parameter>request</parameter></term>
+ 	<listitem>
+-	  <para>VIDIOC_DV_TIMINGS_CAP</para>
++	  <para>VIDIOC_DV_TIMINGS_CAP, VIDIOC_SUBDEV_DV_TIMINGS_CAP</para>
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+@@ -54,10 +55,19 @@
+       interface and may change in the future.</para>
+     </note>
+ 
+-    <para>To query the capabilities of the DV receiver/transmitter applications can call
+-this ioctl and the driver will fill in the structure. Note that drivers may return
++    <para>To query the capabilities of the DV receiver/transmitter applications
++can call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl on a video node
++and the driver will fill in the structure. Note that drivers may return
+ different values after switching the video input or output.</para>
+ 
++    <para>When implemented by the driver DV capabilities of subdevices can be
++queried by calling the <constant>VIDIOC_SUBDEV_DV_TIMINGS_CAP</constant> ioctl
++directly on a subdevice node. The capabilities are specific to inputs (for DV
++receivers) or outputs (for DV transmitters), applications must specify the
++desired pad number in the &v4l2-dv-timings-cap; <structfield>pad</structfield>
++field. Attempts to query capabilities on a pad that doesn't support them will
++return an &EINVAL;.</para>
 +
-   Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
-   All rights reserved.
+     <table pgwide="1" frame="none" id="v4l2-bt-timings-cap">
+       <title>struct <structname>v4l2_bt_timings_cap</structname></title>
+       <tgroup cols="3">
+@@ -127,7 +137,14 @@ different values after switching the video input or output.</para>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[3]</entry>
++	    <entry><structfield>pad</structfield></entry>
++	    <entry>Pad number as reported by the media controller API. This field
++	    is only used when operating on a subdevice node. When operating on a
++	    video node applications must set this field to zero.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[2]</entry>
+ 	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
+ 	  </row>
+ 	  <row>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
+index b3e17c1..b9fdfea 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
+@@ -1,11 +1,12 @@
+ <refentry id="vidioc-enum-dv-timings">
+   <refmeta>
+-    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS</refentrytitle>
++    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS, VIDIOC_SUBDEV_ENUM_DV_TIMINGS</refentrytitle>
+     &manvol;
+   </refmeta>
  
-@@ -26,20 +28,12 @@
-   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-   POSSIBILITY OF SUCH DAMAGE.
--*/
+   <refnamediv>
+     <refname>VIDIOC_ENUM_DV_TIMINGS</refname>
++    <refname>VIDIOC_SUBDEV_ENUM_DV_TIMINGS</refname>
+     <refpurpose>Enumerate supported Digital Video timings</refpurpose>
+   </refnamediv>
  
--/**
--* \file $Id: bsp_i2c.h,v 1.5 2009/07/07 14:20:30 justin Exp $
--*
--* \brief I2C API, implementation depends on board specifics
--*
--* This module encapsulates I2C access.In some applications several devices
--* share one I2C bus. If these devices have the same I2C address some kind
--* off "switch" must be implemented to ensure error free communication with
--* one device.  In case such a "switch" is used, the device ID can be used
--* to implement control over this "switch".
--*
--*
-+  This module encapsulates I2C access.In some applications several devices
-+  share one I2C bus. If these devices have the same I2C address some kind
-+  off "switch" must be implemented to ensure error free communication with
-+  one device.  In case such a "switch" is used, the device ID can be used
-+  to implement control over this "switch".
- */
+@@ -33,7 +34,7 @@
+       <varlistentry>
+ 	<term><parameter>request</parameter></term>
+ 	<listitem>
+-	  <para>VIDIOC_ENUM_DV_TIMINGS</para>
++	  <para>VIDIOC_ENUM_DV_TIMINGS, VIDIOC_SUBDEV_ENUM_DV_TIMINGS</para>
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+@@ -61,14 +62,21 @@ standards or even custom timings that are not in this list.</para>
  
- #ifndef __BSPI2C_H__
-@@ -123,7 +117,7 @@ Exported FUNCTIONS
- */
- 	drx_status_t drxbsp_i2c_write_read(struct i2c_device_addr *w_dev_addr,
- 					 u16 w_count,
--					 u8 *wData,
-+					 u8 *w_data,
- 					 struct i2c_device_addr *r_dev_addr,
- 					 u16 r_count, u8 *r_data);
+     <para>To query the available timings, applications initialize the
+ <structfield>index</structfield> field and zero the reserved array of &v4l2-enum-dv-timings;
+-and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl with a pointer to this
+-structure. Drivers fill the rest of the structure or return an
++and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl on a video node with a
++pointer to this structure. Drivers fill the rest of the structure or return an
+ &EINVAL; when the index is out of bounds. To enumerate all supported DV timings,
+ applications shall begin at index zero, incrementing by one until the
+ driver returns <errorcode>EINVAL</errorcode>. Note that drivers may enumerate a
+ different set of DV timings after switching the video input or
+ output.</para>
  
-diff --git a/drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h b/drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h
-index 0016ba75bb7f..080ac02eaadb 100644
---- a/drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h
-+++ b/drivers/media/dvb-frontends/drx39xyj/bsp_tuner.h
-@@ -1,4 +1,6 @@
- /*
-+  Tuner dependable type definitions, macro's and functions
++    <para>When implemented by the driver DV timings of subdevices can be queried
++by calling the <constant>VIDIOC_SUBDEV_ENUM_DV_TIMINGS</constant> ioctl directly
++on a subdevice node. The DV timings are specific to inputs (for DV receivers) or
++outputs (for DV transmitters), applications must specify the desired pad number
++in the &v4l2-enum-dv-timings; <structfield>pad</structfield> field. Attempts to
++enumerate timings on a pad that doesn't support them will return an &EINVAL;.</para>
 +
-   Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
-   All rights reserved.
+     <table pgwide="1" frame="none" id="v4l2-enum-dv-timings">
+       <title>struct <structname>v4l2_enum_dv_timings</structname></title>
+       <tgroup cols="3">
+@@ -82,8 +90,16 @@ application.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[3]</entry>
+-	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
++	    <entry><structfield>pad</structfield></entry>
++	    <entry>Pad number as reported by the media controller API. This field
++	    is only used when operating on a subdevice node. When operating on a
++	    video node applications must set this field to zero.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[2]</entry>
++	    <entry>Reserved for future extensions. Drivers and applications must
++	    set the array to zero.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>&v4l2-dv-timings;</entry>
+@@ -103,7 +119,7 @@ application.</entry>
+ 	<term><errorcode>EINVAL</errorcode></term>
+ 	<listitem>
+ 	  <para>The &v4l2-enum-dv-timings; <structfield>index</structfield>
+-is out of bounds.</para>
++is out of bounds or the <structfield>pad</structfield> number is invalid.</para>
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 60d2550..853fb84 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -354,6 +354,33 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
  
-@@ -28,13 +30,6 @@
-   POSSIBILITY OF SUCH DAMAGE.
- */
+ 	case VIDIOC_SUBDEV_S_EDID:
+ 		return v4l2_subdev_call(sd, pad, set_edid, arg);
++
++	case VIDIOC_SUBDEV_DV_TIMINGS_CAP: {
++		struct v4l2_dv_timings_cap *cap = arg;
++
++		if (cap->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
++	}
++
++	case VIDIOC_SUBDEV_ENUM_DV_TIMINGS: {
++		struct v4l2_enum_dv_timings *dvt = arg;
++
++		if (dvt->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(sd, pad, enum_dv_timings, dvt);
++	}
++
++	case VIDIOC_SUBDEV_QUERY_DV_TIMINGS:
++		return v4l2_subdev_call(sd, video, query_dv_timings, arg);
++
++	case VIDIOC_SUBDEV_G_DV_TIMINGS:
++		return v4l2_subdev_call(sd, video, g_dv_timings, arg);
++
++	case VIDIOC_SUBDEV_S_DV_TIMINGS:
++		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
+ #endif
+ 	default:
+ 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+index 9fe3493..6f5c5de 100644
+--- a/include/uapi/linux/v4l2-subdev.h
++++ b/include/uapi/linux/v4l2-subdev.h
+@@ -169,5 +169,10 @@ struct v4l2_subdev_edid {
+ #define VIDIOC_SUBDEV_S_SELECTION		_IOWR('V', 62, struct v4l2_subdev_selection)
+ #define VIDIOC_SUBDEV_G_EDID			_IOWR('V', 40, struct v4l2_subdev_edid)
+ #define VIDIOC_SUBDEV_S_EDID			_IOWR('V', 41, struct v4l2_subdev_edid)
++#define VIDIOC_SUBDEV_DV_TIMINGS_CAP		_IOWR('V', 42, struct v4l2_dv_timings_cap)
++#define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 43, struct v4l2_enum_dv_timings)
++#define VIDIOC_SUBDEV_QUERY_DV_TIMINGS		_IOR('V', 44, struct v4l2_dv_timings)
++#define VIDIOC_SUBDEV_G_DV_TIMINGS		_IOWR('V', 45, struct v4l2_dv_timings)
++#define VIDIOC_SUBDEV_S_DV_TIMINGS		_IOWR('V', 46, struct v4l2_dv_timings)
  
--/**
--* \file $Id: bsp_tuner.h,v 1.5 2009/10/19 22:15:13 dingtao Exp $
--*
--* \brief Tuner dependable type definitions, macro's and functions
--*
--*/
--
- #ifndef __DRXBSP_TUNER_H__
- #define __DRXBSP_TUNER_H__
- /*------------------------------------------------------------------------------
+ #endif
 -- 
-1.8.5.3
+1.8.3.2
 
