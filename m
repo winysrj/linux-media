@@ -1,37 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45699 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752207AbaCANN6 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:50446 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751975AbaCJL7w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Mar 2014 08:13:58 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, k.debski@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATCH v6 00/10] Fix buffer timestamp documentation, add new timestamp flags
-Date: Sat,  1 Mar 2014 15:16:57 +0200
-Message-Id: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 10 Mar 2014 07:59:52 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 07/15] drx-j: Fix usage of drxj_close()
+Date: Mon, 10 Mar 2014 08:58:59 -0300
+Message-Id: <1394452747-5426-8-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
+References: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+This function is currently not used. However, it was meant to
+be called at device release. So, add it there.
 
-This is the 6th and hopefully the final version of the set.
+While here, remove the bad check, as reported by Dan, as
+smatch warning:
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:20041 drxj_close() warn: variable dereferenced before check 'demod' (see line 20036)
 
-What has changed since v5.2:
-- Got a patch from Hans to fix timestamp issues in vb2 (1st one). That's
-  unchanged.
-- Renamed the vb2_queue.timestamp_type field as timestamp_flags (patch 4).
-- Add a note that on mem-to-mem devices the timestamp source may vary from
-  buffer to buffer (patch 10).
-- Copy timestamp source from source buffers to destination (patch 6).
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Testing has been done on uvc and mem2mem_testdev.
-
-Unless something serious is found I'll send a pull request tomorrow.
-
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 828d0527f38d..c5205d5c997e 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -11510,8 +11510,7 @@ static int drxj_close(struct drx_demod_instance *demod)
+ 	int rc;
+ 	enum drx_power_mode power_mode = DRX_POWER_UP;
+ 
+-	if ((demod == NULL) ||
+-	    (demod->my_common_attr == NULL) ||
++	if ((demod->my_common_attr == NULL) ||
+ 	    (demod->my_ext_attr == NULL) ||
+ 	    (demod->my_i2c_dev_addr == NULL) ||
+ 	    (!demod->my_common_attr->is_opened)) {
+@@ -12218,6 +12217,8 @@ static void drx39xxj_release(struct dvb_frontend *fe)
+ 	struct drx39xxj_state *state = fe->demodulator_priv;
+ 	struct drx_demod_instance *demod = state->demod;
+ 
++	drxj_close(demod);
++
+ 	kfree(demod->my_ext_attr);
+ 	kfree(demod->my_common_attr);
+ 	kfree(demod->my_i2c_dev_addr);
 -- 
-Kind regards,
-Sakari
-
+1.8.5.3
 
