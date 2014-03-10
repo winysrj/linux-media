@@ -1,82 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:50242 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752219AbaCWKKI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Mar 2014 06:10:08 -0400
-Message-ID: <532EB2FE.2020606@schinagl.nl>
-Date: Sun, 23 Mar 2014 11:10:06 +0100
-From: Olliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>,
-	Simon Liddicott <simon@liddicott.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Updated DVB-T tables - where to send them?
-References: <1395099887.87256.YahooMailNeo@web120305.mail.ne1.yahoo.com> <CALuNSF76RLkVRfBCr10N4U1i4U1BCrd5A5uqB6aqZ_9kVd_UFQ@mail.gmail.com> <1395134694.52130.YahooMailNeo@web120303.mail.ne1.yahoo.com>
-In-Reply-To: <1395134694.52130.YahooMailNeo@web120303.mail.ne1.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3985 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754541AbaCJVVz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 17:21:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 03/11] vb2: if bytesused is 0, then fill with output buffer length
+Date: Mon, 10 Mar 2014 22:20:50 +0100
+Message-Id: <1394486458-9836-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/18/2014 10:24 AM, Chris Rankin wrote:
-> Hi,
->
->
-> Fedora 20 is using a new dvb-scan-tables package:
->
-> * Mon Jan 13 2014 Till Maas <opensource@till.name> - 0-4.20130713gitd913405
->
-> Unfortunately, it's still full of files dating from 2012! I will raise a bug in their bugzilla for them to ignore completely and then close when Fedora 22 is released.
-Till e-mailed me not to long ago asking me to fix something in the 
-dvb-apps package so he could repackage a bunch of things. So it might be 
-available soon.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-That said, the downloads section of linux tv only lists 1 ancient 
-'named' package, the latest one is up to date.
+The application should really always fill in bytesused for output
+buffers, unfortunately the vb2 framework never checked for that.
 
-I'll ping mauro about the packages to get those fixed again, but the 
--LATEST should contain anything that is in the git repo. If there is 
-anything still wrong or missing, a patch here, or a Pullrequest even, 
-will make it merged quickly :)
+So for single planar formats replace a bytesused of 0 by the length
+of the buffer, and for multiplanar format do the same if bytesused is
+0 for ALL planes.
 
-Olliver
->
-> Cheers,
-> Chris
->
->
-> On Tuesday, 18 March 2014, 9:07, Simon Liddicott <simon@liddicott.com> wrote:
->
->> I submitted updates for the whole of the UK in September.
->> Check Crystal Palace here: <http://git.linuxtv.org/dtv-scan-tables.git/blob_plain/HEAD:/dvb-t/uk-CrystalPalace>
->>
->> You will probably find your distro hasn't updated.
->>
->> I did a pull request into this github repo <https://github.com/oliv3r/dtv-scan-tables>
->>
->> Si.
->
->
->
-> On 17 March 2014 23:44, Chris Rankin <rankincj@yahoo.com> wrote:
->
->
->>
->> Hi,
->>
->> The DVB-T initial tuning information for Crystal Palace in the UK is completely obsolete - despite my two attempts to submit an updated version over the YEARS. Where is the best place to send this information, please?
->>
->> Thanks,
->> Chris
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+This seems to be what the user really intended if v4l2_buffer was
+just memset to 0.
+
+I'm afraid that just checking for this and returning an error would
+break too many applications. Quite a few drivers never check for bytesused
+at all and just use the buffer length instead.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 32 +++++++++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 1a09442..83e78e9 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1145,19 +1145,35 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 			memset(v4l2_planes[plane].reserved, 0,
+ 			       sizeof(v4l2_planes[plane].reserved));
+ 			v4l2_planes[plane].data_offset = 0;
++			v4l2_planes[plane].bytesused = 0;
+ 		}
+ 
+ 		/* Fill in driver-provided information for OUTPUT types */
+ 		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
++			bool bytesused_is_used;
++
++			/* Check if bytesused == 0 for all planes */
++			for (plane = 0; plane < vb->num_planes; ++plane)
++				if (b->m.planes[plane].bytesused)
++					break;
++			bytesused_is_used = plane < vb->num_planes;
++
+ 			/*
+ 			 * Will have to go up to b->length when API starts
+ 			 * accepting variable number of planes.
++			 *
++			 * If bytesused_is_used is false, then fall back to the
++			 * full buffer size. In that case userspace clearly
++			 * never bothered to set it and it's a safe assumption
++			 * that they really meant to use the full plane sizes.
+ 			 */
+ 			for (plane = 0; plane < vb->num_planes; ++plane) {
+-				v4l2_planes[plane].bytesused =
+-					b->m.planes[plane].bytesused;
+-				v4l2_planes[plane].data_offset =
+-					b->m.planes[plane].data_offset;
++				struct v4l2_plane *pdst = &v4l2_planes[plane];
++				struct v4l2_plane *psrc = &b->m.planes[plane];
++
++				pdst->bytesused = bytesused_is_used ?
++					psrc->bytesused : psrc->length;
++				pdst->data_offset = psrc->data_offset;
+ 			}
+ 		}
+ 
+@@ -1183,9 +1199,15 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 		 * so fill in relevant v4l2_buffer struct fields instead.
+ 		 * In videobuf we use our internal V4l2_planes struct for
+ 		 * single-planar buffers as well, for simplicity.
++		 *
++		 * If bytesused == 0, then fall back to the full buffer size
++		 * as that's a sensible default.
+ 		 */
+ 		if (V4L2_TYPE_IS_OUTPUT(b->type))
+-			v4l2_planes[0].bytesused = b->bytesused;
++			v4l2_planes[0].bytesused =
++				b->bytesused ? b->bytesused : b->length;
++		else
++			v4l2_planes[0].bytesused = 0;
+ 		/* Single-planar buffers never use data_offset */
+ 		v4l2_planes[0].data_offset = 0;
+ 
+-- 
+1.9.0
 
