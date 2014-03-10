@@ -1,92 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:58835 "EHLO mga02.intel.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:32935 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125AbaC1WPC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 18:15:02 -0400
-Date: Sat, 29 Mar 2014 06:14:35 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:master 498/499]
- drivers/media/usb/em28xx/em28xx-dvb.c:1644:7: error: 'client' undeclared
-Message-ID: <5335f44b.JyrHAUc9hHNV9Qeg%fengguang.wu@intel.com>
+	id S1752393AbaCJJaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 05:30:01 -0400
+Message-ID: <531D85E7.2060409@ti.com>
+Date: Mon, 10 Mar 2014 11:29:11 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+To: Andrzej Hajda <a.hajda@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+CC: Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core
+ to drivers/of
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <20140307171804.EF245C40A32@trevor.secretlab.ca> <CA+gwMcfgKre8S4KHPvTVuAuz672aehGrN1UfFpwKAueTAcrMZQ@mail.gmail.com> <1536567.OYzyi25bjL@avalon> <531D7E9F.3090708@samsung.com>
+In-Reply-To: <531D7E9F.3090708@samsung.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="bIh8W89TUIJmlfTSEVOve9C1uhLTE6eBG"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   3ec40dcfb413214b2874aec858870502b61c2202
-commit: 37571b163c15831cd0a213151c21387363dbf15b [498/499] [media] em28xx-dvb: fix PCTV 461e tuner I2C binding
-config: make ARCH=powerpc allmodconfig
+--bIh8W89TUIJmlfTSEVOve9C1uhLTE6eBG
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-All error/warnings:
+On 10/03/14 10:58, Andrzej Hajda wrote:
 
-   drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_suspend':
-   drivers/media/usb/em28xx/em28xx-dvb.c:1605:22: warning: unused variable 'client' [-Wunused-variable]
-      struct i2c_client *client = dvb->i2c_client_tuner;
-                         ^
-   drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_resume':
->> drivers/media/usb/em28xx/em28xx-dvb.c:1644:7: error: 'client' undeclared (first use in this function)
-      if (client) {
-          ^
-   drivers/media/usb/em28xx/em28xx-dvb.c:1644:7: note: each undeclared identifier is reported only once for each function it appears in
+> I want to propose another solution to simplify bindings, in fact I have=
 
-vim +/client +1644 drivers/media/usb/em28xx/em28xx-dvb.c
+> few ideas to consider:
+>=20
+> 1. Use named ports instead of address-cells/regs. Ie instead of
+> port@number schema, use port-function. This will allow to avoid ports
+> node and #address-cells, #size-cells, reg properties.
+> Additionally it should increase readability of the bindings.
+>=20
+> device {
+> 	port-dsi {
+> 		endpoint { ... };
+> 	};
+> 	port-rgb {
+> 		endpoint { ... };
+> 	};
+> };
+>=20
+> It is little bit like with gpios vs reset-gpios properties.
+> Another advantage I see we do not need do mappings of port numbers
+> to functions between dts, drivers and documentation.
 
-  1599		if (!dev->board.has_dvb)
-  1600			return 0;
-  1601	
-  1602		em28xx_info("Suspending DVB extension");
-  1603		if (dev->dvb) {
-  1604			struct em28xx_dvb *dvb = dev->dvb;
-> 1605			struct i2c_client *client = dvb->i2c_client_tuner;
-  1606	
-  1607			if (dvb->fe[0]) {
-  1608				ret = dvb_frontend_suspend(dvb->fe[0]);
-  1609				em28xx_info("fe0 suspend %d", ret);
-  1610			}
-  1611			if (dvb->fe[1]) {
-  1612				dvb_frontend_suspend(dvb->fe[1]);
-  1613				em28xx_info("fe1 suspend %d", ret);
-  1614			}
-  1615		}
-  1616	
-  1617		return 0;
-  1618	}
-  1619	
-  1620	static int em28xx_dvb_resume(struct em28xx *dev)
-  1621	{
-  1622		int ret = 0;
-  1623	
-  1624		if (dev->is_audio_only)
-  1625			return 0;
-  1626	
-  1627		if (!dev->board.has_dvb)
-  1628			return 0;
-  1629	
-  1630		em28xx_info("Resuming DVB extension");
-  1631		if (dev->dvb) {
-  1632			struct em28xx_dvb *dvb = dev->dvb;
-  1633	
-  1634			if (dvb->fe[0]) {
-  1635				ret = dvb_frontend_resume(dvb->fe[0]);
-  1636				em28xx_info("fe0 resume %d", ret);
-  1637			}
-  1638	
-  1639			if (dvb->fe[1]) {
-  1640				ret = dvb_frontend_resume(dvb->fe[1]);
-  1641				em28xx_info("fe1 resume %d", ret);
-  1642			}
-  1643			/* remove I2C tuner */
-> 1644			if (client) {
-  1645				module_put(client->dev.driver->owner);
-  1646				i2c_unregister_device(client);
-  1647			}
+That makes it more difficult to iterate the ports. You need to go
+through all the nodes and use partial name matching. I think for things
+like gpios, the driver always gives the full name, so there's no need
+for any kind of partial matching or searching.
 
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+It looks nice when just looking at the DT, though.
+
+ Tomi
+
+
+
+--bIh8W89TUIJmlfTSEVOve9C1uhLTE6eBG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTHYXqAAoJEPo9qoy8lh71bKAP/0BLKbGZuSlBttYPCuKE2QgJ
+3TrJWDTyxsLwyHZlaRf7r8E9uP15CpGiYdu3ki1uxs3JAfp6ISNWodcCTdBxBcIi
+z7IzB9mrjkQ6pYBxA7wMqAbVBCyJSmQxBMUVkpC5ZhiFxXvphpzjDDCk/Ps4mAHu
+RGVBWSfoijqjOkZFzqqSCbjeiOgDYTcBI9Q1Vl7T+g6hurVJ9QHq8Fa3dUzDXFZ8
+zGqhVdSP5hDA9CpX5T4t668hx5LS6PQ9TZK/FAYTJ0FyJeELmuB3P+WOR4RwzcGA
+zyhWIIA4FvwvS+BdUO430mVFs7u2wf7PrEkNknxvHiXjsZOxp+DkaV1E6xpJhqxL
+IR4kMx5cW1bWMEoAz3op3xOFvtyzWQR4ycpAoQZirFl1AveyxW5xajGt1NYCKl03
+Hq3bsUBsrnAt4ttSgprQudq45bd5wVKJK0NailEuKPwynmXiNphUVVqHTgDIPh8k
+0oUw86GHYFXizJaDK3eLesiW1mnLL2SRs+fAf/5Pj4ZviBbKJHexgdcjR439xp0U
+64eIEN7wGMbyFpFR9R8lJBdTS+Wqrlo6r01EOb3tZMcn/fanJomx75OCFO09vD3z
+KFFWguKUx1GvL6q0Zx6vB/MYdifYnk1kQmt7dSW6vY630yRKJKHKj3rZ7Rvokycb
+k5/gKLojCM7fmZaItMmo
+=Yge3
+-----END PGP SIGNATURE-----
+
+--bIh8W89TUIJmlfTSEVOve9C1uhLTE6eBG--
