@@ -1,95 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2921 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933073AbaCQMys (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198AbaCJXOm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:54:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 10 Mar 2014 19:14:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH for v3.15 5/5] v4l2-ioctl.c: fix sparse __user-related warnings
-Date: Mon, 17 Mar 2014 13:54:23 +0100
-Message-Id: <1395060863-42211-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1395060863-42211-1-git-send-email-hverkuil@xs4all.nl>
-References: <1395060863-42211-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 18/48] ad9389b: Remove deprecated video-level DV timings operations
+Date: Tue, 11 Mar 2014 00:15:29 +0100
+Message-Id: <1394493359-14115-19-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The video enum_dv_timings and dv_timings_cap operations are deprecated
+and unused. Remove them.
 
-Fix the use of __user in the check_array_args() prototype: instead of
-using 'void * __user *' you should use 'void __user **' for sparse to
-understand this correctly.
-
-This also required the use of __force in the '*kernel_ptr = user_ptr'
-assignment.
-
-Also replace a wrong cast (void *) with the correct one (void **)
-in check_array_args().
-
-This fixes these sparse warnings:
-
-drivers/media/v4l2-core/v4l2-ioctl.c:2284:35: warning: incorrect type in assignment (different address spaces)
-drivers/media/v4l2-core/v4l2-ioctl.c:2301:35: warning: incorrect type in assignment (different address spaces)
-drivers/media/v4l2-core/v4l2-ioctl.c:2319:35: warning: incorrect type in assignment (different address spaces)
-drivers/media/v4l2-core/v4l2-ioctl.c:2386:57: warning: incorrect type in argument 4 (different address spaces)
-drivers/media/v4l2-core/v4l2-ioctl.c:2420:29: warning: incorrect type in assignment (different address spaces)
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/i2c/ad9389b.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index d9113cc..f729bd2 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2260,7 +2260,7 @@ done:
- }
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index 44c037d..4cdff9e 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -670,8 +670,6 @@ static const struct v4l2_subdev_video_ops ad9389b_video_ops = {
+ 	.s_stream = ad9389b_s_stream,
+ 	.s_dv_timings = ad9389b_s_dv_timings,
+ 	.g_dv_timings = ad9389b_g_dv_timings,
+-	.enum_dv_timings = ad9389b_enum_dv_timings,
+-	.dv_timings_cap = ad9389b_dv_timings_cap,
+ };
  
- static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
--			    void * __user *user_ptr, void ***kernel_ptr)
-+			    void __user **user_ptr, void ***kernel_ptr)
- {
- 	int ret = 0;
- 
-@@ -2277,7 +2277,7 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- 				break;
- 			}
- 			*user_ptr = (void __user *)buf->m.planes;
--			*kernel_ptr = (void *)&buf->m.planes;
-+			*kernel_ptr = (void **)&buf->m.planes;
- 			*array_size = sizeof(struct v4l2_plane) * buf->length;
- 			ret = 1;
- 		}
-@@ -2294,7 +2294,7 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- 				break;
- 			}
- 			*user_ptr = (void __user *)edid->edid;
--			*kernel_ptr = (void *)&edid->edid;
-+			*kernel_ptr = (void **)&edid->edid;
- 			*array_size = edid->blocks * 128;
- 			ret = 1;
- 		}
-@@ -2312,7 +2312,7 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- 				break;
- 			}
- 			*user_ptr = (void __user *)ctrls->controls;
--			*kernel_ptr = (void *)&ctrls->controls;
-+			*kernel_ptr = (void **)&ctrls->controls;
- 			*array_size = sizeof(struct v4l2_ext_control)
- 				    * ctrls->count;
- 			ret = 1;
-@@ -2412,7 +2412,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	}
- 
- 	if (has_array_args) {
--		*kernel_ptr = user_ptr;
-+		*kernel_ptr = (void __force *)user_ptr;
- 		if (copy_to_user(user_ptr, mbuf, array_size))
- 			err = -EFAULT;
- 		goto out_array_args;
+ /* ------------------------------ PAD OPS ------------------------------ */
 -- 
-1.9.0
+1.8.3.2
 
