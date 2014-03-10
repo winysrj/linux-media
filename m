@@ -1,64 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:39389 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750760AbaCFNE4 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753327AbaCJXOs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Mar 2014 08:04:56 -0500
-Received: from compute4.internal (compute4.nyi.mail.srv.osa [10.202.2.44])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 20F76208E1
-	for <linux-media@vger.kernel.org>; Thu,  6 Mar 2014 08:04:52 -0500 (EST)
-Message-ID: <53187272.6000901@williammanley.net>
-Date: Thu, 06 Mar 2014 13:04:50 +0000
-From: William Manley <will@williammanley.net>
-MIME-Version: 1.0
-To: Paulo Assis <pj.assis@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: uvcvideo: logitech C920 resets controls during VIDIOC_STREAMON
-References: <5317ACAC.8000008@williammanley.net> <CAPueXH7UaScMA2S1r77oR+5p=MCxQEx3P0c2bhxS+8weqdVUBQ@mail.gmail.com>
-In-Reply-To: <CAPueXH7UaScMA2S1r77oR+5p=MCxQEx3P0c2bhxS+8weqdVUBQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 10 Mar 2014 19:14:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 32/48] adv7604: Cache register contents when reading multiple bits
+Date: Tue, 11 Mar 2014 00:15:43 +0100
+Message-Id: <1394493359-14115-33-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/14 12:09, Paulo Assis wrote:
-> Hi,
-> 
-> 2014-03-05 23:01 GMT+00:00 William Manley <will@williammanley.net>:
->> Hi All
->>
->> I've been attempting to use the Logitech C920 with the uvcvideo driver.
->>  I set the controls with v4l2-ctl but some of them change during
->> VIDIOC_STREAMON.  My understanding is that the values of controls should
->> be preserved.
->>
+When extracting multiple bits from a single register read the register
+once and extract the bits on the read value.
 
-[snip]
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7604.c | 33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
->> The camera does
->> have a mode where it would change by itself but that is disabled
->> (exposure_auto=1).
-> 
-> This alone doesn't guarantee that exposure absolute is untouched.
-> To do so you need to set V4L2_CID_EXPOSURE_AUTO_PRIORITY to 0 and
-> V4L2_CID_EXPOSURE_AUTO to V4L2_EXPOSURE_MANUAL
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 75b3dae..80534f9 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1207,6 +1207,8 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
+ 
+ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
+ {
++	u8 polarity;
++
+ 	if (no_lock_stdi(sd) || no_lock_sspd(sd)) {
+ 		v4l2_dbg(2, debug, sd, "%s: STDI and/or SSPD not locked\n", __func__);
+ 		return -1;
+@@ -1219,11 +1221,12 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
+ 	stdi->interlaced = io_read(sd, 0x12) & 0x10;
+ 
+ 	/* read SSPD */
+-	if ((cp_read(sd, 0xb5) & 0x03) == 0x01) {
+-		stdi->hs_pol = ((cp_read(sd, 0xb5) & 0x10) ?
+-				((cp_read(sd, 0xb5) & 0x08) ? '+' : '-') : 'x');
+-		stdi->vs_pol = ((cp_read(sd, 0xb5) & 0x40) ?
+-				((cp_read(sd, 0xb5) & 0x20) ? '+' : '-') : 'x');
++	polarity = cp_read(sd, 0xb5);
++	if ((polarity & 0x03) == 0x01) {
++		stdi->hs_pol = polarity & 0x10
++			     ? (polarity & 0x08 ? '+' : '-') : 'x';
++		stdi->vs_pol = polarity & 0x40
++			     ? (polarity & 0x20 ? '+' : '-') : 'x';
+ 	} else {
+ 		stdi->hs_pol = 'x';
+ 		stdi->vs_pol = 'x';
+@@ -1881,6 +1884,8 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 	struct v4l2_dv_timings timings;
+ 	struct stdi_readback stdi;
+ 	u8 reg_io_0x02 = io_read(sd, 0x02);
++	u8 edid_enabled;
++	u8 cable_det;
+ 
+ 	static const char * const csc_coeff_sel_rb[16] = {
+ 		"bypassed", "YPbPr601 -> RGB", "reserved", "YPbPr709 -> RGB",
+@@ -1910,20 +1915,22 @@ static int adv7604_log_status(struct v4l2_subdev *sd)
+ 
+ 	v4l2_info(sd, "-----Chip status-----\n");
+ 	v4l2_info(sd, "Chip power: %s\n", no_power(sd) ? "off" : "on");
++	edid_enabled = rep_read(sd, 0x7d);
+ 	v4l2_info(sd, "EDID enabled port A: %s, B: %s, C: %s, D: %s\n",
+-			((rep_read(sd, 0x7d) & 0x01) ? "Yes" : "No"),
+-			((rep_read(sd, 0x7d) & 0x02) ? "Yes" : "No"),
+-			((rep_read(sd, 0x7d) & 0x04) ? "Yes" : "No"),
+-			((rep_read(sd, 0x7d) & 0x08) ? "Yes" : "No"));
++			((edid_enabled & 0x01) ? "Yes" : "No"),
++			((edid_enabled & 0x02) ? "Yes" : "No"),
++			((edid_enabled & 0x04) ? "Yes" : "No"),
++			((edid_enabled & 0x08) ? "Yes" : "No"));
+ 	v4l2_info(sd, "CEC: %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
+ 			"enabled" : "disabled");
+ 
+ 	v4l2_info(sd, "-----Signal status-----\n");
++	cable_det = io_read(sd, 0x6f);
+ 	v4l2_info(sd, "Cable detected (+5V power) port A: %s, B: %s, C: %s, D: %s\n",
+-			((io_read(sd, 0x6f) & 0x10) ? "Yes" : "No"),
+-			((io_read(sd, 0x6f) & 0x08) ? "Yes" : "No"),
+-			((io_read(sd, 0x6f) & 0x04) ? "Yes" : "No"),
+-			((io_read(sd, 0x6f) & 0x02) ? "Yes" : "No"));
++			((cable_det & 0x10) ? "Yes" : "No"),
++			((cable_det & 0x08) ? "Yes" : "No"),
++			((cable_det & 0x04) ? "Yes" : "No"),
++			((cable_det & 0x02) ? "Yes" : "No"));
+ 	v4l2_info(sd, "TMDS signal detected: %s\n",
+ 			no_signal_tmds(sd) ? "false" : "true");
+ 	v4l2_info(sd, "TMDS signal locked: %s\n",
+-- 
+1.8.3.2
 
-The behaviour is the same whether exposure_auto_priority is set to 1 or
-0.  I don't think I've explained myself clearly - the exposure time does
-not change by itself, apart from during VIDIOC_STREAMON:
-
-* When I'm streaming video from the camera it's constant.
-* When no data is coming from the camera it's constant
-
-It's only modified during STREAMON and when I explicitly set it with
-v4l2-ctl.
-
-This doesn't seem like correct behaviour as it breaks the use-case of
-setting the controls as you want before starting streaming.  My
-workaround is to reset all the controls after calling VIDIOC_STREAMON
-but this is ugly and you get a few frames at the beginning of the video
-stream where the settings are set correctly.
-
-Thanks
-
-Will
