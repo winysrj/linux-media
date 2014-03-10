@@ -1,35 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:65095 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751714AbaCFVsh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Mar 2014 16:48:37 -0500
-Received: from [192.168.178.28] ([134.3.109.71]) by mail.gmx.com (mrgmx101)
- with ESMTPSA (Nemesis) id 0LsgvV-1XJ6IE3kU5-012EZ3 for
- <linux-media@vger.kernel.org>; Thu, 06 Mar 2014 22:48:35 +0100
-Message-ID: <5318ED33.4040009@pinguin74.gmx.com>
-Date: Thu, 06 Mar 2014 22:48:35 +0100
-From: pinguin74 <pinguin74@gmx.com>
-MIME-Version: 1.0
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1548 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753798AbaCJN6r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 09:58:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: sound dropouts with DVB
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Cc: pawel@osciak.com, k.debski@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv1 PATCH 2/7] mem2mem_testdev: pick default format with try_fmt.
+Date: Mon, 10 Mar 2014 14:58:24 +0100
+Message-Id: <1394459909-36497-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I use a Sundtek DVB-C stick with openSUSE 13.1 Linux.
+This resolves an issue raised by v4l2-compliance: if the given format does
+not exist, then pick a default format.
 
-Most of the time, TV is just fine. But sometimes the sound just drops
-out, the sound disappears totally for up to 20 or 30 seconds. Usually
-sound returns. When sound drops out, there is no error message.
+While there is an exception regarding this for TV capture drivers, this
+m2m driver should do the right thing.
 
-Generally sound is fine, I use pulseaudio with KDE. The sound drop out
-happens only when watching TV.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/mem2mem_testdev.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-Is this a know issue with DVB? What could be the reason for the
-dropouts? The DVB-C signal is strong, usually 100%.
-
-Would be nice to get a hint.
+diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+index 5c6067d..104d863 100644
+--- a/drivers/media/platform/mem2mem_testdev.c
++++ b/drivers/media/platform/mem2mem_testdev.c
+@@ -543,7 +543,11 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	struct m2mtest_ctx *ctx = file2ctx(file);
+ 
+ 	fmt = find_format(f);
+-	if (!fmt || !(fmt->types & MEM2MEM_CAPTURE)) {
++	if (!fmt) {
++		f->fmt.pix.pixelformat = formats[0].fourcc;
++		fmt = find_format(f);
++	}
++	if (!(fmt->types & MEM2MEM_CAPTURE)) {
+ 		v4l2_err(&ctx->dev->v4l2_dev,
+ 			 "Fourcc format (0x%08x) invalid.\n",
+ 			 f->fmt.pix.pixelformat);
+@@ -561,7 +565,11 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
+ 	struct m2mtest_ctx *ctx = file2ctx(file);
+ 
+ 	fmt = find_format(f);
+-	if (!fmt || !(fmt->types & MEM2MEM_OUTPUT)) {
++	if (!fmt) {
++		f->fmt.pix.pixelformat = formats[0].fourcc;
++		fmt = find_format(f);
++	}
++	if (!(fmt->types & MEM2MEM_OUTPUT)) {
+ 		v4l2_err(&ctx->dev->v4l2_dev,
+ 			 "Fourcc format (0x%08x) invalid.\n",
+ 			 f->fmt.pix.pixelformat);
+-- 
+1.9.0
 
