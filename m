@@ -1,159 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.karo-electronics.de ([81.173.242.67]:49688 "EHLO
-	mail.karo-electronics.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816AbaCRNFI convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753309AbaCJXO4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Mar 2014 09:05:08 -0400
-Date: Tue, 18 Mar 2014 14:04:38 +0100
-From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW@KARO-electronics.de>
-To: Denis Carikli <denis@eukrea.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, devel@driverdev.osuosl.org,
-	Russell King <linux@arm.linux.org.uk>,
-	Eric =?UTF-8?B?QsOpbmFyZA==?= <eric@eukrea.com>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH 08/12] imx-drm: Use drm_display_mode timings flags.
-Message-ID: <20140318140438.7d3fd33a@ipc1.ka-ro>
-In-Reply-To: <1394731053-6118-8-git-send-email-denis@eukrea.com>
-References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
-	<1394731053-6118-8-git-send-email-denis@eukrea.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 10 Mar 2014 19:14:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	devicetree@vger.kernel.org
+Subject: [PATCH v2 46/48] adv7604: Add DT support
+Date: Tue, 11 Mar 2014 00:15:57 +0100
+Message-Id: <1394493359-14115-47-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Parse the device tree node to populate platform data.
 
-Denis Carikli wrote:
-> The previous hardware behaviour was kept if the
-> flags are not set.
-> 
-> Signed-off-by: Denis Carikli <denis@eukrea.com>
-> ---
-> ChangeLog v10->v11:
-> - This patch was splitted-out and adapted from:
->   "Prepare imx-drm for extra display-timings retrival."
-> - The display-timings dt specific part was removed.
-> - The flags names were changed to use the DRM ones from:
->   "drm: drm_display_mode: add signal polarity flags"
-> ---
->  drivers/staging/imx-drm/imx-drm-core.c      |   10 ++++++++++
->  drivers/staging/imx-drm/imx-drm.h           |    6 ++++++
->  drivers/staging/imx-drm/imx-hdmi.c          |    3 +++
->  drivers/staging/imx-drm/imx-ldb.c           |    3 +++
->  drivers/staging/imx-drm/imx-tve.c           |    3 +++
->  drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h |    6 ++++--
->  drivers/staging/imx-drm/ipu-v3/ipu-di.c     |    7 ++++++-
->  drivers/staging/imx-drm/ipuv3-crtc.c        |   21 +++++++++++++++++++--
->  3 files changed, 29 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-> index b95cba1..3abeea3 100644
-> --- a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-> +++ b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
-> @@ -29,9 +29,11 @@ enum ipuv3_type {
->  
->  #define CLK_POL_ACTIVE_LOW	0
->  #define CLK_POL_ACTIVE_HIGH	1
-> +#define CLK_POL_PRESERVE	2
->  
->  #define ENABLE_POL_NEGEDGE	0
->  #define ENABLE_POL_POSEDGE	1
-> +#define ENABLE_POL_PRESERVE	2
->  
->  /*
->   * Bitfield of Display Interface signal polarities.
-> @@ -43,10 +45,10 @@ struct ipu_di_signal_cfg {
->  	unsigned clksel_en:1;
->  	unsigned clkidle_en:1;
->  	unsigned data_pol:1;	/* true = inverted */
-> -	unsigned clk_pol:1;
-> -	unsigned enable_pol:1;
->  	unsigned Hsync_pol:1;	/* true = active high */
->  	unsigned Vsync_pol:1;
-> +	u8 clk_pol;
-> +	u8 enable_pol;
->  
->  	u16 width;
->  	u16 height;
-> diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-di.c b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-> index 53646aa..791080b 100644
-> --- a/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-> +++ b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
-> @@ -597,6 +597,8 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
->  
->  	if (sig->clk_pol == CLK_POL_ACTIVE_HIGH)
->  		di_gen |= DI_GEN_POLARITY_DISP_CLK;
-> +	else if (sig->clk_pol == CLK_POL_ACTIVE_LOW)
-> +		di_gen &= ~DI_GEN_POLARITY_DISP_CLK;
->  
->  	ipu_di_write(di, di_gen, DI_GENERAL);
->  
-> @@ -604,10 +606,13 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
->  		     DI_SYNC_AS_GEN);
->  
->  	reg = ipu_di_read(di, DI_POL);
-> -	reg &= ~(DI_POL_DRDY_DATA_POLARITY | DI_POL_DRDY_POLARITY_15);
-> +	reg &= ~(DI_POL_DRDY_DATA_POLARITY);
->  
->  	if (sig->enable_pol == ENABLE_POL_POSEDGE)
->  		reg |= DI_POL_DRDY_POLARITY_15;
-> +	else if (sig->enable_pol == ENABLE_POL_NEGEDGE)
-> +		reg &= ~DI_POL_DRDY_POLARITY_15;
-> +
->  	if (sig->data_pol)
->  		reg |= DI_POL_DRDY_DATA_POLARITY;
->  
-> diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
-> index 8cfeb47..c75034e 100644
-> --- a/drivers/staging/imx-drm/ipuv3-crtc.c
-> +++ b/drivers/staging/imx-drm/ipuv3-crtc.c
-> @@ -157,8 +157,25 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
->  	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
->  		sig_cfg.Vsync_pol = 1;
->  
-> -	sig_cfg.enable_pol = ENABLE_POL_POSEDGE;
-> -	sig_cfg.clk_pol = CLK_POL_ACTIVE_LOW;
-> +	if (mode->pol_flags & DRM_MODE_FLAG_POL_PIXDATA_POSEDGE)
-> +		sig_cfg.enable_pol = ENABLE_POL_POSEDGE;
-> +	else if (mode->pol_flags & DRM_MODE_FLAG_POL_DE_NEGEDGE)
-> +		sig_cfg.enable_pol = ENABLE_POL_NEGEDGE;
-> +	else if (mode->pol_flags & DRM_MODE_FLAG_POL_PIXDATA_PRESERVE)
-> +		sig_cfg.enable_pol = ENABLE_POL_PRESERVE;
-> +	else
-> +		sig_cfg.enable_pol = ENABLE_POL_POSEDGE;
-> +
-> +	if (mode->private_flags & DRM_MODE_FLAG_POL_DE_POSEDGE)
-> +		sig_cfg.clk_pol = CLK_POL_ACTIVE_HIGH;
-> +	else if (mode->private_flags & DRM_MODE_FLAG_POL_DE_NEGEDGE)
-> +		sig_cfg.clk_pol = CLK_POL_ACTIVE_LOW;
-> +	else if (mode->private_flags & DRM_MODE_FLAG_POL_DE_PRESERVE)
-> +		sig_cfg.clk_pol = CLK_POL_PRESERVE;
-> +	else
-> +		sig_cfg.clk_pol = CLK_POL_ACTIVE_LOW;
->
-This is completely messed up. POL_PIXDATA should obviously define the
-clock edge at which the pixel data is sampled and thus should determine
-the value of sig_cfg.clk_pol and POL_DE should determine the value of
-sig_cfg.enable_pol.
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ .../devicetree/bindings/media/i2c/adv7604.txt      | 56 +++++++++++++
+ drivers/media/i2c/adv7604.c                        | 92 ++++++++++++++++++----
+ 2 files changed, 134 insertions(+), 14 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7604.txt
 
-
-
-Lothar Waßmann
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+new file mode 100644
+index 0000000..0845c50
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+@@ -0,0 +1,56 @@
++* Analog Devices ADV7604/11 video decoder with HDMI receiver
++
++The ADV7604 and ADV7611 are multiformat video decoders with an integrated HDMI
++receiver. The ADV7604 has four multiplexed HDMI inputs and one analog input,
++and the ADV7611 has one HDMI input and no analog input.
++
++Required Properties:
++
++  - compatible: Must contain one of the following
++    - "adi,adv7604" for the ADV7604
++    - "adi,adv7611" for the ADV7611
++
++  - reg: I2C slave address
++
++  - hpd-gpios: References to the GPIOs that control the HDMI hot-plug
++    detection pins, one per HDMI input. The active flag indicates the GPIO
++    level that enables hot-plug detection.
++
++Optional Properties:
++
++  - reset-gpios: Reference to the GPIO connected to the device's reset pin.
++
++  - adi,default-input: Index of the input to be configured as default. Valid
++    values are 0..5 for the ADV7604 and 0 for the ADV7611.
++
++  - adi,disable-power-down: Boolean property. When set forces the device to
++    ignore the power-down pin. The property is valid for the ADV7604 only as
++    the ADV7611 has no power-down pin.
++
++  - adi,disable-cable-reset: Boolean property. When set disables the HDMI
++    receiver automatic reset when the HDMI cable is unplugged.
++
++Example:
++
++	hdmi_receiver@4c {
++		compatible = "adi,adv7611";
++		reg = <0x4c>;
++
++		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
++		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
++
++		adi,default-input = <0>;
++
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++		};
++		port@1 {
++			reg = <1>;
++			hdmi_in: endpoint {
++				remote-endpoint = <&ccdc_in>;
++			};
++		};
++	};
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index cce140c..de44213 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2626,13 +2626,70 @@ static const struct adv7604_chip_info adv7604_chip_info[] = {
+ 	},
+ };
+ 
++static struct i2c_device_id adv7604_i2c_id[] = {
++	{ "adv7604", (kernel_ulong_t)&adv7604_chip_info[ADV7604] },
++	{ "adv7611", (kernel_ulong_t)&adv7604_chip_info[ADV7611] },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, adv7604_i2c_id);
++
++static struct of_device_id adv7604_of_id[] = {
++	{ .compatible = "adi,adv7604", .data = &adv7604_chip_info[ADV7604] },
++	{ .compatible = "adi,adv7611", .data = &adv7604_chip_info[ADV7611] },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, adv7604_of_id);
++
++static int adv7604_parse_dt(struct adv7604_state *state)
++{
++	struct device_node *np;
++	int ret;
++
++	np = state->i2c_clients[ADV7604_PAGE_IO]->dev.of_node;
++
++	state->pdata.disable_pwrdnb =
++		of_property_read_bool(np, "adi,disable-power-down");
++	state->pdata.disable_cable_det_rst =
++		of_property_read_bool(np, "adi,disable-cable-reset");
++
++	ret = of_property_read_u32(np, "adi,default-input",
++				   &state->pdata.default_input);
++	if (ret < 0)
++		state->pdata.default_input = -1;
++
++	/* Disable the interrupt for now as no DT-based board uses it. */
++	state->pdata.int1_config = ADV7604_INT1_CONFIG_DISABLED;
++
++	/* Use the default I2C addresses. */
++	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
++	state->pdata.i2c_addresses[ADV7604_PAGE_CEC] = 0x40;
++	state->pdata.i2c_addresses[ADV7604_PAGE_INFOFRAME] = 0x3e;
++	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] = 0x38;
++	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] = 0x3c;
++	state->pdata.i2c_addresses[ADV7604_PAGE_AFE] = 0x26;
++	state->pdata.i2c_addresses[ADV7604_PAGE_REP] = 0x32;
++	state->pdata.i2c_addresses[ADV7604_PAGE_EDID] = 0x36;
++	state->pdata.i2c_addresses[ADV7604_PAGE_HDMI] = 0x34;
++	state->pdata.i2c_addresses[ADV7604_PAGE_TEST] = 0x30;
++	state->pdata.i2c_addresses[ADV7604_PAGE_CP] = 0x22;
++	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] = 0x24;
++
++	/* HACK: Hardcode the remaining platform data fields. */
++	state->pdata.blank_data = 1;
++	state->pdata.op_656_range = 1;
++	state->pdata.alt_data_sat = 1;
++	state->pdata.insert_av_codes = 1;
++	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
++
++	return 0;
++}
++
+ static int adv7604_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+ 	static const struct v4l2_dv_timings cea640x480 =
+ 		V4L2_DV_BT_CEA_640X480P59_94;
+ 	struct adv7604_state *state;
+-	struct adv7604_platform_data *pdata = client->dev.platform_data;
+ 	struct v4l2_ctrl_handler *hdl;
+ 	struct v4l2_subdev *sd;
+ 	unsigned int i;
+@@ -2651,19 +2708,32 @@ static int adv7604_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 	}
+ 
+-	state->info = &adv7604_chip_info[id->driver_data];
+ 	state->i2c_clients[ADV7604_PAGE_IO] = client;
+ 
+ 	/* initialize variables */
+ 	state->restart_stdi_once = true;
+ 	state->selected_input = ~0;
+ 
+-	/* platform data */
+-	if (!pdata) {
++	if (IS_ENABLED(CONFIG_OF) && client->dev.of_node) {
++		const struct of_device_id *oid;
++
++		oid = of_match_node(adv7604_of_id, client->dev.of_node);
++		state->info = oid->data;
++
++		err = adv7604_parse_dt(state);
++		if (err < 0) {
++			v4l_err(client, "DT parsing error\n");
++			return err;
++		}
++	} else if (client->dev.platform_data) {
++		struct adv7604_platform_data *pdata = client->dev.platform_data;
++
++		state->info = (const struct adv7604_chip_info *)id->driver_data;
++		state->pdata = *pdata;
++	} else {
+ 		v4l_err(client, "No platform data!\n");
+ 		return -ENODEV;
+ 	}
+-	state->pdata = *pdata;
+ 
+ 	/* Request GPIOs. */
+ 	for (i = 0; i < state->info->num_dv_ports; ++i) {
+@@ -2762,7 +2832,7 @@ static int adv7604_probe(struct i2c_client *client,
+ 			continue;
+ 
+ 		state->i2c_clients[i] =
+-			adv7604_dummy_client(sd, pdata->i2c_addresses[i],
++			adv7604_dummy_client(sd, state->pdata.i2c_addresses[i],
+ 					     0xf2 + i);
+ 		if (state->i2c_clients[i] == NULL) {
+ 			err = -ENOMEM;
+@@ -2836,21 +2906,15 @@ static int adv7604_remove(struct i2c_client *client)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
+-static struct i2c_device_id adv7604_id[] = {
+-	{ "adv7604", ADV7604 },
+-	{ "adv7611", ADV7611 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(i2c, adv7604_id);
+-
+ static struct i2c_driver adv7604_driver = {
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "adv7604",
++		.of_match_table = of_match_ptr(adv7604_of_id),
+ 	},
+ 	.probe = adv7604_probe,
+ 	.remove = adv7604_remove,
+-	.id_table = adv7604_id,
++	.id_table = adv7604_i2c_id,
+ };
+ 
+ module_i2c_driver(adv7604_driver);
 -- 
-___________________________________________________________
+1.8.3.2
 
-Ka-Ro electronics GmbH | Pascalstraße 22 | D - 52076 Aachen
-Phone: +49 2408 1402-0 | Fax: +49 2408 1402-10
-Geschäftsführer: Matthias Kaussen
-Handelsregistereintrag: Amtsgericht Aachen, HRB 4996
-
-www.karo-electronics.de | info@karo-electronics.de
-___________________________________________________________
