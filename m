@@ -1,100 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44897 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752780AbaCJLgK (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4972 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752535AbaCJXc7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 07:36:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 2/8] Documentation: of: Document graph bindings
-Date: Mon, 10 Mar 2014 12:37:42 +0100
-Message-ID: <2406124.RniJY1n1Xd@avalon>
-In-Reply-To: <1394443690.7380.10.camel@paszta.hi.pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> <20140307182717.67596C40B43@trevor.secretlab.ca> <1394443690.7380.10.camel@paszta.hi.pengutronix.de>
+	Mon, 10 Mar 2014 19:32:59 -0400
+Message-ID: <531E4BA0.7010407@xs4all.nl>
+Date: Tue, 11 Mar 2014 00:32:48 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 1/3] v4l2-subdev.h: add g_tvnorms video op
+References: <1392637454-29179-1-git-send-email-hverkuil@xs4all.nl> <1392637454-29179-2-git-send-email-hverkuil@xs4all.nl> <Pine.LNX.4.64.1403110014000.10570@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1403110014000.10570@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On 03/11/2014 12:23 AM, Guennadi Liakhovetski wrote:
+> Hi Hans,
+> 
+> Thanks for taking care about this problem. I'm not sure it would be ok for 
+> me to pull this specific patch via my tree, because it's for the V4L2 
+> core, and the other 2 patches in this series depend on this one.
 
-On Monday 10 March 2014 10:28:10 Philipp Zabel wrote:
-> Hi Grant,
-> 
-> Am Freitag, den 07.03.2014, 18:27 +0000 schrieb Grant Likely:
-> > On Wed,  5 Mar 2014 10:20:36 +0100, Philipp Zabel wrote:
-> > > The device tree graph bindings as used by V4L2 and documented in
-> > > Documentation/device-tree/bindings/media/video-interfaces.txt contain
-> > > generic parts that are not media specific but could be useful for any
-> > > subsystem with data flow between multiple devices. This document
-> > > describes the generic bindings.
-> > > 
-> > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > 
-> > See my comments on the previous version. My concerns are the handling of
-> > the optional 'ports' node and the usage of reverse links.
-> 
-> would this change address your concern about the reverse links? As the
-> preexisting video-interfaces.txt bindings mandate the reverse links, I
-> worry about introducing a second, subtly different binding. It should be
-> noted somewhere in video-interfaces.txt that the reverse links are
-> deprecated for the but still supported by the code for backwards
-> compatibility.
+It's OK by me to pull this through your tree.
 
-I'm very much against removing the reverse links. Without them the graph will 
-become much more complex to parse. You can try to convince me, but for now I'm 
-afraid it's a NACK.
+> But 
+> anyway I've got a question to this patch:
+> 
+> On Mon, 17 Feb 2014, Hans Verkuil wrote:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> While there was already a g_tvnorms_output video op, it's counterpart for
+>> video capture was missing. Add it.
+>>
+>> This is necessary for generic bridge drivers like soc-camera to set the
+>> video_device tvnorms field correctly. Otherwise ENUMSTD cannot work.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  include/media/v4l2-subdev.h | 8 ++++++--
+>>  1 file changed, 6 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index d67210a..787d078 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -264,8 +264,11 @@ struct v4l2_mbus_frame_desc {
+>>     g_std_output: get current standard for video OUTPUT devices. This is ignored
+>>  	by video input devices.
+>>  
+>> -   g_tvnorms_output: get v4l2_std_id with all standards supported by video
+>> -	OUTPUT device. This is ignored by video input devices.
+>> +   g_tvnorms: get v4l2_std_id with all standards supported by the video
+>> +	CAPTURE device. This is ignored by video output devices.
+>> +
+>> +   g_tvnorms_output: get v4l2_std_id with all standards supported by the video
+>> +	OUTPUT device. This is ignored by video capture devices.
+> 
+> Why do we need two separate operations with the same functionality - one 
+> for capture and one for output? Can we have subdevices, that need to 
+> implement both? Besides, what about these two core ops:
+> 
+> 	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
+> 	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
+> 
+> ? Seems like a slightly different approach is needed? Or am I missing 
+> anything?
 
-> diff --git a/Documentation/devicetree/bindings/graph.txt
-> b/Documentation/devicetree/bindings/graph.txt index 1a69c07..eb6cae5 100644
-> --- a/Documentation/devicetree/bindings/graph.txt
-> +++ b/Documentation/devicetree/bindings/graph.txt
-> @@ -87,12 +87,13 @@ device {
->  Links between endpoints
->  -----------------------
-> 
-> -Each endpoint should contain a 'remote-endpoint' phandle property that
-> points -to the corresponding endpoint in the port of the remote device. In
-> turn, the -remote endpoint should contain a 'remote-endpoint' property. If
-> it has one, -it must not point to another than the local endpoint. Two
-> endpoints with their -'remote-endpoint' phandles pointing at each other
-> form a link between the -containing ports.
-> +Two endpoint nodes form a link between the two ports they are contained in
-> +if one contains a 'remote-endpoint' phandle property, pointing to the other
-> +endpoint. The endpoint pointed to should not contain a 'remote-endpoint'
-> +property itself. Which direction the phandle should point in depends on
-> the +device type. In general, links should be pointing outwards from
-> central +devices that provide DMA memory interfaces, such as display
-> controller, +video capture interface, or serial digital audio interface
-> cores.
-> 
->  device-1 {
->          port {
-> @@ -104,8 +105,8 @@ device-1 {
-> 
->  device-2 {
->          port {
-> -                device_2_input: endpoint {
-> -                        remote-endpoint = <&device_1_output>;
-> +                device_2_input: endpoint { };
-> +                       /* no remote-endpoint, this endpoint is pointed at
-> */ };
->          };
->  };
+There are drivers (ivtv) that have both capture and output subdevices. Each can
+have its own standard. Such drivers use v4l2_device_call_all() to call the
+same op for all subdevs so any subdev that can handle that op gets called.
+So they use it to call the s_std op to change the capture standard and they
+call s_std_output to change the output standard.
 
--- 
+If you can't tell the difference between capture tvnorms and output tvnorms this
+becomes tricky to handle. Just keep the two separate and there is no confusion.
+
+Note that the video ops have the g/s_std_output ops. It's due to historical
+reasons that g/s_std ended up in the core ops. They probably should be moved to
+the video ops, but it's just not worth the effort.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> 
+>>     s_crystal_freq: sets the frequency of the crystal used to generate the
+>>  	clocks in Hz. An extra flags field allows device specific configuration
+>> @@ -308,6 +311,7 @@ struct v4l2_subdev_video_ops {
+>>  	int (*s_std_output)(struct v4l2_subdev *sd, v4l2_std_id std);
+>>  	int (*g_std_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>>  	int (*querystd)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>> +	int (*g_tvnorms)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>>  	int (*g_tvnorms_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>>  	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
+>>  	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+>> -- 
+>> 1.8.5.2
+>>
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
