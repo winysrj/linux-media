@@ -1,23 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.quattroholding.com ([190.33.200.122]:54886 "HELO
-	healthalliance.com.pa" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with SMTP id S1752612AbaC3K2P (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752958AbaCJXOj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 06:28:15 -0400
-Message-ID: <DF63953B.4BF63A54@healthalliance.com.pa>
-Date: Sun, 30 Mar 2014 09:25:09 +0200
-From: "Linux fsdevel" <yrivera@healthalliance.com.pa>
-MIME-Version: 1.0
-To: <linux-fsdevel@vger.kernel.org>
-Subject: All that glitters on your wrist
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	Mon, 10 Mar 2014 19:14:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 09/48] adv7842: Add pad-level DV timings operations
+Date: Tue, 11 Mar 2014 00:15:20 +0100
+Message-Id: <1394493359-14115-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Designer branded watches available at clearance prices
-http://bhp-trade.home.pl/bwjobii.php
+The video enum_dv_timings and dv_timings_cap operations are deprecated.
+Implement the pad-level version of those operations to prepare for the
+removal of the video version.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7842.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index e04fe3f..78d21fd 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1399,6 +1399,9 @@ static int read_stdi(struct v4l2_subdev *sd, struct stdi_readback *stdi)
+ static int adv7842_enum_dv_timings(struct v4l2_subdev *sd,
+ 				   struct v4l2_enum_dv_timings *timings)
+ {
++	if (timings->pad != 0)
++		return -EINVAL;
++
+ 	return v4l2_enum_dv_timings_cap(timings,
+ 		adv7842_get_dv_timings_cap(sd), adv7842_check_dv_timings, NULL);
+ }
+@@ -1406,6 +1409,9 @@ static int adv7842_enum_dv_timings(struct v4l2_subdev *sd,
+ static int adv7842_dv_timings_cap(struct v4l2_subdev *sd,
+ 				  struct v4l2_dv_timings_cap *cap)
+ {
++	if (cap->pad != 0)
++		return -EINVAL;
++
+ 	*cap = *adv7842_get_dv_timings_cap(sd);
+ 	return 0;
+ }
+@@ -2897,6 +2903,8 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
+ static const struct v4l2_subdev_pad_ops adv7842_pad_ops = {
+ 	.get_edid = adv7842_get_edid,
+ 	.set_edid = adv7842_set_edid,
++	.enum_dv_timings = adv7842_enum_dv_timings,
++	.dv_timings_cap = adv7842_dv_timings_cap,
+ };
+ 
+ static const struct v4l2_subdev_ops adv7842_ops = {
+-- 
+1.8.3.2
 
