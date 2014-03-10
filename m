@@ -1,47 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2928 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754531AbaCJVVe (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46393 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754233AbaCJP4W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 17:21:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 08/11] vb2: simplify a confusing condition.
-Date: Mon, 10 Mar 2014 22:20:55 +0100
-Message-Id: <1394486458-9836-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 10 Mar 2014 11:56:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+Subject: Re: [REVIEW PATCH 0/3] Add g_tvnorms video op
+Date: Mon, 10 Mar 2014 16:57:55 +0100
+Message-ID: <18601545.kD0Wux3ZFv@avalon>
+In-Reply-To: <1392637454-29179-1-git-send-email-hverkuil@xs4all.nl>
+References: <1392637454-29179-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-q->start_streaming_called is always true, so the WARN_ON check against
-it being false can be dropped.
+Thank you for the patches.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+On Monday 17 February 2014 12:44:11 Hans Verkuil wrote:
+> This patch series addresses a problem that was exposed by commit a5338190e.
+> The issue is that soc_camera implements s/g_std ioctls and just forwards
+> those to the subdev, whether or not the subdev actually implements them.
+> 
+> In addition, tvnorms is never set, so even if the subdev implements the
+> s/g_std the ENUMSTD ioctl will not report anything.
+> 
+> The solution is to add a g_tvnorms video op to v4l2_subdev (there was
+> already a g_tvnorms_output, so that fits nicely) and to let soc_camera call
+> that so the video_device tvnorms field is set correctly.
+> 
+> Before registering the video node it will check if tvnorms == 0 and disable
+> the STD ioctls if that's the case.
+> 
+> While this problem cropped up in soc_camera it is really a problem for any
+> generic bridge driver, so this is useful to have.
+> 
+> Note that it is untested. The plan is that Laurent tests and Guennadi pulls
+> it into his tree.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 8984187..2ae316b 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1099,9 +1099,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	if (!q->start_streaming_called) {
- 		if (WARN_ON(state != VB2_BUF_STATE_QUEUED))
- 			state = VB2_BUF_STATE_QUEUED;
--	} else if (!WARN_ON(!q->start_streaming_called)) {
--		if (WARN_ON(state != VB2_BUF_STATE_DONE &&
--			    state != VB2_BUF_STATE_ERROR))
-+	} else if (WARN_ON(state != VB2_BUF_STATE_DONE &&
-+			   state != VB2_BUF_STATE_ERROR)) {
- 			state = VB2_BUF_STATE_ERROR;
- 	}
- 
+I've tested the series on v3.10 with the atmel-isi driver. Without the patches 
+applied ENUMSTD returns -ENODATA, and with the patches applied it returns -
+ENOTTY.
+
+Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 -- 
-1.9.0
+Regards,
+
+Laurent Pinchart
 
