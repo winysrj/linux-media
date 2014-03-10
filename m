@@ -1,126 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753390AbaCJXOz (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3397 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754536AbaCJVVf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 10 Mar 2014 17:21:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 44/48] adv7604: Support hot-plug detect control through a GPIO
-Date: Tue, 11 Mar 2014 00:15:55 +0100
-Message-Id: <1394493359-14115-45-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: pawel@osciak.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 11/11] vb2: allow read/write as long as the format is single planar
+Date: Mon, 10 Mar 2014 22:20:58 +0100
+Message-Id: <1394486458-9836-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for optional GPIO-controlled HPD pins in addition to the
-ADV7604-specific hotplug notifier.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+It was impossible to read() or write() a frame if the queue type was multiplanar.
+Even if the current format is single planar. Change this to just check whether
+the number of planes is 1 or more.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/adv7604.c | 37 +++++++++++++++++++++++++++++++++----
- 1 file changed, 33 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 0c81c72..7f70c6f 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -28,6 +28,7 @@
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 54a4150..8faf1ef 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2622,6 +2622,7 @@ struct vb2_fileio_buf {
   */
- 
- #include <linux/delay.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/i2c.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -135,6 +136,8 @@ struct adv7604_state {
- 	const struct adv7604_chip_info *info;
- 	struct adv7604_platform_data pdata;
- 
-+	struct gpio_desc *hpd_gpio[4];
+ struct vb2_fileio_data {
+ 	struct v4l2_requestbuffers req;
++	struct v4l2_plane p;
+ 	struct v4l2_buffer b;
+ 	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
+ 	unsigned int cur_index;
+@@ -2712,13 +2713,21 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	 * Read mode requires pre queuing of all buffers.
+ 	 */
+ 	if (read) {
++		bool is_multiplanar = V4L2_TYPE_IS_MULTIPLANAR(q->type);
 +
- 	struct v4l2_subdev sd;
- 	struct media_pad pads[ADV7604_PAD_MAX];
- 	unsigned int source_pad;
-@@ -598,6 +601,20 @@ static inline int edid_write_block(struct v4l2_subdev *sd,
- 	return err;
- }
- 
-+static void adv7604_set_hpd(struct adv7604_state *state, unsigned int hpd)
-+{
-+	unsigned int i;
+ 		/*
+ 		 * Queue all buffers.
+ 		 */
+ 		for (i = 0; i < q->num_buffers; i++) {
+ 			struct v4l2_buffer *b = &fileio->b;
 +
-+	for (i = 0; i < state->info->num_dv_ports; ++i) {
-+		if (IS_ERR(state->hpd_gpio[i]))
-+			continue;
-+
-+		gpiod_set_value_cansleep(state->hpd_gpio[i], hpd & BIT(i));
-+	}
-+
-+	v4l2_subdev_notify(&state->sd, ADV7604_HOTPLUG, &hpd);
-+}
-+
- static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
+ 			memset(b, 0, sizeof(*b));
+ 			b->type = q->type;
++			if (is_multiplanar) {
++				memset(&fileio->p, 0, sizeof(fileio->p));
++				b->m.planes = &fileio->p;
++				b->length = 1;
++			}
+ 			b->memory = q->memory;
+ 			b->index = i;
+ 			ret = vb2_internal_qbuf(q, b);
+@@ -2786,6 +2795,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
  {
- 	struct delayed_work *dwork = to_delayed_work(work);
-@@ -607,7 +624,7 @@ static void adv7604_delayed_work_enable_hotplug(struct work_struct *work)
- 
- 	v4l2_dbg(2, debug, sd, "%s: enable hotplug\n", __func__);
- 
--	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
-+	adv7604_set_hpd(state, state->edid.present);
- }
- 
- static inline int hdmi_read(struct v4l2_subdev *sd, u8 reg)
-@@ -2010,7 +2027,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	struct adv7604_state *state = to_state(sd);
- 	const struct adv7604_chip_info *info = state->info;
- 	int spa_loc;
--	int tmp = 0;
- 	int err;
- 	int i;
- 
-@@ -2021,7 +2037,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	if (edid->blocks == 0) {
- 		/* Disable hotplug and I2C access to EDID RAM from DDC port */
- 		state->edid.present &= ~(1 << edid->pad);
--		v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
-+		adv7604_set_hpd(state, state->edid.present);
- 		rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, state->edid.present);
- 
- 		/* Fall back to a 16:9 aspect ratio */
-@@ -2045,7 +2061,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 
- 	/* Disable hotplug and I2C access to EDID RAM from DDC port */
- 	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
--	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
-+	adv7604_set_hpd(state, 0);
- 	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, 0x00);
- 
- 	spa_loc = get_edid_spa_location(edid->edid);
-@@ -2641,6 +2657,19 @@ static int adv7604_probe(struct i2c_client *client,
- 		return -ENODEV;
- 	}
- 	state->pdata = *pdata;
-+
-+	/* Request GPIOs. */
-+	for (i = 0; i < state->info->num_dv_ports; ++i) {
-+		state->hpd_gpio[i] =
-+			devm_gpiod_get_index(&client->dev, "hpd", i);
-+		if (IS_ERR(state->hpd_gpio[i]))
-+			continue;
-+
-+		gpiod_set_value_cansleep(state->hpd_gpio[i], 0);
-+
-+		v4l_info(client, "Handling HPD %u GPIO\n", i);
-+	}
-+
- 	state->timings = cea640x480;
- 	state->format = adv7604_format_info(state, V4L2_MBUS_FMT_YUYV8_2X8);
- 
+ 	struct vb2_fileio_data *fileio;
+ 	struct vb2_fileio_buf *buf;
++	bool is_multiplanar = V4L2_TYPE_IS_MULTIPLANAR(q->type);
+ 	bool set_timestamp = !read &&
+ 		(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+ 		V4L2_BUF_FLAG_TIMESTAMP_COPY;
+@@ -2820,6 +2830,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		memset(&fileio->b, 0, sizeof(fileio->b));
+ 		fileio->b.type = q->type;
+ 		fileio->b.memory = q->memory;
++		if (is_multiplanar) {
++			memset(&fileio->p, 0, sizeof(fileio->p));
++			fileio->b.m.planes = &fileio->p;
++			fileio->b.length = 1;
++		}
+ 		ret = vb2_internal_dqbuf(q, &fileio->b, nonblock);
+ 		dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
+ 		if (ret)
+@@ -2890,6 +2905,12 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		fileio->b.memory = q->memory;
+ 		fileio->b.index = index;
+ 		fileio->b.bytesused = buf->pos;
++		if (is_multiplanar) {
++			memset(&fileio->p, 0, sizeof(fileio->p));
++			fileio->p.bytesused = buf->pos;
++			fileio->b.m.planes = &fileio->p;
++			fileio->b.length = 1;
++		}
+ 		if (set_timestamp)
+ 			v4l2_get_timestamp(&fileio->b.timestamp);
+ 		ret = vb2_internal_qbuf(q, &fileio->b);
 -- 
-1.8.3.2
+1.9.0
 
