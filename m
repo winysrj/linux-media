@@ -1,56 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1810 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754939AbaCKMDp (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753290AbaCJXOq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:03:45 -0400
-Message-ID: <531EFB6E.9060700@xs4all.nl>
-Date: Tue, 11 Mar 2014 13:02:54 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: k.debski@samsung.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 03/14] v4l: ti-vpe: Use video_device_release_empty
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-4-git-send-email-archit@ti.com>
-In-Reply-To: <1394526833-24805-4-git-send-email-archit@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 10 Mar 2014 19:14:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 27/48] v4l: Validate fields in the core code for subdev EDID ioctls
+Date: Tue, 11 Mar 2014 00:15:38 +0100
+Message-Id: <1394493359-14115-28-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/14 09:33, Archit Taneja wrote:
-> The video_device struct is currently embedded in the driver data struct vpe_dev.
-> A vpe_dev instance is allocated by the driver, and the memory for the vfd is a
-> part of this struct.
-> 
-> The v4l2 core, however, manages the removal of the vfd region, through the
-> video_device's .release() op, which currently is the helper
-> video_device_release. This causes memory corruption, and leads to issues when
-> we try to re-insert the vpe module.
-> 
-> Use the video_device_release_empty helper function instead
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+The subdev EDID ioctls receive a pad field that must reference an
+existing pad and an EDID field that must point to a buffer. Validate
+both fields in the core code instead of duplicating validation in all
+drivers.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/ad9389b.c           |  2 --
+ drivers/media/i2c/adv7511.c           |  2 --
+ drivers/media/i2c/adv7604.c           |  4 ----
+ drivers/media/i2c/adv7842.c           |  4 ----
+ drivers/media/v4l2-core/v4l2-subdev.c | 24 ++++++++++++++++++++----
+ 5 files changed, 20 insertions(+), 16 deletions(-)
 
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index f1eae67..0363df6 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -2000,7 +2000,7 @@ static struct video_device vpe_videodev = {
->  	.fops		= &vpe_fops,
->  	.ioctl_ops	= &vpe_ioctl_ops,
->  	.minor		= -1,
-> -	.release	= video_device_release,
-> +	.release	= video_device_release_empty,
->  	.vfl_dir	= VFL_DIR_M2M,
->  };
->  
-> 
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index 4cdff9e..5b78828 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -683,8 +683,6 @@ static int ad9389b_get_edid(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 	if (edid->blocks == 0 || edid->blocks > 256)
+ 		return -EINVAL;
+-	if (!edid->edid)
+-		return -EINVAL;
+ 	if (!state->edid.segments) {
+ 		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
+ 		return -ENODATA;
+diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+index de7ddf5..ff1c2cd 100644
+--- a/drivers/media/i2c/adv7511.c
++++ b/drivers/media/i2c/adv7511.c
+@@ -784,8 +784,6 @@ static int adv7511_get_edid(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 	if ((edid->blocks == 0) || (edid->blocks > 256))
+ 		return -EINVAL;
+-	if (!edid->edid)
+-		return -EINVAL;
+ 	if (!state->edid.segments) {
+ 		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
+ 		return -ENODATA;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 71c8570..de3db42 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1673,8 +1673,6 @@ static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
+ 		return -EINVAL;
+ 	if (edid->start_block == 1)
+ 		edid->blocks = 1;
+-	if (!edid->edid)
+-		return -EINVAL;
+ 
+ 	if (edid->blocks > state->edid.blocks)
+ 		edid->blocks = state->edid.blocks;
+@@ -1761,8 +1759,6 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
+ 		edid->blocks = 2;
+ 		return -E2BIG;
+ 	}
+-	if (!edid->edid)
+-		return -EINVAL;
+ 
+ 	v4l2_dbg(2, debug, sd, "%s: write EDID pad %d, edid.present = 0x%x\n",
+ 			__func__, edid->pad, state->edid.present);
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 7fd9325..33558c8 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -2035,8 +2035,6 @@ static int adv7842_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
+ 		return -EINVAL;
+ 	if (edid->start_block == 1)
+ 		edid->blocks = 1;
+-	if (!edid->edid)
+-		return -EINVAL;
+ 
+ 	switch (edid->pad) {
+ 	case ADV7842_EDID_PORT_A:
+@@ -2071,8 +2069,6 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *e)
+ 		return -EINVAL;
+ 	if (e->blocks > 2)
+ 		return -E2BIG;
+-	if (!e->edid)
+-		return -EINVAL;
+ 
+ 	/* todo, per edid */
+ 	state->aspect_ratio = v4l2_calc_aspect_ratio(e->edid[0x15],
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 853fb84..9fff1eb 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -349,11 +349,27 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 			sd, pad, set_selection, subdev_fh, sel);
+ 	}
+ 
+-	case VIDIOC_SUBDEV_G_EDID:
+-		return v4l2_subdev_call(sd, pad, get_edid, arg);
++	case VIDIOC_SUBDEV_G_EDID: {
++		struct v4l2_subdev_edid *edid = arg;
+ 
+-	case VIDIOC_SUBDEV_S_EDID:
+-		return v4l2_subdev_call(sd, pad, set_edid, arg);
++		if (edid->pad >= sd->entity.num_pads)
++			return -EINVAL;
++		if (edid->edid == NULL)
++			return -EINVAL;
++
++		return v4l2_subdev_call(sd, pad, get_edid, edid);
++	}
++
++	case VIDIOC_SUBDEV_S_EDID: {
++		struct v4l2_subdev_edid *edid = arg;
++
++		if (edid->pad >= sd->entity.num_pads)
++			return -EINVAL;
++		if (edid->edid == NULL)
++			return -EINVAL;
++
++		return v4l2_subdev_call(sd, pad, set_edid, edid);
++	}
+ 
+ 	case VIDIOC_SUBDEV_DV_TIMINGS_CAP: {
+ 		struct v4l2_dv_timings_cap *cap = arg;
+-- 
+1.8.3.2
 
