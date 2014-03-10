@@ -1,326 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48035 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751350AbaCQTtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 15:49:45 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 6/9] media: vb2: Convert vb2_dc_get_userptr() to use pfns vector
-Date: Mon, 17 Mar 2014 20:49:33 +0100
-Message-Id: <1395085776-8626-7-git-send-email-jack@suse.cz>
-In-Reply-To: <1395085776-8626-1-git-send-email-jack@suse.cz>
-References: <1395085776-8626-1-git-send-email-jack@suse.cz>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44938 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752193AbaCJLkc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 07:40:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
+Date: Mon, 10 Mar 2014 12:42:04 +0100
+Message-ID: <1401949.AJnxRNDZ0C@avalon>
+In-Reply-To: <531D7E9F.3090708@samsung.com>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <1536567.OYzyi25bjL@avalon> <531D7E9F.3090708@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert vb2_dc_get_userptr() to use passed vector of pfns. When we are
-doing that there's no need to allocate page array and some code can be
-simplified.
+Hi Andrzej,
 
-Signed-off-by: Jan Kara <jack@suse.cz>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 203 ++++---------------------
- 1 file changed, 30 insertions(+), 173 deletions(-)
+On Monday 10 March 2014 09:58:07 Andrzej Hajda wrote:
+> On 03/08/2014 04:54 PM, Laurent Pinchart wrote:
+> > On Saturday 08 March 2014 13:07:23 Philipp Zabel wrote:
+> >> On Fri, Mar 7, 2014 at 6:18 PM, Grant Likely wrote:
+> >>> On Wed, 26 Feb 2014 16:24:57 +0100, Philipp Zabel wrote:
+> >>>> The 'ports' node is optional. It is only needed if the parent node has
+> >>>> its own #address-cells and #size-cells properties. If the ports are
+> >>>> direct children of the device node, there might be other nodes than
+> >>>> 
+> >>>> ports:
+> >>>>       device {
+> >>>>               #address-cells = <1>;
+> >>>>               #size-cells = <0>;
+> >>>>               
+> >>>>               port@0 {
+> >>>>                       endpoint { ... };
+> >>>>               };
+> >>>>               port@1 {
+> >>>>                       endpoint { ... };
+> >>>>               };
+> >>>>               
+> >>>>               some-other-child { ... };
+> >>>>       };
+> >>>>       
+> >>>>       device {
+> >>>>               #address-cells = <x>;
+> >>>>               #size-cells = <y>;
+> >>>>               
+> >>>>               ports {
+> >>>>                       #address-cells = <1>;
+> >>>>                       #size-cells = <0>;
+> >>>>                       
+> >>>>                       port@0 {
+> >>>>                               endpoint { ... };
+> >>>>                       };
+> >>>>                       port@1 {
+> >>>>                               endpoint { ... };
+> >>>>                       };
+> >>>>               };
+> >>>>               
+> >>>>               some-other-child { ... };
+> >>>>       };
+> >>> 
+> >>> From a pattern perspective I have no problem with that.... From an
+> >>> individual driver binding perspective that is just dumb! It's fine for
+> >>> the ports node to be optional, but an individual driver using the
+> >>> binding should be explicit about which it will accept. Please use either
+> >>> a flag or a separate wrapper so that the driver can select the
+> >>> behaviour.
+> >> 
+> >> If the generic binding exists in both forms, most drivers should be
+> >> able to cope with both. Maybe it should be mentioned in the bindings
+> >> that the short form without ports node should be used where possible
+> >> (i.e. for devices that don't already have #address,size-cells != 1,0).
+> >> 
+> >> Having a separate wrapper to enforce the ports node for devices that
+> >> need it might be useful.
+> >> 
+> >>>> The helper should find the two endpoints in both cases.
+> >>>> 
+> >>>> Tomi suggests an even more compact form for devices with just one port:
+> >>>>
+> >>>>       device {
+> >>>>               endpoint { ... };
+> >>>>               
+> >>>>               some-other-child { ... };
+> >>>>       };
+> >>> 
+> >>> That's fine. In that case the driver would specifically require the
+> >>> endpoint to be that one node.... although the above looks a little weird
+> >>> to me. I would recommend that if there are other non-port child nodes
+> >>> then the ports should still be encapsulated by a ports node.  The device
+> >>> binding should not be ambiguous about which nodes are ports.
+> >> 
+> >> Sylwester suggested as an alternative, if I understood correctly, to
+> >> drop the endpoint node and instead keep the port:
+> >> 
+> >>     device-a {
+> >>         implicit_output_ep: port {
+> >>             remote-endpoint = <&explicit_input_ep>;
+> >>         };
+> >>     };
+> >>     
+> >>     device-b {
+> >>         port {
+> >>             explicit_input_ep: endpoint {
+> >>                 remote-endpoint = <&implicit_output_ep>;
+> >>             };
+> >>         };
+> >>     };
+> >> 
+> >> This would have the advantage to reduce verbosity for devices with
+> >> multiple ports that are only connected via one endport each, and you'd
+> >> always have the connected ports in the device tree as 'port' nodes.
+> > 
+> > I like that idea. I would prefer making the 'port' nodes mandatory and the
+> > 'ports' and 'endpoint' nodes optional. Leaving the 'port' node out
+> > slightly decreases readability in my opinion, but making the 'endpoint'
+> > node optional increases it. That's just my point of view though.
+> 
+> I want to propose another solution to simplify bindings, in fact I have
+> few ideas to consider:
+> 
+> 1. Use named ports instead of address-cells/regs. Ie instead of
+> port@number schema, use port-function. This will allow to avoid ports
+> node and #address-cells, #size-cells, reg properties.
+> Additionally it should increase readability of the bindings.
+> 
+> device {
+> 	port-dsi {
+> 		endpoint { ... };
+> 	};
+> 	port-rgb {
+> 		endpoint { ... };
+> 	};
+> };
+> 
+> It is little bit like with gpios vs reset-gpios properties.
+> Another advantage I see we do not need do mappings of port numbers
+> to functions between dts, drivers and documentation.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index c6378d943b89..d445b62a51cf 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -32,15 +32,13 @@ struct vb2_dc_buf {
- 	dma_addr_t			dma_addr;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			*dma_sgt;
-+	struct pinned_pfns		*pfns;
- 
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
- 	atomic_t			refcount;
- 	struct sg_table			*sgt_base;
- 
--	/* USERPTR related */
--	struct vm_area_struct		*vma;
--
- 	/* DMABUF related */
- 	struct dma_buf_attachment	*db_attach;
- };
-@@ -49,24 +47,6 @@ struct vb2_dc_buf {
- /*        scatterlist table functions        */
- /*********************************************/
- 
--
--static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
--	void (*cb)(struct page *pg))
--{
--	struct scatterlist *s;
--	unsigned int i;
--
--	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
--		struct page *page = sg_page(s);
--		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
--			>> PAGE_SHIFT;
--		unsigned int j;
--
--		for (j = 0; j < n_pages; ++j, ++page)
--			cb(page);
--	}
--}
--
- static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
- {
- 	struct scatterlist *s;
-@@ -418,101 +398,24 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- /*       callbacks for USERPTR buffers       */
- /*********************************************/
- 
--static inline int vma_is_io(struct vm_area_struct *vma)
--{
--	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
--}
--
--static int vb2_dc_get_user_pfn(unsigned long start, int n_pages,
--	struct vm_area_struct *vma, unsigned long *res)
--{
--	unsigned long pfn, start_pfn, prev_pfn;
--	unsigned int i;
--	int ret;
--
--	if (!vma_is_io(vma))
--		return -EFAULT;
--
--	ret = follow_pfn(vma, start, &pfn);
--	if (ret)
--		return ret;
--
--	start_pfn = pfn;
--	start += PAGE_SIZE;
--
--	for (i = 1; i < n_pages; ++i, start += PAGE_SIZE) {
--		prev_pfn = pfn;
--		ret = follow_pfn(vma, start, &pfn);
--
--		if (ret) {
--			pr_err("no page for address %lu\n", start);
--			return ret;
--		}
--		if (pfn != prev_pfn + 1)
--			return -EINVAL;
--	}
--
--	*res = start_pfn;
--	return 0;
--}
--
--static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
--	int n_pages, struct vm_area_struct *vma, int write)
--{
--	if (vma_is_io(vma)) {
--		unsigned int i;
--
--		for (i = 0; i < n_pages; ++i, start += PAGE_SIZE) {
--			unsigned long pfn;
--			int ret = follow_pfn(vma, start, &pfn);
--
--			if (!pfn_valid(pfn))
--				return -EINVAL;
--
--			if (ret) {
--				pr_err("no page for address %lu\n", start);
--				return ret;
--			}
--			pages[i] = pfn_to_page(pfn);
--		}
--	} else {
--		int n;
--
--		n = get_user_pages(current, current->mm, start & PAGE_MASK,
--			n_pages, write, 1, pages, NULL);
--		/* negative error means that no page was pinned */
--		n = max(n, 0);
--		if (n != n_pages) {
--			pr_err("got only %d of %d user pages\n", n, n_pages);
--			while (n)
--				put_page(pages[--n]);
--			return -EFAULT;
--		}
--	}
--
--	return 0;
--}
--
--static void vb2_dc_put_dirty_page(struct page *page)
--{
--	set_page_dirty_lock(page);
--	put_page(page);
--}
- 
- static void vb2_dc_put_userptr(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
-+	int i;
-+	struct page **pages;
- 
- 	if (sgt) {
- 		dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
--		if (!vma_is_io(buf->vma))
--			vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
--
-+		pages = pfns_vector_pages(buf->pfns);
-+		for (i = 0; i < pfns_vector_count(buf->pfns); i++)
-+			set_page_dirty_lock(pages[i]);
- 		sg_free_table(sgt);
- 		kfree(sgt);
- 	}
--	vb2_put_vma(buf->vma);
-+	put_vaddr_pfns(buf->pfns);
-+	pfns_vector_destroy(buf->pfns);
- 	kfree(buf);
- }
- 
-@@ -553,13 +456,10 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
--	unsigned long start;
--	unsigned long end;
-+	struct pinned_pfns *pfns = *ppfn;
- 	unsigned long offset;
--	struct page **pages;
--	int n_pages;
-+	int n_pages, i;
- 	int ret = 0;
--	struct vm_area_struct *vma;
- 	struct sg_table *sgt;
- 	unsigned long contig_size;
- 	unsigned long dma_align = dma_get_cache_alignment();
-@@ -582,72 +482,38 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
- 	buf->dev = conf->dev;
- 	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
- 
--	start = vaddr & PAGE_MASK;
- 	offset = vaddr & ~PAGE_MASK;
--	end = PAGE_ALIGN(vaddr + size);
--	n_pages = (end - start) >> PAGE_SHIFT;
--
--	pages = kmalloc(n_pages * sizeof(pages[0]), GFP_KERNEL);
--	if (!pages) {
--		ret = -ENOMEM;
--		pr_err("failed to allocate pages table\n");
--		goto fail_buf;
--	}
--
--	/* current->mm->mmap_sem is taken by videobuf2 core */
--	vma = find_vma(current->mm, vaddr);
--	if (!vma) {
--		pr_err("no vma for address %lu\n", vaddr);
--		ret = -EFAULT;
--		goto fail_pages;
--	}
--
--	if (vma->vm_end < vaddr + size) {
--		pr_err("vma at %lu is too small for %lu bytes\n", vaddr, size);
--		ret = -EFAULT;
--		goto fail_pages;
--	}
-+	n_pages = pfns_vector_count(pfns);
- 
--	buf->vma = vb2_get_vma(vma);
--	if (!buf->vma) {
--		pr_err("failed to copy vma\n");
--		ret = -ENOMEM;
--		goto fail_pages;
--	}
-+	ret = pfns_vector_to_pages(pfns);
-+	if (ret < 0) {
-+		unsigned long *nums = pfns_vector_pfns(pfns);
- 
--	/* extract page list from userspace mapping */
--	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, write);
--	if (ret) {
--		unsigned long pfn;
--		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
--			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
--			buf->size = size;
--			kfree(pages);
--			return buf;
--		}
--
--		pr_err("failed to get user pages\n");
--		goto fail_vma;
-+		/*
-+		 * Failed to convert to pages... Check the memory is physically
-+ 		 * contiguous and use direct mapping
-+		 */
-+		for (i = 1; i < n_pages; i++)
-+			if (nums[i-1] + 1 != nums[i])
-+				goto fail_buf;
-+		buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, nums[0]);
-+		goto out;
- 	}
- 
- 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
- 	if (!sgt) {
- 		pr_err("failed to allocate sg table\n");
- 		ret = -ENOMEM;
--		goto fail_get_user_pages;
-+		goto fail_buf;
- 	}
- 
--	ret = sg_alloc_table_from_pages(sgt, pages, n_pages,
-+	ret = sg_alloc_table_from_pages(sgt, pfns_vector_pages(pfns), n_pages,
- 		offset, size, GFP_KERNEL);
- 	if (ret) {
- 		pr_err("failed to initialize sg table\n");
- 		goto fail_sgt;
- 	}
- 
--	/* pages are no longer needed */
--	kfree(pages);
--	pages = NULL;
--
- 	sgt->nents = dma_map_sg(buf->dev, sgt->sgl, sgt->orig_nents,
- 		buf->dma_dir);
- 	if (sgt->nents <= 0) {
-@@ -665,8 +531,12 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, struct pinned_pfns **ppfn,
- 	}
- 
- 	buf->dma_addr = sg_dma_address(sgt->sgl);
--	buf->size = size;
- 	buf->dma_sgt = sgt;
-+out:
-+	buf->size = size;
-+	buf->pfns = pfns;
-+	/* Clear *ppfn so that the caller doesn't free the pfn vector */
-+	*ppfn = NULL;
- 
- 	return buf;
- 
-@@ -674,24 +544,11 @@ fail_map_sg:
- 	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
- 
- fail_sgt_init:
--	if (!vma_is_io(buf->vma))
--		vb2_dc_sgt_foreach_page(sgt, put_page);
- 	sg_free_table(sgt);
- 
- fail_sgt:
- 	kfree(sgt);
- 
--fail_get_user_pages:
--	if (pages && !vma_is_io(buf->vma))
--		while (n_pages)
--			put_page(pages[--n_pages]);
--
--fail_vma:
--	vb2_put_vma(buf->vma);
--
--fail_pages:
--	kfree(pages); /* kfree is NULL-proof */
--
- fail_buf:
- 	kfree(buf);
- 
+The problem with this approach is that ports are identified by a number inside 
+the kernel, so we would still need to define name to number mappings, or 
+switch to port names internally first.
+
+> 2. Similar approach can be taken to endpoint nodes, in fact
+> as endpoints are children of port node and as I understand port node
+> have no other children we can use any name instead of endpoint@number,
+> of course some convention can be helpful.
+> 
+> device {
+> 	port-dsi {
+> 		ep-soc1 { ... };
+> 		ep-soc2 { ... };
+> 	};
+> 	port-rgb {
+> 		ep-panel { ... };
+> 	};
+> };
+
+I see less issues here, as we don't need to number endpoints if I'm not 
+mistaken.
+
+> I would like to add that those ideas would work nicely with Sylwester's
+> proposition of skipping endpoints nodes in case there is only one
+> endpoint - the most common cases are devices with one or two ports, each
+> port having only one remote endpoint.
+> The complete graph for DSI/LVDS bridge I work recently will look like:
+> 
+> dsim {
+> 	dsim_ep: port-dsi {
+> 		remote-endpoint = <&bridge_dsi_ep>;
+> 	};
+> };
+> 
+> bridge {
+> 	bridge_dsi_ep: port-dsi {
+> 		remote-endpoint = <&dsim_ep>;
+> 	};
+> 	bridge_lvds_ep: port-lvds {
+> 		remote-endpoint = <&panel_ep>;
+> 	};
+> };
+> 
+> panel {
+> 	port-lvds {
+> 		remote-endpoint <&bridge_lvds_ep>;
+> 	};
+> };
+
 -- 
-1.8.1.4
+Regards,
+
+Laurent Pinchart
 
