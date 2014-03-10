@@ -1,45 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:46865 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753606AbaCNNKV (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:50462 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753457AbaCJL74 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 09:10:21 -0400
-Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2F002JRGL7F930@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 14 Mar 2014 09:10:19 -0400 (EDT)
-Date: Fri, 14 Mar 2014 10:10:15 -0300
+	Mon, 10 Mar 2014 07:59:56 -0400
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL] rtl2832_sdr driver
-Message-id: <20140314101015.3148851c@samsung.com>
-In-reply-to: <53224A61.4070602@iki.fi>
-References: <53224A61.4070602@iki.fi>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 11/15] drx-j: re-add get_sig_strength()
+Date: Mon, 10 Mar 2014 08:59:03 -0300
+Message-Id: <1394452747-5426-12-git-send-email-m.chehab@samsung.com>
+In-Reply-To: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
+References: <1394452747-5426-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 14 Mar 2014 02:16:33 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+We'll need to use this function. Restore it from the
+git history.
 
-> The following changes since commit 8ea5488a919bbd49941584f773fd66623192ffc0:
-> 
->    [media] media: rc-core: use %s in rc_map_get() module load 
-> (2014-03-13 11:32:28 -0300)
-> 
-> are available in the git repository at:
-> 
->    git://linuxtv.org/anttip/media_tree.git sdr_review_v6
+This function will be used on the next patch.
 
-Those rises two new warnings on some archs:
-	drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c:182:1: warning: 'rtl2832_sdr_wr' uses dynamic stack allocation [enabled by default]
-	drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c:182:1: warning: 'rtl2832_sdr_wr' uses dynamic stack allocation [enabled by default]
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 77 +++++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
 
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 7022a69f56bd..ca807b1fc67c 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -9352,6 +9352,83 @@ rw_error:
+ /*============================================================================*/
+ 
+ /**
++ * \fn int get_sig_strength()
++ * \brief Retrieve signal strength for VSB and QAM.
++ * \param demod Pointer to demod instance
++ * \param u16-t Pointer to signal strength data; range 0, .. , 100.
++ * \return int.
++ * \retval 0 sig_strength contains valid data.
++ * \retval -EINVAL sig_strength is NULL.
++ * \retval -EIO Erroneous data, sig_strength contains invalid data.
++ */
++#define DRXJ_AGC_TOP    0x2800
++#define DRXJ_AGC_SNS    0x1600
++#define DRXJ_RFAGC_MAX  0x3fff
++#define DRXJ_RFAGC_MIN  0x800
++
++static int get_sig_strength(struct drx_demod_instance *demod, u16 *sig_strength)
++{
++	struct i2c_device_addr *dev_addr = demod->my_i2c_dev_addr;
++	int rc;
++	u16 rf_gain = 0;
++	u16 if_gain = 0;
++	u16 if_agc_sns = 0;
++	u16 if_agc_top = 0;
++	u16 rf_agc_max = 0;
++	u16 rf_agc_min = 0;
++
++	rc = drxj_dap_read_reg16(dev_addr, IQM_AF_AGC_IF__A, &if_gain, 0);
++	if (rc != 0) {
++		pr_err("error %d\n", rc);
++		goto rw_error;
++	}
++	if_gain &= IQM_AF_AGC_IF__M;
++	rc = drxj_dap_read_reg16(dev_addr, IQM_AF_AGC_RF__A, &rf_gain, 0);
++	if (rc != 0) {
++		pr_err("error %d\n", rc);
++		goto rw_error;
++	}
++	rf_gain &= IQM_AF_AGC_RF__M;
++
++	if_agc_sns = DRXJ_AGC_SNS;
++	if_agc_top = DRXJ_AGC_TOP;
++	rf_agc_max = DRXJ_RFAGC_MAX;
++	rf_agc_min = DRXJ_RFAGC_MIN;
++
++	if (if_gain > if_agc_top) {
++		if (rf_gain > rf_agc_max)
++			*sig_strength = 100;
++		else if (rf_gain > rf_agc_min) {
++			if (rf_agc_max == rf_agc_min) {
++				pr_err("error: rf_agc_max == rf_agc_min\n");
++				return -EIO;
++			}
++			*sig_strength =
++			75 + 25 * (rf_gain - rf_agc_min) / (rf_agc_max -
++								rf_agc_min);
++		} else
++			*sig_strength = 75;
++	} else if (if_gain > if_agc_sns) {
++		if (if_agc_top == if_agc_sns) {
++			pr_err("error: if_agc_top == if_agc_sns\n");
++			return -EIO;
++		}
++		*sig_strength =
++		20 + 55 * (if_gain - if_agc_sns) / (if_agc_top - if_agc_sns);
++	} else {
++		if (!if_agc_sns) {
++			pr_err("error: if_agc_sns is zero!\n");
++			return -EIO;
++		}
++		*sig_strength = (20 * if_gain / if_agc_sns);
++	}
++
++	return 0;
++	rw_error:
++	return -EIO;
++}
++
++/**
+ * \fn int ctrl_get_qam_sig_quality()
+ * \brief Retreive QAM signal quality from device.
+ * \param devmod Pointer to demodulator instance.
 -- 
+1.8.5.3
 
-Regards,
-Mauro
