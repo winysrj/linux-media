@@ -1,152 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1181 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725AbaC3MDW (ORCPT
+Received: from smtp-out-236.synserver.de ([212.40.185.236]:1101 "EHLO
+	smtp-out-129.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753288AbaCJRFL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 08:03:22 -0400
-Message-ID: <533807FC.5050008@xs4all.nl>
-Date: Sun, 30 Mar 2014 14:03:08 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Christopher Li <sparse@chrisli.org>
-CC: Linux-Sparse <linux-sparse@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: sparse: ARRAY_SIZE and sparse array initialization
-References: <532442E2.7050206@xs4all.nl>	<532443AB.9080105@xs4all.nl>	<533553E6.3060508@xs4all.nl> <CANeU7Qksj-tq0fjsZya1otX75sV4JOsAdXHr5Kxu-WyvYrksSw@mail.gmail.com>
-In-Reply-To: <CANeU7Qksj-tq0fjsZya1otX75sV4JOsAdXHr5Kxu-WyvYrksSw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 10 Mar 2014 13:05:11 -0400
+From: Lars-Peter Clausen <lars@metafoo.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2] [media] adv7180: Add support for power down
+Date: Mon, 10 Mar 2014 18:05:39 +0100
+Message-Id: <1394471139-2569-1-git-send-email-lars@metafoo.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chris,
+The adv7180 has a low power mode in which the analog and the digital processing
+section are shut down. Implement the s_power callback to let bridge drivers put
+the part into low power mode when not needed.
 
-On 03/30/2014 08:10 AM, Christopher Li wrote:
-> On Fri, Mar 28, 2014 at 3:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Is there any chance that the three issues I reported will be fixed? If not,
->> then I'll work around it in the kernel code.
->>
-> 
-> Most likely it is a sparse issue. Can you generate a minimal stand alone
-> test case that expose this bug? I try to simplify it as following, but
-> it does not
-> reproduce the error.
-> 
-> 
-> #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
-> 
-> static const char *v4l2_type_names[] = {
->         [1]    = "mmap",
->         [9] = "userptr",
->         [2] = "overlay",
->         [3] = "dmabuf",
-> };
-> 
-> #define prt_names(a, arr) (((unsigned)(a)) < ARRAY_SIZE(arr) ? arr[a]
-> : "unknown")
-> 
-> 
-> extern void prt(const char *name);
-> 
-> static void v4l_print_requestbuffers(const void *arg, int write_only)
-> {
->         const struct v4l2_requestbuffers *p = arg;
-> 
->         prt(prt_names(3, v4l2_type_names));
-> }
-> 
-> 
-> If you have the test case, you are welcome to submit a patch to
-> add the test case.
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+Changes since v1:
+    * Set powered to true in probe() since the part is powered on when it comes
+      out of reset
+    * Avoid use ofgoto in adv7180_s_power
+---
+ drivers/media/i2c/adv7180.c | 52 ++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 42 insertions(+), 10 deletions(-)
 
-I experimented a bit more and it turned out that the use of EXPORT_SYMBOL
-for the array is what causes the problem. Reproducible with this:
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 623cec5..9cfc9a3 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -127,6 +127,7 @@ struct adv7180_state {
+ 	int			irq;
+ 	v4l2_std_id		curr_norm;
+ 	bool			autodetect;
++	bool			powered;
+ 	u8			input;
+ };
+ #define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
+@@ -311,6 +312,37 @@ out:
+ 	return ret;
+ }
+ 
++static int adv7180_set_power(struct adv7180_state *state,
++	struct i2c_client *client, bool on)
++{
++	u8 val;
++
++	if (on)
++		val = ADV7180_PWR_MAN_ON;
++	else
++		val = ADV7180_PWR_MAN_OFF;
++
++	return i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG, val);
++}
++
++static int adv7180_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct adv7180_state *state = to_state(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret;
++
++	ret = mutex_lock_interruptible(&state->mutex);
++	if (ret)
++		return ret;
++
++	ret = adv7180_set_power(state, client, on);
++	if (ret == 0)
++		state->powered = on;
++
++	mutex_unlock(&state->mutex);
++	return ret;
++}
++
+ static int adv7180_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct v4l2_subdev *sd = to_adv7180_sd(ctrl);
+@@ -441,6 +473,7 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ 
+ static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+ 	.s_std = adv7180_s_std,
++	.s_power = adv7180_s_power,
+ };
+ 
+ static const struct v4l2_subdev_ops adv7180_ops = {
+@@ -587,6 +620,7 @@ static int adv7180_probe(struct i2c_client *client,
+ 	state->irq = client->irq;
+ 	mutex_init(&state->mutex);
+ 	state->autodetect = true;
++	state->powered = true;
+ 	state->input = 0;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+@@ -640,13 +674,10 @@ static const struct i2c_device_id adv7180_id[] = {
+ static int adv7180_suspend(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+-	int ret;
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct adv7180_state *state = to_state(sd);
+ 
+-	ret = i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG,
+-					ADV7180_PWR_MAN_OFF);
+-	if (ret < 0)
+-		return ret;
+-	return 0;
++	return adv7180_set_power(state, client, false);
+ }
+ 
+ static int adv7180_resume(struct device *dev)
+@@ -656,10 +687,11 @@ static int adv7180_resume(struct device *dev)
+ 	struct adv7180_state *state = to_state(sd);
+ 	int ret;
+ 
+-	ret = i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG,
+-					ADV7180_PWR_MAN_ON);
+-	if (ret < 0)
+-		return ret;
++	if (state->powered) {
++		ret = adv7180_set_power(state, client, true);
++		if (ret)
++			return ret;
++	}
+ 	ret = init_device(client, state);
+ 	if (ret < 0)
+ 		return ret;
+-- 
+1.8.0
 
-#include <linux/kernel.h>
-
-#define prt_names(a, arr) (((unsigned)(a)) < ARRAY_SIZE(arr) ? arr[a] : "unknown")
-
-extern const char *v4l2_names[];
-
-const char *v4l2_names[] = {
-        [1]    = "mmap",
-        [9] = "userptr",
-        [2] = "overlay",
-        [3] = "dmabuf",
-};
-EXPORT_SYMBOL(v4l2_names);
-
-extern void prt(const char *name);
-
-static void v4l_print_requestbuffers(const void *arg, int write_only)
-{
-        prt(prt_names(3, v4l2_names));
-}
-
-
-And with this sparse command:
-
-sparse  -nostdinc -isystem /usr/lib/gcc/x86_64-linux-gnu/4.8/include -Iarch/x86/include -Iarch/x86/include/generated  -Iinclude -Iarch/x86/include/uapi -Iarch/x86/include/generated/uapi -Iinclude/uapi -Iinclude/generated/uapi -include include/linux/kconfig.h -D__KERNEL__ x.c
-
-If I remove EXPORT_SYMBOL all is well. EXPORT_SYMBOL expands to this:
-
-extern typeof(v4l2_names) v4l2_names;
-extern __attribute__((externally_visible)) void *__crc_v4l2_names __attribute__((weak));
-static const unsigned long __kcrctab_v4l2_names __attribute__((__used__)) __attribute__((section("___kcrctab" "" "+" "v4l2_names"), unused)) = (unsigned long) &__crc_v4l2_names;
-static const char __kstrtab_v4l2_names[] __attribute__((section("__ksymtab_strings"), aligned(1))) = "v4l2_names";
-extern const struct kernel_symbol __ksymtab_v4l2_names;
-__attribute__((externally_visible)) const struct kernel_symbol __ksymtab_v4l2_names __attribute__((__used__)) __attribute__((section("___ksymtab" "" "+" "v4l2_names"), unused)) = { (unsigned long)&v4l2_names, __kstrtab_v4l2_names };
-
-I did some more research and the key is the first line: 
-
-extern typeof(v4l2_names) v4l2_names;
-
-If I add that to your test case:
-
-static const char *v4l2_type_names[] = {
-        [1]    = "mmap",
-        [9] = "userptr",
-        [2] = "overlay",
-        [3] = "dmabuf",
-};
-extern typeof(v4l2_type_names) v4l2_type_names;
-
-Then I get the same error with your test case.
-
-The smallest test case I can make is this:
-
-====== extern-array.c ======
-extern const char *v4l2_type_names[];
-const char *v4l2_type_names[] = {
-        "test"
-};
-extern const char *v4l2_type_names[];
-
-static void test(void)
-{
-	unsigned sz = sizeof(v4l2_type_names);
-}
-/*
- * check-name: duplicate extern array
- *
- * check-error-start
- * check-error-end
- */
-====== extern-array.c ======
-
-If I leave out the both 'extern' declarations I get:
-
-warning: symbol 'v4l2_type_names' was not declared. Should it be static?
-
-Which is a correct warning.
-
-If I leave out the second 'extern' only, then all is fine. If I add both
-'extern' declarations, then I get:
-
-error: cannot size expression
-
-which is clearly a sparse bug somewhere.
-
-Regards,
-
-	Hans
