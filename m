@@ -1,240 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49445 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754201AbaCCKIE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:04 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 66/79] [media] drx-j: get rid of function prototypes at drx_dap_fasi.c
-Date: Mon,  3 Mar 2014 07:07:00 -0300
-Message-Id: <1393841233-24840-67-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753165AbaCJXOn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH v2 21/48] s5p-tv: hdmi: Remove deprecated video-level DV timings operations
+Date: Tue, 11 Mar 2014 00:15:32 +0100
+Message-Id: <1394493359-14115-22-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reorder functions and data at drx_dap_fasi.c, in order to avoid
-having function prototypes.
+The video enum_dv_timings and dv_timings_cap operations are deprecated
+and unused. Remove them.
 
-This is in preparation to merge this code inside drxj, removing
-some duplicated bits there, and getting rid of yet another
-abstraction layer.
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../media/dvb-frontends/drx39xyj/drx_dap_fasi.c    | 178 +++++++--------------
- 1 file changed, 59 insertions(+), 119 deletions(-)
+ drivers/media/platform/s5p-tv/hdmi_drv.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.c b/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.c
-index b81b4f9cd4b0..3e456ba780eb 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.c
-@@ -47,82 +47,6 @@
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 3db496c..754740f 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -693,7 +693,7 @@ static int hdmi_dv_timings_cap(struct v4l2_subdev *sd,
+ 		return -EINVAL;
  
- /*============================================================================*/
- 
--/* Function prototypes */
--static int drxdap_fasi_write_block(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--					  u32 addr,	/* address of register/memory   */
--					  u16 datasize,	/* size of data                 */
--					  u8 *data,	/* data to send                 */
--					  u32 flags);	/* special device flags         */
--
--static int drxdap_fasi_read_block(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--					 u32 addr,	/* address of register/memory   */
--					 u16 datasize,	/* size of data                 */
--					 u8 *data,	/* data to send                 */
--					 u32 flags);	/* special device flags         */
--
--static int drxdap_fasi_write_reg8(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--					 u32 addr,	/* address of register          */
--					 u8 data,	/* data to write                */
--					 u32 flags);	/* special device flags         */
--
--static int drxdap_fasi_read_reg8(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--					u32 addr,	/* address of register          */
--					u8 *data,	/* buffer to receive data       */
--					u32 flags);	/* special device flags         */
--
--static int drxdap_fasi_read_modify_write_reg8(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--						   u32 waddr,	/* address of register          */
--						   u32 raddr,	/* address to read back from    */
--						   u8 datain,	/* data to send                 */
--						   u8 *dataout);	/* data to receive back         */
--
--static int drxdap_fasi_write_reg16(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--					  u32 addr,	/* address of register          */
--					  u16 data,	/* data to write                */
--					  u32 flags);	/* special device flags         */
--
--static int drxdap_fasi_read_reg16(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--					 u32 addr,	/* address of register          */
--					 u16 *data,	/* buffer to receive data       */
--					 u32 flags);	/* special device flags         */
--
--static int drxdap_fasi_read_modify_write_reg16(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--						    u32 waddr,	/* address of register          */
--						    u32 raddr,	/* address to read back from    */
--						    u16 datain,	/* data to send                 */
--						    u16 *dataout);	/* data to receive back         */
--
--static int drxdap_fasi_write_reg32(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--					  u32 addr,	/* address of register          */
--					  u32 data,	/* data to write                */
--					  u32 flags);	/* special device flags         */
--
--static int drxdap_fasi_read_reg32(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--					 u32 addr,	/* address of register          */
--					 u32 *data,	/* buffer to receive data       */
--					 u32 flags);	/* special device flags         */
--
--static int drxdap_fasi_read_modify_write_reg32(struct i2c_device_addr *dev_addr,	/* address of I2C device        */
--						    u32 waddr,	/* address of register          */
--						    u32 raddr,	/* address to read back from    */
--						    u32 datain,	/* data to send                 */
--						    u32 *dataout);	/* data to receive back         */
--
--/* The structure containing the protocol interface */
--struct drx_access_func drx_dap_fasi_funct_g = {
--	drxdap_fasi_write_block,	/* Supported */
--	drxdap_fasi_read_block,	/* Supported */
--	drxdap_fasi_write_reg8,	/* Not supported */
--	drxdap_fasi_read_reg8,	/* Not supported */
--	drxdap_fasi_read_modify_write_reg8,	/* Not supported */
--	drxdap_fasi_write_reg16,	/* Supported */
--	drxdap_fasi_read_reg16,	/* Supported */
--	drxdap_fasi_read_modify_write_reg16,	/* Supported */
--	drxdap_fasi_write_reg32,	/* Supported */
--	drxdap_fasi_read_reg32,	/* Supported */
--	drxdap_fasi_read_modify_write_reg32	/* Not supported */
--};
--
- /*============================================================================*/
- 
- /* Functions not supported by protocol*/
-@@ -346,49 +270,6 @@ static int drxdap_fasi_read_block(struct i2c_device_addr *dev_addr,
- 	return rc;
- }
- 
--/******************************
--*
--* int drxdap_fasi_read_modify_write_reg16 (
--*      struct i2c_device_addr *dev_addr,   -- address of I2C device
--*      u32 waddr,     -- address of chip register/memory
--*      u32 raddr,     -- chip address to read back from
--*      u16            wdata,     -- data to send
--*      u16 *rdata)     -- data to receive back
--*
--* Write 16-bit data, then read back the original contents of that location.
--* Requires long addressing format to be allowed.
--*
--* Before sending data, the data is converted to little endian. The
--* data received back is converted back to the target platform's endianness.
--*
--* WARNING: This function is only guaranteed to work if there is one
--* master on the I2C bus.
--*
--* Output:
--* - 0     if reading was successful
--*                  in that case: read back data is at *rdata
--* - -EIO  if anything went wrong
--*
--******************************/
--
--static int drxdap_fasi_read_modify_write_reg16(struct i2c_device_addr *dev_addr,
--						    u32 waddr,
--						    u32 raddr,
--						    u16 wdata, u16 *rdata)
--{
--	int rc = -EIO;
--
--#if (DRXDAPFASI_LONG_ADDR_ALLOWED == 1)
--	if (rdata == NULL)
--		return -EINVAL;
--
--	rc = drxdap_fasi_write_reg16(dev_addr, waddr, wdata, DRXDAP_FASI_RMW);
--	if (rc == 0)
--		rc = drxdap_fasi_read_reg16(dev_addr, raddr, rdata, 0);
--#endif
--
--	return rc;
--}
- 
- /******************************
- *
-@@ -628,6 +509,50 @@ static int drxdap_fasi_write_reg16(struct i2c_device_addr *dev_addr,
- 
- /******************************
- *
-+* int drxdap_fasi_read_modify_write_reg16 (
-+*      struct i2c_device_addr *dev_addr,   -- address of I2C device
-+*      u32 waddr,     -- address of chip register/memory
-+*      u32 raddr,     -- chip address to read back from
-+*      u16            wdata,     -- data to send
-+*      u16 *rdata)     -- data to receive back
-+*
-+* Write 16-bit data, then read back the original contents of that location.
-+* Requires long addressing format to be allowed.
-+*
-+* Before sending data, the data is converted to little endian. The
-+* data received back is converted back to the target platform's endianness.
-+*
-+* WARNING: This function is only guaranteed to work if there is one
-+* master on the I2C bus.
-+*
-+* Output:
-+* - 0     if reading was successful
-+*                  in that case: read back data is at *rdata
-+* - -EIO  if anything went wrong
-+*
-+******************************/
-+
-+static int drxdap_fasi_read_modify_write_reg16(struct i2c_device_addr *dev_addr,
-+						    u32 waddr,
-+						    u32 raddr,
-+						    u16 wdata, u16 *rdata)
-+{
-+	int rc = -EIO;
-+
-+#if (DRXDAPFASI_LONG_ADDR_ALLOWED == 1)
-+	if (rdata == NULL)
-+		return -EINVAL;
-+
-+	rc = drxdap_fasi_write_reg16(dev_addr, waddr, wdata, DRXDAP_FASI_RMW);
-+	if (rc == 0)
-+		rc = drxdap_fasi_read_reg16(dev_addr, raddr, rdata, 0);
-+#endif
-+
-+	return rc;
-+}
-+
-+/******************************
-+*
- * int drxdap_fasi_write_reg32 (
- *     struct i2c_device_addr *dev_addr, -- address of I2C device
- *     u32 addr,    -- address of chip register/memory
-@@ -656,3 +581,18 @@ static int drxdap_fasi_write_reg32(struct i2c_device_addr *dev_addr,
- 
- 	return drxdap_fasi_write_block(dev_addr, addr, sizeof(data), buf, flags);
- }
-+
-+/* The structure containing the protocol interface */
-+struct drx_access_func drx_dap_fasi_funct_g = {
-+	drxdap_fasi_write_block,	/* Supported */
-+	drxdap_fasi_read_block,	/* Supported */
-+	drxdap_fasi_write_reg8,	/* Not supported */
-+	drxdap_fasi_read_reg8,	/* Not supported */
-+	drxdap_fasi_read_modify_write_reg8,	/* Not supported */
-+	drxdap_fasi_write_reg16,	/* Supported */
-+	drxdap_fasi_read_reg16,	/* Supported */
-+	drxdap_fasi_read_modify_write_reg16,	/* Supported */
-+	drxdap_fasi_write_reg32,	/* Supported */
-+	drxdap_fasi_read_reg32,	/* Supported */
-+	drxdap_fasi_read_modify_write_reg32	/* Not supported */
-+};
+ 	/* Let the phy fill in the pixelclock range */
+-	v4l2_subdev_call(hdev->phy_sd, video, dv_timings_cap, cap);
++	v4l2_subdev_call(hdev->phy_sd, pad, dv_timings_cap, cap);
+ 	cap->type = V4L2_DV_BT_656_1120;
+ 	cap->bt.min_width = 720;
+ 	cap->bt.max_width = 1920;
+@@ -712,8 +712,6 @@ static const struct v4l2_subdev_core_ops hdmi_sd_core_ops = {
+ static const struct v4l2_subdev_video_ops hdmi_sd_video_ops = {
+ 	.s_dv_timings = hdmi_s_dv_timings,
+ 	.g_dv_timings = hdmi_g_dv_timings,
+-	.enum_dv_timings = hdmi_enum_dv_timings,
+-	.dv_timings_cap = hdmi_dv_timings_cap,
+ 	.g_mbus_fmt = hdmi_g_mbus_fmt,
+ 	.s_stream = hdmi_s_stream,
+ };
 -- 
-1.8.5.3
+1.8.3.2
 
