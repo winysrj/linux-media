@@ -1,64 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49469 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754124AbaCCKII (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:08 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 61/79] [media] drx-j: call ctrl_set_standard even if a standard is powered
-Date: Mon,  3 Mar 2014 07:06:55 -0300
-Message-Id: <1393841233-24840-62-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44897 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752780AbaCJLgK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 07:36:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 2/8] Documentation: of: Document graph bindings
+Date: Mon, 10 Mar 2014 12:37:42 +0100
+Message-ID: <2406124.RniJY1n1Xd@avalon>
+In-Reply-To: <1394443690.7380.10.camel@paszta.hi.pengutronix.de>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> <20140307182717.67596C40B43@trevor.secretlab.ca> <1394443690.7380.10.camel@paszta.hi.pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modulation and other parameters might have changed. So, better
-to call ctrl_set_standard() even if the device is already
-powered.
+Hi Philipp,
 
-That helps to put the device into a sane state, if something
-got wrong on a previous set_frontend call.
+On Monday 10 March 2014 10:28:10 Philipp Zabel wrote:
+> Hi Grant,
+> 
+> Am Freitag, den 07.03.2014, 18:27 +0000 schrieb Grant Likely:
+> > On Wed,  5 Mar 2014 10:20:36 +0100, Philipp Zabel wrote:
+> > > The device tree graph bindings as used by V4L2 and documented in
+> > > Documentation/device-tree/bindings/media/video-interfaces.txt contain
+> > > generic parts that are not media specific but could be useful for any
+> > > subsystem with data flow between multiple devices. This document
+> > > describes the generic bindings.
+> > > 
+> > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > 
+> > See my comments on the previous version. My concerns are the handling of
+> > the optional 'ports' node and the usage of reverse links.
+> 
+> would this change address your concern about the reverse links? As the
+> preexisting video-interfaces.txt bindings mandate the reverse links, I
+> worry about introducing a second, subtly different binding. It should be
+> noted somewhere in video-interfaces.txt that the reverse links are
+> deprecated for the but still supported by the code for backwards
+> compatibility.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+I'm very much against removing the reverse links. Without them the graph will 
+become much more complex to parse. You can try to convince me, but for now I'm 
+afraid it's a NACK.
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 7f17cd14839b..b1a7dfeec489 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -20213,18 +20213,15 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
- 	default:
- 		return -EINVAL;
- 	}
--
--	if (standard != state->current_standard || state->powered_up == 0) {
--		/* Set the standard (will be powered up if necessary */
--		result = ctrl_set_standard(demod, &standard);
--		if (result != 0) {
--			pr_err("Failed to set standard! result=%02x\n",
--			       result);
--			return -EINVAL;
--		}
--		state->powered_up = 1;
--		state->current_standard = standard;
-+	/* Set the standard (will be powered up if necessary */
-+	result = ctrl_set_standard(demod, &standard);
-+	if (result != 0) {
-+		pr_err("Failed to set standard! result=%02x\n",
-+			result);
-+		return -EINVAL;
- 	}
-+	state->powered_up = 1;
-+	state->current_standard = standard;
- 
- 	/* set channel parameters */
- 	channel = def_channel;
+> diff --git a/Documentation/devicetree/bindings/graph.txt
+> b/Documentation/devicetree/bindings/graph.txt index 1a69c07..eb6cae5 100644
+> --- a/Documentation/devicetree/bindings/graph.txt
+> +++ b/Documentation/devicetree/bindings/graph.txt
+> @@ -87,12 +87,13 @@ device {
+>  Links between endpoints
+>  -----------------------
+> 
+> -Each endpoint should contain a 'remote-endpoint' phandle property that
+> points -to the corresponding endpoint in the port of the remote device. In
+> turn, the -remote endpoint should contain a 'remote-endpoint' property. If
+> it has one, -it must not point to another than the local endpoint. Two
+> endpoints with their -'remote-endpoint' phandles pointing at each other
+> form a link between the -containing ports.
+> +Two endpoint nodes form a link between the two ports they are contained in
+> +if one contains a 'remote-endpoint' phandle property, pointing to the other
+> +endpoint. The endpoint pointed to should not contain a 'remote-endpoint'
+> +property itself. Which direction the phandle should point in depends on
+> the +device type. In general, links should be pointing outwards from
+> central +devices that provide DMA memory interfaces, such as display
+> controller, +video capture interface, or serial digital audio interface
+> cores.
+> 
+>  device-1 {
+>          port {
+> @@ -104,8 +105,8 @@ device-1 {
+> 
+>  device-2 {
+>          port {
+> -                device_2_input: endpoint {
+> -                        remote-endpoint = <&device_1_output>;
+> +                device_2_input: endpoint { };
+> +                       /* no remote-endpoint, this endpoint is pointed at
+> */ };
+>          };
+>  };
+
 -- 
-1.8.5.3
+Regards,
+
+Laurent Pinchart
 
