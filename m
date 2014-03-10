@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4365 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933073AbaCQMyp (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753163AbaCJXOm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:54:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 10 Mar 2014 19:14:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, pawel@osciak.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv3 PATCH for v3.15 4/5] v4l2-common.h: remove __user annotation in struct v4l2_edid
-Date: Mon, 17 Mar 2014 13:54:22 +0100
-Message-Id: <1395060863-42211-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1395060863-42211-1-git-send-email-hverkuil@xs4all.nl>
-References: <1395060863-42211-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 16/48] media: staging: davinci: vpfe: Switch to pad-level DV operations
+Date: Tue, 11 Mar 2014 00:15:27 +0100
+Message-Id: <1394493359-14115-17-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The video-level enum_dv_timings and dv_timings_cap operations are
+deprecated in favor of the pad-level versions. All subdev drivers
+implement the pad-level versions, switch to them.
 
-The edid array is copied to kernelspace by the v4l2 core, so drivers
-shouldn't see the __user annotation. This conforms to other structs like
-v4l2_ext_controls where the data pointed to is copied to from user to
-kernelspace.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/uapi/linux/v4l2-common.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
-index 270db89..e9011cd 100644
---- a/include/uapi/linux/v4l2-common.h
-+++ b/include/uapi/linux/v4l2-common.h
-@@ -73,7 +73,7 @@ struct v4l2_edid {
- 	__u32 start_block;
- 	__u32 blocks;
- 	__u32 reserved[5];
--	__u8 __user *edid;
-+	__u8  *edid;
- };
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 1f3b0f9..a1655a8 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -987,8 +987,10 @@ vpfe_enum_dv_timings(struct file *file, void *fh,
+ 	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+ 	struct v4l2_subdev *subdev = video->current_ext_subdev->subdev;
  
- #endif /* __V4L2_COMMON__ */
++	timings->pad = 0;
++
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_dv_timings\n");
+-	return v4l2_subdev_call(subdev, video, enum_dv_timings, timings);
++	return v4l2_subdev_call(subdev, pad, enum_dv_timings, timings);
+ }
+ 
+ /*
 -- 
-1.9.0
+1.8.3.2
 
