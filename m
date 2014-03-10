@@ -1,47 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58006 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753653AbaCNAOt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 20:14:49 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753390AbaCJXOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:52 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/17] rtl2832_sdr: expose e4000 controls to user
-Date: Fri, 14 Mar 2014 02:14:20 +0200
-Message-Id: <1394756071-22410-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
-References: <1394756071-22410-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 38/48] adv7604: Remove deprecated video-level DV timings operations
+Date: Tue, 11 Mar 2014 00:15:49 +0100
+Message-Id: <1394493359-14115-39-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-E4000 tuner driver provides now some controls. Expose those to
-userland.
+The video enum_dv_timings and dv_timings_cap operations are deprecated
+and unused. Remove them.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/media/i2c/adv7604.c | 35 +++++++++--------------------------
+ 1 file changed, 9 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-index 86fffcf..7e20576 100644
---- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-+++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
-@@ -1387,10 +1387,9 @@ struct dvb_frontend *rtl2832_sdr_attach(struct dvb_frontend *fe,
- 	/* Register controls */
- 	switch (s->cfg->tuner) {
- 	case RTL2832_TUNER_E4000:
--		v4l2_ctrl_handler_init(&s->hdl, 2);
--		s->bandwidth_auto = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
--		s->bandwidth = v4l2_ctrl_new_std(&s->hdl, ops, V4L2_CID_RF_TUNER_BANDWIDTH, 4300000, 11000000, 100000, 4300000);
--		v4l2_ctrl_auto_cluster(2, &s->bandwidth_auto, 0, false);
-+		v4l2_ctrl_handler_init(&s->hdl, 9);
-+		if (sd)
-+			v4l2_ctrl_add_handler(&s->hdl, sd->ctrl_handler, NULL);
- 		break;
- 	case RTL2832_TUNER_R820T:
- 		v4l2_ctrl_handler_init(&s->hdl, 2);
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index a96c339..d4d085c 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1527,16 +1527,20 @@ static int adv7604_enum_dv_timings(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static int __adv7604_dv_timings_cap(struct v4l2_subdev *sd,
+-			struct v4l2_dv_timings_cap *cap,
+-			unsigned int pad)
++static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
++			struct v4l2_dv_timings_cap *cap)
+ {
++	struct adv7604_state *state = to_state(sd);
++
++	if (cap->pad >= state->source_pad)
++		return -EINVAL;
++
+ 	cap->type = V4L2_DV_BT_656_1120;
+ 	cap->bt.max_width = 1920;
+ 	cap->bt.max_height = 1200;
+ 	cap->bt.min_pixelclock = 25000000;
+ 
+-	switch (pad) {
++	switch (cap->pad) {
+ 	case ADV7604_PAD_HDMI_PORT_A:
+ 	case ADV7604_PAD_HDMI_PORT_B:
+ 	case ADV7604_PAD_HDMI_PORT_C:
+@@ -1557,25 +1561,6 @@ static int __adv7604_dv_timings_cap(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static int adv7604_dv_timings_cap(struct v4l2_subdev *sd,
+-			struct v4l2_dv_timings_cap *cap)
+-{
+-	struct adv7604_state *state = to_state(sd);
+-
+-	return __adv7604_dv_timings_cap(sd, cap, state->selected_input);
+-}
+-
+-static int adv7604_pad_dv_timings_cap(struct v4l2_subdev *sd,
+-			struct v4l2_dv_timings_cap *cap)
+-{
+-	struct adv7604_state *state = to_state(sd);
+-
+-	if (cap->pad >= state->source_pad)
+-		return -EINVAL;
+-
+-	return __adv7604_dv_timings_cap(sd, cap, cap->pad);
+-}
+-
+ /* Fill the optional fields .standards and .flags in struct v4l2_dv_timings
+    if the format is listed in adv7604_timings[] */
+ static void adv7604_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
+@@ -2416,8 +2401,6 @@ static const struct v4l2_subdev_video_ops adv7604_video_ops = {
+ 	.s_dv_timings = adv7604_s_dv_timings,
+ 	.g_dv_timings = adv7604_g_dv_timings,
+ 	.query_dv_timings = adv7604_query_dv_timings,
+-	.enum_dv_timings = adv7604_enum_dv_timings,
+-	.dv_timings_cap = adv7604_dv_timings_cap,
+ };
+ 
+ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
+@@ -2426,7 +2409,7 @@ static const struct v4l2_subdev_pad_ops adv7604_pad_ops = {
+ 	.set_fmt = adv7604_set_format,
+ 	.get_edid = adv7604_get_edid,
+ 	.set_edid = adv7604_set_edid,
+-	.dv_timings_cap = adv7604_pad_dv_timings_cap,
++	.dv_timings_cap = adv7604_dv_timings_cap,
+ 	.enum_dv_timings = adv7604_enum_dv_timings,
+ };
+ 
 -- 
-1.8.5.3
+1.8.3.2
 
