@@ -1,82 +1,351 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:48772 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754547AbaCMRS6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 13:18:58 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH 11/12] ARM: dts: mbimx51sd: Add CMO-QVGA backlight support.
-Date: Thu, 13 Mar 2014 18:17:32 +0100
-Message-Id: <1394731053-6118-11-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
-References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48727 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752955AbaCJXOg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 04/48] v4l: Add 12-bit YUV 4:2:0 media bus pixel codes
+Date: Tue, 11 Mar 2014 00:15:15 +0100
+Message-Id: <1394493359-14115-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-ChangeLog v9->v11:
-- Now uses the drm-panel instead of the display-timings.
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 288 +++++++++++++++++++++
+ include/uapi/linux/v4l2-mediabus.h                 |   6 +-
+ 2 files changed, 293 insertions(+), 1 deletion(-)
 
-ChangeLog v8->v9:
-- Removed the Cc. They are now set in git-send-email directly.
-- The backlight is now on at boot.
-
-ChangeLog v6->v7:
-- Shrinked even more the Cc list.
-
-ChangeLog v5->v6:
-- Reordered the Cc list.
-
-ChangeLog v3->v5:
-- Updated to the new GPIO defines.
-
-ChangeLog v2->v3:
-- Splitted out from the patch that added support for the cpuimx51/mbimxsd51 boards.
-- This patch now only adds backlight support.
-- Added some interested people in the Cc list, and removed some people that
-  might be annoyed by the receiving of that patch which is unrelated to their
-  subsystem.
----
- .../imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts  |   10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
-index 7c280f8..4a3f805 100644
---- a/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
-+++ b/arch/arm/boot/dts/imx51-eukrea-mbimxsd51-baseboard-cmo-qvga.dts
-@@ -17,9 +17,19 @@
- 	model = "Eukrea MBIMXSD51 with the CMO-QVGA Display";
- 	compatible = "eukrea,mbimxsd51-baseboard-cmo-qvga", "eukrea,mbimxsd51-baseboard", "eukrea,cpuimx51", "fsl,imx51";
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index e3cbbb4..a0fa7e0 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -2718,6 +2718,294 @@
+ 	      <entry>v<subscript>1</subscript></entry>
+ 	      <entry>v<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-UYVY12-2X12">
++	      <entry>V4L2_MBUS_FMT_UYVY12_2X12</entry>
++	      <entry>0x201c</entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>u<subscript>11</subscript></entry>
++	      <entry>u<subscript>10</subscript></entry>
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>v<subscript>11</subscript></entry>
++	      <entry>v<subscript>10</subscript></entry>
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-VYUY12-2X12">
++	      <entry>V4L2_MBUS_FMT_VYUY12_2X12</entry>
++	      <entry>0x201d</entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>v<subscript>11</subscript></entry>
++	      <entry>v<subscript>10</subscript></entry>
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>u<subscript>11</subscript></entry>
++	      <entry>u<subscript>10</subscript></entry>
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-YUYV12-2X12">
++	      <entry>V4L2_MBUS_FMT_YUYV12_2X12</entry>
++	      <entry>0x201e</entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>u<subscript>11</subscript></entry>
++	      <entry>u<subscript>10</subscript></entry>
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>v<subscript>11</subscript></entry>
++	      <entry>v<subscript>10</subscript></entry>
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-YVYU12-2X12">
++	      <entry>V4L2_MBUS_FMT_YVYU12_2X12</entry>
++	      <entry>0x201f</entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>v<subscript>11</subscript></entry>
++	      <entry>v<subscript>10</subscript></entry>
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-20;
++	      <entry>u<subscript>11</subscript></entry>
++	      <entry>u<subscript>10</subscript></entry>
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
+ 	  </tbody>
+ 	</tgroup>
+       </table>
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index 43707b2..70a732b 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
+ 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
  
-+	backlight: backlight {
-+		compatible = "gpio-backlight";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_backlight_1>;
-+		gpios = <&gpio3 4 GPIO_ACTIVE_HIGH>;
-+		default-brightness-level = <1>;
-+		default-on;
-+	};
-+
- 	panel: panel {
- 		compatible = "eukrea,mbimxsd51-cmo-qvga", "simple-panel";
- 		power-supply = <&reg_lcd_3v3>;
-+		backlight = <&backlight>;
- 	};
+-	/* YUV (including grey) - next is 0x201c */
++	/* YUV (including grey) - next is 0x2020 */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+ 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+@@ -80,6 +80,10 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+ 	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
+ 	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
++	V4L2_MBUS_FMT_UYVY12_2X12 = 0x201c,
++	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
++	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
++	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
  
- 	reg_lcd_3v3: lcd-en {
+ 	/* Bayer - next is 0x3019 */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
 -- 
-1.7.9.5
+1.8.3.2
 
