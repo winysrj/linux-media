@@ -1,125 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:17152 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752495AbaC1PbG (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45717 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752105AbaCJN4H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 11:31:06 -0400
-Message-id: <533595B7.2090205@samsung.com>
-Date: Fri, 28 Mar 2014 16:31:03 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH/RFC 8/8] DT: Add documentation for exynos4-is camera-flash
- property
-References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
- <1395327070-20215-9-git-send-email-j.anaszewski@samsung.com>
- <20140324010534.GA2847@valkosipuli.retiisi.org.uk>
-In-reply-to: <20140324010534.GA2847@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Mon, 10 Mar 2014 09:56:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
+Date: Mon, 10 Mar 2014 14:57:40 +0100
+Message-ID: <5535468.UzAob2tcU4@avalon>
+In-Reply-To: <531D54E2.8030303@ti.com>
+References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <1536567.OYzyi25bjL@avalon> <531D54E2.8030303@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart2040582.688Yf7bA7m"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
 
-On 03/24/2014 02:05 AM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Thu, Mar 20, 2014 at 03:51:10PM +0100, Jacek Anaszewski wrote:
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Rob Herring <robh+dt@kernel.org>
->> Cc: Pawel Moll <pawel.moll@arm.com>
->> Cc: Mark Rutland <mark.rutland@arm.com>
->> Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
->> Cc: Kumar Gala <galak@codeaurora.org>
->> ---
->>   .../devicetree/bindings/media/samsung-fimc.txt     |    3 +++
->>   1 file changed, 3 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> index 922d6f8..88f9287 100644
->> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> @@ -108,6 +108,8 @@ Image sensor nodes
->>   The sensor device nodes should be added to their control bus controller (e.g.
->>   I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
->>   using the common video interfaces bindings, defined in video-interfaces.txt.
->> +If the sensor device has a led flash device associated with it then its phandle
->> +should be assigned to the camera-flash property.
->>
->>   Example:
->>
->> @@ -125,6 +127,7 @@ Example:
->>   			clock-frequency = <24000000>;
->>   			clocks = <&camera 1>;
->>   			clock-names = "mclk";
->> +			camera-flash = <&led_flash>;
->>
->>   			port {
->>   				s5k6aa_ep: endpoint {
->
-> It's indeed an interesting idea to declare the flash controller in the
-> sensor's properties rather than those of the ISP. The obvious upside is that
-> this way it's easy to figure out which subdev group the flash controller
-> belongs to.
->
-> There are a few other things to consider as well:
->
-> - You can't have a flash without a sensor. I can't think of why this would
->    be a real issue, though.
->
-> - Relations other than one-to-one become difficult. One flash but two
->    cameras --- think of stereo cameras.
->
-> 	- One camera and two flashes. I haven't seen any but I don't think
-> 	  that's unthinkable.
->
-> - It's not very nice of the ISP driver to just go and parse the
->    sensor's properties.
->
-> - As the property is FIMC specific, the sensor DT node now carries FIMC
->    related information.
->
-> A generic solution would be preferrable as this is not a FIMC related
-> problem.
->
-> I have to admit that I can't think of a better solution right now than just
-> putting a list of the flash device phandles to the ISP device's DT node, and
-> then adding information on which sensor (numeric ID) the flash is related to
-> as an array. Better ideas would be welcome.
->
+--nextPart2040582.688Yf7bA7m
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
-One reason why the flash sub-dev is registered by the sensor is the
-fact that a subdev has to be registered to make it available for use.
-The second reason is that it is physically connected with the sensor on
-the board via torchen/flashen traces. However it would be nice if the
-flash could be available for use even if its parent sensor driver isn't 
-probed.
+Hi Tomi,
 
-There are also possible configurations where traces are routed through
-multiplexers and in such cases the sensor-flash relation is not fixed.
+On Monday 10 March 2014 08:00:02 Tomi Valkeinen wrote:
+> On 08/03/14 17:54, Laurent Pinchart wrote:
+> >> Sylwester suggested as an alternative, if I understood correctly, =
+to
+> >>=20
+> >> drop the endpoint node and instead keep the port:
+> >>     device-a {
+> >>         implicit_output_ep: port {
+> >>             remote-endpoint =3D <&explicit_input_ep>;
+> >>         };
+> >>     };
+> >>    =20
+> >>     device-b {
+> >>         port {
+> >>             explicit_input_ep: endpoint {
+> >>                 remote-endpoint =3D <&implicit_output_ep>;
+> >>             };
+> >>         };
+> >>     };
+> >>=20
+> >> This would have the advantage to reduce verbosity for devices with=
 
-I propose to introduce a "flash manager" which would maintain
-all the available flashes. V4L2 Flash sub-devices could register
-with it asynchronously. The flash manager could expose controls
-for configuring flash-sensor relations. In specific case a flash
-manager could be built upon a multiplexer device. This would suit
-me very well as I am currently facing such a configuration
-on another board. For time being I put gpios of a multiplexer
-to the flash DT node, but it doesn't reflect board configuration,
-where multiplexer is a separate device. I could try to implement
-the flash manager and submit an RFC. What is your opinion, does
-it make a sense?
+> >> multiple ports that are only connected via one endport each, and y=
+ou'd
+> >> always have the connected ports in the device tree as 'port' nodes=
+.
+> >=20
+> > I like that idea. I would prefer making the 'port' nodes mandatory =
+and the
+> > 'ports' and 'endpoint' nodes optional. Leaving the 'port' node out
+> > slightly
+> > decreases readability in my opinion, but making the 'endpoint' node=
 
+> > optional increases it. That's just my point of view though.
+>=20
+> I, on the other hand, don't like it =3D). With that format, the
+> remote-endpoint doesn't point to an EP, but a port. And you'll have
+> endpoint's properties in a port node, among the port's properties.
+
+We'll need to discuss port and endpoint properties separately, but it m=
+ight=20
+make sense to allow endpoints to override port properties instead of=20=
+
+specifying the same value explicitly for each endpoint. Endpoint parsin=
+g=20
+functions would thus look for properties in endpoints first and then in=
+ the=20
+parent port node if the property can't be found. This would work with i=
+mplicit=20
+endpoints and would be hidden to the drivers.
+
+(Please note that this is just food for thought)
+
+=2D-=20
 Regards,
-Jacek Anaszewski
+
+Laurent Pinchart
+
+--nextPart2040582.688Yf7bA7m
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQEcBAABAgAGBQJTHcTUAAoJEIkPb2GL7hl13loH/j9F18fh/nKm2t1gabghaVF1
+UzBQnSQirdoRuFBjC166EVXsZK4mp2N57FWFALOGSsznji7COqb3MJFoXEL2p7s6
+hjWEnuS0kjSTyy/7hGC3jUOC+moM6F6EJ4FLckKstUmkGA41W7JGoQyRxoe02x35
+rkPJ4krQwvMW+Kyql2YD7wl1eevXECD/b6twhP60vbauqObItyu/LK+6IC4qZLKI
+f9TJQkPiBsbGk+VFgM2C3Yv49oQ5SMiaKSttjY7rSdEQssF4Ob3WA2AXurQTuIBU
+E7/7YkBoS7mVALIMt99H8Jp7JzjwYqghyB7cWmyBt2PE9rd/XTZaW0lMvj1ulto=
+=Df0E
+-----END PGP SIGNATURE-----
+
+--nextPart2040582.688Yf7bA7m--
 
