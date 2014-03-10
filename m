@@ -1,47 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f171.google.com ([209.85.216.171]:39932 "EHLO
-	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751746AbaC3RQX (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45398 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752698AbaCJNDL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 13:16:23 -0400
-MIME-Version: 1.0
-In-Reply-To: <CA+55aFy8y6ctXcc8qcqVkRDAL=ZWU0DAfuZ4zQcP6uqzPmb-AA@mail.gmail.com>
-References: <532442E2.7050206@xs4all.nl>
-	<532443AB.9080105@xs4all.nl>
-	<533553E6.3060508@xs4all.nl>
-	<CANeU7Qksj-tq0fjsZya1otX75sV4JOsAdXHr5Kxu-WyvYrksSw@mail.gmail.com>
-	<533807FC.5050008@xs4all.nl>
-	<CA+55aFy8y6ctXcc8qcqVkRDAL=ZWU0DAfuZ4zQcP6uqzPmb-AA@mail.gmail.com>
-Date: Sun, 30 Mar 2014 10:16:22 -0700
-Message-ID: <CANeU7QkxSMEvyiA7ua52cRPinwcZ+gDbEuJiD7BE+oOmA_2bUw@mail.gmail.com>
-Subject: Re: sparse: ARRAY_SIZE and sparse array initialization
-From: Christopher Li <sparse@chrisli.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux-Sparse <linux-sparse@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 10 Mar 2014 09:03:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [RFC/PATCH] v4l: vb2: Add a function to discard all DONE buffers
+Date: Mon, 10 Mar 2014 14:04:41 +0100
+Message-Id: <1394456681-8948-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 30, 2014 at 9:48 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> But then when we look up a symbol, we only look at the latest one, so
-> when we size the array, we look at that "extern" declaration, and
-> don't see the size that was created with the initializer.
+When suspending a device while a video stream is active all buffers
+marked as done but not dequeued yet will be kept across suspend and
+given back to userspace after resume. This will result in outdated
+buffers being dequeued.
 
-Exactly. Sparse need to handle merging of incremental type declare.
-This is a long known sparse bug.
+Introduce a new vb2 function to mark all done buffers as erroneous
+instead, to be used by drivers at resume time.
 
->
-> I'll think about how to fix it cleanly. Expect a patch shortly.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 24 ++++++++++++++++++++++++
+ include/media/videobuf2-core.h           |  1 +
+ 2 files changed, 25 insertions(+)
 
-Wow, cool. I want to mention one special case of the type merging.
-It has some thing to do with scoping as well. When the scope ends,
-the incremental type added inside the scope will need to strip away
-as well. So it can not be blindly add to the original type without consider
-how to take that layer away later.
+The OMAP3 ISP driver custom queue implementation has this feature. I'm trying
+to move it to videobuf2, and thus need something similar in vb2. The function
+name could probably be improved, I'm open to suggestions.
 
-This should be very exciting. Looking forward to the patch.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 8e6695c..ae2b5b1 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -971,6 +971,30 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ EXPORT_SYMBOL_GPL(vb2_buffer_done);
+ 
+ /**
++ * vb2_discard_done() - discard all buffers marked as DONE
++ * @q:		videobuf2 queue
++ *
++ * This function is intended to be used with suspend/resume operations. It
++ * discards all 'done' buffers as they would be too old to be requested after
++ * resume.
++ *
++ * Drivers must stop the hardware and synchronize with interrupt handlers and/or
++ * delayed works before calling this function to make sure no buffer will be
++ * touched by the driver and/or hardware.
++ */
++void vb2_discard_done(struct vb2_queue *q)
++{
++	struct vb2_buffer *vb;
++	unsigned long flags;
++
++	spin_lock_irqsave(&q->done_lock, flags);
++	list_for_each_entry(vb, &q->done_list, done_entry)
++		vb->state = VB2_BUF_STATE_ERROR;
++	spin_unlock_irqrestore(&q->done_lock, flags);
++}
++EXPORT_SYMBOL_GPL(vb2_discard_done);
++
++/**
+  * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
+  * v4l2_buffer by the userspace. The caller has already verified that struct
+  * v4l2_buffer has a valid number of planes.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bf6859e..213b555 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -372,6 +372,7 @@ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no);
+ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no);
+ 
+ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
++void vb2_discard_done(struct vb2_queue *q);
+ int vb2_wait_for_all_buffers(struct vb2_queue *q);
+ 
+ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b);
+-- 
+Regards,
 
-Chris
+Laurent Pinchart
+
