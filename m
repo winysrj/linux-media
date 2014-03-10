@@ -1,134 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:19696 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751131AbaCXXPU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 19:15:20 -0400
-Date: Tue, 25 Mar 2014 07:15:17 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kbuild-all@01.org
-Subject: [linuxtv-media:master 453/499] WARNING: Comparing jiffies is
- almost always wrong; prefer time_after, time_before and friends
-Message-ID: <5330bc85.WjS9lWyITuNDeI8X%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1749 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753028AbaCJDeu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Mar 2014 23:34:50 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2A3Yl2G015688
+	for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 04:34:49 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 096B22A1888
+	for <linux-media@vger.kernel.org>; Mon, 10 Mar 2014 04:34:43 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140310033443.096B22A1888@tschai.lan>
+Date: Mon, 10 Mar 2014 04:34:43 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/media_tree.git master
-head:   8432164ddf7bfe40748ac49995356ab4dfda43b7
-commit: 3d0c8fa3c5a0f9ffc4c3e8b4625ddeb875aee50b [453/499] [media] msi3101: convert to SDR API
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-scripts/checkpatch.pl 0001-media-msi3101-convert-to-SDR-API.patch
-# many are suggestions rather than must-fix
+Results of the daily build of media_tree:
 
-WARNING: line over 80 characters
-#369: drivers/staging/media/msi3101/sdr-msi3101.c:55:
-+#define V4L2_PIX_FMT_SDR_S8     v4l2_fourcc('D', 'S', '0', '8') /* signed 8-bit */
+date:		Mon Mar 10 04:00:29 CET 2014
+git branch:	test
+git hash:	f2d7313534072a5fe192e7cf46204b413acef479
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
-WARNING: line over 80 characters
-#370: drivers/staging/media/msi3101/sdr-msi3101.c:56:
-+#define V4L2_PIX_FMT_SDR_S12    v4l2_fourcc('D', 'S', '1', '2') /* signed 12-bit */
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-WARNING: line over 80 characters
-#371: drivers/staging/media/msi3101/sdr-msi3101.c:57:
-+#define V4L2_PIX_FMT_SDR_S14    v4l2_fourcc('D', 'S', '1', '4') /* signed 14-bit */
+Detailed results are available here:
 
-WARNING: line over 80 characters
-#372: drivers/staging/media/msi3101/sdr-msi3101.c:58:
-+#define V4L2_PIX_FMT_SDR_MSI2500_384 v4l2_fourcc('M', '3', '8', '4') /* Mirics MSi2500 format 384 */
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-WARNING: Unnecessary space before function pointer arguments
-#450: drivers/staging/media/msi3101/sdr-msi3101.c:151:
-+	int (*convert_stream) (struct msi3101_state *s, u8 *dst, u8 *src,
+Full logs are available here:
 
-WARNING: line over 80 characters
-#553: drivers/staging/media/msi3101/sdr-msi3101.c:212:
-+		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
-#588: drivers/staging/media/msi3101/sdr-msi3101.c:235:
-+	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
+The Media Infrastructure API from this daily build is here:
 
-WARNING: line over 80 characters
-#590: drivers/staging/media/msi3101/sdr-msi3101.c:237:
-+		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
-
-WARNING: Missing a blank line after declarations
-#592: drivers/staging/media/msi3101/sdr-msi3101.c:239:
-+		unsigned int samples = sample_num[i_max - 1] - s->sample;
-+		s->jiffies_next = jiffies_now;
-
-WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
-#798: drivers/staging/media/msi3101/sdr-msi3101.c:387:
-+	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
-
-WARNING: line over 80 characters
-#801: drivers/staging/media/msi3101/sdr-msi3101.c:389:
-+		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
-
-WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
-#884: drivers/staging/media/msi3101/sdr-msi3101.c:452:
-+	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
-
-WARNING: line over 80 characters
-#887: drivers/staging/media/msi3101/sdr-msi3101.c:454:
-+		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
-
-WARNING: line over 80 characters
-#933: drivers/staging/media/msi3101/sdr-msi3101.c:492:
-+		sample_num[i] = src[3] << 24 | src[2] << 16 | src[1] << 8 | src[0] << 0;
-
-WARNING: Comparing jiffies is almost always wrong; prefer time_after, time_before and friends
-#958: drivers/staging/media/msi3101/sdr-msi3101.c:515:
-+	if ((s->jiffies_next + msecs_to_jiffies(10000)) <= jiffies) {
-
-WARNING: line over 80 characters
-#960: drivers/staging/media/msi3101/sdr-msi3101.c:517:
-+		unsigned long msecs = jiffies_to_msecs(jiffies_now) - jiffies_to_msecs(s->jiffies_next);
-
-WARNING: Missing a blank line after declarations
-#962: drivers/staging/media/msi3101/sdr-msi3101.c:519:
-+		unsigned int samples = sample_num[i_max - 1] - s->sample;
-+		s->jiffies_next = jiffies_now;
-
-ERROR: space required after that ';' (ctx:VxV)
-#987: drivers/staging/media/msi3101/sdr-msi3101.c:539:
-+	struct {signed int x:14;} se;
- 	                       ^
-
-WARNING: Missing a blank line after declarations
-#1245: drivers/staging/media/msi3101/sdr-msi3101.c:1073:
-+	u32 reg;
-+	dev_dbg(&s->udev->dev, "%s: lna=%d mixer=%d if=%d\n", __func__,
-
-WARNING: Missing a blank line after declarations
-#1447: drivers/staging/media/msi3101/sdr-msi3101.c:1380:
-+	int i;
-+	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
-
-WARNING: Missing a blank line after declarations
-#1473: drivers/staging/media/msi3101/sdr-msi3101.c:1404:
-+	int i;
-+	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
-
-WARNING: Missing a blank line after declarations
-#1528: drivers/staging/media/msi3101/sdr-msi3101.c:1455:
-+	int ret  = 0;
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d\n",
-
-WARNING: Missing a blank line after declarations
-#1548: drivers/staging/media/msi3101/sdr-msi3101.c:1473:
-+	int ret, band;
-+	dev_dbg(&s->udev->dev, "%s: tuner=%d type=%d frequency=%u\n",
-
-WARNING: line over 80 characters
-#1559: drivers/staging/media/msi3101/sdr-msi3101.c:1484:
-+		#define BAND_RF_0 ((bands_rf[0].rangehigh + bands_rf[1].rangelow) / 2)
-
----
-0-DAY kernel build testing backend              Open Source Technology Center
-http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+http://www.xs4all.nl/~hverkuil/spec/media.html
