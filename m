@@ -1,46 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60293 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754222AbaCERUa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 12:20:30 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] DocBook: Fix a breakage at controls.xml
-Date: Wed,  5 Mar 2014 14:19:50 -0300
-Message-Id: <1394039990-26111-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752958AbaCJXOh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 19:14:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 05/48] v4l: Add 12-bit YUV 4:2:2 media bus pixel codes
+Date: Tue, 11 Mar 2014 00:15:16 +0100
+Message-Id: <1394493359-14115-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some previous patch introduced this bug:
-
-/devel/v4l/patchwork/Documentation/DocBook/controls.xml:2262: parser error : attributes construct error
-	      <row id=""v4l2-mpeg-video-hor-search-range">
-	                ^
-/devel/v4l/patchwork/Documentation/DocBook/controls.xml:2262: parser error : Couldn't find end of Start Tag row line 2262
-	      <row id=""v4l2-mpeg-video-hor-search-range">
-	                ^
-
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 240 +++++++++++++++++++++
+ include/uapi/linux/v4l2-mediabus.h                 |   6 +-
+ 2 files changed, 245 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 0e1770c133a8..b7f3feb820db 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -2259,7 +2259,7 @@ VBV buffer control.</entry>
- 	      </row>
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index a0fa7e0..b2d5a03 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -3006,6 +3006,246 @@
+ 	      <entry>u<subscript>1</subscript></entry>
+ 	      <entry>u<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-UYVY12-1X24">
++	      <entry>V4L2_MBUS_FMT_UYVY12_1X24</entry>
++	      <entry>0x2020</entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>u<subscript>11</subscript></entry>
++	      <entry>u<subscript>10</subscript></entry>
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>v<subscript>11</subscript></entry>
++	      <entry>v<subscript>10</subscript></entry>
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-VYUY12-1X24">
++	      <entry>V4L2_MBUS_FMT_VYUY12_1X24</entry>
++	      <entry>0x2021</entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>v<subscript>11</subscript></entry>
++	      <entry>v<subscript>10</subscript></entry>
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>u<subscript>11</subscript></entry>
++	      <entry>u<subscript>10</subscript></entry>
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-YUYV12-1X24">
++	      <entry>V4L2_MBUS_FMT_YUYV12_1X24</entry>
++	      <entry>0x2022</entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>u<subscript>11</subscript></entry>
++	      <entry>u<subscript>10</subscript></entry>
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>v<subscript>11</subscript></entry>
++	      <entry>v<subscript>10</subscript></entry>
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-YVYU12-1X24">
++	      <entry>V4L2_MBUS_FMT_YVYU12_1X24</entry>
++	      <entry>0x2023</entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>v<subscript>11</subscript></entry>
++	      <entry>v<subscript>10</subscript></entry>
++	      <entry>v<subscript>9</subscript></entry>
++	      <entry>v<subscript>8</subscript></entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      &dash-ent-8;
++	      <entry>y<subscript>11</subscript></entry>
++	      <entry>y<subscript>10</subscript></entry>
++	      <entry>y<subscript>9</subscript></entry>
++	      <entry>y<subscript>8</subscript></entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>u<subscript>11</subscript></entry>
++	      <entry>u<subscript>10</subscript></entry>
++	      <entry>u<subscript>9</subscript></entry>
++	      <entry>u<subscript>8</subscript></entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
+ 	  </tbody>
+ 	</tgroup>
+       </table>
+diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+index 70a732b..1445e85 100644
+--- a/include/uapi/linux/v4l2-mediabus.h
++++ b/include/uapi/linux/v4l2-mediabus.h
+@@ -52,7 +52,7 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
+ 	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
  
- 		  <row><entry></entry></row>
--	      <row id=""v4l2-mpeg-video-hor-search-range">
-+	      <row id="v4l2-mpeg-video-hor-search-range">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE</constant>&nbsp;</entry>
- 		<entry>integer</entry>
- 	      </row>
+-	/* YUV (including grey) - next is 0x2020 */
++	/* YUV (including grey) - next is 0x2024 */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+ 	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+@@ -84,6 +84,10 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_VYUY12_2X12 = 0x201d,
+ 	V4L2_MBUS_FMT_YUYV12_2X12 = 0x201e,
+ 	V4L2_MBUS_FMT_YVYU12_2X12 = 0x201f,
++	V4L2_MBUS_FMT_UYVY12_1X24 = 0x2020,
++	V4L2_MBUS_FMT_VYUY12_1X24 = 0x2021,
++	V4L2_MBUS_FMT_YUYV12_1X24 = 0x2022,
++	V4L2_MBUS_FMT_YVYU12_1X24 = 0x2023,
+ 
+ 	/* Bayer - next is 0x3019 */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
 -- 
-1.8.5.3
+1.8.3.2
 
