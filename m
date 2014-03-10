@@ -1,86 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35248 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932996AbaCUMQl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 08:16:41 -0400
-Message-ID: <532C2D94.4020705@ti.com>
-Date: Fri, 21 Mar 2014 14:16:20 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Grant Likely <grant.likely@linaro.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 139468148.3QhLg3QYq1@avalon> <531F08A8.300@ti.com> <1883687.VdfitvQEN3@ samsung.com> <avalon@samsung.com> <20140320172302.CD320C4067A@trevor. secretlab.ca> <532C1808.6090409@samsung.com> <20140321114735.3E132C4052A@trevor.secretlab.ca>
-In-Reply-To: <20140321114735.3E132C4052A@trevor.secretlab.ca>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="9LlUb069OlpdAjBJaW3weLxU5bDgBtkGp"
+Received: from mail.kapsi.fi ([217.30.184.167]:55938 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752418AbaCJTeq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 15:34:46 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [FINAL PATCH 1/6] v4l: rename v4l2_format_sdr to v4l2_sdr_format
+Date: Mon, 10 Mar 2014 21:34:07 +0200
+Message-Id: <1394480052-6003-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---9LlUb069OlpdAjBJaW3weLxU5bDgBtkGp
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Rename v4l2_format_sdr to v4l2_sdr_format in order to keep it in
+line with other formats.
 
-On 21/03/14 13:47, Grant Likely wrote:
+Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/dev-sdr.xml | 2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c        | 2 +-
+ include/uapi/linux/videodev2.h              | 6 +++---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-> I'm firm on the opinion that the checking must also happen at runtime.
-> The biggest part of my objection has been how easy it would be to get a=
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index ac9f1af..524b9c4 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -78,7 +78,7 @@ of the data format.
+     </para>
+ 
+     <table pgwide="1" frame="none" id="v4l2-format-sdr">
+-      <title>struct <structname>v4l2_format_sdr</structname></title>
++      <title>struct <structname>v4l2_sdr_format</structname></title>
+       <tgroup cols="3">
+         &cs-str;
+         <tbody valign="top">
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 95dd4f1..e6e86a2 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -246,7 +246,7 @@ static void v4l_print_format(const void *arg, bool write_only)
+ 	const struct v4l2_vbi_format *vbi;
+ 	const struct v4l2_sliced_vbi_format *sliced;
+ 	const struct v4l2_window *win;
+-	const struct v4l2_format_sdr *sdr;
++	const struct v4l2_sdr_format *sdr;
+ 	unsigned i;
+ 
+ 	pr_cont("type=%s", prt_names(p->type, v4l2_type_names));
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index d3187d8..5f10ed9 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1714,10 +1714,10 @@ struct v4l2_pix_format_mplane {
+ } __attribute__ ((packed));
+ 
+ /**
+- * struct v4l2_format_sdr - SDR format definition
++ * struct v4l2_sdr_format - SDR format definition
+  * @pixelformat:	little endian four character code (fourcc)
+  */
+-struct v4l2_format_sdr {
++struct v4l2_sdr_format {
+ 	__u32				pixelformat;
+ 	__u8				reserved[28];
+ } __attribute__ ((packed));
+@@ -1740,7 +1740,7 @@ struct v4l2_format {
+ 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+ 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+ 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
+-		struct v4l2_format_sdr		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
++		struct v4l2_sdr_format		sdr;     /* V4L2_BUF_TYPE_SDR_CAPTURE */
+ 		__u8	raw_data[200];                   /* user-defined */
+ 	} fmt;
+ };
+-- 
+1.8.5.3
 
-> linkage out of sync, and dtc is not necessarily the last tool to touch
-> the dtb before the kernel gets booted. I want the kernel to flat out
-> reject any linkage that is improperly formed.
-
-Isn't it trivial to verify it with the current v4l2 bindings? And
-endpoint must have a 'remote-endpoint' property, and the endpoint on the
-other end must have similar property, pointing in the first endpoint.
-Anything else is an error.
-
-I agree that it's easier to write bad links in the dts with
-double-linking than with single-linking, but it's still trivial to
-verify it in the kernel.
-
- Tomi
-
-
-
---9LlUb069OlpdAjBJaW3weLxU5bDgBtkGp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTLC2UAAoJEPo9qoy8lh718O4P/R4CiDBud/awWEW/w8LmG6P/
-CxswSoraEyr7O2Mbwlq+Dl3jY7B6LK4I6+1TN10ooV4dEQeUbApNg/qin+6mjlum
-GiaQwZuvZ1dT9qAKF3MYkRJa6csRqIwvSgRDF6EH6f5ur5IY8t9hv+Ll/ZsQbkL5
-bsIVgrfcuBgPQiV6+QB+CgzW4xKBbe/6hniiub2y+Yf3gDlTFO4eU07Q26R6kvbM
-89DBo3deSomyRKg2+BKj+xauxz8rysf4Pcog7EZHvR83iegqiqAaw2k5p1DNjhpm
-nGo7rnOoELT9+WeqQ3gcIK5E2FLhag9Iahuzi/6SPEI+kwb7iHc3ENE3qgOtpHVp
-aeqelBgQFX+rDFdM1U8v1HdP71wQ0pHSKQxFSpUE/F+ZoEfxOVQ3cBjm69+jVXAl
-BVbczCSQ/9aMr6KPwJtwDskQqL6LqP/PnMg62T7tBwka0W6pK7zUX9VgmOwQ1ruP
-0M6DGNGzv+kRTO7j8XD1WuHE0aPVHQHLl3ZwZta0tJc1h0tMWR8TbgtavIqqQkwC
-dSKOzEKkEL0Ik0iqthQuZuPtK06hBRKRIpDIUMuB8j/N30F2PlL7xreImvslqgQs
-oi7eHLzTIxnDLDlWVFa/IzRg30I8aA/37iYIS0Ywn0LrgJV88y84CoXrlSDUsPkR
-xaP2jFwuooy8Y4ud8JrS
-=m22+
------END PGP SIGNATURE-----
-
---9LlUb069OlpdAjBJaW3weLxU5bDgBtkGp--
