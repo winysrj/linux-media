@@ -1,38 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51496 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780AbaCCTh5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 14:37:57 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/4] [media] em28xx: update CARDLIST.em28xx
-Date: Mon,  3 Mar 2014 16:37:15 -0300
-Message-Id: <1393875438-1916-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-out-230.synserver.de ([212.40.185.230]:1036 "EHLO
+	smtp-out-129.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753244AbaCJPb7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 11:31:59 -0400
+Message-ID: <531DDB10.4070806@metafoo.de>
+Date: Mon, 10 Mar 2014 16:32:32 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 7/7] [media] adv7180: Add support for power down
+References: <1394208873-23260-1-git-send-email-lars@metafoo.de> <1394208873-23260-7-git-send-email-lars@metafoo.de> <531DCE2E.5030807@xs4all.nl> <531DD91D.5020502@metafoo.de> <531DDA30.7080306@xs4all.nl>
+In-Reply-To: <531DDA30.7080306@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some new boards got added. Update the cardlist.
+On 03/10/2014 04:28 PM, Hans Verkuil wrote:
+> On 03/10/2014 04:24 PM, Lars-Peter Clausen wrote:
+>> On 03/10/2014 03:37 PM, Hans Verkuil wrote:
+>> [...]
+>>>> +
+>>>> +static int adv7180_s_power(struct v4l2_subdev *sd, int on)
+>>>> +{
+>>>> +	struct adv7180_state *state = to_state(sd);
+>>>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>>> +	int ret;
+>>>> +
+>>>> +	ret = mutex_lock_interruptible(&state->mutex);
+>>>> +	if (ret)
+>>>> +		return ret;
+>>>> +
+>>>> +	ret = adv7180_set_power(state, client, on);
+>>>> +	if (ret)
+>>>> +		goto out;
+>>>> +
+>>>> +	state->powered = on;
+>>>> +out:
+>>>
+>>> I would change this to:
+>>>
+>>> 	if (!ret)
+>>> 		state->powered = on;
+>>>
+>>> and drop the 'goto'.
+>>>
+>>
+>> ok.
+>>
+>> [...]
+>>>>    static int adv7180_resume(struct device *dev)
+>>>> @@ -656,10 +687,11 @@ static int adv7180_resume(struct device *dev)
+>>>>    	struct adv7180_state *state = to_state(sd);
+>>>>    	int ret;
+>>>>
+>>>> -	ret = i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG,
+>>>> -					ADV7180_PWR_MAN_ON);
+>>>> -	if (ret < 0)
+>>>> -		return ret;
+>>>> +	if (state->powered) {
+>>>> +		ret = adv7180_set_power(state, client, true);
+>>>> +		if (ret)
+>>>> +			return ret;
+>>>> +	}
+>>>>    	ret = init_device(client, state);
+>>>>    	if (ret < 0)
+>>>>    		return ret;
+>>>>
+>>>
+>>> What is the initial state of the driver when loaded? Shouldn't probe() set the
+>>> 'powered' variable to true initially?
+>>
+>> Yep, st->powered should be set to true by default.
+>>
+>> What's your process in general, want me to resend the whole series, or are
+>> you going to apply the patches that are ok?
+>
+> When do you think you can have a fixed version of this patch ready? If it is
+> today/tomorrow, then I'll wait for that, otherwise I'll make a pull request
+> for the other 6 patches (which look fine).
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- Documentation/video4linux/CARDLIST.em28xx | 4 ++++
- 1 file changed, 4 insertions(+)
+I already have the updated version of the patch, will send it out soon.
 
-diff --git a/Documentation/video4linux/CARDLIST.em28xx b/Documentation/video4linux/CARDLIST.em28xx
-index 404ac9b5f440..cb8706be3dbe 100644
---- a/Documentation/video4linux/CARDLIST.em28xx
-+++ b/Documentation/video4linux/CARDLIST.em28xx
-@@ -87,3 +87,7 @@
-  86 -> PCTV QuatroStick nano (520e)             (em2884)        [2013:0251]
-  87 -> Terratec Cinergy HTC USB XS              (em2884)        [0ccd:008e,0ccd:00ac]
-  88 -> C3 Tech Digital Duo HDTV/SDTV USB        (em2884)        [1b80:e755]
-+ 89 -> Delock 61959                             (em2874)        [1b80:e1cc]
-+ 90 -> KWorld USB ATSC TV Stick UB435-Q V2      (em2874)        [1b80:e346]
-+ 91 -> SpeedLink Vicious And Devine Laplace webcam (em2765)        [1ae7:9003,1ae7:9004]
-+ 92 -> PCTV DVB-S2 Stick (461e)                 (em28178)
--- 
-1.8.5.3
+- Lars
+
 
