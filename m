@@ -1,92 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45361 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39682 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752673AbaCUOXT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 10:23:19 -0400
-Message-ID: <532C4B3C.4030406@ti.com>
-Date: Fri, 21 Mar 2014 16:22:52 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+	id S1753866AbaCKIe6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 04:34:58 -0400
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 04/14] v4l: ti-vpe: Allow DMABUF buffer type support
+Date: Tue, 11 Mar 2014 14:03:43 +0530
+Message-ID: <1394526833-24805-5-git-send-email-archit@ti.com>
+In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
+References: <1393922965-15967-1-git-send-email-archit@ti.com>
+ <1394526833-24805-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <2848953.vVjghJyYNE@avalon> <532C408D.4070002@ti.com> <1755937.SSGT2MZJMC@avalon>
-In-Reply-To: <1755937.SSGT2MZJMC@avalon>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="TpKimeAtlT82Mp8Dp6nm0aT5FTdRosD2V"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---TpKimeAtlT82Mp8Dp6nm0aT5FTdRosD2V
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+For OMAP and DRA7x, we generally allocate video and graphics buffers through
+omapdrm since the corresponding omap-gem driver provides DMM-Tiler backed
+contiguous buffers. omapdrm is a dma-buf exporter. These buffers are used by
+other drivers in the video pipeline.
 
-On 21/03/14 16:13, Laurent Pinchart wrote:
-> Hi Tomi,
->=20
-> On Friday 21 March 2014 15:37:17 Tomi Valkeinen wrote:
->> On 21/03/14 00:32, Laurent Pinchart wrote:
->>> The OF graph bindings documentation could just specify the ports node=
- as
->>> optional and mandate individual device bindings to specify it as mand=
-atory
->>> or forbidden (possibly with a default behaviour to avoid making all
->>> device bindings too verbose).
->>
->> Isn't it so that if the device has one port, it can always do without
->> 'ports', but if it has multiple ports, it always has to use 'ports' so=
+Add VB2_DMABUF flag to the io_modes of the vb2 output and capture queues. This
+allows the driver to import dma shared buffers.
 
->> that #address-cells and #size-cells can be defined?
->=20
-> You can put the #address-cells and #size-cells property in the device n=
-ode=20
-> directly without requiring a ports subnode.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Ah, right. So 'ports' is only needed when the device node has other
-children nodes than the ports and those nodes need different
-#address-cells and #size-cells than the ports.
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 0363df6..0e7573a 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1770,7 +1770,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 
+ 	memset(src_vq, 0, sizeof(*src_vq));
+ 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+-	src_vq->io_modes = VB2_MMAP;
++	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
+ 	src_vq->drv_priv = ctx;
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->ops = &vpe_qops;
+@@ -1783,7 +1783,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 
+ 	memset(dst_vq, 0, sizeof(*dst_vq));
+ 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	dst_vq->io_modes = VB2_MMAP;
++	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
+ 	dst_vq->drv_priv = ctx;
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->ops = &vpe_qops;
+-- 
+1.8.3.2
 
-In that case it sounds fine to leave it for the driver bindings to decide=
-=2E
-
- Tomi
-
-
-
---TpKimeAtlT82Mp8Dp6nm0aT5FTdRosD2V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTLEs8AAoJEPo9qoy8lh71GcwP/0kBttUEuj1RVh9tRFqGc3h3
-HiU40Qo60ze7+tEaPrNlcQg4RCWU5UgmVplxgqmArXM4NjCFhuwDXt0saxO7igmk
-KaC7o6Quguve2NvhWKSj0UUmZGHQ5fTZtRn53jFI4xRLwhctAkLFM2iVGR3MGmgn
-O9LeY7gZ3yo4Z7jwYUX0TpZIaPEWMGFk/xeH7/0p6AWysjd0jYxRPUTRXMdCYVjE
-gi+/TBx+xhFmJ7t0fh44UVmeYAAySs7j9RbS9ZWH43tEqyA8KXTeH9ZXXtUBcGXE
-AQIqubLUtyGBDmh0jpyIR8TC5mWcHFzcMugmP0Gybj9DAG5ZAGGEvKnjnJAb9Doe
-AHeBY86Vi4QK5qngsJCIhXjgsj+8oIqVLLbqgx0yXPqS196XdiXttC1tP90FGZf4
-5P0QIqgiZhiQHoTi/lbGT225bY3KhPbeIY5g+6eEQNdadX2TGcqxhVWIV3B4QBlb
-q7/k6YDv0YX9wN2VDgFSUUVz5SzBaXyO4cwhWp0JNGhe9zDDfaMrfN55GYivE3A/
-ZajvfVXGvPEEYPEH4bMZTTu2ziMNafRVhiTsAbAiJgNKOYyVhmf5d3BI8iKS9SeY
-3c8lkTuwK1LB/ca0WtTZKDrWIu0jZXuz37NKOSTM+0HGDgbPjxrDwYIsMe7NTYyQ
-+E318fWANuKomR4MFuEG
-=Nnlz
------END PGP SIGNATURE-----
-
---TpKimeAtlT82Mp8Dp6nm0aT5FTdRosD2V--
