@@ -1,63 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61974 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752191AbaCMOoY (ORCPT
+Received: from mail-ve0-f170.google.com ([209.85.128.170]:42919 "EHLO
+	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752203AbaCKHNR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 10:44:24 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Archit Taneja' <archit@ti.com>, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394711056-10878-1-git-send-email-archit@ti.com>
- <1394711056-10878-9-git-send-email-archit@ti.com>
-In-reply-to: <1394711056-10878-9-git-send-email-archit@ti.com>
-Subject: RE: [PATCH v4 08/14] v4l: ti-vpe: Rename csc memory resource name
-Date: Thu, 13 Mar 2014 15:44:22 +0100
-Message-id: <000f01cf3eca$b947cc80$2bd76580$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Tue, 11 Mar 2014 03:13:17 -0400
+Received: by mail-ve0-f170.google.com with SMTP id pa12so8205972veb.15
+        for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 00:13:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1394493359-14115-14-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1394493359-14115-14-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 11 Mar 2014 12:42:56 +0530
+Message-ID: <CA+V-a8vSC5AQmcd6G8r7eRSZKxRte1t+txB3X8m0-+q7ZtpRkQ@mail.gmail.com>
+Subject: Re: [PATCH v2 13/48] tvp7002: Add pad-level DV timings operations
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, Mar 11, 2014 at 4:45 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> The video enum_dv_timings operation is deprecated. Implement the
+> pad-level version of the operation to prepare for the removal of the
+> video version.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> From: Archit Taneja [mailto:archit@ti.com]
-> Sent: Thursday, March 13, 2014 12:44 PM
-> 
-> Rename the memory block resource "vpe_csc" to "csc" since it also
-> exists within the VIP IP block. This would make the name more generic,
-> and both VPE and VIP DT nodes in the future can use it.
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-I understand that this is not yet used in any public dts files. Right?
+Regards,
+--Prabhakar lad
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
-
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
 > ---
->  drivers/media/platform/ti-vpe/csc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/csc.c
-> b/drivers/media/platform/ti-vpe/csc.c
-> index acfea50..0333339 100644
-> --- a/drivers/media/platform/ti-vpe/csc.c
-> +++ b/drivers/media/platform/ti-vpe/csc.c
-> @@ -180,7 +180,7 @@ struct csc_data *csc_create(struct platform_device
-> *pdev)
->  	csc->pdev = pdev;
-> 
->  	csc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-> -			"vpe_csc");
-> +			"csc");
->  	if (csc->res == NULL) {
->  		dev_err(&pdev->dev, "missing platform resources data\n");
->  		return ERR_PTR(-ENODEV);
+>  drivers/media/i2c/tvp7002.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+> index 912e1cc..9f56fd5 100644
+> --- a/drivers/media/i2c/tvp7002.c
+> +++ b/drivers/media/i2c/tvp7002.c
+> @@ -832,6 +832,9 @@ static int tvp7002_log_status(struct v4l2_subdev *sd)
+>  static int tvp7002_enum_dv_timings(struct v4l2_subdev *sd,
+>                 struct v4l2_enum_dv_timings *timings)
+>  {
+> +       if (timings->pad != 0)
+> +               return -EINVAL;
+> +
+>         /* Check requested format index is within range */
+>         if (timings->index >= NUM_TIMINGS)
+>                 return -EINVAL;
+> @@ -937,6 +940,7 @@ static const struct v4l2_subdev_pad_ops tvp7002_pad_ops = {
+>         .enum_mbus_code = tvp7002_enum_mbus_code,
+>         .get_fmt = tvp7002_get_pad_format,
+>         .set_fmt = tvp7002_set_pad_format,
+> +       .enum_dv_timings = tvp7002_enum_dv_timings,
+>  };
+>
+>  /* V4L2 top level operation handlers */
 > --
 > 1.8.3.2
-
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
