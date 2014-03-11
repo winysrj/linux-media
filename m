@@ -1,42 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:32789 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753107AbaCXRvu (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2175 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220AbaCKM00 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 13:51:50 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	LDOC <linux-doc@vger.kernel.org>, Rob Landley <rob@landley.net>
-Subject: [PATCH] v4l2-pci-skeleton: fix typo while retrieving the skel_buffer
-Date: Mon, 24 Mar 2014 23:21:29 +0530
-Message-Id: <1395683489-25986-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 11 Mar 2014 08:26:26 -0400
+Message-ID: <531F00C2.5080300@xs4all.nl>
+Date: Tue, 11 Mar 2014 13:25:38 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Archit Taneja <archit@ti.com>
+CC: k.debski@samsung.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 12/14] v4l: ti-vpe: zero out reserved fields in try_fmt
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-13-git-send-email-archit@ti.com>
+In-Reply-To: <1394526833-24805-13-git-send-email-archit@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On 03/11/14 09:33, Archit Taneja wrote:
+> Zero out the reserved formats in v4l2_pix_format_mplane and
+> v4l2_plane_pix_format members of the returned v4l2_format pointer when passed
+> through TRY_FMT ioctl.
+> 
+> This ensures that the user doesn't interpret the non-zero fields as some data
+> passed by the driver, and ensures compliance.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- Documentation/video4linux/v4l2-pci-skeleton.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
-index 3a1c0d2..61a56f4 100644
---- a/Documentation/video4linux/v4l2-pci-skeleton.c
-+++ b/Documentation/video4linux/v4l2-pci-skeleton.c
-@@ -87,7 +87,7 @@ struct skel_buffer {
- 
- static inline struct skel_buffer *to_skel_buffer(struct vb2_buffer *vb2)
- {
--	return container_of(vb2, struct skel_buffer, vb);
-+	return container_of(vb2, struct skel_buffer, vb2);
- }
- 
- static const struct pci_device_id skeleton_pci_tbl[] = {
--- 
-1.7.9.5
+> ---
+>  drivers/media/platform/ti-vpe/vpe.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index 85d1122..970408a 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -1488,6 +1488,7 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+>  		}
+>  	}
+>  
+> +	memset(pix->reserved, 0, sizeof(pix->reserved));
+>  	for (i = 0; i < pix->num_planes; i++) {
+>  		plane_fmt = &pix->plane_fmt[i];
+>  		depth = fmt->vpdma_fmt[i]->depth;
+> @@ -1499,6 +1500,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+>  
+>  		plane_fmt->sizeimage =
+>  				(pix->height * pix->width * depth) >> 3;
+> +
+> +		memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
+>  	}
+>  
+>  	return 0;
+> 
 
