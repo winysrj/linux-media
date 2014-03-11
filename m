@@ -1,62 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:62515 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752985AbaCFD2y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 22:28:54 -0500
-Received: by mail-ob0-f180.google.com with SMTP id wn1so1989036obc.11
-        for <linux-media@vger.kernel.org>; Wed, 05 Mar 2014 19:28:53 -0800 (PST)
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1376 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754431AbaCKK1v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 06:27:51 -0400
+Message-ID: <531EE4F7.9070807@xs4all.nl>
+Date: Tue, 11 Mar 2014 11:27:03 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <5317D9B4.1080405@samsung.com>
-References: <187b01cf385bb9b4510$%debski@samsung.com>
-	<1394017710-671-1-git-send-email-sw0312.kim@samsung.com>
-	<CAK9yfHx_yx9qvitSGfNZWJfRK1ZtrOu3VdhJh-aEZ4LNv_8Z-A@mail.gmail.com>
-	<5317D9B4.1080405@samsung.com>
-Date: Thu, 6 Mar 2014 08:58:53 +0530
-Message-ID: <CAK9yfHx0o2n7fPvPeMHmMoLrP+ZifkP2uCitpatY8pFG-hDxCA@mail.gmail.com>
-Subject: Re: [PATCH] [media] s5-mfc: remove meaningless memory bank assignment
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Seung-Woo Kim <sw0312.kim@samsung.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH v2 06/48] v4l: Add pad-level DV timings subdev operations
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com> <1394493359-14115-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-7-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Seung-Woo,
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 6 March 2014 07:43, Seung-Woo Kim <sw0312.kim@samsung.com> wrote:
-> Hello Sachin,
->
-> On 2014년 03월 05일 20:42, Sachin Kamat wrote:
->> On 5 March 2014 16:38, Seung-Woo Kim <sw0312.kim@samsung.com> wrote:
->
-> (...)
->
->>> -       dev->bank1 = dev->bank1;
->>
->> Are you sure this isn't some kind of typo? If not then your commit
->> description is too verbose
->> to actually say that the code is redundant and could be removed. The
->> code here is something like
->>
->>  a = a;
->>
->> which does not make sense nor add any value and hence redundant and
->> could be removed.
->
-> Right, this meaningless code can be simply removed as like the first
-> version. Anyway this redundant made from change of address type in
-> earlier patch. So I tried to describe that.
+On 03/11/14 00:15, Laurent Pinchart wrote:
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  include/media/v4l2-subdev.h    |  4 ++++
+>  include/uapi/linux/videodev2.h | 10 ++++++++--
+>  2 files changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 1752530..2b5ec32 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -509,6 +509,10 @@ struct v4l2_subdev_pad_ops {
+>  			     struct v4l2_subdev_selection *sel);
+>  	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+>  	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
+> +	int (*dv_timings_cap)(struct v4l2_subdev *sd,
+> +			      struct v4l2_dv_timings_cap *cap);
+> +	int (*enum_dv_timings)(struct v4l2_subdev *sd,
+> +			       struct v4l2_enum_dv_timings *timings);
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
+>  			     struct v4l2_subdev_format *source_fmt,
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 17acba8..72fbbd4 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1103,12 +1103,15 @@ struct v4l2_dv_timings {
+>  
+>  /** struct v4l2_enum_dv_timings - DV timings enumeration
+>   * @index:	enumeration index
+> + * @pad:	the pad number for which to enumerate timings (used with
+> + *		v4l-subdev nodes only)
+>   * @reserved:	must be zeroed
+>   * @timings:	the timings for the given index
+>   */
+>  struct v4l2_enum_dv_timings {
+>  	__u32 index;
+> -	__u32 reserved[3];
+> +	__u32 pad;
+> +	__u32 reserved[2];
+>  	struct v4l2_dv_timings timings;
+>  };
+>  
+> @@ -1146,11 +1149,14 @@ struct v4l2_bt_timings_cap {
+>  
+>  /** struct v4l2_dv_timings_cap - DV timings capabilities
+>   * @type:	the type of the timings (same as in struct v4l2_dv_timings)
+> + * @pad:	the pad number for which to query capabilities (used with
+> + *		v4l-subdev nodes only)
+>   * @bt:		the BT656/1120 timings capabilities
+>   */
+>  struct v4l2_dv_timings_cap {
+>  	__u32 type;
+> -	__u32 reserved[3];
+> +	__u32 pad;
+> +	__u32 reserved[2];
+>  	union {
+>  		struct v4l2_bt_timings_cap bt;
+>  		__u32 raw_data[32];
+> 
 
-What Kamil meant was that it is not a good practice to leave the
-commit description
-blank however trivial the patch might be. So a single line stating the
-obvious should
-be sufficient in this case.
-
--- 
-With warm regards,
-Sachin
