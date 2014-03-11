@@ -1,79 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3141 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751289AbaCBHMc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 02:12:32 -0500
-Message-ID: <5312D9CC.3030505@xs4all.nl>
-Date: Sun, 02 Mar 2014 08:12:12 +0100
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1810 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754939AbaCKMDp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 08:03:45 -0400
+Message-ID: <531EFB6E.9060700@xs4all.nl>
+Date: Tue, 11 Mar 2014 13:02:54 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-CC: k.debski@samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATH v6.1 06/10] v4l: Handle buffer timestamp flags correctly
-References: <5311EE75.1000305@xs4all.nl> <1393693166-9624-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1393693166-9624-1-git-send-email-sakari.ailus@iki.fi>
+To: Archit Taneja <archit@ti.com>
+CC: k.debski@samsung.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 03/14] v4l: ti-vpe: Use video_device_release_empty
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-4-git-send-email-archit@ti.com>
+In-Reply-To: <1394526833-24805-4-git-send-email-archit@ti.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-On 03/01/2014 05:59 PM, Sakari Ailus wrote:
-> For COPY timestamps, buffer timestamp source flags will traverse the queue
-> untouched.
+On 03/11/14 09:33, Archit Taneja wrote:
+> The video_device struct is currently embedded in the driver data struct vpe_dev.
+> A vpe_dev instance is allocated by the driver, and the memory for the vfd is a
+> part of this struct.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> The v4l2 core, however, manages the removal of the vfd region, through the
+> video_device's .release() op, which currently is the helper
+> video_device_release. This causes memory corruption, and leads to issues when
+> we try to re-insert the vpe module.
+> 
+> Use the video_device_release_empty helper function instead
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+
 > ---
-> changes since v6:
-> - Clean up changes to __fill_v4l2_buffer().
-> - Drop timestamp source flags for non-OUTPUT buffers in __fill_vb2_buffer().
-> - Comments fixed accordingly.
+>  drivers/media/platform/ti-vpe/vpe.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
->  drivers/media/v4l2-core/videobuf2-core.c |   21 ++++++++++++++++++++-
->  1 file changed, 20 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 42a8568..79eb9ba 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -488,7 +488,16 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->  	 * Clear any buffer state related flags.
->  	 */
->  	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
-> -	b->flags |= q->timestamp_flags;
-> +	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
-> +	if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
-> +	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
-> +		/*
-> +		 * For non-COPY timestamps, drop timestamp source bits
-> +		 * and obtain the timestamp source from the queue.
-> +		 */
-> +		b->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-> +		b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-> +	}
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index f1eae67..0363df6 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -2000,7 +2000,7 @@ static struct video_device vpe_videodev = {
+>  	.fops		= &vpe_fops,
+>  	.ioctl_ops	= &vpe_ioctl_ops,
+>  	.minor		= -1,
+> -	.release	= video_device_release,
+> +	.release	= video_device_release_empty,
+>  	.vfl_dir	= VFL_DIR_M2M,
+>  };
 >  
->  	switch (vb->state) {
->  	case VB2_BUF_STATE_QUEUED:
-> @@ -1031,6 +1040,16 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->  
->  	/* Zero flags that the vb2 core handles */
->  	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
-> +	if ((vb->vb2_queue->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
-> +	    V4L2_BUF_FLAG_TIMESTAMP_COPY || !V4L2_TYPE_IS_OUTPUT(b->type)) {
-> +		/*
-> +		 * Non-COPY timestamps and non-OUTPUT queues will get
-> +		 * their timestamp and timestamp source flags from the
-> +		 * queue.
-> +		 */
-> +		vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-> +	}
-> +
->  	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->  		/*
->  		 * For output buffers mask out the timecode flag:
 > 
+
