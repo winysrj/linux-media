@@ -1,155 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53466 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759250AbaCSK0o (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2153 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944AbaCKJGS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Mar 2014 06:26:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	m.chehab@samsung.com, nicolas.ferre@atmel.com,
-	linux-arm-kernel@lists.infradead.org, grant.likely@linaro.org,
-	galak@codeaurora.org, rob@landley.net, mark.rutland@arm.com,
-	robh+dt@kernel.org, ijc+devicetree@hellion.org.uk,
-	pawel.moll@arm.com, devicetree@vger.kernel.org
-Subject: Re: [PATCH 3/3] [media] atmel-isi: add primary DT support
-Date: Wed, 19 Mar 2014 11:28:29 +0100
-Message-ID: <7584711.K3Gu54mB6b@avalon>
-In-Reply-To: <53296016.5030002@atmel.com>
-References: <1395141238-5948-1-git-send-email-josh.wu@atmel.com> <2118978.g8dAYX7V8K@avalon> <53296016.5030002@atmel.com>
+	Tue, 11 Mar 2014 05:06:18 -0400
+Message-ID: <531ED1BC.3020904@xs4all.nl>
+Date: Tue, 11 Mar 2014 10:05:00 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 36/47] adv7604: Make output format configurable through
+ pad format operations
+References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1391618558-5580-37-git-send-email-laurent.pinchart@ideasonboard.com> <52FB8CBD.9070602@xs4all.nl> <1662851.xYrCTEPdFE@avalon>
+In-Reply-To: <1662851.xYrCTEPdFE@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+On 03/10/14 23:43, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Wednesday 12 February 2014 16:01:17 Hans Verkuil wrote:
+>> On 02/05/14 17:42, Laurent Pinchart wrote:
+>>> Replace the dummy video format operations by pad format operations that
+>>> configure the output format.
+>>>
+>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> ---
+>>>
+>>>  drivers/media/i2c/adv7604.c | 243 ++++++++++++++++++++++++++++++++++-----
+>>>  include/media/adv7604.h     |  47 ++-------
+>>>  2 files changed, 225 insertions(+), 65 deletions(-)
+>>
+>> <snip>
+>>
+>>> diff --git a/include/media/adv7604.h b/include/media/adv7604.h
+>>> index 22811d3..2cc8e16 100644
+>>> --- a/include/media/adv7604.h
+>>> +++ b/include/media/adv7604.h
+>>> @@ -32,16 +32,6 @@ enum adv7604_ain_sel {
+>>>
+>>>  	ADV7604_AIN9_4_5_6_SYNC_2_1 = 4,
+>>>  
+>>>  };
+>>>
+>>> -/* Bus rotation and reordering (IO register 0x04, [7:5]) */
+>>> -enum adv7604_op_ch_sel {
+>>> -	ADV7604_OP_CH_SEL_GBR = 0,
+>>> -	ADV7604_OP_CH_SEL_GRB = 1,
+>>> -	ADV7604_OP_CH_SEL_BGR = 2,
+>>> -	ADV7604_OP_CH_SEL_RGB = 3,
+>>> -	ADV7604_OP_CH_SEL_BRG = 4,
+>>> -	ADV7604_OP_CH_SEL_RBG = 5,
+>>> -};
+>>> -
+>>>  /* Input Color Space (IO register 0x02, [7:4]) */
+>>>  enum adv7604_inp_color_space {
+>>>  	ADV7604_INP_COLOR_SPACE_LIM_RGB = 0,
+>>> @@ -55,29 +45,11 @@ enum adv7604_inp_color_space {
+>>>  	ADV7604_INP_COLOR_SPACE_AUTO = 0xf,
+>>>  };
+>>>
+>>> -/* Select output format (IO register 0x03, [7:0]) */
+>>> -enum adv7604_op_format_sel {
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_8 = 0x00,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_10 = 0x01,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_12_MODE0 = 0x02,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_12_MODE1 = 0x06,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_12_MODE2 = 0x0a,
+>>> -	ADV7604_OP_FORMAT_SEL_DDR_422_8 = 0x20,
+>>> -	ADV7604_OP_FORMAT_SEL_DDR_422_10 = 0x21,
+>>> -	ADV7604_OP_FORMAT_SEL_DDR_422_12_MODE0 = 0x22,
+>>> -	ADV7604_OP_FORMAT_SEL_DDR_422_12_MODE1 = 0x23,
+>>> -	ADV7604_OP_FORMAT_SEL_DDR_422_12_MODE2 = 0x24,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_444_24 = 0x40,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_444_30 = 0x41,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_444_36_MODE0 = 0x42,
+>>> -	ADV7604_OP_FORMAT_SEL_DDR_444_24 = 0x60,
+>>> -	ADV7604_OP_FORMAT_SEL_DDR_444_30 = 0x61,
+>>> -	ADV7604_OP_FORMAT_SEL_DDR_444_36 = 0x62,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_16 = 0x80,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_20 = 0x81,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_24_MODE0 = 0x82,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_24_MODE1 = 0x86,
+>>> -	ADV7604_OP_FORMAT_SEL_SDR_ITU656_24_MODE2 = 0x8a,
+>>> +/* Select output format (IO register 0x03, [4:2]) */
+>>> +enum adv7604_op_format_mode_sel {
+>>> +	ADV7604_OP_FORMAT_MODE0 = 0x00,
+>>> +	ADV7604_OP_FORMAT_MODE1 = 0x04,
+>>> +	ADV7604_OP_FORMAT_MODE2 = 0x08,
+>>>  };
+>>>  
+>>>  enum adv7604_drive_strength {
+>>> @@ -104,11 +76,8 @@ struct adv7604_platform_data {
+>>>  	/* Analog input muxing mode */
+>>>  	enum adv7604_ain_sel ain_sel;
+>>>
+>>> -	/* Bus rotation and reordering */
+>>> -	enum adv7604_op_ch_sel op_ch_sel;
+>>
+>> I would keep this as part of the platform_data. This is typically used if
+>> things are wired up in a non-standard way and so is specific to the
+>> hardware. It is not something that will change from format to format.
+> 
+> Right, some level of configuration is needed to account for non-standard 
+> wiring. However I'm not sure where that should be handled.
+> 
+> With exotic wiring the format at the receiver will be different than the 
+> format output by the ADV7604. From a pure ADV7604 point of view, the output 
+> format doesn't depend on the wiring. I wonder whether this shouldn't be a link 
+> property instead of being a subdev property. There's of course the question of 
+> where to store that link property if it's not part of either subdev.
+> 
+> Even if we decide that the wiring is a property of the source subdev, I don't 
+> think we should duplicate bus reordering code in all subdev drivers. This 
+> should thus be handled by the v4l2 core (either directly or as helper 
+> functions).
 
-On Wednesday 19 March 2014 17:15:02 Josh Wu wrote:
-> On 3/18/2014 9:36 PM, Laurent Pinchart wrote:
-> > On Tuesday 18 March 2014 19:19:54 Josh Wu wrote:
-> >> This patch add the DT support for Atmel ISI driver.
-> >> It use the same v4l2 DT interface that defined in video-interfaces.txt.
-> >> 
-> >> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> >> Cc: devicetree@vger.kernel.org
-> >> ---
-> >> 
-> >>  .../devicetree/bindings/media/atmel-isi.txt        |   51 ++++++++++++++
-> >>  drivers/media/platform/soc_camera/atmel-isi.c      |   33 ++++++++++++-
-> >>  2 files changed, 82 insertions(+), 2 deletions(-)
-> >>  create mode 100644
-> >>  Documentation/devicetree/bindings/media/atmel-isi.txt
-> >> 
-> >> diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt
-> >> b/Documentation/devicetree/bindings/media/atmel-isi.txt new file mode
-> >> 100644
-> >> index 0000000..07f00eb
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
-> >> @@ -0,0 +1,51 @@
-> >> +Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
-> >> +----------------------------------------------
-> >> +
-> >> +Required properties:
-> >> +- compatible: must be "atmel,at91sam9g45-isi"
-> >> +- reg: physical base address and length of the registers set for the
-> >> device;
-> >> +- interrupts: should contain IRQ line for the ISI;
-> >> +- clocks: list of clock specifiers, corresponding to entries in
-> >> +          the clock-names property;
-> >> +- clock-names: must contain "isi_clk", which is the isi peripherial
-> >> clock.
-> >> +               "isi_mck" is optinal, it is the master clock output to
-> >> sensor.
-> > 
-> > The mck clock should be handled by the sensor driver instead. I know we
-> > have a legacy mode in the atmel-isi driver to manage that clock
-> > internally, but let's not propagate that to DT.
-> 
-> I agree with you.
-> 
-> I put the isi_mck as optional here because current the sensor driver
-> code only managed the v4l2 clock not the common clock.
-> There should add additional code to manager mck clock.
-> So if you want to ISI work for now, you should put the isi_mck in
-> atmel-isi DT node.
-> 
-> But for sure I can remove the isi_mck in atmel-isi DT document. In the
-> future it will be add in sensor's DT document.
+There are two reasons why you might want to use op_ch_sel: one is to
+implement weird formats like RBG. Something like that would have to be
+controlled through mbus and pixel fourcc codes and not by hardcoding this
+register.
 
-I think that's the way to go, yes. I know we have existing platforms that 
-require sensor clock management in the ISI driver. That should be fixed, and a 
-move to DT is a perfect opportunity to do so :-)
+The other is to compensate for a wiring problem: we have a card where two
+channels were accidentally swapped. You can either redo the board or just
+set this register. In this case this register is IMHO a property of this
+subdev. It needs to know about it, because if it ever needs to output RBG
+in the future then it needs to compensate for reordering for wiring
+issues.
 
-> > I would also drop the "isi_" prefix from the isi_clk name.
-> 
-> hmm,  I think "isi_clk" indicates it is a ISI peripheral clock. And
-> which is consistent with other peripheral clock name in sama5.
+So you set this field if you have to compensate for wiring errors, making
+this part of the DT/platform_data. You do not set this field when you
+want to support special formats, that is done in the driver itself through
+fourcc codes (or could be done as this isn't implemented at the moment).
 
-I believe the "isi_" prefix is redundant, given that the clock-names property 
-is inside the ISI DT node. However, if this style matches the rest of the 
-platform there's no need to change it.
-
-> > You should also describe the port node. You can just mention the related
-> > bindings document, and state that the ISI has a single port.
-> 
-> OK. will add in the v2.
-> 
-> >> +Optional properties:
-> >> +- atmel,isi-disable-preview: a boolean property to disable the preview
-> >> channel;
-> > 
-> > That doesn't really sound like a hardware property to me. Isn't it full
-> > mode related to software configuration instead, which should be performed
-> > at runtime by userspace ?
-> 
-> yes, this configuration can be disable/enable by driver according to
-> user select format.
-> I will remove it in v2. Thanks.
-> 
-> Best Regards,
-> Josh Wu
-> 
-> >> +
-> >> +Example:
-> >> +	isi: isi@f0034000 {
-> >> +		compatible = "atmel,at91sam9g45-isi";
-> >> +		reg = <0xf0034000 0x4000>;
-> >> +		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-> >> +
-> >> +		clocks = <&isi_clk>, <&pck1>;
-> >> +		clock-names = "isi_clk", "isi_mck";
-> >> +
-> >> +		pinctrl-names = "default";
-> >> +		pinctrl-0 = <&pinctrl_isi &pinctrl_pck1_as_isi_mck>;
-> >> +
-> >> +		port {
-> >> +			#address-cells = <1>;
-> >> +			#size-cells = <0>;
-> >> +
-> >> +			isi_0: endpoint {
-> >> +				remote-endpoint = <&ov2640_0>;
-> >> +			};
-> >> +		};
-> >> +	};
-> >> +
-> >> +	i2c1: i2c@f0018000 {
-> >> +		ov2640: camera@0x30 {
-> >> +			compatible = "omnivision,ov2640";
-> >> +			reg = <0x30>;
-> >> +
-> >> +			port {
-> >> +				ov2640_0: endpoint {
-> >> +					remote-endpoint = <&isi_0>;
-> >> +					bus-width = <8>;
-> >> +				};
-> >> +			};
-> >> +		};
-> >> +	};
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+>> Other than this it all looks quite nice! Much more flexible than before.
+>>
+>>> -
+>>> -	/* Select output format */
+>>> -	enum adv7604_op_format_sel op_format_sel;
+>>> +	/* Select output format mode */
+>>> +	enum adv7604_op_format_mode_sel op_format_mode_sel;
+>>>
+>>>  	/* Configuration of the INT1 pin */
+>>>  	enum adv7604_int1_config int1_config;
+>>> @@ -116,14 +85,12 @@ struct adv7604_platform_data {
+>>>  	/* IO register 0x02 */
+>>>  	unsigned alt_gamma:1;
+>>>  	unsigned op_656_range:1;
+>>> -	unsigned rgb_out:1;
+>>>  	unsigned alt_data_sat:1;
+>>>  	
+>>>  	/* IO register 0x05 */
+>>>  	unsigned blank_data:1;
+>>>  	unsigned insert_av_codes:1;
+>>>  	unsigned replicate_av_codes:1;
+>>> -	unsigned invert_cbcr:1;
+>>>
+>>>  	/* IO register 0x06 */
+>>>  	unsigned inv_vs_pol:1;
+> 
 
