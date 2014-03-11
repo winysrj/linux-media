@@ -1,196 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53559 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752059AbaCKO4n (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3930 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754224AbaCKL7i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 10:56:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com
-Subject: Re: [PATCH v6 03/10] Documentation: devicetree: Update Samsung FIMC DT binding
-Date: Tue, 11 Mar 2014 15:58:18 +0100
-Message-ID: <24917002.Y0kBkkQHhZ@avalon>
-In-Reply-To: <531F11DD.5040300@samsung.com>
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com> <1608087.RUCeTiNcRR@avalon> <531F11DD.5040300@samsung.com>
+	Tue, 11 Mar 2014 07:59:38 -0400
+Message-ID: <531EFA7A.7010008@xs4all.nl>
+Date: Tue, 11 Mar 2014 12:58:50 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH v2 00/48] ADV7611 support
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Laurent,
 
-On Tuesday 11 March 2014 14:38:37 Sylwester Nawrocki wrote:
-> Hi Laurent,
-> 
-> Thanks for your review.
+You can add my:
 
-You're welcome.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On 11/03/14 13:30, Laurent Pinchart wrote:
-> [...]
-> 
-> >> ---
-> >> 
-> >>  .../devicetree/bindings/media/samsung-fimc.txt     |   34 +++++++++-----
-> >>  1 file changed, 26 insertions(+), 8 deletions(-)
-> >> 
-> >> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >> b/Documentation/devicetree/bindings/media/samsung-fimc.txt index
-> >> 96312f6..dbd4020 100644
-> >> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
-> >> @@ -32,6 +32,21 @@ way around.
-> >> 
-> >>  The 'camera' node must include at least one 'fimc' child node.
-> >> 
-> >> +Optional properties:
-> >> +
-> >> +- #clock-cells: from the common clock bindings
-> >> (../clock/clock-bindings.txt),
-> >> +  must be 1. A clock provider is associated with the 'camera' node and
-> >> it should
-> >> +  be referenced by external sensors that use clocks provided by the SoC
-> >> on
-> >> +  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a
-> >> clock.
-> >> +  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks
-> >> respectively.
-> >> +
-> >> +- clock-output-names: from the common clock bindings, should contain
-> >> names of
-> >> +  clocks registered by the camera subsystem corresponding to
-> >> CAM_A_CLKOUT,
-> >> +  CAM_B_CLKOUT output clocks respectively.
-> > 
-> > Wouldn't it be better to document the "cam_mclk_a" and "cam_mclk_b" names
-> > explicitly ? Or do you expect different names to be used in different DT
-> > files ? And as they correspond to the CAM_A_CLKOUT and CAM_B_CLKOUT pins,
-> > shouldn't they be named "cam_a_clkout" and "cam_b_clkout" ?
-> 
-> Basically I could use fixed names for these clocks, I just wanted to keep
-> a possibility to override them in dts to avoid any possible clock name
-> collisions, rather than keep a list of different names per SoC in the
-> driver. Right now fixed names could also be used for all SoCs I'm aware of,
-> nevertheless I would prefer to keep the clock-output-names property.
-> "cam_a_clkout", "cam_b_clkout" may be indeed better names, I'll change
-> that.
+for patches 28-35, 37-45 and 47.
 
-OK, variable names are fine with me.
+For patches 46 and 48 (DT related) add my:
 
-> >> +Note: #clock-cells and clock-output-names are mandatory properties if
-> >> external
-> >> +image sensor devices reference 'camera' device node as a clock provider.
-> >> +
-> > 
-> > What's the reason not to make them always mandatory ? Backward
-> > compatibility only ? If so wouldn't it make sense to document the
-> > properties as mandatory from now on, and treating them as optional in the
-> > driver for backward compatibility ?
-> 
-> Yes, it's for backwards compatibility only. It may be a good idea to just
-> document them as required, since this is how the device is expected to be
-> described in DT from now. I'll just make these a required properties,
-> the driver already handles them as optional.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-OK.
+For patches 26 and 27 I posted review comments, and patch 36 is removing
+support for the op_ch_sel field which I really need on my system. So that
+needs to be resolved.
 
-> >>  'fimc' device nodes
-> >>  -------------------
-> >> 
-> >> @@ -97,8 +112,8 @@ Image sensor nodes
-> >> 
-> >>  The sensor device nodes should be added to their control bus controller
-> >> 
-> >> (e.g. I2C0) nodes and linked to a port node in the csis or the
-> >> parallel-ports node, using the common video interfaces bindings, defined
-> >> in video-interfaces.txt.
-> >> -The implementation of this bindings requires clock-frequency property to
-> >> be
-> >> -present in the sensor device nodes.
-> >> +An optional clock-frequency property needs to be present in the sensor
-> >> device
-> >> +nodes. Default value when this property is not present is 24 MHz.
-> > 
-> > This bothers me. Having the FIMC driver read the clock-frequence property
-> > from the sensor DT nodes feels like a layering violation. Shouldn't the
-> > sensor drivers call clk_set_rate() explicitly instead ?
-> 
-> It is supposed to do so, after this whole patch series. So the camera
-> controller driver will not need such properties. What do you think about
-> removing this sentence altogether ?
+I've tested the whole lot (with an ugly workaround for patch 36) on my
+hardware successfully.
 
-Sure. As the FIMC won't access the clock-frequency property of the sensor 
-anymore after this patch series, let's just drop the mention of clock-
-frequency.
-
-> >>  Example:
-> >> @@ -114,7 +129,7 @@ Example:
-> >>  			vddio-supply = <...>;
-> >>  			
-> >>  			clock-frequency = <24000000>;
-> >> 
-> >> -			clocks = <...>;
-> >> +			clocks = <&camera 1>;
-> >> 
-> >>  			clock-names = "mclk";
-> >>  			
-> >>  			port {
-> >> 
-> >> @@ -135,7 +150,7 @@ Example:
-> >>  			vddio-supply = <...>;
-> >>  			
-> >>  			clock-frequency = <24000000>;
-> >> 
-> >> -			clocks = <...>;
-> >> +			clocks = <&camera 0>;
-> >> 
-> >>  			clock-names = "mclk";
-> >>  			
-> >>  			port {
-> >> 
-> >> @@ -149,12 +164,15 @@ Example:
-> >>  	camera {
-> >>  	
-> >>  		compatible = "samsung,fimc", "simple-bus";
-> >> 
-> >> -		#address-cells = <1>;
-> >> -		#size-cells = <1>;
-> >> -		status = "okay";
-> >> -
-> >> +		clocks = <&clock 132>, <&clock 133>;
-> >> +		clock-names = "sclk_cam0", "sclk_cam1";
-> > 
-> > The documentation mentions that clock-names must contain "sclk_cam0",
-> > "sclk_cam1", "pxl_async0", "pxl_async1". Are the last two optional ? If so
-> > I think you should clarify the description of the clock-names property.
-> > This can be done in a separate patch.
-> 
-> "pxl_async0", "pxl_async1" are mandatory, I'll add them also into
-> this example dts.
-
-OK.
-
-> >> +		#clock-cells = <1>;
-> >> +		clock-output-names = "cam_mclk_a", "cam_mclk_b";
-> >> 
-> >>  		pinctrl-names = "default";
-> >>  		pinctrl-0 = <&cam_port_a_clk_active>;
-> >> 
-> >> +		status = "okay";
-> >> +		#address-cells = <1>;
-> >> +		#size-cells = <1>;
-> >> 
-> >>  		/* parallel camera ports */
-> >>  		parallel-ports {
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+On 03/11/14 00:15, Laurent Pinchart wrote:
+> Hello,
+> 
+> This patch set implements support for the ADV7611 in the adv7604 driver. It
+> also comes up with new features such as output format configuration through
+> pad format operations, hot-plug detect control through GPIO and DT support.
+> 
+> Patches 06/48 to 24/48 and 39/48 replace the subdev video DV timings query cap
+> and enum operations with pad-level equivalents. I've split driver changes in
+> one patch per driver to make review easier, but I can squash them together if
+> desired.
+> 
+> I believe I've addressed all comments received on v1, except the one related
+> to op_ch_sel in patch "adv7604: Make output format configurable through pad
+> format operations" which is still open for discussion.
+> 
+> Patches 02/48 to 05/48 have been acked in v1 already, I will send a pull
+> request for them separately if a v3 of this series ends up being needed. I'd
+> like to get patch 01/48 upstream soon as well.
+> 
+> Changes compared to v1:
+> 
+> - Check the edid and pad fields for various ioctls in the subdev core
+> - Switch to the descriptor-based GPIO API
+> - Leave enum adv7604_pad in header file
+> - Keep the hotplug notifier
+> - Fix compilation breakage when !CONFIG_OF due to directly dereferencing the
+>   return value of of_match_node()
+> - Move patch "v4l: subdev: Remove deprecated video-level DV timings
+>   operations" later in the series to avoid bisection breakages
+> - Document struct v4l2_enum_dv_timings reserved field as being set to 0 by
+>   both drivers and application
+> - Document pad field of struct v4l2_enum_dv_timings and struct
+>   v4l2_dv_timings_cap as being used for subdev nodes only
+> - Typo fixes in documentation
+> 
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> 
+> Lars-Peter Clausen (4):
+>   adv7604: Add missing include to linux/types.h
+>   adv7604: Add support for asynchronous probing
+>   adv7604: Don't put info string arrays on the stack
+>   adv7604: Add adv7611 support
+> 
+> Laurent Pinchart (44):
+>   v4l: of: Support empty port nodes
+>   v4l: Add UYVY10_2X10 and VYUY10_2X10 media bus pixel codes
+>   v4l: Add UYVY10_1X20 and VYUY10_1X20 media bus pixel codes
+>   v4l: Add 12-bit YUV 4:2:0 media bus pixel codes
+>   v4l: Add 12-bit YUV 4:2:2 media bus pixel codes
+>   v4l: Add pad-level DV timings subdev operations
+>   ad9389b: Add pad-level DV timings operations
+>   adv7511: Add pad-level DV timings operations
+>   adv7842: Add pad-level DV timings operations
+>   s5p-tv: hdmi: Add pad-level DV timings operations
+>   s5p-tv: hdmiphy: Add pad-level DV timings operations
+>   ths8200: Add pad-level DV timings operations
+>   tvp7002: Add pad-level DV timings operations
+>   media: bfin_capture: Switch to pad-level DV operations
+>   media: davinci: vpif: Switch to pad-level DV operations
+>   media: staging: davinci: vpfe: Switch to pad-level DV operations
+>   s5p-tv: mixer: Switch to pad-level DV operations
+>   ad9389b: Remove deprecated video-level DV timings operations
+>   adv7511: Remove deprecated video-level DV timings operations
+>   adv7842: Remove deprecated video-level DV timings operations
+>   s5p-tv: hdmi: Remove deprecated video-level DV timings operations
+>   s5p-tv: hdmiphy: Remove deprecated video-level DV timings operation
+>   ths8200: Remove deprecated video-level DV timings operations
+>   tvp7002: Remove deprecated video-level DV timings operations
+>   v4l: Improve readability by not wrapping ioctl number #define's
+>   v4l: Add support for DV timings ioctls on subdev nodes
+>   v4l: Validate fields in the core code for subdev EDID ioctls
+>   adv7604: Add 16-bit read functions for CP and HDMI
+>   adv7604: Cache register contents when reading multiple bits
+>   adv7604: Remove subdev control handlers
+>   adv7604: Add sink pads
+>   adv7604: Make output format configurable through pad format operations
+>   adv7604: Add pad-level DV timings support
+>   adv7604: Remove deprecated video-level DV timings operations
+>   v4l: subdev: Remove deprecated video-level DV timings operations
+>   adv7604: Inline the to_sd function
+>   adv7604: Store I2C addresses and clients in arrays
+>   adv7604: Replace *_and_or() functions with *_clr_set()
+>   adv7604: Sort headers alphabetically
+>   adv7604: Support hot-plug detect control through a GPIO
+>   adv7604: Specify the default input through platform data
+>   adv7604: Add DT support
+>   adv7604: Add LLC polarity configuration
+>   adv7604: Add endpoint properties to DT bindings
+> 
+>  Documentation/DocBook/media/v4l/subdev-formats.xml |  760 +++++++++++
+>  .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    |   27 +-
+>  .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   |   30 +-
+>  .../devicetree/bindings/media/i2c/adv7604.txt      |   69 +
+>  drivers/media/i2c/ad9389b.c                        |   65 +-
+>  drivers/media/i2c/adv7511.c                        |   67 +-
+>  drivers/media/i2c/adv7604.c                        | 1440 ++++++++++++++------
+>  drivers/media/i2c/adv7842.c                        |   14 +-
+>  drivers/media/i2c/ths8200.c                        |   10 +
+>  drivers/media/i2c/tvp7002.c                        |    5 +-
+>  drivers/media/platform/blackfin/bfin_capture.c     |    4 +-
+>  drivers/media/platform/davinci/vpif_capture.c      |    4 +-
+>  drivers/media/platform/davinci/vpif_display.c      |    4 +-
+>  drivers/media/platform/s5p-tv/hdmi_drv.c           |   14 +-
+>  drivers/media/platform/s5p-tv/hdmiphy_drv.c        |    9 +-
+>  drivers/media/platform/s5p-tv/mixer_video.c        |    8 +-
+>  drivers/media/v4l2-core/v4l2-of.c                  |   52 +-
+>  drivers/media/v4l2-core/v4l2-subdev.c              |   51 +-
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c    |    4 +-
+>  include/media/adv7604.h                            |  113 +-
+>  include/media/v4l2-subdev.h                        |    8 +-
+>  include/uapi/linux/v4l2-mediabus.h                 |   14 +-
+>  include/uapi/linux/v4l2-subdev.h                   |   38 +-
+>  include/uapi/linux/videodev2.h                     |   10 +-
+>  24 files changed, 2174 insertions(+), 646 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7604.txt
+> 
 
