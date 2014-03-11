@@ -1,75 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:48429 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753043AbaCLK0R (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3625 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755850AbaCKMoR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 06:26:17 -0400
-Date: Wed, 12 Mar 2014 10:25:56 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
-	drivers/media/v4l2-core to drivers/of
-Message-ID: <20140312102556.GC21483@n2100.arm.linux.org.uk>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <20140226110114.CF2C7C40A89@trevor.secretlab.ca> <531D916C.2010903@ti.com> <5427810.BUKJ3iUXnO@avalon>
+	Tue, 11 Mar 2014 08:44:17 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2BCiE2A008507
+	for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 13:44:16 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from [10.54.92.107] (173-38-208-169.cisco.com [173.38.208.169])
+	by tschai.lan (Postfix) with ESMTPSA id 74D632A1889
+	for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 13:44:12 +0100 (CET)
+Message-ID: <531F04FA.2060907@xs4all.nl>
+Date: Tue, 11 Mar 2014 13:43:38 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5427810.BUKJ3iUXnO@avalon>
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.15] DocBook fixes and a new pci skeleton driver
+ template
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 10, 2014 at 02:52:53PM +0100, Laurent Pinchart wrote:
-> In theory unidirectional links in DT are indeed enough. However, let's not 
-> forget the following.
-> 
-> - There's no such thing as single start points for graphs. Sure, in some 
-> simple cases the graph will have a single start point, but that's not a 
-> generic rule. For instance the camera graphs 
-> http://ideasonboard.org/media/omap3isp.ps and 
-> http://ideasonboard.org/media/eyecam.ps have two camera sensors, and thus two 
-> starting points from a data flow point of view.
+Hi Mauro,
 
-I think we need to stop thinking of a graph linked in terms of data
-flow - that's really not useful.
+This patch series adds a bunch of docbook fixes, posted here earlier:
 
-Consider a display subsystem.  The CRTC is the primary interface for
-the CPU - this is the "most interesting" interface, it's the interface
-which provides access to the picture to be displayed for the CPU.  Other
-interfaces are secondary to that purpose - reading the I2C DDC bus for
-the display information is all secondary to the primary purpose of
-displaying a picture.
+http://www.spinics.net/lists/linux-media/msg74059.html
 
-For a capture subsystem, the primary interface for the CPU is the frame
-grabber (whether it be an already encoded frame or not.)  The sensor
-devices are all secondary to that.
+and it adds a pci skeleton driver originally written for FOSDEM 2014 and
+posted earlier here:
 
-So, the primary software interface in each case is where the data for
-the primary purpose is transferred.  This is the point at which these
-graphs should commence since this is where we would normally start
-enumeration of the secondary interfaces.
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/75338
 
-V4L2 even provides interfaces for this: you open the capture device,
-which then allows you to enumerate the capture device's inputs, and
-this in turn allows you to enumerate their properties.  You don't open
-a particular sensor and work back up the tree.
+No existing drivers are changed, just docbook modifications and a new template
+driver.
 
-I believe trying to do this according to the flow of data is just wrong.
-You should always describe things from the primary device for the CPU
-towards the peripheral devices and never the opposite direction.
+For the ELC this year I hope to create a USB skeleton driver.
 
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+Regards,
+
+	Hans
+
+The following changes since commit 4a1df5e8f6712df3b5f8aeb09771a1169ddd8e8c:
+
+  [media] s2255drv: memory leak fix (2014-03-11 09:28:31 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git docbook
+
+for you to fetch changes up to baedfa602a02b0935a15fcdbef6ac9a65e957bb2:
+
+  v4l2-pci-skeleton: add a V4L2 PCI skeleton driver (2014-03-11 13:38:02 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      DocBook media: update STREAMON/OFF documentation.
+      DocBook: fix incorrect code example
+      DocBook media: clarify v4l2_buffer/plane fields.
+      DocBook media: fix broken FIELD_ALTERNATE description.
+      DocBook media: clarify v4l2_pix_format and v4l2_pix_format_mplane fields
+      v4l2-pci-skeleton: add a V4L2 PCI skeleton driver
+
+ Documentation/DocBook/media/v4l/dev-osd.xml         |  22 +-
+ Documentation/DocBook/media/v4l/io.xml              |  61 +++--
+ Documentation/DocBook/media/v4l/pixfmt.xml          |  33 ++-
+ Documentation/DocBook/media/v4l/vidioc-streamon.xml |  28 +-
+ drivers/media/pci/Kconfig                           |   1 +
+ drivers/media/pci/Makefile                          |   2 +
+ drivers/media/pci/skeleton/Kconfig                  |  11 +
+ drivers/media/pci/skeleton/Makefile                 |   1 +
+ drivers/media/pci/skeleton/v4l2-pci-skeleton.c      | 912 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 9 files changed, 1025 insertions(+), 46 deletions(-)
+ create mode 100644 drivers/media/pci/skeleton/Kconfig
+ create mode 100644 drivers/media/pci/skeleton/Makefile
+ create mode 100644 drivers/media/pci/skeleton/v4l2-pci-skeleton.c
