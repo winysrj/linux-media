@@ -1,581 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f201.google.com ([209.85.214.201]:42004 "EHLO
-	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755364AbaCKWwb (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:24212 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752421AbaCKNE5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 18:52:31 -0400
-Received: by mail-ob0-f201.google.com with SMTP id gq1so1961752obb.2
-        for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 15:52:30 -0700 (PDT)
-From: John Sheu <sheu@google.com>
-To: linux-media@vger.kernel.org
-Cc: m.chehab@samsung.com, k.debski@samsung.com, posciak@google.com,
-	arun.m@samsung.com, kgene.kim@samsung.com,
-	John Sheu <sheu@google.com>
-Subject: [PATCH 3/4] gsc-m2m: report correct format bytesperline and sizeimage
-Date: Tue, 11 Mar 2014 15:52:04 -0700
-Message-Id: <1394578325-11298-4-git-send-email-sheu@google.com>
-In-Reply-To: <1394578325-11298-1-git-send-email-sheu@google.com>
-References: <1394578325-11298-1-git-send-email-sheu@google.com>
+	Tue, 11 Mar 2014 09:04:57 -0400
+Message-id: <531F09E2.3070407@samsung.com>
+Date: Tue, 11 Mar 2014 14:04:34 +0100
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Grant Likely <grant.likely@linaro.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from
+ drivers/media/v4l2-core to drivers/of
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de>
+ <5427810.BUKJ3iUXnO@avalon> <20140310145815.17595C405FA@trevor.secretlab.ca>
+ <4339286.FzhQ2m6hoA@avalon>
+In-reply-to: <4339286.FzhQ2m6hoA@avalon>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Explicitly specify sampling period for subsampled chroma formats, so
-stride and image size are properly reported through VIDIOC_{S,G}_FMT.
+On 03/10/2014 04:15 PM, Laurent Pinchart wrote:
+> Hi Grant,
+> 
+> On Monday 10 March 2014 14:58:15 Grant Likely wrote:
+>> On Mon, 10 Mar 2014 14:52:53 +0100, Laurent Pinchart wrote:
+>>> On Monday 10 March 2014 12:18:20 Tomi Valkeinen wrote:
+>>>> On 08/03/14 13:41, Grant Likely wrote:
+>>>>>> Ok. If we go for single directional link, the question is then: which
+>>>>>> way? And is the direction different for display and camera, which are
+>>>>>> kind of reflections of each other?
+>>>>>
+>>>>> In general I would recommend choosing whichever device you would
+>>>>> sensibly think of as a master. In the camera case I would choose the
+>>>>> camera controller node instead of the camera itself, and in the
+>>>>> display case I would choose the display controller instead of the
+>>>>> panel. The binding author needs to choose what she things makes the
+>>>>> most sense, but drivers can still use if it it turns out to be
+>>>>> 'backwards'
+>>>>
+>>>> I would perhaps choose the same approach, but at the same time I think
+>>>> it's all but clear. The display controller doesn't control the panel any
+>>>> more than a DMA controller controls, say, the display controller.
+>>>>
+>>>> In fact, in earlier versions of OMAP DSS DT support I had a simpler port
+>>>> description, and in that I had the panel as the master (i.e. link from
+>>>> panel to dispc) because the panel driver uses the display controller's
+>>>> features to provide the panel device a data stream.
+>>>>
+>>>> And even with the current OMAP DSS DT version, which uses the v4l2 style
+>>>> ports/endpoints, the driver model is still the same, and only links
+>>>> towards upstream are used.
+>>>>
+>>>> So one reason I'm happy with the dual-linking is that I can easily
+>>>> follow the links from the downstream entities to upstream entities, and
+>>>> other people, who have different driver model, can easily do the
+>>>> opposite.
+>>>>
+>>>> But I agree that single-linking is enough and this can be handled at
+>>>> runtime, even if it makes the code more complex. And perhaps requires
+>>>> extra data in the dts, to give the start points for the graph.
+>>>
+>>> In theory unidirectional links in DT are indeed enough. However, let's not
+>>> forget the following.
+>>>
+>>> - There's no such thing as single start points for graphs. Sure, in some
+>>> simple cases the graph will have a single start point, but that's not a
+>>> generic rule. For instance the camera graphs
+>>> http://ideasonboard.org/media/omap3isp.ps and
+>>> http://ideasonboard.org/media/eyecam.ps have two camera sensors, and thus
+>>> two starting points from a data flow point of view. And if you want a
+>>> better understanding of how complex media graphs can become, have a look
+>>> at http://ideasonboard.org/media/vsp1.0.pdf (that's a real world example,
+>>> albeit all connections are internal to the SoC in that particular case,
+>>> and don't need to be described in DT).
+>>>
+>>> - There's also no such thing as a master device that can just point to
+>>> slave devices. Once again simple cases exist where that model could work,
+>>> but real world examples exist of complex pipelines with dozens of
+>>> elements all implemented by a separate IP core and handled by separate
+>>> drivers, forming a graph with long chains and branches. We thus need real
+>>> graph bindings.
+>>>
+>>> - Finally, having no backlinks in DT would make the software
+>>> implementation very complex. We need to be able to walk the graph in a
+>>> generic way without having any of the IP core drivers loaded, and without
+>>> any specific starting point. We would thus need to parse the complete DT
+>>> tree, looking at all nodes and trying to find out whether they're part of
+>>> the graph we're trying to walk. The complexity of the operation would be
+>>> at best quadratic to the number of nodes in the whole DT and to the number
+>>> of nodes in the graph.
+>>
+>> Not really. To being with, you cannot determine any meaning of a node
+>> across the tree (aside from it being an endpoint)
+> 
+> That's the important part. I can assume the target node of the remote-endpoint 
+> phandle to be an endpoint, and can thus assume that it implements the of-graph 
+> bindings. That's all I need to be able to walk the graph in a generic way.
+> 
+>> without also understanding the binding that the node is a part of. That
+>> means you need to have something matching against the compatible string on
+>> both ends of the linkage. For instance:
+>>
+>> panel {
+>> 	compatible = "acme,lvds-panel";
+>> 	lvds-port: port {
+>> 	};
+>> };
+>>
+>> display-controller {
+>> 	compatible = "encom,video";
+>> 	port {
+>> 		remote-endpoint = <&lvds-port>;
+>> 	};
+>> };
+>>
+>> In the above example, the encom,video driver has absolutely zero
+>> information about what the acme,lvds-panel binding actually implements.
+>> There needs to be both a driver for the "acme,lvds-panel" binding and
+>> one for the "encom,video" binding (even if the acme,lvds-panel binding
+>> is very thin and defers the functionality to the video controller).
+> 
+> I absolutely agree with that. We need a driver for each device (in this case 
+> the acme panel and the encom display controller), and we need those drivers to 
+> register entities (in the generic sense of the term) for them to be able to 
+> communicate with each other. The display controller driver must not try to 
+> parse panel-specific properties from the panel node. However, as described 
+> above, I believe it can parse ports and endpoints to walk the graph.
+> 
+>> What you want here is the drivers to register each side of the
+>> connection. That could be modeled with something like the following
+>> (pseudocode):
+>>
+>> struct of_endpoint {
+>> 	struct list_head list;
+>> 	struct device_node *ep_node;
+>> 	void *context;
+>> 	void (*cb)(struct of_endpoint *ep, void *data);
+>> }
+>>
+>> int of_register_port(struct device *node, void (*cb)(struct of_endpoint *ep,
+>> void *data), void *data) {
+>> 	struct of_endpoint *ep = kzalloc(sizeof(*ep), GFP_KERNEL);
+>>
+>> 	ep->ep_node = node;
+>> 	ep->data = data;
+>> 	ep->callback = cb;
+>>
+>> 	/* store the endpoint to a list */
+>> 	/* check if the endpoint has a remote-endpoint link */
+>> 		/* If so, then link the two together and call the
+>> 		 * callbacks */
+>> }
+>>
+>> That's neither expensive or complicated.
+>>
+>> Originally I suggested walking the whole tree multiple times, but as
+>> mentioned that doesn't scale, and as I thought about the above it isn't
+>> even a valid thing to do. Everything has to be driven by drivers, so
+>> even if the backlinks are there, nothing can be done with the link until
+>> the other side goes through enumeration independently.
+> 
+> For such composite devices, what we need from a drivers point of view is a 
+> mechanism to wait for all components to be in place before proceeding. This 
+> isn't DT-related as such, but the graph is obviously described in DT for DT-
+> based platforms.
+> 
+> There are at least two mainline implementation of such a mechanism. One of 
+> them can be found in drivers/media/v4l2-core/v4l2-async.c, another more recent 
+> one in drivers/base/component.c. Neither of them is DT-specific, and they 
+> don't try to parse DT content.
+> 
+> The main problem, from a DT point of view, is that we need to pick a master 
+> driver that will initiate the process of waiting for all components to be in 
+> place. This is usually the driver of the main component inside the SoC. For a 
+> camera capture pipeline the master is the SoC camera device driver that will 
+> create the V4L2 device node(s). For a display pipeline the master is the SoC 
+> display driver that will create the DRM/KMS devices.
+> 
+> The master device driver needs to create a list of all components it needs, 
+> and wait until all those components have been probed by their respective 
+> driver. Creating such a list requires walking the graph, starting at the 
+> master device (using a CPU-centric view as described by Russell). This is why 
+> we need the backlinks, as the master device can have inbound links.
+> 
 
-Signed-off-by: John Sheu <sheu@google.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c | 154 +++++++++++++++------------
- drivers/media/platform/exynos-gsc/gsc-core.h |  16 +--
- drivers/media/platform/exynos-gsc/gsc-regs.c |  40 +++----
- drivers/media/platform/exynos-gsc/gsc-regs.h |   4 +-
- 4 files changed, 116 insertions(+), 98 deletions(-)
+I am not sure if the approach with one device driver parsing links
+between two other devices is the correct one. For example some links can
+be optional, some irrelevant to the pipeline the master device tries to
+create,.... I guess it could be sometimes solved using additional
+properties, but this will complicate things and will not work if the
+routing decision can be taken only during specific driver probe or later.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 9d0cc04d..c02addef 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -34,167 +34,185 @@ static const struct gsc_fmt gsc_formats[] = {
- 	{
- 		.name		= "RGB565",
- 		.pixelformat	= V4L2_PIX_FMT_RGB565X,
--		.depth		= { 16 },
- 		.color		= GSC_RGB,
- 		.num_planes	= 1,
- 		.num_comp	= 1,
-+		.depth		= { 16 },
-+		.sampling	= { { 1, 1 } },
- 	}, {
- 		.name		= "XRGB-8-8-8-8, 32 bpp",
- 		.pixelformat	= V4L2_PIX_FMT_RGB32,
--		.depth		= { 32 },
- 		.color		= GSC_RGB,
- 		.num_planes	= 1,
- 		.num_comp	= 1,
-+		.depth		= { 32 },
-+		.sampling	= { { 1, 1 } },
- 	}, {
- 		.name		= "YUV 4:2:2 packed, YCbYCr",
- 		.pixelformat	= V4L2_PIX_FMT_YUYV,
--		.depth		= { 16 },
- 		.color		= GSC_YUV422,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 1,
- 		.num_comp	= 1,
-+		.depth		= { 16 },
-+		.sampling	= { { 1, 1 } },
- 		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,
- 	}, {
- 		.name		= "YUV 4:2:2 packed, CbYCrY",
- 		.pixelformat	= V4L2_PIX_FMT_UYVY,
--		.depth		= { 16 },
- 		.color		= GSC_YUV422,
- 		.yorder		= GSC_LSB_C,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 1,
- 		.num_comp	= 1,
-+		.depth		= { 16 },
-+		.sampling	= { { 1, 1 } },
- 		.mbus_code	= V4L2_MBUS_FMT_UYVY8_2X8,
- 	}, {
- 		.name		= "YUV 4:2:2 packed, CrYCbY",
- 		.pixelformat	= V4L2_PIX_FMT_VYUY,
--		.depth		= { 16 },
- 		.color		= GSC_YUV422,
- 		.yorder		= GSC_LSB_C,
- 		.corder		= GSC_CRCB,
- 		.num_planes	= 1,
- 		.num_comp	= 1,
-+		.depth		= { 16 },
-+		.sampling	= { { 1, 1 } },
- 		.mbus_code	= V4L2_MBUS_FMT_VYUY8_2X8,
- 	}, {
- 		.name		= "YUV 4:2:2 packed, YCrYCb",
- 		.pixelformat	= V4L2_PIX_FMT_YVYU,
--		.depth		= { 16 },
- 		.color		= GSC_YUV422,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CRCB,
- 		.num_planes	= 1,
- 		.num_comp	= 1,
-+		.depth		= { 16 },
-+		.sampling	= { { 1, 1 } },
- 		.mbus_code	= V4L2_MBUS_FMT_YVYU8_2X8,
- 	}, {
- 		.name		= "YUV 4:4:4 planar, YCbYCr",
- 		.pixelformat	= V4L2_PIX_FMT_YUV32,
--		.depth		= { 32 },
- 		.color		= GSC_YUV444,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 1,
- 		.num_comp	= 1,
-+		.depth		= { 32 },
-+		.sampling	= { { 1, 1 } },
- 	}, {
- 		.name		= "YUV 4:2:2 planar, Y/Cb/Cr",
- 		.pixelformat	= V4L2_PIX_FMT_YUV422P,
--		.depth		= { 16 },
- 		.color		= GSC_YUV422,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 1,
- 		.num_comp	= 3,
-+		.depth		= { 8, 8, 8 },
-+		.sampling	= { { 1, 1 }, { 2, 1 }, { 2, 1 } },
- 	}, {
- 		.name		= "YUV 4:2:2 planar, Y/CbCr",
- 		.pixelformat	= V4L2_PIX_FMT_NV16,
--		.depth		= { 16 },
- 		.color		= GSC_YUV422,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 1,
- 		.num_comp	= 2,
-+		.depth		= { 8, 16 },
-+		.sampling	= { { 1, 1 }, { 2, 1 } },
- 	}, {
- 		.name		= "YUV 4:2:2 planar, Y/CrCb",
- 		.pixelformat	= V4L2_PIX_FMT_NV61,
--		.depth		= { 16 },
- 		.color		= GSC_YUV422,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CRCB,
- 		.num_planes	= 1,
- 		.num_comp	= 2,
-+		.depth		= { 8, 16 },
-+		.sampling	= { { 1, 1 }, { 2, 1 } },
- 	}, {
- 		.name		= "YUV 4:2:0 planar, YCbCr",
- 		.pixelformat	= V4L2_PIX_FMT_YUV420,
--		.depth		= { 12 },
- 		.color		= GSC_YUV420,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 1,
- 		.num_comp	= 3,
-+		.depth		= { 8, 8, 8 },
-+		.sampling	= { { 1, 1 }, { 2, 2 }, { 2, 2 } },
- 	}, {
- 		.name		= "YUV 4:2:0 planar, YCrCb",
- 		.pixelformat	= V4L2_PIX_FMT_YVU420,
--		.depth		= { 12 },
- 		.color		= GSC_YUV420,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CRCB,
- 		.num_planes	= 1,
- 		.num_comp	= 3,
--
-+		.depth		= { 8, 8, 8 },
-+		.sampling	= { { 1, 1 }, { 2, 2 }, { 2, 2 } },
- 	}, {
- 		.name		= "YUV 4:2:0 planar, Y/CbCr",
- 		.pixelformat	= V4L2_PIX_FMT_NV12,
--		.depth		= { 12 },
- 		.color		= GSC_YUV420,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 1,
- 		.num_comp	= 2,
-+		.depth		= { 8, 16 },
-+		.sampling	= { { 1, 1 }, { 2, 2 } },
- 	}, {
- 		.name		= "YUV 4:2:0 planar, Y/CrCb",
- 		.pixelformat	= V4L2_PIX_FMT_NV21,
--		.depth		= { 12 },
- 		.color		= GSC_YUV420,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CRCB,
- 		.num_planes	= 1,
- 		.num_comp	= 2,
-+		.depth		= { 8, 16 },
-+		.sampling	= { { 1, 1 }, { 2, 2 } },
- 	}, {
--		.name		= "YUV 4:2:0 non-contig. 2p, Y/CbCr",
-+		.name		= "YUV 4:2:0 non-contiguous 2-planar, Y/CbCr",
- 		.pixelformat	= V4L2_PIX_FMT_NV12M,
--		.depth		= { 8, 4 },
- 		.color		= GSC_YUV420,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 2,
- 		.num_comp	= 2,
-+		.depth		= { 8, 16 },
-+		.sampling	= { { 1, 1 }, { 2, 2 } },
- 	}, {
--		.name		= "YUV 4:2:0 non-contig. 3p, Y/Cb/Cr",
-+		.name		= "YUV 4:2:0 non-contiguous 3-planar, Y/Cb/Cr",
- 		.pixelformat	= V4L2_PIX_FMT_YUV420M,
--		.depth		= { 8, 2, 2 },
- 		.color		= GSC_YUV420,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 3,
- 		.num_comp	= 3,
-+		.depth		= { 8, 8, 8 },
-+		.sampling	= { { 1, 1 }, { 2, 2 }, { 2, 2 } },
- 	}, {
--		.name		= "YUV 4:2:0 non-contig. 3p, Y/Cr/Cb",
-+		.name		= "YUV 4:2:0 non-contiguous 3-planar, Y/Cr/Cb",
- 		.pixelformat	= V4L2_PIX_FMT_YVU420M,
--		.depth		= { 8, 2, 2 },
- 		.color		= GSC_YUV420,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CRCB,
- 		.num_planes	= 3,
- 		.num_comp	= 3,
-+		.depth		= { 8, 8, 8 },
-+		.sampling	= { { 1, 1 }, { 2, 2 }, { 2, 2 } },
- 	}, {
--		.name		= "YUV 4:2:0 n.c. 2p, Y/CbCr tiled",
-+		.name		=
-+			"YUV 4:2:0 non-contiguous 2-planar, Y/CbCr, tiled",
- 		.pixelformat	= V4L2_PIX_FMT_NV12MT_16X16,
--		.depth		= { 8, 4 },
- 		.color		= GSC_YUV420,
- 		.yorder		= GSC_LSB_Y,
- 		.corder		= GSC_CBCR,
- 		.num_planes	= 2,
- 		.num_comp	= 2,
--	}
-+		.depth		= { 8, 16 },
-+		.sampling	= { { 1, 1 }, { 2, 2 } },
-+	},
- };
- 
- const struct gsc_fmt *get_format(int index)
-@@ -384,6 +402,14 @@ void gsc_set_prefbuf(struct gsc_dev *gsc, struct gsc_frame *frm)
- 			f_chk_addr, f_chk_len, s_chk_addr, s_chk_len);
- }
- 
-+static void get_format_size(__u32 width, __u32 height,
-+			    const struct gsc_fmt *fmt, int plane,
-+			    __u16 *bytesperline, __u32 *sizeimage) {
-+	__u16 bpl = ((width * fmt->depth[plane]) / fmt->sampling[plane][0]) / 8;
-+	*bytesperline = bpl;
-+	*sizeimage = (height * bpl) / fmt->sampling[plane][0];
-+}
-+
- int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
- {
- 	struct gsc_dev *gsc = ctx->gsc_dev;
-@@ -448,14 +474,16 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
- 	else /* SD */
- 		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 
--
-+	/* V4L2 specifies for contiguous planar formats that bytesperline and
-+	   sizeimage are set to values appropriate for the first plane. */
- 	for (i = 0; i < pix_mp->num_planes; ++i) {
--		int bpl = (pix_mp->width * fmt->depth[i]) >> 3;
--		pix_mp->plane_fmt[i].bytesperline = bpl;
--		pix_mp->plane_fmt[i].sizeimage = bpl * pix_mp->height;
-+		get_format_size(pix_mp->width, pix_mp->height, fmt, i,
-+				&pix_mp->plane_fmt[i].bytesperline,
-+				&pix_mp->plane_fmt[i].sizeimage);
- 
- 		pr_debug("[%d]: bpl: %d, sizeimage: %d",
--				i, bpl, pix_mp->plane_fmt[i].sizeimage);
-+				i, pix_mp->plane_fmt[i].bytesperline,
-+				pix_mp->plane_fmt[i].sizeimage);
- 	}
- 
- 	return 0;
-@@ -465,26 +493,27 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
- {
- 	struct gsc_frame *frame;
- 	struct v4l2_pix_format_mplane *pix_mp;
-+	const struct gsc_fmt *fmt;
- 	int i;
- 
- 	frame = ctx_get_frame(ctx, f->type);
- 	if (IS_ERR(frame))
- 		return PTR_ERR(frame);
-+	fmt = frame->fmt;
- 
- 	pix_mp = &f->fmt.pix_mp;
- 
- 	pix_mp->width		= frame->f_width;
- 	pix_mp->height		= frame->f_height;
- 	pix_mp->field		= V4L2_FIELD_NONE;
--	pix_mp->pixelformat	= frame->fmt->pixelformat;
-+	pix_mp->pixelformat	= fmt->pixelformat;
- 	pix_mp->colorspace	= V4L2_COLORSPACE_REC709;
--	pix_mp->num_planes	= frame->fmt->num_planes;
-+	pix_mp->num_planes	= fmt->num_planes;
- 
- 	for (i = 0; i < pix_mp->num_planes; ++i) {
--		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
--			frame->fmt->depth[i]) / 8;
--		pix_mp->plane_fmt[i].sizeimage =
--			 pix_mp->plane_fmt[i].bytesperline * frame->f_height;
-+		get_format_size(pix_mp->width, pix_mp->height, fmt, i,
-+				&pix_mp->plane_fmt[i].bytesperline,
-+				&pix_mp->plane_fmt[i].sizeimage);
- 	}
- 
- 	return 0;
-@@ -794,11 +823,12 @@ void gsc_ctrls_delete(struct gsc_ctx *ctx)
- 	}
- }
- 
--/* The color format (num_comp, num_planes) must be already configured. */
-+/* The color format (num_planes, num_comp) must be already configured. */
- int gsc_prepare_addr(struct gsc_ctx *ctx, struct vb2_buffer *vb,
- 			struct gsc_frame *frame, struct gsc_addr *addr)
- {
- 	int ret = 0;
-+	const struct gsc_fmt *fmt = frame->fmt;
- 	u32 pix_size;
- 
- 	if ((vb == NULL) || (frame == NULL))
-@@ -810,46 +840,30 @@ int gsc_prepare_addr(struct gsc_ctx *ctx, struct vb2_buffer *vb,
- 		frame->fmt->num_planes, frame->fmt->num_comp, pix_size);
- 
- 	addr->y = vb2_dma_contig_plane_dma_addr(vb, 0);
--
--	if (frame->fmt->num_planes == 1) {
--		switch (frame->fmt->num_comp) {
--		case 1:
--			addr->cb = 0;
--			addr->cr = 0;
--			break;
--		case 2:
--			/* decompose Y into Y/Cb */
--			addr->cb = (dma_addr_t)(addr->y + pix_size);
--			addr->cr = 0;
--			break;
--		case 3:
--			/* decompose Y into Y/Cb/Cr */
--			addr->cb = (dma_addr_t)(addr->y + pix_size);
--			if (GSC_YUV420 == frame->fmt->color)
--				addr->cr = (dma_addr_t)(addr->cb
--						+ (pix_size >> 2));
--			else /* 422 */
--				addr->cr = (dma_addr_t)(addr->cb
--						+ (pix_size >> 1));
--			break;
--		default:
--			pr_err("Invalid the number of color planes");
--			return -EINVAL;
-+	addr->cb = 0;
-+	addr->cr = 0;
-+
-+	if (fmt->num_planes == 1) {
-+		if (fmt->num_comp >= 2) {
-+			addr->cb = (dma_addr_t)(addr->y +
-+				((pix_size * fmt->depth[0]) /
-+				(fmt->sampling[0][0] *
-+				 fmt->sampling[0][1]) / 8));
-+		}
-+		if (fmt->num_comp >= 3) {
-+			addr->cr = (dma_addr_t)(addr->cb +
-+				((pix_size * fmt->depth[1]) /
-+				(fmt->sampling[1][0] *
-+				 fmt->sampling[1][1]) / 8));
- 		}
- 	} else {
--		if (frame->fmt->num_planes >= 2)
-+		if (fmt->num_comp >= 2)
- 			addr->cb = vb2_dma_contig_plane_dma_addr(vb, 1);
--
--		if (frame->fmt->num_planes == 3)
-+		if (fmt->num_comp == 3)
- 			addr->cr = vb2_dma_contig_plane_dma_addr(vb, 2);
- 	}
- 
--	if ((frame->fmt->pixelformat == V4L2_PIX_FMT_VYUY) ||
--		(frame->fmt->pixelformat == V4L2_PIX_FMT_YVYU) ||
--		(frame->fmt->pixelformat == V4L2_PIX_FMT_NV61) ||
--		(frame->fmt->pixelformat == V4L2_PIX_FMT_YVU420) ||
--		(frame->fmt->pixelformat == V4L2_PIX_FMT_NV21) ||
--		(frame->fmt->pixelformat == V4L2_PIX_FMT_YVU420M))
-+	if (fmt->corder == GSC_CRCB)
- 		swap(addr->cb, addr->cr);
- 
- 	pr_debug("ADDR: y= 0x%X  cb= 0x%X cr= 0x%X ret= %d",
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
-index ef0a6564..8fb07e0d 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.h
-@@ -106,27 +106,27 @@ enum gsc_yuv_fmt {
- 	container_of((__ctrl)->handler, struct gsc_ctx, ctrl_handler)
- /**
-  * struct gsc_fmt - the driver's internal color format data
-- * @mbus_code: Media Bus pixel code, -1 if not applicable
-  * @name: format description
-  * @pixelformat: the fourcc code for this format, 0 if not applicable
-  * @yorder: Y/C order
-  * @corder: Chrominance order control
-  * @num_planes: number of physically non-contiguous data planes
-- * @nr_comp: number of physically contiguous data planes
-- * @depth: per plane driver's private 'number of bits per pixel'
-- * @flags: flags indicating which operation mode format applies to
-+ * @num_comp: number of physically contiguous data planes
-+ * @depth: bit depth of each component
-+ * @sampling: sampling frequency of each components, X and Y
-+ * @mbus_code: Media Bus pixel code, -1 if not applicable
-  */
- struct gsc_fmt {
--	enum v4l2_mbus_pixelcode mbus_code;
- 	char	*name;
- 	u32	pixelformat;
- 	u32	color;
- 	u32	yorder;
- 	u32	corder;
--	u16	num_planes;
--	u16	num_comp;
-+	u8	num_planes;
-+	u8	num_comp;
- 	u8	depth[VIDEO_MAX_PLANES];
--	u32	flags;
-+	u8	sampling[VIDEO_MAX_PLANES][2];
-+	enum v4l2_mbus_pixelcode mbus_code;
- };
- 
- /**
-diff --git a/drivers/media/platform/exynos-gsc/gsc-regs.c b/drivers/media/platform/exynos-gsc/gsc-regs.c
-index e22d147a..a8d6c90b 100644
---- a/drivers/media/platform/exynos-gsc/gsc-regs.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-regs.c
-@@ -167,6 +167,7 @@ void gsc_hw_set_in_image_format(struct gsc_ctx *ctx)
- {
- 	struct gsc_dev *dev = ctx->gsc_dev;
- 	struct gsc_frame *frame = &ctx->s_frame;
-+	const struct gsc_fmt *fmt = frame->fmt;
- 	u32 i, depth = 0;
- 	u32 cfg;
- 
-@@ -176,21 +177,22 @@ void gsc_hw_set_in_image_format(struct gsc_ctx *ctx)
- 		 GSC_IN_TILE_TYPE_MASK | GSC_IN_TILE_MODE);
- 	writel(cfg, dev->regs + GSC_IN_CON);
- 
--	if (is_rgb(frame->fmt->color)) {
-+	if (is_rgb(fmt->color)) {
- 		gsc_hw_set_in_image_rgb(ctx);
- 		return;
- 	}
--	for (i = 0; i < frame->fmt->num_planes; i++)
--		depth += frame->fmt->depth[i];
-+	for (i = 0; i < fmt->num_comp; i++)
-+		depth += fmt->depth[i] /
-+			(fmt->sampling[i][0] * fmt->sampling[i][1]);
- 
--	switch (frame->fmt->num_comp) {
-+	switch (fmt->num_comp) {
- 	case 1:
- 		cfg |= GSC_IN_YUV422_1P;
--		if (frame->fmt->yorder == GSC_LSB_Y)
-+		if (fmt->yorder == GSC_LSB_Y)
- 			cfg |= GSC_IN_YUV422_1P_ORDER_LSB_Y;
- 		else
--			cfg |= GSC_IN_YUV422_1P_OEDER_LSB_C;
--		if (frame->fmt->corder == GSC_CBCR)
-+			cfg |= GSC_IN_YUV422_1P_ORDER_LSB_C;
-+		if (fmt->corder == GSC_CBCR)
- 			cfg |= GSC_IN_CHROMA_ORDER_CBCR;
- 		else
- 			cfg |= GSC_IN_CHROMA_ORDER_CRCB;
-@@ -200,7 +202,7 @@ void gsc_hw_set_in_image_format(struct gsc_ctx *ctx)
- 			cfg |= GSC_IN_YUV420_2P;
- 		else
- 			cfg |= GSC_IN_YUV422_2P;
--		if (frame->fmt->corder == GSC_CBCR)
-+		if (fmt->corder == GSC_CBCR)
- 			cfg |= GSC_IN_CHROMA_ORDER_CBCR;
- 		else
- 			cfg |= GSC_IN_CHROMA_ORDER_CRCB;
-@@ -213,7 +215,7 @@ void gsc_hw_set_in_image_format(struct gsc_ctx *ctx)
- 		break;
- 	}
- 
--	if (is_tiled(frame->fmt))
-+	if (is_tiled(fmt))
- 		cfg |= GSC_IN_TILE_C_16x8 | GSC_IN_TILE_MODE;
- 
- 	writel(cfg, dev->regs + GSC_IN_CON);
-@@ -287,6 +289,7 @@ void gsc_hw_set_out_image_format(struct gsc_ctx *ctx)
- {
- 	struct gsc_dev *dev = ctx->gsc_dev;
- 	struct gsc_frame *frame = &ctx->d_frame;
-+	const struct gsc_fmt *fmt = frame->fmt;
- 	u32 i, depth = 0;
- 	u32 cfg;
- 
-@@ -296,7 +299,7 @@ void gsc_hw_set_out_image_format(struct gsc_ctx *ctx)
- 		 GSC_OUT_TILE_TYPE_MASK | GSC_OUT_TILE_MODE);
- 	writel(cfg, dev->regs + GSC_OUT_CON);
- 
--	if (is_rgb(frame->fmt->color)) {
-+	if (is_rgb(fmt->color)) {
- 		gsc_hw_set_out_image_rgb(ctx);
- 		return;
- 	}
-@@ -306,17 +309,18 @@ void gsc_hw_set_out_image_format(struct gsc_ctx *ctx)
- 		goto end_set;
- 	}
- 
--	for (i = 0; i < frame->fmt->num_planes; i++)
--		depth += frame->fmt->depth[i];
-+	for (i = 0; i < fmt->num_comp; i++)
-+		depth += fmt->depth[i] /
-+			(fmt->sampling[i][0] * fmt->sampling[i][1]);
- 
--	switch (frame->fmt->num_comp) {
-+	switch (fmt->num_comp) {
- 	case 1:
- 		cfg |= GSC_OUT_YUV422_1P;
--		if (frame->fmt->yorder == GSC_LSB_Y)
-+		if (fmt->yorder == GSC_LSB_Y)
- 			cfg |= GSC_OUT_YUV422_1P_ORDER_LSB_Y;
- 		else
--			cfg |= GSC_OUT_YUV422_1P_OEDER_LSB_C;
--		if (frame->fmt->corder == GSC_CBCR)
-+			cfg |= GSC_OUT_YUV422_1P_ORDER_LSB_C;
-+		if (fmt->corder == GSC_CBCR)
- 			cfg |= GSC_OUT_CHROMA_ORDER_CBCR;
- 		else
- 			cfg |= GSC_OUT_CHROMA_ORDER_CRCB;
-@@ -326,7 +330,7 @@ void gsc_hw_set_out_image_format(struct gsc_ctx *ctx)
- 			cfg |= GSC_OUT_YUV420_2P;
- 		else
- 			cfg |= GSC_OUT_YUV422_2P;
--		if (frame->fmt->corder == GSC_CBCR)
-+		if (fmt->corder == GSC_CBCR)
- 			cfg |= GSC_OUT_CHROMA_ORDER_CBCR;
- 		else
- 			cfg |= GSC_OUT_CHROMA_ORDER_CRCB;
-@@ -336,7 +340,7 @@ void gsc_hw_set_out_image_format(struct gsc_ctx *ctx)
- 		break;
- 	}
- 
--	if (is_tiled(frame->fmt))
-+	if (is_tiled(fmt))
- 		cfg |= GSC_OUT_TILE_C_16x8 | GSC_OUT_TILE_MODE;
- 
- end_set:
-diff --git a/drivers/media/platform/exynos-gsc/gsc-regs.h b/drivers/media/platform/exynos-gsc/gsc-regs.h
-index 4678f9a6..b03401dc 100644
---- a/drivers/media/platform/exynos-gsc/gsc-regs.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-regs.h
-@@ -46,7 +46,7 @@
- #define GSC_IN_RGB_SD_WIDE		(0 << 14)
- #define GSC_IN_YUV422_1P_ORDER_MASK	(1 << 13)
- #define GSC_IN_YUV422_1P_ORDER_LSB_Y	(0 << 13)
--#define GSC_IN_YUV422_1P_OEDER_LSB_C	(1 << 13)
-+#define GSC_IN_YUV422_1P_ORDER_LSB_C	(1 << 13)
- #define GSC_IN_CHROMA_ORDER_MASK	(1 << 12)
- #define GSC_IN_CHROMA_ORDER_CBCR	(0 << 12)
- #define GSC_IN_CHROMA_ORDER_CRCB	(1 << 12)
-@@ -91,7 +91,7 @@
- #define GSC_OUT_RGB_SD_NARROW		(0 << 10)
- #define GSC_OUT_YUV422_1P_ORDER_MASK	(1 << 9)
- #define GSC_OUT_YUV422_1P_ORDER_LSB_Y	(0 << 9)
--#define GSC_OUT_YUV422_1P_OEDER_LSB_C	(1 << 9)
-+#define GSC_OUT_YUV422_1P_ORDER_LSB_C	(1 << 9)
- #define GSC_OUT_CHROMA_ORDER_MASK	(1 << 8)
- #define GSC_OUT_CHROMA_ORDER_CBCR	(0 << 8)
- #define GSC_OUT_CHROMA_ORDER_CRCB	(1 << 8)
--- 
-1.9.0.279.gdc9e3eb
+Regards
+Andrzej
+
 
