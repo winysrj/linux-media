@@ -1,42 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2621 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbaCJRPX (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54036 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752868AbaCKQXO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 13:15:23 -0400
-Message-ID: <531DF324.5020205@xs4all.nl>
-Date: Mon, 10 Mar 2014 18:15:16 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 11 Mar 2014 12:23:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH v3 27/48] v4l: Validate fields in the core code for subdev EDID ioctls
+Date: Tue, 11 Mar 2014 17:24:49 +0100
+Message-ID: <2281895.rql8Q6dghx@avalon>
+In-Reply-To: <531F359B.9010103@xs4all.nl>
+References: <1394493359-14115-28-git-send-email-laurent.pinchart@ideasonboard.com> <3176580.C10mxSGlFc@avalon> <531F359B.9010103@xs4all.nl>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Lars-Peter Clausen <lars@metafoo.de>
-Subject: [GIT PULL FOR v3.15] adv7180 fixes
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit f2d7313534072a5fe192e7cf46204b413acef479:
+Hi Hans,
 
-  [media] drx-d: add missing braces in drxd_hard.c:DRXD_init (2014-03-09 09:20:50 -0300)
+On Tuesday 11 March 2014 17:11:07 Hans Verkuil wrote:
+> On 03/11/2014 05:08 PM, Laurent Pinchart wrote:
+> > Hi Hans,
+> > 
+> > On Tuesday 11 March 2014 16:44:27 Hans Verkuil wrote:
+> >> On 03/11/2014 04:09 PM, Laurent Pinchart wrote:
+> >>> The subdev EDID ioctls receive a pad field that must reference an
+> >>> existing pad and an EDID field that must point to a buffer. Validate
+> >>> both fields in the core code instead of duplicating validation in all
+> >>> drivers.
+> >>> 
+> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> 
+> >> Here is my:
+> >> 
+> >> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> 
+> >> But take note: the adv7604 driver does not handle a get_edid with
+> >> edid->blocks == 0 correctly: it should fill in the blocks field with the
+> >> real number of blocks and return 0 instead of returning EINVAL.
+> > 
+> > Should it also set edid->start_block to 0 ?
+> 
+> I don't think so. It makes sense to just set blocks to the total number of
+> available blocks - edid->start_block.
 
-are available in the git repository at:
+OK.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.15e
+> Note that if edid->start_block >= total number of EDID blocks, then -ENODATA
+> should be returned.
 
-for you to fetch changes up to 72f965c6bbff5f0b3290e5019c90496dcb9462fe:
+What if S_EDID hasn't been called yet ? Should the driver set edid->blocks to 
+0 and return success ? Or should it return -ENODATA ?
 
-  adv7180: Add support for power down (2014-03-10 18:12:26 +0100)
+There's quite a few possible combinations, we should probably start by 
+clarifying the spec.
 
-----------------------------------------------------------------
-Lars-Peter Clausen (7):
-      adv7180: Fix remove order
-      adv7180: Free control handler on remove()
-      adv7180: Remove unnecessary v4l2_device_unregister_subdev() from probe error path
-      adv7180: Remove duplicated probe error message
-      adv7180: Use threaded IRQ instead of IRQ + workqueue
-      adv7180: Add support for async device registration
-      adv7180: Add support for power down
+-- 
+Regards,
 
- drivers/media/i2c/adv7180.c | 100 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------
- 1 file changed, 59 insertions(+), 41 deletions(-)
+Laurent Pinchart
+
