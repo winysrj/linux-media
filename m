@@ -1,54 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2801 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754565AbaCKQLV (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:54894 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751324AbaCKKi3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 12:11:21 -0400
-Message-ID: <531F359B.9010103@xs4all.nl>
-Date: Tue, 11 Mar 2014 17:11:07 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH v3 27/48] v4l: Validate fields in the core code for subdev
- EDID ioctls
-References: <1394493359-14115-28-git-send-email-laurent.pinchart@ideasonboard.com> <1394550593-25191-1-git-send-email-laurent.pinchart@ideasonboard.com> <531F2F5B.1040805@xs4all.nl> <3176580.C10mxSGlFc@avalon>
-In-Reply-To: <3176580.C10mxSGlFc@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 11 Mar 2014 06:38:29 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] drx-j: use ber_count var
+Date: Tue, 11 Mar 2014 07:37:35 -0300
+Message-Id: <1394534255-2672-1-git-send-email-m.chehab@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/2014 05:08 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Tuesday 11 March 2014 16:44:27 Hans Verkuil wrote:
->> On 03/11/2014 04:09 PM, Laurent Pinchart wrote:
->>> The subdev EDID ioctls receive a pad field that must reference an
->>> existing pad and an EDID field that must point to a buffer. Validate
->>> both fields in the core code instead of duplicating validation in all
->>> drivers.
->>>
->>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>
->> Here is my:
->>
->> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> But take note: the adv7604 driver does not handle a get_edid with
->> edid->blocks == 0 correctly: it should fill in the blocks field with the
->> real number of blocks and return 0 instead of returning EINVAL.
-> 
-> Should it also set edid->start_block to 0 ?
+drivers/media/dvb-frontends/drx39xyj/drxj.c: In function 'ctrl_get_qam_sig_quality':
+drivers/media/dvb-frontends/drx39xyj/drxj.c:9468:6: warning: variable 'ber_cnt' set but not used [-Wunused-but-set-variable]
+  u32 ber_cnt = 0; /* BER count */
+      ^
 
-I don't think so. It makes sense to just set blocks to the total number of
-available blocks - edid->start_block.
+By reading the comment, it is said that BER should be calculated as:
+	qam_pre_rs_ber = frac_times1e6( ber_cnt, rs_bit_cnt );
 
-Note that if edid->start_block >= total number of EDID blocks, then -ENODATA
-should be returned.
+Also, it makes sense to take the mantissa into account, so fix the
+code to do what's commented.
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	Hans
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 0c0e9f3b108f..41d4bfe66764 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -9583,7 +9583,7 @@ ctrl_get_qam_sig_quality(struct drx_demod_instance *demod)
+ 	if (m > (rs_bit_cnt >> (e + 1)) || (rs_bit_cnt >> e) == 0)
+ 		qam_pre_rs_ber = 500000 * rs_bit_cnt >> e;
+ 	else
+-		qam_pre_rs_ber = m;
++		qam_pre_rs_ber = ber_cnt;
+ 
+ 	/* post RS BER = 1000000* (11.17 * FEC_OC_SNC_FAIL_COUNT__A) /  */
+ 	/*               (1504.0 * FEC_OC_SNC_FAIL_PERIOD__A)  */
+-- 
+1.8.5.3
+
