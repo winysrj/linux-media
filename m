@@ -1,55 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38169 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752952AbaCCHeK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Mar 2014 02:34:10 -0500
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<hverkuil@xs4all.nl>, <laurent.pinchart@ideasonboard.com>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH 0/7] v4l: ti-vpe: Some VPE fixes and enhancements
-Date: Mon, 3 Mar 2014 13:03:21 +0530
-Message-ID: <1393832008-22174-1-git-send-email-archit@ti.com>
+Received: from mail-vc0-f169.google.com ([209.85.220.169]:52529 "EHLO
+	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751688AbaCKHMt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 03:12:49 -0400
+Received: by mail-vc0-f169.google.com with SMTP id ik5so170424vcb.14
+        for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 00:12:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1394493359-14115-25-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1394493359-14115-25-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 11 Mar 2014 12:42:28 +0530
+Message-ID: <CA+V-a8uZJv0BXN0=C2T=4M097u6atDvs+aud5J+c5RMP-Dux9A@mail.gmail.com>
+Subject: Re: [PATCH v2 24/48] tvp7002: Remove deprecated video-level DV
+ timings operations
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set mainly consists of minor fixes for the VPE driver. These fixes
-ensure the following:
+On Tue, Mar 11, 2014 at 4:45 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> The video enum_dv_timings and dv_timings_cap operations are deprecated
+> and unused. Remove them.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-- The VPE module can be inserted and removed successively.
-- Make sure that smaller resolutions like qcif work correctly.
-- Prevent race condition between firmware loading and an open call to the v4l2
-  device.
-- Prevent the possibility of output m2m queue not having sufficient 'ready'
-  buffers.
-- Some VPDMA data descriptor fields weren't understood correctly before. They
-  are now used correctly.
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-The rest of the patches add some minor features like DMA buf support and
-cropping.
+Regards,
+--Prabhakar lad
 
-Reference branch:
-
-git@github.com:boddob/linux.git vpe_for_315
-
-Archit Taneja (7):
-  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
-    dst_bufs
-  v4l: ti-vpe: register video device only when firmware is loaded
-  v4l: ti-vpe: Use video_device_release_empty
-  v4l: ti-vpe: Allow DMABUF buffer type support
-  v4l: ti-vpe: Allow usage of smaller images
-  v4l: ti-vpe: Fix some params in VPE data descriptors
-  v4l: ti-vpe: Add crop support in VPE driver
-
- drivers/media/platform/ti-vpe/vpdma.c |  58 ++++++++---
- drivers/media/platform/ti-vpe/vpdma.h |  16 +--
- drivers/media/platform/ti-vpe/vpe.c   | 180 +++++++++++++++++++++++++++-------
- 3 files changed, 198 insertions(+), 56 deletions(-)
-
--- 
-1.8.3.2
-
+> ---
+>  drivers/media/i2c/tvp7002.c | 1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+> index 9f56fd5..fa901a9 100644
+> --- a/drivers/media/i2c/tvp7002.c
+> +++ b/drivers/media/i2c/tvp7002.c
+> @@ -926,7 +926,6 @@ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+>  static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
+>         .g_dv_timings = tvp7002_g_dv_timings,
+>         .s_dv_timings = tvp7002_s_dv_timings,
+> -       .enum_dv_timings = tvp7002_enum_dv_timings,
+>         .query_dv_timings = tvp7002_query_dv_timings,
+>         .s_stream = tvp7002_s_stream,
+>         .g_mbus_fmt = tvp7002_mbus_fmt,
+> --
+> 1.8.3.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
