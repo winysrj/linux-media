@@ -1,73 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:55218 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751065AbaCGPgH (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17746 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754481AbaCKNio (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Mar 2014 10:36:07 -0500
-Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id ED89D21174
-	for <linux-media@vger.kernel.org>; Fri,  7 Mar 2014 10:36:05 -0500 (EST)
-Message-ID: <5319E763.1080606@williammanley.net>
-Date: Fri, 07 Mar 2014 15:36:03 +0000
-From: William Manley <will@williammanley.net>
-MIME-Version: 1.0
-To: Paulo Assis <pj.assis@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: uvcvideo: logitech C920 resets controls during VIDIOC_STREAMON
-References: <5317ACAC.8000008@williammanley.net> <CAPueXH7UaScMA2S1r77oR+5p=MCxQEx3P0c2bhxS+8weqdVUBQ@mail.gmail.com> <53187272.6000901@williammanley.net>
-In-Reply-To: <53187272.6000901@williammanley.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 11 Mar 2014 09:38:44 -0400
+Message-id: <531F11DD.5040300@samsung.com>
+Date: Tue, 11 Mar 2014 14:38:37 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	a.hajda@samsung.com
+Subject: Re: [PATCH v6 03/10] Documentation: devicetree: Update Samsung FIMC DT
+ binding
+References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+ <1394122819-9582-4-git-send-email-s.nawrocki@samsung.com>
+ <1608087.RUCeTiNcRR@avalon>
+In-reply-to: <1608087.RUCeTiNcRR@avalon>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/14 13:04, William Manley wrote:
-> On 06/03/14 12:09, Paulo Assis wrote:
->> Hi,
+Hi Laurent,
+
+Thanks for your review.
+
+On 11/03/14 13:30, Laurent Pinchart wrote:
+[...]
+>> ---
+>>  .../devicetree/bindings/media/samsung-fimc.txt     |   34 ++++++++++++-----
+>>  1 file changed, 26 insertions(+), 8 deletions(-)
 >>
->> 2014-03-05 23:01 GMT+00:00 William Manley <will@williammanley.net>:
->>> Hi All
->>>
->>> I've been attempting to use the Logitech C920 with the uvcvideo driver.
->>>  I set the controls with v4l2-ctl but some of them change during
->>> VIDIOC_STREAMON.  My understanding is that the values of controls should
->>> be preserved.
->>>
-> 
-> [snip]
-> 
->>> The camera does
->>> have a mode where it would change by itself but that is disabled
->>> (exposure_auto=1).
+>> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>> b/Documentation/devicetree/bindings/media/samsung-fimc.txt index
+>> 96312f6..dbd4020 100644
+>> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+>> @@ -32,6 +32,21 @@ way around.
 >>
->> This alone doesn't guarantee that exposure absolute is untouched.
->> To do so you need to set V4L2_CID_EXPOSURE_AUTO_PRIORITY to 0 and
->> V4L2_CID_EXPOSURE_AUTO to V4L2_EXPOSURE_MANUAL
+>>  The 'camera' node must include at least one 'fimc' child node.
+>>
+>> +Optional properties:
+>> +
+>> +- #clock-cells: from the common clock bindings
+>> (../clock/clock-bindings.txt),
+>> +  must be 1. A clock provider is associated with the 'camera' node and it
+>> should
+>> +  be referenced by external sensors that use clocks provided by the SoC on
+>> +  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a clock.
+>> +  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively.
+>> +
+>> +- clock-output-names: from the common clock bindings, should contain names
+>> of
+>> +  clocks registered by the camera subsystem corresponding to CAM_A_CLKOUT,
+>> +  CAM_B_CLKOUT output clocks respectively.
 > 
-> The behaviour is the same whether exposure_auto_priority is set to 1 or
-> 0.  I don't think I've explained myself clearly - the exposure time does
-> not change by itself, apart from during VIDIOC_STREAMON:
+> Wouldn't it be better to document the "cam_mclk_a" and "cam_mclk_b" names 
+> explicitly ? Or do you expect different names to be used in different DT files 
+> ? And as they correspond to the CAM_A_CLKOUT and CAM_B_CLKOUT pins, shouldn't 
+> they be named "cam_a_clkout" and "cam_b_clkout" ?
+
+Basically I could use fixed names for these clocks, I just wanted to keep
+a possibility to override them in dts to avoid any possible clock name
+collisions, rather than keep a list of different names per SoC in the driver. 
+Right now fixed names could also be used for all SoCs I'm aware of, 
+nevertheless I would prefer to keep the clock-output-names property.
+"cam_a_clkout", "cam_b_clkout" may be indeed better names, I'll change
+that.
+
+>> +Note: #clock-cells and clock-output-names are mandatory properties if
+>> external
+>> +image sensor devices reference 'camera' device node as a clock provider.
+>> +
 > 
-> * When I'm streaming video from the camera it's constant.
-> * When no data is coming from the camera it's constant
+> What's the reason not to make them always mandatory ? Backward compatibility 
+> only ? If so wouldn't it make sense to document the properties as mandatory 
+> from now on, and treating them as optional in the driver for backward 
+> compatibility ?
+
+Yes, it's for backwards compatibility only. It may be a good idea to just 
+document them as required, since this is how the device is expected to be 
+described in DT from now. I'll just make these a required properties, 
+the driver already handles them as optional.
+
+>>  'fimc' device nodes
+>>  -------------------
+>>
+>> @@ -97,8 +112,8 @@ Image sensor nodes
+>>  The sensor device nodes should be added to their control bus controller
+>> (e.g. I2C0) nodes and linked to a port node in the csis or the
+>> parallel-ports node, using the common video interfaces bindings, defined in
+>> video-interfaces.txt.
+>> -The implementation of this bindings requires clock-frequency property to be
+>> -present in the sensor device nodes.
+>> +An optional clock-frequency property needs to be present in the sensor
+>> device
+>> +nodes. Default value when this property is not present is 24 MHz.
 > 
-> It's only modified during STREAMON and when I explicitly set it with
-> v4l2-ctl.
+> This bothers me. Having the FIMC driver read the clock-frequence property from 
+> the sensor DT nodes feels like a layering violation. Shouldn't the sensor 
+> drivers call clk_set_rate() explicitly instead ?
+
+It is supposed to do so, after this whole patch series. So the camera
+controller driver will not need such properties. What do you think about
+removing this sentence altogether ?
+
+>>  Example:
+>>
+>> @@ -114,7 +129,7 @@ Example:
+>>  			vddio-supply = <...>;
+>>
+>>  			clock-frequency = <24000000>;
+>> -			clocks = <...>;
+>> +			clocks = <&camera 1>;
+>>  			clock-names = "mclk";
+>>
+>>  			port {
+>> @@ -135,7 +150,7 @@ Example:
+>>  			vddio-supply = <...>;
+>>
+>>  			clock-frequency = <24000000>;
+>> -			clocks = <...>;
+>> +			clocks = <&camera 0>;
+>>  			clock-names = "mclk";
+>>
+>>  			port {
+>> @@ -149,12 +164,15 @@ Example:
+>>
+>>  	camera {
+>>  		compatible = "samsung,fimc", "simple-bus";
+>> -		#address-cells = <1>;
+>> -		#size-cells = <1>;
+>> -		status = "okay";
+>> -
+>> +		clocks = <&clock 132>, <&clock 133>;
+>> +		clock-names = "sclk_cam0", "sclk_cam1";
 > 
-> This doesn't seem like correct behaviour as it breaks the use-case of
-> setting the controls as you want before starting streaming.  My
-> workaround is to reset all the controls after calling VIDIOC_STREAMON
-> but this is ugly and you get a few frames at the beginning of the video
-> stream where the settings are set correctly.
+> The documentation mentions that clock-names must contain "sclk_cam0", 
+> "sclk_cam1", "pxl_async0", "pxl_async1". Are the last two optional ? If so I 
+> think you should clarify the description of the clock-names property. This can 
+> be done in a separate patch.
 
-It would be really useful for me to hear definitively if this is
-expected behaviour WRT the v4l2 API (in which case I'll fix the bug in
-GStreamer) or a bug in the C920/uvcvideo driver (in which case I'll work
-further to fix the bug in v4l).
+"pxl_async0", "pxl_async1" are mandatory, I'll add them also into
+this example dts.
 
-To me it feels like it should be fixed here but I'd like to know so I
-don't waste my time coming up with patches.
+>> +		#clock-cells = <1>;
+>> +		clock-output-names = "cam_mclk_a", "cam_mclk_b";
+>>  		pinctrl-names = "default";
+>>  		pinctrl-0 = <&cam_port_a_clk_active>;
+>> +		status = "okay";
+>> +		#address-cells = <1>;
+>> +		#size-cells = <1>;
+>>
+>>  		/* parallel camera ports */
+>>  		parallel-ports {
 
-Thanks
-
-Will
+--
+Regards,
+Sylwester
