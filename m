@@ -1,160 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:52393 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755323AbaCEXBC (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:10465 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753200AbaCKKb2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Mar 2014 18:01:02 -0500
-Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 808872109A
-	for <linux-media@vger.kernel.org>; Wed,  5 Mar 2014 18:01:01 -0500 (EST)
-Received: from [192.168.0.8] (unknown [86.26.230.106])
-	by mail.messagingengine.com (Postfix) with ESMTPA id 1FBC7C00005
-	for <linux-media@vger.kernel.org>; Wed,  5 Mar 2014 18:01:01 -0500 (EST)
-Message-ID: <5317ACAC.8000008@williammanley.net>
-Date: Wed, 05 Mar 2014 23:01:00 +0000
-From: William Manley <will@williammanley.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: uvcvideo: logitech C920 resets controls during VIDIOC_STREAMON
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 11 Mar 2014 06:31:28 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N290044RP8DBQA0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 11 Mar 2014 10:31:25 +0000 (GMT)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0N29002DTP8CMW70@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 11 Mar 2014 10:31:24 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'LMML' <linux-media@vger.kernel.org>
+Subject: [GIT PULL for 3.15] mem2mem patches
+Date: Tue, 11 Mar 2014 11:31:24 +0100
+Message-id: <1d1f01cf3d15$0dc203a0$29460ae0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All
+The following changes since commit f2d7313534072a5fe192e7cf46204b413acef479:
 
-I've been attempting to use the Logitech C920 with the uvcvideo driver.
- I set the controls with v4l2-ctl but some of them change during
-VIDIOC_STREAMON.  My understanding is that the values of controls should
-be preserved.
+  [media] drx-d: add missing braces in drxd_hard.c:DRXD_init (2014-03-09
+09:20:50 -0300)
 
-Minimal test case:
+are available in the git repository at:
 
-    #include <linux/videodev2.h>
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <fcntl.h>
-    #include <errno.h>
-    #include <string.h>
-    #include <unistd.h>
-    #include <sys/ioctl.h>
+  git://linuxtv.org/kdebski/media_tree_2.git master
 
-    #define DEVICE "/dev/video2"
+for you to fetch changes up to 0dceda80c0cc903a491ec76264768dd2bc4faeda:
 
-    int main()
-    {
-            int fd, type;
+  mem2mem_testdev: improve field handling (2014-03-11 11:22:23 +0100)
 
-            fd = open(DEVICE, O_RDWR | O_CLOEXEC);
-            if (fd < 0) {
-                    perror("Failed to open " DEVICE "\n");
-                    return 1;
-            }
+----------------------------------------------------------------
+Hans Verkuil (7):
+      mem2mem_testdev: use 40ms default transfer time.
+      mem2mem_testdev: pick default format with try_fmt.
+      mem2mem_testdev: set priv to 0
+      mem2mem_testdev: add USERPTR support.
+      mem2mem_testdev: return pending buffers in stop_streaming()
+      mem2mem_testdev: fix field, sequence and time copying
+      mem2mem_testdev: improve field handling
 
-            struct v4l2_requestbuffers reqbuf = {
-                    .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-                    .memory = V4L2_MEMORY_MMAP,
-                    .count = 1,
-            };
+Joonyoung Shim (1):
+      s5p-mfc: Replaced commas with semicolons.
 
-            if (-1 == ioctl (fd, VIDIOC_REQBUFS, &reqbuf)) {
-                    perror("VIDIOC_REQBUFS");
-                    return 1;
-            }
+Seung-Woo Kim (1):
+      s5p-mfc: remove meaningless memory bank assignment
 
-            system("v4l2-ctl -d" DEVICE " -l | grep exposure_absolute");
+ drivers/media/platform/mem2mem_testdev.c      |   94
++++++++++++++++++++------
+ drivers/media/platform/s5p-mfc/s5p_mfc.c      |    8 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |    2 -
+ 3 files changed, 75 insertions(+), 29 deletions(-)
 
-            type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-            if (ioctl (fd, VIDIOC_STREAMON, &type) != 0) {
-                    perror("VIDIOC_STREAMON");
-                    return 1;
-            }
-
-            printf("VIDIOC_STREAMON\n");
-
-            usleep(100000);
-            system("v4l2-ctl -d" DEVICE " -l | grep exposure_absolute");
-
-            return 0;
-    }
-
-None of the other controls seem to be affected.  Note: to get the C920
-to report exposure_absolute correctly I also had to make this change to
-the uvcvideo kernel driver:
-
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-b/drivers/media/usb/uvc/uvc_ctrl.c
-index a2f4501..e7c805b 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -227,7 +227,8 @@ static struct uvc_control_info uvc_ctrls[] = {
-                .size           = 4,
-                .flags          = UVC_CTRL_FLAG_SET_CUR
-                                | UVC_CTRL_FLAG_GET_RANGE
--                               | UVC_CTRL_FLAG_RESTORE,
-+                               | UVC_CTRL_FLAG_RESTORE
-+                               | UVC_CTRL_FLAG_AUTO_UPDATE,
-        },
-        {
-                .entity         = UVC_GUID_UVC_CAMERA,
-
-
-The variables seem to be changed when the URBs are Submitted.  To
-investigate I made the following change to the uvc driver:
-
-
-diff --git a/drivers/media/usb/uvc/uvc_video.c
-b/drivers/media/usb/uvc/uvc_video.c
-index 3394c34..f2f66f6 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1649,17 +1649,23 @@ static int uvc_init_video(struct uvc_streaming
-*stream, gfp_t gfp_flags)
-        if (ret < 0)
-                return ret;
-
-+       /* No effect: */
-+       uvc_ctrl_resume_device(stream->dev);
-+
-        /* Submit the URBs. */
-        for (i = 0; i < UVC_URBS; ++i) {
-                ret = usb_submit_urb(stream->urb[i], gfp_flags);
-                if (ret < 0) {
-                        uvc_printk(KERN_ERR, "Failed to submit URB %u "
-                                        "(%d).\n", i, ret);
-                        uvc_uninit_video(stream, 1);
-                        return ret;
-                }
-        }
-
-+       /* "Fixes" the issue: */
-+       uvc_ctrl_resume_device(stream->dev);
-+
-        return 0;
- }
-
-
-At this point the backtrace looks something like:
-
-    uvc_init_video
-    uvc_video_enable
-    uvc_v4l2_do_ioctl (in the case VIDIOC_STREAMON:)
-
-The call to uvc_ctrl_resume_device() has the effect that the v4l2 ctrls
-which are cached in the kernel get resubmitted to the camera as if it
-were coming out of suspend/resume.
-
-I've looked at the wireshark capture of USB traffic and I can't find
-anywhere where the host causes exposure_auto to change.  The camera does
-have a mode where it would change by itself but that is disabled
-(exposure_auto=1).  I've uploaded the wireshark trace to:
-
-http://williammanley.net/usb-wireshark-streamon.pcapng
-
-I'm guessing that this is a hardware bug.  One fix would be modify the
-driver to save all values at the beginning of STREAMON and then restore
-them at the end.  What do you think?
-
-Thanks
-
-Will
