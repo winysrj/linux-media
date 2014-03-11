@@ -1,65 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:36371 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753842AbaCUI2C (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3244 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754296AbaCKME0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 04:28:02 -0400
-Message-id: <532BF80F.1080602@samsung.com>
-Date: Fri, 21 Mar 2014 09:27:59 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Richard Purdie <richard.purdie@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>
-Subject: Re: [PATCH/RFC 1/8] leds: Add sysfs and kernel internal API for flash
- LEDs
-References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
- <1395327070-20215-2-git-send-email-j.anaszewski@samsung.com>
- <1395329301.27611.4.camel@ted>
-In-reply-to: <1395329301.27611.4.camel@ted>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Tue, 11 Mar 2014 08:04:26 -0400
+Message-ID: <531EFB9B.1050902@xs4all.nl>
+Date: Tue, 11 Mar 2014 13:03:39 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Archit Taneja <archit@ti.com>
+CC: k.debski@samsung.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 05/14] v4l: ti-vpe: Allow usage of smaller images
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-6-git-send-email-archit@ti.com>
+In-Reply-To: <1394526833-24805-6-git-send-email-archit@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/20/2014 04:28 PM, Richard Purdie wrote:
-> On Thu, 2014-03-20 at 15:51 +0100, Jacek Anaszewski wrote:
->> Some LED devices support two operation modes - torch and
->> flash. This patch provides support for flash LED devices
->> in the LED subsystem by introducing new sysfs attributes
->> and kernel internal interface. The attributes being
->> introduced are: flash_mode, flash_timeout, max_flash_timeout,
->> flash_fault and hw_triggered.
->> The modifications aim to be compatible with V4L2 framework
->> requirements related to the flash devices management. The
->> design assumes that V4L2 driver can take of the LED class
->> device control and communicate with it through the kernel
->> internal interface. The LED sysfs interface is made
->> unavailable then.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Bryan Wu <cooloney@gmail.com>
->> Cc: Richard Purdie <rpurdie@rpsys.net>
->> ---
->>   drivers/leds/led-class.c    |  216 +++++++++++++++++++++++++++++++++++++++++--
->>   drivers/leds/led-core.c     |  124 +++++++++++++++++++++++--
->>   drivers/leds/led-triggers.c |   17 +++-
->>   drivers/leds/leds.h         |    9 ++
->>   include/linux/leds.h        |  136 +++++++++++++++++++++++++++
->>   5 files changed, 486 insertions(+), 16 deletions(-)
->
-> It seems rather sad to have to insert that amount of code into the core
-> LED files for something which only a small number of LEDs actually use.
-> This will increase the footprint of the core LED code significantly.
->
-> Is it not possible to add this as a module/extension to the LED core
-> rather than completely entangling them?
+On 03/11/14 09:33, Archit Taneja wrote:
+> The minimum width and height for VPE input/output was kept as 128 pixels. VPE
+> doesn't have a constraint on the image height, it requires the image width to
+> be at least 16 bytes.
+> 
+> Change the minimum supported dimensions to 32x32. This allows us to de-interlace
+> qcif content. A smaller image size than 32x32 didn't make much sense, so stopped
+> at this.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-OK, I'll try to decouple it.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks,
-Jacek Anaszewski
+> ---
+>  drivers/media/platform/ti-vpe/vpe.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index 0e7573a..dbdc338 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -49,8 +49,8 @@
+>  #define VPE_MODULE_NAME "vpe"
+>  
+>  /* minimum and maximum frame sizes */
+> -#define MIN_W		128
+> -#define MIN_H		128
+> +#define MIN_W		32
+> +#define MIN_H		32
+>  #define MAX_W		1920
+>  #define MAX_H		1080
+>  
+> 
 
