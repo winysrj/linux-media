@@ -1,101 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4353 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842AbaCPMKc (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41749 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754470AbaCKLGx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Mar 2014 08:10:32 -0400
-Message-ID: <5325949C.7060907@xs4all.nl>
-Date: Sun, 16 Mar 2014 13:10:04 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [linuxtv-media:master 471/499] e4000.c:undefined reference to
- `v4l2_ctrl_handler_free'
-References: <53244504.diJFy1Wfww202OA7%fengguang.wu@intel.com> <53248108.4040601@iki.fi> <20140315212603.369388f1@samsung.com>
-In-Reply-To: <20140315212603.369388f1@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 11 Mar 2014 07:06:53 -0400
+Message-ID: <1394535990.3772.2.camel@paszta.hi.pengutronix.de>
+Subject: Re: [PATCH v6 4/8] of: Reduce indentation in
+ of_graph_get_next_endpoint
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Grant Likely <grant.likely@linaro.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Date: Tue, 11 Mar 2014 12:06:30 +0100
+In-Reply-To: <1688746.6CaQoSDOni@avalon>
+References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
+	 <31687163.hgTkcLrn0Z@avalon>
+	 <1394214054.16309.45.camel@paszta.hi.pengutronix.de>
+	 <1688746.6CaQoSDOni@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2014 01:26 AM, Mauro Carvalho Chehab wrote:
-> Em Sat, 15 Mar 2014 18:34:16 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
-> 
->> Mauro,
->> I am not sure how this should be resolved. E4000 has already depends to 
->> VIDEO_V4L2. Should VIDEO_V4L2 selected in config MEDIA_SUBDRV_AUTOSELECT ?
-> 
-> The problem is likely with the Kconfig at the dvb driver. You should
-> remember that select doesn't recursively select the dependencies.
-> 
-> So, you should either make the v4l2 control framework optional at
-> e4000 or to make VB_USB_RTL28XXU to either depend or select
-> V4L2 core.
-> 
-> There's also a third option: add stubs for the v4l2_ctrl_* functions
-> at the *.h file. This way, if V4L2 is not compiled, the functions
-> won't do anything. Perhaps this is the most elegant solution.
-> 
-> Hans,
-> any comments?
+Hi Laurent,
 
-I am hesitant to go in that direction, at least for now. At the moment this is
-a one-off (right?), so keep it in e4000 or rtl28xxu. When we get more of these
-dependencies, then I'd like to get a better understanding where things are heading
-with this.
+Am Montag, den 10.03.2014, 20:19 +0100 schrieb Laurent Pinchart:
+> On Friday 07 March 2014 18:40:54 Philipp Zabel wrote:
+> > While we look at of_graph_get_next_endpoint(), could you explain the
+> > reason behind the extra reference count increase on the prev node:
+> >
+> > 	/*
+> > 	 * Avoid dropping prev node refcount to 0 when getting the next
+> > 	 * child below.
+> > 	 */
+> > 	of_node_get(prev);
+> >
+> > This unfortunately makes using the function in for_each style macros a
+> > hassle. If that part wasn't there and all users that want to keep using
+> > prev after the call were expected to increase refcount themselves,
+> > we could have a
+> >
+> > #define of_graph_for_each_endpoint(parent, endpoint) \
+> > 	for (endpoint = of_graph_get_next_endpoint(parent, NULL); \
+> > 	     endpoint != NULL; \
+> > 	     endpoint = of_graph_get_next_endpoint(parent, endpoint))
+> 
+> I don't know what the exact design decision was (Sylwester might know), but I 
+> suspect it's mostly about historical reasons. I see no reason that would 
+> prevent modifying the current behaviour to make a for-each loop easier to 
+> implement.
 
-It's always easier to make such decisions if you have a few more use-cases.
+Thanks, I'll include a patch to change this in the next round, then.
 
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> Mauro
-> 
-> 
->>
->> regards
->> Antti
->>
->>
->> On 15.03.2014 14:18, kbuild test robot wrote:
->>> tree:   git://linuxtv.org/media_tree.git master
->>> head:   ed97a6fe5308e5982d118a25f0697b791af5ec50
->>> commit: adaa616ffb697f00db9b4ccb638c5e9e719dbb7f [471/499] [media] e4000: implement controls via v4l2 control framework
->>> config: i386-randconfig-j4-03151459 (attached as .config)
->>>
->>> All error/warnings:
->>>
->>> warning: (DVB_USB_RTL28XXU) selects MEDIA_TUNER_E4000 which has unmet direct dependencies ((MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT) && MEDIA_SUPPORT && I2C && VIDEO_V4L2)
->>>     drivers/built-in.o: In function `e4000_remove':
->>>>> e4000.c:(.text+0x541015): undefined reference to `v4l2_ctrl_handler_free'
->>>     drivers/built-in.o: In function `e4000_probe':
->>>>> e4000.c:(.text+0x54219e): undefined reference to `v4l2_ctrl_handler_init_class'
->>>>> e4000.c:(.text+0x5421ce): undefined reference to `v4l2_ctrl_new_std'
->>>>> e4000.c:(.text+0x542204): undefined reference to `v4l2_ctrl_new_std'
->>>>> e4000.c:(.text+0x542223): undefined reference to `v4l2_ctrl_auto_cluster'
->>>>> e4000.c:(.text+0x542253): undefined reference to `v4l2_ctrl_new_std'
->>>>> e4000.c:(.text+0x542289): undefined reference to `v4l2_ctrl_new_std'
->>>>> e4000.c:(.text+0x5422a8): undefined reference to `v4l2_ctrl_auto_cluster'
->>>>> e4000.c:(.text+0x5422d8): undefined reference to `v4l2_ctrl_new_std'
->>>>> e4000.c:(.text+0x54230e): undefined reference to `v4l2_ctrl_new_std'
->>>>> e4000.c:(.text+0x54232d): undefined reference to `v4l2_ctrl_auto_cluster'
->>>>> e4000.c:(.text+0x54235d): undefined reference to `v4l2_ctrl_new_std'
->>>>> e4000.c:(.text+0x542393): undefined reference to `v4l2_ctrl_new_std'
->>>>> e4000.c:(.text+0x5423b2): undefined reference to `v4l2_ctrl_auto_cluster'
->>>>> e4000.c:(.text+0x5423d8): undefined reference to `v4l2_ctrl_handler_free'
->>>
->>> ---
->>> 0-DAY kernel build testing backend              Open Source Technology Center
->>> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
->>>
->>
->>
-> 
-> 
+regards
+Philipp
 
