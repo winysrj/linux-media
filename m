@@ -1,225 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:43609 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753449AbaCaJFY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Mar 2014 05:05:24 -0400
-Message-ID: <53392FC9.9070706@atmel.com>
-Date: Mon, 31 Mar 2014 17:05:13 +0800
-From: Josh Wu <josh.wu@atmel.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43486 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753956AbaCKIfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 04:35:04 -0400
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 06/14] v4l: ti-vpe: Fix some params in VPE data descriptors
+Date: Tue, 11 Mar 2014 14:03:45 +0530
+Message-ID: <1394526833-24805-7-git-send-email-archit@ti.com>
+In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
+References: <1393922965-15967-1-git-send-email-archit@ti.com>
+ <1394526833-24805-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	<m.chehab@samsung.com>, <nicolas.ferre@atmel.com>,
-	<linux-arm-kernel@lists.infradead.org>, <grant.likely@linaro.org>,
-	<galak@codeaurora.org>, <rob@landley.net>, <mark.rutland@arm.com>,
-	<robh+dt@kernel.org>, <ijc+devicetree@hellion.org.uk>,
-	<pawel.moll@arm.com>, <devicetree@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: Re: [PATCH v2 3/3] [media] atmel-isi: add primary DT support
-References: <1395744087-5753-1-git-send-email-josh.wu@atmel.com> <1395744320-15025-1-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1403302313290.12008@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1403302313290.12008@axis700.grange>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Guennadi
+Some parameters of the VPE descriptors were understood incorrectly. They are now
+fixed. The fixes are explained as follows:
 
-On 3/31/2014 5:20 AM, Guennadi Liakhovetski wrote:
-> Hi Josh,
->
-> Please correct me if I'm wrong, but I don't see how this is going to work
-> without the central part - building asynchronous V4L2 data structures from
-> the DT, something that your earlier patch
+- When adding an inbound data descriptor to the VPDMA descriptor list, we intend
+  to use c_rect as the cropped region fetched by VPDMA. Therefore, c_rect->width
+  shouldn't be used to calculate the line stride, the original image width
+  should be used for that. We add a 'width' argument which gives the buffer
+  width in memory.
 
-Here you mean Bryan Wu not me, right?   ;-)
-Bryan write the patch "[v2] media: soc-camera: OF cameras" in: 
-https://patchwork.linuxtv.org/patch/22288/.
-And I saw Ben Dooks already sent out his patch to support soc-camera OF 
-now (https://patchwork.linuxtv.org/patch/23304/) which is simpler than 
-Bryan's.
+- frame_width and frame_height describe the complete width and height of the
+  client to which the channel is connected. If there are multiple channels
+  fetching data and providing to the same client, the above 2 arguments should
+  be the width and height of the region covered by all the channels. In the case
+  where there is only one channel providing pixel data to the client
+  (like in VPE), frame_width and frame_height should be the cropped width and
+  cropped height respectively. The calculation of these params is done in the
+  vpe driver now.
 
-> "media: soc-camera: OF cameras"
-> was doing, but which you stopped developing after a discussion with Ben
-> (added to Cc).
+- start_h and start_v is also used in the case of multiple channels to describe
+  where each channel should start filling pixel data. We don't use this in VPE,
+  and pass 0s to the vpdma_add_in_dtd() helper.
 
-And yes, atmel-isi dt patch should not work without above SoC-Camera of 
-support patch.
-But as the atmel-isi dt binding document and port node can be finalized. 
-So I think this patch is ready for the mainline.
+- Some minor changes are made to the vpdma_add_out_dtd() helper. The c_rect
+  param is used for specifying the 'composition' target, and 'width'  is added
+  to calculate the line stride.
 
-BTW: I will test Ben's patch with atmel-isi.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c | 60 +++++++++++++++++++++++++++--------
+ drivers/media/platform/ti-vpe/vpdma.h | 10 +++---
+ drivers/media/platform/ti-vpe/vpe.c   | 18 +++++++----
+ 3 files changed, 64 insertions(+), 24 deletions(-)
 
-thanks and best regards,
-Josh Wu
-
->
-> Thanks
-> Guennadi
->
-> On Tue, 25 Mar 2014, Josh Wu wrote:
->
->> This patch add the DT support for Atmel ISI driver.
->> It use the same v4l2 DT interface that defined in video-interfaces.txt.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> Cc: devicetree@vger.kernel.org
->> ---
->> v1 --> v2:
->>   refine the binding document.
->>   add port node description.
->>   removed the optional property.
->>
->>   .../devicetree/bindings/media/atmel-isi.txt        |   50 ++++++++++++++++++++
->>   drivers/media/platform/soc_camera/atmel-isi.c      |   31 +++++++++++-
->>   2 files changed, 79 insertions(+), 2 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/media/atmel-isi.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
->> new file mode 100644
->> index 0000000..11c98ee
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
->> @@ -0,0 +1,50 @@
->> +Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
->> +----------------------------------------------
->> +
->> +Required properties:
->> +- compatible: must be "atmel,at91sam9g45-isi"
->> +- reg: physical base address and length of the registers set for the device;
->> +- interrupts: should contain IRQ line for the ISI;
->> +- clocks: list of clock specifiers, corresponding to entries in
->> +          the clock-names property;
->> +- clock-names: must contain "isi_clk", which is the isi peripherial clock.
->> +
->> +ISI supports a single port node with parallel bus. It should contain one
->> +'port' child node with child 'endpoint' node. Please refer to the bindings
->> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +
->> +Example:
->> +	isi: isi@f0034000 {
->> +		compatible = "atmel,at91sam9g45-isi";
->> +		reg = <0xf0034000 0x4000>;
->> +		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
->> +
->> +		clocks = <&isi_clk>;
->> +		clock-names = "isi_clk";
->> +
->> +		pinctrl-names = "default";
->> +		pinctrl-0 = <&pinctrl_isi>;
->> +
->> +		port {
->> +			#address-cells = <1>;
->> +			#size-cells = <0>;
->> +
->> +			isi_0: endpoint {
->> +				remote-endpoint = <&ov2640_0>;
->> +			};
->> +		};
->> +	};
->> +
->> +	i2c1: i2c@f0018000 {
->> +		ov2640: camera@0x30 {
->> +			compatible = "omnivision,ov2640";
->> +			reg = <0x30>;
->> +
->> +			port {
->> +				ov2640_0: endpoint {
->> +					remote-endpoint = <&isi_0>;
->> +					bus-width = <8>;
->> +				};
->> +			};
->> +		};
->> +	};
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
->> index f4add0a..d6a1f7b 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->> @@ -19,6 +19,7 @@
->>   #include <linux/interrupt.h>
->>   #include <linux/kernel.h>
->>   #include <linux/module.h>
->> +#include <linux/of.h>
->>   #include <linux/platform_device.h>
->>   #include <linux/slab.h>
->>   
->> @@ -33,6 +34,7 @@
->>   #define VID_LIMIT_BYTES			(16 * 1024 * 1024)
->>   #define MIN_FRAME_RATE			15
->>   #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
->> +#define ISI_DEFAULT_MCLK_FREQ		25000000
->>   
->>   /* Frame buffer descriptor */
->>   struct fbd {
->> @@ -885,6 +887,20 @@ static int atmel_isi_remove(struct platform_device *pdev)
->>   	return 0;
->>   }
->>   
->> +static int atmel_isi_probe_dt(struct atmel_isi *isi,
->> +			struct platform_device *pdev)
->> +{
->> +	struct device_node *node = pdev->dev.of_node;
->> +
->> +	/* Default settings for ISI */
->> +	isi->pdata.full_mode = 1;
->> +	isi->pdata.mck_hz = ISI_DEFAULT_MCLK_FREQ;
->> +	isi->pdata.frate = ISI_CFG1_FRATE_CAPTURE_ALL;
->> +	isi->pdata.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10;
->> +
->> +	return 0;
->> +}
->> +
->>   static int atmel_isi_probe(struct platform_device *pdev)
->>   {
->>   	unsigned int irq;
->> @@ -896,7 +912,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
->>   	struct isi_platform_data *pdata;
->>   
->>   	pdata = dev->platform_data;
->> -	if (!pdata || !pdata->data_width_flags) {
->> +	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
->>   		dev_err(&pdev->dev,
->>   			"No config available for Atmel ISI\n");
->>   		return -EINVAL;
->> @@ -912,7 +928,11 @@ static int atmel_isi_probe(struct platform_device *pdev)
->>   	if (IS_ERR(isi->pclk))
->>   		return PTR_ERR(isi->pclk);
->>   
->> -	memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
->> +	if (pdata)
->> +		memcpy(&isi->pdata, pdata, sizeof(struct isi_platform_data));
->> +	else	/* dt probe */
->> +		atmel_isi_probe_dt(isi, pdev);
->> +
->>   	isi->active = NULL;
->>   	spin_lock_init(&isi->lock);
->>   	INIT_LIST_HEAD(&isi->video_buffer_list);
->> @@ -1014,11 +1034,18 @@ err_alloc_ctx:
->>   	return ret;
->>   }
->>   
->> +static const struct of_device_id atmel_isi_of_match[] = {
->> +	{ .compatible = "atmel,at91sam9g45-isi" },
->> +	{ }
->> +};
->> +MODULE_DEVICE_TABLE(of, atmel_isi_of_match);
->> +
->>   static struct platform_driver atmel_isi_driver = {
->>   	.remove		= atmel_isi_remove,
->>   	.driver		= {
->>   		.name = "atmel_isi",
->>   		.owner = THIS_MODULE,
->> +		.of_match_table = atmel_isi_of_match,
->>   	},
->>   };
->>   
->> -- 
->> 1.7.9.5
->>
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 73dd38e..a51a013 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -614,8 +614,17 @@ static void dump_dtd(struct vpdma_dtd *dtd)
+ /*
+  * append an outbound data transfer descriptor to the given descriptor list,
+  * this sets up a 'client to memory' VPDMA transfer for the given VPDMA channel
++ *
++ * @list: vpdma desc list to which we add this decriptor
++ * @width: width of the image in pixels in memory
++ * @c_rect: compose params of output image
++ * @fmt: vpdma data format of the buffer
++ * dma_addr: dma address as seen by VPDMA
++ * chan: VPDMA channel
++ * flags: VPDMA flags to configure some descriptor fileds
+  */
+-void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
++void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
++		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		enum vpdma_channel chan, u32 flags)
+ {
+@@ -623,6 +632,7 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
+ 	int field = 0;
+ 	int notify = 1;
+ 	int channel, next_chan;
++	struct v4l2_rect rect = *c_rect;
+ 	int depth = fmt->depth;
+ 	int stride;
+ 	struct vpdma_dtd *dtd;
+@@ -630,11 +640,15 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
+ 	channel = next_chan = chan_info[chan].num;
+ 
+ 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
+-			fmt->data_type == DATA_TYPE_C420)
++			fmt->data_type == DATA_TYPE_C420) {
++		rect.height >>= 1;
++		rect.top >>= 1;
+ 		depth = 8;
++	}
+ 
+-	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
+-	dma_addr += (c_rect->left * depth) >> 3;
++	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
++
++	dma_addr += rect.top * stride + (rect.left * depth >> 3);
+ 
+ 	dtd = list->next;
+ 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
+@@ -664,31 +678,48 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
+ /*
+  * append an inbound data transfer descriptor to the given descriptor list,
+  * this sets up a 'memory to client' VPDMA transfer for the given VPDMA channel
++ *
++ * @list: vpdma desc list to which we add this decriptor
++ * @width: width of the image in pixels in memory(not the cropped width)
++ * @c_rect: crop params of input image
++ * @fmt: vpdma data format of the buffer
++ * dma_addr: dma address as seen by VPDMA
++ * chan: VPDMA channel
++ * field: top or bottom field info of the input image
++ * flags: VPDMA flags to configure some descriptor fileds
++ * frame_width/height: the complete width/height of the image presented to the
++ *			client (this makes sense when multiple channels are
++ *			connected to the same client, forming a larger frame)
++ * start_h, start_v: position where the given channel starts providing pixel
++ *			data to the client (makes sense when multiple channels
++ *			contribute to the client)
+  */
+-void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
+-		int frame_height, struct v4l2_rect *c_rect,
++void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
++		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+-		enum vpdma_channel chan, int field, u32 flags)
++		enum vpdma_channel chan, int field, u32 flags, int frame_width,
++		int frame_height, int start_h, int start_v)
+ {
+ 	int priority = 0;
+ 	int notify = 1;
+ 	int depth = fmt->depth;
+ 	int channel, next_chan;
++	struct v4l2_rect rect = *c_rect;
+ 	int stride;
+-	int height = c_rect->height;
+ 	struct vpdma_dtd *dtd;
+ 
+ 	channel = next_chan = chan_info[chan].num;
+ 
+ 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
+ 			fmt->data_type == DATA_TYPE_C420) {
+-		height >>= 1;
+-		frame_height >>= 1;
++		rect.height >>= 1;
++		rect.top >>= 1;
+ 		depth = 8;
+ 	}
+ 
+-	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
+-	dma_addr += (c_rect->left * depth) >> 3;
++	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
++
++	dma_addr += rect.top * stride + (rect.left * depth >> 3);
+ 
+ 	dtd = list->next;
+ 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
+@@ -701,13 +732,14 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
+ 					!!(flags & VPDMA_DATA_ODD_LINE_SKIP),
+ 					stride);
+ 
+-	dtd->xfer_length_height = dtd_xfer_length_height(c_rect->width, height);
++	dtd->xfer_length_height = dtd_xfer_length_height(rect.width,
++					rect.height);
+ 	dtd->start_addr = (u32) dma_addr;
+ 	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
+ 				DTD_DIR_IN, channel, priority, next_chan);
+ 	dtd->frame_width_height = dtd_frame_width_height(frame_width,
+ 					frame_height);
+-	dtd->start_h_v = dtd_start_h_v(c_rect->left, c_rect->top);
++	dtd->start_h_v = dtd_start_h_v(start_h, start_v);
+ 	dtd->client_attr0 = 0;
+ 	dtd->client_attr1 = 0;
+ 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index bf5f8bb..2bd8fb0 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -186,13 +186,15 @@ void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
+ 		struct vpdma_buf *adb);
+ void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
+ 		enum vpdma_channel chan);
+-void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
++void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
++		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		enum vpdma_channel chan, u32 flags);
+-void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
+-		int frame_height, struct v4l2_rect *c_rect,
++void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
++		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+-		enum vpdma_channel chan, int field, u32 flags);
++		enum vpdma_channel chan, int field, u32 flags, int frame_width,
++		int frame_height, int start_h, int start_v);
+ 
+ /* vpdma list interrupt management */
+ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index dbdc338..ece9b96 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -986,7 +986,6 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
+ 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_DST];
+ 	const struct vpe_port_data *p_data = &port_data[port];
+ 	struct vb2_buffer *vb = ctx->dst_vb;
+-	struct v4l2_rect *c_rect = &q_data->c_rect;
+ 	struct vpe_fmt *fmt = q_data->fmt;
+ 	const struct vpdma_data_format *vpdma_fmt;
+ 	int mv_buf_selector = !ctx->src_mv_buf_selector;
+@@ -1015,8 +1014,8 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
+ 	if (q_data->flags & Q_DATA_MODE_TILED)
+ 		flags |= VPDMA_DATA_MODE_TILED;
+ 
+-	vpdma_add_out_dtd(&ctx->desc_list, c_rect, vpdma_fmt, dma_addr,
+-		p_data->channel, flags);
++	vpdma_add_out_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
++		vpdma_fmt, dma_addr, p_data->channel, flags);
+ }
+ 
+ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+@@ -1024,11 +1023,11 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+ 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_SRC];
+ 	const struct vpe_port_data *p_data = &port_data[port];
+ 	struct vb2_buffer *vb = ctx->src_vbs[p_data->vb_index];
+-	struct v4l2_rect *c_rect = &q_data->c_rect;
+ 	struct vpe_fmt *fmt = q_data->fmt;
+ 	const struct vpdma_data_format *vpdma_fmt;
+ 	int mv_buf_selector = ctx->src_mv_buf_selector;
+ 	int field = vb->v4l2_buf.field == V4L2_FIELD_BOTTOM;
++	int frame_width, frame_height;
+ 	dma_addr_t dma_addr;
+ 	u32 flags = 0;
+ 
+@@ -1055,8 +1054,15 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+ 	if (q_data->flags & Q_DATA_MODE_TILED)
+ 		flags |= VPDMA_DATA_MODE_TILED;
+ 
+-	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, q_data->height,
+-		c_rect, vpdma_fmt, dma_addr, p_data->channel, field, flags);
++	frame_width = q_data->c_rect.width;
++	frame_height = q_data->c_rect.height;
++
++	if (p_data->vb_part && fmt->fourcc == V4L2_PIX_FMT_NV12)
++		frame_height /= 2;
++
++	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
++		vpdma_fmt, dma_addr, p_data->channel, field, flags, frame_width,
++		frame_height, 0, 0);
+ }
+ 
+ /*
+-- 
+1.8.3.2
 
