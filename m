@@ -1,50 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:39011 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754114AbaCCJw2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 04:52:28 -0500
-From: Daniel Jeong <gshark.jeong@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Landley <rob@landley.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Daniel Jeong <gshark.jeong@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-doc@vger.kernel.org>
-Subject: [RFC v7 1/3] v4l2-controls.h: add addtional Flash fault bits
-Date: Mon,  3 Mar 2014 18:52:08 +0900
-Message-Id: <1393840330-11130-2-git-send-email-gshark.jeong@gmail.com>
-In-Reply-To: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
-References: <1393840330-11130-1-git-send-email-gshark.jeong@gmail.com>
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:56958 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753208AbaCKW6R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 18:58:17 -0400
+Received: by mail-qc0-f202.google.com with SMTP id m20so1230360qcx.5
+        for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 15:58:16 -0700 (PDT)
+From: John Sheu <sheu@google.com>
+To: linux-media@vger.kernel.org
+Cc: m.chehab@samsung.com, k.debski@samsung.com, posciak@google.com,
+	arun.m@samsung.com, kgene.kim@samsung.com
+Subject: Upstream patches for Samsung Exynos s5p-mfc and gsc-m2m
+Date: Tue, 11 Mar 2014 15:52:01 -0700
+Message-Id: <1394578325-11298-1-git-send-email-sheu@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- Three Flash fault are added.
- V4L2_FLASH_FAULT_UNDER_VOLTAGE for the case low voltage below the min. limit.
- V4L2_FLASH_FAULT_INPUT_VOLTAGE	for the case falling input voltage and chip  
- adjust flash current not occur under voltage event.
- V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE for the case the temperature exceed
- the maximun limit
+This patchset upstreams some changes carried in the ChromeOS kernel tree
+especially regarding the s5p-mfc video encoder and gsc-m2m color converter
+hardware functionality.
 
-Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
----
- include/uapi/linux/v4l2-controls.h |    3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2cbe605..1d662f6 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -812,6 +812,9 @@ enum v4l2_flash_strobe_source {
- #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
- #define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
- #define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
-+#define V4L2_FLASH_FAULT_UNDER_VOLTAGE		(1 << 6)
-+#define V4L2_FLASH_FAULT_INPUT_VOLTAGE		(1 << 7)
-+#define V4L2_FLASH_FAULT_LED_OVER_TEMPERATURE	(1 << 8)
- 
- #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
- #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
--- 
-1.7.9.5
+Patch 4 in particular affects the V4L2 interface by allowing VIDIOC_REQBUFS(0)
+to succeed when the queue is of type V4L2_MEMORY_MMAP, inline with the rest
+of the queue memory types.
 
