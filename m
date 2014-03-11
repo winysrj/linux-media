@@ -1,54 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:49392 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753154AbaCUOdK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 10:33:10 -0400
-Received: by mail-ee0-f49.google.com with SMTP id c41so1868542eek.36
-        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 07:33:10 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <532C2D94.4020705@ti.com>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 139468148.3QhLg3QYq1@avalon> <531F08A8.300@ti.com> <1883687.VdfitvQEN3@ samsung.com> <avalon@samsung.com> <20140320172302.CD320C4067A@trevor. secretlab.ca> <532C1808.6090409@samsung.com> <20140321114735.3E132C4052A@ trevor.secretlab.ca> <532C2D94.4020705@ti.com>
-Date: Fri, 21 Mar 2014 14:33:04 +0000
-Message-Id: <20140321143304.D62ADC405B0@trevor.secretlab.ca>
+Received: from mail.kapsi.fi ([217.30.184.167]:44178 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751806AbaCKQKk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 12:10:40 -0400
+Received: from dyn3-82-128-190-236.psoas.suomi.net ([82.128.190.236] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1WNPGI-0002Ft-GO
+	for linux-media@vger.kernel.org; Tue, 11 Mar 2014 18:10:38 +0200
+Message-ID: <531F357D.2070700@iki.fi>
+Date: Tue, 11 Mar 2014 18:10:37 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] m88ds3103 fixes
+References: <531F2EE3.9080204@iki.fi>
+In-Reply-To: <531F2EE3.9080204@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 21 Mar 2014 14:16:20 +0200, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 21/03/14 13:47, Grant Likely wrote:
-> 
-> > I'm firm on the opinion that the checking must also happen at runtime.
-> > The biggest part of my objection has been how easy it would be to get a
-> > linkage out of sync, and dtc is not necessarily the last tool to touch
-> > the dtb before the kernel gets booted. I want the kernel to flat out
-> > reject any linkage that is improperly formed.
-> 
-> Isn't it trivial to verify it with the current v4l2 bindings? And
-> endpoint must have a 'remote-endpoint' property, and the endpoint on the
-> other end must have similar property, pointing in the first endpoint.
-> Anything else is an error.
-> 
-> I agree that it's easier to write bad links in the dts with
-> double-linking than with single-linking, but it's still trivial to
-> verify it in the kernel.
+DROP that request! I will split it to 2 requests, one for 3.14 and one 
+for 3.15.
 
-Right, which is exactly what I'm asking for.
+Antti
 
-g.
+On 11.03.2014 17:42, Antti Palosaari wrote:
+> I just noticed from patchwork these old patches are pending. It appears
+> I have not pull requested or mail is just missed from the reason or the
+> other. They are just fine for 3.15, but "m88ds3103: fix bug on
+> .set_tone()" is stuff for 3.14 too. I know it is very late, but given
+> the fact it fixes existing bug and that driver has gone to 3.14 I hope
+> that one patch could be sent to 3.14.
+>
+> regards
+> Antti
+>
+>
+> The following changes since commit
+> 587d1b06e07b4a079453c74ba9edf17d21931049:
+>
+>    [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
+>
+> are available in the git repository at:
+>
+>    git://linuxtv.org/anttip/media_tree.git pctv_461e
+>
+> for you to fetch changes up to e0d125fb17ac2bb5a992d2d761d1a0a2b42546aa:
+>
+>    m88ds3103: fix bug on .set_tone() (2014-02-01 22:28:21 +0200)
+>
+> ----------------------------------------------------------------
+> Antti Palosaari (4):
+>        m88ds3103: remove dead code
+>        m88ds3103: remove dead code 2nd part
+>        m88ds3103: possible uninitialized scalar variable
+>        m88ds3103: fix bug on .set_tone()
+>
+>   drivers/media/dvb-frontends/m88ds3103.c | 30
+> ++++++++----------------------
+>   1 file changed, 8 insertions(+), 22 deletions(-)
+>
 
+
+-- 
+http://palosaari.fi/
