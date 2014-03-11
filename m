@@ -1,121 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2059 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933058AbaCQMrw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 08:47:52 -0400
-Message-ID: <5326EEE7.70707@xs4all.nl>
-Date: Mon, 17 Mar 2014 13:47:35 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:52134 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755185AbaCKM2X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 08:28:23 -0400
+Received: from dyn3-82-128-190-236.psoas.suomi.net ([82.128.190.236] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1WNLnC-0006BW-CY
+	for linux-media@vger.kernel.org; Tue, 11 Mar 2014 14:28:22 +0200
+Message-ID: <531F0165.7050309@iki.fi>
+Date: Tue, 11 Mar 2014 14:28:21 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [REVIEWv2 PATCH for v3.15 2/4] videobuf2-core: fix sparse errors.
-References: <5326D540.7080805@xs4all.nl> <4203879.N4NqSdO3mH@avalon> <5326EB6C.9090508@xs4all.nl> <6449458.ttdRkGWNIv@avalon>
-In-Reply-To: <6449458.ttdRkGWNIv@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+To: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] SDR API
+References: <531E14AB.4060309@iki.fi>
+In-Reply-To: <531E14AB.4060309@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/17/2014 01:41 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 17 March 2014 13:32:44 Hans Verkuil wrote:
->> On 03/17/2014 01:26 PM, Laurent Pinchart wrote:
->>> On Monday 17 March 2014 11:58:08 Hans Verkuil wrote:
->>>> (Fixed typo pointed out by Pawel, but more importantly made an additional
->>>> change to __qbuf_dmabuf. See last paragraph in the commit log)
->>>
->>> [snip]
->>>
->>>> I made one other change: in __qbuf_dmabuf the result of the memop call
->>>> attach_dmabuf() is checked by IS_ERR() instead of IS_ERR_OR_NULL(). Since
->>>> the call_ptr_memop macro checks for IS_ERR_OR_NULL and since a NULL
->>>> pointer makes no sense anyway, I've changed the IS_ERR to IS_ERR_OR_NULL
->>>> to remain consistent, both with the call_ptr_memop macro, but also with
->>>> all other cases where a pointer is checked.
->>>
->>> Could you please split this to a separate patch ?
->>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>>
->>>>  drivers/media/v4l2-core/videobuf2-core.c | 215 +++++++++++++++----------
->>>>  1 file changed, 132 insertions(+), 83 deletions(-)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
->>>> b/drivers/media/v4l2-core/videobuf2-core.c index f9059bb..fb1ee86 100644
->>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>>
->>> [snip]
->>>
->>>> @@ -1401,12 +1458,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb,
->>>> const struct v4l2_buffer *b) memset(&vb->v4l2_planes[plane], 0,
->>>> sizeof(struct v4l2_plane));
->>>>
->>>>  		/* Acquire each plane's memory */
->>>>
->>>> -		mem_priv = call_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
->>>> +		mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
->>>>
->>>>  			dbuf, planes[plane].length, write);
->>>>
->>>> -		if (IS_ERR(mem_priv)) {
->>>> +		if (IS_ERR_OR_NULL(mem_priv)) {
->>>>
->>>>  			dprintk(1, "qbuf: failed to attach dmabuf\n");
->>>>
->>>> -			fail_memop(vb, attach_dmabuf);
->>>> -			ret = PTR_ERR(mem_priv);
->>>> +			ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
->>>
->>> That gets confusing. Wouldn't it be better to switch the other memop calls
->>> that return pointers to return an ERR_PTR() in error cases instead of NULL
->>> ?
->>
->> I don't see why it is confusing as long as everyone sticks to the same
->> scheme.
-> 
-> Because that would be mixing two schemes. For one thing, the -EINVAL error 
-> code above is arbitrary. The construct is also confusing, and it would be easy 
-> to write
-> 
-> 	if (IS_ERR_OR_NULL(foo)) {
-> 		...
-> 		ret = PTR_ERR(foo);
-> 		...
-> 
-> which would return success even though an error occurs. That error will be 
-> more difficult to debug than accepting a NULL pointer by mistake, which would 
-> result in an oops pretty soon.
+On 10.03.2014 21:38, Antti Palosaari wrote:
+> That is just same set I sent earlier too, but rebased to latest
+> media/master and 6 small compliance fix.
 
-I don't want an oops, I want an error. It all goes through videobuf2-core, so
-this should be handled there.
 
-> 
->> I actually prefer this way, since it is more robust as it will catch cases
->> where the memop unintentionally returned NULL. If I would just check for
->> IS_ERR, then that would be missed. Especially in a core piece of code like
->> this I'd like to err on the robust side.
-> 
-> You can always add a WARN_ON(mem_priv == NULL) if you really want to catch 
-> that.
-> 
->>>>  			dma_buf_put(dbuf);
->>>>  			goto err;
->>>>  		
->>>>  		}
-> 
+PULL request update. I rebased that again to todays media/master as 
+master was rebased.
 
-I'm not going to make such relatively large changes for 3.15. If you want to
-make a patch for 3.16, that's fine.
 
-At the moment I am only concerned with fixing the sparse errors that were
-introduced.
 
-Regards,
+The following changes since commit 0d49e7761173520ff02cec6f11d581f8ebca764d:
 
-	Hans
+   drx-j: Fix post-BER calculus on QAM modulation (2014-03-11 07:43:54 
+-0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git sdr_review_v4
+
+for you to fetch changes up to 5356c649ca0551095120b37abcae001e0d573865:
+
+   msi3101: fix v4l2-compliance issues (2014-03-11 14:25:16 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (37):
+       v4l: add RF tuner channel bandwidth control
+       v4l: reorganize RF tuner control ID numbers
+       v4l: uapi: add SDR formats CU8 and CU16LE
+       v4l: add enum_freq_bands support to tuner sub-device
+       v4l: add control for RF tuner PLL lock flag
+       DocBook: V4L: add V4L2_SDR_FMT_CU8 - 'CU08'
+       DocBook: V4L: add V4L2_SDR_FMT_CU16LE - 'CU16'
+       DocBook: document RF tuner bandwidth controls
+       DocBook: media: document PLL lock control
+       DocBook: media: add some general info about RF tuners
+       msi3101: convert to SDR API
+       msi001: Mirics MSi001 silicon tuner driver
+       msi3101: use msi001 tuner driver
+       MAINTAINERS: add msi001 driver
+       MAINTAINERS: add msi3101 driver
+       msi3101: clamp mmap buffers to reasonable level
+       e4000: convert DVB tuner to I2C driver model
+       e4000: implement controls via v4l2 control framework
+       e4000: fix PLL calc to allow higher frequencies
+       e4000: implement PLL lock v4l control
+       e4000: get rid of DVB i2c_gate_ctrl()
+       e4000: convert to Regmap API
+       e4000: rename some variables
+       rtl2832_sdr: Realtek RTL2832 SDR driver module
+       rtl28xxu: constify demod config structs
+       rtl28xxu: attach SDR extension module
+       rtl28xxu: fix switch-case style issue
+       rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
+       rtl2832_sdr: expose e4000 controls to user
+       r820t: add manual gain controls
+       rtl2832_sdr: expose R820T controls to user
+       MAINTAINERS: add rtl2832_sdr driver
+       v4l: rename v4l2_format_sdr to v4l2_sdr_format
+       rtl2832_sdr: clamp bandwidth to nearest legal value in automode
+       rtl28xxu: depends on I2C_MUX
+       msi001: fix v4l2-compliance issues
+       msi3101: fix v4l2-compliance issues
+
+Hans Verkuil (1):
+       rtl2832u_sdr: fixing v4l2-compliance issues
+
+  Documentation/DocBook/media/v4l/controls.xml          |   51 +++-
+  Documentation/DocBook/media/v4l/dev-sdr.xml           |    2 +-
+  Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml   |   44 ++++
+  Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml |   46 ++++
+  Documentation/DocBook/media/v4l/pixfmt.xml            |    3 +
+  MAINTAINERS                                           |   30 +++
+  drivers/media/tuners/Kconfig                          |    1 +
+  drivers/media/tuners/e4000.c                          |  598 
++++++++++++++++++++++++++++++------------------
+  drivers/media/tuners/e4000.h                          |   21 +-
+  drivers/media/tuners/e4000_priv.h                     |   86 ++++++-
+  drivers/media/tuners/r820t.c                          |  137 ++++++++++-
+  drivers/media/tuners/r820t.h                          |   10 +
+  drivers/media/usb/dvb-usb-v2/Kconfig                  |    2 +-
+  drivers/media/usb/dvb-usb-v2/Makefile                 |    1 +
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.c               |   90 +++++--
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.h               |    2 +
+  drivers/media/v4l2-core/v4l2-ctrls.c                  |    9 +
+  drivers/media/v4l2-core/v4l2-ioctl.c                  |    2 +-
+  drivers/staging/media/Kconfig                         |    2 +
+  drivers/staging/media/Makefile                        |    2 +
+  drivers/staging/media/msi3101/Kconfig                 |    7 +-
+  drivers/staging/media/msi3101/Makefile                |    1 +
+  drivers/staging/media/msi3101/msi001.c                |  500 
++++++++++++++++++++++++++++++++++++++++
+  drivers/staging/media/msi3101/sdr-msi3101.c           | 1564 
++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------------------------------
+  drivers/staging/media/rtl2832u_sdr/Kconfig            |    7 +
+  drivers/staging/media/rtl2832u_sdr/Makefile           |    6 +
+  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c      | 1501 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h      |   51 ++++
+  include/media/v4l2-subdev.h                           |    1 +
+  include/uapi/linux/v4l2-controls.h                    |   15 +-
+  include/uapi/linux/videodev2.h                        |   10 +-
+  31 files changed, 3531 insertions(+), 1271 deletions(-)
+  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu08.xml
+  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-sdr-cu16le.xml
+  create mode 100644 drivers/staging/media/msi3101/msi001.c
+  create mode 100644 drivers/staging/media/rtl2832u_sdr/Kconfig
+  create mode 100644 drivers/staging/media/rtl2832u_sdr/Makefile
+  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+  create mode 100644 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.h
+
+
+
+-- 
+http://palosaari.fi/
