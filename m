@@ -1,47 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:37592 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756917AbaC0Vkn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Mar 2014 17:40:43 -0400
-Date: Thu, 27 Mar 2014 22:40:41 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: pboettcher@kernellabs.com
-Cc: linux-media@vger.kernel.org
-Subject: Re: dib0700 NEC scancode question
-Message-ID: <20140327214041.GA21302@hardeman.nu>
-References: <20140327120728.GA13748@hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20140327120728.GA13748@hardeman.nu>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3444 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753756AbaCKDen (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Mar 2014 23:34:43 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2B3YeNQ078508
+	for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 04:34:42 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id B691E2A1889
+	for <linux-media@vger.kernel.org>; Tue, 11 Mar 2014 04:34:38 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20140311033438.B691E2A1889@tschai.lan>
+Date: Tue, 11 Mar 2014 04:34:38 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 27, 2014 at 01:07:28PM +0100, David Härdeman wrote:
->Hi Patrick,
->
->a quick question regarding the dib0700 driver:
->
->in ./media/usb/dvb-usb/dib0700_core.c the RC RX packet is defined as:
-...
->The NEC protocol transmits in the order:
-...
->Does the dib0700 fw really reorder the bytes, or could the order of
->not_system and system in struct dib0700_rc_response have been
->accidentally reversed?
-...
->Which, if the order *is* reversed, would mean that the scancode that
->gets defined is in reality:
->
->	keycode = poll_reply->system     << 16 |
->		  poll_reply->not_system << 8  |
->		  poll_reply->data;
->
->Which is the same as the order used in drivers/media/rc/ir-nec-decoder.c.
->
->(An order which I'm considering trying to correct, which is why I'm
-s/correct/make sure it's consistent/
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
--- 
-David Härdeman
+Results of the daily build of media_tree:
+
+date:		Tue Mar 11 04:00:26 CET 2014
+git branch:	test
+git hash:	f2d7313534072a5fe192e7cf46204b413acef479
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse version:	0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
