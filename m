@@ -1,109 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:41057 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249AbaCXKN7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 06:13:59 -0400
-Received: by mail-pa0-f49.google.com with SMTP id lj1so5236218pab.36
-        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 03:13:59 -0700 (PDT)
-Message-ID: <53300566.c947440a.1a01.1b19@mx.google.com>
-From: Mike Sampson <mike@sambodata.com>
-To: Luca Risolia <luca.risolia@studio.unibo.it>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-CC: linux-usb@vger.kernel.org
-CC: linux-media@vger.kernel.org
-CC: devel@driverdev.osuosl.org
-CC: linux-kernel@vger.kernel.org
-CC: trivial@kernel.org
-Date: Mon, 24 Mar 2014 20:04:49 +1100
-Subject: [PATCH] next-20140324 drivers/staging/media/sn9c102/sn9c102_hv7131r.c fix style warnings flagged by checkpatch.pl.
+Received: from bear.ext.ti.com ([192.94.94.41]:53637 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754604AbaCKMrE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 08:47:04 -0400
+Message-ID: <531F05BD.70500@ti.com>
+Date: Tue, 11 Mar 2014 18:16:53 +0530
+From: Archit Taneja <a0393947@ti.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <k.debski@samsung.com>, <linux-media@vger.kernel.org>,
+	<linux-omap@vger.kernel.org>
+Subject: Re: [PATCH v3 07/14] v4l: ti-vpe: Add selection API in VPE driver
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-8-git-send-email-archit@ti.com> <531EFFC5.6040007@xs4all.nl>
+In-Reply-To: <531EFFC5.6040007@xs4all.nl>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mike Sampson <mike@sambodata.com>
+On Tuesday 11 March 2014 05:51 PM, Hans Verkuil wrote:
+> Hi Archit,
+>
+> A few small comments below...
+>
+> On 03/11/14 09:33, Archit Taneja wrote:
+>> Add selection ioctl ops. For VPE, cropping makes sense only for the input to
+>> VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
+>> only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
+>>
+>> For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
+>> in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
+>> results in selecting a rectangle region within the source buffer.
+>>
+>> Setting the crop/compose rectangles should successfully result in
+>> re-configuration of registers which are affected when either source or
+>> destination dimensions change, set_srcdst_params() is called for this purpose.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>> ---
+>>   drivers/media/platform/ti-vpe/vpe.c | 141 ++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 141 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+>> index ece9b96..4abb85c 100644
+>> --- a/drivers/media/platform/ti-vpe/vpe.c
+>> +++ b/drivers/media/platform/ti-vpe/vpe.c
+>> @@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
+>>   {
+>>   	switch (type) {
+>>   	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+>> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+>>   		return &ctx->q_data[Q_DATA_SRC];
+>>   	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+>>   		return &ctx->q_data[Q_DATA_DST];
+>>   	default:
+>>   		BUG();
+>> @@ -1587,6 +1589,142 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>>   	return set_srcdst_params(ctx);
+>>   }
+>>
+>> +static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
+>> +{
+>> +	struct vpe_q_data *q_data;
+>> +
+>> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
+>> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
+>> +		return -EINVAL;
+>> +
+>> +	q_data = get_q_data(ctx, s->type);
+>> +	if (!q_data)
+>> +		return -EINVAL;
+>> +
+>> +	switch (s->target) {
+>> +	case V4L2_SEL_TGT_COMPOSE:
+>> +		/*
+>> +		 * COMPOSE target is only valid for capture buffer type, for
+>> +		 * output buffer type, assign existing crop parameters to the
+>> +		 * selection rectangle
+>> +		 */
+>> +		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> +			break;
+>
+> Shouldn't this return -EINVAL?
 
----
- drivers/staging/media/sn9c102/sn9c102_hv7131r.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+compose only makes sense for CAPTURE. So, it breaks and performs the 
+calculations after the switch statement.
 
-diff --git a/drivers/staging/media/sn9c102/sn9c102_hv7131r.c b/drivers/staging/media/sn9c102/sn9c102_hv7131r.c
-index 26a9111..51b24e0 100644
---- a/drivers/staging/media/sn9c102/sn9c102_hv7131r.c
-+++ b/drivers/staging/media/sn9c102/sn9c102_hv7131r.c
-@@ -23,7 +23,7 @@
- #include "sn9c102_devtable.h"
- 
- 
--static int hv7131r_init(struct sn9c102_device* cam)
-+static int hv7131r_init(struct sn9c102_device *cam)
- {
- 	int err = 0;
- 
-@@ -137,8 +137,8 @@ static int hv7131r_init(struct sn9c102_device* cam)
- }
- 
- 
--static int hv7131r_get_ctrl(struct sn9c102_device* cam,
--			    struct v4l2_control* ctrl)
-+static int hv7131r_get_ctrl(struct sn9c102_device *cam,
-+			    struct v4l2_control *ctrl)
- {
- 	switch (ctrl->id) {
- 	case V4L2_CID_GAIN:
-@@ -176,8 +176,8 @@ static int hv7131r_get_ctrl(struct sn9c102_device* cam,
- }
- 
- 
--static int hv7131r_set_ctrl(struct sn9c102_device* cam,
--			    const struct v4l2_control* ctrl)
-+static int hv7131r_set_ctrl(struct sn9c102_device *cam,
-+			    const struct v4l2_control *ctrl)
- {
- 	int err = 0;
- 
-@@ -197,6 +197,7 @@ static int hv7131r_set_ctrl(struct sn9c102_device* cam,
- 	case V4L2_CID_BLACK_LEVEL:
- 		{
- 			int r = sn9c102_i2c_read(cam, 0x01);
-+
- 			if (r < 0)
- 				return -EIO;
- 			err += sn9c102_i2c_write(cam, 0x01,
-@@ -211,10 +212,10 @@ static int hv7131r_set_ctrl(struct sn9c102_device* cam,
- }
- 
- 
--static int hv7131r_set_crop(struct sn9c102_device* cam,
--			    const struct v4l2_rect* rect)
-+static int hv7131r_set_crop(struct sn9c102_device *cam,
-+			    const struct v4l2_rect *rect)
- {
--	struct sn9c102_sensor* s = sn9c102_get_sensor(cam);
-+	struct sn9c102_sensor *s = sn9c102_get_sensor(cam);
- 	int err = 0;
- 	u8 h_start = (u8)(rect->left - s->cropcap.bounds.left) + 1,
- 	   v_start = (u8)(rect->top - s->cropcap.bounds.top) + 1;
-@@ -226,8 +227,8 @@ static int hv7131r_set_crop(struct sn9c102_device* cam,
- }
- 
- 
--static int hv7131r_set_pix_format(struct sn9c102_device* cam,
--				  const struct v4l2_pix_format* pix)
-+static int hv7131r_set_pix_format(struct sn9c102_device *cam,
-+				  const struct v4l2_pix_format *pix)
- {
- 	int err = 0;
- 
-@@ -347,7 +348,7 @@ static const struct sn9c102_sensor hv7131r = {
- };
- 
- 
--int sn9c102_probe_hv7131r(struct sn9c102_device* cam)
-+int sn9c102_probe_hv7131r(struct sn9c102_device *cam)
- {
- 	int devid, err;
- 
--- 
-1.7.10.4
+>
+>> +
+>> +		s->r = q_data->c_rect;
+>> +		return 0;
+
+The above 2 lines are called for if we try to set compose for OUTPUT. I 
+don't return an error here, just keep the size as the original rect 
+size, and return 0.
+
+I'll replace these 2 lines with 'return -EINVAL;'
+
+>> +
+>> +	case V4L2_SEL_TGT_CROP:
+>> +		/*
+>> +		 * CROP target is only valid for output buffer type, for capture
+>> +		 * buffer type, assign existing compose parameters to the
+>> +		 * selection rectangle
+>> +		 */
+>> +		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>> +			break;
+>
+> Ditto.
+>
+>> +
+>> +		s->r = q_data->c_rect;
+>> +		return 0;
+>> +
+>> +	/*
+>> +	 * bound and default crop/compose targets are invalid targets to
+>> +	 * try/set
+>> +	 */
+>> +	default:
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	if (s->r.top < 0 || s->r.left < 0) {
+>> +		vpe_err(ctx->dev, "negative values for top and left\n");
+>> +		s->r.top = s->r.left = 0;
+>> +	}
+>> +
+>> +	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
+>> +		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
+>> +
+>> +	/* adjust left/top if cropping rectangle is out of bounds */
+>> +	if (s->r.left + s->r.width > q_data->width)
+>> +		s->r.left = q_data->width - s->r.width;
+>> +	if (s->r.top + s->r.height > q_data->height)
+>> +		s->r.top = q_data->height - s->r.height;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int vpe_g_selection(struct file *file, void *fh,
+>> +		struct v4l2_selection *s)
+>> +{
+>> +	struct vpe_ctx *ctx = file2ctx(file);
+>> +	struct vpe_q_data *q_data;
+>> +
+>> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
+>> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
+>> +		return -EINVAL;
+>> +
+>> +	q_data = get_q_data(ctx, s->type);
+>> +	if (!q_data)
+>> +		return -EINVAL;
+>> +
+>> +	switch (s->target) {
+>> +	/* return width and height from S_FMT of the respective buffer type */
+>> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+>> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+>> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+>> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+>> +		s->r.left = 0;
+>> +		s->r.top = 0;
+>> +		s->r.width = q_data->width;
+>> +		s->r.height = q_data->height;
+>
+> The crop targets only make sense for type OUTPUT and the compose only for
+> type CAPTURE. Add some checks for that.
+
+I return the image size for G_FMT irrespective of what combination of 
+crop/compose CAPTURE/OUTPUT it is. I suppose it is better to return an 
+error if the user tries to configure a wrong combination.
+
+Thanks,
+Archit
 
