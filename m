@@ -1,17 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52960 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52255 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752800AbaCGODM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:03:12 -0500
+	with ESMTP id S1753851AbaCKK4C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 06:56:02 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, marbugge@cisco.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv1 PATCH 2/5] v4l2: allow v4l2_subdev_edid to be used with video nodes
-Date: Fri, 07 Mar 2014 15:04:43 +0100
-Message-ID: <4558126.A5rqnIvp04@avalon>
-In-Reply-To: <1394187679-7345-3-git-send-email-hverkuil@xs4all.nl>
-References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl> <1394187679-7345-3-git-send-email-hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH v2 27/48] v4l: Validate fields in the core code for subdev EDID ioctls
+Date: Tue, 11 Mar 2014 11:57:36 +0100
+Message-ID: <2554463.fAEmLWmTMl@avalon>
+In-Reply-To: <531EE935.20201@xs4all.nl>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com> <1394493359-14115-28-git-send-email-laurent.pinchart@ideasonboard.com> <531EE935.20201@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -20,90 +21,75 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
-Thank you for the patch.
+On Tuesday 11 March 2014 11:45:09 Hans Verkuil wrote:
+> On 03/11/14 00:15, Laurent Pinchart wrote:
+> > The subdev EDID ioctls receive a pad field that must reference an
+> > existing pad and an EDID field that must point to a buffer. Validate
+> > both fields in the core code instead of duplicating validation in all
+> > drivers.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/i2c/ad9389b.c           |  2 --
+> >  drivers/media/i2c/adv7511.c           |  2 --
+> >  drivers/media/i2c/adv7604.c           |  4 ----
+> >  drivers/media/i2c/adv7842.c           |  4 ----
+> >  drivers/media/v4l2-core/v4l2-subdev.c | 24 ++++++++++++++++++++----
+> >  5 files changed, 20 insertions(+), 16 deletions(-)
 
-On Friday 07 March 2014 11:21:16 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Struct v4l2_subdev_edid and the VIDIOC_SUBDEV_G/S_EDID ioctls were
-> specific for subdevices, but for hardware with a simple video pipeline
-> you do not need/want to create subdevice nodes to just get/set the EDID.
-> 
-> Move the v4l2_subdev_edid struct to v4l2-common.h and rename as
-> v4l2_edid. Add the same ioctls to videodev2.h as well, thus allowing
-> this API to be used with both video nodes and v4l-subdev nodes.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[snip]
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
+> > b/drivers/media/v4l2-core/v4l2-subdev.c index 853fb84..9fff1eb 100644
+> > --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> > @@ -349,11 +349,27 @@ static long subdev_do_ioctl(struct file *file,
+> > unsigned int cmd, void *arg)> 
+> >  			sd, pad, set_selection, subdev_fh, sel);
+> >  	}
+> > 
+> > -	case VIDIOC_SUBDEV_G_EDID:
+> > -		return v4l2_subdev_call(sd, pad, get_edid, arg);
+> > +	case VIDIOC_SUBDEV_G_EDID: {
+> > +		struct v4l2_subdev_edid *edid = arg;
+> > 
+> > -	case VIDIOC_SUBDEV_S_EDID:
+> > -		return v4l2_subdev_call(sd, pad, set_edid, arg);
+> > +		if (edid->pad >= sd->entity.num_pads)
+> > +			return -EINVAL;
+> > +		if (edid->edid == NULL)
+> > +			return -EINVAL;
+> > +
+> > +		return v4l2_subdev_call(sd, pad, get_edid, edid);
+> > +	}
+> > +
+> > +	case VIDIOC_SUBDEV_S_EDID: {
+> > +		struct v4l2_subdev_edid *edid = arg;
+> > +
+> > +		if (edid->pad >= sd->entity.num_pads)
+> > +			return -EINVAL;
+> > +		if (edid->edid == NULL)
+> > +			return -EINVAL;
+> 
+> If edid->blocks == 0, then edid->edid may be NULL. So this should
+> read:
+> 
+> 	if (edid->blocks && edid->edid == NULL)
 
-> ---
->  include/uapi/linux/v4l2-common.h |  8 ++++++++
->  include/uapi/linux/v4l2-subdev.h | 14 +++++---------
->  include/uapi/linux/videodev2.h   |  2 ++
->  3 files changed, 15 insertions(+), 9 deletions(-)
-> 
-> diff --git a/include/uapi/linux/v4l2-common.h
-> b/include/uapi/linux/v4l2-common.h index 4f0667e..270db89 100644
-> --- a/include/uapi/linux/v4l2-common.h
-> +++ b/include/uapi/linux/v4l2-common.h
-> @@ -68,4 +68,12 @@
->  #define V4L2_SUBDEV_SEL_FLAG_SIZE_LE	V4L2_SEL_FLAG_LE
->  #define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG V4L2_SEL_FLAG_KEEP_CONFIG
-> 
-> +struct v4l2_edid {
-> +	__u32 pad;
-> +	__u32 start_block;
-> +	__u32 blocks;
-> +	__u32 reserved[5];
-> +	__u8 __user *edid;
-> +};
-> +
->  #endif /* __V4L2_COMMON__ */
-> diff --git a/include/uapi/linux/v4l2-subdev.h
-> b/include/uapi/linux/v4l2-subdev.h index a33c4da..87e0515 100644
-> --- a/include/uapi/linux/v4l2-subdev.h
-> +++ b/include/uapi/linux/v4l2-subdev.h
-> @@ -148,13 +148,8 @@ struct v4l2_subdev_selection {
->  	__u32 reserved[8];
->  };
-> 
-> -struct v4l2_subdev_edid {
-> -	__u32 pad;
-> -	__u32 start_block;
-> -	__u32 blocks;
-> -	__u32 reserved[5];
-> -	__u8 __user *edid;
-> -};
-> +/* Backwards compatibility define --- to be removed */
-> +#define v4l2_subdev_edid v4l2_edid
-> 
->  #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
->  #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
-> @@ -174,7 +169,8 @@ struct v4l2_subdev_edid {
->  	_IOWR('V', 61, struct v4l2_subdev_selection)
->  #define VIDIOC_SUBDEV_S_SELECTION \
->  	_IOWR('V', 62, struct v4l2_subdev_selection)
-> -#define VIDIOC_SUBDEV_G_EDID	_IOWR('V', 40, struct v4l2_subdev_edid)
-> -#define VIDIOC_SUBDEV_S_EDID	_IOWR('V', 41, struct v4l2_subdev_edid)
-> +/* These two G/S_EDID ioctls are identical to the ioctls in videodev2.h */
-> +#define VIDIOC_SUBDEV_G_EDID	_IOWR('V', 40, struct v4l2_edid)
-> +#define VIDIOC_SUBDEV_S_EDID	_IOWR('V', 41, struct v4l2_edid)
-> 
->  #endif
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 17acba8..339738a 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1913,6 +1913,8 @@ struct v4l2_create_buffers {
->  #define VIDIOC_QUERYMENU	_IOWR('V', 37, struct v4l2_querymenu)
->  #define VIDIOC_G_INPUT		 _IOR('V', 38, int)
->  #define VIDIOC_S_INPUT		_IOWR('V', 39, int)
-> +#define VIDIOC_G_EDID		_IOWR('V', 40, struct v4l2_edid)
-> +#define VIDIOC_S_EDID		_IOWR('V', 41, struct v4l2_edid)
->  #define VIDIOC_G_OUTPUT		 _IOR('V', 46, int)
->  #define VIDIOC_S_OUTPUT		_IOWR('V', 47, int)
->  #define VIDIOC_ENUMOUTPUT	_IOWR('V', 48, struct v4l2_output)
+OK, I'll fix that.
+
+> This is true for both G and S_EDID ioctls.
+
+What's the point of G_EDID with blocks == 0 ? Testing whether the ioctl is 
+supported ?
+
+> > +
+> > +		return v4l2_subdev_call(sd, pad, set_edid, edid);
+> > +	}
+> > 
+> >  	case VIDIOC_SUBDEV_DV_TIMINGS_CAP: {
+> >  		struct v4l2_dv_timings_cap *cap = arg;
 
 -- 
 Regards,
