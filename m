@@ -1,606 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f49.google.com ([209.85.213.49]:47367 "EHLO
-	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932348AbaCQKVB (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1590 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754892AbaCKMWc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 06:21:01 -0400
-Received: by mail-yh0-f49.google.com with SMTP id z6so4942621yhz.22
-        for <linux-media@vger.kernel.org>; Mon, 17 Mar 2014 03:20:55 -0700 (PDT)
+	Tue, 11 Mar 2014 08:22:32 -0400
+Message-ID: <531EFFC5.6040007@xs4all.nl>
+Date: Tue, 11 Mar 2014 13:21:25 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1394888883-46850-3-git-send-email-hverkuil@xs4all.nl>
-References: <1394888883-46850-1-git-send-email-hverkuil@xs4all.nl> <1394888883-46850-3-git-send-email-hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Mon, 17 Mar 2014 19:20:15 +0900
-Message-ID: <CAMm-=zBnaRb3tfATw=FeM-jW73oXZ+f9gnAzrxyAArq3sOTOrg@mail.gmail.com>
-Subject: Re: [REVIEW PATCH for v3.15 2/4] videobuf2-core: fix sparse errors.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
+To: Archit Taneja <archit@ti.com>
+CC: k.debski@samsung.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 07/14] v4l: ti-vpe: Add selection API in VPE driver
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-8-git-send-email-archit@ti.com>
+In-Reply-To: <1394526833-24805-8-git-send-email-archit@ti.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-No issues with the patch, apart from one typo in a comment, but it may
-not be worth the reupload.
+Hi Archit,
 
-On Sat, Mar 15, 2014 at 10:08 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Sparse generated a bunch of errors like this:
->
-> drivers/media/v4l2-core/videobuf2-core.c:2045:25: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:136:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:151:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:168:25: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:183:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:185:9: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:385:25: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1115:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1268:33: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1270:25: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1315:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1324:25: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1396:25: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1457:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1482:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1484:9: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1523:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1525:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1815:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1828:17: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1914:25: error: incompatible types in conditional expression (different base types)
-> drivers/media/v4l2-core/videobuf2-core.c:1944:9: error: incompatible types in conditional expression (different base types)
->
-> These are caused by the call*op defines which do something like this:
->
->         (ops->op) ? ops->op(args) : 0
->
-> which is OK as long as op is not a void function, because in that case one part
-> of the conditional expression returns void, the other an integer. Hence the sparse
-> errors.
->
-> I've replaced this by introducing three variants of the call_ macros:
-> call_*op for int returns, call_void_*op for void returns and call_ptr_*op for
-> pointer returns.
->
-> That's the bad news. The good news is that the fail_*op macros could be removed
-> since the call_*op macros now have enough information to determine if the op
-> succeeded or not and can increment the op counter only on success. This at least
-> makes it more robust w.r.t. future changes.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+A few small comments below...
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
-
+On 03/11/14 09:33, Archit Taneja wrote:
+> Add selection ioctl ops. For VPE, cropping makes sense only for the input to
+> VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
+> only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
+> 
+> For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
+> in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
+> results in selecting a rectangle region within the source buffer.
+> 
+> Setting the crop/compose rectangles should successfully result in
+> re-configuration of registers which are affected when either source or
+> destination dimensions change, set_srcdst_params() is called for this purpose.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 > ---
->  drivers/media/v4l2-core/videobuf2-core.c | 211 +++++++++++++++++++------------
->  1 file changed, 130 insertions(+), 81 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index f9059bb..61149eb 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -36,58 +36,133 @@ module_param(debug, int, 0644);
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
->
->  /*
-> - * If advanced debugging is on, then count how often each op is called,
-> - * which can either be per-buffer or per-queue.
-> + * If advanced debugging is on, then count how often each op is called
-> + * sucessfully, which can either be per-buffer or per-queue.
-
-s/sucessfully/successfully/
-
->   *
-> - * If the op failed then the 'fail_' variant is called to decrease the
-> - * counter. That makes it easy to check that the 'init' and 'cleanup'
-> + * This makes it easy to check that the 'init' and 'cleanup'
->   * (and variations thereof) stay balanced.
->   */
->
-> +#define log_memop(vb, op)                                              \
-> +       dprintk(2, "call_memop(%p, %d, %s)%s\n",                        \
-> +               (vb)->vb2_queue, (vb)->v4l2_buf.index, #op,             \
-> +               (vb)->vb2_queue->mem_ops->op ? "" : " (nop)")
-> +
->  #define call_memop(vb, op, args...)                                    \
->  ({                                                                     \
->         struct vb2_queue *_q = (vb)->vb2_queue;                         \
-> -       dprintk(2, "call_memop(%p, %d, %s)%s\n",                        \
-> -               _q, (vb)->v4l2_buf.index, #op,                          \
-> -               _q->mem_ops->op ? "" : " (nop)");                       \
-> +       int err;                                                        \
-> +                                                                       \
-> +       log_memop(vb, op);                                              \
-> +       err = _q->mem_ops->op ? _q->mem_ops->op(args) : 0;              \
-> +       if (!err)                                                       \
-> +               (vb)->cnt_mem_ ## op++;                                 \
-> +       err;                                                            \
-> +})
-> +
-> +#define call_ptr_memop(vb, op, args...)                                        \
-> +({                                                                     \
-> +       struct vb2_queue *_q = (vb)->vb2_queue;                         \
-> +       void *ptr;                                                      \
-> +                                                                       \
-> +       log_memop(vb, op);                                              \
-> +       ptr = _q->mem_ops->op ? _q->mem_ops->op(args) : NULL;           \
-> +       if (!IS_ERR_OR_NULL(ptr))                                       \
-> +               (vb)->cnt_mem_ ## op++;                                 \
-> +       ptr;                                                            \
-> +})
-> +
-> +#define call_void_memop(vb, op, args...)                               \
-> +({                                                                     \
-> +       struct vb2_queue *_q = (vb)->vb2_queue;                         \
-> +                                                                       \
-> +       log_memop(vb, op);                                              \
-> +       if (_q->mem_ops->op)                                            \
-> +               _q->mem_ops->op(args);                                  \
->         (vb)->cnt_mem_ ## op++;                                         \
-> -       _q->mem_ops->op ? _q->mem_ops->op(args) : 0;                    \
->  })
-> -#define fail_memop(vb, op) ((vb)->cnt_mem_ ## op--)
-> +
-> +#define log_qop(q, op)                                                 \
-> +       dprintk(2, "call_qop(%p, %s)%s\n", q, #op,                      \
-> +               (q)->ops->op ? "" : " (nop)")
->
->  #define call_qop(q, op, args...)                                       \
->  ({                                                                     \
-> -       dprintk(2, "call_qop(%p, %s)%s\n", q, #op,                      \
-> -               (q)->ops->op ? "" : " (nop)");                          \
-> +       int err;                                                        \
-> +                                                                       \
-> +       log_qop(q, op);                                                 \
-> +       err = (q)->ops->op ? (q)->ops->op(args) : 0;                    \
-> +       if (!err)                                                       \
-> +               (q)->cnt_ ## op++;                                      \
-> +       err;                                                            \
-> +})
-> +
-> +#define call_void_qop(q, op, args...)                                  \
-> +({                                                                     \
-> +       log_qop(q, op);                                                 \
-> +       if ((q)->ops->op)                                               \
-> +               (q)->ops->op(args);                                     \
->         (q)->cnt_ ## op++;                                              \
-> -       (q)->ops->op ? (q)->ops->op(args) : 0;                          \
->  })
-> -#define fail_qop(q, op) ((q)->cnt_ ## op--)
-> +
-> +#define log_vb_qop(vb, op, args...)                                    \
-> +       dprintk(2, "call_vb_qop(%p, %d, %s)%s\n",                       \
-> +               (vb)->vb2_queue, (vb)->v4l2_buf.index, #op,             \
-> +               (vb)->vb2_queue->ops->op ? "" : " (nop)")
->
->  #define call_vb_qop(vb, op, args...)                                   \
->  ({                                                                     \
-> -       struct vb2_queue *_q = (vb)->vb2_queue;                         \
-> -       dprintk(2, "call_vb_qop(%p, %d, %s)%s\n",                       \
-> -               _q, (vb)->v4l2_buf.index, #op,                          \
-> -               _q->ops->op ? "" : " (nop)");                           \
-> +       int err;                                                        \
-> +                                                                       \
-> +       log_vb_qop(vb, op);                                             \
-> +       err = (vb)->vb2_queue->ops->op ?                                \
-> +               (vb)->vb2_queue->ops->op(args) : 0;                     \
-> +       if (!err)                                                       \
-> +               (vb)->cnt_ ## op++;                                     \
-> +       err;                                                            \
-> +})
-> +
-> +#define call_void_vb_qop(vb, op, args...)                              \
-> +({                                                                     \
-> +       log_vb_qop(vb, op);                                             \
-> +       if ((vb)->vb2_queue->ops->op)                                   \
-> +               (vb)->vb2_queue->ops->op(args);                         \
->         (vb)->cnt_ ## op++;                                             \
-> -       _q->ops->op ? _q->ops->op(args) : 0;                            \
->  })
-> -#define fail_vb_qop(vb, op) ((vb)->cnt_ ## op--)
->
->  #else
->
->  #define call_memop(vb, op, args...)                                    \
-> -       ((vb)->vb2_queue->mem_ops->op ? (vb)->vb2_queue->mem_ops->op(args) : 0)
-> -#define fail_memop(vb, op)
-> +       ((vb)->vb2_queue->mem_ops->op ?                                 \
-> +               (vb)->vb2_queue->mem_ops->op(args) : 0)
-> +
-> +#define call_ptr_memop(vb, op, args...)                                        \
-> +       ((vb)->vb2_queue->mem_ops->op ?                                 \
-> +               (vb)->vb2_queue->mem_ops->op(args) : NULL)
-> +
-> +#define call_void_memop(vb, op, args...)                               \
-> +       do {                                                            \
-> +               if ((vb)->vb2_queue->mem_ops->op)                       \
-> +                       (vb)->vb2_queue->mem_ops->op(args);             \
-> +       } while (0)
->
->  #define call_qop(q, op, args...)                                       \
->         ((q)->ops->op ? (q)->ops->op(args) : 0)
-> -#define fail_qop(q, op)
-> +
-> +#define call_void_qop(q, op, args...)                                  \
-> +       do {                                                            \
-> +               if ((q)->ops->op)                                       \
-> +                       (q)->ops->op(args);                             \
-> +       } while (0)
->
->  #define call_vb_qop(vb, op, args...)                                   \
->         ((vb)->vb2_queue->ops->op ? (vb)->vb2_queue->ops->op(args) : 0)
-> -#define fail_vb_qop(vb, op)
-> +
-> +#define call_void_vb_qop(vb, op, args...)                              \
-> +       do {                                                            \
-> +               if ((vb)->vb2_queue->ops->op)                           \
-> +                       (vb)->vb2_queue->ops->op(args);                 \
-> +       } while (0)
->
->  #endif
->
-> @@ -118,7 +193,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->         for (plane = 0; plane < vb->num_planes; ++plane) {
->                 unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
->
-> -               mem_priv = call_memop(vb, alloc, q->alloc_ctx[plane],
-> +               mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
->                                       size, q->gfp_flags);
->                 if (IS_ERR_OR_NULL(mem_priv))
->                         goto free;
-> @@ -130,10 +205,9 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->
->         return 0;
->  free:
-> -       fail_memop(vb, alloc);
->         /* Free already allocated memory if one of the allocations failed */
->         for (; plane > 0; --plane) {
-> -               call_memop(vb, put, vb->planes[plane - 1].mem_priv);
-> +               call_void_memop(vb, put, vb->planes[plane - 1].mem_priv);
->                 vb->planes[plane - 1].mem_priv = NULL;
->         }
->
-> @@ -148,7 +222,7 @@ static void __vb2_buf_mem_free(struct vb2_buffer *vb)
->         unsigned int plane;
->
->         for (plane = 0; plane < vb->num_planes; ++plane) {
-> -               call_memop(vb, put, vb->planes[plane].mem_priv);
-> +               call_void_memop(vb, put, vb->planes[plane].mem_priv);
->                 vb->planes[plane].mem_priv = NULL;
->                 dprintk(3, "Freed plane %d of buffer %d\n", plane,
->                         vb->v4l2_buf.index);
-> @@ -165,7 +239,7 @@ static void __vb2_buf_userptr_put(struct vb2_buffer *vb)
->
->         for (plane = 0; plane < vb->num_planes; ++plane) {
->                 if (vb->planes[plane].mem_priv)
-> -                       call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
-> +                       call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
->                 vb->planes[plane].mem_priv = NULL;
->         }
->  }
-> @@ -180,9 +254,9 @@ static void __vb2_plane_dmabuf_put(struct vb2_buffer *vb, struct vb2_plane *p)
->                 return;
->
->         if (p->dbuf_mapped)
-> -               call_memop(vb, unmap_dmabuf, p->mem_priv);
-> +               call_void_memop(vb, unmap_dmabuf, p->mem_priv);
->
-> -       call_memop(vb, detach_dmabuf, p->mem_priv);
-> +       call_void_memop(vb, detach_dmabuf, p->mem_priv);
->         dma_buf_put(p->dbuf);
->         memset(p, 0, sizeof(*p));
->  }
-> @@ -305,7 +379,6 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
->                         if (ret) {
->                                 dprintk(1, "Buffer %d %p initialization"
->                                         " failed\n", buffer, vb);
-> -                               fail_vb_qop(vb, buf_init);
->                                 __vb2_buf_mem_free(vb);
->                                 kfree(vb);
->                                 break;
-> @@ -382,7 +455,7 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
->                 struct vb2_buffer *vb = q->bufs[buffer];
->
->                 if (vb && vb->planes[0].mem_priv)
-> -                       call_vb_qop(vb, buf_cleanup, vb);
-> +                       call_void_vb_qop(vb, buf_cleanup, vb);
->         }
->
->         /* Release video buffer memory */
-> @@ -837,10 +910,8 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
->          */
->         ret = call_qop(q, queue_setup, q, NULL, &num_buffers, &num_planes,
->                        q->plane_sizes, q->alloc_ctx);
-> -       if (ret) {
-> -               fail_qop(q, queue_setup);
-> +       if (ret)
->                 return ret;
-> -       }
->
->         /* Finally, allocate buffers and video memory */
->         allocated_buffers = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
-> @@ -864,8 +935,6 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
->
->                 ret = call_qop(q, queue_setup, q, NULL, &num_buffers,
->                                &num_planes, q->plane_sizes, q->alloc_ctx);
-> -               if (ret)
-> -                       fail_qop(q, queue_setup);
->
->                 if (!ret && allocated_buffers < num_buffers)
->                         ret = -ENOMEM;
-> @@ -950,10 +1019,8 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
->          */
->         ret = call_qop(q, queue_setup, q, &create->format, &num_buffers,
->                        &num_planes, q->plane_sizes, q->alloc_ctx);
-> -       if (ret) {
-> -               fail_qop(q, queue_setup);
-> +       if (ret)
->                 return ret;
-> -       }
->
->         /* Finally, allocate buffers and video memory */
->         allocated_buffers = __vb2_queue_alloc(q, create->memory, num_buffers,
-> @@ -975,8 +1042,6 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
->                  */
->                 ret = call_qop(q, queue_setup, q, &create->format, &num_buffers,
->                                &num_planes, q->plane_sizes, q->alloc_ctx);
-> -               if (ret)
-> -                       fail_qop(q, queue_setup);
->
->                 if (!ret && allocated_buffers < num_buffers)
->                         ret = -ENOMEM;
-> @@ -1038,7 +1103,7 @@ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
->         if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
->                 return NULL;
->
-> -       return call_memop(vb, vaddr, vb->planes[plane_no].mem_priv);
-> +       return call_ptr_memop(vb, vaddr, vb->planes[plane_no].mem_priv);
->
->  }
->  EXPORT_SYMBOL_GPL(vb2_plane_vaddr);
-> @@ -1059,7 +1124,7 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
->         if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
->                 return NULL;
->
-> -       return call_memop(vb, cookie, vb->planes[plane_no].mem_priv);
-> +       return call_ptr_memop(vb, cookie, vb->planes[plane_no].mem_priv);
->  }
->  EXPORT_SYMBOL_GPL(vb2_plane_cookie);
->
-> @@ -1112,7 +1177,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->
->         /* sync buffers */
->         for (plane = 0; plane < vb->num_planes; ++plane)
-> -               call_memop(vb, finish, vb->planes[plane].mem_priv);
-> +               call_void_memop(vb, finish, vb->planes[plane].mem_priv);
->
->         /* Add the buffer to the done buffers list */
->         spin_lock_irqsave(&q->done_lock, flags);
-> @@ -1265,22 +1330,21 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 if (vb->planes[plane].mem_priv) {
->                         if (!reacquired) {
->                                 reacquired = true;
-> -                               call_vb_qop(vb, buf_cleanup, vb);
-> +                               call_void_vb_qop(vb, buf_cleanup, vb);
->                         }
-> -                       call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
-> +                       call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
->                 }
->
->                 vb->planes[plane].mem_priv = NULL;
->                 memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
->
->                 /* Acquire each plane's memory */
-> -               mem_priv = call_memop(vb, get_userptr, q->alloc_ctx[plane],
-> +               mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
->                                       planes[plane].m.userptr,
->                                       planes[plane].length, write);
->                 if (IS_ERR_OR_NULL(mem_priv)) {
->                         dprintk(1, "qbuf: failed acquiring userspace "
->                                                 "memory for plane %d\n", plane);
-> -                       fail_memop(vb, get_userptr);
->                         ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
->                         goto err;
->                 }
-> @@ -1303,7 +1367,6 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 ret = call_vb_qop(vb, buf_init, vb);
->                 if (ret) {
->                         dprintk(1, "qbuf: buffer initialization failed\n");
-> -                       fail_vb_qop(vb, buf_init);
->                         goto err;
->                 }
->         }
-> @@ -1311,8 +1374,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->         ret = call_vb_qop(vb, buf_prepare, vb);
->         if (ret) {
->                 dprintk(1, "qbuf: buffer preparation failed\n");
-> -               fail_vb_qop(vb, buf_prepare);
-> -               call_vb_qop(vb, buf_cleanup, vb);
-> +               call_void_vb_qop(vb, buf_cleanup, vb);
->                 goto err;
->         }
->
-> @@ -1321,7 +1383,7 @@ err:
->         /* In case of errors, release planes that were already acquired */
->         for (plane = 0; plane < vb->num_planes; ++plane) {
->                 if (vb->planes[plane].mem_priv)
-> -                       call_memop(vb, put_userptr, vb->planes[plane].mem_priv);
-> +                       call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
->                 vb->planes[plane].mem_priv = NULL;
->                 vb->v4l2_planes[plane].m.userptr = 0;
->                 vb->v4l2_planes[plane].length = 0;
-> @@ -1335,13 +1397,8 @@ err:
->   */
->  static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>  drivers/media/platform/ti-vpe/vpe.c | 141 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 141 insertions(+)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index ece9b96..4abb85c 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
 >  {
-> -       int ret;
-> -
->         __fill_vb2_buffer(vb, b, vb->v4l2_planes);
-> -       ret = call_vb_qop(vb, buf_prepare, vb);
-> -       if (ret)
-> -               fail_vb_qop(vb, buf_prepare);
-> -       return ret;
-> +       return call_vb_qop(vb, buf_prepare, vb);
+>  	switch (type) {
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+>  		return &ctx->q_data[Q_DATA_SRC];
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+>  		return &ctx->q_data[Q_DATA_DST];
+>  	default:
+>  		BUG();
+> @@ -1587,6 +1589,142 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  	return set_srcdst_params(ctx);
 >  }
->
->  /**
-> @@ -1393,7 +1450,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->
->                 if (!reacquired) {
->                         reacquired = true;
-> -                       call_vb_qop(vb, buf_cleanup, vb);
-> +                       call_void_vb_qop(vb, buf_cleanup, vb);
->                 }
->
->                 /* Release previously acquired memory if present */
-> @@ -1401,11 +1458,10 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
->
->                 /* Acquire each plane's memory */
-> -               mem_priv = call_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
-> +               mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
->                         dbuf, planes[plane].length, write);
->                 if (IS_ERR(mem_priv)) {
->                         dprintk(1, "qbuf: failed to attach dmabuf\n");
-> -                       fail_memop(vb, attach_dmabuf);
->                         ret = PTR_ERR(mem_priv);
->                         dma_buf_put(dbuf);
->                         goto err;
-> @@ -1424,7 +1480,6 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 if (ret) {
->                         dprintk(1, "qbuf: failed to map dmabuf for plane %d\n",
->                                 plane);
-> -                       fail_memop(vb, map_dmabuf);
->                         goto err;
->                 }
->                 vb->planes[plane].dbuf_mapped = 1;
-> @@ -1445,7 +1500,6 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                 ret = call_vb_qop(vb, buf_init, vb);
->                 if (ret) {
->                         dprintk(1, "qbuf: buffer initialization failed\n");
-> -                       fail_vb_qop(vb, buf_init);
->                         goto err;
->                 }
->         }
-> @@ -1453,8 +1507,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->         ret = call_vb_qop(vb, buf_prepare, vb);
->         if (ret) {
->                 dprintk(1, "qbuf: buffer preparation failed\n");
-> -               fail_vb_qop(vb, buf_prepare);
-> -               call_vb_qop(vb, buf_cleanup, vb);
-> +               call_void_vb_qop(vb, buf_cleanup, vb);
->                 goto err;
->         }
->
-> @@ -1479,9 +1532,9 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
->
->         /* sync buffers */
->         for (plane = 0; plane < vb->num_planes; ++plane)
-> -               call_memop(vb, prepare, vb->planes[plane].mem_priv);
-> +               call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
->
-> -       call_vb_qop(vb, buf_queue, vb);
-> +       call_void_vb_qop(vb, buf_queue, vb);
->  }
->
->  static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-> @@ -1520,9 +1573,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->                  * mmap_sem and then takes the driver's lock again.
->                  */
->                 mmap_sem = &current->mm->mmap_sem;
-> -               call_qop(q, wait_prepare, q);
-> +               call_void_qop(q, wait_prepare, q);
->                 down_read(mmap_sem);
-> -               call_qop(q, wait_finish, q);
-> +               call_void_qop(q, wait_finish, q);
->
->                 ret = __qbuf_userptr(vb, b);
->
-> @@ -1647,7 +1700,6 @@ static int vb2_start_streaming(struct vb2_queue *q)
->         if (!ret)
->                 return 0;
->
-> -       fail_qop(q, start_streaming);
->         dprintk(1, "qbuf: driver refused to start streaming\n");
->         if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
->                 unsigned i;
-> @@ -1812,7 +1864,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
->                  * become ready or for streamoff. Driver's lock is released to
->                  * allow streamoff or qbuf to be called while waiting.
->                  */
-> -               call_qop(q, wait_prepare, q);
-> +               call_void_qop(q, wait_prepare, q);
->
->                 /*
->                  * All locks have been released, it is safe to sleep now.
-> @@ -1825,7 +1877,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
->                  * We need to reevaluate both conditions again after reacquiring
->                  * the locks or return an error if one occurred.
->                  */
-> -               call_qop(q, wait_finish, q);
-> +               call_void_qop(q, wait_finish, q);
->                 if (ret) {
->                         dprintk(1, "Sleep was interrupted\n");
->                         return ret;
-> @@ -1911,7 +1963,7 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
->                 for (i = 0; i < vb->num_planes; ++i) {
->                         if (!vb->planes[i].dbuf_mapped)
->                                 continue;
-> -                       call_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
-> +                       call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
->                         vb->planes[i].dbuf_mapped = 0;
->                 }
->  }
-> @@ -1941,7 +1993,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
->                 return -EINVAL;
->         }
->
-> -       call_vb_qop(vb, buf_finish, vb);
-> +       call_void_vb_qop(vb, buf_finish, vb);
->
->         /* Fill buffer information for the userspace */
->         __fill_v4l2_buffer(vb, b);
-> @@ -2042,7 +2094,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->
->                 if (vb->state != VB2_BUF_STATE_DEQUEUED) {
->                         vb->state = VB2_BUF_STATE_PREPARED;
-> -                       call_vb_qop(vb, buf_finish, vb);
-> +                       call_void_vb_qop(vb, buf_finish, vb);
->                 }
->                 __vb2_dqbuf(vb);
->         }
-> @@ -2244,11 +2296,10 @@ int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
->
->         vb_plane = &vb->planes[eb->plane];
->
-> -       dbuf = call_memop(vb, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
-> +       dbuf = call_ptr_memop(vb, get_dmabuf, vb_plane->mem_priv, eb->flags & O_ACCMODE);
->         if (IS_ERR_OR_NULL(dbuf)) {
->                 dprintk(1, "Failed to export buffer %d, plane %d\n",
->                         eb->index, eb->plane);
-> -               fail_memop(vb, get_dmabuf);
->                 return -EINVAL;
->         }
->
-> @@ -2341,10 +2392,8 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
->         }
->
->         ret = call_memop(vb, mmap, vb->planes[plane].mem_priv, vma);
-> -       if (ret) {
-> -               fail_memop(vb, mmap);
-> +       if (ret)
->                 return ret;
-> -       }
->
->         dprintk(3, "Buffer %d, plane %d successfully mapped\n", buffer, plane);
->         return 0;
-> --
-> 1.9.0
->
+>  
+> +static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
+> +{
+> +	struct vpe_q_data *q_data;
+> +
+> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
+> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
+> +		return -EINVAL;
+> +
+> +	q_data = get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +		/*
+> +		 * COMPOSE target is only valid for capture buffer type, for
+> +		 * output buffer type, assign existing crop parameters to the
+> +		 * selection rectangle
+> +		 */
+> +		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +			break;
 
--- 
-Best regards,
-Pawel Osciak
+Shouldn't this return -EINVAL?
+
+> +
+> +		s->r = q_data->c_rect;
+> +		return 0;
+> +
+> +	case V4L2_SEL_TGT_CROP:
+> +		/*
+> +		 * CROP target is only valid for output buffer type, for capture
+> +		 * buffer type, assign existing compose parameters to the
+> +		 * selection rectangle
+> +		 */
+> +		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +			break;
+
+Ditto.
+
+> +
+> +		s->r = q_data->c_rect;
+> +		return 0;
+> +
+> +	/*
+> +	 * bound and default crop/compose targets are invalid targets to
+> +	 * try/set
+> +	 */
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (s->r.top < 0 || s->r.left < 0) {
+> +		vpe_err(ctx->dev, "negative values for top and left\n");
+> +		s->r.top = s->r.left = 0;
+> +	}
+> +
+> +	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
+> +		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
+> +
+> +	/* adjust left/top if cropping rectangle is out of bounds */
+> +	if (s->r.left + s->r.width > q_data->width)
+> +		s->r.left = q_data->width - s->r.width;
+> +	if (s->r.top + s->r.height > q_data->height)
+> +		s->r.top = q_data->height - s->r.height;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vpe_g_selection(struct file *file, void *fh,
+> +		struct v4l2_selection *s)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +	struct vpe_q_data *q_data;
+> +
+> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
+> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
+> +		return -EINVAL;
+> +
+> +	q_data = get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	/* return width and height from S_FMT of the respective buffer type */
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +		s->r.left = 0;
+> +		s->r.top = 0;
+> +		s->r.width = q_data->width;
+> +		s->r.height = q_data->height;
+
+The crop targets only make sense for type OUTPUT and the compose only for
+type CAPTURE. Add some checks for that.
+
+> +		return 0;
+> +
+> +	/*
+> +	 * CROP target holds for the output buffer type, and COMPOSE target
+> +	 * holds for the capture buffer type. We still return the c_rect params
+> +	 * for both the target types.
+> +	 */
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +	case V4L2_SEL_TGT_CROP:
+> +		s->r.left = q_data->c_rect.left;
+> +		s->r.top = q_data->c_rect.top;
+> +		s->r.width = q_data->c_rect.width;
+> +		s->r.height = q_data->c_rect.height;
+> +		return 0;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +
+> +static int vpe_s_selection(struct file *file, void *fh,
+> +		struct v4l2_selection *s)
+> +{
+> +	struct vpe_ctx *ctx = file2ctx(file);
+> +	struct vpe_q_data *q_data;
+> +	struct v4l2_selection sel = *s;
+> +	int ret;
+> +
+> +	ret = __vpe_try_selection(ctx, &sel);
+> +	if (ret)
+> +		return ret;
+> +
+> +	q_data = get_q_data(ctx, sel.type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	if ((q_data->c_rect.left == sel.r.left) &&
+> +			(q_data->c_rect.top == sel.r.top) &&
+> +			(q_data->c_rect.width == sel.r.width) &&
+> +			(q_data->c_rect.height == sel.r.height)) {
+> +		vpe_dbg(ctx->dev,
+> +			"requested crop/compose values are already set\n");
+> +		return 0;
+> +	}
+> +
+> +	q_data->c_rect = sel.r;
+> +
+> +	return set_srcdst_params(ctx);
+> +}
+> +
+>  static int vpe_reqbufs(struct file *file, void *priv,
+>  		       struct v4l2_requestbuffers *reqbufs)
+>  {
+> @@ -1674,6 +1812,9 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
+>  	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
+>  	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
+>  
+> +	.vidioc_g_selection		= vpe_g_selection,
+> +	.vidioc_s_selection		= vpe_s_selection,
+> +
+>  	.vidioc_reqbufs		= vpe_reqbufs,
+>  	.vidioc_querybuf	= vpe_querybuf,
+>  
+> 
+
