@@ -1,56 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1600 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755656AbaCNImK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 04:42:10 -0400
-Message-ID: <5322C0CC.1080605@xs4all.nl>
-Date: Fri, 14 Mar 2014 09:41:48 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:44694 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752248AbaCKPma (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 11:42:30 -0400
+Received: from dyn3-82-128-190-236.psoas.suomi.net ([82.128.190.236] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1WNOp2-0004KX-Lq
+	for linux-media@vger.kernel.org; Tue, 11 Mar 2014 17:42:28 +0200
+Message-ID: <531F2EE3.9080204@iki.fi>
+Date: Tue, 11 Mar 2014 17:42:27 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-CC: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [PATCH] media: davinci: vpbe: fix build warning
-References: <1394774735-22320-1-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1394774735-22320-1-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] m88ds3103 fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/14/2014 06:25 AM, Lad, Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> this patch fixes following build warning
-> drivers/media/platform/davinci/vpbe_display.c: In function 'vpbe_start_streaming':
-> drivers/media/platform/davinci/vpbe_display.c:344: warning: unused variable 'vpbe_dev'
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+I just noticed from patchwork these old patches are pending. It appears 
+I have not pull requested or mail is just missed from the reason or the 
+other. They are just fine for 3.15, but "m88ds3103: fix bug on 
+.set_tone()" is stuff for 3.14 too. I know it is very late, but given 
+the fact it fixes existing bug and that driver has gone to 3.14 I hope 
+that one patch could be sent to 3.14.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+regards
+Antti
 
-Thanks!
 
-	Hans
+The following changes since commit 587d1b06e07b4a079453c74ba9edf17d21931049:
 
-> ---
->  drivers/media/platform/davinci/vpbe_display.c |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-> index 7a0e40e..b4f12d0 100644
-> --- a/drivers/media/platform/davinci/vpbe_display.c
-> +++ b/drivers/media/platform/davinci/vpbe_display.c
-> @@ -341,7 +341,6 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
->  {
->  	struct vpbe_fh *fh = vb2_get_drv_priv(vq);
->  	struct vpbe_layer *layer = fh->layer;
-> -	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
->  	int ret;
->  
->  	/* Get the next frame from the buffer queue */
-> 
+   [media] rc-core: reuse device numbers (2014-01-15 11:46:37 -0200)
 
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git pctv_461e
+
+for you to fetch changes up to e0d125fb17ac2bb5a992d2d761d1a0a2b42546aa:
+
+   m88ds3103: fix bug on .set_tone() (2014-02-01 22:28:21 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (4):
+       m88ds3103: remove dead code
+       m88ds3103: remove dead code 2nd part
+       m88ds3103: possible uninitialized scalar variable
+       m88ds3103: fix bug on .set_tone()
+
+  drivers/media/dvb-frontends/m88ds3103.c | 30 
+++++++++----------------------
+  1 file changed, 8 insertions(+), 22 deletions(-)
+
+-- 
+http://palosaari.fi/
