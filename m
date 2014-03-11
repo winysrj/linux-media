@@ -1,206 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3440 "EHLO
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3191 "EHLO
 	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756151AbaCQJow (ORCPT
+	with ESMTP id S1753782AbaCKU3p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 05:44:52 -0400
-Message-ID: <5326C3FD.4030302@xs4all.nl>
-Date: Mon, 17 Mar 2014 10:44:29 +0100
+	Tue, 11 Mar 2014 16:29:45 -0400
+Message-ID: <531F7229.9070306@xs4all.nl>
+Date: Tue, 11 Mar 2014 21:29:29 +0100
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: =?UTF-8?B?RGFuaWVsIEdsw7Zja25lcg==?= <daniel-gl@gmx.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] bttv: Add support for PCI-8604PW
-References: <1394966028-1277-1-git-send-email-daniel-gl@gmx.net>
-In-Reply-To: <1394966028-1277-1-git-send-email-daniel-gl@gmx.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 05/35] videodev2.h: add struct v4l2_query_ext_ctrl
+ and VIDIOC_QUERY_EXT_CTRL.
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl> <1392631070-41868-6-git-send-email-hverkuil@xs4all.nl> <20140311164221.13537163@samsung.com>
+In-Reply-To: <20140311164221.13537163@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
-
-Looks good for the most part, but I have two comments, see below...
-
-On 03/16/2014 11:33 AM, Daniel Glöckner wrote:
-> This patch adds support for the PCI-8604PW card equipped with four 878A.
-> It is unknown who the manufacturer of this card is and no drivers were
-> available during development of the patch. According to images found
-> online, the card is originally sold with Linux DVR software.
+On 03/11/2014 08:42 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 17 Feb 2014 10:57:20 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> A CPLD on the card prevents the 878A from requesting access to the
-> bus until an initialization sequence has been issued via GPIOs. The
-> implemented sequence uses the minimum number of GPIOs needed to
-> successfully unlock bus access. As there are many more GPIOs connected
-> to the CPLD, it is very likely that some of the others have an influence
-> on the bus arbitration scheduling. This should be investigated further
-> in case of performance issues.
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add a new struct and ioctl to extend the amount of information you can
+>> get for a control.
+>>
+>> It gives back a unit string, the range is now a s64 type, and the matrix
+>> and element size can be reported through cols/rows/elem_size.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  include/uapi/linux/videodev2.h | 31 +++++++++++++++++++++++++++++++
+>>  1 file changed, 31 insertions(+)
+>>
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 4d7782a..858a6f3 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -1272,6 +1272,35 @@ struct v4l2_queryctrl {
+>>  	__u32		     reserved[2];
+>>  };
+>>  
+>> +/*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
+>> +struct v4l2_query_ext_ctrl {
+>> +	__u32		     id;
+>> +	__u32		     type;
+>> +	char		     name[32];
+>> +	char		     unit[32];
+>> +	union {
+>> +		__s64 val;
+>> +		__u32 reserved[4];
 > 
-> The tested card contains an EEPROM on one of the 878A, but it is
-> completely empty (i.e. contains only 0xff), so it is not possible
-> to detect the card.
+> Why to reserve 16 bytes here? for anything bigger than 64
+> bits, we could use a pointer.
 > 
-> Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
-> Tested-by: Robert Longbottom <rongblor@googlemail.com>
-> ---
->  drivers/media/pci/bt8xx/bttv-cards.c | 102 +++++++++++++++++++++++++++++++++++
->  drivers/media/pci/bt8xx/bttv.h       |   1 +
->  2 files changed, 103 insertions(+)
+> Same applies to the other unions.
+
+The idea was to allow space for min/max/step/def values for compound types
+if applicable. But that may have been overengineering.
+
 > 
-> diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-> index 6662b49..d9c3853 100644
-> --- a/drivers/media/pci/bt8xx/bttv-cards.c
-> +++ b/drivers/media/pci/bt8xx/bttv-cards.c
-> @@ -52,6 +52,7 @@ static void osprey_eeprom(struct bttv *btv, const u8 ee[256]);
->  static void modtec_eeprom(struct bttv *btv);
->  static void init_PXC200(struct bttv *btv);
->  static void init_RTV24(struct bttv *btv);
-> +static void init_PCI8604PW(struct bttv *btv);
->  
->  static void rv605_muxsel(struct bttv *btv, unsigned int input);
->  static void eagle_muxsel(struct bttv *btv, unsigned int input);
-> @@ -2856,6 +2857,22 @@ struct tvcard bttv_tvcards[] = {
->  		.tuner_addr	= ADDR_UNSET,
->  	},
->  
-> +	/* ---- card 0xa5---------------------------------- */
-> +	[BTTV_BOARD_PCI_8604PW] = {
-> +		/* PCI-8604PW with special unlock sequence */
-> +		.name           = "PCI-8604PW",
-> +		.video_inputs   = 2,
-> +		/* .audio_inputs= 0, */
-> +		.svhs           = NO_SVHS,
-> +		/* The second input is available on CN4, if populated.
-> +		 * The other 5x2 header (CN2?) connects to the same inputs
-> +		 * as the on-board BNCs */
-> +		.muxsel         = MUXSEL(2, 3),
-> +		.tuner_type     = TUNER_ABSENT,
-> +		.no_msp34xx	= 1,
-> +		.no_tda7432	= 1,
-> +		.pll            = PLL_35,
-> +	},
->  };
->  
->  static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
-> @@ -3290,6 +3307,9 @@ void bttv_init_card1(struct bttv *btv)
->  	case BTTV_BOARD_ADLINK_RTV24:
->  		init_RTV24( btv );
->  		break;
-> +	case BTTV_BOARD_PCI_8604PW:
-> +		init_PCI8604PW(btv);
-> +		break;
->  
->  	}
->  	if (!bttv_tvcards[btv->c.type].has_dvb)
-> @@ -4170,6 +4190,88 @@ init_RTV24 (struct bttv *btv)
->  
->  
->  /* ----------------------------------------------------------------------- */
-> +/*
-> + *  The PCI-8604PW contains a CPLD, probably an ispMACH 4A, that filters
-> + *  the PCI REQ signals comming from the four BT878 chips. After power
-> + *  up, the CPLD does not forward requests to the bus, which prevents
-> + *  the BT878 from fetching RISC instructions from memory. While the
-> + *  CPLD is connected to most of the GPIOs of PCI device 0xD, only
-> + *  five appear to play a role in unlocking the REQ signal. The following
-> + *  sequence has been determined by trial and error without access to the
-> + *  original driver.
-> + *
-> + *  Eight GPIOs of device 0xC are provided on connector CN4 (4 in, 4 out).
-> + *  Devices 0xE and 0xF do not appear to have anything connected to their
-> + *  GPIOs.
-> + *
-> + *  The correct GPIO_OUT_EN value might have some more bits set. It should
-> + *  be possible to derive it from a boundary scan of the CPLD. Its JTAG
-> + *  pins are routed to test points.
-> + *
-> + */
-> +/* ----------------------------------------------------------------------- */
-> +static void
-> +init_PCI8604PW(struct bttv *btv)
-> +{
-> +	int state;
-> +
-> +	if ((PCI_SLOT(btv->c.pci->devfn) & ~3) != 0xC) {
-> +		pr_warn("This is not a PCI-8604PW\n");
-> +		return;
-> +	}
-> +
-> +	if (PCI_SLOT(btv->c.pci->devfn) != 0xD)
-> +		return;
-> +
-> +	btwrite(0x080002, BT848_GPIO_OUT_EN);
-> +
-> +	state = (btread(BT848_GPIO_DATA) >> 21) & 7;
-> +
-> +	for (;;) {
-> +		switch (state) {
-> +		case 1:
-> +		case 5:
-> +		case 6:
-> +		case 4:
-> +			pr_debug("PCI-8604PW in state %i, toggling pin\n",
-> +				 state);
-> +			btwrite(0x080000, BT848_GPIO_DATA);
-> +			msleep(1);
-> +			btwrite(0x000000, BT848_GPIO_DATA);
-> +			msleep(1);
-> +			break;
-> +		case 7:
-> +			pr_info("PCI-8604PW unlocked\n");
-> +			return;
-> +		case 0: /* FIXME */
+>> +	} min;
+>> +	union {
+>> +		__s64 val;
+>> +		__u32 reserved[4];
+>> +	} max;
+>> +	union {
+>> +		__u64 val;
+>> +		__u32 reserved[4];
+>> +	} step;
+>> +	union {
+>> +		__s64 val;
+>> +		__u32 reserved[4];
+>> +	} def;
+> 
+> Please call it default. It is ok to simplify names inside a driver,
+> but better to not do it at the API.
 
-Fix what? My guess is that if this state happens, then you have no idea how to
-get out of it. Did you actually see this happen, or is this a theoretical case?
+default_value, then. 'default' is a keyword. I should probably rename min and max
+to minimum and maximum to stay in sync with v4l2_queryctrl.
 
-> +			pr_err("PCI-8604PW locked until reset\n");
-> +			return;
-> +		default:
-> +			pr_err("PCI-8604PW in unknown state %i\n", state);
-> +			return;
-> +		}
-> +
-> +		state = (state << 4) | ((btread(BT848_GPIO_DATA) >> 21) & 7);
-> +
-> +		switch (state) {
-> +		case 0x15:
-> +		case 0x56:
-> +		case 0x64:
-> +		case 0x47:
-> +/*		case 0x70: */
+> 
+>> +	__u32                flags;
+> 
+>> +	__u32                cols;
+>> +	__u32                rows;
+>> +	__u32                elem_size;
+> 
+> The three above seem to be too specific for an array.
+> 
+> I would put those on a separate struct and add here an union,
+> like:
+> 
+> 	union {
+> 		struct v4l2_array arr;
+> 		__u32 reserved[8];
+> 	}
 
-Why is this commented out?
+I have to sleep on this. I'm not sure this helps in any way.
 
-> +			break;
-> +		default:
-> +			pr_err("PCI-8604PW invalid transition %i -> %i\n",
-> +			       state >> 4, state & 7);
-> +			return;
-> +		}
-> +		state &= 7;
-> +	}
-> +}
-> +
-> +
-> +
-> +/* ----------------------------------------------------------------------- */
->  /* Miro Pro radio stuff -- the tea5757 is connected to some GPIO ports     */
->  /*
->   * Copyright (c) 1999 Csaba Halasz <qgehali@uni-miskolc.hu>
-> diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
-> index df578ef..c0a4c93 100644
-> --- a/drivers/media/pci/bt8xx/bttv.h
-> +++ b/drivers/media/pci/bt8xx/bttv.h
-> @@ -188,6 +188,7 @@
->  #define BTTV_BOARD_ADLINK_MPG24            0xa2
->  #define BTTV_BOARD_BT848_CAP_14            0xa3
->  #define BTTV_BOARD_CYBERVISION_CV06        0xa4
-> +#define BTTV_BOARD_PCI_8604PW              0xa5
->  
->  /* more card-specific defines */
->  #define PT2254_L_CHANNEL 0x10
+> 
+>> +	__u32		     reserved[17];
+> 
+> This also seems too much. Why 17?
+
+It aligned the struct up to some nice number. Also, experience tells me that
+whenever I limit the number of reserved fields it bites me later.
+
+> 
+>> +};
+> 
+>> +
+>>  /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
+>>  struct v4l2_querymenu {
+>>  	__u32		id;
+>> @@ -1965,6 +1994,8 @@ struct v4l2_create_buffers {
+>>     Never use these in applications! */
+>>  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+>>  
+>> +#define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
+>> +
+>>  /* Reminder: when adding new ioctls please add support for them to
+>>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+>>  
+> 
 > 
 
 Regards,
