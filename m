@@ -1,99 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3397 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754536AbaCJVVf (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54001 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752692AbaCKQTA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 17:21:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 11/11] vb2: allow read/write as long as the format is single planar
-Date: Mon, 10 Mar 2014 22:20:58 +0100
-Message-Id: <1394486458-9836-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 11 Mar 2014 12:19:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	robh+dt@kernel.org, mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH v7 3/10] Documentation: devicetree: Update Samsung FIMC DT binding
+Date: Tue, 11 Mar 2014 17:20:35 +0100
+Message-ID: <1823087.0J3KNi6X3C@avalon>
+In-Reply-To: <1394553635-12134-1-git-send-email-s.nawrocki@samsung.com>
+References: <24917002.Y0kBkkQHhZ@avalon> <1394553635-12134-1-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sylwester,
 
-It was impossible to read() or write() a frame if the queue type was multiplanar.
-Even if the current format is single planar. Change this to just check whether
-the number of planes is 1 or more.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+On Tuesday 11 March 2014 17:00:35 Sylwester Nawrocki wrote:
+> This patch documents following updates of the Exynos4 SoC camera subsystem
+> devicetree binding:
+> 
+>  - addition of #clock-cells and clock-output-names properties to 'camera'
+>    node - these are now needed so the image sensor sub-devices can reference
+> clocks provided by the camera host interface,
+>  - dropped a note about required clock-frequency properties at the
+>    image sensor nodes; the sensor devices can now control their clock
+>    explicitly through the clk API and there is no need to require this
+>    property in the camera host interface binding.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+> Resending only single patch which changed.
+> 
+> Changes since v6:
+>  - #clock-cells, clock-output-names documented as mandatory properties;
+>  - renamed "cam_mclk_{a,b}" to "cam_{a,b}_clkout in the example dts,
+>    this now matches changes in exynos4.dtsi further in the patch series;
+>  - marked "samsung,camclk-out" property as deprecated.
+> 
+> Changes since v5:
+>  - none.
+> 
+> Changes since v4:
+>  - dropped a requirement of specific order of values in clocks/
+>    clock-names properties (Mark) and reference to clock-names in
+>    clock-output-names property description (Mark).
+> ---
+>  .../devicetree/bindings/media/samsung-fimc.txt     |   46
+> +++++++++++++------- 1 file changed, 31 insertions(+), 15 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+> b/Documentation/devicetree/bindings/media/samsung-fimc.txt index
+> 96312f6..1908a5f 100644
+> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 54a4150..8faf1ef 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2622,6 +2622,7 @@ struct vb2_fileio_buf {
-  */
- struct vb2_fileio_data {
- 	struct v4l2_requestbuffers req;
-+	struct v4l2_plane p;
- 	struct v4l2_buffer b;
- 	struct vb2_fileio_buf bufs[VIDEO_MAX_FRAME];
- 	unsigned int cur_index;
-@@ -2712,13 +2713,21 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	 * Read mode requires pre queuing of all buffers.
- 	 */
- 	if (read) {
-+		bool is_multiplanar = V4L2_TYPE_IS_MULTIPLANAR(q->type);
-+
- 		/*
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
- 			struct v4l2_buffer *b = &fileio->b;
-+
- 			memset(b, 0, sizeof(*b));
- 			b->type = q->type;
-+			if (is_multiplanar) {
-+				memset(&fileio->p, 0, sizeof(fileio->p));
-+				b->m.planes = &fileio->p;
-+				b->length = 1;
-+			}
- 			b->memory = q->memory;
- 			b->index = i;
- 			ret = vb2_internal_qbuf(q, b);
-@@ -2786,6 +2795,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- {
- 	struct vb2_fileio_data *fileio;
- 	struct vb2_fileio_buf *buf;
-+	bool is_multiplanar = V4L2_TYPE_IS_MULTIPLANAR(q->type);
- 	bool set_timestamp = !read &&
- 		(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
- 		V4L2_BUF_FLAG_TIMESTAMP_COPY;
-@@ -2820,6 +2830,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		memset(&fileio->b, 0, sizeof(fileio->b));
- 		fileio->b.type = q->type;
- 		fileio->b.memory = q->memory;
-+		if (is_multiplanar) {
-+			memset(&fileio->p, 0, sizeof(fileio->p));
-+			fileio->b.m.planes = &fileio->p;
-+			fileio->b.length = 1;
-+		}
- 		ret = vb2_internal_dqbuf(q, &fileio->b, nonblock);
- 		dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
- 		if (ret)
-@@ -2890,6 +2905,12 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		fileio->b.memory = q->memory;
- 		fileio->b.index = index;
- 		fileio->b.bytesused = buf->pos;
-+		if (is_multiplanar) {
-+			memset(&fileio->p, 0, sizeof(fileio->p));
-+			fileio->p.bytesused = buf->pos;
-+			fileio->b.m.planes = &fileio->p;
-+			fileio->b.length = 1;
-+		}
- 		if (set_timestamp)
- 			v4l2_get_timestamp(&fileio->b.timestamp);
- 		ret = vb2_internal_qbuf(q, &fileio->b);
+[snip]
+
+>  Image sensor nodes
+>  ------------------
+> @@ -97,8 +108,8 @@ Image sensor nodes
+>  The sensor device nodes should be added to their control bus controller
+> (e.g. I2C0) nodes and linked to a port node in the csis or the
+> parallel-ports node, using the common video interfaces bindings, defined in
+> video-interfaces.txt.
+> -The implementation of this bindings requires clock-frequency property to be
+> -present in the sensor device nodes.
+> +An optional clock-frequency property needs to be present in the sensor
+> device
+> +nodes. Default value when this property is not present is 24 MHz.
+
+I think you forgot to drop that sentence.
+
 -- 
-1.9.0
+Regards,
+
+Laurent Pinchart
 
