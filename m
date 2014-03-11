@@ -1,70 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:55964 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474AbaCMOiN (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:59586 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753973AbaCKREd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 10:38:13 -0400
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Archit Taneja' <archit@ti.com>, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394711056-10878-1-git-send-email-archit@ti.com>
- <1394711056-10878-2-git-send-email-archit@ti.com>
-In-reply-to: <1394711056-10878-2-git-send-email-archit@ti.com>
-Subject: RE: [PATCH v4 01/14] v4l: ti-vpe: Make sure in job_ready that we have
- the needed number of dst_bufs
-Date: Thu, 13 Mar 2014 15:38:10 +0100
-Message-id: <000e01cf3ec9$dc01d550$94057ff0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Tue, 11 Mar 2014 13:04:33 -0400
+Message-ID: <531F421F.3010402@infradead.org>
+Date: Tue, 11 Mar 2014 10:04:31 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Holger Waechtler <holger@convergence.de>,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: mmotm 2014-03-10-15-35 uploaded (media/pci/ttpci/av7110)
+References: <20140310223701.0969C31C2AA@corp2gmr1-1.hot.corp.google.com>
+In-Reply-To: <20140310223701.0969C31C2AA@corp2gmr1-1.hot.corp.google.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> From: Archit Taneja [mailto:archit@ti.com]
-> Sent: Thursday, March 13, 2014 12:44 PM
+On 03/10/2014 03:37 PM, akpm@linux-foundation.org wrote:
+> The mm-of-the-moment snapshot 2014-03-10-15-35 has been uploaded to
 > 
-> VPE has a ctrl parameter which decides how many mem to mem transactions
-> the active job from the job queue can perform.
+>    http://www.ozlabs.org/~akpm/mmotm/
 > 
-> The driver's job_ready() made sure that the number of ready source
-> buffers are sufficient for the job to execute successfully. But it
-> didn't make sure if there are sufficient ready destination buffers in
-> the capture queue for the VPE output.
+> mmotm-readme.txt says
 > 
-> If the time taken by VPE to process a single frame is really slow, then
-> it's possible that we don't need to imply such a restriction on the dst
-> queue, but really fast transactions(small resolution, no de-interlacing)
-> may cause us to hit the condition where we don't have any free buffers
-> for the VPE to write on.
+> README for mm-of-the-moment:
 > 
-> Add the extra check in job_ready() to make sure we have the sufficient
-> amount of destination buffers.
+> http://www.ozlabs.org/~akpm/mmotm/
 > 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> more than once a week.
+> 
+> You will need quilt to apply these patches to the latest Linus release (3.x
+> or 3.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+> http://ozlabs.org/~akpm/mmotm/series
+> 
+> The file broken-out.tar.gz contains two datestamp files: .DATE and
+> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+> followed by the base kernel version against which this patch series is to
+> be applied.
+> 
+> This tree is partially included in linux-next.  To see which patches are
+> included in linux-next, consult the `series' file.  Only the patches
+> within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+> linux-next.
+> 
 
-Acked-by: Kamil Debski <k.debski@samsung.com>
+on i386:
+(not from mmotm patches, so must be from linux-next or mainline)
 
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c
-> b/drivers/media/platform/ti-vpe/vpe.c
-> index 7a77a5b..f3143ac 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -887,6 +887,9 @@ static int job_ready(void *priv)
->  	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
->  		return 0;
-> 
-> +	if (v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < needed)
-> +		return 0;
-> +
->  	return 1;
->  }
-> 
-> --
-> 1.8.3.2
+CONFIG_INPUT=m
+CONFIG_INPUT_EVDEV=m
+CONFIG_DVB_AV7110=y
 
+
+drivers/built-in.o: In function `input_sync':
+av7110_ir.c:(.text+0x14b999): undefined reference to `input_event'
+drivers/built-in.o: In function `av7110_emit_key':
+av7110_ir.c:(.text+0x14ba4b): undefined reference to `input_event'
+av7110_ir.c:(.text+0x14ba63): undefined reference to `input_event'
+av7110_ir.c:(.text+0x14bb20): undefined reference to `input_event'
+av7110_ir.c:(.text+0x14bb35): undefined reference to `input_event'
+drivers/built-in.o:av7110_ir.c:(.text+0x14bb76): more undefined references to `input_event' follow
+drivers/built-in.o: In function `av7110_ir_init':
+(.text+0x14bec7): undefined reference to `input_allocate_device'
+drivers/built-in.o: In function `av7110_ir_init':
+(.text+0x14bf95): undefined reference to `input_register_device'
+drivers/built-in.o: In function `av7110_ir_init':
+(.text+0x14bfa5): undefined reference to `input_free_device'
+drivers/built-in.o: In function `av7110_ir_exit':
+(.text+0x14c0ad): undefined reference to `input_unregister_device'
+
+
+Possibly just make DVB_AV7110 depend on INPUT.
+
+-- 
+~Randy
