@@ -1,248 +1,541 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49437 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754194AbaCCKID (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:08:03 -0500
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:12341 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755813AbaCKX4L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 19:56:11 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2A004WDQHL3R40@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 11 Mar 2014 19:56:09 -0400 (EDT)
+Date: Tue, 11 Mar 2014 20:56:02 -0300
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 32/79] [media] drx-j: Replace printk's by pr_foo()
-Date: Mon,  3 Mar 2014 07:06:26 -0300
-Message-Id: <1393841233-24840-33-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 08/35] v4l2-ctrls: create type_ops.
+Message-id: <20140311205602.2064ee52@samsung.com>
+In-reply-to: <531F76EF.5010707@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+ <1392631070-41868-9-git-send-email-hverkuil@xs4all.nl>
+ <20140311172225.6d060345@samsung.com> <531F76EF.5010707@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using printk's, use the pr_foo() macros.
+Em Tue, 11 Mar 2014 21:49:51 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-That fixes some checkpatch warnings and provide a better error,
-warning and debug support.
+> On 03/11/2014 09:22 PM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 17 Feb 2014 10:57:23 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Since complex controls can have non-standard types we need to be able to do
+> >> type-specific checks etc. In order to make that easy type operations are added.
+> >> There are four operations:
+> >>
+> >> - equal: check if two values are equal
+> >> - init: initialize a value
+> >> - log: log the value
+> >> - validate: validate a new value
+> > 
+> > So far, I failed to see why this is needed, as all code below is actually
+> > related to non-complex controls, but your comment is confusing, saying that
+> > this is related to complex controls.
+> 
+> If a driver adds support for a complex control specific to that driver you
+> want to allow the driver to add these type operations to support the control.
+> So instead of hardcoding it in the control framework you want to implement it
+> as type ops that a driver can replace with its own.
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drx39xxj.c    | 36 ++++++++++++----------
- .../media/dvb-frontends/drx39xyj/drx39xxj_dummy.c  | 10 +++---
- drivers/media/dvb-frontends/drx39xyj/drxj.c        |  2 +-
- 3 files changed, 26 insertions(+), 22 deletions(-)
+Not sure if I bought the idea of letting the compound controls to be
+driver-specific.
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
-index 6db009e2d705..e5f276f5d215 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drx39xxj.c
-@@ -19,6 +19,8 @@
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ":%s: " fmt, __func__
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/string.h>
-@@ -44,7 +46,7 @@ static int drx39xxj_set_powerstate(struct dvb_frontend *fe, int enable)
- 
- 	result = drx_ctrl(demod, DRX_CTRL_POWER_MODE, &power_mode);
- 	if (result != 0) {
--		printk(KERN_ERR "Power state change failed\n");
-+		pr_err("Power state change failed\n");
- 		return 0;
- 	}
- 
-@@ -63,14 +65,14 @@ static int drx39xxj_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- 	result = drx_ctrl(demod, DRX_CTRL_LOCK_STATUS, &lock_status);
- 	if (result != 0) {
--		printk(KERN_ERR "drx39xxj: could not get lock status!\n");
-+		pr_err("drx39xxj: could not get lock status!\n");
- 		*status = 0;
- 	}
- 
- 	switch (lock_status) {
- 	case DRX_NEVER_LOCK:
- 		*status = 0;
--		printk(KERN_ERR "drx says NEVER_LOCK\n");
-+		pr_err("drx says NEVER_LOCK\n");
- 		break;
- 	case DRX_NOT_LOCKED:
- 		*status = 0;
-@@ -93,7 +95,7 @@ static int drx39xxj_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 		    | FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
- 		break;
- 	default:
--		printk(KERN_ERR "Lock state unknown %d\n", lock_status);
-+		pr_err("Lock state unknown %d\n", lock_status);
- 	}
- 
- 	return 0;
-@@ -108,7 +110,7 @@ static int drx39xxj_read_ber(struct dvb_frontend *fe, u32 *ber)
- 
- 	result = drx_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
- 	if (result != 0) {
--		printk(KERN_ERR "drx39xxj: could not get ber!\n");
-+		pr_err("drx39xxj: could not get ber!\n");
- 		*ber = 0;
- 		return 0;
- 	}
-@@ -127,7 +129,7 @@ static int drx39xxj_read_signal_strength(struct dvb_frontend *fe,
- 
- 	result = drx_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
- 	if (result != 0) {
--		printk(KERN_ERR "drx39xxj: could not get signal strength!\n");
-+		pr_err("drx39xxj: could not get signal strength!\n");
- 		*strength = 0;
- 		return 0;
- 	}
-@@ -146,7 +148,7 @@ static int drx39xxj_read_snr(struct dvb_frontend *fe, u16 *snr)
- 
- 	result = drx_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
- 	if (result != 0) {
--		printk(KERN_ERR "drx39xxj: could not read snr!\n");
-+		pr_err("drx39xxj: could not read snr!\n");
- 		*snr = 0;
- 		return 0;
- 	}
-@@ -164,7 +166,7 @@ static int drx39xxj_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 
- 	result = drx_ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
- 	if (result != 0) {
--		printk(KERN_ERR "drx39xxj: could not get uc blocks!\n");
-+		pr_err("drx39xxj: could not get uc blocks!\n");
- 		*ucblocks = 0;
- 		return 0;
- 	}
-@@ -218,7 +220,7 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
- 		/* Set the standard (will be powered up if necessary */
- 		result = drx_ctrl(demod, DRX_CTRL_SET_STANDARD, &standard);
- 		if (result != 0) {
--			printk(KERN_ERR "Failed to set standard! result=%02x\n",
-+			pr_err("Failed to set standard! result=%02x\n",
- 			       result);
- 			return -EINVAL;
- 		}
-@@ -235,7 +237,7 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
- 	/* program channel */
- 	result = drx_ctrl(demod, DRX_CTRL_SET_CHANNEL, &channel);
- 	if (result != 0) {
--		printk(KERN_ERR "Failed to set channel!\n");
-+		pr_err("Failed to set channel!\n");
- 		return -EINVAL;
- 	}
- 	/* Just for giggles, let's shut off the LNA again.... */
-@@ -243,14 +245,14 @@ static int drx39xxj_set_frontend(struct dvb_frontend *fe)
- 	uio_data.value = false;
- 	result = drx_ctrl(demod, DRX_CTRL_UIO_WRITE, &uio_data);
- 	if (result != 0) {
--		printk(KERN_ERR "Failed to disable LNA!\n");
-+		pr_err("Failed to disable LNA!\n");
- 		return 0;
- 	}
- #ifdef DJH_DEBUG
- 	for (i = 0; i < 2000; i++) {
- 		fe_status_t status;
- 		drx39xxj_read_status(fe, &status);
--		printk(KERN_DBG "i=%d status=%d\n", i, status);
-+		pr_dbg("i=%d status=%d\n", i, status);
- 		msleep(100);
- 		i += 100;
- 	}
-@@ -273,7 +275,7 @@ static int drx39xxj_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 	int result;
- 
- #ifdef DJH_DEBUG
--	printk(KERN_DBG "i2c gate call: enable=%d state=%d\n", enable,
-+	pr_dbg("i2c gate call: enable=%d state=%d\n", enable,
- 	       state->i2c_gate_open);
- #endif
- 
-@@ -289,7 +291,7 @@ static int drx39xxj_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 
- 	result = drx_ctrl(demod, DRX_CTRL_I2C_BRIDGE, &i2c_gate_state);
- 	if (result != 0) {
--		printk(KERN_ERR "drx39xxj: could not open i2c gate [%d]\n",
-+		pr_err("drx39xxj: could not open i2c gate [%d]\n",
- 		       result);
- 		dump_stack();
- 	} else {
-@@ -383,7 +385,7 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 
- 	result = drx_open(demod);
- 	if (result != 0) {
--		printk(KERN_ERR "DRX open failed!  Aborting\n");
-+		pr_err("DRX open failed!  Aborting\n");
- 		kfree(state);
- 		return NULL;
- 	}
-@@ -394,7 +396,7 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 	/* Configure user-I/O #3: enable read/write */
- 	result = drx_ctrl(demod, DRX_CTRL_UIO_CFG, &uio_cfg);
- 	if (result != 0) {
--		printk(KERN_ERR "Failed to setup LNA GPIO!\n");
-+		pr_err("Failed to setup LNA GPIO!\n");
- 		return NULL;
- 	}
- 
-@@ -402,7 +404,7 @@ struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
- 	uio_data.value = false;
- 	result = drx_ctrl(demod, DRX_CTRL_UIO_WRITE, &uio_data);
- 	if (result != 0) {
--		printk(KERN_ERR "Failed to disable LNA!\n");
-+		pr_err("Failed to disable LNA!\n");
- 		return NULL;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drx39xxj_dummy.c b/drivers/media/dvb-frontends/drx39xyj/drx39xxj_dummy.c
-index 854077419118..c5187a14a03f 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drx39xxj_dummy.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drx39xxj_dummy.c
-@@ -1,3 +1,5 @@
-+#define pr_fmt(fmt) KBUILD_MODNAME ":%s: " fmt, __func__
-+
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
-@@ -99,11 +101,11 @@ int drxbsp_i2c_write_read(struct i2c_device_addr *w_dev_addr,
- 	}
- 
- 	if (state->i2c == NULL) {
--		printk("i2c was zero, aborting\n");
-+		pr_err("i2c was zero, aborting\n");
- 		return 0;
- 	}
- 	if (i2c_transfer(state->i2c, msg, num_msgs) != num_msgs) {
--		printk(KERN_WARNING "drx3933: I2C write/read failed\n");
-+		pr_warn("drx3933: I2C write/read failed\n");
- 		return -EREMOTEIO;
- 	}
- 
-@@ -119,11 +121,11 @@ int drxbsp_i2c_write_read(struct i2c_device_addr *w_dev_addr,
- 		 .flags = I2C_M_RD, .buf = r_data, .len = r_count},
- 	};
- 
--	printk("drx3933 i2c operation addr=%x i2c=%p, wc=%x rc=%x\n",
-+	pr_dbg("drx3933 i2c operation addr=%x i2c=%p, wc=%x rc=%x\n",
- 	       w_dev_addr->i2c_addr, state->i2c, w_count, r_count);
- 
- 	if (i2c_transfer(state->i2c, msg, 2) != 2) {
--		printk(KERN_WARNING "drx3933: I2C write/read failed\n");
-+		pr_warn("drx3933: I2C write/read failed\n");
- 		return -EREMOTEIO;
- 	}
- #endif
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 811e09c61ba1..aafe6dffdab5 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -35,7 +35,7 @@
- INCLUDE FILES
- ----------------------------------------------------------------------------*/
- 
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME ":%s: " fmt, __func__
- 
- #include "drxj.h"
- #include "drxj_map.h"
+IMO, we should define them at the core, in order to be sure that:
+1) it will be properly documented;
+2) all implementations will handle it at the same way.
+
+> 
+> But the first step is to implement the current type operations as type ops.
+> 
+> > Maybe a latter patch will help me to better understand this one.
+> > 
+> >> This patch uses the v4l2_ctrl_ptr union for the first time.
+> 
+> This sentence is not true, ignore it. The union was already used in patch 6
+> where it was introduced. It's a left-over from an earlier version of the patch
+> series.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Then move v4l2_ctrl_ptr union addition to this patch.
+> > 
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >> ---
+> >>  drivers/media/v4l2-core/v4l2-ctrls.c | 267 ++++++++++++++++++++++-------------
+> >>  include/media/v4l2-ctrls.h           |  21 +++
+> >>  2 files changed, 190 insertions(+), 98 deletions(-)
+> >>
+> >> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> index 5d1eeea..fa737a5 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> @@ -1132,6 +1132,149 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+> >>  			v4l2_event_queue_fh(sev->fh, &ev);
+> >>  }
+> >>  
+> >> +static bool std_equal(const struct v4l2_ctrl *ctrl,
+> >> +		      union v4l2_ctrl_ptr ptr1,
+> >> +		      union v4l2_ctrl_ptr ptr2)
+> >> +{
+> >> +	switch (ctrl->type) {
+> >> +	case V4L2_CTRL_TYPE_BUTTON:
+> >> +		return false;
+> >> +	case V4L2_CTRL_TYPE_STRING:
+> >> +		/* strings are always 0-terminated */
+> >> +		return !strcmp(ptr1.p_char, ptr2.p_char);
+> >> +	case V4L2_CTRL_TYPE_INTEGER64:
+> >> +		return *ptr1.p_s64 == *ptr2.p_s64;
+> >> +	default:
+> >> +		if (ctrl->is_ptr)
+> >> +			return !memcmp(ptr1.p, ptr2.p, ctrl->elem_size);
+> >> +		return *ptr1.p_s32 == *ptr2.p_s32;
+> >> +	}
+> >> +}
+> >> +
+> >> +static void std_init(const struct v4l2_ctrl *ctrl,
+> >> +		     union v4l2_ctrl_ptr ptr)
+> >> +{
+> >> +	switch (ctrl->type) {
+> >> +	case V4L2_CTRL_TYPE_STRING:
+> >> +		memset(ptr.p_char, ' ', ctrl->minimum);
+> >> +		ptr.p_char[ctrl->minimum] = '\0';
+> >> +		break;
+> >> +	case V4L2_CTRL_TYPE_INTEGER64:
+> >> +		*ptr.p_s64 = ctrl->default_value;
+> >> +		break;
+> >> +	case V4L2_CTRL_TYPE_INTEGER:
+> >> +	case V4L2_CTRL_TYPE_INTEGER_MENU:
+> >> +	case V4L2_CTRL_TYPE_MENU:
+> >> +	case V4L2_CTRL_TYPE_BITMASK:
+> >> +	case V4L2_CTRL_TYPE_BOOLEAN:
+> >> +		*ptr.p_s32 = ctrl->default_value;
+> >> +		break;
+> >> +	default:
+> >> +		break;
+> >> +	}
+> >> +}
+> >> +
+> >> +static void std_log(const struct v4l2_ctrl *ctrl)
+> >> +{
+> >> +	union v4l2_ctrl_ptr ptr = ctrl->stores[0];
+> >> +
+> >> +	switch (ctrl->type) {
+> >> +	case V4L2_CTRL_TYPE_INTEGER:
+> >> +		pr_cont("%d", *ptr.p_s32);
+> >> +		break;
+> >> +	case V4L2_CTRL_TYPE_BOOLEAN:
+> >> +		pr_cont("%s", *ptr.p_s32 ? "true" : "false");
+> >> +		break;
+> >> +	case V4L2_CTRL_TYPE_MENU:
+> >> +		pr_cont("%s", ctrl->qmenu[*ptr.p_s32]);
+> >> +		break;
+> >> +	case V4L2_CTRL_TYPE_INTEGER_MENU:
+> >> +		pr_cont("%lld", ctrl->qmenu_int[*ptr.p_s32]);
+> >> +		break;
+> >> +	case V4L2_CTRL_TYPE_BITMASK:
+> >> +		pr_cont("0x%08x", *ptr.p_s32);
+> >> +		break;
+> >> +	case V4L2_CTRL_TYPE_INTEGER64:
+> >> +		pr_cont("%lld", *ptr.p_s64);
+> >> +		break;
+> >> +	case V4L2_CTRL_TYPE_STRING:
+> >> +		pr_cont("%s", ptr.p_char);
+> >> +		break;
+> >> +	default:
+> >> +		pr_cont("unknown type %d", ctrl->type);
+> >> +		break;
+> >> +	}
+> >> +}
+> >> +
+> >> +/* Round towards the closest legal value */
+> >> +#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
+> >> +({								\
+> >> +	offset_type offset;					\
+> >> +	val += (ctrl)->step / 2;				\
+> >> +	val = clamp_t(typeof(val), val,				\
+> >> +		      (ctrl)->minimum, (ctrl)->maximum);	\
+> >> +	offset = (val) - (ctrl)->minimum;			\
+> >> +	offset = (ctrl)->step * (offset / (ctrl)->step);	\
+> >> +	val = (ctrl)->minimum + offset;				\
+> >> +	0;							\
+> >> +})
+> >> +
+> >> +/* Validate a new control */
+> >> +static int std_validate(const struct v4l2_ctrl *ctrl,
+> >> +			union v4l2_ctrl_ptr ptr)
+> >> +{
+> >> +	size_t len;
+> >> +
+> >> +	switch (ctrl->type) {
+> >> +	case V4L2_CTRL_TYPE_INTEGER:
+> >> +		return ROUND_TO_RANGE(*ptr.p_s32, u32, ctrl);
+> >> +	case V4L2_CTRL_TYPE_INTEGER64:
+> >> +		return ROUND_TO_RANGE(*ptr.p_s64, u64, ctrl);
+> >> +
+> >> +	case V4L2_CTRL_TYPE_BOOLEAN:
+> >> +		*ptr.p_s32 = !!*ptr.p_s32;
+> >> +		return 0;
+> >> +
+> >> +	case V4L2_CTRL_TYPE_MENU:
+> >> +	case V4L2_CTRL_TYPE_INTEGER_MENU:
+> >> +		if (*ptr.p_s32 < ctrl->minimum || *ptr.p_s32 > ctrl->maximum)
+> >> +			return -ERANGE;
+> >> +		if (ctrl->menu_skip_mask & (1 << *ptr.p_s32))
+> >> +			return -EINVAL;
+> >> +		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+> >> +		    ctrl->qmenu[*ptr.p_s32][0] == '\0')
+> >> +			return -EINVAL;
+> >> +		return 0;
+> >> +
+> >> +	case V4L2_CTRL_TYPE_BITMASK:
+> >> +		*ptr.p_s32 &= ctrl->maximum;
+> >> +		return 0;
+> >> +
+> >> +	case V4L2_CTRL_TYPE_BUTTON:
+> >> +	case V4L2_CTRL_TYPE_CTRL_CLASS:
+> >> +		*ptr.p_s32 = 0;
+> >> +		return 0;
+> >> +
+> >> +	case V4L2_CTRL_TYPE_STRING:
+> >> +		len = strlen(ptr.p_char);
+> >> +		if (len < ctrl->minimum)
+> >> +			return -ERANGE;
+> >> +		if ((len - ctrl->minimum) % ctrl->step)
+> >> +			return -ERANGE;
+> >> +		return 0;
+> >> +
+> >> +	default:
+> >> +		return -EINVAL;
+> >> +	}
+> >> +}
+> >> +
+> >> +static const struct v4l2_ctrl_type_ops std_type_ops = {
+> >> +	.equal = std_equal,
+> >> +	.init = std_init,
+> >> +	.log = std_log,
+> >> +	.validate = std_validate,
+> >> +};
+> >> +
+> >>  /* Helper function: copy the current control value back to the caller */
+> >>  static int cur_to_user(struct v4l2_ext_control *c,
+> >>  		       struct v4l2_ctrl *ctrl)
+> >> @@ -1315,21 +1458,7 @@ static int cluster_changed(struct v4l2_ctrl *master)
+> >>  
+> >>  		if (ctrl == NULL)
+> >>  			continue;
+> >> -		switch (ctrl->type) {
+> >> -		case V4L2_CTRL_TYPE_BUTTON:
+> >> -			/* Button controls are always 'different' */
+> >> -			return 1;
+> >> -		case V4L2_CTRL_TYPE_STRING:
+> >> -			/* strings are always 0-terminated */
+> >> -			diff = strcmp(ctrl->string, ctrl->cur.string);
+> >> -			break;
+> >> -		case V4L2_CTRL_TYPE_INTEGER64:
+> >> -			diff = ctrl->val64 != ctrl->cur.val64;
+> >> -			break;
+> >> -		default:
+> >> -			diff = ctrl->val != ctrl->cur.val;
+> >> -			break;
+> >> -		}
+> >> +		diff = !ctrl->type_ops->equal(ctrl, ctrl->stores[0], ctrl->new);
+> >>  	}
+> >>  	return diff;
+> >>  }
+> >> @@ -1370,65 +1499,30 @@ static int check_range(enum v4l2_ctrl_type type,
+> >>  	}
+> >>  }
+> >>  
+> >> -/* Round towards the closest legal value */
+> >> -#define ROUND_TO_RANGE(val, offset_type, ctrl)			\
+> >> -({								\
+> >> -	offset_type offset;					\
+> >> -	val += (ctrl)->step / 2;				\
+> >> -	val = clamp_t(typeof(val), val,				\
+> >> -		      (ctrl)->minimum, (ctrl)->maximum);	\
+> >> -	offset = (val) - (ctrl)->minimum;			\
+> >> -	offset = (ctrl)->step * (offset / (ctrl)->step);	\
+> >> -	val = (ctrl)->minimum + offset;				\
+> >> -	0;							\
+> >> -})
+> >> -
+> >>  /* Validate a new control */
+> >>  static int validate_new(const struct v4l2_ctrl *ctrl,
+> >>  			struct v4l2_ext_control *c)
+> >>  {
+> >> -	size_t len;
+> >> +	union v4l2_ctrl_ptr ptr;
+> >>  
+> >>  	switch (ctrl->type) {
+> >>  	case V4L2_CTRL_TYPE_INTEGER:
+> >> -		return ROUND_TO_RANGE(*(s32 *)&c->value, u32, ctrl);
+> >> -	case V4L2_CTRL_TYPE_INTEGER64:
+> >> -		return ROUND_TO_RANGE(*(s64 *)&c->value64, u64, ctrl);
+> >> -
+> >> -	case V4L2_CTRL_TYPE_BOOLEAN:
+> >> -		c->value = !!c->value;
+> >> -		return 0;
+> >> -
+> >> -	case V4L2_CTRL_TYPE_MENU:
+> >>  	case V4L2_CTRL_TYPE_INTEGER_MENU:
+> >> -		if (c->value < ctrl->minimum || c->value > ctrl->maximum)
+> >> -			return -ERANGE;
+> >> -		if (ctrl->menu_skip_mask & (1 << c->value))
+> >> -			return -EINVAL;
+> >> -		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
+> >> -		    ctrl->qmenu[c->value][0] == '\0')
+> >> -			return -EINVAL;
+> >> -		return 0;
+> >> -
+> >> +	case V4L2_CTRL_TYPE_MENU:
+> >>  	case V4L2_CTRL_TYPE_BITMASK:
+> >> -		c->value &= ctrl->maximum;
+> >> -		return 0;
+> >> -
+> >> +	case V4L2_CTRL_TYPE_BOOLEAN:
+> >>  	case V4L2_CTRL_TYPE_BUTTON:
+> >>  	case V4L2_CTRL_TYPE_CTRL_CLASS:
+> >> -		c->value = 0;
+> >> -		return 0;
+> >> +		ptr.p_s32 = &c->value;
+> >> +		return ctrl->type_ops->validate(ctrl, ptr);
+> >>  
+> >> -	case V4L2_CTRL_TYPE_STRING:
+> >> -		len = strlen(c->string);
+> >> -		if (len < ctrl->minimum)
+> >> -			return -ERANGE;
+> >> -		if ((len - ctrl->minimum) % ctrl->step)
+> >> -			return -ERANGE;
+> >> -		return 0;
+> >> +	case V4L2_CTRL_TYPE_INTEGER64:
+> >> +		ptr.p_s64 = &c->value64;
+> >> +		return ctrl->type_ops->validate(ctrl, ptr);
+> >>  
+> >>  	default:
+> >> -		return -EINVAL;
+> >> +		ptr.p = c->p;
+> >> +		return ctrl->type_ops->validate(ctrl, ptr);
+> >>  	}
+> >>  }
+> >>  
+> >> @@ -1645,6 +1739,7 @@ unlock:
+> >>  /* Add a new control */
+> >>  static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+> >>  			const struct v4l2_ctrl_ops *ops,
+> >> +			const struct v4l2_ctrl_type_ops *type_ops,
+> >>  			u32 id, const char *name, const char *unit,
+> >>  			enum v4l2_ctrl_type type,
+> >>  			s64 min, s64 max, u64 step, s64 def,
+> >> @@ -1656,6 +1751,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+> >>  	unsigned sz_extra;
+> >>  	void *data;
+> >>  	int err;
+> >> +	int s;
+> >>  
+> >>  	if (hdl->error)
+> >>  		return NULL;
+> >> @@ -1706,6 +1802,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+> >>  	INIT_LIST_HEAD(&ctrl->ev_subs);
+> >>  	ctrl->handler = hdl;
+> >>  	ctrl->ops = ops;
+> >> +	ctrl->type_ops = type_ops ? type_ops : &std_type_ops;
+> >>  	ctrl->id = id;
+> >>  	ctrl->name = name;
+> >>  	ctrl->unit = unit;
+> >> @@ -1727,19 +1824,16 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+> >>  	ctrl->cur.val = ctrl->val = def;
+> >>  	data = &ctrl->stores[1];
+> >>  
+> >> -	if (ctrl->is_string) {
+> >> -		ctrl->string = ctrl->new.p_char = data;
+> >> -		ctrl->stores[0].p_char = data + elem_size;
+> >> -
+> >> -		if (ctrl->minimum)
+> >> -			memset(ctrl->cur.string, ' ', ctrl->minimum);
+> >> -	} else if (ctrl->is_ptr) {
+> >> +	if (ctrl->is_ptr) {
+> >>  		ctrl->p = ctrl->new.p = data;
+> >>  		ctrl->stores[0].p = data + elem_size;
+> >>  	} else {
+> >>  		ctrl->new.p = &ctrl->val;
+> >>  		ctrl->stores[0].p = &ctrl->cur.val;
+> >>  	}
+> >> +	for (s = -1; s <= 0; s++)
+> >> +		ctrl->type_ops->init(ctrl, ctrl->stores[s]);
+> >> +
+> >>  	if (handler_new_ref(hdl, ctrl)) {
+> >>  		kfree(ctrl);
+> >>  		return NULL;
+> >> @@ -1784,7 +1878,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+> >>  		return NULL;
+> >>  	}
+> >>  
+> >> -	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name, unit,
+> >> +	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name, unit,
+> >>  			type, min, max,
+> >>  			is_menu ? cfg->menu_skip_mask : step,
+> >>  			def, cfg->elem_size,
+> >> @@ -1812,7 +1906,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+> >>  		handler_set_err(hdl, -EINVAL);
+> >>  		return NULL;
+> >>  	}
+> >> -	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
+> >> +	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+> >>  			     min, max, step, def, 0,
+> >>  			     flags, NULL, NULL, NULL);
+> >>  }
+> >> @@ -1846,7 +1940,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+> >>  		handler_set_err(hdl, -EINVAL);
+> >>  		return NULL;
+> >>  	}
+> >> -	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
+> >> +	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+> >>  			     0, max, mask, def, 0,
+> >>  			     flags, qmenu, qmenu_int, NULL);
+> >>  }
+> >> @@ -1879,7 +1973,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
+> >>  		handler_set_err(hdl, -EINVAL);
+> >>  		return NULL;
+> >>  	}
+> >> -	return v4l2_ctrl_new(hdl, ops, id, name, unit, type, 0, max, mask, def,
+> >> +	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+> >> +			     0, max, mask, def,
+> >>  			     0, flags, qmenu, NULL, NULL);
+> >>  
+> >>  }
+> >> @@ -1904,7 +1999,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+> >>  		handler_set_err(hdl, -EINVAL);
+> >>  		return NULL;
+> >>  	}
+> >> -	return v4l2_ctrl_new(hdl, ops, id, name, unit, type,
+> >> +	return v4l2_ctrl_new(hdl, ops, NULL, id, name, unit, type,
+> >>  			     0, max, 0, def, 0,
+> >>  			     flags, NULL, qmenu_int, NULL);
+> >>  }
+> >> @@ -2087,32 +2182,8 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
+> >>  
+> >>  	pr_info("%s%s%s: ", prefix, colon, ctrl->name);
+> >>  
+> >> -	switch (ctrl->type) {
+> >> -	case V4L2_CTRL_TYPE_INTEGER:
+> >> -		pr_cont("%d", ctrl->cur.val);
+> >> -		break;
+> >> -	case V4L2_CTRL_TYPE_BOOLEAN:
+> >> -		pr_cont("%s", ctrl->cur.val ? "true" : "false");
+> >> -		break;
+> >> -	case V4L2_CTRL_TYPE_MENU:
+> >> -		pr_cont("%s", ctrl->qmenu[ctrl->cur.val]);
+> >> -		break;
+> >> -	case V4L2_CTRL_TYPE_INTEGER_MENU:
+> >> -		pr_cont("%lld", ctrl->qmenu_int[ctrl->cur.val]);
+> >> -		break;
+> >> -	case V4L2_CTRL_TYPE_BITMASK:
+> >> -		pr_cont("0x%08x", ctrl->cur.val);
+> >> -		break;
+> >> -	case V4L2_CTRL_TYPE_INTEGER64:
+> >> -		pr_cont("%lld", ctrl->cur.val64);
+> >> -		break;
+> >> -	case V4L2_CTRL_TYPE_STRING:
+> >> -		pr_cont("%s", ctrl->cur.string);
+> >> -		break;
+> >> -	default:
+> >> -		pr_cont("unknown type %d", ctrl->type);
+> >> -		break;
+> >> -	}
+> >> +	ctrl->type_ops->log(ctrl);
+> >> +
+> >>  	if (ctrl->flags & (V4L2_CTRL_FLAG_INACTIVE |
+> >>  			   V4L2_CTRL_FLAG_GRABBED |
+> >>  			   V4L2_CTRL_FLAG_VOLATILE)) {
+> >> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> >> index 515c1ba..aaf7333 100644
+> >> --- a/include/media/v4l2-ctrls.h
+> >> +++ b/include/media/v4l2-ctrls.h
+> >> @@ -67,6 +67,23 @@ struct v4l2_ctrl_ops {
+> >>  	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
+> >>  };
+> >>  
+> >> +/** struct v4l2_ctrl_type_ops - The control type operations that the driver has to provide.
+> >> +  * @equal: return true if both values are equal.
+> >> +  * @init: initialize the value.
+> >> +  * @log: log the value.
+> >> +  * @validate: validate the value. Return 0 on success and a negative value otherwise.
+> >> +  */
+> >> +struct v4l2_ctrl_type_ops {
+> >> +	bool (*equal)(const struct v4l2_ctrl *ctrl,
+> >> +		      union v4l2_ctrl_ptr ptr1,
+> >> +		      union v4l2_ctrl_ptr ptr2);
+> >> +	void (*init)(const struct v4l2_ctrl *ctrl,
+> >> +		     union v4l2_ctrl_ptr ptr);
+> >> +	void (*log)(const struct v4l2_ctrl *ctrl);
+> >> +	int (*validate)(const struct v4l2_ctrl *ctrl,
+> >> +			union v4l2_ctrl_ptr ptr);
+> >> +};
+> >> +
+> >>  typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+> >>  
+> >>  /** struct v4l2_ctrl - The control structure.
+> >> @@ -102,6 +119,7 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+> >>    *		value, then the whole cluster is in manual mode. Drivers should
+> >>    *		never set this flag directly.
+> >>    * @ops:	The control ops.
+> >> +  * @type_ops:	The control type ops.
+> >>    * @id:	The control ID.
+> >>    * @name:	The control name.
+> >>    * @unit:	The control's unit. May be NULL.
+> >> @@ -151,6 +169,7 @@ struct v4l2_ctrl {
+> >>  	unsigned int manual_mode_value:8;
+> >>  
+> >>  	const struct v4l2_ctrl_ops *ops;
+> >> +	const struct v4l2_ctrl_type_ops *type_ops;
+> >>  	u32 id;
+> >>  	const char *name;
+> >>  	const char *unit;
+> >> @@ -234,6 +253,7 @@ struct v4l2_ctrl_handler {
+> >>  
+> >>  /** struct v4l2_ctrl_config - Control configuration structure.
+> >>    * @ops:	The control ops.
+> >> +  * @type_ops:	The control type ops. Only needed for complex controls.
+> >>    * @id:	The control ID.
+> >>    * @name:	The control name.
+> >>    * @unit:	The control's unit.
+> >> @@ -259,6 +279,7 @@ struct v4l2_ctrl_handler {
+> >>    */
+> >>  struct v4l2_ctrl_config {
+> >>  	const struct v4l2_ctrl_ops *ops;
+> >> +	const struct v4l2_ctrl_type_ops *type_ops;
+> >>  	u32 id;
+> >>  	const char *name;
+> >>  	const char *unit;
+> > 
+> > 
+> 
+
+
 -- 
-1.8.5.3
 
+Regards,
+Mauro
