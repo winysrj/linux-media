@@ -1,116 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:37190 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105AbaCXX5L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 19:57:11 -0400
-Date: Tue, 25 Mar 2014 00:51:46 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org,
-	Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>
-Subject: Re: [PATCH 1/5] rc-main: add generic scancode filtering
-Message-ID: <20140324235146.GA25627@hardeman.nu>
-References: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com>
- <1393629426-31341-2-git-send-email-james.hogan@imgtec.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1393629426-31341-2-git-send-email-james.hogan@imgtec.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:57284 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752346AbaCKQfH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 12:35:07 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, robh+dt@kernel.org,
+	mark.rutland@arm.com, galak@codeaurora.org,
+	kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v8 3/10] Documentation: devicetree: Update Samsung FIMC DT
+ binding
+Date: Tue, 11 Mar 2014 17:34:30 +0100
+Message-id: <1394555670-14155-1-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1823087.0J3KNi6X3C@avalon>
+References: <1823087.0J3KNi6X3C@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 28, 2014 at 11:17:02PM +0000, James Hogan wrote:
->Add generic scancode filtering of RC input events, and fall back to
->permitting any RC_FILTER_NORMAL scancode filter to be set if no s_filter
->callback exists. This allows raw IR decoder events to be filtered, and
->potentially allows hardware decoders to set looser filters and rely on
->generic code to filter out the corner cases.
+This patch documents following updates of the Exynos4 SoC camera subsystem
+devicetree binding:
 
-Hi James,
+ - addition of #clock-cells and clock-output-names properties to 'camera'
+   node - these are now needed so the image sensor sub-devices can reference
+   clocks provided by the camera host interface,
+ - dropped a note about required clock-frequency properties at the
+   image sensor nodes; the sensor devices can now control their clock
+   explicitly through the clk API and there is no need to require this
+   property in the camera host interface binding.
 
-What's the purpose of providing the sw scancode filtering in the case where
-there's no hardware filtering support at all?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+Changes since v7:
+ - dropped a note about clock-frequency property in sensor nodes.
 
-(sorry that I'm replying so late...busy schedule :))
+Changes since v6:
+ - #clock-cells, clock-output-names documented as mandatory properties;
+ - renamed "cam_mclk_{a,b}" to "cam_{a,b}_clkout in the example dts,
+   this now matches changes in exynos4.dtsi further in the patch series;
+ - marked "samsung,camclk-out" property as deprecated.
 
->
->Signed-off-by: James Hogan <james.hogan@imgtec.com>
->Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
->Cc: Antti Seppälä <a.seppala@gmail.com>
->Cc: linux-media@vger.kernel.org
->---
-> drivers/media/rc/rc-main.c | 20 +++++++++++++-------
-> 1 file changed, 13 insertions(+), 7 deletions(-)
->
->diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
->index 6448128..0a4f680 100644
->--- a/drivers/media/rc/rc-main.c
->+++ b/drivers/media/rc/rc-main.c
->@@ -633,6 +633,7 @@ EXPORT_SYMBOL_GPL(rc_repeat);
-> static void ir_do_keydown(struct rc_dev *dev, int scancode,
-> 			  u32 keycode, u8 toggle)
-> {
->+	struct rc_scancode_filter *filter;
-> 	bool new_event = !dev->keypressed ||
-> 			 dev->last_scancode != scancode ||
-> 			 dev->last_toggle != toggle;
->@@ -640,6 +641,11 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
-> 	if (new_event && dev->keypressed)
-> 		ir_do_keyup(dev, false);
-> 
->+	/* Generic scancode filtering */
->+	filter = &dev->scancode_filters[RC_FILTER_NORMAL];
->+	if (filter->mask && ((scancode ^ filter->data) & filter->mask))
->+		return;
->+
-> 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
-> 
-> 	if (new_event && keycode != KEY_RESERVED) {
->@@ -1019,9 +1025,7 @@ static ssize_t show_filter(struct device *device,
-> 		return -EINVAL;
-> 
-> 	mutex_lock(&dev->lock);
->-	if (!dev->s_filter)
->-		val = 0;
->-	else if (fattr->mask)
->+	if (fattr->mask)
-> 		val = dev->scancode_filters[fattr->type].mask;
-> 	else
-> 		val = dev->scancode_filters[fattr->type].data;
->@@ -1069,7 +1073,7 @@ static ssize_t store_filter(struct device *device,
-> 		return ret;
-> 
-> 	/* Scancode filter not supported (but still accept 0) */
->-	if (!dev->s_filter)
->+	if (!dev->s_filter && fattr->type != RC_FILTER_NORMAL)
-> 		return val ? -EINVAL : count;
-> 
-> 	mutex_lock(&dev->lock);
->@@ -1081,9 +1085,11 @@ static ssize_t store_filter(struct device *device,
-> 		local_filter.mask = val;
-> 	else
-> 		local_filter.data = val;
->-	ret = dev->s_filter(dev, fattr->type, &local_filter);
->-	if (ret < 0)
->-		goto unlock;
->+	if (dev->s_filter) {
->+		ret = dev->s_filter(dev, fattr->type, &local_filter);
->+		if (ret < 0)
->+			goto unlock;
->+	}
-> 
-> 	/* Success, commit the new filter */
-> 	*filter = local_filter;
->-- 
->1.8.3.2
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Changes since v5:
+ - none.
 
--- 
-David Härdeman
+Changes since v4:
+ - dropped a requirement of specific order of values in clocks/
+   clock-names properties (Mark) and reference to clock-names in
+   clock-output-names property description (Mark).
+---
+ .../devicetree/bindings/media/samsung-fimc.txt     |   44 +++++++++++++-------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+index 96312f6..922d6f8 100644
+--- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
++++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+@@ -15,11 +15,21 @@ Common 'camera' node
+
+ Required properties:
+
+-- compatible	: must be "samsung,fimc", "simple-bus"
+-- clocks	: list of clock specifiers, corresponding to entries in
+-		  the clock-names property;
+-- clock-names	: must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
+-		  "pxl_async1" entries, matching entries in the clocks property.
++- compatible: must be "samsung,fimc", "simple-bus"
++- clocks: list of clock specifiers, corresponding to entries in
++  the clock-names property;
++- clock-names : must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
++  "pxl_async1" entries, matching entries in the clocks property.
++
++- #clock-cells: from the common clock bindings (../clock/clock-bindings.txt),
++  must be 1. A clock provider is associated with the 'camera' node and it should
++  be referenced by external sensors that use clocks provided by the SoC on
++  CAM_*_CLKOUT pins. The clock specifier cell stores an index of a clock.
++  The indices are 0, 1 for CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively.
++
++- clock-output-names: from the common clock bindings, should contain names of
++  clocks registered by the camera subsystem corresponding to CAM_A_CLKOUT,
++  CAM_B_CLKOUT output clocks respectively.
+
+ The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be used
+ to define a required pinctrl state named "default" and optional pinctrl states:
+@@ -32,6 +42,7 @@ way around.
+
+ The 'camera' node must include at least one 'fimc' child node.
+
++
+ 'fimc' device nodes
+ -------------------
+
+@@ -88,8 +99,8 @@ port nodes specifies data input - 0, 1 indicates input A, B respectively.
+
+ Optional properties
+
+-- samsung,camclk-out : specifies clock output for remote sensor,
+-		       0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
++- samsung,camclk-out (deprecated) : specifies clock output for remote sensor,
++  0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
+
+ Image sensor nodes
+ ------------------
+@@ -97,8 +108,6 @@ Image sensor nodes
+ The sensor device nodes should be added to their control bus controller (e.g.
+ I2C0) nodes and linked to a port node in the csis or the parallel-ports node,
+ using the common video interfaces bindings, defined in video-interfaces.txt.
+-The implementation of this bindings requires clock-frequency property to be
+-present in the sensor device nodes.
+
+ Example:
+
+@@ -114,7 +123,7 @@ Example:
+ 			vddio-supply = <...>;
+
+ 			clock-frequency = <24000000>;
+-			clocks = <...>;
++			clocks = <&camera 1>;
+ 			clock-names = "mclk";
+
+ 			port {
+@@ -135,7 +144,7 @@ Example:
+ 			vddio-supply = <...>;
+
+ 			clock-frequency = <24000000>;
+-			clocks = <...>;
++			clocks = <&camera 0>;
+ 			clock-names = "mclk";
+
+ 			port {
+@@ -149,12 +158,17 @@ Example:
+
+ 	camera {
+ 		compatible = "samsung,fimc", "simple-bus";
+-		#address-cells = <1>;
+-		#size-cells = <1>;
+-		status = "okay";
+-
++		clocks = <&clock 132>, <&clock 133>, <&clock 351>,
++			 <&clock 352>;
++		clock-names = "sclk_cam0", "sclk_cam1", "pxl_async0",
++			      "pxl_async1";
++		#clock-cells = <1>;
++		clock-output-names = "cam_a_clkout", "cam_b_clkout";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&cam_port_a_clk_active>;
++		status = "okay";
++		#address-cells = <1>;
++		#size-cells = <1>;
+
+ 		/* parallel camera ports */
+ 		parallel-ports {
+--
+1.7.9.5
+
