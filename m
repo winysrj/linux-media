@@ -1,198 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:38305 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751854AbaC2QLS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Mar 2014 12:11:18 -0400
-Subject: [PATCH 06/11] rc-core: remove generic scancode filter
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: james.hogan@imgtec.com, m.chehab@samsung.com
-Date: Sat, 29 Mar 2014 17:11:16 +0100
-Message-ID: <20140329161116.13234.96485.stgit@zeus.muc.hardeman.nu>
-In-Reply-To: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
-References: <20140329160705.13234.60349.stgit@zeus.muc.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:63465 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722AbaCKJQL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 05:16:11 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, posciak@chromium.org,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH v2] [media] s5p-mfc: add init buffer cmd to MFCV6
+Date: Tue, 11 Mar 2014 14:45:45 +0530
+Message-Id: <1394529345-31952-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The generic scancode filtering has questionable value and makes it
-impossible to determine from userspace if there is an actual
-scancode hw filter present or not.
+From: avnd kiran <avnd.kiran@samsung.com>
 
-So revert the generic parts.
+Latest MFC v6 firmware requires tile mode and loop filter
+setting to be done as part of Init buffer command, in sync
+with v7. Since there are two versions of v6 firmware with
+different interfaces, it is differenciated using the version
+number read back from firmware which is a hexadecimal value
+based on the firmware date.
 
-Based on a patch from James Hogan <james.hogan@imgtec.com>, but this
-version also makes sure that only the valid sysfs files are created
-in the first place.
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: avnd kiran <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/rc/rc-main.c |   66 +++++++++++++++++++++++++++++---------------
- include/media/rc-core.h    |    2 +
- 2 files changed, 45 insertions(+), 23 deletions(-)
+Changes from v1
+---------------
+- Check for v6 firmware date for differenciating old and new firmware
+  as per comments from Kamil and Sylwester.
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h    |    1 +
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h    |    2 --
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |    8 +++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   30 ++++++++++++++++++++---
+ 5 files changed, 34 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index ba955ac..8675e07 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -634,7 +634,6 @@ EXPORT_SYMBOL_GPL(rc_repeat);
- static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
- 			  u32 scancode, u32 keycode, u8 toggle)
- {
--	struct rc_scancode_filter *filter;
- 	bool new_event = (!dev->keypressed		 ||
- 			  dev->last_protocol != protocol ||
- 			  dev->last_scancode != scancode ||
-@@ -643,11 +642,6 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
- 	if (new_event && dev->keypressed)
- 		ir_do_keyup(dev, false);
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index 8d0b686..b47567c 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -132,6 +132,7 @@
+ #define S5P_FIMV_D_METADATA_BUFFER_ADDR_V6	0xf448
+ #define S5P_FIMV_D_METADATA_BUFFER_SIZE_V6	0xf44c
+ #define S5P_FIMV_D_NUM_MV_V6			0xf478
++#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V6	0xf47c
+ #define S5P_FIMV_D_CPB_BUFFER_ADDR_V6		0xf4b0
+ #define S5P_FIMV_D_CPB_BUFFER_SIZE_V6		0xf4b4
  
--	/* Generic scancode filtering */
--	filter = &dev->scancode_filters[RC_FILTER_NORMAL];
--	if (filter->mask && ((scancode ^ filter->data) & filter->mask))
--		return;
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+index ea5ec2a..82c96fa 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -18,8 +18,6 @@
+ #define S5P_FIMV_CODEC_VP8_ENC_V7	25
+ 
+ /* Additional registers for v7 */
+-#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
 -
- 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
- 
- 	if (new_event && keycode != KEY_RESERVED) {
-@@ -1017,14 +1011,11 @@ static ssize_t store_protocols(struct device *device,
- 	set_filter = (fattr->type == RC_FILTER_NORMAL)
- 		? dev->s_filter : dev->s_wakeup_filter;
- 
--	if (old_type != type && filter->mask) {
-+	if (set_filter && old_type != type && filter->mask) {
- 		local_filter = *filter;
- 		if (!type) {
- 			/* no protocol => clear filter */
- 			ret = -1;
--		} else if (!set_filter) {
--			/* generic filtering => accept any filter */
--			ret = 0;
- 		} else {
- 			/* hardware filtering => try setting, otherwise clear */
- 			ret = set_filter(dev, &local_filter);
-@@ -1033,8 +1024,7 @@ static ssize_t store_protocols(struct device *device,
- 			/* clear the filter */
- 			local_filter.data = 0;
- 			local_filter.mask = 0;
--			if (set_filter)
--				set_filter(dev, &local_filter);
-+			set_filter(dev, &local_filter);
- 		}
- 
- 		/* commit the new filter */
-@@ -1078,7 +1068,9 @@ static ssize_t show_filter(struct device *device,
- 		return -EINVAL;
- 
- 	mutex_lock(&dev->lock);
--	if (fattr->mask)
-+	if (!dev->s_filter)
-+		val = 0;
-+	else if (fattr->mask)
- 		val = dev->scancode_filters[fattr->type].mask;
- 	else
- 		val = dev->scancode_filters[fattr->type].data;
-@@ -1202,27 +1194,45 @@ static RC_FILTER_ATTR(wakeup_filter, S_IRUGO|S_IWUSR,
- static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
- 		      show_filter, store_filter, RC_FILTER_WAKEUP, true);
- 
--static struct attribute *rc_dev_attrs[] = {
-+static struct attribute *rc_dev_protocol_attrs[] = {
- 	&dev_attr_protocols.attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group rc_dev_protocol_attr_grp = {
-+	.attrs	= rc_dev_protocol_attrs,
-+};
-+
-+static struct attribute *rc_dev_wakeup_protocol_attrs[] = {
- 	&dev_attr_wakeup_protocols.attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group rc_dev_wakeup_protocol_attr_grp = {
-+	.attrs	= rc_dev_wakeup_protocol_attrs,
-+};
-+
-+static struct attribute *rc_dev_filter_attrs[] = {
- 	&dev_attr_filter.attr.attr,
- 	&dev_attr_filter_mask.attr.attr,
--	&dev_attr_wakeup_filter.attr.attr,
--	&dev_attr_wakeup_filter_mask.attr.attr,
- 	NULL,
- };
- 
--static struct attribute_group rc_dev_attr_grp = {
--	.attrs	= rc_dev_attrs,
-+static struct attribute_group rc_dev_filter_attr_grp = {
-+	.attrs	= rc_dev_filter_attrs,
-+};
-+
-+static struct attribute *rc_dev_wakeup_filter_attrs[] = {
-+	&dev_attr_wakeup_filter.attr.attr,
-+	&dev_attr_wakeup_filter_mask.attr.attr,
-+	NULL,
- };
- 
--static const struct attribute_group *rc_dev_attr_groups[] = {
--	&rc_dev_attr_grp,
--	NULL
-+static struct attribute_group rc_dev_wakeup_filter_attr_grp = {
-+	.attrs	= rc_dev_wakeup_filter_attrs,
- };
- 
- static struct device_type rc_dev_type = {
--	.groups		= rc_dev_attr_groups,
- 	.release	= rc_dev_release,
- 	.uevent		= rc_dev_uevent,
- };
-@@ -1279,7 +1289,7 @@ int rc_register_device(struct rc_dev *dev)
- 	static bool raw_init = false; /* raw decoders loaded? */
- 	struct rc_map *rc_map;
- 	const char *path;
--	int rc, devno;
-+	int rc, devno, attr = 0;
- 
- 	if (!dev || !dev->map_name)
- 		return -EINVAL;
-@@ -1307,6 +1317,16 @@ int rc_register_device(struct rc_dev *dev)
- 			return -ENOMEM;
- 	} while (test_and_set_bit(devno, ir_core_dev_number));
- 
-+	dev->dev.groups = dev->sysfs_groups;
-+	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
-+	if (dev->s_filter)
-+		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;	
-+	if (dev->s_wakeup_filter)
-+		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
-+	if (dev->change_wakeup_protocol)
-+		dev->sysfs_groups[attr++] = &rc_dev_wakeup_protocol_attr_grp;
-+	dev->sysfs_groups[attr++] = NULL;
-+
- 	/*
- 	 * Take the lock here, as the device sysfs node will appear
- 	 * when device_add() is called, which may trigger an ir-keytable udev
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 8c31e4a..2e97b98 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -60,6 +60,7 @@ enum rc_filter_type {
- /**
-  * struct rc_dev - represents a remote control device
-  * @dev: driver model's view of this device
-+ * @sysfs_groups: sysfs attribute groups
-  * @input_name: name of the input child device
-  * @input_phys: physical path to the input child device
-  * @input_id: id of the input child device (struct input_id)
-@@ -118,6 +119,7 @@ enum rc_filter_type {
+ #define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
+ #define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
+ #define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 4d17df9..f5404a6 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -287,6 +287,7 @@ struct s5p_mfc_priv_buf {
+  * @warn_start:		hardware error code from which warnings start
+  * @mfc_ops:		ops structure holding HW operation function pointers
+  * @mfc_cmds:		cmd structure holding HW commands function pointers
++ * @ver:		firmware sub version
+  *
   */
- struct rc_dev {
- 	struct device			dev;
-+	const struct attribute_group	*sysfs_groups[5];
- 	const char			*input_name;
- 	const char			*input_phys;
- 	struct input_id			input_id;
+ struct s5p_mfc_dev {
+@@ -330,6 +331,7 @@ struct s5p_mfc_dev {
+ 	int warn_start;
+ 	struct s5p_mfc_hw_ops *mfc_ops;
+ 	struct s5p_mfc_hw_cmds *mfc_cmds;
++	int ver;
+ };
+ 
+ /**
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 2475a3c..ba1d302 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -240,7 +240,6 @@ static inline void s5p_mfc_clear_cmds(struct s5p_mfc_dev *dev)
+ /* Initialize hardware */
+ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ {
+-	unsigned int ver;
+ 	int ret;
+ 
+ 	mfc_debug_enter();
+@@ -302,12 +301,13 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 		return -EIO;
+ 	}
+ 	if (IS_MFCV6_PLUS(dev))
+-		ver = mfc_read(dev, S5P_FIMV_FW_VERSION_V6);
++		dev->ver = mfc_read(dev, S5P_FIMV_FW_VERSION_V6);
+ 	else
+-		ver = mfc_read(dev, S5P_FIMV_FW_VERSION);
++		dev->ver = mfc_read(dev, S5P_FIMV_FW_VERSION);
+ 
+ 	mfc_debug(2, "MFC F/W version : %02xyy, %02xmm, %02xdd\n",
+-		(ver >> 16) & 0xFF, (ver >> 8) & 0xFF, ver & 0xFF);
++		(dev->ver >> 16) & 0xFF, (dev->ver >> 8) & 0xFF,
++		dev->ver & 0xFF);
+ 	s5p_mfc_clock_off();
+ 	mfc_debug_leave();
+ 	return 0;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 90edb19..356cfe5 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -14,6 +14,7 @@
+ 
+ #undef DEBUG
+ 
++#include <linux/bcd.h>
+ #include <linux/delay.h>
+ #include <linux/mm.h>
+ #include <linux/io.h>
+@@ -1269,6 +1270,29 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
+ 	return 0;
+ }
+ 
++/* Check if newer v6 firmware with changed init buffer interface */
++static bool s5p_mfc_is_v6_new(struct s5p_mfc_dev *dev)
++{
++	unsigned long cur_fw, v6_new_fw;
++	unsigned int y, m, d;
++
++	if (IS_MFCV7(dev))
++		return false;
++
++	y = bcd2bin((dev->ver >> 16) & 0xFF) + 2000;
++	m = bcd2bin((dev->ver >> 8) & 0xFF);
++	d = bcd2bin(dev->ver & 0xFF);
++
++	cur_fw = mktime(y, m, d, 0, 0, 0);
++	/*
++	 * Firmware versions from date 29/06/2012 are coming with new interface
++	 * for init buffer
++	 */
++	v6_new_fw = mktime(2012, 6, 29, 0, 0, 0);
++
++	return cur_fw >= v6_new_fw;
++}
++
+ /* Initialize decoding */
+ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ {
+@@ -1296,7 +1320,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ 		WRITEL(ctx->display_delay, S5P_FIMV_D_DISPLAY_DELAY_V6);
+ 	}
+ 
+-	if (IS_MFCV7(dev)) {
++	if (IS_MFCV7(dev) || s5p_mfc_is_v6_new(dev)) {
+ 		WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
+ 		reg = 0;
+ 	}
+@@ -1311,8 +1335,8 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ 	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)
+ 		reg |= (0x1 << S5P_FIMV_D_OPT_TILE_MODE_SHIFT_V6);
+ 
+-	if (IS_MFCV7(dev))
+-		WRITEL(reg, S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7);
++	if (IS_MFCV7(dev) || s5p_mfc_is_v6_new(dev))
++		WRITEL(reg, S5P_FIMV_D_INIT_BUFFER_OPTIONS_V6);
+ 	else
+ 		WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
+ 
+-- 
+1.7.9.5
 
