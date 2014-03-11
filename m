@@ -1,193 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:41631 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755110AbaCNXG5 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:38695 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753543AbaCKSnx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 19:06:57 -0400
-Received: by mail-wg0-f44.google.com with SMTP id m15so2672615wgh.15
-        for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 16:06:56 -0700 (PDT)
-From: James Hogan <james@albanarts.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james@albanarts.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v2 2/9] rc: ir-raw: Add pulse-distance modulation helper
-Date: Fri, 14 Mar 2014 23:04:12 +0000
-Message-Id: <1394838259-14260-3-git-send-email-james@albanarts.com>
-In-Reply-To: <1394838259-14260-1-git-send-email-james@albanarts.com>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 11 Mar 2014 14:43:53 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2A00GK4C13UK80@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 11 Mar 2014 18:43:51 +0000 (GMT)
+Received: from [106.116.147.32] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0N2A000RYC12SK70@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 11 Mar 2014 18:43:50 +0000 (GMT)
+Message-id: <531F5962.3060009@samsung.com>
+Date: Tue, 11 Mar 2014 19:43:46 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] Samsung media drivers update
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add IR encoding helper for pulse-distance modulation as used by the NEC
-protocol.
+Hi Mauro,
 
-Signed-off-by: James Hogan <james@albanarts.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Seppälä <a.seppala@gmail.com>
-Cc: David Härdeman <david@hardeman.nu>
----
-Changes in v2:
- - Alter encode API to return -ENOBUFS when there isn't enough buffer
-   space. When this occurs all buffer contents must have been written
-   with the partial encoding of the scancode. This is to allow drivers
-   such as nuvoton-cir to provide a shorter buffer and still get a
-   useful partial encoding for the wakeup pattern.
- - Update ir_raw_gen_pd() with a kerneldoc comment and individual buffer
-   full checks rather than a single one at the beginning, in order to
-   support -ENOBUFS properly.
- - Update ir_raw_gen_pulse_space() to check the number of free slots and
-   fill as many as possible before returning -ENOBUFS.
- - Fix brace placement for timings struct.
----
- drivers/media/rc/ir-raw.c       | 56 ++++++++++++++++++++++++++++++++++++
- drivers/media/rc/rc-core-priv.h | 63 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 119 insertions(+)
+The following changes since commit 0d49e7761173520ff02cec6f11d581f8ebca764d:
 
-diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
-index 01adc10..f8fe10e 100644
---- a/drivers/media/rc/ir-raw.c
-+++ b/drivers/media/rc/ir-raw.c
-@@ -241,6 +241,62 @@ ir_raw_get_allowed_protocols(void)
- }
- 
- /**
-+ * ir_raw_gen_pd() - Encode data to raw events with pulse-distance modulation.
-+ * @ev:		Pointer to pointer to next free event. *@ev is incremented for
-+ *		each raw event filled.
-+ * @max:	Maximum number of raw events to fill.
-+ * @timings:	Pulse distance modulation timings.
-+ * @n:		Number of bits of data.
-+ * @data:	Data bits to encode.
-+ *
-+ * Encodes the @n least significant bits of @data using pulse-distance
-+ * modulation with the timing characteristics described by @timings, writing up
-+ * to @max raw IR events using the *@ev pointer.
-+ *
-+ * Returns:	0 on success.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		full encoded data. In this case all @max events will have been
-+ *		written.
-+ */
-+int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
-+		  const struct ir_raw_timings_pd *timings,
-+		  unsigned int n, unsigned int data)
-+{
-+	int i;
-+	int ret;
-+
-+	if (timings->header_pulse) {
-+		ret = ir_raw_gen_pulse_space(ev, &max, timings->header_pulse,
-+					     timings->header_space);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	if (timings->msb_first) {
-+		for (i = n - 1; i >= 0; --i) {
-+			ret = ir_raw_gen_pulse_space(ev, &max,
-+					timings->bit_pulse,
-+					timings->bit_space[(data >> i) & 1]);
-+			if (ret)
-+				return ret;
-+		}
-+	} else {
-+		for (i = 0; i < n; ++i, data >>= 1) {
-+			ret = ir_raw_gen_pulse_space(ev, &max,
-+					timings->bit_pulse,
-+					timings->bit_space[data & 1]);
-+			if (ret)
-+				return ret;
-+		}
-+	}
-+
-+	ret = ir_raw_gen_pulse_space(ev, &max, timings->trailer_pulse,
-+				     timings->trailer_space);
-+	return ret;
-+}
-+EXPORT_SYMBOL(ir_raw_gen_pd);
-+
-+/**
-  * ir_raw_encode_scancode() - Encode a scancode as raw events
-  *
-  * @protocols:		permitted protocols
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 8afb971..b55ae24 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -153,6 +153,69 @@ static inline bool is_timing_event(struct ir_raw_event ev)
- #define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
- #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
- 
-+/* functions for IR encoders */
-+
-+static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
-+					      unsigned int pulse,
-+					      u32 duration)
-+{
-+	init_ir_raw_event(ev);
-+	ev->duration = duration;
-+	ev->pulse = pulse;
-+}
-+
-+/**
-+ * ir_raw_gen_pulse_space() - generate pulse and space raw events.
-+ * @ev:			Pointer to pointer to next free raw event.
-+ *			Will be incremented for each raw event written.
-+ * @max:		Pointer to number of raw events available in buffer.
-+ *			Will be decremented for each raw event written.
-+ * @pulse_width:	Width of pulse in ns.
-+ * @space_width:	Width of space in ns.
-+ *
-+ * Returns:	0 on success.
-+ *		-ENOBUFS if there isn't enough buffer space to write both raw
-+ *		events. In this case @max events will have been written.
-+ */
-+static inline int ir_raw_gen_pulse_space(struct ir_raw_event **ev,
-+					 unsigned int *max,
-+					 unsigned int pulse_width,
-+					 unsigned int space_width)
-+{
-+	if (!*max)
-+		return -ENOBUFS;
-+	init_ir_raw_event_duration((*ev)++, 1, pulse_width);
-+	if (!--*max)
-+		return -ENOBUFS;
-+	init_ir_raw_event_duration((*ev)++, 0, space_width);
-+	--*max;
-+	return 0;
-+}
-+
-+/**
-+ * struct ir_raw_timings_pd - pulse-distance modulation timings
-+ * @header_pulse:	duration of header pulse in ns (0 for none)
-+ * @header_space:	duration of header space in ns
-+ * @bit_pulse:		duration of bit pulse in ns
-+ * @bit_space:		duration of bit space (for logic 0 and 1) in ns
-+ * @trailer_pulse:	duration of trailer pulse in ns
-+ * @trailer_space:	duration of trailer space in ns
-+ * @msb_first:		1 if most significant bit is sent first
-+ */
-+struct ir_raw_timings_pd {
-+	unsigned int header_pulse;
-+	unsigned int header_space;
-+	unsigned int bit_pulse;
-+	unsigned int bit_space[2];
-+	unsigned int trailer_pulse;
-+	unsigned int trailer_space;
-+	unsigned int msb_first:1;
-+};
-+
-+int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
-+		  const struct ir_raw_timings_pd *timings,
-+		  unsigned int n, unsigned int data);
-+
- /*
-  * Routines from rc-raw.c to be used internally and by decoders
-  */
--- 
-1.8.3.2
+  drx-j: Fix post-BER calculus on QAM modulation (2014-03-11 07:43:54 -0300)
 
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git for-v3.15
+
+for you to fetch changes up to 431c29861868255e1d84cd34cf48e48547831ff9:
+
+  s5p-fimc: Remove reference to outdated macro (2014-03-11 17:58:17 +0100)
+
+This includes device tree support for Samsung S5C73M3 camera, separate subdev 
+driver for S56K6A3 image sensor, related update of the Exynos4 camera subsystem
+DT bindings and v4l2-asyc API support at the driver, a FIMC-IS ISP sub-IP
+capture DMA driver and some minor s5p-* driver cleanups.
+
+----------------------------------------------------------------
+Jacek Anaszewski (1):
+      s5p-jpeg: Fix broken indentation in jpeg-regs.h
+
+Paul Bolle (1):
+      s5p-fimc: Remove reference to outdated macro
+
+Sylwester Nawrocki (9):
+      Documentation: dt: Add binding documentation for S5K6A3 image sensor
+      Documentation: dt: Add binding documentation for S5C73M3 camera
+      Documentation: devicetree: Update Samsung FIMC DT binding
+      V4L: Add driver for s5k6a3 image sensor
+      V4L: s5c73m3: Add device tree support
+      exynos4-is: Use external s5k6a3 sensor driver
+      exynos4-is: Add clock provider for the SCLK_CAM clock outputs
+      exynos4-is: Add support for asynchronous subdevices registration
+      exynos4-is: Add the FIMC-IS ISP capture DMA driver
+
+ .../devicetree/bindings/media/samsung-fimc.txt     |   44 +-
+ .../devicetree/bindings/media/samsung-s5c73m3.txt  |   97 +++
+ .../devicetree/bindings/media/samsung-s5k6a3.txt   |   33 +
+ Documentation/video4linux/fimc.txt                 |    5 +-
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  207 ++++--
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c            |    6 +
+ drivers/media/i2c/s5c73m3/s5c73m3.h                |    4 +
+ drivers/media/i2c/s5k6a3.c                         |  389 ++++++++++++
+ drivers/media/platform/exynos4-is/Kconfig          |    9 +
+ drivers/media/platform/exynos4-is/Makefile         |    4 +
+ drivers/media/platform/exynos4-is/fimc-is-param.c  |    2 +-
+ drivers/media/platform/exynos4-is/fimc-is-param.h  |    5 +
+ drivers/media/platform/exynos4-is/fimc-is-regs.c   |   16 +-
+ drivers/media/platform/exynos4-is/fimc-is-regs.h   |    1 +
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c |  285 +--------
+ drivers/media/platform/exynos4-is/fimc-is-sensor.h |   49 +-
+ drivers/media/platform/exynos4-is/fimc-is.c        |   98 ++-
+ drivers/media/platform/exynos4-is/fimc-is.h        |    9 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |  660 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-isp-video.h |   44 ++
+ drivers/media/platform/exynos4-is/fimc-isp.c       |   29 +-
+ drivers/media/platform/exynos4-is/fimc-isp.h       |   27 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |  363 ++++++++---
+ drivers/media/platform/exynos4-is/media-dev.h      |   32 +-
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h        |   24 +-
+ 27 files changed, 1886 insertions(+), 565 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5c73m3.txt
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5k6a3.txt
+ create mode 100644 drivers/media/i2c/s5k6a3.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-isp-video.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-isp-video.h
+
+--
+Thanks,
+Sylwester
