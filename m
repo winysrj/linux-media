@@ -1,217 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60476 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753506AbaCMLp2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 07:45:28 -0400
-From: Archit Taneja <archit@ti.com>
-To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 07/14] v4l: ti-vpe: Add selection API in VPE driver
-Date: Thu, 13 Mar 2014 17:14:09 +0530
-Message-ID: <1394711056-10878-8-git-send-email-archit@ti.com>
-In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
-References: <1394526833-24805-1-git-send-email-archit@ti.com>
- <1394711056-10878-1-git-send-email-archit@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60975 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752441AbaCKN2K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 09:28:10 -0400
+Message-ID: <531F0F4F.3070008@ti.com>
+Date: Tue, 11 Mar 2014 15:27:43 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+	Grant Likely <grant.likely@linaro.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
+ to drivers/of
+References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> <139468148.3QhLg3QYq1@avalon> <531F08A8.300@ti.com> <1883687.VdfitvQEN3@avalon>
+In-Reply-To: <1883687.VdfitvQEN3@avalon>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="0Q6TkmB7CV19g7QLgQpItgpNRphxUoJ7W"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add selection ioctl ops. For VPE, cropping makes sense only for the input to
-VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
-only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
+--0Q6TkmB7CV19g7QLgQpItgpNRphxUoJ7W
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
-in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
-results in selecting a rectangle region within the source buffer.
+On 11/03/14 15:16, Laurent Pinchart wrote:
 
-Setting the crop/compose rectangles should successfully result in
-re-configuration of registers which are affected when either source or
-destination dimensions change, set_srcdst_params() is called for this purpose.
+>> And if I gathered Grant's opinion correctly (correct me if I'm wrong),=
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 150 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 150 insertions(+)
+>> he thinks things should be explicit, i.e. the bindings for, say, an
+>> encoder should state that the encoder's output endpoint _must_ contain=
+ a
+>> remote-endpoint property, whereas the encoder's input endpoint _must
+>> not_ contain a remote-endpoint property.
+>=20
+> Actually my understand was that DT links would have the same direction =
+as the=20
+> data flow. There would be no ambiguity in that case as the direction of=
+ the=20
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index ece9b96..f3f1c10 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
- {
- 	switch (type) {
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
- 		return &ctx->q_data[Q_DATA_SRC];
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 		return &ctx->q_data[Q_DATA_DST];
- 	default:
- 		BUG();
-@@ -1587,6 +1589,151 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	return set_srcdst_params(ctx);
- }
- 
-+static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
-+{
-+	struct vpe_q_data *q_data;
-+
-+	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-+	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-+		return -EINVAL;
-+
-+	q_data = get_q_data(ctx, s->type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	switch (s->target) {
-+	case V4L2_SEL_TGT_COMPOSE:
-+		/*
-+		 * COMPOSE target is only valid for capture buffer type, return
-+		 * error for output buffer type
-+		 */
-+		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+			return -EINVAL;
-+		break;
-+	case V4L2_SEL_TGT_CROP:
-+		/*
-+		 * CROP target is only valid for output buffer type, return
-+		 * error for capture buffer type
-+		 */
-+		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+			return -EINVAL;
-+		break;
-+	/*
-+	 * bound and default crop/compose targets are invalid targets to
-+	 * try/set
-+	 */
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (s->r.top < 0 || s->r.left < 0) {
-+		vpe_err(ctx->dev, "negative values for top and left\n");
-+		s->r.top = s->r.left = 0;
-+	}
-+
-+	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
-+		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
-+
-+	/* adjust left/top if cropping rectangle is out of bounds */
-+	if (s->r.left + s->r.width > q_data->width)
-+		s->r.left = q_data->width - s->r.width;
-+	if (s->r.top + s->r.height > q_data->height)
-+		s->r.top = q_data->height - s->r.height;
-+
-+	return 0;
-+}
-+
-+static int vpe_g_selection(struct file *file, void *fh,
-+		struct v4l2_selection *s)
-+{
-+	struct vpe_ctx *ctx = file2ctx(file);
-+	struct vpe_q_data *q_data;
-+	bool use_c_rect = false;
-+
-+	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
-+	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
-+		return -EINVAL;
-+
-+	q_data = get_q_data(ctx, s->type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	switch (s->target) {
-+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+			return -EINVAL;
-+		break;
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+			return -EINVAL;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE:
-+		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+			return -EINVAL;
-+		use_c_rect = true;
-+		break;
-+	case V4L2_SEL_TGT_CROP:
-+		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+			return -EINVAL;
-+		use_c_rect = true;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (use_c_rect) {
-+		/*
-+		 * for CROP/COMPOSE target type, return c_rect params from the
-+		 * respective buffer type
-+		 */
-+		s->r = q_data->c_rect;
-+	} else {
-+		/*
-+		 * for DEFAULT/BOUNDS target type, return width and height from
-+		 * S_FMT of the respective buffer type
-+		 */
-+		s->r.left = 0;
-+		s->r.top = 0;
-+		s->r.width = q_data->width;
-+		s->r.height = q_data->height;
-+	}
-+
-+	return 0;
-+}
-+
-+
-+static int vpe_s_selection(struct file *file, void *fh,
-+		struct v4l2_selection *s)
-+{
-+	struct vpe_ctx *ctx = file2ctx(file);
-+	struct vpe_q_data *q_data;
-+	struct v4l2_selection sel = *s;
-+	int ret;
-+
-+	ret = __vpe_try_selection(ctx, &sel);
-+	if (ret)
-+		return ret;
-+
-+	q_data = get_q_data(ctx, sel.type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	if ((q_data->c_rect.left == sel.r.left) &&
-+			(q_data->c_rect.top == sel.r.top) &&
-+			(q_data->c_rect.width == sel.r.width) &&
-+			(q_data->c_rect.height == sel.r.height)) {
-+		vpe_dbg(ctx->dev,
-+			"requested crop/compose values are already set\n");
-+		return 0;
-+	}
-+
-+	q_data->c_rect = sel.r;
-+
-+	return set_srcdst_params(ctx);
-+}
-+
- static int vpe_reqbufs(struct file *file, void *priv,
- 		       struct v4l2_requestbuffers *reqbufs)
- {
-@@ -1674,6 +1821,9 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
- 	.vidioc_try_fmt_vid_out_mplane	= vpe_try_fmt,
- 	.vidioc_s_fmt_vid_out_mplane	= vpe_s_fmt,
- 
-+	.vidioc_g_selection		= vpe_g_selection,
-+	.vidioc_s_selection		= vpe_s_selection,
-+
- 	.vidioc_reqbufs		= vpe_reqbufs,
- 	.vidioc_querybuf	= vpe_querybuf,
- 
--- 
-1.8.3.2
+Ok. At least at some point in the discussion the rule of thumb was to
+have the "master" point at the "slave", which are a bit vague terms, but
+I think both display and camera controllers were given as examples of
+"master".
 
+> data flow is known. What happens for bidirectional data flows still nee=
+d to be=20
+> discussed though. And if we want to use the of-graph bindings to descri=
+be=20
+> graphs without a data flow, a decision will need to be taken there too.=
+
+
+Yep. My worry is that if the link direction is defined in the bindings
+for the device, somebody will at some point have a complex board which
+happens to use two devices in such a way, that either neither of them
+point to each other, or both point to each other.
+
+Maybe we can make sure that never happens, but I feel a bit nervous
+about it especially for bi-directional cases. If the link has no clear
+main-dataflow direction, it may be a bit difficult to say which way to li=
+nk.
+
+With double-linking all those concerns just disappear.
+
+ Tomi
+
+
+
+--0Q6TkmB7CV19g7QLgQpItgpNRphxUoJ7W
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJTHw9PAAoJEPo9qoy8lh71xrIP/37RUXTwCDENqR3hT6yGCTh1
+0yc5WhysNkn71ov48iYGQdHZyA9Qb/SAXaLcNegr/f+0URNcV9AdQijWP59GdnE2
+G0qCzycaHdJDOP/r7GomjyI4gHn23oDpAGy+80JtWOEyRSQGwibgcxnouodJ6F71
+E/ZSTnWlMG/m+EgWpfL7HySwVnKUD1uC2kqawqrG+3IlsV0Hjeu0CK9R184zBdwm
+AiHmRdo+hgId0EP4xf27HovzkjT9U4OGPK6bqsEcgt7jTjp7D7PLWuzuo4RHZbic
+gFGmrua6biFN6qmMdUTzzLR7fq6CCDov8YGjsKUZXbuURWJH4XviPoHtaVarr0jZ
+C8AOM3bKwl4efSn/iAC/ms17wwfp0TxkoT06z44WhueLYMi+sKVh4xhiZErN63gZ
+opOusNWEAX73IFmOV9RjPbAT0iJ022cFshM4L4kOH2enpHC552vfv/ctgIpiliDB
+nSN2tc+ePjBDcHL+ygZ4iojydHKhChtOazcA0wd0qEyrcqoSvQsYzX+yagwxef34
+R7Gh7Jz2jhqBQkdswPLYbioy8FEowOtEKRiZgRuf4duW4stBzrDCOUO1foCB5vAK
+A+kxlcwnhMXyRSyF8uJ9/KDAnvm273Ohf2wfEvdcy85jLXr/AVHG79Xla+vYpLK6
+Gih+a+PMZx1pUt3I2SXK
+=Ze4i
+-----END PGP SIGNATURE-----
+
+--0Q6TkmB7CV19g7QLgQpItgpNRphxUoJ7W--
