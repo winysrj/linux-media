@@ -1,71 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:41909 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759608AbaCUIPm (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:12103 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754296AbaCKTe0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 04:15:42 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c13so1499994eek.38
-        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 01:15:41 -0700 (PDT)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core to drivers/of
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-In-Reply-To: <2220569.iDU3Tk3vCh@avalon>
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 20140320153804.35d5b835@samsung.com> <20140320231250.8F0E0C412EA@trevor. secretlab.ca> <2220569.iDU3Tk3vCh@avalon>
-Date: Fri, 21 Mar 2014 08:15:34 +0000
-Message-Id: <20140321081537.472B2C4085E@trevor.secretlab.ca>
+	Tue, 11 Mar 2014 15:34:26 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2A002NEEDAPP10@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 11 Mar 2014 15:34:22 -0400 (EDT)
+Date: Tue, 11 Mar 2014 16:34:14 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 04/35] videodev2.h: add initial support for
+ complex controls.
+Message-id: <20140311163414.0c1f788e@samsung.com>
+In-reply-to: <1392631070-41868-5-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+ <1392631070-41868-5-git-send-email-hverkuil@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 21 Mar 2014 00:26:12 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> On Thursday 20 March 2014 23:12:50 Grant Likely wrote:
-> > On Thu, 20 Mar 2014 19:52:53 +0100, Laurent Pinchart wrote:
-> > > Then we might not be talking about the same thing. I'm talking about DT
-> > > bindings to represent the topology of the device, not how drivers are
-> > > wired together.
-> > 
-> > Possibly. I'm certainly confused now. You brought up the component helpers
-> > in drivers/base/component.c, so I thought working out dependencies is part
-> > of the purpose of this binding. Everything I've heard so far has given me
-> > the impression that the graph binding is tied up with knowing when all of
-> > the devices exist.
-> 
-> The two are related, you're of course right about that.
-> 
-> We're not really moving forward here. Part of our disagreement comes in my 
-> opinion from having different requirements and different views of the problem, 
-> caused by experiences with different kind of devices. This is much easier to 
-> solve by sitting around the same table than discussing on mailing lists. I 
-> would propose a meeting at the ELC but that's still a bit far away and would 
-> delay progress by more than one month, which is probably not acceptable.
-> 
-> I can reply to the e-mail where I've drawn one use case I have to deal with to 
-> detail my needs if that can help.
-> 
-> Alternatively the UK isn't that far away and I could jump in a train if you 
-> can provide tea for the discussion :-)
+Em Mon, 17 Feb 2014 10:57:19 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-I'm game for that, but it is a long train ride. I'm up in Aberdeen which
-is 8 hours from London by train. Also, I'm travelling next week to
-California (Collaboration summit), so it will have to be in 2 weeks
-time.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Complex controls are controls that can be used for compound and array
+> types. This allows for more complex data structures to be used with the
+> control framework.
+> 
+> Such controls always have the V4L2_CTRL_FLAG_HIDDEN flag set. Note that
+> 'simple' controls can also set that flag.
+> 
+> The existing V4L2_CTRL_FLAG_NEXT_CTRL flag will only enumerate controls
+> that do not have the HIDDEN flag, so a new V4L2_CTRL_FLAG_NEXT_HIDDEN flag
+> is added to enumerate hidden controls. Set both flags to enumerate any
+> controls (hidden or not).
+> 
+> Complex control types will start at V4L2_CTRL_COMPLEX_TYPES. In addition, any
+> control that uses the new 'p' field or the existing 'string' field will have
+> flag V4L2_CTRL_FLAG_IS_PTR set.
+> 
+> While not strictly necessary, adding that flag makes life for applications
+> a lot simpler. If the flag is not set, then the control value is set
+> through the value or value64 fields of struct v4l2_ext_control, otherwise
+> a pointer points to the value.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+>  include/uapi/linux/videodev2.h | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 6ae7bbe..4d7782a 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1228,6 +1228,7 @@ struct v4l2_ext_control {
+>  		__s32 value;
+>  		__s64 value64;
+>  		char *string;
+> +		void *p;
 
-Why don't we instead try a Google Hangout or a phone call today.
-Anywhere between 11:30 and 14:00 GMT would work for me. I'd offer to
-provide the tea, but I haven't quite perfected transporter technology
-yet.
+Hmm... don't we have already "string" for pointers? Also, calling it
+as "p" inside an userspace api doesn't seem to nice ("ptr" would be
+better).
 
-g.
+Btw, you likely already noticed the mess, as, when you added 
+this email's comment, you said that complex controls could
+either use "p" or "string".
 
+Nack. It should just use "string". Let's not add even more complexity
+to this "complex" controls.
+
+>  	};
+>  } __attribute__ ((packed));
+>  
+> @@ -1252,7 +1253,10 @@ enum v4l2_ctrl_type {
+>  	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
+>  	V4L2_CTRL_TYPE_STRING        = 7,
+>  	V4L2_CTRL_TYPE_BITMASK       = 8,
+> -	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
+> +	V4L2_CTRL_TYPE_INTEGER_MENU  = 9,
+> +
+> +	/* Complex types are >= 0x0100 */
+> +	V4L2_CTRL_COMPLEX_TYPES	     = 0x0100,
+>  };
+
+Not sure if I got why you're calling it as "TYPES" and saying that
+everything >= 0x100 is complex. What's your idea here?
+
+Also, at least for me with my engineering formation, "complex"
+means a number with an imaginary component.
+
+And yes, we do have complex numbers on some usecases for
+V4L (for example, SDR in-phase/quadrature, e. g.  I/Q
+representation can be seen as an array of complex numbers).
+
+So, I won't doubt that someone might propose some day to add a
+way to set a complex number via a V4L2 control.
+
+So, please use a better naming here to avoid troubles.
+
+>  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+> @@ -1288,9 +1292,12 @@ struct v4l2_querymenu {
+>  #define V4L2_CTRL_FLAG_SLIDER 		0x0020
+>  #define V4L2_CTRL_FLAG_WRITE_ONLY 	0x0040
+>  #define V4L2_CTRL_FLAG_VOLATILE		0x0080
+> +#define V4L2_CTRL_FLAG_HIDDEN		0x0100
+> +#define V4L2_CTRL_FLAG_IS_PTR		0x0200
+>  
+> -/*  Query flag, to be ORed with the control ID */
+> +/*  Query flags, to be ORed with the control ID */
+>  #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
+> +#define V4L2_CTRL_FLAG_NEXT_HIDDEN	0x40000000
+>  
+>  /*  User-class control IDs defined by V4L2 */
+>  #define V4L2_CID_MAX_CTRLS		1024
+
+
+-- 
+
+Regards,
+Mauro
