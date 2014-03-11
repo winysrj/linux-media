@@ -1,114 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59392 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750749AbaCNAOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 20:14:48 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 07/17] rtl28xxu: constify demod config structs
-Date: Fri, 14 Mar 2014 02:14:21 +0200
-Message-Id: <1394756071-22410-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
-References: <1394756071-22410-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4093 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753828AbaCKMYu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 08:24:50 -0400
+Message-ID: <531F0060.3030005@xs4all.nl>
+Date: Tue, 11 Mar 2014 13:24:00 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Archit Taneja <archit@ti.com>
+CC: k.debski@samsung.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 11/14] v4l: ti-vpe: Fix initial configuration queue
+ data
+References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-12-git-send-email-archit@ti.com>
+In-Reply-To: <1394526833-24805-12-git-send-email-archit@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Optimize a little bit from data to text.
+On 03/11/14 09:33, Archit Taneja wrote:
+> The vpe output and capture queues are initially configured to default values in
+> vpe_open(). A G_FMT before any S_FMTs will result in these values being
+> populated.
+> 
+> The colorspace and bytesperline parameter of this initial configuration are
+> incorrect. This breaks compliance when as we get 'TRY_FMT(G_FMT) != G_FMT'.
+> 
+> Fix the initial queue configuration such that it wouldn't need to be fixed by
+> try_fmt.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index ae07740..db98f1c 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -516,7 +516,7 @@ err:
- 	return ret;
- }
- 
--static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
-+static const struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.ts_mode = 0,
-@@ -527,7 +527,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_mt2060_config = {
- 
- };
- 
--static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
-+static const struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.ts_mode = 0,
-@@ -537,7 +537,7 @@ static struct rtl2830_config rtl28xxu_rtl2830_qt1010_config = {
- 	.agc_targ_val = 0x2d,
- };
- 
--static struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
-+static const struct rtl2830_config rtl28xxu_rtl2830_mxl5005s_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.ts_mode = 0,
-@@ -551,7 +551,7 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
- {
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	struct rtl2830_config *rtl2830_config;
-+	const struct rtl2830_config *rtl2830_config;
- 	int ret;
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-@@ -586,31 +586,31 @@ err:
- 	return ret;
- }
- 
--static struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_FC0012
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_FC0013
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_tua9001_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_TUA9001,
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
- 	.i2c_addr = 0x10, /* 0x20 */
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_E4000,
- };
- 
--static struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
-+static const struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
- 	.i2c_addr = 0x10,
- 	.xtal = 28800000,
- 	.tuner = TUNER_RTL2832_R820T,
-@@ -734,7 +734,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	int ret;
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
--	struct rtl2832_config *rtl2832_config;
-+	const struct rtl2832_config *rtl2832_config;
- 
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
--- 
-1.8.5.3
+> ---
+>  drivers/media/platform/ti-vpe/vpe.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> index 5591d04..85d1122 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -2012,9 +2012,11 @@ static int vpe_open(struct file *file)
+>  	s_q_data->fmt = &vpe_formats[2];
+>  	s_q_data->width = 1920;
+>  	s_q_data->height = 1080;
+> -	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
+> +	s_q_data->bytesperline[VPE_LUMA] = (s_q_data->width *
+>  			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
+> -	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->bytesperline[VPE_LUMA] *
+> +			s_q_data->height);
+> +	s_q_data->colorspace = V4L2_COLORSPACE_REC709;
+>  	s_q_data->field = V4L2_FIELD_NONE;
+>  	s_q_data->c_rect.left = 0;
+>  	s_q_data->c_rect.top = 0;
+> 
 
