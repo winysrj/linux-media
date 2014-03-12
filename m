@@ -1,113 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4634 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757623AbaCSDeh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Mar 2014 23:34:37 -0400
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2J3YXA1077081
-	for <linux-media@vger.kernel.org>; Wed, 19 Mar 2014 04:34:35 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id C4AEA2A188B
-	for <linux-media@vger.kernel.org>; Wed, 19 Mar 2014 04:34:32 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20140319033432.C4AEA2A188B@tschai.lan>
-Date: Wed, 19 Mar 2014 04:34:32 +0100 (CET)
+Received: from smtp.gentoo.org ([140.211.166.183]:34621 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752293AbaCLKI5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 06:08:57 -0400
+Message-ID: <53203232.2060203@gentoo.org>
+Date: Wed, 12 Mar 2014 11:08:50 +0100
+From: Matthias Schwarzott <zzam@gentoo.org>
+MIME-Version: 1.0
+To: Jan Gebhardt <h.smith05@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: problems with Cinergy HTC HD Rev. 2 (0x0ccd:0x0101) Conexant
+ 231xx
+References: <531D8B39.9010504@gmail.com>
+In-Reply-To: <531D8B39.9010504@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 10.03.2014 10:51, Jan Gebhardt wrote:
+> Hi,
+> 
+> i have some problems using the Terratec Cinergy HTC Stick HD Rev. 2 .
+> 
+> The driver or the specification is currenty not implemented into
+> driverset of media-build.
 
-Results of the daily build of media_tree:
+That means nothing happened when plugging the stick in?
+> 
+> All i know is, that there is a buildin Conexant Chip (I think the
+> CX23102) and a SiliconLabs Tuner (SI2173). I already tried to adapt this
+> knownledge combined with the configuration of the windows driver to the
+> driver(cx231xx) but sadly without success.
 
-date:		Wed Mar 19 04:00:17 CET 2014
-git branch:	test
-git hash:	ed97a6fe5308e5982d118a25f0697b791af5ec50
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	v0.5.0
-host hardware:	x86_64
-host os:	3.13-5.slh.4-amd64
+How did you check the chips that are present?
+Did you read through the inf file of the windows driver or open the device?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	v0.5.0
-sparse: ERRORS
+Looking at the inf file you attached, it most likely has a si2165
+dvb-c/t demod.
 
-Detailed results are available here:
+I wrote a first driver for this demod.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+But I think the tuner is unsupported (si2173 or si2170 as inf file says).
+Google only found these documents:
+- https://www.silabs.com/Support%20Documents/TechnicalDocs/Si2173-short.pdf
+- http://electronix.ru/forum/index.php?act=attach&type=post&id=66442
 
-Full logs are available here:
+But both documents skip the detailed programming.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+And I found this driver for si2176:
+https://github.com/fards/AMlogic_Meson6_030812release/blob/master/drivers/amlogic/tuners/si2176_func.c
+But I am not sure about the relation between si2170, si2173 and si2176
 
-The Media Infrastructure API from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+For adding support your device, you need to go through the normal
+process described in the wiki.
+Part of this is recording usb traffic.
+This can then partially be matched to the existing drivers.
+
+Regards
+Matthias
+
+
