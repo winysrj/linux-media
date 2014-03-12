@@ -1,129 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:48587 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753826AbaCXTdP (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:17092 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752481AbaCLOUI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 15:33:15 -0400
-Received: by mail-ee0-f53.google.com with SMTP id b57so4798060eek.26
-        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:33:14 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 18/19] em28xx: remove field tuner_addr from struct em28xx
-Date: Mon, 24 Mar 2014 20:33:24 +0100
-Message-Id: <1395689605-2705-19-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 12 Mar 2014 10:20:08 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2B00LC1UHITXA0@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Mar 2014 10:20:06 -0400 (EDT)
+Date: Wed, 12 Mar 2014 11:20:00 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 20/35] DocBook media: update
+ VIDIOC_G/S/TRY_EXT_CTRLS.
+Message-id: <20140312112000.54ffb496@samsung.com>
+In-reply-to: <1392631070-41868-21-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+ <1392631070-41868-21-git-send-email-hverkuil@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tuner address is only used by the v4l submodule and at tuner setup and
-can be obtained from the board data directly (if specified).
+Em Mon, 17 Feb 2014 10:57:35 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |  2 --
- drivers/media/usb/em28xx/em28xx-video.c | 17 ++++++++---------
- drivers/media/usb/em28xx/em28xx.h       |  1 -
- 3 files changed, 8 insertions(+), 12 deletions(-)
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Document the support for the new complex type controls.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 43 ++++++++++++++++++----
+>  1 file changed, 35 insertions(+), 8 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> index b3bb957..d946d6b 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> @@ -72,23 +72,30 @@ initialize the <structfield>id</structfield>,
+>  <structfield>size</structfield> and <structfield>reserved2</structfield> fields
+>  of each &v4l2-ext-control; and call the
+>  <constant>VIDIOC_G_EXT_CTRLS</constant> ioctl. String controls controls
+> -must also set the <structfield>string</structfield> field.</para>
+> +must also set the <structfield>string</structfield> field. Controls
+> +of complex types (<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set)
+> +must set the <structfield>p</structfield> field.</para>
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index b81946f..e552375 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2716,8 +2716,6 @@ static void em28xx_card_setup(struct em28xx *dev)
- 		    dev->board.name, dev->model);
- 
- 	dev->tuner_type = em28xx_boards[dev->model].tuner_type;
--	if (em28xx_boards[dev->model].tuner_addr)
--		dev->tuner_addr = em28xx_boards[dev->model].tuner_addr;
- 
- 	/* request some modules */
- 	switch (dev->model) {
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 8c0082c..254a7ff 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -2223,16 +2223,13 @@ static struct video_device *em28xx_vdev_init(struct em28xx *dev,
- 	return vfd;
- }
- 
--static void em28xx_tuner_setup(struct em28xx *dev)
-+static void em28xx_tuner_setup(struct em28xx *dev, unsigned short tuner_addr)
- {
- 	struct em28xx_v4l2      *v4l2 = dev->v4l2;
- 	struct v4l2_device      *v4l2_dev = &v4l2->v4l2_dev;
- 	struct tuner_setup      tun_setup;
- 	struct v4l2_frequency   f;
- 
--	if (dev->tuner_type == TUNER_ABSENT)
--		return;
--
- 	memset(&tun_setup, 0, sizeof(tun_setup));
- 
- 	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO;
-@@ -2248,7 +2245,7 @@ static void em28xx_tuner_setup(struct em28xx *dev)
- 
- 	if ((dev->tuner_type != TUNER_ABSENT) && (dev->tuner_type)) {
- 		tun_setup.type   = dev->tuner_type;
--		tun_setup.addr   = dev->tuner_addr;
-+		tun_setup.addr   = tuner_addr;
- 
- 		v4l2_device_call_all(v4l2_dev,
- 				     0, tuner, s_type_addr, &tun_setup);
-@@ -2364,6 +2361,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 	/* Initialize tuner and camera */
- 
- 	if (dev->board.tuner_type != TUNER_ABSENT) {
-+		unsigned short tuner_addr = dev->board.tuner_addr;
- 		int has_demod = (dev->board.tda9887_conf & TDA9887_PRESENT);
- 
- 		if (dev->board.radio.type)
-@@ -2375,7 +2373,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 			v4l2_i2c_new_subdev(&v4l2->v4l2_dev,
- 				&dev->i2c_adap[dev->def_i2c_bus], "tuner",
- 				0, v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
--		if (dev->tuner_addr == 0) {
-+		if (tuner_addr == 0) {
- 			enum v4l2_i2c_tuner_type type =
- 				has_demod ? ADDRS_TV_WITH_DEMOD : ADDRS_TV;
- 			struct v4l2_subdev *sd;
-@@ -2385,15 +2383,16 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 				0, v4l2_i2c_tuner_addrs(type));
- 
- 			if (sd)
--				dev->tuner_addr = v4l2_i2c_subdev_addr(sd);
-+				tuner_addr = v4l2_i2c_subdev_addr(sd);
- 		} else {
- 			v4l2_i2c_new_subdev(&v4l2->v4l2_dev,
- 					    &dev->i2c_adap[dev->def_i2c_bus],
--					    "tuner", dev->tuner_addr, NULL);
-+					    "tuner", tuner_addr, NULL);
- 		}
-+
-+		em28xx_tuner_setup(dev, tuner_addr);
- 	}
- 
--	em28xx_tuner_setup(dev);
- 	if (dev->em28xx_sensor != EM28XX_NOSENSOR)
- 		em28xx_init_camera(dev);
- 
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 917cb25..3a3fe16 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -632,7 +632,6 @@ struct em28xx {
- 	struct em28xx_audio_mode audio_mode;
- 
- 	int tuner_type;		/* type of the tuner */
--	int tuner_addr;		/* tuner address */
- 
- 	/* i2c i/o */
- 	struct i2c_adapter i2c_adap[NUM_I2C_BUSES];
+Same notes I did to the other patches apply here:
+	- s/complex/compound/
+	- Let's not mix strings with compound types
+	- etc
+
+>      <para>If the <structfield>size</structfield> is too small to
+>  receive the control result (only relevant for pointer-type controls
+>  like strings), then the driver will set <structfield>size</structfield>
+>  to a valid value and return an &ENOSPC;. You should re-allocate the
+> -string memory to this new size and try again. It is possible that the
+> -same issue occurs again if the string has grown in the meantime. It is
+> +memory to this new size and try again. For the string type it is possible that
+> +the same issue occurs again if the string has grown in the meantime. It is
+>  recommended to call &VIDIOC-QUERYCTRL; first and use
+>  <structfield>maximum</structfield>+1 as the new <structfield>size</structfield>
+>  value. It is guaranteed that that is sufficient memory.
+>  </para>
+>  
+> +    <para>Matrices are set and retrieved row-by-row. You cannot set a partial
+> +matrix, all elements have to be set or retrieved. The total size is calculated
+> +as <structfield>rows</structfield> * <structfield>cols</structfield> * <structfield>elem_size</structfield>.
+> +These values can be obtained by calling &VIDIOC-QUERY-EXT-CTRL;.</para>
+> +
+>      <para>To change the value of a set of controls applications
+>  initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+>  <structfield>reserved2</structfield> and
+> -<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
+> +<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+>  call the <constant>VIDIOC_S_EXT_CTRLS</constant> ioctl. The controls
+>  will only be set if <emphasis>all</emphasis> control values are
+>  valid.</para>
+> @@ -96,11 +103,17 @@ valid.</para>
+>      <para>To check if a set of controls have correct values applications
+>  initialize the <structfield>id</structfield>, <structfield>size</structfield>,
+>  <structfield>reserved2</structfield> and
+> -<structfield>value/string</structfield> fields of each &v4l2-ext-control; and
+> +<structfield>value/value64/string/p</structfield> fields of each &v4l2-ext-control; and
+>  call the <constant>VIDIOC_TRY_EXT_CTRLS</constant> ioctl. It is up to
+>  the driver whether wrong values are automatically adjusted to a valid
+>  value or if an error is returned.</para>
+>  
+> +    <para>For matrices it is possible to only set or check only the first
+> +<constant>X</constant> elements by setting size to <constant>X * elem_size</constant>,
+> +where <structfield>elem_size</structfield> is obtained by calling &VIDIOC-QUERY-EXT-CTRL;.
+> +Matrix elements are set row-by-row. Matrix elements that are not explicitly
+> +set will be initialized to their default value.</para>
+> +
+
+That sounds confusing: what are the defaults?
+
+Also, what happens if the size is set to, let's say, 1,5 * elem_size?
+
+Will it fill one element, will it return an error (what error?) or will it
+fill two elements, the second one with some wrong value?
+
+>      <para>When the <structfield>id</structfield> or
+>  <structfield>ctrl_class</structfield> is invalid drivers return an
+>  &EINVAL;. When the value is out of bounds drivers can choose to take
+> @@ -158,19 +171,33 @@ applications must set the array to zero.</entry>
+>  	    <entry></entry>
+>  	    <entry>__s32</entry>
+>  	    <entry><structfield>value</structfield></entry>
+> -	    <entry>New value or current value.</entry>
+> +	    <entry>New value or current value. Valid if this control is not of
+> +type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
+> +<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry></entry>
+>  	    <entry>__s64</entry>
+>  	    <entry><structfield>value64</structfield></entry>
+> -	    <entry>New value or current value.</entry>
+> +	    <entry>New value or current value. Valid if this control is of
+> +type <constant>V4L2_CTRL_TYPE_INTEGER64</constant> and
+> +<constant>V4L2_CTRL_FLAG_IS_PTR</constant> is not set.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry></entry>
+>  	    <entry>char *</entry>
+>  	    <entry><structfield>string</structfield></entry>
+> -	    <entry>A pointer to a string.</entry>
+> +	    <entry>A pointer to a string. Valid if this control is of
+> +type <constant>V4L2_CTRL_TYPE_STRING</constant>.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry></entry>
+> +	    <entry>void *</entry>
+> +	    <entry><structfield>p</structfield></entry>
+> +	    <entry>A pointer to a complex type which can be a matrix and/or a
+> +complex type (the control's type is >= <constant>V4L2_CTRL_COMPLEX_TYPES</constant>).
+> +Valid if <constant>V4L2_CTRL_FLAG_IS_PTR</constant> is set for this control.
+> +</entry>
+>  	  </row>
+>  	</tbody>
+>        </tgroup>
+
+
 -- 
-1.8.4.5
 
+Regards,
+Mauro
