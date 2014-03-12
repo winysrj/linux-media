@@ -1,377 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:27375 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754423AbaCLONr convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:34501 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753032AbaCLRP5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Mar 2014 10:13:47 -0400
+	Wed, 12 Mar 2014 13:15:57 -0400
 Received: from uscpsbgm2.samsung.com
- (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2B00L2CU6XTT10@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 12 Mar 2014 10:13:45 -0400 (EDT)
-Date: Wed, 12 Mar 2014 11:13:38 -0300
+ 17 2011)) with ESMTP id <0N2C000S12MKTK40@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Mar 2014 13:15:56 -0400 (EDT)
+Date: Wed, 12 Mar 2014 14:15:50 -0300
 From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
-	pete@sensoray.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv3 PATCH 19/35] DocBook media: document
- VIDIOC_QUERY_EXT_CTRL.
-Message-id: <20140312111338.79bb561f@samsung.com>
-In-reply-to: <1392631070-41868-20-git-send-email-hverkuil@xs4all.nl>
-References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
- <1392631070-41868-20-git-send-email-hverkuil@xs4all.nl>
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [REVIEW PATCH 11/13] DocBook: document RF tuner bandwidth controls
+Message-id: <20140312141550.32aa5ccf@samsung.com>
+In-reply-to: <53206DD2.4000504@iki.fi>
+References: <1393460528-11684-1-git-send-email-crope@iki.fi>
+ <1393460528-11684-12-git-send-email-crope@iki.fi>
+ <20140305154922.508c48d7@samsung.com> <531D8D78.800@iki.fi>
+ <20140312080233.3823dd80@samsung.com> <5320527B.9040707@iki.fi>
+ <20140312094739.089a8ce5@samsung.com> <532059B0.9010201@iki.fi>
+ <53205BF6.9040304@iki.fi> <20140312102118.79956fd3@samsung.com>
+ <53206DD2.4000504@iki.fi>
 MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 17 Feb 2014 10:57:34 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Wed, 12 Mar 2014 16:23:14 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> On 12.03.2014 15:21, Mauro Carvalho Chehab wrote:
+> > Em Wed, 12 Mar 2014 15:07:02 +0200
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> On 12.03.2014 14:57, Antti Palosaari wrote:
+> >>> On 12.03.2014 14:47, Mauro Carvalho Chehab wrote:
+> >>>> Em Wed, 12 Mar 2014 14:26:35 +0200
+> >>>> Antti Palosaari <crope@iki.fi> escreveu:
+> >>>>
+> >>>>> On 12.03.2014 13:02, Mauro Carvalho Chehab wrote:
+> >>>>>> Em Mon, 10 Mar 2014 12:01:28 +0200
+> >>>>>> Antti Palosaari <crope@iki.fi> escreveu:
+> >>>>>>
+> >>>>>>> On 05.03.2014 20:49, Mauro Carvalho Chehab wrote:
+> >>>>>>>> Em Thu, 27 Feb 2014 02:22:06 +0200
+> >>>>>>>> Antti Palosaari <crope@iki.fi> escreveu:
+> >>>>>>>>
+> >>>>>>>>> Add documentation for RF tuner bandwidth controls. These controls
+> >>>>>>>>> are
+> >>>>>>>>> used to set filters on tuner signal path.
+> >>>>>>>>>
+> >>>>>>>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> >>>>>>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> >>>>>>>>> ---
+> >>>>>>>>>      Documentation/DocBook/media/v4l/controls.xml | 19
+> >>>>>>>>> +++++++++++++++++++
+> >>>>>>>>>      1 file changed, 19 insertions(+)
+> >>>>>>>>>
+> >>>>>>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> >>>>>>>>> b/Documentation/DocBook/media/v4l/controls.xml
+> >>>>>>>>> index 6c9dbf6..5550fea 100644
+> >>>>>>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+> >>>>>>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> >>>>>>>>> @@ -5007,6 +5007,25 @@ descriptor. Calling &VIDIOC-QUERYCTRL; for
+> >>>>>>>>> this control will return a
+> >>>>>>>>>      description of this control class.</entry>
+> >>>>>>>>>                  </row>
+> >>>>>>>>>                  <row>
+> >>>>>>>>> +              <entry
+> >>>>>>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH_AUTO</constant>&nbsp;</entry>
+> >>>>>>>>>
+> >>>>>>>>> +              <entry>boolean</entry>
+> >>>>>>>>> +            </row>
+> >>>>>>>>> +            <row>
+> >>>>>>>>> +              <entry spanname="descr">Enables/disables tuner
+> >>>>>>>>> radio channel
+> >>>>>>>>> +bandwidth configuration. In automatic mode bandwidth
+> >>>>>>>>> configuration is performed
+> >>>>>>>>> +by the driver.</entry>
+> >>>>>>>>> +            </row>
+> >>>>>>>>> +            <row>
+> >>>>>>>>> +              <entry
+> >>>>>>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH</constant>&nbsp;</entry>
+> >>>>>>>>>
+> >>>>>>>>> +              <entry>integer</entry>
+> >>>>>>>>> +            </row>
+> >>>>>>>>> +            <row>
+> >>>>>>>>> +              <entry spanname="descr">Filter(s) on tuner signal
+> >>>>>>>>> path are used to
+> >>>>>>>>> +filter signal according to receiving party needs. Driver
+> >>>>>>>>> configures filters to
+> >>>>>>>>> +fulfill desired bandwidth requirement. Used when
+> >>>>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO is not
+> >>>>>>>>> +set. The range and step are driver-specific.</entry>
+> >>>>>>>>
+> >>>>>>>> Huh? If this is enable/disable, why "the range and step are
+> >>>>>>>> driver-specific"?
+> >>>>>>>
+> >>>>>>> Because there is two controls grouped. That is situation of having
+> >>>>>>> AUTO/MANUAL.
+> >>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO
+> >>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH
+> >>>>>>>
+> >>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when
+> >>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO == false.
+> >>>>>>>
+> >>>>>>
+> >>>>>> Sorry, but I'm not understanding what you're arguing.
+> >>>>>>
+> >>>>>> Yeah, it is clear at the patch that there are two controls, and that
+> >>>>>> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when AUTO is disabled, but
+> >>>>>> this doesn't answer my question:
+> >>>>>>
+> >>>>>> Why V4L2_CID_RF_TUNER_BANDWIDTH's range and step are driver-specific?
+> >>>>>>
+> >>>>>
+> >>>>> Hmmm. That control is used to configure RF filters. Filters set
+> >>>>> bandwidth of radio channel. There is usually quite limited set of
+> >>>>> available analog filters inside RF tuner. If you look for example
+> >>>>> FC0012/FC0013 possible filters are 6/7/8 MHz. E4000 has something 4-11
+> >>>>> MHz. If you look those very old 1st gen silicon tuners like QT1010 /
+> >>>>> MT2060, there is no integrated filters at all - but there is external
+> >>>>> saw filter which is usually 8MHz at 36.125 MHz IF.
+> >>>>>
+> >>>>> Did you remember there is same parameter already in DVB API (struct
+> >>>>> dtv_frontend_properties bandwidth_hz)? That is control is currently used
+> >>>>> to set r820t, fc0012, fc10013 .bandwidth_hz value, e4000 implements it
+> >>>>> correctly as own control.
+> >>>>>
+> >>>>> I am quite astonished we have that big gap with our views.
+> >>>>
+> >>>> Well, on DVB, the bandwidth is specified in Hz, at DVBv5 (or via
+> >>>> an enum on DVBv3).
+> >>>>
+> >>>> Here, there's no description about the unit to be used (Hz? kHz?).
+> >>>> It just says that this is an integer, with a driver-specific
+> >>>> range and step.
+> >>>>
+> >>>> So, one driver might choose to use Hz, other kHz, and other to
+> >>>> expose some internal counter. That's bad.
+> >>>>
+> >>>> We should either use a V4L2_CTRL_TYPE_MENU type of control, where it
+> >>>> would be possible to do something similar to DVBv3 way to specify
+> >>>> the bandwidth filter, or to define that the bandwidth will be
+> >>>> in Hz, kHz or MHz.
+> >>>
+> >>> Yeah, indeed. That was my mistake. The aim was Hz yes.
+> >>>
+> >>>>
+> >>>> Probably, a menu type is better, as it allows userspace to get
+> >>>> all supported bandwidths.
+> >>>
+> >>> I though it too, but there is already a lot choices for some tuners,
+> >>> E4000 has over 30. What is maximum reasonable filter count for
+> >>> V4L2_CTRL_TYPE_MENU?
+> >
+> > I don't see any troubles on having 30 items there. Maybe Hans is aware
+> > of some troubles on having such number of items.
+> >
+> > The advantage of a menu type is that it helps userspace to select
+> > an existing range.
+> >
+> >> One fear there is also what happens when there will be some day new RF
+> >> tuner having DSP which does digital filtering ~1 Hz step?
+> >
+> > It is possible.
+> >
+> >> Mabbe the current control is enough, but probably it is place to add
+> >> comment unit is Hz (even I think people should expect it is Hz when RF
+> >> frequencies are spoken).
+> >
+> > Please remind that V4L2 API has 3 scales already for frequencies,
+> > HZ being the less obvious one, as it is the one added only for
+> > 3.14 and upper.
+> >
+> > I see two alternatives here:
+> >
+> > 1) say that this is always Hz. The problem is if some future hardware
+> > would support a bandwidth bigger than 2 GHz. That's unlikely, as
+> > using such filter would require a wide band antenna, but
+> > I won't doubt that this might happen some day;
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  .../DocBook/media/v4l/vidioc-queryctrl.xml         | 223 +++++++++++++++++----
->  1 file changed, 189 insertions(+), 34 deletions(-)
+> Antenna dimensions are relative. 2GHz is not so much when we speak 
+> frequencies over 100 GHz and so.
+
+Yes, I know.
+
+> But it is very far away from the  environment we are now playing with...
+
+I went once to a speech from one engineer working at one mobile manufacturer
+that was experimenting with very wide band antenas. The idea were to have
+just one antenna and one radio able to get the all the band used by AM, FM
+and GSM/CDMA at the same time. This was several years ago. Not sure about
+any progress made on that direction, but we should keep our minds open,
+when dealing with an API that could potentially support things like that.
+
+> > 2) say that this should follow the corresponding tuner CAPS for
+> > frequencies (V4L2_TUNER_CAP_LOW, V4L2_TUNER_CAP_NORM, V4L2_TUNER_CAP_1HZ).
+> >
+> > The advantage of (2) is that, if we latter need to support wide band
+> > filters, one would just need to use V4L2_TUNER_CAP_NORM (or a newer
+> > V4L2_TUNER_CAP_1KHZ).
 > 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> index e6645b9..da0e534 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> @@ -1,11 +1,12 @@
->  <refentry id="vidioc-queryctrl">
->    <refmeta>
-> -    <refentrytitle>ioctl VIDIOC_QUERYCTRL, VIDIOC_QUERYMENU</refentrytitle>
-> +    <refentrytitle>ioctl VIDIOC_QUERYCTRL, VIDIOC_QUERY_EXT_CTRL, VIDIOC_QUERYMENU</refentrytitle>
->      &manvol;
->    </refmeta>
->  
->    <refnamediv>
->      <refname>VIDIOC_QUERYCTRL</refname>
-> +    <refname>VIDIOC_QUERY_EXT_CTRL</refname>
->      <refname>VIDIOC_QUERYMENU</refname>
->      <refpurpose>Enumerate controls and menu control items</refpurpose>
->    </refnamediv>
-> @@ -24,6 +25,14 @@
->  	<funcdef>int <function>ioctl</function></funcdef>
->  	<paramdef>int <parameter>fd</parameter></paramdef>
->  	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_query_ext_ctrl *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
->  	<paramdef>struct v4l2_querymenu *<parameter>argp</parameter></paramdef>
->        </funcprototype>
->      </funcsynopsis>
-> @@ -42,7 +51,7 @@
->        <varlistentry>
->  	<term><parameter>request</parameter></term>
->  	<listitem>
-> -	  <para>VIDIOC_QUERYCTRL, VIDIOC_QUERYMENU</para>
-> +	  <para>VIDIOC_QUERYCTRL, VIDIOC_QUERY_EXT_CTRL, VIDIOC_QUERYMENU</para>
->  	</listitem>
->        </varlistentry>
->        <varlistentry>
-> @@ -91,7 +100,26 @@ prematurely end the enumeration).</para></footnote></para>
->  <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> the driver returns the
->  next supported control, or <errorcode>EINVAL</errorcode> if there is
->  none. Drivers which do not support this flag yet always return
-> -<errorcode>EINVAL</errorcode>.</para>
-> +<errorcode>EINVAL</errorcode>. Hidden controls (i.e. controls
-> +with the <constant>V4L2_CTRL_FLAG_HIDDEN</constant> flag set) are
-> +skipped when using the <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>
-> +flag. Use the <constant>VIDIOC_QUERY_EXT_CTRL</constant> for that.</para>
+> That is fine for me too, but I suspect Hans don't like it, as those 
+> steps are mapped "V4L tuner API", right?
 
-I suspect that most of the things (if not all) here already commented
-on the initial patches)
+Hans?
 
-In this case, as already commented, I don't see any reason why
-to deny VIDIOC_QUERYCTRL to get the hidden controls if V4L2_CTRL_FLAG_HIDDEN
-is used.
+> Anyway, is that something we can just put in and fine tune later if 
+> needed? 
 
-> +
-> +    <para>The <constant>VIDIOC_QUERY_EXT_CTRL</constant> ioctl was
-> +introduced in order to better support controls that can use complex
-> +types, and to expose additional control information that cannot be
-> +returned in &v4l2-queryctrl; since that structure is full.</para>
+Well, we should define something there. I would then say that this
+is in 1Hz scale, and should be used only for SDR drivers that use
+V4L2_TUNER_CAP_1HZ.
 
-s/complex/compound/g
+That would give us some flexibility to change it later if needed.
 
-> +
-> +    <para><constant>VIDIOC_QUERY_EXT_CTRL</constant> is used in the
-> +same way as <constant>VIDIOC_QUERYCTRL</constant>, except that the
-> +<structfield>reserved</structfield> array must be zeroed as well.
-> +In addition, the <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> flag
-> +can be specified to enumerate all hidden controls (i.e. controls
-> +with the <constant>V4L2_CTRL_FLAG_HIDDEN</constant> flag set, which
-> +includes all controls with complex types). Specify both
-> +<constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
-> +<constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> in order to enumerate
-> +all controls, hidden or not.</para>
->  
->      <para>Additional information is required for menu controls: the
->  names of the menu items. To query them applications set the
-> @@ -142,38 +170,23 @@ string. This information is intended for the user.</entry>
->  	    <entry>__s32</entry>
->  	    <entry><structfield>minimum</structfield></entry>
->  	    <entry>Minimum value, inclusive. This field gives a lower
-> -bound for <constant>V4L2_CTRL_TYPE_INTEGER</constant> controls and the
-> -lowest valid index for <constant>V4L2_CTRL_TYPE_MENU</constant> controls.
-> -For <constant>V4L2_CTRL_TYPE_STRING</constant> controls the minimum value
-> -gives the minimum length of the string. This length <emphasis>does not include the terminating
-> -zero</emphasis>. It may not be valid for any other type of control, including
-> -<constant>V4L2_CTRL_TYPE_INTEGER64</constant> controls. Note that this is a
-> -signed value.</entry>
-> +bound for the control. See &v4l2-ctrl-type; how the minimum value is to
-> +be used for each possible control type. Note that this a signed 32-bit value.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__s32</entry>
->  	    <entry><structfield>maximum</structfield></entry>
->  	    <entry>Maximum value, inclusive. This field gives an upper
-> -bound for <constant>V4L2_CTRL_TYPE_INTEGER</constant> controls and the
-> -highest valid index for <constant>V4L2_CTRL_TYPE_MENU</constant>
-> -controls. For <constant>V4L2_CTRL_TYPE_BITMASK</constant> controls it is the
-> -set of usable bits.
-> -For <constant>V4L2_CTRL_TYPE_STRING</constant> controls the maximum value
-> -gives the maximum length of the string. This length <emphasis>does not include the terminating
-> -zero</emphasis>. It may not be valid for any other type of control, including
-> -<constant>V4L2_CTRL_TYPE_INTEGER64</constant> controls. Note that this is a
-> -signed value.</entry>
-> +bound for the control. See &v4l2-ctrl-type; how the maximum value is to
-> +be used for each possible control type. Note that this a signed 32-bit value.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__s32</entry>
->  	    <entry><structfield>step</structfield></entry>
-> -	    <entry><para>This field gives a step size for
-> -<constant>V4L2_CTRL_TYPE_INTEGER</constant> controls. For
-> -<constant>V4L2_CTRL_TYPE_STRING</constant> controls this field refers to
-> -the string length that has to be a multiple of this step size.
-> -It may not be valid for any other type of control, including
-> -<constant>V4L2_CTRL_TYPE_INTEGER64</constant>
-> -controls.</para><para>Generally drivers should not scale hardware
-> +	    <entry><para>This field gives a step size for the control.
-> +See &v4l2-ctrl-type; how the step value is to be used for each possible
-> +control type. Note that this an unsigned 32-bit value.
-> +</para><para>Generally drivers should not scale hardware
->  control values. It may be necessary for example when the
->  <structfield>name</structfield> or <structfield>id</structfield> imply
->  a particular unit and the hardware actually accepts only multiples of
-> @@ -192,10 +205,11 @@ be always positive.</para></entry>
->  	    <entry><structfield>default_value</structfield></entry>
->  	    <entry>The default value of a
->  <constant>V4L2_CTRL_TYPE_INTEGER</constant>,
-> -<constant>_BOOLEAN</constant> or <constant>_MENU</constant> control.
-> -Not valid for other types of controls. Drivers reset controls only
-> -when the driver is loaded, not later, in particular not when the
-> -func-open; is called.</entry>
-> +<constant>_BOOLEAN</constant>, <constant>_BITMASK</constant>,
-> +<constant>_MENU</constant> or <constant>_INTEGER_MENU</constant> control.
-> +Not valid for other types of controls.
-> +Note that drivers reset controls to their default value only when the
-> +driver is first loaded, never afterwards.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -213,6 +227,129 @@ the array to zero.</entry>
->        </tgroup>
->      </table>
->  
-> +    <table pgwide="1" frame="none" id="v4l2-query-ext-ctrl">
-> +      <title>struct <structname>v4l2_query_ext_ctrl</structname></title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>id</structfield></entry>
-> +	    <entry>Identifies the control, set by the application. See
-> +<xref linkend="control-id" /> for predefined IDs. When the ID is ORed
-> +with <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> the driver clears the
-> +flag and returns the first non-hidden control with a higher ID. When the
-> +ID is ORed with <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> the driver
-> +clears the flag and returns the first hidden control with a higher ID.
-> +Set both to get the first control (hidden or not) with a higher ID.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>type</structfield></entry>
-> +	    <entry>Type of control, see <xref
-> +		linkend="v4l2-ctrl-type" />.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>char</entry>
-> +	    <entry><structfield>name</structfield>[32]</entry>
-> +	    <entry>Name of the control, a NUL-terminated ASCII
-> +string. This information is intended for the user.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>char</entry>
-> +	    <entry><structfield>unit</structfield>[32]</entry>
-> +	    <entry>The name of the unit of the control's value, a NUL-terminated ASCII
-> +string. This information is intended for the user. This may be an empty string if no
-> +unit is known or if it is not applicable to this particular control.</entry>
+> I cannot see big issues and it is still experimental and all 
+> drivers are staging....
 
-Charset? There are some units, like  ångström (Å) that are not ASCII.
-Also, there are several units that use greek letters. So, I think we need
-to specify a charset here. IMHO, the better is to use UTF-8.
-
-> +	  </row>
-> +	  <row>
-> +	    <entry>__s64</entry>
-> +	    <entry><structfield>minimum</structfield></entry>
-> +	    <entry>Minimum value, inclusive. This field gives a lower
-> +bound for the control. See &v4l2-ctrl-type; how the minimum value is to
-> +be used for each possible control type. Note that this a signed 64-bit value.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__s64</entry>
-> +	    <entry><structfield>maximum</structfield></entry>
-> +	    <entry>Maximum value, inclusive. This field gives an upper
-> +bound for the control. See &v4l2-ctrl-type; how the maximum value is to
-> +be used for each possible control type. Note that this a signed 64-bit value.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u64</entry>
-> +	    <entry><structfield>step</structfield></entry>
-> +	    <entry><para>This field gives a step size for the control.
-> +See &v4l2-ctrl-type; how the step value is to be used for each possible
-> +control type. Note that this an unsigned 64-bit value.
-> +</para><para>Generally drivers should not scale hardware
-> +control values. It may be necessary for example when the
-> +<structfield>name</structfield> or <structfield>id</structfield> imply
-> +a particular unit and the hardware actually accepts only multiples of
-> +said unit. If so, drivers must take care values are properly rounded
-> +when scaling, such that errors will not accumulate on repeated
-> +read-write cycles.</para><para>This field gives the smallest change of
-> +an integer control actually affecting hardware. Often the information
-> +is needed when the user can change controls by keyboard or GUI
-> +buttons, rather than a slider. When for example a hardware register
-> +accepts values 0-511 and the driver reports 0-65535, step should be
-> +128.</para></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__s64</entry>
-> +	    <entry><structfield>default_value</structfield></entry>
-> +	    <entry>The default value of a
-> +<constant>V4L2_CTRL_TYPE_INTEGER</constant>, <constant>_INTEGER64</constant>,
-> +<constant>_BOOLEAN</constant>, <constant>_BITMASK</constant>,
-> +<constant>_MENU</constant> or <constant>_INTEGER_MENU</constant> control.
-> +Not valid for other types of controls.
-> +Note that drivers reset controls to their default value only when the
-> +driver is first loaded, never afterwards.
-> +</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>flags</structfield></entry>
-> +	    <entry>Control flags, see <xref
-> +		linkend="control-flags" />.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>cols</structfield></entry>
-> +	    <entry>The number of columns in the matrix. If this control
-> +is not a matrix, then both <structfield>cols</structfield> and
-> +<structfield>rows</structfield> are 1. <structfield>cols</structfield>
-> +can never be 0.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>rows</structfield></entry>
-> +	    <entry>The number of rows in the matrix. If this control
-> +is not a matrix, then both <structfield>cols</structfield> and
-> +<structfield>rows</structfield> are 1. <structfield>rows</structfield>
-> +can never be 0.</entry>
-> +	  </row>
-
-As already commented, cols/rows are matrix specific. If the control type 
-is not a matrix, those makes no sense.
-
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>elem_size</structfield></entry>
-> +	    <entry>The size in bytes of a single element of the matrix.
-> +Given a char pointer <constant>p</constant> to the matrix you can find the
-> +position of cell <constant>(y, x)</constant> as follows:
-> +<constant>p + (y * cols + x) * elem_size</constant>. <structfield>elem_size</structfield>
-> +is always valid, also when the control isn't a matrix. For string controls
-> +<structfield>elem_size</structfield> is equal to <structfield>maximum + 1</structfield>.
-> +</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[17]</entry>
-> +	    <entry>Reserved for future extensions. Applications and drivers
-> +must set the array to zero.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
->      <table pgwide="1" frame="none" id="v4l2-querymenu">
->        <title>struct <structname>v4l2_querymenu</structname></title>
->        <tgroup cols="4">
-> @@ -347,11 +484,14 @@ Drivers must ignore the value passed with
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_CTRL_TYPE_INTEGER64</constant></entry>
-> -	    <entry>n/a</entry>
-> -	    <entry>n/a</entry>
-> -	    <entry>n/a</entry>
-> +	    <entry>any</entry>
-> +	    <entry>any</entry>
-> +	    <entry>any</entry>
->  	    <entry>A 64-bit integer valued control. Minimum, maximum
-> -and step size cannot be queried.</entry>
-> +and step size cannot be queried using <constant>VIDIOC_QUERYCTRL</constant>.
-> +Only <constant>VIDIOC_QUERY_EXT_CTRL</constant> can retrieve the 64-bit
-> +min/max/step values, they should be interpreted as n/a when using
-> +<constant>VIDIOC_QUERYCTRL</constant>.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_CTRL_TYPE_STRING</constant></entry>
-> @@ -450,6 +590,21 @@ is in auto-gain mode. In such a case the hardware calculates the gain value base
->  the lighting conditions which can change over time. Note that setting a new value for
->  a volatile control will have no effect. The new value will just be ignored.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_CTRL_FLAG_HIDDEN</constant></entry>
-> +	    <entry>0x0100</entry>
-> +	    <entry>This control is hidden and should not be shown in a GUI application.
-> +Hidden controls are skipped when enumerating them using <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>,
-> +and they can only be enumerated by using the <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant>
-> +flag. All controls that have a complex type have this flag set.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_CTRL_FLAG_IS_PTR</constant></entry>
-> +	    <entry>0x0200</entry>
-> +	    <entry>This control has a pointer type, so its value has to be accessed
-> +using one of the pointer fields of &v4l2-ext-control;. This flag is set for controls
-> +that are a matrix, string, or have a complex type.</entry>
-
-This seems messy: use IS_PTR for string too. As already pointed, string
-is a NUL-terminated sequence, while pointer is a size defined
-element, sequence or matrix. Let's not mix this at the API. This is already
-complex enough.
-
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-
-
--- 
+Having the drivers at staging helps, but I doubt that we'll remind
+to review this when moving the driver upstream. So, better to let
+the API document to reflect what's implemented, in order to make
+our lives easier when migrating this out of staging.
 
 Regards,
 Mauro
