@@ -1,212 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48038 "EHLO mx2.suse.de"
+Received: from smtp4-g21.free.fr ([212.27.42.4]:59100 "EHLO smtp4-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751382AbaCQTtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 15:49:45 -0400
-From: Jan Kara <jack@suse.cz>
-To: linux-mm@kvack.org
-Cc: linux-media@vger.kernel.org, Jan Kara <jack@suse.cz>
-Subject: [PATCH 7/9] media: vb2: Remove unused functions
-Date: Mon, 17 Mar 2014 20:49:34 +0100
-Message-Id: <1395085776-8626-8-git-send-email-jack@suse.cz>
-In-Reply-To: <1395085776-8626-1-git-send-email-jack@suse.cz>
-References: <1395085776-8626-1-git-send-email-jack@suse.cz>
+	id S1755212AbaCLQcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 12:32:07 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v10][ 09/10] imx-drm: parallel-display: retrive extra display-timings.
+Date: Wed, 12 Mar 2014 17:31:06 +0100
+Message-Id: <1394641867-15629-9-git-send-email-denis@eukrea.com>
+In-Reply-To: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+References: <1394641867-15629-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Conversion to the use of pinned pfns made some functions unused. Remove
-them. Also there's no need to lock mmap_sem in __buf_prepare() anymore.
+If de-active and/or pixelclk-active properties were set in the
+display-timings DT node, they were not used.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Instead the data-enable and the pixel data clock polarity
+were hardcoded.
+
+Signed-off-by: Denis Carikli <denis@eukrea.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c   |   8 +-
- drivers/media/v4l2-core/videobuf2-memops.c | 114 -----------------------------
- include/media/videobuf2-memops.h           |   7 --
- 3 files changed, 2 insertions(+), 127 deletions(-)
+ChangeLog v9->v10:
+- New patch from what's left of:
+  "staging: imx-drm: Use de-active and pixelclk-active
+- New patch title.
+---
+ drivers/staging/imx-drm/parallel-display.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7cec08542fb5..b77dfb3076e8 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1355,7 +1355,6 @@ static void vb2_put_user_pfns(struct v4l2_buffer *buf,
- static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	struct rw_semaphore *mmap_sem = NULL;
- 	struct pinned_pfns *tmp_store;
- 	struct pinned_pfns **ppfns = NULL;
- 	int ret;
-@@ -1374,8 +1373,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		break;
- 	case V4L2_MEMORY_USERPTR:
- 		/*
--		 * In case of user pointer buffers vb2 allocators need to get
--		 * direct access to userspace pages. This requires getting
-+		 * In case of user pointer buffers vb2_get_user_pfns() needs to
-+		 * get direct access to userspace pages. This requires getting
- 		 * the mmap semaphore for read access in the current process
- 		 * structure. The same semaphore is taken before calling mmap
- 		 * operation, while both qbuf/prepare_buf and mmap are called
-@@ -1385,10 +1384,8 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		 * the videobuf2 core releases the driver's lock, takes
- 		 * mmap_sem and then takes the driver's lock again.
- 		 */
--		mmap_sem = &current->mm->mmap_sem;
- 		call_qop(q, wait_prepare, q);
- 		ppfns = vb2_get_user_pfns(b, &tmp_store);
--		down_read(mmap_sem);
- 		call_qop(q, wait_finish, q);
- 
- 		if (!IS_ERR(ppfns)) {
-@@ -1396,7 +1393,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 			vb2_put_user_pfns(b, ppfns, &tmp_store);
- 		} else
- 			ret = PTR_ERR(ppfns);
--		up_read(mmap_sem);
- 		break;
- 	case V4L2_MEMORY_DMABUF:
- 		ret = __qbuf_dmabuf(vb, b);
-diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
-index 81c1ad8b2cf1..9b44e9af69ba 100644
---- a/drivers/media/v4l2-core/videobuf2-memops.c
-+++ b/drivers/media/v4l2-core/videobuf2-memops.c
-@@ -23,120 +23,6 @@
- #include <media/videobuf2-memops.h>
- 
- /**
-- * vb2_get_vma() - acquire and lock the virtual memory area
-- * @vma:	given virtual memory area
-- *
-- * This function attempts to acquire an area mapped in the userspace for
-- * the duration of a hardware operation. The area is "locked" by performing
-- * the same set of operation that are done when process calls fork() and
-- * memory areas are duplicated.
-- *
-- * Returns a copy of a virtual memory region on success or NULL.
-- */
--struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma)
--{
--	struct vm_area_struct *vma_copy;
--
--	vma_copy = kmalloc(sizeof(*vma_copy), GFP_KERNEL);
--	if (vma_copy == NULL)
--		return NULL;
--
--	if (vma->vm_ops && vma->vm_ops->open)
--		vma->vm_ops->open(vma);
--
--	if (vma->vm_file)
--		get_file(vma->vm_file);
--
--	memcpy(vma_copy, vma, sizeof(*vma));
--
--	vma_copy->vm_mm = NULL;
--	vma_copy->vm_next = NULL;
--	vma_copy->vm_prev = NULL;
--
--	return vma_copy;
--}
--EXPORT_SYMBOL_GPL(vb2_get_vma);
--
--/**
-- * vb2_put_userptr() - release a userspace virtual memory area
-- * @vma:	virtual memory region associated with the area to be released
-- *
-- * This function releases the previously acquired memory area after a hardware
-- * operation.
-- */
--void vb2_put_vma(struct vm_area_struct *vma)
--{
--	if (!vma)
--		return;
--
--	if (vma->vm_ops && vma->vm_ops->close)
--		vma->vm_ops->close(vma);
--
--	if (vma->vm_file)
--		fput(vma->vm_file);
--
--	kfree(vma);
--}
--EXPORT_SYMBOL_GPL(vb2_put_vma);
--
--/**
-- * vb2_get_contig_userptr() - lock physically contiguous userspace mapped memory
-- * @vaddr:	starting virtual address of the area to be verified
-- * @size:	size of the area
-- * @res_paddr:	will return physical address for the given vaddr
-- * @res_vma:	will return locked copy of struct vm_area for the given area
-- *
-- * This function will go through memory area of size @size mapped at @vaddr and
-- * verify that the underlying physical pages are contiguous. If they are
-- * contiguous the virtual memory area is locked and a @res_vma is filled with
-- * the copy and @res_pa set to the physical address of the buffer.
-- *
-- * Returns 0 on success.
-- */
--int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
--			   struct vm_area_struct **res_vma, dma_addr_t *res_pa)
--{
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
--	unsigned long offset, start, end;
--	unsigned long this_pfn, prev_pfn;
--	dma_addr_t pa = 0;
--
--	start = vaddr;
--	offset = start & ~PAGE_MASK;
--	end = start + size;
--
--	vma = find_vma(mm, start);
--
--	if (vma == NULL || vma->vm_end < end)
--		return -EFAULT;
--
--	for (prev_pfn = 0; start < end; start += PAGE_SIZE) {
--		int ret = follow_pfn(vma, start, &this_pfn);
--		if (ret)
--			return ret;
--
--		if (prev_pfn == 0)
--			pa = this_pfn << PAGE_SHIFT;
--		else if (this_pfn != prev_pfn + 1)
--			return -EFAULT;
--
--		prev_pfn = this_pfn;
--	}
--
--	/*
--	 * Memory is contigous, lock vma and return to the caller
--	 */
--	*res_vma = vb2_get_vma(vma);
--	if (*res_vma == NULL)
--		return -ENOMEM;
--
--	*res_pa = pa + offset;
--	return 0;
--}
--EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
--
--/**
-  * vb2_common_vm_open() - increase refcount of the vma
-  * @vma:	virtual memory region for the mapping
-  *
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-index f05444ca8c0c..efab6dc53b52 100644
---- a/include/media/videobuf2-memops.h
-+++ b/include/media/videobuf2-memops.h
-@@ -30,11 +30,4 @@ struct vb2_vmarea_handler {
- 
- extern const struct vm_operations_struct vb2_common_vm_ops;
- 
--int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
--			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
--
--struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
--void vb2_put_vma(struct vm_area_struct *vma);
--
--
- #endif
+diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-drm/parallel-display.c
+index 871a737..09b07d5 100644
+--- a/drivers/staging/imx-drm/parallel-display.c
++++ b/drivers/staging/imx-drm/parallel-display.c
+@@ -85,7 +85,8 @@ static int imx_pd_connector_get_modes(struct drm_connector *connector)
+ 			return -EINVAL;
+ 		of_get_drm_display_mode(np, &imxpd->mode, OF_USE_NATIVE_MODE);
+ 		drm_mode_copy(mode, &imxpd->mode);
+-		imx_drm_set_default_timing_flags(mode);
++		imx_drm_of_get_extra_timing_flags(&imxpd->connector, mode,
++						  imxpd->dev->of_node);
+ 		mode->type |= DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED,
+ 		drm_mode_probed_add(connector, mode);
+ 		num_modes++;
 -- 
-1.8.1.4
+1.7.9.5
 
