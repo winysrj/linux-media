@@ -1,176 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53637 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754604AbaCKMrE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:47:04 -0400
-Message-ID: <531F05BD.70500@ti.com>
-Date: Tue, 11 Mar 2014 18:16:53 +0530
-From: Archit Taneja <a0393947@ti.com>
-MIME-Version: 1.0
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:32487 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753883AbaCLKkV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 06:40:21 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2B00I6VKB8NG00@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Mar 2014 06:40:20 -0400 (EDT)
+Date: Wed, 12 Mar 2014 07:40:14 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <k.debski@samsung.com>, <linux-media@vger.kernel.org>,
-	<linux-omap@vger.kernel.org>
-Subject: Re: [PATCH v3 07/14] v4l: ti-vpe: Add selection API in VPE driver
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-8-git-send-email-archit@ti.com> <531EFFC5.6040007@xs4all.nl>
-In-Reply-To: <531EFFC5.6040007@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 13/35] v4l2-ctrls: use 'new' to access pointer
+ controls
+Message-id: <20140312074014.34fb7df4@samsung.com>
+In-reply-to: <1392631070-41868-14-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+ <1392631070-41868-14-git-send-email-hverkuil@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 11 March 2014 05:51 PM, Hans Verkuil wrote:
-> Hi Archit,
->
-> A few small comments below...
->
-> On 03/11/14 09:33, Archit Taneja wrote:
->> Add selection ioctl ops. For VPE, cropping makes sense only for the input to
->> VPE(or V4L2_BUF_TYPE_VIDEO_OUTPUT/MPLANE buffers) and composing makes sense
->> only for the output of VPE(or V4L2_BUF_TYPE_VIDEO_CAPTURE/MPLANE buffers).
->>
->> For the CAPTURE type, V4L2_SEL_TGT_COMPOSE results in VPE writing the output
->> in a rectangle within the capture buffer. For the OUTPUT type, V4L2_SEL_TGT_CROP
->> results in selecting a rectangle region within the source buffer.
->>
->> Setting the crop/compose rectangles should successfully result in
->> re-configuration of registers which are affected when either source or
->> destination dimensions change, set_srcdst_params() is called for this purpose.
->>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->> ---
->>   drivers/media/platform/ti-vpe/vpe.c | 141 ++++++++++++++++++++++++++++++++++++
->>   1 file changed, 141 insertions(+)
->>
->> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
->> index ece9b96..4abb85c 100644
->> --- a/drivers/media/platform/ti-vpe/vpe.c
->> +++ b/drivers/media/platform/ti-vpe/vpe.c
->> @@ -410,8 +410,10 @@ static struct vpe_q_data *get_q_data(struct vpe_ctx *ctx,
->>   {
->>   	switch (type) {
->>   	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->>   		return &ctx->q_data[Q_DATA_SRC];
->>   	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->>   		return &ctx->q_data[Q_DATA_DST];
->>   	default:
->>   		BUG();
->> @@ -1587,6 +1589,142 @@ static int vpe_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
->>   	return set_srcdst_params(ctx);
->>   }
->>
->> +static int __vpe_try_selection(struct vpe_ctx *ctx, struct v4l2_selection *s)
->> +{
->> +	struct vpe_q_data *q_data;
->> +
->> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
->> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
->> +		return -EINVAL;
->> +
->> +	q_data = get_q_data(ctx, s->type);
->> +	if (!q_data)
->> +		return -EINVAL;
->> +
->> +	switch (s->target) {
->> +	case V4L2_SEL_TGT_COMPOSE:
->> +		/*
->> +		 * COMPOSE target is only valid for capture buffer type, for
->> +		 * output buffer type, assign existing crop parameters to the
->> +		 * selection rectangle
->> +		 */
->> +		if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
->> +			break;
->
-> Shouldn't this return -EINVAL?
+Em Mon, 17 Feb 2014 10:57:28 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-compose only makes sense for CAPTURE. So, it breaks and performs the 
-calculations after the switch statement.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Require that 'new' string and pointer values are accessed through the 'new'
+> field instead of through the union. This reduces the union to just val and
+> val64.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+>  drivers/media/radio/si4713/si4713.c                | 4 ++--
+>  drivers/media/v4l2-core/v4l2-ctrls.c               | 4 ++--
+>  drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 2 +-
+>  include/media/v4l2-ctrls.h                         | 2 --
+>  4 files changed, 5 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+> index 07d5153..718e10d 100644
+> --- a/drivers/media/radio/si4713/si4713.c
+> +++ b/drivers/media/radio/si4713/si4713.c
+> @@ -1098,11 +1098,11 @@ static int si4713_s_ctrl(struct v4l2_ctrl *ctrl)
+>  
+>  		switch (ctrl->id) {
+>  		case V4L2_CID_RDS_TX_PS_NAME:
+> -			ret = si4713_set_rds_ps_name(sdev, ctrl->string);
+> +			ret = si4713_set_rds_ps_name(sdev, ctrl->new.p_char);
+>  			break;
+>  
+>  		case V4L2_CID_RDS_TX_RADIO_TEXT:
+> -			ret = si4713_set_rds_radio_text(sdev, ctrl->string);
+> +			ret = si4713_set_rds_radio_text(sdev, ctrl->new.p_char);
+>  			break;
+>  
+>  		case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 084335a..49ce52e 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1820,8 +1820,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+>  	data = &ctrl->stores[1];
+>  
+>  	if (ctrl->is_ptr) {
+> -		ctrl->p = ctrl->new.p = data;
+> -		ctrl->stores[0].p = data + elem_size;
+> +		for (s = -1; s <= 0; s++)
+> +			ctrl->stores[s].p = data + (s + 1) * elem_size;
 
->
->> +
->> +		s->r = q_data->c_rect;
->> +		return 0;
+NACK! Don't use negative values for arrays.
 
-The above 2 lines are called for if we try to set compose for OUTPUT. I 
-don't return an error here, just keep the size as the original rect 
-size, and return 0.
+>  	} else {
+>  		ctrl->new.p = &ctrl->val;
+>  		ctrl->stores[0].p = data;
+> diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+> index ce9e5aa..d19743b 100644
+> --- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+> +++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+> @@ -1127,7 +1127,7 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		solo_motion_toggle(solo_enc, ctrl->val);
+>  		return 0;
+>  	case V4L2_CID_OSD_TEXT:
+> -		strcpy(solo_enc->osd_text, ctrl->string);
+> +		strcpy(solo_enc->osd_text, ctrl->new.p_char);
+>  		err = solo_osd_print(solo_enc);
+>  		return err;
+>  	default:
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index 4f66393..1b06930 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -195,8 +195,6 @@ struct v4l2_ctrl {
+>  	union {
+>  		s32 val;
+>  		s64 val64;
+> -		char *string;
+> -		void *p;
+>  	};
+>  	union v4l2_ctrl_ptr *stores;
+>  	union v4l2_ctrl_ptr new;
 
-I'll replace these 2 lines with 'return -EINVAL;'
 
->> +
->> +	case V4L2_SEL_TGT_CROP:
->> +		/*
->> +		 * CROP target is only valid for output buffer type, for capture
->> +		 * buffer type, assign existing compose parameters to the
->> +		 * selection rectangle
->> +		 */
->> +		if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
->> +			break;
->
-> Ditto.
->
->> +
->> +		s->r = q_data->c_rect;
->> +		return 0;
->> +
->> +	/*
->> +	 * bound and default crop/compose targets are invalid targets to
->> +	 * try/set
->> +	 */
->> +	default:
->> +		return -EINVAL;
->> +	}
->> +
->> +	if (s->r.top < 0 || s->r.left < 0) {
->> +		vpe_err(ctx->dev, "negative values for top and left\n");
->> +		s->r.top = s->r.left = 0;
->> +	}
->> +
->> +	v4l_bound_align_image(&s->r.width, MIN_W, q_data->width, 1,
->> +		&s->r.height, MIN_H, q_data->height, H_ALIGN, S_ALIGN);
->> +
->> +	/* adjust left/top if cropping rectangle is out of bounds */
->> +	if (s->r.left + s->r.width > q_data->width)
->> +		s->r.left = q_data->width - s->r.width;
->> +	if (s->r.top + s->r.height > q_data->height)
->> +		s->r.top = q_data->height - s->r.height;
->> +
->> +	return 0;
->> +}
->> +
->> +static int vpe_g_selection(struct file *file, void *fh,
->> +		struct v4l2_selection *s)
->> +{
->> +	struct vpe_ctx *ctx = file2ctx(file);
->> +	struct vpe_q_data *q_data;
->> +
->> +	if ((s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
->> +	    (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT))
->> +		return -EINVAL;
->> +
->> +	q_data = get_q_data(ctx, s->type);
->> +	if (!q_data)
->> +		return -EINVAL;
->> +
->> +	switch (s->target) {
->> +	/* return width and height from S_FMT of the respective buffer type */
->> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
->> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
->> +	case V4L2_SEL_TGT_CROP_BOUNDS:
->> +	case V4L2_SEL_TGT_CROP_DEFAULT:
->> +		s->r.left = 0;
->> +		s->r.top = 0;
->> +		s->r.width = q_data->width;
->> +		s->r.height = q_data->height;
->
-> The crop targets only make sense for type OUTPUT and the compose only for
-> type CAPTURE. Add some checks for that.
+-- 
 
-I return the image size for G_FMT irrespective of what combination of 
-crop/compose CAPTURE/OUTPUT it is. I suppose it is better to return an 
-error if the user tries to configure a wrong combination.
-
-Thanks,
-Archit
-
+Regards,
+Mauro
