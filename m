@@ -1,53 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45458 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639AbaCITWD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Mar 2014 15:22:03 -0400
-Date: Sun, 9 Mar 2014 20:21:43 +0100
-From: Philipp Zabel <pza@pengutronix.de>
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+Received: from smtp4-g21.free.fr ([212.27.42.4]:56340 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754527AbaCLQbV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 12:31:21 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 6/8] of: Implement simplified graph binding for single
- port devices
-Message-ID: <20140309192143.GB4939@pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de>
- <1394011242-16783-7-git-send-email-p.zabel@pengutronix.de>
- <20140307183802.B6E90C40C6F@trevor.secretlab.ca>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20140307183802.B6E90C40C6F@trevor.secretlab.ca>
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v10][ 01/10] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
+Date: Wed, 12 Mar 2014 17:30:58 +0100
+Message-Id: <1394641867-15629-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 07, 2014 at 06:38:02PM +0000, Grant Likely wrote:
-> On Wed,  5 Mar 2014 10:20:40 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > For simple devices with only one port, it can be made implicit.
-> > The endpoint node can be a direct child of the device node.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> Ergh... I think this is too loosely defined. The caller really should be
-> explicit about which behaviour it needs. I'll listen to arguments
-> though if you can make a strong argument.
+That new macro is needed by the imx_drm staging driver
+  for supporting the QVGA display of the eukrea-cpuimx51 board.
 
-I have dropped this patch and the corresponding documentation patch for
-now. This simplification is a separate issue from the move and there is
-no consensus yet.
-Basically the main issue with the port { endpoint { remote-endpoint=... } }
-binding is that it is very verbose if you just need a single link.
-Instead of removing the port node, we could also remove the endpoint node
-and have the remote-endpoint property direcly in the port node.
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ChangeLog v9->v10:
+- Rebased on top of:
+  "211e7f2 [media] DocBook media: drop the old incorrect packed RGB table"
+- Added Philipp Zabel's Ack.
 
-regards
-Philipp
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
+
+ChangeLog v7->v8:
+- Added Mauro Carvalho Chehab back to the list of Cc
+
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
+ChangeLog v5->v6:
+- Remove people not concerned by this patch from the Cc list.
+
+ChangeLog v3->v4:
+- Added Laurent Pinchart's Ack.
+
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Added Mauro Carvalho Chehab's Ack.
+- Added documentation.
+---
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   39 ++++++++++++++++++++
+ include/uapi/linux/videodev2.h                     |    1 +
+ 2 files changed, 40 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index e1c4f8b..88a7fe1 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-RGB666">
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-BGR24">
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 28abdf7..5293b81 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -299,6 +299,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+ #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
++#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
+ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
+ #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
+-- 
+1.7.9.5
+
