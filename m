@@ -1,188 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:57666 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752265AbaB1X3y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 18:29:54 -0500
-Received: by mail-wi0-f179.google.com with SMTP id bs8so1216629wib.6
-        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:29:53 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: James Hogan <james.hogan@imgtec.com>
-Subject: [PATCH v4 07/10] rc: img-ir: add JVC decoder module
-Date: Fri, 28 Feb 2014 23:28:57 +0000
-Message-Id: <1393630140-31765-8-git-send-email-james.hogan@imgtec.com>
-In-Reply-To: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
-References: <1393630140-31765-1-git-send-email-james.hogan@imgtec.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:40538 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751843AbaCLMhw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 08:37:52 -0400
+Message-ID: <5320551C.4090106@iki.fi>
+Date: Wed, 12 Mar 2014 14:37:48 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: [REVIEW PATCH 11/13] DocBook: document RF tuner bandwidth controls
+References: <1393460528-11684-1-git-send-email-crope@iki.fi> <1393460528-11684-12-git-send-email-crope@iki.fi> <20140305154922.508c48d7@samsung.com> <531D8D78.800@iki.fi> <20140312080233.3823dd80@samsung.com> <5320527B.9040707@iki.fi>
+In-Reply-To: <5320527B.9040707@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an img-ir module for decoding the JVC infrared protocol.
+On 12.03.2014 14:26, Antti Palosaari wrote:
+> On 12.03.2014 13:02, Mauro Carvalho Chehab wrote:
+>> Em Mon, 10 Mar 2014 12:01:28 +0200
+>> Antti Palosaari <crope@iki.fi> escreveu:
+>>
+>>> On 05.03.2014 20:49, Mauro Carvalho Chehab wrote:
+>>>> Em Thu, 27 Feb 2014 02:22:06 +0200
+>>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>>
+>>>>> Add documentation for RF tuner bandwidth controls. These controls are
+>>>>> used to set filters on tuner signal path.
+>>>>>
+>>>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>>>> ---
+>>>>>    Documentation/DocBook/media/v4l/controls.xml | 19
+>>>>> +++++++++++++++++++
+>>>>>    1 file changed, 19 insertions(+)
+>>>>>
+>>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+>>>>> b/Documentation/DocBook/media/v4l/controls.xml
+>>>>> index 6c9dbf6..5550fea 100644
+>>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>>>>> @@ -5007,6 +5007,25 @@ descriptor. Calling &VIDIOC-QUERYCTRL; for
+>>>>> this control will return a
+>>>>>    description of this control class.</entry>
+>>>>>                </row>
+>>>>>                <row>
+>>>>> +              <entry
+>>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH_AUTO</constant>&nbsp;</entry>
+>>>>>
+>>>>> +              <entry>boolean</entry>
+>>>>> +            </row>
+>>>>> +            <row>
+>>>>> +              <entry spanname="descr">Enables/disables tuner radio
+>>>>> channel
+>>>>> +bandwidth configuration. In automatic mode bandwidth configuration
+>>>>> is performed
+>>>>> +by the driver.</entry>
+>>>>> +            </row>
+>>>>> +            <row>
+>>>>> +              <entry
+>>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH</constant>&nbsp;</entry>
+>>>>>
+>>>>> +              <entry>integer</entry>
+>>>>> +            </row>
+>>>>> +            <row>
+>>>>> +              <entry spanname="descr">Filter(s) on tuner signal
+>>>>> path are used to
+>>>>> +filter signal according to receiving party needs. Driver
+>>>>> configures filters to
+>>>>> +fulfill desired bandwidth requirement. Used when
+>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO is not
+>>>>> +set. The range and step are driver-specific.</entry>
+>>>>
+>>>> Huh? If this is enable/disable, why "the range and step are
+>>>> driver-specific"?
+>>>
+>>> Because there is two controls grouped. That is situation of having
+>>> AUTO/MANUAL.
+>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO
+>>> V4L2_CID_RF_TUNER_BANDWIDTH
+>>>
+>>> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when
+>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO == false.
+>>>
+>>
+>> Sorry, but I'm not understanding what you're arguing.
+>>
+>> Yeah, it is clear at the patch that there are two controls, and that
+>> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when AUTO is disabled, but
+>> this doesn't answer my question:
+>>
+>> Why V4L2_CID_RF_TUNER_BANDWIDTH's range and step are driver-specific?
+>>
+>
+> Hmmm. That control is used to configure RF filters. Filters set
+> bandwidth of radio channel. There is usually quite limited set of
+> available analog filters inside RF tuner. If you look for example
+> FC0012/FC0013 possible filters are 6/7/8 MHz. E4000 has something 4-11
+> MHz. If you look those very old 1st gen silicon tuners like QT1010 /
+> MT2060, there is no integrated filters at all - but there is external
+> saw filter which is usually 8MHz at 36.125 MHz IF.
+>
+> Did you remember there is same parameter already in DVB API (struct
+> dtv_frontend_properties bandwidth_hz)? That is control is currently used
+> to set r820t, fc0012, fc10013 .bandwidth_hz value, e4000 implements it
+> correctly as own control.
+>
+> I am quite astonished we have that big gap with our views.
 
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
----
-v2:
-- Update to new scancode interface (32-bit NEC).
-- Update to new filtering interface (generic struct rc_scancode_filter).
-- Remove modularity and dynamic registration/unregistration, adding JVC
-  directly to the list of decoders in img-ir-hw.c.
----
- drivers/media/rc/img-ir/Kconfig      |  7 +++
- drivers/media/rc/img-ir/Makefile     |  1 +
- drivers/media/rc/img-ir/img-ir-hw.c  |  4 ++
- drivers/media/rc/img-ir/img-ir-jvc.c | 92 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 104 insertions(+)
- create mode 100644 drivers/media/rc/img-ir/img-ir-jvc.c
+Here is picture from GNU Radio UHD source (it is the original Ettus HW 
+GNU Radio was done AFAIK). Bandwidth is last control.
 
-diff --git a/drivers/media/rc/img-ir/Kconfig b/drivers/media/rc/img-ir/Kconfig
-index 28498a2..96006fbf 100644
---- a/drivers/media/rc/img-ir/Kconfig
-+++ b/drivers/media/rc/img-ir/Kconfig
-@@ -31,3 +31,10 @@ config IR_IMG_NEC
- 	help
- 	   Say Y here to enable support for the NEC, extended NEC, and 32-bit
- 	   NEC protocols in the ImgTec infrared decoder block.
-+
-+config IR_IMG_JVC
-+	bool "JVC protocol support"
-+	depends on IR_IMG_HW
-+	help
-+	   Say Y here to enable support for the JVC protocol in the ImgTec
-+	   infrared decoder block.
-diff --git a/drivers/media/rc/img-ir/Makefile b/drivers/media/rc/img-ir/Makefile
-index c409197..c5f8f06 100644
---- a/drivers/media/rc/img-ir/Makefile
-+++ b/drivers/media/rc/img-ir/Makefile
-@@ -2,6 +2,7 @@ img-ir-y			:= img-ir-core.o
- img-ir-$(CONFIG_IR_IMG_RAW)	+= img-ir-raw.o
- img-ir-$(CONFIG_IR_IMG_HW)	+= img-ir-hw.o
- img-ir-$(CONFIG_IR_IMG_NEC)	+= img-ir-nec.o
-+img-ir-$(CONFIG_IR_IMG_JVC)	+= img-ir-jvc.o
- img-ir-objs			:= $(img-ir-y)
- 
- obj-$(CONFIG_IR_IMG)		+= img-ir.o
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index 139f2c7..81c50e3 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -21,12 +21,16 @@
- static DEFINE_SPINLOCK(img_ir_decoders_lock);
- 
- extern struct img_ir_decoder img_ir_nec;
-+extern struct img_ir_decoder img_ir_jvc;
- 
- static bool img_ir_decoders_preprocessed;
- static struct img_ir_decoder *img_ir_decoders[] = {
- #ifdef CONFIG_IR_IMG_NEC
- 	&img_ir_nec,
- #endif
-+#ifdef CONFIG_IR_IMG_JVC
-+	&img_ir_jvc,
-+#endif
- 	NULL
- };
- 
-diff --git a/drivers/media/rc/img-ir/img-ir-jvc.c b/drivers/media/rc/img-ir/img-ir-jvc.c
-new file mode 100644
-index 0000000..ae55867
---- /dev/null
-+++ b/drivers/media/rc/img-ir/img-ir-jvc.c
-@@ -0,0 +1,92 @@
-+/*
-+ * ImgTec IR Decoder setup for JVC protocol.
-+ *
-+ * Copyright 2012-2014 Imagination Technologies Ltd.
-+ */
-+
-+#include "img-ir-hw.h"
-+
-+/* Convert JVC data to a scancode */
-+static int img_ir_jvc_scancode(int len, u64 raw, int *scancode, u64 protocols)
-+{
-+	unsigned int cust, data;
-+
-+	if (len != 16)
-+		return -EINVAL;
-+
-+	cust = (raw >> 0) & 0xff;
-+	data = (raw >> 8) & 0xff;
-+
-+	*scancode = cust << 8 | data;
-+	return IMG_IR_SCANCODE;
-+}
-+
-+/* Convert JVC scancode to JVC data filter */
-+static int img_ir_jvc_filter(const struct rc_scancode_filter *in,
-+			     struct img_ir_filter *out, u64 protocols)
-+{
-+	unsigned int cust, data;
-+	unsigned int cust_m, data_m;
-+
-+	cust   = (in->data >> 8) & 0xff;
-+	cust_m = (in->mask >> 8) & 0xff;
-+	data   = (in->data >> 0) & 0xff;
-+	data_m = (in->mask >> 0) & 0xff;
-+
-+	out->data = cust   | data << 8;
-+	out->mask = cust_m | data_m << 8;
-+
-+	return 0;
-+}
-+
-+/*
-+ * JVC decoder
-+ * See also http://www.sbprojects.com/knowledge/ir/jvc.php
-+ *          http://support.jvc.com/consumer/support/documents/RemoteCodes.pdf
-+ */
-+struct img_ir_decoder img_ir_jvc = {
-+	.type = RC_BIT_JVC,
-+	.control = {
-+		.decoden = 1,
-+		.code_type = IMG_IR_CODETYPE_PULSEDIST,
-+		.decodend2 = 1,
-+	},
-+	/* main timings */
-+	.unit = 527500, /* 527.5 us */
-+	.timings = {
-+		/* leader symbol */
-+		.ldr = {
-+			.pulse = { 16	/* 8.44 ms */ },
-+			.space = { 8	/* 4.22 ms */ },
-+		},
-+		/* 0 symbol */
-+		.s00 = {
-+			.pulse = { 1	/* 527.5 us +-60 us */ },
-+			.space = { 1	/* 527.5 us */ },
-+		},
-+		/* 1 symbol */
-+		.s01 = {
-+			.pulse = { 1	/* 527.5 us +-60 us */ },
-+			.space = { 3	/* 1.5825 ms +-40 us */ },
-+		},
-+		/* 0 symbol (no leader) */
-+		.s00 = {
-+			.pulse = { 1	/* 527.5 us +-60 us */ },
-+			.space = { 1	/* 527.5 us */ },
-+		},
-+		/* 1 symbol (no leader) */
-+		.s01 = {
-+			.pulse = { 1	/* 527.5 us +-60 us */ },
-+			.space = { 3	/* 1.5825 ms +-40 us */ },
-+		},
-+		/* free time */
-+		.ft = {
-+			.minlen = 16,
-+			.maxlen = 16,
-+			.ft_min = 10,	/* 5.275 ms */
-+		},
-+	},
-+	/* scancode logic */
-+	.scancode = img_ir_jvc_scancode,
-+	.filter = img_ir_jvc_filter,
-+};
+http://lists.gnu.org/archive/html/discuss-gnuradio/2010-12/pngqfPrwUmgsB.png
+
+regards
+Antti
+
 -- 
-1.8.3.2
-
+http://palosaari.fi/
