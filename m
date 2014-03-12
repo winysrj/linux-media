@@ -1,154 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52361 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752793AbaCKLPS (ORCPT
+Received: from mailout4.w2.samsung.com ([211.189.100.14]:26595 "EHLO
+	usmailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753095AbaCLO1x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 07:15:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Wed, 12 Mar 2014 10:27:53 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2B00MNHUUGJS10@usmailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Mar 2014 10:27:52 -0400 (EDT)
+Date: Wed, 12 Mar 2014 11:27:45 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 36/47] adv7604: Make output format configurable through pad format operations
-Date: Tue, 11 Mar 2014 12:16:53 +0100
-Message-ID: <5198476.Eg6VVVrCH7@avalon>
-In-Reply-To: <531ED1BC.3020904@xs4all.nl>
-References: <1391618558-5580-1-git-send-email-laurent.pinchart@ideasonboard.com> <1662851.xYrCTEPdFE@avalon> <531ED1BC.3020904@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 22/35] DocBook media: update control section.
+Message-id: <20140312112745.2d9d3205@samsung.com>
+In-reply-to: <1392631070-41868-23-git-send-email-hverkuil@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+ <1392631070-41868-23-git-send-email-hverkuil@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Mon, 17 Feb 2014 10:57:37 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Tuesday 11 March 2014 10:05:00 Hans Verkuil wrote:
-> On 03/10/14 23:43, Laurent Pinchart wrote:
-> > On Wednesday 12 February 2014 16:01:17 Hans Verkuil wrote:
-> >> On 02/05/14 17:42, Laurent Pinchart wrote:
-> >>> Replace the dummy video format operations by pad format operations that
-> >>> configure the output format.
-> >>> 
-> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>> ---
-> >>> 
-> >>>  drivers/media/i2c/adv7604.c | 243 ++++++++++++++++++++++++++++++++-----
-> >>>  include/media/adv7604.h     |  47 ++-------
-> >>>  2 files changed, 225 insertions(+), 65 deletions(-)
-> >> 
-> >> <snip>
-> >> 
-> >>> diff --git a/include/media/adv7604.h b/include/media/adv7604.h
-> >>> index 22811d3..2cc8e16 100644
-> >>> --- a/include/media/adv7604.h
-> >>> +++ b/include/media/adv7604.h
-> >>> @@ -32,16 +32,6 @@ enum adv7604_ain_sel {
-> >>>  	ADV7604_AIN9_4_5_6_SYNC_2_1 = 4,
-> >>>  };
-> >>> 
-> >>> -/* Bus rotation and reordering (IO register 0x04, [7:5]) */
-> >>> -enum adv7604_op_ch_sel {
-> >>> -	ADV7604_OP_CH_SEL_GBR = 0,
-> >>> -	ADV7604_OP_CH_SEL_GRB = 1,
-> >>> -	ADV7604_OP_CH_SEL_BGR = 2,
-> >>> -	ADV7604_OP_CH_SEL_RGB = 3,
-> >>> -	ADV7604_OP_CH_SEL_BRG = 4,
-> >>> -	ADV7604_OP_CH_SEL_RBG = 5,
-> >>> -};
-> >>> -
-> >>>  /* Input Color Space (IO register 0x02, [7:4]) */
-> >>>  enum adv7604_inp_color_space {
-> >>>  	ADV7604_INP_COLOR_SPACE_LIM_RGB = 0,
-> >>> @@ -55,29 +45,11 @@ enum adv7604_inp_color_space {
-
-[snip]
-
-> >>> @@ -104,11 +76,8 @@ struct adv7604_platform_data {
-> >>> 
-> >>>  	/* Analog input muxing mode */
-> >>>  	enum adv7604_ain_sel ain_sel;
-> >>> 
-> >>> -	/* Bus rotation and reordering */
-> >>> -	enum adv7604_op_ch_sel op_ch_sel;
-> >> 
-> >> I would keep this as part of the platform_data. This is typically used if
-> >> things are wired up in a non-standard way and so is specific to the
-> >> hardware. It is not something that will change from format to format.
-> > 
-> > Right, some level of configuration is needed to account for non-standard
-> > wiring. However I'm not sure where that should be handled.
-> > 
-> > With exotic wiring the format at the receiver will be different than the
-> > format output by the ADV7604. From a pure ADV7604 point of view, the
-> > output format doesn't depend on the wiring. I wonder whether this
-> > shouldn't be a link property instead of being a subdev property. There's
-> > of course the question of where to store that link property if it's not
-> > part of either subdev.
-> > 
-> > Even if we decide that the wiring is a property of the source subdev, I
-> > don't think we should duplicate bus reordering code in all subdev
-> > drivers. This should thus be handled by the v4l2 core (either directly or
-> > as helper functions).
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> There are two reasons why you might want to use op_ch_sel: one is to
-> implement weird formats like RBG. Something like that would have to be
-> controlled through mbus and pixel fourcc codes and not by hardcoding this
-> register.
-
-Agreed. This patch only adds a subset of the possible output formats. More 
-formats can be added later as needed.
-
-> The other is to compensate for a wiring problem: we have a card where two
-> channels were accidentally swapped. You can either redo the board or just
-> set this register. In this case this register is IMHO a property of this
-> subdev. It needs to know about it, because if it ever needs to output RBG
-> in the future then it needs to compensate for reordering for wiring
-> issues.
+> Document the support for complex types in controls.
 > 
-> So you set this field if you have to compensate for wiring errors, making
-> this part of the DT/platform_data. You do not set this field when you
-> want to support special formats, that is done in the driver itself through
-> fourcc codes (or could be done as this isn't implemented at the moment).
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml | 104 ++++++++++++++++++++-------
+>  1 file changed, 78 insertions(+), 26 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index ef55c3e..85d78d4 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -13,6 +13,19 @@ correctly with any device.</para>
+>      <para>All controls are accessed using an ID value. V4L2 defines
+>  several IDs for specific purposes. Drivers can also implement their
+>  own custom controls using <constant>V4L2_CID_PRIVATE_BASE</constant>
+> +<footnote><para>The use of <constant>V4L2_CID_PRIVATE_BASE</constant>
+> +is problematic because different drivers may use the same
+> +<constant>V4L2_CID_PRIVATE_BASE</constant> ID for different controls.
+> +This makes it hard to programatically set such controls since the meaning
+> +of the control with that ID is driver dependent. In order to resolve this
+> +drivers use unique IDs and the <constant>V4L2_CID_PRIVATE_BASE</constant>
+> +IDs are mapped to those unique IDs by the kernel. Consider these
+> +<constant>V4L2_CID_PRIVATE_BASE</constant> IDs as aliases to the real
+> +IDs.</para>
+> +<para>Many applications today still use the <constant>V4L2_CID_PRIVATE_BASE</constant>
+> +IDs instead of using &VIDIOC-QUERYCTRL; with the <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>
+> +flag to enumerate all IDs, so support for <constant>V4L2_CID_PRIVATE_BASE</constant>
+> +is still around.</para></footnote>
+>  and higher values. The pre-defined control IDs have the prefix
+>  <constant>V4L2_CID_</constant>, and are listed in <xref
+>  linkend="control-id" />. The ID is used when querying the attributes of
+> @@ -31,25 +44,22 @@ the current video input or output, tuner or modulator, or audio input
+>  or output. Different in the sense of other bounds, another default and
+>  current value, step size or other menu items. A control with a certain
+>  <emphasis>custom</emphasis> ID can also change name and
+> -type.<footnote>
+> -	<para>It will be more convenient for applications if drivers
+> -make use of the <constant>V4L2_CTRL_FLAG_DISABLED</constant> flag, but
+> -that was never required.</para>
+> -      </footnote> Control values are stored globally, they do not
+> +type.</para>
+> +
+> +    <para>If a control is not applicable to the current configuration
+> +of the device (for example, it doesn't apply to the current video input)
+> +drivers set the <constant>V4L2_CTRL_FLAG_INACTIVE</constant> flag.</para>
+> +
+> +    <para>Control values are stored globally, they do not
+>  change when switching except to stay within the reported bounds. They
+>  also do not change &eg; when the device is opened or closed, when the
 
-I agree with the use case, but I'm not sure whether that's the best way to 
-support it. Let's say the system is design for RGB, but the G and B channels 
-have been swapped by mistake on the board. To make it work, the ADV7604 would 
-need to output RBG, and the bridge would receive RGB. Data reordering would 
-thus happen on the link.
+Hmm... &eg; above seems weird (ok, this is not part of your changes, but
+do you care take a look on the above line?)
 
-There's two ways to expose this to userspace. One of them would be to make the 
-real formats visible to applications. We would need to extend the link API to 
-show that reordering occurs. Userspace would need to explicitly configure the 
-adv7604 driver with RBG at its source pad and the bridge driver with RGB at 
-its sink pad. This has the advantage of correctly modeling the hardware, and 
-not pushing workarounds for board-level issues to individual drivers.
+>  tuner radio frequency is changed or generally never without
+> -application request. Since V4L2 specifies no event mechanism, panel
+> -applications intended to cooperate with other panel applications (be
+> -they built into a larger application, as a TV viewer) may need to
+> -regularly poll control values to update their user
+> -interface.<footnote>
+> -	<para>Applications could call an ioctl to request events.
+> -After another process called &VIDIOC-S-CTRL; or another ioctl changing
+> -shared properties the &func-select; function would indicate
+> -readability until any ioctl (querying the properties) is
+> -called.</para>
+> -      </footnote></para>
+> +application request.</para>
+> +
+> +    <para>V4L2 specifies an event mechanism to notify applications
+> +when controls change value (see &VIDIOC-SUBSCRIBE-EVENT;, event
+> +<constant>V4L2_EVENT_CTRL</constant>), panel applications might want to make
+> +use of that in order to always reflect the correct control value.</para>
+>  
+>      <para>
+>        All controls use machine endianness.
+> @@ -434,8 +444,8 @@ Drivers must implement <constant>VIDIOC_QUERYCTRL</constant>,
+>  controls, <constant>VIDIOC_QUERYMENU</constant> when it has one or
+>  more menu type controls.</para>
+>  
+> -    <example>
+> -      <title>Enumerating all controls</title>
+> +    <example id="enum_all_controls">
+> +      <title>Enumerating all user controls</title>
+>  
+>        <programlisting>
+>  &v4l2-queryctrl; queryctrl;
+> @@ -501,6 +511,32 @@ for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;
+>      </example>
+>  
+>      <example>
+> +      <title>Enumerating all user controls (alternative)</title>
+> +	<programlisting>
+> +memset(&amp;queryctrl, 0, sizeof(queryctrl));
+> +
+> +queryctrl.id = V4L2_CTRL_CLASS_USER | V4L2_CTRL_FLAG_NEXT_CTRL;
+> +while (0 == ioctl(fd, &VIDIOC-QUERYCTRL;, &amp;queryctrl)) {
+> +	if (V4L2_CTRL_ID2CLASS(queryctrl.id) != V4L2_CTRL_CLASS_USER)
+> +		break;
+> +	if (queryctrl.flags &amp; V4L2_CTRL_FLAG_DISABLED)
+> +		continue;
+> +
+> +	printf("Control %s\n", queryctrl.name);
+> +
+> +	if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+> +		enumerate_menu();
+> +
+> +	queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+> +}
+> +if (errno != EINVAL) {
+> +	perror("VIDIOC_QUERYCTRL");
+> +	exit(EXIT_FAILURE);
+> +}
+> +</programlisting>
+> +    </example>
+> +
+> +    <example>
+>        <title>Changing controls</title>
+>  
+>        <programlisting>
+> @@ -624,16 +660,32 @@ supported.</para>
+>  &v4l2-control;, except for the fact that it also allows for 64-bit
+>  values and pointers to be passed.</para>
+>  
+> +      <para>Since the &v4l2-ext-control; supports pointers it is now
+> +also possible to have controls with complex types such as arrays/matrices
 
-Another solution would be to hide the wiring problem from userspace and handle 
-it inside the adv7604 driver. Note that, depending on the hardware 
-configuration, it could be the bridge driver that need to implement 
-reordering. Userspace would configure both ends of the link to RGB and 
-wouldn't be aware of the problem.  This has the advantage of hiding the 
-problem in the kernel. However, it would require implementing the same 
-workaround in potentially many drivers.
+s/complex/compound/g
 
-If we decide to go for the second solution I would like to make it a bit more 
-generic than just keeping the op_ch_sel field in platform data. I think we 
-should instead have a generic representation of the reordering in platform 
-data, and implement a V4L2 core function that would translate the format on 
-the link to the format required at the device. For instance, still assuming G 
-and B are swapped, userspace would configure the ADV7604 output to 
-V4L2_MBUS_FMT_RGB888_1X24, the adv7604 driver would pass 
-V4L2_MBUS_FMT_RGB888_1X24 along with the reordering information to a V4L2 core 
-function which would return V4L2_MBUS_FMT_RBG888_1X24, and the driver would 
-then configure the device to output RBG instead of RGB.
+> +and/or structures. All such complex controls will have the
+> +<constant>V4L2_CTRL_FLAG_HIDDEN</constant> set since such controls cannot
+> +be displayed in control panel applications. Nor can they be used in the
+> +user class (for backwards compatibility reasons), and you need to specify
+> +the <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> when enumerating controls
+> +to actually be able to see such hidden controls. In other words, these
+> +controls with complex types should only be used programmatically.</para>
+> +
+> +      <para>Since such complex controls need to expose more information
+> +about themselves than is possible with &VIDIOC-QUERYCTRL; the
+> +&VIDIOC-QUERY-EXT-CTRL; ioctl was added. In particular, this ioctl gives
+> +the size of the matrix if this control consists of more than
+> +one element.</para>
+> +
+>        <para>It is important to realize that due to the flexibility of
+>  controls it is necessary to check whether the control you want to set
+>  actually is supported in the driver and what the valid range of values
+> -is. So use the &VIDIOC-QUERYCTRL; and &VIDIOC-QUERYMENU; ioctls to
+> -check this. Also note that it is possible that some of the menu
+> -indices in a control of type <constant>V4L2_CTRL_TYPE_MENU</constant>
+> -may not be supported (<constant>VIDIOC_QUERYMENU</constant> will
+> -return an error). A good example is the list of supported MPEG audio
+> -bitrates. Some drivers only support one or two bitrates, others
+> -support a wider range.</para>
+> +is. So use the &VIDIOC-QUERYCTRL; (or &VIDIOC-QUERY-EXT-CTRL;) and
+> +&VIDIOC-QUERYMENU; ioctls to check this. Also note that it is possible
+> +that some of the menu indices in a control of type
+> +<constant>V4L2_CTRL_TYPE_MENU</constant> may not be supported
+> +(<constant>VIDIOC_QUERYMENU</constant> will return an error). A good
+> +example is the list of supported MPEG audio bitrates. Some drivers only
+> +support one or two bitrates, others support a wider range.</para>
+>  
+>        <para>
+>  	All controls use machine endianness.
+> @@ -699,7 +751,7 @@ ID based on a control ID.</para>
+>  <constant>VIDIOC_QUERYCTRL</constant> will fail when used in
+>  combination with <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>. In
+>  that case the old method of enumerating control should be used (see
+> -1.8). But if it is supported, then it is guaranteed to enumerate over
+> +<xref linkend="enum_all_controls" />). But if it is supported, then it is guaranteed to enumerate over
+>  all controls, including driver-private controls.</para>
+>      </section>
+>  
 
-This leaves three open questions :
-
-- Should the workaround be visible to userspace ?
-- If not, how should reordering be expressed in platform data (and DT) ?
-- Does this need to be part of this patch set or can it be implemented later ?
 
 -- 
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
