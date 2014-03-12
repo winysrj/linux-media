@@ -1,96 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:33024 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760373AbaCUJgS (ORCPT
+Received: from omr-m02.mx.aol.com ([64.12.143.76]:50144 "EHLO
+	omr-m02.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754984AbaCLGiU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 05:36:18 -0400
-Received: by mail-we0-f175.google.com with SMTP id q58so1413748wes.34
-        for <linux-media@vger.kernel.org>; Fri, 21 Mar 2014 02:36:16 -0700 (PDT)
-Date: Fri, 21 Mar 2014 09:36:11 +0000
-From: Lee Jones <lee.jones@linaro.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com,
-	kyungmin.park@samsung.com, Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	SangYoung Son <hello.son@smasung.com>,
-	Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH/RFC 6/8] leds: Add support for max77693 mfd flash cell
-Message-ID: <20140321093611.GD15213@lee--X1>
-References: <1395327070-20215-1-git-send-email-j.anaszewski@samsung.com>
- <1395327070-20215-7-git-send-email-j.anaszewski@samsung.com>
- <20140320153443.GD8207@lee--X1>
- <532BF6E3.10003@samsung.com>
+	Wed, 12 Mar 2014 02:38:20 -0400
+Received: from mtaout-mba01.mx.aol.com (mtaout-mba01.mx.aol.com [172.26.133.109])
+	by omr-m02.mx.aol.com (Outbound Mail Relay) with ESMTP id 8805F7020B3CD
+	for <linux-media@vger.kernel.org>; Wed, 12 Mar 2014 02:38:19 -0400 (EDT)
+Received: from [192.168.10.62] (p17087-ipngn5502marunouchi.tokyo.ocn.ne.jp [153.160.16.87])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by mtaout-mba01.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id E1DF43800008C
+	for <linux-media@vger.kernel.org>; Wed, 12 Mar 2014 02:38:18 -0400 (EDT)
+Message-ID: <532000D7.7020209@aim.com>
+Date: Wed, 12 Mar 2014 15:38:15 +0900
+From: Sat <sattnag@aim.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <532BF6E3.10003@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: Re: [git:media_tree/master] [media] Siano: smsusb - Add a device
+ id for PX-S1UD
+References: <E1WNONv-0000Nm-Ua@www.linuxtv.org>
+In-Reply-To: <E1WNONv-0000Nm-Ua@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> >>This patch adds led-flash support to Maxim max77693 chipset.
-> >>Device can be exposed to user space through LED subsystem
-> >>sysfs interface or through V4L2 subdevice when the support
-> >>for Multimedia Framework is enabled. Device supports up to
-> >>two leds which can work in flash and torch mode. Leds can
-> >>be triggered externally or by software.
-> >>
-> >>Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>Cc: Bryan Wu <cooloney@gmail.com>
-> >>Cc: Richard Purdie <rpurdie@rpsys.net>
-> >>Cc: SangYoung Son <hello.son@smasung.com>
-> >>Cc: Samuel Ortiz <sameo@linux.intel.com>
-> >>Cc: Lee Jones <lee.jones@linaro.org>
-> >>---
-> >>  drivers/leds/Kconfig         |    9 +
-> >>  drivers/leds/Makefile        |    1 +
-> >>  drivers/leds/leds-max77693.c |  768 ++++++++++++++++++++++++++++++++++++++++++
-> >>  drivers/mfd/max77693.c       |   21 +-
-> >>  include/linux/mfd/max77693.h |   32 ++
-> >>  5 files changed, 825 insertions(+), 6 deletions(-)
-> >>  create mode 100644 drivers/leds/leds-max77693.c
-> >
-> >[...]
-> >>-static const struct mfd_cell max77693_devs[] = {
-> >>-	{ .name = "max77693-pmic", },
-> >>-	{ .name = "max77693-charger", },
-> >>-	{ .name = "max77693-flash", },
-> >>-	{ .name = "max77693-muic", },
-> >>-	{ .name = "max77693-haptic", },
-> >>+enum mfd_devs_idx {
-> >>+	IDX_PMIC,
-> >>+	IDX_CHARGER,
-> >>+	IDX_LED,
-> >>+	IDX_MUIC,
-> >>+	IDX_HAPTIC,
-> >>+};
-> >>+
-> >>+static struct mfd_cell max77693_devs[] = {
-> >>+	[IDX_PMIC]      = { .name = "max77693-pmic", },
-> >>+	[IDX_CHARGER]   = { .name = "max77693-charger", },
-> >>+	[IDX_LED]       = { .name = "max77693-led",
-> >>+			    .of_compatible = "maxim,max77693-led"},
-> >>+	[IDX_MUIC]      = { .name = "max77693-muic", },
-> >>+	[IDX_HAPTIC]    = { .name = "max77693-haptic", },
-> >>  };
-> >
-> >What is the purpose of this change?
-> >
-> Introducing mfd_devs_idx itself is a cosmetic change, which
-> actually could be avoided. Initialization of the of_compatible field
-> is required for the led driver to get matched properly. And as I've
-> just realized also max77693-flash name should be preserved.
-> I will fix this in the next version of the patch.
+Thank you for the update, Mauro.
+I didn't know how to check the status, now I get it :-)
 
-I'm happy with the addition of any .of_compatible strings, however
-please leave out the IDXs in your next version(s).
+Thanks,
+Satoshi
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+(2014/03/12 0:12), Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the
+> http://git.linuxtv.org/media_tree.git tree:
+> 
+> Subject: [media] Siano: smsusb - Add a device id for PX-S1UD
+> Author:  Satoshi Nagahama <sattnag@aim.com>
+> Date:    Mon Feb 10 06:45:29 2014 -0300
+> 
+> Add a device id to support for PX-S1UD (PLEX ISDB-T usb dongle) which
+> has sms2270.
+> 
+> Signed-off-by: Satoshi Nagahama <sattnag@aim.com>
+> Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> 
+>   drivers/media/usb/siano/smsusb.c |    2 ++
+>   1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> ---
+> 
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=f61e2268a06c3ea7354a1f4b3d878bedb8b776b1
+> 
+> diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+> index 05bd91a..1836a41 100644
+> --- a/drivers/media/usb/siano/smsusb.c
+> +++ b/drivers/media/usb/siano/smsusb.c
+> @@ -653,6 +653,8 @@ static const struct usb_device_id smsusb_id_table[] = {
+>   		.driver_info = SMS1XXX_BOARD_ZTE_DVB_DATA_CARD },
+>   	{ USB_DEVICE(0x19D2, 0x0078),
+>   		.driver_info = SMS1XXX_BOARD_ONDA_MDTV_DATA_CARD },
+> +	{ USB_DEVICE(0x3275, 0x0080),
+> +		.driver_info = SMS1XXX_BOARD_SIANO_RIO },
+>   	{ } /* Terminating entry */
+>   	};
+>   
+> 
+
