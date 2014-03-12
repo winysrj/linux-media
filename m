@@ -1,72 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hardeman.nu ([95.142.160.32]:37560 "EHLO hardeman.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751242AbaC0MHa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Mar 2014 08:07:30 -0400
-Date: Thu, 27 Mar 2014 13:07:28 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: pboettcher@kernellabs.com
-Cc: linux-media@vger.kernel.org
-Subject: dib0700 NEC scancode question
-Message-ID: <20140327120728.GA13748@hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4806 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751626AbaCLDWs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Mar 2014 23:22:48 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2C3MjsM002911
+	for <linux-media@vger.kernel.org>; Wed, 12 Mar 2014 04:22:47 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 4D9F82A1889
+	for <linux-media@vger.kernel.org>; Wed, 12 Mar 2014 04:22:42 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140312032242.4D9F82A1889@tschai.lan>
+Date: Wed, 12 Mar 2014 04:22:42 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-a quick question regarding the dib0700 driver:
+Results of the daily build of media_tree:
 
-in ./media/usb/dvb-usb/dib0700_core.c the RC RX packet is defined as:
+date:		Wed Mar 12 04:00:31 CET 2014
+git branch:	test
+git hash:	262912335c823a2bbcc87003ee55d62cc27f4e48
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
-	struct dib0700_rc_response {
-		u8 report_id;
-		u8 data_state;
-		union {
-			u16 system16;
-			struct {
-				u8 not_system;
-				u8 system;
-			};
-		};
-		u8 data;
-		u8 not_data;
-	};
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12-i686: OK
+linux-3.13-i686: OK
+linux-3.14-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12-x86_64: OK
+linux-3.13-x86_64: OK
+linux-3.14-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-The NEC protocol transmits in the order:
-	system
-	not_system
-	data
-	not_data
+Detailed results are available here:
 
-Does the dib0700 fw really reorder the bytes, or could the order of
-not_system and system in struct dib0700_rc_response have been
-accidentally reversed?
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Note that the NEC extended keycode is later defined in dib0700_core.c as:
+Full logs are available here:
 
-	keycode = be16_to_cpu(poll_reply->system16) << 8 | poll_reply->data;
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-i.e.
+The Media Infrastructure API from this daily build is here:
 
-	keycode = poll_reply->not_system << 16 |
-		  poll_reply->system     << 8  |
-		  poll_reply->data;
-
-Which, if the order *is* reversed, would mean that the scancode that
-gets defined is in reality:
-
-	keycode = poll_reply->system     << 16 |
-		  poll_reply->not_system << 8  |
-		  poll_reply->data;
-
-Which is the same as the order used in drivers/media/rc/ir-nec-decoder.c.
-
-(An order which I'm considering trying to correct, which is why I'm
-checking all the places where NEC scancodes are generated).
-
--- 
-David Härdeman
+http://www.xs4all.nl/~hverkuil/spec/media.html
