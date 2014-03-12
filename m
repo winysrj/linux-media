@@ -1,112 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4613 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925AbaCHD0i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 22:26:38 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id s283QZIc052626
-	for <linux-media@vger.kernel.org>; Sat, 8 Mar 2014 04:26:37 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id DCB8F2A1887
-	for <linux-media@vger.kernel.org>; Sat,  8 Mar 2014 04:26:33 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140308032633.DCB8F2A1887@tschai.lan>
-Date: Sat,  8 Mar 2014 04:26:33 +0100 (CET)
+Received: from smtp4-g21.free.fr ([212.27.42.4]:58129 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754935AbaCLQbt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 12:31:49 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v10][ 06/10] ARM: dts: imx5*, imx6*: correct display-timings nodes.
+Date: Wed, 12 Mar 2014 17:31:03 +0100
+Message-Id: <1394641867-15629-6-git-send-email-denis@eukrea.com>
+In-Reply-To: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+References: <1394641867-15629-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The imx-drm driver can't use the de-active and
+pixelclk-active display-timings properties yet.
 
-Results of the daily build of media_tree:
+Instead the data-enable and the pixel data clock
+polarity are hardcoded in the imx-drm driver.
 
-date:		Sat Mar  8 04:00:37 CET 2014
-git branch:	test
-git hash:	5f9551ee5d9b2580712ea3c3b0f32b304191668b
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.13-5.slh.4-amd64
+So theses properties are now set to keep
+the same behaviour when imx-drm will start
+using them.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12-i686: ERRORS
-linux-3.13-i686: ERRORS
-linux-3.14-rc1-i686: ERRORS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12-x86_64: ERRORS
-linux-3.13-x86_64: ERRORS
-linux-3.14-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v9->v10:
+- New patch that was splitted out of:
+  "staging imx-drm: Use de-active and pixelclk-active
+  display-timings."
 
-Detailed results are available here:
+---
+ arch/arm/boot/dts/imx51-babbage.dts       |    2 ++
+ arch/arm/boot/dts/imx53-m53evk.dts        |    2 ++
+ arch/arm/boot/dts/imx53-tx53-x03x.dts     |    2 +-
+ arch/arm/boot/dts/imx6qdl-gw53xx.dtsi     |    2 ++
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi     |    2 ++
+ arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi  |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi  |    2 ++
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi    |    2 ++
+ 9 files changed, 17 insertions(+), 1 deletion(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+diff --git a/arch/arm/boot/dts/imx51-babbage.dts b/arch/arm/boot/dts/imx51-babbage.dts
+index 9e9deb2..4732a00 100644
+--- a/arch/arm/boot/dts/imx51-babbage.dts
++++ b/arch/arm/boot/dts/imx51-babbage.dts
+@@ -38,6 +38,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/imx53-m53evk.dts b/arch/arm/boot/dts/imx53-m53evk.dts
+index 4646ea9..d6e1046 100644
+--- a/arch/arm/boot/dts/imx53-m53evk.dts
++++ b/arch/arm/boot/dts/imx53-m53evk.dts
+@@ -40,6 +40,8 @@
+ 					vfront-porch = <9>;
+ 					vsync-len = <3>;
+ 					vsync-active = <1>;
++					de-active = <1>;
++					pixelclk-active = <0>;
+ 				};
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/imx53-tx53-x03x.dts b/arch/arm/boot/dts/imx53-tx53-x03x.dts
+index 0217dde3..4092a81 100644
+--- a/arch/arm/boot/dts/imx53-tx53-x03x.dts
++++ b/arch/arm/boot/dts/imx53-tx53-x03x.dts
+@@ -93,7 +93,7 @@
+ 					hsync-active = <0>;
+ 					vsync-active = <0>;
+ 					de-active = <1>;
+-					pixelclk-active = <1>;
++					pixelclk-active = <0>;
+ 				};
+ 
+ 				ET0500 {
+diff --git a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+index c8e5ae0..43f48f2 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+@@ -494,6 +494,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+index 2795dfc..59ecfd1 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -516,6 +516,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
+index 99be301..e9419a2 100644
+--- a/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-nitrogen6x.dtsi
+@@ -349,6 +349,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 009abd6..230bbc6 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -405,6 +405,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 3bec128..ed4c72f 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -349,6 +349,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index 7a88d9a..7d1c84c 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -463,6 +463,8 @@
+ 				vfront-porch = <7>;
+ 				hsync-len = <60>;
+ 				vsync-len = <10>;
++				de-active = <1>;
++				pixelclk-active = <0>;
+ 			};
+ 		};
+ 	};
+-- 
+1.7.9.5
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
