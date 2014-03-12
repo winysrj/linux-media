@@ -1,248 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:57796 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470AbaCHFa0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 00:30:26 -0500
-Received: by mail-wg0-f46.google.com with SMTP id z12so6211822wgg.17
-        for <linux-media@vger.kernel.org>; Fri, 07 Mar 2014 21:30:25 -0800 (PST)
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v6 5/8] [media] of: move common endpoint parsing to drivers/of
-To: Philipp Zabel <p.zabel@pengutronix.de>,
+Received: from smtp4-g21.free.fr ([212.27.42.4]:57108 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754527AbaCLQbc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 12:31:32 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-In-Reply-To: <1394011242-16783-6-git-send-email-p.zabel@pengutronix.de>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> < 1394011242-16783-6-git-send-email-p.zabel@pengutronix.de>
-Date: Fri, 07 Mar 2014 18:32:00 +0000
-Message-Id: <20140307183200.9C9E8C40C5C@trevor.secretlab.ca>
+	Denis Carikli <denis@eukrea.com>
+Subject: =?UTF-8?q?=5BPATCH=20v10=5D=5B=2003/10=5D=20imx-drm=3A=20Correct=20BGR666=20and=20the=20board=27s=20dts=20that=20use=20them=2E?=
+Date: Wed, 12 Mar 2014 17:31:00 +0100
+Message-Id: <1394641867-15629-3-git-send-email-denis@eukrea.com>
+In-Reply-To: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+References: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed,  5 Mar 2014 10:20:39 +0100, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> This patch adds a new struct of_endpoint which is then embedded in struct
-> v4l2_of_endpoint and contains the endpoint properties that are not V4L2
-> (or even media) specific: the port number, endpoint id, local device tree
-> node and remote endpoint phandle. of_graph_parse_endpoint parses those
-> properties and is used by v4l2_of_parse_endpoint, which just adds the
-> V4L2 MBUS information to the containing v4l2_of_endpoint structure.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+The current BGR666 is not consistent with the other color mapings like BGR24.
+BGR666 should be in the same byte order than BGR24.
 
-Seems okay.
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ChangeLog v9->v10:
+- Rebased.
+- Added Philipp Zabel's Ack.
+- Included Lothar Waßmann's suggestion about imx-ldb.c.
+- Shortened the patch title
 
-Acked-by: Grant Likely <grant.likely@linaro.org>
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
 
-> ---
-> Changes since v5:
->  - Fixed documentation comment for of_graph_parse_endpoint
-> ---
->  drivers/media/platform/exynos4-is/media-dev.c | 10 +++++-----
->  drivers/media/platform/exynos4-is/mipi-csis.c |  2 +-
->  drivers/media/v4l2-core/v4l2-of.c             | 16 +++------------
->  drivers/of/base.c                             | 28 +++++++++++++++++++++++++++
->  include/linux/of_graph.h                      | 20 +++++++++++++++++++
->  include/media/v4l2-of.h                       |  8 ++------
->  6 files changed, 59 insertions(+), 25 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index d0f82da..04d6ecd 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -469,10 +469,10 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  		return 0;
->  
->  	v4l2_of_parse_endpoint(ep, &endpoint);
-> -	if (WARN_ON(endpoint.port == 0) || index >= FIMC_MAX_SENSORS)
-> +	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
->  		return -EINVAL;
->  
-> -	pd->mux_id = (endpoint.port - 1) & 0x1;
-> +	pd->mux_id = (endpoint.base.port - 1) & 0x1;
->  
->  	rem = of_graph_get_remote_port_parent(ep);
->  	of_node_put(ep);
-> @@ -494,13 +494,13 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  		return -EINVAL;
->  	}
->  
-> -	if (fimc_input_is_parallel(endpoint.port)) {
-> +	if (fimc_input_is_parallel(endpoint.base.port)) {
->  		if (endpoint.bus_type == V4L2_MBUS_PARALLEL)
->  			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_601;
->  		else
->  			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_656;
->  		pd->flags = endpoint.bus.parallel.flags;
-> -	} else if (fimc_input_is_mipi_csi(endpoint.port)) {
-> +	} else if (fimc_input_is_mipi_csi(endpoint.base.port)) {
->  		/*
->  		 * MIPI CSI-2: only input mux selection and
->  		 * the sensor's clock frequency is needed.
-> @@ -508,7 +508,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  		pd->sensor_bus_type = FIMC_BUS_TYPE_MIPI_CSI2;
->  	} else {
->  		v4l2_err(&fmd->v4l2_dev, "Wrong port id (%u) at node %s\n",
-> -			 endpoint.port, rem->full_name);
-> +			 endpoint.base.port, rem->full_name);
->  	}
->  	/*
->  	 * For FIMC-IS handled sensors, that are placed under i2c-isp device
-> diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-> index fd1ae65..3678ba5 100644
-> --- a/drivers/media/platform/exynos4-is/mipi-csis.c
-> +++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-> @@ -772,7 +772,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
->  	/* Get port node and validate MIPI-CSI channel id. */
->  	v4l2_of_parse_endpoint(node, &endpoint);
->  
-> -	state->index = endpoint.port - FIMC_INPUT_MIPI_CSI2_0;
-> +	state->index = endpoint.base.port - FIMC_INPUT_MIPI_CSI2_0;
->  	if (state->index < 0 || state->index >= CSIS_MAX_ENTITIES)
->  		return -ENXIO;
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> index f919db3..b4ed9a9 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -127,17 +127,9 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
->  int v4l2_of_parse_endpoint(const struct device_node *node,
->  			   struct v4l2_of_endpoint *endpoint)
->  {
-> -	struct device_node *port_node = of_get_parent(node);
-> -
-> -	memset(endpoint, 0, offsetof(struct v4l2_of_endpoint, head));
-> -
-> -	endpoint->local_node = node;
-> -	/*
-> -	 * It doesn't matter whether the two calls below succeed.
-> -	 * If they don't then the default value 0 is used.
-> -	 */
-> -	of_property_read_u32(port_node, "reg", &endpoint->port);
-> -	of_property_read_u32(node, "reg", &endpoint->id);
-> +	of_graph_parse_endpoint(node, &endpoint->base);
-> +	endpoint->bus_type = 0;
-> +	memset(&endpoint->bus, 0, sizeof(endpoint->bus));
->  
->  	v4l2_of_parse_csi_bus(node, endpoint);
->  	/*
-> @@ -147,8 +139,6 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
->  	if (endpoint->bus.mipi_csi2.flags == 0)
->  		v4l2_of_parse_parallel_bus(node, endpoint);
->  
-> -	of_node_put(port_node);
-> -
->  	return 0;
->  }
->  EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-> diff --git a/drivers/of/base.c b/drivers/of/base.c
-> index a8e47d3..715144af 100644
-> --- a/drivers/of/base.c
-> +++ b/drivers/of/base.c
-> @@ -1985,6 +1985,34 @@ struct device_node *of_find_next_cache_node(const struct device_node *np)
->  }
->  
->  /**
-> + * of_graph_parse_endpoint() - parse common endpoint node properties
-> + * @node: pointer to endpoint device_node
-> + * @endpoint: pointer to the OF endpoint data structure
-> + *
-> + * The caller should hold a reference to @node.
-> + */
-> +int of_graph_parse_endpoint(const struct device_node *node,
-> +			    struct of_endpoint *endpoint)
-> +{
-> +	struct device_node *port_node = of_get_parent(node);
-> +
-> +	memset(endpoint, 0, sizeof(*endpoint));
-> +
-> +	endpoint->local_node = node;
-> +	/*
-> +	 * It doesn't matter whether the two calls below succeed.
-> +	 * If they don't then the default value 0 is used.
-> +	 */
-> +	of_property_read_u32(port_node, "reg", &endpoint->port);
-> +	of_property_read_u32(node, "reg", &endpoint->id);
-> +
-> +	of_node_put(port_node);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(of_graph_parse_endpoint);
-> +
-> +/**
->   * of_graph_get_next_endpoint() - get next endpoint node
->   * @parent: pointer to the parent device node
->   * @prev: previous endpoint node, or NULL to get first
-> diff --git a/include/linux/of_graph.h b/include/linux/of_graph.h
-> index 3bbeb60..2b233db 100644
-> --- a/include/linux/of_graph.h
-> +++ b/include/linux/of_graph.h
-> @@ -14,7 +14,21 @@
->  #ifndef __LINUX_OF_GRAPH_H
->  #define __LINUX_OF_GRAPH_H
->  
-> +/**
-> + * struct of_endpoint - the OF graph endpoint data structure
-> + * @port: identifier (value of reg property) of a port this endpoint belongs to
-> + * @id: identifier (value of reg property) of this endpoint
-> + * @local_node: pointer to device_node of this endpoint
-> + */
-> +struct of_endpoint {
-> +	unsigned int port;
-> +	unsigned int id;
-> +	const struct device_node *local_node;
-> +};
-> +
->  #ifdef CONFIG_OF
-> +int of_graph_parse_endpoint(const struct device_node *node,
-> +				struct of_endpoint *endpoint);
->  struct device_node *of_graph_get_next_endpoint(const struct device_node *parent,
->  					struct device_node *previous);
->  struct device_node *of_graph_get_remote_port_parent(
-> @@ -22,6 +36,12 @@ struct device_node *of_graph_get_remote_port_parent(
->  struct device_node *of_graph_get_remote_port(const struct device_node *node);
->  #else
->  
-> +static inline int of_graph_parse_endpoint(const struct device_node *node,
-> +					struct of_endpoint *endpoint);
-> +{
-> +	return -ENOSYS;
-> +}
-> +
->  static inline struct device_node *of_graph_get_next_endpoint(
->  					const struct device_node *parent,
->  					struct device_node *previous)
-> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> index 3a49735..70fa7b7 100644
-> --- a/include/media/v4l2-of.h
-> +++ b/include/media/v4l2-of.h
-> @@ -51,17 +51,13 @@ struct v4l2_of_bus_parallel {
->  
->  /**
->   * struct v4l2_of_endpoint - the endpoint data structure
-> - * @port: identifier (value of reg property) of a port this endpoint belongs to
-> - * @id: identifier (value of reg property) of this endpoint
-> - * @local_node: pointer to device_node of this endpoint
-> + * @base: struct of_endpoint containing port, id, and local of_node
->   * @bus_type: bus type
->   * @bus: bus configuration data structure
->   * @head: list head for this structure
->   */
->  struct v4l2_of_endpoint {
-> -	unsigned int port;
-> -	unsigned int id;
-> -	const struct device_node *local_node;
-> +	struct of_endpoint base;
->  	enum v4l2_mbus_type bus_type;
->  	union {
->  		struct v4l2_of_bus_parallel parallel;
-> -- 
-> 1.9.0.rc3
-> 
+ChangeLog v7->v8:
+- Shrinked even more the Cc list.
+
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
+
+ChangeLog v5->v6:
+- Remove people not concerned by this patch from the Cc list.
+- Added a better explanation of the change.
+
+ChangeLog v5:
+- New patch.
+---
+ arch/arm/boot/dts/imx51-apf51dev.dts    |    2 +-
+ arch/arm/boot/dts/imx53-m53evk.dts      |    2 +-
+ drivers/staging/imx-drm/imx-ldb.c       |    4 ++--
+ drivers/staging/imx-drm/ipu-v3/ipu-dc.c |    4 ++--
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx51-apf51dev.dts b/arch/arm/boot/dts/imx51-apf51dev.dts
+index c5a9a24..7b3851d 100644
+--- a/arch/arm/boot/dts/imx51-apf51dev.dts
++++ b/arch/arm/boot/dts/imx51-apf51dev.dts
+@@ -18,7 +18,7 @@
+ 
+ 	display@di1 {
+ 		compatible = "fsl,imx-parallel-display";
+-		interface-pix-fmt = "bgr666";
++		interface-pix-fmt = "rgb666";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&pinctrl_ipu_disp1>;
+ 
+diff --git a/arch/arm/boot/dts/imx53-m53evk.dts b/arch/arm/boot/dts/imx53-m53evk.dts
+index f6d3ac3..4646ea9 100644
+--- a/arch/arm/boot/dts/imx53-m53evk.dts
++++ b/arch/arm/boot/dts/imx53-m53evk.dts
+@@ -23,7 +23,7 @@
+ 	soc {
+ 		display1: display@di1 {
+ 			compatible = "fsl,imx-parallel-display";
+-			interface-pix-fmt = "bgr666";
++			interface-pix-fmt = "rgb666";
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&pinctrl_ipu_disp1>;
+ 
+diff --git a/drivers/staging/imx-drm/imx-ldb.c b/drivers/staging/imx-drm/imx-ldb.c
+index 33d2b883..e6d7bc7 100644
+--- a/drivers/staging/imx-drm/imx-ldb.c
++++ b/drivers/staging/imx-drm/imx-ldb.c
+@@ -185,11 +185,11 @@ static void imx_ldb_encoder_prepare(struct drm_encoder *encoder)
+ 	switch (imx_ldb_ch->chno) {
+ 	case 0:
+ 		pixel_fmt = (ldb->ldb_ctrl & LDB_DATA_WIDTH_CH0_24) ?
+-			V4L2_PIX_FMT_RGB24 : V4L2_PIX_FMT_BGR666;
++			V4L2_PIX_FMT_RGB24 : V4L2_PIX_FMT_RGB666;
+ 		break;
+ 	case 1:
+ 		pixel_fmt = (ldb->ldb_ctrl & LDB_DATA_WIDTH_CH1_24) ?
+-			V4L2_PIX_FMT_RGB24 : V4L2_PIX_FMT_BGR666;
++			V4L2_PIX_FMT_RGB24 : V4L2_PIX_FMT_RGB666;
+ 		break;
+ 	default:
+ 		dev_err(ldb->dev, "unable to config di%d panel format\n",
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
+index 6f9abe8..154d293 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
+@@ -397,9 +397,9 @@ int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
+ 
+ 	/* bgr666 */
+ 	ipu_dc_map_clear(priv, IPU_DC_MAP_BGR666);
+-	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 5, 0xfc); /* blue */
++	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 0, 17, 0xfc); /* blue */
+ 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 1, 11, 0xfc); /* green */
+-	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 17, 0xfc); /* red */
++	ipu_dc_map_config(priv, IPU_DC_MAP_BGR666, 2, 5, 0xfc); /* red */
+ 
+ 	/* bgr24 */
+ 	ipu_dc_map_clear(priv, IPU_DC_MAP_BGR24);
+-- 
+1.7.9.5
 
