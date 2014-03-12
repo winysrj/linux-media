@@ -1,100 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews04.kpnxchange.com ([213.75.39.7]:63795 "EHLO
-	cpsmtpb-ews04.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752748AbaCFKXb (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:31109 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198AbaCLPly (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Mar 2014 05:23:31 -0500
-Message-ID: <1394101408.4592.19.camel@x220>
-Subject: Re: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+	Wed, 12 Mar 2014 11:41:54 -0400
+Date: Wed, 12 Mar 2014 12:41:46 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: mark.rutland@arm.com
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Joe Perches <joe@perches.com>, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Date: Thu, 06 Mar 2014 11:23:28 +0100
-In-Reply-To: <20140306044529.GA6466@kroah.com>
-References: <1391958577.25424.22.camel@x220> <3099833.ZhlQFyxhbo@avalon>
-	 <1394065683.12070.32.camel@joe-AO722> <2136780.FIdBGb725A@avalon>
-	 <20140306044529.GA6466@kroah.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	robh+dt@kernel.org, galak@codeaurora.org, kyungmin.park@samsung.com
+Subject: Re: [PATCH v8 3/10] Documentation: devicetree: Update Samsung FIMC DT
+ binding
+Message-id: <20140312124146.32ed83cb@samsung.com>
+In-reply-to: <5217892.9gXHoPzVoX@avalon>
+References: <1823087.0J3KNi6X3C@avalon>
+ <1394555670-14155-1-git-send-email-s.nawrocki@samsung.com>
+ <5217892.9gXHoPzVoX@avalon>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2014-03-05 at 20:45 -0800, Greg Kroah-Hartman wrote:
-> On Thu, Mar 06, 2014 at 01:48:29AM +0100, Laurent Pinchart wrote:
-> > Would you recommend to drop driver-specific Kconfig options related to 
-> > debugging and use CONFIG_DYNAMIC_DEBUG instead ?
+Mark,
+
+Could you please also review this patch? It is the only thing pending for
+this 10 patches series to be merged.
+
+Thank you!
+Mauro
+
+Em Tue, 11 Mar 2014 17:38:23 +0100
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+
+> On Tuesday 11 March 2014 17:34:30 Sylwester Nawrocki wrote:
+> > This patch documents following updates of the Exynos4 SoC camera subsystem
+> > devicetree binding:
+> > 
+> >  - addition of #clock-cells and clock-output-names properties to 'camera'
+> >    node - these are now needed so the image sensor sub-devices can reference
+> > clocks provided by the camera host interface,
+> >  - dropped a note about required clock-frequency properties at the
+> >    image sensor nodes; the sensor devices can now control their clock
+> >    explicitly through the clk API and there is no need to require this
+> >    property in the camera host interface binding.
+> > 
+> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 > 
-> Yes, please do that, no one wants to rebuild drivers and subsystems with
-> different options just for debugging.
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> > ---
+> > Changes since v7:
+> >  - dropped a note about clock-frequency property in sensor nodes.
+> > 
+> > Changes since v6:
+> >  - #clock-cells, clock-output-names documented as mandatory properties;
+> >  - renamed "cam_mclk_{a,b}" to "cam_{a,b}_clkout in the example dts,
+> >    this now matches changes in exynos4.dtsi further in the patch series;
+> >  - marked "samsung,camclk-out" property as deprecated.
+> > 
+> > Changes since v5:
+> >  - none.
+> > 
+> > Changes since v4:
+> >  - dropped a requirement of specific order of values in clocks/
+> >    clock-names properties (Mark) and reference to clock-names in
+> >    clock-output-names property description (Mark).
+> > ---
+> >  .../devicetree/bindings/media/samsung-fimc.txt     |   44 +++++++++++------
+> >  1 file changed, 29 insertions(+), 15 deletions(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+> > b/Documentation/devicetree/bindings/media/samsung-fimc.txt index
+> > 96312f6..922d6f8 100644
+> > --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
+> > +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
+> > @@ -15,11 +15,21 @@ Common 'camera' node
+> > 
+> >  Required properties:
+> > 
+> > -- compatible	: must be "samsung,fimc", "simple-bus"
+> > -- clocks	: list of clock specifiers, corresponding to entries in
+> > -		  the clock-names property;
+> > -- clock-names	: must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
+> > -		  "pxl_async1" entries, matching entries in the clocks property.
+> > +- compatible: must be "samsung,fimc", "simple-bus"
+> > +- clocks: list of clock specifiers, corresponding to entries in
+> > +  the clock-names property;
+> > +- clock-names : must contain "sclk_cam0", "sclk_cam1", "pxl_async0",
+> > +  "pxl_async1" entries, matching entries in the clocks property.
+> > +
+> > +- #clock-cells: from the common clock bindings
+> > (../clock/clock-bindings.txt), +  must be 1. A clock provider is associated
+> > with the 'camera' node and it should +  be referenced by external sensors
+> > that use clocks provided by the SoC on +  CAM_*_CLKOUT pins. The clock
+> > specifier cell stores an index of a clock. +  The indices are 0, 1 for
+> > CAM_A_CLKOUT, CAM_B_CLKOUT clocks respectively. +
+> > +- clock-output-names: from the common clock bindings, should contain names
+> > of +  clocks registered by the camera subsystem corresponding to
+> > CAM_A_CLKOUT, +  CAM_B_CLKOUT output clocks respectively.
+> > 
+> >  The pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt must be
+> > used to define a required pinctrl state named "default" and optional
+> > pinctrl states: @@ -32,6 +42,7 @@ way around.
+> > 
+> >  The 'camera' node must include at least one 'fimc' child node.
+> > 
+> > +
+> >  'fimc' device nodes
+> >  -------------------
+> > 
+> > @@ -88,8 +99,8 @@ port nodes specifies data input - 0, 1 indicates input A,
+> > B respectively.
+> > 
+> >  Optional properties
+> > 
+> > -- samsung,camclk-out : specifies clock output for remote sensor,
+> > -		       0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
+> > +- samsung,camclk-out (deprecated) : specifies clock output for remote
+> > sensor, +  0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
+> > 
+> >  Image sensor nodes
+> >  ------------------
+> > @@ -97,8 +108,6 @@ Image sensor nodes
+> >  The sensor device nodes should be added to their control bus controller
+> > (e.g. I2C0) nodes and linked to a port node in the csis or the
+> > parallel-ports node, using the common video interfaces bindings, defined in
+> > video-interfaces.txt.
+> > -The implementation of this bindings requires clock-frequency property to be
+> > -present in the sensor device nodes.
+> > 
+> >  Example:
+> > 
+> > @@ -114,7 +123,7 @@ Example:
+> >  			vddio-supply = <...>;
+> > 
+> >  			clock-frequency = <24000000>;
+> > -			clocks = <...>;
+> > +			clocks = <&camera 1>;
+> >  			clock-names = "mclk";
+> > 
+> >  			port {
+> > @@ -135,7 +144,7 @@ Example:
+> >  			vddio-supply = <...>;
+> > 
+> >  			clock-frequency = <24000000>;
+> > -			clocks = <...>;
+> > +			clocks = <&camera 0>;
+> >  			clock-names = "mclk";
+> > 
+> >  			port {
+> > @@ -149,12 +158,17 @@ Example:
+> > 
+> >  	camera {
+> >  		compatible = "samsung,fimc", "simple-bus";
+> > -		#address-cells = <1>;
+> > -		#size-cells = <1>;
+> > -		status = "okay";
+> > -
+> > +		clocks = <&clock 132>, <&clock 133>, <&clock 351>,
+> > +			 <&clock 352>;
+> > +		clock-names = "sclk_cam0", "sclk_cam1", "pxl_async0",
+> > +			      "pxl_async1";
+> > +		#clock-cells = <1>;
+> > +		clock-output-names = "cam_a_clkout", "cam_b_clkout";
+> >  		pinctrl-names = "default";
+> >  		pinctrl-0 = <&cam_port_a_clk_active>;
+> > +		status = "okay";
+> > +		#address-cells = <1>;
+> > +		#size-cells = <1>;
+> > 
+> >  		/* parallel camera ports */
+> >  		parallel-ports {
+> 
+> 
 
-There are 50+ cases of Kconfig options setting the DEBUG flag, so there
-might be room for a series to remove some of those. (Note that Joe says
-there are valid reasons to use a Kconfig option to set this flag, if I'm
-not misunderstanding Joe.) For what it's worth, I've added the list of
-these (for v3.14-rc5) below.
 
+-- 
 
-Paul Bolle
-
-v3.14-rc5:arch/powerpc/platforms/pseries/Makefile:ccflags-$(CONFIG_PPC_PSERIES_DEBUG)	+= -DDEBUG
-v3.14-rc5:drivers/base/Makefile:ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
-v3.14-rc5:drivers/base/power/Makefile:ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
-v3.14-rc5:drivers/bcma/Makefile:ccflags-$(CONFIG_BCMA_DEBUG)		:= -DDEBUG
-v3.14-rc5:drivers/dma/Makefile:ccflags-$(CONFIG_DMADEVICES_DEBUG)  := -DDEBUG
-v3.14-rc5:drivers/gpio/Makefile:ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
-v3.14-rc5:drivers/gpu/drm/tegra/Makefile:ccflags-$(CONFIG_DRM_TEGRA_DEBUG) += -DDEBUG
-v3.14-rc5:drivers/hwmon/Makefile:ccflags-$(CONFIG_HWMON_DEBUG_CHIP) := -DDEBUG
-v3.14-rc5:drivers/i2c/Makefile:ccflags-$(CONFIG_I2C_DEBUG_CORE) := -DDEBUG
-v3.14-rc5:drivers/i2c/algos/Makefile:ccflags-$(CONFIG_I2C_DEBUG_ALGO) := -DDEBUG
-v3.14-rc5:drivers/i2c/busses/Makefile:ccflags-$(CONFIG_I2C_DEBUG_BUS) := -DDEBUG
-v3.14-rc5:drivers/i2c/muxes/Makefile:ccflags-$(CONFIG_I2C_DEBUG_BUS) := -DDEBUG
-v3.14-rc5:drivers/infiniband/hw/amso1100/Kbuild:ccflags-$(CONFIG_INFINIBAND_AMSO1100_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/infiniband/hw/cxgb3/Makefile:ccflags-$(CONFIG_INFINIBAND_CXGB3_DEBUG) += -DDEBUG
-v3.14-rc5:drivers/media/platform/omap3isp/Makefile:ccflags-$(CONFIG_VIDEO_OMAP3_DEBUG) += -DDEBUG
-v3.14-rc5:drivers/media/platform/ti-vpe/Makefile:ccflags-$(CONFIG_VIDEO_TI_VPE_DEBUG) += -DDEBUG
-v3.14-rc5:drivers/memstick/Makefile:subdir-ccflags-$(CONFIG_MEMSTICK_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/misc/cb710/Makefile:ccflags-$(CONFIG_CB710_DEBUG)	:= -DDEBUG
-v3.14-rc5:drivers/misc/sgi-gru/Makefile:ccflags-$(CONFIG_SGI_GRU_DEBUG)	:= -DDEBUG
-v3.14-rc5:drivers/mmc/Makefile:subdir-ccflags-$(CONFIG_MMC_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/net/caif/Makefile:ccflags-$(CONFIG_CAIF_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/net/can/Makefile:ccflags-$(CONFIG_CAN_DEBUG_DEVICES) := -DDEBUG
-v3.14-rc5:drivers/net/can/c_can/Makefile:ccflags-$(CONFIG_CAN_DEBUG_DEVICES) := -DDEBUG
-v3.14-rc5:drivers/net/can/cc770/Makefile:ccflags-$(CONFIG_CAN_DEBUG_DEVICES) := -DDEBUG
-v3.14-rc5:drivers/net/can/mscan/Makefile:ccflags-$(CONFIG_CAN_DEBUG_DEVICES) := -DDEBUG
-v3.14-rc5:drivers/net/can/sja1000/Makefile:ccflags-$(CONFIG_CAN_DEBUG_DEVICES) := -DDEBUG
-v3.14-rc5:drivers/net/can/softing/Makefile:ccflags-$(CONFIG_CAN_DEBUG_DEVICES) := -DDEBUG
-v3.14-rc5:drivers/net/can/usb/Makefile:ccflags-$(CONFIG_CAN_DEBUG_DEVICES) := -DDEBUG
-v3.14-rc5:drivers/net/ethernet/dec/tulip/Makefile:ccflags-$(CONFIG_NET_TULIP)	:= -DDEBUG
-v3.14-rc5:drivers/net/wireless/brcm80211/Makefile:subdir-ccflags-$(CONFIG_BRCMDBG)	+= -DDEBUG
-v3.14-rc5:drivers/net/wireless/zd1211rw/Makefile:ccflags-$(CONFIG_ZD1211RW_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/nfc/Makefile:ccflags-$(CONFIG_NFC_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/pci/Makefile:ccflags-$(CONFIG_PCI_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/pinctrl/Makefile:ccflags-$(CONFIG_DEBUG_PINCTRL)	+= -DDEBUG
-v3.14-rc5:drivers/power/Makefile:ccflags-$(CONFIG_POWER_SUPPLY_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/pps/Makefile:ccflags-$(CONFIG_PPS_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/pps/clients/Makefile:ccflags-$(CONFIG_PPS_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/rapidio/Makefile:subdir-ccflags-$(CONFIG_RAPIDIO_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/regulator/Makefile:ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
-v3.14-rc5:drivers/rtc/Makefile:ccflags-$(CONFIG_RTC_DEBUG)	:= -DDEBUG
-v3.14-rc5:drivers/spi/Makefile:ccflags-$(CONFIG_SPI_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/staging/comedi/Makefile:ccflags-$(CONFIG_COMEDI_DEBUG)		:= -DDEBUG
-v3.14-rc5:drivers/staging/comedi/drivers/Makefile:ccflags-$(CONFIG_COMEDI_DEBUG)		:= -DDEBUG
-v3.14-rc5:drivers/staging/comedi/kcomedilib/Makefile:ccflags-$(CONFIG_COMEDI_DEBUG)		:= -DDEBUG
-v3.14-rc5:drivers/staging/usbip/Makefile:ccflags-$(CONFIG_USBIP_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/usb/chipidea/Makefile:ccflags-$(CONFIG_USB_CHIPIDEA_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/usb/dwc2/Makefile:ccflags-$(CONFIG_USB_DWC2_DEBUG)	+= -DDEBUG
-v3.14-rc5:drivers/usb/dwc3/Makefile:ccflags-$(CONFIG_USB_DWC3_DEBUG)	:= -DDEBUG
-v3.14-rc5:drivers/usb/gadget/Makefile:ccflags-$(CONFIG_USB_GADGET_DEBUG)	:= -DDEBUG
-v3.14-rc5:drivers/usb/wusbcore/Makefile:ccflags-$(CONFIG_USB_WUSB_CBAF_DEBUG) := -DDEBUG
-v3.14-rc5:drivers/video/intelfb/Makefile:ccflags-$(CONFIG_FB_INTEL_DEBUG) := -DDEBUG -DREGDUMP
-v3.14-rc5:drivers/video/omap2/dss/Makefile:ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
-v3.14-rc5:fs/ntfs/Makefile:ccflags-$(CONFIG_NTFS_DEBUG)	+= -DDEBUG
-v3.14-rc5:kernel/power/Makefile:ccflags-$(CONFIG_PM_DEBUG)	:= -DDEBUG
-v3.14-rc5:net/caif/Makefile:ccflags-$(CONFIG_CAIF_DEBUG)     :=      -DDEBUG
-v3.14-rc5:net/rds/Makefile:ccflags-$(CONFIG_RDS_DEBUG)	:=	-DDEBUG
-
+Regards,
+Mauro
