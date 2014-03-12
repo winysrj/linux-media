@@ -1,276 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1815 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753103AbaCJMVA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 08:21:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 1/3] vb2: add thread support
-Date: Mon, 10 Mar 2014 13:20:47 +0100
-Message-Id: <1394454049-12879-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394454049-12879-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394454049-12879-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:58774 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754935AbaCLQcB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 12:32:01 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v10][ 08/10] imx-drm: imx-drm-core: provide a common display timings retrival function.
+Date: Wed, 12 Mar 2014 17:31:05 +0100
+Message-Id: <1394641867-15629-8-git-send-email-denis@eukrea.com>
+In-Reply-To: <1394641867-15629-1-git-send-email-denis@eukrea.com>
+References: <1394641867-15629-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+imx_drm_of_get_extra_timing_flags will be used to
+retrive the native-mode and de-active display-timings
+node properties in the device tree.
 
-In order to implement vb2 DVB support you need to be able to start
-a kernel thread that queues and dequeues buffers, calling a callback
-function for every buffer. This patch adds support for that.
-
-It's based on drivers/media/v4l2-core/videobuf-dvb.c, but with all the DVB
-specific stuff stripped out, thus making it much more generic.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 147 +++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h           |  32 +++++++
- 2 files changed, 179 insertions(+)
+ChangeLog v9->v10:
+- New patch that was splitted out of
+  "staging: imx-drm: Use de-active and pixelclk-active
+- When a IMXDRM_MODE_FLAG_ flag is set, its opposite
+  flag is also unset.
+---
+ drivers/staging/imx-drm/imx-drm-core.c |   57 ++++++++++++++++++++++++++++++++
+ drivers/staging/imx-drm/imx-drm.h      |    2 ++
+ 2 files changed, 59 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index f9059bb..98069f6 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -6,6 +6,9 @@
-  * Author: Pawel Osciak <pawel@osciak.com>
-  *	   Marek Szyprowski <m.szyprowski@samsung.com>
-  *
-+ * The vb2_thread implementation was based on code from videobuf-dvb.c:
-+ *	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SUSE Labs]
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation.
-@@ -18,10 +21,13 @@
- #include <linux/poll.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-+#include <linux/freezer.h>
-+#include <linux/kthread.h>
+diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
+index 6a71cd9..d877b77 100644
+--- a/drivers/staging/imx-drm/imx-drm-core.c
++++ b/drivers/staging/imx-drm/imx-drm-core.c
+@@ -24,6 +24,7 @@
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_gem_cma_helper.h>
+ #include <drm/drm_fb_cma_helper.h>
++#include <video/of_display_timing.h>
  
- #include <media/v4l2-dev.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
-+#include <media/v4l2-common.h>
- #include <media/videobuf2-core.h>
+ #include "imx-drm.h"
  
- static int debug;
-@@ -2890,6 +2896,147 @@ size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
+@@ -492,6 +493,62 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
  }
- EXPORT_SYMBOL_GPL(vb2_write);
+ EXPORT_SYMBOL_GPL(imx_drm_encoder_parse_of);
  
-+struct vb2_threadio_data {
-+	struct task_struct *thread;
-+	vb2_thread_fnc fnc;
-+	void *priv;
-+	bool stop;
-+};
-+
-+static int vb2_thread(void *data)
++int imx_drm_of_get_extra_timing_flags(struct drm_connector *connector,
++				 struct drm_display_mode *mode,
++				 struct device_node *display_np)
 +{
-+	struct vb2_queue *q = data;
-+	struct vb2_threadio_data *threadio = q->threadio;
-+	struct vb2_fileio_data *fileio = q->fileio;
-+	bool set_timestamp = false;
-+	int prequeue = 0;
-+	int index = 0;
-+	int ret = 0;
++	struct drm_display_mode *new_mode = drm_mode_create(connector->dev);
++	struct device_node *timings_np;
++	struct device_node *mode_np;
++	u32 val;
 +
-+	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
-+		prequeue = q->num_buffers;
-+		set_timestamp =
-+			(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
-+			V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	}
++	if (!new_mode)
++		return -EINVAL;
 +
-+	set_freezable();
++	of_get_drm_display_mode(display_np, mode, OF_USE_NATIVE_MODE);
 +
-+	for (;;) {
-+		struct vb2_buffer *vb;
++	timings_np = of_get_child_by_name(display_np, "display-timings");
++	if (timings_np) {
++		/* get the display mode node */
++		mode_np = of_parse_phandle(timings_np,
++					   "native-mode", 0);
++		if (!mode_np)
++			mode_np = of_get_next_child(timings_np, NULL);
 +
-+		/*
-+		 * Call vb2_dqbuf to get buffer back.
-+		 */
-+		memset(&fileio->b, 0, sizeof(fileio->b));
-+		fileio->b.type = q->type;
-+		fileio->b.memory = q->memory;
-+		if (prequeue) {
-+			fileio->b.index = index++;
-+			prequeue--;
-+		} else {
-+			call_qop(q, wait_finish, q);
-+			ret = vb2_internal_dqbuf(q, &fileio->b, 0);
-+			call_qop(q, wait_prepare, q);
-+			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
++		if (!of_property_read_u32(mode_np, "de-active", &val)) {
++			if (val) {
++				mode->private_flags |=
++					IMXDRM_MODE_FLAG_DE_HIGH;
++				mode->private_flags &=
++					~IMXDRM_MODE_FLAG_DE_LOW;
++			} else {
++				mode->private_flags &=
++					~IMXDRM_MODE_FLAG_DE_HIGH;
++				mode->private_flags |=
++					IMXDRM_MODE_FLAG_DE_LOW;
++			}
 +		}
-+		if (threadio->stop)
-+			break;
-+		if (ret)
-+			break;
-+		try_to_freeze();
 +
-+		vb = q->bufs[fileio->b.index];
-+		if (!(fileio->b.flags & V4L2_BUF_FLAG_ERROR))
-+			ret = threadio->fnc(vb, threadio->priv);
-+		if (ret)
-+			break;
-+		call_qop(q, wait_finish, q);
-+		if (set_timestamp)
-+			v4l2_get_timestamp(&fileio->b.timestamp);
-+		ret = vb2_internal_qbuf(q, &fileio->b);
-+		call_qop(q, wait_prepare, q);
-+		if (ret)
-+			break;
++		if (!of_property_read_u32(mode_np, "pixelclk-active",
++					  &val)) {
++			if (val) {
++				mode->private_flags |=
++					IMXDRM_MODE_FLAG_PIXDATA_POSEDGE;
++				mode->private_flags &=
++					~IMXDRM_MODE_FLAG_PIXDATA_NEGEDGE;
++			} else {
++				mode->private_flags &=
++					~IMXDRM_MODE_FLAG_PIXDATA_POSEDGE;
++				mode->private_flags |=
++					IMXDRM_MODE_FLAG_PIXDATA_NEGEDGE;
++			}
++		}
 +	}
 +
-+	/* Hmm, linux becomes *very* unhappy without this ... */
-+	while (!kthread_should_stop()) {
-+		set_current_state(TASK_INTERRUPTIBLE);
-+		schedule();
-+	}
 +	return 0;
 +}
++EXPORT_SYMBOL_GPL(imx_drm_of_get_extra_timing_flags);
 +
-+/*
-+ * This function should not be used for anything else but the videobuf2-dvb
-+ * support. If you think you have another good use-case for this, then please
-+ * contact the linux-media mailinglist first.
-+ */
-+int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
-+		     const char *thread_name)
-+{
-+	struct vb2_threadio_data *threadio;
-+	int ret = 0;
-+
-+	if (q->threadio)
-+		return -EBUSY;
-+	if (vb2_is_busy(q))
-+		return -EBUSY;
-+	if (WARN_ON(q->fileio))
-+		return -EBUSY;
-+
-+	threadio = kzalloc(sizeof(*threadio), GFP_KERNEL);
-+	if (threadio == NULL)
-+		return -ENOMEM;
-+	threadio->fnc = fnc;
-+	threadio->priv = priv;
-+
-+	ret = __vb2_init_fileio(q, !V4L2_TYPE_IS_OUTPUT(q->type));
-+	dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
-+	if (ret)
-+		goto nomem;
-+	q->threadio = threadio;
-+	threadio->thread = kthread_run(vb2_thread, q, "vb2-%s", thread_name);
-+	if (IS_ERR(threadio->thread)) {
-+		ret = PTR_ERR(threadio->thread);
-+		threadio->thread = NULL;
-+		goto nothread;
-+	}
-+	return 0;
-+
-+nothread:
-+	__vb2_cleanup_fileio(q);
-+nomem:
-+	kfree(threadio);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(vb2_thread_start);
-+
-+int vb2_thread_stop(struct vb2_queue *q)
-+{
-+	struct vb2_threadio_data *threadio = q->threadio;
-+	struct vb2_fileio_data *fileio = q->fileio;
-+	int err;
-+
-+	if (threadio == NULL)
-+		return 0;
-+	call_qop(q, wait_finish, q);
-+	threadio->stop = true;
-+	vb2_internal_streamoff(q, q->type);
-+	call_qop(q, wait_prepare, q);
-+	q->fileio = NULL;
-+	fileio->req.count = 0;
-+	vb2_reqbufs(q, &fileio->req);
-+	kfree(fileio);
-+	err = kthread_stop(threadio->thread);
-+	threadio->thread = NULL;
-+	kfree(threadio);
-+	q->fileio = NULL;
-+	q->threadio = NULL;
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(vb2_thread_stop);
+ void imx_drm_set_default_timing_flags(struct drm_display_mode *mode)
+ {
+ 	mode->private_flags &= ~IMXDRM_MODE_FLAG_DE_LOW;
+diff --git a/drivers/staging/imx-drm/imx-drm.h b/drivers/staging/imx-drm/imx-drm.h
+index ae07d9d..ae01f4d 100644
+--- a/drivers/staging/imx-drm/imx-drm.h
++++ b/drivers/staging/imx-drm/imx-drm.h
+@@ -54,6 +54,8 @@ int imx_drm_encoder_get_mux_id(struct device_node *node,
+ 		struct drm_encoder *encoder);
+ int imx_drm_encoder_parse_of(struct drm_device *drm,
+ 	struct drm_encoder *encoder, struct device_node *np);
++int imx_drm_of_get_extra_timing_flags(struct drm_connector *connector,
++	struct drm_display_mode *mode, struct device_node *display_np);
+ void imx_drm_set_default_timing_flags(struct drm_display_mode *mode);
  
- /*
-  * The following functions are not part of the vb2 core API, but are helper
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index af46211..2f58768 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -20,6 +20,7 @@
- 
- struct vb2_alloc_ctx;
- struct vb2_fileio_data;
-+struct vb2_threadio_data;
- 
- /**
-  * struct vb2_mem_ops - memory handling/memory allocator operations
-@@ -375,6 +376,7 @@ struct v4l2_fh;
-  * @start_streaming_called: start_streaming() was called successfully and we
-  *		started streaming.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-+ * @threadio:	thread io internal data, used only if thread is active
-  */
- struct vb2_queue {
- 	enum v4l2_buf_type		type;
-@@ -411,6 +413,7 @@ struct vb2_queue {
- 	unsigned int			start_streaming_called:1;
- 
- 	struct vb2_fileio_data		*fileio;
-+	struct vb2_threadio_data	*threadio;
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
-@@ -461,6 +464,35 @@ size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
- 		loff_t *ppos, int nonblock);
- size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
- 		loff_t *ppos, int nonblock);
-+/**
-+ * vb2_thread_fnc - callback function for use with vb2_thread
-+ *
-+ * This is called whenever a buffer is dequeued in the thread.
-+ */
-+typedef int (*vb2_thread_fnc)(struct vb2_buffer *vb, void *priv);
-+
-+/**
-+ * vb2_thread_start() - start a thread for the given queue.
-+ * @q:		videobuf queue
-+ * @fnc:	callback function
-+ * @priv:	priv pointer passed to the callback function
-+ * @thread_name:the name of the thread. This will be prefixed with "vb2-".
-+ *
-+ * This starts a thread that will queue and dequeue until an error occurs
-+ * or @vb2_thread_stop is called.
-+ *
-+ * This function should not be used for anything else but the videobuf2-dvb
-+ * support. If you think you have another good use-case for this, then please
-+ * contact the linux-media mailinglist first.
-+ */
-+int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
-+		     const char *thread_name);
-+
-+/**
-+ * vb2_thread_stop() - stop the thread for the given queue.
-+ * @q:		videobuf queue
-+ */
-+int vb2_thread_stop(struct vb2_queue *q);
- 
- /**
-  * vb2_is_streaming() - return streaming status of the queue
+ int imx_drm_connector_mode_valid(struct drm_connector *connector,
 -- 
-1.9.0
+1.7.9.5
 
