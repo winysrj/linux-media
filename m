@@ -1,201 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35022 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965435AbaCUMKj (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2517 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753362AbaCLNmE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 08:10:39 -0400
-Message-ID: <532C2C21.1060806@ti.com>
-Date: Fri, 21 Mar 2014 14:10:09 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+	Wed, 12 Mar 2014 09:42:04 -0400
+Message-ID: <5320641A.7090507@xs4all.nl>
+Date: Wed, 12 Mar 2014 14:41:46 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Grant Likely <grant.likely@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [RFC PATCH] [media]: of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1392119105-25298-1-git-send-email-p.zabel@pengutronix.de> < 5427810.BUKJ3iUXnO@avalon> <20140310145815.17595C405FA@trevor.secretlab.ca> <4339286.FzhQ2m6hoA@avalon> <20140320170159.A9A87C4067A@trevor.secretlab.ca>
-In-Reply-To: <20140320170159.A9A87C4067A@trevor.secretlab.ca>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="XA7AGeQp0Qvdt5KJE96jFGUoPi6XsaHId"
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 14/35] v4l2-ctrls: prepare for matrix support.
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl> <1392631070-41868-15-git-send-email-hverkuil@xs4all.nl> <20140312074221.73ee30b1@samsung.com> <53205155.7030003@xs4all.nl> <20140312100041.513e0a0e@samsung.com>
+In-Reply-To: <20140312100041.513e0a0e@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---XA7AGeQp0Qvdt5KJE96jFGUoPi6XsaHId
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On 03/12/2014 02:00 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 12 Mar 2014 13:21:41 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 03/12/14 11:42, Mauro Carvalho Chehab wrote:
+>>> Em Mon, 17 Feb 2014 10:57:29 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> Add core support for matrices.
+>>>
+>>> Again, this patch has negative values for array index.
+>>>
+>>> I'll stop analyzing here, as it is hard to keep the mind in a
+>>> sane state seeing those crazy things ;)
+>>
+>> Rather than getting bogged down in these details can you please give
+>> your opinion on the public API aspects. There is no point for me to
+>> spend time on this and then get it NACKed because you don't like the
+>> API itself and want something completely different.
+>>
+>> Internal things I can change, but I'm not going to spend a second on
+>> that unless I know the concept stands. Otherwise it is wasted time.
+> 
+> Ok, what patches after 16/35 contains the API bits?
 
-On 20/03/14 19:01, Grant Likely wrote:
+Core control functionality: 4, 5, 19-22.
 
-> I think depending on a generic graph walk is where I have the biggest
-> concern about the design. I don't think it is a good idea for the maste=
-r
-> device to try a generic walk over the graph looking for other devices
-> that might be components because it cannot know whether or not further
-> links are relevant, or even if other endpoint nodes in the target
-> hierarchy actually conform to the graph binding in the same way.
->=20
-> Consider the example of a system with two video controllers (one
-> embedded and one discrete), a display mux, and a panel. The display
-> controller depends on the mux, and the mux depends on the panel. It
-> would be entirely reasonable to start up the display subsystem with the=
+Adding support for the motion detection matrices: 24, 25, 27, 28.
 
-> embedded controller without the discrete adapter being available, but
-> the way the current graph pattern is proposed there is no dependency
-> information between the devices.
+Adding support for the motion detection event: 29, 30.
 
-For some reason I don't understand this master and dependency way of
-thinking. I just can't twist my brain to it, please help me =3D).
+Sorry for sounding so irritated in my email: today is one of those
+frustrating days where nothing works out the way you want it and
+where I should have stayed in bed in the morning, and that spilled
+over in my mail.
 
-With the setup you describe above, why does the video controller depend
-on the mux, and why it is the master? Why the DMA engine does not depend
-on the embedded video controller, and why is the DMA engine not the maste=
-r?
+Regards,
 
-With the setup above, what are we really interested in? It's the
-display, right? We want to have the display working, with resolution and
-video timings that work for the display. The mux and the display
-controllers are just necessary evils to make the display work. The
-display depends on the mux to provide it a video stream. The mux depends
-on the two video controllers to provide the mux two video streams. The
-video controllers depend (possibly) on SoC's DMA, or PCI bus to provide
-them video data.
+	Hans
 
-And if we consider the same setup as above, but the mux has two
-exclusive outputs, it again works fine with the dependency I described.
-If you want to enable panel 1, you'll depend on mux and video
-controllers, but not on panel 2. So you can leave the panel 2 driver out
-and things still work ok.
+> 
+> The changes I saw so far seem ok, with the adjustments I pointed.
+> 
+>> This is something we need to improve on with regards to our
+>> processes: when it comes to API enhancements you really need to be
+>> involved earlier or it's going to be a huge waste of everyones time
+>> it is gets NACked. Not to mention demotivating and frustrating for
+>> all concerned.
+> 
+> As I commented before: those complex API changes should ideally
+> be discussed during our mini-summits, as it allows us to better
+> understand the hole proposal and the taken approach.
+> 
 
-But note that I don't think this dependency has strict relation to the
-DT graph representation, see below.
-
-> I really do think the dependency direction needs to be explicit so that=
-
-> a driver knows whether or not a given link is relevant for it to start,=
-
-
-I think that comes implicitly from the driver, it doesn't need to be
-described in the DT. If a device has an input port, and the device is
-configured to use that input port, the device depends on whatever is on
-the other side of the input port. The device driver must know that.
-
-Somehow a device driver needs to find if the driver behind its input
-ports are ready. It could use the links in DT directly, if they are
-supplied in that direction, or it could rely on someone else parsing the
-DT, and exposing the information via some API.
-
-I think it's simpler for the SW to follow the links directly, but that
-would mean having the links in the opposite direction than the data
-flow, which feels a bit odd to me.
-
-> and there must be driver know that knows how to interpret the target
-> node. A device that is a master needs to know which links are
-> dependencies, and which are not.
-
-Well, again, I may not quite understand what the master means here. But
-for me, the display is the master of the pipeline. The driver for the
-display is the one that has to decide what kind of video signal is
-acceptable, how the signal must be enabled, and disabled, etc.
-
-When someone (the master's master =3D) tells the panel to enable itself,
-the panel needs to use an API to configure and enable its input ports.
-The devices on the other end of the input ports then configure and
-enable their inputs. And so on.
-
-Anyway, I do think this is more of a SW organization topic than how we
-should describe the hardware. As I see it, the parent-child
-relationships in the DT describe the control paths and the graph
-describes the data paths. Having the data paths described in the
-direction of data flow (or double-linked in case of bi-dir link) sounds
-logical to me, but I think the inverse could work fine too.
-
-But using some kind of CPU centric direction doesn't sound very usable,
-it makes no sense for cases with peripheral-to-peripheral links, and the
-control bus already describes the CPU centric direction in cases where
-there exists a clear CPU-to-peripheral direction.
-
-> I'm not even talking about the bi-directional link issue. This issue
-> remains regardless of whether or not bidirectional links are used.
->=20
-> I would solve it in one of the following two ways:
->=20
-> 1) Make masters only look at one level of dependency. Make the componen=
-t
-> driver responsible for checking /its/ dependencies. If its dependencies=
-
-> aren't yet met, then don't register the component as ready. We could
-> probably make the drivers/base/component code allow components to pull
-> in additional components as required. This approach shouldn't even
-> require a change to the binding and eliminates any need for walking the=
-
-> full graph.
->=20
-> 2) Give the master node an explicit list of all devices it depends on. =
-I
-> don't like this solution as much, but it does the job.
-
-I'd suggest the first one (without the "masters" part, which I don't
-quite follow, and presuming the component's inputs are its
-dependencies...). Each device driver should only check its dependencies.
-If this happens by using the DT data, then the easiest way is to have
-the graph links go opposite to data-flow.
-
-But I think it should work fine with data-flow direction also. Each
-driver would register itself, including it's outputs. After that, the
-components behind the outputs can find their inputs via an API. However,
-that prevents us from using EPROBE_DEFER to handle missing inputs.
-
-However, I do think it could be useful in some cases to observe the
-whole pipeline, even the components that have not been loaded. It could
-be used to, say, decide which modules to load when a particular output
-needs to be enabled. I'm not sure how important such feature is, though.
-
-And I don't really see why we should forbid that. If the graph bindings
-are standard, we can reliably follow the links to form an image of the
-whole graph. Of course, the component doing that should not look at the
-properties of the ports or endpoints, as those are private to the node
-in question, but it could follow the graph and find out if a node has a
-driver available, and in those cases maybe get more information via an AP=
-I.
-
- Tomi
-
-
-
---XA7AGeQp0Qvdt5KJE96jFGUoPi6XsaHId
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTLCwhAAoJEPo9qoy8lh71FAAP/1Tc6GiDsnUOxmo2/IeaFatd
-738uMjUXndty7pvQDCoqzz5D+CaBoczm0JRoN4oH/YyV78yBmW3aVVwfnkwH4+eL
-BF1T3wIGghxOfDw+GRz5nVSNFc255zxh2eA/leBySrtK4+eX5+9SMgR5an0cISvO
-oV+g6neNfvCrYCUu3wSbK4uJ5KMu4QzO+ydHkcY/n3fQmInG7WOj8u162O2dHSB0
-mrD5wjihnLMd2z3DFTRlYiKBab8j6ejzcPl7RUNZ44z7RSgwHXf2bPjwhU+R5k+s
-E73Sso3ujSrq3ojFTS7QouqklWNfNudmYvcUmWGAp6Ro0Cf5OarFQWNbToMAvwBW
-vMi1RdrODfditWfJVG7yIGbOpTUhXUgdVO+XYwGHKPUoXfZJA+Nb8lQ9oZYdHeTR
-68DU1bNHn0wAgG9zFyLPjrljwz1asghypcrY/0oM5epqIWf3ClLhN0YAIxQauPFS
-DFk79tRLuVnG1DWirzJC8fMhh9aJOJle3rXOF4iB9jYUAWkHpBeM3Co1hbk9GJnz
-lBPONvxlTc4VLeJb1MZKQTDlC70OnK1Nt9nmfmc1Qx7hQ4Helu0jtB/w6NPNovd3
-iZpBhmz8qhcGkZ878PZV/kdhxVno6vRFd7LNgvXJvdb5CccnDwTF3VyW2GQtb83k
-nabnwzTgUE3b0gnOmekK
-=FWks
------END PGP SIGNATURE-----
-
---XA7AGeQp0Qvdt5KJE96jFGUoPi6XsaHId--
