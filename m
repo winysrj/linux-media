@@ -1,86 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:50552 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756016AbaCNVER (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 17:04:17 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Subject: [PATCH] [media] adv7180: free an interrupt on failure paths in init_device()
-Date: Sat, 15 Mar 2014 01:04:03 +0400
-Message-Id: <1394831043-21425-1-git-send-email-khoroshilov@ispras.ru>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:8698 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753684AbaCLNo7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 09:44:59 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2B00K4FSUWDU00@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Mar 2014 13:44:56 +0000 (GMT)
+Message-id: <532064CF.8040302@samsung.com>
+Date: Wed, 12 Mar 2014 14:44:47 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	ismael.luceno@corp.bluecherry.net, pete@sensoray.com,
+	sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 14/35] v4l2-ctrls: prepare for matrix support.
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+ <1392631070-41868-15-git-send-email-hverkuil@xs4all.nl>
+ <20140312074221.73ee30b1@samsung.com> <53205155.7030003@xs4all.nl>
+ <20140312100041.513e0a0e@samsung.com>
+In-reply-to: <20140312100041.513e0a0e@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is request_irq() in init_device(), but the interrupt is not removed
-on failure paths. The patch adds proper error handling.
+Hi Mauro,
 
-Found by Linux Driver Verification project (linuxtesting.org).
+On 12/03/14 14:00, Mauro Carvalho Chehab wrote:
+[...]
+> As I commented before: those complex API changes should ideally
+> be discussed during our mini-summits, as it allows us to better
+> understand the hole proposal and the taken approach.
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/i2c/adv7180.c | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+We discussed this in a dedicated brainstorming meeting in Edinburgh,
+with Sakari, Laurent, Andrzej. IIRC you didn't take part in that
+discussions for some reason.
+After we initially agreed on the API Hans started working on the
+actual implementation. He put much effort and did a pretty good
+job IMO. I guess we just need to refine any controversial aspects
+that might be there and move forward with the API. :)
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index d7d99f1c69e4..e462392ba043 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -541,40 +541,44 @@ static int init_device(struct i2c_client *client, struct adv7180_state *state)
- 		ret = i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG,
- 						ADV7180_ADI_CTRL_IRQ_SPACE);
- 		if (ret < 0)
--			return ret;
-+			goto err;
- 
- 		/* config the Interrupt pin to be active low */
- 		ret = i2c_smbus_write_byte_data(client, ADV7180_ICONF1_ADI,
- 						ADV7180_ICONF1_ACTIVE_LOW |
- 						ADV7180_ICONF1_PSYNC_ONLY);
- 		if (ret < 0)
--			return ret;
-+			goto err;
- 
- 		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR1_ADI, 0);
- 		if (ret < 0)
--			return ret;
-+			goto err;
- 
- 		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR2_ADI, 0);
- 		if (ret < 0)
--			return ret;
-+			goto err;
- 
- 		/* enable AD change interrupts interrupts */
- 		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR3_ADI,
- 						ADV7180_IRQ3_AD_CHANGE);
- 		if (ret < 0)
--			return ret;
-+			goto err;
- 
- 		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR4_ADI, 0);
- 		if (ret < 0)
--			return ret;
-+			goto err;
- 
- 		ret = i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG,
- 						0);
- 		if (ret < 0)
--			return ret;
-+			goto err;
- 	}
- 
- 	return 0;
-+
-+err:
-+	free_irq(state->irq, state);
-+	return ret;
- }
- 
- static int adv7180_probe(struct i2c_client *client,
--- 
-1.8.3.2
-
+--
+Regards,
+Sylwester
