@@ -1,100 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4090 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753143AbaCGKVc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 05:21:32 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, laurent.pinchart@ideasonboard.com,
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:24850 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752673AbaCLNAe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 09:00:34 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2B00J3HQSWL900@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Mar 2014 09:00:33 -0400 (EDT)
+Date: Wed, 12 Mar 2014 10:00:26 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv1 PATCH 4/5] adv*: replace the deprecated v4l2_subdev_edid by v4l2_edid.
-Date: Fri,  7 Mar 2014 11:21:18 +0100
-Message-Id: <1394187679-7345-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394187679-7345-1-git-send-email-hverkuil@xs4all.nl>
+Subject: Re: [REVIEWv3 PATCH 14/35] v4l2-ctrls: prepare for matrix support.
+Message-id: <20140312100026.5cbe0309@samsung.com>
+In-reply-to: <53205155.7030003@xs4all.nl>
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl>
+ <1392631070-41868-15-git-send-email-hverkuil@xs4all.nl>
+ <20140312074221.73ee30b1@samsung.com> <53205155.7030003@xs4all.nl>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Wed, 12 Mar 2014 13:21:41 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ad9389b.c | 2 +-
- drivers/media/i2c/adv7511.c | 2 +-
- drivers/media/i2c/adv7604.c | 4 ++--
- drivers/media/i2c/adv7842.c | 4 ++--
- 4 files changed, 6 insertions(+), 6 deletions(-)
+> On 03/12/14 11:42, Mauro Carvalho Chehab wrote:
+> > Em Mon, 17 Feb 2014 10:57:29 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Add core support for matrices.
+> > 
+> > Again, this patch has negative values for array index.
+> > 
+> > I'll stop analyzing here, as it is hard to keep the mind in a
+> > sane state seeing those crazy things ;)
+> 
+> Rather than getting bogged down in these details can you please give
+> your opinion on the public API aspects. There is no point for me to
+> spend time on this and then get it NACKed because you don't like the
+> API itself and want something completely different.
+> 
+> Internal things I can change, but I'm not going to spend a second on
+> that unless I know the concept stands. Otherwise it is wasted time.
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 83225d6..1b7ecfd 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -573,7 +573,7 @@ static const struct v4l2_subdev_core_ops ad9389b_core_ops = {
- 
- /* ------------------------------ PAD OPS ------------------------------ */
- 
--static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct ad9389b_state *state = get_ad9389b_state(sd);
- 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index ee61894..942ca4b 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -597,7 +597,7 @@ static int adv7511_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
--static int adv7511_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int adv7511_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
- 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 71c8570..98cc540 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1658,7 +1658,7 @@ static int adv7604_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
--static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int adv7604_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv7604_state *state = to_state(sd);
- 	u8 *data = NULL;
-@@ -1728,7 +1728,7 @@ static int get_edid_spa_location(const u8 *edid)
- 	return -1;
- }
- 
--static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv7604_state *state = to_state(sd);
- 	int spa_loc;
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index e04fe3f..4d1e07e 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2014,7 +2014,7 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
--static int adv7842_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
-+static int adv7842_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv7842_state *state = to_state(sd);
- 	u8 *data = NULL;
-@@ -2054,7 +2054,7 @@ static int adv7842_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	return 0;
- }
- 
--static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *e)
-+static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *e)
- {
- 	struct adv7842_state *state = to_state(sd);
- 	int err = 0;
+Ok, what patches after 16/35 contains the API bits?
+
+The changes I saw so far seem ok, with the adjustments I pointed.
+
+> This is something we need to improve on with regards to our
+> processes: when it comes to API enhancements you really need to be
+> involved earlier or it's going to be a huge waste of everyones time
+> it is gets NACked. Not to mention demotivating and frustrating for
+> all concerned.
+
+As I commented before: those complex API changes should ideally
+be discussed during our mini-summits, as it allows us to better
+understand the hole proposal.
+
 -- 
-1.9.0
 
+Regards,
+Mauro
