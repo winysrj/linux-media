@@ -1,52 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:40435 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757010AbaC0WNj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Mar 2014 18:13:39 -0400
-Received: by mail-we0-f170.google.com with SMTP id w61so2270288wes.15
-        for <linux-media@vger.kernel.org>; Thu, 27 Mar 2014 15:13:38 -0700 (PDT)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Subject: Re: dib0700 NEC scancode question
-Date: Thu, 27 Mar 2014 23:13:35 +0100
-Message-ID: <1464013.AGHbqAynQ4@lappi3>
-In-Reply-To: <20140327214041.GA21302@hardeman.nu>
-References: <20140327120728.GA13748@hardeman.nu> <20140327214041.GA21302@hardeman.nu>
+Received: from mail.kapsi.fi ([217.30.184.167]:51343 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751945AbaCLNHH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Mar 2014 09:07:07 -0400
+Message-ID: <53205BF6.9040304@iki.fi>
+Date: Wed, 12 Mar 2014 15:07:02 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: [REVIEW PATCH 11/13] DocBook: document RF tuner bandwidth controls
+References: <1393460528-11684-1-git-send-email-crope@iki.fi> <1393460528-11684-12-git-send-email-crope@iki.fi> <20140305154922.508c48d7@samsung.com> <531D8D78.800@iki.fi> <20140312080233.3823dd80@samsung.com> <5320527B.9040707@iki.fi> <20140312094739.089a8ce5@samsung.com> <532059B0.9010201@iki.fi>
+In-Reply-To: <532059B0.9010201@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
+On 12.03.2014 14:57, Antti Palosaari wrote:
+> On 12.03.2014 14:47, Mauro Carvalho Chehab wrote:
+>> Em Wed, 12 Mar 2014 14:26:35 +0200
+>> Antti Palosaari <crope@iki.fi> escreveu:
+>>
+>>> On 12.03.2014 13:02, Mauro Carvalho Chehab wrote:
+>>>> Em Mon, 10 Mar 2014 12:01:28 +0200
+>>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>>
+>>>>> On 05.03.2014 20:49, Mauro Carvalho Chehab wrote:
+>>>>>> Em Thu, 27 Feb 2014 02:22:06 +0200
+>>>>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>>>>
+>>>>>>> Add documentation for RF tuner bandwidth controls. These controls
+>>>>>>> are
+>>>>>>> used to set filters on tuner signal path.
+>>>>>>>
+>>>>>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>>>>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>>>>>> ---
+>>>>>>>     Documentation/DocBook/media/v4l/controls.xml | 19
+>>>>>>> +++++++++++++++++++
+>>>>>>>     1 file changed, 19 insertions(+)
+>>>>>>>
+>>>>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+>>>>>>> b/Documentation/DocBook/media/v4l/controls.xml
+>>>>>>> index 6c9dbf6..5550fea 100644
+>>>>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>>>>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>>>>>>> @@ -5007,6 +5007,25 @@ descriptor. Calling &VIDIOC-QUERYCTRL; for
+>>>>>>> this control will return a
+>>>>>>>     description of this control class.</entry>
+>>>>>>>                 </row>
+>>>>>>>                 <row>
+>>>>>>> +              <entry
+>>>>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH_AUTO</constant>&nbsp;</entry>
+>>>>>>>
+>>>>>>> +              <entry>boolean</entry>
+>>>>>>> +            </row>
+>>>>>>> +            <row>
+>>>>>>> +              <entry spanname="descr">Enables/disables tuner
+>>>>>>> radio channel
+>>>>>>> +bandwidth configuration. In automatic mode bandwidth
+>>>>>>> configuration is performed
+>>>>>>> +by the driver.</entry>
+>>>>>>> +            </row>
+>>>>>>> +            <row>
+>>>>>>> +              <entry
+>>>>>>> spanname="id"><constant>V4L2_CID_RF_TUNER_BANDWIDTH</constant>&nbsp;</entry>
+>>>>>>>
+>>>>>>> +              <entry>integer</entry>
+>>>>>>> +            </row>
+>>>>>>> +            <row>
+>>>>>>> +              <entry spanname="descr">Filter(s) on tuner signal
+>>>>>>> path are used to
+>>>>>>> +filter signal according to receiving party needs. Driver
+>>>>>>> configures filters to
+>>>>>>> +fulfill desired bandwidth requirement. Used when
+>>>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO is not
+>>>>>>> +set. The range and step are driver-specific.</entry>
+>>>>>>
+>>>>>> Huh? If this is enable/disable, why "the range and step are
+>>>>>> driver-specific"?
+>>>>>
+>>>>> Because there is two controls grouped. That is situation of having
+>>>>> AUTO/MANUAL.
+>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO
+>>>>> V4L2_CID_RF_TUNER_BANDWIDTH
+>>>>>
+>>>>> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when
+>>>>> V4L2_CID_RF_TUNER_BANDWIDTH_AUTO == false.
+>>>>>
+>>>>
+>>>> Sorry, but I'm not understanding what you're arguing.
+>>>>
+>>>> Yeah, it is clear at the patch that there are two controls, and that
+>>>> V4L2_CID_RF_TUNER_BANDWIDTH is valid only when AUTO is disabled, but
+>>>> this doesn't answer my question:
+>>>>
+>>>> Why V4L2_CID_RF_TUNER_BANDWIDTH's range and step are driver-specific?
+>>>>
+>>>
+>>> Hmmm. That control is used to configure RF filters. Filters set
+>>> bandwidth of radio channel. There is usually quite limited set of
+>>> available analog filters inside RF tuner. If you look for example
+>>> FC0012/FC0013 possible filters are 6/7/8 MHz. E4000 has something 4-11
+>>> MHz. If you look those very old 1st gen silicon tuners like QT1010 /
+>>> MT2060, there is no integrated filters at all - but there is external
+>>> saw filter which is usually 8MHz at 36.125 MHz IF.
+>>>
+>>> Did you remember there is same parameter already in DVB API (struct
+>>> dtv_frontend_properties bandwidth_hz)? That is control is currently used
+>>> to set r820t, fc0012, fc10013 .bandwidth_hz value, e4000 implements it
+>>> correctly as own control.
+>>>
+>>> I am quite astonished we have that big gap with our views.
+>>
+>> Well, on DVB, the bandwidth is specified in Hz, at DVBv5 (or via
+>> an enum on DVBv3).
+>>
+>> Here, there's no description about the unit to be used (Hz? kHz?).
+>> It just says that this is an integer, with a driver-specific
+>> range and step.
+>>
+>> So, one driver might choose to use Hz, other kHz, and other to
+>> expose some internal counter. That's bad.
+>>
+>> We should either use a V4L2_CTRL_TYPE_MENU type of control, where it
+>> would be possible to do something similar to DVBv3 way to specify
+>> the bandwidth filter, or to define that the bandwidth will be
+>> in Hz, kHz or MHz.
+>
+> Yeah, indeed. That was my mistake. The aim was Hz yes.
+>
+>>
+>> Probably, a menu type is better, as it allows userspace to get
+>> all supported bandwidths.
+>
+> I though it too, but there is already a lot choices for some tuners,
+> E4000 has over 30. What is maximum reasonable filter count for
+> V4L2_CTRL_TYPE_MENU?
 
-On Thursday 27 March 2014 22:40:41 David Härdeman wrote:
-> On Thu, Mar 27, 2014 at 01:07:28PM +0100, David Härdeman wrote:
-> >Hi Patrick,
-> >
-> >a quick question regarding the dib0700 driver:
-> 
-> >in ./media/usb/dvb-usb/dib0700_core.c the RC RX packet is defined as:
-> ...
-> 
-> >The NEC protocol transmits in the order:
-> ...
-> 
-> >Does the dib0700 fw really reorder the bytes, or could the order of
-> >not_system and system in struct dib0700_rc_response have been
-> >accidentally reversed?
 
-It feels like a hundred years I haven't work on that. I'm not sure whether 
-this knowledge can still be retrieved as of today or not. I would lie if I 
-told you that I look the archives... and I can't want to do that (lying and 
-looking).
+One fear there is also what happens when there will be some day new RF 
+tuner having DSP which does digital filtering ~1 Hz step?
 
-However, I realize that your assumption might not be totally far-fetched. If 
-you can find another IR-receiver just check whether the same remote control 
-delivers swapped bytes or not (if I understood it correctly, that's your real 
-question). Then you have you answer, haven't you? 
+Mabbe the current control is enough, but probably it is place to add 
+comment unit is Hz (even I think people should expect it is Hz when RF 
+frequencies are spoken).
+
+
+regards
+Antti
+
 
 -- 
-Patrick.
+http://palosaari.fi/
