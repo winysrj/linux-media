@@ -1,224 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.domdv.de ([193.102.202.1]:2945 "EHLO hermes.domdv.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:51286 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753544AbaCZUjZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Mar 2014 16:39:25 -0400
-Message-ID: <1395865972.23074.61.camel@host028-server-9.lan.domdv.de>
-Subject: [PATCH 2/3] TBS USB drivers (DVB-S/S2) - add lock led hooks to
- frontends
-From: Andreas Steinmetz <ast@domdv.de>
-To: linux-media@vger.kernel.org
-Date: Wed, 26 Mar 2014 21:32:52 +0100
-Content-Type: multipart/mixed; boundary="=-5//w74PPt19lFct1NON6"
-Mime-Version: 1.0
+	id S1752289AbaCMQFl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 12:05:41 -0400
+Message-ID: <5321D750.9040103@iki.fi>
+Date: Thu, 13 Mar 2014 18:05:36 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [REVIEW PATCH 02/16] e4000: implement controls via v4l2 control
+ framework
+References: <1393461025-11857-1-git-send-email-crope@iki.fi> <1393461025-11857-3-git-send-email-crope@iki.fi> <20140313105727.43c3d689@samsung.com> <5321CC1E.3080509@iki.fi>
+In-Reply-To: <5321CC1E.3080509@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 13.03.2014 17:17, Antti Palosaari wrote:
+> On 13.03.2014 15:57, Mauro Carvalho Chehab wrote:
+>> Em Thu, 27 Feb 2014 02:30:11 +0200
+>> Antti Palosaari <crope@iki.fi> escreveu:
+>>
+>>> Implement gain and bandwidth controls using v4l2 control framework.
+>>> Pointer to control handler is provided by exported symbol.
 
---=-5//w74PPt19lFct1NON6
-Content-Type: text/plain; charset="ansi_x3.4-1968"
-Content-Transfer-Encoding: 7bit
+>> There are two things to be noticed here:
+>>
+>> 1) Please don't add any EXPORT_SYMBOL() on a pure I2C module. You
+>> should, instead, use the subdev calls, in order to callback a
+>> function provided by the module;
+>
+> That means, I have to implement it as a V4L subdev driver then...
+>
+> Is there any problem to leave as it is? It just only provides control
+> handler using that export. If you look those existing dvb frontend or
+> tuner drivers there is many kind of resources exported just similarly
+> (example DibCom PID filters, af9033 pid filters), so I cannot see why
+> that should be different.
+>
+>> 2) As you're now using request_module(), you don't need to use
+>> #if IS_ENABLED() anymore. It is up to the module to register
+>> itself as a V4L2 subdevice. The caller module should use the
+>> subdevice interface to run the callbacks.
+>>
+>> If you don't to that, you'll have several issues with the
+>> building system.
+>
+> So basically you are saying I should implement that driver as a V4L
+> subdev too?
 
-[Please CC me on replies, I'm not subscribed]
 
-Based on GPLv2 code taken from:
+That is not so simple!
+If you look how that device is build on driver level
 
-https://bitbucket.org/CrazyCat/linux-tbs-drivers/
+rtl28xxu USB-interface driver is *master*
+rtl28xxu loads rtl2832 demod driver
+rtl28xxu loads e4000 tuner driver
+rtl28xxu loads rtl2832_sdr driver
 
-The patch adds lock led hooks to the stv090x, stv0288, cx24116 and
-tda10071 frontends. Similar code already exists in the stv0900 frontend.
+Whole palette is build upon DVB API, but rtl2832_sdr driver offers SDR 
+API for userspace. So it is not that simple "go to and implement V4L2 
+subdevice to e4000 DVB driver". Only thing needed is to find out some 
+way to pass control handler from e4000 to rtl2832_sdr. There is no 
+likely any existing solution where DVB side uses V4L2 subdevice and 
+implementing such at this tight schedule does not sound reasonable. Why 
+you didn't mention you want subdevice earlier? At the very first I 
+implemented that using DVB tuner .set_config() callback, but you asked 
+to switch v4l2 control framework. And now I should switch to subdev.
+
+There does not seems to be any suitable callback for getting that kind 
+of pointer. There is only one existing quite similar solution what I 
+know, it is stv6110x / stv090x and I don't like it :)
+
+Any idea?
+
+regards
+Antti
+
 -- 
-Andreas Steinmetz                       SPAMmers use robotrap@domdv.de
-
---=-5//w74PPt19lFct1NON6
-Content-Disposition: attachment; filename="add-led-hook-to-frontends.patch"
-Content-Type: text/x-patch; name="add-led-hook-to-frontends.patch";
-	charset="ansi_x3.4-1968"
-Content-Transfer-Encoding: 7bit
-
-Signed-off-by: Andreas Steinmetz <ast@domdv.de>
-
-diff -rNup v4l-dvb.orig/drivers/media/dvb-frontends/cx24116.c v4l-dvb/drivers/media/dvb-frontends/cx24116.c
---- v4l-dvb.orig/drivers/media/dvb-frontends/cx24116.c	2014-03-26 14:00:26.009338722 +0100
-+++ v4l-dvb/drivers/media/dvb-frontends/cx24116.c	2014-03-26 19:30:42.561267100 +0100
-@@ -703,6 +703,9 @@ static int cx24116_read_status(struct dv
- 	if (lock & CX24116_HAS_SYNCLOCK)
- 		*status |= FE_HAS_SYNC | FE_HAS_LOCK;
- 
-+	if (state->config->set_lock_led)
-+		state->config->set_lock_led(fe, *status & FE_HAS_LOCK);
-+
- 	return 0;
- }
- 
-@@ -1111,6 +1114,8 @@ static void cx24116_release(struct dvb_f
- {
- 	struct cx24116_state *state = fe->demodulator_priv;
- 	dprintk("%s\n", __func__);
-+	if (state->config->set_lock_led)
-+		state->config->set_lock_led(fe, 0);
- 	kfree(state);
- }
- 
-@@ -1196,6 +1201,9 @@ static int cx24116_sleep(struct dvb_fron
- 
- 	dprintk("%s()\n", __func__);
- 
-+	if (state->config->set_lock_led)
-+		state->config->set_lock_led(fe, 0);
-+
- 	/* Firmware CMD 36: Power config */
- 	cmd.args[0x00] = CMD_TUNERSLEEP;
- 	cmd.args[0x01] = 1;
-diff -rNup v4l-dvb.orig/drivers/media/dvb-frontends/cx24116.h v4l-dvb/drivers/media/dvb-frontends/cx24116.h
---- v4l-dvb.orig/drivers/media/dvb-frontends/cx24116.h	2014-03-26 14:00:26.009338722 +0100
-+++ v4l-dvb/drivers/media/dvb-frontends/cx24116.h	2014-03-26 19:30:42.562267103 +0100
-@@ -34,6 +34,9 @@ struct cx24116_config {
- 	/* Need to reset device during firmware loading */
- 	int (*reset_device)(struct dvb_frontend *fe);
- 
-+	/* Hook for Lock LED */
-+	void (*set_lock_led)(struct dvb_frontend *fe, int offon);
-+
- 	/* Need to set MPEG parameters */
- 	u8 mpg_clk_pos_pol:0x02;
- 
-diff -rNup v4l-dvb.orig/drivers/media/dvb-frontends/stv0288.c v4l-dvb/drivers/media/dvb-frontends/stv0288.c
---- v4l-dvb.orig/drivers/media/dvb-frontends/stv0288.c	2014-03-26 14:00:26.026338778 +0100
-+++ v4l-dvb/drivers/media/dvb-frontends/stv0288.c	2014-03-26 19:30:52.361300077 +0100
-@@ -381,6 +381,9 @@ static int stv0288_read_status(struct dv
- 		dprintk("stv0288 has locked\n");
- 	}
- 
-+	if (state->config->set_lock_led)
-+		state->config->set_lock_led(fe, *status & FE_HAS_LOCK);
-+
- 	return 0;
- }
- 
-@@ -415,6 +418,9 @@ static int stv0288_sleep(struct dvb_fron
- {
- 	struct stv0288_state *state = fe->demodulator_priv;
- 
-+	if (state->config->set_lock_led)
-+		state->config->set_lock_led(fe, 0);
-+
- 	stv0288_writeregI(state, 0x41, 0x84);
- 	state->initialised = 0;
- 
-@@ -532,6 +538,8 @@ static int stv0288_i2c_gate_ctrl(struct
- static void stv0288_release(struct dvb_frontend *fe)
- {
- 	struct stv0288_state *state = fe->demodulator_priv;
-+	if (state->config->set_lock_led)
-+		state->config->set_lock_led(fe, 0);
- 	kfree(state);
- }
- 
-diff -rNup v4l-dvb.orig/drivers/media/dvb-frontends/stv0288.h v4l-dvb/drivers/media/dvb-frontends/stv0288.h
---- v4l-dvb.orig/drivers/media/dvb-frontends/stv0288.h	2014-03-26 14:00:26.026338778 +0100
-+++ v4l-dvb/drivers/media/dvb-frontends/stv0288.h	2014-03-26 19:30:52.361300077 +0100
-@@ -41,6 +41,9 @@ struct stv0288_config {
- 	int min_delay_ms;
- 
- 	int (*set_ts_params)(struct dvb_frontend *fe, int is_punctured);
-+
-+	/* Hook for Lock LED */
-+	void (*set_lock_led)(struct dvb_frontend *fe, int offon);
- };
- 
- #if IS_ENABLED(CONFIG_DVB_STV0288)
-diff -rNup v4l-dvb.orig/drivers/media/dvb-frontends/stv090x.c v4l-dvb/drivers/media/dvb-frontends/stv090x.c
---- v4l-dvb.orig/drivers/media/dvb-frontends/stv090x.c	2014-03-26 14:00:26.029338788 +0100
-+++ v4l-dvb/drivers/media/dvb-frontends/stv090x.c	2014-03-26 19:31:00.210326489 +0100
-@@ -3546,6 +3546,9 @@ static int stv090x_read_status(struct dv
- 		break;
- 	}
- 
-+	if (state->config->set_lock_led)
-+		state->config->set_lock_led(fe, *status & FE_HAS_LOCK);
-+
- 	return 0;
- }
- 
-@@ -3893,6 +3896,9 @@ static int stv090x_sleep(struct dvb_fron
- 	u32 reg;
- 	u8 full_standby = 0;
- 
-+	if (state->config->set_lock_led)
-+		state->config->set_lock_led(fe, 0);
-+
- 	if (stv090x_i2c_gate_ctrl(state, 1) < 0)
- 		goto err;
- 
-@@ -4124,6 +4130,9 @@ static void stv090x_release(struct dvb_f
- {
- 	struct stv090x_state *state = fe->demodulator_priv;
- 
-+	if (state->config->set_lock_led)
-+		state->config->set_lock_led(fe, 0);
-+
- 	state->internal->num_used--;
- 	if (state->internal->num_used <= 0) {
- 
-diff -rNup v4l-dvb.orig/drivers/media/dvb-frontends/stv090x.h v4l-dvb/drivers/media/dvb-frontends/stv090x.h
---- v4l-dvb.orig/drivers/media/dvb-frontends/stv090x.h	2014-03-26 14:00:26.029338788 +0100
-+++ v4l-dvb/drivers/media/dvb-frontends/stv090x.h	2014-03-26 19:31:00.212326496 +0100
-@@ -101,6 +101,9 @@ struct stv090x_config {
- 	int (*tuner_set_refclk)  (struct dvb_frontend *fe, u32 refclk);
- 	int (*tuner_get_status) (struct dvb_frontend *fe, u32 *status);
- 	void (*tuner_i2c_lock) (struct dvb_frontend *fe, int lock);
-+
-+	/* Hook for Lock LED */
-+	void (*set_lock_led)(struct dvb_frontend *fe, int offon);
- };
- 
- #if IS_ENABLED(CONFIG_DVB_STV090x)
-diff -rNup v4l-dvb.orig/drivers/media/dvb-frontends/tda10071.c v4l-dvb/drivers/media/dvb-frontends/tda10071.c
---- v4l-dvb.orig/drivers/media/dvb-frontends/tda10071.c	2014-03-26 15:03:13.427501381 +0100
-+++ v4l-dvb/drivers/media/dvb-frontends/tda10071.c	2014-03-26 19:31:07.609351389 +0100
-@@ -501,6 +501,9 @@ static int tda10071_read_status(struct d
- 	if (tmp & 0x08) /* RS or BCH */
- 		*status |= FE_HAS_SYNC | FE_HAS_LOCK;
- 
-+	if (priv->cfg.set_lock_led)
-+		priv->cfg.set_lock_led(fe, *status & FE_HAS_LOCK);
-+
- 	priv->fe_status = *status;
- 
- 	return ret;
-@@ -1165,6 +1168,9 @@ static int tda10071_sleep(struct dvb_fro
- 		goto error;
- 	}
- 
-+	if (priv->cfg.set_lock_led)
-+		priv->cfg.set_lock_led(fe, 0);
-+
- 	cmd.args[0] = CMD_SET_SLEEP_MODE;
- 	cmd.args[1] = 0;
- 	cmd.args[2] = 1;
-@@ -1199,6 +1205,8 @@ static int tda10071_get_tune_settings(st
- static void tda10071_release(struct dvb_frontend *fe)
- {
- 	struct tda10071_priv *priv = fe->demodulator_priv;
-+	if (priv->cfg.set_lock_led)
-+		priv->cfg.set_lock_led(fe, 0);
- 	kfree(priv);
- }
- 
-diff -rNup v4l-dvb.orig/drivers/media/dvb-frontends/tda10071.h v4l-dvb/drivers/media/dvb-frontends/tda10071.h
---- v4l-dvb.orig/drivers/media/dvb-frontends/tda10071.h	2014-03-26 15:03:13.428501384 +0100
-+++ v4l-dvb/drivers/media/dvb-frontends/tda10071.h	2014-03-26 19:31:07.610351392 +0100
-@@ -69,6 +69,9 @@ struct tda10071_config {
- 	 * Values:
- 	 */
- 	u8 pll_multiplier;
-+
-+	/* Hook for Lock LED */
-+	void (*set_lock_led)(struct dvb_frontend *fe, int offon);
- };
- 
- 
-
---=-5//w74PPt19lFct1NON6--
-
+http://palosaari.fi/
