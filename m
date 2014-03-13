@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1096 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753812AbaCJN6q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 09:58:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, k.debski@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv1 PATCH 1/7] mem2mem_testdev: use 40ms default transfer time.
-Date: Mon, 10 Mar 2014 14:58:23 +0100
-Message-Id: <1394459909-36497-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394459909-36497-1-git-send-email-hverkuil@xs4all.nl>
+Received: from comal.ext.ti.com ([198.47.26.152]:36455 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753506AbaCMLpa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 07:45:30 -0400
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 08/14] v4l: ti-vpe: Rename csc memory resource name
+Date: Thu, 13 Mar 2014 17:14:10 +0530
+Message-ID: <1394711056-10878-9-git-send-email-archit@ti.com>
+In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
+References: <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394711056-10878-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Rename the memory block resource "vpe_csc" to "csc" since it also exists within
+the VIP IP block. This would make the name more generic, and both VPE and VIP DT
+nodes in the future can use it.
 
-The default of 1 second is a bit painful, switch to a 25 Hz framerate.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/mem2mem_testdev.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/media/platform/ti-vpe/csc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-index 4bb5e88..5c6067d 100644
---- a/drivers/media/platform/mem2mem_testdev.c
-+++ b/drivers/media/platform/mem2mem_testdev.c
-@@ -60,9 +60,7 @@ MODULE_PARM_DESC(debug, "activates debug info");
- #define MEM2MEM_VID_MEM_LIMIT	(16 * 1024 * 1024)
+diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
+index acfea50..0333339 100644
+--- a/drivers/media/platform/ti-vpe/csc.c
++++ b/drivers/media/platform/ti-vpe/csc.c
+@@ -180,7 +180,7 @@ struct csc_data *csc_create(struct platform_device *pdev)
+ 	csc->pdev = pdev;
  
- /* Default transaction time in msec */
--#define MEM2MEM_DEF_TRANSTIME	1000
--/* Default number of buffers per transaction */
--#define MEM2MEM_DEF_TRANSLEN	1
-+#define MEM2MEM_DEF_TRANSTIME	40
- #define MEM2MEM_COLOR_STEP	(0xff >> 4)
- #define MEM2MEM_NUM_TILES	8
- 
-@@ -804,10 +802,10 @@ static const struct v4l2_ctrl_config m2mtest_ctrl_trans_time_msec = {
- 	.id = V4L2_CID_TRANS_TIME_MSEC,
- 	.name = "Transaction Time (msec)",
- 	.type = V4L2_CTRL_TYPE_INTEGER,
--	.def = 1001,
-+	.def = MEM2MEM_DEF_TRANSTIME,
- 	.min = 1,
- 	.max = 10001,
--	.step = 100,
-+	.step = 1,
- };
- 
- static const struct v4l2_ctrl_config m2mtest_ctrl_trans_num_bufs = {
+ 	csc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+-			"vpe_csc");
++			"csc");
+ 	if (csc->res == NULL) {
+ 		dev_err(&pdev->dev, "missing platform resources data\n");
+ 		return ERR_PTR(-ENODEV);
 -- 
-1.9.0
+1.8.3.2
 
