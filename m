@@ -1,54 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f169.google.com ([209.85.220.169]:36354 "EHLO
-	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555AbaCGLJ7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 06:09:59 -0500
-MIME-Version: 1.0
-In-Reply-To: <53199175.6030606@samsung.com>
-References: <1394181090-16446-1-git-send-email-arun.kk@samsung.com>
-	<53199175.6030606@samsung.com>
-Date: Fri, 7 Mar 2014 16:39:58 +0530
-Message-ID: <CALt3h7_8=jHq821D_7Fi69bFRNk67S18W6T_SFQeSimpHTdOUA@mail.gmail.com>
-Subject: Re: [PATCH] [media] s5p-mfc: add init buffer cmd to MFCV6
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: "avnd.kiran" <avnd.kiran@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Pawel Osciak <posciak@chromium.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp1-g21.free.fr ([212.27.42.1]:47919 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754075AbaCMRSp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 13:18:45 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH 09/12] drm/panel: Add Eukrea mbimxsd51 displays.
+Date: Thu, 13 Mar 2014 18:17:30 +0100
+Message-Id: <1394731053-6118-9-git-send-email-denis@eukrea.com>
+In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v10->v11:
+- New patch.
+---
+ .../bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt   |    7 ++
+ .../bindings/panel/eukrea,mbimxsd51-dvi-svga.txt   |    7 ++
+ .../bindings/panel/eukrea,mbimxsd51-dvi-vga.txt    |    7 ++
+ drivers/gpu/drm/panel/panel-simple.c               |   81 ++++++++++++++++++++
+ 4 files changed, 102 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt
+ create mode 100644 Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt
+ create mode 100644 Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt
 
-On Fri, Mar 7, 2014 at 2:59 PM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> Hi,
->
-> On 07/03/14 09:31, Arun Kumar K wrote:
->> From: avnd kiran <avnd.kiran@samsung.com>
->>
->> Latest MFC v6 firmware requires tile mode and loop filter
->> setting to be done as part of Init buffer command, in sync
->> with v7. So, move these settings out of decode options reg.
->> Also, make this register definition applicable from v6 onwards.
->>
->> Signed-off-by: avnd kiran <avnd.kiran@samsung.com>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->
-> Will the driver also work with older version of the firmware
-> after this change ? If not, shouldn't things like this be done
-> depending on what firmware version is loaded ?
->
+diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt
+new file mode 100644
+index 0000000..03679d0
+--- /dev/null
++++ b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-cmo-qvga.txt
+@@ -0,0 +1,7 @@
++Eukrea CMO-QVGA (320x240 pixels) TFT LCD panel
++
++Required properties:
++- compatible: should be "eukrea,mbimxsd51-cmo-qvga"
++
++This binding is compatible with the simple-panel binding, which is specified
++in simple-panel.txt in this directory.
+diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt
+new file mode 100644
+index 0000000..f408c9a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-svga.txt
+@@ -0,0 +1,7 @@
++Eukrea DVI-SVGA (800x600 pixels) DVI output.
++
++Required properties:
++- compatible: should be "eukrea,mbimxsd51-dvi-svga"
++
++This binding is compatible with the simple-panel binding, which is specified
++in simple-panel.txt in this directory.
+diff --git a/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt
+new file mode 100644
+index 0000000..8ea90da
+--- /dev/null
++++ b/Documentation/devicetree/bindings/panel/eukrea,mbimxsd51-dvi-vga.txt
+@@ -0,0 +1,7 @@
++Eukrea DVI-VGA (640x480 pixels) DVI output.
++
++Required properties:
++- compatible: should be "eukrea,mbimxsd51-dvi-vga"
++
++This binding is compatible with the simple-panel binding, which is specified
++in simple-panel.txt in this directory.
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index 0231945..96918bb 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -361,6 +361,78 @@ static const struct panel_desc chunghwa_claa101wb01 = {
+ 	},
+ };
+ 
++static const struct drm_display_mode eukrea_mbimxsd51_cmoqvga_mode = {
++	.clock = 6500,
++	.hdisplay = 320,
++	.hsync_start = 320 + 38,
++	.hsync_end = 320 + 38 + 20,
++	.htotal = 320 + 38 + 20 + 30,
++	.vdisplay = 240,
++	.vsync_start = 240 + 15,
++	.vsync_end = 240 + 15 + 4,
++	.vtotal = 240 + 15 + 4 + 3,
++	.vrefresh = 60,
++	.pol_flags = DRM_MODE_FLAG_POL_PIXDATA_NEGEDGE |
++		     DRM_MODE_FLAG_POL_DE_NEGEDGE,
++};
++
++static const struct panel_desc eukrea_mbimxsd51_cmoqvga = {
++	.modes = &eukrea_mbimxsd51_cmoqvga_mode,
++	.num_modes = 1,
++	.size = {
++		.width = 73,
++		.height = 56,
++	},
++};
++
++static const struct drm_display_mode eukrea_mbimxsd51_dvisvga_mode = {
++	.clock = 44333,
++	.hdisplay = 800,
++	.hsync_start = 800 + 112,
++	.hsync_end = 800 + 112 + 32,
++	.htotal = 800 + 112 + 32 + 80,
++	.vdisplay = 600,
++	.vsync_start = 600 + 3,
++	.vsync_end = 600 + 3 + 17,
++	.vtotal = 600 + 3 + 17 + 4,
++	.vrefresh = 60,
++	.pol_flags = DRM_MODE_FLAG_POL_PIXDATA_POSEDGE |
++		     DRM_MODE_FLAG_POL_DE_POSEDGE,
++};
++
++static const struct panel_desc eukrea_mbimxsd51_dvisvga = {
++	.modes = &eukrea_mbimxsd51_dvisvga_mode,
++	.num_modes = 1,
++	.size = {
++		.width = 0,
++		.height = 0,
++	},
++};
++
++static const struct drm_display_mode eukrea_mbimxsd51_dvivga_mode = {
++	.clock = 23750,
++	.hdisplay = 640,
++	.hsync_start = 640 + 80,
++	.hsync_end = 640 + 80 + 16,
++	.htotal = 640 + 80 + 16 + 64,
++	.vdisplay = 480,
++	.vsync_start = 480 + 3,
++	.vsync_end = 480 + 3 + 13,
++	.vtotal  = 480 + 3 + 13 + 4,
++	.vrefresh = 60,
++	.pol_flags = DRM_MODE_FLAG_POL_PIXDATA_POSEDGE |
++		     DRM_MODE_FLAG_POL_DE_POSEDGE,
++};
++
++static const struct panel_desc eukrea_mbimxsd51_dvivga = {
++	.modes = &eukrea_mbimxsd51_dvivga_mode,
++	.num_modes = 1,
++	.size = {
++		.width = 0,
++		.height = 0,
++	},
++};
++
+ static const struct drm_display_mode lg_lp129qe_mode = {
+ 	.clock = 285250,
+ 	.hdisplay = 2560,
+@@ -413,6 +485,15 @@ static const struct of_device_id platform_of_match[] = {
+ 		.compatible = "chunghwa,claa101wa01a",
+ 		.data = &chunghwa_claa101wa01a
+ 	}, {
++		.compatible = "eukrea,mbimxsd51-cmo-qvga",
++		.data = &eukrea_mbimxsd51_cmoqvga,
++	}, {
++		.compatible = "eukrea,mbimxsd51-dvi-svga",
++		.data = &eukrea_mbimxsd51_dvisvga,
++	}, {
++		.compatible = "eukrea,mbimxsd51-dvi-vga",
++		.data = &eukrea_mbimxsd51_dvivga,
++	}, {
+ 		.compatible = "chunghwa,claa101wb01",
+ 		.data = &chunghwa_claa101wb01
+ 	}, {
+-- 
+1.7.9.5
 
-The original code was for the initial version of v6 firmware.
-After that the v6 firmware has got many fixes and updates which
-also got updated in the products running the same.
-As such there are no official multiple versions of v6 firmware, but only
-fixes / updates to older version. I will update the s5p-mfc-v6.fw in the
-linux-firmware also with the newer version. Hope that will be fine.
-
-Regards
-Arun
