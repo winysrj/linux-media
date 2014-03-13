@@ -1,79 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:64232 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbaCYElM (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40530 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754129AbaCMRBg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Mar 2014 00:41:12 -0400
-Received: by mail-lb0-f179.google.com with SMTP id p9so4330356lbv.38
-        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 21:41:10 -0700 (PDT)
-From: Anton Leontiev <bunder@t-25.ru>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Anton Leontiev <bunder@t-25.ru>
-Subject: [PATCH] [media] uvcvideo: Fix marking buffer erroneous in case of FID toggling
-Date: Tue, 25 Mar 2014 08:40:57 +0400
-Message-Id: <1395722457-28080-1-git-send-email-bunder@t-25.ru>
+	Thu, 13 Mar 2014 13:01:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: will@williammanley.net
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: Work around buggy Logitech C920 firmware
+Date: Thu, 13 Mar 2014 18:03:15 +0100
+Message-ID: <1832254.8GCCJyof1H@avalon>
+In-Reply-To: <1394707700.15658.93976573.78252B46@webmail.messagingengine.com>
+References: <1394647711-25291-1-git-send-email-will@williammanley.net> <1854099.LO0jorujWf@avalon> <1394707700.15658.93976573.78252B46@webmail.messagingengine.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set error bit for incomplete buffers when end of buffer is detected by
-FID toggling (for example when last transaction with EOF is lost).
-This prevents passing incomplete buffers to the userspace.
+Hi Will,
 
-Signed-off-by: Anton Leontiev <bunder@t-25.ru>
----
- drivers/media/usb/uvc/uvc_video.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+On Thursday 13 March 2014 10:48:20 Will Manley wrote:
+> On Thu, 13 Mar 2014, at 10:23, Laurent Pinchart wrote:
+> > First of all, could you please CC me in the future for uvcvideo patches ?
+> 
+> Will do.
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 8d52baf..57c9a4b 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1133,6 +1133,17 @@ static int uvc_video_encode_data(struct uvc_streaming *stream,
-  */
- 
- /*
-+ * Set error flag for incomplete buffer.
-+ */
-+static void uvc_buffer_check_bytesused(const struct uvc_streaming *const stream,
-+	struct uvc_buffer *const buf)
-+{
-+	if (buf->length != buf->bytesused &&
-+			!(stream->cur_format->flags & UVC_FMT_FLAG_COMPRESSED))
-+		buf->error = 1;
-+}
-+
-+/*
-  * Completion handler for video URBs.
-  */
- static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
-@@ -1156,9 +1167,11 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
- 		do {
- 			ret = uvc_video_decode_start(stream, buf, mem,
- 				urb->iso_frame_desc[i].actual_length);
--			if (ret == -EAGAIN)
-+			if (ret == -EAGAIN) {
-+				uvc_buffer_check_bytesused(stream, buf);
- 				buf = uvc_queue_next_buffer(&stream->queue,
- 							    buf);
-+			}
- 		} while (ret == -EAGAIN);
- 
- 		if (ret < 0)
-@@ -1173,11 +1186,7 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
- 			urb->iso_frame_desc[i].actual_length);
- 
- 		if (buf->state == UVC_BUF_STATE_READY) {
--			if (buf->length != buf->bytesused &&
--			    !(stream->cur_format->flags &
--			      UVC_FMT_FLAG_COMPRESSED))
--				buf->error = 1;
--
-+			uvc_buffer_check_bytesused(stream, buf);
- 			buf = uvc_queue_next_buffer(&stream->queue, buf);
- 		}
- 	}
+Thank you.
+
+> > On Wednesday 12 March 2014 18:08:31 William Manley wrote:
+> > > The uvcvideo webcam driver exposes the v4l2 control "Exposure
+> > > (Absolute)" which allows the user to control the exposure time of the
+> > > webcam, essentially controlling the brightness of the received image. 
+> > > By default the webcam automatically adjusts the exposure time
+> > > automatically but the if you set the control "Exposure, Auto"="Manual
+> > > Mode" the user can fix the exposure time.
+> > > 
+> > > Unfortunately it seems that the Logitech C920 has a firmware bug where
+> > > it will forget that it's in manual mode temporarily during
+> > > initialisation. This means that the camera doesn't respect the exposure
+> > > time that the user requested if they request it before starting to
+> > > stream video. They end up with a video stream which is either too bright
+> > > or too dark and must reset the controls after video starts streaming.
+> > 
+> > I've asked Logitech whether they can confirm this is a known issue. I'm
+> > not sure when I'll have a reply though.
+> 
+> Great :)
+> 
+> > > This patch works around this camera bug by re-uploading the cached
+> > > controls to the camera immediately after initialising the camera.
+> > 
+> > I'm a bit concerned about this. As you noticed UVC camera are often buggy,
+> > and small changes in the driver can fix problems with one model and break
+> > others. Sending a bunch of SET_CUR requests at once right after starting
+> > the stream is something that has the potential to crash firmwares (yes,
+> > they can be that fragile, unfortunately).
+> 
+> Good point.  I can add a quirk such that it only happens with the C920.
+> 
+> > I would like to get a better understanding of the problem first. As I
+> > don't have a C920, could you please perform two tests for me ?
+> > 
+> > I would first like to know what the camera reports as its exposure time
+> > after starting the stream. If you get the exposure time at that point (by
+> > sending a GET_CUR request, bypassing the driver cache), do you get the
+> > value you had previously set (which, from your explanation, would be
+> > incorrect, as the exposure time has changed based on your findings), or a
+> > different value ? Does the camera change the exposure priority control
+> > autonomously as well, or just the exposure time ?
+> 
+> It's a bit of a strange behaviour. I'd already tried littering the code with
+> (uncached) GET_CUR requests. It seems that the value changes sometime during
+> the call to usb_set_interface in uvc_init_video.
+
+I'll assume this means that the camera reports the updated exposure time in 
+response to the GET_CUR request. Does the value of other controls (such as the 
+exposure priority control for instance) change as well ?
+
+> Strangely enough though calling uvc_ctrl_restore_values immediately after
+> uvc_init_video has no effect. It must be put after the usb_submit_urb loop
+> to fix the problem.
+> 
+> > Then, I would like to know whether the camera sends a control update
+> > event when you start the stream, or if it just changes the exposure time
+> > without notifying the driver.
+> 
+> Wireshark tells me that it is sending a control update event, but it seems
+> like uvcvideo ignores it. I had to add the flag UVC_CTRL_FLAG_AUTO_UPDATE to
+> the uvc_control_info entry for "Exposure (Auto)" for the new value to be
+> properly reported to userspace.
+
+Could you send me the USB trace ?
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
