@@ -1,69 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3705 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754605AbaCCOoA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 09:44:00 -0500
-Message-ID: <53149518.3060609@xs4all.nl>
-Date: Mon, 03 Mar 2014 15:43:36 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailapp01.imgtec.com ([195.89.28.114]:42705 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753381AbaCMK3y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 06:29:54 -0400
+From: James Hogan <james.hogan@imgtec.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: <linux-media@vger.kernel.org>, James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH 2/3] rc: img-ir: hw: Fix min/max bits setup
+Date: Thu, 13 Mar 2014 10:29:22 +0000
+Message-ID: <1394706563-31081-3-git-send-email-james.hogan@imgtec.com>
+In-Reply-To: <1394706563-31081-1-git-send-email-james.hogan@imgtec.com>
+References: <1394706563-31081-1-git-send-email-james.hogan@imgtec.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: V4L2 and frames vs fields
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The calculated values for the minlen and maxlen fields, which were
+rounded to multiples of 2 and clamped to a valid range, were left
+unused. Use them in the calculation of the register value rather than
+using the raw input minlen and maxlen.
 
-I've been testing and looking at how V4L2 should handle fields. The spec is awfully
-vague when it comes to the V4L2_FIELD_TOP/BOTTOM/ALTERNATE field settings, so I'm
-writing this down as a clarification, also for Devin who asked me about this a few
-days ago and since I gave him the wrong answer I'd better get it right this time :-)
+This fixes the following warning with a W=1 build:
+drivers/media/rc/img-ir/img-ir-hw.c In function ‘img_ir_free_timing’:
+drivers/media/rc/img-ir/img-ir-hw.c +228 :23: warning: variable ‘maxlen’ set but not used [-Wunused-but-set-variable]
+drivers/media/rc/img-ir/img-ir-hw.c +228 :15: warning: variable ‘minlen’ set but not used [-Wunused-but-set-variable]
 
-The relevant section on fields in the spec is here:
+Reported-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+I don't object to this patch being squashed into the patch "rc: img-ir:
+add hardware decoder driver".
+---
+ drivers/media/rc/img-ir/img-ir-hw.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-http://hverkuil.home.xs4all.nl/spec/media.html#field-order
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 2abf78a89fc5..579a52b3edce 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -240,9 +240,9 @@ static u32 img_ir_free_timing(const struct img_ir_free_timing *timing,
+ 	ft_min = (timing->ft_min*clock_hz + 999999) / 1000000;
+ 	ft_min = (ft_min + 7) >> 3;
+ 	/* construct register value */
+-	return	(timing->maxlen	<< IMG_IR_MAXLEN_SHIFT)	|
+-		(timing->minlen	<< IMG_IR_MINLEN_SHIFT)	|
+-		(ft_min		<< IMG_IR_FT_MIN_SHIFT);
++	return	(maxlen << IMG_IR_MAXLEN_SHIFT)	|
++		(minlen << IMG_IR_MINLEN_SHIFT)	|
++		(ft_min << IMG_IR_FT_MIN_SHIFT);
+ }
+ 
+ /**
+-- 
+1.8.1.2
 
-For field formats where both fields are used the spec is reasonably clear. The
-v4l2_format height field refers to the full frame height (combining both fields).
-
-For the TOP/BOTTOM/ALTERNATE setting the format's height refers to that of the
-field, not the frame. So the resulting buffer size is still height * bytesperline.
-
-Drivers can use several strategies on how to handle this:
-
-Some support only one field setting: INTERLACED if height > frameheight / 2 and
-TOP if height <= frameheight / 2. In this case the application cannot change the
-field, it is set by the driver based on the height chosen by the application.
-
-The reverse is also possible: the driver allows you to change the field but not
-the height. So INTERLACED will give a height of 576 and TOP a height of 288.
-
-If there is a hardware scaler as well, then changing the field setting must not
-change the format's height, instead the scaler is adjusted. So if the height
-is 576 and the field is TOP, then the image will be scaled up by a factor of 2.
-
-If there are limitations in what the scaler can do (say it can only downscale)
-then it depends on the height which field values are honored. So attempts to
-set FIELD_TOP if the height is 576 and only a downscaler is available should
-result in FIELD_INTERLACE and an unchanged height. Only at heights <= 288 will
-the FIELD_TOP setting work.
-
-When implementing FIELD_ANY drivers can choose to select FIELD_TOP (or BOTTOM)
-if the height <= frameheight / 2 instead of FIELD_INTERLACED.
-
-The description of FIELD_ALTERNATE in the spec has this phrase: "Image sizes
-refer to the frame, not fields." That seems nonsense to me and none of the
-drivers that support FIELD_ALTERNATE does that. If any of FIELD_TOP, BOTTOM
-or ALTERNATE is selected the width, height and sizeimage fields all relate
-to the size of a (possibly scaled) field.
-
-I plan on updating the spec, but I'd like to run this by you all to see if
-I missed anything or got it wrong after all.
-
-Regards,
-
-	Hans
