@@ -1,170 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:48527 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752532AbaC3Vyi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 17:54:38 -0400
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, linux-sh@vger.kernel.org,
-	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [RFCv3 3/3] soc_camera: initial of code
-Date: Sun, 30 Mar 2014 22:54:31 +0100
-Message-Id: <1396216471-11532-3-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1396216471-11532-1-git-send-email-ben.dooks@codethink.co.uk>
-References: <1396216471-11532-1-git-send-email-ben.dooks@codethink.co.uk>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:44643 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753796AbaCMRR5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 13:17:57 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v11][ 02/12] imx-drm: Add RGB666 support for parallel display.
+Date: Thu, 13 Mar 2014 18:17:23 +0100
+Message-Id: <1394731053-6118-2-git-send-email-denis@eukrea.com>
+In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add initial support for OF based soc-camera devices that may be used
-by any of the soc-camera drivers. The driver itself will need converting
-to use OF.
-
-These changes allow the soc-camera driver to do the connecting of any
-async capable v4l2 device to the soc-camera driver. This has currently
-been tested on the Renesas Lager board.
-
-Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/soc_camera/soc_camera.c | 111 ++++++++++++++++++++++++-
- 1 file changed, 110 insertions(+), 1 deletion(-)
+ChangeLog v8->v9:
+- Rebased.
+- Added Philipp Zabel's ack.
+- Shortened the patch title.
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 4b8c024..afe22d4 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -36,6 +36,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-of.h>
- #include <media/videobuf-core.h>
- #include <media/videobuf2-core.h>
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
+- Rebased.
+
+ChangeLog v7->v8:
+- Shrinked even more the Cc list.
+
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
+
+ChangeLog v5->v6:
+- Remove people not concerned by this patch from the Cc list.
+
+ChangeLog v3->v5:
+- Use the correct RGB order.
+
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Removed the commit message long desciption that was just a copy of the short
+  description.
+- Rebased the patch.
+- Fixed a copy-paste error in the ipu_dc_map_clear parameter.
+---
+ .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    3 ++-
+ drivers/staging/imx-drm/ipu-v3/ipu-dc.c            |    9 +++++++++
+ drivers/staging/imx-drm/parallel-display.c         |    2 ++
+ 3 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
+index 3be5ce7..83137ef 100644
+--- a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
++++ b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
+@@ -60,7 +60,8 @@ Required properties:
+ - compatible: Should be "fsl,imx-parallel-display"
+ Optional properties:
+ - interface_pix_fmt: How this display is connected to the
+-  display interface. Currently supported types: "rgb24", "rgb565", "bgr666"
++  display interface. Currently supported types: "rgb24", "rgb565", "bgr666",
++  "rgb666"
+ - edid: verbatim EDID data block describing attached display.
+ - ddc: phandle describing the i2c bus handling the display data
+   channel
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
+index d5de8bb..6f9abe8 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
+@@ -92,6 +92,7 @@ enum ipu_dc_map {
+ 	IPU_DC_MAP_GBR24, /* TVEv2 */
+ 	IPU_DC_MAP_BGR666,
+ 	IPU_DC_MAP_BGR24,
++	IPU_DC_MAP_RGB666,
+ };
  
-@@ -1579,6 +1580,112 @@ static void scan_async_host(struct soc_camera_host *ici)
- #define scan_async_host(ici)		do {} while (0)
- #endif
+ struct ipu_dc {
+@@ -155,6 +156,8 @@ static int ipu_pixfmt_to_map(u32 fmt)
+ 		return IPU_DC_MAP_BGR666;
+ 	case V4L2_PIX_FMT_BGR24:
+ 		return IPU_DC_MAP_BGR24;
++	case V4L2_PIX_FMT_RGB666:
++		return IPU_DC_MAP_RGB666;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -404,6 +407,12 @@ int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
+ 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 1, 15, 0xff); /* green */
+ 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 0, 23, 0xff); /* blue */
  
-+#ifdef CONFIG_OF
-+static int soc_of_bind(struct soc_camera_host *ici,
-+		       struct device_node *ep,
-+		       struct device_node *remote)
-+{
-+	struct soc_camera_device *icd;
-+	struct soc_camera_desc sdesc = {.host_desc.bus_id = ici->nr,};
-+	struct soc_camera_async_client *sasc;
-+	struct soc_camera_async_subdev *sasd;
-+	struct v4l2_async_subdev **asd_array;
-+	char clk_name[V4L2_SUBDEV_NAME_SIZE];
-+	int ret;
++	/* rgb666 */
++	ipu_dc_map_clear(priv, IPU_DC_MAP_RGB666);
++	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 0, 5, 0xfc); /* blue */
++	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 1, 11, 0xfc); /* green */
++	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 2, 17, 0xfc); /* red */
 +
-+	/* alloacte a new subdev and add match info to it */
-+	sasd = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sasd), GFP_KERNEL);
-+	if (!sasd)
-+		return -ENOMEM;
-+
-+	asd_array = devm_kzalloc(ici->v4l2_dev.dev,
-+				 sizeof(struct v4l2_async_subdev **),
-+				 GFP_KERNEL);
-+	if (!asd_array)
-+		return -ENOMEM;
-+
-+	sasd->asd.match.of.node = remote;
-+	sasd->asd.match_type = V4L2_ASYNC_MATCH_OF;
-+	asd_array[0] = &sasd->asd;
-+
-+	/* Or shall this be managed by the soc-camera device? */
-+	sasc = devm_kzalloc(ici->v4l2_dev.dev, sizeof(*sasc), GFP_KERNEL);
-+	if (!sasc)
-+		return -ENOMEM;
-+
-+	/* HACK: just need a != NULL */
-+	sdesc.host_desc.board_info = ERR_PTR(-ENODATA);
-+
-+	ret = soc_camera_dyn_pdev(&sdesc, sasc);
-+	if (ret < 0)
-+		return ret;
-+
-+	sasc->sensor = &sasd->asd;
-+
-+	icd = soc_camera_add_pdev(sasc);
-+	if (!icd) {
-+		platform_device_put(sasc->pdev);
-+		return -ENOMEM;
-+	}
-+
-+	//sasc->notifier.subdevs = asd;
-+	sasc->notifier.subdevs = asd_array;
-+	sasc->notifier.num_subdevs = 1;
-+	sasc->notifier.bound = soc_camera_async_bound;
-+	sasc->notifier.unbind = soc_camera_async_unbind;
-+	sasc->notifier.complete = soc_camera_async_complete;
-+
-+	icd->sasc = sasc;
-+	icd->parent = ici->v4l2_dev.dev;
-+
-+	snprintf(clk_name, sizeof(clk_name), "of-%s",
-+		 of_node_full_name(remote));
-+
-+	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
-+	if (IS_ERR(icd->clk)) {
-+		ret = PTR_ERR(icd->clk);
-+		goto eclkreg;
-+	}
-+
-+	ret = v4l2_async_notifier_register(&ici->v4l2_dev, &sasc->notifier);
-+	if (!ret)
-+		return 0;
-+
-+eclkreg:
-+	icd->clk = NULL;
-+	platform_device_unregister(sasc->pdev);
-+	dev_err(ici->v4l2_dev.dev, "group probe failed: %d\n", ret);
-+
-+	return ret;
-+}
-+
-+static inline void scan_of_host(struct soc_camera_host *ici)
-+{
-+	struct device_node *np = ici->v4l2_dev.dev->of_node;
-+	struct device_node *epn = NULL;
-+	struct device_node *ren;
-+
-+	while (true) {
-+		epn = v4l2_of_get_next_endpoint(np, epn);
-+		if (!epn)
-+			break;
-+
-+		ren = v4l2_of_get_remote_port(epn);
-+		if (!ren) {
-+			pr_info("%s: no remote for %s\n",
-+				__func__,  of_node_full_name(epn));
-+			continue;
-+		}
-+
-+		/* so we now have a remote node to connect */
-+		soc_of_bind(ici, epn, ren->parent);
-+	}
-+}
-+
-+#else
-+static inline void scan_of_host(struct soc_camera_host *ici) { }
-+#endif
-+
- /* Called during host-driver probe */
- static int soc_camera_probe(struct soc_camera_host *ici,
- 			    struct soc_camera_device *icd)
-@@ -1830,7 +1937,9 @@ int soc_camera_host_register(struct soc_camera_host *ici)
- 	mutex_init(&ici->host_lock);
- 	mutex_init(&ici->clk_lock);
+ 	return 0;
+ }
  
--	if (ici->asd_sizes)
-+	if (ici->v4l2_dev.dev->of_node)
-+		scan_of_host(ici);
-+	else if (ici->asd_sizes)
- 		/*
- 		 * No OF, host with a list of subdevices. Don't try to mix
- 		 * modes by initialising some groups statically and some
+diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-drm/parallel-display.c
+index c60b6c6..01b7ce5 100644
+--- a/drivers/staging/imx-drm/parallel-display.c
++++ b/drivers/staging/imx-drm/parallel-display.c
+@@ -219,6 +219,8 @@ static int imx_pd_bind(struct device *dev, struct device *master, void *data)
+ 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB565;
+ 		else if (!strcmp(fmt, "bgr666"))
+ 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_BGR666;
++		else if (!strcmp(fmt, "rgb666"))
++			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB666;
+ 	}
+ 
+ 	panel_node = of_parse_phandle(np, "fsl,panel", 0);
 -- 
-1.9.0
+1.7.9.5
 
