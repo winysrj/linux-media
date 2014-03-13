@@ -1,184 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45720 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752674AbaCANOB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Mar 2014 08:14:01 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, k.debski@samsung.com,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATH v6 09/10] v4l: Copy timestamp source flags to destination on m2m devices
-Date: Sat,  1 Mar 2014 15:17:06 +0200
-Message-Id: <1393679828-25878-10-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
-References: <1393679828-25878-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:47109 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752682AbaCMV4g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 17:56:36 -0400
+Message-ID: <5322298F.8050404@iki.fi>
+Date: Thu, 13 Mar 2014 23:56:31 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] e4000/rtl2832u_sdr: use V4L2 subdev to pass V4L2 control
+ handler
+References: <1394743454-18124-1-git-send-email-crope@iki.fi> <1394743454-18124-2-git-send-email-crope@iki.fi> <20140313182451.4aa2f7a4@samsung.com>
+In-Reply-To: <20140313182451.4aa2f7a4@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Copy the flags containing the timestamp source from source buffer flags to
-the destination buffer flags on memory-to-memory devices. This is analogous
-to copying the timestamp field from source to destination.
+On 13.03.2014 23:24, Mauro Carvalho Chehab wrote:
+> Em Thu, 13 Mar 2014 22:44:14 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> Exporting resources using EXPORT_SYMBOL from plain I2C driver is bad
+>> idea. Use V4L2 subdev instead. Functionality is now quite likely as
+>> is done in V4L2 API.
+>
+> Much better!
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Kamil Debski <k.debski@samsung.com>
----
- drivers/media/platform/coda.c                |    3 +++
- drivers/media/platform/exynos-gsc/gsc-m2m.c  |    4 ++++
- drivers/media/platform/exynos4-is/fimc-m2m.c |    3 +++
- drivers/media/platform/m2m-deinterlace.c     |    3 +++
- drivers/media/platform/mem2mem_testdev.c     |    3 +++
- drivers/media/platform/mx2_emmaprp.c         |    5 +++++
- drivers/media/platform/s5p-g2d/g2d.c         |    3 +++
- drivers/media/platform/s5p-jpeg/jpeg-core.c  |    3 +++
- drivers/media/platform/s5p-mfc/s5p_mfc.c     |    5 +++++
- drivers/media/platform/ti-vpe/vpe.c          |    2 ++
- 10 files changed, 34 insertions(+)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 81b6f7b..3e5199e 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -2829,6 +2829,9 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 	}
- 
- 	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
-+	dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_buf->v4l2_buf.flags |=
-+		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
- 
- 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 3a842ee..d0ea94f 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -90,6 +90,10 @@ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
- 	if (src_vb && dst_vb) {
- 		dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
- 		dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
-+		dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+		dst_vb->v4l2_buf.flags |=
-+			src_vb->v4l2_buf.flags
-+			& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 		v4l2_m2m_buf_done(src_vb, vb_state);
- 		v4l2_m2m_buf_done(dst_vb, vb_state);
-diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
-index bfc900d..36971d9 100644
---- a/drivers/media/platform/exynos4-is/fimc-m2m.c
-+++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
-@@ -134,6 +134,9 @@ static void fimc_device_run(void *priv)
- 		goto dma_unlock;
- 
- 	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+	dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_vb->v4l2_buf.flags |=
-+		src_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	/* Reconfigure hardware if the context has changed. */
- 	if (fimc->m2m.ctx != ctx) {
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index 3416131..c21d14f 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -208,6 +208,9 @@ static void dma_callback(void *data)
- 	dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
- 
- 	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+	dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_vb->v4l2_buf.flags |=
-+		src_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 	dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
- 
- 	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
-index 02a40c5..4bb5e88 100644
---- a/drivers/media/platform/mem2mem_testdev.c
-+++ b/drivers/media/platform/mem2mem_testdev.c
-@@ -239,6 +239,9 @@ static int device_process(struct m2mtest_ctx *ctx,
- 	memcpy(&out_vb->v4l2_buf.timestamp,
- 			&in_vb->v4l2_buf.timestamp,
- 			sizeof(struct timeval));
-+	out_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	out_vb->v4l2_buf.flags |=
-+		in_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	switch (ctx->mode) {
- 	case MEM2MEM_HFLIP | MEM2MEM_VFLIP:
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index 6debb02..0b7480e 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -378,6 +378,11 @@ static irqreturn_t emmaprp_irq(int irq_emma, void *data)
- 			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
- 
- 			dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+			dst_vb->v4l2_buf.flags &=
-+				~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+			dst_vb->v4l2_buf.flags |=
-+				src_vb->v4l2_buf.flags
-+				& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 			dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
- 
- 			spin_lock_irqsave(&pcdev->irqlock, flags);
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index bf7c9b3..357af1e 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -560,6 +560,9 @@ static irqreturn_t g2d_isr(int irq, void *prv)
- 
- 	dst->v4l2_buf.timecode = src->v4l2_buf.timecode;
- 	dst->v4l2_buf.timestamp = src->v4l2_buf.timestamp;
-+	dst->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst->v4l2_buf.flags |=
-+		src->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
- 	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index f5e9870..da0ad88 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1766,6 +1766,9 @@ static irqreturn_t s5p_jpeg_irq(int irq, void *dev_id)
- 
- 	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
- 	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
-+	dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_buf->v4l2_buf.flags |=
-+		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	v4l2_m2m_buf_done(src_buf, state);
- 	if (curr_ctx->mode == S5P_JPEG_ENCODE)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 0e8c171..0c47199 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -232,6 +232,11 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 						src_buf->b->v4l2_buf.timecode;
- 			dst_buf->b->v4l2_buf.timestamp =
- 						src_buf->b->v4l2_buf.timestamp;
-+			dst_buf->b->v4l2_buf.flags &=
-+				~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+			dst_buf->b->v4l2_buf.flags |=
-+				src_buf->b->v4l2_buf.flags
-+				& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 			switch (frame_type) {
- 			case S5P_FIMV_DECODE_FRAME_I_FRAME:
- 				dst_buf->b->v4l2_buf.flags |=
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 8ea3b89..7a77a5b 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1278,6 +1278,8 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 	d_buf = &d_vb->v4l2_buf;
- 
- 	d_buf->timestamp = s_buf->timestamp;
-+	d_buf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	d_buf->flags |= s_buf->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 	if (s_buf->flags & V4L2_BUF_FLAG_TIMECODE) {
- 		d_buf->flags |= V4L2_BUF_FLAG_TIMECODE;
- 		d_buf->timecode = s_buf->timecode;
+OK, rebasing tree...
+
+Antti
+
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
