@@ -1,110 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:54651 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876AbaB1XRh (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55964 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752474AbaCMOiN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Feb 2014 18:17:37 -0500
-Received: by mail-wg0-f44.google.com with SMTP id a1so1119577wgh.27
-        for <linux-media@vger.kernel.org>; Fri, 28 Feb 2014 15:17:36 -0800 (PST)
-From: James Hogan <james.hogan@imgtec.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: James Hogan <james.hogan@imgtec.com>,
-	=?UTF-8?q?Bruno=20Pr=C3=A9mont?= <bonbons@linux-vserver.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Sean Young <sean@mess.org>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	Jiri Kosina <jkosina@suse.cz>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Subject: [PATCH 0/5] rc: scancode filtering improvements
-Date: Fri, 28 Feb 2014 23:17:01 +0000
-Message-Id: <1393629426-31341-1-git-send-email-james.hogan@imgtec.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 13 Mar 2014 10:38:13 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Archit Taneja' <archit@ti.com>, hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+References: <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394711056-10878-1-git-send-email-archit@ti.com>
+ <1394711056-10878-2-git-send-email-archit@ti.com>
+In-reply-to: <1394711056-10878-2-git-send-email-archit@ti.com>
+Subject: RE: [PATCH v4 01/14] v4l: ti-vpe: Make sure in job_ready that we have
+ the needed number of dst_bufs
+Date: Thu, 13 Mar 2014 15:38:10 +0100
+Message-id: <000e01cf3ec9$dc01d550$94057ff0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches make some improvements relating to the recently added RC
-scancode filtering interface:
-- Patch 1 adds generic scancode filtering. This allows filtering to also
-  work for raw rc drivers and scancode drivers without filtering
-  capabilities.
-- Patches 2-4 future proof the sysfs API to allow a different wakeup
-  filter protocol to be set than the current protocol. A new
-  wakeup_protocols sysfs file is added which behaves similarly to the
-  protocols sysfs file but applies only to wakeup filters.
-- Finally patch 5 improves the driver interface so that changing either
-  the normal or wakeup protocol automatically causes the corresponding
-  filter to be refreshed to the driver, or failing that cleared. It also
-  ensures that the filter is turned off (and for wakeup that means
-  wakeup is disabled) if the protocol is set to none. This avoids the
-  driver having to maintain the filters, or even need a
-  change_wakeup_protocol() callback if there is only one wakeup protocol
-  allowed at a time.
+> From: Archit Taneja [mailto:archit@ti.com]
+> Sent: Thursday, March 13, 2014 12:44 PM
+> 
+> VPE has a ctrl parameter which decides how many mem to mem transactions
+> the active job from the job queue can perform.
+> 
+> The driver's job_ready() made sure that the number of ready source
+> buffers are sufficient for the job to execute successfully. But it
+> didn't make sure if there are sufficient ready destination buffers in
+> the capture queue for the VPE output.
+> 
+> If the time taken by VPE to process a single frame is really slow, then
+> it's possible that we don't need to imply such a restriction on the dst
+> queue, but really fast transactions(small resolution, no de-interlacing)
+> may cause us to hit the condition where we don't have any free buffers
+> for the VPE to write on.
+> 
+> Add the extra check in job_ready() to make sure we have the sufficient
+> amount of destination buffers.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-The patch "rc-main: store_filter: pass errors to userland" should
-probably be applied first.
+Acked-by: Kamil Debski <k.debski@samsung.com>
 
-An updated img-ir v4 patchset which depends on this one will follow
-soon.
-
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: "Bruno Prémont" <bonbons@linux-vserver.org>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Sean Young <sean@mess.org>
-Cc: "David Härdeman" <david@hardeman.nu>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: "Antti Seppälä" <a.seppala@gmail.com>
-
-James Hogan (5):
-  rc-main: add generic scancode filtering
-  rc: abstract access to allowed/enabled protocols
-  rc: add allowed/enabled wakeup protocol masks
-  rc: add wakeup_protocols sysfs file
-  rc-main: automatically refresh filter on protocol change
-
- Documentation/ABI/testing/sysfs-class-rc           |  23 +++-
- .../DocBook/media/v4l/remote_controllers.xml       |  20 ++-
- drivers/hid/hid-picolcd_cir.c                      |   2 +-
- drivers/media/common/siano/smsir.c                 |   2 +-
- drivers/media/i2c/ir-kbd-i2c.c                     |   4 +-
- drivers/media/pci/cx23885/cx23885-input.c          |   2 +-
- drivers/media/pci/cx88/cx88-input.c                |   2 +-
- drivers/media/rc/ati_remote.c                      |   2 +-
- drivers/media/rc/ene_ir.c                          |   2 +-
- drivers/media/rc/fintek-cir.c                      |   2 +-
- drivers/media/rc/gpio-ir-recv.c                    |   4 +-
- drivers/media/rc/iguanair.c                        |   2 +-
- drivers/media/rc/imon.c                            |   7 +-
- drivers/media/rc/ir-jvc-decoder.c                  |   2 +-
- drivers/media/rc/ir-lirc-codec.c                   |   2 +-
- drivers/media/rc/ir-mce_kbd-decoder.c              |   2 +-
- drivers/media/rc/ir-nec-decoder.c                  |   2 +-
- drivers/media/rc/ir-raw.c                          |   2 +-
- drivers/media/rc/ir-rc5-decoder.c                  |   6 +-
- drivers/media/rc/ir-rc5-sz-decoder.c               |   2 +-
- drivers/media/rc/ir-rc6-decoder.c                  |   6 +-
- drivers/media/rc/ir-sanyo-decoder.c                |   2 +-
- drivers/media/rc/ir-sharp-decoder.c                |   2 +-
- drivers/media/rc/ir-sony-decoder.c                 |  10 +-
- drivers/media/rc/ite-cir.c                         |   2 +-
- drivers/media/rc/mceusb.c                          |   2 +-
- drivers/media/rc/nuvoton-cir.c                     |   2 +-
- drivers/media/rc/rc-loopback.c                     |   2 +-
- drivers/media/rc/rc-main.c                         | 141 +++++++++++++++------
- drivers/media/rc/redrat3.c                         |   2 +-
- drivers/media/rc/st_rc.c                           |   2 +-
- drivers/media/rc/streamzap.c                       |   2 +-
- drivers/media/rc/ttusbir.c                         |   2 +-
- drivers/media/rc/winbond-cir.c                     |   2 +-
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c        |   2 +-
- drivers/media/usb/dvb-usb/dvb-usb-remote.c         |   2 +-
- drivers/media/usb/em28xx/em28xx-input.c            |   8 +-
- drivers/media/usb/tm6000/tm6000-input.c            |   2 +-
- include/media/rc-core.h                            |  49 ++++++-
- 39 files changed, 234 insertions(+), 100 deletions(-)
-
--- 
-1.8.3.2
+> ---
+>  drivers/media/platform/ti-vpe/vpe.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c
+> b/drivers/media/platform/ti-vpe/vpe.c
+> index 7a77a5b..f3143ac 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -887,6 +887,9 @@ static int job_ready(void *priv)
+>  	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
+>  		return 0;
+> 
+> +	if (v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < needed)
+> +		return 0;
+> +
+>  	return 1;
+>  }
+> 
+> --
+> 1.8.3.2
 
