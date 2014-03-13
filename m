@@ -1,132 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752912AbaCJXOi (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:42495 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753952AbaCMLpk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 07/48] ad9389b: Add pad-level DV timings operations
-Date: Tue, 11 Mar 2014 00:15:18 +0100
-Message-Id: <1394493359-14115-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 13 Mar 2014 07:45:40 -0400
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 11/14] v4l: ti-vpe: Fix initial configuration queue data
+Date: Thu, 13 Mar 2014 17:14:13 +0530
+Message-ID: <1394711056-10878-12-git-send-email-archit@ti.com>
+In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
+References: <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394711056-10878-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video enum_dv_timings and dv_timings_cap operations are deprecated.
-Implement the pad-level version of those operations to prepare for the
-removal of the video version.
+The vpe output and capture queues are initially configured to default values in
+vpe_open(). A G_FMT before any S_FMTs will result in these values being
+populated.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The colorspace and bytesperline parameter of this initial configuration are
+incorrect. This breaks compliance when as we get 'TRY_FMT(G_FMT) != G_FMT'.
+
+Fix the initial queue configuration such that it wouldn't need to be fixed by
+try_fmt.
+
 Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/i2c/ad9389b.c | 69 ++++++++++++++++++++++++++-------------------
- 1 file changed, 40 insertions(+), 29 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 83225d6..44c037d 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -571,35 +571,6 @@ static const struct v4l2_subdev_core_ops ad9389b_core_ops = {
- 	.interrupt_service_routine = ad9389b_isr,
- };
- 
--/* ------------------------------ PAD OPS ------------------------------ */
--
--static int ad9389b_get_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
--{
--	struct ad9389b_state *state = get_ad9389b_state(sd);
--
--	if (edid->pad != 0)
--		return -EINVAL;
--	if (edid->blocks == 0 || edid->blocks > 256)
--		return -EINVAL;
--	if (!edid->edid)
--		return -EINVAL;
--	if (!state->edid.segments) {
--		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
--		return -ENODATA;
--	}
--	if (edid->start_block >= state->edid.segments * 2)
--		return -E2BIG;
--	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
--		edid->blocks = state->edid.segments * 2 - edid->start_block;
--	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
--	       128 * edid->blocks);
--	return 0;
--}
--
--static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
--	.get_edid = ad9389b_get_edid,
--};
--
- /* ------------------------------ VIDEO OPS ------------------------------ */
- 
- /* Enable/disable ad9389b output */
-@@ -678,6 +649,9 @@ static int ad9389b_g_dv_timings(struct v4l2_subdev *sd,
- static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
- 				   struct v4l2_enum_dv_timings *timings)
- {
-+	if (timings->pad != 0)
-+		return -EINVAL;
-+
- 	return v4l2_enum_dv_timings_cap(timings, &ad9389b_timings_cap,
- 			NULL, NULL);
- }
-@@ -685,6 +659,9 @@ static int ad9389b_enum_dv_timings(struct v4l2_subdev *sd,
- static int ad9389b_dv_timings_cap(struct v4l2_subdev *sd,
- 				  struct v4l2_dv_timings_cap *cap)
- {
-+	if (cap->pad != 0)
-+		return -EINVAL;
-+
- 	*cap = ad9389b_timings_cap;
- 	return 0;
- }
-@@ -697,6 +674,40 @@ static const struct v4l2_subdev_video_ops ad9389b_video_ops = {
- 	.dv_timings_cap = ad9389b_dv_timings_cap,
- };
- 
-+/* ------------------------------ PAD OPS ------------------------------ */
-+
-+static int ad9389b_get_edid(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_edid *edid)
-+{
-+	struct ad9389b_state *state = get_ad9389b_state(sd);
-+
-+	if (edid->pad != 0)
-+		return -EINVAL;
-+	if (edid->blocks == 0 || edid->blocks > 256)
-+		return -EINVAL;
-+	if (!edid->edid)
-+		return -EINVAL;
-+	if (!state->edid.segments) {
-+		v4l2_dbg(1, debug, sd, "EDID segment 0 not found\n");
-+		return -ENODATA;
-+	}
-+	if (edid->start_block >= state->edid.segments * 2)
-+		return -E2BIG;
-+	if (edid->blocks + edid->start_block >= state->edid.segments * 2)
-+		edid->blocks = state->edid.segments * 2 - edid->start_block;
-+	memcpy(edid->edid, &state->edid.data[edid->start_block * 128],
-+	       128 * edid->blocks);
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_pad_ops ad9389b_pad_ops = {
-+	.get_edid = ad9389b_get_edid,
-+	.enum_dv_timings = ad9389b_enum_dv_timings,
-+	.dv_timings_cap = ad9389b_dv_timings_cap,
-+};
-+
-+/* ------------------------------ AUDIO OPS ------------------------------ */
-+
- static int ad9389b_s_audio_stream(struct v4l2_subdev *sd, int enable)
- {
- 	v4l2_dbg(1, debug, sd, "%s: %sable\n", __func__, (enable ? "en" : "dis"));
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 3a312ea..d7befb9 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -2021,9 +2021,11 @@ static int vpe_open(struct file *file)
+ 	s_q_data->fmt = &vpe_formats[2];
+ 	s_q_data->width = 1920;
+ 	s_q_data->height = 1080;
+-	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
++	s_q_data->bytesperline[VPE_LUMA] = (s_q_data->width *
+ 			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
+-	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->bytesperline[VPE_LUMA] *
++			s_q_data->height);
++	s_q_data->colorspace = V4L2_COLORSPACE_REC709;
+ 	s_q_data->field = V4L2_FIELD_NONE;
+ 	s_q_data->c_rect.left = 0;
+ 	s_q_data->c_rect.top = 0;
 -- 
 1.8.3.2
 
