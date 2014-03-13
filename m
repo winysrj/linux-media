@@ -1,126 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4247 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751810AbaCGDix (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 22:38:53 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id s273cntq089669
-	for <linux-media@vger.kernel.org>; Fri, 7 Mar 2014 04:38:51 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id 104222A1887
-	for <linux-media@vger.kernel.org>; Fri,  7 Mar 2014 04:38:49 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140307033849.104222A1887@tschai.lan>
-Date: Fri,  7 Mar 2014 04:38:49 +0100 (CET)
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52970 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753981AbaCMOgN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 10:36:13 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Archit Taneja' <archit@ti.com>, hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+References: <1393922965-15967-1-git-send-email-archit@ti.com>
+ <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394526833-24805-2-git-send-email-archit@ti.com>
+In-reply-to: <1394526833-24805-2-git-send-email-archit@ti.com>
+Subject: RE: [PATCH v3 01/14] v4l: ti-vpe: Make sure in job_ready that we have
+ the needed number of dst_bufs
+Date: Thu, 13 Mar 2014 15:36:09 +0100
+Message-id: <000d01cf3ec9$93b51320$bb1f3960$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+> From: Archit Taneja [mailto:archit@ti.com]
+> Sent: Tuesday, March 11, 2014 9:34 AM
+> 
+> VPE has a ctrl parameter which decides how many mem to mem transactions
+> the active job from the job queue can perform.
+> 
+> The driver's job_ready() made sure that the number of ready source
+> buffers are sufficient for the job to execute successfully. But it
+> didn't make sure if there are sufficient ready destination buffers in
+> the capture queue for the VPE output.
+> 
+> If the time taken by VPE to process a single frame is really slow, then
+> it's possible that we don't need to imply such a restriction on the dst
+> queue, but really fast transactions(small resolution, no de-interlacing)
+> may cause us to hit the condition where we don't have any free buffers
+> for the VPE to write on.
+> 
+> Add the extra check in job_ready() to make sure we have the sufficient
+> amount of destination buffers.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-date:		Fri Mar  7 04:00:24 CET 2014
-git branch:	test
-git hash:	bfd0306462fdbc5e0a8c6999aef9dde0f9745399
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.13-5.slh.4-amd64
+Acked-by: Kamil Debski <k.debski@samsung.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse version:	0.4.5-rc1
-sparse: ERRORS
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
 
-Detailed results are available here:
+> ---
+>  drivers/media/platform/ti-vpe/vpe.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c
+> b/drivers/media/platform/ti-vpe/vpe.c
+> index 7a77a5b..f3143ac 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -887,6 +887,9 @@ static int job_ready(void *priv)
+>  	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
+>  		return 0;
+> 
+> +	if (v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < needed)
+> +		return 0;
+> +
+>  	return 1;
+>  }
+> 
+> --
+> 1.8.3.2
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
