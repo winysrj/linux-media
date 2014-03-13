@@ -1,117 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47102 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222AbaCHJga (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Mar 2014 04:36:30 -0500
-Message-ID: <531AE46A.2060808@ti.com>
-Date: Sat, 8 Mar 2014 11:35:38 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-CC: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+Received: from smtp1-g21.free.fr ([212.27.42.1]:45632 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753796AbaCMRSL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 13:18:11 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v4 3/3] Documentation: of: Document graph bindings
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de>	 < 1393340304-19005-4-git-send-email-p.zabel@pengutronix.de>	 <530DE8A9. 9050809@ti.com> <1393426623.3248.70.camel@paszta.hi.pengutronix.de> < 530DFF4C.8080807@ti.com> <20140307181132.B2D71C40A88@trevor.secretlab.ca>
-In-Reply-To: <20140307181132.B2D71C40A88@trevor.secretlab.ca>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="6uRTMvvwH3OpEIWdqbUxIqw3ac3vMg2TU"
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v11][ 04/12] imx-drm: Match ipu_di_signal_cfg's clk_pol with its description.
+Date: Thu, 13 Mar 2014 18:17:25 +0100
+Message-Id: <1394731053-6118-4-git-send-email-denis@eukrea.com>
+In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---6uRTMvvwH3OpEIWdqbUxIqw3ac3vMg2TU
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+According to the datasheet, setting the di0_polarity_disp_clk
+field in the GENERAL di register sets the output clock polarity
+to active high.
 
-On 07/03/14 20:11, Grant Likely wrote:
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+---
+ChangeLog v9->v10:
+- New patch that is now needed by the
+  "staging: imx-drm: Use de-active and pixelclk-active" patch.
+---
+ drivers/staging/imx-drm/ipu-v3/ipu-di.c |    2 +-
+ drivers/staging/imx-drm/ipuv3-crtc.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
->>> Any board not using that port can just leave the endpoint disconnecte=
-d.
->>
->> Hmm I see. I'm against that.
->>
->> I think the SoC dtsi should not contain endpoint node, or even port no=
-de
->> (at least usually). It doesn't know how many endpoints, if any, a
->> particular board has. That part should be up to the board dts.
->=20
-> Why? We have established precedence for unused devices still being in
-> the tree. I really see no issue with it.
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-di.c b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
+index 82a9eba..849b3e1 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-di.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
+@@ -595,7 +595,7 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
+ 		}
+ 	}
+ 
+-	if (!sig->clk_pol)
++	if (sig->clk_pol)
+ 		di_gen |= DI_GEN_POLARITY_DISP_CLK;
+ 
+ 	ipu_di_write(di, di_gen, DI_GENERAL);
+diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
+index a8d0178..db6bd64 100644
+--- a/drivers/staging/imx-drm/ipuv3-crtc.c
++++ b/drivers/staging/imx-drm/ipuv3-crtc.c
+@@ -158,7 +158,7 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
+ 		sig_cfg.Vsync_pol = 1;
+ 
+ 	sig_cfg.enable_pol = 1;
+-	sig_cfg.clk_pol = 1;
++	sig_cfg.clk_pol = 0;
+ 	sig_cfg.width = mode->hdisplay;
+ 	sig_cfg.height = mode->vdisplay;
+ 	sig_cfg.pixel_fmt = out_pixel_fmt;
+-- 
+1.7.9.5
 
-I'm fine with having ports defined in the SoC dtsi. A port is a physical
-thing, a group of pins, for example.
-
-But an endpoint is a description of the other end of a link. To me, a
-single endpoint makes no sense, there has to be a pair of endpoints. The
-board may need 0 to n endpoints, and the SoC dtsi cannot know how many
-are needed.
-
-If the SoC dtsi defines a single endpoint for a port, and the board
-needs to use two endpoints for that port, it gets really messy: one
-endpoint is defined in the SoC dtsi, and used in the board dts. The
-second endpoint for the same port needs to be defined separately in the
-board file. I.e. something like:
-
-/* the first ep */
-&port1_ep {
-	remote-endpoint =3D <&..>;
-};
-
-&port1 {
-	/* the second ep */
-	endpoint@2 {
-		remote-endpoint =3D <&..>;
-	};
-};
-
-Versus:
-
-&port1 {
-	/* the first ep */
-	endpoint@1 {
-		remote-endpoint =3D <&..>;
-	};
-
-	/* the second ep */
-	endpoint@2 {
-		remote-endpoint =3D <&..>;
-	};
-};
-
- Tomi
-
-
-
---6uRTMvvwH3OpEIWdqbUxIqw3ac3vMg2TU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTGuRtAAoJEPo9qoy8lh7167AP/ilCxKAGnrbU20kUjp80barz
-/B1MCJJ63fwBxH4V2V012Yp0t6iLyoIhyjvBVxSMQRNIactBq9M9qVWgBmbBPig+
-/Zrl4sFqS3q4Qd6hyScfP912xIm2htY9SJRAtmCnpOYj82pUZugUdxq8bGrNTfiJ
-7Z5FEmHWD97Oy73+TgqbClOVO2WNtiwvM5xUf3myU7wvgTHWbqttgx82pjzU4j53
-f3OnH2DTrXIQvi/SSiOpaGzqzasgDI+I1npLq8YxvDxFpr0ptpHqCZ5dljA5DTQj
-/LVe3SNRmRr/gBT9DB7jMmElv74HX/Icx77UvXpJtnVw0TEvJ9EXyKHJFzir+A5Y
-qZC2zXJtyOHaYPNQt8ZWvbSuWOSxzvt3rFyNx/KAZmasDDiJhQIz80pqEYfu8zEC
-supiuLOzUy1RPpNv09sVAz3fkTcL44T0yQ1PA6YnolvbT1idA9pYUTw5Kz1elv6f
-xcFlMwWCUAILfrmwgVXDC+SLpcgs4Pw8hsBWq4f8rhIWk5YROXegpcF6is/C6Jvf
-6ETn0z52jv7jvWsI+GugFdXrgLj54TH9vLFxG7nWoHY/UOWhjBdlrbK7YdA2E7+e
-ye+tr1qSDRCxtDxAgx/SY6mg3r4Rw+kAbpWPBIztHZBfrXCjD6piZ0EkJxhKca91
-B125posKbgD8fQFa+CZT
-=szaS
------END PGP SIGNATURE-----
-
---6uRTMvvwH3OpEIWdqbUxIqw3ac3vMg2TU--
