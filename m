@@ -1,75 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46241 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752972AbaCAQPT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Mar 2014 11:15:19 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Subject: [yavta PATCH 3/9] Allow supporting mem2mem devices by adding forced OUTPUT device type
-Date: Sat,  1 Mar 2014 18:18:04 +0200
-Message-Id: <1393690690-5004-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
-References: <1393690690-5004-1-git-send-email-sakari.ailus@iki.fi>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:49138 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754547AbaCMRTF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 13:19:05 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH 12/12] ARM: imx_v6_v7_defconfig: Add more drm drivers.
+Date: Thu, 13 Mar 2014 18:17:33 +0100
+Message-Id: <1394731053-6118-12-git-send-email-denis@eukrea.com>
+In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The option is --output, or -o.
+The DRM_PANEL_SIMPLE is needed by the eukrea
+mbimxsd51's displays.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
 ---
- yavta.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+- New patch, splitting it would be overkill.
+---
+ arch/arm/configs/imx_v6_v7_defconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/yavta.c b/yavta.c
-index 8e43ce5..e010252 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -1240,6 +1240,7 @@ static void usage(const char *argv0)
- 	printf("-I, --fill-frames		Fill frames with check pattern before queuing them\n");
- 	printf("-l, --list-controls		List available controls\n");
- 	printf("-n, --nbufs n			Set the number of video buffers\n");
-+	printf("-o, --output			Use video node as output\n");
- 	printf("-p, --pause			Pause before starting the video stream\n");
- 	printf("-q, --quality n			MJPEG quality (0-100)\n");
- 	printf("-r, --get-control ctrl		Get control 'ctrl'\n");
-@@ -1282,6 +1283,7 @@ static struct option opts[] = {
- 	{"nbufs", 1, 0, 'n'},
- 	{"no-query", 0, 0, OPT_NO_QUERY},
- 	{"offset", 1, 0, OPT_USERPTR_OFFSET},
-+	{"output", 0, 0, 'o'},
- 	{"pause", 0, 0, 'p'},
- 	{"quality", 1, 0, 'q'},
- 	{"get-control", 1, 0, 'r'},
-@@ -1304,7 +1306,7 @@ int main(int argc, char *argv[])
- 	int ret;
- 
- 	/* Options parsings */
--	int do_file = 0, do_capture = 0, do_pause = 0;
-+	int do_file = 0, do_capture = 0, do_pause = 0, do_output = 0;
- 	int do_set_time_per_frame = 0;
- 	int do_enum_formats = 0, do_set_format = 0;
- 	int do_enum_inputs = 0, do_set_input = 0;
-@@ -1385,6 +1387,9 @@ int main(int argc, char *argv[])
- 			if (nbufs > V4L_BUFFERS_MAX)
- 				nbufs = V4L_BUFFERS_MAX;
- 			break;
-+		case 'o':
-+			do_output = 1;
-+			break;
- 		case 'p':
- 			do_pause = 1;
- 			break;
-@@ -1500,6 +1505,9 @@ int main(int argc, char *argv[])
- 	if (dev.type == (enum v4l2_buf_type)-1)
- 		no_query = 1;
- 
-+	if (do_output)
-+		dev.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+
- 	dev.memtype = memtype;
- 
- 	if (do_get_control) {
+diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
+index 09e9743..0316926 100644
+--- a/arch/arm/configs/imx_v6_v7_defconfig
++++ b/arch/arm/configs/imx_v6_v7_defconfig
+@@ -183,6 +183,7 @@ CONFIG_V4L_MEM2MEM_DRIVERS=y
+ CONFIG_VIDEO_CODA=y
+ CONFIG_SOC_CAMERA_OV2640=y
+ CONFIG_DRM=y
++CONFIG_DRM_PANEL_SIMPLE=y
+ CONFIG_BACKLIGHT_LCD_SUPPORT=y
+ CONFIG_LCD_CLASS_DEVICE=y
+ CONFIG_LCD_L4F00242T03=y
+@@ -245,6 +246,7 @@ CONFIG_DRM_IMX_TVE=y
+ CONFIG_DRM_IMX_LDB=y
+ CONFIG_DRM_IMX_IPUV3_CORE=y
+ CONFIG_DRM_IMX_IPUV3=y
++CONFIG_DRM_IMX_HDMI=y
+ CONFIG_COMMON_CLK_DEBUG=y
+ # CONFIG_IOMMU_SUPPORT is not set
+ CONFIG_PWM=y
 -- 
-1.7.10.4
+1.7.9.5
 
