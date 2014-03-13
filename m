@@ -1,154 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:43890 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753410AbaCFQW2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Mar 2014 11:22:28 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, robh+dt@kernel.org,
-	mark.rutland@arm.com, galak@codeaurora.org,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v6 09/10] ARM: dts: Add rear camera nodes for Exynos4412 TRATS2
- board
-Date: Thu, 06 Mar 2014 17:20:18 +0100
-Message-id: <1394122819-9582-10-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
-References: <1394122819-9582-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-ve0-f180.google.com ([209.85.128.180]:61465 "EHLO
+	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753384AbaCMI7Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 04:59:16 -0400
+Received: by mail-ve0-f180.google.com with SMTP id jz11so754061veb.11
+        for <linux-media@vger.kernel.org>; Thu, 13 Mar 2014 01:59:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1394493359-14115-15-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1394493359-14115-15-git-send-email-laurent.pinchart@ideasonboard.com>
+Date: Thu, 13 Mar 2014 16:59:15 +0800
+Message-ID: <CAHG8p1B0xeOupSmxXjMRE0AK5r3-yNW8bTD2MV68FyEYJB75Ww@mail.gmail.com>
+Subject: Re: [PATCH v2 14/48] media: bfin_capture: Switch to pad-level DV operations
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enables the rear facing camera (s5c73m3) on TRATS2 board
-by adding the I2C0 bus controller, s5c73m3 sensor, MIPI CSI-2 receiver
-and the sensor's voltage regulator supply nodes.
+2014-03-11 7:15 GMT+08:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> The video-level enum_dv_timings and dv_timings_cap operations are
+> deprecated in favor of the pad-level versions. All subdev drivers
+> implement the pad-level versions, switch to them.
+>
+> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/blackfin/bfin_capture.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+> index 200bec9..22fb701 100644
+> --- a/drivers/media/platform/blackfin/bfin_capture.c
+> +++ b/drivers/media/platform/blackfin/bfin_capture.c
+> @@ -648,7 +648,9 @@ static int bcap_enum_dv_timings(struct file *file, void *priv,
+>  {
+>         struct bcap_device *bcap_dev = video_drvdata(file);
+>
+> -       return v4l2_subdev_call(bcap_dev->sd, video,
+> +       timings->pad = 0;
+> +
+> +       return v4l2_subdev_call(bcap_dev->sd, pad,
+>                         enum_dv_timings, timings);
+>  }
+>
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
-Changes since v5:
-  - none.
-
-Changes since v4:
-  - removed changes related to s5k6a3 sensor.
----
- arch/arm/boot/dts/exynos4412-trats2.dts |   81 +++++++++++++++++++++++++++++--
- 1 file changed, 78 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/boot/dts/exynos4412-trats2.dts b/arch/arm/boot/dts/exynos4412-trats2.dts
-index 4f851cc..0c6afbe 100644
---- a/arch/arm/boot/dts/exynos4412-trats2.dts
-+++ b/arch/arm/boot/dts/exynos4412-trats2.dts
-@@ -71,7 +71,33 @@
- 			enable-active-high;
- 		};
- 
--		/* More to come */
-+		cam_af_reg: voltage-regulator-2 {
-+			compatible = "regulator-fixed";
-+			regulator-name = "CAM_AF";
-+			regulator-min-microvolt = <2800000>;
-+			regulator-max-microvolt = <2800000>;
-+			gpio = <&gpm0 4 0>;
-+			enable-active-high;
-+		};
-+
-+		cam_isp_core_reg: voltage-regulator-3 {
-+			compatible = "regulator-fixed";
-+			regulator-name = "CAM_ISP_CORE_1.2V_EN";
-+			regulator-min-microvolt = <1200000>;
-+			regulator-max-microvolt = <1200000>;
-+			gpio = <&gpm0 3 0>;
-+			enable-active-high;
-+			regulator-always-on;
-+		};
-+
-+		lcd_vdd3_reg: voltage-regulator-4 {
-+			compatible = "regulator-fixed";
-+			regulator-name = "LCD_VDD_2.2V";
-+			regulator-min-microvolt = <2200000>;
-+			regulator-max-microvolt = <2200000>;
-+			gpio = <&gpc0 1 0>;
-+			enable-active-high;
-+		};
- 	};
- 
- 	gpio-keys {
-@@ -106,6 +132,38 @@
- 		};
- 	};
- 
-+	i2c_0: i2c@13860000 {
-+		samsung,i2c-sda-delay = <100>;
-+		samsung,i2c-slave-addr = <0x10>;
-+		samsung,i2c-max-bus-freq = <400000>;
-+		pinctrl-0 = <&i2c0_bus>;
-+		pinctrl-names = "default";
-+		status = "okay";
-+
-+		s5c73m3@3c {
-+			compatible = "samsung,s5c73m3";
-+			reg = <0x3c>;
-+			standby-gpios = <&gpm0 1 1>;   /* ISP_STANDBY */
-+			xshutdown-gpios = <&gpf1 3 1>; /* ISP_RESET */
-+			vdd-int-supply = <&buck9_reg>;
-+			vddio-cis-supply = <&ldo9_reg>;
-+			vdda-supply = <&ldo17_reg>;
-+			vddio-host-supply = <&ldo18_reg>;
-+			vdd-af-supply = <&cam_af_reg>;
-+			vdd-reg-supply = <&cam_io_reg>;
-+			clock-frequency = <24000000>;
-+			/* CAM_A_CLKOUT */
-+			clocks = <&camera 0>;
-+			clock-names = "cis_extclk";
-+			port {
-+				s5c73m3_ep: endpoint {
-+					remote-endpoint = <&csis0_ep>;
-+					data-lanes = <1 2 3 4>;
-+				};
-+			};
-+		};
-+	};
-+
- 	i2c@13890000 {
- 		samsung,i2c-sda-delay = <100>;
- 		samsung,i2c-slave-addr = <0x10>;
-@@ -511,8 +569,8 @@
- 		};
- 	};
- 
--	camera {
--		pinctrl-0 = <&cam_port_b_clk_active>;
-+	camera: camera {
-+		pinctrl-0 = <&cam_port_a_clk_active &cam_port_b_clk_active>;
- 		pinctrl-names = "default";
- 		status = "okay";
- 
-@@ -532,6 +590,23 @@
- 			status = "okay";
- 		};
- 
-+		csis_0: csis@11880000 {
-+			status = "okay";
-+			vddcore-supply = <&ldo8_reg>;
-+			vddio-supply = <&ldo10_reg>;
-+			clock-frequency = <176000000>;
-+
-+			/* Camera C (3) MIPI CSI-2 (CSIS0) */
-+			port@3 {
-+				reg = <3>;
-+				csis0_ep: endpoint {
-+					remote-endpoint = <&s5c73m3_ep>;
-+					data-lanes = <1 2 3 4>;
-+					samsung,csis-hs-settle = <12>;
-+				};
-+			};
-+		};
-+
- 		csis_1: csis@11890000 {
- 			vddcore-supply = <&ldo8_reg>;
- 			vddio-supply = <&ldo10_reg>;
--- 
-1.7.9.5
-
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
