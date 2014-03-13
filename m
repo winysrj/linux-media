@@ -1,106 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41329 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675AbaCEXtL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Mar 2014 18:49:11 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] [media] v4l: omap4iss: Add DEBUG compiler flag
-Date: Thu, 06 Mar 2014 00:50:39 +0100
-Message-ID: <3099833.ZhlQFyxhbo@avalon>
-In-Reply-To: <20140305171006.6243354a@samsung.com>
-References: <1391958577.25424.22.camel@x220> <1600194.93iSF4Yz3E@avalon> <20140305171006.6243354a@samsung.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:36420 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753939AbaCMLpD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 07:45:03 -0400
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 00/14] v4l: ti-vpe: Some VPE fixes and enhancements
+Date: Thu, 13 Mar 2014 17:14:02 +0530
+Message-ID: <1394711056-10878-1-git-send-email-archit@ti.com>
+In-Reply-To: <1394526833-24805-1-git-send-email-archit@ti.com>
+References: <1394526833-24805-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patch set mainly consists of minor fixes for the VPE driver. These fixes
+ensure the following:
 
-Thank you for the review.
+- The VPE module can be inserted and removed successively.
+- Make sure that smaller resolutions like qcif work correctly.
+- Prevent race condition between firmware loading and an open call to the v4l2
+  device.
+- Prevent the possibility of output m2m queue not having sufficient 'ready'
+  buffers.
+- Some VPDMA data descriptor fields weren't understood correctly before. They
+  are now used correctly.
 
-On Wednesday 05 March 2014 17:10:06 Mauro Carvalho Chehab wrote:
-> Em Tue, 11 Feb 2014 13:38:51 +0100 Laurent Pinchart escreveu:
-> > On Tuesday 11 February 2014 12:17:01 Paul Bolle wrote:
-> > > Commit d632dfefd36f ("[media] v4l: omap4iss: Add support for OMAP4
-> > > camera interface - Build system") added a Kconfig entry for
-> > > VIDEO_OMAP4_DEBUG. But nothing uses that symbol.
-> > > 
-> > > This entry was apparently copied from a similar entry for "OMAP 3
-> > > Camera debug messages". The OMAP 3 entry is used to set the DEBUG
-> > > compiler flag, which enables calls of dev_dbg().
-> > > 
-> > > So add a Makefile line to do that for omap4iss too.
-> > > 
-> > > Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > and applied to my tree.
-> > 
-> > > ---
-> > > 0) v1 was called "[media] v4l: omap4iss: Remove VIDEO_OMAP4_DEBUG". This
-> > > versions implements Laurent's alternative (which is much better).
-> > 
-> > Thanks :-)
-> > 
-> > > 1) Still untested.
-> > > 
-> > >  drivers/staging/media/omap4iss/Makefile | 2 ++
-> > >  1 file changed, 2 insertions(+)
-> > > 
-> > > diff --git a/drivers/staging/media/omap4iss/Makefile
-> > > b/drivers/staging/media/omap4iss/Makefile index a716ce9..f46c6bd 100644
-> > > --- a/drivers/staging/media/omap4iss/Makefile
-> > > +++ b/drivers/staging/media/omap4iss/Makefile
-> > > @@ -1,5 +1,7 @@
-> > > 
-> > >  # Makefile for OMAP4 ISS driver
-> > > 
-> > > +ccflags-$(CONFIG_VIDEO_OMAP4_DEBUG) += -DDEBUG
-> > > +
-> 
-> This seems to be a very bad idea on my eyes. It is just creating an alias to
-> an already existing Kconfig symbol with no good reason.
-> 
-> To be fair, there are also two other drivers doing this:
-> 
-> 	
-drivers/media/platform/omap3isp/Makefile:ccflags-$(CONFIG_VIDEO_OMAP3_DEBUG
-> ) += -DDEBUG
-> drivers/media/platform/ti-vpe/Makefile:ccflags-$(CONFIG_VIDEO_TI_VPE_DEBUG)
-> += -DDEBUG
-> 
-> It sounds better do to a s/CONFIG_DEBUG/CONFIG_VIDEO_whatever_DEBUG/
-> inside each of those driver, or to just remove this, and document that
-> one should enable CONFIG_DEBUG if they want to debug v4l2 drivers.
+The rest of the patches add some minor features like DMA buf support and
+cropping/composing.
 
-Please note that -DDEBUG is equivalent to '#define DEBUG', not to '#define 
-CONFIG_DEBUG'. 'DEBUG' needs to be defined for dev_dbg() to have any effect. 
-Furthermore, there's not CONFIG_DEBUG as far as I know.
+Reference branch:
 
-An alternative to this would be to add
+git@github.com:boddob/linux.git vpe_for_315
 
-#ifdef CONFIG_VIDEO_OMAP3_DEBUG
-#define DEBUG
-#endif
+Changes in v4:
 
-at the beginning of each source file of the driver. That doesn't seem very 
-practical to me though.
+- More legible code for selection API
+- Stricter checking for target type vs crop type in g_selection
+- Minor fix in patch 13/14, there was a logical bug in buf_prepare when
+  checking validity of top and bottom fields.
 
-> > >  omap4-iss-objs += \
-> > >  
-> > >  	iss.o iss_csi2.o iss_csiphy.o iss_ipipeif.o iss_ipipe.o iss_resizer.o
-> > > 
-> > > iss_video.o
+Changes in v3:
+
+- improvements in selection API patch.
+- querycap fixes for v4l2 compliance.
+- v4l2_buffer 'field' and flags' fixes for compliance.
+- fixes in try_fmt vpe_open for compliance.
+- rename a IOMEM resource for better DT compatibility.
+
+Changes in v2:
+
+- selection API used instead of older cropping API.
+- Typo fix.
+- Some changes in patch 6/7 to support composing on the capture side of VPE.
+
+
+Archit Taneja (14):
+  v4l: ti-vpe: Make sure in job_ready that we have the needed number of
+    dst_bufs
+  v4l: ti-vpe: register video device only when firmware is loaded
+  v4l: ti-vpe: Use video_device_release_empty
+  v4l: ti-vpe: Allow DMABUF buffer type support
+  v4l: ti-vpe: Allow usage of smaller images
+  v4l: ti-vpe: Fix some params in VPE data descriptors
+  v4l: ti-vpe: Add selection API in VPE driver
+  v4l: ti-vpe: Rename csc memory resource name
+  v4l: ti-vpe: report correct capabilities in querycap
+  v4l: ti-vpe: Use correct bus_info name for the device in querycap
+  v4l: ti-vpe: Fix initial configuration queue data
+  v4l: ti-vpe: zero out reserved fields in try_fmt
+  v4l: ti-vpe: Set correct field parameter for output and capture
+    buffers
+  v4l: ti-vpe: retain v4l2_buffer flags for captured buffers
+
+ drivers/media/platform/ti-vpe/csc.c   |   2 +-
+ drivers/media/platform/ti-vpe/vpdma.c |  68 ++++++---
+ drivers/media/platform/ti-vpe/vpdma.h |  17 ++-
+ drivers/media/platform/ti-vpe/vpe.c   | 272 ++++++++++++++++++++++++++++------
+ 4 files changed, 290 insertions(+), 69 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
