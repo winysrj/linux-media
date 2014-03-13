@@ -1,79 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4819 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754530AbaCJVVe (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:42501 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754133AbaCMLpq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 17:21:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 05/11] vb2: move __qbuf_mmap before __qbuf_userptr
-Date: Mon, 10 Mar 2014 22:20:52 +0100
-Message-Id: <1394486458-9836-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394486458-9836-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 13 Mar 2014 07:45:46 -0400
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 13/14] v4l: ti-vpe: Set correct field parameter for output and capture buffers
+Date: Thu, 13 Mar 2014 17:14:15 +0530
+Message-ID: <1394711056-10878-14-git-send-email-archit@ti.com>
+In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
+References: <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394711056-10878-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The vpe driver wasn't setting the correct field parameter for dequed CAPTURE
+type buffers for the case where the captured output is progressive.
 
-__qbuf_mmap was sort of hidden in between the much larger __qbuf_userptr
-and __qbuf_dmabuf functions. Move it before __qbuf_userptr which is
-also conform the usual order these memory models are implemented: first
-mmap, then userptr, then dmabuf.
+Set the field to V4L2_FIELD_NONE for the completed destination buffers when
+the captured output is progressive.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+For OUTPUT type buffers, a queued buffer's field is forced to V4L2_FIELD_NONE
+if the pixel format(configured through s_fmt for the buffer type
+V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE specifies) the field type isn't interlaced.
+If the pixel format specified was V4L2_FIELD_ALTERNATE, and the queued buffer's
+field isn't V4L2_FIELD_TOP or V4L2_FIELD_BOTTOM, the vb2 buf_prepare op returns
+an error.
+
+This ensures compliance, and that the dequeued output and captured buffers
+contain the field type that the driver used internally.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 71be247..e38b45e 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1254,6 +1254,20 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- }
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index c0ae847..362d5be 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1296,10 +1296,10 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 		d_buf->timecode = s_buf->timecode;
+ 	}
+ 	d_buf->sequence = ctx->sequence;
+-	d_buf->field = ctx->field;
  
- /**
-+ * __qbuf_mmap() - handle qbuf of an MMAP buffer
-+ */
-+static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-+{
-+	int ret;
-+
-+	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
-+	ret = call_vb_qop(vb, buf_prepare, vb);
-+	if (ret)
-+		fail_vb_qop(vb, buf_prepare);
-+	return ret;
-+}
-+
-+/**
-  * __qbuf_userptr() - handle qbuf of a USERPTR buffer
-  */
- static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-@@ -1359,20 +1373,6 @@ err:
- }
+ 	d_q_data = &ctx->q_data[Q_DATA_DST];
+ 	if (d_q_data->flags & Q_DATA_INTERLACED) {
++		d_buf->field = ctx->field;
+ 		if (ctx->field == V4L2_FIELD_BOTTOM) {
+ 			ctx->sequence++;
+ 			ctx->field = V4L2_FIELD_TOP;
+@@ -1308,6 +1308,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 			ctx->field = V4L2_FIELD_BOTTOM;
+ 		}
+ 	} else {
++		d_buf->field = V4L2_FIELD_NONE;
+ 		ctx->sequence++;
+ 	}
  
- /**
-- * __qbuf_mmap() - handle qbuf of an MMAP buffer
-- */
--static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
--{
--	int ret;
--
--	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
--	ret = call_vb_qop(vb, buf_prepare, vb);
--	if (ret)
--		fail_vb_qop(vb, buf_prepare);
--	return ret;
--}
--
--/**
-  * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
-  */
- static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+@@ -1880,6 +1881,16 @@ static int vpe_buf_prepare(struct vb2_buffer *vb)
+ 	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ 	num_planes = q_data->fmt->coplanar ? 2 : 1;
+ 
++	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		if (!(q_data->flags & Q_DATA_INTERLACED)) {
++			vb->v4l2_buf.field = V4L2_FIELD_NONE;
++		} else {
++			if (vb->v4l2_buf.field != V4L2_FIELD_TOP &&
++					vb->v4l2_buf.field != V4L2_FIELD_BOTTOM)
++				return -EINVAL;
++		}
++	}
++
+ 	for (i = 0; i < num_planes; i++) {
+ 		if (vb2_plane_size(vb, i) < q_data->sizeimage[i]) {
+ 			vpe_err(ctx->dev,
 -- 
-1.9.0
+1.8.3.2
 
