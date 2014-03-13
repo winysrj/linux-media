@@ -1,109 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:48025 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755097AbaCNXHD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 19:07:03 -0400
-Received: by mail-wg0-f48.google.com with SMTP id l18so2676657wgh.31
-        for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 16:07:02 -0700 (PDT)
-From: James Hogan <james@albanarts.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james@albanarts.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v2 6/9] rc: ir-rc5-sz-decoder: Add ir encoding support
-Date: Fri, 14 Mar 2014 23:04:16 +0000
-Message-Id: <1394838259-14260-7-git-send-email-james@albanarts.com>
-In-Reply-To: <1394838259-14260-1-git-send-email-james@albanarts.com>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp1-g21.free.fr ([212.27.42.1]:46157 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753796AbaCMRSS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 13:18:18 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v11][ 05/12] imx-drm: use defines for clock polarity settings
+Date: Thu, 13 Mar 2014 18:17:26 +0100
+Message-Id: <1394731053-6118-5-git-send-email-denis@eukrea.com>
+In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Antti Seppälä <a.seppala@gmail.com>
-
-The encoding in rc5-sz first inserts a pulse and then simply utilizes the
-generic Manchester encoder available in rc-core.
-
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: James Hogan <james@albanarts.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: David Härdeman <david@hardeman.nu>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
 ---
-Changes in v2 (James Hogan):
- - Turn ir_rc5_sz_encode() comment into kerneldoc and update to reflect
-   new API, with the -ENOBUFS return value for when the buffer is full
-   and only a partial message was encoded.
- - Be more flexible around accepted scancode masks, as long as all the
-   important bits are set (0x2fff) and none of the unimportant bits are
-   set in the data. Also mask off the unimportant bits before passing to
-   ir_raw_gen_manchester().
- - Explicitly enable leader bit in Manchester modulation timings.
+ChangeLog v9->v10:
+- New patch which was splitted out from:
+  "staging: imx-drm: Use de-active and pixelclk-active display-timings.".
+- Fixes many issues in "staging: imx-drm: Use de-active and pixelclk-active
+  display-timings.":
+  - More clear meaning of the polarity settings.
+  - The SET_CLK_POL and SET_DE_POL masks are not
+    needed anymore.
 ---
- drivers/media/rc/ir-rc5-sz-decoder.c | 45 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h |    8 +++++++-
+ drivers/staging/imx-drm/ipu-v3/ipu-di.c     |    4 ++--
+ drivers/staging/imx-drm/ipuv3-crtc.c        |    4 ++--
+ 3 files changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/rc/ir-rc5-sz-decoder.c b/drivers/media/rc/ir-rc5-sz-decoder.c
-index dc18b74..a342a4f 100644
---- a/drivers/media/rc/ir-rc5-sz-decoder.c
-+++ b/drivers/media/rc/ir-rc5-sz-decoder.c
-@@ -127,9 +127,54 @@ out:
- 	return -EINVAL;
- }
+diff --git a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
+index c4d14ea..b95cba1 100644
+--- a/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
++++ b/drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h
+@@ -27,6 +27,12 @@ enum ipuv3_type {
  
-+static struct ir_raw_timings_manchester ir_rc5_sz_timings = {
-+	.leader			= 1,
-+	.pulse_space_start	= 0,
-+	.clock			= RC5_UNIT,
-+	.trailer_space		= RC5_UNIT * 10,
-+};
-+
-+/**
-+ * ir_rc5_sz_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocols:	allowed protocols
-+ * @scancode:	scancode filter describing scancode (helps distinguish between
-+ *		protocol subtypes when scancode is ambiguous)
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ *		-EINVAL if the scancode is ambiguous or invalid.
-+ */
-+static int ir_rc5_sz_encode(u64 protocols,
-+			    const struct rc_scancode_filter *scancode,
-+			    struct ir_raw_event *events, unsigned int max)
-+{
-+	int ret;
-+	struct ir_raw_event *e = events;
-+
-+	/* all important bits of scancode should be set in mask */
-+	if (~scancode->mask & 0x2fff)
-+		return -EINVAL;
-+	/* extra bits in mask should be zero in data */
-+	if (scancode->mask & scancode->data & ~0x2fff)
-+		return -EINVAL;
-+
-+	/* RC5-SZ scancode is raw enough for Manchester as it is */
-+	ret = ir_raw_gen_manchester(&e, max, &ir_rc5_sz_timings, RC5_SZ_NBITS,
-+				    scancode->data & 0x2fff);
-+	if (ret < 0)
-+		return ret;
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler rc5_sz_handler = {
- 	.protocols	= RC_BIT_RC5_SZ,
- 	.decode		= ir_rc5_sz_decode,
-+	.encode		= ir_rc5_sz_encode,
- };
+ #define IPU_PIX_FMT_GBR24	v4l2_fourcc('G', 'B', 'R', '3')
  
- static int __init ir_rc5_sz_decode_init(void)
++#define CLK_POL_ACTIVE_LOW	0
++#define CLK_POL_ACTIVE_HIGH	1
++
++#define ENABLE_POL_NEGEDGE	0
++#define ENABLE_POL_POSEDGE	1
++
+ /*
+  * Bitfield of Display Interface signal polarities.
+  */
+@@ -37,7 +43,7 @@ struct ipu_di_signal_cfg {
+ 	unsigned clksel_en:1;
+ 	unsigned clkidle_en:1;
+ 	unsigned data_pol:1;	/* true = inverted */
+-	unsigned clk_pol:1;	/* true = rising edge */
++	unsigned clk_pol:1;
+ 	unsigned enable_pol:1;
+ 	unsigned Hsync_pol:1;	/* true = active high */
+ 	unsigned Vsync_pol:1;
+diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-di.c b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
+index 849b3e1..53646aa 100644
+--- a/drivers/staging/imx-drm/ipu-v3/ipu-di.c
++++ b/drivers/staging/imx-drm/ipu-v3/ipu-di.c
+@@ -595,7 +595,7 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
+ 		}
+ 	}
+ 
+-	if (sig->clk_pol)
++	if (sig->clk_pol == CLK_POL_ACTIVE_HIGH)
+ 		di_gen |= DI_GEN_POLARITY_DISP_CLK;
+ 
+ 	ipu_di_write(di, di_gen, DI_GENERAL);
+@@ -606,7 +606,7 @@ int ipu_di_init_sync_panel(struct ipu_di *di, struct ipu_di_signal_cfg *sig)
+ 	reg = ipu_di_read(di, DI_POL);
+ 	reg &= ~(DI_POL_DRDY_DATA_POLARITY | DI_POL_DRDY_POLARITY_15);
+ 
+-	if (sig->enable_pol)
++	if (sig->enable_pol == ENABLE_POL_POSEDGE)
+ 		reg |= DI_POL_DRDY_POLARITY_15;
+ 	if (sig->data_pol)
+ 		reg |= DI_POL_DRDY_DATA_POLARITY;
+diff --git a/drivers/staging/imx-drm/ipuv3-crtc.c b/drivers/staging/imx-drm/ipuv3-crtc.c
+index db6bd64..8cfeb47 100644
+--- a/drivers/staging/imx-drm/ipuv3-crtc.c
++++ b/drivers/staging/imx-drm/ipuv3-crtc.c
+@@ -157,8 +157,8 @@ static int ipu_crtc_mode_set(struct drm_crtc *crtc,
+ 	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
+ 		sig_cfg.Vsync_pol = 1;
+ 
+-	sig_cfg.enable_pol = 1;
+-	sig_cfg.clk_pol = 0;
++	sig_cfg.enable_pol = ENABLE_POL_POSEDGE;
++	sig_cfg.clk_pol = CLK_POL_ACTIVE_LOW;
+ 	sig_cfg.width = mode->hdisplay;
+ 	sig_cfg.height = mode->vdisplay;
+ 	sig_cfg.pixel_fmt = out_pixel_fmt;
 -- 
-1.8.3.2
+1.7.9.5
 
