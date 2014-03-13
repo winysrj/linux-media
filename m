@@ -1,179 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:58852 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752254AbaCaL1s (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:42480 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753821AbaCMLpY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Mar 2014 07:27:48 -0400
-Received: by mail-lb0-f169.google.com with SMTP id q8so5816558lbi.28
-        for <linux-media@vger.kernel.org>; Mon, 31 Mar 2014 04:27:47 -0700 (PDT)
-Message-ID: <53395131.6090002@cogentembedded.com>
-Date: Mon, 31 Mar 2014 15:27:45 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Thu, 13 Mar 2014 07:45:24 -0400
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 06/14] v4l: ti-vpe: Fix some params in VPE data descriptors
+Date: Thu, 13 Mar 2014 17:14:08 +0530
+Message-ID: <1394711056-10878-7-git-send-email-archit@ti.com>
+In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
+References: <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394711056-10878-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-To: Ben Dooks <ben.dooks@codethink.co.uk>, linux-media@vger.kernel.org
-CC: g.liakhovetski@gmx.de, linux-sh@vger.kernel.org
-Subject: Re: [RFC 2/3] rcar_vin: add devicetree support
-References: <1396214765-23689-1-git-send-email-ben.dooks@codethink.co.uk> <1396214765-23689-2-git-send-email-ben.dooks@codethink.co.uk>
-In-Reply-To: <1396214765-23689-2-git-send-email-ben.dooks@codethink.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Some parameters of the VPE descriptors were understood incorrectly. They are now
+fixed. The fixes are explained as follows:
 
-On 31-03-2014 1:26, Ben Dooks wrote:
+- When adding an inbound data descriptor to the VPDMA descriptor list, we intend
+  to use c_rect as the cropped region fetched by VPDMA. Therefore, c_rect->width
+  shouldn't be used to calculate the line stride, the original image width
+  should be used for that. We add a 'width' argument which gives the buffer
+  width in memory.
 
-> Add support for devicetree probe for the rcar-vin
-> driver.
+- frame_width and frame_height describe the complete width and height of the
+  client to which the channel is connected. If there are multiple channels
+  fetching data and providing to the same client, the above 2 arguments should
+  be the width and height of the region covered by all the channels. In the case
+  where there is only one channel providing pixel data to the client
+  (like in VPE), frame_width and frame_height should be the cropped width and
+  cropped height respectively. The calculation of these params is done in the
+  vpe driver now.
 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> ---
->   .../devicetree/bindings/media/rcar_vin.txt         | 79 ++++++++++++++++++++++
->   drivers/media/platform/soc_camera/rcar_vin.c       | 67 ++++++++++++++++--
->   2 files changed, 140 insertions(+), 6 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/media/rcar_vin.txt
+- start_h and start_v is also used in the case of multiple channels to describe
+  where each channel should start filling pixel data. We don't use this in VPE,
+  and pass 0s to the vpdma_add_in_dtd() helper.
 
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> new file mode 100644
-> index 0000000..105b8de
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -0,0 +1,79 @@
-> +Renesas RCar Video Input driver (rcar_vin)
-> +------------------------------------------
-> +
-> +The rcar_vin device provides video input capabilities for the Renesas R-Car
-> +family of devices. The current blocks are always slaves and suppot one input
-> +channel which can be either RGB, YUYV or BT656.
-> +
-> + - compatible: Must be one of the following
-> +   - "renesas,vin-r8a7791" for the R8A7791 device
-> +   - "renesas,vin-r8a7790" for the R8A7790 device
-> +   - "renesas,vin-r8a7779" for the R8A7779 device
-> +   - "renesas,vin-r8a7778" for the R8A7778 device
-> + - reg: the register base and size for the device registers
+- Some minor changes are made to the vpdma_add_out_dtd() helper. The c_rect
+  param is used for specifying the 'composition' target, and 'width'  is added
+  to calculate the line stride.
 
-    Register base of the registers?
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c | 60 +++++++++++++++++++++++++++--------
+ drivers/media/platform/ti-vpe/vpdma.h | 10 +++---
+ drivers/media/platform/ti-vpe/vpe.c   | 18 +++++++----
+ 3 files changed, 64 insertions(+), 24 deletions(-)
 
-[...]
-> +/* composite video input */
-> +&vin1 {
-> +        pinctrl-0 = <&vin1_pins>;
-> +        pinctrl-names = "default";
-> +
-> +        status = "ok";
-> +
-> +        port {
-> +                #address-cells = <1>;
-
-    Where is this used? I don't see "reg" prop in the sub-node...
-
-> +                #size-cells = <0>;
-> +
-> +                vin1ep0: endpoint {
-> +                        remote-endpoint = <&adv7180_1>;
-> +                        bus-width = <8>;
-> +                };
-> +        };
-> +};
-> +
-> +
-> +
-> +[1] video-interfaces.txt common video media interface
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 47516df..73c56c7 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-[...]
-> @@ -1392,6 +1395,17 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
->   	.init_videobuf2	= rcar_vin_init_videobuf2,
->   };
->
-> +#ifdef CONFIG_OF
-
-    I don't think it's worth using this #ifdef -- the OF code is not under 
-#ifdef anyway...
-
-> +static struct of_device_id rcar_vin_of_table[] = {
-> +	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
-> +	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
-> +	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
-> +	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
-> +#endif
-> +
->   static struct platform_device_id rcar_vin_id_table[] = {
->   	{ "r8a7791-vin",  RCAR_GEN2 },
->   	{ "r8a7790-vin",  RCAR_GEN2 },
-> @@ -1404,15 +1418,50 @@ MODULE_DEVICE_TABLE(platform, rcar_vin_id_table);
->
->   static int rcar_vin_probe(struct platform_device *pdev)
->   {
-> +	const struct of_device_id *match = NULL;
->   	struct rcar_vin_priv *priv;
->   	struct resource *mem;
->   	struct rcar_vin_platform_data *pdata;
-> +	unsigned int pdata_flags;
->   	int irq, ret;
->
-> -	pdata = pdev->dev.platform_data;
-> -	if (!pdata || !pdata->flags) {
-> -		dev_err(&pdev->dev, "platform data not set\n");
-> -		return -EINVAL;
-> +	if (pdev->dev.of_node) {
-> +		struct v4l2_of_endpoint ep;
-> +		struct device_node *np;
-> +
-> +		match = of_match_device(of_match_ptr(rcar_vin_of_table),
-> +					&pdev->dev);
-> +
-> +		np = v4l2_of_get_next_endpoint(pdev->dev.of_node, NULL);
-> +		if (!np) {
-> +			dev_err(&pdev->dev, "could not find endpoint\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		ret = v4l2_of_parse_endpoint(np, &ep);
-> +		if (ret) {
-> +			dev_err(&pdev->dev, "could not parse endpoint\n");
-> +			return ret;
-> +		}
-> +
-> +		if (ep.bus_type == V4L2_MBUS_BT656)
-> +			pdata_flags = RCAR_VIN_BT656;
-> +		else {
-
-    Need {} in all arms of this *if* statement.
-
-[...]
-> @@ -1447,8 +1496,13 @@ static int rcar_vin_probe(struct platform_device *pdev)
->   	priv->ici.drv_name = dev_name(&pdev->dev);
->   	priv->ici.ops = &rcar_vin_host_ops;
->
-> -	priv->pdata_flags = pdata->flags;
-> -	priv->chip = pdev->id_entry->driver_data;
-> +	priv->pdata_flags = pdata_flags;
-> +	if (!match)
-> +		priv->chip = pdev->id_entry->driver_data;
-> +	else
-> +		priv->chip = (enum chip_id)match->data;
-> +
-> +
-
-    Too many empty lines.
-
-> @@ -1489,6 +1543,7 @@ static struct platform_driver rcar_vin_driver = {
->   	.driver		= {
->   		.name		= DRV_NAME,
->   		.owner		= THIS_MODULE,
-> +		.of_match_table	= of_match_ptr(rcar_vin_of_table),
-
-    Don't think we need of_match_ptr() as well as #ifdef CONFIG_OF.
-
-[...]
-
-WBR, Sergei
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 73dd38e..a51a013 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -614,8 +614,17 @@ static void dump_dtd(struct vpdma_dtd *dtd)
+ /*
+  * append an outbound data transfer descriptor to the given descriptor list,
+  * this sets up a 'client to memory' VPDMA transfer for the given VPDMA channel
++ *
++ * @list: vpdma desc list to which we add this decriptor
++ * @width: width of the image in pixels in memory
++ * @c_rect: compose params of output image
++ * @fmt: vpdma data format of the buffer
++ * dma_addr: dma address as seen by VPDMA
++ * chan: VPDMA channel
++ * flags: VPDMA flags to configure some descriptor fileds
+  */
+-void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
++void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
++		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		enum vpdma_channel chan, u32 flags)
+ {
+@@ -623,6 +632,7 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
+ 	int field = 0;
+ 	int notify = 1;
+ 	int channel, next_chan;
++	struct v4l2_rect rect = *c_rect;
+ 	int depth = fmt->depth;
+ 	int stride;
+ 	struct vpdma_dtd *dtd;
+@@ -630,11 +640,15 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
+ 	channel = next_chan = chan_info[chan].num;
+ 
+ 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
+-			fmt->data_type == DATA_TYPE_C420)
++			fmt->data_type == DATA_TYPE_C420) {
++		rect.height >>= 1;
++		rect.top >>= 1;
+ 		depth = 8;
++	}
+ 
+-	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
+-	dma_addr += (c_rect->left * depth) >> 3;
++	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
++
++	dma_addr += rect.top * stride + (rect.left * depth >> 3);
+ 
+ 	dtd = list->next;
+ 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
+@@ -664,31 +678,48 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
+ /*
+  * append an inbound data transfer descriptor to the given descriptor list,
+  * this sets up a 'memory to client' VPDMA transfer for the given VPDMA channel
++ *
++ * @list: vpdma desc list to which we add this decriptor
++ * @width: width of the image in pixels in memory(not the cropped width)
++ * @c_rect: crop params of input image
++ * @fmt: vpdma data format of the buffer
++ * dma_addr: dma address as seen by VPDMA
++ * chan: VPDMA channel
++ * field: top or bottom field info of the input image
++ * flags: VPDMA flags to configure some descriptor fileds
++ * frame_width/height: the complete width/height of the image presented to the
++ *			client (this makes sense when multiple channels are
++ *			connected to the same client, forming a larger frame)
++ * start_h, start_v: position where the given channel starts providing pixel
++ *			data to the client (makes sense when multiple channels
++ *			contribute to the client)
+  */
+-void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
+-		int frame_height, struct v4l2_rect *c_rect,
++void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
++		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+-		enum vpdma_channel chan, int field, u32 flags)
++		enum vpdma_channel chan, int field, u32 flags, int frame_width,
++		int frame_height, int start_h, int start_v)
+ {
+ 	int priority = 0;
+ 	int notify = 1;
+ 	int depth = fmt->depth;
+ 	int channel, next_chan;
++	struct v4l2_rect rect = *c_rect;
+ 	int stride;
+-	int height = c_rect->height;
+ 	struct vpdma_dtd *dtd;
+ 
+ 	channel = next_chan = chan_info[chan].num;
+ 
+ 	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
+ 			fmt->data_type == DATA_TYPE_C420) {
+-		height >>= 1;
+-		frame_height >>= 1;
++		rect.height >>= 1;
++		rect.top >>= 1;
+ 		depth = 8;
+ 	}
+ 
+-	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
+-	dma_addr += (c_rect->left * depth) >> 3;
++	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
++
++	dma_addr += rect.top * stride + (rect.left * depth >> 3);
+ 
+ 	dtd = list->next;
+ 	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
+@@ -701,13 +732,14 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
+ 					!!(flags & VPDMA_DATA_ODD_LINE_SKIP),
+ 					stride);
+ 
+-	dtd->xfer_length_height = dtd_xfer_length_height(c_rect->width, height);
++	dtd->xfer_length_height = dtd_xfer_length_height(rect.width,
++					rect.height);
+ 	dtd->start_addr = (u32) dma_addr;
+ 	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
+ 				DTD_DIR_IN, channel, priority, next_chan);
+ 	dtd->frame_width_height = dtd_frame_width_height(frame_width,
+ 					frame_height);
+-	dtd->start_h_v = dtd_start_h_v(c_rect->left, c_rect->top);
++	dtd->start_h_v = dtd_start_h_v(start_h, start_v);
+ 	dtd->client_attr0 = 0;
+ 	dtd->client_attr1 = 0;
+ 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index bf5f8bb..2bd8fb0 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -186,13 +186,15 @@ void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
+ 		struct vpdma_buf *adb);
+ void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
+ 		enum vpdma_channel chan);
+-void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
++void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
++		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		enum vpdma_channel chan, u32 flags);
+-void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
+-		int frame_height, struct v4l2_rect *c_rect,
++void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
++		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+-		enum vpdma_channel chan, int field, u32 flags);
++		enum vpdma_channel chan, int field, u32 flags, int frame_width,
++		int frame_height, int start_h, int start_v);
+ 
+ /* vpdma list interrupt management */
+ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index dbdc338..ece9b96 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -986,7 +986,6 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
+ 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_DST];
+ 	const struct vpe_port_data *p_data = &port_data[port];
+ 	struct vb2_buffer *vb = ctx->dst_vb;
+-	struct v4l2_rect *c_rect = &q_data->c_rect;
+ 	struct vpe_fmt *fmt = q_data->fmt;
+ 	const struct vpdma_data_format *vpdma_fmt;
+ 	int mv_buf_selector = !ctx->src_mv_buf_selector;
+@@ -1015,8 +1014,8 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
+ 	if (q_data->flags & Q_DATA_MODE_TILED)
+ 		flags |= VPDMA_DATA_MODE_TILED;
+ 
+-	vpdma_add_out_dtd(&ctx->desc_list, c_rect, vpdma_fmt, dma_addr,
+-		p_data->channel, flags);
++	vpdma_add_out_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
++		vpdma_fmt, dma_addr, p_data->channel, flags);
+ }
+ 
+ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+@@ -1024,11 +1023,11 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+ 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_SRC];
+ 	const struct vpe_port_data *p_data = &port_data[port];
+ 	struct vb2_buffer *vb = ctx->src_vbs[p_data->vb_index];
+-	struct v4l2_rect *c_rect = &q_data->c_rect;
+ 	struct vpe_fmt *fmt = q_data->fmt;
+ 	const struct vpdma_data_format *vpdma_fmt;
+ 	int mv_buf_selector = ctx->src_mv_buf_selector;
+ 	int field = vb->v4l2_buf.field == V4L2_FIELD_BOTTOM;
++	int frame_width, frame_height;
+ 	dma_addr_t dma_addr;
+ 	u32 flags = 0;
+ 
+@@ -1055,8 +1054,15 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+ 	if (q_data->flags & Q_DATA_MODE_TILED)
+ 		flags |= VPDMA_DATA_MODE_TILED;
+ 
+-	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, q_data->height,
+-		c_rect, vpdma_fmt, dma_addr, p_data->channel, field, flags);
++	frame_width = q_data->c_rect.width;
++	frame_height = q_data->c_rect.height;
++
++	if (p_data->vb_part && fmt->fourcc == V4L2_PIX_FMT_NV12)
++		frame_height /= 2;
++
++	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
++		vpdma_fmt, dma_addr, p_data->channel, field, flags, frame_width,
++		frame_height, 0, 0);
+ }
+ 
+ /*
+-- 
+1.8.3.2
 
