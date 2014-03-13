@@ -1,88 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47178 "EHLO mail.kapsi.fi"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:44194 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752487AbaCNAOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 20:14:48 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	id S1753787AbaCMRRv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 13:17:51 -0400
+From: Denis Carikli <denis@eukrea.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/17] rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
-Date: Fri, 14 Mar 2014 02:14:24 +0200
-Message-Id: <1394756071-22410-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
-References: <1394756071-22410-1-git-send-email-crope@iki.fi>
+	Russell King <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+	Denis Carikli <denis@eukrea.com>
+Subject: [PATCH v11][ 01/12] [media] v4l2: add new V4L2_PIX_FMT_RGB666 pixel format.
+Date: Thu, 13 Mar 2014 18:17:22 +0100
+Message-Id: <1394731053-6118-1-git-send-email-denis@eukrea.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RTL2832 driver provides muxed I2C adapters for tuner bus I2C gate
-control. Pass those adapters to rtl2832_sdr and e4000 modules in order
-to get rid of proprietary DVB .i2c_gate_ctrl() callback use.
+That new macro is needed by the imx_drm staging driver
+  for supporting the QVGA display of the eukrea-cpuimx51 board.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Denis Carikli <denis@eukrea.com>
+Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 10 ++++++++--
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ChangeLog v9->v10:
+- Rebased on top of:
+  "211e7f2 [media] DocBook media: drop the old incorrect packed RGB table"
+- Added Philipp Zabel's Ack.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index f51949e..c83c16c 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -774,6 +774,9 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 		goto err;
- 	}
- 
-+	/* RTL2832 I2C repeater */
-+	priv->demod_i2c_adapter = rtl2832_get_i2c_adapter(adap->fe[0]);
-+
- 	/* set fe callback */
- 	adap->fe[0]->callback = rtl2832u_frontend_callback;
- 
-@@ -922,6 +925,8 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 		break;
- 	case TUNER_RTL2832_E4000: {
- 			struct v4l2_subdev *sd;
-+			struct i2c_adapter *i2c_adap_internal =
-+					rtl2832_get_private_i2c_adapter(adap->fe[0]);
- 			struct e4000_config e4000_config = {
- 				.fe = adap->fe[0],
- 				.clock = 28800000,
-@@ -932,7 +937,7 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 			info.platform_data = &e4000_config;
- 
- 			request_module(info.type);
--			client = i2c_new_device(&d->i2c_adap, &info);
-+			client = i2c_new_device(priv->demod_i2c_adapter, &info);
- 			if (client == NULL || client->dev.driver == NULL)
- 				break;
- 
-@@ -943,10 +948,11 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
- 
- 			priv->client = client;
- 			sd = i2c_get_clientdata(client);
-+			i2c_set_adapdata(i2c_adap_internal, d);
- 
- 			/* attach SDR */
- 			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
--					&d->i2c_adap,
-+					i2c_adap_internal,
- 					&rtl28xxu_rtl2832_e4000_config, sd);
- 		}
- 		break;
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index 367aca1..a26cab1 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -55,6 +55,7 @@ struct rtl28xxu_priv {
- 	u8 tuner;
- 	char *tuner_name;
- 	u8 page; /* integrated demod active register page */
-+	struct i2c_adapter *demod_i2c_adapter;
- 	bool rc_active;
- 	struct i2c_client *client;
- };
+ChangeLog v8->v9:
+- Removed the Cc. They are now set in git-send-email directly.
+
+ChangeLog v7->v8:
+- Added Mauro Carvalho Chehab back to the list of Cc
+
+ChangeLog v6->v7:
+- Shrinked even more the Cc list.
+ChangeLog v5->v6:
+- Remove people not concerned by this patch from the Cc list.
+
+ChangeLog v3->v4:
+- Added Laurent Pinchart's Ack.
+
+ChangeLog v2->v3:
+- Added some interested people in the Cc list.
+- Added Mauro Carvalho Chehab's Ack.
+- Added documentation.
+---
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |   39 ++++++++++++++++++++
+ include/uapi/linux/videodev2.h                     |    1 +
+ 2 files changed, 40 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+index e1c4f8b..88a7fe1 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+@@ -279,6 +279,45 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+ 	    <entry></entry>
+ 	    <entry></entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-RGB666">
++	    <entry><constant>V4L2_PIX_FMT_RGB666</constant></entry>
++	    <entry>'RGBH'</entry>
++	    <entry></entry>
++	    <entry>r<subscript>5</subscript></entry>
++	    <entry>r<subscript>4</subscript></entry>
++	    <entry>r<subscript>3</subscript></entry>
++	    <entry>r<subscript>2</subscript></entry>
++	    <entry>r<subscript>1</subscript></entry>
++	    <entry>r<subscript>0</subscript></entry>
++	    <entry>g<subscript>5</subscript></entry>
++	    <entry>g<subscript>4</subscript></entry>
++	    <entry></entry>
++	    <entry>g<subscript>3</subscript></entry>
++	    <entry>g<subscript>2</subscript></entry>
++	    <entry>g<subscript>1</subscript></entry>
++	    <entry>g<subscript>0</subscript></entry>
++	    <entry>b<subscript>5</subscript></entry>
++	    <entry>b<subscript>4</subscript></entry>
++	    <entry>b<subscript>3</subscript></entry>
++	    <entry>b<subscript>2</subscript></entry>
++	    <entry></entry>
++	    <entry>b<subscript>1</subscript></entry>
++	    <entry>b<subscript>0</subscript></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
+ 	  <row id="V4L2-PIX-FMT-BGR24">
+ 	    <entry><constant>V4L2_PIX_FMT_BGR24</constant></entry>
+ 	    <entry>'BGR3'</entry>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 4dc7052..efcbc15 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -299,6 +299,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_RGB555X v4l2_fourcc('R', 'G', 'B', 'Q') /* 16  RGB-5-5-5 BE  */
+ #define V4L2_PIX_FMT_RGB565X v4l2_fourcc('R', 'G', 'B', 'R') /* 16  RGB-5-6-5 BE  */
+ #define V4L2_PIX_FMT_BGR666  v4l2_fourcc('B', 'G', 'R', 'H') /* 18  BGR-6-6-6	  */
++#define V4L2_PIX_FMT_RGB666  v4l2_fourcc('R', 'G', 'B', 'H') /* 18  RGB-6-6-6	  */
+ #define V4L2_PIX_FMT_BGR24   v4l2_fourcc('B', 'G', 'R', '3') /* 24  BGR-8-8-8     */
+ #define V4L2_PIX_FMT_RGB24   v4l2_fourcc('R', 'G', 'B', '3') /* 24  RGB-8-8-8     */
+ #define V4L2_PIX_FMT_BGR32   v4l2_fourcc('B', 'G', 'R', '4') /* 32  BGR-8-8-8-8   */
 -- 
-1.8.5.3
+1.7.9.5
 
