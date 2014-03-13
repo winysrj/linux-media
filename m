@@ -1,83 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from alt-proxy69.mail.unifiedlayer.com ([67.20.124.9]:54978 "HELO
-	alt-proxy69.mail.unifiedlayer.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751077AbaC1FuG (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2256 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751286AbaCMJDE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Mar 2014 01:50:06 -0400
-From: Olivier Langlois <olivier@trillion01.com>
-To: laurent.pinchart@ideasonboard.com, m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Olivier Langlois <olivier@trillion01.com>,
-	Stable <stable@vger.kernel.org>
-Subject: [PATCH] [media] uvcvideo: Fix clock param realtime setting
-Date: Fri, 28 Mar 2014 01:42:38 -0400
-Message-Id: <1395985358-17047-1-git-send-email-olivier@trillion01.com>
+	Thu, 13 Mar 2014 05:03:04 -0400
+Message-ID: <53217418.40405@xs4all.nl>
+Date: Thu, 13 Mar 2014 10:02:16 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: vkalia@codeaurora.org
+CC: linux-media@vger.kernel.org
+Subject: Re: Query: Mutiple CAPTURE ports on a single device
+References: <04588cf620ba3635c9a59e6eb92d0000.squirrel@www.codeaurora.org>
+In-Reply-To: <04588cf620ba3635c9a59e6eb92d0000.squirrel@www.codeaurora.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-timestamps in v4l2 buffers returned to userspace are updated in
-uvc_video_clock_update() which uses timestamps fetched from
-uvc_video_clock_decode() by calling unconditionally ktime_get_ts().
+Hi Vinay!
 
-Hence setting the module clock param to realtime have no effect
-before this patch.
+On 03/12/14 18:58, vkalia@codeaurora.org wrote:
+> Hi
+> 
+> I have a v4l2 driver for a hardware which is capable of taking one input
+> and producing two outputs. Eg: Downscaler which takes one input @ 1080p
+> and two outputs - one @ 720p and other at VGA. My driver is currently
+> implemented as having two capabilities -
+> 
+> 1. V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+> 2. V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+> 
+> Do you know if I can have two CAPTURE capabilities. In that case how do I
+> distinguish between QBUF/DQBUF of each capability?
 
-This has been tested with ffmpeg:
+The answer depends on how your driver is organized: is it a memory-to-memory
+device (i.e. it has one video node that is used for both output and capture
+to/from the m2m hardware) or does it have two video nodes, one for output to
+the hardware, one for capture from the hardware?
 
-ffmpeg -y -f v4l2 -input_format yuyv422 -video_size 640x480 -framerate 30 -i /dev/video0 \
- -f alsa -acodec pcm_s16le -ar 16000 -ac 1 -i default \
- -c:v libx264 -preset ultrafast \
- -c:a libfdk_aac \
- out.mkv
+In the first case you won't be able to implement this using the M2M API.
 
-and inspecting the v4l2 input starting timestamp.
+In the second case it is quite easy: you just create another video capture
+node. For every frame send to the hardware you'll get a frame back at each
+of the two capture nodes, one 720p, one VGA.
 
-Signed-off-by: Olivier Langlois <olivier@trillion01.com>
-Cc: Stable <stable@vger.kernel.org>
----
- drivers/media/usb/uvc/uvc_video.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+This is actually quite common, there are many drivers that have multiple
+video nodes that give back the same video source but in different formats
+(e.g. raw video and compressed video).
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 898c208..c79db33 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -361,6 +361,14 @@ static int uvc_commit_video(struct uvc_streaming *stream,
-  * Clocks and timestamps
-  */
- 
-+static inline void uvc_video_get_ts(struct timespec *ts)
-+{
-+	if (uvc_clock_param == CLOCK_MONOTONIC)
-+		ktime_get_ts(ts);
-+	else
-+		ktime_get_real_ts(ts);
-+}
-+
- static void
- uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer *buf,
- 		       const __u8 *data, int len)
-@@ -420,7 +428,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer *buf,
- 	stream->clock.last_sof = dev_sof;
- 
- 	host_sof = usb_get_current_frame_number(stream->dev->udev);
--	ktime_get_ts(&ts);
-+	uvc_video_get_ts(&ts);
- 
- 	/* The UVC specification allows device implementations that can't obtain
- 	 * the USB frame number to keep their own frame counters as long as they
-@@ -1011,10 +1019,7 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
- 			return -ENODATA;
- 		}
- 
--		if (uvc_clock_param == CLOCK_MONOTONIC)
--			ktime_get_ts(&ts);
--		else
--			ktime_get_real_ts(&ts);
-+		uvc_video_get_ts(&ts);
- 
- 		buf->buf.v4l2_buf.sequence = stream->sequence;
- 		buf->buf.v4l2_buf.timestamp.tv_sec = ts.tv_sec;
--- 
-1.9.1
+Each video node basically represents a DMA engine. So if you have multiple
+DMA engines, you'll need multiple video nodes.
 
+Regards,
+
+	Hans
