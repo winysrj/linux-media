@@ -1,60 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2175 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752220AbaCKM00 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:58090 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752609AbaCMB4H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:26:26 -0400
-Message-ID: <531F00C2.5080300@xs4all.nl>
-Date: Tue, 11 Mar 2014 13:25:38 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 12 Mar 2014 21:56:07 -0400
+Date: Thu, 13 Mar 2014 10:56:05 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-kernel@vger.kernel.org, magnus.damm@opensource.se,
+	linux-sh@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Subject: Re: [PATCH 1/5] r8a7790.dtsi: add vin[0-3] nodes
+Message-ID: <20140313015605.GB16719@verge.net.au>
+References: <1394197299-17528-1-git-send-email-ben.dooks@codethink.co.uk>
+ <1394197299-17528-2-git-send-email-ben.dooks@codethink.co.uk>
 MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: k.debski@samsung.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 12/14] v4l: ti-vpe: zero out reserved fields in try_fmt
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-13-git-send-email-archit@ti.com>
-In-Reply-To: <1394526833-24805-13-git-send-email-archit@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1394197299-17528-2-git-send-email-ben.dooks@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/14 09:33, Archit Taneja wrote:
-> Zero out the reserved formats in v4l2_pix_format_mplane and
-> v4l2_plane_pix_format members of the returned v4l2_format pointer when passed
-> through TRY_FMT ioctl.
-> 
-> This ensures that the user doesn't interpret the non-zero fields as some data
-> passed by the driver, and ensures compliance.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+On Fri, Mar 07, 2014 at 01:01:35PM +0000, Ben Dooks wrote:
+> Add nodes for the four video input channels on the R8A7790.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Please update the prefix of this subject of this patch to:
+ARM: shmobile: r8a7790: 
 
+> 
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
 > ---
->  drivers/media/platform/ti-vpe/vpe.c | 3 +++
->  1 file changed, 3 insertions(+)
+>  arch/arm/boot/dts/r8a7790.dtsi | 32 ++++++++++++++++++++++++++++++++
+>  1 file changed, 32 insertions(+)
 > 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 85d1122..970408a 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -1488,6 +1488,7 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->  		}
->  	}
+> diff --git a/arch/arm/boot/dts/r8a7790.dtsi b/arch/arm/boot/dts/r8a7790.dtsi
+> index a1e7c39..4c3eafb 100644
+> --- a/arch/arm/boot/dts/r8a7790.dtsi
+> +++ b/arch/arm/boot/dts/r8a7790.dtsi
+> @@ -395,6 +395,38 @@
+>  		status = "disabled";
+>  	};
 >  
-> +	memset(pix->reserved, 0, sizeof(pix->reserved));
->  	for (i = 0; i < pix->num_planes; i++) {
->  		plane_fmt = &pix->plane_fmt[i];
->  		depth = fmt->vpdma_fmt[i]->depth;
-> @@ -1499,6 +1500,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->  
->  		plane_fmt->sizeimage =
->  				(pix->height * pix->width * depth) >> 3;
+> +	vin0: vin@0xe6ef0000 {
+> +		compatible = "renesas,vin-r8a7790";
+> +		clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
+> +		reg = <0 0xe6ef0000 0 0x1000>;
+> +		interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
+> +		status = "disabled";
+> +	};
 > +
-> +		memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
->  	}
->  
->  	return 0;
+> +	vin1: vin@0xe6ef1000 {
+> +		compatible = "renesas,vin-r8a7790";
+> +		clocks = <&mstp8_clks R8A7790_CLK_VIN1>;
+> +		reg = <0 0xe6ef1000 0 0x1000>;
+> +		interrupts = <0 189 IRQ_TYPE_LEVEL_HIGH>;
+> +		status = "disabled";
+> +	};
+> +
+> +	vin2: vin@0xe6ef2000 {
+> +		compatible = "renesas,vin-r8a7790";
+> +		clocks = <&mstp8_clks R8A7790_CLK_VIN2>;
+> +		reg = <0 0xe6ef2000 0 0x1000>;
+> +		interrupts = <0 190 IRQ_TYPE_LEVEL_HIGH>;
+> +		status = "disabled";
+> +	};
+> +
+> +	vin3: vin@0xe6ef3000 {
+> +		compatible = "renesas,vin-r8a7790";
+> +		clocks = <&mstp8_clks R8A7790_CLK_VIN3>;
+> +		reg = <0 0xe6ef3000 0 0x1000>;
+> +		interrupts = <0 191 IRQ_TYPE_LEVEL_HIGH>;
+> +		status = "disabled";
+> +	};
+> +
+>  	clocks {
+>  		#address-cells = <2>;
+>  		#size-cells = <2>;
+> -- 
+> 1.9.0
 > 
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
