@@ -1,136 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:63766 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754024AbaCXTdD (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38481 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851AbaCMKV7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Mar 2014 15:33:03 -0400
-Received: by mail-ee0-f50.google.com with SMTP id c13so4788058eek.37
-        for <linux-media@vger.kernel.org>; Mon, 24 Mar 2014 12:33:02 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 09/19] em28xx: move vinmode and vinctrl data from struct em28xx to struct v4l2
-Date: Mon, 24 Mar 2014 20:33:15 +0100
-Message-Id: <1395689605-2705-10-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1395689605-2705-1-git-send-email-fschaefer.oss@googlemail.com>
+	Thu, 13 Mar 2014 06:21:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: William Manley <will@williammanley.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: Work around buggy Logitech C920 firmware
+Date: Thu, 13 Mar 2014 11:23:37 +0100
+Message-ID: <1854099.LO0jorujWf@avalon>
+In-Reply-To: <1394647711-25291-1-git-send-email-will@williammanley.net>
+References: <1394647711-25291-1-git-send-email-will@williammanley.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-camera.c | 16 ++++++++--------
- drivers/media/usb/em28xx/em28xx-video.c  | 10 +++++-----
- drivers/media/usb/em28xx/em28xx.h        |  6 +++---
- 3 files changed, 16 insertions(+), 16 deletions(-)
+Hi William,
 
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index c2672b4..3a88867 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -372,8 +372,8 @@ int em28xx_init_camera(struct em28xx *dev)
- 			break;
- 		}
- 		/* probably means GRGB 16 bit bayer */
--		dev->vinmode = 0x0d;
--		dev->vinctl = 0x00;
-+		v4l2->vinmode = 0x0d;
-+		v4l2->vinctl = 0x00;
- 
- 		break;
- 	}
-@@ -384,8 +384,8 @@ int em28xx_init_camera(struct em28xx *dev)
- 		em28xx_initialize_mt9m001(dev);
- 
- 		/* probably means BGGR 16 bit bayer */
--		dev->vinmode = 0x0c;
--		dev->vinctl = 0x00;
-+		v4l2->vinmode = 0x0c;
-+		v4l2->vinctl = 0x00;
- 
- 		break;
- 	case EM28XX_MT9M111:
-@@ -396,8 +396,8 @@ int em28xx_init_camera(struct em28xx *dev)
- 		em28xx_write_reg(dev, EM28XX_R0F_XCLK, dev->board.xclk);
- 		em28xx_initialize_mt9m111(dev);
- 
--		dev->vinmode = 0x0a;
--		dev->vinctl = 0x00;
-+		v4l2->vinmode = 0x0a;
-+		v4l2->vinctl = 0x00;
- 
- 		break;
- 	case EM28XX_OV2640:
-@@ -438,8 +438,8 @@ int em28xx_init_camera(struct em28xx *dev)
- 		/* NOTE: for UXGA=1600x1200 switch to 12MHz */
- 		dev->board.xclk = EM28XX_XCLK_FREQUENCY_24MHZ;
- 		em28xx_write_reg(dev, EM28XX_R0F_XCLK, dev->board.xclk);
--		dev->vinmode = 0x08;
--		dev->vinctl = 0x00;
-+		v4l2->vinmode = 0x08;
-+		v4l2->vinctl = 0x00;
- 
- 		break;
- 	}
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index ecc4411..0676aa4 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -236,11 +236,11 @@ static int em28xx_set_outfmt(struct em28xx *dev)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = em28xx_write_reg(dev, EM28XX_R10_VINMODE, dev->vinmode);
-+	ret = em28xx_write_reg(dev, EM28XX_R10_VINMODE, v4l2->vinmode);
- 	if (ret < 0)
- 		return ret;
- 
--	vinctrl = dev->vinctl;
-+	vinctrl = v4l2->vinctl;
- 	if (em28xx_vbi_supported(dev) == 1) {
- 		vinctrl |= EM28XX_VINCTRL_VBI_RAW;
- 		em28xx_write_reg(dev, EM28XX_R34_VBI_START_H, 0x00);
-@@ -2316,9 +2316,9 @@ static int em28xx_v4l2_init(struct em28xx *dev)
- 	/*
- 	 * Default format, used for tvp5150 or saa711x output formats
- 	 */
--	dev->vinmode = 0x10;
--	dev->vinctl  = EM28XX_VINCTRL_INTERLACED |
--		       EM28XX_VINCTRL_CCIR656_ENABLE;
-+	v4l2->vinmode = 0x10;
-+	v4l2->vinctl  = EM28XX_VINCTRL_INTERLACED |
-+			EM28XX_VINCTRL_CCIR656_ENABLE;
- 
- 	/* request some modules */
- 
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index e029136..7ca0ff98 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -515,6 +515,9 @@ struct em28xx_v4l2 {
- 	struct mutex vb_queue_lock;
- 	struct mutex vb_vbi_queue_lock;
- 
-+	u8 vinmode;
-+	u8 vinctl;
-+
- 	/* Frame properties */
- 	int width;		/* current frame width */
- 	int height;		/* current frame height */
-@@ -597,9 +600,6 @@ struct em28xx {
- 	/* Progressive (non-interlaced) mode */
- 	int progressive;
- 
--	/* Vinmode/Vinctl used at the driver */
--	int vinmode, vinctl;
--
- 	/* Controls audio streaming */
- 	struct work_struct wq_trigger;	/* Trigger to start/stop audio for alsa module */
- 	atomic_t       stream_started;	/* stream should be running if true */
+Thank you for the patch.
+
+First of all, could you please CC me in the future for uvcvideo patches ?
+
+On Wednesday 12 March 2014 18:08:31 William Manley wrote:
+> The uvcvideo webcam driver exposes the v4l2 control "Exposure (Absolute)"
+> which allows the user to control the exposure time of the webcam,
+> essentially controlling the brightness of the received image.  By default
+> the webcam automatically adjusts the exposure time automatically but the
+> if you set the control "Exposure, Auto"="Manual Mode" the user can fix
+> the exposure time.
+> 
+> Unfortunately it seems that the Logitech C920 has a firmware bug where
+> it will forget that it's in manual mode temporarily during initialisation.
+> This means that the camera doesn't respect the exposure time that the user
+> requested if they request it before starting to stream video.  They end up
+> with a video stream which is either too bright or too dark and must reset
+> the controls after video starts streaming.
+
+I've asked Logitech whether they can confirm this is a known issue. I'm not 
+sure when I'll have a reply though.
+
+> This patch works around this camera bug by re-uploading the cached
+> controls to the camera immediately after initialising the camera.
+
+I'm a bit concerned about this. As you noticed UVC camera are often buggy, and 
+small changes in the driver can fix problems with one model and break others. 
+Sending a bunch of SET_CUR requests at once right after starting the stream is 
+something that has the potential to crash firmwares (yes, they can be that 
+fragile, unfortunately).
+
+I would like to get a better understanding of the problem first. As I don't 
+have a C920, could you please perform two tests for me ?
+
+I would first like to know what the camera reports as its exposure time after 
+starting the stream. If you get the exposure time at that point (by sending a 
+GET_CUR request, bypassing the driver cache), do you get the value you had 
+previously set (which, from your explanation, would be incorrect, as the 
+exposure time has changed based on your findings), or a different value ? Does 
+the camera change the exposure priority control autonomously as well, or just 
+the exposure time ?
+
+Then, I would like to know whether the camera sends a control update event 
+when you start the stream, or if it just changes the exposure time without 
+notifying the driver.
+
+> Signed-off-by: William Manley <will@williammanley.net>
+> ---
+>  drivers/media/usb/uvc/uvc_ctrl.c   | 2 +-
+>  drivers/media/usb/uvc/uvc_driver.c | 2 +-
+>  drivers/media/usb/uvc/uvc_video.c  | 5 +++++
+>  drivers/media/usb/uvc/uvcvideo.h   | 2 +-
+>  4 files changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> b/drivers/media/usb/uvc/uvc_ctrl.c index a2f4501..f72d7eb 100644
+> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> @@ -1795,7 +1795,7 @@ done:
+>   * - Handle restore order (Auto-Exposure Mode should be restored before
+>   *   Exposure Time).
+>   */
+> -int uvc_ctrl_resume_device(struct uvc_device *dev)
+> +int uvc_ctrl_restore_values(struct uvc_device *dev)
+>  {
+>  	struct uvc_control *ctrl;
+>  	struct uvc_entity *entity;
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index c3bb250..9f8a87e 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1981,7 +1981,7 @@ static int __uvc_resume(struct usb_interface *intf,
+> int reset) int ret = 0;
+> 
+>  		if (reset) {
+> -			ret = uvc_ctrl_resume_device(dev);
+> +			ret = uvc_ctrl_restore_values(dev);
+>  			if (ret < 0)
+>  				return ret;
+>  		}
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 3394c34..87cd57b 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1660,6 +1660,11 @@ static int uvc_init_video(struct uvc_streaming
+> *stream, gfp_t gfp_flags) }
+>  	}
+> 
+> +	/* The Logitech C920 temporarily forgets that it should not be
+> +	   adjusting Exposure Absolute during init so restore controls to
+> +	   stored values. */
+> +	uvc_ctrl_restore_values(stream->dev);
+> +
+>  	return 0;
+>  }
+> 
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index 9e35982..3b365a3 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -676,7 +676,7 @@ extern int uvc_ctrl_add_mapping(struct uvc_video_chain
+> *chain, const struct uvc_control_mapping *mapping);
+>  extern int uvc_ctrl_init_device(struct uvc_device *dev);
+>  extern void uvc_ctrl_cleanup_device(struct uvc_device *dev);
+> -extern int uvc_ctrl_resume_device(struct uvc_device *dev);
+> +extern int uvc_ctrl_restore_values(struct uvc_device *dev);
+> 
+>  extern int uvc_ctrl_begin(struct uvc_video_chain *chain);
+>  extern int __uvc_ctrl_commit(struct uvc_fh *handle, int rollback,
+
 -- 
-1.8.4.5
+Regards,
+
+Laurent Pinchart
 
