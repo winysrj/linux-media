@@ -1,49 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f47.google.com ([209.85.192.47]:35982 "EHLO
-	mail-qg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751719AbaC3TWq (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:42457 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754121AbaCMLpH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Mar 2014 15:22:46 -0400
-Received: by mail-qg0-f47.google.com with SMTP id 63so6516486qgz.34
-        for <linux-media@vger.kernel.org>; Sun, 30 Mar 2014 12:22:46 -0700 (PDT)
+	Thu, 13 Mar 2014 07:45:07 -0400
+From: Archit Taneja <archit@ti.com>
+To: <k.debski@samsung.com>, <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 01/14] v4l: ti-vpe: Make sure in job_ready that we have the needed number of dst_bufs
+Date: Thu, 13 Mar 2014 17:14:03 +0530
+Message-ID: <1394711056-10878-2-git-send-email-archit@ti.com>
+In-Reply-To: <1394711056-10878-1-git-send-email-archit@ti.com>
+References: <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394711056-10878-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <CALW6vT5S5OUo2o=f6WYVep5ixuswrnffJCv-MX6MWL8gON6rhA@mail.gmail.com>
-References: <CALW6vT5P-Q-GHyRz7YGxyjx-RdVzhNVJA++mG1A1NbV_DGT8Mw@mail.gmail.com>
-	<CAGoCfiz4whMp4hGiFCqE3++Z1Nmj2P=4wywQKQjeL+qgz67nag@mail.gmail.com>
-	<CALW6vT5S5OUo2o=f6WYVep5ixuswrnffJCv-MX6MWL8gON6rhA@mail.gmail.com>
-Date: Sun, 30 Mar 2014 15:22:45 -0400
-Message-ID: <CAGoCfiyaNi+LNY5iCjtE-PN8DP+3qiH5Sc=2BMwyt8zpxhYvWA@mail.gmail.com>
-Subject: Re: No channels on Hauppauge 950Q
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Sunset Machine <sunsetmachine7@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 30, 2014 at 3:16 PM, Sunset Machine
-<sunsetmachine7@gmail.com> wrote:
-> kernel 3.2.0-4-686-pae and a new 950q
+VPE has a ctrl parameter which decides how many mem to mem transactions the
+active job from the job queue can perform.
 
-Ok.  If you own a Revision E1H3 device, then that kernel definitely
-won't work (the Rev is printed on the back of the stick above the
-barcode).
+The driver's job_ready() made sure that the number of ready source buffers are
+sufficient for the job to execute successfully. But it didn't make sure if
+there are sufficient ready destination buffers in the capture queue for the
+VPE output.
 
-> 3.13-1-686-pae is available in Debian testing.  I'll look into it.
->
-> TVTime, MythTV, Mplayer, Kaffeine, and w_scan. "scan" would oddly
-> leave the green signal light on when the program finished, as if it
-> were tuned, but reporting 0 channels found.
+If the time taken by VPE to process a single frame is really slow, then it's
+possible that we don't need to imply such a restriction on the dst queue, but
+really fast transactions(small resolution, no de-interlacing) may cause us to
+hit the condition where we don't have any free buffers for the VPE to write on.
 
-Well TVTime won't do OTA broadcasts since it's digital only.  That
-said, the others should assuming you configured them properly.
+Add the extra check in job_ready() to make sure we have the sufficient amount
+of destination buffers.
 
-Definitely check the stick revision and try a much newer kernel.
-There have been a ton of fixes since 3.2 so it isn't worth even trying
-to debug on that kernel.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Devin
-
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 7a77a5b..f3143ac 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -887,6 +887,9 @@ static int job_ready(void *priv)
+ 	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
+ 		return 0;
+ 
++	if (v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < needed)
++		return 0;
++
+ 	return 1;
+ }
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.8.3.2
+
