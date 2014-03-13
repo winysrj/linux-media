@@ -1,98 +1,384 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41641 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322AbaCUO2c (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4263 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751777AbaCMH6z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 10:28:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core to drivers/of
-Date: Fri, 21 Mar 2014 15:30:20 +0100
-Message-ID: <1658201.GilyGRJEEa@avalon>
-In-Reply-To: <532C4B3C.4030406@ti.com>
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <1755937.SSGT2MZJMC@avalon> <532C4B3C.4030406@ti.com>
+	Thu, 13 Mar 2014 03:58:55 -0400
+Message-ID: <5321652D.3020009@xs4all.nl>
+Date: Thu, 13 Mar 2014 08:58:37 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1422452.LVKZ4jzxXA"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, ismael.luceno@corp.bluecherry.net,
+	pete@sensoray.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv3 PATCH 19/35] DocBook media: document VIDIOC_QUERY_EXT_CTRL.
+References: <1392631070-41868-1-git-send-email-hverkuil@xs4all.nl> <1392631070-41868-20-git-send-email-hverkuil@xs4all.nl> <20140312111338.79bb561f@samsung.com>
+In-Reply-To: <20140312111338.79bb561f@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 03/12/2014 03:13 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 17 Feb 2014 10:57:34 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>  .../DocBook/media/v4l/vidioc-queryctrl.xml         | 223 +++++++++++++++++----
+>>  1 file changed, 189 insertions(+), 34 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+>> index e6645b9..da0e534 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+>> @@ -1,11 +1,12 @@
+>>  <refentry id="vidioc-queryctrl">
+>>    <refmeta>
+>> -    <refentrytitle>ioctl VIDIOC_QUERYCTRL, VIDIOC_QUERYMENU</refentrytitle>
+>> +    <refentrytitle>ioctl VIDIOC_QUERYCTRL, VIDIOC_QUERY_EXT_CTRL, VIDIOC_QUERYMENU</refentrytitle>
+>>      &manvol;
+>>    </refmeta>
+>>  
+>>    <refnamediv>
+>>      <refname>VIDIOC_QUERYCTRL</refname>
+>> +    <refname>VIDIOC_QUERY_EXT_CTRL</refname>
+>>      <refname>VIDIOC_QUERYMENU</refname>
+>>      <refpurpose>Enumerate controls and menu control items</refpurpose>
+>>    </refnamediv>
+>> @@ -24,6 +25,14 @@
+>>  	<funcdef>int <function>ioctl</function></funcdef>
+>>  	<paramdef>int <parameter>fd</parameter></paramdef>
+>>  	<paramdef>int <parameter>request</parameter></paramdef>
+>> +	<paramdef>struct v4l2_query_ext_ctrl *<parameter>argp</parameter></paramdef>
+>> +      </funcprototype>
+>> +    </funcsynopsis>
+>> +    <funcsynopsis>
+>> +      <funcprototype>
+>> +	<funcdef>int <function>ioctl</function></funcdef>
+>> +	<paramdef>int <parameter>fd</parameter></paramdef>
+>> +	<paramdef>int <parameter>request</parameter></paramdef>
+>>  	<paramdef>struct v4l2_querymenu *<parameter>argp</parameter></paramdef>
+>>        </funcprototype>
+>>      </funcsynopsis>
+>> @@ -42,7 +51,7 @@
+>>        <varlistentry>
+>>  	<term><parameter>request</parameter></term>
+>>  	<listitem>
+>> -	  <para>VIDIOC_QUERYCTRL, VIDIOC_QUERYMENU</para>
+>> +	  <para>VIDIOC_QUERYCTRL, VIDIOC_QUERY_EXT_CTRL, VIDIOC_QUERYMENU</para>
+>>  	</listitem>
+>>        </varlistentry>
+>>        <varlistentry>
+>> @@ -91,7 +100,26 @@ prematurely end the enumeration).</para></footnote></para>
+>>  <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> the driver returns the
+>>  next supported control, or <errorcode>EINVAL</errorcode> if there is
+>>  none. Drivers which do not support this flag yet always return
+>> -<errorcode>EINVAL</errorcode>.</para>
+>> +<errorcode>EINVAL</errorcode>. Hidden controls (i.e. controls
+>> +with the <constant>V4L2_CTRL_FLAG_HIDDEN</constant> flag set) are
+>> +skipped when using the <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>
+>> +flag. Use the <constant>VIDIOC_QUERY_EXT_CTRL</constant> for that.</para>
+> 
+> I suspect that most of the things (if not all) here already commented
+> on the initial patches)
+> 
+> In this case, as already commented, I don't see any reason why
+> to deny VIDIOC_QUERYCTRL to get the hidden controls if V4L2_CTRL_FLAG_HIDDEN
+> is used.
+> 
+>> +
+>> +    <para>The <constant>VIDIOC_QUERY_EXT_CTRL</constant> ioctl was
+>> +introduced in order to better support controls that can use complex
+>> +types, and to expose additional control information that cannot be
+>> +returned in &v4l2-queryctrl; since that structure is full.</para>
+> 
+> s/complex/compound/g
+> 
+>> +
+>> +    <para><constant>VIDIOC_QUERY_EXT_CTRL</constant> is used in the
+>> +same way as <constant>VIDIOC_QUERYCTRL</constant>, except that the
+>> +<structfield>reserved</structfield> array must be zeroed as well.
+>> +In addition, the <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> flag
+>> +can be specified to enumerate all hidden controls (i.e. controls
+>> +with the <constant>V4L2_CTRL_FLAG_HIDDEN</constant> flag set, which
+>> +includes all controls with complex types). Specify both
+>> +<constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
+>> +<constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> in order to enumerate
+>> +all controls, hidden or not.</para>
+>>  
+>>      <para>Additional information is required for menu controls: the
+>>  names of the menu items. To query them applications set the
+>> @@ -142,38 +170,23 @@ string. This information is intended for the user.</entry>
+>>  	    <entry>__s32</entry>
+>>  	    <entry><structfield>minimum</structfield></entry>
+>>  	    <entry>Minimum value, inclusive. This field gives a lower
+>> -bound for <constant>V4L2_CTRL_TYPE_INTEGER</constant> controls and the
+>> -lowest valid index for <constant>V4L2_CTRL_TYPE_MENU</constant> controls.
+>> -For <constant>V4L2_CTRL_TYPE_STRING</constant> controls the minimum value
+>> -gives the minimum length of the string. This length <emphasis>does not include the terminating
+>> -zero</emphasis>. It may not be valid for any other type of control, including
+>> -<constant>V4L2_CTRL_TYPE_INTEGER64</constant> controls. Note that this is a
+>> -signed value.</entry>
+>> +bound for the control. See &v4l2-ctrl-type; how the minimum value is to
+>> +be used for each possible control type. Note that this a signed 32-bit value.</entry>
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry>__s32</entry>
+>>  	    <entry><structfield>maximum</structfield></entry>
+>>  	    <entry>Maximum value, inclusive. This field gives an upper
+>> -bound for <constant>V4L2_CTRL_TYPE_INTEGER</constant> controls and the
+>> -highest valid index for <constant>V4L2_CTRL_TYPE_MENU</constant>
+>> -controls. For <constant>V4L2_CTRL_TYPE_BITMASK</constant> controls it is the
+>> -set of usable bits.
+>> -For <constant>V4L2_CTRL_TYPE_STRING</constant> controls the maximum value
+>> -gives the maximum length of the string. This length <emphasis>does not include the terminating
+>> -zero</emphasis>. It may not be valid for any other type of control, including
+>> -<constant>V4L2_CTRL_TYPE_INTEGER64</constant> controls. Note that this is a
+>> -signed value.</entry>
+>> +bound for the control. See &v4l2-ctrl-type; how the maximum value is to
+>> +be used for each possible control type. Note that this a signed 32-bit value.</entry>
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry>__s32</entry>
+>>  	    <entry><structfield>step</structfield></entry>
+>> -	    <entry><para>This field gives a step size for
+>> -<constant>V4L2_CTRL_TYPE_INTEGER</constant> controls. For
+>> -<constant>V4L2_CTRL_TYPE_STRING</constant> controls this field refers to
+>> -the string length that has to be a multiple of this step size.
+>> -It may not be valid for any other type of control, including
+>> -<constant>V4L2_CTRL_TYPE_INTEGER64</constant>
+>> -controls.</para><para>Generally drivers should not scale hardware
+>> +	    <entry><para>This field gives a step size for the control.
+>> +See &v4l2-ctrl-type; how the step value is to be used for each possible
+>> +control type. Note that this an unsigned 32-bit value.
+>> +</para><para>Generally drivers should not scale hardware
+>>  control values. It may be necessary for example when the
+>>  <structfield>name</structfield> or <structfield>id</structfield> imply
+>>  a particular unit and the hardware actually accepts only multiples of
+>> @@ -192,10 +205,11 @@ be always positive.</para></entry>
+>>  	    <entry><structfield>default_value</structfield></entry>
+>>  	    <entry>The default value of a
+>>  <constant>V4L2_CTRL_TYPE_INTEGER</constant>,
+>> -<constant>_BOOLEAN</constant> or <constant>_MENU</constant> control.
+>> -Not valid for other types of controls. Drivers reset controls only
+>> -when the driver is loaded, not later, in particular not when the
+>> -func-open; is called.</entry>
+>> +<constant>_BOOLEAN</constant>, <constant>_BITMASK</constant>,
+>> +<constant>_MENU</constant> or <constant>_INTEGER_MENU</constant> control.
+>> +Not valid for other types of controls.
+>> +Note that drivers reset controls to their default value only when the
+>> +driver is first loaded, never afterwards.</entry>
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry>__u32</entry>
+>> @@ -213,6 +227,129 @@ the array to zero.</entry>
+>>        </tgroup>
+>>      </table>
+>>  
+>> +    <table pgwide="1" frame="none" id="v4l2-query-ext-ctrl">
+>> +      <title>struct <structname>v4l2_query_ext_ctrl</structname></title>
+>> +      <tgroup cols="3">
+>> +	&cs-str;
+>> +	<tbody valign="top">
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>id</structfield></entry>
+>> +	    <entry>Identifies the control, set by the application. See
+>> +<xref linkend="control-id" /> for predefined IDs. When the ID is ORed
+>> +with <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> the driver clears the
+>> +flag and returns the first non-hidden control with a higher ID. When the
+>> +ID is ORed with <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant> the driver
+>> +clears the flag and returns the first hidden control with a higher ID.
+>> +Set both to get the first control (hidden or not) with a higher ID.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>type</structfield></entry>
+>> +	    <entry>Type of control, see <xref
+>> +		linkend="v4l2-ctrl-type" />.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>char</entry>
+>> +	    <entry><structfield>name</structfield>[32]</entry>
+>> +	    <entry>Name of the control, a NUL-terminated ASCII
+>> +string. This information is intended for the user.</entry>
+>> +	  </row>
 
---nextPart1422452.LVKZ4jzxXA
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="us-ascii"
+This is something I should point your attention to: the type of name[] has changed
+from u8 in v4l2_queryctrl to char here. The use of u8 in v4l2_queryctrl always
+causes problems (e.g. you can't assign it directly to a std::string in C++ since
+that expects a char *). I never understood why u8 was ever chosen in the first
+place. But is this something you agree with?
 
-Hi Tomi,
+>> +	  <row>
+>> +	    <entry>char</entry>
+>> +	    <entry><structfield>unit</structfield>[32]</entry>
+>> +	    <entry>The name of the unit of the control's value, a NUL-terminated ASCII
+>> +string. This information is intended for the user. This may be an empty string if no
+>> +unit is known or if it is not applicable to this particular control.</entry>
+> 
+> Charset? There are some units, like  ångström (Å) that are not ASCII.
+> Also, there are several units that use greek letters. So, I think we need
+> to specify a charset here. IMHO, the better is to use UTF-8.
 
-On Friday 21 March 2014 16:22:52 Tomi Valkeinen wrote:
-> On 21/03/14 16:13, Laurent Pinchart wrote:
-> > On Friday 21 March 2014 15:37:17 Tomi Valkeinen wrote:
-> >> On 21/03/14 00:32, Laurent Pinchart wrote:
-> >>> The OF graph bindings documentation could just specify the ports =
-node as
-> >>> optional and mandate individual device bindings to specify it as
-> >>> mandatory or forbidden (possibly with a default behaviour to avoi=
-d
-> >>> making all device bindings too verbose).
-> >>=20
-> >> Isn't it so that if the device has one port, it can always do with=
-out
-> >> 'ports', but if it has multiple ports, it always has to use 'ports=
-' so
-> >> that #address-cells and #size-cells can be defined?
-> >=20
-> > You can put the #address-cells and #size-cells property in the devi=
-ce node
-> > directly without requiring a ports subnode.
->=20
-> Ah, right. So 'ports' is only needed when the device node has other c=
-hildren
-> nodes than the ports and those nodes need different #address-cells an=
-d
-> #size-cells than the ports.
+I agree. Should I specify the same for name[] in both this struct and in v4l2_queryctrl?
 
-I would rephrase that as the ports node being required only in that cas=
-e. It=20
-can also be useful to cleanly group ports together when the device node=
- has=20
-other unrelated children, even though no technical requirement exist (y=
-et ?)=20
-in that case.
+> 
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__s64</entry>
+>> +	    <entry><structfield>minimum</structfield></entry>
+>> +	    <entry>Minimum value, inclusive. This field gives a lower
+>> +bound for the control. See &v4l2-ctrl-type; how the minimum value is to
+>> +be used for each possible control type. Note that this a signed 64-bit value.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__s64</entry>
+>> +	    <entry><structfield>maximum</structfield></entry>
+>> +	    <entry>Maximum value, inclusive. This field gives an upper
+>> +bound for the control. See &v4l2-ctrl-type; how the maximum value is to
+>> +be used for each possible control type. Note that this a signed 64-bit value.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u64</entry>
+>> +	    <entry><structfield>step</structfield></entry>
+>> +	    <entry><para>This field gives a step size for the control.
+>> +See &v4l2-ctrl-type; how the step value is to be used for each possible
+>> +control type. Note that this an unsigned 64-bit value.
+>> +</para><para>Generally drivers should not scale hardware
+>> +control values. It may be necessary for example when the
+>> +<structfield>name</structfield> or <structfield>id</structfield> imply
+>> +a particular unit and the hardware actually accepts only multiples of
+>> +said unit. If so, drivers must take care values are properly rounded
+>> +when scaling, such that errors will not accumulate on repeated
+>> +read-write cycles.</para><para>This field gives the smallest change of
+>> +an integer control actually affecting hardware. Often the information
+>> +is needed when the user can change controls by keyboard or GUI
+>> +buttons, rather than a slider. When for example a hardware register
+>> +accepts values 0-511 and the driver reports 0-65535, step should be
+>> +128.</para></entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__s64</entry>
+>> +	    <entry><structfield>default_value</structfield></entry>
+>> +	    <entry>The default value of a
+>> +<constant>V4L2_CTRL_TYPE_INTEGER</constant>, <constant>_INTEGER64</constant>,
+>> +<constant>_BOOLEAN</constant>, <constant>_BITMASK</constant>,
+>> +<constant>_MENU</constant> or <constant>_INTEGER_MENU</constant> control.
+>> +Not valid for other types of controls.
+>> +Note that drivers reset controls to their default value only when the
+>> +driver is first loaded, never afterwards.
+>> +</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>flags</structfield></entry>
+>> +	    <entry>Control flags, see <xref
+>> +		linkend="control-flags" />.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>cols</structfield></entry>
+>> +	    <entry>The number of columns in the matrix. If this control
+>> +is not a matrix, then both <structfield>cols</structfield> and
+>> +<structfield>rows</structfield> are 1. <structfield>cols</structfield>
+>> +can never be 0.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>rows</structfield></entry>
+>> +	    <entry>The number of rows in the matrix. If this control
+>> +is not a matrix, then both <structfield>cols</structfield> and
+>> +<structfield>rows</structfield> are 1. <structfield>rows</structfield>
+>> +can never be 0.</entry>
+>> +	  </row>
+> 
+> As already commented, cols/rows are matrix specific. If the control type 
+> is not a matrix, those makes no sense.
+> 
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>elem_size</structfield></entry>
+>> +	    <entry>The size in bytes of a single element of the matrix.
+>> +Given a char pointer <constant>p</constant> to the matrix you can find the
+>> +position of cell <constant>(y, x)</constant> as follows:
+>> +<constant>p + (y * cols + x) * elem_size</constant>. <structfield>elem_size</structfield>
+>> +is always valid, also when the control isn't a matrix. For string controls
+>> +<structfield>elem_size</structfield> is equal to <structfield>maximum + 1</structfield>.
+>> +</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry>__u32</entry>
+>> +	    <entry><structfield>reserved</structfield>[17]</entry>
+>> +	    <entry>Reserved for future extensions. Applications and drivers
+>> +must set the array to zero.</entry>
+>> +	  </row>
+>> +	</tbody>
+>> +      </tgroup>
+>> +    </table>
+>> +
+>>      <table pgwide="1" frame="none" id="v4l2-querymenu">
+>>        <title>struct <structname>v4l2_querymenu</structname></title>
+>>        <tgroup cols="4">
+>> @@ -347,11 +484,14 @@ Drivers must ignore the value passed with
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry><constant>V4L2_CTRL_TYPE_INTEGER64</constant></entry>
+>> -	    <entry>n/a</entry>
+>> -	    <entry>n/a</entry>
+>> -	    <entry>n/a</entry>
+>> +	    <entry>any</entry>
+>> +	    <entry>any</entry>
+>> +	    <entry>any</entry>
+>>  	    <entry>A 64-bit integer valued control. Minimum, maximum
+>> -and step size cannot be queried.</entry>
+>> +and step size cannot be queried using <constant>VIDIOC_QUERYCTRL</constant>.
+>> +Only <constant>VIDIOC_QUERY_EXT_CTRL</constant> can retrieve the 64-bit
+>> +min/max/step values, they should be interpreted as n/a when using
+>> +<constant>VIDIOC_QUERYCTRL</constant>.</entry>
+>>  	  </row>
+>>  	  <row>
+>>  	    <entry><constant>V4L2_CTRL_TYPE_STRING</constant></entry>
+>> @@ -450,6 +590,21 @@ is in auto-gain mode. In such a case the hardware calculates the gain value base
+>>  the lighting conditions which can change over time. Note that setting a new value for
+>>  a volatile control will have no effect. The new value will just be ignored.</entry>
+>>  	  </row>
+>> +	  <row>
+>> +	    <entry><constant>V4L2_CTRL_FLAG_HIDDEN</constant></entry>
+>> +	    <entry>0x0100</entry>
+>> +	    <entry>This control is hidden and should not be shown in a GUI application.
+>> +Hidden controls are skipped when enumerating them using <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant>,
+>> +and they can only be enumerated by using the <constant>V4L2_CTRL_FLAG_NEXT_HIDDEN</constant>
+>> +flag. All controls that have a complex type have this flag set.</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>V4L2_CTRL_FLAG_IS_PTR</constant></entry>
+>> +	    <entry>0x0200</entry>
+>> +	    <entry>This control has a pointer type, so its value has to be accessed
+>> +using one of the pointer fields of &v4l2-ext-control;. This flag is set for controls
+>> +that are a matrix, string, or have a complex type.</entry>
+> 
+> This seems messy: use IS_PTR for string too. As already pointed, string
+> is a NUL-terminated sequence, while pointer is a size defined
+> element, sequence or matrix. Let's not mix this at the API. This is already
+> complex enough.
 
-> In that case it sounds fine to leave it for the driver bindings to de=
-cide.
+How about this: HAS_PAYLOAD? What I discovered when trying to use the API in an application
+is that you need a simple way to discover if the type is a simple s32 or s64 type which is
+just set as part of v4l2_ext_control, or if it is a more complicated type where you need to
+use the size field and allocate memory to store the value. In the past that was a simple
+'type == STRING' test, but that does not suffice anymore. And in order to be able to do
+generic control manipulation you do not want to have to test for all sorts of types or
+create complicated conditions.
 
-=2D-=20
+I found that a simple flag actually made life much easier.
+
 Regards,
 
-Laurent Pinchart
-
---nextPart1422452.LVKZ4jzxXA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQEcBAABAgAGBQJTLEz8AAoJEIkPb2GL7hl1VvAIAKrdmomDTdcBJr1NaaefFaQK
-2pA7MWuE/RRkUmMe2HjAfqqapyEW1sMJ9A0R5NUy3JC/7xmu+rEtm6VyBja5v6kZ
-O8bd3mFpER6KPWS8GZPQJ2QT3cnTOQKpuybZRDmIFPMGhfnqq9nfW69U4QjlbfKs
-VFghO8k3I+fUzEql8meii6GRwtSdMWWPsyncf94a8Wj93mY+tNhtibfpeFoxhmU/
-UiKm1+xYcRxJ5gWuG567BMlGACsYaI9uSv/WWDmLZHW0CMJ2J2NWMSYSvxBNFtlm
-+aVRGBHVVMAPfj8zI8LKelHqtz/ieJpDxuyNHWuXE3LJiAhWUPhvW2dkhBCGlWo=
-=Qk0J
------END PGP SIGNATURE-----
-
---nextPart1422452.LVKZ4jzxXA--
-
+	Hans
