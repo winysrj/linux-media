@@ -1,235 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:50790 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756073AbaCNXHI (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:46305 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753385AbaCMLtE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Mar 2014 19:07:08 -0400
-Received: by mail-wg0-f47.google.com with SMTP id x12so2748900wgg.30
-        for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 16:07:07 -0700 (PDT)
-From: James Hogan <james@albanarts.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
-Cc: linux-media@vger.kernel.org, James Hogan <james@albanarts.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v2 9/9] rc: nuvoton-cir: Add support for writing wakeup samples via sysfs filter callback
-Date: Fri, 14 Mar 2014 23:04:19 +0000
-Message-Id: <1394838259-14260-10-git-send-email-james@albanarts.com>
-In-Reply-To: <1394838259-14260-1-git-send-email-james@albanarts.com>
-References: <1394838259-14260-1-git-send-email-james@albanarts.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 13 Mar 2014 07:49:04 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Archit Taneja' <archit@ti.com>, hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+References: <1393922965-15967-1-git-send-email-archit@ti.com>
+ <1394526833-24805-1-git-send-email-archit@ti.com>
+ <1394526833-24805-3-git-send-email-archit@ti.com>
+In-reply-to: <1394526833-24805-3-git-send-email-archit@ti.com>
+Subject: RE: [PATCH v3 02/14] v4l: ti-vpe: register video device only when
+ firmware is loaded
+Date: Thu, 13 Mar 2014 12:48:59 +0100
+Message-id: <000001cf3eb2$39817540$ac845fc0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Antti Seppälä <a.seppala@gmail.com>
+Hi Archit,
 
-Nuvoton-cir utilizes the encoding capabilities of rc-core to convert
-scancodes from user space to pulse/space format understood by the
-underlying hardware.
+> From: Archit Taneja [mailto:archit@ti.com]
+> Sent: Tuesday, March 11, 2014 9:34 AM
+> 
+> vpe fops(vpe_open in particular) should be called only when VPDMA
+> firmware is loaded. File operations on the video device are possible
+> the moment it is registered.
+> 
+> Currently, we register the video device for VPE at driver probe, after
+> calling a vpdma helper to initialize VPDMA and load firmware. This
+> function is non-blocking(it calls request_firmware_nowait()), and
+> doesn't ensure that the firmware is actually loaded when it returns.
+> 
+> We remove the device registration from vpe probe, and move it to a
+> callback provided by the vpe driver to the vpdma library, through
+> vpdma_create().
+> 
+> The ready field in vpdma_data is no longer needed since we always have
+> firmware loaded before the device is registered.
+> 
+> A minor problem with this approach is that if the video_register_device
+> fails(which doesn't really happen), the vpe platform device would be
+> registered.
+> however, there won't be any v4l2 device corresponding to it.
 
-Converted samples are then written to the wakeup fifo along with other
-necessary configuration to enable wake up functionality.
+Could you explain to me one thing. request_firmware cannot be used in
+probe, thus you are using request_firmware_nowait. Why cannot the firmware
+be
+loaded on open with a regular request_firmware that is waiting?
 
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: James Hogan <james@albanarts.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
----
-Please note this patch is only build tested.
+This patch seems to swap one problem for another. The possibility that open
+fails (because firmware is not yet loaded) is swapped for a vague
+possibility
+that video_register_device.
 
-Changes in v2 (James Hogan):
- - Handle new -ENOBUFS when IR encoding buffer isn't long enough and
-   reduce buffer size to the size of the wake fifo so that time isn't
-   wasted processing encoded IR events that will be discarded. Also only
-   discard the last event if the encoded data is complete.
- - Change reference to rc_dev::enabled_protocols to
-   enabled_protocols[type] since it has been converted to an array.
- - Fix IR encoding buffer loop condition to be i < ret rather than i <=
-   ret. The return value of ir_raw_encode_scancode is the number of
-   events rather than the last event.
- - Set encode_wakeup so that the set of allowed wakeup protocols matches
-   the set of raw IR encoders.
----
- drivers/media/rc/nuvoton-cir.c | 123 +++++++++++++++++++++++++++++++++++++++++
- drivers/media/rc/nuvoton-cir.h |   1 +
- include/media/rc-core.h        |   1 +
- 3 files changed, 125 insertions(+)
-
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index d244e1a..ec8f4fc 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -527,6 +527,127 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32 carrier)
- 	return 0;
- }
- 
-+static int nvt_write_wakeup_codes(struct rc_dev *dev,
-+				  const u8 *wakeup_sample_buf, int count)
-+{
-+	int i = 0;
-+	u8 reg, reg_learn_mode;
-+	unsigned long flags;
-+	struct nvt_dev *nvt = dev->priv;
-+
-+	nvt_dbg_wake("writing wakeup samples");
-+
-+	reg = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
-+	reg_learn_mode = reg & ~CIR_WAKE_IRCON_MODE0;
-+	reg_learn_mode |= CIR_WAKE_IRCON_MODE1;
-+
-+	/* Lock the learn area to prevent racing with wake-isr */
-+	spin_lock_irqsave(&nvt->nvt_lock, flags);
-+
-+	/* Enable fifo writes */
-+	nvt_cir_wake_reg_write(nvt, reg_learn_mode, CIR_WAKE_IRCON);
-+
-+	/* Clear cir wake rx fifo */
-+	nvt_clear_cir_wake_fifo(nvt);
-+
-+	if (count > WAKE_FIFO_LEN) {
-+		nvt_dbg_wake("HW FIFO too small for all wake samples");
-+		count = WAKE_FIFO_LEN;
-+	}
-+
-+	if (count)
-+		pr_info("Wake samples (%d) =", count);
-+	else
-+		pr_info("Wake sample fifo cleared");
-+
-+	/* Write wake samples to fifo */
-+	for (i = 0; i < count; i++) {
-+		pr_cont(" %02x", wakeup_sample_buf[i]);
-+		nvt_cir_wake_reg_write(nvt, wakeup_sample_buf[i],
-+				       CIR_WAKE_WR_FIFO_DATA);
-+	}
-+	pr_cont("\n");
-+
-+	/* Switch cir to wakeup mode and disable fifo writing */
-+	nvt_cir_wake_reg_write(nvt, reg, CIR_WAKE_IRCON);
-+
-+	/* Set number of bytes needed for wake */
-+	nvt_cir_wake_reg_write(nvt, count ? count :
-+			       CIR_WAKE_FIFO_CMP_BYTES,
-+			       CIR_WAKE_FIFO_CMP_DEEP);
-+
-+	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-+
-+	return 0;
-+}
-+
-+static int nvt_ir_raw_set_filter(struct rc_dev *dev, enum rc_filter_type type,
-+				 struct rc_scancode_filter *sc_filter)
-+{
-+	u8 *reg_buf;
-+	u8 buf_val;
-+	int i, ret, count;
-+	unsigned int val;
-+	struct ir_raw_event *raw;
-+	bool complete;
-+
-+	/* Other types are not valid for nuvoton */
-+	if (type != RC_FILTER_WAKEUP)
-+		return -EINVAL;
-+
-+	/* Require both mask and data to be set before actually committing */
-+	if (!sc_filter->mask || !sc_filter->data)
-+		return 0;
-+
-+	raw = kmalloc(WAKE_FIFO_LEN * sizeof(*raw), GFP_KERNEL);
-+	if (!raw)
-+		return -ENOMEM;
-+
-+	ret = ir_raw_encode_scancode(dev->enabled_protocols[type], sc_filter,
-+				     raw, WAKE_FIFO_LEN);
-+	complete = (ret != -ENOBUFS);
-+	if (!complete)
-+		ret = WAKE_FIFO_LEN;
-+	else if (ret < 0)
-+		goto out_raw;
-+
-+	reg_buf = kmalloc(sizeof(*reg_buf) * WAKE_FIFO_LEN, GFP_KERNEL);
-+	if (!reg_buf) {
-+		ret = -ENOMEM;
-+		goto out_raw;
-+	}
-+
-+	/* Inspect the ir samples */
-+	for (i = 0, count = 0; i < ret && count < WAKE_FIFO_LEN; ++i) {
-+		val = NS_TO_US((raw[i]).duration) / SAMPLE_PERIOD;
-+
-+		/* Split too large values into several smaller ones */
-+		while (val > 0 && count < WAKE_FIFO_LEN) {
-+
-+			/* Skip last value for better comparison tolerance */
-+			if (complete && i == ret - 1 && val < BUF_LEN_MASK)
-+				break;
-+
-+			/* Clamp values to BUF_LEN_MASK at most */
-+			buf_val = (val > BUF_LEN_MASK) ? BUF_LEN_MASK : val;
-+
-+			reg_buf[count] = buf_val;
-+			val -= buf_val;
-+			if ((raw[i]).pulse)
-+				reg_buf[count] |= BUF_PULSE_BIT;
-+			count++;
-+		}
-+	}
-+
-+	ret = nvt_write_wakeup_codes(dev, reg_buf, count);
-+
-+	kfree(reg_buf);
-+out_raw:
-+	kfree(raw);
-+
-+	return ret;
-+}
-+
- /*
-  * nvt_tx_ir
-  *
-@@ -1044,11 +1165,13 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 	/* Set up the rc device */
- 	rdev->priv = nvt;
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
-+	rdev->encode_wakeup = true;
- 	rc_set_allowed_protocols(rdev, RC_BIT_ALL);
- 	rdev->open = nvt_open;
- 	rdev->close = nvt_close;
- 	rdev->tx_ir = nvt_tx_ir;
- 	rdev->s_tx_carrier = nvt_set_tx_carrier;
-+	rdev->s_filter = nvt_ir_raw_set_filter;
- 	rdev->input_name = "Nuvoton w836x7hg Infrared Remote Transceiver";
- 	rdev->input_phys = "nuvoton/cir0";
- 	rdev->input_id.bustype = BUS_HOST;
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index e1cf23c..9d0e161 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -63,6 +63,7 @@ static int debug;
-  */
- #define TX_BUF_LEN 256
- #define RX_BUF_LEN 32
-+#define WAKE_FIFO_LEN 67
- 
- struct nvt_dev {
- 	struct pnp_dev *pdev;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 2d81d6c..80177da 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -271,6 +271,7 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
- #define US_TO_NS(usec)		((usec) * 1000)
- #define MS_TO_US(msec)		((msec) * 1000)
- #define MS_TO_NS(msec)		((msec) * 1000 * 1000)
-+#define NS_TO_US(nsec)		DIV_ROUND_UP(nsec, 1000L)
- 
- void ir_raw_event_handle(struct rc_dev *dev);
- int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
+Best wishes,
 -- 
-1.8.3.2
+Kamil Debski
+Samsung R&D Institute Poland
+
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/media/platform/ti-vpe/vpdma.c |  8 +++--
+> drivers/media/platform/ti-vpe/vpdma.h |  7 +++--
+>  drivers/media/platform/ti-vpe/vpe.c   | 55 ++++++++++++++++++++-------
+> --------
+>  3 files changed, 41 insertions(+), 29 deletions(-)
+> 
+> diff --git a/drivers/media/platform/ti-vpe/vpdma.c
+> b/drivers/media/platform/ti-vpe/vpdma.c
+> index e8175e7..73dd38e 100644
+> --- a/drivers/media/platform/ti-vpe/vpdma.c
+> +++ b/drivers/media/platform/ti-vpe/vpdma.c
+> @@ -781,7 +781,7 @@ static void vpdma_firmware_cb(const struct firmware
+> *f, void *context)
+>  	/* already initialized */
+>  	if (read_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
+>  			VPDMA_LIST_RDY_SHFT)) {
+> -		vpdma->ready = true;
+> +		vpdma->cb(vpdma->pdev);
+>  		return;
+>  	}
+> 
+> @@ -811,7 +811,7 @@ static void vpdma_firmware_cb(const struct firmware
+> *f, void *context)
+>  		goto free_buf;
+>  	}
+> 
+> -	vpdma->ready = true;
+> +	vpdma->cb(vpdma->pdev);
+> 
+>  free_buf:
+>  	vpdma_unmap_desc_buf(vpdma, &fw_dma_buf); @@ -839,7 +839,8 @@
+> static int vpdma_load_firmware(struct vpdma_data *vpdma)
+>  	return 0;
+>  }
+> 
+> -struct vpdma_data *vpdma_create(struct platform_device *pdev)
+> +struct vpdma_data *vpdma_create(struct platform_device *pdev,
+> +		void (*cb)(struct platform_device *pdev))
+>  {
+>  	struct resource *res;
+>  	struct vpdma_data *vpdma;
+> @@ -854,6 +855,7 @@ struct vpdma_data *vpdma_create(struct
+> platform_device *pdev)
+>  	}
+> 
+>  	vpdma->pdev = pdev;
+> +	vpdma->cb = cb;
+> 
+>  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
+>  	if (res == NULL) {
+> diff --git a/drivers/media/platform/ti-vpe/vpdma.h
+> b/drivers/media/platform/ti-vpe/vpdma.h
+> index cf40f11..bf5f8bb 100644
+> --- a/drivers/media/platform/ti-vpe/vpdma.h
+> +++ b/drivers/media/platform/ti-vpe/vpdma.h
+> @@ -35,8 +35,8 @@ struct vpdma_data {
+> 
+>  	struct platform_device	*pdev;
+> 
+> -	/* tells whether vpdma firmware is loaded or not */
+> -	bool ready;
+> +	/* callback to VPE driver when the firmware is loaded */
+> +	void (*cb)(struct platform_device *pdev);
+>  };
+> 
+>  enum vpdma_data_format_type {
+> @@ -208,6 +208,7 @@ void vpdma_set_frame_start_event(struct vpdma_data
+> *vpdma,  void vpdma_dump_regs(struct vpdma_data *vpdma);
+> 
+>  /* initialize vpdma, passed with VPE's platform device pointer */ -
+> struct vpdma_data *vpdma_create(struct platform_device *pdev);
+> +struct vpdma_data *vpdma_create(struct platform_device *pdev,
+> +		void (*cb)(struct platform_device *pdev));
+> 
+>  #endif
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c
+> b/drivers/media/platform/ti-vpe/vpe.c
+> index f3143ac..f1eae67 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -1817,11 +1817,6 @@ static int vpe_open(struct file *file)
+> 
+>  	vpe_dbg(dev, "vpe_open\n");
+> 
+> -	if (!dev->vpdma->ready) {
+> -		vpe_err(dev, "vpdma firmware not loaded\n");
+> -		return -ENODEV;
+> -	}
+> -
+>  	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+>  	if (!ctx)
+>  		return -ENOMEM;
+> @@ -2039,10 +2034,40 @@ static void vpe_runtime_put(struct
+> platform_device *pdev)
+>  	WARN_ON(r < 0 && r != -ENOSYS);
+>  }
+> 
+> +static void vpe_fw_cb(struct platform_device *pdev) {
+> +	struct vpe_dev *dev = platform_get_drvdata(pdev);
+> +	struct video_device *vfd;
+> +	int ret;
+> +
+> +	vfd = &dev->vfd;
+> +	*vfd = vpe_videodev;
+> +	vfd->lock = &dev->dev_mutex;
+> +	vfd->v4l2_dev = &dev->v4l2_dev;
+> +
+> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+> +	if (ret) {
+> +		vpe_err(dev, "Failed to register video device\n");
+> +
+> +		vpe_set_clock_enable(dev, 0);
+> +		vpe_runtime_put(pdev);
+> +		pm_runtime_disable(&pdev->dev);
+> +		v4l2_m2m_release(dev->m2m_dev);
+> +		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+> +		v4l2_device_unregister(&dev->v4l2_dev);
+> +
+> +		return;
+> +	}
+> +
+> +	video_set_drvdata(vfd, dev);
+> +	snprintf(vfd->name, sizeof(vfd->name), "%s", vpe_videodev.name);
+> +	dev_info(dev->v4l2_dev.dev, "Device registered as /dev/video%d\n",
+> +		vfd->num);
+> +}
+> +
+>  static int vpe_probe(struct platform_device *pdev)  {
+>  	struct vpe_dev *dev;
+> -	struct video_device *vfd;
+>  	int ret, irq, func;
+> 
+>  	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL); @@ -
+> 2123,28 +2148,12 @@ static int vpe_probe(struct platform_device *pdev)
+>  		goto runtime_put;
+>  	}
+> 
+> -	dev->vpdma = vpdma_create(pdev);
+> +	dev->vpdma = vpdma_create(pdev, vpe_fw_cb);
+>  	if (IS_ERR(dev->vpdma)) {
+>  		ret = PTR_ERR(dev->vpdma);
+>  		goto runtime_put;
+>  	}
+> 
+> -	vfd = &dev->vfd;
+> -	*vfd = vpe_videodev;
+> -	vfd->lock = &dev->dev_mutex;
+> -	vfd->v4l2_dev = &dev->v4l2_dev;
+> -
+> -	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+> -	if (ret) {
+> -		vpe_err(dev, "Failed to register video device\n");
+> -		goto runtime_put;
+> -	}
+> -
+> -	video_set_drvdata(vfd, dev);
+> -	snprintf(vfd->name, sizeof(vfd->name), "%s", vpe_videodev.name);
+> -	dev_info(dev->v4l2_dev.dev, "Device registered as /dev/video%d\n",
+> -		vfd->num);
+> -
+>  	return 0;
+> 
+>  runtime_put:
+> --
+> 1.8.3.2
 
