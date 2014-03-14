@@ -1,61 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39283 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752195AbaCDHiy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Mar 2014 02:38:54 -0500
-Message-ID: <531582E8.7020800@ti.com>
-Date: Tue, 4 Mar 2014 13:08:16 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54393 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752847AbaCNMop (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Mar 2014 08:44:45 -0400
+Message-ID: <5322F99D.5010009@ti.com>
+Date: Fri, 14 Mar 2014 14:44:13 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, <k.debski@samsung.com>
-CC: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 7/7] v4l: ti-vpe: Add crop support in VPE driver
-References: <1393832008-22174-1-git-send-email-archit@ti.com> <1393832008-22174-8-git-send-email-archit@ti.com> <53143439.5030007@xs4all.nl>
-In-Reply-To: <53143439.5030007@xs4all.nl>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Grant Likely <grant.likely@linaro.org>
+CC: Greg KH <gregkh@linuxfoundation.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Rob Herring <robh+dt@kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [GIT PULL] Move device tree graph parsing helpers to drivers/of
+References: <1394126000.3622.66.camel@paszta.hi.pengutronix.de>	 <20140310143758.3734FC405FA@trevor.secretlab.ca>	 <1394708896.3577.21.camel@paszta.hi.pengutronix.de>	 <6341585.ZqkoDDr3Wb@avalon> <1394799579.3710.24.camel@paszta.hi.pengutronix.de>
+In-Reply-To: <1394799579.3710.24.camel@paszta.hi.pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="KA24mhi9K0IRDKWUGcnpMUbHsRpxoAKV0"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+--KA24mhi9K0IRDKWUGcnpMUbHsRpxoAKV0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On Monday 03 March 2014 01:20 PM, Hans Verkuil wrote:
-> Hi Archit!
->
-> On 03/03/2014 08:33 AM, Archit Taneja wrote:
->> Add crop ioctl ops. For VPE, cropping only makes sense with the input to VPE, or
->> the V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffer type.
+Hi Philipp, Grant,
+
+On 14/03/14 14:19, Philipp Zabel wrote:
+
+>>> People completely disagree about the direction the phandle links shou=
+ld
+>>> point in. I am still of the opinion that the generic binding should d=
+escribe
+>>> just the topology, that the endpoint links in the kernel should repre=
+sent an
+>>> undirected graph and the direction of links should not matter at all =
+for the
+>>> generic graph bindings.
 >>
->> For the CAPTURE type, a S_CROP ioctl results in setting the crop region as the
->> whole image itself, hence making crop dimensions same as the pix dimensions.
->>
->> Setting the crop successfully should result in re-configuration of those
->> registers which are affected when either source or destination dimensions
->> change, set_srcdst_params() is called for this purpose.
->>
->> Some standard crop parameter checks are done in __vpe_try_crop().
->
-> Please use the selection ops instead: if you implement cropping with those then you'll
-> support both the selection API and the old cropping API will be implemented by the v4l2
-> core using the selection ops. Two for the price of one...
+>> I would also not mandate a specific direction at the of-graph level an=
+d leave=20
+>> it to subsystems (or possibly drivers) to specify the direction.
+>=20
+> Thank you. Can everybody live with this?
+
+Yes, I'd like to reserve the possibility for double-linking. If the
+endpoint links are used to tell the dataflow direction, then
+double-linking could be used for bi-directional dataflows.
+
+But this doesn't help much for the video drivers under work, which I
+think we are all most interested in at the moment. We still need to
+decide how we link the endpoint for those.
+
+I'd like to go forward with the mainline v4l2 style double-linking, as
+that is already in use. It would allow us to proceed _now_, and maybe
+even get display support to 3.15. Otherwise this all gets delayed for
+who knows how long, and the displays in question cannot be used by the
+users.
+
+Deprecating the other link later from the existing video bindings would
+be trivial, as there would basically be nothing to do except remove the
+other link.
+
+ Tomi
 
 
-When using selection API, I was finding issues using the older cropping 
-API. The v4l_s_crop() ioctl func assumes that "crop means compose for 
-output devices". However, for a m2m device. It probably makes sense to 
-provide the following configuration:
 
-for V4L2_BUF_TYPE_VIDEO_OUTPUT (input to the mem to mem HW), use CROP 
-target(to crop the input buffer)
+--KA24mhi9K0IRDKWUGcnpMUbHsRpxoAKV0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-and, for V4L2_BUF_TYPE_VIDEO_CAPTURE(output of the mem to mem HW), use 
-COMPOSE target(to place the HW output into a larger region)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-Don't you think forcing OUTPUT devices to 'COMPOSE' for older cropping 
-API is a bit limiting?
+iQIcBAEBAgAGBQJTIvmdAAoJEPo9qoy8lh71zWwP/iIP05q2MrbNWZeC0cHIHgp+
+Ows7K5m5RmKr0EufBbj/NeXmIco0pUUWRvy6iKl5xeWrfI2cA1AgYvzN+BUTLuFF
+EeWg/X/YlegM7onOCMyCYarrHeOaHDD1v/gJ4tL0sID4eAmT4vxK+tn8d8pdcH+A
+JmjbaFBwlP71YN0hqCTa1zL990O+8370bZCS8m8P07Y6Owkj1iaKQVjMUnSxczRw
+sDYsjRvzB2hfadG2/Z7N+scDSggZHjSuD3JxV2En8OgNe+N2SNHnZe7UttzA6/d6
+DLSkYBo4Q+6Mv3p+n+E0Q5lgWwrA2t6593Z7FIZHgNi5F8DbgHAnBnvb2yd6zQx2
+tGVw8EPzpdtBoanRVCyfrtZyQTl/EBaGGNgznKWWEcgPbiI/hmJN6PRboAjZFsRg
+FM5DI5xXtqdZjcJoiEY0cMDyi2KjNobCWrJjZoJ5jmqBACyHp382nUqhIYJpO7mG
+fkDEDXb6MWRhBZ16zGIkEbWL/kshVvehjMtjfzBBGGaZNyaOb0ls0vzxiKx8C/gI
+518GjnaqQC4TC/zEMLaP56rZD0GjUGVq1XaT0w7rN3J+Ycfvh5fDwmTAC/zWuquq
+CoS8Xp09GLjTWTUxgF0w4Cr0A2Q1BaL/vlC/mFVz9/hm2zBgmmWRpK93voNyxhJx
+koBq8Un5MwXWcfWYH98O
+=EJ8A
+-----END PGP SIGNATURE-----
 
-
-Thanks,
-Archit
-
+--KA24mhi9K0IRDKWUGcnpMUbHsRpxoAKV0--
