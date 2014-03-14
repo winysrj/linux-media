@@ -1,42 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f193.google.com ([209.85.192.193]:44228 "EHLO
-	mail-pd0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755233AbaCQSNE (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:46865 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753606AbaCNNKV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 14:13:04 -0400
-Received: by mail-pd0-f193.google.com with SMTP id x10so2415461pdj.4
-        for <linux-media@vger.kernel.org>; Mon, 17 Mar 2014 11:13:03 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 17 Mar 2014 18:13:03 +0000
-Message-ID: <CALZGuP3taz9pbaBXh4+SSaY0tWi7+t_c+KBL4+vdPNeUyrUdvw@mail.gmail.com>
-Subject: blackgold bgt3620 (saa7231 + cxd2820)
-From: wab bit <wabbitb01@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 14 Mar 2014 09:10:21 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0N2F002JRGL7F930@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 14 Mar 2014 09:10:19 -0400 (EDT)
+Date: Fri, 14 Mar 2014 10:10:15 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] rtl2832_sdr driver
+Message-id: <20140314101015.3148851c@samsung.com>
+In-reply-to: <53224A61.4070602@iki.fi>
+References: <53224A61.4070602@iki.fi>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Em Fri, 14 Mar 2014 02:16:33 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-After giving up on my PCTV 340e usb stick, got myself a blackgold
-bgt3620, as, supposedly, had a fully functional linux support.
-Unfortunately, I'm using kernel 3.12 (and 3.13). This means that the
-driver supplied by manufacturer doesn't compile as it does in kubuntu
-13.10 (haven't confirmed nor intend to). After some dirty hacks got
-the driver to compile and almost works. It doesn't provide bandwidth
-and signal strength is always 0 (zero).
+> The following changes since commit 8ea5488a919bbd49941584f773fd66623192ffc0:
+> 
+>    [media] media: rc-core: use %s in rc_map_get() module load 
+> (2014-03-13 11:32:28 -0300)
+> 
+> are available in the git repository at:
+> 
+>    git://linuxtv.org/anttip/media_tree.git sdr_review_v6
 
-Found CrazyCat's repo in bitbucket which contains support for this
-card and I'm currently porting that code to 3.13, but don't know the
-DVB drivers' current API and haven't found any recent info on that.
+Those rises two new warnings on some archs:
+	drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c:182:1: warning: 'rtl2832_sdr_wr' uses dynamic stack allocation [enabled by default]
+	drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c:182:1: warning: 'rtl2832_sdr_wr' uses dynamic stack allocation [enabled by default]
 
-What can I use as template/guidelines to help on adding support for this card?
+-- 
 
-Are the dvb_frontend.{c,h} files to be updated in the near future? eg:
-in CrazyCats's code, the struct dvb_tuner_ops and struct
-dvb_frontend_tune_settings contain a new member: struct
-dvb_frontend_parameters. Is this to be included on future updates of
-dvb_frontend.h?
-
-
-Cheers
+Regards,
+Mauro
