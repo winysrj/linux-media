@@ -1,327 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48726 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753421AbaCJXOy (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:41937 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755970AbaCNXHG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 19:14:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH v2 42/48] adv7604: Replace *_and_or() functions with *_clr_set()
-Date: Tue, 11 Mar 2014 00:15:53 +0100
-Message-Id: <1394493359-14115-43-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1394493359-14115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 14 Mar 2014 19:07:06 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hi5so165909wib.11
+        for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 16:07:05 -0700 (PDT)
+From: James Hogan <james@albanarts.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Cc: linux-media@vger.kernel.org, James Hogan <james@albanarts.com>
+Subject: [PATCH v2 8/9] rc: rc-loopback: Add loopback of filter scancodes
+Date: Fri, 14 Mar 2014 23:04:18 +0000
+Message-Id: <1394838259-14260-9-git-send-email-james@albanarts.com>
+In-Reply-To: <1394838259-14260-1-git-send-email-james@albanarts.com>
+References: <1394838259-14260-1-git-send-email-james@albanarts.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The *_and_or() functions take an 'and' bitmask to be ANDed with the
-register value before ORing it with th 'or' bitmask. As the functions
-are used to mask and set bits selectively, this requires the caller to
-invert the 'and' bitmask and is thus error prone. Replace those
-functions with a *_clr_set() variant that takes a mask of bits to be
-cleared instead of a mask of bits to be kept.
+Add the s_filter callback to the rc-loopback driver, which instead of
+setting the filter just feeds the scancode back through the input device
+so that it can be verified.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: James Hogan <james@albanarts.com>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Seppälä <a.seppala@gmail.com>
 ---
- drivers/media/i2c/adv7604.c | 86 ++++++++++++++++++++++-----------------------
- 1 file changed, 43 insertions(+), 43 deletions(-)
+Changes in v2:
+ - Move img-ir-raw test code to rc-loopback.
+ - Handle new encode API, specifically -ENOBUFS when the buffer isn't
+   long enough.
+ - Set encode_wakeup so that the set of allowed wakeup protocols matches
+   the set of raw IR encoders.
+---
+ drivers/media/rc/rc-loopback.c | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index f79761e..83ad97e 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -429,9 +429,9 @@ static inline int io_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_IO, reg, val);
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index 0a88e0c..aefd335 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -26,6 +26,7 @@
+ #include <linux/device.h>
+ #include <linux/module.h>
+ #include <linux/sched.h>
++#include <linux/slab.h>
+ #include <media/rc-core.h>
+ 
+ #define DRIVER_NAME	"rc-loopback"
+@@ -176,6 +177,42 @@ static int loop_set_carrier_report(struct rc_dev *dev, int enable)
+ 	return 0;
  }
  
--static inline int io_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int io_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++static int loop_set_filter(struct rc_dev *dev, enum rc_filter_type type,
++			   struct rc_scancode_filter *sc_filter)
++{
++	static const unsigned int max = 512;
++	struct ir_raw_event *raw;
++	int ret;
++	int i;
++
++	/* fine to disable filter */
++	if (!sc_filter->mask)
++		return 0;
++
++	/* encode the specified filter and loop it back */
++	raw = kmalloc(max * sizeof(*raw), GFP_KERNEL);
++	ret = ir_raw_encode_scancode(dev->enabled_protocols[type], sc_filter,
++				     raw, max);
++	/* still loop back the partial raw IR even if it's incomplete */
++	if (ret == -ENOBUFS)
++		ret = max;
++	if (ret >= 0) {
++		/* do the loopback */
++		for (i = 0; i < ret; ++i)
++			ir_raw_event_store(dev, &raw[i]);
++		ir_raw_event_handle(dev);
++
++		ret = 0;
++	} else if (type == RC_FILTER_NORMAL) {
++		/* accept any normal filter */
++		ret = 0;
++	}
++
++	kfree(raw);
++
++	return ret;
++}
++
+ static int __init loop_init(void)
  {
--	return io_write(sd, reg, (io_read(sd, reg) & mask) | val);
-+	return io_write(sd, reg, (io_read(sd, reg) & ~mask) | val);
- }
+ 	struct rc_dev *rc;
+@@ -195,6 +232,7 @@ static int __init loop_init(void)
+ 	rc->map_name		= RC_MAP_EMPTY;
+ 	rc->priv		= &loopdev;
+ 	rc->driver_type		= RC_DRIVER_IR_RAW;
++	rc->encode_wakeup	= true;
+ 	rc_set_allowed_protocols(rc, RC_BIT_ALL);
+ 	rc->timeout		= 100 * 1000 * 1000; /* 100 ms */
+ 	rc->min_timeout		= 1;
+@@ -209,6 +247,7 @@ static int __init loop_init(void)
+ 	rc->s_idle		= loop_set_idle;
+ 	rc->s_learning_mode	= loop_set_learning_mode;
+ 	rc->s_carrier_report	= loop_set_carrier_report;
++	rc->s_filter		= loop_set_filter;
  
- static inline int avlink_read(struct v4l2_subdev *sd, u8 reg)
-@@ -462,9 +462,9 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_CEC, reg, val);
- }
- 
--static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
-+	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
-@@ -538,9 +538,9 @@ static inline int rep_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_REP, reg, val);
- }
- 
--static inline int rep_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int rep_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return rep_write(sd, reg, (rep_read(sd, reg) & mask) | val);
-+	return rep_write(sd, reg, (rep_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int edid_read(struct v4l2_subdev *sd, u8 reg)
-@@ -629,9 +629,9 @@ static inline int hdmi_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_HDMI, reg, val);
- }
- 
--static inline int hdmi_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int hdmi_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return hdmi_write(sd, reg, (hdmi_read(sd, reg) & mask) | val);
-+	return hdmi_write(sd, reg, (hdmi_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int test_read(struct v4l2_subdev *sd, u8 reg)
-@@ -667,9 +667,9 @@ static inline int cp_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state, ADV7604_PAGE_CP, reg, val);
- }
- 
--static inline int cp_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int cp_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return cp_write(sd, reg, (cp_read(sd, reg) & mask) | val);
-+	return cp_write(sd, reg, (cp_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int vdp_read(struct v4l2_subdev *sd, u8 reg)
-@@ -947,7 +947,7 @@ static int configure_predefined_video_timings(struct v4l2_subdev *sd,
- 		io_write(sd, 0x17, 0x5a);
- 	}
- 	/* disable embedded syncs for auto graphics mode */
--	cp_write_and_or(sd, 0x81, 0xef, 0x00);
-+	cp_write_clr_set(sd, 0x81, 0x10, 0x00);
- 	cp_write(sd, 0x8f, 0x00);
- 	cp_write(sd, 0x90, 0x00);
- 	cp_write(sd, 0xa2, 0x00);
-@@ -1005,7 +1005,7 @@ static void configure_custom_video_timings(struct v4l2_subdev *sd,
- 		io_write(sd, 0x00, 0x07); /* video std */
- 		io_write(sd, 0x01, 0x02); /* prim mode */
- 		/* enable embedded syncs for auto graphics mode */
--		cp_write_and_or(sd, 0x81, 0xef, 0x10);
-+		cp_write_clr_set(sd, 0x81, 0x10, 0x10);
- 
- 		/* Should only be set in auto-graphics mode [REF_02, p. 91-92] */
- 		/* setup PLL_DIV_MAN_EN and PLL_DIV_RATIO */
-@@ -1115,21 +1115,21 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 		if (state->selected_input == ADV7604_PAD_VGA_RGB) {
- 			/* Receiving analog RGB signal
- 			 * Set RGB full range (0-255) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x10);
- 			break;
- 		}
- 
- 		if (state->selected_input == ADV7604_PAD_VGA_COMP) {
- 			/* Receiving analog YPbPr signal
- 			 * Set automode */
--			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0xf0);
- 			break;
- 		}
- 
- 		if (hdmi_signal) {
- 			/* Receiving HDMI signal
- 			 * Set automode */
--			io_write_and_or(sd, 0x02, 0x0f, 0xf0);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0xf0);
- 			break;
- 		}
- 
-@@ -1138,10 +1138,10 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 		 * input format (CE/IT) in automatic mode */
- 		if (state->timings.bt.standards & V4L2_DV_BT_STD_CEA861) {
- 			/* RGB limited range (16-235) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x00);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x00);
- 		} else {
- 			/* RGB full range (0-255) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x10);
- 
- 			if (is_digital_input(sd) && rgb_output) {
- 				adv7604_set_offset(sd, false, 0x40, 0x40, 0x40);
-@@ -1154,23 +1154,23 @@ static void set_rgb_quantization_range(struct v4l2_subdev *sd)
- 	case V4L2_DV_RGB_RANGE_LIMITED:
- 		if (state->selected_input == ADV7604_PAD_VGA_COMP) {
- 			/* YCrCb limited range (16-235) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x20);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x20);
- 			break;
- 		}
- 
- 		/* RGB limited range (16-235) */
--		io_write_and_or(sd, 0x02, 0x0f, 0x00);
-+		io_write_clr_set(sd, 0x02, 0xf0, 0x00);
- 
- 		break;
- 	case V4L2_DV_RGB_RANGE_FULL:
- 		if (state->selected_input == ADV7604_PAD_VGA_COMP) {
- 			/* YCrCb full range (0-255) */
--			io_write_and_or(sd, 0x02, 0x0f, 0x60);
-+			io_write_clr_set(sd, 0x02, 0xf0, 0x60);
- 			break;
- 		}
- 
- 		/* RGB full range (0-255) */
--		io_write_and_or(sd, 0x02, 0x0f, 0x10);
-+		io_write_clr_set(sd, 0x02, 0xf0, 0x10);
- 
- 		if (is_analog_input(sd) || hdmi_signal)
- 			break;
-@@ -1222,7 +1222,7 @@ static int adv7604_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_ADV_RX_FREE_RUN_COLOR_MANUAL:
- 		/* Use the default blue color for free running mode,
- 		   or supply your own. */
--		cp_write_and_or(sd, 0xbf, ~0x04, (ctrl->val << 2));
-+		cp_write_clr_set(sd, 0xbf, 0x04, ctrl->val << 2);
- 		return 0;
- 	case V4L2_CID_ADV_RX_FREE_RUN_COLOR:
- 		cp_write(sd, 0xc0, (ctrl->val & 0xff0000) >> 16);
-@@ -1605,11 +1605,11 @@ static int adv7604_query_dv_timings(struct v4l2_subdev *sd,
- 				v4l2_dbg(1, debug, sd, "%s: restart STDI\n", __func__);
- 				/* TODO restart STDI for Sync Channel 2 */
- 				/* enter one-shot mode */
--				cp_write_and_or(sd, 0x86, 0xf9, 0x00);
-+				cp_write_clr_set(sd, 0x86, 0x06, 0x00);
- 				/* trigger STDI restart */
--				cp_write_and_or(sd, 0x86, 0xf9, 0x04);
-+				cp_write_clr_set(sd, 0x86, 0x06, 0x04);
- 				/* reset to continuous mode */
--				cp_write_and_or(sd, 0x86, 0xf9, 0x02);
-+				cp_write_clr_set(sd, 0x86, 0x06, 0x02);
- 				state->restart_stdi_once = false;
- 				return -ENOLINK;
- 			}
-@@ -1668,7 +1668,7 @@ static int adv7604_s_dv_timings(struct v4l2_subdev *sd,
- 
- 	state->timings = *timings;
- 
--	cp_write_and_or(sd, 0x91, 0xbf, bt->interlaced ? 0x40 : 0x00);
-+	cp_write_clr_set(sd, 0x91, 0x40, bt->interlaced ? 0x40 : 0x00);
- 
- 	/* Use prim_mode and vid_std when available */
- 	err = configure_predefined_video_timings(sd, timings);
-@@ -1712,10 +1712,10 @@ static void enable_input(struct v4l2_subdev *sd)
- 	if (is_analog_input(sd)) {
- 		io_write(sd, 0x15, 0xb0);   /* Disable Tristate of Pins (no audio) */
- 	} else if (is_digital_input(sd)) {
--		hdmi_write_and_or(sd, 0x00, 0xfc, state->selected_input);
-+		hdmi_write_clr_set(sd, 0x00, 0x03, state->selected_input);
- 		state->info->set_termination(sd, true);
- 		io_write(sd, 0x15, 0xa0);   /* Disable Tristate of Pins */
--		hdmi_write_and_or(sd, 0x1a, 0xef, 0x00); /* Unmute audio */
-+		hdmi_write_clr_set(sd, 0x1a, 0x10, 0x00); /* Unmute audio */
- 	} else {
- 		v4l2_dbg(2, debug, sd, "%s: Unknown port %d selected\n",
- 				__func__, state->selected_input);
-@@ -1726,7 +1726,7 @@ static void disable_input(struct v4l2_subdev *sd)
- {
- 	struct adv7604_state *state = to_state(sd);
- 
--	hdmi_write_and_or(sd, 0x1a, 0xef, 0x10); /* Mute audio */
-+	hdmi_write_clr_set(sd, 0x1a, 0x10, 0x10); /* Mute audio */
- 	msleep(16); /* 512 samples with >= 32 kHz sample rate [REF_03, c. 7.16.10] */
- 	io_write(sd, 0x15, 0xbe);   /* Tristate all outputs from video core */
- 	state->info->set_termination(sd, false);
-@@ -1820,12 +1820,12 @@ static void adv7604_setup_format(struct adv7604_state *state)
- {
- 	struct v4l2_subdev *sd = &state->sd;
- 
--	io_write_and_or(sd, 0x02, 0xfd,
-+	io_write_clr_set(sd, 0x02, 0x02,
- 			state->format->rgb_out ? ADV7604_RGB_OUT : 0);
- 	io_write(sd, 0x03, state->format->op_format_sel |
- 		 state->pdata.op_format_mode_sel);
--	io_write_and_or(sd, 0x04, 0x1f, state->format->op_ch_sel);
--	io_write_and_or(sd, 0x05, 0xfe,
-+	io_write_clr_set(sd, 0x04, 0xe0, state->format->op_ch_sel);
-+	io_write_clr_set(sd, 0x05, 0x01,
- 			state->format->swap_cb_cr ? ADV7604_OP_SWAP_CB_CR : 0);
- }
- 
-@@ -2022,7 +2022,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 		/* Disable hotplug and I2C access to EDID RAM from DDC port */
- 		state->edid.present &= ~(1 << edid->pad);
- 		v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&state->edid.present);
--		rep_write_and_or(sd, info->edid_enable_reg, 0xf0, state->edid.present);
-+		rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, state->edid.present);
- 
- 		/* Fall back to a 16:9 aspect ratio */
- 		state->aspect_ratio.numerator = 16;
-@@ -2046,7 +2046,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 	/* Disable hotplug and I2C access to EDID RAM from DDC port */
- 	cancel_delayed_work_sync(&state->delayed_work_enable_hotplug);
- 	v4l2_subdev_notify(sd, ADV7604_HOTPLUG, (void *)&tmp);
--	rep_write_and_or(sd, info->edid_enable_reg, 0xf0, 0x00);
-+	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, 0x00);
- 
- 	spa_loc = get_edid_spa_location(edid->edid);
- 	if (spa_loc < 0)
-@@ -2075,10 +2075,10 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 
- 	if (info->type == ADV7604) {
- 		rep_write(sd, 0x76, spa_loc & 0xff);
--		rep_write_and_or(sd, 0x77, 0xbf, (spa_loc & 0x100) >> 2);
-+		rep_write_clr_set(sd, 0x77, 0x40, (spa_loc & 0x100) >> 2);
- 	} else {
- 		/* FIXME: Where is the SPA location LSB register ? */
--		rep_write_and_or(sd, 0x71, 0xfe, (spa_loc & 0x100) >> 8);
-+		rep_write_clr_set(sd, 0x71, 0x01, (spa_loc & 0x100) >> 8);
- 	}
- 
- 	edid->edid[spa_loc] = state->spa_port_a[0];
-@@ -2098,7 +2098,7 @@ static int adv7604_set_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edi
- 
- 	/* adv7604 calculates the checksums and enables I2C access to internal
- 	   EDID RAM from DDC port. */
--	rep_write_and_or(sd, info->edid_enable_reg, 0xf0, state->edid.present);
-+	rep_write_clr_set(sd, info->edid_enable_reg, 0x0f, state->edid.present);
- 
- 	for (i = 0; i < 1000; i++) {
- 		if (rep_read(sd, info->edid_status_reg) & state->edid.present)
-@@ -2394,11 +2394,11 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
- 	cp_write(sd, 0xcf, 0x01);   /* Power down macrovision */
- 
- 	/* video format */
--	io_write_and_or(sd, 0x02, 0xf0,
-+	io_write_clr_set(sd, 0x02, 0x0f,
- 			pdata->alt_gamma << 3 |
- 			pdata->op_656_range << 2 |
- 			pdata->alt_data_sat << 0);
--	io_write_and_or(sd, 0x05, 0xf1, pdata->blank_data << 3 |
-+	io_write_clr_set(sd, 0x05, 0x0e, pdata->blank_data << 3 |
- 			pdata->insert_av_codes << 2 |
- 			pdata->replicate_av_codes << 1);
- 	adv7604_setup_format(state);
-@@ -2423,16 +2423,16 @@ static int adv7604_core_init(struct v4l2_subdev *sd)
- 				     for digital formats */
- 
- 	/* HDMI audio */
--	hdmi_write_and_or(sd, 0x15, 0xfc, 0x03); /* Mute on FIFO over-/underflow [REF_01, c. 1.2.18] */
--	hdmi_write_and_or(sd, 0x1a, 0xf1, 0x08); /* Wait 1 s before unmute */
--	hdmi_write_and_or(sd, 0x68, 0xf9, 0x06); /* FIFO reset on over-/underflow [REF_01, c. 1.2.19] */
-+	hdmi_write_clr_set(sd, 0x15, 0x03, 0x03); /* Mute on FIFO over-/underflow [REF_01, c. 1.2.18] */
-+	hdmi_write_clr_set(sd, 0x1a, 0x0e, 0x08); /* Wait 1 s before unmute */
-+	hdmi_write_clr_set(sd, 0x68, 0x06, 0x06); /* FIFO reset on over-/underflow [REF_01, c. 1.2.19] */
- 
- 	/* TODO from platform data */
- 	afe_write(sd, 0xb5, 0x01);  /* Setting MCLK to 256Fs */
- 
- 	if (adv7604_has_afe(state)) {
- 		afe_write(sd, 0x02, pdata->ain_sel); /* Select analog input muxing mode */
--		io_write_and_or(sd, 0x30, ~(1 << 4), pdata->output_bus_lsb_to_msb << 4);
-+		io_write_clr_set(sd, 0x30, 1 << 4, pdata->output_bus_lsb_to_msb << 4);
- 	}
- 
- 	/* interrupts */
+ 	loopdev.txmask		= RXMASK_REGULAR;
+ 	loopdev.txcarrier	= 36000;
 -- 
 1.8.3.2
 
