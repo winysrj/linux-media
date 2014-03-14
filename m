@@ -1,119 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:61674 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754272AbaCSHNg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Mar 2014 03:13:36 -0400
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: s.nawrocki@samsung.com, m.chehab@samsung.com,
-	b.zolnierkie@samsung.com, t.figa@samsung.com, k.debski@samsung.com,
-	arun.kk@samsung.com, shaik.ameer@samsung.com
-Subject: [PATCH v6 0/4] Exynos5 Series SCALER Driver
-Date: Wed, 19 Mar 2014 12:43:12 +0530
-Message-Id: <1395213196-25972-1-git-send-email-shaik.ameer@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47454 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755904AbaCNTZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Mar 2014 15:25:46 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] rtl2832_sdr: do not use dynamic stack allocation
+Date: Fri, 14 Mar 2014 21:25:28 +0200
+Message-Id: <1394825128-8584-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1394825128-8584-1-git-send-email-crope@iki.fi>
+References: <1394825128-8584-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for SCALER device which is a
-new device for scaling, blending, color fill  and color space
-conversion on EXYNOS5410/5420 SoCs.
+Do not use dynamic stack allocation.
 
-This device supports the following as key features.
-    input image format
-        - YCbCr420 2P(UV/VU), 3P
-        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
-        - YCbCr444 2P(UV,VU), 3P
-        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
-        - Pre-multiplexed ARGB8888, L8A8 and L8
-    output image format
-        - YCbCr420 2P(UV/VU), 3P
-        - YCbCr422 1P(YUYV/UYVY/YVYU), 2P(UV,VU), 3P
-        - YCbCr444 2P(UV,VU), 3P
-        - RGB565, ARGB1555, ARGB4444, ARGB8888, RGBA8888
-        - Pre-multiplexed ARGB8888
-    input rotation
-        - 0/90/180/270 degree, X/Y/XY Flip
-    scale ratio
-        - 1/4 scale down to 16 scale up
-    color space conversion
-        - RGB to YUV / YUV to RGB
-    Size - Exynos5420
-        - Input : 16x16 to 8192x8192
-        - Output:   4x4 to 8192x8192
-    Size - Exynos5410
-        - Input/Output: 4x4 to 4096x4096
-    alpha blending, color fill
+>> drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c:181:1:
+warning: 'rtl2832_sdr_wr' uses dynamic stack allocation [enabled by default]
 
-Rebased on:
------------
-git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git:master
+Reported-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-Changes from v5:
----------------
-Addressed review comments from, Bartlomiej Zolnierkiewicz and Tomasz Figa
-Links to the review comments:
-	1] https://linuxtv.org/patch/21512/
-	2] https://linuxtv.org/patch/21513/
-	3] https://linuxtv.org/patch/21514/
-
-Changes from v4:
----------------
-Addressed review comments from, Sylwester Nawrocki and Mauro Carvalho Chehab
-Links to the review comments:
-        1] https://linuxtv.org/patch/20307/
-        2] https://linuxtv.org/patch/20308/
-        3] https://linuxtv.org/patch/20451/
-
-Changes from v3:
----------------
-Addressed review comments from, Sylwester Nawrocki and Hans Verkuil.
-Links to the review comments:
-        1] https://linuxtv.org/patch/20072/
-        2] https://linuxtv.org/patch/20073/
-
-Changes from v2:
----------------
-Addressed review comments from, Inki Dae, Hans Verkuil and Sylwester Nawrocki.
-Links to the review comments:
-        1] https://linuxtv.org/patch/19783/
-        2] https://linuxtv.org/patch/19784/
-        3] https://linuxtv.org/patch/19785/
-        4] https://linuxtv.org/patch/19786/
-        5] https://linuxtv.org/patch/19787/
-
-Changes from v1:
----------------
-1] Split the previous single patch into multiple patches.
-2] Added DT binding documentation.
-3] Removed the unnecessary header file inclusions.
-4] Fix the condition check in mscl_prepare_address for swapping cb/cr addresses.
-
-Shaik Ameer Basha (4):
-  [media] exynos-scaler: Add DT bindings for SCALER driver
-  [media] exynos-scaler: Add new driver for Exynos5 SCALER
-  [media] exynos-scaler: Add m2m functionality for the SCALER driver
-  [media] exynos-scaler: Add core functionality for the SCALER driver
-
- .../devicetree/bindings/media/exynos5-scaler.txt   |   24 +
- drivers/media/platform/Kconfig                     |    8 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/exynos-scaler/Makefile      |    3 +
- drivers/media/platform/exynos-scaler/scaler-m2m.c  |  788 +++++++++++++
- drivers/media/platform/exynos-scaler/scaler-regs.c |  337 ++++++
- drivers/media/platform/exynos-scaler/scaler-regs.h |  331 ++++++
- drivers/media/platform/exynos-scaler/scaler.c      | 1235 ++++++++++++++++++++
- drivers/media/platform/exynos-scaler/scaler.h      |  376 ++++++
- 9 files changed, 3103 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-scaler.txt
- create mode 100644 drivers/media/platform/exynos-scaler/Makefile
- create mode 100644 drivers/media/platform/exynos-scaler/scaler-m2m.c
- create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.c
- create mode 100644 drivers/media/platform/exynos-scaler/scaler-regs.h
- create mode 100644 drivers/media/platform/exynos-scaler/scaler.c
- create mode 100644 drivers/media/platform/exynos-scaler/scaler.h
-
+diff --git a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+index b09f7d8..104ee8a 100644
+--- a/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
++++ b/drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
+@@ -156,7 +156,9 @@ static int rtl2832_sdr_wr(struct rtl2832_sdr_state *s, u8 reg, const u8 *val,
+ 		int len)
+ {
+ 	int ret;
+-	u8 buf[1 + len];
++#define MAX_WR_LEN 24
++#define MAX_WR_XFER_LEN (MAX_WR_LEN + 1)
++	u8 buf[MAX_WR_XFER_LEN];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = s->cfg->i2c_addr,
+@@ -166,6 +168,9 @@ static int rtl2832_sdr_wr(struct rtl2832_sdr_state *s, u8 reg, const u8 *val,
+ 		}
+ 	};
+ 
++	if (WARN_ON(len > MAX_WR_LEN))
++		return -EINVAL;
++
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], val, len);
+ 
 -- 
-1.7.9.5
+1.8.5.3
 
