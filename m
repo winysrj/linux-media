@@ -1,55 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49334 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873AbaCCKHx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Mar 2014 05:07:53 -0500
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 19/79] [media] drx-j: make a few functions static
-Date: Mon,  3 Mar 2014 07:06:13 -0300
-Message-Id: <1393841233-24840-20-git-send-email-m.chehab@samsung.com>
-In-Reply-To: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-References: <1393841233-24840-1-git-send-email-m.chehab@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:35302 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753242AbaCNAOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 20:14:48 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/17] e4000: fix PLL calc to allow higher frequencies
+Date: Fri, 14 Mar 2014 02:14:17 +0200
+Message-Id: <1394756071-22410-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
+References: <1394756071-22410-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/drx39xyj/drx_driver.c:181:7: warning: no previous prototype for 'get_scan_context' [-Wmissing-prototypes]
- void *get_scan_context(pdrx_demod_instance_t demod, void *scan_context)
+There was 32-bit overflow on VCO frequency calculation which blocks
+tuning to 1073 - 1104 MHz. Use 64 bit number in order to avoid VCO
+frequency overflow.
 
-drivers/media/dvb-frontends/drx39xyj/drx_driver.c: At top level:
-drivers/media/dvb-frontends/drx39xyj/drx_driver.c:842:5: warning: no previous prototype for 'ctrl_dump_registers' [-Wmissing-prototypes]
- int ctrl_dump_registers(pdrx_demod_instance_t demod,
+After that fix device in question tunes to following range:
+60 - 1104 MHz
+1250 - 2207 MHz
 
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb-frontends/drx39xyj/drx_driver.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/tuners/e4000.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
-index e8d1a26bf581..db92b4f9b650 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drx_driver.c
-@@ -178,7 +178,7 @@ static drx_scan_func_t get_scan_function(pdrx_demod_instance_t demod)
- * \param scan_context: Context Pointer.
- * \return drx_scan_func_t.
- */
--void *get_scan_context(pdrx_demod_instance_t demod, void *scan_context)
-+static void *get_scan_context(pdrx_demod_instance_t demod, void *scan_context)
- {
- 	pdrx_common_attr_t common_attr = (pdrx_common_attr_t) (NULL);
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index 3a03b02..ae52a1f 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -221,11 +221,11 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	struct e4000_priv *priv = fe->tuner_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i, sigma_delta;
+-	unsigned int f_vco;
++	u64 f_vco;
+ 	u8 buf[5], i_data[4], q_data[4];
  
-@@ -839,7 +839,7 @@ ctrl_program_tuner(pdrx_demod_instance_t demod, pdrx_channel_t channel)
- * \retval DRX_STS_INVALID_ARG: Wrong parameters.
- *
- */
--int ctrl_dump_registers(pdrx_demod_instance_t demod,
-+static int ctrl_dump_registers(pdrx_demod_instance_t demod,
- 			      p_drx_reg_dump_t registers)
- {
- 	u16 i = 0;
+ 	dev_dbg(&priv->client->dev,
+-			"%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
++			"%s: delivery_system=%d frequency=%u bandwidth_hz=%u\n",
+ 			__func__, c->delivery_system, c->frequency,
+ 			c->bandwidth_hz);
+ 
+@@ -248,20 +248,16 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 		goto err;
+ 	}
+ 
+-	/*
+-	 * Note: Currently f_vco overflows when c->frequency is 1 073 741 824 Hz
+-	 * or more.
+-	 */
+-	f_vco = c->frequency * e4000_pll_lut[i].mul;
++	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
+ 	sigma_delta = div_u64(0x10000ULL * (f_vco % priv->clock), priv->clock);
+-	buf[0] = f_vco / priv->clock;
++	buf[0] = div_u64(f_vco, priv->clock);
+ 	buf[1] = (sigma_delta >> 0) & 0xff;
+ 	buf[2] = (sigma_delta >> 8) & 0xff;
+ 	buf[3] = 0x00;
+ 	buf[4] = e4000_pll_lut[i].div;
+ 
+ 	dev_dbg(&priv->client->dev,
+-			"%s: f_vco=%u pll div=%d sigma_delta=%04x\n",
++			"%s: f_vco=%llu pll div=%d sigma_delta=%04x\n",
+ 			__func__, f_vco, buf[0], sigma_delta);
+ 
+ 	ret = e4000_wr_regs(priv, 0x09, buf, 5);
 -- 
 1.8.5.3
 
