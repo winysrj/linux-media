@@ -1,97 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32935 "EHLO comal.ext.ti.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:49061 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752393AbaCJJaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 05:30:01 -0400
-Message-ID: <531D85E7.2060409@ti.com>
-Date: Mon, 10 Mar 2014 11:29:11 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Andrzej Hajda <a.hajda@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-CC: Grant Likely <grant.likely@linaro.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v4 1/3] [media] of: move graph helpers from drivers/media/v4l2-core
- to drivers/of
-References: <1393340304-19005-1-git-send-email-p.zabel@pengutronix.de> <20140307171804.EF245C40A32@trevor.secretlab.ca> <CA+gwMcfgKre8S4KHPvTVuAuz672aehGrN1UfFpwKAueTAcrMZQ@mail.gmail.com> <1536567.OYzyi25bjL@avalon> <531D7E9F.3090708@samsung.com>
-In-Reply-To: <531D7E9F.3090708@samsung.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="bIh8W89TUIJmlfTSEVOve9C1uhLTE6eBG"
+	id S1755612AbaCNTZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Mar 2014 15:25:46 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] e4000: fix 32-bit build error
+Date: Fri, 14 Mar 2014 21:25:27 +0200
+Message-Id: <1394825128-8584-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---bIh8W89TUIJmlfTSEVOve9C1uhLTE6eBG
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+All error/warnings:
+   drivers/built-in.o: In function `e4000_set_params':
+>> e4000.c:(.text+0x1219a1b): undefined reference to `__umoddi3'
 
-On 10/03/14 10:58, Andrzej Hajda wrote:
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/e4000.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-> I want to propose another solution to simplify bindings, in fact I have=
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index 3b52550..67ecf1b 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -116,6 +116,7 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	struct e4000 *s = fe->tuner_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i, sigma_delta;
++	unsigned int pll_n, pll_f;
+ 	u64 f_vco;
+ 	u8 buf[5], i_data[4], q_data[4];
+ 
+@@ -141,8 +142,9 @@ static int e4000_set_params(struct dvb_frontend *fe)
+ 	}
+ 
+ 	f_vco = 1ull * c->frequency * e4000_pll_lut[i].mul;
+-	sigma_delta = div_u64(0x10000ULL * (f_vco % s->clock), s->clock);
+-	buf[0] = div_u64(f_vco, s->clock);
++	pll_n = div_u64_rem(f_vco, s->clock, &pll_f);
++	sigma_delta = div_u64(0x10000ULL * pll_f, s->clock);
++	buf[0] = pll_n;
+ 	buf[1] = (sigma_delta >> 0) & 0xff;
+ 	buf[2] = (sigma_delta >> 8) & 0xff;
+ 	buf[3] = 0x00;
+-- 
+1.8.5.3
 
-> few ideas to consider:
->=20
-> 1. Use named ports instead of address-cells/regs. Ie instead of
-> port@number schema, use port-function. This will allow to avoid ports
-> node and #address-cells, #size-cells, reg properties.
-> Additionally it should increase readability of the bindings.
->=20
-> device {
-> 	port-dsi {
-> 		endpoint { ... };
-> 	};
-> 	port-rgb {
-> 		endpoint { ... };
-> 	};
-> };
->=20
-> It is little bit like with gpios vs reset-gpios properties.
-> Another advantage I see we do not need do mappings of port numbers
-> to functions between dts, drivers and documentation.
-
-That makes it more difficult to iterate the ports. You need to go
-through all the nodes and use partial name matching. I think for things
-like gpios, the driver always gives the full name, so there's no need
-for any kind of partial matching or searching.
-
-It looks nice when just looking at the DT, though.
-
- Tomi
-
-
-
---bIh8W89TUIJmlfTSEVOve9C1uhLTE6eBG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJTHYXqAAoJEPo9qoy8lh71bKAP/0BLKbGZuSlBttYPCuKE2QgJ
-3TrJWDTyxsLwyHZlaRf7r8E9uP15CpGiYdu3ki1uxs3JAfp6ISNWodcCTdBxBcIi
-z7IzB9mrjkQ6pYBxA7wMqAbVBCyJSmQxBMUVkpC5ZhiFxXvphpzjDDCk/Ps4mAHu
-RGVBWSfoijqjOkZFzqqSCbjeiOgDYTcBI9Q1Vl7T+g6hurVJ9QHq8Fa3dUzDXFZ8
-zGqhVdSP5hDA9CpX5T4t668hx5LS6PQ9TZK/FAYTJ0FyJeELmuB3P+WOR4RwzcGA
-zyhWIIA4FvwvS+BdUO430mVFs7u2wf7PrEkNknxvHiXjsZOxp+DkaV1E6xpJhqxL
-IR4kMx5cW1bWMEoAz3op3xOFvtyzWQR4ycpAoQZirFl1AveyxW5xajGt1NYCKl03
-Hq3bsUBsrnAt4ttSgprQudq45bd5wVKJK0NailEuKPwynmXiNphUVVqHTgDIPh8k
-0oUw86GHYFXizJaDK3eLesiW1mnLL2SRs+fAf/5Pj4ZviBbKJHexgdcjR439xp0U
-64eIEN7wGMbyFpFR9R8lJBdTS+Wqrlo6r01EOb3tZMcn/fanJomx75OCFO09vD3z
-KFFWguKUx1GvL6q0Zx6vB/MYdifYnk1kQmt7dSW6vY630yRKJKHKj3rZ7Rvokycb
-k5/gKLojCM7fmZaItMmo
-=Yge3
------END PGP SIGNATURE-----
-
---bIh8W89TUIJmlfTSEVOve9C1uhLTE6eBG--
