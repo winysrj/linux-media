@@ -1,71 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.218]:15805 "EHLO
-	mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757635AbaCDUTA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Mar 2014 15:19:00 -0500
-Received: from localhost.localdomain ([2a02:8109:9f40:8e4:beae:c5ff:fe2c:b8a3])
-	by smtp.strato.de (RZmta 32.27 AUTH)
-	with ESMTPSA id K04bcbq24KCiQhU
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	for <linux-media@vger.kernel.org>;
-	Tue, 4 Mar 2014 21:12:44 +0100 (CET)
-Message-ID: <531633BB.7050908@stefanringel.de>
-Date: Tue, 04 Mar 2014 21:12:43 +0100
-From: Stefan Ringel <mail@stefanringel.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:40582 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754238AbaCNT23 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Mar 2014 15:28:29 -0400
+Received: from dyn3-82-128-190-236.psoas.suomi.net ([82.128.190.236] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1WOXmO-0001km-J9
+	for linux-media@vger.kernel.org; Fri, 14 Mar 2014 21:28:28 +0200
+Message-ID: <5323585B.8040200@iki.fi>
+Date: Fri, 14 Mar 2014 21:28:27 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed;
- boundary="------------000506020809020507050703"
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] 2 SDR fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000506020809020507050703
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+These were reported by kbuild test robot <fengguang.wu@intel.com> after 
+todays rtl2832_sdr driver commit.
+
+regards
+Antti
 
 
+The following changes since commit ba35ca07080268af1badeb47de0f9eff28126339:
 
---------------000506020809020507050703
-Content-Type: text/x-patch;
- name="0001-v4l-utils-bugfix-memory-chunk.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0001-v4l-utils-bugfix-memory-chunk.patch"
+   [media] em28xx-audio: make sure audio is unmuted on open() 
+(2014-03-14 10:17:18 -0300)
 
->From a5cfa1881de152a887d195e8c880dcca3e6b766e Mon Sep 17 00:00:00 2001
-From: Stefan Ringel <linuxtv@stefanringel.de>
-Date: Tue, 4 Mar 2014 20:50:32 +0100
-Subject: [PATCH] v4l-utils: bugfix memory chunk
+are available in the git repository at:
 
-Bug 1070855 - [abrt] v4l-utils: parse_string(): dvbv5-scan killed by SIGABRT
-https://bugzilla.redhat.com/show_bug.cgi?id=1070855
+   git://linuxtv.org/anttip/media_tree.git sdr_review_v7
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
----
- lib/libdvbv5/descriptors/desc_frequency_list.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+for you to fetch changes up to 78d81c0fbbd382fe0e0d688956413d9a035c8e21:
 
-diff --git a/lib/libdvbv5/descriptors/desc_frequency_list.c b/lib/libdvbv5/descriptors/desc_frequency_list.c
-index de6f9fd..0a06a4a 100644
---- a/lib/libdvbv5/descriptors/desc_frequency_list.c
-+++ b/lib/libdvbv5/descriptors/desc_frequency_list.c
-@@ -36,10 +36,10 @@ void dvb_desc_frequency_list_init(struct dvb_v5_fe_parms *parms, const uint8_t *
- 
- 	d->frequencies = (d->length - len) / sizeof(d->frequency[0]);
- 
--	d->frequency = calloc(1, sizeof(d->frequency));
-+	d->frequency = calloc(d->frequencies, sizeof(d->frequency));
- 
- 	for (i = 0; i < d->frequencies; i++) {
--		d->frequency[i] = ((uint32_t *) buf)[i];
-+		d->frequency[i] = ((uint32_t *) p)[i];
- 		bswap32(d->frequency[i]);
- 		switch (d->freq_type) {
- 			case 1: /* satellite - to get kHz */
+   rtl2832_sdr: do not use dynamic stack allocation (2014-03-14 21:20:40 
++0200)
+
+----------------------------------------------------------------
+Antti Palosaari (2):
+       e4000: fix 32-bit build error
+       rtl2832_sdr: do not use dynamic stack allocation
+
+  drivers/media/tuners/e4000.c                     | 6 ++++--
+  drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c | 7 ++++++-
+  2 files changed, 10 insertions(+), 3 deletions(-)
+
 -- 
-1.9.0
-
-
---------------000506020809020507050703--
+http://palosaari.fi/
