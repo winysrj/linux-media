@@ -1,57 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:33296 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750899AbaCUThx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Mar 2014 15:37:53 -0400
-Message-ID: <532C92BE.5030601@schinagl.nl>
-Date: Fri, 21 Mar 2014 20:27:58 +0100
-From: Olliver Schinagl <oliver@schinagl.nl>
-Reply-To: oliver+list@schinagl.nl
-MIME-Version: 1.0
-To: Jonathan McCrohan <jmccrohan@gmail.com>,
-	Quentin Glidic <sardemff7+linuxtv@sardemff7.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvb-apps build failure
-References: <52F346EA.4070100@sardemff7.net> <20140310233953.GA3490@lambda.dereenigne.org>
-In-Reply-To: <20140310233953.GA3490@lambda.dereenigne.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:43395 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755341AbaCNRaA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Mar 2014 13:30:00 -0400
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] af9033: Don't export functions for the hardware filter
+Date: Fri, 14 Mar 2014 14:29:06 -0300
+Message-Id: <1394818146-23111-1-git-send-email-m.chehab@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/2014 12:39 AM, Jonathan McCrohan wrote:
-> Hi Oliver,
->
-> On Thu, 06 Feb 2014 09:25:14 +0100, Quentin Glidic wrote:
->> Hello,
->>
->> When building dvb-apps from the Mercurial repository, you hit the
->> following error:
->> install: cannot stat 'atsc/*': No such file or directory
-Can you test it now? I removed the install section from the makefile and 
-pushed it upstream. It worked on my outdated virtual machine, so it 
-should be good now.
+Exporting functions for hardware filter is a bad idea, as it
+breaks compilation if:
+	CONFIG_DVB_USB_AF9035=y
+	CONFIG_DVB_AF9033=m
 
-Sorry for the delay, was hoping one of the dvb-apps maintainers would 
-pick it up ...
+Because the PID filter function calls would be hardcoded at
+af9035.
 
-Olliver
->>
->> In the latest changeset
->> (http://linuxtv.org/hg/dvb-apps/rev/d40083fff895) scan files were
->> deleted from the repository but not their install rule.
->>
->> Could someone please remove the bottom part of util/scan/Makefile (from
->> line 31,
->> http://linuxtv.org/hg/dvb-apps/file/d40083fff895/util/scan/Makefile#l31)
->> to fix this issue?
->
-> Ping on Quentin's behalf. I'd like to upload a new version of dvb-apps
-> to Debian, but the build is currently broken after your recent patch.
->
-> Would you be able to take a look?
->
-> Thanks,
-> Jon
->
+The same doesn't happen with af9033_attach() because the
+dvb_attach() doesn't hardcode it. Instead, it dynamically
+links it at runtime.
+
+However, calling dvb_attach() multiple times is problematic,
+as it increments module kref.
+
+So, the better is to pass one parameter for the af9033 module
+to fill the hardware filters, and then use it inside af9035.
+
+Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
+---
+ drivers/media/dvb-frontends/af9033.c  | 14 +++++++++-----
+ drivers/media/dvb-frontends/af9033.h  | 23 +++++++++++++++--------
+ drivers/media/usb/dvb-usb-v2/af9035.c | 10 +++++++---
+ drivers/media/usb/dvb-usb-v2/af9035.h |  2 ++
+ 4 files changed, 33 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 5a1c508c7417..be4bec2a9640 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -989,7 +989,7 @@ err:
+ 	return ret;
+ }
+ 
+-int af9033_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
++static int af9033_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
+ {
+ 	struct af9033_state *state = fe->demodulator_priv;
+ 	int ret;
+@@ -1007,9 +1007,8 @@ err:
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(af9033_pid_filter_ctrl);
+ 
+-int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid, int onoff)
++static int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid, int onoff)
+ {
+ 	struct af9033_state *state = fe->demodulator_priv;
+ 	int ret;
+@@ -1040,12 +1039,12 @@ err:
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(af9033_pid_filter);
+ 
+ static struct dvb_frontend_ops af9033_ops;
+ 
+ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+-		struct i2c_adapter *i2c)
++				   struct i2c_adapter *i2c,
++				   struct af9033_ops *ops)
+ {
+ 	int ret;
+ 	struct af9033_state *state;
+@@ -1120,6 +1119,11 @@ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+ 	memcpy(&state->fe.ops, &af9033_ops, sizeof(struct dvb_frontend_ops));
+ 	state->fe.demodulator_priv = state;
+ 
++	if (ops) {
++		ops->pid_filter = af9033_pid_filter;
++		ops->pid_filter_ctrl = af9033_pid_filter_ctrl;
++	}
++
+ 	return &state->fe;
+ 
+ err:
+diff --git a/drivers/media/dvb-frontends/af9033.h b/drivers/media/dvb-frontends/af9033.h
+index de245f9adb65..539f4db678b8 100644
+--- a/drivers/media/dvb-frontends/af9033.h
++++ b/drivers/media/dvb-frontends/af9033.h
+@@ -78,17 +78,24 @@ struct af9033_config {
+ };
+ 
+ 
+-#if IS_ENABLED(CONFIG_DVB_AF9033)
+-extern struct dvb_frontend *af9033_attach(const struct af9033_config *config,
+-	struct i2c_adapter *i2c);
++struct af9033_ops {
++	int (*pid_filter_ctrl)(struct dvb_frontend *fe, int onoff);
++	int (*pid_filter)(struct dvb_frontend *fe, int index, u16 pid,
++			  int onoff);
++};
+ 
+-extern int af9033_pid_filter_ctrl(struct dvb_frontend *fe, int onoff);
+ 
+-extern int af9033_pid_filter(struct dvb_frontend *fe, int index, u16 pid,
+-	int onoff);
++#if IS_ENABLED(CONFIG_DVB_AF9033)
++extern
++struct dvb_frontend *af9033_attach(const struct af9033_config *config,
++				   struct i2c_adapter *i2c,
++				   struct af9033_ops *ops);
++
+ #else
+-static inline struct dvb_frontend *af9033_attach(
+-	const struct af9033_config *config, struct i2c_adapter *i2c)
++static inline
++struct dvb_frontend *af9033_attach(const struct af9033_config *config,
++				   struct i2c_adapter *i2c,
++				   struct af9033_ops *ops)
+ {
+ 	pr_warn("%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 31d09a23c82e..021e4d35e4d7 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -963,7 +963,7 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+ 
+ 	/* attach demodulator */
+ 	adap->fe[0] = dvb_attach(af9033_attach, &state->af9033_config[adap->id],
+-			&d->i2c_adap);
++			&d->i2c_adap, &state->ops);
+ 	if (adap->fe[0] == NULL) {
+ 		ret = -ENODEV;
+ 		goto err;
+@@ -1373,13 +1373,17 @@ static int af9035_get_stream_config(struct dvb_frontend *fe, u8 *ts_type,
+ 
+ static int af9035_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ {
+-	return af9033_pid_filter_ctrl(adap->fe[0], onoff);
++	struct state *state = adap_to_priv(adap);
++
++	return state->ops.pid_filter_ctrl(adap->fe[0], onoff);
+ }
+ 
+ static int af9035_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid,
+ 		int onoff)
+ {
+-	return af9033_pid_filter(adap->fe[0], index, pid, onoff);
++	struct state *state = adap_to_priv(adap);
++
++	return state->ops.pid_filter(adap->fe[0], index, pid, onoff);
+ }
+ 
+ static int af9035_probe(struct usb_interface *intf,
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+index a1c68d829b8c..c21902fdd4c4 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.h
++++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+@@ -62,6 +62,8 @@ struct state {
+ 	u8 dual_mode:1;
+ 	u16 eeprom_addr;
+ 	struct af9033_config af9033_config[2];
++
++	struct af9033_ops ops;
+ };
+ 
+ static const u32 clock_lut_af9035[] = {
+-- 
+1.8.5.3
 
