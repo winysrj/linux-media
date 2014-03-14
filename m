@@ -1,112 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3927 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753556AbaCGO0g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Mar 2014 09:26:36 -0500
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1413 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753257AbaCNL5b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Mar 2014 07:57:31 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 5/5] DocBook media: clarify v4l2_pix_format and v4l2_pix_format_mplane fields
-Date: Fri,  7 Mar 2014 15:26:24 +0100
-Message-Id: <1394202384-5762-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1394202384-5762-1-git-send-email-hverkuil@xs4all.nl>
-References: <1394202384-5762-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH for v3.15 1/2] DocBook media: v4l2_format_sdr was renamed to v4l2_sdr_format
+Date: Fri, 14 Mar 2014 12:57:06 +0100
+Message-Id: <1394798227-3708-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1394798227-3708-1-git-send-email-hverkuil@xs4all.nl>
+References: <1394798227-3708-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Be more specific with regards to how some of these fields are interpreted.
-In particular height vs field and which fields can be set by the application.
+Update the DocBook files accordingly.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Antti Palosaari <crope@iki.fi>
 ---
- Documentation/DocBook/media/v4l/pixfmt.xml | 33 +++++++++++++++++++++++-------
- 1 file changed, 26 insertions(+), 7 deletions(-)
+ Documentation/DocBook/media/v4l/dev-sdr.xml      | 6 +++---
+ Documentation/DocBook/media/v4l/vidioc-g-fmt.xml | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index f586d34..7b0b098 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -25,7 +25,18 @@ capturing and output, for overlay frame buffer formats see also
- 	<row>
- 	  <entry>__u32</entry>
- 	  <entry><structfield>height</structfield></entry>
--	  <entry>Image height in pixels.</entry>
-+	  <entry>Image height in pixels. If <structfield>field</structfield> is
-+	  one of <constant>V4L2_FIELD_TOP</constant>, <constant>V4L2_FIELD_BOTTOM</constant>
-+	  or <constant>V4L2_FIELD_ALTERNATE</constant> then height refers to the
-+	  number of lines in the field, otherwise it refers to the number of
-+	  lines in the frame (which is twice the field height for interlaced
-+	  formats). In case of conflicts between the <structfield>height</structfield>
-+	  value and the <structfield>field</structfield> value, the
-+	  <structfield>height</structfield> shall be the deciding factor.
-+	  So if <structfield>height</structfield> is set to 480 for an NTSC-M
-+	  standard, and <structfield>field</structfield> is set to
-+	  <constant>V4L2_FIELD_TOP</constant>, then <structfield>field</structfield>
-+	  shall be adjusted to &eg; <constant>V4L2_FIELD_INTERLACED</constant>.</entry>
- 	</row>
- 	<row>
- 	  <entry spanname="hspan">Applications set these fields to
-@@ -54,7 +65,11 @@ linkend="reserved-formats" /></entry>
- can request to capture or output only the top or bottom field, or both
- fields interlaced or sequentially stored in one buffer or alternating
- in separate buffers. Drivers return the actual field order selected.
--For details see <xref linkend="field-order" />.</entry>
-+In case of conflicts between the <structfield>height</structfield> and
-+<structfield>field</structfield> values, the <structfield>height</structfield>
-+value will be the deciding factor. See also the description of
-+<structfield>height</structfield> above.
-+For more details on fields see <xref linkend="field-order" />.</entry>
- 	</row>
- 	<row>
- 	  <entry>__u32</entry>
-@@ -81,7 +96,10 @@ plane and is divided by the same factor as the
- example the Cb and Cr planes of a YUV 4:2:0 image have half as many
- padding bytes following each line as the Y plane. To avoid ambiguities
- drivers must return a <structfield>bytesperline</structfield> value
--rounded up to a multiple of the scale factor.</para></entry>
-+rounded up to a multiple of the scale factor.</para>
-+<para>For compressed formats the <structfield>bytesperline</structfield>
-+value makes no sense. Applications and drivers must set this to 0 in
-+that case.</para></entry>
- 	</row>
- 	<row>
- 	  <entry>__u32</entry>
-@@ -97,7 +115,8 @@ hold an image.</entry>
- 	  <entry>&v4l2-colorspace;</entry>
- 	  <entry><structfield>colorspace</structfield></entry>
- 	  <entry>This information supplements the
--<structfield>pixelformat</structfield> and must be set by the driver,
-+<structfield>pixelformat</structfield> and must be set by the driver for
-+capture streams and by the application for output streams,
- see <xref linkend="colorspaces" />.</entry>
- 	</row>
- 	<row>
-@@ -135,7 +154,7 @@ set this field to zero.</entry>
-           <entry>__u16</entry>
-           <entry><structfield>bytesperline</structfield></entry>
-           <entry>Distance in bytes between the leftmost pixels in two adjacent
--            lines.</entry>
-+            lines. See &v4l2-pix-format;.</entry>
-         </row>
-         <row>
-           <entry>__u16</entry>
-@@ -154,12 +173,12 @@ set this field to zero.</entry>
-         <row>
-           <entry>__u32</entry>
-           <entry><structfield>width</structfield></entry>
--          <entry>Image width in pixels.</entry>
-+          <entry>Image width in pixels. See &v4l2-pix-format;.</entry>
-         </row>
-         <row>
-           <entry>__u32</entry>
-           <entry><structfield>height</structfield></entry>
--          <entry>Image height in pixels.</entry>
-+          <entry>Image height in pixels. See &v4l2-pix-format;.</entry>
-         </row>
-         <row>
-           <entry>__u32</entry>
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index 524b9c4..dc14804 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -69,15 +69,15 @@ must be supported as well.
+     <para>
+ To use the <link linkend="format">format</link> ioctls applications set the
+ <structfield>type</structfield> field of a &v4l2-format; to
+-<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-format-sdr;
++<constant>V4L2_BUF_TYPE_SDR_CAPTURE</constant> and use the &v4l2-sdr-format;
+ <structfield>sdr</structfield> member of the <structfield>fmt</structfield>
+ union as needed per the desired operation.
+ Currently only the <structfield>pixelformat</structfield> field of
+-&v4l2-format-sdr; is used. The content of that field is the V4L2 fourcc code
++&v4l2-sdr-format; is used. The content of that field is the V4L2 fourcc code
+ of the data format.
+     </para>
+ 
+-    <table pgwide="1" frame="none" id="v4l2-format-sdr">
++    <table pgwide="1" frame="none" id="v4l2-sdr-format">
+       <title>struct <structname>v4l2_sdr_format</structname></title>
+       <tgroup cols="3">
+         &cs-str;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+index f43f1a9..4fe19a7a 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
+@@ -172,7 +172,7 @@ capture and output devices.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+-	    <entry>&v4l2-format-sdr;</entry>
++	    <entry>&v4l2-sdr-format;</entry>
+ 	    <entry><structfield>sdr</structfield></entry>
+ 	    <entry>Definition of a data format, see
+ <xref linkend="pixfmt" />, used by SDR capture devices.</entry>
 -- 
 1.9.0
 
