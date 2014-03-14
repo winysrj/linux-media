@@ -1,63 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53313 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:62506 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754071AbaCJTer (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Mar 2014 15:34:47 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [FINAL PATCH 6/6] msi3101: fix v4l2-compliance issues
-Date: Mon, 10 Mar 2014 21:34:12 +0200
-Message-Id: <1394480052-6003-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1394480052-6003-1-git-send-email-crope@iki.fi>
-References: <1394480052-6003-1-git-send-email-crope@iki.fi>
+	id S1754591AbaCNSxP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Mar 2014 14:53:15 -0400
+Message-ID: <53235018.1040105@redhat.com>
+Date: Fri, 14 Mar 2014 19:53:12 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4lconvert: remove broken ALTERNATE handling
+References: <5322F864.6050507@xs4all.nl>
+In-Reply-To: <5322F864.6050507@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix msi3101 driver v4l2-compliance issues.
+Hi,
 
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/staging/media/msi3101/sdr-msi3101.c | 4 ++++
- 1 file changed, 4 insertions(+)
+On 03/14/2014 01:39 PM, Hans Verkuil wrote:
+> The V4L2 specification used to say that if field == V4L2_FIELD_ALTERNATE, the
+> height would have to be divided by two. This is incorrect, the height is that of
+> a single field. This has been corrected in the spec, now this code in libv4lconvert
+> needs to be removed as well.
+> 
+> Tested with both bttv and saa7146, the only two drivers supporting FIELD_ALTERNATE
+> today.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  lib/libv4lconvert/libv4lconvert.c | 7 -------
+>  1 file changed, 7 deletions(-)
+> 
+> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+> index e2afc27..df06b75 100644
+> --- a/lib/libv4lconvert/libv4lconvert.c
+> +++ b/lib/libv4lconvert/libv4lconvert.c
+> @@ -1328,13 +1328,6 @@ int v4lconvert_convert(struct v4lconvert_data *data,
+>  		return to_copy;
+>  	}
+>  
+> -	/* When field is V4L2_FIELD_ALTERNATE, each buffer only contains half the
+> -	   lines */
+> -	if (my_src_fmt.fmt.pix.field == V4L2_FIELD_ALTERNATE) {
+> -		my_src_fmt.fmt.pix.height /= 2;
+> -		my_dest_fmt.fmt.pix.height /= 2;
+> -	}
+> -
+>  	/* sanity check, is the dest buffer large enough? */
+>  	switch (my_dest_fmt.fmt.pix.pixelformat) {
+>  	case V4L2_PIX_FMT_RGB24:
+> 
 
-diff --git a/drivers/staging/media/msi3101/sdr-msi3101.c b/drivers/staging/media/msi3101/sdr-msi3101.c
-index 93e6eba..011db2c 100644
---- a/drivers/staging/media/msi3101/sdr-msi3101.c
-+++ b/drivers/staging/media/msi3101/sdr-msi3101.c
-@@ -1134,6 +1134,7 @@ static int msi3101_g_fmt_sdr_cap(struct file *file, void *priv,
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
- 			(char *)&s->pixelformat);
- 
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	f->fmt.sdr.pixelformat = s->pixelformat;
- 
- 	return 0;
-@@ -1151,6 +1152,7 @@ static int msi3101_s_fmt_sdr_cap(struct file *file, void *priv,
- 	if (vb2_is_busy(q))
- 		return -EBUSY;
- 
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	for (i = 0; i < NUM_FORMATS; i++) {
- 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
- 			s->pixelformat = f->fmt.sdr.pixelformat;
-@@ -1172,6 +1174,7 @@ static int msi3101_try_fmt_sdr_cap(struct file *file, void *priv,
- 	dev_dbg(&s->udev->dev, "%s: pixelformat fourcc %4.4s\n", __func__,
- 			(char *)&f->fmt.sdr.pixelformat);
- 
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
- 	for (i = 0; i < NUM_FORMATS; i++) {
- 		if (formats[i].pixelformat == f->fmt.sdr.pixelformat)
- 			return 0;
-@@ -1233,6 +1236,7 @@ static int msi3101_g_frequency(struct file *file, void *priv,
- 		f->frequency = s->f_adc;
- 		ret = 0;
- 	} else if (f->tuner == 1) {
-+		f->type = V4L2_TUNER_RF;
- 		ret = v4l2_subdev_call(s->v4l2_subdev, tuner, g_frequency, f);
- 	} else {
- 		ret = -EINVAL;
--- 
-1.8.5.3
+Looks good, feel free to pish this.
 
+Regards,
+
+Hans
