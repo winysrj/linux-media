@@ -1,79 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:40217 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751602AbaCFORL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Mar 2014 09:17:11 -0500
-Date: Thu, 6 Mar 2014 14:16:57 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+Received: from mail.kapsi.fi ([217.30.184.167]:42693 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753484AbaCNAOt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 20:14:49 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <robh+dt@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 0/8] Move device tree graph parsing helpers to
-	drivers/of
-Message-ID: <20140306141657.GB21483@n2100.arm.linux.org.uk>
-References: <1394011242-16783-1-git-send-email-p.zabel@pengutronix.de> <53170C00.20200@ti.com> <1394030554.8754.31.camel@paszta.hi.pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1394030554.8754.31.camel@paszta.hi.pengutronix.de>
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 17/17] MAINTAINERS: add rtl2832_sdr driver
+Date: Fri, 14 Mar 2014 02:14:31 +0200
+Message-Id: <1394756071-22410-18-git-send-email-crope@iki.fi>
+In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
+References: <1394756071-22410-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 05, 2014 at 03:42:34PM +0100, Philipp Zabel wrote:
-> Am Mittwoch, den 05.03.2014, 13:35 +0200 schrieb Tomi Valkeinen:
-> > Hi,
-> > 
-> > On 05/03/14 11:20, Philipp Zabel wrote:
-> > > Hi,
-> > > 
-> > > this version of the OF graph helper move series further addresses a few of
-> > > Tomi's and Sylwester's comments.
-> > > 
-> > > Changes since v5:
-> > >  - Fixed spelling errors and a wrong device node name in the link section
-> > >  - Added parentless previous endpoint's full name to warning
-> > >  - Fixed documentation comment for of_graph_parse_endpoint
-> > >  - Unrolled for-loop in of_graph_get_remote_port_parent
-> > > 
-> > > Philipp Zabel (8):
-> > >   [media] of: move graph helpers from drivers/media/v4l2-core to
-> > >     drivers/of
-> > >   Documentation: of: Document graph bindings
-> > >   of: Warn if of_graph_get_next_endpoint is called with the root node
-> > >   of: Reduce indentation in of_graph_get_next_endpoint
-> > >   [media] of: move common endpoint parsing to drivers/of
-> > >   of: Implement simplified graph binding for single port devices
-> > >   of: Document simplified graph binding for single port devices
-> > >   of: Warn if of_graph_parse_endpoint is called with the root node
-> > 
-> > So, as I've pointed out, I don't agree with the API, as it's too limited
-> > and I can't use it, but as this series is (mostly) about moving the
-> > current API to a common place, it's fine for me.
-> > 
-> > Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> 
-> Thanks. I'll be happy to help expanding the API to parse ports
-> individually, once this gets accepted.
-> 
-> Mauro, Guennadi, are you fine with how this turned out? I'd like to get
-> your acks again, for the changed location.
+Realtek RTL2832 SDR driver. Currently in staging as SDR API is not
+ready.
 
-I'll need those acks before I can even think about queuing up the
-imx-drm bits.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ MAINTAINERS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Another way to deal with this is if this gets pulled into the V4L tree
-from Philipp's git tree, I can also pull that in myself.  What mustn't
-happen is for these to be committed independently as patches.
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3718c32..94c9cff 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7351,6 +7351,16 @@ T:	git git://linuxtv.org/anttip/media_tree.git
+ S:	Maintained
+ F:	drivers/media/dvb-frontends/rtl2832*
+ 
++RTL2832_SDR MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/staging/media/rtl2832u_sdr/rtl2832_sdr*
++
+ RTL8180 WIRELESS DRIVER
+ M:	"John W. Linville" <linville@tuxdriver.com>
+ L:	linux-wireless@vger.kernel.org
 -- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+1.8.5.3
+
