@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:48928 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706AbaCVMWD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Mar 2014 08:22:03 -0400
-Received: by mail-ee0-f49.google.com with SMTP id c41so2711490eek.8
-        for <linux-media@vger.kernel.org>; Sat, 22 Mar 2014 05:22:02 -0700 (PDT)
-Message-ID: <532D809D.4060605@googlemail.com>
-Date: Sat, 22 Mar 2014 13:22:53 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from mga09.intel.com ([134.134.136.24]:43466 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754378AbaCNO2g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Mar 2014 10:28:36 -0400
+Date: Fri, 14 Mar 2014 22:28:16 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	kbuild-all@01.org
+Subject: [linuxtv-media:master 479/499]
+ drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c:181:1: warning:
+ 'rtl2832_sdr_wr' uses dynamic stack allocation
+Message-ID: <53231200.ZJYsLEXrYCIlm6qs%fengguang.wu@intel.com>
 MIME-Version: 1.0
-To: dheitmueller@kernellabs.com
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: xc2038/3028 firmware
-References: <532C75F8.2030405@googlemail.com> <CAGoCfizciqjEZ0QTtvSitAUYORjDFFM1br2xF3drnVSTUwzXdg@mail.gmail.com>
-In-Reply-To: <CAGoCfizciqjEZ0QTtvSitAUYORjDFFM1br2xF3drnVSTUwzXdg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin,
+tree:   git://linuxtv.org/media_tree.git master
+head:   ba35ca07080268af1badeb47de0f9eff28126339
+commit: 771138920eafa399f68d3492c8a75dfeea23474b [479/499] [media] rtl2832_sdr: Realtek RTL2832 SDR driver module
+config: make ARCH=s390 allmodconfig
 
-Am 21.03.2014 18:38, schrieb Devin Heitmueller:
-> Hi Frank,
->
-> I specifically asked for and received permission from
-> Xceive/CrestaTech to make the xc5000 firmware freely redistributable.
-> They were unwilling to entertain that though for the xc2028/3028 as
-> they considered it a long deprecated product.
->
-> In order to include firmware blobs in linux-firmware, there needs to
-> be an actual license legally permitting redistribution - we don't have
-> that for the 2028/3028.
->
-> In general CrestaTech have been extremely cooperative with the Linux
-> community, especially in recent years.  However in this case they just
-> couldn't justify the effort to do the paperwork for a chip that they
-> stopped shipping years ago.
->
-> Devin
-Ok, so you've already asked them for a xc2028/3028 firmware
-redistribution permission, but (in opposition to the xc5000) they didn't
-grant it ?
-Too bad. :-(
-The xc2028/3028 is used in so many devices and playing manual firmware
-extraction games sucks.
-A too big obstacle for many users (if they even find out that their
-device isn't working due to missing firmware)...
+All warnings:
 
-Regards,
-Frank
+   drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c: In function 'rtl2832_sdr_wr':
+>> drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c:181:1: warning: 'rtl2832_sdr_wr' uses dynamic stack allocation [enabled by default]
 
-> On Fri, Mar 21, 2014 at 1:25 PM, Frank Schäfer
-> <fschaefer.oss@googlemail.com> wrote:
->> Hi,
->>
->> are there any reasons why the xc2028/3028 firmware files are not
->> included in the linux-firmware tree ?
->> The xc5000 firmware is already there, so it seems Xceive|has nothing
->> against| redistribution of their firmware... ?!
->>
->> Regards,
->> Frank
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+vim +/rtl2832_sdr_wr +181 drivers/staging/media/rtl2832u_sdr/rtl2832_sdr.c
 
+   165			}
+   166		};
+   167	
+   168		buf[0] = reg;
+   169		memcpy(&buf[1], val, len);
+   170	
+   171		ret = i2c_transfer(s->i2c, msg, 1);
+   172		if (ret == 1) {
+   173			ret = 0;
+   174		} else {
+   175			dev_err(&s->i2c->dev,
+   176				"%s: I2C wr failed=%d reg=%02x len=%d\n",
+   177				KBUILD_MODNAME, ret, reg, len);
+   178			ret = -EREMOTEIO;
+   179		}
+   180		return ret;
+ > 181	}
+   182	
+   183	/* read multiple hardware registers */
+   184	static int rtl2832_sdr_rd(struct rtl2832_sdr_state *s, u8 reg, u8 *val, int len)
+   185	{
+   186		int ret;
+   187		struct i2c_msg msg[2] = {
+   188			{
+   189				.addr = s->cfg->i2c_addr,
+
+---
+0-DAY kernel build testing backend              Open Source Technology Center
+http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
