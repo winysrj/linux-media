@@ -1,161 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w2.samsung.com ([211.189.100.11]:55283 "EHLO
-	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752866AbaCMNt3 (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4016 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754801AbaCND3e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 09:49:29 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0N2D005E0NQFWS50@mailout1.w2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 13 Mar 2014 09:49:27 -0400 (EDT)
-Date: Thu, 13 Mar 2014 10:49:21 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 1/3] e4000: convert DVB tuner to I2C driver model
-Message-id: <20140313104921.683455ff@samsung.com>
-In-reply-to: <CAGoCfiypLAQJWLpJp-SJ498NXcr35V_Y_EADONHggGwsc70r1g@mail.gmail.com>
-References: <1390781812-20226-1-git-send-email-crope@iki.fi>
- <CAGoCfiyQ6-SA-5PYMgAv3Oq3gzcR-ReYCpL8Ak-KRVw0XHNd4Q@mail.gmail.com>
- <52E5AAAD.5050906@iki.fi>
- <CAOcJUbzN9dM-KnMEU3GooS183GPOSmoGyF5CGiX36ZBm7PqYZA@mail.gmail.com>
- <52E6DA4E.4020109@iki.fi>
- <CAGoCfiypLAQJWLpJp-SJ498NXcr35V_Y_EADONHggGwsc70r1g@mail.gmail.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Thu, 13 Mar 2014 23:29:34 -0400
+Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id s2E3TU5H001609
+	for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 04:29:32 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (tschai [192.168.1.10])
+	by tschai.lan (Postfix) with ESMTPSA id 2E9842A1889
+	for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 04:29:25 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20140314032925.2E9842A1889@tschai.lan>
+Date: Fri, 14 Mar 2014 04:29:25 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 27 Jan 2014 12:45:51 -0500
-Michael Krufky <mkrufky@linuxtv.org> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Antti submitted similar patches a few months ago - I have to review
-> his newer series and see if anything has changed.  My goal would be to
-> commit these patches into a new branch and work on converting the
-> entire tuner tree to the newer method, only merging to master once all
-> is done and tested.
+Results of the daily build of media_tree:
 
-It passed almost two months without such review. I can't see any reason
-to delay merging this patch, as the only device using this tuner should
-work with the new approach.
+date:		Fri Mar 14 04:00:17 CET 2014
+git branch:	test
+git hash:	8ea5488a919bbd49941584f773fd66623192ffc0
+gcc version:	i686-linux-gcc (GCC) 4.8.2
+sparse version:	0.4.5-rc1
+host hardware:	x86_64
+host os:	3.13-5.slh.4-amd64
 
-Em Tue, 28 Jan 2014 08:41:40 -0500
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12-i686: WARNINGS
+linux-3.13-i686: WARNINGS
+linux-3.14-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12-x86_64: WARNINGS
+linux-3.13-x86_64: WARNINGS
+linux-3.14-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse version:	0.4.5-rc1
+sparse: ERRORS
 
-> Hi Antti,
-> 
-> > My biggest point was to criticize that general resistance of new design
-> > models which has been DVB side, not only that simple change but many others
-> > too. I am pretty sure the many "mistakes" are taken when there has not been
-> > better alternative available at the time, and later was developed proper
-> > solution, which is not still taken into use.
-> 
-> Sometimes the simplest looking changes can introduce all sorts of
-> regressions.  Just look at the mess that was caused by Mauro's
-> supposedly trivial "dynamic stack allocation" fixes as a prime
-> example.
-> 
-> In principle I don't have any objection to adopting common frameworks.
->  That said, the changes you've proposed do deviate from how the
-> framework currently works, and it might have been more constructive to
-> post an RFC to the mailing list describing your proposed changes to
-> the framework rather than just submitting a patch for a single tuner.
+Detailed results are available here:
 
-As far as I remember, Antti did it. There weren't many comments about
-that.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-> In this particular case, your approach does give us some advantages in
-> being able to leverage the I2C framework, but it has costs as well.
-> Specifically my concerns are as follows:
-> 
-> 1.  Removing the abstraction layer that dvb_attach() provided will
-> make it more difficult to add resource tracking code to handle tuner
-> locking/sharing.  To solve those problems would actually require us to
-> later *reintroduce* a layer of abstraction between the bridge and
-> tuner drivers if this patch were accepted as-is.
+Full logs are available here:
 
-dvb_attach() is a dirty hack. It doesn't even take into account which
-modules are using a DVB module - as can be seen when using lsmod.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-All dvb_attach() does is to load a module when a non-existent symbol
-is called.
+The Media Infrastructure API from this daily build is here:
 
-Up to today, we have issues with that, as some Kconfig configurations
-cause compilation failure on dibcom drivers (as, there, there are other
-symbols other than attach that are needed for the bridge to properly
-talk with the demod).
-
-> Case in point - in the V4L2 layer, they actually went in the opposite
-> direction - adding the V4L2 subdev framework in order to provide
-> additional abstraction between the bridge and I2C devices.
-
-Yes, but the subdev layer requires that drivers will first be a fully
-compliant I2C module, in order to work.
-
-We'll likely need a subdev layer on DVB side too in the future, in
-order, for example, to solve the binding problems between dib0700
-and the frontends, were there are some additional callbacks that are
-needed for it to work properly.
-
-> 2.  Your approach now makes it the responsibility of the caller to
-> explicitly call request_module(), something that is taken care of
-> today by dvb_attach().  Right now you can't forget to include the
-> dependency since it's taken care of for you - with your change the
-> implementor *can* forget, and the result will be that it will fail
-> *sometimes* based on whether the module happens to already be loaded.
-> In theory your approach would give us a bit more flexibility to have
-> drivers with fewer module dependencies if people are compiling the
-> kernel from scratch for a single tuner, but that's hardly the common
-> use case and it significantly increases the risk of new bugs in
-> failing to specify dependencies.
-
-The same is true for V4L2 or hybrid drivers. The historic number of bugs
-of people forgetting to add request_module() there was very small
-because this is easily noticed during development phase, as, without
-loading the module, the driver won't work properly.
-
-> 3.  Your change gives no consideration to analog or hybrid tuners.
-> This isn't surprising since you've never worked in that area, but if
-> the model you are proposing is to be applied to all tuners, then we
-> need to fully understand the effects on tuner-core.ko.
-
-Good point. The first time we do such kind of conversion to a tuner
-used by an hybrid driver, we'll need to address those issues.
-
-> > I have also feeling that these wrong solutions and design models used are
-> > one source of problems we have. All the chip I/Os should be modeled in a
-> > standard manner to make sure it is possible to interconnect flexible. GPIOs
-> > should be implemented as kernel GPIOs. I2C should be implemented as kernel
-> > I2C. Clock should be implemented as a kernel clock. Chip power-management
-> > should be implement as regulator (or what ever that is). TS interface also
-> > should be modeled and implement in a standard manner. Implementing things
-> > like that makes it possible to interconnect complex hardware without fearing
-> > some small change will break functionality because of some home-brew
-> > solution.
-> 
-> Sure.  Modular design practices are a good thing.  Thanks for stating
-> the obvious.  Did they also teach you about how refactoring can
-> introduce bugs, especially in instances where there are no unit tests
-> and you cannot exercise all the possible code paths?  :-)
-
-The e4000 tuner is used only on DVB and SDR realtek drivers, all
-maintained by Antti.
-
-I'm assuming that he tested that both keeps working after the changes.
-In any case, if Antti broke something on his drivers, he should fix it.
-
-> I am confident that after the above factors are considered/addressed
-> that some variant of this patch can certainly be incorporated
-> upstream, and I look forward to seeing the continued improvement of
-> the codebase while not introducing new regressions.
-> 
-> Devin
-> 
-
-Regards,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
