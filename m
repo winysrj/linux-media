@@ -1,55 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3244 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754296AbaCKME0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Mar 2014 08:04:26 -0400
-Message-ID: <531EFB9B.1050902@xs4all.nl>
-Date: Tue, 11 Mar 2014 13:03:39 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:46138 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754518AbaCNToL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Mar 2014 15:44:11 -0400
+Received: from dyn3-82-128-190-236.psoas.suomi.net ([82.128.190.236] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1WOY1a-0004MU-Pv
+	for linux-media@vger.kernel.org; Fri, 14 Mar 2014 21:44:10 +0200
+Message-ID: <53235C0A.5010402@iki.fi>
+Date: Fri, 14 Mar 2014 21:44:10 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Archit Taneja <archit@ti.com>
-CC: k.debski@samsung.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v3 05/14] v4l: ti-vpe: Allow usage of smaller images
-References: <1393922965-15967-1-git-send-email-archit@ti.com> <1394526833-24805-1-git-send-email-archit@ti.com> <1394526833-24805-6-git-send-email-archit@ti.com>
-In-Reply-To: <1394526833-24805-6-git-send-email-archit@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] AF9035/AF9033 PID filter
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/14 09:33, Archit Taneja wrote:
-> The minimum width and height for VPE input/output was kept as 128 pixels. VPE
-> doesn't have a constraint on the image height, it requires the image width to
-> be at least 16 bytes.
-> 
-> Change the minimum supported dimensions to 32x32. This allows us to de-interlace
-> qcif content. A smaller image size than 32x32 didn't make much sense, so stopped
-> at this.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+The following changes since commit ba35ca07080268af1badeb47de0f9eff28126339:
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+   [media] em28xx-audio: make sure audio is unmuted on open() 
+(2014-03-14 10:17:18 -0300)
 
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> index 0e7573a..dbdc338 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -49,8 +49,8 @@
->  #define VPE_MODULE_NAME "vpe"
->  
->  /* minimum and maximum frame sizes */
-> -#define MIN_W		128
-> -#define MIN_H		128
-> +#define MIN_W		32
-> +#define MIN_H		32
->  #define MAX_W		1920
->  #define MAX_H		1080
->  
-> 
+are available in the git repository at:
 
+   git://linuxtv.org/anttip/media_tree.git af9033_pid_filter
+
+for you to fetch changes up to 370264fd6a8391ba5a51986ccf8bc9a2267efeb8:
+
+   af9033: Don't export functions for the hardware filter (2014-03-14 
+21:33:13 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (2):
+       af9033: implement PID filter
+       af9035: use af9033 PID filters
+
+Mauro Carvalho Chehab (1):
+       af9033: Don't export functions for the hardware filter
+
+  drivers/media/dvb-frontends/af9033.c  | 59 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+  drivers/media/dvb-frontends/af9033.h  | 34 
+++++++++++++++++++++++++++++++----
+  drivers/media/usb/dvb-usb-v2/af9035.c | 63 
++++++++++++++--------------------------------------------------
+  drivers/media/usb/dvb-usb-v2/af9035.h |  2 ++
+  4 files changed, 103 insertions(+), 55 deletions(-)
+
+-- 
+http://palosaari.fi/
