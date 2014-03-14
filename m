@@ -1,112 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1389 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751452AbaCCD15 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Mar 2014 22:27:57 -0500
-Received: from tschai.lan (209.80-203-20.nextgentel.com [80.203.20.209] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id s233RsuM036785
-	for <linux-media@vger.kernel.org>; Mon, 3 Mar 2014 04:27:56 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (tschai [192.168.1.10])
-	by tschai.lan (Postfix) with ESMTPSA id EF1042A0232
-	for <linux-media@vger.kernel.org>; Mon,  3 Mar 2014 04:27:43 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:33942 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753355AbaCNAOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 20:14:48 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20140303032743.EF1042A0232@tschai.lan>
-Date: Mon,  3 Mar 2014 04:27:43 +0100 (CET)
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 04/17] e4000: implement PLL lock v4l control
+Date: Fri, 14 Mar 2014 02:14:18 +0200
+Message-Id: <1394756071-22410-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
+References: <1394756071-22410-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Implement PLL lock control to get PLL lock flag status from tuner
+synthesizer.
 
-Results of the daily build of media_tree:
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/e4000.c      | 53 ++++++++++++++++++++++++++++++++++++++-
+ drivers/media/tuners/e4000_priv.h |  2 ++
+ 2 files changed, 54 insertions(+), 1 deletion(-)
 
-date:		Mon Mar  3 04:00:26 CET 2014
-git branch:	test
-git hash:	a06b429df49bb50ec1e671123a45147a1d1a6186
-gcc version:	i686-linux-gcc (GCC) 4.8.2
-sparse version:	0.4.5-rc1
-host hardware:	x86_64
-host os:	3.12-6.slh.2-amd64
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index ae52a1f..ed2f635 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -181,6 +181,8 @@ static int e4000_init(struct dvb_frontend *fe)
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
++	priv->active = true;
++
+ 	return 0;
+ err:
+ 	if (fe->ops.i2c_gate_ctrl)
+@@ -197,6 +199,8 @@ static int e4000_sleep(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&priv->client->dev, "%s:\n", __func__);
+ 
++	priv->active = false;
++
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+@@ -512,6 +516,50 @@ err:
+ 	return ret;
+ }
+ 
++static int e4000_pll_lock(struct dvb_frontend *fe)
++{
++	struct e4000_priv *priv = fe->tuner_priv;
++	int ret;
++	u8 u8tmp;
++
++	if (priv->active == false)
++		return 0;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	ret = e4000_rd_reg(priv, 0x07, &u8tmp);
++	if (ret)
++		goto err;
++
++	priv->pll_lock->val = (u8tmp & 0x01);
++err:
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	if (ret)
++		dev_dbg(&priv->client->dev, "%s: failed=%d\n", __func__, ret);
++
++	return ret;
++}
++
++static int e4000_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct e4000_priv *priv =
++			container_of(ctrl->handler, struct e4000_priv, hdl);
++	int ret;
++
++	switch (ctrl->id) {
++	case  V4L2_CID_RF_TUNER_PLL_LOCK:
++		ret = e4000_pll_lock(priv->fe);
++		break;
++	default:
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
+ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct e4000_priv *priv =
+@@ -550,6 +598,7 @@ static int e4000_s_ctrl(struct v4l2_ctrl *ctrl)
+ }
+ 
+ static const struct v4l2_ctrl_ops e4000_ctrl_ops = {
++	.g_volatile_ctrl = e4000_g_volatile_ctrl,
+ 	.s_ctrl = e4000_s_ctrl,
+ };
+ 
+@@ -613,7 +662,7 @@ static int e4000_probe(struct i2c_client *client,
+ 		goto err;
+ 
+ 	/* Register controls */
+-	v4l2_ctrl_handler_init(&priv->hdl, 8);
++	v4l2_ctrl_handler_init(&priv->hdl, 9);
+ 	priv->bandwidth_auto = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+ 			V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
+ 	priv->bandwidth = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+@@ -634,6 +683,8 @@ static int e4000_probe(struct i2c_client *client,
+ 	priv->if_gain = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
+ 			V4L2_CID_RF_TUNER_IF_GAIN, 0, 54, 1, 0);
+ 	v4l2_ctrl_auto_cluster(2, &priv->if_gain_auto, 0, false);
++	priv->pll_lock = v4l2_ctrl_new_std(&priv->hdl, &e4000_ctrl_ops,
++			V4L2_CID_RF_TUNER_PLL_LOCK,  0, 1, 1, 0);
+ 	if (priv->hdl.error) {
+ 		ret = priv->hdl.error;
+ 		dev_err(&priv->client->dev, "Could not initialize controls\n");
+diff --git a/drivers/media/tuners/e4000_priv.h b/drivers/media/tuners/e4000_priv.h
+index e2ad54f..3ddd980 100644
+--- a/drivers/media/tuners/e4000_priv.h
++++ b/drivers/media/tuners/e4000_priv.h
+@@ -30,6 +30,7 @@ struct e4000_priv {
+ 	u32 clock;
+ 	struct dvb_frontend *fe;
+ 	struct v4l2_subdev sd;
++	bool active;
+ 
+ 	/* Controls */
+ 	struct v4l2_ctrl_handler hdl;
+@@ -41,6 +42,7 @@ struct e4000_priv {
+ 	struct v4l2_ctrl *mixer_gain;
+ 	struct v4l2_ctrl *if_gain_auto;
+ 	struct v4l2_ctrl *if_gain;
++	struct v4l2_ctrl *pll_lock;
+ };
+ 
+ struct e4000_pll {
+-- 
+1.8.5.3
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12-i686: OK
-linux-3.13-i686: OK
-linux-3.14-rc1-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12-x86_64: OK
-linux-3.13-x86_64: OK
-linux-3.14-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse version:	0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
