@@ -1,127 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:44643 "EHLO smtp1-g21.free.fr"
+Received: from mail.kapsi.fi ([217.30.184.167]:47178 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753796AbaCMRR5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Mar 2014 13:17:57 -0400
-From: Denis Carikli <denis@eukrea.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: =?UTF-8?q?Eric=20B=C3=A9nard?= <eric@eukrea.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
+	id S1752487AbaCNAOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Mar 2014 20:14:48 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
 	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-	Denis Carikli <denis@eukrea.com>
-Subject: [PATCH v11][ 02/12] imx-drm: Add RGB666 support for parallel display.
-Date: Thu, 13 Mar 2014 18:17:23 +0100
-Message-Id: <1394731053-6118-2-git-send-email-denis@eukrea.com>
-In-Reply-To: <1394731053-6118-1-git-send-email-denis@eukrea.com>
-References: <1394731053-6118-1-git-send-email-denis@eukrea.com>
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 10/17] rtl28xxu: use muxed RTL2832 I2C adapters for E4000 and RTL2832_SDR
+Date: Fri, 14 Mar 2014 02:14:24 +0200
+Message-Id: <1394756071-22410-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1394756071-22410-1-git-send-email-crope@iki.fi>
+References: <1394756071-22410-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Denis Carikli <denis@eukrea.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+RTL2832 driver provides muxed I2C adapters for tuner bus I2C gate
+control. Pass those adapters to rtl2832_sdr and e4000 modules in order
+to get rid of proprietary DVB .i2c_gate_ctrl() callback use.
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-ChangeLog v8->v9:
-- Rebased.
-- Added Philipp Zabel's ack.
-- Shortened the patch title.
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 10 ++++++++--
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-ChangeLog v8->v9:
-- Removed the Cc. They are now set in git-send-email directly.
-- Rebased.
-
-ChangeLog v7->v8:
-- Shrinked even more the Cc list.
-
-ChangeLog v6->v7:
-- Shrinked even more the Cc list.
-
-ChangeLog v5->v6:
-- Remove people not concerned by this patch from the Cc list.
-
-ChangeLog v3->v5:
-- Use the correct RGB order.
-
-ChangeLog v2->v3:
-- Added some interested people in the Cc list.
-- Removed the commit message long desciption that was just a copy of the short
-  description.
-- Rebased the patch.
-- Fixed a copy-paste error in the ipu_dc_map_clear parameter.
----
- .../bindings/staging/imx-drm/fsl-imx-drm.txt       |    3 ++-
- drivers/staging/imx-drm/ipu-v3/ipu-dc.c            |    9 +++++++++
- drivers/staging/imx-drm/parallel-display.c         |    2 ++
- 3 files changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-index 3be5ce7..83137ef 100644
---- a/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-+++ b/Documentation/devicetree/bindings/staging/imx-drm/fsl-imx-drm.txt
-@@ -60,7 +60,8 @@ Required properties:
- - compatible: Should be "fsl,imx-parallel-display"
- Optional properties:
- - interface_pix_fmt: How this display is connected to the
--  display interface. Currently supported types: "rgb24", "rgb565", "bgr666"
-+  display interface. Currently supported types: "rgb24", "rgb565", "bgr666",
-+  "rgb666"
- - edid: verbatim EDID data block describing attached display.
- - ddc: phandle describing the i2c bus handling the display data
-   channel
-diff --git a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-index d5de8bb..6f9abe8 100644
---- a/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-+++ b/drivers/staging/imx-drm/ipu-v3/ipu-dc.c
-@@ -92,6 +92,7 @@ enum ipu_dc_map {
- 	IPU_DC_MAP_GBR24, /* TVEv2 */
- 	IPU_DC_MAP_BGR666,
- 	IPU_DC_MAP_BGR24,
-+	IPU_DC_MAP_RGB666,
- };
- 
- struct ipu_dc {
-@@ -155,6 +156,8 @@ static int ipu_pixfmt_to_map(u32 fmt)
- 		return IPU_DC_MAP_BGR666;
- 	case V4L2_PIX_FMT_BGR24:
- 		return IPU_DC_MAP_BGR24;
-+	case V4L2_PIX_FMT_RGB666:
-+		return IPU_DC_MAP_RGB666;
- 	default:
- 		return -EINVAL;
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index f51949e..c83c16c 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -774,6 +774,9 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 		goto err;
  	}
-@@ -404,6 +407,12 @@ int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
- 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 1, 15, 0xff); /* green */
- 	ipu_dc_map_config(priv, IPU_DC_MAP_BGR24, 0, 23, 0xff); /* blue */
  
-+	/* rgb666 */
-+	ipu_dc_map_clear(priv, IPU_DC_MAP_RGB666);
-+	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 0, 5, 0xfc); /* blue */
-+	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 1, 11, 0xfc); /* green */
-+	ipu_dc_map_config(priv, IPU_DC_MAP_RGB666, 2, 17, 0xfc); /* red */
++	/* RTL2832 I2C repeater */
++	priv->demod_i2c_adapter = rtl2832_get_i2c_adapter(adap->fe[0]);
 +
- 	return 0;
- }
+ 	/* set fe callback */
+ 	adap->fe[0]->callback = rtl2832u_frontend_callback;
  
-diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-drm/parallel-display.c
-index c60b6c6..01b7ce5 100644
---- a/drivers/staging/imx-drm/parallel-display.c
-+++ b/drivers/staging/imx-drm/parallel-display.c
-@@ -219,6 +219,8 @@ static int imx_pd_bind(struct device *dev, struct device *master, void *data)
- 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB565;
- 		else if (!strcmp(fmt, "bgr666"))
- 			imxpd->interface_pix_fmt = V4L2_PIX_FMT_BGR666;
-+		else if (!strcmp(fmt, "rgb666"))
-+			imxpd->interface_pix_fmt = V4L2_PIX_FMT_RGB666;
- 	}
+@@ -922,6 +925,8 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		break;
+ 	case TUNER_RTL2832_E4000: {
+ 			struct v4l2_subdev *sd;
++			struct i2c_adapter *i2c_adap_internal =
++					rtl2832_get_private_i2c_adapter(adap->fe[0]);
+ 			struct e4000_config e4000_config = {
+ 				.fe = adap->fe[0],
+ 				.clock = 28800000,
+@@ -932,7 +937,7 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 			info.platform_data = &e4000_config;
  
- 	panel_node = of_parse_phandle(np, "fsl,panel", 0);
+ 			request_module(info.type);
+-			client = i2c_new_device(&d->i2c_adap, &info);
++			client = i2c_new_device(priv->demod_i2c_adapter, &info);
+ 			if (client == NULL || client->dev.driver == NULL)
+ 				break;
+ 
+@@ -943,10 +948,11 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ 			priv->client = client;
+ 			sd = i2c_get_clientdata(client);
++			i2c_set_adapdata(i2c_adap_internal, d);
+ 
+ 			/* attach SDR */
+ 			dvb_attach(rtl2832_sdr_attach, adap->fe[0],
+-					&d->i2c_adap,
++					i2c_adap_internal,
+ 					&rtl28xxu_rtl2832_e4000_config, sd);
+ 		}
+ 		break;
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index 367aca1..a26cab1 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -55,6 +55,7 @@ struct rtl28xxu_priv {
+ 	u8 tuner;
+ 	char *tuner_name;
+ 	u8 page; /* integrated demod active register page */
++	struct i2c_adapter *demod_i2c_adapter;
+ 	bool rc_active;
+ 	struct i2c_client *client;
+ };
 -- 
-1.7.9.5
+1.8.5.3
 
