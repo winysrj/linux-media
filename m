@@ -1,130 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39554 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989AbaCQNZZ (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:58915 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754804AbaCNXGy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Mar 2014 09:25:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [REVIEWv2 PATCH for v3.15 2/4] videobuf2-core: fix sparse errors.
-Date: Mon, 17 Mar 2014 14:27:03 +0100
-Message-ID: <6139306.NdSWdZMQQM@avalon>
-In-Reply-To: <5326EEE7.70707@xs4all.nl>
-References: <5326D540.7080805@xs4all.nl> <6449458.ttdRkGWNIv@avalon> <5326EEE7.70707@xs4all.nl>
+	Fri, 14 Mar 2014 19:06:54 -0400
+Received: by mail-wi0-f174.google.com with SMTP id d1so166394wiv.7
+        for <linux-media@vger.kernel.org>; Fri, 14 Mar 2014 16:06:52 -0700 (PDT)
+From: James Hogan <james@albanarts.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>
+Cc: linux-media@vger.kernel.org, James Hogan <james@albanarts.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@redhat.com>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v2 0/9] rc: Add IR encode based wakeup filtering
+Date: Fri, 14 Mar 2014 23:04:10 +0000
+Message-Id: <1394838259-14260-1-git-send-email-james@albanarts.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+A recent discussion about proposed interfaces for setting up the
+hardware wakeup filter lead to the conclusion that it could help to have
+the generic capability to encode and modulate scancodes into raw IR
+events so that drivers for hardware with a low level wake filter (on the
+level of pulse/space durations) can still easily implement the higher
+level scancode interface that is proposed.
 
-On Monday 17 March 2014 13:47:35 Hans Verkuil wrote:
-> On 03/17/2014 01:41 PM, Laurent Pinchart wrote:
-> > On Monday 17 March 2014 13:32:44 Hans Verkuil wrote:
-> >> On 03/17/2014 01:26 PM, Laurent Pinchart wrote:
-> >>> On Monday 17 March 2014 11:58:08 Hans Verkuil wrote:
-> >>>> (Fixed typo pointed out by Pawel, but more importantly made an
-> >>>> additional change to __qbuf_dmabuf. See last paragraph in the commit
-> >>>> log)
-> >>> 
-> >>> [snip]
-> >>> 
-> >>>> I made one other change: in __qbuf_dmabuf the result of the memop call
-> >>>> attach_dmabuf() is checked by IS_ERR() instead of IS_ERR_OR_NULL().
-> >>>> Since the call_ptr_memop macro checks for IS_ERR_OR_NULL and since a
-> >>>> NULL pointer makes no sense anyway, I've changed the IS_ERR to
-> >>>> IS_ERR_OR_NULL to remain consistent, both with the call_ptr_memop
-> >>>> macro, but also with all other cases where a pointer is checked.
-> >>> 
-> >>> Could you please split this to a separate patch ?
-> >>> 
-> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> ---
-> >>>> 
-> >>>>  drivers/media/v4l2-core/videobuf2-core.c | 215 +++++++++++++----------
-> >>>>  1 file changed, 132 insertions(+), 83 deletions(-)
-> >>>> 
-> >>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> >>>> b/drivers/media/v4l2-core/videobuf2-core.c index f9059bb..fb1ee86
-> >>>> 100644
-> >>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >>> 
-> >>> [snip]
-> >>> 
-> >>>> @@ -1401,12 +1458,11 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb,
-> >>>> const struct v4l2_buffer *b) memset(&vb->v4l2_planes[plane], 0,
-> >>>> sizeof(struct v4l2_plane));
-> >>>> 
-> >>>>  		/* Acquire each plane's memory */
-> >>>> 
-> >>>> -		mem_priv = call_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
-> >>>> +		mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
-> >>>> 
-> >>>>  			dbuf, planes[plane].length, write);
-> >>>> 
-> >>>> -		if (IS_ERR(mem_priv)) {
-> >>>> +		if (IS_ERR_OR_NULL(mem_priv)) {
-> >>>> 
-> >>>>  			dprintk(1, "qbuf: failed to attach dmabuf\n");
-> >>>> 
-> >>>> -			fail_memop(vb, attach_dmabuf);
-> >>>> -			ret = PTR_ERR(mem_priv);
-> >>>> +			ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
-> >>> 
-> >>> That gets confusing. Wouldn't it be better to switch the other memop
-> >>> calls that return pointers to return an ERR_PTR() in error cases instead
-> >>> of NULL ?
-> >> 
-> >> I don't see why it is confusing as long as everyone sticks to the same
-> >> scheme.
-> > 
-> > Because that would be mixing two schemes. For one thing, the -EINVAL error
-> > code above is arbitrary. The construct is also confusing, and it would be
-> > easy to write
-> > 
-> > 	if (IS_ERR_OR_NULL(foo)) {
-> > 		...
-> > 		ret = PTR_ERR(foo);
-> > 		...
-> > 
-> > which would return success even though an error occurs. That error will be
-> > more difficult to debug than accepting a NULL pointer by mistake, which
-> > would result in an oops pretty soon.
-> 
-> I don't want an oops, I want an error. It all goes through videobuf2-core,
-> so this should be handled there.
+I posted an RFC patchset showing how this could work, and Antti Seppälä
+posted additional patches to support rc5-sz and nuvoton-cir. This
+patchset improves the original RFC patches and combines & updates
+Antti's patches.
 
-A NULL pointer returned by a memop is a bug in the videobuf2 memop 
-implementation. It's in my opinion a problem that will be caught during 
-development. We of course want to make sure it will be caught.
+I'm happy these patches are a good start at tackling the problem, as
+long as Antti is happy with them and they work for him of course.
 
-> >> I actually prefer this way, since it is more robust as it will catch
-> >> cases where the memop unintentionally returned NULL. If I would just
-> >> check for IS_ERR, then that would be missed. Especially in a core piece
-> >> of code like this I'd like to err on the robust side.
-> > 
-> > You can always add a WARN_ON(mem_priv == NULL) if you really want to catch
-> > that.
-> > 
-> >>>>  			dma_buf_put(dbuf);
-> >>>>  			goto err;
-> >>>>  		
-> >>>>  		}
-> 
-> I'm not going to make such relatively large changes for 3.15. If you want to
-> make a patch for 3.16, that's fine.
+Future work could include:
+ - Encoders for more protocols.
+ - Carrier signal events (no use unless a driver makes use of it).
 
-Isn't Mauro's tree closed for v3.15 anyway ?
+Patch 1 adds the new encode API.
+Patches 2-3 adds some modulation helpers.
+Patches 4-6 adds some raw encode implementations.
+Patch 7 adds some rc-core support for encode based wakeup filtering.
+Patch 8 adds debug loopback of encoded scancode when filter set.
+Patch 9 (untested) adds encode based wakeup filtering to nuvoton-cir.
 
-> At the moment I am only concerned with fixing the sparse errors that were
-> introduced.
+Changes in v2:
+
+Patchset:
+ - Alter encode API to return -ENOBUFS when there isn't enough buffer
+   space. When this occurs all buffer contents must have been written
+   with the partial encoding of the scancode. This is to allow drivers
+   such as nuvoton-cir to provide a shorter buffer and still get a
+   useful partial encoding for the wakeup pattern.
+ - Added RC-5 & RC-5X encoder.
+ - Add encode_wakeup support which keeps allowed wakeup protocols in
+   sync with registered encoders.
+
+Pulse-distance modulation helper:
+ - Update ir_raw_gen_pd() with a kerneldoc comment and individual buffer
+   full checks rather than a single one at the beginning, in order to
+   support -ENOBUFS properly.
+ - Update ir_raw_gen_pulse_space() to check the number of free slots and
+   fill as many as possible before returning -ENOBUFS.
+ - Fix brace placement for timings struct.
+
+Manchester encoding helper:
+ - Add kerneldoc comment.
+ - Add individual buffer full checks, in order to support -ENOBUFS
+   properly.
+ - Make i unsigned to theoretically support all 32bits of data.
+ - Increment *ev at end so caller can calculate correct number of
+   events (during the loop *ev points to the last written event to allow
+   it to be extended in length).
+ - Make start/leader pulse optional, continuing from (*ev)[-1] if
+   disabled. This helps support rc-5x which has a space in the middle of
+   the bits.
+
+rc5-sz encoder:
+ - Turn ir_rc5_sz_encode() comment into kerneldoc and update to reflect
+   new API.
+ - Be more flexible around accepted scancode masks, as long as all the
+   important bits are set (0x2fff) and none of the unimportant bits are
+   set in the data. Also mask off the unimportant bits before passing to
+   ir_raw_gen_manchester().
+ - Explicitly enable leader bit in Manchester modulation timings.
+
+rc-loopback:
+ - Move img-ir-raw test code to rc-loopback.
+ - Set encode_wakeup so that the set of allowed wakeup protocols matches
+   the set of raw IR encoders.
+
+nuvoton-cir:
+ - Change reference to rc_dev::enabled_protocols to
+   enabled_protocols[type] since it has been converted to an array.
+ - Fix IR encoding buffer loop condition to be i < ret rather than i <=
+   ret. The return value of ir_raw_encode_scancode is the number of
+   events rather than the last event.
+ - Set encode_wakeup so that the set of allowed wakeup protocols matches
+   the set of raw IR encoders.
+
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Seppälä <a.seppala@gmail.com>
+Cc: David Härdeman <david@hardeman.nu>
+Cc: Jarod Wilson <jarod@redhat.com>
+Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+
+Antti Seppälä (3):
+  rc: ir-raw: Add Manchester encoder (phase encoder) helper
+  rc: ir-rc5-sz-decoder: Add ir encoding support
+  rc: nuvoton-cir: Add support for writing wakeup samples via sysfs
+    filter callback
+
+James Hogan (6):
+  rc: ir-raw: Add scancode encoder callback
+  rc: ir-raw: Add pulse-distance modulation helper
+  rc: ir-nec-decoder: Add encode capability
+  rc: ir-rc5-decoder: Add encode capability
+  rc: rc-core: Add support for encode_wakeup drivers
+  rc: rc-loopback: Add loopback of filter scancodes
+
+ drivers/media/rc/ir-nec-decoder.c    |  93 +++++++++++++++++
+ drivers/media/rc/ir-raw.c            | 191 +++++++++++++++++++++++++++++++++++
+ drivers/media/rc/ir-rc5-decoder.c    | 103 +++++++++++++++++++
+ drivers/media/rc/ir-rc5-sz-decoder.c |  45 +++++++++
+ drivers/media/rc/nuvoton-cir.c       | 123 ++++++++++++++++++++++
+ drivers/media/rc/nuvoton-cir.h       |   1 +
+ drivers/media/rc/rc-core-priv.h      |  85 ++++++++++++++++
+ drivers/media/rc/rc-loopback.c       |  39 +++++++
+ drivers/media/rc/rc-main.c           |  11 +-
+ include/media/rc-core.h              |   7 ++
+ 10 files changed, 695 insertions(+), 3 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.2
 
